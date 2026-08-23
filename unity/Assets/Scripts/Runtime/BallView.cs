@@ -4,15 +4,32 @@ namespace GrandSluggers.UnityClient
 {
     public sealed class BallView : MonoBehaviour
     {
+        Transform _home;
         Transform _root;
         GameObject _ball;
         TrailRenderer _trail;
         Light _glow;
+        Transform _shadow;
+        Transform _puff;
+        readonly Transform[] _bits = new Transform[6];
         string _look = "";
+        Transform _held;
+        float _lastY = 4f;
+        bool _hadY;
+        float _puffT = -1f;
+
+        public bool Held => _held != null;
 
         public void Build(Transform parent)
         {
             if (_root != null) Destroy(_root.gameObject);
+            if (_shadow != null) Destroy(_shadow.gameObject);
+            if (_puff != null) Destroy(_puff.gameObject);
+            _home = parent;
+            _held = null;
+            _hadY = false;
+            _puffT = -1f;
+
             _root = new GameObject("Ball").transform;
             _root.SetParent(parent, false);
             _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -38,19 +55,80 @@ namespace GrandSluggers.UnityClient
             _glow.range = 18f;
             _glow.intensity = 0f;
             _glow.color = Colors.EmberFire;
+
+            var dirt = Look.Unlit(new Color(0.12f, 0.1f, 0.08f, 0.55f));
+            _shadow = Look.Prim(PrimitiveType.Cylinder, "BallShadow", parent,
+                new Vector3(0, 0.05f, 0), new Vector3(1.8f, 0.04f, 1.8f), dirt).transform;
+            _shadow.gameObject.SetActive(false);
+
+            _puff = new GameObject("HopPuff").transform;
+            _puff.SetParent(parent, false);
+            var dust = Look.Unlit(new Color(0.48f, 0.34f, 0.18f, 0.85f));
+            Look.Prim(PrimitiveType.Cylinder, "Cloud", _puff, Vector3.zero, new Vector3(1.4f, 0.1f, 1.4f), dust);
+            for (var i = 0; i < _bits.Length; i++)
+            {
+                _bits[i] = Look.Prim(PrimitiveType.Cube, "Bit" + i, _puff, Vector3.zero,
+                    new Vector3(0.38f, 0.22f, 0.3f), Look.Lit(new Color(0.42f, 0.28f, 0.12f), smooth: 0.08f)).transform;
+            }
+            _puff.gameObject.SetActive(false);
         }
 
         public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat)
         {
             if (_root == null) return;
-            _root.position = p;
             _root.gameObject.SetActive(true);
+
+            if (_held == null)
+            {
+                _root.position = p;
+                StampShadow(p);
+                MaybeHopPuff(p);
+            }
+            else
+            {
+                _root.localPosition = new Vector3(0f, 0.12f, 0.18f);
+                _root.localRotation = Quaternion.identity;
+                if (_shadow != null) _shadow.gameObject.SetActive(false);
+            }
+
+            TickPuff();
 
             var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat;
             if (key != _look || starPitch == "prismball")
             {
                 _look = key;
                 ApplyLook(starPitch, pitchType, inPlayHeat);
+            }
+        }
+
+        public void Hold(Transform glove)
+        {
+            if (_root == null || glove == null) return;
+            _held = glove;
+            _root.SetParent(glove, false);
+            _root.localPosition = new Vector3(0f, 0.12f, 0.18f);
+            _root.localRotation = Quaternion.identity;
+            _root.localScale = Vector3.one;
+            if (_trail != null)
+            {
+                _trail.Clear();
+                _trail.emitting = false;
+            }
+            if (_shadow != null) _shadow.gameObject.SetActive(false);
+        }
+
+        public void Release()
+        {
+            if (_root == null || _held == null) return;
+            var world = _root.position;
+            _root.SetParent(_home, true);
+            _root.position = world;
+            _root.localScale = Vector3.one;
+            _held = null;
+            if (_trail != null)
+            {
+                _trail.Clear();
+                _trail.emitting = true;
             }
         }
 
@@ -131,8 +209,65 @@ namespace GrandSluggers.UnityClient
 
         public void Hide()
         {
+            Release();
             if (_root != null) _root.gameObject.SetActive(false);
+            if (_shadow != null) _shadow.gameObject.SetActive(false);
+            if (_puff != null) _puff.gameObject.SetActive(false);
             _look = "";
+            _hadY = false;
+        }
+
+        void StampShadow(Vector3 p)
+        {
+            if (_shadow == null) return;
+            var h = Mathf.Max(0f, p.y);
+            var s = Mathf.Lerp(2.4f, 0.65f, Mathf.Clamp01(h / 38f));
+            _shadow.position = new Vector3(p.x, 0.05f, p.z);
+            _shadow.localScale = new Vector3(s, 0.05f, s);
+            _shadow.gameObject.SetActive(true);
+        }
+
+        void MaybeHopPuff(Vector3 p)
+        {
+            if (_hadY && _lastY > 0.45f && p.y < 0.22f)
+                BurstPuff(p);
+            _lastY = p.y;
+            _hadY = true;
+        }
+
+        void BurstPuff(Vector3 p)
+        {
+            if (_puff == null) return;
+            _puffT = 0f;
+            _puff.position = new Vector3(p.x, 0.08f, p.z);
+            _puff.gameObject.SetActive(true);
+            for (var i = 0; i < _bits.Length; i++)
+            {
+                if (_bits[i] == null) continue;
+                var a = i * (Mathf.PI * 2f / _bits.Length);
+                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * 0.4f, 0.12f, Mathf.Sin(a) * 0.4f);
+            }
+        }
+
+        void TickPuff()
+        {
+            if (_puffT < 0f || _puff == null) return;
+            _puffT += Time.deltaTime;
+            var u = Mathf.Clamp01(_puffT / 0.38f);
+            if (u >= 1f)
+            {
+                _puff.gameObject.SetActive(false);
+                _puffT = -1f;
+                return;
+            }
+            _puff.localScale = new Vector3(1.1f + 4.2f * u, 0.12f + 0.2f * (1f - u), 1.1f + 4.2f * u);
+            for (var i = 0; i < _bits.Length; i++)
+            {
+                if (_bits[i] == null) continue;
+                var a = i * (Mathf.PI * 2f / _bits.Length);
+                var r = 0.4f + 2.4f * u;
+                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * r, 0.12f + 1.4f * u * (1f - u), Mathf.Sin(a) * r);
+            }
         }
     }
 }

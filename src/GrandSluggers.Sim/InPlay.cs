@@ -51,4 +51,15 @@ public static class InPlay
         var tThrow = ThrowSec(dist, field.Throw) + KnockbackSec(Energy(hit), field.Fielder);
         return left < tThrow;
     }
+
+    /// <summary>
+    /// Bags to throw in order on a hopper. Force at second, then first when the batter is out.
+    /// Empty when the batter already beat the play and nobody is on first.
+    /// </summary>
+    public static int[] GroundThrowBags(bool firstOccupied, bool batterBeatsThrow)
+    {
+        if (firstOccupied)
+            return batterBeatsThrow ? [2] : [2, 1];
+        return batterBeatsThrow ? [] : [1];
+    }
 }
