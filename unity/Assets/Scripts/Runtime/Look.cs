@@ -6,7 +6,7 @@ namespace GrandSluggers.UnityClient
 {
     public static class Look
     {
-        static Shader _lit;
+        static Shader _lit, _toon;
         static Texture2D _grass, _dirt, _crowd, _rio, _vale, _zig, _brondo, _konga, _ashlord;
 
         public static Shader LitShader
@@ -71,11 +71,33 @@ namespace GrandSluggers.UnityClient
             return m;
         }
 
-        /// <summary>Saturated, matte cartoon fill — one look for bodies and park trim.</summary>
+        public static Shader ToonShader
+        {
+            get
+            {
+                if (_toon == null)
+                    _toon = Shader.Find("GrandSluggers/ToonFill");
+                return _toon;
+            }
+        }
+
+        /// <summary>Two-tone ramp fill — Harbor trim and bodies. Falls back to matte Lit.</summary>
         public static Material Toon(Color color)
         {
-            var c = Color.Lerp(color, Color.white, 0.06f);
-            return Lit(new Color(Mathf.Min(1f, c.r * 1.1f), Mathf.Min(1f, c.g * 1.08f), Mathf.Min(1f, c.b * 1.05f), 1f), smooth: 0.04f);
+            var c = Color.Lerp(color, Color.white, 0.08f);
+            c = new Color(Mathf.Min(1f, c.r * 1.18f), Mathf.Min(1f, c.g * 1.12f), Mathf.Min(1f, c.b * 1.08f), 1f);
+            var shadow = Color.Lerp(c, new Color(0.16f, 0.12f, 0.22f), 0.42f);
+            var sh = ToonShader;
+            if (sh != null)
+            {
+                var m = new Material(sh);
+                if (m.HasProperty("_Color")) m.SetColor("_Color", c);
+                if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
+                if (m.HasProperty("_ShadowTint")) m.SetColor("_ShadowTint", shadow);
+                if (m.HasProperty("_Rim")) m.SetColor("_Rim", new Color(0.07f, 0.06f, 0.09f, 1f));
+                return m;
+            }
+            return Lit(c, smooth: 0.04f);
         }
 
         public static Material Unlit(Color color)
