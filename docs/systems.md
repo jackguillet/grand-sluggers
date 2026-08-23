@@ -2,7 +2,7 @@
 
 How Grand Sluggers plays, independent of Unity. Numbers here are **starting points**; the sim in `src/` is the executable spec.
 
-Presentation feel (camera shots, charge seconds, smash freeze) lives in `data/feel/` and is loaded with the catalog. Baseball rules stay in Sim.
+Presentation feel (camera shots, charge seconds, smash freeze) lives in `data/feel/`. Art slots (skins, clips, VFX, audio, park kits) live in `data/art/`. Baseball rules stay in Sim. See `docs/art-rails.md`.
 
 ## Match shape
 
