@@ -52,7 +52,7 @@ public static class Hud
         Raylib.DrawText("WASD           field / spray", 100, 376, 22, Palette.HudInk);
         Raylib.DrawText("1 2 3 H        throw to a bag", 100, 404, 22, Palette.HudInk);
         Raylib.DrawText("F              buddy jump    R  new pitcher", 100, 432, 22, Palette.HudInk);
-        Raylib.DrawText("C              Harbor / Crystal Rink     T  2P", 100, 460, 22, Palette.HudInk);
+        Raylib.DrawText("C              cycle park     T  2P", 100, 460, 22, Palette.HudInk);
         Raylib.DrawText("P2: IJKL move, ENTER swing, P star, ; jump", 100, 488, 20, Palette.HudInk);
         Raylib.DrawText("Press SPACE to play", 84, 540, 28, Palette.SparkDark);
     }
@@ -60,9 +60,11 @@ public static class Hud
     public static void DrawLineup(Match match, int w)
     {
         Raylib.DrawText("TEAM SHEET", 64, 36, 36, Palette.HudInk);
-        Raylib.DrawText($"Harbor Diamond  ·  {match.Innings} innings", 66, 80, 20, Palette.HudInk);
-        DrawRoster(match, match.Home, true, 64, 130);
-        DrawRoster(match, match.Away, false, 640, 130);
+        Raylib.DrawText($"{match.Park.Name}  ·  {match.Innings} innings", 66, 80, 20, Palette.HudInk);
+        Raylib.DrawText($"Spark bat {match.HomeBat.Name}  glove {match.HomeGlove.Name}   [B] bat  [G] glove", 66, 104, 18, Palette.Spark);
+        Raylib.DrawText($"Ember bat {match.AwayBat.Name}  glove {match.AwayGlove.Name}   [N] bat  [M] glove", 66, 126, 18, Palette.EmberFire);
+        DrawRoster(match, match.Home, true, 64, 160);
+        DrawRoster(match, match.Away, false, 640, 160);
         Raylib.DrawText("Good chemistry throws faster. A stacked group starts with more stars.", 64, 640, 20, Palette.HudInk);
         Raylib.DrawText("SPACE / A to throw out the first pitch", 64, 672, 22, Palette.SparkDark);
     }

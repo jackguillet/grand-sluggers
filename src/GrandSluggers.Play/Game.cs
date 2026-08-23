@@ -12,7 +12,7 @@ public sealed class Game : IDisposable
     readonly int _seed;
     readonly ContentCatalog _content;
     readonly string[] _pitches = ["fastball", "changeup", "curve"];
-    readonly string[] _parks = ["harbor-diamond", "crystal-rink"];
+    readonly string[] _parks = ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city"];
 
     Match _match;
     Phase _phase = Phase.Title;
@@ -112,7 +112,10 @@ public sealed class Game : IDisposable
         {
             case Phase.Title:
                 if (p1.TogglePark)
-                    _parkId = _parkId == "harbor-diamond" ? "crystal-rink" : "harbor-diamond";
+                {
+                    var pi = Array.IndexOf(_parks, _parkId);
+                    _parkId = _parks[(pi < 0 ? 0 : pi + 1) % _parks.Length];
+                }
                 if (p1.ToggleTwoPlayer) _two = !_two;
                 if (p1.ConfirmPressed || _demo && _phaseT > 0.6f)
                 {
@@ -121,6 +124,10 @@ public sealed class Game : IDisposable
                 }
                 break;
             case Phase.Lineup:
+                if (Raylib.IsKeyPressed(KeyboardKey.B)) _match.CycleBat(true);
+                if (Raylib.IsKeyPressed(KeyboardKey.G)) _match.CycleGlove(true);
+                if (Raylib.IsKeyPressed(KeyboardKey.N)) _match.CycleBat(false);
+                if (Raylib.IsKeyPressed(KeyboardKey.M)) _match.CycleGlove(false);
                 if (p1.ConfirmPressed || _demo && _phaseT > 1.4f) BeginSet();
                 break;
             case Phase.Set:
@@ -377,7 +384,7 @@ public sealed class Game : IDisposable
                 {
                     var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
                     result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
-                        pre.Heatball, pre.Furnace, thr, pre.Buddy);
+                        pre.Heatball, pre.Furnace, thr, pre.Buddy, pre.Warped);
                 }
                 else if (pre.HomeRunLikely)
                 {
@@ -454,7 +461,7 @@ public sealed class Game : IDisposable
         {
             case Phase.Title:
                 Hud.DrawTitle(w, h);
-                var park = _parkId == "crystal-rink" ? "Crystal Rink" : "Harbor Diamond";
+                var park = _content.Parks.TryGetValue(_parkId, out var pk) ? pk.Name : _parkId;
                 var mode = _two ? "2 PLAYER  (P1 Spark, P2 Ember)" : "1 PLAYER  (you are Spark)";
                 Raylib.DrawText($"Park: {park}   Mode: {mode}", 84, 580, 22, Palette.SparkDark);
                 break;

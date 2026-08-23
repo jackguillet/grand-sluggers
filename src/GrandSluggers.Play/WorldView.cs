@@ -28,13 +28,25 @@ public static class WorldView
         DrawStands();
         if (!ice) DrawHarbor();
         DrawBackstop();
-        if (ice)
+        foreach (var h in park.Hazards)
         {
-            foreach (var h in park.Hazards)
+            var p = new Vector3((float)h.X, 0, (float)h.Z);
+            switch (h.Type)
             {
-                if (h.Type != "freeze_volume") continue;
-                Raylib.DrawCylinder(new Vector3((float)h.X, 0, (float)h.Z), (float)h.Radius, (float)h.Radius * 0.6f, 4.5f, 10, Palette.C(160, 230, 255));
-                Raylib.DrawSphere(new Vector3((float)h.X, 5.2f, (float)h.Z), 1.6f, Palette.C(230, 250, 255));
+                case "freeze_volume":
+                    Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius * 0.6f, 4.5f, 10, Palette.C(160, 230, 255));
+                    Raylib.DrawSphere(new Vector3(p.X, 5.2f, p.Z), 1.6f, Palette.C(230, 250, 255));
+                    break;
+                case "warp_pipe":
+                    Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius * 0.7f, 6f, 10, Palette.C(40, 170, 70));
+                    Raylib.DrawCylinder(new Vector3(p.X, 6f, p.Z), (float)h.Radius * 1.1f, (float)h.Radius, 0.5f, 10, Palette.C(30, 120, 50));
+                    break;
+                case "billboard":
+                    Raylib.DrawCube(new Vector3(p.X, 18, p.Z), 24, 16, 2, Palette.Gold);
+                    break;
+                case "ac_unit":
+                    Raylib.DrawCube(new Vector3(p.X, 2, p.Z), 8, 4, 8, Palette.C(140, 140, 148));
+                    break;
             }
         }
     }

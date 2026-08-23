@@ -37,14 +37,14 @@ Shipped in this pass:
 - Crystal Rink (ice, freeze statues) alongside Harbor Diamond
 - Local 2-player pitcher vs batter (T on the title: P1 Spark, P2 Ember)
 
-Still light: gear is on the bats in the sim but there is no loadout screen yet.
+Gear loadout is on the team sheet (B/G Spark, N/M Ember). Four parks ship: Harbor, Crystal Rink, Funfair (warp cans), Rooftop City (star billboards).
 
-## Milestone 3 — content pass
+## Milestone 3 — content pass (started)
 
-- All 6 captains
-- ~24 characters
-- 4 parks
-- Challenge *prototype* (hub + recruit one character). Kill it if it is not fun in two days.
+- All 6 captains (in data; exhibition still Spark vs Ember)
+- ~18 role players + 6 captains
+- 4 parks playable
+- Challenge *prototype* still not started. Kill it if it is not fun in two days.
 
 ## Milestone 4 — party complete
 
