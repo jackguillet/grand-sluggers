@@ -101,6 +101,8 @@ namespace GrandSluggers.UnityClient
             Fence(park, ash);
             if (harbor)
             {
+                Cube("DirtLip", new Vector3(0, 0.16f, 62), new Vector3(152, 0.22f, 152),
+                    Look.Toon(new Color(0.62f, 0.42f, 0.24f)));
                 WarningTrack(park);
                 Backstop();
                 Dugouts();
@@ -267,6 +269,22 @@ namespace GrandSluggers.UnityClient
                 CrowdCard("CrowdR" + row, new Vector3(104 + row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
             }
             Cube("RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
+            Fans(new Vector3(-40, 5.2f, -46), new Vector3(8, 0, 0), 10);
+            Fans(new Vector3(-90, 6.4f, 20), new Vector3(0, 0, 8), 8);
+            Fans(new Vector3(90, 6.4f, 20), new Vector3(0, 0, 8), 8);
+        }
+
+        void Fans(Vector3 origin, Vector3 step, int n)
+        {
+            var jersey = new[] { Colors.Spark, Colors.Royal, Color.white, Colors.Gold };
+            for (var i = 0; i < n; i++)
+            {
+                var p = origin + step * i;
+                var body = Look.Toon(jersey[i % jersey.Length]);
+                var flesh = Look.Toon(new Color(1f, 0.8f, 0.68f));
+                Cube("Fan" + origin.x + i, p + new Vector3(0, 1.1f, 0), new Vector3(1.1f, 2.0f, 0.9f), body);
+                Cube("FanHead" + origin.x + i, p + new Vector3(0, 2.35f, 0), new Vector3(0.85f, 0.85f, 0.85f), flesh);
+            }
         }
 
         void Stands(bool ice, bool ash)

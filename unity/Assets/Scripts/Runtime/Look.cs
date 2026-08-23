@@ -71,6 +71,13 @@ namespace GrandSluggers.UnityClient
             return m;
         }
 
+        /// <summary>Saturated, matte cartoon fill — one look for bodies and park trim.</summary>
+        public static Material Toon(Color color)
+        {
+            var c = Color.Lerp(color, Color.white, 0.06f);
+            return Lit(new Color(Mathf.Min(1f, c.r * 1.1f), Mathf.Min(1f, c.g * 1.08f), Mathf.Min(1f, c.b * 1.05f), 1f), smooth: 0.04f);
+        }
+
         public static Material Unlit(Color color)
         {
             var sh = Shader.Find("Universal Render Pipeline/Unlit") ?? LitShader;
