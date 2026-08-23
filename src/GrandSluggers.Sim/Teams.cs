@@ -8,7 +8,7 @@ public static class PresetTeams
 
     public static Team EmberCourt(ContentCatalog content) => content.Team(
         "Ember Court",
-        "ashlord", "cinder", "soot", "brondo", "boom", "konga", "frost", "pip", "marlow");
+        "ashlord", "cinder", "soot", "brondo", "boom", "konga", "frost", "grit", "hex");
 
     public static Team MixedRivals(ContentCatalog content) => content.Team(
         "Mixed Rivals",

@@ -11,6 +11,9 @@ switch (cmd)
     case "at-bat":
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
+    case "match":
+        RunMatch(content, Seed(args));
+        break;
     case "chem":
         DumpChem(content, args.ElementAtOrDefault(1) ?? "rio");
         break;
@@ -28,6 +31,7 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
+              match [--seed N]
             """);
         break;
 }
@@ -72,6 +76,22 @@ static void DumpChem(ContentCatalog content, string id)
         var mark = rel == Chemistry.Good ? "+" : "-";
         Console.WriteLine($"  {mark} {other.Name,-14} {other.Faction}");
     }
+}
+
+static void RunMatch(ContentCatalog content, int seed)
+{
+    var match = Match.Slice(content, innings: 3, seed: seed);
+    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  Harbor Diamond  seed {seed}");
+    Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
+    while (!match.Over)
+    {
+        var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
+        var ev = match.AutoPlay();
+        Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+    }
+    var mvp = match.Mvp();
+    Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
+    Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
 }
 
 static void SimAtBat(ContentCatalog content, string matchup, int seed)

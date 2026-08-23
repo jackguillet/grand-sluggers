@@ -144,6 +144,38 @@
     "bio": "A mighty charge swing and a worse attitude."
   },
   {
+    "id": "grit",
+    "name": "Grit",
+    "faction": "ember",
+    "captain": false,
+    "pitch": 5,
+    "bat": 6,
+    "field": 6,
+    "run": 5,
+    "bats": "R",
+    "throws": "R",
+    "starPitch": "fastball",
+    "starSwing": "line",
+    "fieldAbility": "spin-check",
+    "bio": "Eats innings and glares."
+  },
+  {
+    "id": "hex",
+    "name": "Hex",
+    "faction": "goldrush",
+    "captain": false,
+    "pitch": 6,
+    "bat": 5,
+    "field": 4,
+    "run": 6,
+    "bats": "L",
+    "throws": "L",
+    "starPitch": "changeup",
+    "starSwing": "ground",
+    "fieldAbility": "laser",
+    "bio": "A junkballer who always knows the count."
+  },
+  {
     "id": "soot",
     "name": "Soot",
     "faction": "ember",

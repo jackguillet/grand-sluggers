@@ -1,0 +1,7 @@
+{
+  "name": "com.grandsluggers.sim",
+  "version": "0.1.0",
+  "displayName": "Grand Sluggers Sim",
+  "description": "Engine-agnostic baseball rules, chemistry, and match loop.",
+  "unity": "6000.0"
+}

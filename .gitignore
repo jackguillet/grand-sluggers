@@ -38,6 +38,11 @@ unity/ExportedObj/
 .DS_Store
 Thumbs.db
 
+# Raylib demo dumps at repo root (keep docs/images/)
+/lineup.png
+/final.png
+/harbor-diamond.png
+
 # Test / coverage
 TestResults/
 coverage/
