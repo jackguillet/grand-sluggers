@@ -2,6 +2,7 @@ using System.Numerics;
 using GrandSluggers.Sim;
 using Raylib_cs;
 
+// Debug sandbox for the sim. Player-facing presentation lives in unity/.
 namespace GrandSluggers.Play;
 
 public sealed class Game : IDisposable
@@ -95,7 +96,7 @@ public sealed class Game : IDisposable
     {
         const int w = 1600, h = 900;
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint);
-        Raylib.InitWindow(w, h, "Grand Sluggers");
+        Raylib.InitWindow(w, h, "Grand Sluggers — debug sandbox");
         Raylib.SetTargetFPS(60);
         Raylib.SetExitKey(KeyboardKey.Null);
 

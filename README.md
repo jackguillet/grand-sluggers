@@ -4,7 +4,9 @@ Arcade baseball with a cartoon roster, team chemistry, signature bats and gloves
 
 Inspired by *Mario Super Sluggers* (Wii, 2008) — **original characters and world**, not a Mario clone. The pitch is the same: a party sports game where *who you draft together* matters as much as who swings the bat.
 
-**Engine of record: Unity 6.5 (URP).** See [docs/engine-decision.md](docs/engine-decision.md). The baseball rules live in `src/GrandSluggers.Sim`. Open `unity/` in Unity **6000.5.9f1** and press Play (`Assets/Scenes/HarborDiamond.unity`) — that is the at-bat: textured Harbor Diamond, posed heroes, a camera behind the pitcher or batter, and Rio's Heatball as fire. `dotnet run --project src/GrandSluggers.Play` is the Raylib rules sandbox.
+**How you play: Unity Play.** Open `unity/` in Unity **6000.5.9f1** and press Play on `Assets/Scenes/HarborDiamond.unity`. That is the game — Harbor Diamond, posed heroes, a camera behind the pitcher or batter, captain specials on the ball and the field. See [unity/README.md](unity/README.md).
+
+The baseball rules live in `src/GrandSluggers.Sim`. Engine decision: [docs/engine-decision.md](docs/engine-decision.md). Raylib (`src/GrandSluggers.Play`) is a `dotnet run` debug sandbox for the rules, not a second product.
 
 ## Why this game
 
@@ -23,8 +25,8 @@ Nintendo has not shipped a new Mario baseball game since 2008. The slot is empty
 ```
 docs/     design, research, engine decision, systems
 data/     JSON content (roster, chemistry, parks, bats, gloves, abilities)
-src/      Sim (rules) · Play (3D slice) · Cli · Tests
-unity/    Unity 6 URP shell (open in the editor; not required to play)
+src/      Sim (rules) · Play (Raylib debug sandbox) · Cli · Tests
+unity/    Unity 6 URP client — this is how you play
 ```
 
 ![Team sheet at Harbor Diamond](docs/images/lineup.png)
@@ -33,49 +35,41 @@ unity/    Unity 6 URP shell (open in the editor; not required to play)
 
 ![Crystal Rink](docs/images/crystal-rink.png)
 
-## Play the slice
+## Play
 
-Requires a .NET SDK (8 or newer). Homebrew `dotnet` is enough (`brew install dotnet`). Gamepad or keyboard.
+**Unity is the player-facing client.** New presentation (HUD, VFX, parks, cameras, bodies) lands only under `unity/`.
+
+1. Install Unity Hub and editor **6000.5.9f1** (URP). Personal license is enough.
+2. Open the `unity/` folder. If the scene is empty, menu **Grand Sluggers → Bootstrap Scene**.
+3. Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Gamepad first; keyboard is debug.
+
+```
+SPACE / South   pitch, swing, or catch
+SHIFT / LT      charge (body pulls back)
+WASD / stick    spray the bat / move the fielder
+TAB             cycle pitch
+Q / Y           star skill
+F / East        buddy jump
+1 2 3 H         throw to 1st / 2nd / 3rd / home
+R               new pitcher
+A/D             your captain     W/S  opponent     C  park
+```
+
+Full pad map: [unity/README.md](unity/README.md).
+
+Sim tests and a headless match (no window, no presentation):
 
 ```bash
-dotnet test
-dotnet run --project src/GrandSluggers.Play
+PATH=/opt/homebrew/bin:$PATH dotnet test
+PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
 ```
 
-Title screen: **A/D** pick your captain (all six), **W/S** pick the opponent, **C** cycles all six parks. **H** starts **Challenge** (beat a rival, recruit one role player). **T** is local 2-player exhibition. On the team sheet, B/G pick home bat/glove; N/M pick away.
+### Debug sandbox (not the game)
 
-On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues and lava pits slow you down. Barrel cannons warp grounders. Clamber fielders can rob homers at Canopy Yard.
-
-```
-SPACE / A     pitch, swing, or catch
-SHIFT / LT    charge
-WASD          move the fielder / spray the bat
-TAB           cycle pitch
-Q / Y         star skill (that player's Star Pitch / Swing)
-E             banana (if on-deck buddy)
-X             steal (runner on 1st or 2nd)
-F             buddy jump
-1 2 3 H       throw to 1st / 2nd / 3rd / home
-R             new pitcher
-C             cycle park     T  two-player     H  challenge
-A/D           your captain     W/S  opponent
-ESC           quit
-```
+`src/GrandSluggers.Play` is a Raylib window for poking the rules. Do not add HUD keys or VFX there.
 
 ```bash
-dotnet run --project src/GrandSluggers.Play -- --park canopy-yard
-dotnet run --project src/GrandSluggers.Play -- --park ember-keep
-dotnet run --project src/GrandSluggers.Play -- --park crystal-rink
-dotnet run --project src/GrandSluggers.Play -- --home vale --away zig
-dotnet run --project src/GrandSluggers.Play -- --challenge --captain rio
-dotnet run --project src/GrandSluggers.Play -- --two
-```
-
-Headless autoplay (no window needed for the rules):
-
-```bash
-dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
-dotnet run --project src/GrandSluggers.Cli -- challenge --captain rio --seed 3
+PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 ```
 
 ## Docs
@@ -84,6 +78,7 @@ dotnet run --project src/GrandSluggers.Cli -- challenge --captain rio --seed 3
 | --- | --- |
 | [docs/vision.md](docs/vision.md) | What we are building and what we are not |
 | [docs/research-sluggers.md](docs/research-sluggers.md) | How Mario Super Sluggers actually works |
+| [unity/README.md](unity/README.md) | How you play (Unity editor, pad map) |
 | [docs/engine-decision.md](docs/engine-decision.md) | Unity vs Godot vs Unreal — why Unity |
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
@@ -92,4 +87,4 @@ dotnet run --project src/GrandSluggers.Cli -- challenge --captain rio --seed 3
 
 ## Status
 
-Milestone 3 is in progress. Exhibition picks any of the six captains. Challenge is a session recruit loop. Four parks, gear, fielding, local 2P. Unity 6.5 client is playable (`unity/`, editor 6000.5.9f1).
+Unity Play is the only player-facing client. Exhibition picks any of the six captains. Challenge is a session recruit loop. Six parks, gear, fielding, local 2P exist in the sim; Harbor Diamond is the presentation park. Editor: **6000.5.9f1**.
