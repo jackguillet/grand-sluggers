@@ -51,7 +51,9 @@ SPACE / A     pitch, swing, or catch
 SHIFT / LT    charge
 WASD          move the fielder / spray the bat
 TAB           cycle pitch
-Q / Y         star skill (Heatball / Furnace)
+Q / Y         star skill (that player's Star Pitch / Swing)
+E             banana (if on-deck buddy)
+X             steal (runner on 1st or 2nd)
 F             buddy jump
 1 2 3 H       throw to 1st / 2nd / 3rd / home
 R             new pitcher

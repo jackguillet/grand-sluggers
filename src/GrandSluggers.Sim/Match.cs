@@ -133,14 +133,37 @@ public sealed class Match
     }
 
     public double OffenseStars => Top ? AwayStars : HomeStars;
-    public bool CanStarPitch => (Top ? HomeStars : AwayStars) >= 1;
-    public bool CanStarSwing => OffenseStars >= 1;
+    public double DefenseStars => Top ? HomeStars : AwayStars;
+    public bool StealOn { get; private set; }
+    public bool CanSteal =>
+        !Over && Outs < 3 &&
+        ((First is not null && Second is null) || (Second is not null && Third is null));
 
-    public PlayEvent Play(PitchCommand pitch, SwingCommand swing)
+    public int StarCost(Character who, Character teamCaptain) =>
+        who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase) ? 2 : 1;
+
+    public int PitchStarCost => StarCost(Pitcher, Defense.Captain);
+    public int SwingStarCost => StarCost(Batter, Offense.Captain);
+    public bool CanStarPitch => DefenseStars >= PitchStarCost;
+    public bool CanStarSwing => OffenseStars >= SwingStarCost;
+
+    public bool ToggleSteal()
+    {
+        if (!CanSteal)
+        {
+            StealOn = false;
+            return false;
+        }
+        StealOn = !StealOn;
+        return StealOn;
+    }
+
+    public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
     {
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return finished!;
         var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove);
+        field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
     }
 
@@ -217,12 +240,23 @@ public sealed class Match
     }
 
     public ThrowResult ThrowBetween(Character from, Character to) =>
-        Content.Chemistry.FieldingThrow(from, to, _rng);
+        FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _rng));
+
+    public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem)
+    {
+        if (!hit.ChemistryItemOffered) return field;
+        if (playerItem == "") return field;
+        if (!string.IsNullOrEmpty(playerItem))
+            return ErrorItems.Apply(field, playerItem, _rng);
+        if (_rng.NextDouble() < 0.4)
+            return ErrorItems.Apply(field, ErrorItems.Pick(_rng), _rng);
+        return field;
+    }
 
     public PitchCommand CpuPitch()
     {
-        var star = CanStarPitch && Pitcher.Captain && _rng.NextDouble() < 0.12;
-        var type = _rng.NextDouble() < 0.28 ? "changeup" : _rng.NextDouble() < 0.5 ? "curve" : "fastball";
+        var star = CanStarPitch && _rng.NextDouble() < (Pitcher.Captain ? 0.14 : 0.08);
+        var type = _rng.NextDouble() < 0.22 ? "changeup" : _rng.NextDouble() < 0.22 ? "slider" : _rng.NextDouble() < 0.5 ? "curve" : "fastball";
         var charge = _rng.NextDouble() < 0.3 ? 0.75 + _rng.NextDouble() * 0.25 : 0.1 + _rng.NextDouble() * 0.35;
         var err = Gauss() * (11 - Pitcher.Stats.Pitch) * 0.42;
         if ((Top ? HomeStamina : AwayStamina) < 25) err *= 1.6;
@@ -231,10 +265,12 @@ public sealed class Match
 
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
     {
+        if (CanSteal && Batter.Stats.Run >= 7 && _rng.NextDouble() < 0.16)
+            StealOn = true;
         var chase = !inZone && _rng.NextDouble() < 0.12;
         if (!inZone && !chase)
             return new SwingCommand(false, 0, 0, false);
-        var star = CanStarSwing && Batter.Captain && inZone && _rng.NextDouble() < 0.12;
+        var star = CanStarSwing && inZone && _rng.NextDouble() < (Batter.Captain ? 0.14 : 0.08);
         var charge = _rng.NextDouble() < 0.35 ? 0.7 + _rng.NextDouble() * 0.3 : _rng.NextDouble() * 0.4;
         var err = Gauss() * (11 - Batter.Stats.Bat) * 0.62;
         if (!inZone) err += 4 * Math.Sign(err == 0 ? 1 : err);
@@ -279,19 +315,20 @@ public sealed class Match
             if (Strikes >= 2)
                 return FinishStrike(pitch, swing, empty, swinging: false);
             Strikes++;
-            return Emit(PlayKind.TakeStrike, pitch, swing, empty, $"Strike {Strikes} looking.", 0, []);
+            return AfterPitch(Emit(PlayKind.TakeStrike, pitch, swing, empty, $"Strike {Strikes} looking.", 0, []));
         }
         Balls++;
         if (Balls >= 4)
             return FinishWalk(pitch, swing, empty);
-        return Emit(PlayKind.TakeBall, pitch, swing, empty, $"Ball {Balls}.", 0, []);
+        return AfterPitch(Emit(PlayKind.TakeBall, pitch, swing, empty, $"Ball {Balls}.", 0, []));
     }
 
     PlayEvent FinishFoul(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
         if (Strikes < 2) Strikes++;
         AddMvp(Batter.Id, 0);
-        return Emit(PlayKind.Foul, pitch, swing, hit, "Foul.", 0, [], furnace: hit.StarSwingUsed == "furnace", heat: hit.StarPitchUsed == "heatball");
+        StealOn = false;
+        return Emit(PlayKind.Foul, pitch, swing, hit, "Foul.", 0, [], furnace: hit.StarSwingUsed is "furnace" or "heat-swing", heat: hit.StarPitchUsed == "heatball");
     }
 
     PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging)
@@ -300,8 +337,9 @@ public sealed class Match
         if (Strikes < 3)
         {
             var cap = swinging ? $"Strike {Strikes}." : $"Strike {Strikes} looking.";
-            return Emit(swinging ? PlayKind.SwingMiss : PlayKind.TakeStrike, pitch, swing, hit, cap, 0, []);
+            return AfterPitch(Emit(swinging ? PlayKind.SwingMiss : PlayKind.TakeStrike, pitch, swing, hit, cap, 0, []));
         }
+        StealOn = false;
         AddMvp(Pitcher.Id, 2);
         AddStars(defense: true, 0.8);
         Outs++;
@@ -314,6 +352,7 @@ public sealed class Match
 
     PlayEvent FinishWalk(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
+        StealOn = false;
         var (runs, scorers) = Advance(Batter, walk: true);
         AddMvp(Batter.Id, 1 + runs);
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers);
@@ -323,6 +362,7 @@ public sealed class Match
 
     PlayEvent FinishInPlay(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
+        StealOn = false;
         var kind = field.Kind;
         var caption = "";
         var runs = 0;
@@ -334,8 +374,8 @@ public sealed class Match
                 (runs, scorers) = ClearTheBases(Batter);
                 AddMvp(Batter.Id, 5 + runs);
                 AddStars(defense: false, 1.0);
-                caption = hit.StarSwingUsed == "furnace"
-                    ? $"{Batter.Name} FURNACE - it's gone."
+                caption = hit.StarSwingUsed is "furnace" or "heat-swing"
+                    ? $"{Batter.Name} {hit.StarSwingUsed!.ToUpperInvariant()} - it's gone."
                     : $"{Batter.Name} goes deep.";
                 NextBatter();
                 break;
@@ -379,9 +419,11 @@ public sealed class Match
                 else
                     caption = kind == PlayKind.FlyOut && field.Buddy is not null && hit.CarryFt > 260
                         ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
-                        : kind == PlayKind.FlyOut && field.Fielder is { } climber
-                          && ParkHazards.CanClamber(Park, climber) && hit.CarryFt > 260
-                            ? $"{climber.Name} CLAMBERS the wall!"
+                        : kind == PlayKind.FlyOut && field.Fielder is { } wall
+                          && ParkHazards.CanClamber(Park, wall) && hit.CarryFt > 260
+                            ? $"{wall.Name} CLAMBERS the wall!"
+                        : kind == PlayKind.FlyOut && field.Fielder?.FieldAbility == "super-jump" && hit.CarryFt > 250
+                            ? $"{field.Fielder.Name} SUPER JUMP!"
                         : kind == PlayKind.FlyOut
                             ? $"{field.Fielder?.Name} puts it away."
                             : field.Warped
@@ -399,6 +441,17 @@ public sealed class Match
         {
             AddStars(defense: false, 1);
             caption += "  Billboard STAR!";
+        }
+
+        if (field.Item is { } item)
+        {
+            caption += item switch
+            {
+                "banana" => "  Banana slip!",
+                "rocket" => "  Rocket daze!",
+                "pow" => "  POW!",
+                _ => $"  {item}!"
+            };
         }
 
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
@@ -531,16 +584,83 @@ public sealed class Match
         else AwayStamina = Math.Max(0, AwayStamina - cost);
         if (pitch.Star)
         {
-            if (Top) HomeStars = Math.Max(0, HomeStars - 1);
-            else AwayStars = Math.Max(0, AwayStars - 1);
+            var starsCost = PitchStarCost;
+            if (Top) HomeStars = Math.Max(0, HomeStars - starsCost);
+            else AwayStars = Math.Max(0, AwayStars - starsCost);
         }
     }
 
     void SpendSwing(SwingCommand swing)
     {
         if (!swing.Star) return;
-        if (Top) AwayStars = Math.Max(0, AwayStars - 1);
-        else HomeStars = Math.Max(0, HomeStars - 1);
+        var cost = SwingStarCost;
+        if (Top) AwayStars = Math.Max(0, AwayStars - cost);
+        else HomeStars = Math.Max(0, HomeStars - cost);
+    }
+
+    PlayEvent AfterPitch(PlayEvent ev) => ResolveSteal(ev);
+
+    PlayEvent ResolveSteal(PlayEvent ev)
+    {
+        if (!StealOn)
+            return ev;
+        StealOn = false;
+        if (Over || Outs >= 3)
+            return ev;
+
+        Character? runner = null;
+        var third = false;
+        if (Second is not null && Third is null)
+        {
+            runner = Second;
+            third = true;
+        }
+        else if (First is not null && Second is null)
+            runner = First;
+        if (runner is null)
+            return ev;
+
+        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var catcher = map.GetValueOrDefault("C") ?? Pitcher;
+        var gun = catcher.Stats.Field + 2.0;
+        var jump = runner.Stats.Run + Gauss() * 1.6;
+        var thr = ThrowBetween(catcher, runner);
+        if (thr.Error) gun -= 4;
+        gun += (thr.SpeedMul - 1) * 4;
+
+        PlayEvent result;
+        if (jump > gun)
+        {
+            if (third) { Third = runner; Second = null; }
+            else { Second = runner; First = null; }
+            AddMvp(runner.Id, 2);
+            AddStars(defense: false, 0.35);
+            result = ev with
+            {
+                Kind = PlayKind.StolenBase,
+                Caption = ev.Caption + $"  {runner.Name} steals {(third ? "third" : "second")}."
+            };
+        }
+        else
+        {
+            if (third) Second = null;
+            else First = null;
+            Outs++;
+            AddMvp(catcher.Id, 2);
+            AddStars(defense: true, 0.4);
+            result = ev with
+            {
+                Kind = PlayKind.CaughtStealing,
+                Caption = $"{runner.Name} caught stealing.",
+                OutsAfter = Outs
+            };
+            CheckInning();
+            result = result with { OutsAfter = Outs };
+        }
+
+        if (_log.Count > 0)
+            _log[^1] = result;
+        return result;
     }
 
     void AddStars(bool defense, double amount)
