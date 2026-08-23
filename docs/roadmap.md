@@ -43,7 +43,7 @@ Gear loadout is on the team sheet (B/G Spark, N/M Ember). Four parks ship: Harbo
 
 - All 6 captains selectable in Exhibition (A/D you, W/S opponent)
 - 18 role players + 6 captains
-- 4 parks playable (Harbor, Crystal, Funfair, Rooftop)
+- 6 parks playable (Harbor, Crystal, Funfair, Rooftop, Canopy Yard, Ember Keep)
 - Challenge prototype: pick a captain, beat a rival, recruit one role player. Session-only. Kill it if it is not fun.
 
 ## Milestone 4 — party complete

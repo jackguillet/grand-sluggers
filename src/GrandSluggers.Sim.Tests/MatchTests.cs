@@ -152,4 +152,52 @@ public class MatchTests
             Assert.True(match.Over, id);
         }
     }
+
+    [Fact]
+    public void CanopyYardHasBarrelsAndClimbWalls()
+    {
+        var park = _content.Parks["canopy-yard"];
+        Assert.Contains(park.Hazards, h => h.Type == "barrel");
+        Assert.Contains(park.Hazards, h => h.Type == "climb_wall");
+        var w = ParkHazards.WarpIfPipe(park, 22, 58, new Random(3));
+        Assert.True(w.Warped);
+        Assert.Equal("barrel cannon", ParkHazards.WarpName(park));
+        Assert.True(ParkHazards.CanClamber(park, _content.Must("konga")));
+        Assert.False(ParkHazards.CanClamber(park, _content.Must("rio")));
+    }
+
+    [Fact]
+    public void EmberKeepLavaSlowsFielders()
+    {
+        var park = _content.Parks["ember-keep"];
+        Assert.Equal("ash", park.Surface);
+        Assert.True(ParkHazards.InSlow(park, 38, 78));
+        Assert.False(ParkHazards.InSlow(park, 0, 0));
+        Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
+        Assert.Equal("canopy-yard", PresetTeams.HomeParkId("konga"));
+    }
+
+    [Fact]
+    public void ClamberRobsAJustOverFenceHomer()
+    {
+        var park = _content.Parks["canopy-yard"];
+        var fence = AtBatResolver.FenceAt(park, 0);
+        var hit = new AtBatResult(
+            ContactQuality.Perfect, true, false, 102, 28, fence + 12, true, false, null, null);
+        Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit));
+        Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit));
+        Assert.False(ParkHazards.CanClamberRob(_content.Parks["harbor-diamond"], _content.Must("konga"), hit));
+    }
+
+    [Fact]
+    public void SixParksFinishAGame()
+    {
+        foreach (var id in new[]
+                 { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" })
+        {
+            var match = Match.Exhibition(_content, "konga", "ashlord", innings: 3, seed: 8, parkId: id);
+            match.AutoPlayGame();
+            Assert.True(match.Over, id);
+        }
+    }
 }

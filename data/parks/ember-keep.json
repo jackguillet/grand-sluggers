@@ -1,0 +1,20 @@
+{
+  "id": "ember-keep",
+  "name": "Ember Keep",
+  "faction": "ember",
+  "surface": "ash",
+  "leftFenceFt": 338,
+  "centerFenceFt": 408,
+  "rightFenceFt": 338,
+  "windMph": 1,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [
+    { "type": "lava_pit", "x": 38, "z": 78, "radius": 10 },
+    { "type": "lava_pit", "x": -42, "z": 96, "radius": 10 },
+    { "type": "lava_pit", "x": 12, "z": 188, "radius": 12 },
+    { "type": "fire_breath", "x": 0, "z": 250, "radius": 16 },
+    { "type": "statue", "x": 0, "z": 310, "radius": 10 }
+  ],
+  "notes": "Lava pits and the captain statue's fire breath slow fielders the same way Crystal freezers do. Deep fences; Ashlord still goes yard."
+}

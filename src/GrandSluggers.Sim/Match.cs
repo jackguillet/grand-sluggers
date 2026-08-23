@@ -357,7 +357,7 @@ public sealed class Match
                 (runs, scorers) = AdvanceHit(Batter, 1);
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, 0.4);
-                caption = field.Warped ? $"{Batter.Name} - it hopped a warp can!"
+                caption = field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
                     : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
                     : $"{Batter.Name} singles.";
                 NextBatter();
@@ -379,10 +379,13 @@ public sealed class Match
                 else
                     caption = kind == PlayKind.FlyOut && field.Buddy is not null && hit.CarryFt > 260
                         ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
+                        : kind == PlayKind.FlyOut && field.Fielder is { } climber
+                          && ParkHazards.CanClamber(Park, climber) && hit.CarryFt > 260
+                            ? $"{climber.Name} CLAMBERS the wall!"
                         : kind == PlayKind.FlyOut
                             ? $"{field.Fielder?.Name} puts it away."
                             : field.Warped
-                                ? $"Warp can! {field.Fielder?.Name} is looking the wrong way."
+                                ? $"{ParkHazards.WarpName(Park)}! {field.Fielder?.Name} is looking the wrong way."
                                 : field.Throw is { SpeedMul: > 1.2 }
                                     ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
                                     : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";

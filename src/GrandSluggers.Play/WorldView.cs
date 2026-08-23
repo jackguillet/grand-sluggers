@@ -9,14 +9,24 @@ public static class WorldView
     public static void DrawPark(Park park, bool furnace)
     {
         var ice = park.Surface == "ice";
-        Raylib.DrawCube(new Vector3(0, -1.2f, 220), 900, 2, 900, ice ? Palette.C(190, 220, 240) : Palette.Water);
-        Raylib.DrawCube(new Vector3(0, -0.2f, 180), 560, 0.6f, 560, ice ? Palette.C(210, 230, 245) : Palette.Grass);
+        var ash = park.Surface == "ash";
+        var jungle = park.Id == "canopy-yard";
+        var water = ash ? Palette.C(90, 28, 18) : ice ? Palette.C(190, 220, 240) : Palette.Water;
+        var grass = ash ? Palette.C(72, 48, 40)
+            : jungle ? Palette.C(36, 110, 52)
+            : ice ? Palette.C(210, 230, 245)
+            : Palette.Grass;
+        var cut = ash ? Palette.C(58, 36, 32)
+            : jungle ? Palette.C(28, 92, 44)
+            : ice ? Palette.C(186, 214, 232)
+            : Palette.CutGrass;
+
+        Raylib.DrawCube(new Vector3(0, -1.2f, 220), 900, 2, 900, water);
+        Raylib.DrawCube(new Vector3(0, -0.2f, 180), 560, 0.6f, 560, grass);
         for (var i = 0; i < 12; i++)
         {
             var z = 40 + i * 36;
-            var c = ice
-                ? (i % 2 == 0 ? Palette.C(200, 226, 240) : Palette.C(186, 214, 232))
-                : (i % 2 == 0 ? Palette.Grass : Palette.CutGrass);
+            var c = i % 2 == 0 ? grass : cut;
             Raylib.DrawCube(new Vector3(0, 0.02f, z), 420, 0.08f, 34, c);
         }
 
@@ -24,9 +34,11 @@ public static class WorldView
         DrawFoulLines();
         DrawBases();
         DrawMound();
-        DrawFence(park, furnace);
+        DrawFence(park, furnace || ash);
         DrawStands();
-        if (!ice) DrawHarbor();
+        if (jungle) DrawJungle();
+        else if (ash) DrawKeep();
+        else if (!ice) DrawHarbor();
         DrawBackstop();
         foreach (var h in park.Hazards)
         {
@@ -41,11 +53,30 @@ public static class WorldView
                     Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius * 0.7f, 6f, 10, Palette.C(40, 170, 70));
                     Raylib.DrawCylinder(new Vector3(p.X, 6f, p.Z), (float)h.Radius * 1.1f, (float)h.Radius, 0.5f, 10, Palette.C(30, 120, 50));
                     break;
+                case "barrel":
+                    Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius * 0.85f, 5.2f, 10, Palette.C(118, 72, 28));
+                    Raylib.DrawCylinder(new Vector3(p.X, 5.2f, p.Z), (float)h.Radius * 1.05f, (float)h.Radius, 0.4f, 10, Palette.C(72, 42, 18));
+                    break;
                 case "billboard":
                     Raylib.DrawCube(new Vector3(p.X, 18, p.Z), 24, 16, 2, Palette.Gold);
                     break;
                 case "ac_unit":
                     Raylib.DrawCube(new Vector3(p.X, 2, p.Z), 8, 4, 8, Palette.C(140, 140, 148));
+                    break;
+                case "lava_pit":
+                    Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius, 0.6f, 12, Palette.C(220, 60, 18));
+                    Raylib.DrawSphere(new Vector3(p.X, 1.4f, p.Z), (float)h.Radius * 0.35f, Palette.EmberFire);
+                    break;
+                case "fire_breath":
+                    Raylib.DrawCylinder(p, (float)h.Radius, (float)h.Radius * 0.4f, 8f, 10, Palette.Fade(Palette.EmberFire, 160));
+                    break;
+                case "statue":
+                    Raylib.DrawCube(new Vector3(p.X, 10, p.Z), 10, 20, 10, Palette.C(36, 24, 28));
+                    Raylib.DrawSphere(new Vector3(p.X, 22, p.Z), 4.2f, Palette.C(28, 18, 22));
+                    break;
+                case "tree":
+                    Raylib.DrawCylinder(p, 1.4f, 1.8f, 8f, 6, Palette.C(92, 54, 28));
+                    Raylib.DrawSphere(new Vector3(p.X, 12, p.Z), (float)Math.Max(6, h.Radius), Palette.C(28, 110, 48));
                     break;
             }
         }
@@ -187,6 +218,26 @@ public static class WorldView
         Raylib.DrawCube(new Vector3(50, 22, 480), 24, 44, 20, Palette.C(248, 248, 252));
         Raylib.DrawCube(new Vector3(90, 10, 460), 40, 8, 12, Palette.C(180, 80, 60));
         Raylib.DrawCylinder(new Vector3(140, 0, 430), 3, 3, 28, 8, Palette.C(80, 70, 60));
+    }
+
+    static void DrawJungle()
+    {
+        for (var i = -4; i <= 4; i++)
+        {
+            var x = i * 38;
+            Raylib.DrawCylinder(new Vector3(x, 0, 430), 3, 4, 22, 6, Palette.C(92, 54, 28));
+            Raylib.DrawSphere(new Vector3(x, 26, 430), 14, Palette.C(24, 96, 40));
+        }
+        Raylib.DrawCube(new Vector3(0, 8, 500), 220, 16, 40, Palette.C(28, 86, 38));
+    }
+
+    static void DrawKeep()
+    {
+        Raylib.DrawCube(new Vector3(0, 28, 470), 90, 56, 40, Palette.C(36, 22, 28));
+        Raylib.DrawCube(new Vector3(-48, 40, 470), 16, 80, 16, Palette.C(28, 16, 20));
+        Raylib.DrawCube(new Vector3(48, 40, 470), 16, 80, 16, Palette.C(28, 16, 20));
+        Raylib.DrawCube(new Vector3(0, 8, 430), 120, 8, 18, Palette.C(70, 24, 18));
+        Raylib.DrawSphere(new Vector3(0, 18, 250), 6, Palette.Fade(Palette.EmberFire, 90));
     }
 
     static void DrawBackstop()

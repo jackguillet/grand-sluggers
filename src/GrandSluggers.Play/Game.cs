@@ -12,7 +12,8 @@ public sealed class Game : IDisposable
     int _seed;
     readonly ContentCatalog _content;
     readonly string[] _pitches = ["fastball", "changeup", "curve"];
-    readonly string[] _parks = ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city"];
+    readonly string[] _parks =
+        ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
 
     Match _match;
     Phase _phase = Phase.Title;
@@ -532,7 +533,7 @@ public sealed class Game : IDisposable
     void Draw()
     {
         Raylib.BeginDrawing();
-        Raylib.ClearBackground(_match.Park.Surface == "ice" ? Palette.C(168, 198, 222) : Palette.Sky);
+        Raylib.ClearBackground(Palette.SkyOf(_match.Park));
         Raylib.BeginMode3D(_cam);
         WorldView.DrawPark(_match.Park, _last?.Furnace == true && _phase is Phase.InPlay or Phase.Result);
         DrawActors();

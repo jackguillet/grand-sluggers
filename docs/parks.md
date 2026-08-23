@@ -33,11 +33,13 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Gimmick: billboards and AC units. Balls can carom; some signs award a star if you hit them.
 - Night: neon, same geometry, extra glare (not a blind).
 
-## Canopy Yard
+## Canopy Yard (playable)
 
 - Faction: Canopy Clan
-- Gimmick: climbable outfield walls (Clamber characters only). Barrel cannons that re-fire a caught ball if you are sloppy.
-- Night: fireflies, same play, monkeys in the trees as catch interference.
+- Surface: dirt
+- Fence: 312 / 378 / 318
+- Gimmick: **Barrel cannons** warp grounders (same rule as Funfair cans). **Climb wall** — fielders with Clamber (Konga, Vine, Moss) can rob a homer that only just cleared the fence.
+- Night: fireflies, same play (not in this file yet).
 
 ## Haunt Manor
 
@@ -49,10 +51,13 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Unlock. Ship.
 - Gimmick: **list**. At inning 4 (or night), the deck tilts; ground balls drain to one foul line. Occasional splash hazard in the corners.
 
-## Ember Keep
+## Ember Keep (playable)
 
-- Faction: Ember Keep. Night only for the “real” version; day is a locked-in practice courtyard if we need it.
-- Gimmick: lava pits with hoppers that knock the ball (and the fielder) if they land. Captain statue breathes fire across CF after a star swing lands in play.
+- Faction: Ember Keep
+- Surface: ash
+- Fence: 338 / 408 / 338 (deep)
+- Gimmick: **Lava pits** and the captain **statue's fire breath** slow fielders the same way Crystal freezers do. Not a free homer park — Ashlord still has to square it up.
+- Night-only presentation later; this file is the courtyard that plays at any time.
 
 ## Playroom
 

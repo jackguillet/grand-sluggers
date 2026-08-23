@@ -116,7 +116,7 @@ public class ChallengeTests
         var run = Challenge.Start(_content, "rio");
         var match = run.MakeMatch(_content, seed: 1);
         Assert.Equal("ashlord", match.Away.Captain.Id);
-        Assert.Equal("rooftop-city", match.Park.Id);
+        Assert.Equal("ember-keep", match.Park.Id);
     }
 
     [Fact]
