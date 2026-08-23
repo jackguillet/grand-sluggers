@@ -55,6 +55,37 @@ public sealed class Match
         HomeStars = content.Chemistry.StartingStars(home);
         _homePitcher = home.Captain;
         _awayPitcher = away.Captain;
+        HomeBat = content.Bats.GetValueOrDefault("harbor-lumber") ?? content.Bats.Values.First();
+        AwayBat = content.Bats.GetValueOrDefault("furnace-club") ?? content.Bats.Values.First();
+        HomeGlove = content.Gloves.GetValueOrDefault("web-back") ?? content.Gloves.Values.First();
+        AwayGlove = content.Gloves.GetValueOrDefault("lucky-mitt") ?? content.Gloves.Values.First();
+    }
+
+    public BatItem HomeBat { get; private set; } = null!;
+    public BatItem AwayBat { get; private set; } = null!;
+    public GloveItem HomeGlove { get; private set; } = null!;
+    public GloveItem AwayGlove { get; private set; } = null!;
+    public BatItem OffenseBat => Top ? AwayBat : HomeBat;
+    public GloveItem DefenseGlove => Top ? HomeGlove : AwayGlove;
+
+    public void CycleBat(bool home)
+    {
+        var ids = Content.Bats.Keys.OrderBy(k => k).ToList();
+        if (ids.Count == 0) return;
+        if (home)
+            HomeBat = Content.Bats[ids[(ids.IndexOf(HomeBat.Id) + 1) % ids.Count]];
+        else
+            AwayBat = Content.Bats[ids[(ids.IndexOf(AwayBat.Id) + 1) % ids.Count]];
+    }
+
+    public void CycleGlove(bool home)
+    {
+        var ids = Content.Gloves.Keys.OrderBy(k => k).ToList();
+        if (ids.Count == 0) return;
+        if (home)
+            HomeGlove = Content.Gloves[ids[(ids.IndexOf(HomeGlove.Id) + 1) % ids.Count]];
+        else
+            AwayGlove = Content.Gloves[ids[(ids.IndexOf(AwayGlove.Id) + 1) % ids.Count]];
     }
 
     public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = "harbor-diamond")
@@ -94,7 +125,7 @@ public sealed class Match
     {
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return finished!;
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng);
+        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove);
         return FinishAtBat(pitch, swing, hit, field);
     }
 
@@ -116,7 +147,7 @@ public sealed class Match
 
         SpendSwing(swing);
 
-        var bat = Content.Bats.GetValueOrDefault(Top ? "furnace-club" : "harbor-lumber");
+        var bat = OffenseBat;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
             pitch.Type, pitch.Charge01 > 0.55, swing.Charge01 > 0.55,
@@ -146,7 +177,7 @@ public sealed class Match
     }
 
     public FieldingPreview PreviewHit(AtBatResult hit) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher);
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng);
 
     public bool SwapPitcher()
     {
@@ -311,7 +342,9 @@ public sealed class Match
                 (runs, scorers) = AdvanceHit(Batter, 1);
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, 0.4);
-                caption = field.Heatball ? $"{Batter.Name} - it drops! Heatball." : $"{Batter.Name} singles.";
+                caption = field.Warped ? $"{Batter.Name} - it hopped a warp can!"
+                    : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
+                    : $"{Batter.Name} singles.";
                 NextBatter();
                 break;
             case PlayKind.FlyOut:
@@ -333,12 +366,21 @@ public sealed class Match
                         ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
                         : kind == PlayKind.FlyOut
                             ? $"{field.Fielder?.Name} puts it away."
-                            : field.Throw is { SpeedMul: > 1.2 }
-                                ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
-                                : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
+                            : field.Warped
+                                ? $"Warp can! {field.Fielder?.Name} is looking the wrong way."
+                                : field.Throw is { SpeedMul: > 1.2 }
+                                    ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
+                                    : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
                 NextBatter();
                 CheckInning();
                 break;
+        }
+
+        if (ParkHazards.HitStarSign(Park, field.LandingX, field.LandingZ) &&
+            kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun or PlayKind.FlyOut)
+        {
+            AddStars(defense: false, 1);
+            caption += "  Billboard STAR!";
         }
 
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,

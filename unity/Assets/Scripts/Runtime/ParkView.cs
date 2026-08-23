@@ -38,12 +38,23 @@ namespace GrandSluggers.UnityClient
                 Cube($"Fence{i}", p, new Vector3(10, 16, 3.2f), ice ? Colors.Chalk : Colors.Fence);
             }
 
-            if (ice)
+            foreach (var h in park.Hazards)
             {
-                foreach (var h in park.Hazards)
+                var p = new Vector3((float)h.X, 0, (float)h.Z);
+                switch (h.Type)
                 {
-                    if (h.Type != "freeze_volume") continue;
-                    Cylinder($"Freeze{h.X}", new Vector3((float)h.X, 2.2f, (float)h.Z), (float)h.Radius, 4.5f, new Color(0.65f, 0.9f, 1f));
+                    case "freeze_volume":
+                        Cylinder($"Freeze{h.X}", new Vector3(p.x, 2.2f, p.z), (float)h.Radius, 4.5f, new Color(0.65f, 0.9f, 1f));
+                        break;
+                    case "warp_pipe":
+                        Cylinder($"Pipe{h.X}", new Vector3(p.x, 3f, p.z), (float)h.Radius, 6f, new Color(0.15f, 0.65f, 0.28f));
+                        break;
+                    case "billboard":
+                        Cube($"Sign{h.X}", new Vector3(p.x, 18, p.z), new Vector3(24, 16, 2), Colors.Gold);
+                        break;
+                    case "ac_unit":
+                        Cube($"Ac{h.X}", new Vector3(p.x, 2, p.z), new Vector3(8, 4, 8), new Color(0.55f, 0.55f, 0.58f));
+                        break;
                 }
             }
 
