@@ -84,6 +84,9 @@ namespace GrandSluggers.UnityClient
         float _freeze;
         float _smash;
         bool _showTiming;
+        bool _feelDebug;
+        float _feelSlow = 1f;
+        bool _freezeCam;
         float _aimX, _aimY;
         Sample[] _path;
         Vector3 _ball;
@@ -171,6 +174,11 @@ namespace GrandSluggers.UnityClient
             if (_match == null) return;
             var dt = Time.deltaTime;
             if (Controls.TimingAid) _showTiming = !_showTiming;
+            if (Controls.FeelDebug) _feelDebug = !_feelDebug;
+            if (_feelDebug && Controls.SlowMo)
+                _feelSlow = _feelSlow > 0.9f ? 0.35f : _feelSlow > 0.2f ? 0.12f : 1f;
+            if (_feelDebug && Controls.FreezeCam) _freezeCam = !_freezeCam;
+            if (_feelDebug && _feelSlow < 0.99f) dt *= _feelSlow;
             if (_freeze > 0)
             {
                 _freeze -= Time.unscaledDeltaTime;
@@ -186,7 +194,7 @@ namespace GrandSluggers.UnityClient
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _stars?.Set(_match.HomeStars, _match.AwayStars);
             _audio?.Tick(dt);
-            _rig.Tick(dt);
+            if (!_freezeCam) _rig.Tick(dt);
         }
 
         void OnGUI()
@@ -239,6 +247,21 @@ namespace GrandSluggers.UnityClient
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver);
             if (_phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
                 HudView.BagTell(_throwBag > 0 ? _throwBag : Controls.StickBag);
+            if (_feelDebug && _smash <= 0)
+            {
+                var verb = "";
+                if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var batter) && batter != null)
+                    verb = batter.Current.ToString();
+                else if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var pitcher) && pitcher != null)
+                    verb = pitcher.Current.ToString();
+                var hang = _path != null && _path.Length > 0 ? (float)BallFlight.HangTime(_path) : 0f;
+                var rest = _path != null && _path.Length > 0 ? (float)BallFlight.RestTime(_path) : 0f;
+                FeelOverlay.Draw(
+                    _cam != null ? _cam.Shot : "",
+                    verb, _charge, hang, rest,
+                    _throwBag > 0 ? _throwBag : Controls.StickBag,
+                    _feelSlow, _freezeCam);
+            }
         }
 
         Match NewMatch()
