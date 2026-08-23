@@ -70,5 +70,12 @@ namespace GrandSluggers.EditorTools
             Run();
             EditorApplication.Exit(0);
         }
+
+        [MenuItem("Grand Sluggers/Compile Check")]
+        public static void CompileCheck()
+        {
+            AssetDatabase.Refresh();
+            EditorApplication.Exit(EditorUtility.scriptCompilationFailed ? 1 : 0);
+        }
     }
 }

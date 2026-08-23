@@ -1,0 +1,54 @@
+using UnityEngine;
+
+namespace GrandSluggers.UnityClient
+{
+    public sealed class CameraRig : MonoBehaviour
+    {
+        Camera _cam;
+        Vector3 _pos;
+        Vector3 _look;
+        float _fov = 48f;
+        float _punch;
+
+        public Camera Cam => _cam;
+
+        public void Bind(Camera cam)
+        {
+            _cam = cam;
+            _pos = cam.transform.position;
+            _look = cam.transform.position + cam.transform.forward * 40f;
+            _fov = cam.fieldOfView;
+        }
+
+        public void Cut(Vector3 pos, Vector3 look, float fov = 48f)
+        {
+            _pos = pos;
+            _look = look;
+            _fov = fov;
+            if (_cam == null) return;
+            _cam.transform.position = pos;
+            _cam.transform.LookAt(look);
+            _cam.fieldOfView = fov;
+        }
+
+        public void Aim(Vector3 pos, Vector3 look, float fov = 48f)
+        {
+            _pos = pos;
+            _look = look;
+            _fov = fov;
+        }
+
+        public void Punch(float amount = 10f) => _punch = amount;
+
+        public void Tick(float dt)
+        {
+            if (_cam == null) return;
+            _cam.transform.position = Vector3.Lerp(_cam.transform.position, _pos, 1f - Mathf.Exp(-6f * dt));
+            var currentLook = _cam.transform.position + _cam.transform.forward * 40f;
+            var look = Vector3.Lerp(currentLook, _look, 1f - Mathf.Exp(-7f * dt));
+            _cam.transform.LookAt(look);
+            _punch = Mathf.MoveTowards(_punch, 0f, dt * 28f);
+            _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, _fov - _punch, 1f - Mathf.Exp(-10f * dt));
+        }
+    }
+}
