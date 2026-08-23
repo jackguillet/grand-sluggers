@@ -10,13 +10,13 @@ namespace GrandSluggers.UnityClient
 
         public static void Draw(
             string shot, string verb, float charge, float hang, float rest,
-            int bag, float slow, bool freezeCam)
+            int bag, float slow, bool freezeCam, string currentEvent = "")
         {
             Ensure();
             var w = 420f;
             var x = 16f;
-            var y = Screen.height - 132f;
-            GUI.DrawTexture(new Rect(x, y, w, 116), _panel);
+            var y = Screen.height - 156f;
+            GUI.DrawTexture(new Rect(x, y, w, 140), _panel);
             GUI.Label(new Rect(x + 12, y + 8, w - 24, 22),
                 "SHOT  " + (string.IsNullOrEmpty(shot) ? "-" : shot.ToUpperInvariant())
                 + "    VERB  " + (string.IsNullOrEmpty(verb) ? "-" : verb.ToUpperInvariant()),
@@ -32,6 +32,9 @@ namespace GrandSluggers.UnityClient
                 + (freezeCam ? "    CAM FREEZE" : ""),
                 _label);
             GUI.Label(new Rect(x + 12, y + 86, w - 24, 22),
+                "EVENT  " + (string.IsNullOrEmpty(currentEvent) ? "-" : currentEvent.ToUpperInvariant()),
+                _label);
+            GUI.Label(new Rect(x + 12, y + 110, w - 24, 22),
                 "F2 overlay   [ slow   ] cam freeze",
                 _label);
         }

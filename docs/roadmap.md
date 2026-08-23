@@ -6,9 +6,9 @@ This is the production plan **after** feel infrastructure (#107) and art rails (
 
 ## Where we actually are (2026-08)
 
-**Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit, feel tables, F2 overlay, art catalog and empty Unity slots. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later.
+**Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit (diamond + dress), feel tables, F2 overlay, art catalog, HUD-off specials as catalog VFX events, audio buses with generated placeholders, scorebug that mutes during spectacle. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later.
 
-**The gap.** A stranger still sees capsules, generated beeps, and a park that is mostly cubes. Plate camera and chalk were code bugs because presentation was a program. Rails exist so the next work is **quality on one at-bat**, not a 40-man art push.
+**The gap.** Rails for A–C exist. The stranger still has to *see* Harbor: plate still, scoop still, star swing HUD-off. That screenshot is the gate, not more JSON.
 
 **Definition of Nintendo-level for this game.** Couch, gamepad, three innings at Harbor. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race. You want to play again. That is the exit for Phase A–C. Content (Phase D) is allowed only after that screenshot exists.
 
@@ -60,7 +60,7 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ---
 
-## Phase A — The at-bat sells (next)
+## Phase A — The at-bat sells (shipped)
 
 **Exit:** A still of the pitch and a still of the swing would not embarrass Harbor on a trailer. A stranger learns the timing window in two at-bats.
 
@@ -75,7 +75,7 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ---
 
-## Phase B — In-play is a scene
+## Phase B — In-play is a scene (shipped)
 
 **Exit:** Grounder, line, fly, tag are different pictures. The glove and the slide are on the body.
 
@@ -87,7 +87,7 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ---
 
-## Phase C — Harbor looks expensive
+## Phase C — Harbor looks expensive (shipped)
 
 **Exit:** Three stills (title, at-bat, in-play) look like a place, not a debug draw. Specials are named with HUD muted.
 
@@ -129,7 +129,7 @@ Only if A–C stills exist. Rule: **three good parks beat six ugly ones.** Harbo
 
 ## Recommended next move
 
-**File and run epic A: “The at-bat sells.”** Children A1–A4 above. One agent at a time. You play Exhibition on Harbor after each merge with F2 on, then off. If the plate still looks like a cap blob or the batter is a capsule, A is not done — do not start B3 clip-proof as six animations, and do not start D.
+**Play Harbor Exhibition and take the three stills.** Plate (full batter, not a cap). Grounder scoop. Star swing with HUD muted. If you would not show those to a friend, stay on A–C polish — do not start Phase D (#25, #36, #37).
 
 Command to keep agents honest:
 
