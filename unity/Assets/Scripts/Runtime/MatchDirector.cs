@@ -14,8 +14,10 @@ namespace GrandSluggers.UnityClient
         public string AwayCaptain = "ashlord";
         static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
 
-        bool _challenge;
+        enum PlayMode { Exhibition, Challenge, Training }
+        PlayMode _mode;
         Challenge _campaign;
+        TrainingDirector _coach;
         ContentCatalog _content;
         Match _match;
         ParkView _park;
@@ -52,15 +54,19 @@ namespace GrandSluggers.UnityClient
         Vector3 _ball;
         double _fx, _fz;
         bool _caught, _buddy;
+        int _throwBag;
         string _banner, _sub;
 
-        bool HumanPitches => _match != null && _match.Top;
-        bool HumanBats => _match != null && !_match.Top;
+        bool TrainingOn => _coach != null && _coach.Session != null;
+        bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
+        bool HumanBats => TrainingOn ? _coach.PlayerBats : _match != null && !_match.Top;
+        bool PlayerFields => TrainingOn ? _coach.PlayerFields : HumanPitches;
 
         void Start()
         {
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             _content = ContentCatalog.Load(data);
+            _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
             _park.Build(_match.Park);
@@ -108,8 +114,20 @@ namespace GrandSluggers.UnityClient
                 case Phase.Result:
                     if (_t > (_last?.Kind == PlayKind.HomeRun ? 2.4f : 1.35f))
                     {
+                        if (TrainingOn && _coach.Session.Finished)
+                        {
+                            EndTraining();
+                            break;
+                        }
                         if (_match.Over)
                         {
+                            if (TrainingOn)
+                            {
+                                Seed++;
+                                _match = _coach.MakeMatch(_content, Seed);
+                                BeginSet();
+                                break;
+                            }
                             _campaign?.Resolve(_match);
                             _phase = Phase.GameOver;
                             _t = 0;
@@ -123,6 +141,7 @@ namespace GrandSluggers.UnityClient
                     break;
             }
             DrawActors();
+            _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _rig.Tick(dt);
         }
 
@@ -139,19 +158,37 @@ namespace GrandSluggers.UnityClient
             var timing = _phase == Phase.Set ? Bounce(_pip)
                 : _phase == Phase.Flight ? Mathf.Clamp01(_flight / _pitchDur) : 0f;
             var home = _content.Must(HomeCaptain);
-            var awayId = _challenge
+            var awayId = _mode == PlayMode.Challenge
                 ? (_campaign != null ? _campaign.NextOpponentId(_content) : Challenge.Start(_content, HomeCaptain).NextOpponentId(_content))
                 : AwayCaptain;
             var away = _content.Must(awayId);
-            var parkName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
-            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _challenge, _pitches, _pitchIndex,
+            var parkName = _mode == PlayMode.Training
+                ? _content.Parks[Training.ParkId].Name
+                : (_content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId);
+            var banner = _banner;
+            var sub = _sub;
+            if (TrainingOn && _phase != Phase.Result)
+            {
+                banner = _coach.Session.Caption;
+                sub = _coach.Session.Verb;
+            }
+            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, _itemArmed, _charge, timing,
-                _showTiming && _phase is Phase.Set or Phase.Flight, _banner, _sub, Look.Portrait(HomeCaptain));
+                _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
+                _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null);
         }
 
         Match NewMatch()
         {
-            if (_challenge)
+            if (_mode == PlayMode.Training)
+            {
+                _campaign = null;
+                ParkId = Training.ParkId;
+                if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
+                _coach.Begin(_content);
+                return _coach.MakeMatch(_content, Seed);
+            }
+            if (_mode == PlayMode.Challenge)
             {
                 if (_campaign == null || !_campaign.CaptainId.Equals(HomeCaptain, System.StringComparison.OrdinalIgnoreCase))
                     _campaign = Challenge.Start(_content, HomeCaptain);
@@ -163,31 +200,50 @@ namespace GrandSluggers.UnityClient
 
         void TickTitle()
         {
-            if (Controls.Start) _challenge = !_challenge;
-            if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
+            if (Controls.Start)
             {
-                HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
-                if (!_challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                _mode = _mode == PlayMode.Exhibition ? PlayMode.Challenge
+                    : _mode == PlayMode.Challenge ? PlayMode.Training
+                    : PlayMode.Exhibition;
+                if (_mode == PlayMode.Training) ParkId = Training.ParkId;
             }
-            if (Key(KeyCode.D) || Key(KeyCode.RightArrow))
+            if (Controls.WestDown)
             {
-                HomeCaptain = PresetTeams.NextCaptain(HomeCaptain);
-                if (!_challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                BeginTraining();
+                return;
             }
-            if (!_challenge)
+            if (_mode != PlayMode.Training)
+            {
+                if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
+                {
+                    HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
+                    if (_mode != PlayMode.Challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                }
+                if (Key(KeyCode.D) || Key(KeyCode.RightArrow))
+                {
+                    HomeCaptain = PresetTeams.NextCaptain(HomeCaptain);
+                    if (_mode != PlayMode.Challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                }
+            }
+            if (_mode == PlayMode.Exhibition)
             {
                 if (Key(KeyCode.W) || Key(KeyCode.UpArrow)) AwayCaptain = PresetTeams.PrevCaptain(AwayCaptain);
                 if (Key(KeyCode.S) || Key(KeyCode.DownArrow)) AwayCaptain = PresetTeams.NextCaptain(AwayCaptain);
                 if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
                     AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
             }
-            if (Key(KeyCode.C))
+            if (Key(KeyCode.C) && _mode == PlayMode.Exhibition)
             {
                 var i = System.Array.IndexOf(Parks, ParkId);
                 ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
             }
             if (Controls.SouthDown)
             {
+                if (_mode == PlayMode.Training)
+                {
+                    BeginTraining();
+                    return;
+                }
                 _match = NewMatch();
                 _park.Build(_match.Park);
                 _spec.Build(transform);
@@ -195,6 +251,33 @@ namespace GrandSluggers.UnityClient
                 _t = 0;
                 _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
             }
+        }
+
+        void BeginTraining()
+        {
+            _mode = PlayMode.Training;
+            ParkId = Training.ParkId;
+            HomeCaptain = "rio";
+            AwayCaptain = "ashlord";
+            if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
+            _coach.Begin(_content);
+            _match = _coach.MakeMatch(_content, Seed);
+            _park.Build(_match.Park);
+            _spec.Build(transform);
+            _banner = _coach.Session.Caption;
+            _sub = _coach.Session.Verb;
+            BeginSet();
+        }
+
+        void EndTraining()
+        {
+            _coach?.Stop();
+            _mode = PlayMode.Training;
+            Seed++;
+            _phase = Phase.Title;
+            _t = 0;
+            _banner = _sub = "";
+            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
         }
 
         void ConfirmGameOver()
@@ -219,6 +302,11 @@ namespace GrandSluggers.UnityClient
 
         void BeginSet()
         {
+            if (TrainingOn && (_match == null || _match.Over))
+            {
+                Seed++;
+                _match = _coach.MakeMatch(_content, Seed);
+            }
             _phase = Phase.Set;
             _t = 0;
             _charge = 0;
@@ -235,7 +323,8 @@ namespace GrandSluggers.UnityClient
             _park.Ball.Place(_ball, "", "fastball", false);
             _aimX = _aimY = 0;
             _smash = 0;
-            if (_match.Top) _rig.Aim(new Vector3(-5.4f, 7.0f, 80f), new Vector3(0.3f, 3.4f, 4f), 40f);
+            if (PlayerFields) _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
+            else if (HumanPitches) _rig.Aim(new Vector3(-5.4f, 7.0f, 80f), new Vector3(0.3f, 3.4f, 4f), 40f);
             else _rig.Aim(new Vector3(5.8f, 6.2f, -14f), new Vector3(0f, 3.1f, 46f), 38f);
             _zone.Show(true, 0, 0);
         }
@@ -321,21 +410,24 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            if (HumanPitches)
+            if (PlayerFields)
             {
                 if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
                 {
                     _last = finished;
+                    NoteTrainingPitch();
                     Banner();
                     BeginResult();
                     return;
                 }
+                NoteTrainingPitch();
                 _pending = hit;
                 _preview = _match.PreviewHit(hit);
                 var start = Diamond.Positions[_preview.Position];
                 _fx = start.X;
                 _fz = start.Z;
                 _caught = _buddy = false;
+                _throwBag = 0;
                 _playerFielding = true;
                 StartFly(hit);
                 return;
@@ -343,6 +435,8 @@ namespace GrandSluggers.UnityClient
             var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
             _itemArmed = false;
             _last = _match.Play(_pitch, _swing, item);
+            NoteTrainingPitch();
+            NoteTrainingSwing();
             Banner();
             var fly = _last.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
                 or PlayKind.HomeRun or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
@@ -394,6 +488,7 @@ namespace GrandSluggers.UnityClient
                         diver.SetPose(HeroActor.Pose.Dive);
                 }
                 if (Controls.SouthDown && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 4) _caught = true;
+                if (Controls.ThrowBag > 0) _throwBag = Controls.ThrowBag;
                 var hang = BallFlight.HangTime(_path);
                 if (_hitT >= hang)
                 {
@@ -416,7 +511,7 @@ namespace GrandSluggers.UnityClient
             Character cut = null;
             ThrowResult thr = null;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            var bag = Controls.ThrowBag;
+            var bag = _throwBag > 0 ? _throwBag : Controls.ThrowBag;
             if ((_caught || _buddy) && bag > 0)
             {
                 var key = bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : "C";
@@ -435,6 +530,7 @@ namespace GrandSluggers.UnityClient
                 result = new FieldingResult(hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
             result = _match.ApplyOffenseItem(hit, result, null);
             _last = _match.FinishAtBat(_pitch, _swing, hit, result);
+            _coach?.OnField(result, _match);
             Banner();
             _playerFielding = false;
             _pending = null;
@@ -555,10 +651,28 @@ namespace GrandSluggers.UnityClient
             return h;
         }
 
+        void NoteTrainingPitch()
+        {
+            if (_coach == null || _pitch == null) return;
+            _coach.OnPitch(_pitch, _match);
+        }
+
+        void NoteTrainingSwing()
+        {
+            if (_coach == null || _swing == null || _last == null) return;
+            _coach.OnSwing(_swing, _last.AtBat);
+        }
+
         void Banner()
         {
-            _banner = _last.Kind.ToString().ToUpperInvariant();
-            _sub = _last.Caption;
+            if (TrainingOn && _phase != Phase.Result && _last == null)
+            {
+                _banner = _coach.Session.Caption;
+                _sub = _coach.Session.Verb;
+                return;
+            }
+            _banner = _last != null ? _last.Kind.ToString().ToUpperInvariant() : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
+            _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");
         }
 
         void BeginResult()

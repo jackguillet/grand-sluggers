@@ -53,7 +53,8 @@ West hold / V     bunt (batter) · jump (fielder)
 East / G          dive
 LB / X            steal
 D-pad / 1 2 3 4   throw
-Start / H         challenge
+Start / H         exhibition / challenge / training
+West / F          training (title)
 ```
 
 Full pad map: [unity/README.md](unity/README.md).

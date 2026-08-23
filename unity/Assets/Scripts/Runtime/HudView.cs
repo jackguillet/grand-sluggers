@@ -11,12 +11,13 @@ namespace GrandSluggers.UnityClient
         public static void Draw(
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
             bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, bool item,
-            float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait)
+            float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
+            bool training = false, string drillProgress = null)
         {
             Ensure();
             if (phase == PhaseUi.Title)
             {
-                Title(parkName, homeCap, awayCap, challenge, portrait);
+                Title(parkName, homeCap, awayCap, challenge, portrait, training);
                 return;
             }
             if (phase == PhaseUi.Lineup)
@@ -29,20 +30,48 @@ namespace GrandSluggers.UnityClient
                 Final(match);
                 return;
             }
+            if (training)
+            {
+                TrainingPlay(banner, sub, drillProgress);
+                return;
+            }
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
         }
 
-        static void Title(string park, string home, string away, bool challenge, Texture2D portrait)
+        static void Title(string park, string home, string away, bool challenge, Texture2D portrait, bool training)
         {
             GUI.DrawTexture(new Rect(40, 40, 520, 70), _panel);
             GUI.Label(new Rect(56, 48, 500, 54), "GRAND SLUGGERS", _title);
-            GUI.Label(new Rect(56, 120, 700, 28), challenge ? "CHALLENGE" : "EXHIBITION  ·  Harbor first", _gold);
-            GUI.Label(new Rect(56, 160, 800, 28), home + "  vs  " + away, _h1);
-            GUI.Label(new Rect(56, 196, 800, 24), park, _body);
+            var mode = training ? "TRAINING  ·  Harbor Diamond" : challenge ? "CHALLENGE" : "EXHIBITION  ·  Harbor first";
+            GUI.Label(new Rect(56, 120, 700, 28), mode, _gold);
+            if (training)
+            {
+                GUI.Label(new Rect(56, 160, 800, 28), "Four drills. No gimmicks.", _h1);
+                GUI.Label(new Rect(56, 196, 800, 24), park, _body);
+            }
+            else
+            {
+                GUI.Label(new Rect(56, 160, 800, 28), home + "  vs  " + away, _h1);
+                GUI.Label(new Rect(56, 196, 800, 24), park, _body);
+            }
             if (portrait != null)
                 GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
-            GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start challenge", _tiny);
-            GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive", _gold);
+            GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start mode   West training", _tiny);
+            if (!training)
+                GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive", _gold);
+            else
+                GUI.Label(new Rect(56, 278, 920, 24), "West starts the drills. Prompts sit on the diamond.", _gold);
+        }
+
+        static void TrainingPlay(string banner, string sub, string progress)
+        {
+            var w = 560;
+            GUI.DrawTexture(new Rect(Screen.width / 2 - w / 2, 24, w, 86), _panel);
+            GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 32, w - 32, 40), banner ?? "", _h1);
+            if (!string.IsNullOrEmpty(progress))
+                GUI.Label(new Rect(Screen.width / 2 - w / 2 + 16, 72, w - 32, 24), progress, _tiny);
+            if (!string.IsNullOrEmpty(sub))
+                GUI.Label(new Rect(48, Screen.height - 52, Screen.width - 96, 28), sub, _gold);
         }
 
         static void Lineup(Match match)
