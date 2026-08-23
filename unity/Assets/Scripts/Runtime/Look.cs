@@ -28,6 +28,7 @@ namespace GrandSluggers.UnityClient
 
         public static bool HasPortrait(string id)
         {
+            if (ArtBinder.HasPortrait(id)) return true;
             switch (id)
             {
                 case "rio":
@@ -44,6 +45,8 @@ namespace GrandSluggers.UnityClient
 
         public static Texture2D Portrait(string id)
         {
+            var bound = ArtBinder.LoadPortrait(id);
+            if (bound != null) return bound;
             switch (id)
             {
                 case "vale": return _vale ??= Load("vale-hero.jpg", false);
