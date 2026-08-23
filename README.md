@@ -4,7 +4,7 @@ Arcade baseball with a cartoon roster, team chemistry, signature bats and gloves
 
 Inspired by *Mario Super Sluggers* (Wii, 2008) — **original characters and world**, not a Mario clone. The pitch is the same: a party sports game where *who you draft together* matters as much as who swings the bat.
 
-**Engine of record: Unity 6 (URP).** See [docs/engine-decision.md](docs/engine-decision.md). The baseball sim in `src/` is engine-agnostic C# so we can prove hitting, pitching, chemistry, and park hazards before a Unity scene exists.
+**Engine of record: Unity 6 (URP).** See [docs/engine-decision.md](docs/engine-decision.md). The baseball rules live in `src/GrandSluggers.Sim`. The **playable vertical slice** is a 3D Harbor Diamond client in `src/GrandSluggers.Play` (Raylib) because the Unity editor is not required to play it. The `unity/` folder is a URP shell that imports the same sim.
 
 ## Why this game
 
@@ -23,18 +23,38 @@ Nintendo has not shipped a new Mario baseball game since 2008. The slot is empty
 ```
 docs/     design, research, engine decision, systems
 data/     JSON content (roster, chemistry, parks, bats, gloves, abilities)
-src/      engine-agnostic C# sim + CLI + tests
-unity/    notes for the Unity 6 project (created later; not checked in yet)
+src/      Sim (rules) · Play (3D slice) · Cli · Tests
+unity/    Unity 6 URP shell (open in the editor; not required to play)
 ```
 
-## Quick start (sim, no Unity)
+![Team sheet at Harbor Diamond](docs/images/lineup.png)
 
-Requires [.NET 8 SDK](https://dotnet.microsoft.com/download).
+![Rio Sparks goes deep](docs/images/harbor-diamond.png)
+
+## Play the slice
+
+Requires [.NET 8 SDK](https://dotnet.microsoft.com/download). Gamepad or keyboard.
 
 ```bash
 dotnet test
-dotnet run --project src/GrandSluggers.Cli -- team spark-allstars
-dotnet run --project src/GrandSluggers.Cli -- at-bat ember --seed 7
+dotnet run --project src/GrandSluggers.Play
+```
+
+You are the **Spark All-Stars** (Rio) at Harbor Diamond, three innings against Ashlord's Ember Court. Fielding: pitch with a timing bar (SHIFT to charge, TAB to change pitch, Q for Heatball). Batting: swing when the ball gets there (SHIFT to charge, Q for Furnace). Chemistry is on the team sheet; good-chem throws are faster.
+
+```
+SPACE / A     pitch or swing
+SHIFT / LT    charge
+TAB           cycle pitch (fastball / changeup / curve)
+Q / Y         arm star skill
+A/D           spray the ball
+ESC           quit
+```
+
+Headless autoplay (no window needed for the rules):
+
+```bash
+dotnet run --project src/GrandSluggers.Cli -- match --seed 7
 ```
 
 ## Docs
@@ -51,4 +71,4 @@ dotnet run --project src/GrandSluggers.Cli -- at-bat ember --seed 7
 
 ## Status
 
-Pre-production. Research is in, engine is chosen, sim is a first cut of chemistry + at-bats. No Unity project checked in yet — that happens when we start the vertical slice (one park, two captains, one at-bat that feels good).
+Milestone 1 vertical slice is playable. Harbor Diamond, Spark vs Ember, chemistry team sheet, timing-based pitch and swing, Heatball / Furnace, CPU fielders, 3 innings, MVP. Unity editor project is a shell; open `unity/` in Unity 6 LTS when you have it.

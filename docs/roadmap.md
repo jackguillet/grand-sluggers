@@ -11,18 +11,18 @@ We do not build 40 characters and 9 parks in parallel. We prove an at-bat, then 
 - JSON content for a slice roster
 - GitHub repo
 
-## Milestone 1 — vertical slice (Unity starts here)
+## Milestone 1 — vertical slice (done)
 
-Create the Unity 6 URP project under `unity/` (or a sibling, submodule — decide then).
-
-Must feel good:
+Playable Harbor Diamond, Spark vs Ember.
 
 1. Harbor Diamond, empty crowd, readable diamond
 2. Rio vs Ashlord, CPU fielders
-3. Gamepad: pitch (type + timing + charge) and swing (timing + charge)
-4. One Star Pitch (Heatball) and one Star Swing (Furnace)
-5. Chemistry shown on a team screen; a good-chem throw is visibly faster
-6. 3-inning CPU game that ends with an MVP line
+3. Gamepad + keyboard: pitch (type + timing + charge) and swing (timing + charge)
+4. Star Pitch **Heatball** and Star Swing **Furnace**
+5. Chemistry on the team sheet; good-chem throws are faster in the sim
+6. 3-inning game that ends with an MVP line
+
+Client: `src/GrandSluggers.Play` (Raylib 3D) on top of `GrandSluggers.Sim`. Unity 6 URP shell lives in `unity/` for when the editor is installed — same match loop.
 
 Exit: a stranger can play an inning without a tutorial card.
 
