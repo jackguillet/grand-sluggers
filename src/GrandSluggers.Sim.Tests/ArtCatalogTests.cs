@@ -41,6 +41,17 @@ public class ArtCatalogTests
     }
 
     [Fact]
+    public void AuthoredRunClipIsNotRawMoveBones()
+    {
+        Assert.True(_content.Art.TryClip("run", out var clip) && clip.Authored);
+        Assert.True(_content.Art.TryAuthored("run", 0, out var authored));
+        var bones = MoveBones.Evaluate(MoveBones.Verb.Run, 0, 0);
+        Assert.NotEqual(bones.Torso.Y, authored.Torso.Y);
+        Assert.True(Math.Abs(authored.Torso.Y) > Math.Abs(bones.Torso.Y),
+            $"authored lean {authored.Torso.Y} vs bones {bones.Torso.Y}");
+    }
+
+    [Fact]
     public void CaptainsAreSkinsOnSharedBodyTypes()
     {
         foreach (var id in Silhouette.Captains)

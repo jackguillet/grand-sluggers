@@ -4,7 +4,7 @@ public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones,
 
 public readonly record struct ClipSlot(
     string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot,
-    double ContactAt, double ReleaseAt, double FootPlantAt);
+    double ContactAt, double ReleaseAt, double FootPlantAt, bool Authored);
 
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
@@ -23,7 +23,8 @@ public sealed class ArtCatalog
         IReadOnlyList<NamedSlot> audio,
         IReadOnlyList<NamedSlot> materials,
         IReadOnlyList<ParkKitSlot> parks,
-        IReadOnlyList<string> folders)
+        IReadOnlyList<string> folders,
+        PoseClips poses)
     {
         Rig = rig;
         Clips = clips;
@@ -33,6 +34,7 @@ public sealed class ArtCatalog
         Materials = materials;
         Parks = parks;
         Folders = folders;
+        Poses = poses;
     }
 
     public RigBoneMap Rig { get; }
@@ -43,6 +45,14 @@ public sealed class ArtCatalog
     public IReadOnlyList<NamedSlot> Materials { get; }
     public IReadOnlyList<ParkKitSlot> Parks { get; }
     public IReadOnlyList<string> Folders { get; }
+    public PoseClips Poses { get; }
+
+    public bool TryAuthored(string id, double t, out MoveBones.Sample sample)
+    {
+        sample = default;
+        if (!TryClip(id, out var clip) || !clip.Authored) return false;
+        return Poses.TryEvaluate(id, t, out sample);
+    }
 
     public SkinSlot SkinOf(Character who)
     {
@@ -115,6 +125,8 @@ public sealed class ArtCatalog
                 errors.Add("clip " + clip.Id + " Contact needs contactAt");
             if (clip.Events.Contains("Release") && clip.ReleaseAt <= 0)
                 errors.Add("clip " + clip.Id + " Release needs releaseAt");
+            if (clip.Authored && !Poses.TryEvaluate(clip.Id, 0, out _))
+                errors.Add("authored clip missing pose keys " + clip.Id);
         }
 
         foreach (var id in Silhouette.Captains)
@@ -180,7 +192,7 @@ public sealed class ArtCatalog
 
         var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
-            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt)).ToList();
+            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.Authored)).ToList();
 
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
@@ -196,8 +208,9 @@ public sealed class ArtCatalog
         var parks = (Read<ParksFile>(Path.Combine(art, "parks.json"), json).Kits ?? [])
             .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed)).ToList();
         var folders = Read<FoldersFile>(Path.Combine(art, "folders.json"), json).Folders ?? [];
+        var poses = PoseClips.Load(dataRoot);
 
-        return new ArtCatalog(rig, clips, skins, vfx, audio, mats, parks, folders);
+        return new ArtCatalog(rig, clips, skins, vfx, audio, mats, parks, folders, poses);
     }
 
     static T Read<T>(string path, JsonSerializerOptions json)
@@ -224,6 +237,7 @@ public sealed class ArtCatalog
         public double ContactAt { get; set; }
         public double ReleaseAt { get; set; }
         public double FootPlantAt { get; set; }
+        public bool Authored { get; set; }
     }
 
     sealed class SkinsFile { public List<SkinDto>? Skins { get; set; } }
