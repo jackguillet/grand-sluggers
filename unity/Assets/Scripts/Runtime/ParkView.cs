@@ -101,11 +101,13 @@ namespace GrandSluggers.UnityClient
             Fence(park, ash);
             if (harbor)
             {
-                Cube("DirtLip", new Vector3(0, 0.16f, 62), new Vector3(152, 0.22f, 152),
-                    Look.Toon(new Color(0.62f, 0.42f, 0.24f)));
+                HarborDiamondSkin();
                 WarningTrack(park);
                 Backstop();
                 Dugouts();
+                HarborDugoutsPlus();
+                HarborWallDress(park);
+                HarborScoreboard(park);
                 HarborBleachers();
                 HarborTown();
                 HarborNightHook();
@@ -314,6 +316,72 @@ namespace GrandSluggers.UnityClient
             Destroy(go.GetComponent<Collider>());
             var mat = Look.Lit(Color.white, Look.Crowd, 1f, 0.05f);
             Look.Paint(go, mat);
+        }
+
+        void HarborDiamondSkin()
+        {
+            var dirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
+            var chalk = Look.Unlit(Colors.Chalk);
+            var diamond = Look.Prim(PrimitiveType.Cube, "DirtDiamond", _root,
+                new Vector3(0f, 0.12f, 63.64f), new Vector3(132f, 0.24f, 132f), dirt);
+            diamond.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
+            Cube("BoxL", new Vector3(-4.3f, 0.22f, 2.4f), new Vector3(3.4f, 0.07f, 6.4f), chalk);
+            Cube("BoxR", new Vector3(4.3f, 0.22f, 2.4f), new Vector3(3.4f, 0.07f, 6.4f), chalk);
+            Cube("BoxLIn", new Vector3(-4.3f, 0.24f, 2.4f), new Vector3(2.5f, 0.05f, 5.5f), dirt);
+            Cube("BoxRIn", new Vector3(4.3f, 0.24f, 2.4f), new Vector3(2.5f, 0.05f, 5.5f), dirt);
+            var a = Quaternion.Euler(0f, 45f, 0f);
+            var b = Quaternion.Euler(0f, -45f, 0f);
+            var baseL = Look.Prim(PrimitiveType.Cube, "BaseL", _root,
+                new Vector3(46f, 0.22f, 46f), new Vector3(1.7f, 0.1f, 132f), chalk);
+            baseL.transform.rotation = a;
+            var baseR = Look.Prim(PrimitiveType.Cube, "BaseR", _root,
+                new Vector3(-46f, 0.22f, 46f), new Vector3(1.7f, 0.1f, 132f), chalk);
+            baseR.transform.rotation = b;
+        }
+
+        void HarborDugoutsPlus()
+        {
+            var roof = Look.Toon(new Color(0.16f, 0.28f, 0.2f));
+            var rail = Look.Toon(Colors.Gold);
+            var bench = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.1f);
+            Cube("Dug1Roof", new Vector3(42f, 5.2f, 22f), new Vector3(24f, 0.5f, 12f), roof);
+            Cube("Dug3Roof", new Vector3(-42f, 5.2f, 22f), new Vector3(24f, 0.5f, 12f), roof);
+            Cube("Dug1Rail", new Vector3(42f, 3.4f, 16f), new Vector3(20f, 0.35f, 0.5f), rail);
+            Cube("Dug3Rail", new Vector3(-42f, 3.4f, 16f), new Vector3(20f, 0.35f, 0.5f), rail);
+            Cube("Dug1Bench", new Vector3(42f, 1.0f, 24f), new Vector3(18f, 0.7f, 2.2f), bench);
+            Cube("Dug3Bench", new Vector3(-42f, 1.0f, 24f), new Vector3(18f, 0.7f, 2.2f), bench);
+        }
+
+        void HarborWallDress(Park park)
+        {
+            var pad = Look.Toon(new Color(0.18f, 0.38f, 0.28f));
+            var ads = new[]
+            {
+                Look.Toon(Colors.Spark),
+                Look.Toon(Colors.Gold),
+                Look.Toon(new Color(0.18f, 0.42f, 0.72f)),
+                Look.Toon(new Color(0.94f, 0.94f, 0.9f))
+            };
+            for (var i = -18; i <= 18; i++)
+            {
+                var spray = i / 18f * 48f;
+                var fence = (float)AtBatResolver.FenceAt(park, spray);
+                var rad = spray * Mathf.Deg2Rad;
+                var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
+                Cube("Pad" + i, p + new Vector3(0f, -2.8f, 0f), new Vector3(14f, 4.4f, 2.4f), pad);
+                Cube("Ad" + i, p + new Vector3(0f, 1.1f, -0.4f), new Vector3(12f, 3.4f, 0.55f), ads[Mathf.Abs(i) % ads.Length]);
+            }
+        }
+
+        void HarborScoreboard(Park park)
+        {
+            var z = (float)park.CenterFenceFt + 18f;
+            var house = Look.Toon(new Color(0.12f, 0.14f, 0.18f));
+            var face = Look.Unlit(new Color(0.16f, 0.52f, 0.3f));
+            Cube("ScoreHouse", new Vector3(0f, 22f, z), new Vector3(48f, 28f, 8f), house);
+            Cube("ScoreFace", new Vector3(0f, 22f, z - 4.2f), new Vector3(42f, 18f, 0.6f), face);
+            Cube("ScoreSpark", new Vector3(0f, 34f, z - 4.4f), new Vector3(16f, 3.2f, 0.5f), Look.Toon(Colors.Spark));
+            Cube("ScoreBar", new Vector3(0f, 12f, z - 4f), new Vector3(36f, 1.2f, 0.5f), Look.Toon(Colors.Gold));
         }
 
         void HarborTown()
