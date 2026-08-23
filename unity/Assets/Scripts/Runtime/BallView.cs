@@ -39,16 +39,10 @@ namespace GrandSluggers.UnityClient
             _ball.name = "Mesh";
             _ball.transform.SetParent(_root, false);
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
-            _ball.transform.localScale = Vector3.one * 1.35f;
+            _ball.transform.localScale = Vector3.one * 1.5f;
             Destroy(_ball.GetComponent<Collider>());
-            Look.Paint(_ball, Look.Lit(Colors.Ball, smooth: 0.55f));
-            var stitch = Look.Unlit(new Color(0.82f, 0.16f, 0.18f));
-            var ringA = Look.Prim(PrimitiveType.Cylinder, "SeamA", _ball.transform,
-                Vector3.zero, new Vector3(1.02f, 0.035f, 1.02f), stitch);
-            ringA.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            var ringB = Look.Prim(PrimitiveType.Cylinder, "SeamB", _ball.transform,
-                Vector3.zero, new Vector3(1.02f, 0.035f, 1.02f), stitch);
-            ringB.transform.localRotation = Quaternion.Euler(90f, 0f, 90f);
+            Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
+            Stitch(_ball.transform);
 
             _trail = _ball.AddComponent<TrailRenderer>();
             _trail.time = 0.42f;
@@ -148,11 +142,11 @@ namespace GrandSluggers.UnityClient
         void ApplyLook(string star, string type, bool heat)
         {
             Color col;
-            var scale = 1.35f;
+            var scale = 1.5f;
             var glow = 0f;
             var glowCol = Colors.EmberFire;
-            var matCol = Colors.Ball;
-            var smooth = 0.65f;
+            var matCol = new Color(0.96f, 0.93f, 0.86f);
+            var smooth = 0.45f;
 
             if (star == "heatball" || heat)
             {
@@ -232,6 +226,25 @@ namespace GrandSluggers.UnityClient
             _hadPlace = false;
         }
 
+        static void Stitch(Transform ball)
+        {
+            var thread = Look.Unlit(new Color(0.72f, 0.1f, 0.12f));
+            var ringA = Look.Prim(PrimitiveType.Cylinder, "SeamA", ball,
+                Vector3.zero, new Vector3(1.04f, 0.028f, 1.04f), thread);
+            ringA.transform.localRotation = Quaternion.Euler(90f, 0f, 18f);
+            var ringB = Look.Prim(PrimitiveType.Cylinder, "SeamB", ball,
+                Vector3.zero, new Vector3(1.04f, 0.028f, 1.04f), thread);
+            ringB.transform.localRotation = Quaternion.Euler(90f, 0f, 72f);
+            for (var i = 0; i < 14; i++)
+            {
+                var t = i / 14f * Mathf.PI * 2f;
+                var a = new Vector3(Mathf.Sin(t) * 0.51f, Mathf.Cos(t) * 0.16f, Mathf.Cos(t) * 0.48f);
+                Look.Prim(PrimitiveType.Cube, "StA" + i, ball, a, new Vector3(0.07f, 0.05f, 0.035f), thread);
+                var b = new Vector3(Mathf.Cos(t) * 0.48f, Mathf.Sin(t) * 0.16f, Mathf.Sin(t) * 0.51f);
+                Look.Prim(PrimitiveType.Cube, "StB" + i, ball, b, new Vector3(0.07f, 0.05f, 0.035f), thread);
+            }
+        }
+
         void Spin(Vector3 p)
         {
             if (_ball == null) return;
@@ -241,7 +254,7 @@ namespace GrandSluggers.UnityClient
                 var speed = d.magnitude / Mathf.Max(1e-4f, Time.deltaTime);
                 var axis = Vector3.Cross(Vector3.up, d);
                 if (axis.sqrMagnitude > 1e-6f && speed > 0.4f)
-                    _ball.transform.Rotate(axis.normalized, speed * 6.5f * Time.deltaTime, Space.World);
+                    _ball.transform.Rotate(axis.normalized, speed * 9.5f * Time.deltaTime, Space.World);
             }
             _lastPlace = p;
             _hadPlace = true;
@@ -251,9 +264,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_shadow == null) return;
             var h = Mathf.Max(0f, p.y);
-            var s = Mathf.Lerp(2.4f, 0.65f, Mathf.Clamp01(h / 38f));
-            _shadow.position = new Vector3(p.x, 0.05f, p.z);
-            _shadow.localScale = new Vector3(s, 0.05f, s);
+            var s = Mathf.Lerp(2.6f, 0.7f, Mathf.Clamp01(h / 38f));
+            _shadow.position = new Vector3(p.x, 0.04f, p.z);
+            _shadow.localScale = new Vector3(s, 0.04f, s);
             _shadow.gameObject.SetActive(true);
         }
 
