@@ -499,7 +499,7 @@ public sealed class Match
                     caption = $"{field.Fielder?.Name} reels it in. Sac fly.";
                 }
                 else
-                    caption = kind == PlayKind.FlyOut && field.Buddy is not null && hit.CarryFt > 260
+                    caption = kind == PlayKind.FlyOut && field.Buddy is not null && FieldingResolver.HomeRunLikely(hit, Park)
                         ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
                         : kind == PlayKind.FlyOut && field.Fielder is { } wall
                           && ParkHazards.CanClamber(Park, wall) && hit.CarryFt > 260

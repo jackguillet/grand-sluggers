@@ -63,6 +63,8 @@ namespace GrandSluggers.UnityClient
         int _throwBag;
         readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
         string _glovePos = "P";
+        string _buddyPos = "";
+        bool _buddyWindow;
         float _diveT, _jumpT, _swapLock;
         bool _throwing;
         float _throwT, _throwDur;
@@ -501,6 +503,8 @@ namespace GrandSluggers.UnityClient
             _armedThrow = null;
             _armedCut = null;
             _diveT = _jumpT = 0;
+            _buddyWindow = false;
+            _buddyPos = "";
             StartFly(hit);
         }
 
@@ -519,7 +523,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             (Character who, string pos) pick;
-            if (_playerFielding)
+            if (_playerFielding && !FieldingResolver.BuddyJumpOffered(_preview))
                 pick = FieldingResolver.NearestGlove(map, _preview.LandingX, _preview.LandingZ, _gloveAt);
             else
                 pick = ( _preview.Fielder, _preview.Position );
@@ -558,12 +562,21 @@ namespace GrandSluggers.UnityClient
             var p = BallFlight.PointAt(_path, spray, _hitT);
             _ball = new Vector3((float)p.X, (float)Mathf.Max(0.6f, (float)p.Y), (float)p.Z);
             if (_smash > 0) _smash -= dt;
+            else if (BuddySet && _hitT > 0.7f)
+            {
+                var plant = WallPlant(_preview);
+                _rig.Aim(
+                    new Vector3((float)plant.X + 24f, 15f, (float)plant.Z - 34f),
+                    new Vector3((float)plant.X, 5.5f, (float)plant.Z),
+                    42f);
+            }
             else _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
             if (_diveT > 0) _diveT -= dt;
             if (_jumpT > 0) _jumpT -= dt;
             if (_swapLock > 0) _swapLock -= dt;
 
+            TickBuddyPartner(dt);
             TickItem(dt);
 
             if (_throwing)
@@ -601,8 +614,11 @@ namespace GrandSluggers.UnityClient
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var hang = BallFlight.HangTime(_path);
             var chasing = _hitT < hang;
+            var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
+            var plant = buddyOn ? WallPlant(pre) : (X: pre.LandingX, Z: pre.LandingZ);
+            _buddyWindow = buddyOn && _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
 
-            if (Controls.SwapPitcher)
+            if (Controls.SwapPitcher && !buddyOn)
             {
                 CycleGlove(map);
                 _swapLock = 0.7f;
@@ -610,9 +626,25 @@ namespace GrandSluggers.UnityClient
 
             var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
             if (chasing && _swapLock <= 0 && stick < 0.35f)
-                AutoGlove(map);
+            {
+                if (buddyOn)
+                {
+                    var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
+                    var dx = plant.X - _fx;
+                    var dz = plant.Z - _fz;
+                    var dist = Math.Sqrt(dx * dx + dz * dz);
+                    if (dist > 8)
+                    {
+                        var step = Math.Min(dist, speed * dt);
+                        _fx += dx / dist * step;
+                        _fz += dz / dist * step;
+                    }
+                    _gloveAt[_glovePos] = (_fx, _fz);
+                }
+                else AutoGlove(map);
+            }
 
-            if (chasing && map.TryGetValue(_glovePos, out var glove))
+            if (chasing && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
             {
                 var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
                 _fx += Controls.StickX * speed * dt;
@@ -622,8 +654,19 @@ namespace GrandSluggers.UnityClient
 
             if (Controls.WestDown)
             {
-                _jumpT = 0.55f;
-                if (pre.Buddy != null && pre.HomeRunLikely) _buddy = true;
+                _jumpT = buddyOn ? 0.7f : 0.55f;
+                if (buddyOn)
+                {
+                    var near = Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26;
+                    if (_buddyWindow && near && _ball.y > 4.5f)
+                    {
+                        _buddy = true;
+                        _caught = true;
+                        _fx = plant.X;
+                        _fz = plant.Z;
+                        _gloveAt[_glovePos] = (_fx, _fz);
+                    }
+                }
             }
             if (Controls.EastDown) _diveT = 0.5f;
 
@@ -631,10 +674,14 @@ namespace GrandSluggers.UnityClient
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
             if (Controls.SouthDown && d < window) _caught = true;
             if (_diveT > 0 && d < window && _ball.y < 7.5f) _caught = true;
-            if (_jumpT > 0 && d < window && _ball.y > 2.2f) _caught = true;
+            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) _caught = true;
 
             ReadThrowBag(!chasing || _caught || _buddy);
 
+            if (_buddy)
+                _ball = new Vector3((float)_fx, 6.4f + (_jumpT > 0 ? 2.2f : 0f), (float)_fz);
+
+            if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
             if (_hitT < hang) return;
             if (Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
                 _caught = true;
@@ -699,6 +746,45 @@ namespace GrandSluggers.UnityClient
             var who = map.TryGetValue(_glovePos, out var c) ? c : _preview.Fielder;
             var radius = 10 + who.Stats.Field * 0.6 + FieldAbilities.CatchBonus(who);
             return FieldingResolver.CatchWindowFt(radius, _diveT > 0, _jumpT > 0);
+        }
+
+        bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);
+
+        static (double X, double Z) WallPlant(FieldingPreview pre)
+        {
+            var x = pre.LandingX;
+            var z = pre.LandingZ;
+            var dist = Math.Sqrt(x * x + z * z);
+            if (dist < 1) return (x, z);
+            var pull = 10.0 / dist;
+            return (x * (1 - pull), z * (1 - pull));
+        }
+
+        static string PosOf(Dictionary<string, Character> map, Character who)
+        {
+            foreach (var kv in map)
+                if (kv.Value.Id == who.Id) return kv.Key;
+            return "";
+        }
+
+        void TickBuddyPartner(float dt)
+        {
+            _ = dt;
+            if (_preview == null || _path == null || !FieldingResolver.BuddyJumpOffered(_preview))
+            {
+                _buddyWindow = false;
+                return;
+            }
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            _buddyPos = PosOf(map, _preview.Buddy);
+            if (string.IsNullOrEmpty(_buddyPos)) return;
+            var hang = BallFlight.HangTime(_path);
+            var plant = WallPlant(_preview);
+            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.25f, hang - 0.4f));
+            var start = Diamond.Positions[_buddyPos];
+            _gloveAt[_buddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
+            if (!_playerFielding)
+                _buddyWindow = _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
         }
 
         void ReadThrowBag(bool stickOk)
@@ -811,20 +897,33 @@ namespace GrandSluggers.UnityClient
                     z = live.Z;
                 }
                 var pose = HeroActor.Pose.Idle;
-                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || (who.Id == litId && !HumanBats));
-                if (highlighted)
+                var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
+                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || (who.Id == litId && !HumanBats) || (buddyPartner && !_buddy));
+                if (highlighted && !buddyPartner)
                 {
                     x = _fx;
                     z = _fz;
                     if (_throwing) pose = HeroActor.Pose.Throw;
+                    else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
-                    else if (_jumpT > 0) pose = HeroActor.Pose.Jump;
                     else if (_preview != null) pose = FieldPose(who, _preview, false);
                     else pose = HeroActor.Pose.Field;
                 }
+                else if (buddyPartner)
+                {
+                    var planted = Diamond.Dist(x, z, WallPlant(_preview).X, WallPlant(_preview).Z) < 18;
+                    if (_throwing) pose = HeroActor.Pose.Field;
+                    else if (planted) pose = HeroActor.Pose.Crouch;
+                    else pose = HeroActor.Pose.Field;
+                }
                 else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
-                    pose = FieldPose(who, _preview, _caught);
+                {
+                    if (_buddy && _jumpT > 0)
+                        pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
+                    else
+                        pose = FieldPose(who, _preview, _caught || _buddy);
+                }
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.Throw : HeroActor.Pose.ChargePitch;
                 if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
@@ -896,6 +995,11 @@ namespace GrandSluggers.UnityClient
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
             _spec.Tick(Time.deltaTime, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
                 _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags);
+            var flash = _phase == Phase.InPlay && BuddySet && !_buddy && !_throwing;
+            var flashAt = Vector3.zero;
+            if (flash && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var planted))
+                flashAt = new Vector3((float)planted.X, 0f, (float)planted.Z);
+            _spec.BuddyTell(flash, flashAt, _buddyWindow);
             var itemTargetPos = ItemTargetWorld();
             var showThrow = _itemFlying || (_itemThrown && _phase == Phase.InPlay);
             var flyU = !_itemFlying && _itemThrown ? 1f
@@ -1054,7 +1158,11 @@ namespace GrandSluggers.UnityClient
                 _sub = _coach.Session.Verb;
                 return;
             }
-            _banner = _last != null ? _last.Kind.ToString().ToUpperInvariant() : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
+            if (_last != null && _last.Kind == PlayKind.FlyOut &&
+                _last.Caption != null && _last.Caption.IndexOf("BUDDY", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                _banner = "BUDDY JUMP";
+            else
+                _banner = _last != null ? _last.Kind.ToString().ToUpperInvariant() : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");
         }
 

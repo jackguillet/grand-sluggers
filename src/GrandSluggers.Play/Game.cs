@@ -450,7 +450,7 @@ public sealed class Game : IDisposable
             var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (_frozenSlow ? 0.4 : 1);
             _fx += field.MoveX * speed * dt;
             _fz += field.MoveZ * speed * dt;
-            if (field.Jump && pre.Buddy is not null && pre.HomeRunLikely)
+            if (field.Jump && FieldingResolver.BuddyJumpOffered(pre))
                 _buddyJump = true;
             if (field.ConfirmPressed)
             {
@@ -589,7 +589,7 @@ public sealed class Game : IDisposable
                     : 0;
                 Hud.Draw(_match, _pitches[_pitchIndex], _starArmed, _charge, timing,
                     _phase is Phase.Flight or Phase.Set, _banner, _sub, _itemArmed);
-                if (_playerFielding && _preview?.Buddy is not null && _preview.HomeRunLikely)
+                if (_playerFielding && _preview is { } jump && FieldingResolver.BuddyJumpOffered(jump))
                     Raylib.DrawText("F  BUDDY JUMP", w / 2 - 90, h - 40, 22, Palette.Gold);
                 break;
         }

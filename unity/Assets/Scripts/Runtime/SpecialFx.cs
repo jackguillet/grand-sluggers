@@ -22,6 +22,7 @@ namespace GrandSluggers.UnityClient
         LineRenderer _throw;
         Transform _burn;
         Transform _crack;
+        Transform _buddyFlash;
         float _t;
         float _pitchLinger;
         float _swingLinger;
@@ -71,6 +72,8 @@ namespace GrandSluggers.UnityClient
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
             _crack = Look.Prim(PrimitiveType.Cube, "Crack", _root, Vector3.zero, new Vector3(14f, 0.12f, 1.1f),
                 Look.Lit(new Color(0.12f, 0.05f, 0.04f), smooth: 0.05f)).transform;
+            _buddyFlash = Look.Prim(PrimitiveType.Cylinder, "BuddyFlash", _root, Vector3.zero, new Vector3(3.6f, 0.12f, 3.6f),
+                Look.Unlit(Colors.Gold)).transform;
             HideAll();
         }
 
@@ -273,6 +276,20 @@ namespace GrandSluggers.UnityClient
             _decoyPos = Vector3.zero;
         }
 
+        public void BuddyTell(bool on, Vector3 at, bool window)
+        {
+            if (_buddyFlash == null) return;
+            _buddyFlash.gameObject.SetActive(on);
+            if (!on) return;
+            var pulse = window
+                ? 4.4f + 1.8f * Mathf.Abs(Mathf.Sin(_t * 14f))
+                : 3.2f + 0.55f * Mathf.Abs(Mathf.Sin(_t * 5f));
+            _buddyFlash.position = at + Vector3.up * 0.14f;
+            _buddyFlash.localScale = new Vector3(pulse, 0.14f, pulse);
+            var c = window ? Colors.Gold : Color.Lerp(Colors.Gold, Color.white, 0.28f);
+            Look.Paint(_buddyFlash.gameObject, Look.Unlit(c));
+        }
+
         void HideAll()
         {
             if (_decoy != null) _decoy.gameObject.SetActive(false);
@@ -280,6 +297,7 @@ namespace GrandSluggers.UnityClient
             if (_skull != null) _skull.gameObject.SetActive(false);
             if (_burn != null) _burn.gameObject.SetActive(false);
             if (_crack != null) _crack.gameObject.SetActive(false);
+            if (_buddyFlash != null) _buddyFlash.gameObject.SetActive(false);
             if (_laser != null) _laser.enabled = false;
             if (_tongue != null) _tongue.enabled = false;
             if (_throw != null) _throw.enabled = false;
