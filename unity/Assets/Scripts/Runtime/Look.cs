@@ -26,6 +26,22 @@ namespace GrandSluggers.UnityClient
         public static Texture2D Crowd => _crowd ??= Load("tex-crowd.jpg", false);
         public static Texture2D Rio => _rio ??= Load("rio-hero.jpg", false);
 
+        public static bool HasPortrait(string id)
+        {
+            switch (id)
+            {
+                case "rio":
+                case "vale":
+                case "zig":
+                case "brondo":
+                case "konga":
+                case "ashlord":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static Texture2D Portrait(string id)
         {
             switch (id)
