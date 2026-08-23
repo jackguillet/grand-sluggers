@@ -130,140 +130,31 @@ namespace GrandSluggers.UnityClient
 
         void Build(Character who)
         {
-            var body = Colors.Body(who.Faction);
-            var accent = Colors.Accent(who.Faction);
-            var skin = Colors.SkinTone(who.Faction);
-            var pants = Color.Lerp(Color.white, body, 0.08f);
-            var shoe = Color.Lerp(body, Color.black, 0.35f);
             _body = Silhouette.BodyType(who);
-            var spec = Silhouette.Proportions(_body);
             _captain = who.Captain;
             _batsLeft = who.Bats == Hand.L;
             _throwsLeft = who.Throws == Hand.L;
-
-            _root = new GameObject("Rig").transform;
-            _root.SetParent(transform, false);
-            _baseScale = new Vector3(spec.Width, spec.Height, spec.Width) * 1.15f;
-            _root.localScale = _baseScale;
-
-            var jersey = Look.Toon(body);
-            var trim = Look.Toon(accent);
-            var flesh = Look.Toon(skin);
-            var slack = Look.Lit(pants, smooth: 0.2f);
-            var leather = Look.Lit(shoe, smooth: 0.12f);
-
-            var hipScale = _body == "brondo" ? new Vector3(1.45f, 0.55f, 1.05f)
-                : _body == "vale" ? new Vector3(0.85f, 0.75f, 0.62f)
-                : _body == "zig" ? new Vector3(1.35f, 0.5f, 0.95f)
-                : _body == "konga" ? new Vector3(1.4f, 0.65f, 1.05f)
-                : new Vector3(1.15f, 0.7f, 0.85f);
-            Look.Prim(PrimitiveType.Capsule, "Hip", _root, new Vector3(0, 1.15f, 0), hipScale, slack);
-
-            var torsoKind = _body == "brondo" ? PrimitiveType.Cube : PrimitiveType.Capsule;
-            var torsoScale = _body switch
-            {
-                "vale" => new Vector3(1.05f, 1.22f, 0.62f) * spec.Torso,
-                "zig" => new Vector3(1.25f, 0.72f, 0.95f) * spec.Torso,
-                "brondo" => new Vector3(1.55f, 1.12f, 1.12f),
-                "konga" => new Vector3(1.55f, 1.08f, 1.05f) * spec.Torso,
-                "ashlord" => new Vector3(1.5f, 1.18f, 0.92f) * spec.Torso,
-                _ => new Vector3(1.28f, 0.95f, 0.82f) * spec.Torso
-            };
-            _torso = Look.Prim(torsoKind, "Torso", _root, new Vector3(0, 2.55f, 0), torsoScale, jersey).transform;
-            Look.Prim(PrimitiveType.Cube, "Stripe", _torso, new Vector3(0, 0.15f, 0.42f), new Vector3(0.18f, 0.7f, 0.08f), trim);
-
-            if (_body == "vale")
-                Look.Prim(PrimitiveType.Cylinder, "Neck", _root, new Vector3(0, 3.55f, 0), new Vector3(0.28f, 0.42f, 0.28f), flesh);
-            if (_body == "konga")
-                Look.Prim(PrimitiveType.Sphere, "Belly", _torso, new Vector3(0, -0.35f, 0.35f), new Vector3(1.05f, 0.7f, 0.85f), jersey);
-            if (_captain && _body == "vale")
-                Look.Prim(PrimitiveType.Cube, "Sash", _torso, new Vector3(0.15f, 0.05f, 0.48f), new Vector3(0.7f, 0.12f, 0.06f), Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f));
-            if (_captain && _body == "ashlord")
-                Look.Prim(PrimitiveType.Cube, "Cape", _torso, new Vector3(0, -0.15f, -0.62f), new Vector3(1.15f, 1.15f, 0.12f), trim);
-
-            var headY = _body == "vale" ? 4.65f : _body == "zig" ? 3.85f : 4.35f;
-            var headScale = Vector3.one * (1.55f * spec.Head);
-            if (_body == "brondo") headScale = new Vector3(1.45f, 1.15f, 1.35f) * spec.Head;
-            var headKind = _body == "brondo" ? PrimitiveType.Cube : PrimitiveType.Sphere;
-            _head = Look.Prim(headKind, "Head", _root, new Vector3(0, headY, 0), headScale, flesh).transform;
-            var ink = Look.Lit(new Color(0.08f, 0.07f, 0.07f), smooth: 0.05f);
-            var eye = _body == "ashlord" && _captain
-                ? Look.Unlit(Colors.EmberFire)
-                : ink;
-            var eyeSize = _body == "zig" ? 0.28f : _body == "vale" ? 0.16f : 0.22f;
-            Look.Prim(PrimitiveType.Sphere, "EyeL", _head, new Vector3(-0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
-            Look.Prim(PrimitiveType.Sphere, "EyeR", _head, new Vector3(0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
-            var white = Look.Unlit(Color.white);
-            Look.Prim(PrimitiveType.Sphere, "WhiteL", _head, new Vector3(-0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
-            Look.Prim(PrimitiveType.Sphere, "WhiteR", _head, new Vector3(0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
-            Look.Prim(PrimitiveType.Cube, "BrowL", _head, new Vector3(-0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
-            Look.Prim(PrimitiveType.Cube, "BrowR", _head, new Vector3(0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
-            Look.Prim(PrimitiveType.Cube, "Mouth", _head, new Vector3(0, -0.22f, 0.55f), new Vector3(0.32f, 0.08f, 0.1f), ink);
-
-            if (_captain && _body == "rio")
-            {
-                Look.Prim(PrimitiveType.Sphere, "CheekL", _head, new Vector3(-0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
-                Look.Prim(PrimitiveType.Sphere, "CheekR", _head, new Vector3(0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
-            }
-            if (_captain && _body == "vale")
-            {
-                var ice = Look.Lit(new Color(0.85f, 0.95f, 1f), smooth: 0.55f);
-                Look.Prim(PrimitiveType.Cylinder, "Crown", _head, new Vector3(0, 0.62f, 0), new Vector3(0.7f, 0.14f, 0.7f), ice);
-                Look.Prim(PrimitiveType.Cube, "Point", _head, new Vector3(0, 0.92f, 0), new Vector3(0.16f, 0.4f, 0.16f), ice);
-                _cap = Look.Prim(PrimitiveType.Cylinder, "Cap", _head, new Vector3(0, 0.42f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
-            }
-            else
-            {
-                _cap = Look.Prim(PrimitiveType.Cylinder, "Cap", _head, new Vector3(0, 0.42f, 0), new Vector3(1.15f, 0.18f, 1.15f), trim).transform;
-                var brim = _body == "rio" ? new Vector3(1.35f, 0.12f, 0.95f) : new Vector3(1.1f, 0.12f, 0.7f);
-                Look.Prim(PrimitiveType.Cube, "Brim", _cap, new Vector3(0, -0.6f, 0.7f), brim, Look.Lit(Colors.Gold, smooth: 0.4f));
-            }
-
-            if (_captain && _body == "ashlord")
-            {
-                Look.Prim(PrimitiveType.Cube, "HornL", _head, new Vector3(-0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
-                Look.Prim(PrimitiveType.Cube, "HornR", _head, new Vector3(0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
-            }
-            if (_captain && _body == "konga")
-                Look.Prim(PrimitiveType.Sphere, "Snout", _head, new Vector3(0, -0.18f, 0.62f), new Vector3(0.82f, 0.5f, 0.7f), flesh);
-            if (_captain && _body == "zig")
-            {
-                var glass = Look.Lit(new Color(0.2f, 0.85f, 0.55f), smooth: 0.6f);
-                Look.Prim(PrimitiveType.Cylinder, "GogL", _head, new Vector3(-0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
-                Look.Prim(PrimitiveType.Cylinder, "GogR", _head, new Vector3(0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
-            }
-            if (_captain && _body == "brondo")
-                Look.Prim(PrimitiveType.Cube, "Jaw", _head, new Vector3(0, -0.42f, 0.28f), new Vector3(0.95f, 0.35f, 0.7f), flesh);
-
-            var armLen = 0.7f * spec.Arms;
-            var armThick = _body == "brondo" ? 0.5f : _body == "vale" ? 0.28f : 0.38f;
-            _lArm = Look.Prim(PrimitiveType.Capsule, "LArm", _torso, new Vector3(-0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
-            _lFore = Look.Prim(PrimitiveType.Capsule, "LFore", _lArm, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
-            _rArm = Look.Prim(PrimitiveType.Capsule, "RArm", _torso, new Vector3(0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
-            _rFore = Look.Prim(PrimitiveType.Capsule, "RFore", _rArm, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
-            Look.Prim(PrimitiveType.Sphere, "LHand", _lFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
-            Look.Prim(PrimitiveType.Sphere, "RHand", _rFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
-
-            var thighThick = _body == "zig" ? 0.55f : _body == "brondo" ? 0.58f : _body == "vale" ? 0.32f : 0.42f;
-            var thighSpread = _body == "brondo" ? 0.52f : _body == "zig" ? 0.5f : 0.38f;
-            _lThigh = Look.Prim(PrimitiveType.Capsule, "LThigh", _root, new Vector3(-thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            _lShin = Look.Prim(PrimitiveType.Capsule, "LShin", _lThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
-            var shoeScale = _body == "rio" ? new Vector3(0.95f, 0.38f, 1.35f)
-                : _body == "ashlord" ? new Vector3(0.85f, 0.4f, 1.25f)
-                : _body == "vale" ? new Vector3(0.5f, 0.22f, 0.9f)
-                : new Vector3(0.7f, 0.28f, 1.1f);
-            Look.Prim(PrimitiveType.Cube, "LShoe", _lShin, new Vector3(0, -0.72f, 0.12f), shoeScale, leather);
-            _rThigh = Look.Prim(PrimitiveType.Capsule, "RThigh", _root, new Vector3(thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            _rShin = Look.Prim(PrimitiveType.Capsule, "RShin", _rThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
-            Look.Prim(PrimitiveType.Cube, "RShoe", _rShin, new Vector3(0, -0.72f, 0.12f), shoeScale, leather);
-
+            var extras = ArtBinder.Art != null
+                ? ArtBinder.SkinOf(who).Extras
+                : System.Array.Empty<string>();
+            var chain = SharedRig.Spawn(transform, who, extras);
+            _root = chain.Root;
+            _baseScale = chain.BaseScale;
+            _torso = chain.Torso;
+            _head = chain.Head;
+            _cap = chain.Cap;
+            _lArm = chain.LUpper;
+            _lFore = chain.LFore;
+            _rArm = chain.RUpper;
+            _rFore = chain.RFore;
+            _lThigh = chain.LThigh;
+            _lShin = chain.LShin;
+            _rThigh = chain.RThigh;
+            _rShin = chain.RShin;
+            _ring = chain.Ring;
             BuildBat("bat-wood");
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
-
-            var gold = Look.Unlit(Colors.Gold);
-            _ring = Look.Prim(PrimitiveType.Cylinder, "Mark", _root, new Vector3(0, 0.08f, 0), new Vector3(2.0f, 0.07f, 2.0f), gold).transform;
-            _ring.gameObject.SetActive(false);
         }
 
         void BuildBat(string visual)
