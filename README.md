@@ -42,7 +42,7 @@ dotnet test
 dotnet run --project src/GrandSluggers.Play
 ```
 
-You are the **Spark All-Stars** (Rio) in a three-inning game against Ashlord's Ember Court. C on the title screen flips **Harbor Diamond** / **Crystal Rink**. T starts **2-player** (P1 Spark, P2 Ember: IJKL + Enter).
+You are the **Spark All-Stars** (Rio) in a three-inning game against Ashlord's Ember Court. C on the title screen cycles **Harbor Diamond**, **Crystal Rink**, **Funfair Park**, and **Rooftop City**. T starts **2-player**. On the team sheet, B/G pick Spark's bat and glove; N/M pick Ember's.
 
 On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues on Crystal Rink slow you down.
 

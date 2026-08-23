@@ -9,6 +9,7 @@ namespace GrandSluggers.UnityClient
         public int Seed = 7;
         public int Innings = 3;
         public string ParkId = "harbor-diamond";
+        static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city" };
 
         enum Phase { Title, Lineup, Set, Flight, InPlay, Result, GameOver }
 
@@ -79,7 +80,11 @@ namespace GrandSluggers.UnityClient
             switch (_phase)
             {
                 case Phase.Title:
-                    if (Key(KeyCode.C)) ParkId = ParkId == "harbor-diamond" ? "crystal-rink" : "harbor-diamond";
+                    if (Key(KeyCode.C))
+                    {
+                        var i = System.Array.IndexOf(Parks, ParkId);
+                        ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
+                    }
                     if (Confirm())
                     {
                         _match = Match.Slice(_content, Innings, Seed, ParkId);
@@ -89,6 +94,10 @@ namespace GrandSluggers.UnityClient
                     }
                     break;
                 case Phase.Lineup:
+                    if (Key(KeyCode.B)) _match.CycleBat(true);
+                    if (Key(KeyCode.G)) _match.CycleGlove(true);
+                    if (Key(KeyCode.N)) _match.CycleBat(false);
+                    if (Key(KeyCode.M)) _match.CycleGlove(false);
                     if (Confirm() || _t > 8f) BeginSet();
                     break;
                 case Phase.Set:
@@ -129,13 +138,15 @@ namespace GrandSluggers.UnityClient
             if (_phase == Phase.Title)
             {
                 GUI.Label(new Rect(60, 80, 900, 40), "GRAND SLUGGERS");
-                GUI.Label(new Rect(60, 130, 900, 30), ParkId == "crystal-rink" ? "Crystal Rink" : "Harbor Diamond");
-                GUI.Label(new Rect(60, 170, 900, 30), "C  park     SPACE  play");
+                var parkName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
+                GUI.Label(new Rect(60, 130, 900, 30), parkName);
+                GUI.Label(new Rect(60, 170, 900, 30), "C  cycle park     SPACE  play");
                 return;
             }
             if (_phase == Phase.Lineup)
             {
-                GUI.Label(new Rect(40, 40, 900, 30), $"TEAM SHEET  {_match.Park.Name}  stars home {_match.HomeStars:0.#}  away {_match.AwayStars:0.#}");
+                GUI.Label(new Rect(40, 40, 1100, 30), $"TEAM SHEET  {_match.Park.Name}  stars home {_match.HomeStars:0.#}  away {_match.AwayStars:0.#}");
+                GUI.Label(new Rect(40, 64, 1100, 24), $"Spark {_match.HomeBat.Name} / {_match.HomeGlove.Name}  [B][G]     Ember {_match.AwayBat.Name} / {_match.AwayGlove.Name}  [N][M]");
                 var y = 80;
                 foreach (var c in _match.HomeOrder)
                 {

@@ -10,7 +10,8 @@ public sealed class FieldingResolver
         AtBatResult hit,
         Park park,
         IReadOnlyList<Character> defense,
-        Character pitcher)
+        Character pitcher,
+        Random rng)
     {
         var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
         var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
@@ -19,12 +20,22 @@ public sealed class FieldingResolver
         var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
         var hrLikely = hit.HomeRun || (hit.CarryFt >= fence - 15 && hit.LaunchDeg is > 16 and < 40);
         var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder);
+        var warped = false;
+        if (grounder)
+        {
+            var w = ParkHazards.WarpIfPipe(park, landing.X, landing.Z, rng);
+            if (w.Warped)
+            {
+                landing = (w.X, w.Z);
+                warped = true;
+            }
+        }
         var buddy = Buddy(defense, pitcher, fielder, landing.X, landing.Z);
         var freeze = ParkHazards.InFreeze(park, landing.X, landing.Z);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
             hit.StarPitchUsed == "heatball", hit.StarSwingUsed == "furnace", freeze,
-            10 + fielder.Stats.Field * 0.6);
+            10 + fielder.Stats.Field * 0.6, warped);
     }
 
     public FieldingResult Resolve(
@@ -32,9 +43,10 @@ public sealed class FieldingResolver
         Park park,
         IReadOnlyList<Character> defense,
         Character pitcher,
-        Random rng)
+        Random rng,
+        GloveItem? glove = null)
     {
-        var pre = Preview(hit, park, defense, pitcher);
+        var pre = Preview(hit, park, defense, pitcher, rng);
         if (pre.HomeRunLikely && hit.HomeRun)
         {
             return new FieldingResult(PlayKind.HomeRun, null, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace);
@@ -69,12 +81,12 @@ public sealed class FieldingResolver
             var kind = hit.CarryFt >= 330 ? PlayKind.Triple
                 : hit.CarryFt >= 250 ? PlayKind.Double
                 : PlayKind.Single;
-            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
+            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
         }
 
-        var glove = fielder.Stats.Field + rng.NextDouble() * 4;
+        var gloveScore = fielder.Stats.Field + rng.NextDouble() * 4 + (glove?.ErrorReduction ?? 0) * 4;
         var beat = hit.Quality == ContactQuality.Perfect ? 2.5 : 0;
-        var outPlay = glove + 3 > 7 + beat && toBall < range * 2.5 && !pre.Frozen;
+        var outPlay = gloveScore + 3 > 7 + beat && toBall < range * 2.5 && !pre.Frozen && !pre.Warped;
         if (outPlay)
         {
             var cut = Cutoff(defense, pitcher, fielder);
@@ -88,7 +100,7 @@ public sealed class FieldingResolver
         var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
         return new FieldingResult(
             extra ? PlayKind.Double : PlayKind.Single,
-            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
+            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
     }
 
     public (Character Fielder, string Pos) NearestPublic(
@@ -171,7 +183,8 @@ public sealed record FieldingResult(
     bool Heatball,
     bool Furnace,
     ThrowResult? Throw = null,
-    Character? Buddy = null);
+    Character? Buddy = null,
+    bool Warped = false);
 
 public sealed record FieldingPreview(
     Character Fielder,
@@ -185,7 +198,8 @@ public sealed record FieldingPreview(
     bool Heatball,
     bool Furnace,
     bool Frozen,
-    double CatchRadius);
+    double CatchRadius,
+    bool Warped = false);
 
 public static class ParkHazards
 {
@@ -194,6 +208,35 @@ public static class ParkHazards
         foreach (var h in park.Hazards)
         {
             if (h.Type != "freeze_volume") continue;
+            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
+        }
+        return false;
+    }
+
+    public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng)
+    {
+        var pipes = park.Hazards.Where(h => h.Type == "warp_pipe").ToList();
+        if (pipes.Count < 2) return (x, z, false);
+        Hazard? hit = null;
+        foreach (var p in pipes)
+        {
+            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + 8)
+            {
+                hit = p;
+                break;
+            }
+        }
+        if (hit is null) return (x, z, false);
+        var exits = pipes.Where(p => !ReferenceEquals(p, hit)).ToList();
+        var dest = exits[rng.Next(exits.Count)];
+        return (dest.X, dest.Z, true);
+    }
+
+    public static bool HitStarSign(Park park, double x, double z)
+    {
+        foreach (var h in park.Hazards)
+        {
+            if (h.Type != "billboard") continue;
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         }
         return false;
