@@ -56,10 +56,26 @@ public class InPlayTests
     [Fact]
     public void ScoopMissIsASingleNotASilentGroundOut()
     {
-        var miss = new FieldingResult(PlayKind.Single, _content.Must("rio"), null, 0.8, 10, 40, false, false);
-        Assert.NotEqual(PlayKind.GroundOut, miss.Kind);
-        var hit = Hit(ContactQuality.Solid, 70, 8, 50);
-        Assert.False(InPlay.BatterBeatsThrow(_content.Must("rio"), hit, miss));
+        var match = Match.Slice(_content, seed: 4);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        // Deep hopper: landing is past the infield so the nearest glove cannot scoop it.
+        var hit = new AtBatResult(ContactQuality.Solid, true, false, 72, 8, 360, false, false, null, null, SprayDeg: 2);
+        var rng = new Random(4);
+        var pre = fielding.Preview(hit, match.Park, match.Defense.Roster, match.Pitcher, rng);
+        Assert.True(pre.Grounder, "launch 8 must be a hopper");
+        var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, rng, pre: pre);
+        Assert.Equal(PlayKind.Single, field.Kind);
+        Assert.NotEqual(PlayKind.GroundOut, field.Kind);
+        Assert.False(InPlay.BatterBeatsThrow(match.Batter, hit, field));
+    }
+
+    [Fact]
+    public void GroundThrowBagsForceThenFirstOnADoublePlayRace()
+    {
+        Assert.Equal(new[] { 2, 1 }, InPlay.GroundThrowBags(true, false));
+        Assert.Equal(new[] { 2 }, InPlay.GroundThrowBags(true, true));
+        Assert.Equal(new[] { 1 }, InPlay.GroundThrowBags(false, false));
+        Assert.Empty(InPlay.GroundThrowBags(false, true));
     }
 
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
