@@ -65,15 +65,19 @@ public static class BallFlight
                 y = 0;
                 if (vy < 0)
                 {
-                    if (-vy < MinBounceVy)
+                    var skip = launchDeg is >= 14 and < 22;
+                    var minVy = skip ? 2.2 : MinBounceVy;
+                    var rest = skip ? 0.28 : BounceRestitution;
+                    var horiz = skip ? 0.93 : BounceHoriz;
+                    if (-vy < minVy)
                     {
                         vy = 0;
                         rolling = true;
                     }
                     else
                     {
-                        vy = -vy * BounceRestitution;
-                        vx *= BounceHoriz;
+                        vy = -vy * rest;
+                        vx *= horiz;
                     }
                 }
             }

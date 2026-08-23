@@ -193,15 +193,19 @@ public class AtBatTests
     {
         var flies = 0;
         var hops = 0;
+        var lines = 0;
         for (var seed = 0; seed < 50; seed++)
         {
             var r = Swing(timing: 0, seed: seed);
-            if (r.LaunchDeg < 14) hops++;
+            if (FieldingResolver.IsGrounder(r)) hops++;
+            else if (FieldingResolver.IsLine(r)) lines++;
             else flies++;
         }
         Assert.True(hops > 0, "square contact should produce some grounders");
         Assert.True(flies > 0, "square contact should still produce flies");
+        Assert.True(lines > 0, "square contact should produce some line drives");
         Assert.NotEqual(50, flies);
+        Assert.NotEqual(50, hops);
     }
 
     [Fact]
