@@ -1,0 +1,11 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  companyName: Grand Sluggers
+  productName: Grand Sluggers
+  defaultScreenWidth: 1600
+  defaultScreenHeight: 900
+  androidRenderOutsideSafeArea: 1
+  m_ColorSpace: 1
+  m_ActiveColorSpace: 1

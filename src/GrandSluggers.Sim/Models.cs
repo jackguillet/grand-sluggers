@@ -89,7 +89,9 @@ public sealed record AtBatInput(
     bool UseStarPitch,
     bool UseStarSwing,
     BatItem? Bat,
-    int PitcherStamina);
+    int PitcherStamina,
+    double SprayAimDeg = 0,
+    bool PitchInZone = true);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -101,7 +103,62 @@ public sealed record AtBatResult(
     bool HomeRun,
     bool ChemistryItemOffered,
     string? StarPitchUsed,
-    string? StarSwingUsed);
+    string? StarSwingUsed,
+    double SprayDeg = 0,
+    bool Foul = false,
+    bool InZone = true);
+
+public sealed record PitchCommand(
+    string Type,
+    double Charge01,
+    double TimingErrorFrames,
+    bool Star);
+
+public sealed record SwingCommand(
+    bool Swing,
+    double Charge01,
+    double TimingErrorFrames,
+    bool Star,
+    double SprayAimDeg = 0);
+
+public enum PlayKind
+{
+    TakeBall,
+    TakeStrike,
+    SwingMiss,
+    Foul,
+    GroundOut,
+    FlyOut,
+    Single,
+    Double,
+    Triple,
+    HomeRun,
+    Walk,
+    Strikeout
+}
+
+public sealed record PlayEvent(
+    PlayKind Kind,
+    AtBatResult AtBat,
+    PitchCommand Pitch,
+    SwingCommand Swing,
+    Character Batter,
+    Character Pitcher,
+    Character? Fielder,
+    ThrowResult? Throw,
+    int RunsScored,
+    IReadOnlyList<string> Scorers,
+    string Caption,
+    bool Heatball,
+    bool Furnace,
+    double HangTimeSec,
+    double LandingX,
+    double LandingZ,
+    int OutsAfter,
+    int AwayScoreAfter,
+    int HomeScoreAfter);
+
+public readonly record struct Sample(double T, double Dist, double Height);
 
 public sealed record ThrowResult(
     Chemistry Relation,
