@@ -67,6 +67,28 @@ namespace GrandSluggers.UnityClient
             return "";
         }
 
+        /// <summary>Catalog clip if the slot has a Unity file; null keeps the generated tone.</summary>
+        public static AudioClip LoadAudio(string eventId)
+        {
+            var path = AudioPath(eventId);
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            var key = SlotToResources(path);
+            var clip = Resources.Load<AudioClip>(key);
+            if (clip != null) return clip;
+            return Resources.Load<AudioClip>(key + "/" + eventId);
+        }
+
+        public static string AudioBusOf(string eventId)
+        {
+            if (_art != null && _art.TryAudio(eventId, out var slot) && !string.IsNullOrWhiteSpace(slot.Kind))
+                return slot.Kind;
+            if (!string.IsNullOrEmpty(eventId) && eventId.StartsWith("vo-", System.StringComparison.OrdinalIgnoreCase))
+                return "vo";
+            if (!string.IsNullOrEmpty(eventId) && eventId.StartsWith("crowd-", System.StringComparison.OrdinalIgnoreCase))
+                return "crowd";
+            return "sfx";
+        }
+
         public static string ParkKitPath(string parkId)
         {
             if (_art != null && _art.TryPark(parkId, out var kit)) return kit.Slot;
