@@ -407,12 +407,45 @@ namespace GrandSluggers.UnityClient
                 }
                 case Pose.Run:
                 {
-                    var s = Mathf.Sin(_t * 16f);
-                    lArm = Quaternion.Euler(70f * s, 8f * s, 8);
-                    rArm = Quaternion.Euler(-70f * s, -8f * s, -8);
-                    lLeg = Quaternion.Euler(55f * s, 0, 0);
-                    rLeg = Quaternion.Euler(-55f * s, 0, 0);
-                    torsoRot = Quaternion.Euler(16, 8f * s, 0);
+                    var stride = Mathf.Repeat(_t * 2.55f, 1f);
+                    float LerpK(float a, float b, float u) => a + (b - a) * u;
+                    float k;
+                    if (stride < 0.25f)
+                    {
+                        k = stride / 0.25f;
+                        lLeg = Quaternion.Euler(LerpK(8, 58, k), 0, 0);
+                        rLeg = Quaternion.Euler(LerpK(-8, -42, k), 0, 0);
+                        lArm = Quaternion.Euler(LerpK(-20, -62, k), 6, 8);
+                        rArm = Quaternion.Euler(LerpK(20, 58, k), -6, -8);
+                        torsoRot = Quaternion.Euler(14, LerpK(0, 8, k), 0);
+                    }
+                    else if (stride < 0.5f)
+                    {
+                        k = (stride - 0.25f) / 0.25f;
+                        lLeg = Quaternion.Euler(LerpK(58, -8, k), 0, 0);
+                        rLeg = Quaternion.Euler(LerpK(-42, 8, k), 0, 0);
+                        lArm = Quaternion.Euler(LerpK(-62, 20, k), 6, 8);
+                        rArm = Quaternion.Euler(LerpK(58, -20, k), -6, -8);
+                        torsoRot = Quaternion.Euler(16, LerpK(8, 0, k), 0);
+                    }
+                    else if (stride < 0.75f)
+                    {
+                        k = (stride - 0.5f) / 0.25f;
+                        lLeg = Quaternion.Euler(LerpK(-8, -42, k), 0, 0);
+                        rLeg = Quaternion.Euler(LerpK(8, 58, k), 0, 0);
+                        lArm = Quaternion.Euler(LerpK(20, 58, k), 6, 8);
+                        rArm = Quaternion.Euler(LerpK(-20, -62, k), -6, -8);
+                        torsoRot = Quaternion.Euler(14, LerpK(0, -8, k), 0);
+                    }
+                    else
+                    {
+                        k = (stride - 0.75f) / 0.25f;
+                        lLeg = Quaternion.Euler(LerpK(-42, 8, k), 0, 0);
+                        rLeg = Quaternion.Euler(LerpK(58, -8, k), 0, 0);
+                        lArm = Quaternion.Euler(LerpK(58, -20, k), 6, 8);
+                        rArm = Quaternion.Euler(LerpK(-62, 20, k), -6, -8);
+                        torsoRot = Quaternion.Euler(16, LerpK(-8, 0, k), 0);
+                    }
                     break;
                 }
                 case Pose.ChargePitch:
@@ -536,10 +569,13 @@ namespace GrandSluggers.UnityClient
                     rLeg = Quaternion.Euler(18, -6, -8);
                     break;
                 case Pose.Catch:
-                    lArm = Quaternion.Euler(-50, 0, 20);
-                    rArm = Quaternion.Euler(-50, 0, -20);
+                {
+                    var k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_poseT / 0.16f));
+                    lArm = Quaternion.Slerp(Quaternion.Euler(25, 0, 25), Quaternion.Euler(-58, 0, 18), k);
+                    rArm = Quaternion.Slerp(Quaternion.Euler(25, 0, -25), Quaternion.Euler(-58, 0, -18), k);
                     gloveOn = true;
                     break;
+                }
                 case Pose.Field:
                     lArm = Quaternion.Euler(25, 0, 25);
                     rArm = Quaternion.Euler(25, 0, -25);

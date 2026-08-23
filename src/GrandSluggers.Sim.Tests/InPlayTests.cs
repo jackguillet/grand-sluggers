@@ -78,6 +78,48 @@ public class InPlayTests
         Assert.Empty(InPlay.GroundThrowBags(false, true));
     }
 
+    [Fact]
+    public void HardHopperCanBobbleIntoASingle()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 8, 45, false, false, null, null, SprayDeg: 2);
+        var bobbles = 0;
+        var outs = 0;
+        for (var i = 0; i < 80; i++)
+        {
+            var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, new Random(i));
+            if (field.Bobble)
+            {
+                bobbles++;
+                Assert.Equal(PlayKind.Single, field.Kind);
+                Assert.Equal(0, field.KnockbackSec);
+            }
+            else if (field.Kind == PlayKind.GroundOut)
+            {
+                outs++;
+                Assert.False(field.Bobble);
+                Assert.True(field.KnockbackSec > 0, "a 110 mph perfect hopper must shove the fielder");
+            }
+        }
+        Assert.True(bobbles > 0, "a rocket at the shins must eat someone in 80 tries");
+        Assert.True(outs > 0, "the same rocket is still an out when the glove holds");
+    }
+
+    [Fact]
+    public void DyingRollerDoesNotBobbleOrKnockBack()
+    {
+        var match = Match.Slice(_content, seed: 2);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var hit = new AtBatResult(ContactQuality.Cheap, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
+        for (var i = 0; i < 40; i++)
+        {
+            var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, new Random(i));
+            Assert.False(field.Bobble);
+            Assert.Equal(0, field.KnockbackSec);
+        }
+    }
+
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
         new(q, true, false, exit, launch, carry, false, false, null, null);
 }
