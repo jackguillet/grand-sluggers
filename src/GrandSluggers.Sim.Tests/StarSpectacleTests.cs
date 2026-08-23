@@ -33,4 +33,22 @@ public class StarSpectacleTests
         Assert.Equal(0, StarSkills.SpectacleSeconds(null));
         Assert.Equal(0, StarSkills.SpectacleSeconds(""));
     }
+
+    [Fact]
+    public void CaptainSpecialsHaveCatalogVfxEvents()
+    {
+        foreach (var c in _content.Characters.Values.Where(c => c.Captain))
+        {
+            Assert.True(_content.Art.TryVfx(c.StarPitch, out var pitch), c.Id + " pitch " + c.StarPitch);
+            Assert.False(string.IsNullOrWhiteSpace(pitch.Slot));
+            Assert.True(_content.Art.TryVfx(c.StarSwing, out var swing), c.Id + " swing " + c.StarSwing);
+            Assert.False(string.IsNullOrWhiteSpace(swing.Slot));
+            Assert.Equal(2.0, StarSkills.SpectacleSeconds(pitch.Id));
+            Assert.Equal(2.0, StarSkills.SpectacleSeconds(swing.Id));
+        }
+        Assert.True(_content.Art.TryVfx("heart-swing", out _));
+        Assert.True(_content.Art.TryVfx("shell-swing", out _));
+        Assert.True(_content.Art.TryVfx("phony-swing", out _));
+        Assert.True(_content.Art.TryVfx("cask-swing", out _));
+    }
 }

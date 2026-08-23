@@ -43,6 +43,24 @@ namespace GrandSluggers.UnityClient
             return "";
         }
 
+        /// <summary>Catalog prefab if the slot has a Unity file; null keeps the procedural stand-in.</summary>
+        public static GameObject LoadVfx(string eventId)
+        {
+            var path = VfxPath(eventId);
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            var key = SlotToResources(path);
+            var go = Resources.Load<GameObject>(key);
+            if (go != null) return go;
+            return Resources.Load<GameObject>(key + "/" + eventId);
+        }
+
+        public static bool HasVfx(string eventId)
+        {
+            if (string.IsNullOrWhiteSpace(eventId)) return false;
+            if (_art == null) return true;
+            return _art.TryVfx(eventId, out _);
+        }
+
         public static string AudioPath(string eventId)
         {
             if (_art != null && _art.TryAudio(eventId, out var slot)) return slot.Slot;
