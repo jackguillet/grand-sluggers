@@ -41,8 +41,8 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(56, 196, 800, 24), park, _body);
             if (portrait != null)
                 GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
-            GUI.Label(new Rect(56, 250, 900, 24), "A/D captain   W/S opponent   C park   SPACE play", _tiny);
-            GUI.Label(new Rect(56, 278, 900, 24), "South pitch/swing/catch   LT charge   Y star   LB steal   RB banana", _tiny);
+            GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start challenge", _tiny);
+            GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive", _gold);
         }
 
         static void Lineup(Match match)

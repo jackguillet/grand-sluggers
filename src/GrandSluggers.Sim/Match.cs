@@ -191,7 +191,7 @@ public sealed class Match
             pitch.Type, pitch.Charge01 > 0.55, swing.Charge01 > 0.55,
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             Top ? HomeStamina : AwayStamina,
-            swing.SprayAimDeg, inZone);
+            swing.SprayAimDeg, inZone, swing.Bunt);
 
         hit = _atBat.Resolve(input, Park, _rng);
         if (hit.Foul)

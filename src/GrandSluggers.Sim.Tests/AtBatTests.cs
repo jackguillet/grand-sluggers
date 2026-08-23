@@ -66,7 +66,26 @@ public class AtBatTests
         Assert.True(_content.Characters.Count >= 16);
     }
 
-    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber")
+    [Fact]
+    public void BuntIsAShortGrounderNotAHomer()
+    {
+        var swing = Swing(timing: 0);
+        var bunt = Swing(timing: 0, bunt: true);
+        Assert.NotEqual(ContactQuality.Miss, bunt.Quality);
+        Assert.True(bunt.LaunchDeg < 16, $"bunt launch {bunt.LaunchDeg}");
+        Assert.True(bunt.ExitVeloMph < swing.ExitVeloMph, $"bunt {bunt.ExitVeloMph} vs swing {swing.ExitVeloMph}");
+        Assert.False(bunt.HomeRun);
+        Assert.True(bunt.CarryFt < 180, $"bunt carry {bunt.CarryFt}");
+    }
+
+    [Fact]
+    public void InsideAimIsStillABallAfterLocation()
+    {
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.95, 0), 7));
+        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.1, 0.1), 7));
+    }
+
+    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber", bool bunt = false)
     {
         var batter = _content.Must(batterId);
         if (bat is int b)
@@ -84,7 +103,8 @@ public class AtBatTests
             UseStarPitch: false,
             UseStarSwing: false,
             Bat: _content.Bats[batId],
-            PitcherStamina: 80);
+            PitcherStamina: 80,
+            Bunt: bunt);
 
         return new AtBatResolver(_content.Chemistry).Resolve(input, _harbor, new Random(1));
     }

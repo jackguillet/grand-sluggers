@@ -44,15 +44,16 @@ unity/    Unity 6 URP client — this is how you play
 3. Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Gamepad first; keyboard is debug.
 
 ```
-SPACE / South   pitch, swing, or catch
-SHIFT / LT      charge (body pulls back)
-WASD / stick    spray the bat / move the fielder
-TAB             cycle pitch
-Q / Y           star skill
-F / East        buddy jump
-1 2 3 H         throw to 1st / 2nd / 3rd / home
-R               new pitcher
-A/D             your captain     W/S  opponent     C  park
+South / SPACE     pitch, swing, or catch
+LT / Shift        charge
+Left stick        pitch location / spray / field
+RB / Tab          cycle pitch
+North / Q         star
+West hold / V     bunt (batter) · jump (fielder)
+East / G          dive
+LB / X            steal
+D-pad / 1 2 3 4   throw
+Start / H         challenge
 ```
 
 Full pad map: [unity/README.md](unity/README.md).
