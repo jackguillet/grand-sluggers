@@ -17,9 +17,10 @@ public sealed class FieldingResolver
         var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
         var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
         var hang = BallFlight.HangTime(samples);
-        var grounder = hit.LaunchDeg < 14;
+        var grounder = IsGrounder(hit);
+        var line = IsLine(hit);
         var hrLikely = HomeRunLikely(hit, park);
-        var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder);
+        var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder && !line);
         var warped = false;
         if (grounder)
         {
@@ -40,10 +41,10 @@ public sealed class FieldingResolver
             radius += 6;
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
-        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder);
+        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
-            heat, furnace, freeze, radius, warped, Chomped: chomped);
+            heat, furnace, freeze, radius, warped, Chomped: chomped, Line: line);
     }
 
     public FieldingResult Resolve(
@@ -72,6 +73,7 @@ public sealed class FieldingResolver
         var landingZ = shown.LandingZ;
         var hang = shown.HangTimeSec;
         var grounder = shown.Grounder;
+        var line = shown.Line;
         var furnace = shown.Furnace;
         var heatball = shown.Heatball;
         var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8
@@ -83,6 +85,22 @@ public sealed class FieldingResolver
         var start = Diamond.Positions[pos];
         var toBall = Diamond.Dist(start.X, start.Z, landingX, landingZ);
         var arrive = toBall / Math.Max(8, speed);
+
+        if (line)
+        {
+            var window = CatchWindowFt(shown.CatchRadius, false, false);
+            var reached = arrive <= hang && toBall < window * 3.6 && !shown.Frozen;
+            if (reached)
+            {
+                var drop = (heatball && rng.NextDouble() < 0.35)
+                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
+                if (!drop)
+                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy);
+            }
+            var skipKind = hit.CarryFt >= 180 ? PlayKind.Double : PlayKind.Single;
+            skipKind = FieldAbilities.SpinCheck(fielder, skipKind);
+            return new FieldingResult(skipKind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
+        }
 
         if (!grounder)
         {
@@ -173,6 +191,12 @@ public sealed class FieldingResolver
 
     public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
 
+    public static bool IsGrounder(AtBatResult hit) => hit.LaunchDeg < 14;
+
+    /// <summary>Low rocket: 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
+    public static bool IsLine(AtBatResult hit) =>
+        hit.LaunchDeg is >= 14 and < 22 && hit.ExitVeloMph >= 78 && !IsGrounder(hit);
+
     public static bool HomeRunLikely(AtBatResult hit, Park park)
     {
         if (hit.HomeRun) return true;
@@ -182,7 +206,7 @@ public sealed class FieldingResolver
 
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>
     public static bool BuddyJumpOffered(FieldingPreview pre) =>
-        pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && IsOutfield(pre.Position);
+        pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && !pre.Line && IsOutfield(pre.Position);
 
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
@@ -288,7 +312,8 @@ public sealed record FieldingPreview(
     bool Frozen,
     double CatchRadius,
     bool Warped = false,
-    bool Chomped = false);
+    bool Chomped = false,
+    bool Line = false);
 
 public static class ParkHazards
 {

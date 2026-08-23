@@ -867,7 +867,7 @@ namespace GrandSluggers.UnityClient
             else
                 _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
-            if (_ring != null && _preview != null && !_preview.Grounder && !_caught && !_buddy)
+            if (_ring != null && _preview != null && !_preview.Grounder && !_preview.Line && !_caught && !_buddy)
             {
                 var hang = BallFlight.HangTime(_path);
                 var red = _hitT >= hang - 0.48f && _hitT <= hang + 0.14f;
@@ -945,7 +945,7 @@ namespace GrandSluggers.UnityClient
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
-            var chasing = !_caught && !_buddy && (pre.Grounder ? _hitT < rest : _hitT < hang);
+            var chasing = !_caught && !_buddy && (pre.Grounder || pre.Line ? _hitT < rest : _hitT < hang);
             var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
             var plant = buddyOn ? WallPlant(pre) : (X: pre.LandingX, Z: pre.LandingZ);
             _buddyWindow = buddyOn && _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
@@ -1014,7 +1014,7 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)_fx, 6.4f + (_jumpT > 0 ? 2.2f : 0f), (float)_fz);
 
             if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
-            if (pre.Grounder)
+            if (pre.Grounder || pre.Line)
             {
                 if (!_caught && _hitT < rest) return;
             }
@@ -1029,8 +1029,9 @@ namespace GrandSluggers.UnityClient
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
             var grounder = _preview.Grounder;
+            var line = _preview.Line;
             var spray = _pending != null ? _pending.SprayDeg : 0;
-            if (grounder && _path != null && !_caught)
+            if ((grounder || line) && _path != null && !_caught)
             {
                 var live = BallFlight.PointAt(_path, spray, _hitT);
                 var speed = (21 + _preview.Fielder.Stats.Run * 1.9) * (_preview.Frozen ? 0.45 : 1);
@@ -1055,13 +1056,15 @@ namespace GrandSluggers.UnityClient
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
             var reached = outPlay || _cpuField.Bobble;
-            if (reached && (grounder ? _hitT >= hang && _ball.y < 3.2f : _hitT >= hang - 0.18f))
+            if (reached && (grounder ? _hitT >= hang && _ball.y < 3.2f
+                : line ? _hitT >= hang - 0.12f && _ball.y < 8f
+                : _hitT >= hang - 0.18f))
             {
                 CatchGlove();
                 ArmRecoil();
             }
-            if (!grounder && _hitT < hang) return;
-            if (grounder && !_caught && _hitT < rest) return;
+            if (!grounder && !line && _hitT < hang) return;
+            if ((grounder || line) && !_caught && _hitT < rest) return;
             if (_cpuField.Bobble && _caught)
                 return;
             if (outPlay && grounder)

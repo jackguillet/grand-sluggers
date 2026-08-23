@@ -162,6 +162,23 @@ public class FieldingSceneTests
         Assert.False(FieldingResolver.BuddyJumpOffered(rivals));
     }
 
+    [Fact]
+    public void LineDriveIsInfieldWindowNotAFlyRing()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var liner = new AtBatResult(ContactQuality.Solid, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
+        Assert.True(FieldingResolver.IsLine(liner));
+        Assert.False(FieldingResolver.IsGrounder(liner));
+        var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.True(pre.Line);
+        Assert.False(pre.Grounder);
+        Assert.False(FieldingResolver.IsOutfield(pre.Position));
+        Assert.False(FieldingResolver.BuddyJumpOffered(pre));
+        var flyHang = BallFlight.HangTime(BallFlight.Trajectory(95, 28, 0));
+        Assert.True(pre.HangTimeSec < flyHang, $"line hang {pre.HangTimeSec} vs fly {flyHang}");
+    }
+
     static AtBatResult Fly(double carry, double launch, double spray, bool hr = false) =>
         new(ContactQuality.Solid, true, false, 95, launch, carry, hr, false, null, null, SprayDeg: spray);
 }

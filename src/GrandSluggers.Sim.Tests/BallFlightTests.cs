@@ -41,6 +41,19 @@ public class BallFlightTests
     }
 
     [Fact]
+    public void LineHangIsShorterThanAComparableFly()
+    {
+        var line = BallFlight.Trajectory(95, 16, 0);
+        var fly = BallFlight.Trajectory(95, 28, 0);
+        var lineHang = BallFlight.HangTime(line);
+        var flyHang = BallFlight.HangTime(fly);
+        Assert.True(lineHang < flyHang, $"line hang {lineHang} vs fly {flyHang}");
+        Assert.True(lineHang < 2.6, $"line should get on you, hang {lineHang}");
+        Assert.True(BallFlight.RestTime(line) > lineHang + 0.15, "line skips after first grass");
+        Assert.True(line[^1].Dist > BallFlight.FirstLandingDist(line) + 8, "skip carries past first grass");
+    }
+
+    [Fact]
     public void PointAtAfterHangCanBeOffTheDirtThenDown()
     {
         var samples = BallFlight.Trajectory(70, 10, 0);
