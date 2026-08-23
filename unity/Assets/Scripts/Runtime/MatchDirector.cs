@@ -24,6 +24,7 @@ namespace GrandSluggers.UnityClient
         bool _focusPool;
         bool _lineupTouched;
         float _lineupStick;
+        float _selectStick;
 
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
@@ -50,7 +51,7 @@ namespace GrandSluggers.UnityClient
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
-        enum Phase { Title, Lineup, Set, Flight, InPlay, Result, GameOver }
+        enum Phase { Title, Select, Lineup, Set, Flight, InPlay, Result, GameOver }
         Phase _phase = Phase.Title;
         readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
         int _itemPick;
@@ -149,7 +150,7 @@ namespace GrandSluggers.UnityClient
             }
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);
-            _rig.Cut(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+            _rig.Cut(new Vector3(0f, 9f, -22f), new Vector3(0f, 3.2f, 16f), 42f);
         }
 
         void Update()
@@ -167,6 +168,7 @@ namespace GrandSluggers.UnityClient
             switch (_phase)
             {
                 case Phase.Title: TickTitle(); break;
+                case Phase.Select: TickSelect(); break;
                 case Phase.Lineup:
                     TickLineup();
                     break;
@@ -223,6 +225,11 @@ namespace GrandSluggers.UnityClient
         void OnGUI()
         {
             if (_match == null) return;
+            if (_phase == Phase.Select)
+            {
+                HudView.Select(HomeCaptain, AwayCaptain, _content);
+                return;
+            }
             if (_phase == Phase.Lineup && _homeDraft != null)
             {
                 var taken = new List<string>();
@@ -235,6 +242,7 @@ namespace GrandSluggers.UnityClient
             var ui = _phase switch
             {
                 Phase.Title => PhaseUi.Title,
+                Phase.Select => PhaseUi.Select,
                 Phase.Lineup => PhaseUi.Lineup,
                 Phase.GameOver => PhaseUi.GameOver,
                 _ => PhaseUi.Set
@@ -342,6 +350,7 @@ namespace GrandSluggers.UnityClient
                     _cNight = false;
                 }
             }
+            _rig.Aim(new Vector3(0f, 9f, -22f), new Vector3(0f, 3.2f, 16f), 42f);
             if (Controls.SouthDown)
             {
                 if (_mode == PlayMode.Training)
@@ -354,8 +363,53 @@ namespace GrandSluggers.UnityClient
                 _spec.Build(transform);
                 _items.Build(transform);
                 _stars?.Build(transform);
-                OpenLineup();
+                if (_mode == PlayMode.Challenge)
+                    OpenLineup();
+                else
+                    OpenSelect();
             }
+        }
+
+        void OpenSelect()
+        {
+            _phase = Phase.Select;
+            _t = 0;
+            _selectStick = 0;
+            _clip = null;
+            _hlPath = null;
+            _replaying = false;
+            _rig.Aim(new Vector3(0f, 8.5f, -20f), new Vector3(0f, 3.2f, 16f), 40f);
+        }
+
+        void TickSelect()
+        {
+            if (_selectStick > 0) _selectStick -= Time.deltaTime;
+            else
+            {
+                var x = Controls.StickX;
+                var y = Controls.StickY;
+                if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
+                {
+                    HomeCaptain = x > 0 ? PresetTeams.NextCaptain(HomeCaptain) : PresetTeams.PrevCaptain(HomeCaptain);
+                    ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                    _match = NewMatch();
+                    _park.Build(_match.Park, _match.Night);
+                    _selectStick = 0.22f;
+                }
+                else if (Mathf.Abs(y) >= 0.45f)
+                {
+                    AwayCaptain = y > 0 ? PresetTeams.PrevCaptain(AwayCaptain) : PresetTeams.NextCaptain(AwayCaptain);
+                    if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
+                        AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
+                    _match = NewMatch();
+                    _selectStick = 0.22f;
+                }
+            }
+            if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
+                AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
+            _rig.Aim(new Vector3(0f, 8.5f, -20f), new Vector3(0f, 3.2f, 16f), 40f);
+            if (Controls.SouthDown && _t > 0.15f)
+                OpenLineup();
         }
 
         void BeginTraining()
@@ -1327,6 +1381,17 @@ namespace GrandSluggers.UnityClient
         void DrawActors()
         {
             _used.Clear();
+            if (_phase is Phase.Title or Phase.Select)
+            {
+                PlaceSelectRoster();
+                foreach (var kv in _heroes)
+                    if (!_used.Contains(kv.Key) && kv.Value != null)
+                        kv.Value.gameObject.SetActive(false);
+                _park.Ball.Hide();
+                _zone.Show(false, 0, 0);
+                _ring?.Hide();
+                return;
+            }
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var litId = "";
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
@@ -1626,6 +1691,27 @@ namespace GrandSluggers.UnityClient
             ConsiderHighlight();
             _phase = Phase.Result;
             _t = 0;
+        }
+
+        void PlaceSelectRoster()
+        {
+            var ids = PresetTeams.CaptainIds;
+            for (var i = 0; i < ids.Length; i++)
+            {
+                var who = _content.Must(ids[i]);
+                var hero = Hero(who);
+                var home = ids[i] == HomeCaptain;
+                var away = ids[i] == AwayCaptain;
+                var x = (i - (ids.Length - 1) * 0.5f) * 11.2f;
+                var z = 16f + (home ? 5f : 0f);
+                hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
+                hero.SetHighlight(home);
+                hero.SetGrow(home);
+                hero.SetHeld(false, false);
+                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.Place(new Vector3(x, 0f, z), new Vector3(0f, 0f, -1f));
+                hero.Tick(Time.deltaTime);
+            }
         }
 
         HeroActor Hero(Character who)
