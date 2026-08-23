@@ -23,6 +23,7 @@ namespace GrandSluggers.UnityClient
         ParkView _park;
         CameraRig _rig;
         SpecialFx _spec;
+        ItemView _items;
         StrikeZone _zone;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
@@ -30,7 +31,12 @@ namespace GrandSluggers.UnityClient
         enum Phase { Title, Lineup, Set, Flight, InPlay, Result, GameOver }
         Phase _phase = Phase.Title;
         readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
-        bool _itemArmed;
+        int _itemPick;
+        Character _itemTarget;
+        bool _itemThrown;
+        bool _itemFlying;
+        float _itemFly;
+        string _itemId = "";
         int _pitchIndex;
         bool _star;
         float _charge;
@@ -70,6 +76,9 @@ namespace GrandSluggers.UnityClient
         bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
         bool HumanBats => TrainingOn ? _coach.PlayerBats : _match != null && !_match.Top;
         bool PlayerFields => TrainingOn ? _coach.PlayerFields : HumanPitches;
+        bool ItemOffered =>
+            HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
+            && _phase == Phase.InPlay && !_throwing;
 
         void Start()
         {
@@ -81,6 +90,8 @@ namespace GrandSluggers.UnityClient
             _park.Build(_match.Park);
             _spec = gameObject.AddComponent<SpecialFx>();
             _spec.Build(transform);
+            _items = gameObject.AddComponent<ItemView>();
+            _items.Build(transform);
             _zone = gameObject.AddComponent<StrikeZone>();
             _zone.Build(transform);
             var cam = Camera.main;
@@ -182,7 +193,7 @@ namespace GrandSluggers.UnityClient
                 sub = _coach.Session.Verb;
             }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
-                _star, _match.StealOn, _itemArmed, _charge, timing,
+                _star, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null);
         }
@@ -256,6 +267,7 @@ namespace GrandSluggers.UnityClient
                 _match = NewMatch();
                 _park.Build(_match.Park);
                 _spec.Build(transform);
+                _items.Build(transform);
                 _phase = Phase.Lineup;
                 _t = 0;
                 _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
@@ -273,6 +285,7 @@ namespace GrandSluggers.UnityClient
             _match = _coach.MakeMatch(_content, Seed);
             _park.Build(_match.Park);
             _spec.Build(transform);
+            _items.Build(transform);
             _banner = _coach.Session.Caption;
             _sub = _coach.Session.Verb;
             BeginSet();
@@ -297,6 +310,7 @@ namespace GrandSluggers.UnityClient
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
                 _park.Build(_match.Park);
                 _spec.Build(transform);
+                _items.Build(transform);
                 _phase = Phase.Lineup;
                 _t = 0;
                 return;
@@ -304,6 +318,7 @@ namespace GrandSluggers.UnityClient
             _match = NewMatch();
             _park.Build(_match.Park);
             _spec.Build(transform);
+            _items.Build(transform);
             _phase = Phase.Title;
             _t = 0;
             _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
@@ -331,6 +346,13 @@ namespace GrandSluggers.UnityClient
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
             _star = false;
+            _itemThrown = false;
+            _itemFlying = false;
+            _itemFly = 0;
+            _itemId = "";
+            _itemTarget = null;
+            _itemPick = 0;
+            _items?.Hide();
             _banner = _sub = "";
             _ball = new Vector3(0, 5.4f, 60.5f);
             _park.Ball.Place(_ball, "", "fastball", false);
@@ -349,8 +371,6 @@ namespace GrandSluggers.UnityClient
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
             if (HumanBats && Controls.Steal) _match.ToggleSteal();
-            if (HumanBats && Controls.Item && _match.Chemistry.ChemistryItemOffered(_match.Batter, _match.OnDeck))
-                _itemArmed = !_itemArmed;
             if (HumanPitches)
             {
                 _aimX = Mathf.Clamp(Controls.StickX, -1, 1);
@@ -441,14 +461,18 @@ namespace GrandSluggers.UnityClient
             _preview = _match.PreviewHit(hit);
             _cpuField = null;
             _playerFielding = PlayerFields;
-            _itemArmed = HumanBats && _itemArmed;
+            _itemThrown = false;
+            _itemFlying = false;
+            _itemFly = 0;
+            _itemId = "";
+            _itemPick = 0;
+            _itemTarget = _preview != null ? _preview.Fielder : null;
             if (!_playerFielding)
             {
-                var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
                 _cpuField = _match.ResolveFielding(hit, _preview);
-                _cpuField = _match.ApplyOffenseItem(hit, _cpuField, item);
+                if (!HumanBats)
+                    _cpuField = _match.ApplyOffenseItem(hit, _cpuField, null);
             }
-            _itemArmed = false;
             InitGloves();
             _caught = _buddy = false;
             _throwBag = 0;
@@ -519,6 +543,8 @@ namespace GrandSluggers.UnityClient
             if (_jumpT > 0) _jumpT -= dt;
             if (_swapLock > 0) _swapLock -= dt;
 
+            TickItem(dt);
+
             if (_throwing)
             {
                 _throwT += dt;
@@ -527,7 +553,7 @@ namespace GrandSluggers.UnityClient
                     : _armedThrow != null && _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
                 _ball = Vector3.Lerp(_throwFrom, _throwTo, u);
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
-                if (_throwT >= _throwDur) CommitInPlay();
+                if (_throwT >= _throwDur && !_itemFlying) CommitInPlay();
                 return;
             }
 
@@ -545,7 +571,7 @@ namespace GrandSluggers.UnityClient
 
             var done = _hitT >= BallFlight.HangTime(_path) + 0.35f;
             if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
-            if (done) BeginResult();
+            if (done && !_itemFlying) BeginResult();
         }
 
         void TickPlayerField(float dt)
@@ -617,6 +643,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_cpuField.Kind == PlayKind.HomeRun && _hitT < 2.4f) return;
             if (_hitT < hang + 0.35f) return;
+            if (_itemFlying) return;
             CommitInPlay();
         }
 
@@ -751,6 +778,7 @@ namespace GrandSluggers.UnityClient
             var litId = "";
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;
+            var itemLit = ItemOffered && _itemTarget != null ? _itemTarget.Id : "";
             foreach (var kv in defense)
             {
                 var who = kv.Value;
@@ -762,7 +790,7 @@ namespace GrandSluggers.UnityClient
                     z = live.Z;
                 }
                 var pose = HeroActor.Pose.Idle;
-                var highlighted = _phase == Phase.InPlay && who.Id == litId;
+                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || (who.Id == litId && !HumanBats));
                 if (highlighted)
                 {
                     x = _fx;
@@ -842,6 +870,11 @@ namespace GrandSluggers.UnityClient
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
             _spec.Tick(Time.deltaTime, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
                 _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags);
+            var itemTargetPos = ItemTargetWorld();
+            var showThrow = _itemFlying || (_itemThrown && _phase == Phase.InPlay);
+            var flyU = !_itemFlying && _itemThrown ? 1f
+                : _itemFlying ? Mathf.Clamp01(_itemFly / ItemView.FlySeconds) : 0f;
+            _items?.Present(Time.deltaTime, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
         }
 
         static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
@@ -909,8 +942,71 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Result;
             _t = 0;
             _smash = 0;
+            _itemFlying = false;
+            _items?.Hide();
             _zone.Show(false, 0, 0);
             _rig.Aim(new Vector3(0, 36, -46), new Vector3(0, 2, 110), 48f);
+        }
+
+        void TickItem(float dt)
+        {
+            if (_itemFlying)
+            {
+                _itemFly += dt;
+                if (_itemFly >= ItemView.FlySeconds) _itemFlying = false;
+            }
+            if (!ItemOffered) return;
+            if (Controls.CyclePitch && !Controls.Item)
+                _itemPick = (_itemPick + 1) % ErrorItems.All.Length;
+            AimItem();
+            if (!TrainingOn)
+                _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
+            if (!Controls.ItemConfirm || _itemTarget == null) return;
+            var id = ErrorItems.All[_itemPick];
+            if (_cpuField != null)
+            {
+                _cpuField = _match.ThrowItem(_cpuField, id, _itemTarget);
+                if (_cpuField.Kind is not (PlayKind.FlyOut or PlayKind.GroundOut))
+                    _caught = false;
+            }
+            _itemThrown = true;
+            _itemFlying = true;
+            _itemFly = 0;
+            _itemId = id;
+            if (!TrainingOn) _sub = "";
+        }
+
+        void AimItem()
+        {
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var play = _cpuField != null && _cpuField.Fielder != null ? _cpuField.Fielder
+                : _preview != null ? _preview.Fielder : null;
+            var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
+            if (stick < 0.28f)
+            {
+                _itemTarget = play;
+                return;
+            }
+            var x = Controls.StickX * 160;
+            var z = 30 + (Controls.StickY * 0.5f + 0.5f) * 300;
+            var pick = FieldingResolver.NearestGlove(map, x, z, _gloveAt);
+            _itemTarget = pick.Fielder;
+        }
+
+        Vector3 ItemTargetWorld()
+        {
+            if (_itemTarget != null && _heroes.TryGetValue(_itemTarget.Id, out var h) && h != null)
+                return h.transform.position;
+            if (_preview != null)
+                return new Vector3((float)_preview.LandingX, 0, (float)_preview.LandingZ);
+            return new Vector3(0, 0, 80);
+        }
+
+        string ItemHud()
+        {
+            if (ItemOffered) return ErrorItems.All[_itemPick].ToUpperInvariant();
+            if (_itemFlying || _itemThrown) return _itemId.ToUpperInvariant();
+            return "";
         }
 
         static float Bounce(float t)

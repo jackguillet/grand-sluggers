@@ -59,21 +59,48 @@ public static class ErrorItems
 
     public static string Pick(Random rng) => All[rng.Next(All.Length)];
 
-    public static FieldingResult Apply(FieldingResult field, string item, Random rng)
+    public static bool Known(string? item)
     {
+        if (string.IsNullOrWhiteSpace(item)) return false;
+        var id = item.Trim().ToLowerInvariant();
+        foreach (var a in All)
+            if (a == id) return true;
+        return false;
+    }
+
+    public static FieldingResult Apply(FieldingResult field, string item, Random rng) =>
+        Apply(field, item, rng, null);
+
+    /// <summary>
+    /// Banana slips the play fielder (peel on the grass). Rocket has to hit that body.
+    /// POW is an infield hop — grounders only. Smoke/ghost/paint are not items.
+    /// </summary>
+    public static FieldingResult Apply(FieldingResult field, string item, Random rng, Character? target)
+    {
+        if (!Known(item)) return field;
+        var id = item.Trim().ToLowerInvariant();
         var outPlay = field.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
-        var turns = item switch
+        var onPlay = HitsPlay(field, id, target);
+        var turns = id switch
         {
-            "banana" => outPlay,
-            "rocket" => outPlay && rng.NextDouble() < 0.55,
-            "pow" => field.Kind == PlayKind.GroundOut,
+            "banana" => outPlay && onPlay,
+            "rocket" => outPlay && onPlay && rng.NextDouble() < 0.55,
+            "pow" => field.Kind == PlayKind.GroundOut && onPlay,
             _ => false
         };
         return field with
         {
             Kind = turns ? PlayKind.Single : field.Kind,
-            Item = item
+            Item = id
         };
+    }
+
+    static bool HitsPlay(FieldingResult field, string item, Character? target)
+    {
+        if (target is null) return true;
+        if (item == "pow") return true;
+        return field.Fielder is not null
+            && field.Fielder.Id.Equals(target.Id, StringComparison.OrdinalIgnoreCase);
     }
 }
 

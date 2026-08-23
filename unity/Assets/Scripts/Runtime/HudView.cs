@@ -10,7 +10,7 @@ namespace GrandSluggers.UnityClient
 
         public static void Draw(
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
-            bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, bool item,
+            bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
             bool training = false, string drillProgress = null)
         {
@@ -58,7 +58,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
             GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start mode   West training", _tiny);
             if (!training)
-                GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive", _gold);
+                GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive  E item", _gold);
             else
                 GUI.Label(new Rect(56, 278, 920, 24), "West starts the drills. Prompts sit on the diamond.", _gold);
         }
@@ -102,7 +102,7 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(60, 330, 900, 22), "SPACE  continue", _tiny);
         }
 
-        static void Play(Match match, string[] pitches, int pi, bool star, bool steal, bool item,
+        static void Play(Match match, string[] pitches, int pi, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub)
         {
             GUI.DrawTexture(new Rect(18, 14, 420, 118), _panel);
@@ -118,7 +118,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(Screen.width - 430, 14, 410, 88), _panel);
             GUI.Label(new Rect(Screen.width - 416, 22, 390, 22), "P   " + match.Pitcher.Name, _body);
             GUI.Label(new Rect(Screen.width - 416, 46, 390, 22), "AB  " + match.Batter.Name, _body);
-            var extra = (star ? "  STAR" : "") + (steal ? "  STEAL" : "") + (item ? "  ITEM" : "");
+            var extra = (star ? "  STAR" : "") + (steal ? "  STEAL" : "") + (!string.IsNullOrEmpty(item) ? "  " + item : "");
             if (showTiming)
                 GUI.Label(new Rect(Screen.width - 416, 70, 390, 22), pitches[pi] + extra, star ? _gold : _tiny);
             else if (extra.Length > 0)
