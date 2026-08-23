@@ -52,14 +52,45 @@ public static class InPlay
         return left < tThrow;
     }
 
+    public static double BagToBagSec(Character runner) =>
+        Math.Clamp(3.55 - runner.Stats.Run * 0.12, 2.45, 3.65);
+
+    /// <summary>Lead non-force runner's next bag: home if third is on, else third if second is on.</summary>
+    public static int TagBag(bool secondOccupied, bool thirdOccupied)
+    {
+        if (thirdOccupied) return 4;
+        if (secondOccupied) return 3;
+        return 0;
+    }
+
+    /// <summary>True if the runner reaches <paramref name="toBag"/> before the throw from the scoop.</summary>
+    public static bool RunnerBeatsTag(Character runner, AtBatResult hit, FieldingResult field, int toBag)
+    {
+        if (field.Kind != PlayKind.GroundOut || field.Fielder is null || toBag <= 0) return false;
+        var run = BagToBagSec(runner);
+        var already = field.HangTimeSec;
+        var left = run - already;
+        if (left <= 0) return true;
+        var dest = Diamond.Bag(toBag);
+        var dist = Diamond.Dist(field.LandingX, field.LandingZ, dest.X, dest.Z);
+        var tThrow = ThrowSec(dist, field.Throw) + KnockbackSec(Energy(hit), field.Fielder);
+        return left < tThrow;
+    }
+
     /// <summary>
     /// Bags to throw in order on a hopper. Force at second, then first when the batter is out.
-    /// Empty when the batter already beat the play and nobody is on first.
+    /// With first empty, throw to the tag bag (home or third). Empty when the batter already beat
+    /// the play and nobody is in scoring position.
     /// </summary>
-    public static int[] GroundThrowBags(bool firstOccupied, bool batterBeatsThrow)
+    public static int[] GroundThrowBags(bool firstOccupied, bool batterBeatsThrow) =>
+        GroundThrowBags(firstOccupied, false, false, batterBeatsThrow);
+
+    public static int[] GroundThrowBags(bool firstOccupied, bool secondOccupied, bool thirdOccupied, bool batterBeatsThrow)
     {
         if (firstOccupied)
             return batterBeatsThrow ? [2] : [2, 1];
+        if (thirdOccupied) return [4];
+        if (secondOccupied) return [3];
         return batterBeatsThrow ? [] : [1];
     }
 }
