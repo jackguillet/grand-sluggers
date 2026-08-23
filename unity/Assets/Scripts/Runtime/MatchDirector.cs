@@ -90,6 +90,9 @@ namespace GrandSluggers.UnityClient
         float _diveT, _jumpT, _swapLock;
         bool _throwing;
         float _throwT, _throwDur;
+        int[] _relayBags;
+        int _relayI;
+        string _coverPos = "";
         FieldingResult _cpuField;
         ThrowResult _armedThrow;
         Character _armedCut;
@@ -586,6 +589,9 @@ namespace GrandSluggers.UnityClient
             _playerFielding = false;
             _cpuField = null;
             _throwing = false;
+            _relayBags = null;
+            _relayI = 0;
+            _coverPos = "";
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
             _star = false;
@@ -736,8 +742,12 @@ namespace GrandSluggers.UnityClient
             _caught = _buddy = false;
             _throwBag = 0;
             _throwing = false;
+            _relayBags = null;
+            _relayI = 0;
+            _coverPos = "";
             _armedThrow = null;
             _armedCut = null;
+            _park.Ball.Release();
             _diveT = _jumpT = 0;
             _buddyWindow = false;
             _buddyPos = "";
@@ -855,7 +865,11 @@ namespace GrandSluggers.UnityClient
                     : _armedThrow != null && _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
                 _ball = Vector3.Lerp(_throwFrom, _throwTo, u);
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
-                if (_throwT >= _throwDur && !_itemFlying) CommitInPlay();
+                if (_throwT >= _throwDur && !_itemFlying)
+                {
+                    if (AdvanceRelay()) return;
+                    CommitInPlay();
+                }
                 return;
             }
 
@@ -981,7 +995,11 @@ namespace GrandSluggers.UnityClient
                 CatchGlove();
             if (!grounder && _hitT < hang) return;
             if (grounder && !_caught && _hitT < rest) return;
-            if (outPlay && _cpuField.Throw != null)
+            if (outPlay && grounder)
+            {
+                if (StartGroundRelays()) return;
+            }
+            else if (outPlay && _cpuField.Throw != null)
             {
                 _armedThrow = _cpuField.Throw;
                 _armedCut = _cpuField.Cutoff;
@@ -1086,14 +1104,28 @@ namespace GrandSluggers.UnityClient
             if (cut != null) thr = _match.ThrowBetween(from, cut);
             _armedThrow = thr;
             _armedCut = cut;
-            if (thr != null) BeginThrow(thr, cut, _throwBag);
+            if (thr != null)
+            {
+                if (_preview != null && _preview.Grounder && _throwBag == 2 && _match.First != null && _pending != null)
+                {
+                    var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, BuildPlayerResult());
+                    _relayBags = beats ? new[] { 2 } : new[] { 2, 1 };
+                }
+                else
+                    _relayBags = new[] { _throwBag };
+                _relayI = 0;
+                BeginThrow(thr, cut, _throwBag);
+            }
             else CommitInPlay();
         }
 
         void BeginThrow(ThrowResult thr, Character cut, int bag)
         {
+            _park.Ball.Release();
             _throwing = true;
             _throwT = 0;
+            _throwBag = bag;
+            _coverPos = CoverKey(bag);
             var to = cut != null && _heroes.TryGetValue(cut.Id, out var ch) && ch != null
                 ? ch.transform.position
                 : BagWorld(bag);
@@ -1102,6 +1134,56 @@ namespace GrandSluggers.UnityClient
             _spec.ArmThrow(_throwFrom, to, thr);
             _throwDur = Mathf.Max(0.28f, _spec.ThrowSeconds);
             _audio?.ThrowPop();
+        }
+
+        static string CoverKey(int bag) =>
+            bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : bag == 4 ? "C" : "";
+
+        bool StartGroundRelays()
+        {
+            if (_relayBags != null) return false;
+            if (_pending == null || _cpuField == null) return false;
+            var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField);
+            _relayBags = InPlay.GroundThrowBags(_match.First != null, beats);
+            _relayI = 0;
+            if (_relayBags.Length == 0) return false;
+            return FireRelay();
+        }
+
+        bool FireRelay()
+        {
+            if (_relayBags == null || _relayI >= _relayBags.Length) return false;
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var bag = _relayBags[_relayI];
+            var key = CoverKey(bag);
+            map.TryGetValue(key, out var cut);
+            var from = map.TryGetValue(_glovePos, out var glove) ? glove : _preview.Fielder;
+            ThrowResult thr = _cpuField != null ? _cpuField.Throw : null;
+            if (thr == null && from != null && cut != null)
+                thr = _match.ThrowBetween(from, cut);
+            if (thr == null && _cpuField != null)
+                thr = _cpuField.Throw;
+            if (cut == null && thr == null) return false;
+            _armedThrow = thr;
+            _armedCut = cut;
+            BeginThrow(thr ?? new ThrowResult(Chemistry.Neutral, 1.0, false), cut, bag);
+            return true;
+        }
+
+        bool AdvanceRelay()
+        {
+            if (_relayBags == null || _relayI + 1 >= _relayBags.Length) return false;
+            var bag = _relayBags[_relayI];
+            var dest = BagWorld(bag);
+            _fx = dest.x;
+            _fz = dest.z;
+            _glovePos = CoverKey(bag);
+            if (!string.IsNullOrEmpty(_glovePos))
+                _gloveAt[_glovePos] = (_fx, _fz);
+            _throwing = false;
+            CatchGlove();
+            _relayI++;
+            return FireRelay();
         }
 
         static Vector3 BagWorld(int bag)
@@ -1132,6 +1214,9 @@ namespace GrandSluggers.UnityClient
             _pending = null;
             _cpuField = null;
             _throwing = false;
+            _relayBags = null;
+            _coverPos = "";
+            _park.Ball.Release();
             BeginResult();
         }
 
@@ -1209,6 +1294,8 @@ namespace GrandSluggers.UnityClient
                 }
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
+                if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
+                    pose = HeroActor.Pose.Catch;
                 if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
                 if (_gun && kv.Key == "P" && _gunPickoff) pose = HeroActor.Pose.Throw;
                 var hero = Hero(who);
@@ -1236,7 +1323,8 @@ namespace GrandSluggers.UnityClient
             var batter = _match.Batter;
             var bHero = Hero(batter);
             var racing = _phase == Phase.InPlay && _pending != null;
-            var bPose = racing ? HeroActor.Pose.Run : BatterPose();
+            var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
+            var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
             bHero.SetPose(bPose, HumanBats ? _charge : 0);
             bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
             var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
@@ -1269,6 +1357,8 @@ namespace GrandSluggers.UnityClient
                 : _last != null ? _last.AtBat.StarSwingUsed : null;
             var ptype = _pitch != null ? _pitch.Type : "fastball";
             var heat = _last != null && _last.Heatball;
+            if ((_caught || _buddy) && !_throwing)
+                HoldBallInGlove();
             if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat);
             else
@@ -1587,6 +1677,17 @@ namespace GrandSluggers.UnityClient
             if (!_caught && !_gloved) _audio?.Glove();
             _caught = true;
             _gloved = true;
+            HoldBallInGlove();
+        }
+
+        void HoldBallInGlove()
+        {
+            if (_throwing) return;
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            if (!map.TryGetValue(_glovePos, out var who) || who == null) return;
+            if (!_heroes.TryGetValue(who.Id, out var hero) || hero == null) return;
+            var hand = hero.CatchHand;
+            if (hand != null) _park.Ball.Hold(hand);
         }
 
         void ConsiderHighlight()
