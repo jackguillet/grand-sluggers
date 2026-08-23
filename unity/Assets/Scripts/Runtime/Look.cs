@@ -136,6 +136,23 @@ namespace GrandSluggers.UnityClient
             DirLight("Rim", new Color(0.78f, 0.70f, 0.95f), 0.24f, new Vector3(18f, 155f, 0f), false);
         }
 
+        /// <summary>Funfair carnival: amber key, rose fill, gold rim. Not Harbor afternoon, not Crystal ice.</summary>
+        public static void RigCarnival(Camera cam)
+        {
+            var sky = new Color(0.78f, 0.50f, 0.58f);
+            SetupLighting(cam, sky);
+            cam.backgroundColor = sky;
+            RenderSettings.fogColor = new Color(0.88f, 0.60f, 0.46f);
+            RenderSettings.fogStartDistance = 220f;
+            RenderSettings.fogEndDistance = 720f;
+            RenderSettings.ambientSkyColor = new Color(0.90f, 0.56f, 0.46f);
+            RenderSettings.ambientEquatorColor = new Color(0.94f, 0.46f, 0.56f);
+            RenderSettings.ambientGroundColor = new Color(0.32f, 0.18f, 0.14f);
+            DirLight("Sun", new Color(1f, 0.76f, 0.40f), 1.38f, new Vector3(42f, 48f, 0f), true);
+            DirLight("Fill", new Color(0.92f, 0.36f, 0.58f), 0.40f, new Vector3(52f, -108f, 0f), false);
+            DirLight("Rim", new Color(1f, 0.86f, 0.30f), 0.50f, new Vector3(20f, 158f, 0f), false);
+        }
+
         static void DirLight(string name, Color color, float intensity, Vector3 euler, bool shadows)
         {
             var go = GameObject.Find(name);
