@@ -1457,6 +1457,8 @@ namespace GrandSluggers.UnityClient
                 }
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
+                if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
+                    pose = HeroActor.Pose.Crouch;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = HeroActor.Pose.Catch;
                 if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
