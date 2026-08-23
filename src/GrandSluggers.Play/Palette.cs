@@ -17,6 +17,35 @@ public static class Palette
     public static readonly Color SparkDark = C(140, 24, 28);
     public static readonly Color Ember = C(44, 32, 52);
     public static readonly Color EmberFire = C(255, 122, 32);
+    public static readonly Color Royal = C(232, 120, 168);
+    public static readonly Color Carnival = C(40, 170, 90);
+    public static readonly Color Goldrush = C(232, 188, 40);
+    public static readonly Color Canopy = C(120, 78, 42);
+
+    public static Color Body(string faction) => faction switch
+    {
+        "spark" => Spark,
+        "royal" => Royal,
+        "carnival" => Carnival,
+        "goldrush" => Goldrush,
+        "canopy" => Canopy,
+        "ember" => Ember,
+        _ => C(120, 120, 128)
+    };
+
+    public static Color Accent(string faction) => faction switch
+    {
+        "spark" => Gold,
+        "royal" => C(180, 230, 255),
+        "carnival" => C(255, 80, 160),
+        "goldrush" => C(255, 120, 40),
+        "canopy" => C(80, 160, 70),
+        "ember" => EmberFire,
+        _ => Gold
+    };
+
+    public static Color SkinTone(string faction) =>
+        faction is "ember" or "canopy" ? SkinShadow : Skin;
     public static readonly Color Skin = C(242, 201, 164);
     public static readonly Color SkinShadow = C(90, 78, 92);
     public static readonly Color Ball = C(250, 248, 240);

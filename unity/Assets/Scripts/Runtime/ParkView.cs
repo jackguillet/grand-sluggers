@@ -73,7 +73,7 @@ namespace GrandSluggers.UnityClient
             _trail.endColor = new Color(1, 1, 1, 0);
         }
 
-        public Transform Person(string id, bool spark)
+        public Transform Person(string id, string faction)
         {
             if (_people.TryGetValue(id, out var t)) return t;
             var go = new GameObject(id);
@@ -82,19 +82,19 @@ namespace GrandSluggers.UnityClient
             body.transform.SetParent(go.transform, false);
             body.transform.localPosition = new Vector3(0, 2.6f, 0);
             body.transform.localScale = new Vector3(2.2f, 2.4f, 2.2f);
-            body.GetComponent<Renderer>().material.color = spark ? Colors.Spark : Colors.Ember;
+            body.GetComponent<Renderer>().material.color = Colors.Body(faction);
             Destroy(body.GetComponent<Collider>());
             var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.transform.SetParent(go.transform, false);
             head.transform.localPosition = new Vector3(0, 5.2f, 0);
             head.transform.localScale = Vector3.one * 2.1f;
-            head.GetComponent<Renderer>().material.color = spark ? Colors.Skin : new Color(0.35f, 0.3f, 0.36f);
+            head.GetComponent<Renderer>().material.color = Colors.SkinTone(faction);
             Destroy(head.GetComponent<Collider>());
             var hat = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             hat.transform.SetParent(go.transform, false);
             hat.transform.localPosition = new Vector3(0, 6.2f, 0);
             hat.transform.localScale = new Vector3(1.8f, 0.25f, 1.8f);
-            hat.GetComponent<Renderer>().material.color = spark ? Colors.Gold : Colors.EmberFire;
+            hat.GetComponent<Renderer>().material.color = Colors.Accent(faction);
             Destroy(hat.GetComponent<Collider>());
             _people[id] = go.transform;
             return go.transform;

@@ -95,6 +95,21 @@ public sealed class Match
         return new Match(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), park, innings, seed);
     }
 
+    public static Match Exhibition(
+        ContentCatalog content,
+        string homeCaptain = "rio",
+        string awayCaptain = "ashlord",
+        int innings = DefaultInnings,
+        int seed = 1,
+        string? parkId = null)
+    {
+        var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
+        parkId ??= PresetTeams.HomeParkId(homeCaptain);
+        if (!content.Parks.TryGetValue(parkId, out var park))
+            park = content.Parks["harbor-diamond"];
+        return new Match(content, away, home, park, innings, seed);
+    }
+
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];

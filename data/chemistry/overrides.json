@@ -8,7 +8,9 @@
     ["konga", "vine"],
     ["konga", "dart"],
     ["pip", "dart"],
-    ["nico", "lace"]
+    ["nico", "lace"],
+    ["gull", "pip"],
+    ["basil", "dart"]
   ],
   "rivals": [
     ["rio", "ashlord"],
@@ -18,6 +20,7 @@
     ["zig", "soot"],
     ["konga", "ashlord"],
     ["pip", "cinder"],
-    ["frost", "boom"]
+    ["frost", "boom"],
+    ["moss", "cinder"]
   ]
 }

@@ -14,7 +14,8 @@ unity open ./unity --editor-version 6000.5.9f1
 Press **Play** on `Assets/Scenes/HarborDiamond.unity`.
 
 - SPACE — start / pitch / swing / catch
-- C (title) — Harbor Diamond / Crystal Rink
+- A/D (title) — your captain · W/S opponent · H challenge
+- C (title) — cycle park
 - Shift — charge
 - WASD — field
 - Q — star skill

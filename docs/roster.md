@@ -2,7 +2,7 @@
 
 Original characters. Factions exist so chemistry has a graph that a player can learn in one sitting.
 
-Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Vertical slice: **2 captains** (Spark vs Ember) and a handful of role players so a 9-person lineup exists.
+Launch fantasy: **6 factions × 1 captain + ~3 role players = ~24**, then grow toward 40. Now in data: **6 captains + 18 role players**. Exhibition builds a 9 from the captain, faction mates, then chemistry fills.
 
 Stats are 1–10. They will move.
 
@@ -87,6 +87,14 @@ Enough to fill two lineups. Full bios later.
 | vine | Vine | Canopy | 3 | 6 | 8 | 4 | Clamber |
 | cinder | Cinder | Ember | 4 | 8 | 4 | 5 | Spin Check |
 | soot | Soot | Ember | 6 | 4 | 5 | 6 | Burrow |
+| grit | Grit | Ember | 5 | 6 | 6 | 5 | Spin Check |
+| hex | Hex | Goldrush | 6 | 5 | 4 | 6 | Laser |
+| gull | Gull | Spark | 4 | 4 | 7 | 8 | Super Jump |
+| pewter | Pewter | Royal | 7 | 3 | 7 | 4 | Snap Throw |
+| jester | Jester | Carnival | 3 | 5 | 5 | 8 | Lick Catch |
+| nugget | Nugget | Goldrush | 5 | 7 | 2 | 5 | Laser |
+| moss | Moss | Canopy | 4 | 7 | 4 | 3 | Clamber |
+| basil | Basil | Canopy | 5 | 4 | 7 | 5 | Dive |
 
 ## Authorship rules
 
