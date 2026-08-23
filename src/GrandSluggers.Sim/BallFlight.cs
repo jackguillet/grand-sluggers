@@ -1,16 +1,25 @@
 namespace GrandSluggers.Sim;
 
-/// <summary>Toy ballistic with linear drag. Tuned so a 95 mph / 28° carry is ~380 ft in still air.</summary>
+/// <summary>
+/// Toy ballistic with linear drag, then hops and a roll.
+/// Carry / hang are first grass — the play continues after that.
+/// Tuned so a 95 mph / 28° first landing is ~380 ft in still air.
+/// </summary>
 public static class BallFlight
 {
     public const double Gravity = 32.174;
     public const double Drag = 0.0019;
     public const double PlateHeightFt = 2.5;
+    public const double BounceRestitution = 0.48;
+    public const double BounceHoriz = 0.82;
+    public const double MinBounceVy = 3.6;
+    public const double RollFriction = 22;
+    public const double RestSpeed = 1.4;
 
     public static double CarryFeet(double exitMph, double launchDeg, double windMph)
     {
         var samples = Trajectory(exitMph, launchDeg, windMph);
-        return samples.Count == 0 ? 0 : samples[^1].Dist;
+        return FirstLandingDist(samples);
     }
 
     public static IReadOnlyList<Sample> Trajectory(double exitMph, double launchDeg, double windMph)
@@ -22,18 +31,53 @@ public static class BallFlight
         var x = 0.0;
         var y = PlateHeightFt;
         var dt = 1.0 / 120.0;
-        var list = new List<Sample>(256) { new(0, 0, y) };
-        for (var i = 0; i < 120 * 8; i++)
+        var rolling = false;
+        var list = new List<Sample>(512) { new(0, 0, y) };
+        for (var i = 0; i < 120 * 12; i++)
         {
             var speed = Math.Sqrt(vx * vx + vy * vy);
+            if (rolling)
+            {
+                y = 0;
+                vy = 0;
+                var decel = RollFriction * dt;
+                if (Math.Abs(vx) <= decel)
+                {
+                    vx = 0;
+                    list.Add(new Sample((i + 1) * dt, x, 0));
+                    break;
+                }
+                vx -= Math.Sign(vx) * decel;
+                x += vx * dt;
+                list.Add(new Sample((i + 1) * dt, x, 0));
+                if (Math.Abs(vx) < RestSpeed)
+                    break;
+                continue;
+            }
+
             vx -= Drag * speed * vx * dt;
             vy -= (Gravity + Drag * speed * vy) * dt;
             x += vx * dt;
             y += vy * dt;
             var t = (i + 1) * dt;
-            list.Add(new Sample(t, x, Math.Max(0, y)));
             if (i > 8 && y <= 0)
-                break;
+            {
+                y = 0;
+                if (vy < 0)
+                {
+                    if (-vy < MinBounceVy)
+                    {
+                        vy = 0;
+                        rolling = true;
+                    }
+                    else
+                    {
+                        vy = -vy * BounceRestitution;
+                        vx *= BounceHoriz;
+                    }
+                }
+            }
+            list.Add(new Sample(t, x, Math.Max(0, y)));
         }
         return list;
     }
@@ -44,8 +88,28 @@ public static class BallFlight
         return (carryFt * Math.Sin(a), carryFt * Math.Cos(a));
     }
 
-    public static double HangTime(IReadOnlyList<Sample> samples) =>
+    /// <summary>Time of first grass contact — not the end of the play.</summary>
+    public static double HangTime(IReadOnlyList<Sample> samples) => FirstGrassTime(samples);
+
+    /// <summary>When the ball finishes hopping and rolling.</summary>
+    public static double RestTime(IReadOnlyList<Sample> samples) =>
         samples.Count == 0 ? 0 : samples[^1].T;
+
+    public static double FirstGrassTime(IReadOnlyList<Sample> samples)
+    {
+        foreach (var s in samples)
+            if (s.T > 0.08 && s.Height <= 0.05)
+                return s.T;
+        return samples.Count == 0 ? 0 : samples[^1].T;
+    }
+
+    public static double FirstLandingDist(IReadOnlyList<Sample> samples)
+    {
+        foreach (var s in samples)
+            if (s.T > 0.08 && s.Height <= 0.05)
+                return s.Dist;
+        return samples.Count == 0 ? 0 : samples[^1].Dist;
+    }
 
     public static (double X, double Y, double Z) PointAt(IReadOnlyList<Sample> samples, double sprayDeg, double t)
     {
