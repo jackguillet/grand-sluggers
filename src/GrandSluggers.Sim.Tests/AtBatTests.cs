@@ -86,6 +86,61 @@ public class AtBatTests
     }
 
     [Fact]
+    public void RooftopCityIsUrbanRoofNotHarbor()
+    {
+        var roof = _content.Parks["rooftop-city"];
+        Assert.Equal("rooftop-city", roof.Id);
+        Assert.Equal("dirt", roof.Surface);
+        Assert.Equal("goldrush", roof.Faction);
+        Assert.Contains(roof.Hazards, h => h.Type == "billboard");
+        Assert.Contains(roof.Hazards, h => h.Type == "ac_unit");
+        Assert.Contains(roof.Hazards, h => h.Type == "billboard" && h.Tag == "star");
+        Assert.DoesNotContain(roof.Hazards, h =>
+            h.Type is "freeze_volume" or "warp_pipe" or "barrel"
+                or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
+        Assert.Equal("rooftop-city", PresetTeams.HomeParkId("brondo"));
+        Assert.Equal("grass", _harbor.Surface);
+        Assert.Empty(_harbor.Hazards);
+    }
+
+    [Fact]
+    public void CanopyYardIsJungleNotHarbor()
+    {
+        var yard = _content.Parks["canopy-yard"];
+        Assert.Equal("canopy-yard", yard.Id);
+        Assert.Equal("dirt", yard.Surface);
+        Assert.Equal("canopy", yard.Faction);
+        Assert.Contains(yard.Hazards, h => h.Type == "barrel");
+        Assert.Contains(yard.Hazards, h => h.Type == "tree");
+        Assert.Contains(yard.Hazards, h => h.Type == "climb_wall");
+        Assert.DoesNotContain(yard.Hazards, h =>
+            h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
+                or "lava_pit" or "fire_breath" or "statue");
+        Assert.Equal("canopy-yard", PresetTeams.HomeParkId("konga"));
+        Assert.Equal("grass", _harbor.Surface);
+        Assert.Empty(_harbor.Hazards);
+    }
+
+    [Fact]
+    public void EmberKeepIsCourtyardNotHarbor()
+    {
+        var keep = _content.Parks["ember-keep"];
+        Assert.Equal("ember-keep", keep.Id);
+        Assert.Equal("ash", keep.Surface);
+        Assert.Equal("ember", keep.Faction);
+        Assert.Contains(keep.Hazards, h => h.Type == "lava_pit");
+        Assert.Contains(keep.Hazards, h => h.Type == "fire_breath");
+        Assert.Contains(keep.Hazards, h => h.Type == "statue");
+        Assert.DoesNotContain(keep.Hazards, h =>
+            h.Type is "freeze_volume" or "warp_pipe" or "billboard" or "ac_unit"
+                or "barrel" or "climb_wall");
+        Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
+        Assert.Equal(408, keep.CenterFenceFt);
+        Assert.Equal("grass", _harbor.Surface);
+        Assert.Empty(_harbor.Hazards);
+    }
+
+    [Fact]
     public void CarryIncreasesWithExitVelo()
     {
         var slow = BallFlight.CarryFeet(80, 28, 0);

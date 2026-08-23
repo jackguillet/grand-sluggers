@@ -131,6 +131,10 @@ public class MatchTests
     public void RooftopHasBillboards()
     {
         var park = _content.Parks["rooftop-city"];
+        Assert.Equal("rooftop-city", park.Id);
+        Assert.Equal("dirt", park.Surface);
+        Assert.Contains(park.Hazards, h => h.Type == "billboard");
+        Assert.Contains(park.Hazards, h => h.Type == "ac_unit");
         Assert.True(ParkHazards.HitStarSign(park, -80, 240));
         Assert.False(ParkHazards.HitStarSign(park, 0, 0));
     }
@@ -162,7 +166,10 @@ public class MatchTests
     public void CanopyYardHasBarrelsAndClimbWalls()
     {
         var park = _content.Parks["canopy-yard"];
+        Assert.Equal("canopy-yard", park.Id);
+        Assert.Equal("dirt", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "barrel");
+        Assert.Contains(park.Hazards, h => h.Type == "tree");
         Assert.Contains(park.Hazards, h => h.Type == "climb_wall");
         var w = ParkHazards.WarpIfPipe(park, 22, 58, new Random(3));
         Assert.True(w.Warped);
@@ -175,7 +182,11 @@ public class MatchTests
     public void EmberKeepLavaSlowsFielders()
     {
         var park = _content.Parks["ember-keep"];
+        Assert.Equal("ember-keep", park.Id);
         Assert.Equal("ash", park.Surface);
+        Assert.Contains(park.Hazards, h => h.Type == "lava_pit");
+        Assert.Contains(park.Hazards, h => h.Type == "fire_breath");
+        Assert.Contains(park.Hazards, h => h.Type == "statue");
         Assert.True(ParkHazards.InSlow(park, 38, 78));
         Assert.False(ParkHazards.InSlow(park, 0, 0));
         Assert.Equal("ember-keep", PresetTeams.HomeParkId("ashlord"));
