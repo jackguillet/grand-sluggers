@@ -7,7 +7,7 @@ namespace GrandSluggers.UnityClient
     public static class Look
     {
         static Shader _lit;
-        static Texture2D _grass, _dirt, _crowd, _rio;
+        static Texture2D _grass, _dirt, _crowd, _rio, _vale, _zig, _brondo, _konga, _ashlord;
 
         public static Shader LitShader
         {
@@ -25,6 +25,19 @@ namespace GrandSluggers.UnityClient
         public static Texture2D Dirt => _dirt ??= Load("tex-dirt.jpg", true);
         public static Texture2D Crowd => _crowd ??= Load("tex-crowd.jpg", false);
         public static Texture2D Rio => _rio ??= Load("rio-hero.jpg", false);
+
+        public static Texture2D Portrait(string id)
+        {
+            switch (id)
+            {
+                case "vale": return _vale ??= Load("vale-hero.jpg", false);
+                case "zig": return _zig ??= Load("zig-hero.jpg", false);
+                case "brondo": return _brondo ??= Load("brondo-hero.jpg", false);
+                case "konga": return _konga ??= Load("konga-hero.jpg", false);
+                case "ashlord": return _ashlord ??= Load("ashlord-hero.jpg", false);
+                default: return Rio;
+            }
+        }
 
         public static Material Lit(Color color, Texture tex = null, float tile = 1f, float smooth = 0.22f)
         {

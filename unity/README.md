@@ -11,7 +11,7 @@ cd /path/to/grand-sluggers
 unity open ./unity --editor-version 6000.5.9f1
 ```
 
-Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: textured grass and dirt, stands, crowd cards, a camera that sits behind the pitcher or batter, posed heroes, and a Heatball that actually looks like fire.
+Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: textured grass and dirt, stands, crowd cards, a camera that sits behind the pitcher or batter, posed heroes. Every captain special is a visible set piece (Heatball fire, Charmball hearts, Prismball rainbow, Phonyball decoy, Caskball barrel, Skullball heavy purple, Furnace burn, Heart charm, Shell/Cask fragments). Field verbs show on the body.
 
 - SPACE / gamepad South — start, pitch, swing, catch
 - LT / Shift — charge (body pulls back)
