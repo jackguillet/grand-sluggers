@@ -15,15 +15,21 @@ unity open ./unity --editor-version 6000.5.9f1
 
 Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: afternoon light (warm key, cool fill, gold rim), warning track, dugouts, backstop, stepped bleachers with crowd in the seats, town beyond the fence. Pitching-camera still should hold up. Pose heroes. Every captain special owns the ball or the field for two seconds (Heatball fire + embers, Charmball hearts, Prismball ghosts, Phonyball decoy, Caskball barrel, Skullball skull, Furnace burn + crack, Heart charm, Shell/Cask fragments, Phony hop) then baseball resumes. Mute the HUD and you can still name the clip. Field verbs show on the body.
 
-- SPACE / gamepad South — start, pitch, swing, catch
-- LT / Shift — charge (body pulls back)
-- Left stick — pitch location (in/out, up/down) on the mound; spray / field otherwise
-- Y / Q — arm star
-- A/D (title) — captain · W/S opponent · C park
-- F / East — buddy jump
-- 1 2 3 H — throw
-- R — new pitcher
-- F1 — timing bar (off by default; the ball and bodies are the tell)
+Gamepad is the product. Keyboard is a debug overlay.
+
+| Verb | Gamepad | Keyboard debug |
+| --- | --- | --- |
+| Aim / move / lead | Left stick | WASD |
+| Charge | LT hold | Shift |
+| Pitch / swing / catch | South | Space |
+| Cycle pitch | RB | Tab |
+| Star | North | Q |
+| Dive | East | G |
+| Jump / buddy / bunt (hold) | West | F / V hold |
+| Throw to bag | D-pad | 1 2 3 4 |
+| Steal | LB | X |
+| Challenge | Start | H |
+| Timing bar | — | F1 |
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.
 

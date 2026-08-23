@@ -91,7 +91,8 @@ public sealed record AtBatInput(
     BatItem? Bat,
     int PitcherStamina,
     double SprayAimDeg = 0,
-    bool PitchInZone = true);
+    bool PitchInZone = true,
+    bool Bunt = false);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -121,7 +122,8 @@ public sealed record SwingCommand(
     double Charge01,
     double TimingErrorFrames,
     bool Star,
-    double SprayAimDeg = 0);
+    double SprayAimDeg = 0,
+    bool Bunt = false);
 
 public enum PlayKind
 {
