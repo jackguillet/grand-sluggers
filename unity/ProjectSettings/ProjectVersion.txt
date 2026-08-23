@@ -1,2 +1,2 @@
-m_EditorVersion: 6000.0.58f2
-m_EditorVersionWithRevision: 6000.0.58f2 (placeholder)
+m_EditorVersion: 6000.0.82f1
+m_EditorVersionWithRevision: 6000.0.82f1 (install via unity install 6000.0.82f1)

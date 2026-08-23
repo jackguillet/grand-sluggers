@@ -6,6 +6,27 @@ public sealed class FieldingResolver
 
     public FieldingResolver(ChemistryTable chem) => _chem = chem;
 
+    public FieldingPreview Preview(
+        AtBatResult hit,
+        Park park,
+        IReadOnlyList<Character> defense,
+        Character pitcher)
+    {
+        var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
+        var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
+        var hang = BallFlight.HangTime(samples);
+        var grounder = hit.LaunchDeg < 14;
+        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
+        var hrLikely = hit.HomeRun || (hit.CarryFt >= fence - 15 && hit.LaunchDeg is > 16 and < 40);
+        var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder);
+        var buddy = Buddy(defense, pitcher, fielder, landing.X, landing.Z);
+        var freeze = ParkHazards.InFreeze(park, landing.X, landing.Z);
+        return new FieldingPreview(
+            fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
+            hit.StarPitchUsed == "heatball", hit.StarSwingUsed == "furnace", freeze,
+            10 + fielder.Stats.Field * 0.6);
+    }
+
     public FieldingResult Resolve(
         AtBatResult hit,
         Park park,
@@ -13,23 +34,25 @@ public sealed class FieldingResolver
         Character pitcher,
         Random rng)
     {
-        var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
-        var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
-        var hang = BallFlight.HangTime(samples);
-        var grounder = hit.LaunchDeg < 14;
-        var furnace = hit.StarSwingUsed == "furnace";
-        var heatball = hit.StarPitchUsed == "heatball";
-
-        if (hit.HomeRun)
+        var pre = Preview(hit, park, defense, pitcher);
+        if (pre.HomeRunLikely && hit.HomeRun)
         {
-            return new FieldingResult(PlayKind.HomeRun, null, null, hang, landing.X, landing.Z, false, furnace);
+            return new FieldingResult(PlayKind.HomeRun, null, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace);
         }
 
-        var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder);
+        var fielder = pre.Fielder;
+        var pos = pre.Position;
+        var landingX = pre.LandingX;
+        var landingZ = pre.LandingZ;
+        var hang = pre.HangTimeSec;
+        var grounder = pre.Grounder;
+        var furnace = pre.Furnace;
+        var heatball = pre.Heatball;
         var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8;
         var speed = 21 + fielder.Stats.Run * 1.9; // ft/s
+        if (pre.Frozen) speed *= 0.45;
         var start = Diamond.Positions[pos];
-        var toBall = Diamond.Dist(start.X, start.Z, landing.X, landing.Z);
+        var toBall = Diamond.Dist(start.X, start.Z, landingX, landingZ);
         var arrive = toBall / Math.Max(8, speed);
 
         if (!grounder)
@@ -38,20 +61,20 @@ public sealed class FieldingResolver
             var reached = arrive <= catchWindow && toBall < range * 3.2;
             if (reached)
             {
-                var drop = heatball && rng.NextDouble() < 0.35;
+                var drop = (heatball && rng.NextDouble() < 0.35) || (pre.Frozen && rng.NextDouble() < 0.4);
                 if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landing.X, landing.Z, heatball, furnace);
+                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
             }
 
             var kind = hit.CarryFt >= 330 ? PlayKind.Triple
                 : hit.CarryFt >= 250 ? PlayKind.Double
                 : PlayKind.Single;
-            return new FieldingResult(kind, fielder, null, hang, landing.X, landing.Z, heatball, furnace);
+            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
         }
 
         var glove = fielder.Stats.Field + rng.NextDouble() * 4;
         var beat = hit.Quality == ContactQuality.Perfect ? 2.5 : 0;
-        var outPlay = glove + 3 > 7 + beat && toBall < range * 2.5;
+        var outPlay = glove + 3 > 7 + beat && toBall < range * 2.5 && !pre.Frozen;
         if (outPlay)
         {
             var cut = Cutoff(defense, pitcher, fielder);
@@ -59,14 +82,18 @@ public sealed class FieldingResolver
             var error = throwRes is { Error: true };
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
-                fielder, cut, hang, landing.X, landing.Z, heatball, furnace, throwRes);
+                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, pre.Buddy);
         }
 
         var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
         return new FieldingResult(
             extra ? PlayKind.Double : PlayKind.Single,
-            fielder, null, hang, landing.X, landing.Z, heatball, furnace);
+            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
     }
+
+    public (Character Fielder, string Pos) NearestPublic(
+        IReadOnlyList<Character> defense, Character pitcher, double x, double z, bool outfield) =>
+        Nearest(defense, pitcher, x, z, outfield);
 
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
@@ -93,6 +120,22 @@ public sealed class FieldingResolver
             }
         }
         return (best ?? pitcher, bestPos);
+    }
+
+    Character? Buddy(IReadOnlyList<Character> defense, Character pitcher, Character fielder, double x, double z)
+    {
+        Character? best = null;
+        var bestD = double.MaxValue;
+        var keyed = Assign(defense, pitcher);
+        foreach (var pos in new[] { "LF", "CF", "RF" })
+        {
+            if (!keyed.TryGetValue(pos, out var c) || c.Id == fielder.Id) continue;
+            if (_chem.Between(fielder, c) != Chemistry.Good) continue;
+            var p = Diamond.Positions[pos];
+            var d = Diamond.Dist(p.X, p.Z, x, z);
+            if (d < bestD) { bestD = d; best = c; }
+        }
+        return best;
     }
 
     static Character? Cutoff(IReadOnlyList<Character> defense, Character pitcher, Character from)
@@ -127,4 +170,32 @@ public sealed record FieldingResult(
     double LandingZ,
     bool Heatball,
     bool Furnace,
-    ThrowResult? Throw = null);
+    ThrowResult? Throw = null,
+    Character? Buddy = null);
+
+public sealed record FieldingPreview(
+    Character Fielder,
+    string Position,
+    Character? Buddy,
+    double HangTimeSec,
+    double LandingX,
+    double LandingZ,
+    bool Grounder,
+    bool HomeRunLikely,
+    bool Heatball,
+    bool Furnace,
+    bool Frozen,
+    double CatchRadius);
+
+public static class ParkHazards
+{
+    public static bool InFreeze(Park park, double x, double z)
+    {
+        foreach (var h in park.Hazards)
+        {
+            if (h.Type != "freeze_volume") continue;
+            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
+        }
+        return false;
+    }
+}
