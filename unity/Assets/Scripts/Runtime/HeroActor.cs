@@ -397,8 +397,8 @@ namespace GrandSluggers.UnityClient
                     sample = MoveBones.MirrorArms(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
-                var snap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump;
-                Apply(sample, snap ? 0.55f : 0.32f, snap ? 0.48f : 0.34f);
+                var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump;
+                Apply(sample, boneSnap ? 0.55f : 0.32f, boneSnap ? 0.48f : 0.34f);
                 if (_bat != null)
                 {
                     _bat.gameObject.SetActive(batOn);
@@ -696,9 +696,9 @@ namespace GrandSluggers.UnityClient
             if (batting && _batsLeft) MirrorArms(ref lArm, ref rArm);
             if (pitching && _throwsLeft) MirrorArms(ref lArm, ref rArm);
 
-            var snap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Scoop or Pose.Slide;
-            var kArm = snap ? 0.55f : 0.2f;
-            var kLeg = snap ? 0.45f : 0.25f;
+            var poseSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Scoop or Pose.Slide;
+            var kArm = poseSnap ? 0.55f : 0.2f;
+            var kLeg = poseSnap ? 0.45f : 0.25f;
             if (_torso != null)
                 _torso.localRotation = Quaternion.Slerp(_torso.localRotation, torsoRot, kArm);
             if (_head != null)
