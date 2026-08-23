@@ -12,6 +12,7 @@ public sealed class Game : IDisposable
     readonly int _seed;
     readonly ContentCatalog _content;
     readonly string[] _pitches = ["fastball", "changeup", "curve"];
+    readonly string[] _parks = ["harbor-diamond", "crystal-rink"];
 
     Match _match;
     Phase _phase = Phase.Title;
@@ -36,24 +37,45 @@ public sealed class Game : IDisposable
     string _banner = "";
     string _sub = "";
     Camera3D _cam;
+    string _parkId;
+    bool _two;
+    AtBatResult? _pendingHit;
+    FieldingPreview? _preview;
+    double _fx, _fz;
+    bool _playerFielding;
+    bool _caught;
+    bool _buddyJump;
+    bool _frozenSlow;
 
-    public Game(bool demo, int seed)
+    public Game(bool demo, int seed, string parkId = "harbor-diamond", bool two = false)
     {
         _demo = demo;
         _seed = seed;
+        _parkId = parkId;
+        _two = two;
         _content = ContentCatalog.Load();
-        _match = Match.Slice(_content, 3, seed);
+        _match = NewMatch(seed);
         _cam = WorldView.HighCamera();
     }
+
+    Match NewMatch(int seed) => Match.Slice(_content, 3, seed, _parkId);
+
+    bool HumanPitches => !_demo && (_two || _match.Top);
+    bool HumanBats => !_demo && (_two || !_match.Top);
+    bool HumanFields => HumanPitches;
+
+    FrameInput PitchPad(FrameInput p1, FrameInput p2) =>
+        _two && !_match.Top ? p2 : p1;
+
+    FrameInput BatPad(FrameInput p1, FrameInput p2) =>
+        _two && _match.Top ? p2 : p1;
 
     public void Run()
     {
         const int w = 1600, h = 900;
         Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint);
-        if (_demo)
-            Raylib.SetConfigFlags(ConfigFlags.Msaa4xHint | ConfigFlags.VSyncHint);
-        Raylib.InitWindow(w, h, "Grand Sluggers — Harbor Diamond");
-        Raylib.SetTargetFPS(_demo ? 60 : 60);
+        Raylib.InitWindow(w, h, "Grand Sluggers");
+        Raylib.SetTargetFPS(60);
         Raylib.SetExitKey(KeyboardKey.Null);
 
         if (_demo)
@@ -63,9 +85,10 @@ public sealed class Game : IDisposable
         {
             var dt = Raylib.GetFrameTime();
             if (_demo) dt *= 3.2f;
-            var input = PlayerInput.Read();
-            if (input.Quit && !_demo) break;
-            Tick(dt, input);
+            var p1 = PlayerInput.ReadP1();
+            var p2 = _two ? PlayerInput.ReadP2() : default;
+            if (p1.Quit && !_demo) break;
+            Tick(dt, p1, p2);
             Draw();
             if (_demo) DemoShots();
             if (_demo && _phase == Phase.GameOver && _phaseT > 2.2f) break;
@@ -76,31 +99,38 @@ public sealed class Game : IDisposable
         {
             Console.WriteLine(_match.BoxLine());
             var mvp = _match.Mvp();
-            Console.WriteLine($"MVP {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
+            Console.WriteLine($"MVP {mvp.Who.Name} ({mvp.Points}) - {mvp.Why}");
         }
     }
 
     public void Dispose() { }
 
-    void Tick(float dt, FrameInput input)
+    void Tick(float dt, FrameInput p1, FrameInput p2)
     {
         _phaseT += dt;
         switch (_phase)
         {
             case Phase.Title:
-                if (input.ConfirmPressed || _demo && _phaseT > 0.6f) BeginLineup();
+                if (p1.TogglePark)
+                    _parkId = _parkId == "harbor-diamond" ? "crystal-rink" : "harbor-diamond";
+                if (p1.ToggleTwoPlayer) _two = !_two;
+                if (p1.ConfirmPressed || _demo && _phaseT > 0.6f)
+                {
+                    _match = NewMatch(_seed);
+                    BeginLineup();
+                }
                 break;
             case Phase.Lineup:
-                if (input.ConfirmPressed || _demo && _phaseT > 1.4f) BeginSet();
+                if (p1.ConfirmPressed || _demo && _phaseT > 1.4f) BeginSet();
                 break;
             case Phase.Set:
-                TickSet(dt, input);
+                TickSet(dt, PitchPad(p1, p2), BatPad(p1, p2));
                 break;
             case Phase.Flight:
-                TickFlight(dt, input);
+                TickFlight(dt, PitchPad(p1, p2), BatPad(p1, p2));
                 break;
             case Phase.InPlay:
-                TickInPlay(dt);
+                TickInPlay(dt, PitchPad(p1, p2));
                 break;
             case Phase.Result:
                 _resultT += dt;
@@ -111,9 +141,9 @@ public sealed class Game : IDisposable
                 }
                 break;
             case Phase.GameOver:
-                if (input.ConfirmPressed)
+                if (p1.ConfirmPressed)
                 {
-                    _match = Match.Slice(_content, 3, _seed + 1);
+                    _match = NewMatch(_seed + 1);
                     _phase = Phase.Title;
                     _phaseT = 0;
                 }
@@ -137,32 +167,35 @@ public sealed class Game : IDisposable
         _swing = null;
         _pitch = null;
         _last = null;
+        _pendingHit = null;
+        _preview = null;
+        _playerFielding = false;
+        _caught = false;
+        _buddyJump = false;
         _trail.Clear();
         _starArmed = false;
         _banner = "";
         _sub = "";
         _ball = new Vector3(0, 5.4f, 60.5f);
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
-        if (_demo || !_match.Top)
-        {
-            // CPU pitches after a beat (player is batting, or demo)
-        }
     }
 
-    void TickSet(float dt, FrameInput input)
+    void TickSet(float dt, FrameInput pitcher, FrameInput batter)
     {
-        var playerPitches = _match.Top && !_demo;
         _pip += dt * 1.35f;
-        if (input.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
-        if (input.StarPressed && (playerPitches ? _match.CanStarPitch : _match.CanStarSwing))
+        if (pitcher.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
+        if (pitcher.Swap) _match.SwapPitcher();
+        if (HumanPitches && pitcher.StarPressed && _match.CanStarPitch)
+            _starArmed = !_starArmed;
+        if (HumanBats && batter.StarPressed && _match.CanStarSwing)
             _starArmed = !_starArmed;
 
-        if (playerPitches)
+        if (HumanPitches)
         {
-            if (input.Charge) _charge = Math.Min(1, _charge + dt / 0.55f);
+            if (pitcher.Charge) _charge = Math.Min(1, _charge + dt / 0.55f);
             else _charge = Math.Max(0, _charge - dt * 1.4f);
-            if (input.ConfirmPressed)
-                LaunchPitch(PlayerPitch());
+            if (pitcher.ConfirmPressed)
+                LaunchPitch(PlayerPitch(pitcher));
             return;
         }
 
@@ -170,7 +203,7 @@ public sealed class Game : IDisposable
             LaunchPitch(_match.CpuPitch());
     }
 
-    PitchCommand PlayerPitch()
+    PitchCommand PlayerPitch(FrameInput input)
     {
         var timing = (Bounce(_pip) - 0.5f) * 18f;
         var star = _starArmed && _match.CanStarPitch;
@@ -198,12 +231,11 @@ public sealed class Game : IDisposable
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
     }
 
-    void TickFlight(float dt, FrameInput input)
+    void TickFlight(float dt, FrameInput pitcher, FrameInput batter)
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var breakX = _pitch!.Type == "curve" ? MathF.Sin(u * MathF.PI) * (_pitch.Type == "curve" ? 2.8f : 0) : 0;
-        if (_pitch.Type == "changeup") breakX = 0;
+        var breakX = _pitch!.Type == "curve" ? MathF.Sin(u * MathF.PI) * 2.8f : 0;
         var y = 5.4f + (2.4f - 5.4f) * u * u + (_pitch.Type == "changeup" ? -1.2f * u * u : 0);
         var z = 60.5f * (1 - u);
         if (_pitch.Star && _match.Pitcher.StarPitch == "heatball")
@@ -212,29 +244,27 @@ public sealed class Game : IDisposable
         _trail.Add(_ball);
         if (_trail.Count > 24) _trail.RemoveAt(0);
 
-        var playerBats = !_match.Top && !_demo;
-        if (playerBats)
+        if (HumanBats)
         {
-            if (input.StarPressed && _match.CanStarSwing) _starArmed = !_starArmed;
-            if (input.Charge) _charge = Math.Min(1, _charge + dt / 0.45f);
-            if (input.ConfirmPressed && !_playerSwung)
+            if (batter.StarPressed && _match.CanStarSwing) _starArmed = !_starArmed;
+            if (batter.Charge) _charge = Math.Min(1, _charge + dt / 0.45f);
+            if (batter.ConfirmPressed && !_playerSwung)
             {
                 _playerSwung = true;
-                var frames = ((_flightAge - _pitchDur) * 60);
-                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, input.Spray * 18);
+                var frames = (_flightAge - _pitchDur) * 60;
+                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, batter.Spray * 18);
             }
         }
 
         if (u < 1) return;
-
-        _swing ??= PlayerOrCpuSwing();
+        _swing ??= PlayerOrCpuSwing(batter);
         ResolvePitch();
     }
 
-    SwingCommand PlayerOrCpuSwing()
+    SwingCommand PlayerOrCpuSwing(FrameInput batter)
     {
         if (_playerSwung && _swing is not null) return _swing;
-        if (!_match.Top && !_demo)
+        if (HumanBats)
             return new SwingCommand(false, _charge, 12, false);
         var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch);
         return _match.CpuSwing(_pitch!, inZone);
@@ -242,24 +272,54 @@ public sealed class Game : IDisposable
 
     void ResolvePitch()
     {
+        if (HumanFields)
+        {
+            if (!_match.BeginAtBat(_pitch!, _swing!, out var hit, out var finished))
+            {
+                _last = finished;
+                _banner = Label(_last!);
+                _sub = _last!.Caption;
+                if (_last.Kind == PlayKind.Foul && _last.AtBat.ExitVeloMph > 1)
+                    StartFly(hit: _last.AtBat, playerField: false);
+                else
+                    BeginResult();
+                return;
+            }
+            _pendingHit = hit;
+            _preview = _match.PreviewHit(hit);
+            var start = Diamond.Positions[_preview.Position];
+            _fx = start.X;
+            _fz = start.Z;
+            _frozenSlow = _preview.Frozen;
+            _playerFielding = true;
+            _caught = false;
+            _buddyJump = false;
+            StartFly(hit, playerField: true);
+            return;
+        }
+
         _last = _match.Play(_pitch!, _swing!);
         _banner = Label(_last);
         _sub = _last.Caption;
         var fly = _last.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
             or PlayKind.HomeRun or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
         if (fly && _last.AtBat.ExitVeloMph > 1)
-        {
-            _hitPath = BallFlight.Trajectory(_last.AtBat.ExitVeloMph, _last.AtBat.LaunchDeg, _match.Park.WindMph);
-            _hitT = 0;
-            _phase = Phase.InPlay;
-            _phaseT = 0;
-            _trail.Clear();
-            return;
-        }
-        BeginResult();
+            StartFly(_last.AtBat, playerField: false);
+        else
+            BeginResult();
     }
 
-    void TickInPlay(float dt)
+    void StartFly(AtBatResult hit, bool playerField)
+    {
+        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, _match.Park.WindMph);
+        _hitT = 0;
+        _phase = Phase.InPlay;
+        _phaseT = 0;
+        _playerFielding = playerField;
+        _trail.Clear();
+    }
+
+    void TickInPlay(float dt, FrameInput field)
     {
         _hitT += dt;
         if (_hitPath.Count == 0)
@@ -267,13 +327,82 @@ public sealed class Game : IDisposable
             BeginResult();
             return;
         }
-        var p = BallFlight.PointAt(_hitPath, _last!.AtBat.SprayDeg, _hitT);
+        var spray = _pendingHit?.SprayDeg ?? _last!.AtBat.SprayDeg;
+        var p = BallFlight.PointAt(_hitPath, spray, _hitT);
         _ball = new Vector3((float)p.X, (float)Math.Max(0.6, p.Y), (float)p.Z);
         _trail.Add(_ball);
         if (_trail.Count > 40) _trail.RemoveAt(0);
         _cam = WorldView.FollowCamera(_ball);
+
+        if (_playerFielding && _preview is { } pre && _pendingHit is { } hit)
+        {
+            var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (_frozenSlow ? 0.4 : 1);
+            _fx += field.MoveX * speed * dt;
+            _fz += field.MoveZ * speed * dt;
+            if (field.Jump && pre.Buddy is not null && pre.HomeRunLikely)
+                _buddyJump = true;
+            if (field.ConfirmPressed)
+            {
+                var d = Diamond.Dist(_fx, _fz, _ball.X, _ball.Z);
+                if (d < pre.CatchRadius + 4) _caught = true;
+            }
+
+            var hang = BallFlight.HangTime(_hitPath);
+            if (_hitT >= hang && !_caught && !_buddyJump)
+            {
+                var d = Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ);
+                if (d < pre.CatchRadius + 6) _caught = true;
+            }
+
+            if (_hitT >= hang + 0.15f)
+            {
+                Character? cut = null;
+                ThrowResult? thr = null;
+                if (field.ThrowBase is > 0 and < 5 && _caught)
+                {
+                    var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                    cut = field.ThrowBase switch
+                    {
+                        1 => map.GetValueOrDefault("1B"),
+                        2 => map.GetValueOrDefault("2B"),
+                        3 => map.GetValueOrDefault("3B"),
+                        _ => map.GetValueOrDefault("C")
+                    };
+                    if (cut is not null)
+                        thr = _match.ThrowBetween(pre.Fielder, cut);
+                }
+
+                FieldingResult result;
+                if (_buddyJump || _caught)
+                {
+                    var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
+                    result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
+                        pre.Heatball, pre.Furnace, thr, pre.Buddy);
+                }
+                else if (pre.HomeRunLikely)
+                {
+                    result = new FieldingResult(PlayKind.HomeRun, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
+                        pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+                }
+                else
+                {
+                    var kind = hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single;
+                    result = new FieldingResult(kind, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
+                        pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+                }
+
+                _last = _match.FinishAtBat(_pitch!, _swing!, hit, result);
+                _banner = Label(_last);
+                _sub = _last.Caption;
+                _playerFielding = false;
+                _pendingHit = null;
+                BeginResult();
+            }
+            return;
+        }
+
         var done = _hitT >= BallFlight.HangTime(_hitPath) + 0.35f;
-        if (_last.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
+        if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
         if (done) BeginResult();
     }
 
@@ -300,6 +429,7 @@ public sealed class Game : IDisposable
         PlayKind.Single => "SINGLE",
         PlayKind.Walk => "WALK",
         PlayKind.Strikeout => "STRIKEOUT",
+        PlayKind.FlyOut when ev.Caption.Contains("BUDDY") => "BUDDY JUMP",
         PlayKind.FlyOut => "OUT",
         PlayKind.GroundOut => "OUT",
         PlayKind.Foul => "FOUL",
@@ -312,7 +442,7 @@ public sealed class Game : IDisposable
     void Draw()
     {
         Raylib.BeginDrawing();
-        Raylib.ClearBackground(Palette.Sky);
+        Raylib.ClearBackground(_match.Park.Surface == "ice" ? Palette.C(168, 198, 222) : Palette.Sky);
         Raylib.BeginMode3D(_cam);
         WorldView.DrawPark(_match.Park, _last?.Furnace == true && _phase is Phase.InPlay or Phase.Result);
         DrawActors();
@@ -324,6 +454,9 @@ public sealed class Game : IDisposable
         {
             case Phase.Title:
                 Hud.DrawTitle(w, h);
+                var park = _parkId == "crystal-rink" ? "Crystal Rink" : "Harbor Diamond";
+                var mode = _two ? "2 PLAYER  (P1 Spark, P2 Ember)" : "1 PLAYER  (you are Spark)";
+                Raylib.DrawText($"Park: {park}   Mode: {mode}", 84, 580, 22, Palette.SparkDark);
                 break;
             case Phase.Lineup:
                 Hud.DrawLineup(_match, w);
@@ -337,6 +470,8 @@ public sealed class Game : IDisposable
                     : 0;
                 Hud.Draw(_match, _pitches[_pitchIndex], _starArmed, _charge, timing,
                     _phase is Phase.Flight or Phase.Set, _banner, _sub);
+                if (_playerFielding && _preview?.Buddy is not null && _preview.HomeRunLikely)
+                    Raylib.DrawText("F  BUDDY JUMP", w / 2 - 90, h - 40, 22, Palette.Gold);
                 break;
         }
         Raylib.EndDrawing();
@@ -351,7 +486,14 @@ public sealed class Game : IDisposable
             var p = Diamond.Positions[pos];
             var x = p.X;
             var z = p.Z;
-            if (_phase == Phase.InPlay && _last?.Fielder is { } f && f.Id == who.Id)
+            var controlled = _playerFielding && _preview is { } pre && who.Id == pre.Fielder.Id;
+            if (controlled)
+            {
+                x = _fx;
+                z = _fz;
+                WorldView.DrawRing(x, z, 4.5f, Palette.Gold);
+            }
+            else if (_phase == Phase.InPlay && !_playerFielding && _last?.Fielder is { } f && f.Id == who.Id)
             {
                 var u = Math.Clamp(_hitT / Math.Max(0.2, _last.HangTimeSec), 0, 1);
                 x = p.X + (_last.LandingX - p.X) * u;
@@ -366,7 +508,7 @@ public sealed class Game : IDisposable
         if (_phase == Phase.Flight && (_playerSwung || _swing?.Swing == true) && _flightAge > _pitchDur - 0.08f)
             batAngle = 50f;
         if (_phase == Phase.InPlay) batAngle = 80f;
-        WorldView.DrawPerson(1.6, 0.8, batter.Faction == "spark", true, false, batAngle, _starArmed && !_match.Top);
+        WorldView.DrawPerson(1.6, 0.8, batter.Faction == "spark", true, false, batAngle, _starArmed && HumanBats);
 
         if (_match.First is { } r1) WorldView.DrawPerson(Diamond.First.X, Diamond.First.Z, r1.Faction == "spark", false, false, 0, false);
         if (_match.Second is { } r2) WorldView.DrawPerson(Diamond.Second.X, Diamond.Second.Z, r2.Faction == "spark", false, false, 0, false);
@@ -375,7 +517,7 @@ public sealed class Game : IDisposable
         if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
         {
             var heat = _pitch?.Star == true && _match.Pitcher.StarPitch == "heatball" || _last?.Heatball == true;
-            var furnace = _last?.Furnace == true;
+            var furnace = _last?.Furnace == true || _preview?.Furnace == true;
             WorldView.DrawBall(_ball, heat, furnace, _trail);
         }
     }
@@ -386,7 +528,7 @@ public sealed class Game : IDisposable
         Directory.CreateDirectory(dir);
         if (_phase == Phase.Lineup && !_shotLineup && _phaseT > 0.3f)
         {
-            Grab("lineup.png", dir);
+            Grab(_parkId == "crystal-rink" ? "crystal-rink.png" : "lineup.png", dir);
             _shotLineup = true;
         }
         if (_phase == Phase.GameOver && !_shotFinal && _phaseT > 0.4f)
@@ -394,8 +536,6 @@ public sealed class Game : IDisposable
             Grab("final.png", dir);
             _shotFinal = true;
         }
-        if (_phase == Phase.InPlay && _last?.Kind == PlayKind.HomeRun && _hitT > 1.0f && _hitT < 1.08f)
-            Grab("harbor-diamond.png", dir);
     }
 
     static void Grab(string name, string dir)

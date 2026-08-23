@@ -26,15 +26,18 @@ Client: `src/GrandSluggers.Play` (Raylib 3D) on top of `GrandSluggers.Sim`. Unit
 
 Exit: a stranger can play an inning without a tutorial card.
 
-## Milestone 2 — first playable
+## Milestone 2 — first playable (in progress)
 
-- Full 9-man lineups from the slice roster
-- Player fielding (one fielder at a time)
-- Buddy throw + buddy jump
-- Pitcher stamina + mound swap
-- One gimmick park (Crystal Rink **or** Funfair)
-- Gear: 3 bats, 2 gloves
-- Local 2-player (batter vs pitcher, or pitcher+fielder vs batter — pick one and ship it)
+Shipped in this pass:
+
+- 9-man lineups (already in M1)
+- Player fielding (WASD the highlighted glove, Space to catch, 1/2/3/H to throw)
+- Buddy jump (F when two good-chem outfielders can rob a fly) and buddy throws (faster / "lasers it")
+- Pitcher stamina HUD + R to swap the mound
+- Crystal Rink (ice, freeze statues) alongside Harbor Diamond
+- Local 2-player pitcher vs batter (T on the title: P1 Spark, P2 Ember)
+
+Still light: gear is on the bats in the sim but there is no loadout screen yet.
 
 ## Milestone 3 — content pass
 

@@ -31,6 +31,8 @@ unity/    Unity 6 URP shell (open in the editor; not required to play)
 
 ![Rio Sparks goes deep](docs/images/harbor-diamond.png)
 
+![Crystal Rink](docs/images/crystal-rink.png)
+
 ## Play the slice
 
 Requires [.NET 8 SDK](https://dotnet.microsoft.com/download). Gamepad or keyboard.
@@ -40,15 +42,26 @@ dotnet test
 dotnet run --project src/GrandSluggers.Play
 ```
 
-You are the **Spark All-Stars** (Rio) at Harbor Diamond, three innings against Ashlord's Ember Court. Fielding: pitch with a timing bar (SHIFT to charge, TAB to change pitch, Q for Heatball). Batting: swing when the ball gets there (SHIFT to charge, Q for Furnace). Chemistry is on the team sheet; good-chem throws are faster.
+You are the **Spark All-Stars** (Rio) in a three-inning game against Ashlord's Ember Court. C on the title screen flips **Harbor Diamond** / **Crystal Rink**. T starts **2-player** (P1 Spark, P2 Ember: IJKL + Enter).
+
+On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues on Crystal Rink slow you down.
 
 ```
-SPACE / A     pitch or swing
+SPACE / A     pitch, swing, or catch
 SHIFT / LT    charge
-TAB           cycle pitch (fastball / changeup / curve)
-Q / Y         arm star skill
-A/D           spray the ball
+WASD          move the fielder / spray the bat
+TAB           cycle pitch
+Q / Y         star skill (Heatball / Furnace)
+F             buddy jump
+1 2 3 H       throw to 1st / 2nd / 3rd / home
+R             new pitcher
+C             Harbor / Crystal Rink     T  two-player
 ESC           quit
+```
+
+```bash
+dotnet run --project src/GrandSluggers.Play -- --park crystal-rink
+dotnet run --project src/GrandSluggers.Play -- --two
 ```
 
 Headless autoplay (no window needed for the rules):

@@ -21,6 +21,7 @@ public static class Hud
         DrawScorebug(match, 24, 18);
         DrawStars(match, 24, 108);
         DrawCount(match, 24, 168);
+        DrawStamina(match, 24, 230);
         DrawMatchup(match, w - 420, 18);
         if (showTiming)
             DrawTiming(w / 2 - 220, h - 120, charge, timing01, starArmed, pitchType);
@@ -45,12 +46,15 @@ public static class Hud
         Raylib.DrawText("GRAND SLUGGERS", 80, 120, 64, Palette.Spark);
         Raylib.DrawText("Harbor Diamond  ·  Spark All-Stars vs Ember Court", 84, 196, 22, Palette.HudInk);
         Raylib.DrawText("A 3-inning party baseball game. Chemistry is the draft.", 84, 232, 20, Palette.HudInk);
-        Raylib.DrawRectangle(80, 300, 520, 150, Palette.Fade(Palette.HudPaper, 210));
-        Raylib.DrawText("SPACE / A     pitch or swing", 100, 320, 22, Palette.HudInk);
-        Raylib.DrawText("SHIFT / LT    charge", 100, 352, 22, Palette.HudInk);
-        Raylib.DrawText("TAB           cycle pitch", 100, 384, 22, Palette.HudInk);
-        Raylib.DrawText("Q / Y         star skill", 100, 416, 22, Palette.HudInk);
-        Raylib.DrawText("Press SPACE or A to play", 84, 480, 28, Palette.SparkDark);
+        Raylib.DrawRectangle(80, 300, 620, 220, Palette.Fade(Palette.HudPaper, 210));
+        Raylib.DrawText("SPACE / A      pitch, swing, catch", 100, 320, 22, Palette.HudInk);
+        Raylib.DrawText("SHIFT / LT     charge", 100, 348, 22, Palette.HudInk);
+        Raylib.DrawText("WASD           field / spray", 100, 376, 22, Palette.HudInk);
+        Raylib.DrawText("1 2 3 H        throw to a bag", 100, 404, 22, Palette.HudInk);
+        Raylib.DrawText("F              buddy jump    R  new pitcher", 100, 432, 22, Palette.HudInk);
+        Raylib.DrawText("C              Harbor / Crystal Rink     T  2P", 100, 460, 22, Palette.HudInk);
+        Raylib.DrawText("P2: IJKL move, ENTER swing, P star, ; jump", 100, 488, 20, Palette.HudInk);
+        Raylib.DrawText("Press SPACE to play", 84, 540, 28, Palette.SparkDark);
     }
 
     public static void DrawLineup(Match match, int w)
@@ -125,6 +129,15 @@ public static class Hud
         Raylib.DrawText($"B {match.Balls}   S {match.Strikes}   O {match.Outs}", x, y, 22, Palette.HudInk);
         var bags = $"{(match.First is null ? "-" : "1")} {(match.Second is null ? "-" : "2")} {(match.Third is null ? "-" : "3")}";
         Raylib.DrawText($"runners {bags}", x, y + 28, 18, Palette.HudInk);
+    }
+
+    static void DrawStamina(Match match, int x, int y)
+    {
+        Raylib.DrawText($"P {match.Pitcher.Name}  arm {match.PitcherStamina}", x, y, 18, Palette.HudInk);
+        Raylib.DrawRectangle(x, y + 22, 160, 10, Palette.C(200, 200, 204));
+        Raylib.DrawRectangle(x, y + 22, (int)(160 * (match.PitcherStamina / 100.0)), 10,
+            match.PitcherStamina < 25 ? Palette.Bad : Palette.Good);
+        Raylib.DrawText(match.Park.Name, x, y + 38, 16, Palette.HudInk);
     }
 
     static void DrawMatchup(Match match, int x, int y)
