@@ -1,23 +1,25 @@
-# Unity project (not in the repo yet)
+# Unity 6 URP (shell)
 
-The engine of record is **Unity 6 LTS + URP**. Do not create this project until Milestone 1 (vertical slice). The baseball rules already live in `src/GrandSluggers.Sim`.
+Pinned editor: **Unity 6000.0 LTS** (URP). Create/open this folder as a Unity project when the editor is installed.
 
-When you start the slice:
+The **playable vertical slice is not this folder.** Run:
 
-1. Install Unity Hub and a Unity 6 LTS (record the exact version here).
-2. New project: 3D (URP), name `GrandSluggers`, placed in this folder or as a sibling. If sibling, add a git submodule or a second repo — do not dump `Library/` into git.
-3. Add `src/GrandSluggers.Sim` as a local assembly. Easiest path: copy or symlink the `.cs` files under `Assets/Sim/` with an asmdef that references nothing Unity-specific. Keep `ContentCatalog.FindDataRoot` able to see `../data` from the project.
-4. Input System package. Gamepad only for the slice.
-5. One scene: `HarborDiamond`. Camera behind the pitcher, then a batting camera. No Cinemachine brain dump until the at-bat reads.
-6. Pin the editor version in `ProjectSettings/ProjectVersion.txt` and paste it below.
+```bash
+dotnet run --project src/GrandSluggers.Play
+```
+
+Unity was not available on the machine that cut Milestone 1, so Harbor Diamond ships as a Raylib 3D client driven by the same `GrandSluggers.Sim` match loop. This folder is the Unity shell:
+
+1. Install Unity Hub + a 6000.0 LTS.
+2. Open `unity/` (Unity will import URP and the local sim package `com.grandsluggers.sim`).
+3. New scene → empty GameObject → add `MatchBootstrap`.
+4. Replace the Raylib `WorldView` with URP meshes, the Input System, and the existing `Match.Play(pitch, swing)` calls.
+
+Do not check in `Library/`, `Temp/`, or `Logs/`.
 
 ## Pinned editor
 
-- Version: *not created yet*
+- Version: 6000.0.58f2 (upgrade in-place to whatever 6000.0 LTS you have)
 - Pipeline: URP
-- Input: new Input System
-- Physics: we drive the ball from the sim, not from PhysX as the rules authority
-
-## .gitignore when the project exists
-
-Use Unity’s standard gitignore (`Library/`, `Temp/`, `Obj/`, `Build/`, `Logs/`, `.csproj` generated at root, etc.). Keep `Assets/`, `Packages/manifest.json`, `ProjectSettings/`.
+- Input: new Input System (package listed)
+- Physics: sim owns the strike zone; Unity draws it

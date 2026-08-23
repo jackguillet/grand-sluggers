@@ -1,0 +1,160 @@
+using GrandSluggers.Sim;
+using Raylib_cs;
+
+namespace GrandSluggers.Play;
+
+public static class Hud
+{
+    public static void Draw(
+        Match match,
+        string pitchType,
+        bool starArmed,
+        float charge,
+        float timing01,
+        bool showTiming,
+        string banner,
+        string sub)
+    {
+        var w = Raylib.GetScreenWidth();
+        var h = Raylib.GetScreenHeight();
+
+        DrawScorebug(match, 24, 18);
+        DrawStars(match, 24, 108);
+        DrawCount(match, 24, 168);
+        DrawMatchup(match, w - 420, 18);
+        if (showTiming)
+            DrawTiming(w / 2 - 220, h - 120, charge, timing01, starArmed, pitchType);
+        else
+            DrawHelp(w / 2 - 280, h - 70, match, pitchType, starArmed);
+
+        if (!string.IsNullOrEmpty(banner))
+        {
+            var tw = Raylib.MeasureText(banner, 42);
+            Raylib.DrawRectangle(w / 2 - tw / 2 - 24, h / 2 - 70, tw + 48, 84, Palette.Fade(Palette.HudInk, 180));
+            Raylib.DrawText(banner, w / 2 - tw / 2, h / 2 - 48, 42, Palette.HudPaper);
+            if (!string.IsNullOrEmpty(sub))
+            {
+                var sw = Raylib.MeasureText(sub, 20);
+                Raylib.DrawText(sub, w / 2 - sw / 2, h / 2 + 28, 20, Palette.Gold);
+            }
+        }
+    }
+
+    public static void DrawTitle(int w, int h)
+    {
+        Raylib.DrawText("GRAND SLUGGERS", 80, 120, 64, Palette.Spark);
+        Raylib.DrawText("Harbor Diamond  ·  Spark All-Stars vs Ember Court", 84, 196, 22, Palette.HudInk);
+        Raylib.DrawText("A 3-inning party baseball game. Chemistry is the draft.", 84, 232, 20, Palette.HudInk);
+        Raylib.DrawRectangle(80, 300, 520, 150, Palette.Fade(Palette.HudPaper, 210));
+        Raylib.DrawText("SPACE / A     pitch or swing", 100, 320, 22, Palette.HudInk);
+        Raylib.DrawText("SHIFT / LT    charge", 100, 352, 22, Palette.HudInk);
+        Raylib.DrawText("TAB           cycle pitch", 100, 384, 22, Palette.HudInk);
+        Raylib.DrawText("Q / Y         star skill", 100, 416, 22, Palette.HudInk);
+        Raylib.DrawText("Press SPACE or A to play", 84, 480, 28, Palette.SparkDark);
+    }
+
+    public static void DrawLineup(Match match, int w)
+    {
+        Raylib.DrawText("TEAM SHEET", 64, 36, 36, Palette.HudInk);
+        Raylib.DrawText($"Harbor Diamond  ·  {match.Innings} innings", 66, 80, 20, Palette.HudInk);
+        DrawRoster(match, match.Home, true, 64, 130);
+        DrawRoster(match, match.Away, false, 640, 130);
+        Raylib.DrawText("Good chemistry throws faster. A stacked group starts with more stars.", 64, 640, 20, Palette.HudInk);
+        Raylib.DrawText("SPACE / A to throw out the first pitch", 64, 672, 22, Palette.SparkDark);
+    }
+
+    public static void DrawGameOver(Match match, int w, int h)
+    {
+        var mvp = match.Mvp();
+        Raylib.DrawRectangle(0, 0, w, h, Palette.Fade(Palette.Night, 120));
+        Raylib.DrawText("FINAL", 80, 80, 28, Palette.Gold);
+        Raylib.DrawText($"{match.Away.Name}  {match.AwayScore}", 80, 130, 42, Palette.EmberFire);
+        Raylib.DrawText($"{match.Home.Name}  {match.HomeScore}", 80, 184, 42, Palette.Spark);
+        Raylib.DrawText($"MVP  {mvp.Who.Name}", 80, 280, 36, Palette.Gold);
+        Raylib.DrawText($"{mvp.Points} pts - {mvp.Why}", 84, 328, 22, Palette.HudPaper);
+        Raylib.DrawText("SPACE / A  play again     ESC  quit", 80, 420, 22, Palette.HudPaper);
+    }
+
+    static void DrawRoster(Match match, Team team, bool home, int x, int y)
+    {
+        var stars = home ? match.HomeStars : match.AwayStars;
+        var color = home ? Palette.Spark : Palette.EmberFire;
+        Raylib.DrawText($"{team.Name}   stars {stars:0.#}/5", x, y, 24, color);
+        var yy = y + 40;
+        foreach (var c in home ? match.HomeOrder : match.AwayOrder)
+        {
+            var rel = match.Chemistry.Between(team.Captain, c);
+            var mark = c.Id == team.Captain.Id ? "C" : rel == Chemistry.Good ? "+" : rel == Chemistry.Bad ? "-" : " ";
+            var line = $"{mark} {c.Name}   B {c.Stats.Bat}  P {c.Stats.Pitch}  F {c.Stats.Field}  R {c.Stats.Run}";
+            var ink = rel == Chemistry.Good ? Palette.C(20, 110, 70)
+                : rel == Chemistry.Bad ? Palette.Bad
+                : Palette.HudInk;
+            Raylib.DrawText(line, x, yy, 18, ink);
+            yy += 26;
+        }
+    }
+
+    static void DrawScorebug(Match match, int x, int y)
+    {
+        Raylib.DrawRectangle(x, y, 360, 78, Palette.Fade(Palette.HudInk, 200));
+        var half = match.Over ? "FINAL" : $"{(match.Top ? "TOP" : "BOT")} {match.Inning}";
+        Raylib.DrawText(half, x + 12, y + 8, 18, Palette.Gold);
+        Raylib.DrawText($"EMBER {match.AwayScore}", x + 12, y + 32, 22, Palette.EmberFire);
+        Raylib.DrawText($"SPARK {match.HomeScore}", x + 180, y + 32, 22, Palette.Spark);
+    }
+
+    static void DrawStars(Match match, int x, int y)
+    {
+        Raylib.DrawText("AWAY", x, y, 14, Palette.HudInk);
+        Pips(x + 60, y, match.AwayStars);
+        Raylib.DrawText("HOME", x, y + 24, 14, Palette.HudInk);
+        Pips(x + 60, y + 24, match.HomeStars);
+    }
+
+    static void Pips(int x, int y, double stars)
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            var filled = stars > i;
+            Raylib.DrawRectangle(x + i * 18, y, 14, 14, filled ? Palette.Gold : Palette.C(200, 200, 204));
+        }
+    }
+
+    static void DrawCount(Match match, int x, int y)
+    {
+        Raylib.DrawText($"B {match.Balls}   S {match.Strikes}   O {match.Outs}", x, y, 22, Palette.HudInk);
+        var bags = $"{(match.First is null ? "-" : "1")} {(match.Second is null ? "-" : "2")} {(match.Third is null ? "-" : "3")}";
+        Raylib.DrawText($"runners {bags}", x, y + 28, 18, Palette.HudInk);
+    }
+
+    static void DrawMatchup(Match match, int x, int y)
+    {
+        Raylib.DrawRectangle(x, y, 400, 96, Palette.Fade(Palette.HudPaper, 220));
+        Raylib.DrawText($"P  {match.Pitcher.Name}", x + 14, y + 12, 22, Palette.HudInk);
+        Raylib.DrawText($"AB {match.Batter.Name}", x + 14, y + 42, 22, Palette.HudInk);
+        var chem = match.Chemistry.Between(match.Batter, match.OnDeck!);
+        var item = chem == Chemistry.Good ? "on-deck buddy  item ready" : $"on deck  {match.OnDeck?.Name}";
+        Raylib.DrawText(item, x + 14, y + 70, 16, chem == Chemistry.Good ? Palette.C(20, 110, 70) : Palette.HudInk);
+    }
+
+    static void DrawTiming(int x, int y, float charge, float timing01, bool star, string pitch)
+    {
+        Raylib.DrawRectangle(x, y, 440, 70, Palette.Fade(Palette.HudInk, 200));
+        Raylib.DrawRectangle(x + 16, y + 28, 408, 18, Palette.C(60, 60, 70));
+        Raylib.DrawRectangle(x + 16 + 170, y + 28, 68, 18, Palette.Good);
+        var pip = x + 16 + (int)(Math.Clamp(timing01, 0, 1) * 408);
+        Raylib.DrawRectangle(pip - 3, y + 20, 6, 34, Palette.HudPaper);
+        Raylib.DrawRectangle(x + 16, y + 52, (int)(408 * Math.Clamp(charge, 0, 1)), 8, Palette.Gold);
+        var label = star ? $"STAR  {pitch}" : pitch;
+        Raylib.DrawText(label, x + 16, y + 6, 16, star ? Palette.Gold : Palette.HudPaper);
+    }
+
+    static void DrawHelp(int x, int y, Match match, string pitch, bool star)
+    {
+        var fielding = match.Top;
+        var line = fielding
+            ? $"PITCH  {pitch}{(star ? "  *" : "")}   SHIFT charge   TAB change   Q star"
+            : $"SWING   SHIFT charge   Q Furnace{(star ? " ARMED" : "")}   A/D spray";
+        Raylib.DrawText(line, x, y, 18, Palette.HudInk);
+    }
+}

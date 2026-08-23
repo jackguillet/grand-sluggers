@@ -72,11 +72,13 @@ A baseball game is cameras, animation blending, pads, audio buses, and a pile of
 3. **One shared rig** for humanoid-ish characters; non-humanoids (big, tiny, extra limbs) get documented exceptions, not a new pipeline each time.
 4. **URP only.** No HDRP samples, no mixing pipelines.
 5. **Pin an LTS** (Unity 6.0/6.2 LTS when we start the project) and record it in `unity/README.md`.
-6. **Do not check in** `Library/`, huge caches, or `.unitypackage` spam. The Unity project itself is added when the vertical slice starts — this repo is docs + sim until then.
-7. **Console** is a later license event, not a day-one requirement.
+6. **Do not check in** `Library/`, huge caches, or `.unitypackage` spam.
+7. **Playable slice without the editor.** Milestone 1 renders Harbor Diamond with Raylib (`src/GrandSluggers.Play`) so we can ship a 3-inning game before Unity Hub is installed. Unity remains the engine of record; Raylib is a client, not a second engine decision. The match loop does not import Raylib.
+8. **Console** is a later license event, not a day-one requirement.
 
 ## Decision log
 
 | Date | Decision |
 | --- | --- |
 | 2026-08-22 | Unity 6 URP chosen. Sim lives in engine-agnostic C#. Godot is the escape hatch. |
+| 2026-08-22 | M1 client is Raylib 3D + the same sim. Unity project is a URP shell. |
