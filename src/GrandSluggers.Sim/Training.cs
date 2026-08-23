@@ -81,26 +81,20 @@ public sealed class Training
         return true;
     }
 
-    public bool RecordChemThrows(ThrowResult good, ThrowResult bad)
+    /// <summary>
+    /// Record one real throw from a play. Drill 4 advances only after a Good throw
+    /// and a Bad throw have both been seen (good must be faster).
+    /// </summary>
+    public bool RecordChemThrow(ThrowResult? thr)
     {
-        if (Finished || CurrentDrill != 4) return false;
-        if (good.Relation != Chemistry.Good || bad.Relation != Chemistry.Bad) return false;
-        LastGoodThrow = good;
-        LastBadThrow = bad;
-        if (good.SpeedMul <= bad.SpeedMul) return false;
+        if (Finished || CurrentDrill != 4 || thr is null) return false;
+        if (thr.Relation == Chemistry.Good) LastGoodThrow = thr;
+        else if (thr.Relation == Chemistry.Bad) LastBadThrow = thr;
+        else return false;
+        if (LastGoodThrow is null || LastBadThrow is null) return false;
+        if (LastGoodThrow.SpeedMul <= LastBadThrow.SpeedMul) return false;
         Advance();
         return true;
-    }
-
-    public bool RecordChemThrows(Match match, Character from, Character goodTo, Character badTo) =>
-        RecordChemThrows(match.ThrowBetween(from, goodTo), match.ThrowBetween(from, badTo));
-
-    public bool RecordChemThrows(Match match)
-    {
-        if (Finished || CurrentDrill != 4) return false;
-        if (!TryFindChemPair(match, out var from, out var goodTo, out var badTo))
-            return false;
-        return RecordChemThrows(match, from, goodTo, badTo);
     }
 
     public static bool TryFindChemPair(Match match, out Character from, out Character goodTo, out Character badTo)
@@ -135,7 +129,7 @@ public sealed class Training
             1 => "Paint the zone",
             2 => "Time it and charge",
             3 => "Catch it, throw a bag",
-            4 => "Good chem throws faster",
+            4 => "Throw to a buddy, then a rival",
             _ => ""
         };
 
@@ -146,7 +140,7 @@ public sealed class Training
             1 => "South pitch   RB cycle   LT charge   North star",
             2 => "LT charge   South swing   LS spray",
             3 => "South catch   East dive   D-pad throw",
-            4 => "South catch   D-pad throw",
+            4 => "D-pad throw  ·  buddy then rival",
             _ => ""
         };
 
@@ -155,6 +149,9 @@ public sealed class Training
         get
         {
             if (Finished) return "4 / 4";
+            if (CurrentDrill == 4)
+                return (LastGoodThrow is null ? "buddy ·" : "buddy ✓") + "  " +
+                       (LastBadThrow is null ? "rival ·" : "rival ✓");
             if (CurrentDrill != 1)
                 return $"{CurrentDrill} / {DrillCount}";
             var bits = CorePitches.Select(p => _inZone.Contains(p) ? p : "·");
