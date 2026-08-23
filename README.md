@@ -35,7 +35,7 @@ unity/    Unity 6 URP shell (open in the editor; not required to play)
 
 ## Play the slice
 
-Requires [.NET 8 SDK](https://dotnet.microsoft.com/download). Gamepad or keyboard.
+Requires a .NET SDK (8 or newer). Homebrew `dotnet` is enough (`brew install dotnet`). Gamepad or keyboard.
 
 ```bash
 dotnet test
