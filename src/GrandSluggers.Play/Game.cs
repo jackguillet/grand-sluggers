@@ -11,7 +11,7 @@ public sealed class Game : IDisposable
     readonly bool _demo;
     int _seed;
     readonly ContentCatalog _content;
-    readonly string[] _pitches = ["fastball", "changeup", "curve"];
+    readonly string[] _pitches = ["fastball", "changeup", "curve", "slider"];
     readonly string[] _parks =
         ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
 
@@ -51,6 +51,7 @@ public sealed class Game : IDisposable
     bool _caught;
     bool _buddyJump;
     bool _frozenSlow;
+    bool _itemArmed;
 
     public Game(bool demo, int seed, string parkId = "harbor-diamond", bool two = false,
         string homeCaptain = "rio", string awayCaptain = "ashlord", bool challenge = false)
@@ -279,6 +280,11 @@ public sealed class Game : IDisposable
             _starArmed = !_starArmed;
         if (HumanBats && batter.StarPressed && _match.CanStarSwing)
             _starArmed = !_starArmed;
+        if (HumanBats && batter.StealPressed)
+            _match.ToggleSteal();
+        if (HumanBats && batter.ItemPressed
+            && _match.Chemistry.ChemistryItemOffered(_match.Batter, _match.OnDeck))
+            _itemArmed = !_itemArmed;
 
         if (HumanPitches)
         {
@@ -309,7 +315,7 @@ public sealed class Game : IDisposable
     void LaunchPitch(PitchCommand pitch)
     {
         _pitch = pitch;
-        var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher.Stats.Pitch);
+        var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
         _pitchDur = (float)(Diamond.Mound / (mph * 1.4667));
         _pitchDur = Math.Clamp(_pitchDur, 0.32f, 0.85f);
         _flightAge = 0;
@@ -325,11 +331,24 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var breakX = _pitch!.Type == "curve" ? MathF.Sin(u * MathF.PI) * 2.8f : 0;
+        var breakX = _pitch!.Type == "curve" ? MathF.Sin(u * MathF.PI) * 2.8f
+            : _pitch.Type == "slider" ? MathF.Sin(u * MathF.PI) * 1.6f : 0;
         var y = 5.4f + (2.4f - 5.4f) * u * u + (_pitch.Type == "changeup" ? -1.2f * u * u : 0);
         var z = 60.5f * (1 - u);
-        if (_pitch.Star && _match.Pitcher.StarPitch == "heatball")
-            breakX += MathF.Sin(u * 18) * 0.4f;
+        if (_pitch.Star)
+        {
+            breakX += _match.Pitcher.StarPitch switch
+            {
+                "heatball" => MathF.Sin(u * 18) * 0.4f,
+                "prismball" => MathF.Sin(u * 24) * 1.8f,
+                "charmball" => MathF.Sin(u * 9) * 0.7f,
+                "phonyball" => u > 0.55f ? 2.4f : -0.5f,
+                "skullball" => MathF.Sin(u * 6) * 0.3f,
+                _ => 0
+            };
+            if (_match.Pitcher.StarPitch == "caskball")
+                y += 0.55f * u;
+        }
         _ball = new Vector3(breakX, y, z);
         _trail.Add(_ball);
         if (_trail.Count > 24) _trail.RemoveAt(0);
@@ -388,7 +407,9 @@ public sealed class Game : IDisposable
             return;
         }
 
-        _last = _match.Play(_pitch!, _swing!);
+        var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
+        _itemArmed = false;
+        _last = _match.Play(_pitch!, _swing!, item);
         _banner = Label(_last);
         _sub = _last.Caption;
         var fly = _last.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
@@ -481,6 +502,7 @@ public sealed class Game : IDisposable
                         pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
                 }
 
+                result = _match.ApplyOffenseItem(hit, result, null);
                 _last = _match.FinishAtBat(_pitch!, _swing!, hit, result);
                 _banner = Label(_last);
                 _sub = _last.Caption;
@@ -514,6 +536,8 @@ public sealed class Game : IDisposable
 
     static string Label(PlayEvent ev) => ev.Kind switch
     {
+        PlayKind.StolenBase => "STOLEN BASE",
+        PlayKind.CaughtStealing => "CAUGHT STEALING",
         PlayKind.HomeRun => "HOME RUN",
         PlayKind.Triple => "TRIPLE",
         PlayKind.Double => "DOUBLE",
@@ -564,7 +588,7 @@ public sealed class Game : IDisposable
                     : _phase == Phase.Flight ? 0.15f + 0.35f * Math.Clamp(_flightAge / _pitchDur, 0, 1.5f)
                     : 0;
                 Hud.Draw(_match, _pitches[_pitchIndex], _starArmed, _charge, timing,
-                    _phase is Phase.Flight or Phase.Set, _banner, _sub);
+                    _phase is Phase.Flight or Phase.Set, _banner, _sub, _itemArmed);
                 if (_playerFielding && _preview?.Buddy is not null && _preview.HomeRunLikely)
                     Raylib.DrawText("F  BUDDY JUMP", w / 2 - 90, h - 40, 22, Palette.Gold);
                 break;

@@ -13,7 +13,8 @@ public static class Hud
         float timing01,
         bool showTiming,
         string banner,
-        string sub)
+        string sub,
+        bool itemArmed = false)
     {
         var w = Raylib.GetScreenWidth();
         var h = Raylib.GetScreenHeight();
@@ -26,7 +27,7 @@ public static class Hud
         if (showTiming)
             DrawTiming(w / 2 - 220, h - 120, charge, timing01, starArmed, pitchType);
         else
-            DrawHelp(w / 2 - 280, h - 70, match, pitchType, starArmed);
+            DrawHelp(w / 2 - 280, h - 70, match, pitchType, starArmed, itemArmed);
 
         if (!string.IsNullOrEmpty(banner))
         {
@@ -77,7 +78,7 @@ public static class Hud
         Raylib.DrawText("C              cycle park     T  2P", 100, 432, 22, Palette.HudInk);
         Raylib.DrawText("SPACE / A      pitch, swing, catch", 100, 460, 22, Palette.HudInk);
         Raylib.DrawText("SHIFT charge   WASD field   1 2 3 H throw", 100, 488, 22, Palette.HudInk);
-        Raylib.DrawText("F buddy jump   R new pitcher   Q star", 100, 516, 22, Palette.HudInk);
+        Raylib.DrawText("F buddy   R pitcher   Q star   X steal   E banana", 100, 516, 22, Palette.HudInk);
         Raylib.DrawText("P2: IJKL move, ENTER swing, P star, ; jump", 100, 544, 20, Palette.HudInk);
         var play = challenge ? "Press SPACE  —  recruit after a win" : "Press SPACE to play";
         Raylib.DrawText(play, 84, 630, 28, Palette.SparkDark);
@@ -170,7 +171,8 @@ public static class Hud
     {
         Raylib.DrawText($"B {match.Balls}   S {match.Strikes}   O {match.Outs}", x, y, 22, Palette.HudInk);
         var bags = $"{(match.First is null ? "-" : "1")} {(match.Second is null ? "-" : "2")} {(match.Third is null ? "-" : "3")}";
-        Raylib.DrawText($"runners {bags}", x, y + 28, 18, Palette.HudInk);
+        Raylib.DrawText($"runners {bags}{(match.StealOn ? "  STEAL" : "")}", x, y + 28, 18,
+            match.StealOn ? Palette.Gold : Palette.HudInk);
     }
 
     static void DrawStamina(Match match, int x, int y)
@@ -188,7 +190,7 @@ public static class Hud
         Raylib.DrawText($"P  {match.Pitcher.Name}", x + 14, y + 12, 22, Palette.HudInk);
         Raylib.DrawText($"AB {match.Batter.Name}", x + 14, y + 42, 22, Palette.HudInk);
         var chem = match.Chemistry.Between(match.Batter, match.OnDeck!);
-        var item = chem == Chemistry.Good ? "on-deck buddy  item ready" : $"on deck  {match.OnDeck?.Name}";
+        var item = chem == Chemistry.Good ? "on-deck buddy  E banana" : $"on deck  {match.OnDeck?.Name}";
         Raylib.DrawText(item, x + 14, y + 70, 16, chem == Chemistry.Good ? Palette.C(20, 110, 70) : Palette.HudInk);
     }
 
@@ -204,12 +206,14 @@ public static class Hud
         Raylib.DrawText(label, x + 16, y + 6, 16, star ? Palette.Gold : Palette.HudPaper);
     }
 
-    static void DrawHelp(int x, int y, Match match, string pitch, bool star)
+    static void DrawHelp(int x, int y, Match match, string pitch, bool star, bool itemArmed)
     {
         var fielding = match.Top;
+        var steal = match.StealOn ? " STEAL ON" : match.CanSteal ? "  X steal" : "";
+        var item = itemArmed ? "  BANANA ARMED" : "";
         var line = fielding
-            ? $"PITCH  {pitch}{(star ? "  *" : "")}   SHIFT charge   TAB change   Q star"
-            : $"SWING   SHIFT charge   Q {match.Batter.StarSwing}{(star ? " ARMED" : "")}   A/D spray";
+            ? $"PITCH  {pitch}{(star ? "  *" : "")}   SHIFT charge   TAB change   Q {match.Pitcher.StarPitch}"
+            : $"SWING   SHIFT charge   Q {match.Batter.StarSwing}{(star ? " ARMED" : "")}   A/D spray{steal}{item}";
         Raylib.DrawText(line, x, y, 18, Palette.HudInk);
     }
 

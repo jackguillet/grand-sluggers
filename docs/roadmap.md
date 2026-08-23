@@ -45,6 +45,7 @@ Gear loadout is on the team sheet (B/G Spark, N/M Ember). Four parks ship: Harbo
 - 18 role players + 6 captains
 - 6 parks playable (Harbor, Crystal, Funfair, Rooftop, Canopy Yard, Ember Keep)
 - Challenge prototype: pick a captain, beat a rival, recruit one role player. Session-only. Kill it if it is not fun.
+- Gameplay verbs in this pass: unique star pitch/swing, field abilities, chemistry items, steals, slider.
 
 ## Milestone 4 — party complete
 

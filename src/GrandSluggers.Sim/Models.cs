@@ -134,7 +134,9 @@ public enum PlayKind
     Triple,
     HomeRun,
     Walk,
-    Strikeout
+    Strikeout,
+    StolenBase,
+    CaughtStealing
 }
 
 public sealed record PlayEvent(
