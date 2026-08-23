@@ -1,0 +1,17 @@
+{
+  "events": [
+    { "id": "bat-perfect", "slot": "Assets/Art/Audio/bat-perfect", "bus": "sfx" },
+    { "id": "bat-solid", "slot": "Assets/Art/Audio/bat-solid", "bus": "sfx" },
+    { "id": "bat-cheap", "slot": "Assets/Art/Audio/bat-cheap", "bus": "sfx" },
+    { "id": "glove", "slot": "Assets/Art/Audio/glove", "bus": "sfx" },
+    { "id": "throw", "slot": "Assets/Art/Audio/throw", "bus": "sfx" },
+    { "id": "crowd-bed", "slot": "Assets/Art/Audio/crowd-bed", "bus": "crowd" },
+    { "id": "crowd-swell", "slot": "Assets/Art/Audio/crowd-swell", "bus": "crowd" },
+    { "id": "vo-rio", "slot": "Assets/Art/Audio/vo-rio", "bus": "vo" },
+    { "id": "vo-vale", "slot": "Assets/Art/Audio/vo-vale", "bus": "vo" },
+    { "id": "vo-zig", "slot": "Assets/Art/Audio/vo-zig", "bus": "vo" },
+    { "id": "vo-brondo", "slot": "Assets/Art/Audio/vo-brondo", "bus": "vo" },
+    { "id": "vo-konga", "slot": "Assets/Art/Audio/vo-konga", "bus": "vo" },
+    { "id": "vo-ashlord", "slot": "Assets/Art/Audio/vo-ashlord", "bus": "vo" }
+  ]
+}

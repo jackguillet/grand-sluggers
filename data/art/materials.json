@@ -1,0 +1,9 @@
+{
+  "slots": [
+    { "id": "toon-body", "slot": "Assets/Art/Materials/toon-body", "shader": "ToonFill" },
+    { "id": "dirt", "slot": "Assets/Art/Materials/dirt", "shader": "ToonFill" },
+    { "id": "grass", "slot": "Assets/Art/Materials/grass", "shader": "ToonFill" },
+    { "id": "chalk", "slot": "Assets/Art/Materials/chalk", "shader": "ToonFill" },
+    { "id": "crowd", "slot": "Assets/Art/Materials/crowd", "shader": "ToonFill" }
+  ]
+}

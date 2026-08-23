@@ -27,6 +27,9 @@ switch (cmd)
             Console.WriteLine($"{cap} {c.Name,-14} {c.Faction,-10} P{c.Stats.Pitch} B{c.Stats.Bat} F{c.Stats.Field} R{c.Stats.Run}  {c.StarPitch}/{c.StarSwing}  {c.FieldAbility}");
         }
         break;
+    case "art":
+        PrintArt(content);
+        break;
     default:
         Console.WriteLine("""
             Grand Sluggers sim
@@ -36,6 +39,7 @@ switch (cmd)
               at-bat [ember|spark] [--seed N]
               match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N]
               challenge [--captain rio] [--seed N]
+              art
             """);
         break;
 }
@@ -78,6 +82,27 @@ static string CaptainId(string[] args)
         if (args[i] is "--captain" or "--home")
             return args[i + 1];
     return args.ElementAtOrDefault(1) is { Length: > 0 } a && !a.StartsWith('-') ? a : "rio";
+}
+
+static void PrintArt(ContentCatalog content)
+{
+    var art = content.Art;
+    Console.WriteLine($"RIG    {art.Rig.Id}  bones {art.Rig.Bones.Count}  events {string.Join(",", art.Rig.Events)}");
+    Console.WriteLine($"CLIPS  {art.Clips.Count}  {string.Join(" ", art.Clips.Select(c => c.Id))}");
+    Console.WriteLine($"SKINS  {art.Skins.Count} captains authored, role players inherit body type");
+    Console.WriteLine($"VFX    {art.Vfx.Count} events");
+    Console.WriteLine($"AUDIO  {art.Audio.Count} events");
+    Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
+    Console.WriteLine($"FOLDERS {art.Folders.Count}");
+    var errors = art.Validate(content);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     catalog matches roster, clips, parks");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
 }
 
 static void PrintTeam(ContentCatalog content, string id)

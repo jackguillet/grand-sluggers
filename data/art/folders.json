@@ -1,0 +1,22 @@
+{
+  "folders": [
+    "Assets/Art/Characters/SharedRig",
+    "Assets/Art/Characters/rio",
+    "Assets/Art/Characters/vale",
+    "Assets/Art/Characters/zig",
+    "Assets/Art/Characters/brondo",
+    "Assets/Art/Characters/konga",
+    "Assets/Art/Characters/ashlord",
+    "Assets/Art/Parks/harbor-diamond",
+    "Assets/Art/Parks/crystal-rink",
+    "Assets/Art/Parks/funfair-park",
+    "Assets/Art/Parks/rooftop-city",
+    "Assets/Art/Parks/canopy-yard",
+    "Assets/Art/Parks/ember-keep",
+    "Assets/Art/Animation/Clips",
+    "Assets/Art/VFX",
+    "Assets/Art/Audio",
+    "Assets/Art/UI/Portraits",
+    "Assets/Art/Materials"
+  ]
+}

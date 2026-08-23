@@ -1,0 +1,18 @@
+{
+  "events": [
+    { "id": "heatball", "slot": "Assets/Art/VFX/heatball", "kind": "ball" },
+    { "id": "charmball", "slot": "Assets/Art/VFX/charmball", "kind": "ball" },
+    { "id": "prismball", "slot": "Assets/Art/VFX/prismball", "kind": "ball" },
+    { "id": "phonyball", "slot": "Assets/Art/VFX/phonyball", "kind": "ball" },
+    { "id": "caskball", "slot": "Assets/Art/VFX/caskball", "kind": "ball" },
+    { "id": "skullball", "slot": "Assets/Art/VFX/skullball", "kind": "ball" },
+    { "id": "heat-swing", "slot": "Assets/Art/VFX/heat-swing", "kind": "field" },
+    { "id": "furnace", "slot": "Assets/Art/VFX/furnace", "kind": "field" },
+    { "id": "puff", "slot": "Assets/Art/VFX/puff", "kind": "contact" },
+    { "id": "fireworks", "slot": "Assets/Art/VFX/fireworks", "kind": "park" },
+    { "id": "buddy-flash", "slot": "Assets/Art/VFX/buddy-flash", "kind": "field" },
+    { "id": "throw-trail-good", "slot": "Assets/Art/VFX/throw-trail-good", "kind": "throw" },
+    { "id": "throw-trail-bad", "slot": "Assets/Art/VFX/throw-trail-bad", "kind": "throw" },
+    { "id": "scoop-dirt", "slot": "Assets/Art/VFX/scoop-dirt", "kind": "contact" }
+  ]
+}
