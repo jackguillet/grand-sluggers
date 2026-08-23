@@ -173,6 +173,8 @@ namespace GrandSluggers.UnityClient
                     }
                     _gloveAt[_glovePos] = (_fx, _fz);
                 }
+                else if (pre.Grounder || pre.Line)
+                    ChaseLiveHop(dt, pre);
                 else AutoGlove(map);
             }
 
@@ -282,6 +284,24 @@ namespace GrandSluggers.UnityClient
             if (!grounder && _hitT < hang + 0.35f) return;
             if (_itemFlying) return;
             CommitInPlay();
+        }
+
+        void ChaseLiveHop(float dt, FieldingPreview pre)
+        {
+            if (_path == null) return;
+            var spray = _pending != null ? _pending.SprayDeg : 0;
+            var live = BallFlight.PointAt(_path, spray, _hitT);
+            var speed = (21 + pre.Fielder.Stats.Run * 1.9) * (pre.Frozen ? 0.45 : 1);
+            var dx = live.X - _fx;
+            var dz = live.Z - _fz;
+            var dist = Math.Sqrt(dx * dx + dz * dz);
+            if (dist > 0.35)
+            {
+                var step = Math.Min(dist, speed * dt);
+                _fx += dx / dist * step;
+                _fz += dz / dist * step;
+            }
+            _gloveAt[_glovePos] = (_fx, _fz);
         }
 
         void AutoGlove(Dictionary<string, Character> map)
