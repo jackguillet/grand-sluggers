@@ -61,13 +61,15 @@ public sealed record BatItem(
     string Name,
     int ContactMod,
     int PowerMod,
-    bool ChargeAlwaysFull);
+    bool ChargeAlwaysFull,
+    string Visual = "bat-wood");
 
 public sealed record GloveItem(
     string Id,
     string Name,
     double ErrorReduction,
-    int ArmMod);
+    int ArmMod,
+    string Visual = "glove-brown");
 
 public sealed record Team(
     string Name,

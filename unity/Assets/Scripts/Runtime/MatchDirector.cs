@@ -925,7 +925,7 @@ namespace GrandSluggers.UnityClient
                         pose = FieldPose(who, _preview, _caught || _buddy);
                 }
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    pose = _phase == Phase.Flight ? HeroActor.Pose.Throw : HeroActor.Pose.ChargePitch;
+                    pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
                 if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
                 if (_gun && kv.Key == "P" && _gunPickoff) pose = HeroActor.Pose.Throw;
                 var hero = Hero(who);
@@ -935,6 +935,8 @@ namespace GrandSluggers.UnityClient
                     pose = HeroActor.Pose.Charm;
                 var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
                 hero.SetPose(pose, kv.Key == "P" ? _charge : 0, kv.Key == "P" ? pType : null);
+                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.SetHeld(false, true);
                 var look = kv.Key == "P" && _phase != Phase.InPlay
                     ? new Vector3(0, 0, -1)
                     : _phase == Phase.InPlay
@@ -950,12 +952,12 @@ namespace GrandSluggers.UnityClient
 
             var batter = _match.Batter;
             var bHero = Hero(batter);
-            var bPose = _phase == Phase.Flight && (_swung || (_swing != null && _swing.Swing))
-                ? HeroActor.Pose.Swing
-                : _phase is Phase.Set or Phase.Flight
-                    ? HeroActor.Pose.ChargeSwing
-                    : HeroActor.Pose.Idle;
+            var bPose = BatterPose();
             bHero.SetPose(bPose, HumanBats ? _charge : 0);
+            bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
+                or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
+            bHero.SetHeld(batting, false);
             bHero.SetHighlight(false);
             bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
@@ -1007,6 +1009,28 @@ namespace GrandSluggers.UnityClient
             _items?.Present(Time.deltaTime, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
         }
 
+        HeroActor.Pose BatterPose()
+        {
+            if (_phase == Phase.Result && _last != null)
+            {
+                if (_last.Kind == PlayKind.SwingMiss) return HeroActor.Pose.Miss;
+                if (_last.Kind == PlayKind.HomeRun) return HeroActor.Pose.Cheer;
+                if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
+                if (_swing != null && _swing.Swing) return HeroActor.Pose.Swing;
+                return HeroActor.Pose.Idle;
+            }
+            if (_phase == Phase.GameOver)
+                return _match.HomeScore >= _match.AwayScore ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle;
+            if (_phase == Phase.Flight && (_swung || (_swing != null && _swing.Swing)))
+            {
+                if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
+                if (_charge < 0.2f && _flight > _pitchDur * 0.88f) return HeroActor.Pose.CheckSwing;
+                return HeroActor.Pose.Swing;
+            }
+            if (_phase is Phase.Set or Phase.Flight) return HeroActor.Pose.ChargeSwing;
+            return HeroActor.Pose.Idle;
+        }
+
         static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
         {
             if (caught) return HeroActor.Pose.Catch;
@@ -1029,8 +1053,11 @@ namespace GrandSluggers.UnityClient
             var h = Hero(who);
             var pose = HeroActor.Pose.Idle;
             if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
-            else if (state != null && (state.StealAttempt || state.Lead01 > 0.08)) pose = HeroActor.Pose.Field;
+            else if (state != null && state.StealAttempt) pose = HeroActor.Pose.Run;
+            else if (state != null && state.Lead01 > 0.08) pose = HeroActor.Pose.StealLead;
             h.SetPose(pose);
+            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetHeld(false, false);
             var lead = _match.LeadRunner;
             h.SetHighlight(HumanBats && lead != null && who.Id == lead.Id && _phase is Phase.Set or Phase.Flight);
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
@@ -1060,9 +1087,11 @@ namespace GrandSluggers.UnityClient
                 z = from.Z + (to.Z - from.Z) * t;
             }
             var h = Hero(_gunRunner);
-            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Field;
+            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
             if (!_gunSafe && u > 0.5f) pose = HeroActor.Pose.Dive;
             h.SetPose(pose);
+            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetHeld(false, false);
             h.SetHighlight(true);
             var dest = Diamond.Bag(_gunToBag);
             h.Place(new Vector3((float)x, 0, (float)z), new Vector3((float)dest.X - (float)x, 0, (float)dest.Z - (float)z));
