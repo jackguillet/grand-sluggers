@@ -35,6 +35,16 @@ namespace GrandSluggers.UnityClient
         SpecialFx _spec;
         ItemView _items;
         StrikeZone _zone;
+        AudioBus _audio;
+        StarMeter _stars;
+        const string TrainedKey = "gs.trained";
+        bool _hideHelp;
+        bool _gloved;
+        HighlightClip _clip;
+        Vector3 _hlAt;
+        Sample[] _hlPath;
+        float _hlSpray;
+        bool _replaying;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
@@ -113,6 +123,11 @@ namespace GrandSluggers.UnityClient
             _items.Build(transform);
             _zone = gameObject.AddComponent<StrikeZone>();
             _zone.Build(transform);
+            _audio = gameObject.AddComponent<AudioBus>();
+            _audio.Build();
+            _stars = gameObject.AddComponent<StarMeter>();
+            _stars.Build(transform);
+            _hideHelp = PlayerPrefs.GetInt(TrainedKey, 0) == 1;
             var cam = Camera.main;
             if (cam == null)
             {
@@ -166,20 +181,31 @@ namespace GrandSluggers.UnityClient
                                 break;
                             }
                             _campaign?.Resolve(_match);
-                            _phase = Phase.GameOver;
-                            _t = 0;
-                            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+                            BeginGameOver();
                         }
                         else BeginSet();
                     }
                     break;
                 case Phase.GameOver:
-                    if (Controls.SouthDown) ConfirmGameOver();
+                    if (_replaying)
+                    {
+                        TickReplay(dt);
+                        if (_t > 2.05f || Controls.SouthDown)
+                        {
+                            _replaying = false;
+                            _t = 0;
+                            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+                        }
+                        break;
+                    }
+                    if (Controls.SouthDown && _t > 0.2f) ConfirmGameOver();
                     break;
             }
             DrawActors();
             _park?.Tick(_ball, dt);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
+            _stars?.Set(_match.HomeStars, _match.AwayStars);
+            _audio?.Tick(dt);
             _rig.Tick(dt);
         }
 
@@ -223,7 +249,8 @@ namespace GrandSluggers.UnityClient
                 _star, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
-                _phase == Phase.Title ? Night : _match.Night);
+                _phase == Phase.Title ? Night : _match.Night,
+                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver);
         }
 
         Match NewMatch()
@@ -315,6 +342,7 @@ namespace GrandSluggers.UnityClient
                 _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
+                _stars?.Build(transform);
                 OpenLineup();
             }
         }
@@ -331,6 +359,9 @@ namespace GrandSluggers.UnityClient
             _park.Build(_match.Park, _match.Night);
             _spec.Build(transform);
             _items.Build(transform);
+            _stars?.Build(transform);
+            _clip = null;
+            _hlPath = null;
             _banner = _coach.Session.Caption;
             _sub = _coach.Session.Verb;
             BeginSet();
@@ -338,12 +369,20 @@ namespace GrandSluggers.UnityClient
 
         void EndTraining()
         {
+            if (_coach != null && _coach.Session != null && _coach.Session.Finished)
+            {
+                PlayerPrefs.SetInt(TrainedKey, 1);
+                PlayerPrefs.Save();
+                _hideHelp = true;
+            }
             _coach?.Stop();
             _mode = PlayMode.Training;
             Seed++;
             _phase = Phase.Title;
             _t = 0;
             _banner = _sub = "";
+            _replaying = false;
+            _audio?.CrowdBed(false);
             _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
         }
 
@@ -356,6 +395,9 @@ namespace GrandSluggers.UnityClient
                 _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
+                _stars?.Build(transform);
+                _clip = null;
+                _hlPath = null;
                 OpenLineup();
                 return;
             }
@@ -363,8 +405,11 @@ namespace GrandSluggers.UnityClient
             _park.Build(_match.Park, _match.Night);
             _spec.Build(transform);
             _items.Build(transform);
+            _stars?.Build(transform);
             _phase = Phase.Title;
             _t = 0;
+            _replaying = false;
+            _audio?.CrowdBed(false);
             _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
         }
 
@@ -390,6 +435,9 @@ namespace GrandSluggers.UnityClient
             }
             _phase = Phase.Lineup;
             _t = 0;
+            _clip = null;
+            _hlPath = null;
+            _replaying = false;
             _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
         }
 
@@ -551,6 +599,8 @@ namespace GrandSluggers.UnityClient
             _park.Ball.Place(_ball, "", "fastball", false);
             _aimX = _aimY = 0;
             _smash = 0;
+            _gloved = false;
+            _audio?.CrowdBed(true);
             if (PlayerFields) _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
             else if (HumanPitches) _rig.Aim(new Vector3(-5.4f, 7.0f, 80f), new Vector3(0.3f, 3.4f, 4f), 40f);
             else _rig.Aim(new Vector3(5.8f, 6.2f, -14f), new Vector3(0f, 3.1f, 46f), 38f);
@@ -597,6 +647,8 @@ namespace GrandSluggers.UnityClient
             _zone.Show(true, _aimX, _aimY);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
+            _hideHelp = true;
+            if (pitch.Star) _audio?.CaptainVo(_match.Pitcher.Id);
         }
 
         void TickFlight(float dt)
@@ -723,6 +775,9 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
+            _gloved = false;
+            if (hit.Quality != ContactQuality.Miss) _audio?.Bat(hit.Quality);
+            if (hit.StarSwingUsed != null) _audio?.CaptainVo(_match.Batter.Id);
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
                 _freeze = 0.32f;
@@ -843,7 +898,7 @@ namespace GrandSluggers.UnityClient
                     if (_buddyWindow && near && _ball.y > 4.5f)
                     {
                         _buddy = true;
-                        _caught = true;
+                        CatchGlove();
                         _fx = plant.X;
                         _fz = plant.Z;
                         _gloveAt[_glovePos] = (_fx, _fz);
@@ -854,9 +909,9 @@ namespace GrandSluggers.UnityClient
 
             var window = CatchWindow(map);
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
-            if (Controls.SouthDown && d < window) _caught = true;
-            if (_diveT > 0 && d < window && _ball.y < 7.5f) _caught = true;
-            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) _caught = true;
+            if (Controls.SouthDown && d < window) CatchGlove();
+            if (_diveT > 0 && d < window && _ball.y < 7.5f) CatchGlove();
+            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) CatchGlove();
 
             ReadThrowBag(!chasing || _caught || _buddy);
 
@@ -866,7 +921,7 @@ namespace GrandSluggers.UnityClient
             if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
             if (_hitT < hang) return;
             if (Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
-                _caught = true;
+                CatchGlove();
             if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
                 return;
             BeginPlayerThrowOrCommit(map);
@@ -882,7 +937,7 @@ namespace GrandSluggers.UnityClient
             _glovePos = _preview.Position;
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
-            if (outPlay && _hitT >= hang - 0.18f) _caught = true;
+            if (outPlay && _hitT >= hang - 0.18f) CatchGlove();
             if (_hitT < hang) return;
             if (outPlay && _cpuField.Throw != null)
             {
@@ -1004,6 +1059,7 @@ namespace GrandSluggers.UnityClient
             _throwTo = to + Vector3.up * 1.2f;
             _spec.ArmThrow(_throwFrom, to, thr);
             _throwDur = Mathf.Max(0.28f, _spec.ThrowSeconds);
+            _audio?.ThrowPop();
         }
 
         static Vector3 BagWorld(int bag)
@@ -1027,6 +1083,8 @@ namespace GrandSluggers.UnityClient
                 _coach?.OnField(_cpuField, _match);
             }
             Banner();
+            if (_last != null && _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double)
+                _audio?.Swell();
             _playerFielding = false;
             _pending = null;
             _cpuField = null;
@@ -1158,7 +1216,7 @@ namespace GrandSluggers.UnityClient
                 : _last != null ? _last.AtBat.StarSwingUsed : null;
             var ptype = _pitch != null ? _pitch.Type : "fastball";
             var heat = _last != null && _last.Heatball;
-            if (_phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
+            if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat);
             else
                 _park.Ball.Hide();
@@ -1331,6 +1389,8 @@ namespace GrandSluggers.UnityClient
                 thr = _match.ThrowBetween(_match.Pitcher, runner);
             _spec.ArmThrow(_gunFrom, _gunTo, thr);
             _gunDur = Mathf.Max(0.5f, _spec.ThrowSeconds);
+            _audio?.ThrowPop();
+            ConsiderHighlight();
             _phase = Phase.Result;
             _t = 0;
         }
@@ -1379,6 +1439,7 @@ namespace GrandSluggers.UnityClient
 
         void BeginResult()
         {
+            ConsiderHighlight();
             _phase = Phase.Result;
             _t = 0;
             _smash = 0;
@@ -1413,6 +1474,7 @@ namespace GrandSluggers.UnityClient
             _itemFlying = true;
             _itemFly = 0;
             _itemId = id;
+            _audio?.Item(id);
             if (!TrainingOn) _sub = "";
         }
 
@@ -1453,6 +1515,66 @@ namespace GrandSluggers.UnityClient
         {
             var x = t % 2f;
             return x < 1f ? x : 2f - x;
+        }
+
+        bool HideHelp() => _hideHelp || PlayerPrefs.GetInt(TrainedKey, 0) == 1;
+
+        string HighlightCaption() => _clip != null ? _clip.Play.Caption : "";
+
+        void CatchGlove()
+        {
+            if (!_caught && !_gloved) _audio?.Glove();
+            _caught = true;
+            _gloved = true;
+        }
+
+        void ConsiderHighlight()
+        {
+            if (_last == null || _match == null) return;
+            var pick = Highlight.Pick(_match.Log);
+            if (pick == null) return;
+            if (_last.Kind != pick.Play.Kind || _last.Caption != pick.Play.Caption) return;
+            _clip = pick;
+            _hlAt = _ball;
+            var fly = _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double
+                or PlayKind.Single or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
+            _hlPath = fly ? _path : null;
+            _hlSpray = _pending != null ? (float)_pending.SprayDeg : (float)_last.AtBat.SprayDeg;
+        }
+
+        void BeginGameOver()
+        {
+            ConsiderHighlight();
+            _phase = Phase.GameOver;
+            _t = 0;
+            _replaying = _clip != null;
+            if (_replaying)
+            {
+                TickReplay(0);
+                _audio?.Swell();
+            }
+            else
+                _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+        }
+
+        void TickReplay(float dt)
+        {
+            _ = dt;
+            if (_hlPath != null && _hlPath.Length > 0)
+            {
+                var hang = (float)BallFlight.HangTime(_hlPath);
+                var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
+                var p = BallFlight.PointAt(_hlPath, _hlSpray, t);
+                _ball = new Vector3((float)p.X, Mathf.Max(0.6f, (float)p.Y), (float)p.Z);
+                if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
+                    _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
+                else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
+                    _rig.Smash(new Vector3(0.4f, 3.2f, 2f));
+                else
+                    _rig.Smash(_ball);
+                return;
+            }
+            _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : new Vector3(0.4f, 3.2f, 2f));
         }
 
         static bool Key(KeyCode k) => Input.GetKeyDown(k);
