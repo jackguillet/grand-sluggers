@@ -125,6 +125,21 @@ public class InPlayTests
         }
     }
 
+    [Fact]
+    public void TheaterShotSplitsGrounderPullAndFly()
+    {
+        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        var pull = hopper with { SprayDeg = -20 };
+        var fly = hopper with { LaunchDeg = 32, CarryFt = 280 };
+        var star = hopper with { LaunchDeg = 28, StarSwingUsed = "heat-swing" };
+        Assert.Equal("diamond-grounder", InPlay.TheaterShot(hopper));
+        Assert.Equal("diamond-pull", InPlay.TheaterShot(pull));
+        Assert.Equal("diamond", InPlay.TheaterShot(fly));
+        Assert.Equal("smash", InPlay.TheaterShot(star));
+        Assert.True(FieldingResolver.IsGrounder(hopper));
+        Assert.False(FieldingResolver.IsGrounder(fly));
+    }
+
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
         new(q, true, false, exit, launch, carry, false, false, null, null);
 }

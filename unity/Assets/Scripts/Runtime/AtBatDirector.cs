@@ -275,16 +275,18 @@ namespace GrandSluggers.UnityClient
 
         void AimDiamond(AtBatResult hit)
         {
-            var grounder = hit.LaunchDeg < 14;
+            var id = InPlay.TheaterShot(hit);
             var look = _ball.sqrMagnitude > 1 ? _ball : new Vector3((float)(_preview?.LandingX ?? 0), 3f, (float)(_preview?.LandingZ ?? 80));
-            if (hit.StarSwingUsed != null)
+            if (id == "smash")
+            {
                 _cam.SmashAt(_ball);
-            else if (grounder && hit.SprayDeg < -8)
-                _cam.PlayLook("diamond-pull", look);
-            else if (grounder)
-                _cam.PlayLook("diamond-grounder", look);
+                return;
+            }
+            if (FieldingResolver.IsGrounder(hit) || FieldingResolver.IsLine(hit))
+                look.y = Mathf.Min(look.y, 3.2f);
             else
-                _cam.PlayLook("diamond", look + new Vector3(0, 3, 10));
+                look += new Vector3(0, 3, 10);
+            _cam.PlayLook(id, look);
         }
 
     }

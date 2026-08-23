@@ -33,6 +33,16 @@ public static class InPlay
     public static double HomeToFirstSec(Character batter) =>
         Math.Clamp(4.32 - batter.Stats.Run * 0.13, 2.9, 4.35);
 
+    /// <summary>Named camera for the contact type. JSON shots must exist under this id.</summary>
+    public static string TheaterShot(AtBatResult hit)
+    {
+        if (!string.IsNullOrEmpty(hit.StarSwingUsed)) return "smash";
+        if (FieldingResolver.IsGrounder(hit))
+            return hit.SprayDeg < -8 ? "diamond-pull" : "diamond-grounder";
+        if (FieldingResolver.IsLine(hit)) return "diamond";
+        return "diamond";
+    }
+
     public static double ThrowSec(double distFt, ThrowResult? thr)
     {
         var fps = 56 * (thr?.SpeedMul ?? 1);
