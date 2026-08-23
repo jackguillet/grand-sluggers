@@ -169,4 +169,5 @@ public readonly record struct Sample(double T, double Dist, double Height);
 public sealed record ThrowResult(
     Chemistry Relation,
     double SpeedMul,
-    bool Error);
+    bool Error,
+    double LateralFt = 0);

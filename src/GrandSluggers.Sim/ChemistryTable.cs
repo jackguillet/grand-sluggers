@@ -73,14 +73,17 @@ public sealed class ChemistryTable
         return 0;
     }
 
+    /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
+    public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);
+
     public ThrowResult FieldingThrow(Character from, Character to, Random rng, double errorChanceWhenBad = 0.25)
     {
-        var rel = Between(from, to);
+        var rel = ThrowChemistry(from, to);
         return rel switch
         {
-            Chemistry.Good => new ThrowResult(rel, 1.35, false),
-            Chemistry.Bad => new ThrowResult(rel, 0.70, rng.NextDouble() < errorChanceWhenBad),
-            _ => new ThrowResult(rel, 1.0, false)
+            Chemistry.Good => new ThrowResult(rel, 1.35, false, 0),
+            Chemistry.Bad => new ThrowResult(rel, 0.70, rng.NextDouble() < errorChanceWhenBad, 14),
+            _ => new ThrowResult(rel, 1.0, false, 3)
         };
     }
 
