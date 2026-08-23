@@ -11,12 +11,12 @@ namespace GrandSluggers.UnityClient
         public static void Draw(
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
             bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, bool item,
-            float charge, float timing, bool showTiming, string banner, string sub, Texture2D rio)
+            float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait)
         {
             Ensure();
             if (phase == PhaseUi.Title)
             {
-                Title(parkName, homeCap, awayCap, challenge, rio);
+                Title(parkName, homeCap, awayCap, challenge, portrait);
                 return;
             }
             if (phase == PhaseUi.Lineup)
@@ -32,15 +32,15 @@ namespace GrandSluggers.UnityClient
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
         }
 
-        static void Title(string park, string home, string away, bool challenge, Texture2D rio)
+        static void Title(string park, string home, string away, bool challenge, Texture2D portrait)
         {
             GUI.DrawTexture(new Rect(40, 40, 520, 70), _panel);
             GUI.Label(new Rect(56, 48, 500, 54), "GRAND SLUGGERS", _title);
             GUI.Label(new Rect(56, 120, 700, 28), challenge ? "CHALLENGE" : "EXHIBITION  ·  Harbor first", _gold);
             GUI.Label(new Rect(56, 160, 800, 28), home + "  vs  " + away, _h1);
             GUI.Label(new Rect(56, 196, 800, 24), park, _body);
-            if (rio != null)
-                GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), rio, ScaleMode.ScaleToFit);
+            if (portrait != null)
+                GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
             GUI.Label(new Rect(56, 250, 900, 24), "A/D captain   W/S opponent   C park   SPACE play", _tiny);
             GUI.Label(new Rect(56, 278, 900, 24), "South pitch/swing/catch   LT charge   Y star   LB steal   RB banana", _tiny);
         }
