@@ -93,6 +93,10 @@ namespace GrandSluggers.UnityClient
         int[] _relayBags;
         int _relayI;
         string _coverPos = "";
+        float _recoilT;
+        bool _bobbling;
+        bool _recoilArmed;
+        bool _playerBobble;
         FieldingResult _cpuField;
         ThrowResult _armedThrow;
         Character _armedCut;
@@ -592,6 +596,10 @@ namespace GrandSluggers.UnityClient
             _relayBags = null;
             _relayI = 0;
             _coverPos = "";
+            _recoilT = 0;
+            _bobbling = false;
+            _recoilArmed = false;
+            _playerBobble = false;
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
             _star = false;
@@ -745,6 +753,10 @@ namespace GrandSluggers.UnityClient
             _relayBags = null;
             _relayI = 0;
             _coverPos = "";
+            _recoilT = 0;
+            _bobbling = false;
+            _recoilArmed = false;
+            _playerBobble = false;
             _armedThrow = null;
             _armedCut = null;
             _park.Ball.Release();
@@ -823,8 +835,22 @@ namespace GrandSluggers.UnityClient
             _hitT += dt;
             if (_path == null || _path.Length == 0) { BeginResult(); return; }
             var spray = _pending != null ? _pending.SprayDeg : _last.AtBat.SprayDeg;
-            var p = BallFlight.PointAt(_path, spray, _hitT);
-            _ball = new Vector3((float)p.X, (float)Mathf.Max(0.12f, (float)p.Y), (float)p.Z);
+            if (_bobbling)
+            {
+                var away = new Vector3((float)_fx, 0f, (float)_fz);
+                var dir = _ball - away;
+                if (dir.sqrMagnitude < 0.4f) dir = Vector3.forward;
+                dir.y = 0;
+                _ball += dir.normalized * (12f * dt);
+                _ball.y = Mathf.Max(0f, _ball.y - 16f * dt);
+            }
+            else if ((_caught || _buddy) && !_throwing)
+                _ball = new Vector3((float)_fx, _buddy ? 6.4f : 2.2f, (float)_fz);
+            else if (!_throwing)
+            {
+                var p = BallFlight.PointAt(_path, spray, _hitT);
+                _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+            }
             if (_smash > 0) _smash -= dt;
             else if (_throwing)
                 _rig.Aim(_throwTo + new Vector3(14f, 11f, -18f), _throwTo, 48f);
@@ -857,6 +883,28 @@ namespace GrandSluggers.UnityClient
             TickBuddyPartner(dt);
             TickItem(dt);
 
+            if (_recoilT > 0 && !_throwing)
+            {
+                if (!_bobbling && _caught)
+                {
+                    var away = new Vector3((float)_fx - _ball.x, 0f, (float)_fz - _ball.z);
+                    if (away.sqrMagnitude > 0.2f)
+                    {
+                        away.Normalize();
+                        _fx += away.x * 14f * dt;
+                        _fz += away.z * 14f * dt;
+                        _gloveAt[_glovePos] = (_fx, _fz);
+                    }
+                }
+                _recoilT -= dt;
+                if (_recoilT <= 0 && _bobbling)
+                {
+                    CommitInPlay();
+                    return;
+                }
+                if (_recoilT > 0) return;
+            }
+
             if (_throwing)
             {
                 _throwT += dt;
@@ -881,7 +929,7 @@ namespace GrandSluggers.UnityClient
 
             if (_preview != null && _cpuField != null && _pending != null)
             {
-                TickCpuField();
+                TickCpuField(dt);
                 return;
             }
 
@@ -956,9 +1004,9 @@ namespace GrandSluggers.UnityClient
 
             var window = CatchWindow(map);
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
-            if (Controls.SouthDown && d < window) CatchGlove();
-            if (_diveT > 0 && d < window && _ball.y < 7.5f) CatchGlove();
-            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) CatchGlove();
+            if (Controls.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
+            if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
+            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) { CatchGlove(); ArmRecoil(); }
 
             ReadThrowBag(!chasing || _caught || _buddy);
 
@@ -968,33 +1016,54 @@ namespace GrandSluggers.UnityClient
             if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
             if (pre.Grounder)
             {
-                if (_ball.y < 3.2f && d < window + 3) CatchGlove();
                 if (!_caught && _hitT < rest) return;
             }
             else if (_hitT < hang) return;
-            if (!pre.Grounder && Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
-                CatchGlove();
             if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
                 return;
             BeginPlayerThrowOrCommit(map);
         }
 
-        void TickCpuField()
+        void TickCpuField(float dt)
         {
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
-            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
-            var start = Diamond.Positions[_preview.Position];
-            _fx = start.X + (_preview.LandingX - start.X) * u;
-            _fz = start.Z + (_preview.LandingZ - start.Z) * u;
+            var grounder = _preview.Grounder;
+            var spray = _pending != null ? _pending.SprayDeg : 0;
+            if (grounder && _path != null && !_caught)
+            {
+                var live = BallFlight.PointAt(_path, spray, _hitT);
+                var speed = (21 + _preview.Fielder.Stats.Run * 1.9) * (_preview.Frozen ? 0.45 : 1);
+                var dx = live.X - _fx;
+                var dz = live.Z - _fz;
+                var dist = Math.Sqrt(dx * dx + dz * dz);
+                if (dist > 0.35)
+                {
+                    var step = Math.Min(dist, speed * dt);
+                    _fx += dx / dist * step;
+                    _fz += dz / dist * step;
+                }
+            }
+            else if (!_caught)
+            {
+                var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
+                var start = Diamond.Positions[_preview.Position];
+                _fx = start.X + (_preview.LandingX - start.X) * u;
+                _fz = start.Z + (_preview.LandingZ - start.Z) * u;
+            }
             _glovePos = _preview.Position;
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
-            var grounder = _preview.Grounder;
-            if (outPlay && (grounder ? _hitT >= hang && _ball.y < 3.2f : _hitT >= hang - 0.18f))
+            var reached = outPlay || _cpuField.Bobble;
+            if (reached && (grounder ? _hitT >= hang && _ball.y < 3.2f : _hitT >= hang - 0.18f))
+            {
                 CatchGlove();
+                ArmRecoil();
+            }
             if (!grounder && _hitT < hang) return;
             if (grounder && !_caught && _hitT < rest) return;
+            if (_cpuField.Bobble && _caught)
+                return;
             if (outPlay && grounder)
             {
                 if (StartGroundRelays()) return;
@@ -1216,6 +1285,8 @@ namespace GrandSluggers.UnityClient
             _throwing = false;
             _relayBags = null;
             _coverPos = "";
+            _bobbling = false;
+            _recoilT = 0;
             _park.Ball.Release();
             BeginResult();
         }
@@ -1237,8 +1308,11 @@ namespace GrandSluggers.UnityClient
             }
             if (_buddy || _caught)
             {
+                if (_bobbling || _playerBobble)
+                    return new FieldingResult(PlayKind.Single, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, Bobble: true);
                 var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
-                return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy);
+                var knock = pre.Grounder && hit != null ? InPlay.KnockbackSec(InPlay.Energy(hit), from) : 0;
+                return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, KnockbackSec: knock);
             }
             if (pre.HomeRunLikely)
                 return new FieldingResult(PlayKind.HomeRun, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
@@ -1272,7 +1346,10 @@ namespace GrandSluggers.UnityClient
                     x = _fx;
                     z = _fz;
                     if (_throwing) pose = HeroActor.Pose.Throw;
+                    else if (_bobbling) pose = HeroActor.Pose.Miss;
+                    else if (_recoilT > 0) pose = HeroActor.Pose.Dive;
                     else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
+                    else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Crouch;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
                     else if (_preview != null) pose = FieldPose(who, _preview, false);
@@ -1416,7 +1493,7 @@ namespace GrandSluggers.UnityClient
 
         static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
         {
-            if (caught) return HeroActor.Pose.Catch;
+            if (caught) return pre.Grounder ? HeroActor.Pose.Crouch : HeroActor.Pose.Catch;
             var a = who.FieldAbility;
             if (a == "dive" && pre.Grounder) return HeroActor.Pose.Dive;
             if (a == "burrow" && pre.Grounder) return HeroActor.Pose.Dive;
@@ -1680,6 +1757,42 @@ namespace GrandSluggers.UnityClient
             HoldBallInGlove();
         }
 
+        void ArmRecoil()
+        {
+            if (_recoilArmed || _preview == null || !_preview.Grounder || _buddy) return;
+            _recoilArmed = true;
+            var bobble = false;
+            var knock = 0.0;
+            if (_cpuField != null)
+            {
+                bobble = _cpuField.Bobble;
+                knock = _cpuField.KnockbackSec;
+            }
+            else if (_pending != null)
+            {
+                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                var who = map.TryGetValue(_glovePos, out var g) ? g : _preview.Fielder;
+                var energy = InPlay.Energy(_pending);
+                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(_hitT * 40));
+                bobble = InPlay.Bobbles(energy, who, rng, _match.DefenseGlove);
+                knock = InPlay.KnockbackSec(energy, who);
+                _playerBobble = bobble;
+            }
+            if (bobble)
+            {
+                _bobbling = true;
+                _recoilT = 0.58f;
+                _park.Ball.Release();
+                var dir = new Vector3((float)_fx, 0f, (float)_fz);
+                var away = _ball - dir;
+                away.y = 0;
+                if (away.sqrMagnitude < 0.4f) away = Vector3.forward;
+                _ball = new Vector3((float)_fx, 3.1f, (float)_fz) + away.normalized * 6.5f;
+            }
+            else if (knock > 0.02)
+                _recoilT = (float)knock;
+        }
+
         void HoldBallInGlove()
         {
             if (_throwing) return;
@@ -1727,7 +1840,7 @@ namespace GrandSluggers.UnityClient
                 var hang = (float)BallFlight.HangTime(_hlPath);
                 var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
                 var p = BallFlight.PointAt(_hlPath, _hlSpray, t);
-                _ball = new Vector3((float)p.X, Mathf.Max(0.12f, (float)p.Y), (float)p.Z);
+                _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
                     _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
                 else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
