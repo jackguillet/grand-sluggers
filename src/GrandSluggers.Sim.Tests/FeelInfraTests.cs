@@ -39,9 +39,25 @@ public class FeelInfraTests
     }
 
     [Fact]
+    public void LineAndTagShotsAreDistinctFromFlyAndThrow()
+    {
+        var fly = _content.Shots.Must("diamond");
+        var hop = _content.Shots.Must("diamond-grounder");
+        var line = _content.Shots.Must("diamond-line");
+        var tag = _content.Shots.Must("tag");
+        var thr = _content.Shots.Must("throw");
+        Assert.True(line.Pos.Y > hop.Pos.Y, $"line height {line.Pos.Y} vs hopper {hop.Pos.Y}");
+        Assert.True(line.Pos.Y < fly.Pos.Y, $"line height {line.Pos.Y} vs fly {fly.Pos.Y}");
+        Assert.NotEqual(line.Fov, fly.Fov);
+        Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
+            $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
+        Assert.Equal("bag", tag.Look, ignoreCase: true);
+    }
+
+    [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "mound", "diamond", "throw", "replay" })
+        foreach (var id in new[] { "plate", "mound", "diamond", "diamond-line", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);
