@@ -24,12 +24,18 @@ public sealed class AtBatResolver
         var window = BaseContactWindowFrames + (contact - 5) * 0.55;
         if (input.ChargeSwing && input.Bat?.ChargeAlwaysFull != true)
             window *= 0.78;
+        if (input.UseStarPitch)
+            window *= StarSkills.BatterWindowMul(input.Pitcher.StarPitch);
 
         var timing = Math.Abs(input.TimingErrorFrames);
         var quality = timing <= PerfectWindowFrames ? ContactQuality.Perfect
             : timing <= window * 0.55 ? ContactQuality.Solid
             : timing <= window ? ContactQuality.Cheap
             : ContactQuality.Miss;
+
+        if (input.UseStarPitch && input.Pitcher.StarPitch == "phonyball"
+            && quality != ContactQuality.Perfect && rng.NextDouble() < 0.4)
+            quality = ContactQuality.Miss;
 
         if (quality == ContactQuality.Miss)
         {
@@ -50,7 +56,7 @@ public sealed class AtBatResolver
             ContactQuality.Solid => 1.0,
             _ => 0.58
         };
-        var starSwingMul = input.UseStarSwing ? 1.06 : 1.0;
+        var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing) : 1.0;
         var onBaseMul = _chem.ChargePowerMul(input.Batter, input.RunnersOn);
 
         var exit = 52 + power * 3.35;
@@ -65,10 +71,9 @@ public sealed class AtBatResolver
         if (input.UseStarSwing)
             launch = StarLaunch(input.Batter.StarSwing, launch);
 
-        if (input.UseStarSwing && input.Batter.StarSwing == "furnace")
-            exit *= 1.08;
-
         var spray = input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality);
+        if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
+            spray += (rng.NextDouble() - 0.5) * 22;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * 18;
 
@@ -133,10 +138,18 @@ public sealed class AtBatResolver
         {
             "changeup" => 72,
             "curve" => 76,
+            "slider" => 80,
             _ => 86
         };
         var speed = baseSpeed + pitchStat * 0.9 + pitch.Charge01 * 8;
         if (pitch.Star) speed *= 1.12;
         return speed;
+    }
+
+    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher)
+    {
+        var speed = PitchSpeedMph(pitch, pitcher.Stats.Pitch);
+        if (!pitch.Star) return speed;
+        return speed / 1.12 * StarSkills.PitchSpeedMul(pitcher.StarPitch);
     }
 }

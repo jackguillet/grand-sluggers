@@ -22,7 +22,8 @@ namespace GrandSluggers.UnityClient
         ParkView _view;
         Camera _cam;
         Phase _phase = Phase.Title;
-        readonly string[] _pitches = { "fastball", "changeup", "curve" };
+        readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
+        bool _itemArmed;
         int _pitchIndex;
         bool _star;
         float _charge;
@@ -166,7 +167,7 @@ namespace GrandSluggers.UnityClient
             }
             GUI.Label(new Rect(20, 16, 700, 24), $"{(_match.Top ? "TOP" : "BOT")} {_match.Inning}   {_match.Away.Captain.Name} {_match.AwayScore}  {_match.Home.Captain.Name} {_match.HomeScore}");
             GUI.Label(new Rect(20, 42, 500, 24), $"B {_match.Balls}  S {_match.Strikes}  O {_match.Outs}   arm {_match.PitcherStamina}");
-            GUI.Label(new Rect(20, 68, 700, 24), $"P {_match.Pitcher.Name}   AB {_match.Batter.Name}   {_pitches[_pitchIndex]}{(_star ? " *" : "")}");
+            GUI.Label(new Rect(20, 68, 900, 24), $"P {_match.Pitcher.Name}   AB {_match.Batter.Name}   {_pitches[_pitchIndex]}{(_star ? " *" : "")}{(_match.StealOn ? "  STEAL" : "")}{(_itemArmed ? "  BANANA" : "")}");
             if (!string.IsNullOrEmpty(_banner))
                 GUI.Label(new Rect(Screen.width / 2 - 160, Screen.height / 2 - 20, 400, 40), _banner);
             if (!string.IsNullOrEmpty(_sub))
@@ -262,6 +263,9 @@ namespace GrandSluggers.UnityClient
             if (Key(KeyCode.Tab)) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Key(KeyCode.R)) _match.SwapPitcher();
             if (Key(KeyCode.Q) && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
+            if (HumanBats && Key(KeyCode.X)) _match.ToggleSteal();
+            if (HumanBats && Key(KeyCode.E) && _match.Chemistry.ChemistryItemOffered(_match.Batter, _match.OnDeck))
+                _itemArmed = !_itemArmed;
             if (HumanPitches)
             {
                 _charge = Input.GetKey(KeyCode.LeftShift) ? Mathf.Min(1, _charge + dt / 0.55f) : Mathf.Max(0, _charge - dt * 1.4f);
@@ -281,7 +285,7 @@ namespace GrandSluggers.UnityClient
         void Launch(PitchCommand pitch)
         {
             _pitch = pitch;
-            var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher.Stats.Pitch);
+            var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
             _pitchDur = Mathf.Clamp((float)(Diamond.Mound / (mph * 1.4667)), 0.32f, 0.85f);
             _flight = 0;
             _swung = false;
@@ -341,7 +345,9 @@ namespace GrandSluggers.UnityClient
                 StartFly(hit);
                 return;
             }
-            _last = _match.Play(_pitch, _swing);
+            var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
+            _itemArmed = false;
+            _last = _match.Play(_pitch, _swing, item);
             Banner();
             var fly = _last.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
                 or PlayKind.HomeRun or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
@@ -416,6 +422,7 @@ namespace GrandSluggers.UnityClient
                 result = new FieldingResult(PlayKind.HomeRun, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
             else
                 result = new FieldingResult(hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+            result = _match.ApplyOffenseItem(hit, result, null);
             _last = _match.FinishAtBat(_pitch, _swing, hit, result);
             Banner();
             _playerFielding = false;

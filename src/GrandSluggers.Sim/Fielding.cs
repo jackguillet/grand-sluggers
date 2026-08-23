@@ -31,14 +31,18 @@ public sealed class FieldingResolver
             }
         }
         var buddy = Buddy(defense, pitcher, fielder, landing.X, landing.Z);
-        var freeze = ParkHazards.InSlow(park, landing.X, landing.Z);
-        var radius = 10 + fielder.Stats.Field * 0.6;
+        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z) && !FieldAbilities.IgnoresParkSlow(fielder))
+                     || hit.StarSwingUsed == "heart-swing";
+        if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < 0.6)
+            warped = true;
+        var radius = 10 + fielder.Stats.Field * 0.6 + FieldAbilities.CatchBonus(fielder);
         if (ParkHazards.CanClamber(park, fielder))
             radius += 6;
+        var heat = hit.StarPitchUsed is "heatball" or "caskball";
+        var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
-            hit.StarPitchUsed == "heatball", hit.StarSwingUsed == "furnace", freeze,
-            radius, warped);
+            heat, furnace, freeze, radius, warped);
     }
 
     public FieldingResult Resolve(
@@ -52,7 +56,7 @@ public sealed class FieldingResolver
         var pre = Preview(hit, park, defense, pitcher, rng);
         if (pre.HomeRunLikely && hit.HomeRun)
         {
-            if (ParkHazards.CanClamberRob(park, pre.Fielder, hit))
+            if (ParkHazards.CanClamberRob(park, pre.Fielder, hit) || FieldAbilities.AirRob(park, pre.Fielder, hit))
                 return new FieldingResult(PlayKind.FlyOut, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace, Buddy: pre.Buddy);
             return new FieldingResult(PlayKind.HomeRun, null, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace);
         }
@@ -65,7 +69,8 @@ public sealed class FieldingResolver
         var grounder = pre.Grounder;
         var furnace = pre.Furnace;
         var heatball = pre.Heatball;
-        var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8;
+        var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8
+                    + FieldAbilities.FlyRangeBonus(fielder) + FieldAbilities.GroundRangeBonus(fielder);
         if (ParkHazards.CanClamber(park, fielder))
             range += 18;
         var speed = 21 + fielder.Stats.Run * 1.9; // ft/s
@@ -80,7 +85,9 @@ public sealed class FieldingResolver
             var reached = arrive <= catchWindow && toBall < range * 3.2;
             if (reached)
             {
-                var drop = (heatball && rng.NextDouble() < 0.35) || (pre.Frozen && rng.NextDouble() < 0.4);
+                var drop = (heatball && rng.NextDouble() < 0.35)
+                           || (pre.Frozen && rng.NextDouble() < 0.4)
+                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
                 if (!drop)
                     return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
             }
@@ -88,6 +95,7 @@ public sealed class FieldingResolver
             var kind = hit.CarryFt >= 330 ? PlayKind.Triple
                 : hit.CarryFt >= 250 ? PlayKind.Double
                 : PlayKind.Single;
+            kind = FieldAbilities.SpinCheck(fielder, kind);
             return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
         }
 
@@ -97,7 +105,7 @@ public sealed class FieldingResolver
         if (outPlay)
         {
             var cut = Cutoff(defense, pitcher, fielder);
-            var throwRes = cut is null ? null : _chem.FieldingThrow(fielder, cut, rng);
+            var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng));
             var error = throwRes is { Error: true };
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
@@ -105,8 +113,9 @@ public sealed class FieldingResolver
         }
 
         var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
+        var groundKind = FieldAbilities.SpinCheck(fielder, extra ? PlayKind.Double : PlayKind.Single);
         return new FieldingResult(
-            extra ? PlayKind.Double : PlayKind.Single,
+            groundKind,
             fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
     }
 
@@ -191,7 +200,8 @@ public sealed record FieldingResult(
     bool Furnace,
     ThrowResult? Throw = null,
     Character? Buddy = null,
-    bool Warped = false);
+    bool Warped = false,
+    string? Item = null);
 
 public sealed record FieldingPreview(
     Character Fielder,
