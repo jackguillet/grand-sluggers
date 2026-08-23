@@ -11,7 +11,8 @@ public sealed class FieldingResolver
         Park park,
         IReadOnlyList<Character> defense,
         Character pitcher,
-        Random rng)
+        Random rng,
+        bool night = false)
     {
         var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
         var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
@@ -30,7 +31,7 @@ public sealed class FieldingResolver
             }
         }
         var buddy = Buddy(defense, pitcher, fielder, pos, landing.X, landing.Z);
-        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z) && !FieldAbilities.IgnoresParkSlow(fielder))
+        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night) && !FieldAbilities.IgnoresParkSlow(fielder))
                      || hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < 0.6)
             warped = true;
@@ -39,9 +40,10 @@ public sealed class FieldingResolver
             radius += 6;
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
+        var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder);
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
-            heat, furnace, freeze, radius, warped);
+            heat, furnace, freeze, radius, warped, Chomped: chomped);
     }
 
     public FieldingResult Resolve(
@@ -51,15 +53,18 @@ public sealed class FieldingResolver
         Character pitcher,
         Random rng,
         GloveItem? glove = null,
-        FieldingPreview? pre = null)
+        FieldingPreview? pre = null,
+        bool night = false)
     {
-        var shown = pre ?? Preview(hit, park, defense, pitcher, rng);
+        var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night);
         if (shown.HomeRunLikely && hit.HomeRun)
         {
             if (ParkHazards.CanClamberRob(park, shown.Fielder, hit) || FieldAbilities.AirRob(park, shown.Fielder, hit))
                 return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy);
             return new FieldingResult(PlayKind.HomeRun, null, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace);
         }
+        if (shown.Chomped)
+            return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true);
 
         var fielder = shown.Fielder;
         var pos = shown.Position;
@@ -260,7 +265,8 @@ public sealed record FieldingResult(
     ThrowResult? Throw = null,
     Character? Buddy = null,
     bool Warped = false,
-    string? Item = null);
+    string? Item = null,
+    bool Chomped = false);
 
 public sealed record FieldingPreview(
     Character Fielder,
@@ -275,19 +281,45 @@ public sealed record FieldingPreview(
     bool Furnace,
     bool Frozen,
     double CatchRadius,
-    bool Warped = false);
+    bool Warped = false,
+    bool Chomped = false);
 
 public static class ParkHazards
 {
-    public static bool InFreeze(Park park, double x, double z) => InSlow(park, x, z);
+    public const double CrystalNightWindowMul = 0.85;
+    public const double EmberNightFireMul = 1.6;
 
-    public static bool InSlow(Park park, double x, double z)
+    public static double ContactWindowMul(Park park, bool night) =>
+        night && park.Id == "crystal-rink" ? CrystalNightWindowMul : 1.0;
+
+    public static bool InFreeze(Park park, double x, double z, bool night = false) =>
+        InSlow(park, x, z, night);
+
+    public static bool InSlow(Park park, double x, double z, bool night = false)
     {
         foreach (var h in park.Hazards)
         {
             if (h.Type is not ("freeze_volume" or "lava_pit" or "fire_breath")) continue;
-            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
+            var r = h.Radius;
+            if (night && h.Type == "fire_breath")
+                r *= EmberNightFireMul;
+            if (Diamond.Dist(h.X, h.Z, x, z) <= r) return true;
         }
+        return false;
+    }
+
+    public static readonly Hazard[] FunfairChompers =
+    [
+        new("chomper", -72, 205, 16, "L"),
+        new("chomper", 0, 228, 18, "C"),
+        new("chomper", 78, 198, 16, "R")
+    ];
+
+    public static bool ChompFly(Park park, bool night, double x, double z, bool grounder = false)
+    {
+        if (!night || grounder || park.Id != "funfair-park") return false;
+        foreach (var h in FunfairChompers)
+            if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         return false;
     }
 

@@ -9,7 +9,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Faction: Spark League
 - Surface: grass
 - Gimmick: none
-- Night: fireworks on homers, same play
+- Night: fireworks on homers, same play (no sim rule)
 - Fence: 330 / 400 / 330
 - Why it exists: teach baseball before we teach gimmicks. Control park **and** trailer still: afternoon light, warning track, dugouts, backstop, bleachers with crowd in the seats. Town sits beyond the fence, not in other parks.
 
@@ -18,7 +18,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Faction: Royal Rink
 - Surface: ice (we do **not** make players skate — Sluggers’ manual said they slip, the wiki says they don’t. We pick: **no skating**, freeze *hazards* instead)
 - Gimmick: **Freezers** — statues on the dirt. Touch one, frozen 1.2s. Can be shattered by a charged runner or a line drive.
-- Night: ceiling snowflakes. Hit one → stadium lights cut, follow-spot on the ball for 2s. Presentation later (#31); the park ships a disabled follow-spot hook.
+- Night: blackout. Contact window × 0.85. Follow-spot on the ball (presentation).
 - Why it exists: an ice garden, not Harbor with cyan cylinders. Same diamond kit (bags, mound, foul lines, fence). Glass boards, frozen fountain, freeze statues (body + pedestal) you walk around, royal palace beyond CF. Cool light, not Harbor afternoon. Spark lofts stay in Harbor.
 
 ## Funfair Park
@@ -27,7 +27,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Surface: grass
 - Gimmick: **Warp cans** in the infield. A grounder that enters one exits another at random (tagged A/B/C so it can be learned, not pure grief).
 - Warning-track **train** — parked boxcar you can read. Periodic catch block / launch stays in the sim notes; presentation does not sit in the dirt.
-- Night: **Chompers** in the outfield eat flies and spit them elsewhere. Presentation later (#31); the park ships a disabled chompers hook.
+- Night: **Chompers** in the outfield eat flies (fly out).
 - Why it exists: cans with mouths you can learn, not green cylinders. Same diamond kit (bags, mound, foul lines, fence). Carnival tents, striped poles, ferris wheel, booths beyond CF. Warm carnival light, not Harbor afternoon, not Crystal ice. Spark lofts and the royal palace stay out.
 
 ## Rooftop City
@@ -35,7 +35,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Faction: Goldrush
 - Surface: dirt (tar roof)
 - Gimmick: billboards and AC units. Balls can carom; some signs award a star if you hit them.
-- Night: neon glare (not a blind). Presentation later (#31); the park ships a disabled neon-glare hook. Day already uses dusk/neon light.
+- Night: neon glare (not a blind). Presentation only; day already uses dusk/neon light.
 - Why it exists: it should feel like a roof. Urban rooftop geometry, star billboards, AC boxes you can carom off. Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Canopy Yard (playable)
@@ -44,7 +44,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Surface: dirt
 - Fence: 312 / 378 / 318
 - Gimmick: **Barrel cannons** warp grounders (same rule as Funfair cans). **Climb wall** — fielders with Clamber (Konga, Vine, Moss) can rob a homer that only just cleared the fence.
-- Night: fireflies, same play. Presentation later (#31); the park ships a disabled fireflies hook.
+- Night: fireflies, same play. Presentation only.
 - Why it exists: jungle walls you can clamber, barrels you can see kick a grounder. Trees, vine walls with ledges at fence height, barrel-cannon actors (mouths + tags, not anonymous cylinders). Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Haunt Manor
@@ -63,7 +63,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Surface: ash
 - Fence: 338 / 408 / 338 (deep)
 - Gimmick: **Lava pits** and the captain **statue's fire breath** slow fielders the same way Crystal freezers do. Not a free homer park — Ashlord still has to square it up.
-- Night-only presentation later (#31); the park ships a disabled night-brazier hook. Courtyard lighting is night-ready even in day.
+- Night: fire breath radius × 1.6. Extra braziers, brighter fire. Courtyard lighting is night-ready even in day.
 - Why it exists: a keep that breathes fire, not a dark cube with a sphere. Castle architecture, lava that reads as a pit (rim + glow), fire-breath statues as actors. Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Playroom

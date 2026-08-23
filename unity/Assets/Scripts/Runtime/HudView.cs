@@ -12,12 +12,12 @@ namespace GrandSluggers.UnityClient
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
             bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
-            bool training = false, string drillProgress = null)
+            bool training = false, string drillProgress = null, bool night = false)
         {
             Ensure();
             if (phase == PhaseUi.Title)
             {
-                Title(parkName, homeCap, awayCap, challenge, portrait, training);
+                Title(parkName, homeCap, awayCap, challenge, portrait, training, night);
                 return;
             }
             if (phase == PhaseUi.Lineup)
@@ -38,25 +38,26 @@ namespace GrandSluggers.UnityClient
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
         }
 
-        static void Title(string park, string home, string away, bool challenge, Texture2D portrait, bool training)
+        static void Title(string park, string home, string away, bool challenge, Texture2D portrait, bool training, bool night)
         {
             GUI.DrawTexture(new Rect(40, 40, 520, 70), _panel);
             GUI.Label(new Rect(56, 48, 500, 54), "GRAND SLUGGERS", _title);
             var mode = training ? "TRAINING  ·  Harbor Diamond" : challenge ? "CHALLENGE" : "EXHIBITION  ·  Harbor first";
             GUI.Label(new Rect(56, 120, 700, 28), mode, _gold);
+            var when = night ? "NIGHT" : "DAY";
             if (training)
             {
                 GUI.Label(new Rect(56, 160, 800, 28), "Four drills. No gimmicks.", _h1);
-                GUI.Label(new Rect(56, 196, 800, 24), park, _body);
+                GUI.Label(new Rect(56, 196, 800, 24), park + "  ·  DAY", _body);
             }
             else
             {
                 GUI.Label(new Rect(56, 160, 800, 28), home + "  vs  " + away, _h1);
-                GUI.Label(new Rect(56, 196, 800, 24), park, _body);
+                GUI.Label(new Rect(56, 196, 800, 24), park + "  ·  " + when, night ? _gold : _body);
             }
             if (portrait != null)
                 GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
-            GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start mode   West training", _tiny);
+            GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   N night   hold C night   Start mode   West training", _tiny);
             if (!training)
                 GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  stick lead  LB steal  RB cycle  West bunt/jump/slide  East dive  E item", _gold);
             else
@@ -76,7 +77,7 @@ namespace GrandSluggers.UnityClient
 
         static void Lineup(Match match)
         {
-            GUI.Label(new Rect(40, 36, 1000, 32), "TEAM SHEET  ·  " + match.Park.Name, _h1);
+            GUI.Label(new Rect(40, 36, 1000, 32), "TEAM SHEET  ·  " + match.Park.Name + (match.Night ? "  NIGHT" : ""), _h1);
             GUI.Label(new Rect(40, 72, 1000, 22),
                 match.Home.Name + "  " + match.HomeBat.Name + " / " + match.HomeGlove.Name + "   [B][G]", _body);
             var y = 110;

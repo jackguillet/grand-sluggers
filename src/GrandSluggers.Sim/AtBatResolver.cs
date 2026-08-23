@@ -14,7 +14,7 @@ public sealed class AtBatResolver
 
     public AtBatResolver(ChemistryTable chem) => _chem = chem;
 
-    public AtBatResult Resolve(AtBatInput input, Park park, Random rng)
+    public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
         var contact = input.Batter.Stats.Bat + (input.Bat?.ContactMod ?? 0);
         var power = input.Batter.Stats.Bat + (input.Bat?.PowerMod ?? 0);
@@ -26,6 +26,7 @@ public sealed class AtBatResolver
             window *= 0.78;
         if (input.UseStarPitch)
             window *= StarSkills.BatterWindowMul(input.Pitcher.StarPitch);
+        window *= ParkHazards.ContactWindowMul(park, night);
 
         var timing = Math.Abs(input.TimingErrorFrames);
         var quality = timing <= PerfectWindowFrames ? ContactQuality.Perfect
