@@ -1,0 +1,6 @@
+Shared hero chain (hero-shared). Drop one FBX/prefab here.
+
+Bone names must match data/art/rig.json:
+  root torso head lUpper lFore rUpper rFore lThigh lShin rThigh rShin bat glove
+
+Until a file exists, SharedRig.Spawn is the mesh. Captains are extras, not new armatures.
