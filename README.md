@@ -86,8 +86,8 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
 | [docs/silhouette-bible.md](docs/silhouette-bible.md) | Locked camera, six body types, signature bats |
 | [docs/parks.md](docs/parks.md) | Ballparks and gimmicks |
-| [docs/roadmap.md](docs/roadmap.md) | Vertical slice → first playable → content |
+| [docs/roadmap.md](docs/roadmap.md) | Now → Nintendo-level Exhibition; how to use coding agents |
 
 ## Status
 
-Unity Play is the only player-facing client. Exhibition picks any of the six captains, then drafts the eight around them (gloves, batting order, chemistry graph, live stars). Challenge is a session recruit loop. Six parks, gear, fielding, local 2P exist in the sim; Harbor Diamond is the presentation park. Editor: **6000.5.9f1**.
+Unity Play is the only player-facing client. Exhibition picks any of the six captains, then drafts the eight around them. Feel and art **rails** are in; Harbor is still the slice to make expensive. Do not start extra parks or Challenge until Exhibition is the reason people stay — [roadmap](docs/roadmap.md). Editor: **6000.5.9f1**.
