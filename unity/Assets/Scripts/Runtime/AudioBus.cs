@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// In-memory SFX. Original tones, never Nintendo samples. Silence is the fallback.
+    /// Catalog audio buses. Original generated tones are placeholders until a slot has a clip.
+    /// Never Nintendo samples. Silence is the fallback.
     /// </summary>
     public sealed class AudioBus : MonoBehaviour
     {
@@ -13,11 +15,7 @@ namespace GrandSluggers.UnityClient
         AudioSource _sfx;
         AudioSource _crowd;
         AudioSource _vo;
-        AudioClip _crackPerfect, _crackSolid, _crackCheap;
-        AudioClip _glove, _throwPop;
-        AudioClip _crowdBed, _crowdSwell;
-        AudioClip _banana, _rocket, _pow;
-        AudioClip _rio, _vale, _zig, _brondo, _konga, _ashlord, _guest;
+        readonly Dictionary<string, AudioClip> _tone = new Dictionary<string, AudioClip>(System.StringComparer.OrdinalIgnoreCase);
         float _swell;
 
         public void Build()
@@ -26,23 +24,31 @@ namespace GrandSluggers.UnityClient
             _crowd = Src("Crowd", 0.1f, true);
             _vo = Src("Vo", 0.85f, false);
 
-            _crackPerfect = Crack("BatPerfect", 2400f, 0.55f, 1f, 0.09f);
-            _crackSolid = Crack("BatSolid", 1400f, 0.4f, 0.78f, 0.08f);
-            _crackCheap = Crack("BatCheap", 280f, 0.22f, 0.5f, 0.07f);
-            _glove = Pop("Glove", 190f, 0.045f, 0.7f);
-            _throwPop = Pop("Throw", 420f, 0.055f, 0.62f);
-            _crowdBed = Crowd("CrowdBed", 1.6f, 0.28f, 0);
-            _crowdSwell = Crowd("CrowdSwell", 1.1f, 0.55f, 1);
-            _banana = Slap("Banana", 210f);
-            _rocket = Whoosh("Rocket");
-            _pow = Pop("Pow", 90f, 0.08f, 0.95f);
-            _rio = Chord("RioVo", 880f, 1108f, 0.22f);
-            _vale = Chord("ValeVo", 659f, 784f, 0.28f);
-            _zig = Arp("ZigVo", 988f, 1174f, 1568f, 0.2f);
-            _brondo = Chord("BrondoVo", 196f, 294f, 0.3f);
-            _konga = Drum("KongaVo");
-            _ashlord = Chord("AshlordVo", 233f, 329f, 0.26f);
-            _guest = Chord("GuestVo", 440f, 554f, 0.18f);
+            Tone("bat-perfect", Crack("BatPerfect", 2400f, 0.55f, 1f, 0.09f));
+            Tone("bat-solid", Crack("BatSolid", 1400f, 0.4f, 0.78f, 0.08f));
+            Tone("bat-cheap", Crack("BatCheap", 280f, 0.22f, 0.5f, 0.07f));
+            Tone("glove", Pop("Glove", 190f, 0.045f, 0.7f));
+            Tone("throw", Pop("Throw", 420f, 0.055f, 0.62f));
+            Tone("crowd-bed", Crowd("CrowdBed", 1.6f, 0.28f, 0));
+            Tone("crowd-swell", Crowd("CrowdSwell", 1.1f, 0.55f, 1));
+            Tone("banana", Slap("Banana", 210f));
+            Tone("rocket", Whoosh("Rocket"));
+            Tone("pow", Pop("Pow", 90f, 0.08f, 0.95f));
+            Tone("vo-rio", Chord("RioVo", 880f, 1108f, 0.22f));
+            Tone("vo-vale", Chord("ValeVo", 659f, 784f, 0.28f));
+            Tone("vo-zig", Arp("ZigVo", 988f, 1174f, 1568f, 0.2f));
+            Tone("vo-brondo", Chord("BrondoVo", 196f, 294f, 0.3f));
+            Tone("vo-konga", Drum("KongaVo"));
+            Tone("vo-ashlord", Chord("AshlordVo", 233f, 329f, 0.26f));
+            Tone("vo-guest", Chord("GuestVo", 440f, 554f, 0.18f));
+        }
+
+        public void Play(string eventId, float volume = 1f)
+        {
+            var clip = Resolve(eventId);
+            var src = SourceFor(eventId);
+            if (clip == null || src == null) return;
+            src.PlayOneShot(clip, volume);
         }
 
         public void Tick(float dt)
@@ -54,15 +60,17 @@ namespace GrandSluggers.UnityClient
 
         public void CrowdBed(bool on)
         {
-            if (_crowd == null || _crowdBed == null) return;
+            if (_crowd == null) return;
             if (!on)
             {
                 _crowd.Stop();
                 _swell = 0;
                 return;
             }
-            if (_crowd.isPlaying && _crowd.clip == _crowdBed) return;
-            _crowd.clip = _crowdBed;
+            var clip = Resolve("crowd-bed");
+            if (clip == null) return;
+            if (_crowd.isPlaying && _crowd.clip == clip) return;
+            _crowd.clip = clip;
             _crowd.loop = true;
             _crowd.volume = 0.09f;
             _crowd.Play();
@@ -71,50 +79,60 @@ namespace GrandSluggers.UnityClient
         public void Swell()
         {
             _swell = 1f;
-            if (_sfx != null && _crowdSwell != null)
-                _sfx.PlayOneShot(_crowdSwell, 0.55f);
+            Play("crowd-swell", 0.55f);
         }
 
         public void Bat(ContactQuality quality)
         {
-            if (_sfx == null) return;
-            if (quality == ContactQuality.Perfect) _sfx.PlayOneShot(_crackPerfect, 1f);
-            else if (quality == ContactQuality.Solid) _sfx.PlayOneShot(_crackSolid, 0.85f);
-            else if (quality == ContactQuality.Cheap) _sfx.PlayOneShot(_crackCheap, 0.7f);
+            if (quality == ContactQuality.Perfect) Play("bat-perfect", 1f);
+            else if (quality == ContactQuality.Solid) Play("bat-solid", 0.85f);
+            else if (quality == ContactQuality.Cheap) Play("bat-cheap", 0.7f);
         }
 
-        public void Glove()
-        {
-            if (_sfx != null && _glove != null) _sfx.PlayOneShot(_glove, 0.8f);
-        }
+        public void Glove() => Play("glove", 0.8f);
 
-        public void ThrowPop()
-        {
-            if (_sfx != null && _throwPop != null) _sfx.PlayOneShot(_throwPop, 0.75f);
-        }
+        public void ThrowPop() => Play("throw", 0.75f);
 
         public void CaptainVo(string id)
         {
-            if (_vo == null) return;
-            var clip = id switch
-            {
-                "rio" => _rio,
-                "vale" => _vale,
-                "zig" => _zig,
-                "brondo" => _brondo,
-                "konga" => _konga,
-                "ashlord" => _ashlord,
-                _ => _guest
-            };
-            if (clip != null) _vo.PlayOneShot(clip, 0.9f);
+            var ev = "vo-" + (id ?? "");
+            if (_tone.ContainsKey(ev) || ArtBinder.AudioPath(ev).Length > 0)
+                Play(ev, 0.9f);
+            else
+                Play("vo-guest", 0.9f);
         }
 
         public void Item(string id)
         {
-            if (_sfx == null) return;
-            if (id == "banana") _sfx.PlayOneShot(_banana, 0.85f);
-            else if (id == "rocket") _sfx.PlayOneShot(_rocket, 0.9f);
-            else if (id == "pow") _sfx.PlayOneShot(_pow, 1f);
+            if (id == "banana") Play("banana", 0.85f);
+            else if (id == "rocket") Play("rocket", 0.9f);
+            else if (id == "pow") Play("pow", 1f);
+        }
+
+        AudioClip Resolve(string eventId)
+        {
+            if (string.IsNullOrEmpty(eventId)) return null;
+            var file = ArtBinder.LoadAudio(eventId);
+            if (file != null) return file;
+            _tone.TryGetValue(eventId, out var tone);
+            return tone;
+        }
+
+        AudioSource SourceFor(string eventId)
+        {
+            if (string.Equals(eventId, "crowd-swell", System.StringComparison.OrdinalIgnoreCase))
+                return _sfx;
+            var bus = ArtBinder.AudioBusOf(eventId);
+            if (string.Equals(bus, "crowd", System.StringComparison.OrdinalIgnoreCase))
+                return _crowd != null ? _crowd : _sfx;
+            if (string.Equals(bus, "vo", System.StringComparison.OrdinalIgnoreCase))
+                return _vo != null ? _vo : _sfx;
+            return _sfx;
+        }
+
+        void Tone(string id, AudioClip clip)
+        {
+            if (clip != null) _tone[id] = clip;
         }
 
         AudioSource Src(string name, float vol, bool loop)

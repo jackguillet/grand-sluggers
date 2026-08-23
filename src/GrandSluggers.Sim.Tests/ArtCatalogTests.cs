@@ -103,7 +103,13 @@ public class ArtCatalogTests
         Assert.True(_content.Art.TryVfx("heart-swing", out _));
         Assert.True(_content.Art.TryAudio("bat-perfect", out var bat));
         Assert.Equal("sfx", bat.Kind, ignoreCase: true);
-        Assert.True(_content.Art.TryAudio("vo-rio", out _));
+        Assert.True(_content.Art.TryAudio("crowd-bed", out var crowd));
+        Assert.Equal("crowd", crowd.Kind, ignoreCase: true);
+        Assert.True(_content.Art.TryAudio("crowd-swell", out _));
+        Assert.True(_content.Art.TryAudio("vo-rio", out var vo));
+        Assert.Equal("vo", vo.Kind, ignoreCase: true);
+        foreach (var ev in _content.Art.Audio)
+            Assert.Contains(ev.Kind.ToLowerInvariant(), new[] { "sfx", "crowd", "vo" });
         Assert.Contains("Assets/Art/Characters/SharedRig", _content.Art.Folders, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("Assets/Art/Animation/Clips", _content.Art.Folders, StringComparer.OrdinalIgnoreCase);
     }

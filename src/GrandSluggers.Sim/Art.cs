@@ -159,13 +159,21 @@ public sealed class ArtCatalog
                 errors.Add("park kit missing " + park);
         }
 
-        foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed" })
+        foreach (var need in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "throw", "crowd-bed", "crowd-swell" })
         {
             if (!TryAudio(need, out _)) errors.Add("audio missing " + need);
         }
         foreach (var cap in Silhouette.Captains)
         {
             if (!TryAudio("vo-" + cap, out _)) errors.Add("audio missing vo-" + cap);
+        }
+        foreach (var ev in Audio)
+        {
+            var bus = ev.Kind ?? "";
+            if (!bus.Equals("sfx", StringComparison.OrdinalIgnoreCase)
+                && !bus.Equals("crowd", StringComparison.OrdinalIgnoreCase)
+                && !bus.Equals("vo", StringComparison.OrdinalIgnoreCase))
+                errors.Add("audio " + ev.Id + " unknown bus " + bus);
         }
 
         foreach (var need in new[] { "puff", "fireworks", "buddy-flash", "throw-trail-good" })
