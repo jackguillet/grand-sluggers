@@ -1,4 +1,6 @@
-# Unity 6 client
+# Unity 6 client — how you play
+
+This folder **is** Grand Sluggers. Open it in the editor and press Play. Raylib (`src/GrandSluggers.Play`) is a rules sandbox, not the product.
 
 Pinned editor: **6000.5.9f1** (URP 17.2). Hub: `/Applications/Unity Hub.app`.
 Also installed: 6000.0.82f1. This project uses 6.5 because the sim is C# 12 (collection expressions, records).

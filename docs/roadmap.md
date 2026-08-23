@@ -22,9 +22,11 @@ Playable Harbor Diamond, Spark vs Ember.
 5. Chemistry on the team sheet; good-chem throws are faster in the sim
 6. 3-inning game that ends with an MVP line
 
-Client: `src/GrandSluggers.Play` (Raylib 3D) on top of `GrandSluggers.Sim`. Unity 6 URP shell lives in `unity/` for when the editor is installed — same match loop.
+Client at the time: `src/GrandSluggers.Play` (Raylib 3D) on top of `GrandSluggers.Sim`. Unity 6 URP shell lived in `unity/`.
 
 Exit: a stranger can play an inning without a tutorial card.
+
+**Now:** Unity Play (`unity/`, `HarborDiamond.unity`) is the only player-facing client. Raylib Play is a debug sandbox. New presentation does not land in `src/GrandSluggers.Play`.
 
 ## Milestone 2 — first playable (in progress)
 
