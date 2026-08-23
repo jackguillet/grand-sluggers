@@ -68,6 +68,24 @@ public class AtBatTests
     }
 
     [Fact]
+    public void FunfairParkIsCarnivalNotHarbor()
+    {
+        var fair = _content.Parks["funfair-park"];
+        Assert.Equal("funfair-park", fair.Id);
+        Assert.Equal("grass", fair.Surface);
+        Assert.Equal("carnival", fair.Faction);
+        Assert.Contains(fair.Hazards, h => h.Type == "warp_pipe");
+        Assert.Contains(fair.Hazards, h => h.Type == "train");
+        Assert.All(fair.Hazards.Where(h => h.Type == "warp_pipe"), h => Assert.False(string.IsNullOrWhiteSpace(h.Tag)));
+        Assert.DoesNotContain(fair.Hazards, h =>
+            h.Type is "freeze_volume" or "billboard" or "ac_unit" or "barrel"
+                or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
+        Assert.Equal("funfair-park", PresetTeams.HomeParkId("zig"));
+        Assert.Equal("grass", _harbor.Surface);
+        Assert.Empty(_harbor.Hazards);
+    }
+
+    [Fact]
     public void CarryIncreasesWithExitVelo()
     {
         var slow = BallFlight.CarryFeet(80, 28, 0);

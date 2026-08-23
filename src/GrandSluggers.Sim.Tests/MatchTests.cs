@@ -116,7 +116,12 @@ public class MatchTests
     public void FunfairHasWarpPipes()
     {
         var park = _content.Parks["funfair-park"];
+        Assert.Equal("funfair-park", park.Id);
+        Assert.Equal("grass", park.Surface);
         Assert.Contains(park.Hazards, h => h.Type == "warp_pipe");
+        Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "A");
+        Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "B");
+        Assert.Contains(park.Hazards, h => h.Type == "warp_pipe" && h.Tag == "C");
         var w = ParkHazards.WarpIfPipe(park, 20, 55, new Random(3));
         Assert.True(w.Warped);
         Assert.False(Math.Abs(w.X - 20) < 0.01 && Math.Abs(w.Z - 55) < 0.01);

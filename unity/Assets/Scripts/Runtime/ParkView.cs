@@ -21,17 +21,22 @@ namespace GrandSluggers.UnityClient
             var jungle = park.Id == "canopy-yard";
             var harbor = park.Id == "harbor-diamond";
             var crystal = park.Id == "crystal-rink";
+            var funfair = park.Id == "funfair-park";
 
             var sky = ice ? Colors.Ice : ash ? new Color(0.22f, 0.1f, 0.12f) : Colors.Sky;
             if (Camera.main != null)
             {
                 if (harbor) Look.RigAfternoon(Camera.main);
                 else if (crystal) Look.RigIceGarden(Camera.main);
+                else if (funfair) Look.RigCarnival(Camera.main);
                 else Look.SetupLighting(Camera.main, sky);
             }
 
             var grassCol = ice ? Colors.Ice : ash ? new Color(0.28f, 0.19f, 0.16f) : jungle ? new Color(0.14f, 0.43f, 0.2f) : Colors.Grass;
-            var waterCol = ash ? new Color(0.35f, 0.11f, 0.07f) : ice ? new Color(0.55f, 0.78f, 0.92f) : Colors.Water;
+            var waterCol = ash ? new Color(0.35f, 0.11f, 0.07f)
+                : ice ? new Color(0.55f, 0.78f, 0.92f)
+                : funfair ? new Color(0.46f, 0.32f, 0.22f)
+                : Colors.Water;
             var grassMat = Look.Lit(grassCol, ice || ash ? null : Look.Grass, ice || ash ? 1f : 18f, ice ? 0.72f : 0.08f);
             var dirtMat = crystal
                 ? Look.Lit(new Color(0.74f, 0.84f, 0.90f), Look.Dirt, 6f, 0.35f)
@@ -56,6 +61,10 @@ namespace GrandSluggers.UnityClient
             else if (crystal)
             {
                 CrystalGarden(park);
+            }
+            else if (funfair)
+            {
+                FunfairGrounds(park);
             }
             else
             {
@@ -109,11 +118,14 @@ namespace GrandSluggers.UnityClient
         void Fence(Park park, bool ash)
         {
             var crystal = park.Id == "crystal-rink";
+            var funfair = park.Id == "funfair-park";
             var wall = Look.Lit(
                 ash ? Colors.EmberFire
                     : crystal ? new Color(0.52f, 0.76f, 0.88f)
+                    : funfair ? new Color(0.86f, 0.18f, 0.28f)
                     : new Color(0.22f, 0.48f, 0.28f),
                 smooth: crystal ? 0.62f : 0.18f);
+            var wallAlt = funfair ? Look.Lit(new Color(0.96f, 0.90f, 0.72f), smooth: 0.18f) : wall;
             var cap = Look.Lit(crystal ? new Color(0.88f, 0.94f, 1f) : Colors.Gold, smooth: crystal ? 0.75f : 0.4f);
             var pole = Look.Lit(crystal ? Colors.Royal : Colors.Gold, smooth: 0.45f);
             for (var i = -18; i <= 18; i++)
@@ -122,7 +134,7 @@ namespace GrandSluggers.UnityClient
                 var fence = (float)AtBatResolver.FenceAt(park, spray);
                 var rad = spray * Mathf.Deg2Rad;
                 var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
-                Cube("Fence" + i, p, new Vector3(14, 10.4f, 1.8f), wall);
+                Cube("Fence" + i, p, new Vector3(14, 10.4f, 1.8f), funfair && (i & 1) == 0 ? wallAlt : wall);
                 Cube("Cap" + i, p + new Vector3(0, 5.4f, 0), new Vector3(14, 0.35f, 2.1f), cap);
             }
             var lf = (float)park.LeftFenceFt;
@@ -314,6 +326,175 @@ namespace GrandSluggers.UnityClient
             go.SetActive(false);
         }
 
+        void FunfairGrounds(Park park)
+        {
+            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.18f);
+            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.16f);
+            var yellow = Look.Lit(Colors.Gold, smooth: 0.4f);
+            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
+            var wood = Look.Lit(new Color(0.46f, 0.28f, 0.14f), smooth: 0.1f);
+            var canvas = Look.Lit(new Color(0.94f, 0.78f, 0.48f), smooth: 0.12f);
+
+            WarningTrack(park);
+            FunfairBackstop(cream, red, wood);
+            FunfairBenches(wood, canvas);
+            Tent("HomeTent", new Vector3(0, 0, -62), 72, 22, 20, red, cream, wood);
+            Tent("LeftTent", new Vector3(-118, 0, 38), 22, 84, 18, pink, cream, wood);
+            Tent("RightTent", new Vector3(118, 0, 38), 22, 84, 18, yellow, red, wood);
+            CrowdCard("CrowdH", new Vector3(0, 12, -72), new Vector3(64, 12, 1));
+            CrowdCard("CrowdL", new Vector3(-128, 12, 38), new Vector3(1, 12, 72));
+            CrowdCard("CrowdR", new Vector3(128, 12, 38), new Vector3(1, 12, 72));
+            StripedPoles();
+            FerrisWheel();
+            FunfairBooths(wood, red, cream, yellow, pink);
+            FunfairTrain(park, wood, red, cream, yellow);
+            FunfairNightHook();
+        }
+
+        void FunfairBackstop(Material cream, Material red, Material wood)
+        {
+            Cube("BuntHome", new Vector3(0, 8f, -24f), new Vector3(38, 14, 0.5f), cream);
+            Cube("BuntStripe", new Vector3(0, 8f, -23.6f), new Vector3(38, 2.2f, 0.2f), red);
+            Cube("BuntL", new Vector3(-20, 7f, -12f), new Vector3(0.5f, 12, 16f), cream);
+            Cube("BuntR", new Vector3(20, 7f, -12f), new Vector3(0.5f, 12, 16f), cream);
+            Cylinder("PostL", new Vector3(-19, 0, -24), 0.5f, 16f, wood);
+            Cylinder("PostR", new Vector3(19, 0, -24), 0.5f, 16f, wood);
+        }
+
+        void FunfairBenches(Material wood, Material canvas)
+        {
+            Cube("Bench1B", new Vector3(42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+            Cube("Awning1B", new Vector3(42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
+            Cube("Bench3B", new Vector3(-42, 1.0f, 22), new Vector3(20, 1.0f, 6), wood);
+            Cube("Awning3B", new Vector3(-42, 5.2f, 22), new Vector3(22, 0.5f, 8), canvas);
+        }
+
+        void Tent(string name, Vector3 pos, float w, float d, float h, Material a, Material b, Material pole)
+        {
+            var root = new GameObject(name).transform;
+            root.SetParent(_root, false);
+            root.position = pos;
+            Look.Prim(PrimitiveType.Cylinder, "Mast", root, new Vector3(0, h * 0.55f, 0), new Vector3(1.1f, h * 0.55f, 1.1f), pole);
+            Look.Prim(PrimitiveType.Cube, "Wall", root, new Vector3(0, h * 0.38f, 0), new Vector3(w * 0.82f, h * 0.72f, d * 0.82f), a);
+            Look.Prim(PrimitiveType.Cube, "Roof", root, new Vector3(0, h * 0.92f, 0), new Vector3(w, 1.6f, d), b);
+            Look.Prim(PrimitiveType.Cube, "Peak", root, new Vector3(0, h * 1.12f, 0), new Vector3(w * 0.42f, 3.2f, d * 0.42f), a);
+            Look.Prim(PrimitiveType.Cube, "Stripe", root, new Vector3(0, h * 0.92f, 0), new Vector3(w * 1.02f, 0.45f, d * 1.02f), a);
+            Look.Prim(PrimitiveType.Cylinder, "Flagpole", root, new Vector3(0, h * 1.32f, 0), new Vector3(0.28f, 2.4f, 0.28f), pole);
+            Look.Prim(PrimitiveType.Cube, "Pennant", root, new Vector3(1.8f, h * 1.42f, 0), new Vector3(3.6f, 1.2f, 0.18f), b);
+        }
+
+        void StripedPoles()
+        {
+            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.2f);
+            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.2f);
+            var spots = new[]
+            {
+                new Vector3(-86, 0, 210), new Vector3(86, 0, 210),
+                new Vector3(-70, 0, 320), new Vector3(70, 0, 320),
+                new Vector3(-48, 0, 430), new Vector3(48, 0, 430),
+                new Vector3(-140, 0, 80), new Vector3(140, 0, 80)
+            };
+            for (var p = 0; p < spots.Length; p++)
+            {
+                const int bands = 8;
+                const float h = 4.2f;
+                for (var i = 0; i < bands; i++)
+                    Cylinder("Pole" + p + i, spots[p] + new Vector3(0, i * h, 0), 1.15f, h, i % 2 == 0 ? red : cream);
+            }
+        }
+
+        void FerrisWheel()
+        {
+            var red = Look.Lit(new Color(0.86f, 0.16f, 0.22f), smooth: 0.22f);
+            var yellow = Look.Lit(Colors.Gold, smooth: 0.42f);
+            var cream = Look.Lit(new Color(0.96f, 0.92f, 0.82f), smooth: 0.18f);
+            var pink = Look.Lit(new Color(1f, 0.31f, 0.63f), smooth: 0.28f);
+            var steel = Look.Lit(new Color(0.55f, 0.52f, 0.50f), smooth: 0.3f);
+
+            var root = new GameObject("FerrisWheel").transform;
+            root.SetParent(_root, false);
+            root.position = new Vector3(0, 0, 508);
+
+            Look.Prim(PrimitiveType.Cube, "Base", root, new Vector3(0, 2.2f, 0), new Vector3(30, 4.4f, 16), steel);
+            var legL = Look.Prim(PrimitiveType.Cube, "LegL", root, new Vector3(-11, 20, 0), new Vector3(3.4f, 38, 3.4f), steel);
+            legL.transform.localRotation = Quaternion.Euler(0, 0, 16f);
+            var legR = Look.Prim(PrimitiveType.Cube, "LegR", root, new Vector3(11, 20, 0), new Vector3(3.4f, 38, 3.4f), steel);
+            legR.transform.localRotation = Quaternion.Euler(0, 0, -16f);
+
+            var wheel = new GameObject("Rim").transform;
+            wheel.SetParent(root, false);
+            wheel.localPosition = new Vector3(0, 40, 0);
+            Look.Prim(PrimitiveType.Cylinder, "Hub", wheel, Vector3.zero, new Vector3(7.2f, 2.4f, 7.2f), yellow);
+            var axle = Look.Prim(PrimitiveType.Cylinder, "Axle", wheel, Vector3.zero, new Vector3(2.4f, 5.5f, 2.4f), steel);
+            axle.transform.localRotation = Quaternion.Euler(0, 0, 90f);
+            for (var i = 0; i < 12; i++)
+            {
+                var a = i / 12f * 360f;
+                var rad = a * Mathf.Deg2Rad;
+                var x = Mathf.Cos(rad) * 22f;
+                var y = Mathf.Sin(rad) * 22f;
+                var spoke = Look.Prim(PrimitiveType.Cube, "Spoke" + i, wheel, new Vector3(x * 0.5f, y * 0.5f, 0), new Vector3(1.15f, 22.5f, 1.15f), i % 2 == 0 ? red : yellow);
+                spoke.transform.localRotation = Quaternion.Euler(0, 0, a - 90f);
+                Look.Prim(PrimitiveType.Cube, "Gondola" + i, wheel, new Vector3(x, y - 2.5f, 0), new Vector3(4.4f, 3.6f, 3.8f), i % 2 == 0 ? pink : cream);
+            }
+        }
+
+        void FunfairBooths(Material wood, Material red, Material cream, Material yellow, Material pink)
+        {
+            var colors = new[] { red, cream, yellow, pink, red, cream, yellow };
+            for (var i = -3; i <= 3; i++)
+            {
+                if (i == 0) continue;
+                var x = i * 30f;
+                var root = new GameObject("Booth" + i).transform;
+                root.SetParent(_root, false);
+                root.position = new Vector3(x, 0, 478);
+                var cloth = colors[i + 3];
+                Look.Prim(PrimitiveType.Cube, "Counter", root, new Vector3(0, 3.2f, 0), new Vector3(16, 6.4f, 10), wood);
+                Look.Prim(PrimitiveType.Cube, "Awning", root, new Vector3(0, 7.4f, 2.2f), new Vector3(18, 0.7f, 14), cloth);
+                Look.Prim(PrimitiveType.Cube, "Sign", root, new Vector3(0, 9.2f, 0), new Vector3(12, 2.4f, 0.6f), cream);
+            }
+        }
+
+        void FunfairTrain(Park park, Material wood, Material red, Material cream, Material yellow)
+        {
+            var spray = 18f;
+            var fence = (float)AtBatResolver.FenceAt(park, spray) - 12f;
+            var rad = spray * Mathf.Deg2Rad;
+            var p = new Vector3(Mathf.Sin(rad) * fence, 0, Mathf.Cos(rad) * fence);
+
+            var root = new GameObject("TrackTrain").transform;
+            root.SetParent(_root, false);
+            root.position = p;
+            root.rotation = Quaternion.Euler(0, spray, 0);
+
+            Look.Prim(PrimitiveType.Cube, "Engine", root, new Vector3(0, 4.2f, 0), new Vector3(8.5f, 6.4f, 14), red);
+            Look.Prim(PrimitiveType.Cube, "Cab", root, new Vector3(0, 8.4f, -4.2f), new Vector3(8.2f, 4.6f, 6.4f), cream);
+            Look.Prim(PrimitiveType.Cylinder, "Stack", root, new Vector3(0, 10.2f, 3.6f), new Vector3(2.2f, 2.4f, 2.2f), wood);
+            Look.Prim(PrimitiveType.Cube, "Boxcar", root, new Vector3(0, 4.0f, -16f), new Vector3(8.2f, 6.2f, 14), yellow);
+            Look.Prim(PrimitiveType.Cube, "Stripe", root, new Vector3(0, 4.0f, -16f), new Vector3(8.4f, 1.4f, 14.2f), red);
+            Look.Prim(PrimitiveType.Cube, "Plate", root, new Vector3(4.3f, 5.6f, -16f), new Vector3(0.2f, 2.4f, 3.2f), cream);
+            Wheel("WheelFL", root, new Vector3(-3.4f, 1.3f, 4.2f), wood);
+            Wheel("WheelFR", root, new Vector3(3.4f, 1.3f, 4.2f), wood);
+            Wheel("WheelBL", root, new Vector3(-3.4f, 1.3f, -16f), wood);
+            Wheel("WheelBR", root, new Vector3(3.4f, 1.3f, -16f), wood);
+        }
+
+        static void Wheel(string name, Transform parent, Vector3 localPos, Material mat)
+        {
+            var go = Look.Prim(PrimitiveType.Cylinder, name, parent, localPos, new Vector3(2.4f, 0.55f, 2.4f), mat);
+            go.transform.localRotation = Quaternion.Euler(0, 0, 90f);
+        }
+
+        // Night chompers is #31. Hook only — rules stay off.
+        void FunfairNightHook()
+        {
+            var go = new GameObject("Chompers");
+            go.transform.SetParent(_root, false);
+            go.transform.position = new Vector3(0, 8, 240);
+            go.SetActive(false);
+        }
+
         void Jungle()
         {
             var bark = Look.Lit(new Color(0.36f, 0.21f, 0.11f), smooth: 0.08f);
@@ -379,6 +560,44 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        void WarpCan(Hazard h)
+        {
+            var r = Mathf.Max(2.4f, (float)h.Radius);
+            var tag = string.IsNullOrWhiteSpace(h.Tag) ? "?" : h.Tag;
+            var bodyCol = TagColor(tag);
+            var body = Look.Lit(bodyCol, smooth: 0.22f);
+            var lip = Look.Lit(Color.Lerp(bodyCol, Color.white, 0.28f), smooth: 0.3f);
+            var hole = Look.Unlit(new Color(0.05f, 0.04f, 0.06f));
+            var badge = Look.Unlit(Color.Lerp(bodyCol, Color.white, 0.18f));
+            var pip = Look.Unlit(Color.white);
+
+            var root = new GameObject("WarpCan-" + tag).transform;
+            root.SetParent(_root, false);
+            root.position = new Vector3((float)h.X, 0, (float)h.Z);
+            root.rotation = Quaternion.Euler(-16f, 0f, 0f);
+
+            Look.Prim(PrimitiveType.Cylinder, "Body", root, new Vector3(0, r * 0.82f, 0), new Vector3(r * 1.7f, r * 0.82f, r * 1.7f), body);
+            Look.Prim(PrimitiveType.Cylinder, "Lip", root, new Vector3(0, r * 1.72f, 0), new Vector3(r * 2.2f, r * 0.2f, r * 2.2f), lip);
+            Look.Prim(PrimitiveType.Cylinder, "Well", root, new Vector3(0, r * 1.28f, 0), new Vector3(r * 1.35f, r * 0.52f, r * 1.35f), hole);
+            Look.Prim(PrimitiveType.Cylinder, "Mouth", root, new Vector3(0, r * 1.86f, 0), new Vector3(r * 1.5f, r * 0.1f, r * 1.5f), hole);
+            Look.Prim(PrimitiveType.Cylinder, "Band", root, new Vector3(0, r * 0.55f, 0), new Vector3(r * 1.82f, r * 0.16f, r * 1.82f), badge);
+            Look.Prim(PrimitiveType.Cube, "Plate", root, new Vector3(0, r * 1.05f, r * 0.92f), new Vector3(r * 0.95f, r * 0.7f, 0.18f), badge);
+            var n = tag == "A" ? 1 : tag == "B" ? 2 : 3;
+            for (var i = 0; i < n; i++)
+            {
+                var x = (i - (n - 1) * 0.5f) * (r * 0.28f);
+                Look.Prim(PrimitiveType.Cube, "Pip" + i, root, new Vector3(x, r * 1.05f, r * 1.02f), new Vector3(r * 0.18f, r * 0.18f, 0.12f), pip);
+            }
+        }
+
+        static Color TagColor(string tag) => tag switch
+        {
+            "A" => new Color(0.92f, 0.16f, 0.24f),
+            "B" => new Color(1f, 0.78f, 0.12f),
+            "C" => new Color(0.18f, 0.48f, 0.92f),
+            _ => Colors.Carnival
+        };
+
         void Hazards(Park park)
         {
             var freezePose = 0;
@@ -391,7 +610,7 @@ namespace GrandSluggers.UnityClient
                         FreezeStatue(p, (float)h.Radius, freezePose++);
                         break;
                     case "warp_pipe":
-                        Cylinder("Pipe", new Vector3(p.x, 3f, p.z), (float)h.Radius, 6f, Look.Lit(new Color(0.15f, 0.65f, 0.28f), smooth: 0.2f));
+                        WarpCan(h);
                         break;
                     case "billboard":
                         Cube("Sign", new Vector3(p.x, 18, p.z), new Vector3(24, 16, 2), Look.Lit(Colors.Gold, smooth: 0.35f));
