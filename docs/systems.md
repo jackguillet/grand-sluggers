@@ -110,15 +110,15 @@ With 1st empty to 2nd, or 2nd empty to 3rd: arm a steal (X). Resolved on a take 
 
 ## Error items (chemistry batting)
 
-If batter and on-deck are good chemistry, the offense can throw an item after contact (E banana while the pitch is being set). CPU uses banana / rocket / POW about 40% of the time.
+If batter and on-deck are good chemistry, the offense throws a physical item **after contact**, during the fly, aimed at a fielder you can see. CPU still rolls banana / rocket / POW about 40% of the time.
 
 | Item | Effect (this pass) |
 | --- | --- |
-| Banana | Drop — a would-be out becomes a single |
-| Rocket | 55% chance the fielder is dazed and drops |
-| POW | Ground outs become singles |
+| Banana | Peel on the grass at the play fielder's feet — a would-be out becomes a single |
+| Rocket | Hit that fielder's body — 55% chance they are dazed and drop |
+| POW | Infield hop — ground outs become singles |
 
-Smoke / ghost / paint are still banned as full-screen or queued. See research notes.
+Aim with the stick, confirm with E / LT+RB / South+LT. Cycle banana / rocket / POW with RB. Pre-pitch E arm is not the product path. Smoke / ghost / paint are still banned as full-screen or queued. See research notes.
 
 ## Gear
 

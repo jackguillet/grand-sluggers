@@ -17,6 +17,8 @@ namespace GrandSluggers.UnityClient
         public static bool CyclePitch => KeyDown(KeyCode.Tab) || PadDown(5);
         public static bool Steal => KeyDown(KeyCode.X) || PadDown(4);
         public static bool Item => KeyDown(KeyCode.E) || (PadHeld(6) && PadDown(5));
+        /// <summary>Throw a chemistry item: E, LT+RB, or South+LT.</summary>
+        public static bool ItemConfirm => Item || (SouthDown && Charge);
         public static bool Start => KeyDown(KeyCode.H) || PadDown(7);
         public static bool SwapPitcher => KeyDown(KeyCode.R) || PadDown(8);
         public static bool TimingAid => KeyDown(KeyCode.F1);

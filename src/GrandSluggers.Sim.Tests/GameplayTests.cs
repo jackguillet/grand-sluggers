@@ -83,6 +83,69 @@ public class GameplayTests
     }
 
     [Fact]
+    public void ThrowItemBananaOnAnOutBecomesASingle()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielder = _content.Must("frost");
+        var field = new FieldingResult(PlayKind.FlyOut, fielder, null, 2, 0, 80, false, false);
+        var after = match.ThrowItem(field, "banana", fielder);
+        Assert.Equal(PlayKind.Single, after.Kind);
+        Assert.Equal("banana", after.Item);
+        var miss = match.ThrowItem(field, "banana", _content.Must("rio"));
+        Assert.Equal(PlayKind.FlyOut, miss.Kind);
+    }
+
+    [Fact]
+    public void ThrowItemRocketTargetsABody()
+    {
+        var body = _content.Must("frost");
+        var other = _content.Must("rio");
+        var field = new FieldingResult(PlayKind.FlyOut, body, null, 2, 0, 80, false, false);
+        var miss = Match.Slice(_content, seed: 1).ThrowItem(field, "rocket", other);
+        Assert.Equal(PlayKind.FlyOut, miss.Kind);
+        Assert.Equal("rocket", miss.Item);
+
+        var hits = 0;
+        for (var seed = 0; seed < 40; seed++)
+        {
+            var after = Match.Slice(_content, seed: seed).ThrowItem(field, "rocket", body);
+            Assert.Equal("rocket", after.Item);
+            if (after.Kind == PlayKind.Single) hits++;
+        }
+        Assert.True(hits is > 0 and < 40, $"rocket body hits {hits}");
+    }
+
+    [Fact]
+    public void ThrowItemPowOnAGrounderBecomesASingle()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var infielder = _content.Must("frost");
+        var ground = new FieldingResult(PlayKind.GroundOut, infielder, null, 1, 10, 40, false, false);
+        var after = match.ThrowItem(ground, "pow", infielder);
+        Assert.Equal(PlayKind.Single, after.Kind);
+        Assert.Equal("pow", after.Item);
+        var fly = new FieldingResult(PlayKind.FlyOut, infielder, null, 2, 0, 80, false, false);
+        var no = match.ThrowItem(fly, "pow", infielder);
+        Assert.Equal(PlayKind.FlyOut, no.Kind);
+    }
+
+    [Fact]
+    public void ThrowItemWithNoItemDoesNothing()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielder = _content.Must("frost");
+        var field = new FieldingResult(PlayKind.FlyOut, fielder, null, 2, 0, 80, false, false);
+        var empty = match.ThrowItem(field, "", fielder);
+        Assert.Equal(PlayKind.FlyOut, empty.Kind);
+        Assert.Null(empty.Item);
+        var banned = match.ThrowItem(field, "smoke", fielder);
+        Assert.Equal(PlayKind.FlyOut, banned.Kind);
+        Assert.Null(banned.Item);
+        Assert.False(ErrorItems.Known("ghost"));
+        Assert.False(ErrorItems.Known("paint"));
+    }
+
+    [Fact]
     public void StealCanTakeSecond()
     {
         var match = Match.Slice(_content, seed: 2);

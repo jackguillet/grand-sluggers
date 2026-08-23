@@ -245,15 +245,25 @@ public sealed class Match
     public ThrowResult ThrowBetween(Character from, Character to) =>
         FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _rng));
 
-    public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem)
+    public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem, Character? target = null)
     {
         if (!hit.ChemistryItemOffered) return field;
         if (playerItem == "") return field;
+        var who = target ?? field.Fielder;
         if (!string.IsNullOrEmpty(playerItem))
-            return ErrorItems.Apply(field, playerItem, _rng);
+            return ThrowItem(field, playerItem, who);
         if (_rng.NextDouble() < 0.4)
-            return ErrorItems.Apply(field, ErrorItems.Pick(_rng), _rng);
+            return ThrowItem(field, ErrorItems.Pick(_rng), who);
         return field;
+    }
+
+    /// <summary>
+    /// After contact: throw a banana / rocket / POW at a fielder. Empty or unknown item is a no-op.
+    /// </summary>
+    public FieldingResult ThrowItem(FieldingResult field, string? item, Character? target)
+    {
+        if (string.IsNullOrEmpty(item)) return field;
+        return ErrorItems.Apply(field, item, _rng, target);
     }
 
     public PitchCommand CpuPitch()
