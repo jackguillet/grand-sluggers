@@ -16,6 +16,13 @@ namespace GrandSluggers.UnityClient
         static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
         float _cHold;
         bool _cNight;
+        TeamBuilder _homeDraft;
+        TeamBuilder _awayDraft;
+        int _lineupSlot;
+        int _poolIndex;
+        bool _focusPool;
+        bool _lineupTouched;
+        float _lineupStick;
 
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
@@ -135,11 +142,7 @@ namespace GrandSluggers.UnityClient
             {
                 case Phase.Title: TickTitle(); break;
                 case Phase.Lineup:
-                    if (Key(KeyCode.B)) _match.CycleBat(true);
-                    if (Key(KeyCode.G)) _match.CycleGlove(true);
-                    if (Key(KeyCode.N)) _match.CycleBat(false);
-                    if (Key(KeyCode.M)) _match.CycleGlove(false);
-                    if (Controls.SouthDown || _t > 10f) BeginSet();
+                    TickLineup();
                     break;
                 case Phase.Set: TickSet(dt); break;
                 case Phase.Flight: TickFlight(dt); break;
@@ -183,6 +186,15 @@ namespace GrandSluggers.UnityClient
         void OnGUI()
         {
             if (_match == null) return;
+            if (_phase == Phase.Lineup && _homeDraft != null)
+            {
+                var taken = new List<string>();
+                if (_awayDraft != null)
+                    for (var i = 0; i < _awayDraft.Order.Count; i++)
+                        taken.Add(_awayDraft.Order[i].Id);
+                TeamSheet.Draw(_match, _homeDraft, _homeDraft.Pool(taken), _lineupSlot, _poolIndex, _focusPool);
+                return;
+            }
             var ui = _phase switch
             {
                 Phase.Title => PhaseUi.Title,
@@ -303,9 +315,7 @@ namespace GrandSluggers.UnityClient
                 _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
-                _phase = Phase.Lineup;
-                _t = 0;
-                _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
+                OpenLineup();
             }
         }
 
@@ -346,8 +356,7 @@ namespace GrandSluggers.UnityClient
                 _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
-                _phase = Phase.Lineup;
-                _t = 0;
+                OpenLineup();
                 return;
             }
             _match = NewMatch();
@@ -357,6 +366,153 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Title;
             _t = 0;
             _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+        }
+
+        void OpenLineup()
+        {
+            if (_mode == PlayMode.Exhibition)
+            {
+                _homeDraft = TeamBuilder.Draft(_content, HomeCaptain);
+                var taken = new List<string>();
+                for (var i = 0; i < _homeDraft.Order.Count; i++)
+                    taken.Add(_homeDraft.Order[i].Id);
+                _awayDraft = TeamBuilder.Draft(_content, AwayCaptain, taken);
+                _lineupSlot = 0;
+                _poolIndex = 0;
+                _focusPool = true;
+                _lineupTouched = false;
+                _lineupStick = 0;
+            }
+            else
+            {
+                _homeDraft = null;
+                _awayDraft = null;
+            }
+            _phase = Phase.Lineup;
+            _t = 0;
+            _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
+        }
+
+        void TickLineup()
+        {
+            if (Key(KeyCode.B)) _match.CycleBat(true);
+            if (Key(KeyCode.G)) _match.CycleGlove(true);
+            if (Key(KeyCode.N)) _match.CycleBat(false);
+            if (Key(KeyCode.M)) _match.CycleGlove(false);
+            if (_homeDraft == null)
+            {
+                if (Controls.SouthDown || _t > 10f) BeginSet();
+                return;
+            }
+
+            TickLineupStick();
+            if (Controls.WestDown)
+            {
+                _lineupTouched = true;
+                TryDraftSwap();
+            }
+            if (Controls.CyclePitch)
+            {
+                _lineupTouched = true;
+                var who = _homeDraft.Order[_lineupSlot];
+                _homeDraft.CycleGlove(who.Id);
+            }
+            if (Controls.Steal)
+            {
+                _lineupTouched = true;
+                _homeDraft.SwapOrder(_lineupSlot, _lineupSlot - 1);
+                if (_lineupSlot > 0) _lineupSlot--;
+            }
+            if (Controls.EastDown)
+            {
+                _lineupTouched = true;
+                _homeDraft.SwapOrder(_lineupSlot, _lineupSlot + 1);
+                if (_lineupSlot < _homeDraft.Order.Count - 1) _lineupSlot++;
+            }
+            if (Controls.SouthDown || (_t > 10f && !_lineupTouched))
+                ConfirmDraft();
+        }
+
+        void TickLineupStick()
+        {
+            var x = Controls.StickX;
+            var y = Controls.StickY;
+            if (Mathf.Abs(x) < 0.4f && Mathf.Abs(y) < 0.4f)
+            {
+                _lineupStick = 0;
+                return;
+            }
+            if (_lineupStick > 0)
+            {
+                _lineupStick -= Time.deltaTime;
+                return;
+            }
+            _lineupTouched = true;
+            _lineupStick = 0.2f;
+            if (Mathf.Abs(x) >= Mathf.Abs(y))
+            {
+                _focusPool = x > 0;
+                return;
+            }
+            if (_focusPool)
+            {
+                var taken = new List<string>();
+                if (_awayDraft != null)
+                    for (var i = 0; i < _awayDraft.Order.Count; i++)
+                        taken.Add(_awayDraft.Order[i].Id);
+                var pool = _homeDraft.Pool(taken);
+                if (pool.Count == 0) return;
+                _poolIndex = (_poolIndex + (y < 0 ? 1 : -1) + pool.Count) % pool.Count;
+            }
+            else
+                _lineupSlot = (_lineupSlot + (y < 0 ? 1 : -1) + _homeDraft.Order.Count) % _homeDraft.Order.Count;
+        }
+
+        void TryDraftSwap()
+        {
+            if (_homeDraft == null) return;
+            var taken = new List<string>();
+            if (_awayDraft != null)
+                for (var i = 0; i < _awayDraft.Order.Count; i++)
+                    taken.Add(_awayDraft.Order[i].Id);
+            var pool = _homeDraft.Pool(taken);
+            if (pool.Count == 0) return;
+            _poolIndex = Mathf.Clamp(_poolIndex, 0, pool.Count - 1);
+            _lineupSlot = Mathf.Clamp(_lineupSlot, 0, _homeDraft.Order.Count - 1);
+            var outgoing = _homeDraft.Order[_lineupSlot];
+            var incoming = pool[_poolIndex];
+            if (!_homeDraft.Replace(outgoing.Id, incoming.Id)) return;
+            var nextTaken = new List<string>();
+            for (var i = 0; i < _homeDraft.Order.Count; i++)
+                nextTaken.Add(_homeDraft.Order[i].Id);
+            _awayDraft = TeamBuilder.Draft(_content, AwayCaptain, nextTaken);
+            var next = _homeDraft.Pool(nextTaken);
+            _poolIndex = next.Count == 0 ? 0 : Mathf.Clamp(_poolIndex, 0, next.Count - 1);
+        }
+
+        void ConfirmDraft()
+        {
+            if (_homeDraft != null)
+            {
+                var homeBat = _match.HomeBat;
+                var homeGlove = _match.HomeGlove;
+                var awayBat = _match.AwayBat;
+                var awayGlove = _match.AwayGlove;
+                var away = _awayDraft != null
+                    ? _awayDraft.ToTeam()
+                    : PresetTeams.ForCaptain(_content, AwayCaptain);
+                _match = Match.Exhibition(_content, _homeDraft.ToTeam(), away, Innings, Seed, ParkId, Night);
+                RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
+            }
+            BeginSet();
+        }
+
+        void RestoreGear(BatItem homeBat, GloveItem homeGlove, BatItem awayBat, GloveItem awayGlove)
+        {
+            for (var i = 0; i < 12 && _match.HomeBat.Id != homeBat.Id; i++) _match.CycleBat(true);
+            for (var i = 0; i < 12 && _match.HomeGlove.Id != homeGlove.Id; i++) _match.CycleGlove(true);
+            for (var i = 0; i < 12 && _match.AwayBat.Id != awayBat.Id; i++) _match.CycleBat(false);
+            for (var i = 0; i < 12 && _match.AwayGlove.Id != awayGlove.Id; i++) _match.CycleGlove(false);
         }
 
         void BeginSet()

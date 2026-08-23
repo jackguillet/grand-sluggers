@@ -90,4 +90,4 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 
 ## Status
 
-Unity Play is the only player-facing client. Exhibition picks any of the six captains. Challenge is a session recruit loop. Six parks, gear, fielding, local 2P exist in the sim; Harbor Diamond is the presentation park. Editor: **6000.5.9f1**.
+Unity Play is the only player-facing client. Exhibition picks any of the six captains, then drafts the eight around them (gloves, batting order, chemistry graph, live stars). Challenge is a session recruit loop. Six parks, gear, fielding, local 2P exist in the sim; Harbor Diamond is the presentation park. Editor: **6000.5.9f1**.

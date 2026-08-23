@@ -52,12 +52,12 @@ public sealed class Match
         _rng = new Random(seed);
         _atBat = new AtBatResolver(content.Chemistry);
         _fielding = new FieldingResolver(content.Chemistry);
-        AwayOrder = BattingOrder(away);
-        HomeOrder = BattingOrder(home);
+        AwayOrder = away.BattingOrder;
+        HomeOrder = home.BattingOrder;
         AwayStars = content.Chemistry.StartingStars(away);
         HomeStars = content.Chemistry.StartingStars(home);
-        _homePitcher = home.Captain;
-        _awayPitcher = away.Captain;
+        _homePitcher = home.Pitcher;
+        _awayPitcher = away.Pitcher;
         HomeBat = GearMesh.SignatureBat(content, home.Captain.Id);
         AwayBat = GearMesh.SignatureBat(content, away.Captain.Id);
         HomeGlove = content.Gloves.GetValueOrDefault("web-back") ?? content.Gloves.Values.First();
@@ -108,7 +108,19 @@ public sealed class Match
         bool night = false)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
-        parkId ??= PresetTeams.HomeParkId(homeCaptain);
+        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(homeCaptain), night);
+    }
+
+    public static Match Exhibition(
+        ContentCatalog content,
+        Team home,
+        Team away,
+        int innings = DefaultInnings,
+        int seed = 1,
+        string? parkId = null,
+        bool night = false)
+    {
+        parkId ??= PresetTeams.HomeParkId(home.Captain.Id);
         if (!content.Parks.TryGetValue(parkId, out var park))
             park = content.Parks["harbor-diamond"];
         return new Match(content, away, home, park, innings, seed, night);
@@ -844,16 +856,6 @@ public sealed class Match
 
     AtBatResult EmptyHit(bool inZone) => new(
         ContactQuality.Miss, false, inZone, 0, 0, 0, false, false, null, null, 0, false, inZone);
-
-    static IReadOnlyList<Character> BattingOrder(Team team)
-    {
-        var rest = team.Roster.Where(c => c.Id != team.Captain.Id).ToList();
-        var order = new List<Character>();
-        order.AddRange(rest.Take(3));
-        order.Add(team.Captain);
-        order.AddRange(rest.Skip(3));
-        return order;
-    }
 
     double Gauss()
     {
