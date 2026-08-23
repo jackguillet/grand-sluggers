@@ -12,6 +12,7 @@ public sealed class ContentCatalog
     public ChemistryTable Chemistry { get; }
     public CameraShots Shots { get; }
     public FeelTable Feel { get; }
+    public ArtCatalog Art { get; }
     public string Root { get; }
 
     ContentCatalog(
@@ -22,7 +23,8 @@ public sealed class ContentCatalog
         Dictionary<string, GloveItem> gloves,
         ChemistryTable chemistry,
         CameraShots shots,
-        FeelTable feel)
+        FeelTable feel,
+        ArtCatalog art)
     {
         Root = root;
         Characters = characters;
@@ -32,6 +34,7 @@ public sealed class ContentCatalog
         Chemistry = chemistry;
         Shots = shots;
         Feel = feel;
+        Art = art;
     }
 
     public static ContentCatalog Load(string? dataRoot = null)
@@ -96,7 +99,8 @@ public sealed class ContentCatalog
         var chemistry = new ChemistryTable(characters.Values, overrides);
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
-        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel);
+        var art = ArtCatalog.Load(root);
+        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, art);
     }
 
     public Character Must(string id) =>

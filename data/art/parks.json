@@ -1,0 +1,10 @@
+{
+  "kits": [
+    { "id": "harbor-diamond", "slot": "Assets/Art/Parks/harbor-diamond", "placed": true },
+    { "id": "crystal-rink", "slot": "Assets/Art/Parks/crystal-rink", "placed": false },
+    { "id": "funfair-park", "slot": "Assets/Art/Parks/funfair-park", "placed": false },
+    { "id": "rooftop-city", "slot": "Assets/Art/Parks/rooftop-city", "placed": false },
+    { "id": "canopy-yard", "slot": "Assets/Art/Parks/canopy-yard", "placed": false },
+    { "id": "ember-keep", "slot": "Assets/Art/Parks/ember-keep", "placed": false }
+  ]
+}

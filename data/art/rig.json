@@ -1,0 +1,20 @@
+{
+  "id": "hero-shared",
+  "notes": "One chain. Captains are skins. Do not add a second skeleton.",
+  "bones": [
+    "root",
+    "torso",
+    "head",
+    "lUpper",
+    "lFore",
+    "rUpper",
+    "rFore",
+    "lThigh",
+    "lShin",
+    "rThigh",
+    "rShin",
+    "bat",
+    "glove"
+  ],
+  "events": ["Contact", "Release", "FootPlant"]
+}

@@ -1,0 +1,52 @@
+{
+  "skins": [
+    {
+      "id": "rio",
+      "bodyType": "rio",
+      "captain": true,
+      "extras": ["brim", "cheeks", "sneakers"],
+      "portrait": "Resources/Art/rio-hero",
+      "palette": "spark"
+    },
+    {
+      "id": "vale",
+      "bodyType": "vale",
+      "captain": true,
+      "extras": ["sash", "crown", "neck"],
+      "portrait": "Resources/Art/vale-hero",
+      "palette": "royal"
+    },
+    {
+      "id": "zig",
+      "bodyType": "zig",
+      "captain": true,
+      "extras": ["goggles"],
+      "portrait": "Resources/Art/zig-hero",
+      "palette": "carnival"
+    },
+    {
+      "id": "brondo",
+      "bodyType": "brondo",
+      "captain": true,
+      "extras": ["cube-chest", "brick-jaw"],
+      "portrait": "Resources/Art/brondo-hero",
+      "palette": "goldrush"
+    },
+    {
+      "id": "konga",
+      "bodyType": "konga",
+      "captain": true,
+      "extras": ["snout", "belly"],
+      "portrait": "Resources/Art/konga-hero",
+      "palette": "canopy"
+    },
+    {
+      "id": "ashlord",
+      "bodyType": "ashlord",
+      "captain": true,
+      "extras": ["horns", "cape", "ember-eyes"],
+      "portrait": "Resources/Art/ashlord-hero",
+      "palette": "ember"
+    }
+  ]
+}

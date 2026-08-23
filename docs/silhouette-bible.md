@@ -67,4 +67,4 @@ Gloves sit on the fielding hand (non-throwing) whenever the body is on defense â
 
 ## Animation
 
-Procedural on this rig. No 2D sprites on the 3D diamond. Cycle: Idle, walk, run, charge-pitch, throw-pitch, charge-swing, swing, check-swing, bunt, catch, dive, jump, throw, steal-lead, slide, cheer, miss. See `HeroActor.Pose`.
+Procedural on this rig until a clip file fills the slot. No 2D sprites on the 3D diamond. Shared clip list (idle, walk, run, jump, swing, pitch, scoop, slide, throw) lives in `data/art/clips.json` and `MoveBones.ClipList`. Captains are skins (`data/art/skins.json`), not new skeletons. See `docs/art-rails.md`.
