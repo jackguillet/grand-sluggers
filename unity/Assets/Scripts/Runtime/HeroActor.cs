@@ -5,9 +5,16 @@ namespace GrandSluggers.UnityClient
 {
     public sealed class HeroActor : MonoBehaviour
     {
-        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber, Slide, Crouch }
+        public enum Pose
+        {
+            Idle, Walk, Run,
+            ChargePitch, ThrowPitch, Throw,
+            ChargeSwing, Swing, CheckSwing, Bunt,
+            Catch, Dive, Jump, StealLead, Slide, Cheer, Miss,
+            Field, Spin, Charm, Clamber, Crouch
+        }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh, _ring;
+        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         string _pitchType = "fastball";
@@ -15,9 +22,20 @@ namespace GrandSluggers.UnityClient
         float _lift;
         bool _grow;
         bool _lit;
+        bool _heldBat;
+        bool _heldGlove;
+        bool _batsLeft;
+        bool _throwsLeft;
+        bool _captain;
         string _id = "";
+        string _body = "rio";
+        string _batVisual = "";
+        string _gloveVisual = "";
         Vector3 _look = Vector3.forward;
         Vector3 _baseScale = Vector3.one;
+        Vector3 _ground;
+        bool _hasGround;
+        float _speed;
 
         public string Id => _id;
 
@@ -36,16 +54,41 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
         }
 
+        public void SetHeld(bool bat, bool glove)
+        {
+            _heldBat = bat;
+            _heldGlove = glove;
+        }
+
+        public void SetGear(BatItem bat, GloveItem glove)
+        {
+            if (_root == null) return;
+            var batVis = GearMesh.BatVisual(bat);
+            var gloveVis = GearMesh.GloveVisual(glove);
+            if (batVis != _batVisual) BuildBat(batVis);
+            if (gloveVis != _gloveVisual) BuildGlove(gloveVis);
+        }
+
         public void SetGrow(bool on) => _grow = on;
 
         public void SetHighlight(bool on) => _lit = on;
 
         public void Place(Vector3 pos, Vector3 look)
         {
+            var ground = new Vector3(pos.x, 0f, pos.z);
+            if (_hasGround && Time.deltaTime > 1e-5f)
+            {
+                var inst = Vector3.Distance(ground, _ground) / Time.deltaTime;
+                _speed = Mathf.Lerp(_speed, inst, 0.4f);
+            }
+            _hasGround = true;
+            _ground = ground;
+
             var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
                 : _pose == Pose.Dive ? 0.2f
                 : _pose == Pose.Slide ? 0.15f
-                : _pose == Pose.Crouch ? -0.35f
+                : _pose == Pose.Crouch || _pose == Pose.StealLead || _pose == Pose.Bunt ? -0.35f
+                : _pose == Pose.Cheer ? 0.25f
                 : 0f;
             _lift = Mathf.Lerp(_lift, lift, 0.2f);
             transform.position = pos + Vector3.up * _lift;
@@ -84,21 +127,15 @@ namespace GrandSluggers.UnityClient
             var skin = Colors.SkinTone(who.Faction);
             var pants = Color.Lerp(Color.white, body, 0.08f);
             var shoe = Color.Lerp(body, Color.black, 0.35f);
-
-            float h = 1f, wide = 1f, head = 1f, arms = 1f;
-            switch (who.Id)
-            {
-                case "vale": h = 1.1f; wide = 0.82f; head = 0.92f; break;
-                case "zig": h = 0.78f; wide = 1.15f; head = 1.28f; break;
-                case "brondo": h = 1.02f; wide = 1.32f; head = 0.95f; break;
-                case "konga": h = 1.22f; wide = 1.4f; head = 1.05f; arms = 1.25f; break;
-                case "ashlord": h = 1.16f; wide = 1.28f; head = 1.1f; break;
-                case "rio": h = 1.0f; wide = 1.0f; head = 1.08f; break;
-            }
+            _body = Silhouette.BodyType(who);
+            var spec = Silhouette.Proportions(_body);
+            _captain = who.Captain;
+            _batsLeft = who.Bats == Hand.L;
+            _throwsLeft = who.Throws == Hand.L;
 
             _root = new GameObject("Rig").transform;
             _root.SetParent(transform, false);
-            _baseScale = new Vector3(wide, h, wide) * 1.15f;
+            _baseScale = new Vector3(spec.Width, spec.Height, spec.Width) * 1.15f;
             _root.localScale = _baseScale;
 
             var jersey = Look.Lit(body, smooth: 0.18f);
@@ -106,106 +143,345 @@ namespace GrandSluggers.UnityClient
             var flesh = Look.Lit(skin, smooth: 0.28f);
             var slack = Look.Lit(pants, smooth: 0.2f);
             var leather = Look.Lit(shoe, smooth: 0.12f);
-            var wood = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.15f);
 
-            Look.Prim(PrimitiveType.Capsule, "Hip", _root, new Vector3(0, 1.15f, 0), new Vector3(1.15f, 0.7f, 0.85f), slack);
-            _torso = Look.Prim(PrimitiveType.Capsule, "Torso", _root, new Vector3(0, 2.55f, 0), new Vector3(1.35f, 1.05f, 0.85f), jersey).transform;
+            var hipScale = _body == "brondo" ? new Vector3(1.45f, 0.55f, 1.05f)
+                : _body == "vale" ? new Vector3(0.85f, 0.75f, 0.62f)
+                : _body == "zig" ? new Vector3(1.35f, 0.5f, 0.95f)
+                : _body == "konga" ? new Vector3(1.4f, 0.65f, 1.05f)
+                : new Vector3(1.15f, 0.7f, 0.85f);
+            Look.Prim(PrimitiveType.Capsule, "Hip", _root, new Vector3(0, 1.15f, 0), hipScale, slack);
+
+            var torsoKind = _body == "brondo" ? PrimitiveType.Cube : PrimitiveType.Capsule;
+            var torsoScale = _body switch
+            {
+                "vale" => new Vector3(1.05f, 1.22f, 0.62f) * spec.Torso,
+                "zig" => new Vector3(1.25f, 0.72f, 0.95f) * spec.Torso,
+                "brondo" => new Vector3(1.55f, 1.12f, 1.12f),
+                "konga" => new Vector3(1.55f, 1.08f, 1.05f) * spec.Torso,
+                "ashlord" => new Vector3(1.5f, 1.18f, 0.92f) * spec.Torso,
+                _ => new Vector3(1.28f, 0.95f, 0.82f) * spec.Torso
+            };
+            _torso = Look.Prim(torsoKind, "Torso", _root, new Vector3(0, 2.55f, 0), torsoScale, jersey).transform;
             Look.Prim(PrimitiveType.Cube, "Stripe", _torso, new Vector3(0, 0.15f, 0.42f), new Vector3(0.18f, 0.7f, 0.08f), trim);
 
-            _head = Look.Prim(PrimitiveType.Sphere, "Head", _root, new Vector3(0, 4.35f, 0), Vector3.one * (1.55f * head), flesh).transform;
+            if (_body == "vale")
+                Look.Prim(PrimitiveType.Cylinder, "Neck", _root, new Vector3(0, 3.55f, 0), new Vector3(0.28f, 0.42f, 0.28f), flesh);
+            if (_body == "konga")
+                Look.Prim(PrimitiveType.Sphere, "Belly", _torso, new Vector3(0, -0.35f, 0.35f), new Vector3(1.05f, 0.7f, 0.85f), jersey);
+            if (_captain && _body == "vale")
+                Look.Prim(PrimitiveType.Cube, "Sash", _torso, new Vector3(0.15f, 0.05f, 0.48f), new Vector3(0.7f, 0.12f, 0.06f), Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f));
+            if (_captain && _body == "ashlord")
+                Look.Prim(PrimitiveType.Cube, "Cape", _torso, new Vector3(0, -0.15f, -0.62f), new Vector3(1.15f, 1.15f, 0.12f), trim);
+
+            var headY = _body == "vale" ? 4.65f : _body == "zig" ? 3.85f : 4.35f;
+            var headScale = Vector3.one * (1.55f * spec.Head);
+            if (_body == "brondo") headScale = new Vector3(1.45f, 1.15f, 1.35f) * spec.Head;
+            var headKind = _body == "brondo" ? PrimitiveType.Cube : PrimitiveType.Sphere;
+            _head = Look.Prim(headKind, "Head", _root, new Vector3(0, headY, 0), headScale, flesh).transform;
             var ink = Look.Lit(new Color(0.08f, 0.07f, 0.07f), smooth: 0.05f);
-            Look.Prim(PrimitiveType.Sphere, "EyeL", _head, new Vector3(-0.28f, 0.1f, 0.58f), Vector3.one * 0.22f, ink);
-            Look.Prim(PrimitiveType.Sphere, "EyeR", _head, new Vector3(0.28f, 0.1f, 0.58f), Vector3.one * 0.22f, ink);
-            _cap = Look.Prim(PrimitiveType.Cylinder, "Cap", _head, new Vector3(0, 0.42f, 0), new Vector3(1.15f, 0.18f, 1.15f), trim).transform;
-            Look.Prim(PrimitiveType.Cube, "Brim", _cap, new Vector3(0, -0.6f, 0.7f), new Vector3(1.1f, 0.12f, 0.7f), Look.Lit(Colors.Gold, smooth: 0.4f));
+            var eye = _body == "ashlord" && _captain
+                ? Look.Unlit(Colors.EmberFire)
+                : ink;
+            var eyeSize = _body == "zig" ? 0.28f : _body == "vale" ? 0.16f : 0.22f;
+            Look.Prim(PrimitiveType.Sphere, "EyeL", _head, new Vector3(-0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
+            Look.Prim(PrimitiveType.Sphere, "EyeR", _head, new Vector3(0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
 
-            if (who.Id == "ashlord")
+            if (_captain && _body == "rio")
             {
-                Look.Prim(PrimitiveType.Cube, "HornL", _head, new Vector3(-0.45f, 0.55f, 0), new Vector3(0.18f, 0.7f, 0.18f), trim);
-                Look.Prim(PrimitiveType.Cube, "HornR", _head, new Vector3(0.45f, 0.55f, 0), new Vector3(0.18f, 0.7f, 0.18f), trim);
+                Look.Prim(PrimitiveType.Sphere, "CheekL", _head, new Vector3(-0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
+                Look.Prim(PrimitiveType.Sphere, "CheekR", _head, new Vector3(0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
             }
-            if (who.Id == "konga")
-                Look.Prim(PrimitiveType.Sphere, "Snout", _head, new Vector3(0, -0.15f, 0.55f), new Vector3(0.7f, 0.45f, 0.55f), flesh);
+            if (_captain && _body == "vale")
+            {
+                var ice = Look.Lit(new Color(0.85f, 0.95f, 1f), smooth: 0.55f);
+                Look.Prim(PrimitiveType.Cylinder, "Crown", _head, new Vector3(0, 0.62f, 0), new Vector3(0.7f, 0.14f, 0.7f), ice);
+                Look.Prim(PrimitiveType.Cube, "Point", _head, new Vector3(0, 0.92f, 0), new Vector3(0.16f, 0.4f, 0.16f), ice);
+                _cap = Look.Prim(PrimitiveType.Cylinder, "Cap", _head, new Vector3(0, 0.42f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
+            }
+            else
+            {
+                _cap = Look.Prim(PrimitiveType.Cylinder, "Cap", _head, new Vector3(0, 0.42f, 0), new Vector3(1.15f, 0.18f, 1.15f), trim).transform;
+                var brim = _body == "rio" ? new Vector3(1.35f, 0.12f, 0.95f) : new Vector3(1.1f, 0.12f, 0.7f);
+                Look.Prim(PrimitiveType.Cube, "Brim", _cap, new Vector3(0, -0.6f, 0.7f), brim, Look.Lit(Colors.Gold, smooth: 0.4f));
+            }
 
-            _lArm = Look.Prim(PrimitiveType.Capsule, "LArm", _torso, new Vector3(-0.85f * arms, 0.25f, 0), new Vector3(0.38f, 0.7f * arms, 0.38f), jersey).transform;
+            if (_captain && _body == "ashlord")
+            {
+                Look.Prim(PrimitiveType.Cube, "HornL", _head, new Vector3(-0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
+                Look.Prim(PrimitiveType.Cube, "HornR", _head, new Vector3(0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
+            }
+            if (_captain && _body == "konga")
+                Look.Prim(PrimitiveType.Sphere, "Snout", _head, new Vector3(0, -0.18f, 0.62f), new Vector3(0.82f, 0.5f, 0.7f), flesh);
+            if (_captain && _body == "zig")
+            {
+                var glass = Look.Lit(new Color(0.2f, 0.85f, 0.55f), smooth: 0.6f);
+                Look.Prim(PrimitiveType.Cylinder, "GogL", _head, new Vector3(-0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
+                Look.Prim(PrimitiveType.Cylinder, "GogR", _head, new Vector3(0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
+            }
+            if (_captain && _body == "brondo")
+                Look.Prim(PrimitiveType.Cube, "Jaw", _head, new Vector3(0, -0.42f, 0.28f), new Vector3(0.95f, 0.35f, 0.7f), flesh);
+
+            var armLen = 0.7f * spec.Arms;
+            var armThick = _body == "brondo" ? 0.5f : _body == "vale" ? 0.28f : 0.38f;
+            _lArm = Look.Prim(PrimitiveType.Capsule, "LArm", _torso, new Vector3(-0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
             _lFore = Look.Prim(PrimitiveType.Capsule, "LFore", _lArm, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
-            _rArm = Look.Prim(PrimitiveType.Capsule, "RArm", _torso, new Vector3(0.85f * arms, 0.25f, 0), new Vector3(0.38f, 0.7f * arms, 0.38f), jersey).transform;
+            _rArm = Look.Prim(PrimitiveType.Capsule, "RArm", _torso, new Vector3(0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
             _rFore = Look.Prim(PrimitiveType.Capsule, "RFore", _rArm, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
+            Look.Prim(PrimitiveType.Sphere, "LHand", _lFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
             Look.Prim(PrimitiveType.Sphere, "RHand", _rFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
 
-            _bat = Look.Prim(PrimitiveType.Cylinder, "Bat", _rFore, new Vector3(0, -1.4f, 0.1f), new Vector3(0.22f, 1.7f, 0.22f), wood).transform;
-            _bat.localRotation = Quaternion.Euler(0, 0, 20);
-
-            _lThigh = Look.Prim(PrimitiveType.Capsule, "LThigh", _root, new Vector3(-0.38f, 0.7f, 0), new Vector3(0.42f, 0.7f, 0.42f), slack).transform;
+            var thighThick = _body == "zig" ? 0.55f : _body == "brondo" ? 0.58f : _body == "vale" ? 0.32f : 0.42f;
+            var thighSpread = _body == "brondo" ? 0.52f : _body == "zig" ? 0.5f : 0.38f;
+            _lThigh = Look.Prim(PrimitiveType.Capsule, "LThigh", _root, new Vector3(-thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
             Look.Prim(PrimitiveType.Capsule, "LShin", _lThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack);
-            Look.Prim(PrimitiveType.Cube, "LShoe", _lThigh, new Vector3(0, -1.55f, 0.12f), new Vector3(0.7f, 0.28f, 1.1f), leather);
-            _rThigh = Look.Prim(PrimitiveType.Capsule, "RThigh", _root, new Vector3(0.38f, 0.7f, 0), new Vector3(0.42f, 0.7f, 0.42f), slack).transform;
+            var shoeScale = _body == "rio" ? new Vector3(0.95f, 0.38f, 1.35f)
+                : _body == "ashlord" ? new Vector3(0.85f, 0.4f, 1.25f)
+                : _body == "vale" ? new Vector3(0.5f, 0.22f, 0.9f)
+                : new Vector3(0.7f, 0.28f, 1.1f);
+            Look.Prim(PrimitiveType.Cube, "LShoe", _lThigh, new Vector3(0, -1.55f, 0.12f), shoeScale, leather);
+            _rThigh = Look.Prim(PrimitiveType.Capsule, "RThigh", _root, new Vector3(thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
             Look.Prim(PrimitiveType.Capsule, "RShin", _rThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack);
-            Look.Prim(PrimitiveType.Cube, "RShoe", _rThigh, new Vector3(0, -1.55f, 0.12f), new Vector3(0.7f, 0.28f, 1.1f), leather);
+            Look.Prim(PrimitiveType.Cube, "RShoe", _rThigh, new Vector3(0, -1.55f, 0.12f), shoeScale, leather);
 
-            _bat.gameObject.SetActive(false);
+            BuildBat("bat-wood");
+            BuildGlove("glove-brown");
+            if (_bat != null) _bat.gameObject.SetActive(false);
 
             var gold = Look.Unlit(Colors.Gold);
-            _ring = Look.Prim(PrimitiveType.Cylinder, "Glove", _root, new Vector3(0, 0.08f, 0), new Vector3(2.0f, 0.07f, 2.0f), gold).transform;
+            _ring = Look.Prim(PrimitiveType.Cylinder, "Mark", _root, new Vector3(0, 0.08f, 0), new Vector3(2.0f, 0.07f, 2.0f), gold).transform;
             _ring.gameObject.SetActive(false);
+        }
+
+        void BuildBat(string visual)
+        {
+            _batVisual = visual ?? "bat-wood";
+            if (_bat != null) Destroy(_bat.gameObject);
+            var hand = _batsLeft ? _lFore : _rFore;
+            if (hand == null) return;
+            var go = new GameObject("Bat");
+            go.transform.SetParent(hand, false);
+            go.transform.localPosition = new Vector3(0, -1.4f, 0.1f);
+            go.transform.localRotation = Quaternion.Euler(0, 0, 20);
+            go.transform.localScale = Vector3.one;
+            FillBat(go.transform, _batVisual);
+            _bat = go.transform;
+        }
+
+        void FillBat(Transform root, string visual)
+        {
+            switch (visual)
+            {
+                case "bat-spark":
+                {
+                    var wood = Look.Lit(new Color(0.78f, 0.18f, 0.16f), smooth: 0.22f);
+                    var gold = Look.Lit(Colors.Gold, smooth: 0.45f);
+                    Look.Prim(PrimitiveType.Cylinder, "Handle", root, new Vector3(0, -0.55f, 0), new Vector3(0.16f, 0.7f, 0.16f), wood);
+                    Look.Prim(PrimitiveType.Cylinder, "Barrel", root, new Vector3(0, 0.55f, 0), new Vector3(0.28f, 1.05f, 0.28f), wood);
+                    Look.Prim(PrimitiveType.Cube, "Spark", root, new Vector3(0, 0.7f, 0.16f), new Vector3(0.08f, 0.7f, 0.08f), gold);
+                    break;
+                }
+                case "bat-wand":
+                {
+                    var ice = Look.Lit(new Color(0.72f, 0.88f, 1f), smooth: 0.55f);
+                    var pink = Look.Lit(new Color(0.95f, 0.55f, 0.78f), smooth: 0.4f);
+                    Look.Prim(PrimitiveType.Cylinder, "Shaft", root, Vector3.zero, new Vector3(0.1f, 1.85f, 0.1f), ice);
+                    Look.Prim(PrimitiveType.Sphere, "Tip", root, new Vector3(0, 1.7f, 0), Vector3.one * 0.28f, pink);
+                    break;
+                }
+                case "bat-short":
+                {
+                    var green = Look.Lit(new Color(0.18f, 0.72f, 0.38f), smooth: 0.25f);
+                    var rainbow = Look.Lit(new Color(1f, 0.35f, 0.62f), smooth: 0.4f);
+                    Look.Prim(PrimitiveType.Cylinder, "Stick", root, Vector3.zero, new Vector3(0.26f, 1.05f, 0.26f), green);
+                    Look.Prim(PrimitiveType.Cylinder, "Ring", root, new Vector3(0, 0.55f, 0), new Vector3(0.34f, 0.1f, 0.34f), rainbow);
+                    break;
+                }
+                case "bat-brick":
+                {
+                    var gold = Look.Lit(new Color(0.9f, 0.72f, 0.16f), smooth: 0.18f);
+                    var grip = Look.Lit(new Color(0.35f, 0.22f, 0.08f), smooth: 0.1f);
+                    Look.Prim(PrimitiveType.Cylinder, "Handle", root, new Vector3(0, -0.7f, 0), new Vector3(0.2f, 0.55f, 0.2f), grip);
+                    Look.Prim(PrimitiveType.Cube, "Brick", root, new Vector3(0, 0.45f, 0), new Vector3(0.7f, 1.35f, 0.42f), gold);
+                    break;
+                }
+                case "bat-barrel":
+                {
+                    var wood = Look.Lit(new Color(0.5f, 0.3f, 0.12f), smooth: 0.12f);
+                    var hoop = Look.Lit(new Color(0.72f, 0.62f, 0.28f), smooth: 0.3f);
+                    Look.Prim(PrimitiveType.Cylinder, "Handle", root, new Vector3(0, -0.65f, 0), new Vector3(0.18f, 0.55f, 0.18f), wood);
+                    Look.Prim(PrimitiveType.Cylinder, "Cask", root, new Vector3(0, 0.5f, 0), new Vector3(0.55f, 0.95f, 0.55f), wood);
+                    Look.Prim(PrimitiveType.Cylinder, "HoopA", root, new Vector3(0, 0.15f, 0), new Vector3(0.6f, 0.07f, 0.6f), hoop);
+                    Look.Prim(PrimitiveType.Cylinder, "HoopB", root, new Vector3(0, 0.85f, 0), new Vector3(0.6f, 0.07f, 0.6f), hoop);
+                    break;
+                }
+                case "bat-furnace":
+                {
+                    var iron = Look.Lit(new Color(0.12f, 0.08f, 0.1f), smooth: 0.08f);
+                    var fire = Look.Lit(Colors.EmberFire, smooth: 0.35f);
+                    Look.Prim(PrimitiveType.Cylinder, "Handle", root, new Vector3(0, -0.55f, 0), new Vector3(0.2f, 0.65f, 0.2f), iron);
+                    Look.Prim(PrimitiveType.Cylinder, "Club", root, new Vector3(0, 0.55f, 0), new Vector3(0.38f, 1.05f, 0.38f), iron);
+                    for (var i = 0; i < 4; i++)
+                    {
+                        var a = i * 90f * Mathf.Deg2Rad;
+                        Look.Prim(PrimitiveType.Cube, "Spike" + i, root,
+                            new Vector3(Mathf.Cos(a) * 0.28f, 0.7f, Mathf.Sin(a) * 0.28f),
+                            new Vector3(0.14f, 0.45f, 0.14f), fire);
+                    }
+                    break;
+                }
+                case "bat-gold":
+                {
+                    var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
+                    Look.Prim(PrimitiveType.Cylinder, "Bat", root, Vector3.zero, new Vector3(0.22f, 1.7f, 0.22f), gold);
+                    break;
+                }
+                default:
+                {
+                    var wood = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.15f);
+                    Look.Prim(PrimitiveType.Cylinder, "Bat", root, Vector3.zero, new Vector3(0.22f, 1.7f, 0.22f), wood);
+                    break;
+                }
+            }
+        }
+
+        void BuildGlove(string visual)
+        {
+            _gloveVisual = visual ?? "glove-brown";
+            if (_glove != null) Destroy(_glove.gameObject);
+            var hand = _throwsLeft ? _rFore : _lFore;
+            if (hand == null) return;
+            var go = new GameObject("Glove");
+            go.transform.SetParent(hand, false);
+            go.transform.localPosition = new Vector3(0, -0.72f, 0.12f);
+            go.transform.localRotation = Quaternion.Euler(20, 0, 0);
+            var leather = _gloveVisual == "glove-gold"
+                ? Look.Lit(new Color(0.92f, 0.74f, 0.18f), smooth: 0.32f)
+                : Look.Lit(new Color(0.42f, 0.24f, 0.12f), smooth: 0.12f);
+            var scale = _gloveVisual == "glove-gold" ? 1.18f : 1f;
+            Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * (0.7f * scale), leather);
+            Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f) * scale, leather);
+            Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f) * scale, leather);
+            Look.Prim(PrimitiveType.Capsule, "Fingers", go.transform, new Vector3(0.12f, 0.22f, 0.08f), new Vector3(0.42f, 0.28f, 0.22f) * scale, leather);
+            _glove = go.transform;
         }
 
         void Animate()
         {
+            var pose = Locomotion(_pose);
             var bob = Mathf.Sin(_t * 2.4f) * 0.04f;
+            if (pose == Pose.Run) bob = Mathf.Abs(Mathf.Sin(_t * 14f)) * 0.08f;
+            else if (pose == Pose.Walk) bob = Mathf.Abs(Mathf.Sin(_t * 8f)) * 0.05f;
+            else if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
             if (_torso != null) _torso.localPosition = new Vector3(0, 2.55f + bob, 0);
 
             var lArm = Quaternion.Euler(12, 0, 18);
             var rArm = Quaternion.Euler(12, 0, -18);
             var lLeg = Quaternion.identity;
             var rLeg = Quaternion.identity;
-            var batOn = false;
+            var batOn = _heldBat;
+            var gloveOn = _heldGlove;
             var batRot = Quaternion.Euler(0, 0, 20);
+            var torsoRot = Quaternion.identity;
+            var headRot = Quaternion.identity;
 
-            switch (_pose)
+            switch (pose)
             {
+                case Pose.Walk:
+                {
+                    var s = Mathf.Sin(_t * 8f);
+                    lArm = Quaternion.Euler(28f * s, 0, 16);
+                    rArm = Quaternion.Euler(-28f * s, 0, -16);
+                    lLeg = Quaternion.Euler(22f * s, 0, 0);
+                    rLeg = Quaternion.Euler(-22f * s, 0, 0);
+                    break;
+                }
+                case Pose.Run:
+                {
+                    var s = Mathf.Sin(_t * 14f);
+                    lArm = Quaternion.Euler(55f * s, 0, 10);
+                    rArm = Quaternion.Euler(-55f * s, 0, -10);
+                    lLeg = Quaternion.Euler(42f * s, 0, 0);
+                    rLeg = Quaternion.Euler(-42f * s, 0, 0);
+                    torsoRot = Quaternion.Euler(12, 0, 0);
+                    break;
+                }
                 case Pose.ChargePitch:
                     lArm = Quaternion.Euler(8, 0, 25);
                     rArm = PitchSlot(-20 - 55 * _charge, 10, -30);
+                    gloveOn = true;
                     break;
-                case Pose.Throw:
+                case Pose.ThrowPitch:
                     lArm = Quaternion.Euler(20, 0, 35);
                     rArm = PitchSlot(78, -10, -10);
+                    gloveOn = true;
+                    break;
+                case Pose.Throw:
+                    lArm = Quaternion.Euler(25, 0, 30);
+                    rArm = Quaternion.Euler(70, -8, -18);
+                    gloveOn = true;
                     break;
                 case Pose.ChargeSwing:
                     batOn = true;
+                    gloveOn = false;
                     lArm = Quaternion.Euler(-10, 20, 30);
                     rArm = Quaternion.Euler(-35 - 50 * _charge, -40, -55);
                     batRot = Quaternion.Euler(75 + 28 * _charge, 0, 10);
                     break;
                 case Pose.Swing:
                     batOn = true;
+                    gloveOn = false;
                     lArm = Quaternion.Euler(20, -30, 10);
                     rArm = Quaternion.Euler(15, 50, 20);
                     batRot = Quaternion.Euler(-40, 80, 0);
+                    torsoRot = Quaternion.Euler(8, 40, 0);
+                    break;
+                case Pose.CheckSwing:
+                    batOn = true;
+                    gloveOn = false;
+                    lArm = Quaternion.Euler(-6, 12, 22);
+                    rArm = Quaternion.Euler(-18, -22, -28);
+                    batRot = Quaternion.Euler(42, 18, 8);
+                    torsoRot = Quaternion.Euler(6, 12, 0);
+                    break;
+                case Pose.Bunt:
+                    batOn = true;
+                    gloveOn = false;
+                    lArm = Quaternion.Euler(8, 35, 8);
+                    rArm = Quaternion.Euler(8, -35, -8);
+                    batRot = Quaternion.Euler(90, 0, 90);
+                    torsoRot = Quaternion.Euler(12, 0, 0);
+                    lLeg = Quaternion.Euler(28, 6, 8);
+                    rLeg = Quaternion.Euler(18, -6, -8);
                     break;
                 case Pose.Catch:
                     lArm = Quaternion.Euler(-50, 0, 20);
                     rArm = Quaternion.Euler(-50, 0, -20);
+                    gloveOn = true;
                     break;
                 case Pose.Field:
                     lArm = Quaternion.Euler(25, 0, 25);
                     rArm = Quaternion.Euler(25, 0, -25);
+                    gloveOn = true;
                     break;
                 case Pose.Dive:
                     lArm = Quaternion.Euler(-80, 0, 10);
                     rArm = Quaternion.Euler(-80, 0, -10);
-                    if (_torso != null) _torso.localRotation = Quaternion.Euler(70, 0, 0);
+                    torsoRot = Quaternion.Euler(70, 0, 0);
+                    gloveOn = true;
                     break;
                 case Pose.Jump:
                 case Pose.Clamber:
                     lArm = Quaternion.Euler(-70, 0, 15);
                     rArm = Quaternion.Euler(-70, 0, -15);
+                    lLeg = Quaternion.Euler(40, 8, 0);
+                    rLeg = Quaternion.Euler(40, -8, 0);
+                    gloveOn = true;
                     break;
                 case Pose.Spin:
                     lArm = Quaternion.Euler(10, 0, 70);
                     rArm = Quaternion.Euler(10, 0, -70);
                     transform.rotation *= Quaternion.Euler(0, 720f * Time.deltaTime, 0);
+                    gloveOn = true;
                     break;
                 case Pose.Charm:
                     lArm = Quaternion.Euler(0, 0, 40);
@@ -216,19 +492,51 @@ namespace GrandSluggers.UnityClient
                     rArm = Quaternion.Euler(-40, -20, -15);
                     lLeg = Quaternion.Euler(78, 8, 10);
                     rLeg = Quaternion.Euler(98, -6, -8);
-                    if (_torso != null) _torso.localRotation = Quaternion.Euler(58, 0, 0);
+                    torsoRot = Quaternion.Euler(58, 0, 0);
+                    gloveOn = false;
+                    break;
+                case Pose.StealLead:
+                    lArm = Quaternion.Euler(28, 8, 22);
+                    rArm = Quaternion.Euler(12, -12, -28);
+                    lLeg = Quaternion.Euler(42, 10, 10);
+                    rLeg = Quaternion.Euler(18, -6, -8);
+                    torsoRot = Quaternion.Euler(22, 12, 0);
+                    gloveOn = false;
                     break;
                 case Pose.Crouch:
                     lArm = Quaternion.Euler(40, 0, 18);
                     rArm = Quaternion.Euler(40, 0, -18);
                     lLeg = Quaternion.Euler(68, 8, 12);
                     rLeg = Quaternion.Euler(68, -8, -12);
-                    if (_torso != null) _torso.localRotation = Quaternion.Euler(32, 0, 0);
+                    torsoRot = Quaternion.Euler(32, 0, 0);
+                    gloveOn = true;
+                    break;
+                case Pose.Cheer:
+                    lArm = Quaternion.Euler(-110, 0, 18);
+                    rArm = Quaternion.Euler(-110, 0, -18);
+                    batOn = false;
+                    gloveOn = false;
+                    break;
+                case Pose.Miss:
+                    batOn = true;
+                    gloveOn = false;
+                    lArm = Quaternion.Euler(8, -12, 12);
+                    rArm = Quaternion.Euler(22, 28, 18);
+                    batRot = Quaternion.Euler(-12, 55, 8);
+                    torsoRot = Quaternion.Euler(14, -8, 0);
+                    headRot = Quaternion.Euler(22, -16, 0);
                     break;
             }
 
-            if (_torso != null && _pose != Pose.Dive && _pose != Pose.Slide && _pose != Pose.Crouch)
-                _torso.localRotation = Quaternion.Slerp(_torso.localRotation, Quaternion.identity, 0.2f);
+            var batting = pose is Pose.ChargeSwing or Pose.Swing or Pose.CheckSwing or Pose.Bunt or Pose.Miss;
+            var pitching = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw;
+            if (batting && _batsLeft) MirrorArms(ref lArm, ref rArm);
+            if (pitching && _throwsLeft) MirrorArms(ref lArm, ref rArm);
+
+            if (_torso != null)
+                _torso.localRotation = Quaternion.Slerp(_torso.localRotation, torsoRot, 0.2f);
+            if (_head != null)
+                _head.localRotation = Quaternion.Slerp(_head.localRotation, headRot, 0.2f);
             if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm, 0.2f);
             if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, 0.2f);
             if (_lThigh != null) _lThigh.localRotation = Quaternion.Slerp(_lThigh.localRotation, lLeg, 0.25f);
@@ -238,11 +546,28 @@ namespace GrandSluggers.UnityClient
                 _bat.gameObject.SetActive(batOn);
                 _bat.localRotation = batRot;
             }
+            if (_glove != null)
+                _glove.gameObject.SetActive(gloveOn && !batOn);
+        }
+
+        Pose Locomotion(Pose pose)
+        {
+            if (pose is not (Pose.Idle or Pose.Field)) return pose;
+            if (_speed > 14f) return Pose.Run;
+            if (_speed > 3.5f) return Pose.Walk;
+            return pose;
+        }
+
+        static void MirrorArms(ref Quaternion lArm, ref Quaternion rArm)
+        {
+            var l = lArm.eulerAngles;
+            var r = rArm.eulerAngles;
+            lArm = Quaternion.Euler(r.x, -r.y, -r.z);
+            rArm = Quaternion.Euler(l.x, -l.y, -l.z);
         }
 
         Quaternion PitchSlot(float x, float y, float z)
         {
-            // Fastball and changeup share a high 3/4 slot (the lie). Curve is over the top. Slider is lower.
             return _pitchType switch
             {
                 "curve" => Quaternion.Euler(x - 25, y, z - 12),

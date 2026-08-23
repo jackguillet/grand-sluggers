@@ -19,6 +19,8 @@ Stats are 1–10. They will move.
 
 Cross-faction buddy examples (authored, not generated): a Spark pitcher who grew up with a Carnival runner; a Royal and a Goldrush who date and therefore *hate* fielding together some days — no: keep bad chem as rivalry, good as buddy. Royals buddy with Spark. Goldrush buddy only with each other plus one traitor. Ember hates Spark and Royals. Canopy hates Ember’s mercenary lizards (a sub-rival).
 
+Body types are locked in [silhouette-bible.md](silhouette-bible.md). Role players reuse the captain anatomy for their faction.
+
 ## Captains (placeholders)
 
 Names are working titles. Replace freely; keep the *roles*.

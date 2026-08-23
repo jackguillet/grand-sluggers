@@ -56,8 +56,8 @@ public sealed class Match
         HomeStars = content.Chemistry.StartingStars(home);
         _homePitcher = home.Captain;
         _awayPitcher = away.Captain;
-        HomeBat = content.Bats.GetValueOrDefault("harbor-lumber") ?? content.Bats.Values.First();
-        AwayBat = content.Bats.GetValueOrDefault("furnace-club") ?? content.Bats.Values.First();
+        HomeBat = GearMesh.SignatureBat(content, home.Captain.Id);
+        AwayBat = GearMesh.SignatureBat(content, away.Captain.Id);
         HomeGlove = content.Gloves.GetValueOrDefault("web-back") ?? content.Gloves.Values.First();
         AwayGlove = content.Gloves.GetValueOrDefault("lucky-mitt") ?? content.Gloves.Values.First();
     }

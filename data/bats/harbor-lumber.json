@@ -5,6 +5,6 @@
   "contactMod": 0,
   "powerMod": 0,
   "chargeAlwaysFull": false,
-  "visual": "bat-red",
-  "notes": "Default Spark bat. Neutral."
+  "visual": "bat-spark",
+  "notes": "Rio's default. Harbor kid spark bat."
 }

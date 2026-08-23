@@ -1,0 +1,10 @@
+{
+  "id": "pageant-wand",
+  "name": "Pageant Wand",
+  "slot": "bat",
+  "contactMod": 1,
+  "powerMod": -1,
+  "chargeAlwaysFull": false,
+  "visual": "bat-wand",
+  "notes": "Vale's default. Slim ice wand. Contact first, no juice."
+}

@@ -84,6 +84,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [docs/engine-decision.md](docs/engine-decision.md) | Unity vs Godot vs Unreal — why Unity |
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
+| [docs/silhouette-bible.md](docs/silhouette-bible.md) | Locked camera, six body types, signature bats |
 | [docs/parks.md](docs/parks.md) | Ballparks and gimmicks |
 | [docs/roadmap.md](docs/roadmap.md) | Vertical slice → first playable → content |
 

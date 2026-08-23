@@ -68,7 +68,9 @@ public sealed class ContentCatalog
         {
             var dto = JsonSerializer.Deserialize<BatDto>(File.ReadAllText(file), json)
                 ?? throw new InvalidDataException($"Bad bat file {file}");
-            bats[dto.Id] = new BatItem(dto.Id, dto.Name, dto.ContactMod, dto.PowerMod, dto.ChargeAlwaysFull);
+            bats[dto.Id] = new BatItem(
+                dto.Id, dto.Name, dto.ContactMod, dto.PowerMod, dto.ChargeAlwaysFull,
+                string.IsNullOrWhiteSpace(dto.Visual) ? "bat-wood" : dto.Visual);
         }
 
         var gloves = new Dictionary<string, GloveItem>(StringComparer.OrdinalIgnoreCase);
@@ -76,7 +78,9 @@ public sealed class ContentCatalog
         {
             var dto = JsonSerializer.Deserialize<GloveDto>(File.ReadAllText(file), json)
                 ?? throw new InvalidDataException($"Bad glove file {file}");
-            gloves[dto.Id] = new GloveItem(dto.Id, dto.Name, dto.ErrorReduction, dto.ArmMod);
+            gloves[dto.Id] = new GloveItem(
+                dto.Id, dto.Name, dto.ErrorReduction, dto.ArmMod,
+                string.IsNullOrWhiteSpace(dto.Visual) ? "glove-brown" : dto.Visual);
         }
 
         var overridesPath = Path.Combine(root, "chemistry", "overrides.json");
@@ -177,6 +181,7 @@ public sealed class ContentCatalog
         public int ContactMod { get; set; }
         public int PowerMod { get; set; }
         public bool ChargeAlwaysFull { get; set; }
+        public string Visual { get; set; } = "";
     }
 
     sealed class GloveDto
@@ -185,6 +190,7 @@ public sealed class ContentCatalog
         public string Name { get; set; } = "";
         public double ErrorReduction { get; set; }
         public int ArmMod { get; set; }
+        public string Visual { get; set; } = "";
     }
 }
 
