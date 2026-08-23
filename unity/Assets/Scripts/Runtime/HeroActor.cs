@@ -138,9 +138,9 @@ namespace GrandSluggers.UnityClient
             _baseScale = new Vector3(spec.Width, spec.Height, spec.Width) * 1.15f;
             _root.localScale = _baseScale;
 
-            var jersey = Look.Lit(body, smooth: 0.18f);
-            var trim = Look.Lit(accent, smooth: 0.35f);
-            var flesh = Look.Lit(skin, smooth: 0.28f);
+            var jersey = Look.Toon(body);
+            var trim = Look.Toon(accent);
+            var flesh = Look.Toon(skin);
             var slack = Look.Lit(pants, smooth: 0.2f);
             var leather = Look.Lit(shoe, smooth: 0.12f);
 
@@ -185,6 +185,12 @@ namespace GrandSluggers.UnityClient
             var eyeSize = _body == "zig" ? 0.28f : _body == "vale" ? 0.16f : 0.22f;
             Look.Prim(PrimitiveType.Sphere, "EyeL", _head, new Vector3(-0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
             Look.Prim(PrimitiveType.Sphere, "EyeR", _head, new Vector3(0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
+            var white = Look.Unlit(Color.white);
+            Look.Prim(PrimitiveType.Sphere, "WhiteL", _head, new Vector3(-0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
+            Look.Prim(PrimitiveType.Sphere, "WhiteR", _head, new Vector3(0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
+            Look.Prim(PrimitiveType.Cube, "BrowL", _head, new Vector3(-0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
+            Look.Prim(PrimitiveType.Cube, "BrowR", _head, new Vector3(0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
+            Look.Prim(PrimitiveType.Cube, "Mouth", _head, new Vector3(0, -0.22f, 0.55f), new Vector3(0.32f, 0.08f, 0.1f), ink);
 
             if (_captain && _body == "rio")
             {
@@ -397,17 +403,20 @@ namespace GrandSluggers.UnityClient
                 }
                 case Pose.Run:
                 {
-                    var s = Mathf.Sin(_t * 14f);
-                    lArm = Quaternion.Euler(55f * s, 0, 10);
-                    rArm = Quaternion.Euler(-55f * s, 0, -10);
-                    lLeg = Quaternion.Euler(42f * s, 0, 0);
-                    rLeg = Quaternion.Euler(-42f * s, 0, 0);
-                    torsoRot = Quaternion.Euler(12, 0, 0);
+                    var s = Mathf.Sin(_t * 16f);
+                    lArm = Quaternion.Euler(70f * s, 8f * s, 8);
+                    rArm = Quaternion.Euler(-70f * s, -8f * s, -8);
+                    lLeg = Quaternion.Euler(55f * s, 0, 0);
+                    rLeg = Quaternion.Euler(-55f * s, 0, 0);
+                    torsoRot = Quaternion.Euler(16, 8f * s, 0);
                     break;
                 }
                 case Pose.ChargePitch:
-                    lArm = Quaternion.Euler(8, 0, 25);
-                    rArm = PitchSlot(-20 - 55 * _charge, 10, -30);
+                    lArm = Quaternion.Euler(12, 0, 28);
+                    rArm = PitchSlot(-35 - 70 * _charge, 18, -38);
+                    lLeg = Quaternion.Euler(8 + 25 * _charge, 0, 0);
+                    rLeg = Quaternion.Euler(-10 * _charge, 0, 0);
+                    torsoRot = Quaternion.Euler(-8 - 18 * _charge, 12, 0);
                     gloveOn = true;
                     break;
                 case Pose.ThrowPitch:
@@ -430,10 +439,12 @@ namespace GrandSluggers.UnityClient
                 case Pose.Swing:
                     batOn = true;
                     gloveOn = false;
-                    lArm = Quaternion.Euler(20, -30, 10);
-                    rArm = Quaternion.Euler(15, 50, 20);
-                    batRot = Quaternion.Euler(-40, 80, 0);
-                    torsoRot = Quaternion.Euler(8, 40, 0);
+                    lArm = Quaternion.Euler(28, -48, 6);
+                    rArm = Quaternion.Euler(22, 72, 28);
+                    batRot = Quaternion.Euler(-55, 110, 12);
+                    torsoRot = Quaternion.Euler(10, 55, -8);
+                    lLeg = Quaternion.Euler(12, 0, 0);
+                    rLeg = Quaternion.Euler(-18, 20, 0);
                     break;
                 case Pose.CheckSwing:
                     batOn = true;
