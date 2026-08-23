@@ -10,6 +10,7 @@ namespace GrandSluggers.UnityClient
         public static readonly Color Dirt = Hex(0xC49A60);
         public static readonly Color Ice = Hex(0xBED8F0);
         public static readonly Color Spark = Hex(0xDC302A);
+        public static readonly Color SparkDark = Hex(0x8C181C);
         public static readonly Color Ember = Hex(0x2C2034);
         public static readonly Color EmberFire = Hex(0xFF7A20);
         public static readonly Color Royal = Hex(0xE878A8);
