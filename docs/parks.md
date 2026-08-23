@@ -33,8 +33,10 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 ## Rooftop City
 
 - Faction: Goldrush
+- Surface: dirt (tar roof)
 - Gimmick: billboards and AC units. Balls can carom; some signs award a star if you hit them.
-- Night: neon, same geometry, extra glare (not a blind).
+- Night: neon glare (not a blind). Presentation later (#31); the park ships a disabled neon-glare hook. Day already uses dusk/neon light.
+- Why it exists: it should feel like a roof. Urban rooftop geometry, star billboards, AC boxes you can carom off. Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Canopy Yard (playable)
 
@@ -42,7 +44,8 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Surface: dirt
 - Fence: 312 / 378 / 318
 - Gimmick: **Barrel cannons** warp grounders (same rule as Funfair cans). **Climb wall** — fielders with Clamber (Konga, Vine, Moss) can rob a homer that only just cleared the fence.
-- Night: fireflies, same play (not in this file yet).
+- Night: fireflies, same play. Presentation later (#31); the park ships a disabled fireflies hook.
+- Why it exists: jungle walls you can clamber, barrels you can see kick a grounder. Trees, vine walls with ledges at fence height, barrel-cannon actors (mouths + tags, not anonymous cylinders). Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Haunt Manor
 
@@ -60,7 +63,8 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Surface: ash
 - Fence: 338 / 408 / 338 (deep)
 - Gimmick: **Lava pits** and the captain **statue's fire breath** slow fielders the same way Crystal freezers do. Not a free homer park — Ashlord still has to square it up.
-- Night-only presentation later; this file is the courtyard that plays at any time.
+- Night-only presentation later (#31); the park ships a disabled night-brazier hook. Courtyard lighting is night-ready even in day.
+- Why it exists: a keep that breathes fire, not a dark cube with a sphere. Castle architecture, lava that reads as a pit (rim + glow), fire-breath statues as actors. Same diamond kit. Spark lofts, royal palace, and carnival tents stay out.
 
 ## Playroom
 
