@@ -27,6 +27,7 @@ public sealed class Match
     public Character? First { get; private set; }
     public Character? Second { get; private set; }
     public Character? Third { get; private set; }
+    RunnerState? _firstRun, _secondRun, _thirdRun;
     public int AwayBatter { get; private set; }
     public int HomeBatter { get; private set; }
     public double AwayStars { get; private set; }
@@ -135,9 +136,60 @@ public sealed class Match
     public double OffenseStars => Top ? AwayStars : HomeStars;
     public double DefenseStars => Top ? HomeStars : AwayStars;
     public bool StealOn { get; private set; }
+    /// <summary>Furthest occupied bag. Control and steal apply to this runner.</summary>
+    public Character? LeadRunner => Third ?? Second ?? First;
+    public int LeadBag => Third is not null ? 3 : Second is not null ? 2 : First is not null ? 1 : 0;
+    public RunnerState? LeadState => RunnerAt(LeadBag);
+    public double Lead01 => LeadState?.Lead01 ?? 0;
+    public bool StealAttempt => LeadState?.StealAttempt ?? false;
+    public bool Returning => LeadState?.Returning ?? false;
+    public bool Sliding => LeadState?.Sliding ?? false;
     public bool CanSteal =>
         !Over && Outs < 3 &&
-        ((First is not null && Second is null) || (Second is not null && Third is null));
+        ((LeadBag == 1 && Second is null) || (LeadBag == 2 && Third is null));
+
+    public RunnerState? RunnerAt(int bag) => bag switch
+    {
+        1 => _firstRun,
+        2 => _secondRun,
+        3 => _thirdRun,
+        _ => null
+    };
+
+    public bool TakeLead(double delta = 0.25)
+    {
+        var state = LeadState;
+        if (state is null || Over || Outs >= 3) return false;
+        state.TakeLead(delta);
+        return true;
+    }
+
+    public bool ReturnToBag(double delta = 0.25)
+    {
+        var state = LeadState;
+        if (state is null) return false;
+        state.ReturnToBag(delta);
+        StealOn = false;
+        return true;
+    }
+
+    public bool StartSteal()
+    {
+        if (!CanSteal) return false;
+        var state = LeadState;
+        if (state is null) return false;
+        state.StartSteal();
+        StealOn = true;
+        return true;
+    }
+
+    public bool Slide()
+    {
+        var state = LeadState;
+        if (state is null) return false;
+        state.Slide();
+        return true;
+    }
 
     public int StarCost(Character who, Character teamCaptain) =>
         who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase) ? 2 : 1;
@@ -152,10 +204,16 @@ public sealed class Match
         if (!CanSteal)
         {
             StealOn = false;
+            LeadState?.CancelSteal();
             return false;
         }
-        StealOn = !StealOn;
-        return StealOn;
+        if (StealOn)
+        {
+            StealOn = false;
+            LeadState?.CancelSteal();
+            return false;
+        }
+        return StartSteal();
     }
 
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
@@ -287,7 +345,10 @@ public sealed class Match
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
     {
         if (CanSteal && Batter.Stats.Run >= 7 && _rng.NextDouble() < 0.16)
-            StealOn = true;
+        {
+            StartSteal();
+            TakeLead(0.45 + _rng.NextDouble() * 0.35);
+        }
         var chase = !inZone && _rng.NextDouble() < 0.12;
         if (!inZone && !chase)
             return new SwingCommand(false, 0, 0, false);
@@ -431,7 +492,7 @@ public sealed class Match
                 if (kind == PlayKind.FlyOut && Third is not null && Outs < 3 && hit.CarryFt > 230)
                 {
                     var tag = Third;
-                    Third = null;
+                    SetBag(3, null);
                     Score(tag);
                     runs = 1;
                     scorers = [tag.Name];
@@ -514,7 +575,7 @@ public sealed class Match
         Outs = 0;
         Balls = 0;
         Strikes = 0;
-        First = Second = Third = null;
+        ClearBags();
         if (Top)
         {
             if (Inning >= Innings && HomeScore > AwayScore)
@@ -545,15 +606,18 @@ public sealed class Match
         var scorers = new List<string>();
         if (walk)
         {
-            if (First is not null && Second is not null && Third is not null)
+            var f = First;
+            var s = Second;
+            var t = Third;
+            if (f is not null && s is not null && t is not null)
             {
-                Score(Third); scorers.Add(Third.Name); Third = Second; Second = First; First = batter;
+                Score(t); scorers.Add(t.Name); SetBag(3, s); SetBag(2, f); SetBag(1, batter);
             }
-            else if (First is not null && Second is not null)
-            { Third = Second; Second = First; First = batter; }
-            else if (First is not null)
-            { Second = First; First = batter; }
-            else First = batter;
+            else if (f is not null && s is not null)
+            { SetBag(3, s); SetBag(2, f); SetBag(1, batter); }
+            else if (f is not null)
+            { SetBag(2, f); SetBag(1, batter); }
+            else SetBag(1, batter);
             return (scorers.Count, scorers);
         }
         return AdvanceHit(batter, 1);
@@ -562,7 +626,6 @@ public sealed class Match
     (int Runs, IReadOnlyList<string> Scorers) AdvanceHit(Character batter, int bases)
     {
         var scorers = new List<string>();
-        var bag = new[] { First, Second, Third };
         Character? n1 = null, n2 = null, n3 = null;
         void Place(Character c, int fromPlus)
         {
@@ -576,7 +639,7 @@ public sealed class Match
         if (Second is not null) Place(Second, 2 + bases);
         if (First is not null) Place(First, 1 + bases);
         Place(batter, bases);
-        First = n1; Second = n2; Third = n3;
+        SetBag(1, n1); SetBag(2, n2); SetBag(3, n3);
         return (scorers.Count, scorers);
     }
 
@@ -587,8 +650,33 @@ public sealed class Match
         if (Second is not null) { Score(Second); scorers.Add(Second.Name); }
         if (First is not null) { Score(First); scorers.Add(First.Name); }
         Score(batter); scorers.Add(batter.Name);
-        First = Second = Third = null;
+        ClearBags();
         return (scorers.Count, scorers);
+    }
+
+    void SetBag(int bag, Character? who)
+    {
+        switch (bag)
+        {
+            case 1:
+                First = who;
+                _firstRun = who is null ? null : new RunnerState(who);
+                break;
+            case 2:
+                Second = who;
+                _secondRun = who is null ? null : new RunnerState(who);
+                break;
+            case 3:
+                Third = who;
+                _thirdRun = who is null ? null : new RunnerState(who);
+                break;
+        }
+    }
+
+    void ClearBags()
+    {
+        First = Second = Third = null;
+        _firstRun = _secondRun = _thirdRun = null;
     }
 
     void Score(Character who)
@@ -619,53 +707,57 @@ public sealed class Match
         else HomeStars = Math.Max(0, HomeStars - cost);
     }
 
-    PlayEvent AfterPitch(PlayEvent ev) => ResolveSteal(ev);
+    PlayEvent AfterPitch(PlayEvent ev) => StealOn ? ResolveSteal(ev) : ResolvePickoff(ev);
 
     PlayEvent ResolveSteal(PlayEvent ev)
     {
-        if (!StealOn)
-            return ev;
         StealOn = false;
         if (Over || Outs >= 3)
             return ev;
 
         Character? runner = null;
-        var third = false;
-        if (Second is not null && Third is null)
+        var fromBag = 0;
+        if (LeadBag == 2 && Third is null)
         {
             runner = Second;
-            third = true;
+            fromBag = 2;
         }
-        else if (First is not null && Second is null)
+        else if (LeadBag == 1 && Second is null)
+        {
             runner = First;
+            fromBag = 1;
+        }
         if (runner is null)
             return ev;
 
         var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
         var catcher = map.GetValueOrDefault("C") ?? Pitcher;
         var gun = catcher.Stats.Field + 2.0;
-        var jump = runner.Stats.Run + Gauss() * 1.6;
+        var lead = RunnerAt(fromBag)?.Lead01 ?? 0;
+        var jump = runner.Stats.Run + Gauss() * 1.6 + lead * 3.4;
         var thr = ThrowBetween(catcher, runner);
         if (thr.Error) gun -= 4;
         gun += (thr.SpeedMul - 1) * 4;
 
         PlayEvent result;
+        var toThird = fromBag == 2;
         if (jump > gun)
         {
-            if (third) { Third = runner; Second = null; }
-            else { Second = runner; First = null; }
+            if (toThird) { SetBag(3, runner); SetBag(2, null); }
+            else { SetBag(2, runner); SetBag(1, null); }
             AddMvp(runner.Id, 2);
             AddStars(defense: false, 0.35);
             result = ev with
             {
                 Kind = PlayKind.StolenBase,
-                Caption = ev.Caption + $"  {runner.Name} steals {(third ? "third" : "second")}."
+                Caption = ev.Caption + $"  {runner.Name} steals {(toThird ? "third" : "second")}.",
+                Fielder = catcher,
+                Throw = thr
             };
         }
         else
         {
-            if (third) Second = null;
-            else First = null;
+            SetBag(fromBag, null);
             Outs++;
             AddMvp(catcher.Id, 2);
             AddStars(defense: true, 0.4);
@@ -673,12 +765,53 @@ public sealed class Match
             {
                 Kind = PlayKind.CaughtStealing,
                 Caption = $"{runner.Name} caught stealing.",
+                Fielder = catcher,
+                Throw = thr,
                 OutsAfter = Outs
             };
             CheckInning();
             result = result with { OutsAfter = Outs };
         }
 
+        if (_log.Count > 0)
+            _log[^1] = result;
+        return result;
+    }
+
+    PlayEvent ResolvePickoff(PlayEvent ev)
+    {
+        if (Over || Outs >= 3)
+            return ev;
+        var bag = LeadBag;
+        var state = LeadState;
+        var runner = LeadRunner;
+        if (bag == 0 || state is null || runner is null || state.Lead01 < 0.2)
+            return ev;
+
+        var risk = state.Lead01 * 0.42;
+        if (state.Returning) risk *= 0.18;
+        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var catcher = map.GetValueOrDefault("C") ?? Pitcher;
+        risk += (catcher.Stats.Field - runner.Stats.Run) * 0.02;
+        risk = Math.Clamp(risk, 0, 0.72);
+        if (_rng.NextDouble() >= risk)
+            return ev;
+
+        var thr = ThrowBetween(Pitcher, catcher);
+        SetBag(bag, null);
+        Outs++;
+        AddMvp(catcher.Id, 2);
+        AddStars(defense: true, 0.4);
+        var result = ev with
+        {
+            Kind = PlayKind.CaughtStealing,
+            Caption = $"{runner.Name} picked off.",
+            Fielder = Pitcher,
+            Throw = thr,
+            OutsAfter = Outs
+        };
+        CheckInning();
+        result = result with { OutsAfter = Outs };
         if (_log.Count > 0)
             _log[^1] = result;
         return result;

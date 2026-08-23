@@ -106,7 +106,7 @@ Field abilities fire as verbs. One per character:
 
 ## Steals
 
-With 1st empty to 2nd, or 2nd empty to 3rd: arm a steal (X). Resolved on a take or swing-and-miss. Runner speed vs catcher gun + throw chemistry. Walks and strikeouts cancel the steal.
+Control the **lead runner** (furthest along). Stick toward the next bag takes a visible lead (`Lead01` 0–1); stick back returns. LB arms a steal. More lead = a better jump and more pickoff risk on a take. Steal is a catcher gun (speed vs gun + throw chemistry) on a take or swing-and-miss. Walks and strikeouts cancel. No steal home in this pass.
 
 ## Error items (chemistry batting)
 

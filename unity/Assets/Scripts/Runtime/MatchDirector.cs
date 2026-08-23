@@ -71,6 +71,13 @@ namespace GrandSluggers.UnityClient
         Character _armedCut;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
+        bool _gun;
+        float _gunT, _gunDur;
+        Vector3 _gunFrom, _gunTo;
+        Character _gunRunner;
+        int _gunFromBag, _gunToBag;
+        bool _gunSafe, _gunPickoff;
+        double _gunLead;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
@@ -118,6 +125,7 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
+            TickGun(dt);
             switch (_phase)
             {
                 case Phase.Title: TickTitle(); break;
@@ -132,6 +140,7 @@ namespace GrandSluggers.UnityClient
                 case Phase.Flight: TickFlight(dt); break;
                 case Phase.InPlay: TickInPlay(dt); break;
                 case Phase.Result:
+                    if (_gun) break;
                     if (_t > (_last?.Kind == PlayKind.HomeRun ? 2.4f : 1.35f))
                     {
                         if (TrainingOn && _coach.Session.Finished)
@@ -354,6 +363,8 @@ namespace GrandSluggers.UnityClient
             _itemPick = 0;
             _items?.Hide();
             _banner = _sub = "";
+            _gun = false;
+            _gunRunner = null;
             _ball = new Vector3(0, 5.4f, 60.5f);
             _park.Ball.Place(_ball, "", "fastball", false);
             _aimX = _aimY = 0;
@@ -370,7 +381,7 @@ namespace GrandSluggers.UnityClient
             if (Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
-            if (HumanBats && Controls.Steal) _match.ToggleSteal();
+            TickBaserunning(dt);
             if (HumanPitches)
             {
                 _aimX = Mathf.Clamp(Controls.StickX, -1, 1);
@@ -424,6 +435,7 @@ namespace GrandSluggers.UnityClient
                 else if (id == "caskball") y += 0.55f * u;
             }
             _ball = new Vector3(x, y, z);
+            TickBaserunning(dt);
             if (HumanBats)
             {
                 if (Controls.NorthDown && _match.CanStarSwing) _star = !_star;
@@ -443,12 +455,21 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
+            var stealRunner = _match.LeadRunner;
+            var stealBag = _match.LeadBag;
+            var stealLead = _match.Lead01;
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;
                 NoteTrainingPitch();
                 NoteTrainingSwing();
                 Banner();
+                if (finished != null && stealRunner != null &&
+                    (finished.Kind == PlayKind.StolenBase || finished.Kind == PlayKind.CaughtStealing))
+                {
+                    StartStealGun(stealRunner, stealBag, stealLead, finished);
+                    return;
+                }
                 if (finished != null && finished.Kind == PlayKind.Foul && hit.ExitVeloMph > 1)
                     StartFly(hit);
                 else
@@ -806,6 +827,8 @@ namespace GrandSluggers.UnityClient
                     pose = FieldPose(who, _preview, _caught);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.Throw : HeroActor.Pose.ChargePitch;
+                if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
+                if (_gun && kv.Key == "P" && _gunPickoff) pose = HeroActor.Pose.Throw;
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
@@ -820,6 +843,8 @@ namespace GrandSluggers.UnityClient
                         : new Vector3((float)-x, 0, (float)-z + 8f);
                 if (_throwing && highlighted)
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
+                if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
+                    look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, 0, (float)z), look);
                 hero.Tick(Time.deltaTime);
             }
@@ -836,9 +861,10 @@ namespace GrandSluggers.UnityClient
             bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
-            PlaceRunner(_match.First, Diamond.First);
-            PlaceRunner(_match.Second, Diamond.Second);
-            PlaceRunner(_match.Third, Diamond.Third);
+            PlaceRunner(_match.First, Diamond.First, 1);
+            PlaceRunner(_match.Second, Diamond.Second, 2);
+            PlaceRunner(_match.Third, Diamond.Third, 3);
+            PlaceStealRunner();
 
             foreach (var kv in _heroes)
                 if (!_used.Contains(kv.Key) && kv.Value != null)
@@ -889,14 +915,109 @@ namespace GrandSluggers.UnityClient
             return HeroActor.Pose.Field;
         }
 
-        void PlaceRunner(Character who, (double X, double Z) bag)
+        void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)
         {
             if (who == null) return;
+            if (_gun && _gunRunner != null && who.Id == _gunRunner.Id) return;
+            var state = _match.RunnerAt(bagNum);
+            var spot = Diamond.LeadSpot(bagNum, state != null ? state.Lead01 : 0);
+            var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
-            h.SetPose(HeroActor.Pose.Idle);
-            h.SetHighlight(false);
-            h.Place(new Vector3((float)bag.X, 0, (float)bag.Z), new Vector3(0, 0, -1));
+            var pose = HeroActor.Pose.Idle;
+            if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
+            else if (state != null && (state.StealAttempt || state.Lead01 > 0.08)) pose = HeroActor.Pose.Field;
+            h.SetPose(pose);
+            var lead = _match.LeadRunner;
+            h.SetHighlight(HumanBats && lead != null && who.Id == lead.Id && _phase is Phase.Set or Phase.Flight);
+            h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
+                new Vector3((float)(next.X - bag.X), 0, (float)(next.Z - bag.Z)));
             h.Tick(Time.deltaTime);
+        }
+
+        void PlaceStealRunner()
+        {
+            if (!_gun || _gunRunner == null) return;
+            var u = Mathf.Clamp01(_gunT / Mathf.Max(0.05f, _gunDur));
+            double x, z;
+            if (_gunPickoff)
+            {
+                var from = Diamond.LeadSpot(_gunFromBag, _gunLead > 0.15 ? _gunLead : 1);
+                var to = Diamond.Bag(_gunFromBag);
+                x = from.X + (to.X - from.X) * u;
+                z = from.Z + (to.Z - from.Z) * u;
+            }
+            else
+            {
+                if (!_gunSafe) u *= 0.7f;
+                var from = Diamond.Bag(_gunFromBag);
+                var to = Diamond.Bag(_gunToBag);
+                var t = 0.2 + 0.8 * u;
+                x = from.X + (to.X - from.X) * t;
+                z = from.Z + (to.Z - from.Z) * t;
+            }
+            var h = Hero(_gunRunner);
+            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Field;
+            if (!_gunSafe && u > 0.5f) pose = HeroActor.Pose.Dive;
+            h.SetPose(pose);
+            h.SetHighlight(true);
+            var dest = Diamond.Bag(_gunToBag);
+            h.Place(new Vector3((float)x, 0, (float)z), new Vector3((float)dest.X - (float)x, 0, (float)dest.Z - (float)z));
+            h.Tick(Time.deltaTime);
+        }
+
+        void TickBaserunning(float dt)
+        {
+            if (_match == null || _match.LeadBag == 0) return;
+            if (HumanBats && _phase is Phase.Set or Phase.Flight)
+            {
+                var bag = _match.LeadBag;
+                var next = bag == 3 ? 4 : bag + 1;
+                var prev = bag == 1 ? 4 : bag - 1;
+                var stick = Controls.StickBag;
+                if (stick == next) _match.TakeLead(dt * 1.7f);
+                else if (stick == bag || stick == prev) _match.ReturnToBag(dt * 2.0f);
+                if (Controls.Steal) _match.ToggleSteal();
+                var near = _match.Lead01 <= 0.24 || (_match.StealAttempt && _match.Lead01 >= 0.7);
+                if (near && (Controls.WestDown || Controls.SouthDown))
+                    _match.Slide();
+            }
+            if (_phase == Phase.Flight && _match.StealOn)
+                _match.TakeLead(dt * 2.4f);
+            else if (_match.Returning)
+                _match.ReturnToBag(dt * 2.2f);
+        }
+
+        void TickGun(float dt)
+        {
+            if (!_gun) return;
+            _gunT += dt;
+            var u = Mathf.Clamp01(_gunT / Mathf.Max(0.05f, _gunDur));
+            _ball = Vector3.Lerp(_gunFrom, _gunTo, u);
+            _ball.y += Mathf.Sin(u * Mathf.PI) * 3.4f;
+            if (_gunT >= _gunDur) _gun = false;
+        }
+
+        void StartStealGun(Character runner, int fromBag, double lead, PlayEvent ev)
+        {
+            _gun = true;
+            _gunT = 0;
+            _gunRunner = runner;
+            _gunFromBag = fromBag;
+            _gunLead = lead;
+            _gunSafe = ev.Kind == PlayKind.StolenBase;
+            _gunPickoff = ev.Caption != null && ev.Caption.IndexOf("picked off", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            _gunToBag = _gunPickoff ? fromBag : fromBag == 1 ? 2 : fromBag == 2 ? 3 : 4;
+            var origin = _gunPickoff ? Diamond.Rubber : Diamond.Positions["C"];
+            var dest = Diamond.Bag(_gunToBag);
+            _gunFrom = new Vector3((float)origin.X, 3.4f, (float)origin.Z);
+            _gunTo = new Vector3((float)dest.X, 1.2f, (float)dest.Z);
+            var thr = ev.Throw;
+            if (thr == null)
+                thr = _match.ThrowBetween(_match.Pitcher, runner);
+            _spec.ArmThrow(_gunFrom, _gunTo, thr);
+            _gunDur = Mathf.Max(0.5f, _spec.ThrowSeconds);
+            _phase = Phase.Result;
+            _t = 0;
         }
 
         HeroActor Hero(Character who)
