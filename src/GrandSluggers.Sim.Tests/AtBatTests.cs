@@ -175,7 +175,45 @@ public class AtBatTests
         Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.1, 0.1), 7));
     }
 
-    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber", bool bunt = false)
+    [Fact]
+    public void LateSwingGroundsMoreOftenThanSquare()
+    {
+        var late = 0;
+        var square = 0;
+        for (var seed = 0; seed < 40; seed++)
+        {
+            if (Swing(timing: 6, seed: seed).LaunchDeg < 14) late++;
+            if (Swing(timing: 0, seed: seed).LaunchDeg < 14) square++;
+        }
+        Assert.True(late > square, $"late {late} vs square {square}");
+    }
+
+    [Fact]
+    public void SquareSwingsAreNotAllFlies()
+    {
+        var flies = 0;
+        var hops = 0;
+        for (var seed = 0; seed < 50; seed++)
+        {
+            var r = Swing(timing: 0, seed: seed);
+            if (r.LaunchDeg < 14) hops++;
+            else flies++;
+        }
+        Assert.True(hops > 0, "square contact should produce some grounders");
+        Assert.True(flies > 0, "square contact should still produce flies");
+        Assert.NotEqual(50, flies);
+    }
+
+    [Fact]
+    public void StickUpBiasesAHopper()
+    {
+        var up = Swing(timing: 0, launchAim: 1, seed: 3);
+        var down = Swing(timing: 0, launchAim: -1, seed: 3);
+        Assert.True(up.LaunchDeg < down.LaunchDeg, $"up {up.LaunchDeg} vs down {down.LaunchDeg}");
+        Assert.True(up.LaunchDeg < 14, $"stick-up should ground, launch {up.LaunchDeg}");
+    }
+
+    AtBatResult Swing(double timing, int? bat = null, string batterId = "rio", string batId = "harbor-lumber", bool bunt = false, double launchAim = 0, int seed = 1)
     {
         var batter = _content.Must(batterId);
         if (bat is int b)
@@ -194,8 +232,9 @@ public class AtBatTests
             UseStarSwing: false,
             Bat: _content.Bats[batId],
             PitcherStamina: 80,
-            Bunt: bunt);
+            Bunt: bunt,
+            LaunchAim: launchAim);
 
-        return new AtBatResolver(_content.Chemistry).Resolve(input, _harbor, new Random(1));
+        return new AtBatResolver(_content.Chemistry).Resolve(input, _harbor, new Random(seed));
     }
 }
