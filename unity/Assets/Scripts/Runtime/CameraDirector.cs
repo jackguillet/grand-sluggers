@@ -23,21 +23,51 @@ namespace GrandSluggers.UnityClient
         {
             var s = Must(id);
             Shot = s.Id;
-            _rig.Aim(V(s.Pos), V(s.Target), (float)s.Fov);
+            Vector3 pos;
+            Vector3 look;
+            float fov;
+            if (Placed(id, out pos, out look, out fov))
+                _rig.Aim(pos, look, fov >= 10f ? fov : (float)s.Fov);
+            else
+                _rig.Aim(V(s.Pos), V(s.Target), (float)s.Fov);
         }
 
         public void PlayLook(string id, Vector3 look)
         {
             var s = Must(id);
             Shot = s.Id;
-            _rig.Aim(V(s.Pos), look, (float)s.Fov);
+            Vector3 pos;
+            Vector3 placedLook;
+            float fov;
+            if (Placed(id, out pos, out placedLook, out fov))
+                _rig.Aim(pos, look, fov >= 10f ? fov : (float)s.Fov);
+            else
+                _rig.Aim(V(s.Pos), look, (float)s.Fov);
         }
 
         public void Cut(string id)
         {
             var s = Must(id);
             Shot = s.Id;
-            _rig.Cut(V(s.Pos), V(s.Target), (float)s.Fov);
+            Vector3 pos;
+            Vector3 look;
+            float fov;
+            if (Placed(id, out pos, out look, out fov))
+                _rig.Cut(pos, look, fov >= 10f ? fov : (float)s.Fov);
+            else
+                _rig.Cut(V(s.Pos), V(s.Target), (float)s.Fov);
+        }
+
+        static bool Placed(string id, out Vector3 pos, out Vector3 look, out float fov)
+        {
+            pos = default;
+            look = default;
+            fov = 0;
+            var kit = HarborKit.Instance;
+            if (kit == null || !kit.OwnsDiamond) return false;
+            if (!kit.TryShot(id, out pos, out look, out fov)) return false;
+            if (fov < 10f) fov = 0f;
+            return true;
         }
 
         public void ThrowTo(Vector3 from, Vector3 to)
