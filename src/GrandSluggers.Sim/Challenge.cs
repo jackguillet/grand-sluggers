@@ -34,8 +34,9 @@ public sealed class Challenge
     public string NextOpponentId(ContentCatalog content)
     {
         var me = content.Must(CaptainId);
-        foreach (var id in PresetTeams.CaptainIds.Reverse())
+        for (var i = PresetTeams.CaptainIds.Length - 1; i >= 0; i--)
         {
+            var id = PresetTeams.CaptainIds[i];
             if (id.Equals(CaptainId, StringComparison.OrdinalIgnoreCase) || Beaten.Contains(id))
                 continue;
             if (content.Chemistry.Between(me.Id, id) == Chemistry.Bad)
