@@ -111,4 +111,45 @@ public class MatchTests
         Assert.True(match.Over);
         Assert.True(match.Log.Count > 8);
     }
+
+    [Fact]
+    public void FunfairHasWarpPipes()
+    {
+        var park = _content.Parks["funfair-park"];
+        Assert.Contains(park.Hazards, h => h.Type == "warp_pipe");
+        var w = ParkHazards.WarpIfPipe(park, 20, 55, new Random(3));
+        Assert.True(w.Warped);
+        Assert.False(Math.Abs(w.X - 20) < 0.01 && Math.Abs(w.Z - 55) < 0.01);
+    }
+
+    [Fact]
+    public void RooftopHasBillboards()
+    {
+        var park = _content.Parks["rooftop-city"];
+        Assert.True(ParkHazards.HitStarSign(park, -80, 240));
+        Assert.False(ParkHazards.HitStarSign(park, 0, 0));
+    }
+
+    [Fact]
+    public void CycleBatChangesLoadout()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var first = match.HomeBat.Id;
+        match.CycleBat(true);
+        Assert.NotEqual(first, match.HomeBat.Id);
+        var g = match.HomeGlove.Id;
+        match.CycleGlove(true);
+        Assert.NotEqual(g, match.HomeGlove.Id);
+    }
+
+    [Fact]
+    public void FourParksFinishAGame()
+    {
+        foreach (var id in new[] { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city" })
+        {
+            var match = Match.Slice(_content, innings: 3, seed: 5, parkId: id);
+            match.AutoPlayGame();
+            Assert.True(match.Over, id);
+        }
+    }
 }

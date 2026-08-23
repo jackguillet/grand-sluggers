@@ -1,0 +1,18 @@
+{
+  "id": "rooftop-city",
+  "name": "Rooftop City",
+  "faction": "goldrush",
+  "surface": "dirt",
+  "leftFenceFt": 318,
+  "centerFenceFt": 388,
+  "rightFenceFt": 322,
+  "windMph": 9,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [
+    { "type": "billboard", "x": -80, "z": 240, "radius": 12, "tag": "star" },
+    { "type": "billboard", "x": 90, "z": 260, "radius": 12, "tag": "star" },
+    { "type": "ac_unit", "x": 40, "z": 150, "radius": 6 }
+  ],
+  "notes": "Urban rooftop. Hitting a star billboard awards a team star. AC units carom grounders."
+}
