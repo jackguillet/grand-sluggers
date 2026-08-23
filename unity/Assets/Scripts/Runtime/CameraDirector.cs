@@ -72,9 +72,9 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
-        public void ThrowTo(Vector3 from, Vector3 to)
+        public void ThrowTo(Vector3 from, Vector3 to, bool tag = false)
         {
-            var s = Must("throw");
+            var s = Must(tag ? "tag" : "throw");
             Shot = s.Id;
             var dir = to - from;
             dir.y = 0f;
