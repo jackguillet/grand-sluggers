@@ -2,7 +2,9 @@ namespace GrandSluggers.Sim;
 
 public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones, IReadOnlyList<string> Events);
 
-public readonly record struct ClipSlot(string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot);
+public readonly record struct ClipSlot(
+    string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot,
+    double ContactAt, double ReleaseAt, double FootPlantAt);
 
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
@@ -109,6 +111,10 @@ public sealed class ArtCatalog
             }
             if (string.IsNullOrWhiteSpace(clip.Slot))
                 errors.Add("clip " + clip.Id + " missing slot");
+            if (clip.Events.Contains("Contact") && clip.ContactAt <= 0)
+                errors.Add("clip " + clip.Id + " Contact needs contactAt");
+            if (clip.Events.Contains("Release") && clip.ReleaseAt <= 0)
+                errors.Add("clip " + clip.Id + " Release needs releaseAt");
         }
 
         foreach (var id in Silhouette.Captains)
@@ -174,7 +180,7 @@ public sealed class ArtCatalog
 
         var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
-            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot)).ToList();
+            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt)).ToList();
 
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
@@ -215,6 +221,9 @@ public sealed class ArtCatalog
         public bool Loop { get; set; }
         public List<string>? Events { get; set; }
         public string Slot { get; set; } = "";
+        public double ContactAt { get; set; }
+        public double ReleaseAt { get; set; }
+        public double FootPlantAt { get; set; }
     }
 
     sealed class SkinsFile { public List<SkinDto>? Skins { get; set; } }

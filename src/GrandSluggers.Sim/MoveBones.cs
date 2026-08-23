@@ -11,6 +11,21 @@ public static class MoveBones
     public const double JumpPeak = 4.2;
     public const double SwingDur = 0.50;
     public const double PitchDur = 0.50;
+    public const double SwingContact = 0.30;
+    public const double PitchRelease = 0.42;
+
+    public static double Mark(Verb verb, ClipEvent ev) => (verb, ev) switch
+    {
+        (Verb.Swing, ClipEvent.Contact) => SwingContact,
+        (Verb.Pitch, ClipEvent.Release) => PitchRelease,
+        (Verb.Throw, ClipEvent.Release) => 0.18,
+        (Verb.Scoop, ClipEvent.Contact) => 0.22,
+        (Verb.Jump, ClipEvent.FootPlant) => JumpDur,
+        (Verb.Slide, ClipEvent.FootPlant) => 0.18,
+        (Verb.Run, ClipEvent.FootPlant) => 0,
+        (Verb.Walk, ClipEvent.FootPlant) => 0,
+        _ => 0
+    };
 
     public enum Verb
     {
