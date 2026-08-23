@@ -39,6 +39,7 @@ namespace GrandSluggers.UnityClient
         float _speed;
 
         public string Id => _id;
+        public Pose Current => _pose;
         public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
 
         public void Bind(Character who)
@@ -390,14 +391,15 @@ namespace GrandSluggers.UnityClient
             if (ToVerb(pose) is MoveBones.Verb verb)
             {
                 batOn = pose is Pose.ChargeSwing or Pose.Swing or Pose.CheckSwing or Pose.Bunt or Pose.Miss;
-                gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Clamber;
-                if (pose is Pose.ChargeSwing or Pose.Swing) gloveOn = false;
+                gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw
+                    or Pose.Jump or Pose.Clamber or Pose.Scoop;
+                if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
                 var sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
-                var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump;
+                var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
                 Apply(sample, boneSnap ? 0.55f : 0.32f, boneSnap ? 0.48f : 0.34f);
                 if (_bat != null)
                 {
@@ -728,6 +730,8 @@ namespace GrandSluggers.UnityClient
             Pose.ChargeSwing => MoveBones.Verb.ChargeSwing,
             Pose.Swing => MoveBones.Verb.Swing,
             Pose.Throw => MoveBones.Verb.Throw,
+            Pose.Scoop => MoveBones.Verb.Scoop,
+            Pose.Slide => MoveBones.Verb.Slide,
             _ => null
         };
 

@@ -34,6 +34,8 @@ namespace GrandSluggers.UnityClient
         Match _match;
         ParkView _park;
         CameraRig _rig;
+        CameraDirector _cam;
+        FeelTable _feel;
         SpecialFx _spec;
         ItemView _items;
         LandingRing _ring;
@@ -148,9 +150,12 @@ namespace GrandSluggers.UnityClient
                 cam = go.AddComponent<Camera>();
                 go.AddComponent<AudioListener>();
             }
+            _feel = _content.Feel;
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);
-            _rig.Cut(new Vector3(0f, 9f, -22f), new Vector3(0f, 3.2f, 16f), 42f);
+            _cam = gameObject.AddComponent<CameraDirector>();
+            _cam.Bind(_rig, _content.Shots, _feel);
+            _cam.Cut("title");
         }
 
         void Update()
@@ -207,7 +212,7 @@ namespace GrandSluggers.UnityClient
                         {
                             _replaying = false;
                             _t = 0;
-                            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+                            _cam.Play("replay");
                         }
                         break;
                     }
@@ -352,7 +357,7 @@ namespace GrandSluggers.UnityClient
                     _cNight = false;
                 }
             }
-            _rig.Aim(new Vector3(0f, 9f, -22f), new Vector3(0f, 3.2f, 16f), 42f);
+            _cam.Play("title");
             if (Controls.SouthDown)
             {
                 if (_mode == PlayMode.Training)
@@ -380,7 +385,7 @@ namespace GrandSluggers.UnityClient
             _clip = null;
             _hlPath = null;
             _replaying = false;
-            _rig.Aim(new Vector3(0f, 8.5f, -20f), new Vector3(0f, 3.2f, 16f), 40f);
+            _cam.Play("select");
         }
 
         void TickSelect()
@@ -409,7 +414,7 @@ namespace GrandSluggers.UnityClient
             }
             if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
                 AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
-            _rig.Aim(new Vector3(0f, 8.5f, -20f), new Vector3(0f, 3.2f, 16f), 40f);
+            _cam.Play("select");
             if (Controls.SouthDown && _t > 0.15f)
                 OpenLineup();
         }
@@ -450,7 +455,7 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             _replaying = false;
             _audio?.CrowdBed(false);
-            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+            _cam.Play("replay");
         }
 
         void ConfirmGameOver()
@@ -477,7 +482,7 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             _replaying = false;
             _audio?.CrowdBed(false);
-            _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+            _cam.Play("replay");
         }
 
         void OpenLineup()
@@ -505,7 +510,7 @@ namespace GrandSluggers.UnityClient
             _clip = null;
             _hlPath = null;
             _replaying = false;
-            _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
+            _cam.Play("lineup");
         }
 
         void TickLineup()
@@ -681,8 +686,8 @@ namespace GrandSluggers.UnityClient
 
         void AimSetCamera()
         {
-            if (HumanPitches) _rig.FramePitch();
-            else _rig.FramePlate();
+            if (HumanPitches) _cam.Play("mound");
+            else _cam.Play("plate");
         }
 
         void TickSet(float dt)
@@ -698,7 +703,9 @@ namespace GrandSluggers.UnityClient
                 _aimX = Mathf.Clamp(Controls.StickX, -1, 1);
                 _aimY = Mathf.Clamp(Controls.StickY, -1, 1);
                 _zone.Show(true, _aimX, _aimY);
-                _charge = Controls.Charge ? Mathf.Min(1, _charge + dt / 0.55f) : Mathf.Max(0, _charge - dt * 1.4f);
+                _charge = Controls.Charge
+                    ? Mathf.Min(1, _charge + dt / (float)_feel.PitchChargeSeconds)
+                    : Mathf.Max(0, _charge - dt * (float)_feel.ChargeDecay);
                 if (Controls.SouthDown) Launch(PlayerPitch());
                 return;
             }
@@ -753,7 +760,7 @@ namespace GrandSluggers.UnityClient
             if (HumanBats)
             {
                 if (Controls.NorthDown && _match.CanStarSwing) _star = !_star;
-                if (Controls.Charge) _charge = Mathf.Min(1, _charge + dt / 0.45f);
+                if (Controls.Charge) _charge = Mathf.Min(1, _charge + dt / (float)_feel.SwingChargeSeconds);
                 if (Controls.SouthDown && !_swung)
                 {
                     _swung = true;
@@ -868,13 +875,13 @@ namespace GrandSluggers.UnityClient
             if (hit.StarSwingUsed != null) _audio?.CaptainVo(_match.Batter.Id);
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
-                _freeze = 0.32f;
-                _smash = 0.18f;
-                _rig.Smash(_ball);
+                _freeze = (float)_feel.SmashFreeze;
+                _smash = (float)_feel.SmashHold;
+                _cam.SmashAt(_ball);
             }
             else if (hit.Quality == ContactQuality.Solid)
             {
-                _freeze = 0.08f;
+                _freeze = (float)_feel.SolidFreeze;
                 _rig.Punch(8f);
             }
             AimDiamond(hit);
@@ -884,12 +891,14 @@ namespace GrandSluggers.UnityClient
         {
             var grounder = hit.LaunchDeg < 14;
             var look = _ball.sqrMagnitude > 1 ? _ball : new Vector3((float)(_preview?.LandingX ?? 0), 3f, (float)(_preview?.LandingZ ?? 80));
-            if (grounder && hit.SprayDeg < -8)
-                _rig.Aim(new Vector3(-32f, 14f, 36f), look, 46f);
+            if (hit.StarSwingUsed != null)
+                _cam.SmashAt(_ball);
+            else if (grounder && hit.SprayDeg < -8)
+                _cam.PlayLook("diamond-pull", look);
             else if (grounder)
-                _rig.Aim(new Vector3(38f, 14f, 22f), look, 46f);
+                _cam.PlayLook("diamond-grounder", look);
             else
-                _rig.Aim(new Vector3(8f, 26f, -18f), look + new Vector3(0, 3, 10), 50f);
+                _cam.PlayLook("diamond", look + new Vector3(0, 3, 10));
         }
 
         void TickInPlay(float dt)
@@ -915,20 +924,21 @@ namespace GrandSluggers.UnityClient
             }
             if (_smash > 0) _smash -= dt;
             else if (_throwing)
-                _rig.FrameThrow(_throwFrom, _throwTo);
+                _cam.ThrowTo(_throwFrom, _throwTo);
             else if ((_caught || _buddy) && !_throwing)
             {
                 var bag = _throwBag > 0 ? _throwBag : Controls.StickBag;
                 if (bag > 0)
-                    _rig.FrameThrow(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag));
+                    _cam.ThrowTo(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag));
                 else
-                    _rig.Aim(new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
+                    _cam.AimRaw("glove",
+                        new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
                         new Vector3((float)_fx, 2.2f, (float)_fz), 46f);
             }
             else if (BuddySet && _hitT > 0.7f)
             {
                 var plant = WallPlant(_preview);
-                _rig.Aim(
+                _cam.AimRaw("wall",
                     new Vector3((float)plant.X + 24f, 15f, (float)plant.Z - 34f),
                     new Vector3((float)plant.X, 5.5f, (float)plant.Z),
                     42f);
@@ -936,7 +946,7 @@ namespace GrandSluggers.UnityClient
             else if (_pending != null)
                 AimDiamond(_pending);
             else
-                _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
+                _cam.AimRaw("chase", _ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
             if (_ring != null && _preview != null && !_preview.Grounder && !_preview.Line && !_caught && !_buddy)
             {
@@ -1785,7 +1795,7 @@ namespace GrandSluggers.UnityClient
             _items?.Hide();
             _zone.Show(false, 0, 0);
             _ring?.Hide();
-            _rig.Aim(new Vector3(0, 36, -46), new Vector3(0, 2, 110), 48f);
+            _cam.Play("result");
         }
 
         void TickItem(float dt)
@@ -1940,7 +1950,7 @@ namespace GrandSluggers.UnityClient
                 _audio?.Swell();
             }
             else
-                _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
+                _cam.Play("replay");
         }
 
         void TickReplay(float dt)
@@ -1953,14 +1963,14 @@ namespace GrandSluggers.UnityClient
                 var p = BallFlight.PointAt(_hlPath, _hlSpray, t);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
-                    _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
+                    _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
                 else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
-                    _rig.Smash(new Vector3(0.4f, 3.2f, 2f));
+                    _cam.SmashAt(new Vector3(0.4f, 3.2f, 2f));
                 else
-                    _rig.Smash(_ball);
+                    _cam.SmashAt(_ball);
                 return;
             }
-            _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : new Vector3(0.4f, 3.2f, 2f));
+            _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : new Vector3(0.4f, 3.2f, 2f));
         }
 
         static bool Key(KeyCode k) => Input.GetKeyDown(k);

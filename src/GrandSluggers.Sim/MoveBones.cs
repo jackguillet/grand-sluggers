@@ -17,8 +17,29 @@ public static class MoveBones
         Idle, Walk, Run, Jump,
         ChargePitch, Pitch,
         ChargeSwing, Swing,
-        Throw
+        Throw, Scoop, Slide
     }
+
+    public enum ClipEvent { Contact, Release, FootPlant }
+
+    public readonly record struct Clip(string Id, Verb Verb, ClipEvent[] Marks);
+
+    /// <summary>One shared clip list. Captains are skins on this chain.</summary>
+    public static readonly IReadOnlyList<Clip> ClipList =
+    [
+        new("idle", Verb.Idle, []),
+        new("walk", Verb.Walk, [ClipEvent.FootPlant]),
+        new("run", Verb.Run, [ClipEvent.FootPlant]),
+        new("jump", Verb.Jump, [ClipEvent.FootPlant]),
+        new("swing", Verb.Swing, [ClipEvent.Contact]),
+        new("pitch", Verb.Pitch, [ClipEvent.Release]),
+        new("scoop", Verb.Scoop, [ClipEvent.Contact]),
+        new("slide", Verb.Slide, [ClipEvent.FootPlant]),
+        new("throw", Verb.Throw, [ClipEvent.Release])
+    ];
+
+    public static IReadOnlyList<string> Clips { get; } =
+        ClipList.Select(c => c.Id).ToArray();
 
     public readonly record struct Euler(double X, double Y, double Z);
 
@@ -65,6 +86,8 @@ public static class MoveBones
             Verb.ChargeSwing => ChargeSwing(charge),
             Verb.Swing => Swing(poseT),
             Verb.Throw => Throw(poseT),
+            Verb.Scoop => Scoop(poseT),
+            Verb.Slide => Slide(poseT),
             _ => Idle()
         };
     }
@@ -228,6 +251,40 @@ public static class MoveBones
         if (u < 0.22) return Mix(load, hips, Smooth(u / 0.22));
         if (u < 0.48) return Mix(hips, cut, Smooth((u - 0.22) / 0.26));
         return Mix(cut, wrap, Smooth(Math.Clamp((u - 0.48) / 0.36, 0, 1)));
+    }
+
+    static Sample Scoop(double poseT)
+    {
+        var drop = Smooth(Math.Clamp(poseT / 0.12, 0, 1));
+        var pick = Smooth(Math.Clamp((poseT - 0.12) / 0.16, 0, 1));
+        var up = Smooth(Math.Clamp((poseT - 0.28) / 0.16, 0, 1));
+        var reach = Math.Max(drop, pick);
+        var lUpper = Le(E(12, 0, 18), Le(E(62, 8, 10), E(28, 0, 16), up), reach);
+        var rUpper = Le(E(12, 0, -18), Le(E(70, -12, -8), E(22, 0, -16), up), reach);
+        return Pose(
+            torso: E(Lerp(8, 42, drop) - 22 * up, 0, 0),
+            lUpper: lUpper, rUpper: rUpper,
+            lFore: E(18, 0, 0), rFore: E(22, 0, 0),
+            lThigh: E(38 + 18 * drop - 12 * up, 8, 0),
+            rThigh: E(28 + 22 * drop - 10 * up, -6, 0),
+            lShin: E(28 + 16 * drop, 0, 0),
+            rShin: E(22 + 18 * drop, 0, 0));
+    }
+
+    static Sample Slide(double poseT)
+    {
+        var tuck = Smooth(Math.Clamp(poseT / 0.18, 0, 1));
+        var pop = Smooth(Math.Clamp((poseT - 0.18) / 0.22, 0, 1));
+        var lThigh = Le(E(20, 0, 0), Le(E(88, 10, 12), E(42, 6, 6), pop), tuck);
+        var rThigh = Le(E(12, 0, 0), Le(E(102, -8, -10), E(28, -4, -6), pop), tuck);
+        return Pose(
+            torso: E(Lerp(12, 62, tuck) - 28 * pop, 0, 0),
+            lUpper: Le(E(10, 8, 18), E(-28, 12, 22), tuck),
+            rUpper: Le(E(10, -8, -18), E(-48, -18, -12), tuck),
+            lFore: E(14, 0, 0), rFore: E(16, 0, 0),
+            lThigh: lThigh, rThigh: rThigh,
+            lShin: E(18 + 40 * tuck - 20 * pop, 0, 0),
+            rShin: E(14 + 48 * tuck - 24 * pop, 0, 0));
     }
 
     static Sample Throw(double poseT)

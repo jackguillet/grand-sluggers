@@ -24,7 +24,7 @@ Nintendo has not shipped a new Mario baseball game since 2008. The slot is empty
 
 ```
 docs/     design, research, engine decision, systems
-data/     JSON content (roster, chemistry, parks, bats, gloves, abilities)
+data/     JSON content (roster, chemistry, parks, bats, gloves, abilities, feel)
 src/      Sim (rules) · Play (Raylib debug sandbox) · Cli · Tests
 unity/    Unity 6 URP client — this is how you play
 ```
