@@ -11,7 +11,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Gimmick: none
 - Night: fireworks on homers, same play
 - Fence: 330 / 400 / 330
-- Why it exists: teach baseball before we teach gimmicks
+- Why it exists: teach baseball before we teach gimmicks. Control park **and** trailer still: afternoon light, warning track, dugouts, backstop, bleachers with crowd in the seats. Town sits beyond the fence, not in other parks.
 
 ## Crystal Rink
 
