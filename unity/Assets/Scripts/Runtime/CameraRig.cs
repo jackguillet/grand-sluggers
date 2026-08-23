@@ -48,6 +48,22 @@ namespace GrandSluggers.UnityClient
             _punch = 16f;
         }
 
+        public void FramePitch() =>
+            Aim(new Vector3(-6.2f, 6.4f, 78f), new Vector3(0.2f, 3.1f, 3.4f), 36f);
+
+        public void FramePlate() =>
+            Aim(new Vector3(6.4f, 5.8f, -12f), new Vector3(0f, 3.2f, 44f), 34f);
+
+        public void FrameThrow(Vector3 from, Vector3 to)
+        {
+            var dir = to - from;
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 1f) dir = Vector3.forward;
+            dir.Normalize();
+            var side = Vector3.Cross(Vector3.up, dir);
+            Aim(from - dir * 18f + Vector3.up * 7.5f + side * 5.5f, to + Vector3.up * 1.4f, 42f);
+        }
+
         public void Tick(float dt)
         {
             if (_cam == null) return;

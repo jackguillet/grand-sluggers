@@ -103,6 +103,23 @@ namespace GrandSluggers.UnityClient
                 _gold);
         }
 
+        public static void BagTell(int bag)
+        {
+            Ensure();
+            var labels = new[] { "1B", "2B", "3B", "HOME" };
+            var w = 88f;
+            var x0 = Screen.width * 0.5f - (w * 4 + 24) * 0.5f;
+            var y = Screen.height - 78f;
+            GUI.Label(new Rect(x0, y - 26, 400, 22), "throw  ·  stick / 1 2 3 4", _tiny);
+            for (var i = 0; i < 4; i++)
+            {
+                var r = new Rect(x0 + i * (w + 8), y, w, 48);
+                GUI.DrawTexture(r, _panel);
+                var lit = bag == i + 1;
+                GUI.Label(r, labels[i], lit ? _gold : _body);
+            }
+        }
+
         static void TrainingPlay(string banner, string sub, string progress)
         {
             var w = 560;

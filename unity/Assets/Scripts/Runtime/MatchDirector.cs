@@ -270,6 +270,8 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver);
+            if (_phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
+                HudView.BagTell(_throwBag > 0 ? _throwBag : Controls.StickBag);
         }
 
         Match NewMatch()
@@ -674,8 +676,8 @@ namespace GrandSluggers.UnityClient
             _gloved = false;
             _audio?.CrowdBed(true);
             if (PlayerFields) _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
-            else if (HumanPitches) _rig.Aim(new Vector3(-5.4f, 7.0f, 80f), new Vector3(0.3f, 3.4f, 4f), 40f);
-            else _rig.Aim(new Vector3(5.8f, 6.2f, -14f), new Vector3(0f, 3.1f, 46f), 38f);
+            else if (HumanPitches) _rig.FramePitch();
+            else _rig.FramePlate();
             _zone.Show(true, 0, 0);
         }
 
@@ -907,7 +909,16 @@ namespace GrandSluggers.UnityClient
             }
             if (_smash > 0) _smash -= dt;
             else if (_throwing)
-                _rig.Aim(_throwTo + new Vector3(14f, 11f, -18f), _throwTo, 48f);
+                _rig.FrameThrow(_throwFrom, _throwTo);
+            else if ((_caught || _buddy) && !_throwing)
+            {
+                var bag = _throwBag > 0 ? _throwBag : Controls.StickBag;
+                if (bag > 0)
+                    _rig.FrameThrow(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag));
+                else
+                    _rig.Aim(new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
+                        new Vector3((float)_fx, 2.2f, (float)_fz), 46f);
+            }
             else if (BuddySet && _hitT > 0.7f)
             {
                 var plant = WallPlant(_preview);
