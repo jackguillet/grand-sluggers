@@ -502,6 +502,11 @@ public sealed class Match
                 break;
             case PlayKind.FlyOut:
             case PlayKind.GroundOut:
+                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field))
+                {
+                    kind = PlayKind.Single;
+                    goto case PlayKind.Single;
+                }
                 Outs++;
                 AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                 AddStars(defense: true, 0.35);
