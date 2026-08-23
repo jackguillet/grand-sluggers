@@ -504,12 +504,12 @@ namespace GrandSluggers.UnityClient
                 if (!_used.Contains(kv.Key) && kv.Value != null)
                     kv.Value.gameObject.SetActive(false);
 
-            var starPitch = _pitch != null && _pitch.Star ? _match.Pitcher.StarPitch : "";
+            var starPitch = _pitch != null && _pitch.Star ? _match.Pitcher.StarPitch : _spec.ActivePitch;
             var starSwing = _pending != null ? _pending.StarSwingUsed
                 : _last != null ? _last.AtBat.StarSwingUsed : null;
             var ptype = _pitch != null ? _pitch.Type : "fastball";
             var heat = _last != null && _last.Heatball;
-            if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
+            if (_phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat);
             else
                 _park.Ball.Hide();

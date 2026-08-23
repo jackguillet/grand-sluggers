@@ -111,4 +111,11 @@ public static class StarSkills
         "line" => 1.25,
         _ => 1.06
     };
+
+    /// <summary>
+    /// How long a special owns the ball or the field before baseball resumes.
+    /// Readable clip, not a full-screen blind.
+    /// </summary>
+    public static double SpectacleSeconds(string? id) =>
+        string.IsNullOrEmpty(id) ? 0 : 2.0;
 }
