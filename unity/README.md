@@ -28,7 +28,8 @@ Gamepad is the product. Keyboard is a debug overlay.
 | Jump / buddy / bunt (hold) | West | F / V hold |
 | Throw to bag | D-pad | 1 2 3 4 |
 | Steal | LB | X |
-| Challenge | Start | H |
+| Exhibition / Challenge / Training | Start | H |
+| Training (from title) | West | F |
 | Timing bar | — | F1 |
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.

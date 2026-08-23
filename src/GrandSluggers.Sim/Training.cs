@@ -1,0 +1,186 @@
+namespace GrandSluggers.Sim;
+
+/// <summary>
+/// Four Harbor Diamond drills. Engine-agnostic — Unity and tests call the same methods.
+/// No park gimmicks. Pitch, swing, field, then feel chemistry on the throw.
+/// </summary>
+public sealed class Training
+{
+    public const string ParkId = "harbor-diamond";
+    public const int DrillCount = 4;
+    public static readonly string[] CorePitches = ["fastball", "changeup", "curve", "slider"];
+
+    readonly HashSet<string> _inZone = new(StringComparer.OrdinalIgnoreCase);
+    bool _needStar;
+    bool _starInZone;
+    bool _timedContact;
+    bool _chargedContact;
+    bool _caughtAndThrew;
+
+    Training(Park park) => Park = park;
+
+    public Park Park { get; }
+    public int CurrentDrill { get; private set; } = 1;
+    public bool Finished => CurrentDrill > DrillCount;
+    public IReadOnlyCollection<string> InZonePitchTypes => _inZone;
+    public bool StarPitchInZone => _starInZone;
+    public bool NeedStar => _needStar;
+    public bool TimedContact => _timedContact;
+    public bool ChargedContact => _chargedContact;
+    public bool CaughtAndThrew => _caughtAndThrew;
+    public ThrowResult? LastGoodThrow { get; private set; }
+    public ThrowResult? LastBadThrow { get; private set; }
+
+    public static Training Start(ContentCatalog content)
+    {
+        if (!content.Parks.TryGetValue(ParkId, out var park))
+            throw new InvalidDataException("harbor-diamond is missing");
+        return new Training(park);
+    }
+
+    public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9) =>
+        Match.Exhibition(content, "rio", "ashlord", innings, seed, ParkId);
+
+    public bool RecordPitch(PitchCommand pitch, Match match) =>
+        RecordPitch(pitch, match.Pitcher.Stats.Pitch, match.CanStarPitch);
+
+    public bool RecordPitch(PitchCommand pitch, int pitchStat, bool canStar)
+    {
+        if (Finished || CurrentDrill != 1) return false;
+        if (canStar) _needStar = true;
+        if (!AtBatResolver.PitchInZone(pitch, pitchStat)) return false;
+
+        var type = CoreType(pitch.Type);
+        if (type is not null) _inZone.Add(type);
+        if (pitch.Star) _starInZone = true;
+        if (PitchDrillDone()) Advance();
+        return CurrentDrill != 1;
+    }
+
+    public bool RecordSwing(SwingCommand swing, AtBatResult hit)
+    {
+        if (Finished || CurrentDrill != 2) return false;
+        if (!swing.Swing || hit.Quality == ContactQuality.Miss) return false;
+
+        _timedContact = true;
+        if (swing.Charge01 > 0.5) _chargedContact = true;
+        // |spray| is optional — time + charge is the bar.
+        if (_timedContact && _chargedContact) Advance();
+        return CurrentDrill != 2;
+    }
+
+    public bool RecordFielding(FieldingResult field)
+    {
+        if (Finished || CurrentDrill != 3) return false;
+        var caught = field.Fielder is not null &&
+                     field.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
+        var threw = field.Throw is not null && field.Cutoff is not null;
+        if (!caught || !threw) return false;
+        _caughtAndThrew = true;
+        Advance();
+        return true;
+    }
+
+    public bool RecordChemThrows(ThrowResult good, ThrowResult bad)
+    {
+        if (Finished || CurrentDrill != 4) return false;
+        if (good.Relation != Chemistry.Good || bad.Relation != Chemistry.Bad) return false;
+        LastGoodThrow = good;
+        LastBadThrow = bad;
+        if (good.SpeedMul <= bad.SpeedMul) return false;
+        Advance();
+        return true;
+    }
+
+    public bool RecordChemThrows(Match match, Character from, Character goodTo, Character badTo) =>
+        RecordChemThrows(match.ThrowBetween(from, goodTo), match.ThrowBetween(from, badTo));
+
+    public bool RecordChemThrows(Match match)
+    {
+        if (Finished || CurrentDrill != 4) return false;
+        if (!TryFindChemPair(match, out var from, out var goodTo, out var badTo))
+            return false;
+        return RecordChemThrows(match, from, goodTo, badTo);
+    }
+
+    public static bool TryFindChemPair(Match match, out Character from, out Character goodTo, out Character badTo)
+    {
+        var people = match.Home.Roster.Concat(match.Away.Roster).ToList();
+        from = goodTo = badTo = people[0];
+        foreach (var a in people)
+        {
+            Character? g = null, b = null;
+            foreach (var o in people)
+            {
+                if (o.Id.Equals(a.Id, StringComparison.OrdinalIgnoreCase)) continue;
+                var rel = match.Chemistry.Between(a, o);
+                if (rel == Chemistry.Good) g ??= o;
+                else if (rel == Chemistry.Bad) b ??= o;
+                if (g is not null && b is not null)
+                {
+                    from = a;
+                    goodTo = g;
+                    badTo = b;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public string Caption => Finished
+        ? "Ready."
+        : CurrentDrill switch
+        {
+            1 => "Paint the zone",
+            2 => "Time it and charge",
+            3 => "Catch it, throw a bag",
+            4 => "Good chem throws faster",
+            _ => ""
+        };
+
+    public string Verb => Finished
+        ? "South  title"
+        : CurrentDrill switch
+        {
+            1 => "South pitch   RB cycle   LT charge   North star",
+            2 => "LT charge   South swing   LS spray",
+            3 => "South catch   East dive   D-pad throw",
+            4 => "South catch   D-pad throw",
+            _ => ""
+        };
+
+    public string Progress
+    {
+        get
+        {
+            if (Finished) return "4 / 4";
+            if (CurrentDrill != 1)
+                return $"{CurrentDrill} / {DrillCount}";
+            var bits = CorePitches.Select(p => _inZone.Contains(p) ? p : "·");
+            var star = !_needStar || _starInZone ? "*" : "star";
+            return string.Join("  ", bits) + "  " + star;
+        }
+    }
+
+    bool PitchDrillDone()
+    {
+        foreach (var p in CorePitches)
+            if (!_inZone.Contains(p)) return false;
+        return !_needStar || _starInZone;
+    }
+
+    void Advance()
+    {
+        if (CurrentDrill <= DrillCount)
+            CurrentDrill++;
+    }
+
+    static string? CoreType(string type)
+    {
+        var t = type.Trim().ToLowerInvariant();
+        foreach (var p in CorePitches)
+            if (p == t) return p;
+        return null;
+    }
+}
