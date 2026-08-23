@@ -14,7 +14,8 @@ namespace GrandSluggers.UnityClient
             bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
             bool training = false, string drillProgress = null, bool night = false,
-            bool hideHelp = false, string highlight = null, bool replaying = false)
+            bool hideHelp = false, string highlight = null, bool replaying = false,
+            bool mutePlay = false)
         {
             Ensure();
             if (phase == PhaseUi.Title)
@@ -43,6 +44,7 @@ namespace GrandSluggers.UnityClient
                 TrainingPlay(banner, sub, drillProgress);
                 return;
             }
+            if (mutePlay) return;
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
         }
 
