@@ -85,7 +85,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             var dt = Time.deltaTime;
-            if (Key(KeyCode.F1)) _showTiming = !_showTiming;
+            if (Controls.TimingAid) _showTiming = !_showTiming;
             if (_freeze > 0)
             {
                 _freeze -= Time.unscaledDeltaTime;
@@ -100,7 +100,7 @@ namespace GrandSluggers.UnityClient
                     if (Key(KeyCode.G)) _match.CycleGlove(true);
                     if (Key(KeyCode.N)) _match.CycleBat(false);
                     if (Key(KeyCode.M)) _match.CycleGlove(false);
-                    if (Confirm() || _t > 10f) BeginSet();
+                    if (Controls.SouthDown || _t > 10f) BeginSet();
                     break;
                 case Phase.Set: TickSet(dt); break;
                 case Phase.Flight: TickFlight(dt); break;
@@ -119,7 +119,7 @@ namespace GrandSluggers.UnityClient
                     }
                     break;
                 case Phase.GameOver:
-                    if (Confirm()) ConfirmGameOver();
+                    if (Controls.SouthDown) ConfirmGameOver();
                     break;
             }
             DrawActors();
@@ -163,7 +163,7 @@ namespace GrandSluggers.UnityClient
 
         void TickTitle()
         {
-            if (Key(KeyCode.H)) _challenge = !_challenge;
+            if (Controls.Start) _challenge = !_challenge;
             if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
             {
                 HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
@@ -186,7 +186,7 @@ namespace GrandSluggers.UnityClient
                 var i = System.Array.IndexOf(Parks, ParkId);
                 ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
             }
-            if (Confirm())
+            if (Controls.SouthDown)
             {
                 _match = NewMatch();
                 _park.Build(_match.Park);
@@ -243,19 +243,19 @@ namespace GrandSluggers.UnityClient
         void TickSet(float dt)
         {
             _pip += dt * 1.35f;
-            if (Key(KeyCode.Tab) || Pad(5)) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
-            if (Key(KeyCode.R)) _match.SwapPitcher();
-            if ((Key(KeyCode.Q) || Pad(3)) && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
-            if (HumanBats && (Key(KeyCode.X) || Pad(4))) _match.ToggleSteal();
-            if (HumanBats && (Key(KeyCode.E) || Pad(5)) && _match.Chemistry.ChemistryItemOffered(_match.Batter, _match.OnDeck))
+            if (Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
+            if (Controls.SwapPitcher) _match.SwapPitcher();
+            if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
+            if (HumanBats && Controls.Steal) _match.ToggleSteal();
+            if (HumanBats && Controls.Item && _match.Chemistry.ChemistryItemOffered(_match.Batter, _match.OnDeck))
                 _itemArmed = !_itemArmed;
             if (HumanPitches)
             {
-                _aimX = Mathf.Clamp(StickX(), -1, 1);
-                _aimY = Mathf.Clamp(StickY(), -1, 1);
+                _aimX = Mathf.Clamp(Controls.StickX, -1, 1);
+                _aimY = Mathf.Clamp(Controls.StickY, -1, 1);
                 _zone.Show(true, _aimX, _aimY);
-                _charge = Charging() ? Mathf.Min(1, _charge + dt / 0.55f) : Mathf.Max(0, _charge - dt * 1.4f);
-                if (Confirm()) Launch(PlayerPitch());
+                _charge = Controls.Charge ? Mathf.Min(1, _charge + dt / 0.55f) : Mathf.Max(0, _charge - dt * 1.4f);
+                if (Controls.SouthDown) Launch(PlayerPitch());
                 return;
             }
             if (_t > 0.55f) Launch(_match.CpuPitch());
@@ -304,12 +304,12 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3(x, y, z);
             if (HumanBats)
             {
-                if ((Key(KeyCode.Q) || Pad(3)) && _match.CanStarSwing) _star = !_star;
-                if (Charging()) _charge = Mathf.Min(1, _charge + dt / 0.45f);
-                if (Confirm() && !_swung)
+                if (Controls.NorthDown && _match.CanStarSwing) _star = !_star;
+                if (Controls.Charge) _charge = Mathf.Min(1, _charge + dt / 0.45f);
+                if (Controls.SouthDown && !_swung)
                 {
                     _swung = true;
-                    _swing = new SwingCommand(true, _charge, (_flight - _pitchDur) * 60f, _star && _match.CanStarSwing, StickX() * 18f);
+                    _swing = new SwingCommand(true, _charge, (_flight - _pitchDur) * 60f, _star && _match.CanStarSwing, Controls.StickX * 18f, Controls.WestHeld);
                 }
             }
             if (u < 1) return;
@@ -384,10 +384,16 @@ namespace GrandSluggers.UnityClient
             if (_playerFielding && _preview != null && _pending != null)
             {
                 var speed = (18 + _preview.Fielder.Stats.Run * 1.8) * (_preview.Frozen ? 0.4 : 1);
-                _fx += StickX() * speed * dt;
-                _fz += StickY() * speed * dt;
-                if ((Key(KeyCode.F) || Pad(1)) && _preview.Buddy != null && _preview.HomeRunLikely) _buddy = true;
-                if (Confirm() && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 4) _caught = true;
+                _fx += Controls.StickX * speed * dt;
+                _fz += Controls.StickY * speed * dt;
+                if (Controls.WestDown && _preview.Buddy != null && _preview.HomeRunLikely) _buddy = true;
+                if (Controls.EastDown && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 8)
+                {
+                    _caught = true;
+                    if (_heroes.TryGetValue(_preview.Fielder.Id, out var diver))
+                        diver.SetPose(HeroActor.Pose.Dive);
+                }
+                if (Controls.SouthDown && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 4) _caught = true;
                 var hang = BallFlight.HangTime(_path);
                 if (_hitT >= hang)
                 {
@@ -410,10 +416,7 @@ namespace GrandSluggers.UnityClient
             Character cut = null;
             ThrowResult thr = null;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            var bag = Input.GetKey(KeyCode.Alpha1) || PadDir(1) ? 1
-                : Input.GetKey(KeyCode.Alpha2) || PadDir(2) ? 2
-                : Input.GetKey(KeyCode.Alpha3) || PadDir(3) ? 3
-                : Input.GetKey(KeyCode.H) || PadDir(4) ? 4 : 0;
+            var bag = Controls.ThrowBag;
             if ((_caught || _buddy) && bag > 0)
             {
                 var key = bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : "C";
@@ -573,28 +576,6 @@ namespace GrandSluggers.UnityClient
             return x < 1f ? x : 2f - x;
         }
 
-        static bool Confirm() => Key(KeyCode.Space) || Key(KeyCode.Return) || Pad(0);
-        static bool Charging() => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.JoystickButton4) || Input.GetKey(KeyCode.JoystickButton6) || Input.GetAxis("Fire3") > 0.45f;
         static bool Key(KeyCode k) => Input.GetKeyDown(k);
-        static bool Pad(int button) => Input.GetKeyDown((KeyCode)((int)KeyCode.JoystickButton0 + button));
-        static bool PadDir(int bag) =>
-            bag == 1 && Input.GetKey(KeyCode.JoystickButton15) ||
-            bag == 2 && Input.GetKey(KeyCode.JoystickButton13) ||
-            bag == 3 && Input.GetKey(KeyCode.JoystickButton16) ||
-            bag == 4 && Input.GetKey(KeyCode.JoystickButton14);
-        static float StickX()
-        {
-            var v = Input.GetAxisRaw("Horizontal");
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) v -= 1;
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) v += 1;
-            return Mathf.Clamp(v, -1, 1);
-        }
-        static float StickY()
-        {
-            var v = Input.GetAxisRaw("Vertical");
-            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) v -= 1;
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) v += 1;
-            return Mathf.Clamp(v, -1, 1);
-        }
     }
 }

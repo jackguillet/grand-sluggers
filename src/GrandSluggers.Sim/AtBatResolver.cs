@@ -68,7 +68,13 @@ public sealed class AtBatResolver
             ? (rng.NextDouble() < 0.5 ? 8 : 48)
             : 18 + (power - 5) * 1.4 + (rng.NextDouble() - 0.5) * 8;
 
-        if (input.UseStarSwing)
+        if (input.Bunt)
+        {
+            exit *= 0.42;
+            launch = 5 + rng.NextDouble() * 7;
+        }
+
+        if (input.UseStarSwing && !input.Bunt)
             launch = StarLaunch(input.Batter.StarSwing, launch);
 
         var spray = input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality);
@@ -79,7 +85,7 @@ public sealed class AtBatResolver
 
         var carry = BallFlight.CarryFeet(exit, launch, park.WindMph);
         var fence = FenceAt(park, spray);
-        var homer = carry >= fence && launch is > 18 and < 38;
+        var homer = !input.Bunt && carry >= fence && launch is > 18 and < 38;
         var foul = !homer && (Math.Abs(spray) > 45 || (quality == ContactQuality.Cheap && Math.Abs(spray) > 32 && rng.NextDouble() < 0.45));
 
         return new AtBatResult(
