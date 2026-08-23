@@ -21,6 +21,7 @@ namespace GrandSluggers.UnityClient
         ParkView _park;
         CameraRig _rig;
         SpecialFx _spec;
+        StrikeZone _zone;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
@@ -44,6 +45,9 @@ namespace GrandSluggers.UnityClient
         float _pitchDur = 0.5f;
         float _hitT;
         float _freeze;
+        float _smash;
+        bool _showTiming;
+        float _aimX, _aimY;
         Sample[] _path;
         Vector3 _ball;
         double _fx, _fz;
@@ -62,6 +66,8 @@ namespace GrandSluggers.UnityClient
             _park.Build(_match.Park);
             _spec = gameObject.AddComponent<SpecialFx>();
             _spec.Build(transform);
+            _zone = gameObject.AddComponent<StrikeZone>();
+            _zone.Build(transform);
             var cam = Camera.main;
             if (cam == null)
             {
@@ -90,6 +96,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             var dt = Time.deltaTime;
+            if (Key(KeyCode.F1)) _showTiming = !_showTiming;
             if (_freeze > 0)
             {
                 _freeze -= Time.unscaledDeltaTime;
@@ -150,7 +157,7 @@ namespace GrandSluggers.UnityClient
             var parkName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, _itemArmed, _charge, timing,
-                _phase is Phase.Set or Phase.Flight, _banner, _sub, Look.Portrait(HomeCaptain));
+                _showTiming && _phase is Phase.Set or Phase.Flight, _banner, _sub, Look.Portrait(HomeCaptain));
         }
 
         Match NewMatch()
@@ -237,8 +244,11 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             _ball = new Vector3(0, 5.4f, 60.5f);
             _park.Ball.Place(_ball, "", "fastball", false);
-            if (_match.Top) _rig.Aim(new Vector3(-5f, 7.2f, 78f), new Vector3(0.4f, 3.6f, 6f), 42f);
-            else _rig.Aim(new Vector3(5.5f, 6.4f, -13f), new Vector3(0f, 3.2f, 48f), 40f);
+            _aimX = _aimY = 0;
+            _smash = 0;
+            if (_match.Top) _rig.Aim(new Vector3(-5.4f, 7.0f, 80f), new Vector3(0.3f, 3.4f, 4f), 40f);
+            else _rig.Aim(new Vector3(5.8f, 6.2f, -14f), new Vector3(0f, 3.1f, 46f), 38f);
+            _zone.Show(true, 0, 0);
         }
 
         void TickSet(float dt)
@@ -252,6 +262,9 @@ namespace GrandSluggers.UnityClient
                 _itemArmed = !_itemArmed;
             if (HumanPitches)
             {
+                _aimX = Mathf.Clamp(StickX(), -1, 1);
+                _aimY = Mathf.Clamp(StickY(), -1, 1);
+                _zone.Show(true, _aimX, _aimY);
                 _charge = Charging() ? Mathf.Min(1, _charge + dt / 0.55f) : Mathf.Max(0, _charge - dt * 1.4f);
                 if (Confirm()) Launch(PlayerPitch());
                 return;
@@ -261,9 +274,7 @@ namespace GrandSluggers.UnityClient
 
         PitchCommand PlayerPitch()
         {
-            var bounce = Bounce(_pip);
-            var stick = StickX();
-            return new PitchCommand(_pitches[_pitchIndex], _charge, (bounce - 0.5f) * 18f + stick * 4f, _star && _match.CanStarPitch);
+            return new PitchCommand(_pitches[_pitchIndex], _charge, 0, _star && _match.CanStarPitch, _aimX, _aimY);
         }
 
         void Launch(PitchCommand pitch)
@@ -277,6 +288,9 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Flight;
             _t = 0;
             _ball = new Vector3(0, 5.4f, 60.5f);
+            _aimX = (float)pitch.AimX;
+            _aimY = (float)pitch.AimY;
+            _zone.Show(true, _aimX, _aimY);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
         }
@@ -285,20 +299,20 @@ namespace GrandSluggers.UnityClient
         {
             _flight += dt;
             var u = Mathf.Clamp01(_flight / _pitchDur);
-            var breakX = _pitch.Type == "curve" ? Mathf.Sin(u * Mathf.PI) * 2.8f
-                : _pitch.Type == "slider" ? Mathf.Sin(u * Mathf.PI) * 1.6f : 0f;
-            var y = 5.4f + (2.4f - 5.4f) * u * u + (_pitch.Type == "changeup" ? -1.2f * u * u : 0f);
-            var z = 60.5f * (1 - u);
+            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY);
+            var x = (float)p.X;
+            var y = (float)p.Y;
+            var z = (float)p.Z;
             if (_pitch.Star)
             {
                 var id = _match.Pitcher.StarPitch;
-                if (id == "heatball") breakX += Mathf.Sin(u * 18f) * 0.4f;
-                else if (id == "prismball") breakX += Mathf.Sin(u * 24f) * 1.8f;
-                else if (id == "charmball") breakX += Mathf.Sin(u * 9f) * 0.7f;
-                else if (id == "phonyball") breakX += u > 0.55f ? 2.4f : -0.5f;
+                if (id == "heatball") x += Mathf.Sin(u * 18f) * 0.4f;
+                else if (id == "prismball") x += Mathf.Sin(u * 24f) * 1.8f;
+                else if (id == "charmball") x += Mathf.Sin(u * 9f) * 0.7f;
+                else if (id == "phonyball") x += u > 0.55f ? 2.4f : -0.5f;
                 else if (id == "caskball") y += 0.55f * u;
             }
-            _ball = new Vector3(breakX, y, z);
+            _ball = new Vector3(x, y, z);
             if (HumanBats)
             {
                 if ((Key(KeyCode.Q) || Pad(3)) && _match.CanStarSwing) _star = !_star;
@@ -357,8 +371,14 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
-                _freeze = 0.18f;
-                _rig.Punch(14f);
+                _freeze = 0.32f;
+                _smash = 0.55f;
+                _rig.Smash(_ball);
+            }
+            else if (hit.Quality == ContactQuality.Solid)
+            {
+                _freeze = 0.12f;
+                _rig.Punch(10f);
             }
         }
 
@@ -369,7 +389,8 @@ namespace GrandSluggers.UnityClient
             var spray = _pending != null ? _pending.SprayDeg : _last.AtBat.SprayDeg;
             var p = BallFlight.PointAt(_path, spray, _hitT);
             _ball = new Vector3((float)p.X, (float)Mathf.Max(0.6f, (float)p.Y), (float)p.Z);
-            _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
+            if (_smash > 0) _smash -= dt;
+            else _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
             if (_playerFielding && _preview != null && _pending != null)
             {
@@ -457,7 +478,8 @@ namespace GrandSluggers.UnityClient
                 hero.SetGrow(who.FieldAbility == "grow" && _preview != null && who.Id == _preview.Fielder.Id && _phase == Phase.InPlay);
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && _preview != null && who.Id == _preview.Fielder.Id)
                     pose = HeroActor.Pose.Charm;
-                hero.SetPose(pose, kv.Key == "P" ? _charge : 0);
+                var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
+                hero.SetPose(pose, kv.Key == "P" ? _charge : 0, kv.Key == "P" ? pType : null);
                 var look = kv.Key == "P" ? new Vector3(0, 0, -1) : new Vector3((float)-x, 0, (float)-z + 8f);
                 hero.Place(new Vector3((float)x, 0, (float)z), look);
                 hero.Tick(Time.deltaTime);
@@ -491,6 +513,8 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.Place(_ball, starPitch, ptype, heat);
             else
                 _park.Ball.Hide();
+
+            _zone.Show(_phase is Phase.Set or Phase.Flight, _aimX, _aimY);
 
             var fielder = _preview != null ? _preview.Fielder : _last != null ? _last.Fielder : null;
             var from = Vector3.zero;
@@ -549,6 +573,8 @@ namespace GrandSluggers.UnityClient
         {
             _phase = Phase.Result;
             _t = 0;
+            _smash = 0;
+            _zone.Show(false, 0, 0);
             _rig.Aim(new Vector3(0, 36, -46), new Vector3(0, 2, 110), 48f);
         }
 

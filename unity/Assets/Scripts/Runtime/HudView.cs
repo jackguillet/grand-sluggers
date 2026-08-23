@@ -90,7 +90,10 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(Screen.width - 416, 22, 390, 22), "P   " + match.Pitcher.Name, _body);
             GUI.Label(new Rect(Screen.width - 416, 46, 390, 22), "AB  " + match.Batter.Name, _body);
             var extra = (star ? "  STAR" : "") + (steal ? "  STEAL" : "") + (item ? "  ITEM" : "");
-            GUI.Label(new Rect(Screen.width - 416, 70, 390, 22), pitches[pi] + extra, star ? _gold : _tiny);
+            if (showTiming)
+                GUI.Label(new Rect(Screen.width - 416, 70, 390, 22), pitches[pi] + extra, star ? _gold : _tiny);
+            else if (extra.Length > 0)
+                GUI.Label(new Rect(Screen.width - 416, 70, 390, 22), extra.Trim(), _gold);
 
             if (showTiming)
             {
