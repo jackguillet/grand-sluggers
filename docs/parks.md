@@ -24,9 +24,11 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 ## Funfair Park
 
 - Faction: Carnival Crew
-- Gimmick: **Warp cans** in the infield. A grounder that enters one exits another at random (tagged so it can be learned, not pure grief).
-- Warning-track **train** — periodic moving catch block / launch.
-- Night: **Chompers** in the outfield eat flies and spit them elsewhere.
+- Surface: grass
+- Gimmick: **Warp cans** in the infield. A grounder that enters one exits another at random (tagged A/B/C so it can be learned, not pure grief).
+- Warning-track **train** — parked boxcar you can read. Periodic catch block / launch stays in the sim notes; presentation does not sit in the dirt.
+- Night: **Chompers** in the outfield eat flies and spit them elsewhere. Presentation later (#31); the park ships a disabled chompers hook.
+- Why it exists: cans with mouths you can learn, not green cylinders. Same diamond kit (bags, mound, foul lines, fence). Carnival tents, striped poles, ferris wheel, booths beyond CF. Warm carnival light, not Harbor afternoon, not Crystal ice. Spark lofts and the royal palace stay out.
 
 ## Rooftop City
 
