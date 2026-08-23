@@ -1,0 +1,11 @@
+{
+  "pitchChargeSeconds": 0.55,
+  "swingChargeSeconds": 0.45,
+  "smashFreeze": 0.32,
+  "solidFreeze": 0.08,
+  "smashHold": 0.18,
+  "throwEase": 6.0,
+  "cameraBlend": 6.0,
+  "chargeDecay": 1.4,
+  "runHz": 2.55
+}

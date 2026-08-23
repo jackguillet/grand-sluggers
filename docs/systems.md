@@ -2,6 +2,8 @@
 
 How Grand Sluggers plays, independent of Unity. Numbers here are **starting points**; the sim in `src/` is the executable spec.
 
+Presentation feel (camera shots, charge seconds, smash freeze) lives in `data/feel/` and is loaded with the catalog. Baseball rules stay in Sim.
+
 ## Match shape
 
 - 9 vs 9. Positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF.

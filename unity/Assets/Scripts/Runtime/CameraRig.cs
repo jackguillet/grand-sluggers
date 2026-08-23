@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -9,8 +10,15 @@ namespace GrandSluggers.UnityClient
         Vector3 _look;
         float _fov = 48f;
         float _punch;
+        float _blend = 6f;
 
         public Camera Cam => _cam;
+
+        public void UseFeel(FeelTable feel)
+        {
+            if (feel != null && feel.CameraBlend > 0)
+                _blend = (float)feel.CameraBlend;
+        }
 
         public void Bind(Camera cam)
         {
@@ -68,9 +76,10 @@ namespace GrandSluggers.UnityClient
         public void Tick(float dt)
         {
             if (_cam == null) return;
-            _cam.transform.position = Vector3.Lerp(_cam.transform.position, _pos, 1f - Mathf.Exp(-6f * dt));
+            var k = _blend > 0 ? _blend : 6f;
+            _cam.transform.position = Vector3.Lerp(_cam.transform.position, _pos, 1f - Mathf.Exp(-k * dt));
             var currentLook = _cam.transform.position + _cam.transform.forward * 40f;
-            var look = Vector3.Lerp(currentLook, _look, 1f - Mathf.Exp(-7f * dt));
+            var look = Vector3.Lerp(currentLook, _look, 1f - Mathf.Exp(-(k + 1f) * dt));
             _cam.transform.LookAt(look);
             _punch = Mathf.MoveTowards(_punch, 0f, dt * 28f);
             _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, _fov - _punch, 1f - Mathf.Exp(-10f * dt));
