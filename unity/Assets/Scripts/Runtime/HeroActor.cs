@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             Field, Spin, Charm, Clamber, Crouch, Scoop
         }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _ring;
+        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         string _pitchType = "fastball";
@@ -87,13 +87,16 @@ namespace GrandSluggers.UnityClient
             _hasGround = true;
             _ground = ground;
 
-            var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
-                : _pose == Pose.Dive ? 0.2f
-                : _pose == Pose.Slide ? 0.15f
-                : _pose == Pose.Crouch || _pose == Pose.StealLead || _pose == Pose.Bunt ? -0.35f
-                : _pose == Pose.Cheer ? 0.25f
-                : 0f;
-            _lift = Mathf.Lerp(_lift, lift, 0.2f);
+            float lift;
+            if (_pose == Pose.Jump || _pose == Pose.Clamber)
+                lift = (float)MoveBones.JumpLift(_poseT);
+            else if (_pose == Pose.Dive) lift = 0.2f;
+            else if (_pose == Pose.Slide) lift = 0.15f;
+            else if (_pose == Pose.Crouch || _pose == Pose.StealLead || _pose == Pose.Bunt) lift = -0.35f;
+            else if (_pose == Pose.Cheer) lift = 0.25f;
+            else if (_pose == Pose.Run) lift = (float)MoveBones.Evaluate(MoveBones.Verb.Run, _t, _poseT).Lift;
+            else lift = 0f;
+            _lift = _pose is Pose.Jump or Pose.Clamber ? lift : Mathf.Lerp(_lift, lift, 0.28f);
             transform.position = pos + Vector3.up * _lift;
             _look = look.sqrMagnitude < 0.01f ? Vector3.forward : look.normalized;
             if (_pose != Pose.Spin)
@@ -243,15 +246,15 @@ namespace GrandSluggers.UnityClient
             var thighThick = _body == "zig" ? 0.55f : _body == "brondo" ? 0.58f : _body == "vale" ? 0.32f : 0.42f;
             var thighSpread = _body == "brondo" ? 0.52f : _body == "zig" ? 0.5f : 0.38f;
             _lThigh = Look.Prim(PrimitiveType.Capsule, "LThigh", _root, new Vector3(-thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            Look.Prim(PrimitiveType.Capsule, "LShin", _lThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack);
+            _lShin = Look.Prim(PrimitiveType.Capsule, "LShin", _lThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
             var shoeScale = _body == "rio" ? new Vector3(0.95f, 0.38f, 1.35f)
                 : _body == "ashlord" ? new Vector3(0.85f, 0.4f, 1.25f)
                 : _body == "vale" ? new Vector3(0.5f, 0.22f, 0.9f)
                 : new Vector3(0.7f, 0.28f, 1.1f);
-            Look.Prim(PrimitiveType.Cube, "LShoe", _lThigh, new Vector3(0, -1.55f, 0.12f), shoeScale, leather);
+            Look.Prim(PrimitiveType.Cube, "LShoe", _lShin, new Vector3(0, -0.72f, 0.12f), shoeScale, leather);
             _rThigh = Look.Prim(PrimitiveType.Capsule, "RThigh", _root, new Vector3(thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            Look.Prim(PrimitiveType.Capsule, "RShin", _rThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack);
-            Look.Prim(PrimitiveType.Cube, "RShoe", _rThigh, new Vector3(0, -1.55f, 0.12f), shoeScale, leather);
+            _rShin = Look.Prim(PrimitiveType.Capsule, "RShin", _rThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
+            Look.Prim(PrimitiveType.Cube, "RShoe", _rShin, new Vector3(0, -0.72f, 0.12f), shoeScale, leather);
 
             BuildBat("bat-wood");
             BuildGlove("glove-brown");
@@ -378,18 +381,37 @@ namespace GrandSluggers.UnityClient
         void Animate()
         {
             var pose = Locomotion(_pose);
-            var bob = Mathf.Sin(_t * 2.4f) * 0.04f;
-            if (pose == Pose.Run) bob = Mathf.Abs(Mathf.Sin(_t * 14f)) * 0.08f;
-            else if (pose == Pose.Walk) bob = Mathf.Abs(Mathf.Sin(_t * 8f)) * 0.05f;
-            else if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
+            var bob = 0.04f * Mathf.Sin(_t * 2.4f);
+            if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
             if (_torso != null) _torso.localPosition = new Vector3(0, 2.55f + bob, 0);
+
+            var batOn = _heldBat;
+            var gloveOn = _heldGlove;
+            if (ToVerb(pose) is MoveBones.Verb verb)
+            {
+                batOn = pose is Pose.ChargeSwing or Pose.Swing or Pose.CheckSwing or Pose.Bunt or Pose.Miss;
+                gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Clamber;
+                if (pose is Pose.ChargeSwing or Pose.Swing) gloveOn = false;
+                var sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
+                if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
+                    sample = MoveBones.MirrorArms(sample);
+                if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
+                    sample = MoveBones.MirrorArms(sample);
+                var snap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump;
+                Apply(sample, snap ? 0.55f : 0.32f, snap ? 0.48f : 0.34f);
+                if (_bat != null)
+                {
+                    _bat.gameObject.SetActive(batOn);
+                    if (batOn) _bat.localRotation = Q(sample.Bat);
+                }
+                if (_glove != null) _glove.gameObject.SetActive(gloveOn && !batOn);
+                return;
+            }
 
             var lArm = Quaternion.Euler(12, 0, 18);
             var rArm = Quaternion.Euler(12, 0, -18);
             var lLeg = Quaternion.identity;
             var rLeg = Quaternion.identity;
-            var batOn = _heldBat;
-            var gloveOn = _heldGlove;
             var batRot = Quaternion.Euler(0, 0, 20);
             var torsoRot = Quaternion.identity;
             var headRot = Quaternion.identity;
@@ -685,6 +707,8 @@ namespace GrandSluggers.UnityClient
             if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, kArm);
             if (_lThigh != null) _lThigh.localRotation = Quaternion.Slerp(_lThigh.localRotation, lLeg, kLeg);
             if (_rThigh != null) _rThigh.localRotation = Quaternion.Slerp(_rThigh.localRotation, rLeg, kLeg);
+            if (_lShin != null) _lShin.localRotation = Quaternion.Slerp(_lShin.localRotation, Quaternion.Euler(12, 0, 0), kLeg);
+            if (_rShin != null) _rShin.localRotation = Quaternion.Slerp(_rShin.localRotation, Quaternion.Euler(12, 0, 0), kLeg);
             if (_bat != null)
             {
                 _bat.gameObject.SetActive(batOn);
@@ -693,6 +717,42 @@ namespace GrandSluggers.UnityClient
             if (_glove != null)
                 _glove.gameObject.SetActive(gloveOn && !batOn);
         }
+
+        static MoveBones.Verb? ToVerb(Pose pose) => pose switch
+        {
+            Pose.Walk => MoveBones.Verb.Walk,
+            Pose.Run => MoveBones.Verb.Run,
+            Pose.Jump or Pose.Clamber => MoveBones.Verb.Jump,
+            Pose.ChargePitch => MoveBones.Verb.ChargePitch,
+            Pose.ThrowPitch => MoveBones.Verb.Pitch,
+            Pose.ChargeSwing => MoveBones.Verb.ChargeSwing,
+            Pose.Swing => MoveBones.Verb.Swing,
+            Pose.Throw => MoveBones.Verb.Throw,
+            _ => null
+        };
+
+        void Apply(MoveBones.Sample s, float kArm, float kLeg)
+        {
+            Ease(ref _torso, s.Torso, kArm);
+            Ease(ref _head, s.Head, kArm);
+            Ease(ref _lArm, s.LUpper, kArm);
+            Ease(ref _lFore, s.LFore, kArm);
+            Ease(ref _rArm, s.RUpper, kArm);
+            Ease(ref _rFore, s.RFore, kArm);
+            Ease(ref _lThigh, s.LThigh, kLeg);
+            Ease(ref _lShin, s.LShin, kLeg);
+            Ease(ref _rThigh, s.RThigh, kLeg);
+            Ease(ref _rShin, s.RShin, kLeg);
+        }
+
+        static void Ease(ref Transform tf, MoveBones.Euler e, float k)
+        {
+            if (tf == null) return;
+            tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e), k);
+        }
+
+        static Quaternion Q(MoveBones.Euler e) =>
+            Quaternion.Euler((float)e.X, (float)e.Y, (float)e.Z);
 
         Pose Locomotion(Pose pose)
         {
