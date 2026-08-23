@@ -1,13 +1,13 @@
 {
   "clips": [
     { "id": "idle", "verb": "Idle", "loop": true, "events": [], "slot": "Assets/Art/Animation/Clips/idle" },
-    { "id": "walk", "verb": "Walk", "loop": true, "events": ["FootPlant"], "slot": "Assets/Art/Animation/Clips/walk" },
-    { "id": "run", "verb": "Run", "loop": true, "events": ["FootPlant"], "slot": "Assets/Art/Animation/Clips/run" },
-    { "id": "jump", "verb": "Jump", "loop": false, "events": ["FootPlant"], "slot": "Assets/Art/Animation/Clips/jump" },
-    { "id": "swing", "verb": "Swing", "loop": false, "events": ["Contact"], "slot": "Assets/Art/Animation/Clips/swing" },
-    { "id": "pitch", "verb": "Pitch", "loop": false, "events": ["Release"], "slot": "Assets/Art/Animation/Clips/pitch" },
-    { "id": "scoop", "verb": "Scoop", "loop": false, "events": ["Contact"], "slot": "Assets/Art/Animation/Clips/scoop" },
-    { "id": "slide", "verb": "Slide", "loop": false, "events": ["FootPlant"], "slot": "Assets/Art/Animation/Clips/slide" },
-    { "id": "throw", "verb": "Throw", "loop": false, "events": ["Release"], "slot": "Assets/Art/Animation/Clips/throw" }
+    { "id": "walk", "verb": "Walk", "loop": true, "events": ["FootPlant"], "footPlantAt": 0.0, "slot": "Assets/Art/Animation/Clips/walk" },
+    { "id": "run", "verb": "Run", "loop": true, "events": ["FootPlant"], "footPlantAt": 0.0, "slot": "Assets/Art/Animation/Clips/run" },
+    { "id": "jump", "verb": "Jump", "loop": false, "events": ["FootPlant"], "footPlantAt": 0.55, "slot": "Assets/Art/Animation/Clips/jump" },
+    { "id": "swing", "verb": "Swing", "loop": false, "events": ["Contact"], "contactAt": 0.30, "slot": "Assets/Art/Animation/Clips/swing" },
+    { "id": "pitch", "verb": "Pitch", "loop": false, "events": ["Release"], "releaseAt": 0.42, "slot": "Assets/Art/Animation/Clips/pitch" },
+    { "id": "scoop", "verb": "Scoop", "loop": false, "events": ["Contact"], "contactAt": 0.22, "slot": "Assets/Art/Animation/Clips/scoop" },
+    { "id": "slide", "verb": "Slide", "loop": false, "events": ["FootPlant"], "footPlantAt": 0.18, "slot": "Assets/Art/Animation/Clips/slide" },
+    { "id": "throw", "verb": "Throw", "loop": false, "events": ["Release"], "releaseAt": 0.18, "slot": "Assets/Art/Animation/Clips/throw" }
   ]
 }

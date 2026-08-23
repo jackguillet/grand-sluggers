@@ -33,8 +33,10 @@ public class ArtCatalogTests
         Assert.Equal(MoveBones.Clips.Count, _content.Art.Clips.Count);
         Assert.True(_content.Art.TryClip("swing", out var swing));
         Assert.Contains("Contact", swing.Events, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(MoveBones.SwingContact, swing.ContactAt);
         Assert.True(_content.Art.TryClip("pitch", out var pitch));
         Assert.Contains("Release", pitch.Events, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(MoveBones.PitchRelease, pitch.ReleaseAt);
         Assert.StartsWith("Assets/Art/Animation/Clips/", swing.Slot, StringComparison.OrdinalIgnoreCase);
     }
 

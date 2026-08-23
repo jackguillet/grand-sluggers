@@ -56,6 +56,21 @@ public class MoveBonesTests
     }
 
     [Fact]
+    public void SwingContactIsTheCutAndPitchReleaseIsTheArmForward()
+    {
+        Assert.True(MoveBones.Mark(MoveBones.Verb.Swing, MoveBones.ClipEvent.Contact) > 0);
+        Assert.True(MoveBones.Mark(MoveBones.Verb.Pitch, MoveBones.ClipEvent.Release) > 0);
+        var hips = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0.10);
+        var contact = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingContact);
+        var wrap = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0.48);
+        Assert.True(contact.Torso.Y > hips.Torso.Y, "contact after hips open");
+        Assert.True(wrap.Torso.Y > contact.Torso.Y || wrap.Bat.Y > contact.Bat.Y, "wrap after contact");
+        var wind = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, 0.04);
+        var rel = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchRelease);
+        Assert.True(rel.RUpper.X > wind.RUpper.X, "release arm forward of windup");
+    }
+
+    [Fact]
     public void PitchReleaseIsForwardOfWindupWithStrideLeg()
     {
         var wind = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, 0.04);
