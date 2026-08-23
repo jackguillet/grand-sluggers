@@ -51,7 +51,7 @@ namespace GrandSluggers.UnityClient
             if (Session.CurrentDrill == 3)
                 Session.RecordFielding(field);
             else if (Session.CurrentDrill == 4)
-                Session.RecordChemThrows(match);
+                Session.RecordChemThrow(field.Throw);
         }
 
         public void Tick(Camera cam)

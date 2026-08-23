@@ -1073,7 +1073,8 @@ namespace GrandSluggers.UnityClient
             if (_playerFielding && _pending != null && _preview != null)
             {
                 var result = BuildPlayerResult();
-                result = _match.ApplyOffenseItem(_pending, result, null);
+                // Player already resolved catch/throw. CPU bananas must play visibly
+                // during InPlay (TickItem) — never a silent 40% roll after the glove.
                 _last = _match.FinishAtBat(_pitch, _swing, _pending, result);
                 _coach?.OnField(result, _match);
             }
