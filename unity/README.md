@@ -40,6 +40,8 @@ Gamepad is the product. Keyboard is a debug overlay.
 | Lineup: batting order | LB / East | X / G |
 | Timing bar | — | F1 |
 
+Debug feel (off by default, not product): **F2** overlay (shot, verb, charge, hang), **[** slow-mo, **]** freeze camera.
+
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.
 
 The sim lives in `src/GrandSluggers.Sim` (local package `com.grandsluggers.sim`). Do not commit `Library/`, `Temp/`, or `Logs/`.

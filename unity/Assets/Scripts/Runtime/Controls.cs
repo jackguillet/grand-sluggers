@@ -22,6 +22,12 @@ namespace GrandSluggers.UnityClient
         public static bool Start => KeyDown(KeyCode.H) || PadDown(7);
         public static bool SwapPitcher => KeyDown(KeyCode.R) || PadDown(8);
         public static bool TimingAid => KeyDown(KeyCode.F1);
+        /// <summary>Debug feel overlay. F2. Not a product control.</summary>
+        public static bool FeelDebug => KeyDown(KeyCode.F2);
+        /// <summary>Debug slow-mo cycle. Left bracket. Not a product control.</summary>
+        public static bool SlowMo => KeyDown(KeyCode.LeftBracket);
+        /// <summary>Debug freeze camera. Right bracket. Not a product control.</summary>
+        public static bool FreezeCam => KeyDown(KeyCode.RightBracket);
         /// <summary>Title: toggle night. N, or right-stick click.</summary>
         public static bool NightToggle => KeyDown(KeyCode.N) || PadDown(9);
         public static bool ParkHeld => Key(KeyCode.C);
