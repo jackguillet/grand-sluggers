@@ -42,7 +42,7 @@ dotnet test
 dotnet run --project src/GrandSluggers.Play
 ```
 
-You are the **Spark All-Stars** (Rio) in a three-inning game against Ashlord's Ember Court. C on the title screen cycles **Harbor Diamond**, **Crystal Rink**, **Funfair Park**, and **Rooftop City**. T starts **2-player**. On the team sheet, B/G pick Spark's bat and glove; N/M pick Ember's.
+Title screen: **A/D** pick your captain (all six), **W/S** pick the opponent, **C** cycles **Harbor Diamond**, **Crystal Rink**, **Funfair Park**, and **Rooftop City**. **H** starts **Challenge** (beat a rival, recruit one role player). **T** is local 2-player exhibition. On the team sheet, B/G pick home bat/glove; N/M pick away.
 
 On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues on Crystal Rink slow you down.
 
@@ -55,19 +55,23 @@ Q / Y         star skill (Heatball / Furnace)
 F             buddy jump
 1 2 3 H       throw to 1st / 2nd / 3rd / home
 R             new pitcher
-C             Harbor / Crystal Rink     T  two-player
+C             cycle park     T  two-player     H  challenge
+A/D           your captain     W/S  opponent
 ESC           quit
 ```
 
 ```bash
 dotnet run --project src/GrandSluggers.Play -- --park crystal-rink
+dotnet run --project src/GrandSluggers.Play -- --home vale --away zig
+dotnet run --project src/GrandSluggers.Play -- --challenge --captain rio
 dotnet run --project src/GrandSluggers.Play -- --two
 ```
 
 Headless autoplay (no window needed for the rules):
 
 ```bash
-dotnet run --project src/GrandSluggers.Cli -- match --seed 7
+dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
+dotnet run --project src/GrandSluggers.Cli -- challenge --captain rio --seed 3
 ```
 
 ## Docs
@@ -84,4 +88,4 @@ dotnet run --project src/GrandSluggers.Cli -- match --seed 7
 
 ## Status
 
-Milestone 1 vertical slice is playable. Harbor Diamond, Spark vs Ember, chemistry team sheet, timing-based pitch and swing, Heatball / Furnace, CPU fielders, 3 innings, MVP. Unity editor project is a shell; open `unity/` in Unity 6 LTS when you have it.
+Milestone 3 is in progress. Exhibition picks any of the six captains. Challenge is a session recruit loop. Four parks, gear, fielding, local 2P. Unity 6.5 client is playable (`unity/`, editor 6000.5.9f1).
