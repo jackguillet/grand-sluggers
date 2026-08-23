@@ -1213,7 +1213,8 @@ namespace GrandSluggers.UnityClient
             if (_relayBags != null) return false;
             if (_pending == null || _cpuField == null) return false;
             var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField);
-            _relayBags = InPlay.GroundThrowBags(_match.First != null, beats);
+            _relayBags = InPlay.GroundThrowBags(
+                _match.First != null, _match.Second != null, _match.Third != null, beats);
             _relayI = 0;
             if (_relayBags.Length == 0) return false;
             return FireRelay();
@@ -1517,7 +1518,9 @@ namespace GrandSluggers.UnityClient
             {
                 var u = Mathf.Clamp01(_hitT / 3.1f);
                 spot = (spot.X + (next.X - spot.X) * u, spot.Z + (next.Z - spot.Z) * u);
-                pose = u > 0.82f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
+                var tagBag = bagNum >= 3 ? 4 : bagNum + 1;
+                var threatened = _throwing && _throwBag == tagBag;
+                pose = (threatened && u > 0.42f) || u > 0.82f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
             }
             else if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
             else if (state != null && state.StealAttempt) pose = HeroActor.Pose.Run;
