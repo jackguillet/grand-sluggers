@@ -1,13 +1,12 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Four Harbor Diamond drills. Engine-agnostic — Unity and tests call the same methods.
-/// No park gimmicks. Pitch, swing, field, then feel chemistry on the throw.
+/// Harbor drills. Pitch, swing, fly, hopper, chem throw.
 /// </summary>
 public sealed class Training
 {
     public const string ParkId = "harbor-diamond";
-    public const int DrillCount = 4;
+    public const int DrillCount = 5;
     public static readonly string[] CorePitches = ["fastball", "changeup", "curve", "slider"];
 
     readonly HashSet<string> _inZone = new(StringComparer.OrdinalIgnoreCase);
@@ -16,6 +15,7 @@ public sealed class Training
     bool _timedContact;
     bool _chargedContact;
     bool _caughtAndThrew;
+    bool _scoopedHopper;
 
     Training(Park park) => Park = park;
 
@@ -28,6 +28,7 @@ public sealed class Training
     public bool TimedContact => _timedContact;
     public bool ChargedContact => _chargedContact;
     public bool CaughtAndThrew => _caughtAndThrew;
+    public bool ScoopedHopper => _scoopedHopper;
     public ThrowResult? LastGoodThrow { get; private set; }
     public ThrowResult? LastBadThrow { get; private set; }
 
@@ -81,13 +82,24 @@ public sealed class Training
         return true;
     }
 
+    public bool RecordGrounder(FieldingResult field)
+    {
+        if (Finished || CurrentDrill != 4) return false;
+        var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9;
+        var scooped = field.Fielder is not null && field.Throw is not null && field.Cutoff is not null;
+        if (!hopper || !scooped) return false;
+        _scoopedHopper = true;
+        Advance();
+        return true;
+    }
+
     /// <summary>
-    /// Record one real throw from a play. Drill 4 advances only after a Good throw
+    /// Record one real throw from a play. Drill 5 advances only after a Good throw
     /// and a Bad throw have both been seen (good must be faster).
     /// </summary>
     public bool RecordChemThrow(ThrowResult? thr)
     {
-        if (Finished || CurrentDrill != 4 || thr is null) return false;
+        if (Finished || CurrentDrill != 5 || thr is null) return false;
         if (thr.Relation == Chemistry.Good) LastGoodThrow = thr;
         else if (thr.Relation == Chemistry.Bad) LastBadThrow = thr;
         else return false;
@@ -129,7 +141,8 @@ public sealed class Training
             1 => "Paint the zone",
             2 => "Time it and charge",
             3 => "Catch it, throw a bag",
-            4 => "Throw to a buddy, then a rival",
+            4 => "Grab a grounder, throw to first",
+            5 => "Throw to a buddy, then a rival",
             _ => ""
         };
 
@@ -140,7 +153,8 @@ public sealed class Training
             1 => "South pitch   RB cycle   LT charge   North star",
             2 => "LT charge   South swing   LS spray",
             3 => "South catch   East dive   D-pad throw",
-            4 => "D-pad throw  ·  buddy then rival",
+            4 => "Charge it   scoop   1 throw",
+            5 => "D-pad throw  ·  buddy then rival",
             _ => ""
         };
 
@@ -148,8 +162,8 @@ public sealed class Training
     {
         get
         {
-            if (Finished) return "4 / 4";
-            if (CurrentDrill == 4)
+            if (Finished) return "5 / 5";
+            if (CurrentDrill == 5)
                 return (LastGoodThrow is null ? "buddy ·" : "buddy ✓") + "  " +
                        (LastBadThrow is null ? "rival ·" : "rival ✓");
             if (CurrentDrill != 1)

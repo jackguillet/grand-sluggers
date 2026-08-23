@@ -131,9 +131,20 @@ public class TrainingTests
     }
 
     [Fact]
-    public void DrillFourNeedsOneGoodAndOneBadThrowFromPlay()
+    public void DrillFourNeedsAHopperScoopAndThrow()
     {
         var run = FinishFieldDrill();
+        Assert.False(run.RecordGrounder(CaughtThrow(_content)));
+        Assert.Equal(4, run.CurrentDrill);
+        Assert.True(run.RecordGrounder(HopperThrow(_content)));
+        Assert.True(run.ScoopedHopper);
+        Assert.Equal(5, run.CurrentDrill);
+    }
+
+    [Fact]
+    public void DrillFiveNeedsOneGoodAndOneBadThrowFromPlay()
+    {
+        var run = FinishGrounderDrill();
         var match = run.MakeMatch(_content, seed: 7);
         Assert.True(Training.TryFindChemPair(match, out var from, out var goodTo, out var badTo));
         Assert.Equal(Chemistry.Good, match.Chemistry.Between(from, goodTo));
@@ -147,7 +158,7 @@ public class TrainingTests
 
         var goodPlay = CaughtThrow(_content, from, goodTo, good);
         Assert.False(run.RecordChemThrow(goodPlay.Throw));
-        Assert.Equal(4, run.CurrentDrill);
+        Assert.Equal(5, run.CurrentDrill);
         Assert.False(run.Finished);
         Assert.NotNull(run.LastGoodThrow);
         Assert.Null(run.LastBadThrow);
@@ -155,30 +166,30 @@ public class TrainingTests
         var badPlay = CaughtThrow(_content, from, badTo, bad);
         Assert.True(run.RecordChemThrow(badPlay.Throw));
         Assert.True(run.Finished);
-        Assert.Equal(5, run.CurrentDrill);
+        Assert.Equal(6, run.CurrentDrill);
         Assert.True(run.LastGoodThrow!.SpeedMul > run.LastBadThrow!.SpeedMul);
         Assert.Equal("harbor-diamond", match.Park.Id);
     }
 
     [Fact]
-    public void DrillFourIgnoresNeutralAndNullThrows()
+    public void DrillFiveIgnoresNeutralAndNullThrows()
     {
-        var run = FinishFieldDrill();
+        var run = FinishGrounderDrill();
         Assert.False(run.RecordChemThrow(null));
         Assert.False(run.RecordChemThrow(new ThrowResult(Chemistry.Neutral, 1.0, false)));
-        Assert.Equal(4, run.CurrentDrill);
+        Assert.Equal(5, run.CurrentDrill);
         Assert.False(run.Finished);
     }
 
     [Fact]
-    public void DrillFourTwoGoodThrowsDoNotFinish()
+    public void DrillFiveTwoGoodThrowsDoNotFinish()
     {
-        var run = FinishFieldDrill();
+        var run = FinishGrounderDrill();
         var good = new ThrowResult(Chemistry.Good, 1.35, false);
         var alsoGood = new ThrowResult(Chemistry.Good, 1.0, false);
         Assert.False(run.RecordChemThrow(good));
         Assert.False(run.RecordChemThrow(alsoGood));
-        Assert.Equal(4, run.CurrentDrill);
+        Assert.Equal(5, run.CurrentDrill);
         Assert.False(run.Finished);
         Assert.Null(run.LastBadThrow);
     }
@@ -200,6 +211,8 @@ public class TrainingTests
 
         run.RecordFielding(CaughtThrow(_content));
         Assert.Equal(4, run.CurrentDrill);
+        run.RecordGrounder(HopperThrow(_content));
+        Assert.Equal(5, run.CurrentDrill);
 
         Assert.True(Training.TryFindChemPair(match, out var from, out var goodTo, out var badTo));
         var good = match.ThrowBetween(from, goodTo);
@@ -238,6 +251,14 @@ public class TrainingTests
         return run;
     }
 
+    Training FinishGrounderDrill()
+    {
+        var run = FinishFieldDrill();
+        run.RecordGrounder(HopperThrow(_content));
+        Assert.Equal(5, run.CurrentDrill);
+        return run;
+    }
+
     static AtBatResult SolidHit() =>
         new(ContactQuality.Solid, true, false, 88, 22, 240, false, false, null, null);
 
@@ -247,5 +268,13 @@ public class TrainingTests
         to ??= content.Must("nico");
         thr ??= new ThrowResult(Chemistry.Good, 1.35, false);
         return new FieldingResult(PlayKind.FlyOut, from, to, 2.4, 12, 250, false, false, thr);
+    }
+
+    static FieldingResult HopperThrow(ContentCatalog content)
+    {
+        var from = content.Must("rio");
+        var to = content.Must("nico");
+        var thr = new ThrowResult(Chemistry.Good, 1.2, false);
+        return new FieldingResult(PlayKind.GroundOut, from, to, 0.7, 12, 48, false, false, thr);
     }
 }
