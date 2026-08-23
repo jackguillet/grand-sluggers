@@ -1,0 +1,16 @@
+Grand Sluggers art slots. Drop files here. Do not add a second skeleton.
+
+  Characters/SharedRig     one FBX/prefab chain (hero-shared)
+  Characters/{captain}     skin meshes, extras, palette
+  Parks/{id}               kit (Harbor is the template)
+  Animation/Clips/{id}     one clip per catalog id (idle, run, swing, ...)
+  VFX/{id}                 named events (heatball, puff, ...)
+  Audio/{id}               named events (bat-perfect, vo-rio, ...)
+  UI/Portraits/{id}        optional; Resources/Art/{id}-hero still works
+  Materials/{id}           toon-body, dirt, grass, chalk
+
+Missing files keep the procedural placeholder. After a drop:
+  dotnet test
+  dotnet run --project src/GrandSluggers.Cli -- art
+
+See docs/art-rails.md

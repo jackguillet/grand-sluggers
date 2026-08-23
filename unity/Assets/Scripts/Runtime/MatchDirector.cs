@@ -157,6 +157,7 @@ namespace GrandSluggers.UnityClient
                 cam = go.AddComponent<Camera>();
                 go.AddComponent<AudioListener>();
             }
+            ArtBinder.Bind(_content.Art);
             _feel = _content.Feel;
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);

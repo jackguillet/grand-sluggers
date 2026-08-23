@@ -3,6 +3,7 @@
   "rootNamespace": "GrandSluggers.EditorTools",
   "references": [
     "GrandSluggers.Runtime",
+    "GrandSluggers.Sim",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Core.Runtime"
   ],
