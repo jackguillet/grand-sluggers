@@ -19,15 +19,23 @@ namespace GrandSluggers.UnityClient
         readonly Transform[] _prism = new Transform[3];
         LineRenderer _laser;
         LineRenderer _tongue;
+        LineRenderer _throw;
         Transform _burn;
         Transform _crack;
         float _t;
         float _pitchLinger;
         float _swingLinger;
+        float _throwLinger;
+        float _throwDur;
+        float _throwArc;
+        float _throwWobble;
+        bool _throwGood;
         string _pitchId = "";
         string _swingId = "";
         Vector3 _decoyPos;
         Vector3 _lastBall;
+        Vector3 _throwFrom;
+        Vector3 _throwTo;
 
         public void Build(Transform parent)
         {
@@ -56,6 +64,8 @@ namespace GrandSluggers.UnityClient
 
             _laser = Line("Laser", Colors.EmberFire, 0.35f);
             _tongue = Line("Tongue", new Color(1f, 0.4f, 0.55f), 0.28f);
+            _throw = Line("Throw", Colors.Gold, 0.42f);
+            if (_throw != null) _throw.positionCount = 12;
 
             _burn = Look.Prim(PrimitiveType.Cylinder, "Burn", _root, Vector3.zero, new Vector3(22f, 0.1f, 22f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
@@ -111,7 +121,36 @@ namespace GrandSluggers.UnityClient
             Crack(swingOn && _swingId == "furnace", ball);
             Beam(_tongue, showTongue, tongueFrom, ball);
             Beam(_laser, showLaser, tongueFrom, laserTo == Vector3.zero ? ball : laserTo);
+            DrawThrow(dt);
         }
+
+        public void ArmThrow(Vector3 from, Vector3 to, ThrowResult thr)
+        {
+            _throwFrom = from + Vector3.up * 2.4f;
+            _throwTo = to + Vector3.up * 1.2f;
+            if (thr.Relation == Chemistry.Bad || thr.Error)
+                _throwTo += new Vector3((float)thr.LateralFt, 0, (float)(-Mathf.Abs((float)thr.LateralFt) * 0.3f));
+            _throwDur = Mathf.Clamp(0.82f / Mathf.Max(0.45f, (float)thr.SpeedMul), 0.28f, 1.4f);
+            _throwLinger = _throwDur;
+            _throwArc = thr.Relation == Chemistry.Good ? 5.2f : thr.Relation == Chemistry.Bad ? 1.6f : 3.2f;
+            _throwWobble = thr.Relation == Chemistry.Bad || thr.Error ? 3.4f : 0f;
+            _throwGood = thr.Relation == Chemistry.Good;
+            if (_throw == null) return;
+            var c = ThrowColor(thr.Relation);
+            _throw.startColor = c;
+            _throw.endColor = new Color(c.r, c.g, c.b, 0.18f);
+            _throw.startWidth = thr.Relation == Chemistry.Good ? 0.55f : 0.26f;
+            _throw.endWidth = thr.Relation == Chemistry.Good ? 0.18f : 0.1f;
+        }
+
+        public static Color ThrowColor(Chemistry rel)
+        {
+            if (rel == Chemistry.Good) return Color.Lerp(Colors.Gold, new Color(0.62f, 0.28f, 1f), 0.5f);
+            if (rel == Chemistry.Bad) return new Color(0.4f, 0.3f, 0.16f);
+            return Colors.Chalk;
+        }
+
+        public float ThrowSeconds => _throwDur;
 
         public Vector3 DecoyBall => _decoyPos;
         public bool Active => _pitchLinger > 0 || _swingLinger > 0;
@@ -243,6 +282,7 @@ namespace GrandSluggers.UnityClient
             if (_crack != null) _crack.gameObject.SetActive(false);
             if (_laser != null) _laser.enabled = false;
             if (_tongue != null) _tongue.enabled = false;
+            if (_throw != null) _throw.enabled = false;
             foreach (var h in _hearts) if (h != null) h.gameObject.SetActive(false);
             foreach (var b in _bits) if (b != null) b.gameObject.SetActive(false);
             foreach (var e in _embers) if (e != null) e.gameObject.SetActive(false);
@@ -289,6 +329,31 @@ namespace GrandSluggers.UnityClient
             var go = Look.Prim(PrimitiveType.Sphere, name, _root, Vector3.zero, Vector3.one * scale, Look.Unlit(c));
             go.SetActive(false);
             return go.transform;
+        }
+
+        void DrawThrow(float dt)
+        {
+            if (_throw == null) return;
+            _throwLinger = Mathf.Max(0, _throwLinger - dt);
+            var on = _throwLinger > 0;
+            _throw.enabled = on;
+            if (!on) return;
+            var n = _throw.positionCount;
+            if (n < 2) n = 12;
+            _throw.positionCount = n;
+            var head = 1f - Mathf.Clamp01(_throwLinger / Mathf.Max(0.05f, _throwDur));
+            if (_throwGood)
+                _throw.startColor = Color.Lerp(Colors.Gold, new Color(0.62f, 0.28f, 1f), 0.5f + 0.5f * Mathf.Sin(_t * 10f));
+            for (var i = 0; i < n; i++)
+            {
+                var t = n == 1 ? 1f : i / (float)(n - 1);
+                t = Mathf.Min(t, head);
+                var p = Vector3.Lerp(_throwFrom, _throwTo, t);
+                p.y += Mathf.Sin(t * Mathf.PI) * _throwArc;
+                if (_throwWobble > 0)
+                    p += new Vector3(Mathf.Sin(t * 7f) * _throwWobble * t, 0, Mathf.Cos(t * 5f) * _throwWobble * 0.4f * t);
+                _throw.SetPosition(i, p);
+            }
         }
 
         LineRenderer Line(string name, Color c, float width)

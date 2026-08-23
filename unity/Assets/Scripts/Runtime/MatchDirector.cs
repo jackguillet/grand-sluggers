@@ -55,6 +55,15 @@ namespace GrandSluggers.UnityClient
         double _fx, _fz;
         bool _caught, _buddy;
         int _throwBag;
+        readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
+        string _glovePos = "P";
+        float _diveT, _jumpT, _swapLock;
+        bool _throwing;
+        float _throwT, _throwDur;
+        FieldingResult _cpuField;
+        ThrowResult _armedThrow;
+        Character _armedCut;
+        Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
@@ -317,6 +326,10 @@ namespace GrandSluggers.UnityClient
             _pending = null;
             _preview = null;
             _playerFielding = false;
+            _cpuField = null;
+            _throwing = false;
+            _diveT = _jumpT = _swapLock = 0;
+            _gloveAt.Clear();
             _star = false;
             _banner = _sub = "";
             _ball = new Vector3(0, 5.4f, 60.5f);
@@ -410,38 +423,65 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            if (PlayerFields)
+            if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
-                if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
-                {
-                    _last = finished;
-                    NoteTrainingPitch();
-                    Banner();
-                    BeginResult();
-                    return;
-                }
+                _last = finished;
                 NoteTrainingPitch();
-                _pending = hit;
-                _preview = _match.PreviewHit(hit);
-                var start = Diamond.Positions[_preview.Position];
-                _fx = start.X;
-                _fz = start.Z;
-                _caught = _buddy = false;
-                _throwBag = 0;
-                _playerFielding = true;
-                StartFly(hit);
+                NoteTrainingSwing();
+                Banner();
+                if (finished != null && finished.Kind == PlayKind.Foul && hit.ExitVeloMph > 1)
+                    StartFly(hit);
+                else
+                    BeginResult();
                 return;
             }
-            var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
-            _itemArmed = false;
-            _last = _match.Play(_pitch, _swing, item);
             NoteTrainingPitch();
-            NoteTrainingSwing();
-            Banner();
-            var fly = _last.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
-                or PlayKind.HomeRun or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
-            if (fly && _last.AtBat.ExitVeloMph > 1) StartFly(_last.AtBat);
-            else BeginResult();
+            if (HumanBats) _coach?.OnSwing(_swing, hit);
+            _pending = hit;
+            _preview = _match.PreviewHit(hit);
+            _cpuField = null;
+            _playerFielding = PlayerFields;
+            _itemArmed = HumanBats && _itemArmed;
+            if (!_playerFielding)
+            {
+                var item = HumanBats ? (_itemArmed ? "banana" : "") : null;
+                _cpuField = _match.ResolveFielding(hit, _preview);
+                _cpuField = _match.ApplyOffenseItem(hit, _cpuField, item);
+            }
+            _itemArmed = false;
+            InitGloves();
+            _caught = _buddy = false;
+            _throwBag = 0;
+            _throwing = false;
+            _armedThrow = null;
+            _armedCut = null;
+            _diveT = _jumpT = 0;
+            StartFly(hit);
+        }
+
+        void InitGloves()
+        {
+            _gloveAt.Clear();
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            foreach (var kv in map)
+                _gloveAt[kv.Key] = Diamond.Positions[kv.Key];
+            _swapLock = 0;
+            if (_preview == null)
+            {
+                _glovePos = "P";
+                _fx = Diamond.Rubber.X;
+                _fz = Diamond.Rubber.Z;
+                return;
+            }
+            (Character who, string pos) pick;
+            if (_playerFielding)
+                pick = FieldingResolver.NearestGlove(map, _preview.LandingX, _preview.LandingZ, _gloveAt);
+            else
+                pick = ( _preview.Fielder, _preview.Position );
+            _glovePos = pick.pos;
+            var at = _gloveAt[_glovePos];
+            _fx = at.X;
+            _fz = at.Z;
         }
 
         void StartFly(AtBatResult hit)
@@ -475,27 +515,31 @@ namespace GrandSluggers.UnityClient
             if (_smash > 0) _smash -= dt;
             else _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
+            if (_diveT > 0) _diveT -= dt;
+            if (_jumpT > 0) _jumpT -= dt;
+            if (_swapLock > 0) _swapLock -= dt;
+
+            if (_throwing)
+            {
+                _throwT += dt;
+                var u = Mathf.Clamp01(_throwT / Mathf.Max(0.05f, _throwDur));
+                var arc = _armedThrow != null && _armedThrow.Relation == Chemistry.Good ? 5.2f
+                    : _armedThrow != null && _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
+                _ball = Vector3.Lerp(_throwFrom, _throwTo, u);
+                _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
+                if (_throwT >= _throwDur) CommitInPlay();
+                return;
+            }
+
             if (_playerFielding && _preview != null && _pending != null)
             {
-                var speed = (18 + _preview.Fielder.Stats.Run * 1.8) * (_preview.Frozen ? 0.4 : 1);
-                _fx += Controls.StickX * speed * dt;
-                _fz += Controls.StickY * speed * dt;
-                if (Controls.WestDown && _preview.Buddy != null && _preview.HomeRunLikely) _buddy = true;
-                if (Controls.EastDown && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 8)
-                {
-                    _caught = true;
-                    if (_heroes.TryGetValue(_preview.Fielder.Id, out var diver))
-                        diver.SetPose(HeroActor.Pose.Dive);
-                }
-                if (Controls.SouthDown && Diamond.Dist(_fx, _fz, _ball.x, _ball.z) < _preview.CatchRadius + 4) _caught = true;
-                if (Controls.ThrowBag > 0) _throwBag = Controls.ThrowBag;
-                var hang = BallFlight.HangTime(_path);
-                if (_hitT >= hang)
-                {
-                    if (Diamond.Dist(_fx, _fz, _preview.LandingX, _preview.LandingZ) < _preview.CatchRadius + 6)
-                        _caught = true;
-                    FinishField();
-                }
+                TickPlayerField(dt);
+                return;
+            }
+
+            if (_preview != null && _cpuField != null && _pending != null)
+            {
+                TickCpuField();
                 return;
             }
 
@@ -504,71 +548,250 @@ namespace GrandSluggers.UnityClient
             if (done) BeginResult();
         }
 
-        void FinishField()
+        void TickPlayerField(float dt)
         {
             var pre = _preview;
-            var hit = _pending;
-            Character cut = null;
-            ThrowResult thr = null;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            var bag = _throwBag > 0 ? _throwBag : Controls.ThrowBag;
-            if ((_caught || _buddy) && bag > 0)
+            var hang = BallFlight.HangTime(_path);
+            var chasing = _hitT < hang;
+
+            if (Controls.SwapPitcher)
             {
-                var key = bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : "C";
-                map.TryGetValue(key, out cut);
-                if (cut != null) thr = _match.ThrowBetween(pre.Fielder, cut);
+                CycleGlove(map);
+                _swapLock = 0.7f;
             }
-            FieldingResult result;
-            if (_buddy || _caught)
+
+            var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
+            if (chasing && _swapLock <= 0 && stick < 0.35f)
+                AutoGlove(map);
+
+            if (chasing && map.TryGetValue(_glovePos, out var glove))
             {
-                var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
-                result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy);
+                var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
+                _fx += Controls.StickX * speed * dt;
+                _fz += Controls.StickY * speed * dt;
+                _gloveAt[_glovePos] = (_fx, _fz);
             }
-            else if (pre.HomeRunLikely)
-                result = new FieldingResult(PlayKind.HomeRun, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
-            else
-                result = new FieldingResult(hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
-            result = _match.ApplyOffenseItem(hit, result, null);
-            _last = _match.FinishAtBat(_pitch, _swing, hit, result);
-            _coach?.OnField(result, _match);
+
+            if (Controls.WestDown)
+            {
+                _jumpT = 0.55f;
+                if (pre.Buddy != null && pre.HomeRunLikely) _buddy = true;
+            }
+            if (Controls.EastDown) _diveT = 0.5f;
+
+            var window = CatchWindow(map);
+            var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
+            if (Controls.SouthDown && d < window) _caught = true;
+            if (_diveT > 0 && d < window && _ball.y < 7.5f) _caught = true;
+            if (_jumpT > 0 && d < window && _ball.y > 2.2f) _caught = true;
+
+            ReadThrowBag(!chasing || _caught || _buddy);
+
+            if (_hitT < hang) return;
+            if (Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
+                _caught = true;
+            if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
+                return;
+            BeginPlayerThrowOrCommit(map);
+        }
+
+        void TickCpuField()
+        {
+            var hang = BallFlight.HangTime(_path);
+            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, hang));
+            var start = Diamond.Positions[_preview.Position];
+            _fx = start.X + (_preview.LandingX - start.X) * u;
+            _fz = start.Z + (_preview.LandingZ - start.Z) * u;
+            _glovePos = _preview.Position;
+            _gloveAt[_glovePos] = (_fx, _fz);
+            var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
+            if (outPlay && _hitT >= hang - 0.18f) _caught = true;
+            if (_hitT < hang) return;
+            if (outPlay && _cpuField.Throw != null)
+            {
+                _armedThrow = _cpuField.Throw;
+                _armedCut = _cpuField.Cutoff;
+                BeginThrow(_cpuField.Throw, _cpuField.Cutoff, 0);
+                return;
+            }
+            if (_cpuField.Kind == PlayKind.HomeRun && _hitT < 2.4f) return;
+            if (_hitT < hang + 0.35f) return;
+            CommitInPlay();
+        }
+
+        void AutoGlove(Dictionary<string, Character> map)
+        {
+            var pick = FieldingResolver.NearestGlove(map, _ball.x, _ball.z, _gloveAt);
+            if (pick.Pos == _glovePos) return;
+            _gloveAt[_glovePos] = (_fx, _fz);
+            _glovePos = pick.Pos;
+            var at = _gloveAt[_glovePos];
+            _fx = at.X;
+            _fz = at.Z;
+        }
+
+        void CycleGlove(Dictionary<string, Character> map)
+        {
+            var order = Diamond.Order;
+            var i = 0;
+            for (; i < order.Length; i++)
+                if (order[i] == _glovePos) break;
+            var next = order[(i + 1) % order.Length];
+            if (!map.ContainsKey(next)) next = "P";
+            _gloveAt[_glovePos] = (_fx, _fz);
+            _glovePos = next;
+            var at = _gloveAt[_glovePos];
+            _fx = at.X;
+            _fz = at.Z;
+        }
+
+        double CatchWindow(Dictionary<string, Character> map)
+        {
+            var who = map.TryGetValue(_glovePos, out var c) ? c : _preview.Fielder;
+            var radius = 10 + who.Stats.Field * 0.6 + FieldAbilities.CatchBonus(who);
+            return FieldingResolver.CatchWindowFt(radius, _diveT > 0, _jumpT > 0);
+        }
+
+        void ReadThrowBag(bool stickOk)
+        {
+            if (Controls.ThrowBag > 0) _throwBag = Controls.ThrowBag;
+            else if (stickOk && Controls.StickBag > 0) _throwBag = Controls.StickBag;
+        }
+
+        void BeginPlayerThrowOrCommit(Dictionary<string, Character> map)
+        {
+            if (!(_caught || _buddy) || _throwBag <= 0)
+            {
+                CommitInPlay();
+                return;
+            }
+            var key = _throwBag == 1 ? "1B" : _throwBag == 2 ? "2B" : _throwBag == 3 ? "3B" : "C";
+            map.TryGetValue(key, out var cut);
+            var from = map.TryGetValue(_glovePos, out var glove) ? glove : _preview.Fielder;
+            ThrowResult thr = null;
+            if (cut != null) thr = _match.ThrowBetween(from, cut);
+            _armedThrow = thr;
+            _armedCut = cut;
+            if (thr != null) BeginThrow(thr, cut, _throwBag);
+            else CommitInPlay();
+        }
+
+        void BeginThrow(ThrowResult thr, Character cut, int bag)
+        {
+            _throwing = true;
+            _throwT = 0;
+            var to = cut != null && _heroes.TryGetValue(cut.Id, out var ch) && ch != null
+                ? ch.transform.position
+                : BagWorld(bag);
+            _throwFrom = new Vector3((float)_fx, 3.2f, (float)_fz);
+            _throwTo = to + Vector3.up * 1.2f;
+            _spec.ArmThrow(_throwFrom, to, thr);
+            _throwDur = Mathf.Max(0.28f, _spec.ThrowSeconds);
+        }
+
+        static Vector3 BagWorld(int bag)
+        {
+            var p = bag == 1 ? Diamond.First : bag == 2 ? Diamond.Second : bag == 3 ? Diamond.Third : Diamond.Home;
+            return new Vector3((float)p.X, 1.2f, (float)p.Z);
+        }
+
+        void CommitInPlay()
+        {
+            if (_playerFielding && _pending != null && _preview != null)
+            {
+                var result = BuildPlayerResult();
+                result = _match.ApplyOffenseItem(_pending, result, null);
+                _last = _match.FinishAtBat(_pitch, _swing, _pending, result);
+                _coach?.OnField(result, _match);
+            }
+            else if (_cpuField != null && _pending != null)
+            {
+                _last = _match.FinishAtBat(_pitch, _swing, _pending, _cpuField);
+                _coach?.OnField(_cpuField, _match);
+            }
             Banner();
             _playerFielding = false;
             _pending = null;
+            _cpuField = null;
+            _throwing = false;
             BeginResult();
+        }
+
+        FieldingResult BuildPlayerResult()
+        {
+            var pre = _preview;
+            var hit = _pending;
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var from = map.TryGetValue(_glovePos, out var glove) ? glove : pre.Fielder;
+            Character cut = _armedCut;
+            ThrowResult thr = _armedThrow;
+            var bag = _throwBag > 0 ? _throwBag : Controls.ThrowBag;
+            if (thr == null && (_caught || _buddy) && bag > 0)
+            {
+                var key = bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : "C";
+                map.TryGetValue(key, out cut);
+                if (cut != null) thr = _match.ThrowBetween(from, cut);
+            }
+            if (_buddy || _caught)
+            {
+                var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
+                return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy);
+            }
+            if (pre.HomeRunLikely)
+                return new FieldingResult(PlayKind.HomeRun, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+            var extra = hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single;
+            return new FieldingResult(extra, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
         }
 
         void DrawActors()
         {
             _used.Clear();
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var litId = "";
+            if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
+                litId = litWho.Id;
             foreach (var kv in defense)
             {
                 var who = kv.Value;
                 var pos = Diamond.Positions[kv.Key];
                 double x = pos.X, z = pos.Z;
+                if (_gloveAt.TryGetValue(kv.Key, out var live))
+                {
+                    x = live.X;
+                    z = live.Z;
+                }
                 var pose = HeroActor.Pose.Idle;
-                if (_playerFielding && _preview != null && who.Id == _preview.Fielder.Id)
+                var highlighted = _phase == Phase.InPlay && who.Id == litId;
+                if (highlighted)
                 {
                     x = _fx;
                     z = _fz;
+                    if (_throwing) pose = HeroActor.Pose.Throw;
+                    else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
+                    else if (_diveT > 0) pose = HeroActor.Pose.Dive;
+                    else if (_jumpT > 0) pose = HeroActor.Pose.Jump;
+                    else if (_preview != null) pose = FieldPose(who, _preview, false);
+                    else pose = HeroActor.Pose.Field;
+                }
+                else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
                     pose = FieldPose(who, _preview, _caught);
-                }
-                else if (_phase == Phase.InPlay && !_playerFielding && _last?.Fielder != null && who.Id == _last.Fielder.Id)
-                {
-                    var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)_last.HangTimeSec));
-                    x = pos.X + (_last.LandingX - pos.X) * u;
-                    z = pos.Z + (_last.LandingZ - pos.Z) * u;
-                    pose = HeroActor.Pose.Field;
-                }
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.Throw : HeroActor.Pose.ChargePitch;
                 var hero = Hero(who);
-                hero.SetGrow(who.FieldAbility == "grow" && _preview != null && who.Id == _preview.Fielder.Id && _phase == Phase.InPlay);
-                if (_pending != null && _pending.StarSwingUsed == "heart-swing" && _preview != null && who.Id == _preview.Fielder.Id)
+                hero.SetGrow(who.FieldAbility == "grow" && highlighted);
+                hero.SetHighlight(highlighted);
+                if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = HeroActor.Pose.Charm;
                 var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
                 hero.SetPose(pose, kv.Key == "P" ? _charge : 0, kv.Key == "P" ? pType : null);
-                var look = kv.Key == "P" ? new Vector3(0, 0, -1) : new Vector3((float)-x, 0, (float)-z + 8f);
+                var look = kv.Key == "P" && _phase != Phase.InPlay
+                    ? new Vector3(0, 0, -1)
+                    : _phase == Phase.InPlay
+                        ? new Vector3(_ball.x - (float)x, 0, _ball.z - (float)z)
+                        : new Vector3((float)-x, 0, (float)-z + 8f);
+                if (_throwing && highlighted)
+                    look = _throwTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, 0, (float)z), look);
                 hero.Tick(Time.deltaTime);
             }
@@ -581,6 +804,7 @@ namespace GrandSluggers.UnityClient
                     ? HeroActor.Pose.ChargeSwing
                     : HeroActor.Pose.Idle;
             bHero.SetPose(bPose, HumanBats ? _charge : 0);
+            bHero.SetHighlight(false);
             bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
@@ -604,7 +828,11 @@ namespace GrandSluggers.UnityClient
 
             _zone.Show(_phase is Phase.Set or Phase.Flight, _aimX, _aimY);
 
-            var fielder = _preview != null ? _preview.Fielder : _last != null ? _last.Fielder : null;
+            Character fielder = null;
+            if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var gloveNow))
+                fielder = gloveNow;
+            else if (_preview != null) fielder = _preview.Fielder;
+            else if (_last != null) fielder = _last.Fielder;
             var from = Vector3.zero;
             if (fielder != null && _heroes.TryGetValue(fielder.Id, out var fh) && fh != null)
                 from = fh.transform.position;
@@ -633,6 +861,7 @@ namespace GrandSluggers.UnityClient
             if (who == null) return;
             var h = Hero(who);
             h.SetPose(HeroActor.Pose.Idle);
+            h.SetHighlight(false);
             h.Place(new Vector3((float)bag.X, 0, (float)bag.Z), new Vector3(0, 0, -1));
             h.Tick(Time.deltaTime);
         }
