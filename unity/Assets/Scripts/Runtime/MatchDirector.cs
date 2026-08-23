@@ -9,7 +9,11 @@ namespace GrandSluggers.UnityClient
         public int Seed = 7;
         public int Innings = 3;
         public string ParkId = "harbor-diamond";
+        public string HomeCaptain = "rio";
+        public string AwayCaptain = "ashlord";
         static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city" };
+        bool _challenge;
+        Challenge _campaign;
 
         enum Phase { Title, Lineup, Set, Flight, InPlay, Result, GameOver }
 
@@ -47,7 +51,7 @@ namespace GrandSluggers.UnityClient
         {
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             _content = ContentCatalog.Load(data);
-            _match = Match.Slice(_content, Innings, Seed, ParkId);
+            _match = NewMatch();
             _view = gameObject.AddComponent<ParkView>();
             _view.Build(_match.Park);
             _cam = Camera.main;
@@ -80,18 +84,7 @@ namespace GrandSluggers.UnityClient
             switch (_phase)
             {
                 case Phase.Title:
-                    if (Key(KeyCode.C))
-                    {
-                        var i = System.Array.IndexOf(Parks, ParkId);
-                        ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
-                    }
-                    if (Confirm())
-                    {
-                        _match = Match.Slice(_content, Innings, Seed, ParkId);
-                        _view.Build(_match.Park);
-                        _phase = Phase.Lineup;
-                        _t = 0;
-                    }
+                    TickTitle();
                     break;
                 case Phase.Lineup:
                     if (Key(KeyCode.B)) _match.CycleBat(true);
@@ -112,19 +105,17 @@ namespace GrandSluggers.UnityClient
                 case Phase.Result:
                     if (_t > (_last?.Kind == PlayKind.HomeRun ? 2.2f : 1.3f))
                     {
-                        if (_match.Over) { _phase = Phase.GameOver; _t = 0; }
+                        if (_match.Over)
+                        {
+                            _campaign?.Resolve(_match);
+                            _phase = Phase.GameOver;
+                            _t = 0;
+                        }
                         else BeginSet();
                     }
                     break;
                 case Phase.GameOver:
-                    if (Confirm())
-                    {
-                        Seed++;
-                        _match = Match.Slice(_content, Innings, Seed, ParkId);
-                        _view.Build(_match.Park);
-                        _phase = Phase.Title;
-                        _t = 0;
-                    }
+                    if (Confirm()) ConfirmGameOver();
                     break;
             }
             DrawActors();
@@ -137,16 +128,23 @@ namespace GrandSluggers.UnityClient
             GUI.skin.label.fontSize = s;
             if (_phase == Phase.Title)
             {
-                GUI.Label(new Rect(60, 80, 900, 40), "GRAND SLUGGERS");
+                var awayId = _challenge
+                    ? (_campaign != null ? _campaign.NextOpponentId(_content) : Challenge.Start(_content, HomeCaptain).NextOpponentId(_content))
+                    : AwayCaptain;
+                var home = _content.Must(HomeCaptain);
+                var away = _content.Must(awayId);
                 var parkName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
-                GUI.Label(new Rect(60, 130, 900, 30), parkName);
-                GUI.Label(new Rect(60, 170, 900, 30), "C  cycle park     SPACE  play");
+                GUI.Label(new Rect(60, 80, 900, 40), "GRAND SLUGGERS");
+                GUI.Label(new Rect(60, 120, 900, 30), _challenge ? "CHALLENGE" : "EXHIBITION");
+                GUI.Label(new Rect(60, 160, 900, 30), $"YOU  {home.Name}     VS  {away.Name}");
+                GUI.Label(new Rect(60, 190, 900, 30), parkName);
+                GUI.Label(new Rect(60, 230, 1100, 30), "A/D captain   W/S opponent   C park   H challenge   SPACE play");
                 return;
             }
             if (_phase == Phase.Lineup)
             {
                 GUI.Label(new Rect(40, 40, 1100, 30), $"TEAM SHEET  {_match.Park.Name}  stars home {_match.HomeStars:0.#}  away {_match.AwayStars:0.#}");
-                GUI.Label(new Rect(40, 64, 1100, 24), $"Spark {_match.HomeBat.Name} / {_match.HomeGlove.Name}  [B][G]     Ember {_match.AwayBat.Name} / {_match.AwayGlove.Name}  [N][M]");
+                GUI.Label(new Rect(40, 64, 1100, 24), $"{_match.Home.Name} {_match.HomeBat.Name} / {_match.HomeGlove.Name}  [B][G]     {_match.Away.Name} {_match.AwayBat.Name} / {_match.AwayGlove.Name}  [N][M]");
                 var y = 80;
                 foreach (var c in _match.HomeOrder)
                 {
@@ -159,18 +157,83 @@ namespace GrandSluggers.UnityClient
             {
                 var mvp = _match.Mvp();
                 GUI.Label(new Rect(60, 80, 800, 30), "FINAL");
-                GUI.Label(new Rect(60, 120, 800, 30), $"Ember {_match.AwayScore}   Spark {_match.HomeScore}");
+                GUI.Label(new Rect(60, 120, 800, 30), $"{_match.Away.Name} {_match.AwayScore}   {_match.Home.Name} {_match.HomeScore}");
                 GUI.Label(new Rect(60, 170, 800, 30), $"MVP  {mvp.Who.Name}  ({mvp.Points})");
-                GUI.Label(new Rect(60, 220, 800, 30), "SPACE  play again");
+                if (_campaign != null && _campaign.LastRecruit != null)
+                    GUI.Label(new Rect(60, 200, 800, 30), $"{_campaign.LastRecruit.Name} joins the roster");
+                GUI.Label(new Rect(60, 240, 800, 30), "SPACE  continue");
                 return;
             }
-            GUI.Label(new Rect(20, 16, 500, 24), $"{(_match.Top ? "TOP" : "BOT")} {_match.Inning}   EMBER {_match.AwayScore}  SPARK {_match.HomeScore}");
+            GUI.Label(new Rect(20, 16, 700, 24), $"{(_match.Top ? "TOP" : "BOT")} {_match.Inning}   {_match.Away.Captain.Name} {_match.AwayScore}  {_match.Home.Captain.Name} {_match.HomeScore}");
             GUI.Label(new Rect(20, 42, 500, 24), $"B {_match.Balls}  S {_match.Strikes}  O {_match.Outs}   arm {_match.PitcherStamina}");
             GUI.Label(new Rect(20, 68, 700, 24), $"P {_match.Pitcher.Name}   AB {_match.Batter.Name}   {_pitches[_pitchIndex]}{(_star ? " *" : "")}");
             if (!string.IsNullOrEmpty(_banner))
                 GUI.Label(new Rect(Screen.width / 2 - 160, Screen.height / 2 - 20, 400, 40), _banner);
             if (!string.IsNullOrEmpty(_sub))
                 GUI.Label(new Rect(Screen.width / 2 - 200, Screen.height / 2 + 16, 440, 24), _sub);
+        }
+
+        Match NewMatch()
+        {
+            if (_challenge)
+            {
+                if (_campaign == null || !_campaign.CaptainId.Equals(HomeCaptain, System.StringComparison.OrdinalIgnoreCase))
+                    _campaign = Challenge.Start(_content, HomeCaptain);
+                return _campaign.MakeMatch(_content, Innings, Seed);
+            }
+            _campaign = null;
+            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId);
+        }
+
+        void TickTitle()
+        {
+            if (Key(KeyCode.H)) _challenge = !_challenge;
+            if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
+            {
+                HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
+                if (!_challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+            }
+            if (Key(KeyCode.D) || Key(KeyCode.RightArrow))
+            {
+                HomeCaptain = PresetTeams.NextCaptain(HomeCaptain);
+                if (!_challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+            }
+            if (!_challenge)
+            {
+                if (Key(KeyCode.W) || Key(KeyCode.UpArrow)) AwayCaptain = PresetTeams.PrevCaptain(AwayCaptain);
+                if (Key(KeyCode.S) || Key(KeyCode.DownArrow)) AwayCaptain = PresetTeams.NextCaptain(AwayCaptain);
+                if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
+                    AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
+            }
+            if (Key(KeyCode.C))
+            {
+                var i = System.Array.IndexOf(Parks, ParkId);
+                ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
+            }
+            if (Confirm())
+            {
+                _match = NewMatch();
+                _view.Build(_match.Park);
+                _phase = Phase.Lineup;
+                _t = 0;
+            }
+        }
+
+        void ConfirmGameOver()
+        {
+            Seed++;
+            if (_campaign != null && !_campaign.AllBeaten)
+            {
+                _match = _campaign.MakeMatch(_content, Innings, Seed);
+                _view.Build(_match.Park);
+                _phase = Phase.Lineup;
+                _t = 0;
+                return;
+            }
+            _match = NewMatch();
+            _view.Build(_match.Park);
+            _phase = Phase.Title;
+            _t = 0;
         }
 
         void BeginSet()
@@ -379,13 +442,13 @@ namespace GrandSluggers.UnityClient
                     x = pos.X + (_last.LandingX - pos.X) * u;
                     z = pos.Z + (_last.LandingZ - pos.Z) * u;
                 }
-                _view.Person(who.Id, who.Faction == "spark").position = new Vector3((float)x, 0, (float)z);
+                _view.Person(who.Id, who.Faction).position = new Vector3((float)x, 0, (float)z);
             }
             var batter = _match.Batter;
-            _view.Person("batter-" + batter.Id, batter.Faction == "spark").position = new Vector3(1.6f, 0, 0.8f);
-            if (_match.First != null) _view.Person("r1", _match.First.Faction == "spark").position = new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z);
-            if (_match.Second != null) _view.Person("r2", _match.Second.Faction == "spark").position = new Vector3((float)Diamond.Second.X, 0, (float)Diamond.Second.Z);
-            if (_match.Third != null) _view.Person("r3", _match.Third.Faction == "spark").position = new Vector3((float)Diamond.Third.X, 0, (float)Diamond.Third.Z);
+            _view.Person("batter-" + batter.Id, batter.Faction).position = new Vector3(1.6f, 0, 0.8f);
+            if (_match.First != null) _view.Person("r1", _match.First.Faction).position = new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z);
+            if (_match.Second != null) _view.Person("r2", _match.Second.Faction).position = new Vector3((float)Diamond.Second.X, 0, (float)Diamond.Second.Z);
+            if (_match.Third != null) _view.Person("r3", _match.Third.Faction).position = new Vector3((float)Diamond.Third.X, 0, (float)Diamond.Third.Z);
             var heat = _pitch?.Star == true || _last?.Heatball == true;
             if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
             {

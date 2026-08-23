@@ -16,6 +16,11 @@ public readonly record struct FrameInput(
     bool Jump,
     bool TogglePark,
     bool ToggleTwoPlayer,
+    bool ToggleMode,
+    bool NavLeft,
+    bool NavRight,
+    bool NavUp,
+    bool NavDown,
     bool Quit);
 
 public static class PlayerInput
@@ -62,6 +67,15 @@ public static class PlayerInput
                   (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.RightFaceRight)),
             TogglePark: Raylib.IsKeyPressed(KeyboardKey.C),
             ToggleTwoPlayer: Raylib.IsKeyPressed(KeyboardKey.T),
+            ToggleMode: Raylib.IsKeyPressed(KeyboardKey.H),
+            NavLeft: Raylib.IsKeyPressed(KeyboardKey.Left) || Raylib.IsKeyPressed(KeyboardKey.A) ||
+                     (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceLeft)),
+            NavRight: Raylib.IsKeyPressed(KeyboardKey.Right) || Raylib.IsKeyPressed(KeyboardKey.D) ||
+                      (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceRight)),
+            NavUp: Raylib.IsKeyPressed(KeyboardKey.Up) || Raylib.IsKeyPressed(KeyboardKey.W) ||
+                   (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceUp)),
+            NavDown: Raylib.IsKeyPressed(KeyboardKey.Down) || Raylib.IsKeyPressed(KeyboardKey.S) ||
+                     (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceDown)),
             Quit: Raylib.IsKeyPressed(KeyboardKey.Escape) || Raylib.WindowShouldClose());
     }
 
@@ -106,6 +120,11 @@ public static class PlayerInput
                   (pad && Raylib.IsGamepadButtonPressed(1, GamepadButton.RightFaceRight)),
             TogglePark: false,
             ToggleTwoPlayer: false,
+            ToggleMode: false,
+            NavLeft: false,
+            NavRight: false,
+            NavUp: false,
+            NavDown: false,
             Quit: false);
     }
 }

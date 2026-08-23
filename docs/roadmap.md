@@ -41,10 +41,10 @@ Gear loadout is on the team sheet (B/G Spark, N/M Ember). Four parks ship: Harbo
 
 ## Milestone 3 — content pass (started)
 
-- All 6 captains (in data; exhibition still Spark vs Ember)
-- ~18 role players + 6 captains
-- 4 parks playable
-- Challenge *prototype* still not started. Kill it if it is not fun in two days.
+- All 6 captains selectable in Exhibition (A/D you, W/S opponent)
+- 18 role players + 6 captains
+- 4 parks playable (Harbor, Crystal, Funfair, Rooftop)
+- Challenge prototype: pick a captain, beat a rival, recruit one role player. Session-only. Kill it if it is not fun.
 
 ## Milestone 4 — party complete
 
