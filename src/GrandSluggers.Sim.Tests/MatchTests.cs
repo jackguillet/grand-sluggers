@@ -53,6 +53,79 @@ public class MatchTests
     }
 
     [Fact]
+    public void HopperWithRunnerOnSecondIsATagNotAForce()
+    {
+        var match = Occupy(PlayKind.Double);
+        Assert.NotNull(match.Second);
+        Assert.Null(match.First);
+        var runnerId = match.Second.Id;
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.4, 42, 78, false, false, laser);
+        Assert.False(InPlay.RunnerBeatsTag(match.Second, hit, field, 3));
+        match.FinishAtBat(paint, swing, hit, field);
+        Assert.True(match.Outs >= 1, "tag at third is an out");
+        Assert.Null(match.Third);
+        Assert.True(match.Second is null || match.Second.Id != runnerId);
+    }
+
+    [Fact]
+    public void SlowTagThrowLetsTheRunnerTakeThird()
+    {
+        var match = Occupy(PlayKind.Double);
+        var runnerId = match.Second!.Id;
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var looper = new ThrowResult(Chemistry.Bad, 0.4, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.35, 90, 40, false, false, looper);
+        Assert.True(InPlay.RunnerBeatsTag(match.Second, hit, field, 3));
+        match.FinishAtBat(paint, swing, hit, field);
+        Assert.NotNull(match.Third);
+        Assert.Equal(runnerId, match.Third.Id);
+        Assert.NotNull(match.First);
+        Assert.Equal(0, match.Outs);
+    }
+
+    [Fact]
+    public void HopperWithRunnerOnThirdTagsAtHome()
+    {
+        var match = Occupy(PlayKind.Triple);
+        Assert.NotNull(match.Third);
+        Assert.Null(match.First);
+        var runnerId = match.Third.Id;
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.8, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.35, 20, 55, false, false, laser);
+        Assert.False(InPlay.RunnerBeatsTag(match.Third, hit, field, 4));
+        match.FinishAtBat(paint, swing, hit, field);
+        Assert.True(match.Outs >= 1);
+        Assert.True(match.Third is null || match.Third.Id != runnerId);
+    }
+
+    Match Occupy(PlayKind extra)
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        for (var i = 0; i < 24 && !match.Over; i++)
+        {
+            if (!match.BeginAtBat(paint, swing, out var hit, out _))
+                continue;
+            match.FinishAtBat(paint, swing, hit,
+                new FieldingResult(extra, match.Pitcher, null, 1.4, 8, extra == PlayKind.Triple ? 310 : 250, false, false));
+            if (extra == PlayKind.Double && match.Second is not null && match.First is null) return match;
+            if (extra == PlayKind.Triple && match.Third is not null && match.First is null) return match;
+        }
+        Assert.Fail("could not occupy the bag with a hit");
+        return match;
+    }
+
+    [Fact]
     public void ThreeLookingStrikesIsAStrikeout()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);

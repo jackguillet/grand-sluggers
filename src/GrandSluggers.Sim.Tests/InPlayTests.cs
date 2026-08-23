@@ -76,6 +76,11 @@ public class InPlayTests
         Assert.Equal(new[] { 2 }, InPlay.GroundThrowBags(true, true));
         Assert.Equal(new[] { 1 }, InPlay.GroundThrowBags(false, false));
         Assert.Empty(InPlay.GroundThrowBags(false, true));
+        Assert.Equal(new[] { 3 }, InPlay.GroundThrowBags(false, true, false, false));
+        Assert.Equal(new[] { 4 }, InPlay.GroundThrowBags(false, true, true, false));
+        Assert.Equal(4, InPlay.TagBag(true, true));
+        Assert.Equal(3, InPlay.TagBag(true, false));
+        Assert.Equal(0, InPlay.TagBag(false, false));
     }
 
     [Fact]

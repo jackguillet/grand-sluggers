@@ -527,6 +527,45 @@ public sealed class Match
                     CheckInning();
                     break;
                 }
+                if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
+                {
+                    var tagBag = InPlay.TagBag(Second is not null, Third is not null);
+                    var fromBag = tagBag == 4 ? 3 : 2;
+                    var runner = tagBag == 4 ? Third! : Second!;
+                    var beats = InPlay.RunnerBeatsTag(runner, hit, field, tagBag);
+                    if (!beats)
+                    {
+                        SetBag(fromBag, null);
+                        Outs++;
+                        AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
+                        AddStars(defense: true, 0.4);
+                        caption = $"{field.Fielder?.Name} tags {runner.Name}.";
+                        if (Outs < 3)
+                            SetBag(1, Batter);
+                        NextBatter();
+                    }
+                    else
+                    {
+                        if (tagBag == 4)
+                        {
+                            Score(runner);
+                            SetBag(3, null);
+                            runs = 1;
+                            scorers = [runner.Name];
+                            caption = $"{runner.Name} beats the tag. {Batter.Name} in at first.";
+                        }
+                        else
+                        {
+                            SetBag(3, runner);
+                            SetBag(2, null);
+                            caption = $"{runner.Name} in at third. {Batter.Name} in at first.";
+                        }
+                        SetBag(1, Batter);
+                        NextBatter();
+                    }
+                    CheckInning();
+                    break;
+                }
                 if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field))
                 {
                     kind = PlayKind.Single;
