@@ -1,6 +1,17 @@
 # Unity 6 URP (shell)
 
-Pinned editor: **Unity 6000.0 LTS** (URP). Create/open this folder as a Unity project when the editor is installed.
+Pinned editor: **Unity 6000.0.82f1 LTS** (URP, arm64), installed at
+`/Applications/Unity/Hub/Editor/6000.0.82f1/Unity.app`.
+
+Apple Silicon still wants Rosetta 2 for the Editor helper (`softwareupdate --install-rosetta --agree-to-license`). Hub is in `/Applications/Unity Hub.app`.
+
+The editor will not open a project until a Personal license is on the machine:
+
+```bash
+export PATH="$HOME/.unity/bin:$PATH"
+unity auth login          # browser; Unity ID, Personal is free under $200k
+unity open ./unity        # from the repo root
+```
 
 The **playable vertical slice is not this folder.** Run:
 

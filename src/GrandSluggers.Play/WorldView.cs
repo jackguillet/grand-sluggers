@@ -8,12 +8,15 @@ public static class WorldView
 {
     public static void DrawPark(Park park, bool furnace)
     {
-        Raylib.DrawCube(new Vector3(0, -1.2f, 220), 900, 2, 900, Palette.Water);
-        Raylib.DrawCube(new Vector3(0, -0.2f, 180), 560, 0.6f, 560, Palette.Grass);
+        var ice = park.Surface == "ice";
+        Raylib.DrawCube(new Vector3(0, -1.2f, 220), 900, 2, 900, ice ? Palette.C(190, 220, 240) : Palette.Water);
+        Raylib.DrawCube(new Vector3(0, -0.2f, 180), 560, 0.6f, 560, ice ? Palette.C(210, 230, 245) : Palette.Grass);
         for (var i = 0; i < 12; i++)
         {
             var z = 40 + i * 36;
-            var c = i % 2 == 0 ? Palette.Grass : Palette.CutGrass;
+            var c = ice
+                ? (i % 2 == 0 ? Palette.C(200, 226, 240) : Palette.C(186, 214, 232))
+                : (i % 2 == 0 ? Palette.Grass : Palette.CutGrass);
             Raylib.DrawCube(new Vector3(0, 0.02f, z), 420, 0.08f, 34, c);
         }
 
@@ -23,9 +26,21 @@ public static class WorldView
         DrawMound();
         DrawFence(park, furnace);
         DrawStands();
-        DrawHarbor();
+        if (!ice) DrawHarbor();
         DrawBackstop();
+        if (ice)
+        {
+            foreach (var h in park.Hazards)
+            {
+                if (h.Type != "freeze_volume") continue;
+                Raylib.DrawCylinder(new Vector3((float)h.X, 0, (float)h.Z), (float)h.Radius, (float)h.Radius * 0.6f, 4.5f, 10, Palette.C(160, 230, 255));
+                Raylib.DrawSphere(new Vector3((float)h.X, 5.2f, (float)h.Z), 1.6f, Palette.C(230, 250, 255));
+            }
+        }
     }
+
+    public static void DrawRing(double x, double z, float radius, Color color) =>
+        Raylib.DrawCylinder(new Vector3((float)x, 0.15f, (float)z), radius, radius, 0.2f, 16, color);
 
     public static void DrawPerson(double x, double z, bool spark, bool batting, bool pitching, float batAngle, bool star)
     {

@@ -12,7 +12,7 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
-        RunMatch(content, Seed(args));
+        RunMatch(content, Seed(args), ParkId(args));
         break;
     case "chem":
         DumpChem(content, args.ElementAtOrDefault(1) ?? "rio");
@@ -31,7 +31,7 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--seed N]
+              match [--seed N] [--park harbor-diamond|crystal-rink]
             """);
         break;
 }
@@ -42,6 +42,14 @@ static int Seed(string[] args)
         if (args[i] is "--seed" or "-s" && int.TryParse(args[i + 1], out var n))
             return n;
     return 1;
+}
+
+static string ParkId(string[] args)
+{
+    for (var i = 0; i < args.Length - 1; i++)
+        if (args[i] is "--park" or "-p")
+            return args[i + 1];
+    return "harbor-diamond";
 }
 
 static void PrintTeam(ContentCatalog content, string id)
@@ -78,10 +86,10 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed)
+static void RunMatch(ContentCatalog content, int seed, string parkId)
 {
-    var match = Match.Slice(content, innings: 3, seed: seed);
-    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  Harbor Diamond  seed {seed}");
+    var match = Match.Slice(content, innings: 3, seed: seed, parkId: parkId);
+    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}");
     Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
     while (!match.Over)
     {

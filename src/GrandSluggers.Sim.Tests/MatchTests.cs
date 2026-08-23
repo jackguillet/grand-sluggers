@@ -82,4 +82,33 @@ public class MatchTests
         Assert.Equal("Rio Sparks", match.Home.Captain.Name);
         Assert.Equal("Ashlord", match.Away.Captain.Name);
     }
+
+    [Fact]
+    public void CrystalRinkHasFreezeHazards()
+    {
+        var match = Match.Slice(_content, seed: 1, parkId: "crystal-rink");
+        Assert.Equal("crystal-rink", match.Park.Id);
+        Assert.Equal("ice", match.Park.Surface);
+        Assert.True(ParkHazards.InFreeze(match.Park, 40, 70));
+        Assert.False(ParkHazards.InFreeze(match.Park, 0, 0));
+    }
+
+    [Fact]
+    public void SwapPitcherChangesTheMound()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var first = match.Pitcher.Id;
+        Assert.True(match.SwapPitcher());
+        Assert.NotEqual(first, match.Pitcher.Id);
+        Assert.True(match.PitcherStamina >= 35);
+    }
+
+    [Fact]
+    public void CrystalGameFinishes()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 11, parkId: "crystal-rink");
+        match.AutoPlayGame();
+        Assert.True(match.Over);
+        Assert.True(match.Log.Count > 8);
+    }
 }

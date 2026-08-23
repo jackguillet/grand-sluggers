@@ -33,6 +33,8 @@ public sealed class Match
     public double HomeStars { get; private set; }
     public int AwayStamina { get; private set; } = 100;
     public int HomeStamina { get; private set; } = 100;
+    Character _homePitcher;
+    Character _awayPitcher;
     public bool Over { get; private set; }
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
@@ -51,18 +53,22 @@ public sealed class Match
         HomeOrder = BattingOrder(home);
         AwayStars = content.Chemistry.StartingStars(away);
         HomeStars = content.Chemistry.StartingStars(home);
+        _homePitcher = home.Captain;
+        _awayPitcher = away.Captain;
     }
 
-    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1)
+    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = "harbor-diamond")
     {
-        var park = content.Parks["harbor-diamond"];
+        if (!content.Parks.TryGetValue(parkId, out var park))
+            park = content.Parks["harbor-diamond"];
         return new Match(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), park, innings, seed);
     }
 
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
-    public Character Pitcher => Defense.Captain;
+    public Character Pitcher => Top ? _homePitcher : _awayPitcher;
+    public int PitcherStamina => Top ? HomeStamina : AwayStamina;
     public Character? OnDeck
     {
         get
@@ -86,6 +92,16 @@ public sealed class Match
 
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing)
     {
+        if (!BeginAtBat(pitch, swing, out var hit, out var finished))
+            return finished!;
+        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng);
+        return FinishAtBat(pitch, swing, hit, field);
+    }
+
+    public bool BeginAtBat(PitchCommand pitch, SwingCommand swing, out AtBatResult hit, out PlayEvent? finished)
+    {
+        hit = EmptyHit(true);
+        finished = null;
         if (Over) throw new InvalidOperationException("game over");
 
         var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch);
@@ -93,9 +109,9 @@ public sealed class Match
 
         if (!swing.Swing)
         {
-            var ev = FinishTake(pitch, swing, inZone);
+            finished = FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
-            return ev;
+            return false;
         }
 
         SpendSwing(swing);
@@ -108,17 +124,54 @@ public sealed class Match
             Top ? HomeStamina : AwayStamina,
             swing.SprayAimDeg, inZone);
 
-        var hit = _atBat.Resolve(input, Park, _rng);
+        hit = _atBat.Resolve(input, Park, _rng);
         if (hit.Foul)
-            return FinishFoul(pitch, swing, hit);
+        {
+            finished = FinishFoul(pitch, swing, hit);
+            return false;
+        }
         if (!hit.InPlay)
-            return FinishStrike(pitch, swing, hit, swinging: true);
+        {
+            finished = FinishStrike(pitch, swing, hit, swinging: true);
+            return false;
+        }
+        return true;
+    }
 
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng);
+    public PlayEvent FinishAtBat(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
+    {
         var played = FinishInPlay(pitch, swing, hit, field);
         EndIfWalkOff();
         return played;
     }
+
+    public FieldingPreview PreviewHit(AtBatResult hit) =>
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher);
+
+    public bool SwapPitcher()
+    {
+        var team = Defense;
+        var cur = Pitcher;
+        var next = team.Roster
+            .Where(c => !c.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(c => c.Stats.Pitch)
+            .FirstOrDefault();
+        if (next is null) return false;
+        if (Top)
+        {
+            _homePitcher = next;
+            HomeStamina = Math.Min(100, HomeStamina + 35);
+        }
+        else
+        {
+            _awayPitcher = next;
+            AwayStamina = Math.Min(100, AwayStamina + 35);
+        }
+        return true;
+    }
+
+    public ThrowResult ThrowBetween(Character from, Character to) =>
+        Content.Chemistry.FieldingThrow(from, to, _rng);
 
     public PitchCommand CpuPitch()
     {
@@ -276,9 +329,13 @@ public sealed class Match
                     caption = $"{field.Fielder?.Name} reels it in. Sac fly.";
                 }
                 else
-                    caption = kind == PlayKind.FlyOut
-                        ? $"{field.Fielder?.Name} puts it away."
-                        : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
+                    caption = kind == PlayKind.FlyOut && field.Buddy is not null && hit.CarryFt > 260
+                        ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
+                        : kind == PlayKind.FlyOut
+                            ? $"{field.Fielder?.Name} puts it away."
+                            : field.Throw is { SpeedMul: > 1.2 }
+                                ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
+                                : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
                 NextBatter();
                 CheckInning();
                 break;
