@@ -285,7 +285,12 @@ namespace GrandSluggers.UnityClient
                 gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw
                     or Pose.Jump or Pose.Clamber or Pose.Scoop;
                 if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
-                var sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
+                MoveBones.Sample sample;
+                var clipId = ClipId(verb);
+                if (clipId != null && ArtBinder.Art != null && ArtBinder.Art.TryAuthored(clipId, _t, out var authored))
+                    sample = authored;
+                else
+                    sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
@@ -623,6 +628,20 @@ namespace GrandSluggers.UnityClient
             Pose.Throw => MoveBones.Verb.Throw,
             Pose.Scoop => MoveBones.Verb.Scoop,
             Pose.Slide => MoveBones.Verb.Slide,
+            _ => null
+        };
+
+        static string ClipId(MoveBones.Verb verb) => verb switch
+        {
+            MoveBones.Verb.Idle => "idle",
+            MoveBones.Verb.Walk => "walk",
+            MoveBones.Verb.Run => "run",
+            MoveBones.Verb.Jump => "jump",
+            MoveBones.Verb.Swing => "swing",
+            MoveBones.Verb.Pitch => "pitch",
+            MoveBones.Verb.Scoop => "scoop",
+            MoveBones.Verb.Slide => "slide",
+            MoveBones.Verb.Throw => "throw",
             _ => null
         };
 
