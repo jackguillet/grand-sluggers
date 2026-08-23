@@ -1,0 +1,66 @@
+{
+  "pitches": {
+    "heatball": {
+      "id": "heatball",
+      "name": "Heatball",
+      "kind": "element",
+      "speedMul": 1.15,
+      "staminaCost": 18,
+      "onCatch": "burn-hop"
+    },
+    "charmball": {
+      "id": "charmball",
+      "name": "Charmball",
+      "kind": "status",
+      "speedMul": 0.9,
+      "staminaCost": 16,
+      "batterWindowMul": 0.75
+    },
+    "prismball": {
+      "id": "prismball",
+      "name": "Prismball",
+      "kind": "break",
+      "speedMul": 1.0,
+      "staminaCost": 14,
+      "lateBreak": true
+    },
+    "phonyball": {
+      "id": "phonyball",
+      "name": "Phonyball",
+      "kind": "decoy",
+      "speedMul": 1.0,
+      "staminaCost": 16,
+      "decoy": true
+    },
+    "caskball": {
+      "id": "caskball",
+      "name": "Caskball",
+      "kind": "payload",
+      "speedMul": 0.85,
+      "staminaCost": 20,
+      "onCatch": "knockback"
+    },
+    "skullball": {
+      "id": "skullball",
+      "name": "Skullball",
+      "kind": "intimidate",
+      "speedMul": 1.2,
+      "staminaCost": 22,
+      "batterWindowMul": 0.8
+    },
+    "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "speedMul": 1.25, "staminaCost": 10 },
+    "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "speedMul": 0.7, "staminaCost": 8 },
+    "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true }
+  },
+  "swings": {
+    "heat-swing": { "id": "heat-swing", "name": "Heat Swing", "kind": "terrain", "exitVeloMul": 1.15, "terrain": "burn-patch" },
+    "heart-swing": { "id": "heart-swing", "name": "Heart Swing", "kind": "status", "exitVeloMul": 1.05, "fielderPauseSec": 0.8 },
+    "shell-swing": { "id": "shell-swing", "name": "Shell Swing", "kind": "bounce", "exitVeloMul": 1.1, "infieldChaos": true },
+    "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
+    "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
+    "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
+    "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "launchDeg": 8, "exitVeloMul": 1.2 },
+    "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "launchDeg": 38, "exitVeloMul": 1.2 },
+    "line": { "id": "line", "name": "Star Line", "kind": "generic", "launchDeg": 18, "exitVeloMul": 1.25 }
+  }
+}

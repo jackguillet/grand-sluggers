@@ -1,0 +1,19 @@
+{
+  "id": "funfair-park",
+  "name": "Funfair Park",
+  "faction": "carnival",
+  "surface": "grass",
+  "leftFenceFt": 315,
+  "centerFenceFt": 390,
+  "rightFenceFt": 340,
+  "windMph": 6,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [
+    { "type": "warp_pipe", "x": 20, "z": 55, "radius": 4, "tag": "A" },
+    { "type": "warp_pipe", "x": -25, "z": 60, "radius": 4, "tag": "B" },
+    { "type": "warp_pipe", "x": 0, "z": 95, "radius": 4, "tag": "C" },
+    { "type": "train", "z": 310, "periodSec": 18 }
+  ],
+  "notes": "Grounders that enter a warp can exit another. Night adds chompers in the outfield (not in this file yet)."
+}

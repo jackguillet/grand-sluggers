@@ -1,0 +1,16 @@
+{
+  "id": "brondo",
+  "name": "Brondo",
+  "faction": "goldrush",
+  "captain": true,
+  "pitch": 5,
+  "bat": 8,
+  "field": 3,
+  "run": 4,
+  "bats": "R",
+  "throws": "R",
+  "starPitch": "phonyball",
+  "starSwing": "phony-swing",
+  "fieldAbility": "laser",
+  "bio": "Contact zone for days. Glove like a frying pan. Knows a guy."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "harbor-lumber",
+  "name": "Harbor Lumber",
+  "slot": "bat",
+  "contactMod": 0,
+  "powerMod": 0,
+  "chargeAlwaysFull": false,
+  "visual": "bat-red",
+  "notes": "Default Spark bat. Neutral."
+}

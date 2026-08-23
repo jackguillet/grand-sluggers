@@ -1,0 +1,14 @@
+{
+  "id": "harbor-diamond",
+  "name": "Harbor Diamond",
+  "faction": "spark",
+  "surface": "grass",
+  "leftFenceFt": 330,
+  "centerFenceFt": 400,
+  "rightFenceFt": 330,
+  "windMph": 4,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [],
+  "notes": "The control park. No gimmicks. Fireworks on night homers are presentation only."
+}

@@ -1,0 +1,18 @@
+{
+  "id": "crystal-rink",
+  "name": "Crystal Rink",
+  "faction": "royal",
+  "surface": "ice",
+  "leftFenceFt": 320,
+  "centerFenceFt": 385,
+  "rightFenceFt": 320,
+  "windMph": 2,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [
+    { "type": "freeze_volume", "x": 40, "z": 70, "radius": 8 },
+    { "type": "freeze_volume", "x": -45, "z": 90, "radius": 8 },
+    { "type": "freeze_volume", "x": 10, "z": 180, "radius": 10 }
+  ],
+  "notes": "Players do not skate. Freezers stun on touch. Night blackout is a presentation + follow-spot on the ball."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "ashlord",
+  "name": "Ashlord",
+  "faction": "ember",
+  "captain": true,
+  "pitch": 5,
+  "bat": 10,
+  "field": 3,
+  "run": 3,
+  "bats": "L",
+  "throws": "R",
+  "starPitch": "skullball",
+  "starSwing": "furnace",
+  "fieldAbility": "spin-check",
+  "bio": "The bat is a 10. Everything else is a warning."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "vale",
+  "name": "Queen Vale",
+  "faction": "royal",
+  "captain": true,
+  "pitch": 9,
+  "bat": 4,
+  "field": 8,
+  "run": 5,
+  "bats": "R",
+  "throws": "R",
+  "starPitch": "charmball",
+  "starSwing": "heart-swing",
+  "fieldAbility": "snap-throw",
+  "bio": "A slap hitter who can pitch the lights out of Crystal Rink."
+}

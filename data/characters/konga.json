@@ -1,0 +1,16 @@
+{
+  "id": "konga",
+  "name": "Konga",
+  "faction": "canopy",
+  "captain": true,
+  "pitch": 6,
+  "bat": 9,
+  "field": 3,
+  "run": 2,
+  "bats": "L",
+  "throws": "R",
+  "starPitch": "caskball",
+  "starSwing": "cask-swing",
+  "fieldAbility": "clamber",
+  "bio": "A strong hitter who treats outfield walls as a ladder."
+}
