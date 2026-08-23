@@ -43,12 +43,12 @@ namespace GrandSluggers.UnityClient
             }
             if (_smash > 0) _smash -= dt;
             else if (_throwing)
-                _cam.ThrowTo(_throwFrom, _throwTo);
+                _cam.ThrowTo(_throwFrom, _throwTo, TagCam(_throwBag));
             else if ((_caught || _buddy) && !_throwing)
             {
                 var bag = _throwBag > 0 ? _throwBag : Controls.StickBag;
                 if (bag > 0)
-                    _cam.ThrowTo(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag));
+                    _cam.ThrowTo(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag), TagCam(bag));
                 else
                     _cam.AimRaw("glove",
                         new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
@@ -285,6 +285,8 @@ namespace GrandSluggers.UnityClient
             if (_itemFlying) return;
             CommitInPlay();
         }
+
+        static bool TagCam(int bag) => bag is 3 or 4;
 
         void ChaseLiveHop(float dt, FieldingPreview pre)
         {

@@ -39,7 +39,7 @@ public static class InPlay
         if (!string.IsNullOrEmpty(hit.StarSwingUsed)) return "smash";
         if (FieldingResolver.IsGrounder(hit))
             return hit.SprayDeg < -8 ? "diamond-pull" : "diamond-grounder";
-        if (FieldingResolver.IsLine(hit)) return "diamond";
+        if (FieldingResolver.IsLine(hit)) return "diamond-line";
         return "diamond";
     }
 
