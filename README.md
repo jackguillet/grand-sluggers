@@ -42,9 +42,9 @@ dotnet test
 dotnet run --project src/GrandSluggers.Play
 ```
 
-Title screen: **A/D** pick your captain (all six), **W/S** pick the opponent, **C** cycles **Harbor Diamond**, **Crystal Rink**, **Funfair Park**, and **Rooftop City**. **H** starts **Challenge** (beat a rival, recruit one role player). **T** is local 2-player exhibition. On the team sheet, B/G pick home bat/glove; N/M pick away.
+Title screen: **A/D** pick your captain (all six), **W/S** pick the opponent, **C** cycles all six parks. **H** starts **Challenge** (beat a rival, recruit one role player). **T** is local 2-player exhibition. On the team sheet, B/G pick home bat/glove; N/M pick away.
 
-On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues on Crystal Rink slow you down.
+On defense you control one fielder: WASD to run, Space to catch, 1/2/3/H to throw, F for a buddy jump, R to swap pitchers. Stamina is on the HUD. Freeze statues and lava pits slow you down. Barrel cannons warp grounders. Clamber fielders can rob homers at Canopy Yard.
 
 ```
 SPACE / A     pitch, swing, or catch
@@ -61,6 +61,8 @@ ESC           quit
 ```
 
 ```bash
+dotnet run --project src/GrandSluggers.Play -- --park canopy-yard
+dotnet run --project src/GrandSluggers.Play -- --park ember-keep
 dotnet run --project src/GrandSluggers.Play -- --park crystal-rink
 dotnet run --project src/GrandSluggers.Play -- --home vale --away zig
 dotnet run --project src/GrandSluggers.Play -- --challenge --captain rio

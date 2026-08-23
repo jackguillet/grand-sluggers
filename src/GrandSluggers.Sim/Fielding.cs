@@ -31,11 +31,14 @@ public sealed class FieldingResolver
             }
         }
         var buddy = Buddy(defense, pitcher, fielder, landing.X, landing.Z);
-        var freeze = ParkHazards.InFreeze(park, landing.X, landing.Z);
+        var freeze = ParkHazards.InSlow(park, landing.X, landing.Z);
+        var radius = 10 + fielder.Stats.Field * 0.6;
+        if (ParkHazards.CanClamber(park, fielder))
+            radius += 6;
         return new FieldingPreview(
             fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
             hit.StarPitchUsed == "heatball", hit.StarSwingUsed == "furnace", freeze,
-            10 + fielder.Stats.Field * 0.6, warped);
+            radius, warped);
     }
 
     public FieldingResult Resolve(
@@ -49,6 +52,8 @@ public sealed class FieldingResolver
         var pre = Preview(hit, park, defense, pitcher, rng);
         if (pre.HomeRunLikely && hit.HomeRun)
         {
+            if (ParkHazards.CanClamberRob(park, pre.Fielder, hit))
+                return new FieldingResult(PlayKind.FlyOut, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace, Buddy: pre.Buddy);
             return new FieldingResult(PlayKind.HomeRun, null, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace);
         }
 
@@ -61,6 +66,8 @@ public sealed class FieldingResolver
         var furnace = pre.Furnace;
         var heatball = pre.Heatball;
         var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8;
+        if (ParkHazards.CanClamber(park, fielder))
+            range += 18;
         var speed = 21 + fielder.Stats.Run * 1.9; // ft/s
         if (pre.Frozen) speed *= 0.45;
         var start = Diamond.Positions[pos];
@@ -203,11 +210,13 @@ public sealed record FieldingPreview(
 
 public static class ParkHazards
 {
-    public static bool InFreeze(Park park, double x, double z)
+    public static bool InFreeze(Park park, double x, double z) => InSlow(park, x, z);
+
+    public static bool InSlow(Park park, double x, double z)
     {
         foreach (var h in park.Hazards)
         {
-            if (h.Type != "freeze_volume") continue;
+            if (h.Type is not ("freeze_volume" or "lava_pit" or "fire_breath")) continue;
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         }
         return false;
@@ -215,7 +224,7 @@ public static class ParkHazards
 
     public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng)
     {
-        var pipes = park.Hazards.Where(h => h.Type == "warp_pipe").ToList();
+        var pipes = park.Hazards.Where(h => h.Type is "warp_pipe" or "barrel").ToList();
         if (pipes.Count < 2) return (x, z, false);
         Hazard? hit = null;
         foreach (var p in pipes)
@@ -232,6 +241,9 @@ public static class ParkHazards
         return (dest.X, dest.Z, true);
     }
 
+    public static string WarpName(Park park) =>
+        park.Hazards.Any(h => h.Type == "barrel") ? "barrel cannon" : "warp can";
+
     public static bool HitStarSign(Park park, double x, double z)
     {
         foreach (var h in park.Hazards)
@@ -240,5 +252,16 @@ public static class ParkHazards
             if (Diamond.Dist(h.X, h.Z, x, z) <= h.Radius) return true;
         }
         return false;
+    }
+
+    public static bool CanClamber(Park park, Character fielder) =>
+        fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase) &&
+        park.Hazards.Any(h => h.Type == "climb_wall");
+
+    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit)
+    {
+        if (!CanClamber(park, fielder)) return false;
+        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
+        return hit.CarryFt <= fence + 28;
     }
 }
