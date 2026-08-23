@@ -111,7 +111,9 @@ public sealed class FieldingResolver
         {
             var cut = Cutoff(defense, pitcher, fielder);
             var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng));
-            var error = throwRes is { Error: true };
+            var energy = InPlay.Energy(hit);
+            var bobble = InPlay.Bobbles(energy, fielder, rng, glove);
+            var error = throwRes is { Error: true } || bobble;
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
                 fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, shown.Buddy);

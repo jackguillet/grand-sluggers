@@ -1205,14 +1205,24 @@ namespace GrandSluggers.UnityClient
 
             var batter = _match.Batter;
             var bHero = Hero(batter);
-            var bPose = BatterPose();
+            var racing = _phase == Phase.InPlay && _pending != null;
+            var bPose = racing ? HeroActor.Pose.Run : BatterPose();
             bHero.SetPose(bPose, HumanBats ? _charge : 0);
             bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
             var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
                 or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
             bHero.SetHeld(batting, false);
             bHero.SetHighlight(false);
-            bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
+            if (racing)
+            {
+                var tFirst = (float)InPlay.HomeToFirstSec(batter);
+                var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
+                var hx = 1.6f + (float)(Diamond.First.X - 1.6) * u;
+                var hz = 0.8f + (float)(Diamond.First.Z - 0.8) * u;
+                bHero.Place(new Vector3(hx, 0, hz), new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z));
+            }
+            else
+                bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
             PlaceRunner(_match.First, Diamond.First, 1);
@@ -1305,7 +1315,14 @@ namespace GrandSluggers.UnityClient
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = HeroActor.Pose.Idle;
-            if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
+            var racing = _phase == Phase.InPlay && _pending != null && (_preview == null || _preview.Grounder || _pending.LaunchDeg < 18);
+            if (racing)
+            {
+                var u = Mathf.Clamp01(_hitT / 3.1f);
+                spot = (spot.X + (next.X - spot.X) * u, spot.Z + (next.Z - spot.Z) * u);
+                pose = u > 0.82f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
+            }
+            else if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
             else if (state != null && state.StealAttempt) pose = HeroActor.Pose.Run;
             else if (state != null && state.Lead01 > 0.08) pose = HeroActor.Pose.StealLead;
             h.SetPose(pose);
