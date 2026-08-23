@@ -41,17 +41,14 @@ namespace GrandSluggers.UnityClient
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             _ball.transform.localScale = Vector3.one * 1.35f;
             Destroy(_ball.GetComponent<Collider>());
-            Look.Paint(_ball, Look.Lit(Colors.Ball, smooth: 0.65f));
-            var stitch = Look.Unlit(new Color(0.78f, 0.12f, 0.16f));
-            for (var i = 0; i < 8; i++)
-            {
-                var a = i * 45f * Mathf.Deg2Rad;
-                var side = i < 4 ? 1f : -1f;
-                var u = (i % 4) / 3f;
-                Look.Prim(PrimitiveType.Cube, "Seam" + i, _ball.transform,
-                    new Vector3(Mathf.Sin(a) * 0.42f * side, (u - 0.5f) * 0.7f, Mathf.Cos(a) * 0.42f),
-                    new Vector3(0.08f, 0.14f, 0.22f), stitch);
-            }
+            Look.Paint(_ball, Look.Lit(Colors.Ball, smooth: 0.55f));
+            var stitch = Look.Unlit(new Color(0.82f, 0.16f, 0.18f));
+            var ringA = Look.Prim(PrimitiveType.Cylinder, "SeamA", _ball.transform,
+                Vector3.zero, new Vector3(1.02f, 0.035f, 1.02f), stitch);
+            ringA.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            var ringB = Look.Prim(PrimitiveType.Cylinder, "SeamB", _ball.transform,
+                Vector3.zero, new Vector3(1.02f, 0.035f, 1.02f), stitch);
+            ringB.transform.localRotation = Quaternion.Euler(90f, 0f, 90f);
 
             _trail = _ball.AddComponent<TrailRenderer>();
             _trail.time = 0.42f;
