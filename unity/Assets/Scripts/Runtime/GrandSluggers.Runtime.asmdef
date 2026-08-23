@@ -1,0 +1,10 @@
+{
+  "name": "GrandSluggers.Runtime",
+  "rootNamespace": "GrandSluggers.UnityClient",
+  "references": [
+    "GrandSluggers.Sim",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

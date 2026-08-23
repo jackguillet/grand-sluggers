@@ -48,3 +48,8 @@ Thumbs.db
 TestResults/
 coverage/
 *.log
+
+# Unity imports of dotnet build folders
+src/**/bin.meta
+src/**/obj.meta
+src/**/*.csproj.meta
