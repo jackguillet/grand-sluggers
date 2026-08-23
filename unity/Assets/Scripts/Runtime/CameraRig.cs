@@ -49,10 +49,11 @@ namespace GrandSluggers.UnityClient
         }
 
         public void FramePitch() =>
-            Aim(new Vector3(-6.2f, 6.4f, 78f), new Vector3(0.2f, 3.1f, 3.4f), 36f);
+            Aim(new Vector3(3.2f, 4.8f, 71f), new Vector3(0.2f, 3.6f, 2.5f), 40f);
 
+        /// <summary>Catcher's-eye: full batter, pitcher readable. Not a top-down cap shot.</summary>
         public void FramePlate() =>
-            Aim(new Vector3(6.4f, 5.8f, -12f), new Vector3(0f, 3.2f, 44f), 34f);
+            Aim(new Vector3(-2.4f, 3.4f, -10.5f), new Vector3(0.6f, 4.6f, 56f), 46f);
 
         public void FrameThrow(Vector3 from, Vector3 to)
         {
