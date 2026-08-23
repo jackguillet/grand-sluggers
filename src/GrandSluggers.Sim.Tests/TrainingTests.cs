@@ -20,6 +20,7 @@ public class TrainingTests
         var match = run.MakeMatch(_content, seed: 1);
         Assert.Equal("harbor-diamond", match.Park.Id);
         Assert.Empty(match.Park.Hazards);
+        Assert.False(match.Night);
         Assert.Equal("rio", match.Home.Captain.Id);
         Assert.Equal("ashlord", match.Away.Captain.Id);
     }

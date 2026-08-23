@@ -12,6 +12,7 @@ public sealed class Match
 
     public ContentCatalog Content { get; }
     public Park Park { get; }
+    public bool Night { get; }
     public Team Away { get; }
     public Team Home { get; }
     public IReadOnlyList<Character> AwayOrder { get; }
@@ -40,12 +41,13 @@ public sealed class Match
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
 
-    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1)
+    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false)
     {
         Content = content;
         Away = away;
         Home = home;
         Park = park;
+        Night = night;
         Innings = innings;
         _rng = new Random(seed);
         _atBat = new AtBatResolver(content.Chemistry);
@@ -89,11 +91,11 @@ public sealed class Match
             AwayGlove = Content.Gloves[ids[(ids.IndexOf(AwayGlove.Id) + 1) % ids.Count]];
     }
 
-    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = "harbor-diamond")
+    public static Match Slice(ContentCatalog content, int innings = DefaultInnings, int seed = 1, string parkId = "harbor-diamond", bool night = false)
     {
         if (!content.Parks.TryGetValue(parkId, out var park))
             park = content.Parks["harbor-diamond"];
-        return new Match(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), park, innings, seed);
+        return new Match(content, PresetTeams.EmberCourt(content), PresetTeams.SparkAllStars(content), park, innings, seed, night);
     }
 
     public static Match Exhibition(
@@ -102,13 +104,14 @@ public sealed class Match
         string awayCaptain = "ashlord",
         int innings = DefaultInnings,
         int seed = 1,
-        string? parkId = null)
+        string? parkId = null,
+        bool night = false)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
         parkId ??= PresetTeams.HomeParkId(homeCaptain);
         if (!content.Parks.TryGetValue(parkId, out var park))
             park = content.Parks["harbor-diamond"];
-        return new Match(content, away, home, park, innings, seed);
+        return new Match(content, away, home, park, innings, seed, night);
     }
 
     public Team Offense => Top ? Away : Home;
@@ -220,7 +223,7 @@ public sealed class Match
     {
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return finished!;
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove);
+        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night);
         field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
     }
@@ -251,7 +254,7 @@ public sealed class Match
             Top ? HomeStamina : AwayStamina,
             swing.SprayAimDeg, inZone, swing.Bunt);
 
-        hit = _atBat.Resolve(input, Park, _rng);
+        hit = _atBat.Resolve(input, Park, _rng, Night);
         if (hit.Foul)
         {
             finished = FinishFoul(pitch, swing, hit);
@@ -273,10 +276,10 @@ public sealed class Match
     }
 
     public FieldingPreview PreviewHit(AtBatResult hit) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng);
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night);
 
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
-        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview);
+        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night);
 
     public bool SwapPitcher()
     {
@@ -506,6 +509,8 @@ public sealed class Match
                             ? $"{wall.Name} CLAMBERS the wall!"
                         : kind == PlayKind.FlyOut && field.Fielder?.FieldAbility == "super-jump" && hit.CarryFt > 250
                             ? $"{field.Fielder.Name} SUPER JUMP!"
+                        : field.Chomped
+                            ? "A chomper ate it!"
                         : kind == PlayKind.FlyOut
                             ? $"{field.Fielder?.Name} puts it away."
                             : field.Warped

@@ -14,5 +14,5 @@
     { "type": "freeze_volume", "x": -45, "z": 90, "radius": 8 },
     { "type": "freeze_volume", "x": 10, "z": 180, "radius": 10 }
   ],
-  "notes": "Players do not skate. Freezers stun on touch. Night blackout is a presentation + follow-spot on the ball."
+  "notes": "Players do not skate. Freezers stun on touch. Night blackout shrinks the contact window; follow-spot on the ball is presentation."
 }

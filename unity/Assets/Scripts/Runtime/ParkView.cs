@@ -7,14 +7,31 @@ namespace GrandSluggers.UnityClient
     {
         Transform _root;
         BallView _ball;
+        bool _night;
+        Light _followSpot;
+        Transform _fireworks;
+        readonly Firework[] _sparks = new Firework[28];
+
+        struct Firework
+        {
+            public Transform Tf;
+            public Vector3 Vel;
+            public float Life;
+        }
 
         public BallView Ball => _ball;
+        public bool Night => _night;
 
-        public void Build(Park park)
+        public void Build(Park park, bool night = false)
         {
             if (_root != null) Destroy(_root.gameObject);
             _root = new GameObject("Park").transform;
             _root.SetParent(transform, false);
+            _night = night;
+            _followSpot = null;
+            _fireworks = null;
+            for (var i = 0; i < _sparks.Length; i++)
+                _sparks[i] = default;
 
             var ice = park.Surface == "ice";
             var ash = park.Surface == "ash";
@@ -28,12 +45,28 @@ namespace GrandSluggers.UnityClient
             var sky = ice ? Colors.Ice : ash ? new Color(0.22f, 0.1f, 0.12f) : Colors.Sky;
             if (Camera.main != null)
             {
-                if (harbor) Look.RigAfternoon(Camera.main);
-                else if (crystal) Look.RigIceGarden(Camera.main);
-                else if (funfair) Look.RigCarnival(Camera.main);
+                if (harbor)
+                {
+                    if (night) Look.RigHarborNight(Camera.main);
+                    else Look.RigAfternoon(Camera.main);
+                }
+                else if (crystal)
+                {
+                    if (night) Look.RigIceGardenNight(Camera.main);
+                    else Look.RigIceGarden(Camera.main);
+                }
+                else if (funfair)
+                {
+                    if (night) Look.RigCarnivalNight(Camera.main);
+                    else Look.RigCarnival(Camera.main);
+                }
                 else if (rooftop) Look.RigNeon(Camera.main);
                 else if (jungle) Look.RigCanopy(Camera.main);
-                else if (ember) Look.RigCourtyard(Camera.main);
+                else if (ember)
+                {
+                    if (night) Look.RigCourtyardNight(Camera.main);
+                    else Look.RigCourtyard(Camera.main);
+                }
                 else Look.SetupLighting(Camera.main, sky);
             }
 
@@ -73,6 +106,7 @@ namespace GrandSluggers.UnityClient
                 Dugouts();
                 HarborBleachers();
                 HarborTown();
+                HarborNightHook();
             }
             else if (crystal)
             {
@@ -277,6 +311,74 @@ namespace GrandSluggers.UnityClient
             Cube("RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), Look.Lit(Colors.Gold, smooth: 0.4f));
         }
 
+        void HarborNightHook()
+        {
+            var go = new GameObject("Fireworks");
+            go.transform.SetParent(_root, false);
+            go.transform.position = new Vector3(0, 12, 400);
+            _fireworks = go.transform;
+            if (_night)
+            {
+                Glow("FloodL", new Vector3(-90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
+                Glow("FloodR", new Vector3(90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
+                Glow("FloodH", new Vector3(0, 22, -40), new Color(1f, 0.90f, 0.70f), 1.4f, 110f);
+                Glow("FloodC", new Vector3(0, 32, 240), new Color(0.85f, 0.9f, 1f), 1.2f, 180f);
+            }
+            go.SetActive(_night);
+        }
+
+        public void Tick(Vector3 ball, float dt)
+        {
+            if (_followSpot != null && _followSpot.gameObject.activeInHierarchy)
+            {
+                var t = _followSpot.transform;
+                t.position = ball + new Vector3(0f, 26f, -8f);
+                t.LookAt(ball);
+            }
+            TickFireworks(dt);
+        }
+
+        public void BurstFireworks(Vector3 at)
+        {
+            if (!_night || _fireworks == null) return;
+            var cols = new[]
+            {
+                Colors.Spark, Colors.Gold, new Color(1f, 0.45f, 0.2f),
+                new Color(0.45f, 0.75f, 1f), new Color(1f, 0.35f, 0.7f)
+            };
+            var origin = at.z < 80f ? new Vector3(0, 18, 390) : at + Vector3.up * 8f;
+            for (var i = 0; i < _sparks.Length; i++)
+            {
+                if (_sparks[i].Tf != null) Destroy(_sparks[i].Tf.gameObject);
+                var col = cols[i % cols.Length];
+                var go = Look.Prim(PrimitiveType.Sphere, "Spark" + i, _fireworks, origin, Vector3.one * 1.4f, Look.Unlit(col));
+                var a = i / (float)_sparks.Length * Mathf.PI * 2f;
+                var lift = 18f + (i % 5) * 6f;
+                _sparks[i] = new Firework
+                {
+                    Tf = go.transform,
+                    Vel = new Vector3(Mathf.Cos(a) * 22f, lift, Mathf.Sin(a) * 16f),
+                    Life = 1.6f + (i % 4) * 0.12f
+                };
+            }
+        }
+
+        void TickFireworks(float dt)
+        {
+            for (var i = 0; i < _sparks.Length; i++)
+            {
+                var s = _sparks[i];
+                if (s.Tf == null || s.Life <= 0) continue;
+                s.Life -= dt;
+                s.Vel += new Vector3(0, -22f * dt, 0);
+                s.Tf.position += s.Vel * dt;
+                var u = Mathf.Clamp01(s.Life);
+                s.Tf.localScale = Vector3.one * (0.4f + 1.2f * u);
+                s.Tf.gameObject.SetActive(s.Life > 0);
+                _sparks[i] = s;
+            }
+        }
+
         void CrystalGarden(Park park)
         {
             var ice = Look.Lit(new Color(0.84f, 0.93f, 0.98f), smooth: 0.72f);
@@ -344,7 +446,6 @@ namespace GrandSluggers.UnityClient
             Cube("GateCrown", new Vector3(0, 30, 480), new Vector3(18, 4, 6), gold);
         }
 
-        // Night blackout + follow-spot is #31. Hook only — rules stay off.
         void CrystalNightHook()
         {
             var go = new GameObject("FollowSpot");
@@ -353,11 +454,12 @@ namespace GrandSluggers.UnityClient
             go.transform.rotation = Quaternion.Euler(55f, 0f, 0f);
             var light = go.AddComponent<Light>();
             light.type = LightType.Spot;
-            light.color = new Color(0.85f, 0.93f, 1f);
-            light.intensity = 0f;
-            light.range = 240f;
-            light.spotAngle = 28f;
-            go.SetActive(false);
+            light.color = new Color(0.92f, 0.96f, 1f);
+            light.intensity = _night ? 7.2f : 0f;
+            light.range = 280f;
+            light.spotAngle = 26f;
+            go.SetActive(_night);
+            _followSpot = light;
         }
 
         void FunfairGrounds(Park park)
@@ -520,13 +622,36 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.Euler(0, 0, 90f);
         }
 
-        // Night chompers is #31. Hook only — rules stay off.
         void FunfairNightHook()
         {
             var go = new GameObject("Chompers");
             go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 8, 240);
-            go.SetActive(false);
+            go.transform.position = Vector3.zero;
+            if (_night)
+            {
+                foreach (var h in ParkHazards.FunfairChompers)
+                    ChomperMouth(go.transform, h);
+            }
+            go.SetActive(_night);
+        }
+
+        void ChomperMouth(Transform parent, Hazard h)
+        {
+            var stem = Look.Lit(new Color(0.16f, 0.48f, 0.18f), smooth: 0.12f);
+            var lip = Look.Lit(new Color(0.82f, 0.12f, 0.16f), smooth: 0.18f);
+            var hole = Look.Unlit(new Color(0.08f, 0.02f, 0.04f));
+            var tooth = Look.Unlit(new Color(0.96f, 0.92f, 0.78f));
+            var r = Mathf.Max(3.2f, (float)h.Radius * 0.38f);
+            var root = new GameObject("Chomper-" + (h.Tag ?? "?")).transform;
+            root.SetParent(parent, false);
+            root.position = new Vector3((float)h.X, 0, (float)h.Z);
+            Look.Prim(PrimitiveType.Cylinder, "Stem", root, new Vector3(0, 4.2f, 0), new Vector3(r * 0.7f, 4.2f, r * 0.7f), stem);
+            Look.Prim(PrimitiveType.Sphere, "Head", root, new Vector3(0, 9.2f, 0.6f), Vector3.one * r * 2.1f, stem);
+            Look.Prim(PrimitiveType.Cylinder, "Mouth", root, new Vector3(0, 9.0f, r * 0.85f), new Vector3(r * 1.55f, r * 0.22f, r * 1.15f), hole);
+            Look.Prim(PrimitiveType.Cube, "Jaw", root, new Vector3(0, 8.2f, r * 0.9f), new Vector3(r * 1.7f, r * 0.35f, r * 0.7f), lip);
+            Look.Prim(PrimitiveType.Cube, "ToothL", root, new Vector3(-r * 0.35f, 8.55f, r * 1.05f), new Vector3(r * 0.22f, r * 0.28f, r * 0.18f), tooth);
+            Look.Prim(PrimitiveType.Cube, "ToothR", root, new Vector3(r * 0.35f, 8.55f, r * 1.05f), new Vector3(r * 0.22f, r * 0.28f, r * 0.18f), tooth);
+            Glow("ChompGlow", new Vector3((float)h.X, 9f, (float)h.Z), new Color(0.7f, 0.12f, 0.18f), 1.1f, 28f);
         }
 
         void RooftopDeck(Park park)
@@ -585,13 +710,14 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "Band", root, new Vector3(0, h * 0.62f, d * 0.52f), new Vector3(w * 0.82f, 1.6f, 0.4f), accent);
         }
 
-        // Night neon glare is #31. Hook only — rules stay off.
         void RooftopNightHook()
         {
             var go = new GameObject("NeonGlare");
             go.transform.SetParent(_root, false);
             go.transform.position = new Vector3(0, 36, 240);
-            go.SetActive(false);
+            if (_night)
+                Glow("GlareFill", new Vector3(0, 28, 240), new Color(0.4f, 0.8f, 1f), 2.2f, 260f);
+            go.SetActive(_night);
         }
 
         void CanopyGrounds(Park park)
@@ -688,13 +814,23 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        // Night fireflies is #31. Hook only — rules stay off.
         void CanopyNightHook()
         {
             var go = new GameObject("Fireflies");
             go.transform.SetParent(_root, false);
             go.transform.position = new Vector3(0, 8, 240);
-            go.SetActive(false);
+            if (_night)
+            {
+                var gold = Look.Unlit(new Color(0.92f, 1f, 0.42f));
+                for (var i = 0; i < 12; i++)
+                {
+                    var a = i / 12f * Mathf.PI * 2f;
+                    Look.Prim(PrimitiveType.Sphere, "Fly" + i, go.transform,
+                        new Vector3(Mathf.Cos(a) * 40f, 4f + (i % 4), Mathf.Sin(a) * 30f),
+                        Vector3.one * 0.55f, gold);
+                }
+            }
+            go.SetActive(_night);
         }
 
         void EmberCourtyard(Park park)
@@ -807,10 +943,12 @@ namespace GrandSluggers.UnityClient
             armR.transform.localRotation = Quaternion.Euler(0, 0, -28f);
             if (breath)
             {
-                Look.Prim(PrimitiveType.Cylinder, "Breath", root, new Vector3(0, 6.6f, 2.8f), new Vector3(radius * 0.55f, radius * 0.55f, radius * 0.55f), fire);
-                var cone = Look.Prim(PrimitiveType.Cylinder, "Flame", root, new Vector3(0, 6.4f, 5.4f), new Vector3(radius * 1.1f, radius * 0.7f, radius * 1.1f), fire);
+                var amp = _night ? (float)ParkHazards.EmberNightFireMul : 1f;
+                var br = radius * amp;
+                Look.Prim(PrimitiveType.Cylinder, "Breath", root, new Vector3(0, 6.6f, 2.8f), new Vector3(br * 0.55f, br * 0.55f, br * 0.55f), fire);
+                var cone = Look.Prim(PrimitiveType.Cylinder, "Flame", root, new Vector3(0, 6.4f, 5.4f * amp), new Vector3(br * 1.1f, br * 0.7f, br * 1.1f), fire);
                 cone.transform.localRotation = Quaternion.Euler(78f, 0f, 0f);
-                Glow("BreathGlow", p + new Vector3(0, 6.4f, 4.2f), Colors.EmberFire, 1.6f, radius * 5f);
+                Glow("BreathGlow", p + new Vector3(0, 6.4f, 4.2f * amp), Colors.EmberFire, _night ? 2.8f : 1.6f, br * 5f);
             }
             else
             {
@@ -818,13 +956,22 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        // Night extra braziers is #31. Hook only — courtyard already night-ready.
         void EmberNightHook()
         {
+            var fire = Look.Unlit(Colors.EmberFire);
+            var stone = Look.Lit(new Color(0.22f, 0.14f, 0.16f), smooth: 0.1f);
             var go = new GameObject("NightBraziers");
             go.transform.SetParent(_root, false);
-            go.transform.position = new Vector3(0, 12, 240);
-            go.SetActive(false);
+            go.transform.position = Vector3.zero;
+            if (_night)
+            {
+                Brazier(new Vector3(-88, 0, 120), fire, stone);
+                Brazier(new Vector3(88, 0, 120), fire, stone);
+                Brazier(new Vector3(-70, 0, 280), fire, stone);
+                Brazier(new Vector3(70, 0, 280), fire, stone);
+                Glow("NightFire", new Vector3(0, 14, 220), Colors.EmberFire, 3.4f, 380f);
+            }
+            go.SetActive(_night);
         }
 
         void StarBillboard(Hazard h)

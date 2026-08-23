@@ -32,6 +32,8 @@ Gamepad is the product. Keyboard is a debug overlay.
 | Cycle item (during the fly) | RB | Tab |
 | Exhibition / Challenge / Training | Start | H |
 | Training (from title) | West | F |
+| Cycle park (title) | — | C |
+| Night (title) | R3 | N / hold C |
 | Timing bar | — | F1 |
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.

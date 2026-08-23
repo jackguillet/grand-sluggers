@@ -60,14 +60,14 @@ public sealed class Challenge
         }
     }
 
-    public Match MakeMatch(ContentCatalog content, int innings = Match.DefaultInnings, int seed = 1, string? parkId = null)
+    public Match MakeMatch(ContentCatalog content, int innings = Match.DefaultInnings, int seed = 1, string? parkId = null, bool night = false)
     {
         var opp = NextOpponentId(content);
         var (home, away) = PresetTeams.Pair(content, CaptainId, opp, Owned);
         parkId ??= PresetTeams.HomeParkId(opp);
         if (!content.Parks.TryGetValue(parkId, out var park))
             park = content.Parks["harbor-diamond"];
-        return new Match(content, away, home, park, innings, seed);
+        return new Match(content, away, home, park, innings, seed, night);
     }
 
     public Character? Resolve(Match match) =>
