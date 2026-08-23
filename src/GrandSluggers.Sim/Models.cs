@@ -112,7 +112,9 @@ public sealed record PitchCommand(
     string Type,
     double Charge01,
     double TimingErrorFrames,
-    bool Star);
+    bool Star,
+    double AimX = 0,
+    double AimY = 0);
 
 public sealed record SwingCommand(
     bool Swing,

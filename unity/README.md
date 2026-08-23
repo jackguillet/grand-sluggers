@@ -17,12 +17,13 @@ Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentatio
 
 - SPACE / gamepad South — start, pitch, swing, catch
 - LT / Shift — charge (body pulls back)
-- Y / Q — arm star (Rio's Heatball)
-- Left stick / WASD — aim spray and field
+- Left stick — pitch location (in/out, up/down) on the mound; spray / field otherwise
+- Y / Q — arm star
 - A/D (title) — captain · W/S opponent · C park
 - F / East — buddy jump
 - 1 2 3 H — throw
 - R — new pitcher
+- F1 — timing bar (off by default; the ball and bodies are the tell)
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.
 

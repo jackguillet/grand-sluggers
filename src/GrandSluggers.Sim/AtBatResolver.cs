@@ -126,6 +126,21 @@ public sealed class AtBatResolver
 
     public static bool PitchInZone(PitchCommand pitch, int pitchStat)
     {
+        if (Math.Abs(pitch.AimX) > 0.001 || Math.Abs(pitch.AimY) > 0.001)
+        {
+            var xLim = 0.58;
+            var yLo = -0.42;
+            var yHi = 0.58;
+            if (pitch.Charge01 > 0.6)
+            {
+                xLim *= 0.9;
+                yLo += 0.05;
+                yHi -= 0.05;
+            }
+            if (pitch.Star) xLim *= 0.92;
+            return Math.Abs(pitch.AimX) <= xLim && pitch.AimY >= yLo && pitch.AimY <= yHi;
+        }
+
         var window = 5.5 + pitchStat * 0.35;
         if (pitch.Charge01 > 0.6) window *= 0.85;
         if (pitch.Star) window *= 0.9;
