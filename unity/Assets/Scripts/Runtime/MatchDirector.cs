@@ -1353,7 +1353,7 @@ namespace GrandSluggers.UnityClient
                     else if (_bobbling) pose = HeroActor.Pose.Miss;
                     else if (_recoilT > 0) pose = HeroActor.Pose.Dive;
                     else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
-                    else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Crouch;
+                    else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Scoop;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
                     else if (_preview != null) pose = FieldPose(who, _preview, false);
@@ -1497,7 +1497,7 @@ namespace GrandSluggers.UnityClient
 
         static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
         {
-            if (caught) return pre.Grounder ? HeroActor.Pose.Crouch : HeroActor.Pose.Catch;
+            if (caught) return pre.Grounder ? HeroActor.Pose.Scoop : HeroActor.Pose.Catch;
             var a = who.FieldAbility;
             if (a == "dive" && pre.Grounder) return HeroActor.Pose.Dive;
             if (a == "burrow" && pre.Grounder) return HeroActor.Pose.Dive;
