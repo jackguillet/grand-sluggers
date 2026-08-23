@@ -13,7 +13,7 @@ cd /path/to/grand-sluggers
 unity open ./unity --editor-version 6000.5.9f1
 ```
 
-Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: textured grass and dirt, stands, crowd cards, a camera that sits behind the pitcher or batter, posed heroes. Every captain special owns the ball or the field for two seconds (Heatball fire + embers, Charmball hearts, Prismball ghosts, Phonyball decoy, Caskball barrel, Skullball skull, Furnace burn + crack, Heart charm, Shell/Cask fragments, Phony hop) then baseball resumes. Mute the HUD and you can still name the clip. Field verbs show on the body.
+Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: afternoon light (warm key, cool fill, gold rim), warning track, dugouts, backstop, stepped bleachers with crowd in the seats, town beyond the fence. Pitching-camera still should hold up. Pose heroes. Every captain special owns the ball or the field for two seconds (Heatball fire + embers, Charmball hearts, Prismball ghosts, Phonyball decoy, Caskball barrel, Skullball skull, Furnace burn + crack, Heart charm, Shell/Cask fragments, Phony hop) then baseball resumes. Mute the HUD and you can still name the clip. Field verbs show on the body.
 
 - SPACE / gamepad South — start, pitch, swing, catch
 - LT / Shift — charge (body pulls back)

@@ -76,19 +76,8 @@ namespace GrandSluggers.UnityClient
                 cam = go.AddComponent<Camera>();
                 go.AddComponent<AudioListener>();
             }
-            if (FindAnyObjectByType<Light>() == null)
-            {
-                var sun = new GameObject("Sun");
-                var light = sun.AddComponent<Light>();
-                light.type = LightType.Directional;
-                light.intensity = 1.35f;
-                light.color = new Color(1f, 0.95f, 0.86f);
-                light.shadows = LightShadows.Soft;
-                sun.transform.rotation = Quaternion.Euler(48f, 28f, 0f);
-            }
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);
-            Look.SetupLighting(cam, Colors.Sky);
             _rig.Cut(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
         }
 
