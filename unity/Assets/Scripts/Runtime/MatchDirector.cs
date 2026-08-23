@@ -798,7 +798,7 @@ namespace GrandSluggers.UnityClient
             if (_path == null || _path.Length == 0) { BeginResult(); return; }
             var spray = _pending != null ? _pending.SprayDeg : _last.AtBat.SprayDeg;
             var p = BallFlight.PointAt(_path, spray, _hitT);
-            _ball = new Vector3((float)p.X, (float)Mathf.Max(0.6f, (float)p.Y), (float)p.Z);
+            _ball = new Vector3((float)p.X, (float)Mathf.Max(0.12f, (float)p.Y), (float)p.Z);
             if (_smash > 0) _smash -= dt;
             else if (BuddySet && _hitT > 0.7f)
             {
@@ -841,7 +841,8 @@ namespace GrandSluggers.UnityClient
                 return;
             }
 
-            var done = _hitT >= BallFlight.HangTime(_path) + 0.35f;
+            var rest = BallFlight.RestTime(_path);
+            var done = _hitT >= rest + 0.2f;
             if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
             if (done && !_itemFlying) BeginResult();
         }
@@ -851,7 +852,8 @@ namespace GrandSluggers.UnityClient
             var pre = _preview;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var hang = BallFlight.HangTime(_path);
-            var chasing = _hitT < hang;
+            var rest = BallFlight.RestTime(_path);
+            var chasing = !_caught && !_buddy && (pre.Grounder ? _hitT < rest : _hitT < hang);
             var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
             var plant = buddyOn ? WallPlant(pre) : (X: pre.LandingX, Z: pre.LandingZ);
             _buddyWindow = buddyOn && _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
@@ -920,8 +922,13 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)_fx, 6.4f + (_jumpT > 0 ? 2.2f : 0f), (float)_fz);
 
             if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
-            if (_hitT < hang) return;
-            if (Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
+            if (pre.Grounder)
+            {
+                if (_ball.y < 3.2f && d < window + 3) CatchGlove();
+                if (!_caught && _hitT < rest) return;
+            }
+            else if (_hitT < hang) return;
+            if (!pre.Grounder && Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ) < window + 2)
                 CatchGlove();
             if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
                 return;
@@ -931,6 +938,7 @@ namespace GrandSluggers.UnityClient
         void TickCpuField()
         {
             var hang = BallFlight.HangTime(_path);
+            var rest = BallFlight.RestTime(_path);
             var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
             var start = Diamond.Positions[_preview.Position];
             _fx = start.X + (_preview.LandingX - start.X) * u;
@@ -938,8 +946,11 @@ namespace GrandSluggers.UnityClient
             _glovePos = _preview.Position;
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
-            if (outPlay && _hitT >= hang - 0.18f) CatchGlove();
-            if (_hitT < hang) return;
+            var grounder = _preview.Grounder;
+            if (outPlay && (grounder ? _hitT >= hang && _ball.y < 3.2f : _hitT >= hang - 0.18f))
+                CatchGlove();
+            if (!grounder && _hitT < hang) return;
+            if (grounder && !_caught && _hitT < rest) return;
             if (outPlay && _cpuField.Throw != null)
             {
                 _armedThrow = _cpuField.Throw;
@@ -948,7 +959,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (_cpuField.Kind == PlayKind.HomeRun && _hitT < 2.4f) return;
-            if (_hitT < hang + 0.35f) return;
+            if (!grounder && _hitT < hang + 0.35f) return;
             if (_itemFlying) return;
             CommitInPlay();
         }
@@ -1567,7 +1578,7 @@ namespace GrandSluggers.UnityClient
                 var hang = (float)BallFlight.HangTime(_hlPath);
                 var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
                 var p = BallFlight.PointAt(_hlPath, _hlSpray, t);
-                _ball = new Vector3((float)p.X, Mathf.Max(0.6f, (float)p.Y), (float)p.Z);
+                _ball = new Vector3((float)p.X, Mathf.Max(0.12f, (float)p.Y), (float)p.Z);
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
                     _rig.Smash(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);
                 else if (_clip != null && _clip.Beat == HighlightBeat.StarK)
