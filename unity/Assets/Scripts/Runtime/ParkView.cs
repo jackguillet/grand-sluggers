@@ -94,14 +94,36 @@ namespace GrandSluggers.UnityClient
 
             Quad("Water", new Vector3(0, -1.4f, 240), new Vector3(1100, 1, 1100), waterMat);
             Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
-            Infield(dirtMat);
-            Mound();
-            FoulLines();
-            Bags();
+            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindObjectOfType<HarborKit>();
+            if (kit == null && harbor)
+            {
+                var go = new GameObject("HarborKit");
+                kit = go.AddComponent<HarborKit>();
+                kit.EnsureAnchors();
+            }
+            if (kit != null) kit.Bind(park);
+            var placed = kit != null && kit.OwnsDiamond;
+            if (!placed)
+            {
+                Infield(dirtMat);
+                Mound();
+                FoulLines();
+                Bags();
+            }
+            else
+            {
+                Cylinder("BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), 11f, 0.16f, dirtMat);
+                Cylinder("BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), 11f, 0.16f, dirtMat);
+                Cylinder("BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), 11f, 0.16f, dirtMat);
+                var bag = Look.Lit(Colors.Chalk, smooth: 0.08f);
+                Cube("1B", new Vector3((float)Diamond.First.X, 0.28f, (float)Diamond.First.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
+                Cube("2B", new Vector3((float)Diamond.Second.X, 0.28f, (float)Diamond.Second.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
+                Cube("3B", new Vector3((float)Diamond.Third.X, 0.28f, (float)Diamond.Third.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
+            }
             Fence(park, ash);
             if (harbor)
             {
-                HarborDiamondSkin();
+                if (!placed) HarborDiamondSkin();
                 WarningTrack(park);
                 Backstop();
                 Dugouts();
