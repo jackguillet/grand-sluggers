@@ -74,9 +74,26 @@ public sealed record GloveItem(
 public sealed record Team(
     string Name,
     Character Captain,
-    IReadOnlyList<Character> Roster)
+    IReadOnlyList<Character> Roster,
+    IReadOnlyList<Character>? Order = null,
+    Character? Starter = null)
 {
     public IEnumerable<Character> Everyone => Roster;
+
+    public Character Pitcher => Starter ?? Captain;
+
+    public IReadOnlyList<Character> BattingOrder =>
+        Order is { Count: > 0 } o ? o : DefaultBattingOrder(Captain, Roster);
+
+    public static IReadOnlyList<Character> DefaultBattingOrder(Character captain, IReadOnlyList<Character> roster)
+    {
+        var rest = roster.Where(c => !c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase)).ToList();
+        var order = new List<Character>(roster.Count);
+        order.AddRange(rest.Take(3));
+        order.Add(captain);
+        order.AddRange(rest.Skip(3));
+        return order;
+    }
 }
 
 public sealed record AtBatInput(

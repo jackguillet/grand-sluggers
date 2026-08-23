@@ -34,6 +34,10 @@ Gamepad is the product. Keyboard is a debug overlay.
 | Training (from title) | West | F |
 | Cycle park (title) | — | C |
 | Night (title) | R3 | N / hold C |
+| Lineup: slot / pool | Left stick | WASD |
+| Lineup: swap into slot | West | F |
+| Lineup: cycle glove | RB | Tab |
+| Lineup: batting order | LB / East | X / G |
 | Timing bar | — | F1 |
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.

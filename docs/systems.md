@@ -34,7 +34,7 @@ Three states: `good`, `neutral`, `bad`. Stored as a sparse pair list in `data/ch
 
 ### Draft: starting stars
 
-Average the roster’s chemistry score with the **captain** (good=100, neutral=50, bad=10), then:
+Exhibition lineup is a live draft: eight around the captain (swap freely), gloves P / C / IF / OF, chemistry as a graph. Average the roster’s chemistry score with the **captain** (good=100, neutral=50, bad=10), then:
 
 | Average | Stars |
 | --- | --- |
