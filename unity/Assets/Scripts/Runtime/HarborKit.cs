@@ -28,6 +28,7 @@ namespace GrandSluggers.UnityClient
         public Transform ShotThrow;
 
         bool _dressed;
+        CameraShots _shots;
         public bool OwnsDiamond { get; private set; }
 
         void Awake()
@@ -45,7 +46,17 @@ namespace GrandSluggers.UnityClient
         {
             OwnsDiamond = park != null && park.Id == "harbor-diamond";
             gameObject.SetActive(OwnsDiamond);
-            if (OwnsDiamond) Dress();
+            if (OwnsDiamond)
+            {
+                Dress();
+                ApplyShots();
+            }
+        }
+
+        public void SyncShots(CameraShots shots)
+        {
+            _shots = shots;
+            if (OwnsDiamond) ApplyShots();
         }
 
         public bool TryShot(string id, out Vector3 pos, out Vector3 look, out float fov)
@@ -85,8 +96,8 @@ namespace GrandSluggers.UnityClient
             FoulR = Anchor("FoulR", new Vector3(-112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), Quaternion.Euler(0f, -45f, 0f));
             Mound = Anchor("Mound", new Vector3(0f, 1.025f, 60.5f), new Vector3(20f, 0.575f, 20f), Quaternion.identity);
             Rubber = Anchor("Rubber", new Vector3(0f, 1.08f, 60.5f), new Vector3(1.9f, 0.08f, 0.45f), Quaternion.identity);
-            ShotPlate = ShotAnchor("ShotPlate", new Vector3(-2.4f, 3.4f, -10.5f), new Vector3(0.6f, 4.6f, 56f), 46f);
-            ShotMound = ShotAnchor("ShotMound", new Vector3(3.2f, 4.8f, 71f), new Vector3(0.2f, 3.6f, 2.5f), 40f);
+            ShotPlate = ShotAnchor("ShotPlate", new Vector3(2.6f, 2.9f, -13.2f), new Vector3(0.2f, 3.2f, 54f), 42f);
+            ShotMound = ShotAnchor("ShotMound", new Vector3(5.2f, 5.05f, 69.4f), new Vector3(0.35f, 3.1f, 3.0f), 36f);
             ShotDiamond = ShotAnchor("ShotDiamond", new Vector3(8f, 26f, -18f), new Vector3(0f, 6f, 90f), 50f);
             ShotThrow = ShotAnchor("ShotThrow", new Vector3(0f, 7.5f, -18f), new Vector3(0f, 1.4f, 0f), 42f);
         }
@@ -149,6 +160,27 @@ namespace GrandSluggers.UnityClient
                 aim.position = look;
             }
             return tf;
+        }
+
+        void ApplyShots()
+        {
+            if (_shots == null) return;
+            PlaceShot(ShotPlate, "plate");
+            PlaceShot(ShotMound, "mound");
+            PlaceShot(ShotDiamond, "diamond");
+            PlaceShot(ShotThrow, "throw");
+        }
+
+        void PlaceShot(Transform tf, string id)
+        {
+            if (tf == null || !_shots.TryGet(id, out var s)) return;
+            var pos = new Vector3((float)s.Pos.X, (float)s.Pos.Y, (float)s.Pos.Z);
+            var look = new Vector3((float)s.Target.X, (float)s.Target.Y, (float)s.Target.Z);
+            tf.position = pos;
+            tf.localScale = new Vector3((float)s.Fov, 1f, 1f);
+            tf.LookAt(look);
+            var aim = tf.Find("Look");
+            if (aim != null) aim.position = look;
         }
 
         static void Mesh(Transform anchor, PrimitiveType type, Material mat)
