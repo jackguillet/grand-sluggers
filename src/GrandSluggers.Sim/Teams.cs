@@ -39,8 +39,8 @@ public static class PresetTeams
         "vale" => "crystal-rink",
         "zig" => "funfair-park",
         "brondo" => "rooftop-city",
-        "konga" => "funfair-park",
-        "ashlord" => "rooftop-city",
+        "konga" => "canopy-yard",
+        "ashlord" => "ember-keep",
         _ => "harbor-diamond"
     };
 

@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using Raylib_cs;
 
 namespace GrandSluggers.Play;
@@ -61,4 +62,12 @@ public static class Palette
         new((byte)r, (byte)g, (byte)b, (byte)a);
 
     public static Color Fade(Color c, int a) => new(c.R, c.G, c.B, (byte)a);
+
+    public static Color SkyOf(Park park) => park.Surface switch
+    {
+        "ice" => C(168, 198, 222),
+        "ash" => C(48, 22, 28),
+        _ when park.Id == "canopy-yard" => C(78, 148, 168),
+        _ => Sky
+    };
 }

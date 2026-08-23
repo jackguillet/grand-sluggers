@@ -11,7 +11,7 @@ namespace GrandSluggers.UnityClient
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
-        static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city" };
+        static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
         bool _challenge;
         Challenge _campaign;
 
