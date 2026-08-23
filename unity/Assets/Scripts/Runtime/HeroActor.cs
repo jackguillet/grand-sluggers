@@ -5,7 +5,7 @@ namespace GrandSluggers.UnityClient
 {
     public sealed class HeroActor : MonoBehaviour
     {
-        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber, Slide }
+        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber, Slide, Crouch }
 
         Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh, _ring;
         Pose _pose = Pose.Idle;
@@ -45,6 +45,7 @@ namespace GrandSluggers.UnityClient
             var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
                 : _pose == Pose.Dive ? 0.2f
                 : _pose == Pose.Slide ? 0.15f
+                : _pose == Pose.Crouch ? -0.35f
                 : 0f;
             _lift = Mathf.Lerp(_lift, lift, 0.2f);
             transform.position = pos + Vector3.up * _lift;
@@ -217,9 +218,16 @@ namespace GrandSluggers.UnityClient
                     rLeg = Quaternion.Euler(98, -6, -8);
                     if (_torso != null) _torso.localRotation = Quaternion.Euler(58, 0, 0);
                     break;
+                case Pose.Crouch:
+                    lArm = Quaternion.Euler(40, 0, 18);
+                    rArm = Quaternion.Euler(40, 0, -18);
+                    lLeg = Quaternion.Euler(68, 8, 12);
+                    rLeg = Quaternion.Euler(68, -8, -12);
+                    if (_torso != null) _torso.localRotation = Quaternion.Euler(32, 0, 0);
+                    break;
             }
 
-            if (_torso != null && _pose != Pose.Dive && _pose != Pose.Slide)
+            if (_torso != null && _pose != Pose.Dive && _pose != Pose.Slide && _pose != Pose.Crouch)
                 _torso.localRotation = Quaternion.Slerp(_torso.localRotation, Quaternion.identity, 0.2f);
             if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm, 0.2f);
             if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, 0.2f);

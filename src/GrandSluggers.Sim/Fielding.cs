@@ -17,8 +17,7 @@ public sealed class FieldingResolver
         var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
         var hang = BallFlight.HangTime(samples);
         var grounder = hit.LaunchDeg < 14;
-        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        var hrLikely = hit.HomeRun || (hit.CarryFt >= fence - 15 && hit.LaunchDeg is > 16 and < 40);
+        var hrLikely = HomeRunLikely(hit, park);
         var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder);
         var warped = false;
         if (grounder)
@@ -30,7 +29,7 @@ public sealed class FieldingResolver
                 warped = true;
             }
         }
-        var buddy = Buddy(defense, pitcher, fielder, landing.X, landing.Z);
+        var buddy = Buddy(defense, pitcher, fielder, pos, landing.X, landing.Z);
         var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z) && !FieldAbilities.IgnoresParkSlow(fielder))
                      || hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < 0.6)
@@ -163,6 +162,19 @@ public sealed class FieldingResolver
         return w;
     }
 
+    public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
+
+    public static bool HomeRunLikely(AtBatResult hit, Park park)
+    {
+        if (hit.HomeRun) return true;
+        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
+        return hit.CarryFt >= fence - 15 && hit.LaunchDeg is > 16 and < 40;
+    }
+
+    /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>
+    public static bool BuddyJumpOffered(FieldingPreview pre) =>
+        pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && IsOutfield(pre.Position);
+
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
         Character pitcher,
@@ -190,8 +202,15 @@ public sealed class FieldingResolver
         return (best ?? pitcher, bestPos);
     }
 
-    Character? Buddy(IReadOnlyList<Character> defense, Character pitcher, Character fielder, double x, double z)
+    Character? Buddy(
+        IReadOnlyList<Character> defense,
+        Character pitcher,
+        Character fielder,
+        string fielderPos,
+        double x,
+        double z)
     {
+        if (!IsOutfield(fielderPos)) return null;
         Character? best = null;
         var bestD = double.MaxValue;
         var keyed = Assign(defense, pitcher);
