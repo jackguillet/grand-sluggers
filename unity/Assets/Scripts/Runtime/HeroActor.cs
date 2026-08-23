@@ -5,14 +5,17 @@ namespace GrandSluggers.UnityClient
 {
     public sealed class HeroActor : MonoBehaviour
     {
-        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch }
+        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber }
 
         Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh;
         Pose _pose = Pose.Idle;
         float _charge;
         float _t;
+        float _lift;
+        bool _grow;
         string _id = "";
         Vector3 _look = Vector3.forward;
+        Vector3 _baseScale = Vector3.one;
 
         public string Id => _id;
 
@@ -30,17 +33,31 @@ namespace GrandSluggers.UnityClient
             _charge = Mathf.Clamp01(charge);
         }
 
+        public void SetGrow(bool on) => _grow = on;
+
         public void Place(Vector3 pos, Vector3 look)
         {
-            transform.position = pos;
+            var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
+                : _pose == Pose.Dive ? 0.2f
+                : 0f;
+            _lift = Mathf.Lerp(_lift, lift, 0.2f);
+            transform.position = pos + Vector3.up * _lift;
             _look = look.sqrMagnitude < 0.01f ? Vector3.forward : look.normalized;
-            var yaw = Quaternion.LookRotation(new Vector3(_look.x, 0f, _look.z));
-            transform.rotation = Quaternion.Slerp(transform.rotation, yaw, 0.35f);
+            if (_pose != Pose.Spin)
+            {
+                var yaw = Quaternion.LookRotation(new Vector3(_look.x, 0f, _look.z));
+                transform.rotation = Quaternion.Slerp(transform.rotation, yaw, 0.35f);
+            }
         }
 
         public void Tick(float dt)
         {
             _t += dt;
+            if (_root != null)
+            {
+                var g = _grow ? 1.45f : 1f;
+                _root.localScale = Vector3.Lerp(_root.localScale, _baseScale * g, 0.15f);
+            }
             Animate();
         }
 
@@ -65,7 +82,8 @@ namespace GrandSluggers.UnityClient
 
             _root = new GameObject("Rig").transform;
             _root.SetParent(transform, false);
-            _root.localScale = new Vector3(wide, h, wide) * 1.15f;
+            _baseScale = new Vector3(wide, h, wide) * 1.15f;
+            _root.localScale = _baseScale;
 
             var jersey = Look.Lit(body, smooth: 0.18f);
             var trim = Look.Lit(accent, smooth: 0.35f);
@@ -152,8 +170,29 @@ namespace GrandSluggers.UnityClient
                     lArm = Quaternion.Euler(25, 0, 25);
                     rArm = Quaternion.Euler(25, 0, -25);
                     break;
+                case Pose.Dive:
+                    lArm = Quaternion.Euler(-80, 0, 10);
+                    rArm = Quaternion.Euler(-80, 0, -10);
+                    if (_torso != null) _torso.localRotation = Quaternion.Euler(70, 0, 0);
+                    break;
+                case Pose.Jump:
+                case Pose.Clamber:
+                    lArm = Quaternion.Euler(-70, 0, 15);
+                    rArm = Quaternion.Euler(-70, 0, -15);
+                    break;
+                case Pose.Spin:
+                    lArm = Quaternion.Euler(10, 0, 70);
+                    rArm = Quaternion.Euler(10, 0, -70);
+                    transform.rotation *= Quaternion.Euler(0, 720f * Time.deltaTime, 0);
+                    break;
+                case Pose.Charm:
+                    lArm = Quaternion.Euler(0, 0, 40);
+                    rArm = Quaternion.Euler(0, 0, -40);
+                    break;
             }
 
+            if (_torso != null && _pose != Pose.Dive)
+                _torso.localRotation = Quaternion.Slerp(_torso.localRotation, Quaternion.identity, 0.2f);
             if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm, 0.2f);
             if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, 0.2f);
             if (_bat != null)

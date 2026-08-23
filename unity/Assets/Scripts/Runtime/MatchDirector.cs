@@ -20,6 +20,7 @@ namespace GrandSluggers.UnityClient
         Match _match;
         ParkView _park;
         CameraRig _rig;
+        SpecialFx _spec;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
@@ -59,6 +60,8 @@ namespace GrandSluggers.UnityClient
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
             _park.Build(_match.Park);
+            _spec = gameObject.AddComponent<SpecialFx>();
+            _spec.Build(transform);
             var cam = Camera.main;
             if (cam == null)
             {
@@ -145,10 +148,9 @@ namespace GrandSluggers.UnityClient
                 : AwayCaptain;
             var away = _content.Must(awayId);
             var parkName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
-            var rio = HomeCaptain == "rio" ? Look.Rio : null;
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, _itemArmed, _charge, timing,
-                _phase is Phase.Set or Phase.Flight, _banner, _sub, rio);
+                _phase is Phase.Set or Phase.Flight, _banner, _sub, Look.Portrait(HomeCaptain));
         }
 
         Match NewMatch()
@@ -192,6 +194,7 @@ namespace GrandSluggers.UnityClient
             {
                 _match = NewMatch();
                 _park.Build(_match.Park);
+                _spec.Build(transform);
                 _phase = Phase.Lineup;
                 _t = 0;
                 _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
@@ -205,12 +208,14 @@ namespace GrandSluggers.UnityClient
             {
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
                 _park.Build(_match.Park);
+                _spec.Build(transform);
                 _phase = Phase.Lineup;
                 _t = 0;
                 return;
             }
             _match = NewMatch();
             _park.Build(_match.Park);
+            _spec.Build(transform);
             _phase = Phase.Title;
             _t = 0;
             _rig.Aim(new Vector3(8, 18, -28), new Vector3(0, 4, 70), 46f);
@@ -231,7 +236,7 @@ namespace GrandSluggers.UnityClient
             _star = false;
             _banner = _sub = "";
             _ball = new Vector3(0, 5.4f, 60.5f);
-            _park.Ball.Place(_ball, false, "fastball");
+            _park.Ball.Place(_ball, "", "fastball", false);
             if (_match.Top) _rig.Aim(new Vector3(-5f, 7.2f, 78f), new Vector3(0.4f, 3.6f, 6f), 42f);
             else _rig.Aim(new Vector3(5.5f, 6.4f, -13f), new Vector3(0f, 3.2f, 48f), 40f);
         }
@@ -273,6 +278,7 @@ namespace GrandSluggers.UnityClient
             _t = 0;
             _ball = new Vector3(0, 5.4f, 60.5f);
             _rig.Punch(pitch.Star ? 8f : 4f);
+            _spec.ResetDecoy();
         }
 
         void TickFlight(float dt)
@@ -436,7 +442,7 @@ namespace GrandSluggers.UnityClient
                 {
                     x = _fx;
                     z = _fz;
-                    pose = _caught ? HeroActor.Pose.Catch : HeroActor.Pose.Field;
+                    pose = FieldPose(who, _preview, _caught);
                 }
                 else if (_phase == Phase.InPlay && !_playerFielding && _last?.Fielder != null && who.Id == _last.Fielder.Id)
                 {
@@ -448,6 +454,9 @@ namespace GrandSluggers.UnityClient
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.Throw : HeroActor.Pose.ChargePitch;
                 var hero = Hero(who);
+                hero.SetGrow(who.FieldAbility == "grow" && _preview != null && who.Id == _preview.Fielder.Id && _phase == Phase.InPlay);
+                if (_pending != null && _pending.StarSwingUsed == "heart-swing" && _preview != null && who.Id == _preview.Fielder.Id)
+                    pose = HeroActor.Pose.Charm;
                 hero.SetPose(pose, kv.Key == "P" ? _charge : 0);
                 var look = kv.Key == "P" ? new Vector3(0, 0, -1) : new Vector3((float)-x, 0, (float)-z + 8f);
                 hero.Place(new Vector3((float)x, 0, (float)z), look);
@@ -473,13 +482,38 @@ namespace GrandSluggers.UnityClient
                 if (!_used.Contains(kv.Key) && kv.Value != null)
                     kv.Value.gameObject.SetActive(false);
 
-            var heat = (_pitch != null && _pitch.Star && _match.Pitcher.StarPitch == "heatball")
-                       || (_last != null && _last.Heatball);
+            var starPitch = _pitch != null && _pitch.Star ? _match.Pitcher.StarPitch : "";
+            var starSwing = _pending != null ? _pending.StarSwingUsed
+                : _last != null ? _last.AtBat.StarSwingUsed : null;
             var ptype = _pitch != null ? _pitch.Type : "fastball";
+            var heat = _last != null && _last.Heatball;
             if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
-                _park.Ball.Place(_ball, heat, ptype);
+                _park.Ball.Place(_ball, starPitch, ptype, heat);
             else
                 _park.Ball.Hide();
+
+            var fielder = _preview != null ? _preview.Fielder : _last != null ? _last.Fielder : null;
+            var from = Vector3.zero;
+            if (fielder != null && _heroes.TryGetValue(fielder.Id, out var fh) && fh != null)
+                from = fh.transform.position;
+            var lick = fielder != null && fielder.FieldAbility == "lick-catch" && _phase == Phase.InPlay;
+            var laser = fielder != null && fielder.FieldAbility == "laser" && (_caught || (_last != null && _last.Throw != null));
+            var burn = starSwing == "furnace" || starSwing == "heat-swing";
+            var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
+            _spec.Tick(Time.deltaTime, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
+                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags);
+        }
+
+        static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
+        {
+            if (caught) return HeroActor.Pose.Catch;
+            var a = who.FieldAbility;
+            if (a == "dive" && pre.Grounder) return HeroActor.Pose.Dive;
+            if (a == "burrow" && pre.Grounder) return HeroActor.Pose.Dive;
+            if (a == "super-jump" && pre.HomeRunLikely) return HeroActor.Pose.Jump;
+            if (a == "clamber" && pre.HomeRunLikely) return HeroActor.Pose.Clamber;
+            if (a == "spin-check") return HeroActor.Pose.Spin;
+            return HeroActor.Pose.Field;
         }
 
         void PlaceRunner(Character who, (double X, double Z) bag)
