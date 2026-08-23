@@ -51,6 +51,23 @@ public class AtBatTests
     }
 
     [Fact]
+    public void CrystalRinkIsIceGardenNotHarbor()
+    {
+        var rink = _content.Parks["crystal-rink"];
+        Assert.Equal("crystal-rink", rink.Id);
+        Assert.Equal("ice", rink.Surface);
+        Assert.Equal("royal", rink.Faction);
+        Assert.Contains(rink.Hazards, h => h.Type == "freeze_volume");
+        Assert.All(rink.Hazards, h => Assert.Equal("freeze_volume", h.Type));
+        Assert.DoesNotContain(rink.Hazards, h =>
+            h.Type is "warp_pipe" or "billboard" or "ac_unit" or "barrel"
+                or "lava_pit" or "fire_breath" or "climb_wall" or "statue");
+        Assert.Equal("grass", _harbor.Surface);
+        Assert.Empty(_harbor.Hazards);
+        Assert.Equal("crystal-rink", PresetTeams.HomeParkId("vale"));
+    }
+
+    [Fact]
     public void CarryIncreasesWithExitVelo()
     {
         var slow = BallFlight.CarryFeet(80, 28, 0);
