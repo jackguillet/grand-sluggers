@@ -20,8 +20,15 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(transform, false);
 
             var ice = park.Surface == "ice";
-            Quad("Water", new Vector3(0, -1.2f, 220), new Vector3(900, 1, 900), ice ? Colors.Ice : Colors.Water);
-            Quad("Grass", new Vector3(0, -0.15f, 180), new Vector3(560, 0.4f, 560), ice ? Colors.Ice : Colors.Grass);
+            var ash = park.Surface == "ash";
+            var jungle = park.Id == "canopy-yard";
+            var water = ash ? new Color(0.35f, 0.11f, 0.07f) : ice ? Colors.Ice : Colors.Water;
+            var grass = ash ? new Color(0.28f, 0.19f, 0.16f)
+                : jungle ? new Color(0.14f, 0.43f, 0.2f)
+                : ice ? Colors.Ice
+                : Colors.Grass;
+            Quad("Water", new Vector3(0, -1.2f, 220), new Vector3(900, 1, 900), water);
+            Quad("Grass", new Vector3(0, -0.15f, 180), new Vector3(560, 0.4f, 560), grass);
             Quad("Dirt", new Vector3(0, 0.05f, 70), new Vector3(160, 0.2f, 160), Colors.Dirt);
             Cylinder("Mound", new Vector3(0, 0.4f, 60.5f), 9f, 1.1f, Colors.Dirt);
             Bag(Diamond.First.X, Diamond.First.Z);
@@ -54,6 +61,21 @@ namespace GrandSluggers.UnityClient
                         break;
                     case "ac_unit":
                         Cube($"Ac{h.X}", new Vector3(p.x, 2, p.z), new Vector3(8, 4, 8), new Color(0.55f, 0.55f, 0.58f));
+                        break;
+                    case "barrel":
+                        Cylinder($"Barrel{h.X}", new Vector3(p.x, 2.6f, p.z), (float)h.Radius, 5.2f, new Color(0.46f, 0.28f, 0.11f));
+                        break;
+                    case "lava_pit":
+                        Cylinder($"Lava{h.X}", new Vector3(p.x, 0.4f, p.z), (float)h.Radius, 0.8f, Colors.EmberFire);
+                        break;
+                    case "fire_breath":
+                        Cylinder($"Fire{h.X}", new Vector3(p.x, 4f, p.z), (float)h.Radius, 8f, new Color(1f, 0.35f, 0.1f));
+                        break;
+                    case "statue":
+                        Cube($"Statue{h.X}", new Vector3(p.x, 10, p.z), new Vector3(10, 20, 10), Colors.Ember);
+                        break;
+                    case "tree":
+                        Cylinder($"Tree{h.X}", new Vector3(p.x, 6f, p.z), 1.6f, 12f, new Color(0.36f, 0.21f, 0.11f));
                         break;
                 }
             }
