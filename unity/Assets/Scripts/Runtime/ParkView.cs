@@ -164,9 +164,10 @@ namespace GrandSluggers.UnityClient
             var chalk = Look.Lit(Colors.Chalk, smooth: 0.05f);
             var a = Quaternion.Euler(0, 45, 0);
             var b = Quaternion.Euler(0, -45, 0);
-            var l = Look.Prim(PrimitiveType.Cube, "FoulL", _root, new Vector3(90, 0.12f, 90), new Vector3(1.1f, 0.08f, 260), chalk);
+            // Start past the batter's boxes so chalk does not slice them.
+            var l = Look.Prim(PrimitiveType.Cube, "FoulL", _root, new Vector3(112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), chalk);
             l.transform.rotation = a;
-            var r = Look.Prim(PrimitiveType.Cube, "FoulR", _root, new Vector3(-90, 0.12f, 90), new Vector3(1.1f, 0.08f, 260), chalk);
+            var r = Look.Prim(PrimitiveType.Cube, "FoulR", _root, new Vector3(-112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), chalk);
             r.transform.rotation = b;
         }
 
@@ -176,7 +177,16 @@ namespace GrandSluggers.UnityClient
             Cube("1B", new Vector3((float)Diamond.First.X, 0.28f, (float)Diamond.First.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
             Cube("2B", new Vector3((float)Diamond.Second.X, 0.28f, (float)Diamond.Second.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
             Cube("3B", new Vector3((float)Diamond.Third.X, 0.28f, (float)Diamond.Third.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-            Cube("Home", new Vector3(0, 0.22f, -0.5f), new Vector3(2.6f, 0.22f, 2.6f), bag);
+            HomePlate(bag);
+        }
+
+        /// <summary>Pentagon: flat edge to the pitcher, point to the catcher.</summary>
+        void HomePlate(Material chalk)
+        {
+            Cube("HomeBody", new Vector3(0f, 0.24f, 0.4f), new Vector3(2.4f, 0.28f, 1.55f), chalk);
+            var point = Look.Prim(PrimitiveType.Cube, "HomePoint", _root,
+                new Vector3(0f, 0.24f, -0.52f), new Vector3(1.70f, 0.28f, 1.70f), chalk);
+            point.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
         }
 
         void Fence(Park park, bool ash)
@@ -325,18 +335,11 @@ namespace GrandSluggers.UnityClient
             var diamond = Look.Prim(PrimitiveType.Cube, "DirtDiamond", _root,
                 new Vector3(0f, 0.12f, 63.64f), new Vector3(132f, 0.24f, 132f), dirt);
             diamond.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
-            Cube("BoxL", new Vector3(-4.3f, 0.22f, 2.4f), new Vector3(3.4f, 0.07f, 6.4f), chalk);
-            Cube("BoxR", new Vector3(4.3f, 0.22f, 2.4f), new Vector3(3.4f, 0.07f, 6.4f), chalk);
-            Cube("BoxLIn", new Vector3(-4.3f, 0.24f, 2.4f), new Vector3(2.5f, 0.05f, 5.5f), dirt);
-            Cube("BoxRIn", new Vector3(4.3f, 0.24f, 2.4f), new Vector3(2.5f, 0.05f, 5.5f), dirt);
-            var a = Quaternion.Euler(0f, 45f, 0f);
-            var b = Quaternion.Euler(0f, -45f, 0f);
-            var baseL = Look.Prim(PrimitiveType.Cube, "BaseL", _root,
-                new Vector3(46f, 0.22f, 46f), new Vector3(1.7f, 0.1f, 132f), chalk);
-            baseL.transform.rotation = a;
-            var baseR = Look.Prim(PrimitiveType.Cube, "BaseR", _root,
-                new Vector3(-46f, 0.22f, 46f), new Vector3(1.7f, 0.1f, 132f), chalk);
-            baseR.transform.rotation = b;
+            // Beside the plate, in fair ground — not crossed by the 45° foul lines.
+            Cube("BoxL", new Vector3(-2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), chalk);
+            Cube("BoxR", new Vector3(2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), chalk);
+            Cube("BoxLIn", new Vector3(-2.85f, 0.23f, 3.1f), new Vector3(1.55f, 0.05f, 4.9f), dirt);
+            Cube("BoxRIn", new Vector3(2.85f, 0.23f, 3.1f), new Vector3(1.55f, 0.05f, 4.9f), dirt);
         }
 
         void HarborDugoutsPlus()
