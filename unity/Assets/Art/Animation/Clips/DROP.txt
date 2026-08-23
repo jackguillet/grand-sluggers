@@ -1,0 +1,4 @@
+Authored pose clips live in data/art/pose-clips/{id}.json until a Unity .anim/.fbx drops here.
+
+HeroActor plays the catalog clip when authored; otherwise MoveBones.Evaluate.
+Run is the clip-proof. Same bone names as data/art/rig.json.
