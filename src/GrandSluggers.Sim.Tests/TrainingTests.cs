@@ -131,7 +131,7 @@ public class TrainingTests
     }
 
     [Fact]
-    public void DrillFourGoodChemThrowIsFasterThanBad()
+    public void DrillFourNeedsOneGoodAndOneBadThrowFromPlay()
     {
         var run = FinishFieldDrill();
         var match = run.MakeMatch(_content, seed: 7);
@@ -139,23 +139,48 @@ public class TrainingTests
         Assert.Equal(Chemistry.Good, match.Chemistry.Between(from, goodTo));
         Assert.Equal(Chemistry.Bad, match.Chemistry.Between(from, badTo));
 
-        Assert.True(run.RecordChemThrows(match));
-        Assert.True(run.LastGoodThrow is { } good && run.LastBadThrow is { } bad && good.SpeedMul > bad.SpeedMul,
-            $"good {run.LastGoodThrow?.SpeedMul} vs bad {run.LastBadThrow?.SpeedMul}");
+        var good = match.ThrowBetween(from, goodTo);
+        var bad = match.ThrowBetween(from, badTo);
+        Assert.Equal(Chemistry.Good, good.Relation);
+        Assert.Equal(Chemistry.Bad, bad.Relation);
+        Assert.True(good.SpeedMul > bad.SpeedMul, $"good {good.SpeedMul} vs bad {bad.SpeedMul}");
+
+        var goodPlay = CaughtThrow(_content, from, goodTo, good);
+        Assert.False(run.RecordChemThrow(goodPlay.Throw));
+        Assert.Equal(4, run.CurrentDrill);
+        Assert.False(run.Finished);
+        Assert.NotNull(run.LastGoodThrow);
+        Assert.Null(run.LastBadThrow);
+
+        var badPlay = CaughtThrow(_content, from, badTo, bad);
+        Assert.True(run.RecordChemThrow(badPlay.Throw));
         Assert.True(run.Finished);
         Assert.Equal(5, run.CurrentDrill);
+        Assert.True(run.LastGoodThrow!.SpeedMul > run.LastBadThrow!.SpeedMul);
         Assert.Equal("harbor-diamond", match.Park.Id);
     }
 
     [Fact]
-    public void DrillFourRejectsSameChemPair()
+    public void DrillFourIgnoresNeutralAndNullThrows()
+    {
+        var run = FinishFieldDrill();
+        Assert.False(run.RecordChemThrow(null));
+        Assert.False(run.RecordChemThrow(new ThrowResult(Chemistry.Neutral, 1.0, false)));
+        Assert.Equal(4, run.CurrentDrill);
+        Assert.False(run.Finished);
+    }
+
+    [Fact]
+    public void DrillFourTwoGoodThrowsDoNotFinish()
     {
         var run = FinishFieldDrill();
         var good = new ThrowResult(Chemistry.Good, 1.35, false);
         var alsoGood = new ThrowResult(Chemistry.Good, 1.0, false);
-        Assert.False(run.RecordChemThrows(good, alsoGood));
+        Assert.False(run.RecordChemThrow(good));
+        Assert.False(run.RecordChemThrow(alsoGood));
         Assert.Equal(4, run.CurrentDrill);
         Assert.False(run.Finished);
+        Assert.Null(run.LastBadThrow);
     }
 
     [Fact]
@@ -176,7 +201,11 @@ public class TrainingTests
         run.RecordFielding(CaughtThrow(_content));
         Assert.Equal(4, run.CurrentDrill);
 
-        Assert.True(run.RecordChemThrows(match));
+        Assert.True(Training.TryFindChemPair(match, out var from, out var goodTo, out var badTo));
+        var good = match.ThrowBetween(from, goodTo);
+        var bad = match.ThrowBetween(from, badTo);
+        Assert.False(run.RecordChemThrow(CaughtThrow(_content, from, goodTo, good).Throw));
+        Assert.True(run.RecordChemThrow(CaughtThrow(_content, from, badTo, bad).Throw));
         Assert.True(run.Finished);
         Assert.True(run.LastGoodThrow is { } g && run.LastBadThrow is { } b && g.SpeedMul > b.SpeedMul);
         Assert.Equal("Ready.", run.Caption);
@@ -212,11 +241,11 @@ public class TrainingTests
     static AtBatResult SolidHit() =>
         new(ContactQuality.Solid, true, false, 88, 22, 240, false, false, null, null);
 
-    static FieldingResult CaughtThrow(ContentCatalog content)
+    static FieldingResult CaughtThrow(ContentCatalog content, Character? from = null, Character? to = null, ThrowResult? thr = null)
     {
-        var from = content.Must("rio");
-        var to = content.Must("nico");
-        var thr = new ThrowResult(Chemistry.Good, 1.35, false);
+        from ??= content.Must("rio");
+        to ??= content.Must("nico");
+        thr ??= new ThrowResult(Chemistry.Good, 1.35, false);
         return new FieldingResult(PlayKind.FlyOut, from, to, 2.4, 12, 250, false, false, thr);
     }
 }
