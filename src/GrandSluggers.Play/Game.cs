@@ -9,13 +9,17 @@ public sealed class Game : IDisposable
     enum Phase { Title, Lineup, Set, Flight, InPlay, Result, GameOver }
 
     readonly bool _demo;
-    readonly int _seed;
+    int _seed;
     readonly ContentCatalog _content;
     readonly string[] _pitches = ["fastball", "changeup", "curve"];
     readonly string[] _parks = ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city"];
 
     Match _match;
     Phase _phase = Phase.Title;
+    string _homeCaptain = "rio";
+    string _awayCaptain = "ashlord";
+    bool _challengeMode;
+    Challenge? _campaign;
     int _pitchIndex;
     bool _starArmed;
     float _charge;
@@ -47,18 +51,33 @@ public sealed class Game : IDisposable
     bool _buddyJump;
     bool _frozenSlow;
 
-    public Game(bool demo, int seed, string parkId = "harbor-diamond", bool two = false)
+    public Game(bool demo, int seed, string parkId = "harbor-diamond", bool two = false,
+        string homeCaptain = "rio", string awayCaptain = "ashlord", bool challenge = false)
     {
         _demo = demo;
         _seed = seed;
         _parkId = parkId;
         _two = two;
+        _homeCaptain = homeCaptain;
+        _awayCaptain = awayCaptain;
+        _challengeMode = challenge;
         _content = ContentCatalog.Load();
         _match = NewMatch(seed);
         _cam = WorldView.HighCamera();
     }
 
-    Match NewMatch(int seed) => Match.Slice(_content, 3, seed, _parkId);
+    Match NewMatch(int seed)
+    {
+        if (_challengeMode)
+        {
+            _campaign ??= Challenge.Start(_content, _homeCaptain);
+            if (!_campaign.CaptainId.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase))
+                _campaign = Challenge.Start(_content, _homeCaptain);
+            return _campaign.MakeMatch(_content, 3, seed);
+        }
+        _campaign = null;
+        return Match.Exhibition(_content, _homeCaptain, _awayCaptain, 3, seed, _parkId);
+    }
 
     bool HumanPitches => !_demo && (_two || _match.Top);
     bool HumanBats => !_demo && (_two || !_match.Top);
@@ -111,17 +130,7 @@ public sealed class Game : IDisposable
         switch (_phase)
         {
             case Phase.Title:
-                if (p1.TogglePark)
-                {
-                    var pi = Array.IndexOf(_parks, _parkId);
-                    _parkId = _parks[(pi < 0 ? 0 : pi + 1) % _parks.Length];
-                }
-                if (p1.ToggleTwoPlayer) _two = !_two;
-                if (p1.ConfirmPressed || _demo && _phaseT > 0.6f)
-                {
-                    _match = NewMatch(_seed);
-                    BeginLineup();
-                }
+                TickTitle(p1);
                 break;
             case Phase.Lineup:
                 if (Raylib.IsKeyPressed(KeyboardKey.B)) _match.CycleBat(true);
@@ -149,13 +158,86 @@ public sealed class Game : IDisposable
                 break;
             case Phase.GameOver:
                 if (p1.ConfirmPressed)
-                {
-                    _match = NewMatch(_seed + 1);
-                    _phase = Phase.Title;
-                    _phaseT = 0;
-                }
+                    ConfirmGameOver();
                 break;
         }
+    }
+
+    void TickTitle(FrameInput p1)
+    {
+        if (p1.ToggleMode)
+        {
+            _challengeMode = !_challengeMode;
+            if (_challengeMode)
+                _two = false;
+        }
+        if (p1.NavLeft)
+        {
+            _homeCaptain = PresetTeams.PrevCaptain(_homeCaptain);
+            if (!_challengeMode)
+                _parkId = PresetTeams.HomeParkId(_homeCaptain);
+            if (_homeCaptain.Equals(_awayCaptain, StringComparison.OrdinalIgnoreCase))
+                _awayCaptain = PresetTeams.NextCaptain(_homeCaptain);
+        }
+        if (p1.NavRight)
+        {
+            _homeCaptain = PresetTeams.NextCaptain(_homeCaptain);
+            if (!_challengeMode)
+                _parkId = PresetTeams.HomeParkId(_homeCaptain);
+            if (_homeCaptain.Equals(_awayCaptain, StringComparison.OrdinalIgnoreCase))
+                _awayCaptain = PresetTeams.NextCaptain(_homeCaptain);
+        }
+        if (!_challengeMode)
+        {
+            if (p1.NavUp)
+            {
+                _awayCaptain = PresetTeams.PrevCaptain(_awayCaptain);
+                if (_awayCaptain.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase))
+                    _awayCaptain = PresetTeams.PrevCaptain(_awayCaptain);
+            }
+            if (p1.NavDown)
+            {
+                _awayCaptain = PresetTeams.NextCaptain(_awayCaptain);
+                if (_awayCaptain.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase))
+                    _awayCaptain = PresetTeams.NextCaptain(_awayCaptain);
+            }
+        }
+        else
+            _awayCaptain = (_campaign is not null && _campaign.CaptainId.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase)
+                ? _campaign
+                : Challenge.Start(_content, _homeCaptain)).NextOpponentId(_content);
+
+        if (p1.TogglePark)
+        {
+            var pi = Array.IndexOf(_parks, _parkId);
+            _parkId = _parks[(pi < 0 ? 0 : pi + 1) % _parks.Length];
+        }
+        if (p1.ToggleTwoPlayer && !_challengeMode) _two = !_two;
+        if (p1.ConfirmPressed || _demo && _phaseT > 0.6f)
+        {
+            _match = NewMatch(_seed);
+            BeginLineup();
+        }
+    }
+
+    void ConfirmGameOver()
+    {
+        if (_campaign is not null)
+        {
+            if (_campaign.AllBeaten)
+            {
+                _phase = Phase.Title;
+                _phaseT = 0;
+                return;
+            }
+            _seed++;
+            _match = _campaign.MakeMatch(_content, 3, _seed);
+            BeginLineup();
+            return;
+        }
+        _seed++;
+        _phase = Phase.Title;
+        _phaseT = 0;
     }
 
     void BeginLineup()
@@ -426,6 +508,7 @@ public sealed class Game : IDisposable
         _phase = Phase.GameOver;
         _phaseT = 0;
         _cam = WorldView.HighCamera();
+        _campaign?.Resolve(_match);
     }
 
     static string Label(PlayEvent ev) => ev.Kind switch
@@ -460,16 +543,20 @@ public sealed class Game : IDisposable
         switch (_phase)
         {
             case Phase.Title:
-                Hud.DrawTitle(w, h);
-                var park = _content.Parks.TryGetValue(_parkId, out var pk) ? pk.Name : _parkId;
-                var mode = _two ? "2 PLAYER  (P1 Spark, P2 Ember)" : "1 PLAYER  (you are Spark)";
-                Raylib.DrawText($"Park: {park}   Mode: {mode}", 84, 580, 22, Palette.SparkDark);
+                var camp = _campaign is not null &&
+                           _campaign.CaptainId.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase)
+                    ? _campaign
+                    : null;
+                var previewAway = _challengeMode
+                    ? (camp ?? Challenge.Start(_content, _homeCaptain)).NextOpponentId(_content)
+                    : _awayCaptain;
+                Hud.DrawTitle(w, h, _content, _homeCaptain, previewAway, _parkId, _two, _challengeMode, camp);
                 break;
             case Phase.Lineup:
                 Hud.DrawLineup(_match, w);
                 break;
             case Phase.GameOver:
-                Hud.DrawGameOver(_match, w, h);
+                Hud.DrawGameOver(_match, w, h, _campaign);
                 break;
             default:
                 var timing = _phase == Phase.Set ? Bounce(_pip)
@@ -486,7 +573,6 @@ public sealed class Game : IDisposable
 
     void DrawActors()
     {
-        var sparkField = _match.Top;
         var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
         foreach (var (pos, who) in defense)
         {
@@ -507,7 +593,7 @@ public sealed class Game : IDisposable
                 z = p.Z + (_last.LandingZ - p.Z) * u;
             }
             var pitching = pos == "P" && _phase is Phase.Set or Phase.Flight;
-            WorldView.DrawPerson(x, z, sparkField, false, pitching, 0, who.Captain && _pitch?.Star == true);
+            WorldView.DrawPerson(x, z, who.Faction, false, pitching, 0, who.Captain && _pitch?.Star == true);
         }
 
         var batter = _match.Batter;
@@ -515,11 +601,11 @@ public sealed class Game : IDisposable
         if (_phase == Phase.Flight && (_playerSwung || _swing?.Swing == true) && _flightAge > _pitchDur - 0.08f)
             batAngle = 50f;
         if (_phase == Phase.InPlay) batAngle = 80f;
-        WorldView.DrawPerson(1.6, 0.8, batter.Faction == "spark", true, false, batAngle, _starArmed && HumanBats);
+        WorldView.DrawPerson(1.6, 0.8, batter.Faction, true, false, batAngle, _starArmed && HumanBats);
 
-        if (_match.First is { } r1) WorldView.DrawPerson(Diamond.First.X, Diamond.First.Z, r1.Faction == "spark", false, false, 0, false);
-        if (_match.Second is { } r2) WorldView.DrawPerson(Diamond.Second.X, Diamond.Second.Z, r2.Faction == "spark", false, false, 0, false);
-        if (_match.Third is { } r3) WorldView.DrawPerson(Diamond.Third.X, Diamond.Third.Z, r3.Faction == "spark", false, false, 0, false);
+        if (_match.First is { } r1) WorldView.DrawPerson(Diamond.First.X, Diamond.First.Z, r1.Faction, false, false, 0, false);
+        if (_match.Second is { } r2) WorldView.DrawPerson(Diamond.Second.X, Diamond.Second.Z, r2.Faction, false, false, 0, false);
+        if (_match.Third is { } r3) WorldView.DrawPerson(Diamond.Third.X, Diamond.Third.Z, r3.Faction, false, false, 0, false);
 
         if (_phase is Phase.Flight or Phase.InPlay or Phase.Set)
         {

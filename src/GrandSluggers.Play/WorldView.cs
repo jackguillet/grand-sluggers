@@ -54,11 +54,11 @@ public static class WorldView
     public static void DrawRing(double x, double z, float radius, Color color) =>
         Raylib.DrawCylinder(new Vector3((float)x, 0.15f, (float)z), radius, radius, 0.2f, 16, color);
 
-    public static void DrawPerson(double x, double z, bool spark, bool batting, bool pitching, float batAngle, bool star)
+    public static void DrawPerson(double x, double z, string faction, bool batting, bool pitching, float batAngle, bool star)
     {
-        var body = spark ? Palette.Spark : Palette.Ember;
-        var accent = spark ? Palette.Gold : Palette.EmberFire;
-        var skin = spark ? Palette.Skin : Palette.SkinShadow;
+        var body = Palette.Body(faction);
+        var accent = Palette.Accent(faction);
+        var skin = Palette.SkinTone(faction);
         var px = (float)x;
         var pz = (float)z;
         Raylib.DrawCapsule(new Vector3(px, 0.4f, pz), new Vector3(px, 4.3f, pz), 1.15f, 8, 6, body);
@@ -72,7 +72,8 @@ public static class WorldView
             var bx = px + MathF.Cos(rad) * 2.4f;
             var by = 3.4f + MathF.Sin(rad) * 2.1f;
             var bz = pz + 0.6f;
-            Raylib.DrawCube(new Vector3(bx, by, bz), 0.35f, 3.4f, 0.35f, spark ? Palette.C(92, 48, 24) : Palette.C(28, 22, 22));
+            Raylib.DrawCube(new Vector3(bx, by, bz), 0.35f, 3.4f, 0.35f,
+                faction == "ember" ? Palette.C(28, 22, 22) : Palette.C(92, 48, 24));
         }
         if (pitching)
             Raylib.DrawSphere(new Vector3(px, 4.6f, pz + 1.4f), 0.45f, Palette.Skin);
@@ -95,8 +96,8 @@ public static class WorldView
             Raylib.DrawSphere(p + new Vector3(0, 0.2f, 0), 0.85f, Palette.Fade(Palette.EmberFire, 90));
     }
 
-    public static void DrawFielderGhost(double x, double z, bool spark) =>
-        DrawPerson(x, z, spark, false, false, 0, false);
+    public static void DrawFielderGhost(double x, double z, string faction) =>
+        DrawPerson(x, z, faction, false, false, 0, false);
 
     public static Camera3D BattingCamera() => Cam(new Vector3(7, 9, -16), new Vector3(0, 4, 50));
     public static Camera3D PitchingCamera() => Cam(new Vector3(-6, 10, 82), new Vector3(0, 4, 8));

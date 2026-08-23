@@ -12,7 +12,10 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
-        RunMatch(content, Seed(args), ParkId(args));
+        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args));
+        break;
+    case "challenge":
+        RunChallenge(content, CaptainId(args), Seed(args));
         break;
     case "chem":
         DumpChem(content, args.ElementAtOrDefault(1) ?? "rio");
@@ -28,10 +31,11 @@ switch (cmd)
         Console.WriteLine("""
             Grand Sluggers sim
               roster
-              team [spark-allstars|ember-court|mixed-rivals]
+              team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--seed N] [--park harbor-diamond|crystal-rink]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N]
+              challenge [--captain rio] [--seed N]
             """);
         break;
 }
@@ -49,7 +53,31 @@ static string ParkId(string[] args)
     for (var i = 0; i < args.Length - 1; i++)
         if (args[i] is "--park" or "-p")
             return args[i + 1];
-    return "harbor-diamond";
+    return "";
+}
+
+static string HomeId(string[] args)
+{
+    for (var i = 0; i < args.Length - 1; i++)
+        if (args[i] == "--home")
+            return args[i + 1];
+    return "rio";
+}
+
+static string AwayId(string[] args)
+{
+    for (var i = 0; i < args.Length - 1; i++)
+        if (args[i] == "--away")
+            return args[i + 1];
+    return "ashlord";
+}
+
+static string CaptainId(string[] args)
+{
+    for (var i = 0; i < args.Length - 1; i++)
+        if (args[i] is "--captain" or "--home")
+            return args[i + 1];
+    return args.ElementAtOrDefault(1) is { Length: > 0 } a && !a.StartsWith('-') ? a : "rio";
 }
 
 static void PrintTeam(ContentCatalog content, string id)
@@ -58,7 +86,8 @@ static void PrintTeam(ContentCatalog content, string id)
     {
         "ember" or "ember-court" => PresetTeams.EmberCourt(content),
         "mixed" or "mixed-rivals" => PresetTeams.MixedRivals(content),
-        _ => PresetTeams.SparkAllStars(content)
+        "spark" or "spark-allstars" => PresetTeams.SparkAllStars(content),
+        _ => PresetTeams.ForCaptain(content, id)
     };
 
     var stars = content.Chemistry.StartingStars(team);
@@ -86,9 +115,11 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away)
 {
-    var match = Match.Slice(content, innings: 3, seed: seed, parkId: parkId);
+    var match = string.IsNullOrEmpty(parkId)
+        ? Match.Exhibition(content, home, away, innings: 3, seed: seed)
+        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId);
     Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}");
     Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
     while (!match.Over)
@@ -100,6 +131,21 @@ static void RunMatch(ContentCatalog content, int seed, string parkId)
     var mvp = match.Mvp();
     Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
     Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
+}
+
+static void RunChallenge(ContentCatalog content, string captainId, int seed)
+{
+    var run = Challenge.Start(content, captainId);
+    var match = run.MakeMatch(content, innings: 3, seed: seed);
+    Console.WriteLine($"Challenge  {match.Home.Name} vs {match.Away.Name}  at {match.Park.Name}  seed {seed}");
+    Console.WriteLine($"owned {run.Owned.Count}  first rival {match.Away.Captain.Name}");
+    match.AutoPlayGame();
+    var recruit = run.Resolve(match);
+    Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
+    if (recruit is not null)
+        Console.WriteLine($"WIN  recruited {recruit.Name}  roster {run.Owned.Count}");
+    else
+        Console.WriteLine("LOSS  no recruit");
 }
 
 static void SimAtBat(ContentCatalog content, string matchup, int seed)
