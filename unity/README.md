@@ -13,7 +13,7 @@ cd /path/to/grand-sluggers
 unity open ./unity --editor-version 6000.5.9f1
 ```
 
-Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: afternoon light (warm key, cool fill, gold rim), warning track, dugouts, backstop, stepped bleachers with crowd in the seats, town beyond the fence. Pitching-camera still should hold up. Pose heroes. Every captain special owns the ball or the field for two seconds (Heatball fire + embers, Charmball hearts, Prismball ghosts, Phonyball decoy, Caskball barrel, Skullball skull, Furnace burn + crack, Heart charm, Shell/Cask fragments, Phony hop) then baseball resumes. Mute the HUD and you can still name the clip. Field verbs show on the body: nearest glove lights, dive and jump open a catch window, throws leave chemistry-colored trails (good gold/purple and fast, bad muddy and off-line). Defense still plays as a scene when you bat.
+Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: afternoon light (warm key, cool fill, gold rim), warning track, dugouts, backstop, stepped bleachers with crowd in the seats, town beyond the fence. Pitching-camera still should hold up. Pose heroes. Every captain special owns the ball or the field for two seconds (Heatball fire + embers, Charmball hearts, Prismball ghosts, Phonyball decoy, Caskball barrel, Skullball skull, Furnace burn + crack, Heart charm, Shell/Cask fragments, Phony hop) then baseball resumes. Mute the HUD and you can still name the clip. Field verbs show on the body: nearest glove lights, dive and jump open a catch window, throws leave chemistry-colored trails (good gold/purple and fast, bad muddy and off-line). Defense still plays as a scene when you bat. On-deck buddy: after contact, throw a banana (grass), rocket (body), or POW (infield hop) at a fielder you can see.
 
 Gamepad is the product. Keyboard is a debug overlay.
 
@@ -28,6 +28,8 @@ Gamepad is the product. Keyboard is a debug overlay.
 | Jump / buddy / bunt (hold) | West | F / V hold |
 | Throw to bag | D-pad / stick flick | 1 2 3 4 |
 | Steal | LB | X |
+| Throw chemistry item | LT+RB / South+LT | E |
+| Cycle item (during the fly) | RB | Tab |
 | Exhibition / Challenge / Training | Start | H |
 | Training (from title) | West | F |
 | Timing bar | — | F1 |
