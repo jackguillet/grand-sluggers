@@ -97,6 +97,39 @@ namespace GrandSluggers.UnityClient
             RenderSettings.ambientEquatorColor = new Color(0.72f, 0.78f, 0.7f);
             RenderSettings.ambientGroundColor = new Color(0.28f, 0.24f, 0.18f);
             RenderSettings.subtractiveShadowColor = new Color(0.25f, 0.22f, 0.3f);
+            DirLight("Sun", new Color(1f, 0.95f, 0.86f), 1.15f, new Vector3(50f, 30f, 0f), true);
+            DirLight("Fill", Color.black, 0f, Vector3.zero, false);
+            DirLight("Rim", Color.black, 0f, Vector3.zero, false);
+        }
+
+        /// <summary>Harbor afternoon: warm key, cool fill, gold rim. Not a default Directional Light.</summary>
+        public static void RigAfternoon(Camera cam)
+        {
+            var sky = new Color(0.52f, 0.70f, 0.88f);
+            SetupLighting(cam, sky);
+            cam.backgroundColor = sky;
+            RenderSettings.fogColor = new Color(0.78f, 0.80f, 0.72f);
+            RenderSettings.fogStartDistance = 240f;
+            RenderSettings.fogEndDistance = 760f;
+            RenderSettings.ambientSkyColor = new Color(0.58f, 0.74f, 0.90f);
+            RenderSettings.ambientEquatorColor = new Color(0.86f, 0.74f, 0.52f);
+            RenderSettings.ambientGroundColor = new Color(0.30f, 0.24f, 0.16f);
+            DirLight("Sun", new Color(1f, 0.91f, 0.72f), 1.55f, new Vector3(38f, 42f, 0f), true);
+            DirLight("Fill", new Color(0.52f, 0.66f, 0.85f), 0.32f, new Vector3(58f, -78f, 0f), false);
+            DirLight("Rim", new Color(1f, 0.78f, 0.48f), 0.42f, new Vector3(16f, 168f, 0f), false);
+        }
+
+        static void DirLight(string name, Color color, float intensity, Vector3 euler, bool shadows)
+        {
+            var go = GameObject.Find(name);
+            if (go == null) go = new GameObject(name);
+            var light = go.GetComponent<Light>();
+            if (light == null) light = go.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.color = color;
+            light.intensity = intensity;
+            light.shadows = shadows ? LightShadows.Soft : LightShadows.None;
+            go.transform.rotation = Quaternion.Euler(euler);
         }
 
         static Texture2D Load(string file, bool repeat)

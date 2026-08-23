@@ -19,10 +19,14 @@ namespace GrandSluggers.UnityClient
             var ice = park.Surface == "ice";
             var ash = park.Surface == "ash";
             var jungle = park.Id == "canopy-yard";
-            var harbor = park.Id == "harbor-diamond" || (!ice && !ash && !jungle);
+            var harbor = park.Id == "harbor-diamond";
 
             var sky = ice ? Colors.Ice : ash ? new Color(0.22f, 0.1f, 0.12f) : Colors.Sky;
-            if (Camera.main != null) Look.SetupLighting(Camera.main, sky);
+            if (Camera.main != null)
+            {
+                if (harbor) Look.RigAfternoon(Camera.main);
+                else Look.SetupLighting(Camera.main, sky);
+            }
 
             var grassCol = ice ? Colors.Ice : ash ? new Color(0.28f, 0.19f, 0.16f) : jungle ? new Color(0.14f, 0.43f, 0.2f) : Colors.Grass;
             var waterCol = ash ? new Color(0.35f, 0.11f, 0.07f) : ice ? Colors.Ice : Colors.Water;
@@ -37,10 +41,20 @@ namespace GrandSluggers.UnityClient
             FoulLines();
             Bags();
             Fence(park, ash);
-            Stands(ice, ash);
-            if (harbor) HarborTown();
-            else if (jungle) Jungle();
-            else if (ash) Keep();
+            if (harbor)
+            {
+                WarningTrack(park);
+                Backstop();
+                Dugouts();
+                HarborBleachers();
+                HarborTown();
+            }
+            else
+            {
+                Stands(ice, ash);
+                if (jungle) Jungle();
+                else if (ash) Keep();
+            }
             Hazards(park);
 
             _ball = gameObject.GetComponent<BallView>();
@@ -86,20 +100,80 @@ namespace GrandSluggers.UnityClient
 
         void Fence(Park park, bool ash)
         {
-            var wall = Look.Lit(ash ? Colors.EmberFire : new Color(0.82f, 0.84f, 0.8f), smooth: 0.18f);
+            var wall = Look.Lit(ash ? Colors.EmberFire : new Color(0.22f, 0.48f, 0.28f), smooth: 0.18f);
+            var cap = Look.Lit(Colors.Gold, smooth: 0.4f);
             var pole = Look.Lit(Colors.Gold, smooth: 0.45f);
             for (var i = -18; i <= 18; i++)
             {
                 var spray = i / 18f * 48f;
                 var fence = (float)AtBatResolver.FenceAt(park, spray);
                 var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 7.5f, Mathf.Cos(rad) * fence);
-                Cube("Fence" + i, p, new Vector3(12, 15, 2.4f), wall);
+                var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
+                Cube("Fence" + i, p, new Vector3(14, 10.4f, 1.8f), wall);
+                Cube("Cap" + i, p + new Vector3(0, 5.4f, 0), new Vector3(14, 0.35f, 2.1f), cap);
             }
             var lf = (float)park.LeftFenceFt;
             var rf = (float)park.RightFenceFt;
-            Cylinder("PoleL", new Vector3(Mathf.Sin(-0.78f) * lf, 0, Mathf.Cos(-0.78f) * lf), 0.55f, 44f, pole);
-            Cylinder("PoleR", new Vector3(Mathf.Sin(0.78f) * rf, 0, Mathf.Cos(0.78f) * rf), 0.55f, 44f, pole);
+            Cylinder("PoleL", new Vector3(Mathf.Sin(-0.78f) * lf, 0, Mathf.Cos(-0.78f) * lf), 0.7f, 52f, pole);
+            Cylinder("PoleR", new Vector3(Mathf.Sin(0.78f) * rf, 0, Mathf.Cos(0.78f) * rf), 0.7f, 52f, pole);
+            Cube("ScreenL", new Vector3(Mathf.Sin(-0.78f) * lf, 38f, Mathf.Cos(-0.78f) * lf), new Vector3(0.2f, 18f, 8f), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
+            Cube("ScreenR", new Vector3(Mathf.Sin(0.78f) * rf, 38f, Mathf.Cos(0.78f) * rf), new Vector3(0.2f, 18f, 8f), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
+        }
+
+        void WarningTrack(Park park)
+        {
+            var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
+            for (var i = -18; i <= 18; i++)
+            {
+                var spray = i / 18f * 48f;
+                var fence = (float)AtBatResolver.FenceAt(park, spray) - 12f;
+                var rad = spray * Mathf.Deg2Rad;
+                var p = new Vector3(Mathf.Sin(rad) * fence, 0.14f, Mathf.Cos(rad) * fence);
+                Cube("Track" + i, p, new Vector3(16, 0.2f, 10f), dirt);
+            }
+        }
+
+        void Backstop()
+        {
+            var net = Look.Unlit(new Color(0.82f, 0.84f, 0.86f));
+            var post = Look.Lit(new Color(0.55f, 0.55f, 0.5f), smooth: 0.15f);
+            Cube("Backstop", new Vector3(0, 9f, -22f), new Vector3(42, 18, 0.6f), net);
+            Cube("BackL", new Vector3(-22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
+            Cube("BackR", new Vector3(22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
+            Cylinder("PostL", new Vector3(-21, 0, -22), 0.45f, 18f, post);
+            Cylinder("PostR", new Vector3(21, 0, -22), 0.45f, 18f, post);
+        }
+
+        void Dugouts()
+        {
+            var roof = Look.Lit(new Color(0.18f, 0.32f, 0.22f), smooth: 0.12f);
+            var pad = Look.Lit(new Color(0.55f, 0.42f, 0.28f), Look.Dirt, 2f, 0.1f);
+            Cube("Dugout1B", new Vector3(42, 2.4f, 22), new Vector3(22, 1.2f, 10), roof);
+            Cube("Dugout1BPad", new Vector3(42, 0.3f, 22), new Vector3(20, 0.4f, 8), pad);
+            Cube("Dugout3B", new Vector3(-42, 2.4f, 22), new Vector3(22, 1.2f, 10), roof);
+            Cube("Dugout3BPad", new Vector3(-42, 0.3f, 22), new Vector3(20, 0.4f, 8), pad);
+        }
+
+        void HarborBleachers()
+        {
+            var conc = Look.Lit(new Color(0.74f, 0.75f, 0.76f), smooth: 0.1f);
+            var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
+            for (var row = 0; row < 6; row++)
+            {
+                var y = 3.2f + row * 2.15f;
+                var z = -44f - row * 3.6f;
+                Cube("HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 2.0f, 3.4f), conc);
+                CrowdCard("CrowdH" + row, new Vector3(0, y + 1.6f, z - 1.4f), new Vector3(90 - row * 2, 2.8f, 0.4f));
+            }
+            for (var row = 0; row < 5; row++)
+            {
+                var y = 3.0f + row * 2.1f;
+                Cube("LStep" + row, new Vector3(-102 - row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
+                CrowdCard("CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
+                Cube("RStep" + row, new Vector3(102 + row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
+                CrowdCard("CrowdR" + row, new Vector3(104 + row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
+            }
+            Cube("RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
         }
 
         void Stands(bool ice, bool ash)
