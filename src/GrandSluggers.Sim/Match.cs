@@ -264,7 +264,7 @@ public sealed class Match
             pitch.Type, pitch.Charge01 > 0.55, swing.Charge01 > 0.55,
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             Top ? HomeStamina : AwayStamina,
-            swing.SprayAimDeg, inZone, swing.Bunt);
+            swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
         if (hit.Foul)
@@ -372,7 +372,8 @@ public sealed class Match
         var err = Gauss() * (11 - Batter.Stats.Bat) * 0.62;
         if (!inZone) err += 4 * Math.Sign(err == 0 ? 1 : err);
         var spray = Gauss() * 12;
-        return new SwingCommand(true, charge, err, star, spray);
+        var launchAim = Gauss() * 0.45;
+        return new SwingCommand(true, charge, err, star, spray, LaunchAim: launchAim);
     }
 
     public PlayEvent AutoPlay()

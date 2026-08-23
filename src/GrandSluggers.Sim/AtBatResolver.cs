@@ -65,15 +65,22 @@ public sealed class AtBatResolver
         if (input.PitcherStamina < 25)
             exit *= 1.05;
 
-        var launch = quality == ContactQuality.Cheap
-            ? (rng.NextDouble() < 0.5 ? 8 : 48)
-            : 18 + (power - 5) * 1.4 + (rng.NextDouble() - 0.5) * 8;
+        // Late / under (positive frames) and stick-up (LaunchAim +) pull launch down into a hopper.
+        // Early / over pops up. Square still mixes liners and some grounders.
+        var signed = input.TimingErrorFrames;
+        var loft = 16 + (power - 5) * 1.0 + (input.ChargeSwing ? 2.5 : 0);
+        var launch = loft - signed * 1.35 - input.LaunchAim * 12 + (rng.NextDouble() - 0.5) * 14;
+        if (quality == ContactQuality.Cheap)
+            launch = signed >= 0
+                ? 4 + rng.NextDouble() * 10
+                : 40 + rng.NextDouble() * 12;
 
         if (input.Bunt)
         {
             exit *= 0.42;
             launch = 5 + rng.NextDouble() * 7;
         }
+        launch = Math.Clamp(launch, 3, 52);
 
         if (input.UseStarSwing && !input.Bunt)
             launch = StarLaunch(input.Batter.StarSwing, launch);

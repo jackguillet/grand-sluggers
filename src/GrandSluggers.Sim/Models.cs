@@ -111,7 +111,8 @@ public sealed record AtBatInput(
     int PitcherStamina,
     double SprayAimDeg = 0,
     bool PitchInZone = true,
-    bool Bunt = false);
+    bool Bunt = false,
+    double LaunchAim = 0);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -142,7 +143,8 @@ public sealed record SwingCommand(
     double TimingErrorFrames,
     bool Star,
     double SprayAimDeg = 0,
-    bool Bunt = false);
+    bool Bunt = false,
+    double LaunchAim = 0);
 
 public enum PlayKind
 {
