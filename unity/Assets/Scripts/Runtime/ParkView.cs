@@ -101,7 +101,7 @@ namespace GrandSluggers.UnityClient
                 kit = go.AddComponent<HarborKit>();
                 kit.EnsureAnchors();
             }
-            if (kit != null) kit.Bind(park);
+            if (kit != null) kit.Bind(park, night);
             var placed = kit != null && kit.OwnsDiamond;
             if (!placed)
             {
@@ -110,29 +110,22 @@ namespace GrandSluggers.UnityClient
                 FoulLines();
                 Bags();
             }
-            else
-            {
-                Cylinder("BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), 11f, 0.16f, dirtMat);
-                Cylinder("BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), 11f, 0.16f, dirtMat);
-                Cylinder("BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), 11f, 0.16f, dirtMat);
-                var bag = Look.Lit(Colors.Chalk, smooth: 0.08f);
-                Cube("1B", new Vector3((float)Diamond.First.X, 0.28f, (float)Diamond.First.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-                Cube("2B", new Vector3((float)Diamond.Second.X, 0.28f, (float)Diamond.Second.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-                Cube("3B", new Vector3((float)Diamond.Third.X, 0.28f, (float)Diamond.Third.Z), new Vector3(2.4f, 0.4f, 2.4f), bag);
-            }
             Fence(park, ash);
             if (harbor)
             {
-                if (!placed) HarborDiamondSkin();
-                WarningTrack(park);
-                Backstop();
-                Dugouts();
-                HarborDugoutsPlus();
-                HarborWallDress(park);
-                HarborScoreboard(park);
-                HarborBleachers();
-                HarborTown();
-                HarborNightHook();
+                if (!placed)
+                {
+                    HarborDiamondSkin();
+                    WarningTrack(park);
+                    Backstop();
+                    Dugouts();
+                    HarborDugoutsPlus();
+                    HarborWallDress(park);
+                    HarborScoreboard(park);
+                    HarborBleachers();
+                    HarborTown();
+                    HarborNightHook();
+                }
             }
             else if (crystal)
             {
@@ -446,11 +439,19 @@ namespace GrandSluggers.UnityClient
                 t.position = ball + new Vector3(0f, 26f, -8f);
                 t.LookAt(ball);
             }
-            TickFireworks(dt);
+            var kit = HarborKit.Instance;
+            if (kit != null && kit.OwnsDiamond) kit.Tick(ball, dt);
+            else TickFireworks(dt);
         }
 
         public void BurstFireworks(Vector3 at)
         {
+            var kit = HarborKit.Instance;
+            if (kit != null && kit.OwnsDiamond)
+            {
+                kit.BurstFireworks(at);
+                return;
+            }
             if (!_night || _fireworks == null) return;
             var cols = new[]
             {
