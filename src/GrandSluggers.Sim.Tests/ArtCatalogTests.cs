@@ -57,6 +57,19 @@ public class ArtCatalogTests
         var frost = _content.Art.SkinOf(_content.Must("frost"));
         Assert.Equal("vale", frost.BodyType, ignoreCase: true);
         Assert.Empty(frost.Extras);
+        var extras = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "brim", "cheeks", "sneakers", "sash", "crown", "neck",
+            "goggles", "cube-chest", "brick-jaw", "snout", "belly",
+            "horns", "cape", "ember-eyes"
+        };
+        foreach (var id in Silhouette.Captains)
+        {
+            foreach (var e in _content.Art.SkinOf(_content.Must(id)).Extras)
+                Assert.Contains(e, extras);
+        }
+        foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
+            Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
