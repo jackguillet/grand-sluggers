@@ -240,15 +240,17 @@ namespace GrandSluggers.UnityClient
                 banner = _coach.Session.Caption;
                 sub = _coach.Session.Verb;
             }
+            var mutePlay = BroadcastHud.MutePlay(
+                _spec != null && _spec.Active, _smash, _freeze);
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
-                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver);
-            if (_phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
+                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay);
+            if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
                 HudView.BagTell(_throwBag > 0 ? _throwBag : Controls.StickBag);
-            if (_feelDebug && _smash <= 0)
+            if (_feelDebug)
             {
                 var verb = "";
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var batter) && batter != null)
@@ -261,7 +263,8 @@ namespace GrandSluggers.UnityClient
                     _cam != null ? _cam.Shot : "",
                     verb, _charge, hang, rest,
                     _throwBag > 0 ? _throwBag : Controls.StickBag,
-                    _feelSlow, _freezeCam);
+                    _feelSlow, _freezeCam,
+                    _spec != null ? _spec.CurrentEvent : "");
             }
         }
 
