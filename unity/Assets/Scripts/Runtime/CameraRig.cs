@@ -40,6 +40,14 @@ namespace GrandSluggers.UnityClient
 
         public void Punch(float amount = 10f) => _punch = amount;
 
+        public void Smash(Vector3 at)
+        {
+            _pos = at + new Vector3(2.6f, 2.4f, -7.2f);
+            _look = at + new Vector3(0f, 0.4f, 1.2f);
+            _fov = 26f;
+            _punch = 16f;
+        }
+
         public void Tick(float dt)
         {
             if (_cam == null) return;

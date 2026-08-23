@@ -260,7 +260,15 @@ public sealed class Match
         var charge = _rng.NextDouble() < 0.3 ? 0.75 + _rng.NextDouble() * 0.25 : 0.1 + _rng.NextDouble() * 0.35;
         var err = Gauss() * (11 - Pitcher.Stats.Pitch) * 0.42;
         if ((Top ? HomeStamina : AwayStamina) < 25) err *= 1.6;
-        return new PitchCommand(type, charge, err, star);
+        var scatter = (11 - Pitcher.Stats.Pitch) * 0.055;
+        var aimX = Gauss() * scatter;
+        var aimY = Gauss() * scatter * 0.85;
+        if ((Top ? HomeStamina : AwayStamina) < 25)
+        {
+            aimX *= 1.6;
+            aimY *= 1.6;
+        }
+        return new PitchCommand(type, charge, err, star, aimX, aimY);
     }
 
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)

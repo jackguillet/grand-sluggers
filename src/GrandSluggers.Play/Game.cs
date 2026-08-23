@@ -302,9 +302,8 @@ public sealed class Game : IDisposable
 
     PitchCommand PlayerPitch(FrameInput input)
     {
-        var timing = (Bounce(_pip) - 0.5f) * 18f;
         var star = _starArmed && _match.CanStarPitch;
-        return new PitchCommand(_pitches[_pitchIndex], _charge, timing, star);
+        return new PitchCommand(_pitches[_pitchIndex], _charge, 0, star, input.MoveX, input.MoveZ);
     }
 
     static float Bounce(float t)
@@ -332,13 +331,13 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var breakX = _pitch!.Type == "curve" ? MathF.Sin(u * MathF.PI) * 2.8f
-            : _pitch.Type == "slider" ? MathF.Sin(u * MathF.PI) * 1.6f : 0;
-        var y = 5.4f + (2.4f - 5.4f) * u * u + (_pitch.Type == "changeup" ? -1.2f * u * u : 0);
-        var z = 60.5f * (1 - u);
+        var p = PitchFlight.Point(_pitch!.Type, u, _pitch.AimX, _pitch.AimY);
+        var x = (float)p.X;
+        var y = (float)p.Y;
+        var z = (float)p.Z;
         if (_pitch.Star)
         {
-            breakX += _match.Pitcher.StarPitch switch
+            x += _match.Pitcher.StarPitch switch
             {
                 "heatball" => MathF.Sin(u * 18) * 0.4f,
                 "prismball" => MathF.Sin(u * 24) * 1.8f,
@@ -350,7 +349,7 @@ public sealed class Game : IDisposable
             if (_match.Pitcher.StarPitch == "caskball")
                 y += 0.55f * u;
         }
-        _ball = new Vector3(breakX, y, z);
+        _ball = new Vector3(x, y, z);
         _trail.Add(_ball);
         if (_trail.Count > 24) _trail.RemoveAt(0);
 

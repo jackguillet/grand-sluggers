@@ -10,6 +10,7 @@ namespace GrandSluggers.UnityClient
         Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh;
         Pose _pose = Pose.Idle;
         float _charge;
+        string _pitchType = "fastball";
         float _t;
         float _lift;
         bool _grow;
@@ -27,10 +28,11 @@ namespace GrandSluggers.UnityClient
             Build(who);
         }
 
-        public void SetPose(Pose pose, float charge = 0f)
+        public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
         {
             _pose = pose;
             _charge = Mathf.Clamp01(charge);
+            if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
         }
 
         public void SetGrow(bool on) => _grow = on;
@@ -144,17 +146,17 @@ namespace GrandSluggers.UnityClient
             {
                 case Pose.ChargePitch:
                     lArm = Quaternion.Euler(8, 0, 25);
-                    rArm = Quaternion.Euler(-20 - 50 * _charge, 10, -30);
+                    rArm = PitchSlot(-20 - 55 * _charge, 10, -30);
                     break;
                 case Pose.Throw:
                     lArm = Quaternion.Euler(20, 0, 35);
-                    rArm = Quaternion.Euler(70, -10, -10);
+                    rArm = PitchSlot(78, -10, -10);
                     break;
                 case Pose.ChargeSwing:
                     batOn = true;
                     lArm = Quaternion.Euler(-10, 20, 30);
-                    rArm = Quaternion.Euler(-30 - 40 * _charge, -40, -50);
-                    batRot = Quaternion.Euler(70 + 20 * _charge, 0, 10);
+                    rArm = Quaternion.Euler(-35 - 50 * _charge, -40, -55);
+                    batRot = Quaternion.Euler(75 + 28 * _charge, 0, 10);
                     break;
                 case Pose.Swing:
                     batOn = true;
@@ -200,6 +202,17 @@ namespace GrandSluggers.UnityClient
                 _bat.gameObject.SetActive(batOn);
                 _bat.localRotation = batRot;
             }
+        }
+
+        Quaternion PitchSlot(float x, float y, float z)
+        {
+            // Fastball and changeup share a high 3/4 slot (the lie). Curve is over the top. Slider is lower.
+            return _pitchType switch
+            {
+                "curve" => Quaternion.Euler(x - 25, y, z - 12),
+                "slider" => Quaternion.Euler(x + 28, y + 18, z + 8),
+                _ => Quaternion.Euler(x, y, z)
+            };
         }
     }
 }
