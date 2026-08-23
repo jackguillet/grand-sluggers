@@ -33,6 +33,26 @@ public class MatchTests
     }
 
     [Fact]
+    public void GrounderWithRunnerOnFirstForcesTheLead()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        while (match.First is null && !match.Over)
+            match.Play(wild, take);
+        Assert.NotNull(match.First);
+        var leadId = match.First.Id;
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.55, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        match.FinishAtBat(paint, swing, hit, field);
+        Assert.True(match.First is null || match.First.Id != leadId, "lead runner must be forced");
+        Assert.True(match.Outs >= 1);
+    }
+
+    [Fact]
     public void ThreeLookingStrikesIsAStrikeout()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);

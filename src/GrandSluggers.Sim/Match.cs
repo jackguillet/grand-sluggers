@@ -502,6 +502,31 @@ public sealed class Match
                 break;
             case PlayKind.FlyOut:
             case PlayKind.GroundOut:
+                if (kind == PlayKind.GroundOut && First is not null)
+                {
+                    SetBag(1, null);
+                    Outs++;
+                    AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
+                    AddStars(defense: true, 0.4);
+                    if (Outs < 3 && !InPlay.BatterBeatsThrow(Batter, hit, field))
+                    {
+                        Outs++;
+                        caption = $"{field.Fielder?.Name} turns two.";
+                        NextBatter();
+                    }
+                    else if (Outs < 3)
+                    {
+                        (runs, scorers) = AdvanceHit(Batter, 1);
+                        caption = $"Force at second. {Batter.Name} in at first.";
+                    }
+                    else
+                    {
+                        caption = $"{field.Fielder?.Name} forces the runner.";
+                        NextBatter();
+                    }
+                    CheckInning();
+                    break;
+                }
                 if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field))
                 {
                     kind = PlayKind.Single;

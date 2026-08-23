@@ -35,6 +35,7 @@ namespace GrandSluggers.UnityClient
         CameraRig _rig;
         SpecialFx _spec;
         ItemView _items;
+        LandingRing _ring;
         StrikeZone _zone;
         AudioBus _audio;
         StarMeter _stars;
@@ -124,6 +125,8 @@ namespace GrandSluggers.UnityClient
             _items.Build(transform);
             _zone = gameObject.AddComponent<StrikeZone>();
             _zone.Build(transform);
+            _ring = gameObject.AddComponent<LandingRing>();
+            _ring.Build(transform);
             _audio = gameObject.AddComponent<AudioBus>();
             _audio.Build();
             _stars = gameObject.AddComponent<StarMeter>();
@@ -782,14 +785,27 @@ namespace GrandSluggers.UnityClient
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
                 _freeze = 0.32f;
-                _smash = 0.55f;
+                _smash = 0.18f;
                 _rig.Smash(_ball);
             }
             else if (hit.Quality == ContactQuality.Solid)
             {
-                _freeze = 0.12f;
-                _rig.Punch(10f);
+                _freeze = 0.08f;
+                _rig.Punch(8f);
             }
+            AimDiamond(hit);
+        }
+
+        void AimDiamond(AtBatResult hit)
+        {
+            var grounder = hit.LaunchDeg < 14;
+            var look = _ball.sqrMagnitude > 1 ? _ball : new Vector3((float)(_preview?.LandingX ?? 0), 3f, (float)(_preview?.LandingZ ?? 80));
+            if (grounder && hit.SprayDeg < -8)
+                _rig.Aim(new Vector3(-32f, 14f, 36f), look, 46f);
+            else if (grounder)
+                _rig.Aim(new Vector3(38f, 14f, 22f), look, 46f);
+            else
+                _rig.Aim(new Vector3(8f, 26f, -18f), look + new Vector3(0, 3, 10), 50f);
         }
 
         void TickInPlay(float dt)
@@ -800,6 +816,8 @@ namespace GrandSluggers.UnityClient
             var p = BallFlight.PointAt(_path, spray, _hitT);
             _ball = new Vector3((float)p.X, (float)Mathf.Max(0.12f, (float)p.Y), (float)p.Z);
             if (_smash > 0) _smash -= dt;
+            else if (_throwing)
+                _rig.Aim(_throwTo + new Vector3(14f, 11f, -18f), _throwTo, 48f);
             else if (BuddySet && _hitT > 0.7f)
             {
                 var plant = WallPlant(_preview);
@@ -808,7 +826,19 @@ namespace GrandSluggers.UnityClient
                     new Vector3((float)plant.X, 5.5f, (float)plant.Z),
                     42f);
             }
-            else _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
+            else if (_pending != null)
+                AimDiamond(_pending);
+            else
+                _rig.Aim(_ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
+
+            if (_ring != null && _preview != null && !_preview.Grounder && !_caught && !_buddy)
+            {
+                var hang = BallFlight.HangTime(_path);
+                var red = _hitT >= hang - 0.48f && _hitT <= hang + 0.14f;
+                _ring.Show(_preview.LandingX, _preview.LandingZ, (float)_preview.CatchRadius, red);
+            }
+            else
+                _ring?.Hide();
 
             if (_diveT > 0) _diveT -= dt;
             if (_jumpT > 0) _jumpT -= dt;
@@ -1476,6 +1506,7 @@ namespace GrandSluggers.UnityClient
             _itemFlying = false;
             _items?.Hide();
             _zone.Show(false, 0, 0);
+            _ring?.Hide();
             _rig.Aim(new Vector3(0, 36, -46), new Vector3(0, 2, 110), 48f);
         }
 
