@@ -15,5 +15,5 @@
     { "type": "warp_pipe", "x": 0, "z": 95, "radius": 4, "tag": "C" },
     { "type": "train", "z": 310, "periodSec": 18 }
   ],
-  "notes": "Grounders that enter a warp can exit another. Night adds chompers in the outfield (not in this file yet)."
+  "notes": "Grounders that enter a warp can exit another. Night chompers in the outfield eat flies."
 }

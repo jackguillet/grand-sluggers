@@ -22,6 +22,9 @@ namespace GrandSluggers.UnityClient
         public static bool Start => KeyDown(KeyCode.H) || PadDown(7);
         public static bool SwapPitcher => KeyDown(KeyCode.R) || PadDown(8);
         public static bool TimingAid => KeyDown(KeyCode.F1);
+        /// <summary>Title: toggle night. N, or right-stick click.</summary>
+        public static bool NightToggle => KeyDown(KeyCode.N) || PadDown(9);
+        public static bool ParkHeld => Key(KeyCode.C);
 
         public static float StickX
         {

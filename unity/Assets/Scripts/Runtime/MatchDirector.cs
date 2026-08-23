@@ -12,7 +12,10 @@ namespace GrandSluggers.UnityClient
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
+        public bool Night;
         static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
+        float _cHold;
+        bool _cNight;
 
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
@@ -96,7 +99,7 @@ namespace GrandSluggers.UnityClient
             _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
-            _park.Build(_match.Park);
+            _park.Build(_match.Park, _match.Night);
             _spec = gameObject.AddComponent<SpecialFx>();
             _spec.Build(transform);
             _items = gameObject.AddComponent<ItemView>();
@@ -172,6 +175,7 @@ namespace GrandSluggers.UnityClient
                     break;
             }
             DrawActors();
+            _park?.Tick(_ball, dt);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _rig.Tick(dt);
         }
@@ -206,7 +210,8 @@ namespace GrandSluggers.UnityClient
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
-                _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null);
+                _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
+                _phase == Phase.Title ? Night : _match.Night);
         }
 
         Match NewMatch()
@@ -223,10 +228,10 @@ namespace GrandSluggers.UnityClient
             {
                 if (_campaign == null || !_campaign.CaptainId.Equals(HomeCaptain, System.StringComparison.OrdinalIgnoreCase))
                     _campaign = Challenge.Start(_content, HomeCaptain);
-                return _campaign.MakeMatch(_content, Innings, Seed);
+                return _campaign.MakeMatch(_content, Innings, Seed, night: Night);
             }
             _campaign = null;
-            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId);
+            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night);
         }
 
         void TickTitle()
@@ -263,10 +268,29 @@ namespace GrandSluggers.UnityClient
                 if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
                     AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
             }
-            if (Key(KeyCode.C) && _mode == PlayMode.Exhibition)
+            if (_mode != PlayMode.Training && Controls.NightToggle)
+                Night = !Night;
+            if (_mode == PlayMode.Exhibition)
             {
-                var i = System.Array.IndexOf(Parks, ParkId);
-                ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
+                if (Controls.ParkHeld)
+                {
+                    _cHold += Time.deltaTime;
+                    if (_cHold > 0.4f && !_cNight)
+                    {
+                        Night = !Night;
+                        _cNight = true;
+                    }
+                }
+                else
+                {
+                    if (_cHold > 0f && _cHold < 0.4f && !_cNight)
+                    {
+                        var i = System.Array.IndexOf(Parks, ParkId);
+                        ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
+                    }
+                    _cHold = 0f;
+                    _cNight = false;
+                }
             }
             if (Controls.SouthDown)
             {
@@ -276,7 +300,7 @@ namespace GrandSluggers.UnityClient
                     return;
                 }
                 _match = NewMatch();
-                _park.Build(_match.Park);
+                _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
                 _phase = Phase.Lineup;
@@ -294,7 +318,7 @@ namespace GrandSluggers.UnityClient
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
             _coach.Begin(_content);
             _match = _coach.MakeMatch(_content, Seed);
-            _park.Build(_match.Park);
+            _park.Build(_match.Park, _match.Night);
             _spec.Build(transform);
             _items.Build(transform);
             _banner = _coach.Session.Caption;
@@ -319,7 +343,7 @@ namespace GrandSluggers.UnityClient
             if (_campaign != null && !_campaign.AllBeaten)
             {
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
-                _park.Build(_match.Park);
+                _park.Build(_match.Park, _match.Night);
                 _spec.Build(transform);
                 _items.Build(transform);
                 _phase = Phase.Lineup;
@@ -327,7 +351,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             _match = NewMatch();
-            _park.Build(_match.Park);
+            _park.Build(_match.Park, _match.Night);
             _spec.Build(transform);
             _items.Build(transform);
             _phase = Phase.Title;
@@ -541,6 +565,8 @@ namespace GrandSluggers.UnityClient
             _hitT = 0;
             _phase = Phase.InPlay;
             _t = 0;
+            if (hit.HomeRun && _match.Night)
+                _park.BurstFireworks(_ball);
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
                 _freeze = 0.32f;
