@@ -17,6 +17,9 @@ namespace GrandSluggers.UnityClient
         float _lastY = 4f;
         bool _hadY;
         float _puffT = -1f;
+        Vector3 _lastPlace;
+        bool _hadPlace;
+        const float Sit = 0.55f;
 
         public bool Held => _held != null;
 
@@ -35,9 +38,20 @@ namespace GrandSluggers.UnityClient
             _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             _ball.name = "Mesh";
             _ball.transform.SetParent(_root, false);
+            _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             _ball.transform.localScale = Vector3.one * 1.35f;
             Destroy(_ball.GetComponent<Collider>());
             Look.Paint(_ball, Look.Lit(Colors.Ball, smooth: 0.65f));
+            var stitch = Look.Unlit(new Color(0.78f, 0.12f, 0.16f));
+            for (var i = 0; i < 8; i++)
+            {
+                var a = i * 45f * Mathf.Deg2Rad;
+                var side = i < 4 ? 1f : -1f;
+                var u = (i % 4) / 3f;
+                Look.Prim(PrimitiveType.Cube, "Seam" + i, _ball.transform,
+                    new Vector3(Mathf.Sin(a) * 0.42f * side, (u - 0.5f) * 0.7f, Mathf.Cos(a) * 0.42f),
+                    new Vector3(0.08f, 0.14f, 0.22f), stitch);
+            }
 
             _trail = _ball.AddComponent<TrailRenderer>();
             _trail.time = 0.42f;
@@ -83,12 +97,14 @@ namespace GrandSluggers.UnityClient
                 _root.position = p;
                 StampShadow(p);
                 MaybeHopPuff(p);
+                Spin(p);
             }
             else
             {
                 _root.localPosition = new Vector3(0f, 0.12f, 0.18f);
                 _root.localRotation = Quaternion.identity;
                 if (_shadow != null) _shadow.gameObject.SetActive(false);
+                _hadPlace = false;
             }
 
             TickPuff();
@@ -200,6 +216,7 @@ namespace GrandSluggers.UnityClient
 
             Look.Paint(_ball, Look.Lit(matCol, smooth: smooth));
             _ball.transform.localScale = Vector3.one * scale;
+            _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             _trail.startColor = col;
             _trail.endColor = new Color(col.r, col.g, col.b, 0);
             _trail.time = star == "prismball" ? 0.7f : 0.42f;
@@ -215,6 +232,22 @@ namespace GrandSluggers.UnityClient
             if (_puff != null) _puff.gameObject.SetActive(false);
             _look = "";
             _hadY = false;
+            _hadPlace = false;
+        }
+
+        void Spin(Vector3 p)
+        {
+            if (_ball == null) return;
+            if (_hadPlace)
+            {
+                var d = p - _lastPlace;
+                var speed = d.magnitude / Mathf.Max(1e-4f, Time.deltaTime);
+                var axis = Vector3.Cross(Vector3.up, d);
+                if (axis.sqrMagnitude > 1e-6f && speed > 0.4f)
+                    _ball.transform.Rotate(axis.normalized, speed * 6.5f * Time.deltaTime, Space.World);
+            }
+            _lastPlace = p;
+            _hadPlace = true;
         }
 
         void StampShadow(Vector3 p)

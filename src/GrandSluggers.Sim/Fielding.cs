@@ -113,10 +113,12 @@ public sealed class FieldingResolver
             var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng));
             var energy = InPlay.Energy(hit);
             var bobble = InPlay.Bobbles(energy, fielder, rng, glove);
+            var knock = InPlay.KnockbackSec(energy, fielder);
             var error = throwRes is { Error: true } || bobble;
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
-                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, shown.Buddy);
+                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, shown.Buddy,
+                Bobble: bobble, KnockbackSec: error ? 0 : knock);
         }
 
         var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
@@ -268,7 +270,9 @@ public sealed record FieldingResult(
     Character? Buddy = null,
     bool Warped = false,
     string? Item = null,
-    bool Chomped = false);
+    bool Chomped = false,
+    bool Bobble = false,
+    double KnockbackSec = 0);
 
 public sealed record FieldingPreview(
     Character Fielder,
