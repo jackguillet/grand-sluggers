@@ -678,7 +678,7 @@ namespace GrandSluggers.UnityClient
                 if (Controls.SouthDown && !_swung)
                 {
                     _swung = true;
-                    _swing = new SwingCommand(true, _charge, (_flight - _pitchDur) * 60f, _star && _match.CanStarSwing, Controls.StickX * 18f, Controls.WestHeld);
+                    _swing = new SwingCommand(true, _charge, (_flight - _pitchDur) * 60f, _star && _match.CanStarSwing, Controls.StickX * 18f, Controls.WestHeld, Controls.StickY);
                 }
             }
             if (u < 1) return;
