@@ -172,6 +172,14 @@ public sealed class ArtCatalog
         {
             if (!TryVfx(need, out _)) errors.Add("vfx missing " + need);
         }
+        foreach (var who in content.Characters.Values)
+        {
+            if (!who.Captain) continue;
+            if (!TryVfx(who.StarPitch, out _))
+                errors.Add("vfx missing captain pitch " + who.Id + " " + who.StarPitch);
+            if (!TryVfx(who.StarSwing, out _))
+                errors.Add("vfx missing captain swing " + who.Id + " " + who.StarSwing);
+        }
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
         return errors;

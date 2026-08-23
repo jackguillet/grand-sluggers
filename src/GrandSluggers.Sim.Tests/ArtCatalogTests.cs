@@ -99,6 +99,8 @@ public class ArtCatalogTests
     public void VfxAndAudioSlotsCoverPresentationEvents()
     {
         Assert.True(_content.Art.TryVfx("puff", out _));
+        Assert.True(_content.Art.TryVfx("heatball", out _));
+        Assert.True(_content.Art.TryVfx("heart-swing", out _));
         Assert.True(_content.Art.TryAudio("bat-perfect", out var bat));
         Assert.Equal("sfx", bat.Kind, ignoreCase: true);
         Assert.True(_content.Art.TryAudio("vo-rio", out _));
