@@ -11,15 +11,14 @@ cd /path/to/grand-sluggers
 unity open ./unity --editor-version 6000.5.9f1
 ```
 
-Press **Play** on `Assets/Scenes/HarborDiamond.unity`.
+Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Harbor is the presentation park: textured grass and dirt, stands, crowd cards, a camera that sits behind the pitcher or batter, posed heroes, and a Heatball that actually looks like fire.
 
-- SPACE — start / pitch / swing / catch
-- A/D (title) — your captain · W/S opponent · H challenge
-- C (title) — cycle park
-- Shift — charge
-- WASD — field
-- Q — star skill
-- F — buddy jump
+- SPACE / gamepad South — start, pitch, swing, catch
+- LT / Shift — charge (body pulls back)
+- Y / Q — arm star (Rio's Heatball)
+- Left stick / WASD — aim spray and field
+- A/D (title) — captain · W/S opponent · C park
+- F / East — buddy jump
 - 1 2 3 H — throw
 - R — new pitcher
 

@@ -4,7 +4,7 @@ Arcade baseball with a cartoon roster, team chemistry, signature bats and gloves
 
 Inspired by *Mario Super Sluggers* (Wii, 2008) — **original characters and world**, not a Mario clone. The pitch is the same: a party sports game where *who you draft together* matters as much as who swings the bat.
 
-**Engine of record: Unity 6.5 (URP).** See [docs/engine-decision.md](docs/engine-decision.md). The baseball rules live in `src/GrandSluggers.Sim`. Open `unity/` in Unity **6000.5.9f1** and press Play (`Assets/Scenes/HarborDiamond.unity`). A Raylib client (`src/GrandSluggers.Play`) is still there for `dotnet run` without the editor.
+**Engine of record: Unity 6.5 (URP).** See [docs/engine-decision.md](docs/engine-decision.md). The baseball rules live in `src/GrandSluggers.Sim`. Open `unity/` in Unity **6000.5.9f1** and press Play (`Assets/Scenes/HarborDiamond.unity`) — that is the at-bat: textured Harbor Diamond, posed heroes, a camera behind the pitcher or batter, and Rio's Heatball as fire. `dotnet run --project src/GrandSluggers.Play` is the Raylib rules sandbox.
 
 ## Why this game
 
