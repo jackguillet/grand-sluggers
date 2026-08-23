@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using GrandSluggers.Sim;
@@ -930,7 +931,7 @@ namespace GrandSluggers.UnityClient
         void TickCpuField()
         {
             var hang = BallFlight.HangTime(_path);
-            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, hang));
+            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
             var start = Diamond.Positions[_preview.Position];
             _fx = start.X + (_preview.LandingX - start.X) * u;
             _fz = start.Z + (_preview.LandingZ - start.Z) * u;
@@ -1017,7 +1018,7 @@ namespace GrandSluggers.UnityClient
             if (string.IsNullOrEmpty(_buddyPos)) return;
             var hang = BallFlight.HangTime(_path);
             var plant = WallPlant(_preview);
-            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.25f, hang - 0.4f));
+            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.25f, (float)hang - 0.4f));
             var start = Diamond.Positions[_buddyPos];
             _gloveAt[_buddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
             if (!_playerFielding)
@@ -1153,9 +1154,9 @@ namespace GrandSluggers.UnityClient
                 }
                 else if (buddyPartner)
                 {
-                    var planted = Diamond.Dist(x, z, WallPlant(_preview).X, WallPlant(_preview).Z) < 18;
+                    var atWall = Diamond.Dist(x, z, WallPlant(_preview).X, WallPlant(_preview).Z) < 18;
                     if (_throwing) pose = HeroActor.Pose.Field;
-                    else if (planted) pose = HeroActor.Pose.Crouch;
+                    else if (atWall) pose = HeroActor.Pose.Crouch;
                     else pose = HeroActor.Pose.Field;
                 }
                 else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
