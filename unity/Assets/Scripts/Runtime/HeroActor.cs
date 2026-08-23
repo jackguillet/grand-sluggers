@@ -7,13 +7,14 @@ namespace GrandSluggers.UnityClient
     {
         public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh;
+        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         string _pitchType = "fastball";
         float _t;
         float _lift;
         bool _grow;
+        bool _lit;
         string _id = "";
         Vector3 _look = Vector3.forward;
         Vector3 _baseScale = Vector3.one;
@@ -37,6 +38,8 @@ namespace GrandSluggers.UnityClient
 
         public void SetGrow(bool on) => _grow = on;
 
+        public void SetHighlight(bool on) => _lit = on;
+
         public void Place(Vector3 pos, Vector3 look)
         {
             var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
@@ -59,6 +62,15 @@ namespace GrandSluggers.UnityClient
             {
                 var g = _grow ? 1.45f : 1f;
                 _root.localScale = Vector3.Lerp(_root.localScale, _baseScale * g, 0.15f);
+            }
+            if (_ring != null)
+            {
+                _ring.gameObject.SetActive(_lit);
+                if (_lit)
+                {
+                    var pulse = 2.2f + 0.18f * Mathf.Sin(_t * 8f);
+                    _ring.localScale = new Vector3(pulse, 0.08f, pulse);
+                }
             }
             Animate();
         }
@@ -130,6 +142,10 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "RShoe", _rThigh, new Vector3(0, -1.55f, 0.12f), new Vector3(0.7f, 0.28f, 1.1f), leather);
 
             _bat.gameObject.SetActive(false);
+
+            var gold = Look.Unlit(Colors.Gold);
+            _ring = Look.Prim(PrimitiveType.Cylinder, "Glove", _root, new Vector3(0, 0.08f, 0), new Vector3(2.0f, 0.07f, 2.0f), gold).transform;
+            _ring.gameObject.SetActive(false);
         }
 
         void Animate()

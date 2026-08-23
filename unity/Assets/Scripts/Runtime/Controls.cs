@@ -55,6 +55,19 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        /// <summary>Stick flick to a bag: right 1B, up 2B, left 3B, down home.</summary>
+        public static int StickBag
+        {
+            get
+            {
+                var x = StickX;
+                var y = StickY;
+                if (x * x + y * y < 0.55f) return 0;
+                if (Mathf.Abs(x) > Mathf.Abs(y)) return x > 0 ? 1 : 3;
+                return y > 0 ? 2 : 4;
+            }
+        }
+
         static bool Key(KeyCode k) => Input.GetKey(k);
         static bool KeyDown(KeyCode k) => Input.GetKeyDown(k);
         static bool PadDown(int n) => Input.GetKeyDown((KeyCode)((int)KeyCode.JoystickButton0 + n));

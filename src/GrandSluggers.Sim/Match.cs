@@ -217,6 +217,9 @@ public sealed class Match
     public FieldingPreview PreviewHit(AtBatResult hit) =>
         _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng);
 
+    public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
+        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview);
+
     public bool SwapPitcher()
     {
         var team = Defense;

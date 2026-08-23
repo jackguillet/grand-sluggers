@@ -51,30 +51,31 @@ public sealed class FieldingResolver
         IReadOnlyList<Character> defense,
         Character pitcher,
         Random rng,
-        GloveItem? glove = null)
+        GloveItem? glove = null,
+        FieldingPreview? pre = null)
     {
-        var pre = Preview(hit, park, defense, pitcher, rng);
-        if (pre.HomeRunLikely && hit.HomeRun)
+        var shown = pre ?? Preview(hit, park, defense, pitcher, rng);
+        if (shown.HomeRunLikely && hit.HomeRun)
         {
-            if (ParkHazards.CanClamberRob(park, pre.Fielder, hit) || FieldAbilities.AirRob(park, pre.Fielder, hit))
-                return new FieldingResult(PlayKind.FlyOut, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace, Buddy: pre.Buddy);
-            return new FieldingResult(PlayKind.HomeRun, null, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, false, pre.Furnace);
+            if (ParkHazards.CanClamberRob(park, shown.Fielder, hit) || FieldAbilities.AirRob(park, shown.Fielder, hit))
+                return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy);
+            return new FieldingResult(PlayKind.HomeRun, null, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace);
         }
 
-        var fielder = pre.Fielder;
-        var pos = pre.Position;
-        var landingX = pre.LandingX;
-        var landingZ = pre.LandingZ;
-        var hang = pre.HangTimeSec;
-        var grounder = pre.Grounder;
-        var furnace = pre.Furnace;
-        var heatball = pre.Heatball;
+        var fielder = shown.Fielder;
+        var pos = shown.Position;
+        var landingX = shown.LandingX;
+        var landingZ = shown.LandingZ;
+        var hang = shown.HangTimeSec;
+        var grounder = shown.Grounder;
+        var furnace = shown.Furnace;
+        var heatball = shown.Heatball;
         var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8
                     + FieldAbilities.FlyRangeBonus(fielder) + FieldAbilities.GroundRangeBonus(fielder);
         if (ParkHazards.CanClamber(park, fielder))
             range += 18;
         var speed = 21 + fielder.Stats.Run * 1.9; // ft/s
-        if (pre.Frozen) speed *= 0.45;
+        if (shown.Frozen) speed *= 0.45;
         var start = Diamond.Positions[pos];
         var toBall = Diamond.Dist(start.X, start.Z, landingX, landingZ);
         var arrive = toBall / Math.Max(8, speed);
@@ -86,22 +87,22 @@ public sealed class FieldingResolver
             if (reached)
             {
                 var drop = (heatball && rng.NextDouble() < 0.35)
-                           || (pre.Frozen && rng.NextDouble() < 0.4)
+                           || (shown.Frozen && rng.NextDouble() < 0.4)
                            || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
                 if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy);
+                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy);
             }
 
             var kind = hit.CarryFt >= 330 ? PlayKind.Triple
                 : hit.CarryFt >= 250 ? PlayKind.Double
                 : PlayKind.Single;
             kind = FieldAbilities.SpinCheck(fielder, kind);
-            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
+            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
         }
 
         var gloveScore = fielder.Stats.Field + rng.NextDouble() * 4 + (glove?.ErrorReduction ?? 0) * 4;
         var beat = hit.Quality == ContactQuality.Perfect ? 2.5 : 0;
-        var outPlay = gloveScore + 3 > 7 + beat && toBall < range * 2.5 && !pre.Frozen && !pre.Warped;
+        var outPlay = gloveScore + 3 > 7 + beat && toBall < range * 2.5 && !shown.Frozen && !shown.Warped;
         if (outPlay)
         {
             var cut = Cutoff(defense, pitcher, fielder);
@@ -109,19 +110,58 @@ public sealed class FieldingResolver
             var error = throwRes is { Error: true };
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
-                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, pre.Buddy);
+                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, shown.Buddy);
         }
 
         var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
         var groundKind = FieldAbilities.SpinCheck(fielder, extra ? PlayKind.Double : PlayKind.Single);
         return new FieldingResult(
             groundKind,
-            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: pre.Buddy, Warped: pre.Warped);
+            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
     }
 
     public (Character Fielder, string Pos) NearestPublic(
         IReadOnlyList<Character> defense, Character pitcher, double x, double z, bool outfield) =>
         Nearest(defense, pitcher, x, z, outfield);
+
+    /// <summary>Closest glove to (x, z) among all nine. Pass live spots when fielders have moved.</summary>
+    public static (Character Fielder, string Pos) NearestGlove(
+        IReadOnlyList<Character> defense, Character pitcher, double x, double z) =>
+        NearestGlove(Assign(defense, pitcher), x, z);
+
+    public static (Character Fielder, string Pos) NearestGlove(
+        IReadOnlyDictionary<string, Character> assigned,
+        double x,
+        double z,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null)
+    {
+        Character? best = null;
+        var bestPos = "P";
+        var bestD = double.MaxValue;
+        foreach (var kv in assigned)
+        {
+            var p = at != null && at.TryGetValue(kv.Key, out var live)
+                ? live
+                : Diamond.Positions[kv.Key];
+            var d = Diamond.Dist(p.X, p.Z, x, z);
+            if (d < bestD)
+            {
+                bestD = d;
+                best = kv.Value;
+                bestPos = kv.Key;
+            }
+        }
+        return (best ?? assigned.Values.First(), bestPos);
+    }
+
+    /// <summary>Catch radius plus dive/jump window. Body verbs buy you the extra feet.</summary>
+    public static double CatchWindowFt(double catchRadius, bool dive, bool jump)
+    {
+        var w = catchRadius + 4;
+        if (dive) w += 8;
+        if (jump) w += 8;
+        return w;
+    }
 
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
