@@ -119,6 +119,23 @@ namespace GrandSluggers.UnityClient
             DirLight("Rim", new Color(1f, 0.78f, 0.48f), 0.42f, new Vector3(16f, 168f, 0f), false);
         }
 
+        /// <summary>Crystal ice garden: cool key, cool fill, violet rim. Not Harbor afternoon.</summary>
+        public static void RigIceGarden(Camera cam)
+        {
+            var sky = new Color(0.56f, 0.70f, 0.82f);
+            SetupLighting(cam, sky);
+            cam.backgroundColor = sky;
+            RenderSettings.fogColor = new Color(0.70f, 0.82f, 0.90f);
+            RenderSettings.fogStartDistance = 200f;
+            RenderSettings.fogEndDistance = 700f;
+            RenderSettings.ambientSkyColor = new Color(0.62f, 0.76f, 0.90f);
+            RenderSettings.ambientEquatorColor = new Color(0.52f, 0.66f, 0.80f);
+            RenderSettings.ambientGroundColor = new Color(0.30f, 0.36f, 0.44f);
+            DirLight("Sun", new Color(0.82f, 0.91f, 1f), 1.12f, new Vector3(48f, 22f, 0f), true);
+            DirLight("Fill", new Color(0.48f, 0.66f, 0.88f), 0.36f, new Vector3(55f, -95f, 0f), false);
+            DirLight("Rim", new Color(0.78f, 0.70f, 0.95f), 0.24f, new Vector3(18f, 155f, 0f), false);
+        }
+
         static void DirLight(string name, Color color, float intensity, Vector3 euler, bool shadows)
         {
             var go = GameObject.Find(name);

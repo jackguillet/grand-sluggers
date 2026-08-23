@@ -18,7 +18,8 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Faction: Royal Rink
 - Surface: ice (we do **not** make players skate — Sluggers’ manual said they slip, the wiki says they don’t. We pick: **no skating**, freeze *hazards* instead)
 - Gimmick: **Freezers** — statues on the dirt. Touch one, frozen 1.2s. Can be shattered by a charged runner or a line drive.
-- Night: ceiling snowflakes. Hit one → stadium lights cut, follow-spot on the ball for 2s.
+- Night: ceiling snowflakes. Hit one → stadium lights cut, follow-spot on the ball for 2s. Presentation later (#31); the park ships a disabled follow-spot hook.
+- Why it exists: an ice garden, not Harbor with cyan cylinders. Same diamond kit (bags, mound, foul lines, fence). Glass boards, frozen fountain, freeze statues (body + pedestal) you walk around, royal palace beyond CF. Cool light, not Harbor afternoon. Spark lofts stay in Harbor.
 
 ## Funfair Park
 
