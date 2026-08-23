@@ -58,7 +58,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(Screen.width - 360, 40, 320, 320), portrait, ScaleMode.ScaleToFit);
             GUI.Label(new Rect(56, 250, 900, 24), "South play   LS captain / opponent / park   Start mode   West training", _tiny);
             if (!training)
-                GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  LB steal  RB cycle  West bunt/jump  East dive  E item", _gold);
+                GUI.Label(new Rect(56, 278, 920, 24), "South pitch/swing/catch  LT charge  Y star  stick lead  LB steal  RB cycle  West bunt/jump/slide  East dive  E item", _gold);
             else
                 GUI.Label(new Rect(56, 278, 920, 24), "West starts the drills. Prompts sit on the diamond.", _gold);
         }

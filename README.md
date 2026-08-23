@@ -46,7 +46,7 @@ unity/    Unity 6 URP client — this is how you play
 ```
 South / SPACE     pitch, swing, or catch
 LT / Shift        charge
-Left stick        pitch location / spray / field
+Left stick        pitch location / spray / field / lead
 RB / Tab          cycle pitch
 North / Q         star
 West hold / V     bunt (batter) · jump (fielder)

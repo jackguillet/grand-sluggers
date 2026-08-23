@@ -5,7 +5,7 @@ namespace GrandSluggers.UnityClient
 {
     public sealed class HeroActor : MonoBehaviour
     {
-        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber }
+        public enum Pose { Idle, ChargePitch, Throw, ChargeSwing, Swing, Field, Catch, Dive, Jump, Spin, Charm, Clamber, Slide }
 
         Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _lThigh, _rThigh, _ring;
         Pose _pose = Pose.Idle;
@@ -44,6 +44,7 @@ namespace GrandSluggers.UnityClient
         {
             var lift = _pose == Pose.Jump || _pose == Pose.Clamber ? 4.2f
                 : _pose == Pose.Dive ? 0.2f
+                : _pose == Pose.Slide ? 0.15f
                 : 0f;
             _lift = Mathf.Lerp(_lift, lift, 0.2f);
             transform.position = pos + Vector3.up * _lift;
@@ -155,6 +156,8 @@ namespace GrandSluggers.UnityClient
 
             var lArm = Quaternion.Euler(12, 0, 18);
             var rArm = Quaternion.Euler(12, 0, -18);
+            var lLeg = Quaternion.identity;
+            var rLeg = Quaternion.identity;
             var batOn = false;
             var batRot = Quaternion.Euler(0, 0, 20);
 
@@ -207,12 +210,21 @@ namespace GrandSluggers.UnityClient
                     lArm = Quaternion.Euler(0, 0, 40);
                     rArm = Quaternion.Euler(0, 0, -40);
                     break;
+                case Pose.Slide:
+                    lArm = Quaternion.Euler(-20, 10, 25);
+                    rArm = Quaternion.Euler(-40, -20, -15);
+                    lLeg = Quaternion.Euler(78, 8, 10);
+                    rLeg = Quaternion.Euler(98, -6, -8);
+                    if (_torso != null) _torso.localRotation = Quaternion.Euler(58, 0, 0);
+                    break;
             }
 
-            if (_torso != null && _pose != Pose.Dive)
+            if (_torso != null && _pose != Pose.Dive && _pose != Pose.Slide)
                 _torso.localRotation = Quaternion.Slerp(_torso.localRotation, Quaternion.identity, 0.2f);
             if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm, 0.2f);
             if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, 0.2f);
+            if (_lThigh != null) _lThigh.localRotation = Quaternion.Slerp(_lThigh.localRotation, lLeg, 0.25f);
+            if (_rThigh != null) _rThigh.localRotation = Quaternion.Slerp(_rThigh.localRotation, rLeg, 0.25f);
             if (_bat != null)
             {
                 _bat.gameObject.SetActive(batOn);

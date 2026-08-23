@@ -197,6 +197,149 @@ public class GameplayTests
     }
 
     [Fact]
+    public void LeadReturnStealSlideOnTheLeadRunner()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        Assert.False(match.TakeLead());
+        Assert.False(match.ReturnToBag());
+        Assert.False(match.StartSteal());
+        Assert.False(match.Slide());
+        WalkOn(match);
+        Assert.NotNull(match.LeadRunner);
+        Assert.Equal(1, match.LeadBag);
+        Assert.Equal(0, match.Lead01);
+        Assert.True(match.TakeLead(0.4));
+        Assert.InRange(match.Lead01, 0.39, 0.41);
+        Assert.False(match.Returning);
+        Assert.True(match.ReturnToBag(0.15));
+        Assert.True(match.Returning);
+        Assert.InRange(match.Lead01, 0.24, 0.26);
+        Assert.False(match.StealAttempt);
+        Assert.True(match.StartSteal());
+        Assert.True(match.StealAttempt);
+        Assert.True(match.StealOn);
+        Assert.False(match.Returning);
+        Assert.True(match.Lead01 >= 0.2);
+        Assert.True(match.Slide());
+        Assert.True(match.Sliding);
+    }
+
+    [Fact]
+    public void LeadRunnerIsFurthestAlong()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        WalkOn(match);
+        WalkOnSecond(match);
+        Assert.NotNull(match.First);
+        Assert.NotNull(match.Second);
+        Assert.Equal(2, match.LeadBag);
+        Assert.Equal(match.Second!.Id, match.LeadRunner!.Id);
+        Assert.True(match.TakeLead(0.5));
+        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.49, 0.51);
+        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
+    }
+
+    [Fact]
+    public void BiggerLeadStealsMoreOften()
+    {
+        Assert.True(StealWins(1.0) > StealWins(0), "more lead should steal more");
+    }
+
+    [Fact]
+    public void BigLeadCanBePickedOff()
+    {
+        var picks = 0;
+        var stays = 0;
+        for (var seed = 1; seed <= 40; seed++)
+        {
+            var match = Match.Slice(_content, seed: seed);
+            WalkOn(match);
+            match.TakeLead(1);
+            var wild = new PitchCommand("fastball", 0, 40, false);
+            var take = new SwingCommand(false, 0, 0, false);
+            var ev = match.Play(wild, take);
+            if (ev.Kind == PlayKind.CaughtStealing && ev.Caption.Contains("picked off"))
+                picks++;
+            else
+                stays++;
+        }
+        Assert.True(picks > 0, "max lead should risk a pickoff");
+        Assert.True(stays > 0, "pickoff is a risk, not a sure out");
+    }
+
+    [Fact]
+    public void NoLeadIsNeverPickedOff()
+    {
+        for (var seed = 1; seed <= 20; seed++)
+        {
+            var match = Match.Slice(_content, seed: seed);
+            WalkOn(match);
+            Assert.Equal(0, match.Lead01);
+            var wild = new PitchCommand("fastball", 0, 40, false);
+            var take = new SwingCommand(false, 0, 0, false);
+            var ev = match.Play(wild, take);
+            Assert.NotEqual(PlayKind.CaughtStealing, ev.Kind);
+            Assert.DoesNotContain("picked off", ev.Caption);
+        }
+    }
+
+    [Fact]
+    public void LeadSpotSitsOffTheBag()
+    {
+        var glued = Diamond.LeadSpot(1, 0);
+        var walked = Diamond.LeadSpot(1, 1);
+        Assert.Equal(Diamond.First.X, glued.X, 3);
+        Assert.Equal(Diamond.First.Z, glued.Z, 3);
+        Assert.True(Diamond.Dist(glued.X, glued.Z, walked.X, walked.Z) > 20);
+        Assert.True(Diamond.Dist(walked.X, walked.Z, Diamond.Second.X, Diamond.Second.Z) <
+                    Diamond.Dist(glued.X, glued.Z, Diamond.Second.X, Diamond.Second.Z));
+    }
+
+    int StealWins(double lead)
+    {
+        var n = 0;
+        for (var seed = 1; seed <= 36; seed++)
+        {
+            var match = Match.Slice(_content, seed: seed);
+            WalkOn(match);
+            if (lead > 0) match.TakeLead(lead);
+            match.StartSteal();
+            var wild = new PitchCommand("fastball", 0, 8, false);
+            var take = new SwingCommand(false, 0, 0, false);
+            for (var i = 0; i < 6 && !match.Over; i++)
+            {
+                var ev = match.Play(wild, take);
+                if (ev.Kind == PlayKind.StolenBase)
+                {
+                    n++;
+                    break;
+                }
+                if (ev.Kind == PlayKind.CaughtStealing) break;
+                if (match.CanSteal && !match.StealOn) match.StartSteal();
+            }
+        }
+        return n;
+    }
+
+    static void WalkOn(Match match)
+    {
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        while (match.First is null && !match.Over)
+            match.Play(wild, take);
+        Assert.NotNull(match.First);
+    }
+
+    static void WalkOnSecond(Match match)
+    {
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        while (match.Second is null && !match.Over)
+            match.Play(wild, take);
+        Assert.NotNull(match.Second);
+    }
+
+    [Fact]
     public void LickCatchAddsCatchRadius()
     {
         Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig")));

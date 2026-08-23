@@ -171,3 +171,43 @@ public sealed record ThrowResult(
     double SpeedMul,
     bool Error,
     double LateralFt = 0);
+
+/// <summary>Live lead / steal / return on one occupied bag. 0 lead is glued to the bag.</summary>
+public sealed class RunnerState
+{
+    public Character Who { get; }
+    public double Lead01 { get; private set; }
+    public bool StealAttempt { get; private set; }
+    public bool Returning { get; private set; }
+    public bool Sliding { get; private set; }
+
+    public RunnerState(Character who) => Who = who;
+
+    public void TakeLead(double delta = 0.25)
+    {
+        Returning = false;
+        Sliding = false;
+        Lead01 = Math.Clamp(Lead01 + delta, 0, 1);
+    }
+
+    public void ReturnToBag(double delta = 0.25)
+    {
+        Returning = true;
+        StealAttempt = false;
+        Sliding = false;
+        Lead01 = Math.Clamp(Lead01 - Math.Abs(delta), 0, 1);
+        if (Lead01 <= 0) Returning = false;
+    }
+
+    public void StartSteal()
+    {
+        StealAttempt = true;
+        Returning = false;
+        Sliding = false;
+        if (Lead01 < 0.2) Lead01 = 0.2;
+    }
+
+    public void CancelSteal() => StealAttempt = false;
+
+    public void Slide() => Sliding = true;
+}
