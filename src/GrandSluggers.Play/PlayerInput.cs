@@ -21,6 +21,8 @@ public readonly record struct FrameInput(
     bool NavRight,
     bool NavUp,
     bool NavDown,
+    bool StealPressed,
+    bool ItemPressed,
     bool Quit);
 
 public static class PlayerInput
@@ -76,6 +78,10 @@ public static class PlayerInput
                    (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceUp)),
             NavDown: Raylib.IsKeyPressed(KeyboardKey.Down) || Raylib.IsKeyPressed(KeyboardKey.S) ||
                      (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftFaceDown)),
+            StealPressed: Raylib.IsKeyPressed(KeyboardKey.X) ||
+                          (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.LeftTrigger1)),
+            ItemPressed: Raylib.IsKeyPressed(KeyboardKey.E) ||
+                         (pad && Raylib.IsGamepadButtonPressed(0, GamepadButton.RightTrigger2)),
             Quit: Raylib.IsKeyPressed(KeyboardKey.Escape) || Raylib.WindowShouldClose());
     }
 
@@ -125,6 +131,10 @@ public static class PlayerInput
             NavRight: false,
             NavUp: false,
             NavDown: false,
+            StealPressed: Raylib.IsKeyPressed(KeyboardKey.O) ||
+                          (pad && Raylib.IsGamepadButtonPressed(1, GamepadButton.LeftTrigger1)),
+            ItemPressed: Raylib.IsKeyPressed(KeyboardKey.U) ||
+                         (pad && Raylib.IsGamepadButtonPressed(1, GamepadButton.RightTrigger2)),
             Quit: false);
     }
 }

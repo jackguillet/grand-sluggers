@@ -88,24 +88,37 @@ Stamina 0 → extra break noise and “fat” fastballs. Swap or eat runs.
 
 CPU fielders run a simple utility: intercept point of the ball, catch window from Field stat, throw to the lead base with chemistry applied.
 
-Player fielding (when we add it): move the highlighted fielder, catch button, throw-to-base buttons. Buddy Jump is a timed prompt when two good-chem outfielders are under a homer.
+Player fielding: move the highlighted fielder, catch button, throw-to-base buttons. Buddy Jump is a timed prompt when two good-chem outfielders are under a homer.
 
-Field abilities fire as verbs: extra jump, wall climb, teleport to ball, stretch catch, laser throw. One verb per character.
+Field abilities fire as verbs. One per character:
+
+| Verb | Who | Effect |
+| --- | --- | --- |
+| Super Jump | Nico, Gull | Extra fly range; can rob a just-over homer |
+| Lick Catch | Zig, Dart, Jester | Bigger catch radius |
+| Grow | Rio | Bigger catch radius |
+| Dive | Marlow, Lace, Basil | Extra grounder range |
+| Burrow | Soot | Grounder range; ignores ice/lava slow |
+| Clamber | Konga, Vine, Moss | Wall rob at Canopy Yard |
+| Snap Throw | Vale, Frost, Pip, Pewter | Faster throws |
+| Laser | Brondo, Boom, Hex, Nugget | Fastest throws |
+| Spin Check | Ashlord, Cinder, Grit | Knocks an extra-base hit down a bag |
+
+## Steals
+
+With 1st empty to 2nd, or 2nd empty to 3rd: arm a steal (X). Resolved on a take or swing-and-miss. Runner speed vs catcher gun + throw chemistry. Walks and strikeouts cancel the steal.
 
 ## Error items (chemistry batting)
 
-Thrown *after* contact, aimed at the defense:
+If batter and on-deck are good chemistry, the offense can throw an item after contact (E banana while the pitch is being set). CPU uses banana / rocket / POW about 40% of the time.
 
-| Item | Effect |
+| Item | Effect (this pass) |
 | --- | --- |
-| Banana | Slip; drop if they were about to catch |
-| Rocket | Homing daze |
-| Smoke | Brief vision cone cut (not a full-screen blind) |
-| POW | Everyone on the dirt jumps; pop-ups become infield chaos |
-| Ghost | Ball invisible 1.5s, shadow remains |
-| Paint | Splatter at a *point*, not the whole screen |
+| Banana | Drop — a would-be out becomes a single |
+| Rocket | 55% chance the fielder is dazed and drops |
+| POW | Ground outs become singles |
 
-Full-screen blinds are banned. See research notes.
+Smoke / ghost / paint are still banned as full-screen or queued. See research notes.
 
 ## Gear
 
