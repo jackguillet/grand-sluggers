@@ -24,6 +24,21 @@ public class FeelInfraTests
     }
 
     [Fact]
+    public void PlateIsCatcherEyeAndMoundIsThreeQuarter()
+    {
+        var plate = _content.Shots.Must("plate");
+        var mound = _content.Shots.Must("mound");
+        Assert.True(plate.Pos.Z < 0, $"plate must sit behind home, z={plate.Pos.Z}");
+        Assert.InRange(plate.Pos.Y, 2.2, 3.6);
+        Assert.True(plate.Target.Z > 40, $"plate looks at the mound, target z={plate.Target.Z}");
+        var plateDist = Dist(plate.Pos, new Vec3(0, 0, 0));
+        Assert.True(plateDist > 12, $"plate too close (cap shot) dist={plateDist}");
+        Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind rubber z={mound.Pos.Z}");
+        Assert.True(mound.Target.Z < 12, $"mound looks at the plate, target z={mound.Target.Z}");
+        Assert.True(mound.Pos.Y > plate.Pos.Y, "mound eye is above catcher eye");
+    }
+
+    [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
         foreach (var id in new[] { "plate", "mound", "diamond", "throw", "replay" })
@@ -78,5 +93,13 @@ public class FeelInfraTests
         var dy = a.Y - b.Y;
         var dz = a.Z - b.Z;
         return dx * dx + dy * dy + dz * dz < 0.25;
+    }
+
+    static double Dist(Vec3 a, Vec3 b)
+    {
+        var dx = a.X - b.X;
+        var dy = a.Y - b.Y;
+        var dz = a.Z - b.Z;
+        return Math.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 }

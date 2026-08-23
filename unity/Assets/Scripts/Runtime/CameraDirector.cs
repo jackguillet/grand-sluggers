@@ -17,6 +17,8 @@ namespace GrandSluggers.UnityClient
             _shots = shots;
             if (_rig != null)
                 _rig.UseFeel(feel);
+            var kit = HarborKit.Instance;
+            if (kit != null) kit.SyncShots(shots);
         }
 
         public void Play(string id)
