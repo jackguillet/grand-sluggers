@@ -675,14 +675,19 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _gloved = false;
             _audio?.CrowdBed(true);
-            if (PlayerFields) _rig.Aim(new Vector3(0, 38, -48), new Vector3(0, 2, 90), 48f);
-            else if (HumanPitches) _rig.FramePitch();
-            else _rig.FramePlate();
+            AimSetCamera();
             _zone.Show(true, 0, 0);
+        }
+
+        void AimSetCamera()
+        {
+            if (HumanPitches) _rig.FramePitch();
+            else _rig.FramePlate();
         }
 
         void TickSet(float dt)
         {
+            AimSetCamera();
             _pip += dt * 1.35f;
             if (Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Controls.SwapPitcher) _match.SwapPitcher();
@@ -727,6 +732,7 @@ namespace GrandSluggers.UnityClient
 
         void TickFlight(float dt)
         {
+            AimSetCamera();
             _flight += dt;
             var u = Mathf.Clamp01(_flight / _pitchDur);
             var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY);
