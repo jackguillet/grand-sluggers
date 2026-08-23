@@ -33,4 +33,21 @@ public static class Diamond
         var dz = z1 - z2;
         return Math.Sqrt(dx * dx + dz * dz);
     }
+
+    public static (double X, double Z) Bag(int bag) => bag switch
+    {
+        1 => First,
+        2 => Second,
+        3 => Third,
+        _ => Home
+    };
+
+    /// <summary>Spot down the line toward the next bag. Lead01 1.0 is a visible 26 ft lead.</summary>
+    public static (double X, double Z) LeadSpot(int bag, double lead01, double feet = 26)
+    {
+        var from = Bag(bag);
+        var to = Bag(bag >= 3 ? 4 : bag + 1);
+        var t = Math.Clamp(lead01, 0, 1) * (feet / Baseline);
+        return (from.X + (to.X - from.X) * t, from.Z + (to.Z - from.Z) * t);
+    }
 }
