@@ -1,0 +1,9 @@
+{
+  "id": "web-back",
+  "name": "Web-Back",
+  "slot": "glove",
+  "errorReduction": 0.15,
+  "armMod": 0,
+  "visual": "glove-brown",
+  "notes": "Default glove."
+}

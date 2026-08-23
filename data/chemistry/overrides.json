@@ -1,0 +1,23 @@
+{
+  "comment": "Faction-mates are good by default. This file is the exception list: cross-faction buddies and authored rivalries.",
+  "buddies": [
+    ["rio", "vale"],
+    ["rio", "zig"],
+    ["vale", "zig"],
+    ["brondo", "ashlord"],
+    ["konga", "vine"],
+    ["konga", "dart"],
+    ["pip", "dart"],
+    ["nico", "lace"]
+  ],
+  "rivals": [
+    ["rio", "ashlord"],
+    ["rio", "brondo"],
+    ["vale", "ashlord"],
+    ["vale", "cinder"],
+    ["zig", "soot"],
+    ["konga", "ashlord"],
+    ["pip", "cinder"],
+    ["frost", "boom"]
+  ]
+}

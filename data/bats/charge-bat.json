@@ -1,0 +1,10 @@
+{
+  "id": "charge-bat",
+  "name": "Charge Bat",
+  "slot": "bat",
+  "contactMod": 0,
+  "powerMod": 0,
+  "chargeAlwaysFull": true,
+  "visual": "bat-gold",
+  "notes": "Shop/challenge bat. Charge swings always sit at 100% power."
+}

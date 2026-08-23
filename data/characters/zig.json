@@ -1,0 +1,16 @@
+{
+  "id": "zig",
+  "name": "Zig",
+  "faction": "carnival",
+  "captain": true,
+  "pitch": 4,
+  "bat": 4,
+  "field": 6,
+  "run": 9,
+  "bats": "L",
+  "throws": "R",
+  "starPitch": "prismball",
+  "starSwing": "shell-swing",
+  "fieldAbility": "lick-catch",
+  "bio": "Top-class speed in the fairground and on the base paths."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "rio",
+  "name": "Rio Sparks",
+  "faction": "spark",
+  "captain": true,
+  "pitch": 6,
+  "bat": 7,
+  "field": 6,
+  "run": 7,
+  "bats": "R",
+  "throws": "R",
+  "starPitch": "heatball",
+  "starSwing": "heat-swing",
+  "fieldAbility": "grow",
+  "bio": "A 5-tool harbor kid who sets the ball on fire and still runs it out."
+}

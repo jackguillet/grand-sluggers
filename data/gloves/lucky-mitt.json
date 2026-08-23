@@ -1,0 +1,9 @@
+{
+  "id": "lucky-mitt",
+  "name": "Lucky Mitt",
+  "slot": "glove",
+  "errorReduction": 0.5,
+  "armMod": 1,
+  "visual": "glove-gold",
+  "notes": "Fewer errors, stronger throws."
+}

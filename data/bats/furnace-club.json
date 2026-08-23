@@ -1,0 +1,10 @@
+{
+  "id": "furnace-club",
+  "name": "Furnace Club",
+  "slot": "bat",
+  "contactMod": -1,
+  "powerMod": 2,
+  "chargeAlwaysFull": false,
+  "visual": "bat-spiked-black",
+  "notes": "Ashlord's default. Heavy, mean, misses more."
+}
