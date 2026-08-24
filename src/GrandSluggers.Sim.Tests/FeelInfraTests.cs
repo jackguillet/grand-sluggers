@@ -102,7 +102,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "mound", "diamond", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);
@@ -124,17 +124,25 @@ public class FeelInfraTests
     }
 
     [Fact]
-    public void BattingSetIsPlatePitchingSetIsMound()
+    public void BattingSetIsPlateThrowAtYouIsPitchPitchingSetIsMound()
     {
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0.2, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, true, 0, 0, 0));
+        Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(false, true, 0, 0, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.2, 0, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0.5, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.True(_content.Shots.TryGet(AtBatShots.Plate, out _));
+        Assert.True(_content.Shots.TryGet(AtBatShots.Pitch, out var pitch));
         Assert.True(_content.Shots.TryGet(AtBatShots.Mound, out _));
+        Assert.True(StillPose.PitchLooksAtTheThrow(pitch.Pos.X, pitch.Pos.Z, pitch.Target.Y, pitch.Target.Z),
+            $"pitch looks at dirt/cage x={pitch.Pos.X} z={pitch.Pos.Z} look={pitch.Target.Y},{pitch.Target.Z}");
+        Assert.True(StillPose.PlateCatcherClearsTheLens(pitch.Pos.X, pitch.Pos.Z, pitch.Target.X, pitch.Target.Z),
+            $"pitch catcher in the look cone x={pitch.Pos.X} z={pitch.Pos.Z}");
+        Assert.InRange(pitch.Fov, 28, 40);
+        Assert.Equal(StillPose.PitchCamX, pitch.Pos.X, 1);
+        Assert.Equal(StillPose.PitchCamZ, pitch.Pos.Z, 1);
     }
 
     [Fact]

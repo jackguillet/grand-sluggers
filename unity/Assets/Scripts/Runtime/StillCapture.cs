@@ -179,6 +179,14 @@ namespace GrandSluggers.UnityClient
                 return;
             }
 
+            if (shot == "pitch")
+            {
+                _pitch = new PitchCommand("fastball", 1, 0, false);
+                _phase = Phase.Flight;
+                _cam.Cut("pitch");
+                return;
+            }
+
             if (shot == "diamond-grounder")
             {
                 _phase = Phase.InPlay;
@@ -236,6 +244,27 @@ namespace GrandSluggers.UnityClient
                     new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
                     new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
                     (float)StillPose.PlateFov);
+                return;
+            }
+
+            if (shot == "pitch")
+            {
+                HideCatcher();
+                PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
+                PosePitcher(HeroActor.Pose.ThrowPitch, 1, false);
+                if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var ph) && ph != null)
+                    ph.SnapTick((float)MoveBones.PitchRelease);
+                _pitch ??= new PitchCommand("fastball", 1, 0, false);
+                CaptureReleaseFromHand();
+                _park.Ball.Release();
+                var p = PitchFlight.Point("fastball", StillPose.PitchBallU, 0, 0, 0, false, 0,
+                    ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z));
+                _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+                _park.Ball.Place(_ball, "", "fastball", false, true);
+                _cam.CutRaw("pitch",
+                    new Vector3((float)StillPose.PitchCamX, (float)StillPose.PitchCamY, (float)StillPose.PitchCamZ),
+                    new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ),
+                    (float)StillPose.PitchFov);
                 return;
             }
 
