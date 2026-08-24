@@ -294,8 +294,7 @@ public sealed class Game : IDisposable
     {
         _pitch = pitch;
         var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
-        _pitchDur = (float)(Diamond.Mound / (mph * 1.4667));
-        _pitchDur = Math.Clamp(_pitchDur, 0.32f, 0.85f);
+        _pitchDur = (float)PitchFlight.AirSeconds(mph);
         _flightAge = 0;
         _playerSwung = false;
         _charge = 0;

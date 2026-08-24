@@ -23,13 +23,27 @@ public static class PitchFlight
     public static (double X, double Y, double Z) Release(double rubberX = 0) =>
         (rubberX * 2.2 + ReleaseHandX, ReleaseHandY, MoundZ - ReleaseTowardPlate);
 
+    /// <summary>
+    /// Super Sluggers air time, not MLB 90. Charged FB still beats a changeup.
+    /// </summary>
+    public const double ArcadeScale = 2.05;
+    public const double AirMin = 0.78;
+    public const double AirMax = 1.28;
+
+    public static double AirSeconds(double mph)
+    {
+        var real = Diamond.Mound / (Math.Max(40, mph) * 1.4667);
+        return Math.Clamp(real * ArcadeScale, AirMin, AirMax);
+    }
+
     public static (double X, double Y, double Z) Point(
         string type, double u, double aimX = 0, double aimY = 0,
-        double breakX = 0, bool changeup = false, double rubberX = 0)
+        double breakX = 0, bool changeup = false, double rubberX = 0,
+        (double X, double Y, double Z)? from = null)
     {
         u = Math.Clamp(u, 0, 1);
         var (tx, ty) = PlateTarget(aimX + rubberX * 0.35, aimY);
-        var rel = Release(rubberX);
+        var rel = from ?? Release(rubberX);
         var z = rel.Z * (1 - u);
         var liveChange = changeup || type == "changeup";
         var liveType = liveChange ? "changeup" : type;

@@ -31,6 +31,31 @@ public class PitchTests
     }
 
     [Fact]
+    public void AirSecondsIsSluggersPaceNotMlbNinety()
+    {
+        var meat = PitchFlight.AirSeconds(86);
+        var gas = PitchFlight.AirSeconds(100);
+        var change = PitchFlight.AirSeconds(72);
+        Assert.InRange(meat, 0.85, 1.15);
+        Assert.True(gas < meat, $"charged FB {gas} vs meat {meat}");
+        Assert.True(change > meat, $"changeup {change} vs meat {meat}");
+        Assert.True(gas >= PitchFlight.AirMin);
+        Assert.True(change <= PitchFlight.AirMax);
+    }
+
+    [Fact]
+    public void PointFromAHandStartsAtThatHand()
+    {
+        var hand = (2.4, 4.8, 55.0);
+        var start = PitchFlight.Point("fastball", 0, from: hand);
+        Assert.Equal(hand.Item1, start.X, 3);
+        Assert.Equal(hand.Item2, start.Y, 3);
+        Assert.Equal(hand.Item3, start.Z, 3);
+        var plate = PitchFlight.Point("fastball", 1, from: hand);
+        Assert.InRange(plate.Z, -0.05, 0.05);
+    }
+
+    [Fact]
     public void FastballFliesTrue()
     {
         var rel = PitchFlight.Release();

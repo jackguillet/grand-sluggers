@@ -227,6 +227,8 @@ namespace GrandSluggers.UnityClient
             }
 
             Look.Paint(_ball, Look.Lit(matCol, smooth: smooth));
+            if (_inFlight && star != "heatball" && !heat && star != "caskball" && star != "skullball")
+                scale = (float)Baseball.ApparentScale(true, _root.position.z);
             _ball.transform.localScale = Vector3.one * scale;
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             _trail.startColor = col;
