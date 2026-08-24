@@ -1,4 +1,5 @@
 Authored pose clips live in data/art/pose-clips/{id}.json until a Unity .anim/.fbx drops here.
 
 HeroActor plays the catalog clip when authored; otherwise MoveBones.Evaluate.
-Run is the clip-proof. Same bone names as data/art/rig.json.
+Loop clips sample clock time. One-shots (swing, scoop) sample pose time so Contact hits.
+Run, swing, and scoop are authored. Same bone names as data/art/rig.json.

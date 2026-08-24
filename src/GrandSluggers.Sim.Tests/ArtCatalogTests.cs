@@ -52,6 +52,62 @@ public class ArtCatalogTests
     }
 
     [Fact]
+    public void AuthoredSwingClipIsNotRawMoveBones()
+    {
+        Assert.True(_content.Art.TryClip("swing", out var clip) && clip.Authored);
+        Assert.False(clip.Loop);
+        Assert.Equal(MoveBones.SwingContact, clip.ContactAt);
+        Assert.Contains("Contact", clip.Events, StringComparer.OrdinalIgnoreCase);
+        Assert.True(_content.Art.TryAuthored("swing", 0, out var load));
+        var bonesLoad = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0);
+        Assert.NotEqual(bonesLoad.Torso.Y, load.Torso.Y);
+        Assert.True(Math.Abs(load.Torso.Y) > Math.Abs(bonesLoad.Torso.Y),
+            $"authored load {load.Torso.Y} vs bones {bonesLoad.Torso.Y}");
+
+        Assert.True(_content.Art.TryAuthored("swing", clip.ContactAt, out var contact));
+        var bonesHit = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, clip.ContactAt);
+        Assert.NotEqual(bonesHit.Torso.Y, contact.Torso.Y);
+        Assert.True(Math.Abs(contact.Torso.Y) > Math.Abs(bonesHit.Torso.Y),
+            $"authored contact yaw {contact.Torso.Y} vs bones {bonesHit.Torso.Y}");
+        Assert.True(_content.Art.TryAuthored("swing", 10, out var held));
+        Assert.True(_content.Art.TryAuthored("swing", 0.50, out var wrap));
+        Assert.Equal(wrap.Torso.Y, held.Torso.Y);
+    }
+
+    [Fact]
+    public void AuthoredScoopClipIsNotRawMoveBones()
+    {
+        Assert.True(_content.Art.TryClip("scoop", out var clip) && clip.Authored);
+        Assert.False(clip.Loop);
+        Assert.Equal(MoveBones.Mark(MoveBones.Verb.Scoop, MoveBones.ClipEvent.Contact), clip.ContactAt);
+        Assert.Contains("Contact", clip.Events, StringComparer.OrdinalIgnoreCase);
+        Assert.True(_content.Art.TryAuthored("scoop", 0, out var start));
+        var bonesStart = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, 0);
+        Assert.NotEqual(bonesStart.Torso.X, start.Torso.X);
+
+        Assert.True(_content.Art.TryAuthored("scoop", clip.ContactAt, out var pick));
+        var bonesPick = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, clip.ContactAt);
+        Assert.True(pick.Torso.X > bonesPick.Torso.X,
+            $"authored pick {pick.Torso.X} vs bones {bonesPick.Torso.X}");
+        Assert.True(pick.RUpper.X > bonesPick.RUpper.X,
+            $"authored glove {pick.RUpper.X} vs bones {bonesPick.RUpper.X}");
+        Assert.True(_content.Art.TryAuthored("scoop", 10, out var held));
+        Assert.True(_content.Art.TryAuthored("scoop", 0.50, out var up));
+        Assert.Equal(up.Torso.X, held.Torso.X);
+    }
+
+    [Fact]
+    public void MissingAuthoredClipFallsBackToMoveBones()
+    {
+        Assert.True(_content.Art.TryClip("pitch", out var pitch) && !pitch.Authored);
+        Assert.False(_content.Art.TryAuthored("pitch", 0, out _));
+        Assert.True(_content.Art.TryClip("slide", out var slide) && !slide.Authored);
+        Assert.False(_content.Art.TryAuthored("slide", 0, out _));
+        Assert.True(_content.Art.TryClip("throw", out var thr) && !thr.Authored);
+        Assert.False(_content.Art.TryAuthored("throw", 0, out _));
+    }
+
+    [Fact]
     public void CaptainsAreSkinsOnSharedBodyTypes()
     {
         foreach (var id in Silhouette.Captains)
