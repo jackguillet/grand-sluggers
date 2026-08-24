@@ -476,7 +476,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (_preview != null && _preview.Grounder && _throwBag == 2 && _match.First != null && _pending != null)
                 {
-                    var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, BuildPlayerResult());
+                    var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, BuildPlayerResult(), _dash01);
                     _relayBags = beats ? new[] { 2 } : new[] { 2, 1 };
                 }
                 else
@@ -511,7 +511,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_relayBags != null) return false;
             if (_pending == null || _cpuField == null) return false;
-            var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField);
+            var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField, _dash01);
             _relayBags = InPlay.GroundThrowBags(
                 _match.First != null, _match.Second != null, _match.Third != null, beats);
             _relayI = 0;

@@ -79,7 +79,16 @@ namespace GrandSluggers.UnityClient
             }
             if (Controls.CyclePitch && _mode == PlayMode.Exhibition)
                 Innings = Innings == 3 ? 6 : Innings == 6 ? 9 : 3;
-            if (Controls.WestDown)
+            if (_mode == PlayMode.Training)
+            {
+                if (Key(KeyCode.A) || Key(KeyCode.LeftArrow) || Key(KeyCode.W) || Key(KeyCode.UpArrow))
+                    PracticePick = Training.Shift(PracticePick, -1);
+                if (Key(KeyCode.D) || Key(KeyCode.RightArrow) || Key(KeyCode.S) || Key(KeyCode.DownArrow))
+                    PracticePick = Training.Shift(PracticePick, 1);
+                if (Controls.Skip)
+                    PracticePick = PracticeLesson.Fielding;
+            }
+            if (Controls.WestDown || (_mode == PlayMode.Training && Controls.SouthDown && _t > 0.15f))
             {
                 BeginTraining();
                 return;
@@ -226,7 +235,7 @@ namespace GrandSluggers.UnityClient
             HomeCaptain = "rio";
             AwayCaptain = "ashlord";
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
-            _coach.Begin(_content);
+            _coach.Begin(_content, PracticePick);
             _match = _coach.MakeMatch(_content, Seed);
             _park.Build(_match.Park, _match.Night);
             _spec.Build(transform);

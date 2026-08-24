@@ -21,12 +21,17 @@ public class TrainingTests
     }
 
     [Fact]
-    public void SkipFromLessonOneLeavesPractice()
+    public void SkipFromLessonOneEntersFieldingNotExit()
     {
         var run = Training.Start(_content);
+        Assert.Equal(PracticeLesson.Pitching, run.Lesson);
         Assert.True(run.Skip());
-        Assert.True(run.Finished);
-        Assert.Equal("Ready.", run.Caption);
+        Assert.Equal(PracticeLesson.Fielding, run.Lesson);
+        Assert.False(run.Finished);
+        Assert.True(run.RecordFielding(CaughtThrow(_content)));
+        Assert.True(run.CaughtAndThrew);
+        Assert.Equal(PracticeLesson.Fielding, Training.Shift(PracticeLesson.Pitching, 2));
+        Assert.Equal(PracticeLesson.Pitching, Training.Shift(PracticeLesson.Free, 1));
     }
 
     [Fact]

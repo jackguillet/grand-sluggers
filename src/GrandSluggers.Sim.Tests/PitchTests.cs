@@ -108,4 +108,15 @@ public class PitchTests
         var walked = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 1);
         Assert.True(walked.X > heart.X + 0.4, $"rubber {walked.X} vs heart {heart.X}");
     }
+
+    [Fact]
+    public void ChangeupFlagIsSlowerThanAMaxFastball()
+    {
+        var maxFb = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, 0, false), 7);
+        var change = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, 0, false, Changeup: true), 7);
+        var typed = AtBatResolver.PitchSpeedMph(new PitchCommand("changeup", 1, 0, false), 7);
+        Assert.True(change < maxFb, $"changeup {change} vs MAX fastball {maxFb}");
+        Assert.True(typed < maxFb, $"typed changeup {typed} vs MAX {maxFb}");
+        Assert.InRange(change, typed - 0.5, typed + 0.5);
+    }
 }

@@ -34,6 +34,7 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _breakX = 0;
             _dash01 = 0;
+            if (_match != null) _match.Dash01 = 0;
             _swung = false;
             _swing = null;
             _pitch = null;
@@ -148,7 +149,11 @@ namespace GrandSluggers.UnityClient
             _pitchDur = Mathf.Clamp((float)(Diamond.Mound / (mph * 1.4667)), 0.32f, 0.85f);
             _flight = 0;
             _swung = false;
-            _charge = 0;
+            if (!HumanBats)
+            {
+                _charge = 0;
+                _chargePast = 0;
+            }
             _phase = Phase.Flight;
             _t = 0;
             var rel = PitchFlight.Release(pitch.RubberX);

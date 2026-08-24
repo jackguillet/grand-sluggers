@@ -55,10 +55,10 @@ public static class InPlay
     }
 
     /// <summary>True if the batter reaches first before the throw after a scoop at the landing.</summary>
-    public static bool BatterBeatsThrow(Character batter, AtBatResult hit, FieldingResult field)
+    public static bool BatterBeatsThrow(Character batter, AtBatResult hit, FieldingResult field, double dash01 = 0)
     {
         if (field.Kind != PlayKind.GroundOut || field.Fielder is null) return false;
-        var run = HomeToFirstSec(batter);
+        var run = HomeToFirstSec(batter, dash01);
         var already = field.HangTimeSec;
         var left = run - already;
         if (left <= 0) return true;
