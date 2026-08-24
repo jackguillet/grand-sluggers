@@ -13,7 +13,13 @@ public static class StillPose
     public const double RunnerX = 22;
     public const double RunnerZ = 22;
     public const string ScoopGlove = "2B";
+    public const double CamX = 8;
+    public const double CamY = 7.5;
+    public const double CamZ = 8;
 
     public static bool ScoopIsNotTheMound(double x, double z) =>
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
+
+    public static bool CameraClearsTheDugout(double x, double z) =>
+        x < 20 && z < 16;
 }
