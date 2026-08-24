@@ -9,7 +9,8 @@ public class StillRequestTests
     public void DefaultRequestIsTitlePlateMoundHudOffRio()
     {
         var req = StillRequest.Parse("{}");
-        Assert.Equal(new[] { "title", "plate", "mound", "diamond-grounder", "smash" }, req.ResolvedShots());
+        Assert.Equal(new[] { "title", "select", "plate", "mound", "diamond-grounder", "smash" }, req.ResolvedShots());
+        Assert.Contains("select", StillRequest.AllowedShots);
         Assert.Equal("rio", req.ResolvedHome());
         Assert.Equal("ashlord", req.ResolvedAway());
         Assert.True(req.HudOff);

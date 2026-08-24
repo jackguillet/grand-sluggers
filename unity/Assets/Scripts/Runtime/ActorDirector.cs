@@ -31,6 +31,7 @@ namespace GrandSluggers.UnityClient
                 _ring?.Hide();
                 return;
             }
+            _card?.Hide();
             if (_phase == Phase.Field)
             {
                 foreach (var kv in _heroes)
@@ -383,6 +384,7 @@ namespace GrandSluggers.UnityClient
         {
             var ids = PresetTeams.CaptainIds;
             var pick = _phase == Phase.Select;
+            (float X, float Z) homeSpot = (0f, 0f);
             for (var i = 0; i < ids.Length; i++)
             {
                 var who = _content.Must(ids[i]);
@@ -390,6 +392,7 @@ namespace GrandSluggers.UnityClient
                 var home = ids[i] == HomeCaptain;
                 var away = ids[i] == AwayCaptain;
                 var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, home);
+                if (home) homeSpot = spot;
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
                 hero.SetGrow(home && pick);
@@ -398,6 +401,17 @@ namespace GrandSluggers.UnityClient
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
                 hero.Tick(Time.deltaTime);
             }
+            if (pick)
+            {
+                if (_card == null) _card = CardToy.Attach(transform);
+                var homeWho = _content.Must(HomeCaptain);
+                _card.Show(
+                    CharacterCard.Of(homeWho),
+                    new Vector3(homeSpot.X + CarnivalFront.CardX, CarnivalFront.CardY, homeSpot.Z + CarnivalFront.CardZ),
+                    new Vector3(0f, 0f, -1f));
+            }
+            else
+                _card?.Hide();
         }
 
         void PlaceLineupToys()

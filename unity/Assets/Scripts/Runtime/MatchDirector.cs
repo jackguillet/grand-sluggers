@@ -92,6 +92,7 @@ namespace GrandSluggers.UnityClient
         bool _feelDebug;
         bool _forceMuteHud;
         bool _gateHold;
+        CardToy _card;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;

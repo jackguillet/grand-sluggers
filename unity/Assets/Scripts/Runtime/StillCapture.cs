@@ -150,6 +150,7 @@ namespace GrandSluggers.UnityClient
             if (shot == "title" || shot == "select")
             {
                 if (_match == null) _match = NewMatch();
+                _park.Build(_match.Park, _match.Night);
                 _phase = shot == "select" ? Phase.Select : Phase.Title;
                 _cam.Cut(shot);
                 _gateHold = true;
@@ -202,7 +203,18 @@ namespace GrandSluggers.UnityClient
             var charge = Mathf.Clamp01((float)req.Charge01);
             if (shot == "title" || shot == "select")
             {
-                _cam.Cut(shot);
+                if (shot == "select")
+                {
+                    var ids = PresetTeams.CaptainIds;
+                    var i = 0;
+                    for (; i < ids.Length; i++)
+                        if (ids[i] == HomeCaptain) break;
+                    if (i >= ids.Length) i = 0;
+                    var spot = CarnivalFront.CaptainSpot(i, ids.Length, select: true, home: true);
+                    _cam.CutLook("select", new Vector3(spot.X, 4.4f, spot.Z));
+                }
+                else
+                    _cam.Cut("title");
                 return;
             }
 
@@ -224,19 +236,29 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "diamond-grounder")
             {
-                const float gx = 10f;
-                const float gz = 52f;
+                var gx = (float)StillPose.ScoopX;
+                var gz = (float)StillPose.ScoopZ;
+                foreach (var kv in _heroes)
+                    if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(HeroActor.Pose.Run, 0, false);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var run) && run != null)
-                    run.Place(new Vector3(22f, 0f, 22f), new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
-                HeroActor fh = null;
-                foreach (var who in _match.Defense.Roster)
                 {
-                    if (_match.Batter != null && who.Id == _match.Batter.Id) continue;
-                    if (_match.Pitcher != null && who.Id == _match.Pitcher.Id) continue;
-                    fh = EnsureHero(who);
-                    if (fh != null) break;
+                    run.gameObject.SetActive(true);
+                    run.Place(
+                        new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ),
+                        new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
                 }
+                var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                Character scoopWho = null;
+                if (!defense.TryGetValue(StillPose.ScoopGlove, out scoopWho) || scoopWho == null)
+                {
+                    foreach (var key in new[] { "SS", "3B", "1B" })
+                    {
+                        if (!defense.TryGetValue(key, out scoopWho) || scoopWho == null) continue;
+                        break;
+                    }
+                }
+                var fh = EnsureHero(scoopWho);
                 if (fh != null)
                 {
                     fh.gameObject.SetActive(true);
@@ -244,7 +266,7 @@ namespace GrandSluggers.UnityClient
                     fh.SetHeld(false, true);
                     fh.Place(new Vector3(gx, 0f, gz), new Vector3(-gx, 0f, 8f - gz));
                     fh.Tick((float)MoveBones.Mark(MoveBones.Verb.Scoop, MoveBones.ClipEvent.Contact));
-                    _ball = new Vector3(gx, 1.05f, gz);
+                    _ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
                 }
@@ -254,10 +276,15 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "smash")
             {
+                var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                if (defense.TryGetValue("C", out var catcher) && catcher != null
+                    && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
+                    ch.gameObject.SetActive(false);
                 PoseBatter(HeroActor.Pose.Swing, 1, false);
                 var chest = new Vector3(2.55f, 3.2f, 2.4f);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
                 {
+                    sw.gameObject.SetActive(true);
                     sw.Tick((float)MoveBones.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
