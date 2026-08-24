@@ -240,8 +240,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_phase == Phase.Field)
             {
-                var fieldName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
-                HudView.Field(fieldName, Night);
+                HudView.Field(ParkDisplayName(ParkId), Night);
                 return;
             }
             if (_phase == Phase.Lineup && _homeDraft != null)
@@ -269,9 +268,7 @@ namespace GrandSluggers.UnityClient
                 ? (_campaign != null ? _campaign.NextOpponentId(_content) : Challenge.Start(_content, HomeCaptain).NextOpponentId(_content))
                 : AwayCaptain;
             var away = _content.Must(awayId);
-            var parkName = _mode == PlayMode.Training
-                ? _content.Parks[Training.ParkId].Name
-                : (_content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId);
+            var parkName = ParkDisplayName(_mode == PlayMode.Training ? Training.ParkId : ParkId);
             var banner = _banner;
             var sub = _sub;
             if (TrainingOn && _phase != Phase.Result)
@@ -413,6 +410,9 @@ namespace GrandSluggers.UnityClient
             _campaign = null;
             return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night);
         }
+
+        string ParkDisplayName(string parkId) =>
+            _content != null && _content.Parks.TryGetValue(parkId, out var park) ? park.Name : parkId;
 
         void NoteTrainingPitch()
         {
