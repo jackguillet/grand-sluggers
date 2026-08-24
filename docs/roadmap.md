@@ -130,7 +130,7 @@ Only if A–C stills exist. Rule: **three good parks beat six ugly ones.** Harbo
 
 ## Recommended next move
 
-**Play Harbor Exhibition and take the three stills.** Plate (full batter, not a cap). Grounder scoop. Star swing with HUD muted. If you would not show those to a friend, stay on A–C polish — do not start Phase D (#25, #36, #37).
+**File and run epic: the at-bat would not embarrass a trailer (#169).** Child 1 is the shared body (#170). Then swing/scoop (#171), pad (#172), bat crack (#173). Harbor dress and remaining specials after the body. Do not start Phase D (#25, #36, #37).
 
 Command to keep agents honest:
 

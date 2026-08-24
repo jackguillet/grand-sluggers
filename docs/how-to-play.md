@@ -129,6 +129,6 @@ F2 is how you name the still (plate vs mound vs diamond-line). It does not repla
 
 Couch, pad, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
 
-**Now (Harbor Exhibition).** Title looks into the park. SET pitching starts catcher-eye, then 3/4 mound. Baseball is 0.62 ft. Heatball is a core + embers. Scorebug can mute. Bodies are still a shared blockout.
+**Now (Harbor Exhibition).** Title looks into the park. SET pitching starts catcher-eye, then 3/4 mound. Baseball is 0.62 ft. Heatball is a core + embers. Scorebug can mute. Shared body is a toy-proportion blockout (one chain, captain extras) — still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.
