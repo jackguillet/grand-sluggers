@@ -68,6 +68,8 @@ public class SchemeTests
         Assert.True(HowToPlay.Mentions("changeup"));
         Assert.True(HowToPlay.Mentions("call time"));
         Assert.True(HowToPlay.Mentions("outfielder"));
+        Assert.True(HowToPlay.Mentions("Charge ring"));
+        Assert.True(HowToPlay.Mentions("puffs dirt"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));

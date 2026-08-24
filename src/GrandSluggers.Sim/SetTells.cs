@@ -13,8 +13,11 @@ public static class SetTells
     public static double RingScale(double charge01)
     {
         var u = Math.Clamp(charge01, 0, 1);
-        return RingOn(u) ? 1.7 + u * 1.5 : 0;
+        return RingOn(u) ? 2.1 + u * 1.8 : 0;
     }
+
+    /// <summary>Ring sits on packed dirt, not on the toy's waist.</summary>
+    public const double RingHeightFt = 0.06;
 
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;
 

@@ -140,9 +140,13 @@ namespace GrandSluggers.UnityClient
                 _ring.gameObject.SetActive(on);
                 if (on)
                 {
+                    if (_ring.parent != transform)
+                        _ring.SetParent(transform, false);
                     var s = (float)SetTells.RingScale(_chargeRing);
-                    var pulse = s + 0.12f * Mathf.Sin(_t * 8f);
-                    _ring.localScale = new Vector3(pulse, 0.08f, pulse);
+                    var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
+                    _ring.localPosition = new Vector3(0f, (float)SetTells.RingHeightFt, 0f);
+                    _ring.localRotation = Quaternion.identity;
+                    _ring.localScale = new Vector3(pulse, 0.045f, pulse);
                 }
             }
             Animate();
