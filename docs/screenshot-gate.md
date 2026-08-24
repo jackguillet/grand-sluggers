@@ -24,7 +24,7 @@ Bonus stills that save a later sitting (same rules):
 |---|---|---|
 | Pitching SET | `mound` | Pitcher 3/4, rubber in the bottom, batter + catcher + boxes at home |
 | Pitch at you | `pitch` | From the box, looking at the pitcher. Arm through, ball leaving that hand toward you. |
-| Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. |
+| Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. **GRAND SLUGGERS** is a sticker in the world (still-gate can see it). |
 | Captain card | `select` | Home captain + world card with P/B/F/R bars |
 | Throw | `throw` | On the glove, ball leaving the hand |
 | Fly | `diamond` | 3/4 in the park, fielder reads, ball is a baseball |

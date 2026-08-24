@@ -56,7 +56,6 @@ namespace GrandSluggers.UnityClient
         static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
         {
             var w = Screen.width;
-            Sticker(CarnivalFront.Logo, 40, 28, 720, 58, _title);
             Sticker(CarnivalFront.SkyGag(night), w - 168, 36, 140, 32, night ? _gold : _h1);
             var exhibition = !training && !challenge;
             if (exhibition)

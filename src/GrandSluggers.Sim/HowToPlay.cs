@@ -81,7 +81,7 @@ public static class HowToPlay
         ]),
         new("exhibition", "Captain and field",
         [
-            "Title is the park. Logo is a sticker. South / Space    play ball.",
+            "Title is the park. Logo is a sticker. Home captain is the toy in front. South / Space    play ball.",
             "Captains are the toys. Stick L/R home, U/D away. The card is the UI.",
             "South    the field — a postcard. Gimmick is one line. Harbor is the slice.",
             "West / F    back. The park does not follow the captain.",
