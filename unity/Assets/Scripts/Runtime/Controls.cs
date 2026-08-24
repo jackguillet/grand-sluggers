@@ -4,6 +4,7 @@ namespace GrandSluggers.UnityClient
 {
     /// <summary>
     /// One gamepad layout is the product. Keyboard is a debug overlay.
+    /// Living couch map: docs/how-to-play.md — update it in the same PR.
     /// </summary>
     public static class Controls
     {

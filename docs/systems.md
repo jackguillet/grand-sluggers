@@ -1,6 +1,6 @@
 # Systems
 
-How Grand Sluggers plays, independent of Unity. Numbers here are **starting points**; the sim in `src/` is the executable spec.
+How Grand Sluggers plays, independent of Unity. Numbers here are **starting points**; the sim in `src/` is the executable spec. Couch buttons and Exhibition flow: `docs/how-to-play.md`.
 
 Presentation feel (camera shots, charge seconds, smash freeze) lives in `data/feel/`. Art slots (skins, clips, VFX, audio, park kits) live in `data/art/`. Baseball rules stay in Sim. See `docs/art-rails.md`.
 
