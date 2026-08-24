@@ -79,11 +79,10 @@ public static class HowToPlay
         ]),
         new("exhibition", "Captain and field",
         [
-            "Title South / Space    pick your captain. The park does not follow.",
-            "Card    P B F R pips, star pitch, star swing, field verb.",
-            "Stick / WASD L/R    home. U/D    away. South    pick the field.",
-            "Stick / WASD L/R    the field. South / Space    lineup. West / F    back.",
-            "Harbor is the slice. Other parks are JSON, not products yet.",
+            "Title is the park. Logo is a sticker. South / Space    play ball.",
+            "Captains are the toys. Stick L/R home, U/D away. The card is the UI.",
+            "South    the field — a postcard. Gimmick is one line. Harbor is the slice.",
+            "West / F    back. The park does not follow the captain.",
         ]),
         new("pause-practice", "Pause and Practice",
         [

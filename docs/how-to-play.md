@@ -42,29 +42,33 @@ Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the
 
 ### Title
 
-- **South / Space** — pick captain
+The park is the poster. **GRAND SLUGGERS** is a sticker, not a gray box. Captains stand on the grass.
+
+- **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
 - **West / F** — Training drills on Harbor
-- **R3 / N** — night (rebuilds Harbor lighting)
+- **R3 / N** — night (sky gag)
 - **Tab** — 3 / 6 / 9 innings
 
 Captains and the field are two screens. The park does not follow the captain.
 
 ### Pick captain
 
+The toys are the UI. Highlighted captain **steps forward**. The **card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
+
 - **Stick / WASD L/R** — home · **U/D** — away
 - **South / Space** — pick the field
 - **West / F** — title
-- Highlighted captain shows a **card**: P / B / F / R pips (1–10), star pitch, star swing, field verb.
-- Camera stays in front of the cage and looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
+- Camera looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
 
 ### Pick the field
+
+A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
 
 - **Stick / WASD L/R** — cycle the park. Captains stay put.
 - **South / Space** — lineup
 - **West / F** — back to captains
 - **R3 / N** — night
-- Looks into the park you picked (Harbor is the slice; other parks are JSON, not products yet).
 
 ### Lineup (draft the eight)
 

@@ -364,21 +364,20 @@ namespace GrandSluggers.UnityClient
         void PlaceSelectRoster()
         {
             var ids = PresetTeams.CaptainIds;
+            var pick = _phase == Phase.Select;
             for (var i = 0; i < ids.Length; i++)
             {
                 var who = _content.Must(ids[i]);
                 var hero = Hero(who);
                 var home = ids[i] == HomeCaptain;
                 var away = ids[i] == AwayCaptain;
-                var pick = _phase == Phase.Select;
-                var x = (i - (ids.Length - 1) * 0.5f) * (pick ? 7.6f : 13.4f);
-                var z = (pick ? 12f : 28f) + (home ? 3f : 0f);
+                var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, home);
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
-                hero.SetGrow(home);
+                hero.SetGrow(home && pick);
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(new Vector3(x, 0f, z), new Vector3(0f, 0f, -1f));
+                hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
                 hero.Tick(Time.deltaTime);
             }
         }

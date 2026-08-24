@@ -235,8 +235,8 @@ namespace GrandSluggers.UnityClient
             for (; i < ids.Length; i++)
                 if (ids[i] == HomeCaptain) break;
             if (i >= ids.Length) i = 0;
-            var x = (i - (ids.Length - 1) * 0.5f) * 7.6f;
-            _cam.PlayLook("select", new Vector3(x, 3.2f, 12f));
+            var spot = CarnivalFront.CaptainSpot(i, ids.Length, select: true, home: true);
+            _cam.PlayLook("select", new Vector3(spot.X, 4.4f, spot.Z));
         }
 
         void BeginTraining()

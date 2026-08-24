@@ -240,7 +240,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_phase == Phase.Field)
             {
-                HudView.Field(ParkDisplayName(ParkId), Night);
+                HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
                 return;
             }
             if (_phase == Phase.Lineup && _homeDraft != null)
