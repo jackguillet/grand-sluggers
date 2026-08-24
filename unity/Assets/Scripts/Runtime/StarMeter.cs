@@ -22,8 +22,8 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(parent, false);
             for (var i = 0; i < 5; i++)
             {
-                _home[i] = Pip("HomeStar" + i, new Vector3(34f + i * 4.2f, 4.6f, 22f));
-                _away[i] = Pip("AwayStar" + i, new Vector3(-34f - i * 4.2f, 4.6f, 22f));
+                _home[i] = Pip("HomeStar" + i, new Vector3(34.2f + i * 3.15f, 3.62f, 16.45f));
+                _away[i] = Pip("AwayStar" + i, new Vector3(-34.2f - i * 3.15f, 3.62f, 16.45f));
             }
         }
 
@@ -42,7 +42,8 @@ namespace GrandSluggers.UnityClient
                 var r = row[i].GetComponent<MeshRenderer>();
                 if (r != null) r.sharedMaterial = lit ? _on : _off;
                 var fill = lit ? (n >= i + 1 ? 1f : (float)(n - i)) : 0.55f;
-                row[i].localScale = new Vector3(1.1f + 0.35f * fill, 1.1f + 0.35f * fill, 1f);
+                var s = 0.62f + 0.18f * fill;
+                row[i].localScale = new Vector3(s, s, 0.7f);
             }
         }
 
@@ -51,7 +52,7 @@ namespace GrandSluggers.UnityClient
             var go = new GameObject(name);
             go.transform.SetParent(_root, false);
             go.transform.position = pos;
-            go.transform.rotation = Quaternion.Euler(-18f, 0f, 0f);
+            go.transform.rotation = Quaternion.Euler(-12f, 0f, 0f);
             var filter = go.AddComponent<MeshFilter>();
             filter.sharedMesh = _mesh;
             var rend = go.AddComponent<MeshRenderer>();
@@ -66,7 +67,7 @@ namespace GrandSluggers.UnityClient
             verts[0] = new Vector3(0f, 0f, 0.08f);
             for (var i = 0; i < 10; i++)
             {
-                var r = i % 2 == 0 ? 1.05f : 0.42f;
+                var r = i % 2 == 0 ? 0.42f : 0.16f;
                 var a = -Mathf.PI / 2f + i * Mathf.PI / 5f;
                 verts[i + 1] = new Vector3(Mathf.Cos(a) * r, Mathf.Sin(a) * r, 0.08f);
             }
