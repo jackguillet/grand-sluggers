@@ -91,7 +91,7 @@ static void PrintArt(ContentCatalog content)
     Console.WriteLine($"CLIPS  {art.Clips.Count}  {string.Join(" ", art.Clips.Select(c => c.Id))}");
     Console.WriteLine($"SKINS  {art.Skins.Count} captains authored, role players inherit body type");
     Console.WriteLine($"VFX    {art.Vfx.Count} events");
-    Console.WriteLine($"AUDIO  {art.Audio.Count} events");
+    Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
     Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
     Console.WriteLine($"FOLDERS {art.Folders.Count}");
     var errors = art.Validate(content);

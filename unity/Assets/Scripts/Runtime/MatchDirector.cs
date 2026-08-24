@@ -145,7 +145,7 @@ namespace GrandSluggers.UnityClient
             _ring = gameObject.AddComponent<LandingRing>();
             _ring.Build(transform);
             _audio = gameObject.AddComponent<AudioBus>();
-            _audio.Build();
+            _audio.Build(data);
             _stars = gameObject.AddComponent<StarMeter>();
             _stars.Build(transform);
             _hideHelp = PlayerPrefs.GetInt(TrainedKey, 0) == 1;
