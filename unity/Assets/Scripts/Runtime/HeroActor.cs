@@ -328,7 +328,11 @@ namespace GrandSluggers.UnityClient
                 if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
                 MoveBones.Sample sample;
                 var clipId = ClipId(verb);
-                var authoredPose = TryAuthored(clipId, out var authored);
+                // SET holds the windup on the pitch take. Charge loads the kick; it does not throw.
+                MoveBones.Sample authored;
+                var authoredPose = pose == Pose.ChargePitch
+                    ? TryAuthoredAt("pitch", (1f - _charge) * 0.12f, out authored)
+                    : TryAuthored(clipId, out authored);
                 if (authoredPose)
                     sample = authored;
                 else
@@ -348,8 +352,8 @@ namespace GrandSluggers.UnityClient
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
                     Apply(sample,
-                        _snap ? 1f : boneSnap ? 0.55f : 0.32f,
-                        _snap ? 1f : boneSnap ? 0.48f : 0.34f);
+                        _snap ? 1f : pose == Pose.ThrowPitch ? 0.82f : boneSnap ? 0.55f : 0.32f,
+                        _snap ? 1f : pose == Pose.ThrowPitch ? 0.72f : boneSnap ? 0.48f : 0.34f);
                 }
                 else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
                     MirrorBoundArms();
@@ -705,6 +709,13 @@ namespace GrandSluggers.UnityClient
             var t = _t;
             if (ArtBinder.Art.TryClip(clipId, out var clip) && !clip.Loop)
                 t = _poseT;
+            return ArtBinder.Art.TryAuthored(clipId, t, out sample);
+        }
+
+        bool TryAuthoredAt(string clipId, float t, out MoveBones.Sample sample)
+        {
+            sample = default;
+            if (string.IsNullOrEmpty(clipId) || ArtBinder.Art == null) return false;
             return ArtBinder.Art.TryAuthored(clipId, t, out sample);
         }
 
