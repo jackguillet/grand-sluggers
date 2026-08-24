@@ -86,12 +86,20 @@ namespace GrandSluggers.UnityClient
                 if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
                 {
                     HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
-                    if (_mode != PlayMode.Challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                    if (_mode != PlayMode.Challenge)
+                    {
+                        ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                        RebuildTitlePark();
+                    }
                 }
                 if (Key(KeyCode.D) || Key(KeyCode.RightArrow))
                 {
                     HomeCaptain = PresetTeams.NextCaptain(HomeCaptain);
-                    if (_mode != PlayMode.Challenge) ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                    if (_mode != PlayMode.Challenge)
+                    {
+                        ParkId = PresetTeams.HomeParkId(HomeCaptain);
+                        RebuildTitlePark();
+                    }
                 }
             }
             if (_mode == PlayMode.Exhibition)
@@ -102,7 +110,10 @@ namespace GrandSluggers.UnityClient
                     AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
             }
             if (_mode != PlayMode.Training && Controls.NightToggle)
+            {
                 Night = !Night;
+                RebuildTitlePark();
+            }
             if (_mode == PlayMode.Exhibition)
             {
                 if (Controls.ParkHeld)
@@ -120,6 +131,7 @@ namespace GrandSluggers.UnityClient
                     {
                         var i = System.Array.IndexOf(Parks, ParkId);
                         ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
+                        RebuildTitlePark();
                     }
                     _cHold = 0f;
                     _cNight = false;
@@ -143,6 +155,14 @@ namespace GrandSluggers.UnityClient
                 else
                     OpenSelect();
             }
+        }
+
+        void RebuildTitlePark()
+        {
+            if (_park == null || _content == null) return;
+            if (!_content.Parks.TryGetValue(ParkId, out var park)) return;
+            _park.Build(park, Night);
+            _cam?.Play("title");
         }
 
         void OpenSelect()
