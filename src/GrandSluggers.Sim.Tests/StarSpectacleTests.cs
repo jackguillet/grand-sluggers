@@ -51,4 +51,24 @@ public class StarSpectacleTests
         Assert.True(_content.Art.TryVfx("phony-swing", out _));
         Assert.True(_content.Art.TryVfx("cask-swing", out _));
     }
+
+    [Fact]
+    public void RemainingSpecialsAreTwoSecondCatalogEventsNotBlinds()
+    {
+        foreach (var id in new[]
+        {
+            "charmball", "prismball", "phonyball", "caskball", "skullball",
+            "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace"
+        })
+        {
+            Assert.Equal(2.0, StarSkills.SpectacleSeconds(id));
+            Assert.True(_content.Art.TryVfx(id, out var slot), id);
+            Assert.False(string.IsNullOrWhiteSpace(slot.Slot), id);
+            var kind = (slot.Kind ?? "").ToLowerInvariant();
+            Assert.Contains(kind, new[] { "ball", "field" });
+            Assert.DoesNotContain("blind", kind);
+        }
+        Assert.Equal(2.0, StarSkills.SpectacleSeconds("heatball"));
+        Assert.Equal("ball", _content.Art.TryVfx("heatball", out var heat) ? heat.Kind.ToLowerInvariant() : "");
+    }
 }

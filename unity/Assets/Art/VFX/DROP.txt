@@ -1,0 +1,4 @@
+Catalog VFX events. Drop a prefab here named the catalog id.
+
+Until a file exists, SpecialFx plays a procedural stand-in in the same group.
+Heatball is the bar: core + shell + tight embers. No full-screen blinds.

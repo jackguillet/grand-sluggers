@@ -160,12 +160,12 @@ namespace GrandSluggers.UnityClient
             }
             else if (star == "charmball")
             {
-                matCol = new Color(1f, 0.45f, 0.7f);
+                matCol = new Color(1f, 0.42f, 0.68f);
                 col = matCol;
-                scale = Diameter;
-                glow = 2.2f;
+                scale = Diameter * 1.08f;
+                glow = 2.8f;
                 glowCol = matCol;
-                smooth = 0.4f;
+                smooth = 0.35f;
             }
             else if (star == "prismball")
             {
@@ -195,9 +195,9 @@ namespace GrandSluggers.UnityClient
             }
             else if (star == "phonyball")
             {
-                matCol = new Color(0.95f, 0.95f, 0.7f);
-                col = matCol;
-                scale = Diameter * 1.05f;
+                matCol = new Color(0.96f, 0.93f, 0.86f);
+                col = Color.white;
+                scale = Diameter;
             }
             else
             {
