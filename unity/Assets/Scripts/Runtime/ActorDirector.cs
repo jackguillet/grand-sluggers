@@ -31,6 +31,16 @@ namespace GrandSluggers.UnityClient
                 _ring?.Hide();
                 return;
             }
+            if (_phase == Phase.Field)
+            {
+                foreach (var kv in _heroes)
+                    if (kv.Value != null)
+                        kv.Value.gameObject.SetActive(false);
+                _park.Ball.Hide();
+                _zone.Show(false, 0, 0);
+                _ring?.Hide();
+                return;
+            }
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var litId = "";
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))

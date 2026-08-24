@@ -45,17 +45,25 @@ Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the
 - **South / Space** — pick captain
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
 - **West / F** — Training drills on Harbor
-- **Stick L/R / WASD** — home captain (park follows)
-- **Stick U/D / WASD** — away captain
 - **R3 / N** — night (rebuilds Harbor lighting)
-- **C tap** — cycle park JSON (Harbor is the slice; others are not products yet)
-- **C hold** — night
+- **Tab** — 3 / 6 / 9 innings
+
+Captains and the field are two screens. The park does not follow the captain.
 
 ### Pick captain
 
 - **Stick / WASD L/R** — home · **U/D** — away
+- **South / Space** — pick the field
+- **West / F** — title
+- Camera stays in front of the cage and looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
+
+### Pick the field
+
+- **Stick / WASD L/R** — cycle the park. Captains stay put.
 - **South / Space** — lineup
-- Camera stays in front of the cage and looks at the home captain. Park stays what you picked on the title (Harbor is the slice). The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture. Stick L/R follows the home captain’s park (Crystal Rink for Vale, not a blank sky).
+- **West / F** — back to captains
+- **R3 / N** — night
+- Looks into the park you picked (Harbor is the slice; other parks are JSON, not products yet).
 
 ### Lineup (draft the eight)
 

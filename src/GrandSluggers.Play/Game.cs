@@ -13,9 +13,6 @@ public sealed class Game : IDisposable
     int _seed;
     readonly ContentCatalog _content;
     readonly string[] _pitches = ["fastball", "changeup", "curve", "slider"];
-    readonly string[] _parks =
-        ["harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep"];
-
     Match _match;
     Phase _phase = Phase.Title;
     string _homeCaptain = "rio";
@@ -174,46 +171,27 @@ public sealed class Game : IDisposable
             if (_challengeMode)
                 _two = false;
         }
-        if (p1.NavLeft)
-        {
-            _homeCaptain = PresetTeams.PrevCaptain(_homeCaptain);
-            if (!_challengeMode)
-                _parkId = PresetTeams.HomeParkId(_homeCaptain);
-            if (_homeCaptain.Equals(_awayCaptain, StringComparison.OrdinalIgnoreCase))
-                _awayCaptain = PresetTeams.NextCaptain(_homeCaptain);
-        }
-        if (p1.NavRight)
-        {
-            _homeCaptain = PresetTeams.NextCaptain(_homeCaptain);
-            if (!_challengeMode)
-                _parkId = PresetTeams.HomeParkId(_homeCaptain);
-            if (_homeCaptain.Equals(_awayCaptain, StringComparison.OrdinalIgnoreCase))
-                _awayCaptain = PresetTeams.NextCaptain(_homeCaptain);
-        }
         if (!_challengeMode)
         {
-            if (p1.NavUp)
-            {
-                _awayCaptain = PresetTeams.PrevCaptain(_awayCaptain);
-                if (_awayCaptain.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase))
-                    _awayCaptain = PresetTeams.PrevCaptain(_awayCaptain);
-            }
-            if (p1.NavDown)
-            {
-                _awayCaptain = PresetTeams.NextCaptain(_awayCaptain);
-                if (_awayCaptain.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase))
-                    _awayCaptain = PresetTeams.NextCaptain(_awayCaptain);
-            }
+            var pick = new ExhibitionPick(_homeCaptain, _awayCaptain, _parkId);
+            if (p1.NavLeft) pick = ExhibitionPick.CycleHome(pick, -1);
+            if (p1.NavRight) pick = ExhibitionPick.CycleHome(pick, 1);
+            if (p1.NavUp) pick = ExhibitionPick.CycleAway(pick, -1);
+            if (p1.NavDown) pick = ExhibitionPick.CycleAway(pick, 1);
+            if (p1.TogglePark) pick = ExhibitionPick.CyclePark(pick, 1);
+            _homeCaptain = pick.Home;
+            _awayCaptain = pick.Away;
+            _parkId = pick.Park;
         }
         else
+        {
+            if (p1.NavLeft)
+                _homeCaptain = PresetTeams.PrevCaptain(_homeCaptain);
+            if (p1.NavRight)
+                _homeCaptain = PresetTeams.NextCaptain(_homeCaptain);
             _awayCaptain = (_campaign is not null && _campaign.CaptainId.Equals(_homeCaptain, StringComparison.OrdinalIgnoreCase)
                 ? _campaign
                 : Challenge.Start(_content, _homeCaptain)).NextOpponentId(_content);
-
-        if (p1.TogglePark)
-        {
-            var pi = Array.IndexOf(_parks, _parkId);
-            _parkId = _parks[(pi < 0 ? 0 : pi + 1) % _parks.Length];
         }
         if (p1.ToggleTwoPlayer && !_challengeMode) _two = !_two;
         if (p1.ConfirmPressed || _demo && _phaseT > 0.6f)

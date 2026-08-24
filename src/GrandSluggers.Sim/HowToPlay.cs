@@ -77,6 +77,13 @@ public static class HowToPlay
             "D-pad / 1 2 3 4    arm a bag. Stick-dead hopper goes to first.",
             "LB / X with no bag    relay, not a random bag.",
         ]),
+        new("exhibition", "Captain and field",
+        [
+            "Title South / Space    pick your captain. The park does not follow.",
+            "Stick / WASD L/R    home. U/D    away. South    pick the field.",
+            "Stick / WASD L/R    the field. South / Space    lineup. West / F    back.",
+            "Harbor is the slice. Other parks are JSON, not products yet.",
+        ]),
         new("pause-practice", "Pause and Practice",
         [
             "Start / H during a pitch or play    call time (this menu).",
