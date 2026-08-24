@@ -292,12 +292,12 @@ public static class MoveBones
         var pick = Smooth(Math.Clamp((poseT - 0.12) / 0.16, 0, 1));
         var up = Smooth(Math.Clamp((poseT - 0.28) / 0.16, 0, 1));
         var reach = Math.Max(drop, pick);
-        var lUpper = Le(E(12, 0, 18), Le(E(62, 8, 10), E(28, 0, 16), up), reach);
-        var rUpper = Le(E(12, 0, -18), Le(E(70, -12, -8), E(22, 0, -16), up), reach);
+        var lUpper = Le(E(12, 0, 18), Le(E(48, 8, 6), E(28, 0, 16), up), reach);
+        var rUpper = Le(E(12, 0, -18), Le(E(52, -8, -6), E(22, 0, -16), up), reach);
         return Pose(
-            torso: E(Lerp(8, 42, drop) - 22 * up, 0, 0),
+            torso: E(Lerp(8, 52, drop) - 24 * up, 0, 0),
             lUpper: lUpper, rUpper: rUpper,
-            lFore: E(18, 0, 0), rFore: E(22, 0, 0),
+            lFore: E(50, 0, 0), rFore: E(54, 0, 0),
             lThigh: E(38 + 18 * drop - 12 * up, 8, 0),
             rThigh: E(28 + 22 * drop - 10 * up, -6, 0),
             lShin: E(28 + 16 * drop, 0, 0),
