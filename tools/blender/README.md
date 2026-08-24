@@ -22,6 +22,13 @@ Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
 
 HeroActor samples the clip when present; missing file keeps authored eulers / MoveBones.
 
+Captain extras kit (one file, names match `data/art/skins.json`):
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_extras.py -- \
+  --out unity/Assets/Art/Characters/SharedRig/extras.fbx
+```
+
 Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-clips/scoop.json`):
 
 ```bash

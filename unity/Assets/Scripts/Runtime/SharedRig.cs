@@ -303,6 +303,33 @@ namespace GrandSluggers.UnityClient
             return chain;
         }
 
+        static bool TryDropExtra(string id, Transform bone, Vector3 localPos, Material paint)
+        {
+            if (bone == null) return false;
+            var kit = ArtBinder.LoadExtrasKit();
+            if (kit == null) return false;
+            var root = UnityEngine.Object.Instantiate(kit);
+            var piece = FindDeep(root.transform, id);
+            if (piece == null)
+            {
+                UnityEngine.Object.Destroy(root);
+                return false;
+            }
+            foreach (var anim in piece.GetComponentsInChildren<Animator>(true))
+                anim.enabled = false;
+            piece.SetParent(bone, false);
+            piece.localPosition = localPos;
+            piece.localRotation = Quaternion.identity;
+            piece.localScale = Vector3.one;
+            if (paint != null)
+            {
+                foreach (var r in piece.GetComponentsInChildren<Renderer>(true))
+                    Look.Paint(r.gameObject, paint);
+            }
+            UnityEngine.Object.Destroy(root);
+            return true;
+        }
+
         static void AttachHatAndExtras(
             Chain chain, string body, Func<string, bool> Has,
             Material jersey, Material trim, Material flesh, Material ink)
@@ -310,75 +337,126 @@ namespace GrandSluggers.UnityClient
             var kid = body == "rio";
             var pageant = body == "vale";
             var speed = body == "zig";
-            var brick = body == "brondo";
-            var ape = body == "konga";
             var slug = body == "ashlord";
             var torsoY = pageant ? 2.55f : speed ? 1.85f : slug ? 2.48f : 2.28f;
 
-            if (Has("neck") || pageant)
+            if (Has("neck"))
             {
-                var neckH = pageant ? 0.72f : 0.42f;
-                Look.Prim(PrimitiveType.Cylinder, "Neck", chain.Root, new Vector3(0, torsoY + 0.95f, 0), new Vector3(0.36f, neckH, 0.36f), flesh);
+                if (!TryDropExtra("neck", chain.Root, new Vector3(0, torsoY + 0.95f, 0), flesh))
+                {
+                    var neckH = pageant ? 0.72f : 0.42f;
+                    Look.Prim(PrimitiveType.Cylinder, "Neck", chain.Root, new Vector3(0, torsoY + 0.95f, 0), new Vector3(0.36f, neckH, 0.36f), flesh);
+                }
             }
-            if (brick)
-                Look.Prim(PrimitiveType.Cylinder, "Neck", chain.Root, new Vector3(0, torsoY + 0.82f, 0), new Vector3(0.72f, 0.28f, 0.72f), flesh);
-            if (Has("belly") || ape)
-                Look.Prim(PrimitiveType.Sphere, "Belly", chain.Torso, new Vector3(0, -0.38f, 0.48f), new Vector3(1.28f, 0.92f, 1.12f), jersey);
-            if (Has("sash") || pageant)
-                Look.Prim(PrimitiveType.Cube, "Sash", chain.Torso, new Vector3(0.12f, 0.02f, 0.52f), new Vector3(1.05f, 0.16f, 0.08f), Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f));
-            if (Has("cape") || slug)
+            if (Has("belly"))
             {
-                Look.Prim(PrimitiveType.Cube, "Cape", chain.Torso, new Vector3(0, -0.28f, -0.72f), new Vector3(1.45f, 1.55f, 0.14f), trim);
-                Look.Prim(PrimitiveType.Cube, "CapeFlare", chain.Torso, new Vector3(0, -0.85f, -0.78f), new Vector3(1.65f, 0.55f, 0.12f), trim);
+                if (!TryDropExtra("belly", chain.Torso, new Vector3(0, -0.38f, 0.48f), jersey))
+                    Look.Prim(PrimitiveType.Sphere, "Belly", chain.Torso, new Vector3(0, -0.38f, 0.48f), new Vector3(1.28f, 0.92f, 1.12f), jersey);
+            }
+            if (Has("sash"))
+            {
+                var sashMat = Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f);
+                if (!TryDropExtra("sash", chain.Torso, new Vector3(0.12f, 0.02f, 0.52f), sashMat))
+                    Look.Prim(PrimitiveType.Cube, "Sash", chain.Torso, new Vector3(0.12f, 0.02f, 0.52f), new Vector3(1.05f, 0.16f, 0.08f), sashMat);
+            }
+            if (Has("cube-chest"))
+            {
+                if (!TryDropExtra("cube-chest", chain.Torso, Vector3.zero, jersey))
+                    Look.Prim(PrimitiveType.Cube, "CubeChest", chain.Torso, Vector3.zero, new Vector3(1.05f, 1.05f, 1.05f), jersey);
+            }
+            if (Has("cape"))
+            {
+                if (!TryDropExtra("cape", chain.Torso, new Vector3(0, -0.28f, -0.72f), trim))
+                {
+                    Look.Prim(PrimitiveType.Cube, "Cape", chain.Torso, new Vector3(0, -0.28f, -0.72f), new Vector3(1.45f, 1.55f, 0.14f), trim);
+                    Look.Prim(PrimitiveType.Cube, "CapeFlare", chain.Torso, new Vector3(0, -0.85f, -0.78f), new Vector3(1.65f, 0.55f, 0.12f), trim);
+                }
             }
 
-            if (Has("cheeks") || kid)
+            if (Has("cheeks"))
             {
-                Look.Prim(PrimitiveType.Sphere, "CheekL", chain.Head, new Vector3(-0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
-                Look.Prim(PrimitiveType.Sphere, "CheekR", chain.Head, new Vector3(0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
+                if (!TryDropExtra("cheeks", chain.Head, new Vector3(0, -0.22f, 0.38f), flesh))
+                {
+                    Look.Prim(PrimitiveType.Sphere, "CheekL", chain.Head, new Vector3(-0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
+                    Look.Prim(PrimitiveType.Sphere, "CheekR", chain.Head, new Vector3(0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
+                }
             }
-            if (Has("crown") || pageant)
+            if (Has("crown"))
             {
                 var ice = Look.Lit(new Color(0.85f, 0.95f, 1f), smooth: 0.55f);
-                Look.Prim(PrimitiveType.Cylinder, "Crown", chain.Head, new Vector3(0, 0.62f, 0), new Vector3(0.92f, 0.18f, 0.92f), ice);
-                Look.Prim(PrimitiveType.Cube, "PointA", chain.Head, new Vector3(0, 0.95f, 0), new Vector3(0.16f, 0.42f, 0.16f), ice);
-                Look.Prim(PrimitiveType.Cube, "PointB", chain.Head, new Vector3(0.28f, 0.88f, 0), new Vector3(0.12f, 0.28f, 0.12f), ice);
-                Look.Prim(PrimitiveType.Cube, "PointC", chain.Head, new Vector3(-0.28f, 0.88f, 0), new Vector3(0.12f, 0.28f, 0.12f), ice);
+                if (!TryDropExtra("crown", chain.Head, new Vector3(0, 0.72f, 0), ice))
+                {
+                    Look.Prim(PrimitiveType.Cylinder, "Crown", chain.Head, new Vector3(0, 0.62f, 0), new Vector3(0.92f, 0.18f, 0.92f), ice);
+                    Look.Prim(PrimitiveType.Cube, "PointA", chain.Head, new Vector3(0, 0.95f, 0), new Vector3(0.16f, 0.42f, 0.16f), ice);
+                    Look.Prim(PrimitiveType.Cube, "PointB", chain.Head, new Vector3(0.28f, 0.88f, 0), new Vector3(0.12f, 0.28f, 0.12f), ice);
+                    Look.Prim(PrimitiveType.Cube, "PointC", chain.Head, new Vector3(-0.28f, 0.88f, 0), new Vector3(0.12f, 0.28f, 0.12f), ice);
+                }
                 chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
             }
             else
             {
-                Look.Prim(PrimitiveType.Sphere, "Dome", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(1.18f, 0.72f, 1.18f), trim);
-                chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.28f, 0), new Vector3(1.22f, 0.14f, 1.22f), trim).transform;
-                var brim = Look.Prim(PrimitiveType.Cylinder, "Brim", chain.Cap, new Vector3(0, -0.85f, 0.22f),
-                    Has("brim") || kid ? new Vector3(1.85f, 0.08f, 1.55f) : new Vector3(1.45f, 0.07f, 1.22f),
-                    Look.Lit(Colors.Gold, smooth: 0.4f)).transform;
-                brim.localRotation = Quaternion.Euler(12, 0, 0);
+                var gold = Look.Lit(Colors.Gold, smooth: 0.4f);
+                if (Has("brim") && TryDropExtra("brim", chain.Head, new Vector3(0, 0.42f, 0.08f), gold))
+                    chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.28f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
+                else
+                {
+                    Look.Prim(PrimitiveType.Sphere, "Dome", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(1.18f, 0.72f, 1.18f), trim);
+                    chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.28f, 0), new Vector3(1.22f, 0.14f, 1.22f), trim).transform;
+                    var brim = Look.Prim(PrimitiveType.Cylinder, "Brim", chain.Cap, new Vector3(0, -0.85f, 0.22f),
+                        Has("brim") || kid ? new Vector3(1.85f, 0.08f, 1.55f) : new Vector3(1.45f, 0.07f, 1.22f),
+                        gold).transform;
+                    brim.localRotation = Quaternion.Euler(12, 0, 0);
+                }
             }
-            if (Has("horns") || slug)
+            if (Has("horns"))
             {
-                var hornL = Look.Prim(PrimitiveType.Cylinder, "HornL", chain.Head, new Vector3(-0.48f, 0.62f, -0.12f), new Vector3(0.28f, 0.72f, 0.28f), trim).transform;
-                var hornR = Look.Prim(PrimitiveType.Cylinder, "HornR", chain.Head, new Vector3(0.48f, 0.62f, -0.12f), new Vector3(0.28f, 0.72f, 0.28f), trim).transform;
-                hornL.localRotation = Quaternion.Euler(0, 0, 22);
-                hornR.localRotation = Quaternion.Euler(0, 0, -22);
-                Look.Prim(PrimitiveType.Sphere, "HornTipL", hornL, new Vector3(0, 0.55f, 0), Vector3.one * 0.55f, trim);
-                Look.Prim(PrimitiveType.Sphere, "HornTipR", hornR, new Vector3(0, 0.55f, 0), Vector3.one * 0.55f, trim);
+                if (!TryDropExtra("horns", chain.Head, new Vector3(0, 0.62f, -0.12f), trim))
+                {
+                    var hornL = Look.Prim(PrimitiveType.Cylinder, "HornL", chain.Head, new Vector3(-0.48f, 0.62f, -0.12f), new Vector3(0.28f, 0.72f, 0.28f), trim).transform;
+                    var hornR = Look.Prim(PrimitiveType.Cylinder, "HornR", chain.Head, new Vector3(0.48f, 0.62f, -0.12f), new Vector3(0.28f, 0.72f, 0.28f), trim).transform;
+                    hornL.localRotation = Quaternion.Euler(0, 0, 22);
+                    hornR.localRotation = Quaternion.Euler(0, 0, -22);
+                    Look.Prim(PrimitiveType.Sphere, "HornTipL", hornL, new Vector3(0, 0.55f, 0), Vector3.one * 0.55f, trim);
+                    Look.Prim(PrimitiveType.Sphere, "HornTipR", hornR, new Vector3(0, 0.55f, 0), Vector3.one * 0.55f, trim);
+                }
             }
-            if (Has("snout") || ape)
+            if (Has("snout"))
             {
-                Look.Prim(PrimitiveType.Sphere, "Snout", chain.Head, new Vector3(0, -0.22f, 0.72f), new Vector3(1.05f, 0.68f, 0.95f), flesh);
-                Look.Prim(PrimitiveType.Sphere, "NostrilL", chain.Head, new Vector3(-0.18f, -0.12f, 1.05f), Vector3.one * 0.18f, ink);
-                Look.Prim(PrimitiveType.Sphere, "NostrilR", chain.Head, new Vector3(0.18f, -0.12f, 1.05f), Vector3.one * 0.18f, ink);
+                if (!TryDropExtra("snout", chain.Head, new Vector3(0, -0.22f, 0.72f), flesh))
+                {
+                    Look.Prim(PrimitiveType.Sphere, "Snout", chain.Head, new Vector3(0, -0.22f, 0.72f), new Vector3(1.05f, 0.68f, 0.95f), flesh);
+                    Look.Prim(PrimitiveType.Sphere, "NostrilL", chain.Head, new Vector3(-0.18f, -0.12f, 1.05f), Vector3.one * 0.18f, ink);
+                    Look.Prim(PrimitiveType.Sphere, "NostrilR", chain.Head, new Vector3(0.18f, -0.12f, 1.05f), Vector3.one * 0.18f, ink);
+                }
             }
-            if (Has("goggles") || speed)
+            if (Has("goggles"))
             {
                 var glass = Look.Lit(new Color(0.2f, 0.85f, 0.55f), smooth: 0.6f);
-                Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
-                Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
-                Look.Prim(PrimitiveType.Cube, "GogBridge", chain.Head, new Vector3(0, 0.08f, 0.5f), new Vector3(0.28f, 0.08f, 0.12f), trim);
+                if (!TryDropExtra("goggles", chain.Head, new Vector3(0, 0.08f, 0.52f), glass))
+                {
+                    Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
+                    Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
+                    Look.Prim(PrimitiveType.Cube, "GogBridge", chain.Head, new Vector3(0, 0.08f, 0.5f), new Vector3(0.28f, 0.08f, 0.12f), trim);
+                }
             }
-            if (Has("brick-jaw") || brick)
-                Look.Prim(PrimitiveType.Cube, "Jaw", chain.Head, new Vector3(0, -0.48f, 0.28f), new Vector3(1.18f, 0.42f, 0.82f), flesh);
+            if (Has("brick-jaw"))
+            {
+                if (!TryDropExtra("brick-jaw", chain.Head, new Vector3(0, -0.48f, 0.28f), flesh))
+                    Look.Prim(PrimitiveType.Cube, "Jaw", chain.Head, new Vector3(0, -0.48f, 0.28f), new Vector3(1.18f, 0.42f, 0.82f), flesh);
+            }
+            if (Has("ember-eyes"))
+                TryDropExtra("ember-eyes", chain.Head, new Vector3(0, 0.10f, 0.62f), Look.Unlit(Colors.EmberFire));
+            if (Has("sneakers"))
+            {
+                var leather = Look.Lit(new Color(0.96f, 0.96f, 0.96f), smooth: 0.18f);
+                var dropped = TryDropExtra("sneakers", chain.LShin, new Vector3(0, -0.62f, 0.22f), leather);
+                dropped = TryDropExtra("sneakers", chain.RShin, new Vector3(0, -0.62f, 0.22f), leather) || dropped;
+                if (dropped)
+                {
+                    HideNamed(chain.Root, "lShoe");
+                    HideNamed(chain.Root, "rShoe");
+                }
+            }
         }
 
         static void AttachRing(Chain chain, Transform parent)

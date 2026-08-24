@@ -26,6 +26,30 @@ namespace GrandSluggers.UnityClient
 
         public static void Bind(ArtCatalog art) => _art = art;
 
+        static GameObject _extrasKit;
+        static bool _extrasMiss;
+
+        /// <summary>Shared extras kit (brim, crown, goggles, …). Null keeps primitive extras.</summary>
+        public static GameObject LoadExtrasKit()
+        {
+            if (_extrasKit != null) return _extrasKit;
+            if (_extrasMiss) return null;
+            const string slot = "Assets/Art/Characters/SharedRig/extras.fbx";
+            var key = SlotToResources(slot);
+            if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                key = key.Substring(0, key.Length - 4);
+            var go = Resources.Load<GameObject>(key);
+            if (go == null && EditorLoadPrefab != null)
+                go = EditorLoadPrefab(slot);
+            if (go == null)
+            {
+                _extrasMiss = true;
+                return null;
+            }
+            _extrasKit = go;
+            return go;
+        }
+
         /// <summary>Catalog FBX if the slot has a Unity file; null keeps SharedRig primitives.</summary>
         public static GameObject LoadSharedRigPrefab()
         {

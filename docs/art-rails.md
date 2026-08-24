@@ -29,7 +29,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | --- | --- | --- | --- |
 | Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | `SharedRig` primitives |
 | Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx, scoop.fbx dropped) |
-| Skins | `data/art/skins.json` | `Assets/Art/Characters/{id}` | `HeroActor` primitives + silhouette extras |
+| Skins | `data/art/skins.json` | `Assets/Art/Characters/SharedRig/extras.fbx` | primitive extras on the shared chain |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
 | Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |

@@ -5,5 +5,7 @@ Bone names must match data/art/rig.json:
 
 Play binds this Generic FBX when present. Missing file keeps SharedRig primitives.
 Captains are extras on this chain, not new armatures.
+extras.fbx: accessory meshes named like skins.json (brim, crown, goggles, …).
+Play parents them to Head/Torso/Shin. Missing kit keeps primitive extras.
 ToyScale 1.18 is applied in Play — do not scale the FBX again.
 
