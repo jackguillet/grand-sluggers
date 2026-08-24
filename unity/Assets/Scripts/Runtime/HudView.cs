@@ -57,7 +57,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(36, 136, 420, exhibition ? 92 : 64), _panel);
             GUI.Label(new Rect(52, 144, 400, 36), exhibition ? "EXHIBITION" : (training ? "TRAINING" : "CHALLENGE"), _h1);
             GUI.Label(new Rect(52, 184, 390, 28),
-                exhibition ? "South  ·  play ball" : (training ? "South  ·  Harbor drills" : "South  ·  next match"),
+                exhibition ? "South / Space  ·  play ball" : (training ? "South / Space  ·  Harbor drills" : "South / Space  ·  next match"),
                 _gold);
             if (exhibition)
             {
@@ -70,7 +70,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(w - 300, 36, 260, 260), portrait, ScaleMode.ScaleToFit);
             if (hideHelp) return;
             GUI.Label(new Rect(52, Screen.height - 56, w - 80, 22),
-                "South Exhibition   West training   Start mode   stick later picks captains", _tiny);
+                "South / Space Exhibition   West / F training   Start / H mode   stick / WASD captains", _tiny);
         }
 
         public static void Select(string homeId, string awayId, ContentCatalog content)
@@ -79,7 +79,7 @@ namespace GrandSluggers.UnityClient
             var w = Screen.width;
             GUI.DrawTexture(new Rect(36, 24, 560, 78), _panel);
             GUI.Label(new Rect(52, 32, 540, 36), "PICK YOUR CAPTAIN", _h1);
-            GUI.Label(new Rect(52, 68, 520, 22), "stick  home / away    South  lineup", _gold);
+            GUI.Label(new Rect(52, 68, 520, 22), "stick / WASD  home / away    South / Space  lineup", _gold);
             var ids = PresetTeams.CaptainIds;
             var card = Mathf.Min(150f, (w - 80) / ids.Length - 8);
             var x0 = (w - ids.Length * (card + 8) + 8) * 0.5f;
@@ -112,7 +112,7 @@ namespace GrandSluggers.UnityClient
             var w = 88f;
             var x0 = Screen.width * 0.5f - (w * 4 + 24) * 0.5f;
             var y = Screen.height - 78f;
-            GUI.Label(new Rect(x0, y - 26, 400, 22), "throw  ·  stick / 1 2 3 4", _tiny);
+            GUI.Label(new Rect(x0, y - 26, 400, 22), "throw  ·  d-pad / 1 2 3 4", _tiny);
             for (var i = 0; i < 4; i++)
             {
                 var r = new Rect(x0 + i * (w + 8), y, w, 48);

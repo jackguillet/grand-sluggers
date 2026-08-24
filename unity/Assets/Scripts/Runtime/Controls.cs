@@ -5,9 +5,9 @@ using UnityEngine.InputSystem;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// One gamepad is the product. Keyboard is a debug overlay.
+    /// One gamepad is the couch product. Keyboard is the same scheme (docs/how-to-play.md, Scheme.cs).
     /// South / East / West / North are positions (Xbox A/B/X/Y, Nintendo B/A/Y/X).
-    /// Living couch map: docs/how-to-play.md — update it in the same PR.
+    /// F1/F2/F3 stay debug. Update how-to-play in the same PR.
     /// </summary>
     public static class Controls
     {
@@ -45,7 +45,15 @@ namespace GrandSluggers.UnityClient
 
         public static bool Charge => Charge01 >= ChargePull;
         public static bool CyclePitch => KeyDown(Key.Tab) || PressedRb;
-        public static bool Steal => KeyDown(Key.X) || PressedLb;
+        /// <summary>SET batting: all-advance (held). Lineup order uses <see cref="AllAdvanceDown"/>.</summary>
+        public static bool AllAdvance => Kb(Key.Comma) || HeldLb;
+        public static bool AllAdvanceDown => KeyDown(Key.Comma) || PressedLb;
+        public static bool AllReturn => Kb(Key.Period) || HeldRb;
+        public static bool FreezeRunners => Kb(Key.Slash) || (HeldLb && HeldRb);
+        /// <summary>Steal is L3 / Z so bumpers can send / return.</summary>
+        public static bool Steal => KeyDown(Key.Z) || PressedL3;
+        /// <summary>No-direction cutoff after a catch: LB / X. Relay, not a random bag.</summary>
+        public static bool Cutoff => Kb(Key.X) || HeldLb;
         public static bool Item => KeyDown(Key.E) || (Charge && PressedRb);
         /// <summary>Throw a chemistry item: E, LT+RB, or South+LT.</summary>
         public static bool ItemConfirm => Item || (SouthDown && Charge);
@@ -71,8 +79,8 @@ namespace GrandSluggers.UnityClient
                 var v = 0f;
                 var pad = Pad;
                 if (pad != null) v = pad.leftStick.x.ReadValue();
-                if (Kb(Key.A) || Kb(Key.LeftArrow)) v -= 1f;
-                if (Kb(Key.D) || Kb(Key.RightArrow)) v += 1f;
+                if (Kb(Key.A)) v -= 1f;
+                if (Kb(Key.D)) v += 1f;
                 if (Mathf.Abs(v) < StickDead) v = 0f;
                 return Mathf.Clamp(v, -1f, 1f);
             }
@@ -85,8 +93,8 @@ namespace GrandSluggers.UnityClient
                 var v = 0f;
                 var pad = Pad;
                 if (pad != null) v = pad.leftStick.y.ReadValue();
-                if (Kb(Key.S) || Kb(Key.DownArrow)) v -= 1f;
-                if (Kb(Key.W) || Kb(Key.UpArrow)) v += 1f;
+                if (Kb(Key.S)) v -= 1f;
+                if (Kb(Key.W)) v += 1f;
                 if (Mathf.Abs(v) < StickDead) v = 0f;
                 return Mathf.Clamp(v, -1f, 1f);
             }
@@ -104,16 +112,41 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        /// <summary>Stick flick to a bag: right 1B, up 2B, left 3B, down home.</summary>
+        /// <summary>Pad stick diamond: right 1B, up 2B, left 3B, down home. WASD is run, not throw.</summary>
         public static int StickBag
         {
             get
             {
-                var x = StickX;
-                var y = StickY;
-                if (x * x + y * y < 0.55f) return 0;
-                if (Mathf.Abs(x) > Mathf.Abs(y)) return x > 0 ? 1 : 3;
-                return y > 0 ? 2 : 4;
+                var pad = Pad;
+                if (pad == null) return 0;
+                var x = pad.leftStick.x.ReadValue();
+                var y = pad.leftStick.y.ReadValue();
+                if (Mathf.Abs(x) < StickDead && Mathf.Abs(y) < StickDead) return 0;
+                return InPlay.DiamondBag(x, y);
+            }
+        }
+
+        /// <summary>Arrows name a bag when not chasing (same diamond as the d-pad).</summary>
+        public static int ArrowBag
+        {
+            get
+            {
+                if (Kb(Key.RightArrow)) return 1;
+                if (Kb(Key.UpArrow)) return 2;
+                if (Kb(Key.LeftArrow)) return 3;
+                if (Kb(Key.DownArrow)) return 4;
+                return 0;
+            }
+        }
+
+        /// <summary>SET lead: pad stick or WASD toward the next bag.</summary>
+        public static int AimBag
+        {
+            get
+            {
+                var n = InPlay.DiamondBag(StickX, StickY);
+                if (n > 0) return n;
+                return ArrowBag;
             }
         }
 
@@ -163,7 +196,10 @@ namespace GrandSluggers.UnityClient
         static bool HeldWest { get { var p = Pad; return p != null && p.buttonWest.isPressed; } }
         static bool PressedNorth { get { var p = Pad; return p != null && p.buttonNorth.wasPressedThisFrame; } }
         static bool PressedLb { get { var p = Pad; return p != null && p.leftShoulder.wasPressedThisFrame; } }
+        static bool HeldLb { get { var p = Pad; return p != null && p.leftShoulder.isPressed; } }
         static bool PressedRb { get { var p = Pad; return p != null && p.rightShoulder.wasPressedThisFrame; } }
+        static bool HeldRb { get { var p = Pad; return p != null && p.rightShoulder.isPressed; } }
+        static bool PressedL3 { get { var p = Pad; return p != null && p.leftStickButton.wasPressedThisFrame; } }
         static bool PressedStart { get { var p = Pad; return p != null && p.startButton.wasPressedThisFrame; } }
         static bool PressedSelect { get { var p = Pad; return p != null && p.selectButton.wasPressedThisFrame; } }
         static bool PressedR3 { get { var p = Pad; return p != null && p.rightStickButton.wasPressedThisFrame; } }
