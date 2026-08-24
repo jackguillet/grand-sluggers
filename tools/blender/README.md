@@ -35,3 +35,10 @@ Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-c
 /opt/homebrew/bin/blender --background --python tools/blender/hero_shared_scoop.py -- \
   --out unity/Assets/Art/Animation/Clips/scoop.fbx
 ```
+
+Harbor kit (dugout, wall panel, crowd). Missing file keeps HarborKit primitives:
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/harbor_kit.py -- \
+  --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx
+```
