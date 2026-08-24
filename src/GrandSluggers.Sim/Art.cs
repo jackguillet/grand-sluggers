@@ -1,6 +1,6 @@
 namespace GrandSluggers.Sim;
 
-public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones, IReadOnlyList<string> Events);
+public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones, IReadOnlyList<string> Events, string Slot);
 
 public readonly record struct ClipSlot(
     string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot,
@@ -207,7 +207,7 @@ public sealed class ArtCatalog
         var art = Path.Combine(dataRoot, "art");
 
         var rigDto = Read<RigFile>(Path.Combine(art, "rig.json"), json);
-        var rig = new RigBoneMap(rigDto.Id, rigDto.Bones ?? [], rigDto.Events ?? []);
+        var rig = new RigBoneMap(rigDto.Id, rigDto.Bones ?? [], rigDto.Events ?? [], rigDto.Slot ?? "");
 
         var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
@@ -241,6 +241,7 @@ public sealed class ArtCatalog
     sealed class RigFile
     {
         public string Id { get; set; } = "";
+        public string Slot { get; set; } = "";
         public List<string>? Bones { get; set; }
         public List<string>? Events { get; set; }
     }
