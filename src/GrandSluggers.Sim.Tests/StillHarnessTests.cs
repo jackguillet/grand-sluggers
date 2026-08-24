@@ -13,7 +13,7 @@ public class StillHarnessTests
         var match = Match.Exhibition(_content, "rio", "ashlord", seed: 7);
         Assert.True(match.Top);
         var awayBatter = match.Batter.Id;
-        match.SkipToHomeHalf();
+        match.SkipToHomeCaptainAtBat();
         Assert.False(match.Top);
         Assert.Equal(0, match.Outs);
         Assert.Equal(0, match.Balls);
@@ -21,14 +21,14 @@ public class StillHarnessTests
         Assert.False(match.Over);
         Assert.NotEqual(awayBatter, match.Batter.Id);
         Assert.Equal("rio", match.Home.Captain.Id);
-        Assert.Equal(match.Batter.Id, match.HomeOrder[0].Id);
+        Assert.Equal("rio", match.Batter.Id);
     }
 
     [Fact]
     public void GiveOffenseStarsUnlocksStarSwingOnTheHomeHalf()
     {
         var match = Match.Exhibition(_content, "rio", "ashlord", seed: 7);
-        match.SkipToHomeHalf();
+        match.SkipToHomeCaptainAtBat();
         match.GiveOffenseStars(5);
         Assert.True(match.CanStarSwing);
         Assert.False(string.IsNullOrWhiteSpace(match.Batter.StarSwing));
