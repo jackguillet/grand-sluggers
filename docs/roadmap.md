@@ -29,6 +29,7 @@ Agents are the production line. You are the director. They are fast at systems, 
 5. **Catalog first, files second.** New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. Agents that skip the catalog will grow another C# switch.
 6. **Skeptic pass on every feel merge.** A second agent (or you) plays the path the issue named: Exhibition → pitch camera → swing → grounder. First-pass “looks like baseball in the debugger” is not done.
 7. **Human gates.** Screenshot of plate (full batter, not a cap). Screenshot of a scoop. Screenshot of a star swing HUD-off. If you would not show that still to a friend, the epic is open.
+8. **How to play stays true.** `docs/how-to-play.md` is the couch map. Same PR as `Controls.cs`, SET cameras, or Exhibition flow.
 
 ### What to give an agent vs what you keep
 

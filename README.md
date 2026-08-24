@@ -4,7 +4,7 @@ Arcade baseball with a cartoon roster, team chemistry, signature bats and gloves
 
 Inspired by *Mario Super Sluggers* (Wii, 2008) — **original characters and world**, not a Mario clone. The pitch is the same: a party sports game where *who you draft together* matters as much as who swings the bat.
 
-**How you play: Unity Play.** Open `unity/` in Unity **6000.5.9f1** and press Play on `Assets/Scenes/HarborDiamond.unity`. That is the game — Harbor Diamond, posed heroes, a camera behind the pitcher or batter, captain specials on the ball and the field. See [unity/README.md](unity/README.md).
+**How you play: Unity Play.** Open `unity/` in Unity **6000.5.9f1** and press Play on `Assets/Scenes/HarborDiamond.unity`. Gamepad first. Couch map: [docs/how-to-play.md](docs/how-to-play.md). Editor setup: [unity/README.md](unity/README.md).
 
 The baseball rules live in `src/GrandSluggers.Sim`. Engine decision: [docs/engine-decision.md](docs/engine-decision.md). Raylib (`src/GrandSluggers.Play`) is a `dotnet run` debug sandbox for the rules, not a second product.
 
@@ -43,21 +43,7 @@ unity/    Unity 6 URP client — this is how you play
 2. Open the `unity/` folder. If the scene is empty, menu **Grand Sluggers → Bootstrap Scene**.
 3. Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Gamepad first; keyboard is debug.
 
-```
-South / SPACE     pitch, swing, or catch
-LT / Shift        charge
-Left stick        pitch location / spray / field / lead
-RB / Tab          cycle pitch
-North / Q         star
-West hold / V     bunt (batter) · jump (fielder)
-East / G          dive
-LB / X            steal
-D-pad / 1 2 3 4   throw
-Start / H         exhibition / challenge / training
-West / F          training (title)
-```
-
-Full pad map: [unity/README.md](unity/README.md).
+Controls, Exhibition flow, Training drills, and debug overlay: **[docs/how-to-play.md](docs/how-to-play.md)**. Update that file in the same PR when verbs or cameras change.
 
 Sim tests and a headless match (no window, no presentation):
 
@@ -80,7 +66,8 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | --- | --- |
 | [docs/vision.md](docs/vision.md) | What we are building and what we are not |
 | [docs/research-sluggers.md](docs/research-sluggers.md) | How Mario Super Sluggers actually works |
-| [unity/README.md](unity/README.md) | How you play (Unity editor, pad map) |
+| [docs/how-to-play.md](docs/how-to-play.md) | Controls and how to play (living spec) |
+| [unity/README.md](unity/README.md) | Unity editor, scene, license |
 | [docs/engine-decision.md](docs/engine-decision.md) | Unity vs Godot vs Unreal — why Unity |
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
