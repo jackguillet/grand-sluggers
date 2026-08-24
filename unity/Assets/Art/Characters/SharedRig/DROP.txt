@@ -1,6 +1,9 @@
-Shared hero chain (hero-shared). Drop one FBX/prefab here.
+Shared hero chain (hero-shared). Drop: hero-shared.fbx
 
 Bone names must match data/art/rig.json:
   root torso head lUpper lFore rUpper rFore lThigh lShin rThigh rShin bat glove
 
-Until a file exists, SharedRig.Spawn is the mesh. Captains are extras, not new armatures.
+Play binds this Generic FBX when present. Missing file keeps SharedRig primitives.
+Captains are extras on this chain, not new armatures.
+ToyScale 1.18 is applied in Play — do not scale the FBX again.
+

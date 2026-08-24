@@ -1,5 +1,6 @@
 {
   "id": "hero-shared",
+  "slot": "Assets/Art/Characters/SharedRig/hero-shared.fbx",
   "notes": "One chain. Captains are skins. Do not add a second skeleton.",
   "bones": [
     "root",
