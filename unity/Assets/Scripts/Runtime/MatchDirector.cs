@@ -85,6 +85,7 @@ namespace GrandSluggers.UnityClient
         float _smash;
         bool _showTiming;
         bool _feelDebug;
+        bool _forceMuteHud;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
@@ -168,6 +169,7 @@ namespace GrandSluggers.UnityClient
             _atBat = new AtBatDirector(this);
             _inPlay = new InPlayDirector(this);
             _actors = new ActorDirector(this);
+            StillCapture.Attach(this);
         }
 
         void Update()
@@ -177,6 +179,7 @@ namespace GrandSluggers.UnityClient
             var dt = Time.deltaTime;
             if (Controls.TimingAid) _showTiming = !_showTiming;
             if (Controls.FeelDebug) _feelDebug = !_feelDebug;
+            if (Controls.HudMute) _forceMuteHud = !_forceMuteHud;
             if (_feelDebug && Controls.SlowMo)
                 _feelSlow = _feelSlow > 0.9f ? 0.35f : _feelSlow > 0.2f ? 0.12f : 1f;
             if (_feelDebug && Controls.FreezeCam) _freezeCam = !_freezeCam;
@@ -244,7 +247,8 @@ namespace GrandSluggers.UnityClient
                 sub = _coach.Session.Verb;
             }
             var mutePlay = BroadcastHud.MutePlay(
-                _spec != null && _spec.Active, _smash, _freeze);
+                _spec != null && _spec.Active, _smash, _freeze)
+                || _forceMuteHud || StillCapture.ForceMute;
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _star, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
