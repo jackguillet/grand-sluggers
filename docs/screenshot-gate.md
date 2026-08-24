@@ -2,7 +2,9 @@
 
 The rails are closed. These stills are the product. If you would not show a picture to a friend, epic #188 stays open.
 
-Gamepad is the product. Keyboard is listed so an agent (or a desk without a pad) can drive the same path.
+**You do not have to pitch the top to get an out.** Play menu **Grand Sluggers → Capture Still Gate** (or an agent running `tools/still-gate.sh`) jumps to batting, scoop, and star and writes PNGs. The pad path below is optional, for taste.
+
+Gamepad is the product. Keyboard is a debug overlay.
 
 ---
 
@@ -166,10 +168,24 @@ Default request:
 }
 ```
 
-**What this can judge without a human:** SET cameras, diamond kit from `plate`/`mound`, toy body at gameplay distance, Harbor postcard behind the box. Same stills as #1’s framing.
+Default request now includes the three trailer stills plus title/mound:
 
-**What it cannot fake:** a live scoop verb, a timed star swing, analog LT feel, pad rumble. Those stay Path A/B.
+```json
+{
+  "shots": ["title", "plate", "mound", "diamond-grounder", "smash"],
+  "home": "rio",
+  "away": "ashlord",
+  "hudOff": true,
+  "charge01": 1
+}
+```
+
+Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf` puts Rio at the plate; scoop and smash are staged on the real cameras and bodies (`scoop` is an alias for `diamond-grounder`).
+
+**What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, star-swing camera with HUD muted.
+
+**What it still is not:** analog LT feel, pad rumble, or a 3-inning Exhibition you played by hand. Those stay optional Path A/B.
 
 Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers session.
 
-Shell: `tools/still-gate.sh` writes the request. If Unity is already playing, the next frames consume it. If not, Play the scene.
+Shell: `tools/still-gate.sh` writes the request and toggles Play. Menu **Grand Sluggers → Capture Still Gate** does the same. PNGs: `unity/Temp/gs-stills/`.

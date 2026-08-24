@@ -126,6 +126,27 @@ public sealed class Match
         return new Match(content, away, home, park, innings, seed, night);
     }
 
+    /// <summary>
+    /// Still-gate only. Flip the top without playing three outs so Play can
+    /// photograph batting SET / scoop / star without a pad grinding the half.
+    /// </summary>
+    public void SkipToHomeHalf()
+    {
+        if (Over || !Top) return;
+        Outs = 0;
+        Balls = 0;
+        Strikes = 0;
+        ClearBags();
+        Top = false;
+    }
+
+    public void GiveOffenseStars(double n)
+    {
+        n = Math.Clamp(n, 0, 5);
+        if (Top) AwayStars = Math.Max(AwayStars, n);
+        else HomeStars = Math.Max(HomeStars, n);
+    }
+
     public Team Offense => Top ? Away : Home;
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
