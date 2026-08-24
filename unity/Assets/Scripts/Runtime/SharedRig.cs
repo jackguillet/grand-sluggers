@@ -393,6 +393,11 @@ namespace GrandSluggers.UnityClient
                 }
                 chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
             }
+            else if (Has("goggles") || Has("horns"))
+            {
+                // Goggles / horns are the hat. A gold brim here makes Zig a tiny Rio.
+                chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.28f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
+            }
             else
             {
                 var gold = Look.Lit(Colors.Gold, smooth: 0.4f);
@@ -432,11 +437,16 @@ namespace GrandSluggers.UnityClient
             if (Has("goggles"))
             {
                 var glass = Look.Lit(new Color(0.2f, 0.85f, 0.55f), smooth: 0.6f);
-                if (!TryDropExtra("goggles", chain.Head, new Vector3(0, 0.08f, 0.52f), glass))
+                if (TryDropExtra("goggles", chain.Head, new Vector3(0, 0.12f, 0.58f), glass))
                 {
-                    Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
-                    Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.32f, 0.08f, 0.52f), new Vector3(0.62f, 0.12f, 0.62f), glass);
-                    Look.Prim(PrimitiveType.Cube, "GogBridge", chain.Head, new Vector3(0, 0.08f, 0.5f), new Vector3(0.28f, 0.08f, 0.12f), trim);
+                    var gog = chain.Head.Find("goggles");
+                    if (gog != null) gog.localScale = Vector3.one * 1.35f;
+                }
+                else
+                {
+                    Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.38f, 0.12f, 0.58f), new Vector3(0.78f, 0.16f, 0.78f), glass);
+                    Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.38f, 0.12f, 0.58f), new Vector3(0.78f, 0.16f, 0.78f), glass);
+                    Look.Prim(PrimitiveType.Cube, "GogBridge", chain.Head, new Vector3(0, 0.12f, 0.56f), new Vector3(0.36f, 0.10f, 0.14f), trim);
                 }
             }
             if (Has("brick-jaw"))
