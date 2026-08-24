@@ -44,6 +44,9 @@ public class FeelInfraTests
         // around the box (ring + feet), not the brim.
         Assert.True(StillPose.PlateIsThirdBaseThreeQuarter(plate.Pos.X, plate.Pos.Z),
             $"plate third-base 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
+        Assert.True(StillPose.PlateCatcherClearsTheLens(
+            plate.Pos.X, plate.Pos.Z, plate.Target.X, plate.Target.Z),
+            $"plate catcher in the look cone x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
         Assert.True(plate.Target.Z > 10, $"plate looks into the diamond, target z={plate.Target.Z}");
         Assert.True(plate.Target.Z < 22, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");

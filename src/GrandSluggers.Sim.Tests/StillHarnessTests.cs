@@ -41,6 +41,8 @@ public class StillHarnessTests
     [Fact]
     public void ScoopPoseIsTheFirstBaseHoleNotTheMound()
     {
+        Assert.True(StillPose.PlateCatcherClearsTheLens(
+            StillPose.PlateCamX, StillPose.PlateCamZ, StillPose.PlateLookX, StillPose.PlateLookZ));
         Assert.True(StillPose.ScoopIsNotTheMound(StillPose.ScoopX, StillPose.ScoopZ));
         Assert.True(StillPose.ScoopZ < Diamond.Mound - 16);
         Assert.True(StillPose.ScoopX > 12);
