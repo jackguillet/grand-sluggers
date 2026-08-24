@@ -7,7 +7,7 @@ temp="$root/unity/Temp"
 mkdir -p "$temp/gs-stills"
 rm -f "$temp/gs-still-done.json"
 cat > "$temp/gs-still-request.json" <<'JSON'
-{"shots":["title","select","plate","mound","diamond-grounder","smash"],"home":"rio","away":"ashlord","hudOff":true,"charge01":1,"width":1920,"height":1080}
+{"shots":["title","select","plate","pitch","mound","diamond-grounder","smash"],"home":"rio","away":"ashlord","hudOff":true,"charge01":1,"width":1920,"height":1080}
 JSON
 echo "wrote $temp/gs-still-request.json"
 if ! pgrep -x Unity >/dev/null; then

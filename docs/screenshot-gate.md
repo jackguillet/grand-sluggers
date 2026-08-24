@@ -23,6 +23,7 @@ Bonus stills that save a later sitting (same rules):
 | Still | Shot name (F2) | Must show |
 |---|---|---|
 | Pitching SET | `mound` | Pitcher 3/4, rubber in the bottom, batter + catcher + boxes at home |
+| Pitch at you | `pitch` | From the box, looking at the pitcher. Arm through, ball leaving that hand toward you. |
 | Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. |
 | Captain card | `select` | Home captain + world card with P/B/F/R bars |
 | Throw | `throw` | On the glove, ball leaving the hand |
@@ -175,7 +176,7 @@ Default request now includes the three trailer stills plus title/mound:
 
 ```json
 {
-  "shots": ["title", "select", "plate", "mound", "diamond-grounder", "smash"],
+  "shots": ["title", "select", "plate", "pitch", "mound", "diamond-grounder", "smash"],
   "home": "rio",
   "away": "ashlord",
   "hudOff": true,
@@ -185,7 +186,7 @@ Default request now includes the three trailer stills plus title/mound:
 
 Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf` puts Rio at the plate; scoop and smash are staged on the real cameras and bodies (`scoop` is an alias for `diamond-grounder`).
 
-**What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, star-swing camera with HUD muted.
+**What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, pitcher throwing at you, star-swing camera with HUD muted.
 
 **What it still is not:** analog LT feel, pad rumble, or a 3-inning Exhibition you played by hand. Those stay optional Path A/B.
 

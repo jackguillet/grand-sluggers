@@ -25,6 +25,14 @@
       "blend": 6
     },
     {
+      "id": "pitch",
+      "look": "pitcher",
+      "pos": { "x": -12.0, "y": 5.0, "z": -4.8 },
+      "target": { "x": 0.7, "y": 5.1, "z": 57.0 },
+      "fov": 34,
+      "blend": 5
+    },
+    {
       "id": "diamond",
       "look": "ball",
       "pos": { "x": 20, "y": 20, "z": 55 },
