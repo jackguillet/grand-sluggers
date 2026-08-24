@@ -40,19 +40,20 @@ public class FeelInfraTests
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
-        // Batting: first-base side, slightly behind the box, looking at the mound.
-        // Depth keeps Rio in the lens; X keeps the catcher off the pipe.
-        Assert.True(plate.Pos.Z > -12, $"plate in front of the cage, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z < -3, $"plate is behind the batter with depth, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.X > 6, $"plate is first-base side of the box so the catcher is not the subject x={plate.Pos.X}");
+        // Third-base 3/4 so the loaded bat is not the lens. Look at the dirt
+        // around the box (ring + feet), not the brim.
+        Assert.True(StillPose.PlateIsThirdBaseThreeQuarter(plate.Pos.X, plate.Pos.Z),
+            $"plate third-base 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
-        Assert.True(plate.Target.Z > 30, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Z > 28, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Y < 1.8, $"plate look is on the dirt/box y={plate.Target.Y}");
         Assert.True(Math.Abs(plate.Target.X - 2.55) < 3, $"plate look is on the batter x={plate.Target.X}");
-        Assert.True(plate.Fov >= 52, $"plate fov {plate.Fov} too tight for feet-to-hat");
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
-        Assert.InRange(batterDist, 8, 16);
+        Assert.InRange(batterDist, 12, 22);
         Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + infield");
+        Assert.Equal(StillPose.PlateCamX, plate.Pos.X, 1);
+        Assert.Equal(StillPose.PlateCamZ, plate.Pos.Z, 1);
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind rubber z={mound.Pos.Z}");
         Assert.True(mound.Target.Z < 8, $"mound looks at the plate/box, target z={mound.Target.Z}");
         Assert.True(mound.Pos.X > 6, $"mound is 3/4 off the pipe x={mound.Pos.X}");

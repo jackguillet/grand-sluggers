@@ -230,7 +230,10 @@ namespace GrandSluggers.UnityClient
             {
                 PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
                 PosePitcher(HeroActor.Pose.Idle, 0, false);
-                _cam.Cut("plate");
+                _cam.CutRaw("plate",
+                    new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
+                    new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
+                    (float)StillPose.PlateFov);
                 return;
             }
 
@@ -273,7 +276,7 @@ namespace GrandSluggers.UnityClient
                 // First-base dugout sits near (36, 12). Stay home-side of the hole.
                 _cam.CutRaw("diamond-grounder",
                     new Vector3((float)StillPose.CamX, (float)StillPose.CamY, (float)StillPose.CamZ),
-                    new Vector3(gx, 1.6f, gz),
+                    new Vector3(gx, (float)StillPose.ScoopBallY, gz),
                     50f);
                 return;
             }
