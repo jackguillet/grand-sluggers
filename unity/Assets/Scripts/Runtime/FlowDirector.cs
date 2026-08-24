@@ -310,6 +310,8 @@ namespace GrandSluggers.UnityClient
             _cam.Play("lineup");
         }
 
+        static bool Key(KeyCode k) => UnityEngine.Input.GetKeyDown(k);
+
         void TickLineup()
         {
             if (Key(KeyCode.B)) _match.CycleBat(true);
