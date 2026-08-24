@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
 
         static GameObject _extrasKit;
         static bool _extrasMiss;
+        static GameObject _harborKit;
+        static bool _harborMiss;
 
         /// <summary>Shared extras kit (brim, crown, goggles, …). Null keeps primitive extras.</summary>
         public static GameObject LoadExtrasKit()
@@ -172,6 +174,38 @@ namespace GrandSluggers.UnityClient
         {
             if (_art != null && _art.TryPark(parkId, out var kit)) return kit.Slot;
             return "";
+        }
+
+        /// <summary>Harbor kit FBX. Null keeps HarborKit primitive dress.</summary>
+        public static GameObject LoadParkKit(string parkId)
+        {
+            if (string.IsNullOrWhiteSpace(parkId)) return null;
+            if (!parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase))
+                return null;
+            if (_harborKit != null) return _harborKit;
+            if (_harborMiss) return null;
+            var slot = ParkKitPath(parkId);
+            if (string.IsNullOrWhiteSpace(slot))
+            {
+                _harborMiss = true;
+                return null;
+            }
+            var path = slot;
+            if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                path = slot.TrimEnd('/') + "/harbor-kit.fbx";
+            var key = SlotToResources(path);
+            if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                key = key.Substring(0, key.Length - 4);
+            var go = Resources.Load<GameObject>(key);
+            if (go == null && EditorLoadPrefab != null)
+                go = EditorLoadPrefab(path);
+            if (go == null)
+            {
+                _harborMiss = true;
+                return null;
+            }
+            _harborKit = go;
+            return go;
         }
 
         public static SkinSlot SkinOf(Character who)

@@ -1,3 +1,4 @@
+using System;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -58,6 +59,7 @@ namespace GrandSluggers.UnityClient
         Transform _plateAwayTens, _plateAwayOnes, _plateHomeTens, _plateHomeOnes;
         Material _ledOn;
         Material _ledOff;
+        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
 
@@ -398,8 +400,29 @@ namespace GrandSluggers.UnityClient
         void DressDugouts()
         {
             Wipe(Dugouts);
+            if (DropDugout(DugoutX, "1B") && DropDugout(-DugoutX, "3B"))
+                return;
+            Wipe(Dugouts);
             BuildDugout(DugoutX, "1B");
             BuildDugout(-DugoutX, "3B");
+        }
+
+        bool DropDugout(float x, string side)
+        {
+            var mesh = x > 0f ? "dugout-1b" : "dugout-3b";
+            var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), Quaternion.identity, Vector3.one, paint: true);
+            if (go == null) return false;
+            var inward = x > 0f ? -1f : 1f;
+            var backX = x - inward * DugoutHalfDeep;
+            SitRow(
+                Dugouts,
+                "Dug" + side + "Sit",
+                new Vector3(backX + inward * 1.7f, 0f, DugoutZ),
+                new Vector3(0f, 0f, DugoutHalfAlong * 1.55f),
+                5,
+                side == "1B" ? 11 : 71,
+                side == "1B");
+            return true;
         }
 
         /// <summary>
@@ -476,8 +499,11 @@ namespace GrandSluggers.UnityClient
                 var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
                 var p = radial * fence;
                 var rot = Quaternion.LookRotation(radial, Vector3.up);
-                Box(WallDress, "Wall" + i, p + Vector3.up * 4.4f, new Vector3(17.2f, 8.8f, 1.45f), rot, pad);
-                Box(WallDress, "Cap" + i, p + Vector3.up * 8.92f, new Vector3(17.2f, 0.26f, 1.85f), rot, cap);
+                if (DropMesh("wall-panel", WallDress, "Wall" + i, p, rot, Vector3.one, paint: true) == null)
+                {
+                    Box(WallDress, "Wall" + i, p + Vector3.up * 4.4f, new Vector3(17.2f, 8.8f, 1.45f), rot, pad);
+                    Box(WallDress, "Cap" + i, p + Vector3.up * 8.92f, new Vector3(17.2f, 0.26f, 1.85f), rot, cap);
+                }
                 if (i % 2 == 0)
                     Box(WallDress, "Ad" + i, p - radial * 0.85f + Vector3.up * 5.5f, new Vector3(10.5f, 2.6f, 0.22f), rot, ads[Mathf.Abs(i) % ads.Length]);
                 if (i % 3 == 0)
@@ -586,6 +612,8 @@ namespace GrandSluggers.UnityClient
                 var p = origin + along * u;
                 p.z += (Hash01(seed + i) - 0.5f) * 0.2f;
                 var body = Look.Toon(jersey[i % jersey.Length]);
+                if (DropFan("fan-sit", parent, name + i, p, body))
+                    continue;
                 Capsule(parent, name + "Body" + i, p + new Vector3(0f, 0.78f, 0f), new Vector3(0.58f, 0.42f, 0.58f), body);
                 Sphere(parent, name + "Head" + i, p + new Vector3(0f, 1.32f, 0f), 0.32f, i % 4 == 0 ? dark : flesh);
             }
@@ -618,6 +646,11 @@ namespace GrandSluggers.UnityClient
                     p.x += (Hash01(seed + n) - 0.5f) * 0.45f;
                     p.z += (Hash01(seed + n + 9) - 0.5f) * 0.4f;
                     var body = Look.Toon(jersey[n % jersey.Length]);
+                    if (DropFan("fan-stand", root, "Fan" + n, p, body))
+                    {
+                        n++;
+                        continue;
+                    }
                     Capsule(root, "Body" + n, p + new Vector3(0f, 0.92f, 0f), new Vector3(0.62f, 0.62f, 0.62f), body);
                     Sphere(root, "Head" + n, p + new Vector3(0f, 1.68f, 0f), 0.34f, n % 5 == 0 ? dark : flesh);
                     n++;
@@ -763,6 +796,92 @@ namespace GrandSluggers.UnityClient
             n ^= n >> 13;
             n *= 1274126177u;
             return (n & 0xFFFF) / 65535f;
+        }
+
+        bool DropFan(string mesh, Transform parent, string name, Vector3 pos, Material jersey)
+        {
+            var go = DropMesh(mesh, parent, name, pos, Quaternion.identity, Vector3.one, paint: false);
+            if (go == null) return false;
+            PaintFan(go, jersey);
+            return true;
+        }
+
+        Transform DropMesh(string meshName, Transform parent, string instanceName, Vector3 pos, Quaternion rot, Vector3 scale, bool paint)
+        {
+            var kit = ArtBinder.LoadParkKit("harbor-diamond");
+            if (kit == null) return null;
+            var src = FindDeep(kit.transform, meshName);
+            if (src == null) return null;
+            var go = UnityEngine.Object.Instantiate(src.gameObject, parent);
+            go.name = instanceName;
+            go.transform.SetPositionAndRotation(pos, rot);
+            go.transform.localScale = scale;
+            foreach (var anim in go.GetComponentsInChildren<Animator>(true))
+                anim.enabled = false;
+            if (paint) PaintKit(go.transform);
+            return go.transform;
+        }
+
+        static Transform FindDeep(Transform t, string name)
+        {
+            if (t.name.Equals(name, StringComparison.OrdinalIgnoreCase)) return t;
+            for (var i = 0; i < t.childCount; i++)
+            {
+                var f = FindDeep(t.GetChild(i), name);
+                if (f != null) return f;
+            }
+            return null;
+        }
+
+        void EnsureKitMats()
+        {
+            if (_kitWood != null) return;
+            _kitWood = Look.Toon(new Color(0.42f, 0.26f, 0.12f));
+            _kitRoof = Look.Toon(new Color(0.14f, 0.32f, 0.20f));
+            _kitGold = Look.Toon(Colors.Gold);
+            _kitPad = Look.Toon(new Color(0.16f, 0.42f, 0.28f));
+            _kitPost = Look.Toon(new Color(0.28f, 0.22f, 0.16f));
+            _kitFlesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+        }
+
+        void PaintKit(Transform t)
+        {
+            EnsureKitMats();
+            foreach (var r in t.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                var next = new Material[mats.Length];
+                for (var i = 0; i < mats.Length; i++)
+                {
+                    var n = mats[i] != null ? mats[i].name.ToLowerInvariant() : "";
+                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia") || n.Contains("rail"))
+                        next[i] = _kitGold;
+                    else if (n.Contains("roof")) next[i] = _kitRoof;
+                    else if (n.Contains("pad")) next[i] = _kitPad;
+                    else if (n.Contains("post")) next[i] = _kitPost;
+                    else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
+                    else next[i] = _kitWood;
+                }
+                r.sharedMaterials = next;
+            }
+        }
+
+        void PaintFan(Transform fan, Material jersey)
+        {
+            EnsureKitMats();
+            foreach (var r in fan.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                var next = new Material[mats.Length];
+                for (var i = 0; i < mats.Length; i++)
+                {
+                    var n = mats[i] != null ? mats[i].name.ToLowerInvariant() : "";
+                    if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
+                    else if (n.Contains("gold") || n.Contains("cap")) next[i] = _kitGold;
+                    else next[i] = jersey;
+                }
+                r.sharedMaterials = next;
+            }
         }
 
         static void Cube(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)

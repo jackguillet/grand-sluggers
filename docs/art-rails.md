@@ -34,7 +34,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
 | Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
 | Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` / `ToonFill` |
-| Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `HarborKit` dress (field-open dugout, facing stars, rotated wall); `ParkView` elsewhere |
+| Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `harbor-kit.fbx` bind; else `HarborKit` primitive dress; `ParkView` elsewhere |
 
 Role players inherit the faction body type and **must not** grow captain extras (crown, horns, snout). That is how 18 bodies stay cheap.
 
