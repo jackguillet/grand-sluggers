@@ -140,6 +140,20 @@ public sealed class Match
         Top = false;
     }
 
+    /// <summary>Home captain in the box. Still-gate plate / star.</summary>
+    public void SkipToHomeCaptainAtBat()
+    {
+        if (Over) return;
+        SkipToHomeHalf();
+        for (var i = 0; i < HomeOrder.Count; i++)
+        {
+            if (!HomeOrder[i].Id.Equals(Home.Captain.Id, StringComparison.OrdinalIgnoreCase))
+                continue;
+            HomeBatter = i;
+            return;
+        }
+    }
+
     public void GiveOffenseStars(double n)
     {
         n = Math.Clamp(n, 0, 5);

@@ -76,6 +76,10 @@ public class FeelInfraTests
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
         Assert.Equal("bag", tag.Look, ignoreCase: true);
+        var smash = _content.Shots.Must("smash");
+        Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov} is a nostril");
+        Assert.True(Math.Abs(smash.Pos.Z) >= 6, $"smash sits on the body, z={smash.Pos.Z}");
+        Assert.True(smash.Pos.Y >= 1.4, $"smash cam height {smash.Pos.Y}");
     }
 
     [Fact]
