@@ -8,7 +8,7 @@ public static class AuthoredAudio
 {
     public static string Dir(string dataRoot) => Path.Combine(dataRoot, "art", "audio-clips");
 
-    public static IReadOnlySet<string> Ids(string dataRoot)
+    public static HashSet<string> Ids(string dataRoot)
     {
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var dir = Dir(dataRoot);
