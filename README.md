@@ -41,9 +41,9 @@ unity/    Unity 6 URP client — this is how you play
 
 1. Install Unity Hub and editor **6000.5.9f1** (URP). Personal license is enough.
 2. Open the `unity/` folder. If the scene is empty, menu **Grand Sluggers → Bootstrap Scene**.
-3. Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Gamepad first; keyboard is debug.
+3. Press **Play** on `Assets/Scenes/HarborDiamond.unity`. Gamepad is the couch product; keyboard is the same scheme.
 
-Controls, Exhibition flow, Training drills, and debug overlay: **[docs/how-to-play.md](docs/how-to-play.md)**. Update that file in the same PR when verbs or cameras change.
+Controls, Exhibition flow, Training drills, and F1/F2/F3 debug: **[docs/how-to-play.md](docs/how-to-play.md)**. Update that file in the same PR when verbs or cameras change.
 
 Sim tests and a headless match (no window, no presentation):
 

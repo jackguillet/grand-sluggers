@@ -340,6 +340,96 @@ public class GameplayTests
     }
 
     [Fact]
+    public void FairContactPutsTheBatterOnFirst()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        var who = match.Batter;
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        Assert.True(InPlay.FairContactSendsBatter(hit));
+        var field = new FieldingResult(PlayKind.Single, match.Pitcher, null, 0.8, 20, 40, false, false);
+        var ev = match.FinishAtBat(paint, swing, hit with { InPlay = true, Foul = false }, field);
+        Assert.Equal(PlayKind.Single, ev.Kind);
+        Assert.NotNull(match.First);
+        Assert.Equal(who.Id, match.First.Id);
+    }
+
+    [Fact]
+    public void AllAdvanceMovesFirstAndSecondAllReturnBringsThemBack()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        Assert.False(match.AdvanceAll());
+        Assert.False(match.ReturnAll());
+        Assert.False(match.FreezeRunners());
+        WalkOn(match);
+        WalkOnSecond(match);
+        Assert.NotNull(match.First);
+        Assert.NotNull(match.Second);
+        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
+        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
+        Assert.True(match.AdvanceAll(0.4));
+        Assert.True(match.SendAll);
+        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.39, 0.41);
+        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.39, 0.41);
+        Assert.True(match.ReturnAll(0.4));
+        Assert.False(match.SendAll);
+        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
+        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
+        Assert.True(match.AdvanceAll(0.3));
+        Assert.True(match.FreezeRunners());
+        Assert.False(match.SendAll);
+        Assert.False(match.StealOn);
+        Assert.True(match.TakeLead(0.2));
+        Assert.True(match.ToggleSteal());
+        Assert.True(match.StealOn);
+    }
+
+    [Fact]
+    public void FlyDefaultHoldsThirdUntilAllAdvance()
+    {
+        var hold = FlyWithThird(sendAll: false);
+        Assert.False(hold.Scored, "default fly holds; no sac");
+        var go = FlyWithThird(sendAll: true);
+        Assert.True(go.Scored, "all-advance tags up after the catch");
+    }
+
+    (bool Scored, PlayKind Kind) FlyWithThird(bool sendAll)
+    {
+        for (var seed = 1; seed <= 24; seed++)
+        {
+            var match = Match.Slice(_content, seed: seed);
+            WalkOn(match);
+            WalkOnSecond(match);
+            WalkOnThird(match);
+            if (match.Third is null) continue;
+            var thirdId = match.Third.Id;
+            if (sendAll) match.AdvanceAll(0.3);
+            var paint = new PitchCommand("fastball", 0, 0, false);
+            var swing = new SwingCommand(true, 0, 0, false);
+            if (!match.BeginAtBat(paint, swing, out var hit, out _))
+                continue;
+            var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 280, false, false);
+            var deep = hit with { InPlay = true, Foul = false, CarryFt = 280, LaunchDeg = 32 };
+            var ev = match.FinishAtBat(paint, swing, deep, field);
+            var scored = ev.RunsScored > 0 || ev.Caption.Contains("Sac fly");
+            if (!sendAll)
+                Assert.True(match.Third is null || match.Third.Id == thirdId || match.Outs >= 3);
+            return (scored, ev.Kind);
+        }
+        return (false, PlayKind.FlyOut);
+    }
+
+    static void WalkOnThird(Match match)
+    {
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        while (match.Third is null && !match.Over)
+            match.Play(wild, take);
+        Assert.NotNull(match.Third);
+    }
+
+    [Fact]
     public void LickCatchAddsCatchRadius()
     {
         Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig")));

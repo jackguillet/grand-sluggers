@@ -88,7 +88,12 @@ public sealed class FeelTable
         double cameraBlend,
         double chargeDecay,
         double runHz,
-        double fieldAssistStick)
+        double fieldAssistStick,
+        double pitcherReadySeconds,
+        double afterOutSeconds,
+        double inPlayCommitSeconds,
+        double cpuVsHumanTake,
+        double cpuVsHumanMiss)
     {
         PitchChargeSeconds = pitchChargeSeconds;
         SwingChargeSeconds = swingChargeSeconds;
@@ -100,6 +105,11 @@ public sealed class FeelTable
         ChargeDecay = chargeDecay;
         RunHz = runHz;
         FieldAssistStick = fieldAssistStick;
+        PitcherReadySeconds = pitcherReadySeconds;
+        AfterOutSeconds = afterOutSeconds;
+        InPlayCommitSeconds = inPlayCommitSeconds;
+        CpuVsHumanTake = cpuVsHumanTake;
+        CpuVsHumanMiss = cpuVsHumanMiss;
     }
 
     public double PitchChargeSeconds { get; }
@@ -112,6 +122,11 @@ public sealed class FeelTable
     public double ChargeDecay { get; }
     public double RunHz { get; }
     public double FieldAssistStick { get; }
+    public double PitcherReadySeconds { get; }
+    public double AfterOutSeconds { get; }
+    public double InPlayCommitSeconds { get; }
+    public double CpuVsHumanTake { get; }
+    public double CpuVsHumanMiss { get; }
 
     public static FeelTable Load(string dataRoot)
     {
@@ -127,6 +142,11 @@ public sealed class FeelTable
         if (dto.PitchChargeSeconds <= 0 || dto.SmashFreeze <= 0)
             throw new InvalidDataException("Feel table charge and smash freeze must be positive");
         var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : FieldAssist.StickTake;
+        var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
+        var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
+        var commit = dto.InPlayCommitSeconds > 0 ? dto.InPlayCommitSeconds : 1.6;
+        var take = dto.CpuVsHumanTake > 0 ? dto.CpuVsHumanTake : 0.32;
+        var miss = dto.CpuVsHumanMiss > 0 ? dto.CpuVsHumanMiss : 0.22;
         return new FeelTable(
             dto.PitchChargeSeconds,
             dto.SwingChargeSeconds,
@@ -137,7 +157,12 @@ public sealed class FeelTable
             dto.CameraBlend,
             dto.ChargeDecay,
             dto.RunHz,
-            assist);
+            assist,
+            ready,
+            after,
+            commit,
+            take,
+            miss);
     }
 
     sealed class FeelDto
@@ -152,5 +177,10 @@ public sealed class FeelTable
         public double ChargeDecay { get; set; } = 1.4;
         public double RunHz { get; set; } = 2.55;
         public double FieldAssistStick { get; set; } = 0.35;
+        public double PitcherReadySeconds { get; set; } = 0.55;
+        public double AfterOutSeconds { get; set; } = 1.35;
+        public double InPlayCommitSeconds { get; set; } = 1.6;
+        public double CpuVsHumanTake { get; set; } = 0.32;
+        public double CpuVsHumanMiss { get; set; } = 0.22;
     }
 }

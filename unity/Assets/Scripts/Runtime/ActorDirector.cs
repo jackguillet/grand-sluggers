@@ -286,10 +286,16 @@ namespace GrandSluggers.UnityClient
             if (_match == null || _match.LeadBag == 0) return;
             if (HumanBats && _phase is Phase.Set or Phase.Flight)
             {
+                if (Controls.FreezeRunners)
+                    _match.FreezeRunners();
+                else if (Controls.AllAdvance)
+                    _match.AdvanceAll(dt * 1.7f);
+                else if (Controls.AllReturn)
+                    _match.ReturnAll(dt * 2.0f);
                 var bag = _match.LeadBag;
                 var next = bag == 3 ? 4 : bag + 1;
                 var prev = bag == 1 ? 4 : bag - 1;
-                var stick = Controls.StickBag;
+                var stick = Controls.AimBag;
                 if (stick == next) _match.TakeLead(dt * 1.7f);
                 else if (stick == bag || stick == prev) _match.ReturnToBag(dt * 2.0f);
                 if (Controls.Steal) _match.ToggleSteal();

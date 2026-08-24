@@ -261,7 +261,12 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
-                HudView.BagTell(_throwBag > 0 ? _throwBag : Controls.StickBag);
+            {
+                var hopper = _preview != null && _preview.Grounder;
+                var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
+                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : Controls.ThrowBag, stick, true);
+                HudView.BagTell(InPlay.CommitBag(armed, hopper, Controls.Cutoff));
+            }
             if (_feelDebug)
             {
                 var verb = "";

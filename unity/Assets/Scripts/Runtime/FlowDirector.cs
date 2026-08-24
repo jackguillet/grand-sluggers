@@ -30,7 +30,8 @@ namespace GrandSluggers.UnityClient
         void TickResult()
         {
             if (_gun) return;
-            if (_t <= (_last?.Kind == PlayKind.HomeRun ? 2.4f : 1.35f)) return;
+            var hold = _last?.Kind == PlayKind.HomeRun ? 2.4f : (float)_feel.AfterOutSeconds;
+            if (_t <= hold) return;
             if (TrainingOn && _coach.Session.Finished)
             {
                 EndTraining();
@@ -336,7 +337,7 @@ namespace GrandSluggers.UnityClient
                 var who = _homeDraft.Order[_lineupSlot];
                 _homeDraft.CycleGlove(who.Id);
             }
-            if (Controls.Steal)
+            if (Controls.AllAdvanceDown)
             {
                 _lineupTouched = true;
                 _homeDraft.SwapOrder(_lineupSlot, _lineupSlot - 1);
