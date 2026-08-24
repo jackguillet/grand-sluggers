@@ -92,6 +92,11 @@ public class FeelInfraTests
         Assert.True(smash.Pos.X > 5, $"smash is a 3/4 off the pipe, not through the catcher x={smash.Pos.X}");
         Assert.True(smash.Pos.Z > 4, $"smash looks from the field, not behind home z={smash.Pos.Z}");
         Assert.True(smash.Pos.Y >= 1.4, $"smash cam height {smash.Pos.Y}");
+        Assert.True(smash.Pos.X > smash.Pos.Z,
+            $"smash is side-on, not from behind x={smash.Pos.X} z={smash.Pos.Z}");
+        Assert.True(smash.Target.Y >= 0.4, $"smash looks at the torso y={smash.Target.Y}");
+        Assert.True(Math.Abs(smash.Target.X) < 0.8, $"smash looks at the body x={smash.Target.X}");
+        Assert.True(smash.Target.Z < 1.5, $"smash looks at the body z={smash.Target.Z}");
     }
 
     [Fact]

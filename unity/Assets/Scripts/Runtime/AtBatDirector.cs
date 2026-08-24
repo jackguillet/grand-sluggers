@@ -345,7 +345,7 @@ namespace GrandSluggers.UnityClient
             {
                 _freeze = (float)_feel.SmashFreeze;
                 _smash = (float)_feel.SmashHold;
-                _cam.SmashAt(_ball);
+                _cam.SmashAt(SmashLook());
                 _audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Solid)
@@ -361,13 +361,20 @@ namespace GrandSluggers.UnityClient
             AimDiamond(hit);
         }
 
+        Vector3 SmashLook()
+        {
+            if (_match?.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var b) && b != null)
+                return b.transform.position + Vector3.up * 3.2f;
+            return _ball.sqrMagnitude > 0.4f ? _ball : new Vector3(2.55f, 3.2f, 2.4f);
+        }
+
         void AimDiamond(AtBatResult hit)
         {
             var id = InPlay.TheaterShot(hit);
             var look = _ball.sqrMagnitude > 1 ? _ball : new Vector3((float)(_preview?.LandingX ?? 0), 3f, (float)(_preview?.LandingZ ?? 80));
             if (id == "smash")
             {
-                _cam.SmashAt(_ball);
+                _cam.SmashAt(SmashLook());
                 return;
             }
             if (FieldingResolver.IsGrounder(hit) || FieldingResolver.IsLine(hit))
