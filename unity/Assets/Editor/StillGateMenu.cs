@@ -18,9 +18,8 @@ namespace GrandSluggers.EditorTools
             var path = StillRequest.RequestPath(temp);
             if (!File.Exists(path))
             {
-                File.WriteAllText(path, """
-                    {"shots":["title","plate","mound"],"home":"rio","away":"ashlord","hudOff":true}
-                    """);
+                File.WriteAllText(path,
+                    "{\"shots\":[\"title\",\"plate\",\"mound\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true}");
             }
             try { File.Delete(StillRequest.DonePath(temp)); }
             catch { /* first run */ }
