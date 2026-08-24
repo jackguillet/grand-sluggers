@@ -83,6 +83,13 @@ public class FeelInfraTests
     }
 
     [Fact]
+    public void BaseballDiameterReadsOnPlateWithoutEatingMound()
+    {
+        Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);
+        Assert.True(Baseball.DiameterFt < 1.0, "1.5 ft was a beach ball on mound");
+    }
+
+    [Fact]
     public void FeelTableChargeAndSmashArePositive()
     {
         var feel = _content.Feel;

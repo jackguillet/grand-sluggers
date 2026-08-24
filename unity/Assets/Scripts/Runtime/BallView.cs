@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -19,7 +20,8 @@ namespace GrandSluggers.UnityClient
         float _puffT = -1f;
         Vector3 _lastPlace;
         bool _hadPlace;
-        const float Sit = 0.55f;
+        static readonly float Diameter = (float)Baseball.DiameterFt;
+        static readonly float Sit = Diameter * 0.5f;
 
         public bool Held => _held != null;
 
@@ -39,15 +41,15 @@ namespace GrandSluggers.UnityClient
             _ball.name = "Mesh";
             _ball.transform.SetParent(_root, false);
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
-            _ball.transform.localScale = Vector3.one * 1.5f;
+            _ball.transform.localScale = Vector3.one * Diameter;
             Destroy(_ball.GetComponent<Collider>());
             Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
             Stitch(_ball.transform);
 
             _trail = _ball.AddComponent<TrailRenderer>();
             _trail.time = 0.42f;
-            _trail.startWidth = 0.55f;
-            _trail.endWidth = 0.04f;
+            _trail.startWidth = Diameter * 0.35f;
+            _trail.endWidth = Diameter * 0.04f;
             _trail.material = new Material(Shader.Find("Sprites/Default") ?? Look.LitShader);
             _trail.startColor = Color.white;
             _trail.endColor = new Color(1, 1, 1, 0);
@@ -63,7 +65,7 @@ namespace GrandSluggers.UnityClient
 
             var dirt = Look.Unlit(new Color(0.12f, 0.1f, 0.08f, 0.55f));
             _shadow = Look.Prim(PrimitiveType.Cylinder, "BallShadow", parent,
-                new Vector3(0, 0.05f, 0), new Vector3(1.8f, 0.04f, 1.8f), dirt).transform;
+                new Vector3(0, 0.05f, 0), new Vector3(Diameter * 1.2f, 0.04f, Diameter * 1.2f), dirt).transform;
             _shadow.gameObject.SetActive(false);
 
             _puff = new GameObject("HopPuff").transform;
@@ -142,7 +144,7 @@ namespace GrandSluggers.UnityClient
         void ApplyLook(string star, string type, bool heat)
         {
             Color col;
-            var scale = 1.5f;
+            var scale = Diameter;
             var glow = 0f;
             var glowCol = Colors.EmberFire;
             var matCol = new Color(0.96f, 0.93f, 0.86f);
@@ -152,7 +154,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = Colors.EmberFire;
                 col = Colors.EmberFire;
-                scale = 1.75f;
+                scale = Diameter * 1.15f;
                 glow = 3.6f;
                 smooth = 0.15f;
             }
@@ -160,7 +162,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(1f, 0.45f, 0.7f);
                 col = matCol;
-                scale = 1.5f;
+                scale = Diameter;
                 glow = 2.2f;
                 glowCol = matCol;
                 smooth = 0.4f;
@@ -169,7 +171,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.55f, 1f, 0.75f);
                 col = Color.HSVToRGB((Time.time * 0.4f) % 1f, 0.7f, 1f);
-                scale = 1.45f;
+                scale = Diameter;
                 glow = 1.8f;
                 glowCol = col;
             }
@@ -177,7 +179,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.12f, 0.08f, 0.14f);
                 col = new Color(0.7f, 0.2f, 0.85f);
-                scale = 1.9f;
+                scale = Diameter * 1.22f;
                 glow = 2.4f;
                 glowCol = col;
                 smooth = 0.1f;
@@ -186,7 +188,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.42f, 0.24f, 0.1f);
                 col = matCol;
-                scale = 2.1f;
+                scale = Diameter * 1.3f;
                 glow = 0.6f;
                 glowCol = matCol;
                 smooth = 0.08f;
@@ -195,7 +197,7 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.95f, 0.95f, 0.7f);
                 col = matCol;
-                scale = 1.4f;
+                scale = Diameter * 1.05f;
             }
             else
             {
@@ -264,7 +266,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_shadow == null) return;
             var h = Mathf.Max(0f, p.y);
-            var s = Mathf.Lerp(2.6f, 0.7f, Mathf.Clamp01(h / 38f));
+            var s = Mathf.Lerp(Diameter * 1.7f, Diameter * 0.55f, Mathf.Clamp01(h / 38f));
             _shadow.position = new Vector3(p.x, 0.04f, p.z);
             _shadow.localScale = new Vector3(s, 0.04f, s);
             _shadow.gameObject.SetActive(true);
