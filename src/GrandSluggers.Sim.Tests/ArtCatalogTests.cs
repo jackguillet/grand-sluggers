@@ -86,6 +86,25 @@ public class ArtCatalogTests
     }
 
     [Fact]
+    public void BodyTypesAreToyProportionsThatStillCutDifferently()
+    {
+        foreach (var id in Silhouette.Captains)
+        {
+            var spec = Silhouette.Proportions(id);
+            Assert.True(Silhouette.HeadToHeight(spec) >= 1.0f,
+                id + " head/height " + Silhouette.HeadToHeight(spec) + " — face must read at plate");
+        }
+        var rio = Silhouette.Proportions("rio");
+        var vale = Silhouette.Proportions("vale");
+        var zig = Silhouette.Proportions("zig");
+        var brondo = Silhouette.Proportions("brondo");
+        Assert.True(vale.Height > rio.Height, "vale stays tall");
+        Assert.True(vale.Width < rio.Width, "vale stays slim");
+        Assert.True(zig.Head / zig.Height > rio.Head / rio.Height, "zig stays huge-head");
+        Assert.True(brondo.Width > rio.Width && brondo.Torso > rio.Torso, "brondo stays brick");
+    }
+
+    [Fact]
     public void EveryParkHasAKitSlotAndHarborIsPlaced()
     {
         foreach (var id in _content.Parks.Keys)
