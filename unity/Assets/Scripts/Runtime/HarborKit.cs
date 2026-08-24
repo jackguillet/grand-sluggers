@@ -39,6 +39,17 @@ namespace GrandSluggers.UnityClient
         public Transform Bag2;
         public Transform Bag3;
 
+        // 1B at +X, 3B at −X. Open to the infield. StarMeter sits on this fascia.
+        public const float DugoutX = 42f;
+        public const float DugoutZ = 21.4f;
+        public const float DugoutHalfAlong = 6.2f;
+        public const float DugoutHalfDeep = 4.6f;
+        public const float DugoutFasciaY = 4.18f;
+        public const float DugoutStarSpacing = 2.05f;
+        public const float DugoutStarZ0 = 17.3f;
+
+        public static float DugoutFieldX(float x) => x > 0f ? x - DugoutHalfDeep : x + DugoutHalfDeep;
+
         bool _dressed;
         CameraShots _shots;
         Park _park;
@@ -387,34 +398,49 @@ namespace GrandSluggers.UnityClient
         void DressDugouts()
         {
             Wipe(Dugouts);
-            BuildDugout(42f, "1B");
-            BuildDugout(-42f, "3B");
+            BuildDugout(DugoutX, "1B");
+            BuildDugout(-DugoutX, "3B");
         }
 
-        /// <summary>Open toy shelter: posts, back wall, sloped roof, bench. Not a stacked slab.</summary>
+        /// <summary>
+        /// Pavilion open to the infield. Scoop cam sits at the home-facing
+        /// end — a field-side wall there is a brown box. Back wall + far
+        /// end + roof + rail + bench. People sit. Stars live on the fascia.
+        /// </summary>
         void BuildDugout(float x, string side)
         {
             var wood = Look.Toon(new Color(0.42f, 0.26f, 0.12f));
-            var roof = Look.Toon(new Color(0.16f, 0.30f, 0.20f));
+            var roofMat = Look.Toon(new Color(0.14f, 0.32f, 0.20f));
             var pad = Look.Lit(new Color(0.58f, 0.40f, 0.24f), Look.Dirt, 3f, 0.1f);
             var rail = Look.Toon(Colors.Gold);
             var post = Look.Toon(new Color(0.28f, 0.22f, 0.16f));
-            var zFront = 16.6f;
-            var zBack = 25.8f;
-            var zMid = (zFront + zBack) * 0.5f;
-            Cube(Dugouts, "Dug" + side + "Pad", new Vector3(x, 0.12f, zMid), new Vector3(18.5f, 0.22f, 9.6f), pad);
-            Cylinder(Dugouts, "Dug" + side + "PostFL", new Vector3(x - 8.2f, 0f, zFront + 0.6f), 0.28f, 4.15f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostFR", new Vector3(x + 8.2f, 0f, zFront + 0.6f), 0.28f, 4.15f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBL", new Vector3(x - 8.2f, 0f, zBack - 0.5f), 0.28f, 4.4f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBR", new Vector3(x + 8.2f, 0f, zBack - 0.5f), 0.28f, 4.4f, post);
-            Cube(Dugouts, "Dug" + side + "Back", new Vector3(x, 2.15f, zBack), new Vector3(17.6f, 4.2f, 0.42f), wood);
-            Cube(Dugouts, "Dug" + side + "SideL", new Vector3(x - 8.9f, 2.05f, zMid), new Vector3(0.38f, 4.0f, 8.8f), wood);
-            Cube(Dugouts, "Dug" + side + "SideR", new Vector3(x + 8.9f, 2.05f, zMid), new Vector3(0.38f, 4.0f, 8.8f), wood);
-            Slab(Dugouts, "Dug" + side + "Roof", new Vector3(x, 4.55f, zMid + 0.2f), new Vector3(19.4f, 0.32f, 10.6f), Quaternion.Euler(10f, 0f, 0f), roof);
-            Cube(Dugouts, "Dug" + side + "Fascia", new Vector3(x, 3.42f, zFront), new Vector3(18.2f, 0.26f, 0.38f), rail);
-            Cube(Dugouts, "Dug" + side + "Bench", new Vector3(x, 0.92f, zBack - 2.4f), new Vector3(15.5f, 0.22f, 1.7f), wood);
-            Cylinder(Dugouts, "Dug" + side + "LegL", new Vector3(x - 6.4f, 0f, zBack - 2.4f), 0.16f, 0.82f, post);
-            Cylinder(Dugouts, "Dug" + side + "LegR", new Vector3(x + 6.4f, 0f, zBack - 2.4f), 0.16f, 0.82f, post);
+            var inward = x > 0f ? -1f : 1f;
+            var fieldX = DugoutFieldX(x);
+            var backX = x - inward * DugoutHalfDeep;
+            var zMid = DugoutZ;
+            var zHome = zMid - DugoutHalfAlong;
+            var zFirst = zMid + DugoutHalfAlong;
+            Cube(Dugouts, "Dug" + side + "Pad", new Vector3(x, 0.10f, zMid), new Vector3(DugoutHalfDeep * 2f + 1.2f, 0.20f, DugoutHalfAlong * 2f + 0.8f), pad);
+            Cylinder(Dugouts, "Dug" + side + "PostFH", new Vector3(fieldX, 0f, zHome + 0.45f), 0.26f, 4.05f, post);
+            Cylinder(Dugouts, "Dug" + side + "PostFF", new Vector3(fieldX, 0f, zFirst - 0.45f), 0.26f, 4.05f, post);
+            Cylinder(Dugouts, "Dug" + side + "PostBH", new Vector3(backX, 0f, zHome + 0.45f), 0.26f, 4.2f, post);
+            Cylinder(Dugouts, "Dug" + side + "PostBF", new Vector3(backX, 0f, zFirst - 0.45f), 0.26f, 4.2f, post);
+            Cube(Dugouts, "Dug" + side + "Back", new Vector3(backX, 2.05f, zMid), new Vector3(0.40f, 4.0f, DugoutHalfAlong * 2f - 0.5f), wood);
+            Cube(Dugouts, "Dug" + side + "End", new Vector3(x, 2.0f, zFirst), new Vector3(DugoutHalfDeep * 2f - 0.2f, 3.9f, 0.36f), wood);
+            Cube(Dugouts, "Dug" + side + "Roof", new Vector3(x, 4.32f, zMid), new Vector3(DugoutHalfDeep * 2f + 1.6f, 0.26f, DugoutHalfAlong * 2f + 1.3f), roofMat);
+            Cube(Dugouts, "Dug" + side + "Fascia", new Vector3(fieldX, DugoutFasciaY, zMid), new Vector3(0.32f, 0.28f, DugoutHalfAlong * 2f + 0.5f), rail);
+            Cube(Dugouts, "Dug" + side + "Rail", new Vector3(fieldX, 1.02f, zMid), new Vector3(0.22f, 0.30f, DugoutHalfAlong * 2f - 0.9f), rail);
+            Cube(Dugouts, "Dug" + side + "Bench", new Vector3(backX + inward * 1.55f, 0.88f, zMid), new Vector3(1.45f, 0.22f, DugoutHalfAlong * 2f - 2.0f), wood);
+            Cylinder(Dugouts, "Dug" + side + "LegH", new Vector3(backX + inward * 1.55f, 0f, zHome + 1.6f), 0.14f, 0.78f, post);
+            Cylinder(Dugouts, "Dug" + side + "LegF", new Vector3(backX + inward * 1.55f, 0f, zFirst - 1.6f), 0.14f, 0.78f, post);
+            SitRow(
+                Dugouts,
+                "Dug" + side + "Sit",
+                new Vector3(backX + inward * 1.7f, 0f, zMid),
+                new Vector3(0f, 0f, DugoutHalfAlong * 1.55f),
+                5,
+                side == "1B" ? 11 : 71,
+                side == "1B");
         }
 
         void DressGrass()
@@ -425,9 +451,10 @@ namespace GrandSluggers.UnityClient
 
         void DressWall()
         {
-            var pad = Look.Toon(new Color(0.18f, 0.38f, 0.28f));
+            Wipe(WallDress);
+            var pad = Look.Toon(new Color(0.16f, 0.42f, 0.28f));
+            var cap = Look.Toon(Colors.Gold);
             var ivy = Look.Toon(new Color(0.14f, 0.48f, 0.22f));
-            var foam = Look.Toon(new Color(0.96f, 0.82f, 0.22f));
             var ads = new[]
             {
                 Look.Toon(Colors.Spark),
@@ -446,24 +473,31 @@ namespace GrandSluggers.UnityClient
                 var spray = i / 18f * 48f;
                 var fence = (float)AtBatResolver.FenceAt(_park, spray);
                 var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
-                Cube(WallDress, "Pad" + i, p + new Vector3(0f, -2.8f, 0f), new Vector3(14f, 4.4f, 2.4f), pad);
-                Cube(WallDress, "Foam" + i, p + new Vector3(0f, -0.35f, 0.2f), new Vector3(13.4f, 0.45f, 2.7f), foam);
-                Cube(WallDress, "Ad" + i, p + new Vector3(0f, 1.1f, -0.4f), new Vector3(12f, 3.4f, 0.55f), ads[Mathf.Abs(i) % ads.Length]);
+                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
+                var p = radial * fence;
+                var rot = Quaternion.LookRotation(radial, Vector3.up);
+                Box(WallDress, "Wall" + i, p + Vector3.up * 4.4f, new Vector3(17.2f, 8.8f, 1.45f), rot, pad);
+                Box(WallDress, "Cap" + i, p + Vector3.up * 8.92f, new Vector3(17.2f, 0.26f, 1.85f), rot, cap);
+                if (i % 2 == 0)
+                    Box(WallDress, "Ad" + i, p - radial * 0.85f + Vector3.up * 5.5f, new Vector3(10.5f, 2.6f, 0.22f), rot, ads[Mathf.Abs(i) % ads.Length]);
                 if (i % 3 == 0)
-                    Cube(WallDress, "Ivy" + i, p + new Vector3(0f, -3.4f, 0.6f), new Vector3(5.5f, 2.2f, 0.35f), ivy);
+                    Box(WallDress, "Ivy" + i, p - radial * 0.95f + Vector3.up * 1.6f, new Vector3(5.2f, 2.4f, 0.28f), rot, ivy);
                 if (i == 0)
                 {
-                    Cube(WallDress, "MarkSpark", p + new Vector3(0f, 1.3f, -0.85f), new Vector3(2.2f, 2.2f, 0.4f), spark);
-                    Cube(WallDress, "MarkGold", p + new Vector3(0f, 1.3f, -1.1f), new Vector3(1.1f, 1.1f, 0.35f), mark);
-                }
-                if (i == -5 || i == 5)
-                {
-                    Cube(WallDress, "WordH" + i, p + new Vector3(-2.4f, 1.35f, -0.85f), new Vector3(0.55f, 2.2f, 0.3f), mark);
-                    Cube(WallDress, "WordBar" + i, p + new Vector3(0f, 1.35f, -0.85f), new Vector3(3.6f, 0.45f, 0.3f), mark);
-                    Cube(WallDress, "WordE" + i, p + new Vector3(2.4f, 1.35f, -0.85f), new Vector3(0.55f, 2.2f, 0.3f), mark);
+                    Box(WallDress, "MarkSpark", p - radial * 1.05f + Vector3.up * 5.6f, new Vector3(2.2f, 2.2f, 0.28f), rot, spark);
+                    Box(WallDress, "MarkGold", p - radial * 1.2f + Vector3.up * 5.6f, new Vector3(1.1f, 1.1f, 0.22f), rot, mark);
                 }
             }
+            var lf = (float)_park.LeftFenceFt;
+            var rf = (float)_park.RightFenceFt;
+            var pole = Look.Toon(Colors.Gold);
+            var flag = Look.Unlit(new Color(0.95f, 0.9f, 0.55f));
+            var poleL = new Vector3(Mathf.Sin(-0.78f) * lf, 0f, Mathf.Cos(-0.78f) * lf);
+            var poleR = new Vector3(Mathf.Sin(0.78f) * rf, 0f, Mathf.Cos(0.78f) * rf);
+            Cylinder(WallDress, "PoleL", poleL, 0.55f, 44f, pole);
+            Cylinder(WallDress, "PoleR", poleR, 0.55f, 44f, pole);
+            Box(WallDress, "ScreenL", poleL + Vector3.up * 38f, new Vector3(0.2f, 18f, 8f), Quaternion.LookRotation(poleL.normalized, Vector3.up), flag);
+            Box(WallDress, "ScreenR", poleR + Vector3.up * 38f, new Vector3(0.2f, 18f, 8f), Quaternion.LookRotation(poleR.normalized, Vector3.up), flag);
         }
 
         void DressScoreboard()
@@ -536,6 +570,25 @@ namespace GrandSluggers.UnityClient
                 CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
+        }
+
+        void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)
+        {
+            if (parent == null) return;
+            var jersey = home
+                ? new[] { Colors.Spark, Color.white, Colors.Gold, Colors.Spark, new Color(0.94f, 0.94f, 0.9f) }
+                : new[] { Colors.Royal, new Color(0.14f, 0.18f, 0.34f), Color.white, Colors.Gold, new Color(0.82f, 0.28f, 0.18f) };
+            var flesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+            var dark = Look.Toon(new Color(0.36f, 0.24f, 0.16f));
+            for (var i = 0; i < n; i++)
+            {
+                var u = n <= 1 ? 0f : i / (float)(n - 1) - 0.5f;
+                var p = origin + along * u;
+                p.z += (Hash01(seed + i) - 0.5f) * 0.2f;
+                var body = Look.Toon(jersey[i % jersey.Length]);
+                Capsule(parent, name + "Body" + i, p + new Vector3(0f, 0.78f, 0f), new Vector3(0.58f, 0.42f, 0.58f), body);
+                Sphere(parent, name + "Head" + i, p + new Vector3(0f, 1.32f, 0f), 0.32f, i % 4 == 0 ? dark : flesh);
+            }
         }
 
         void CrowdBank(Transform parent, string name, Vector3 origin, Vector3 along, Vector3 across, int seats, int deep, int seed)
@@ -714,9 +767,14 @@ namespace GrandSluggers.UnityClient
 
         static void Cube(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)
         {
+            Box(parent, name, pos, scale, Quaternion.identity, mat);
+        }
+
+        static void Box(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rot, Material mat)
+        {
             if (parent == null) return;
             var go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
-            go.transform.position = pos;
+            go.transform.SetPositionAndRotation(pos, rot);
             go.transform.localScale = scale;
         }
 

@@ -110,7 +110,8 @@ namespace GrandSluggers.UnityClient
                 FoulLines();
                 Bags();
             }
-            Fence(park, ash);
+            if (!placed)
+                Fence(park, ash);
             if (harbor)
             {
                 if (!placed)
