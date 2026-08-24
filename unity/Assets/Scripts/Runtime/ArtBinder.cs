@@ -20,6 +20,9 @@ namespace GrandSluggers.UnityClient
         /// <summary>Editor Play fills this so clip FBX/anim loads without a Resources copy.</summary>
         public static Func<string, AnimationClip> EditorLoadClip;
 
+        /// <summary>Editor Play: named mesh inside a kit FBX (dugout-1b, wall-panel, …).</summary>
+        public static Func<string, string, GameObject> EditorLoadNamedMesh;
+
         static readonly Dictionary<string, AnimationClip> ClipCache =
             new Dictionary<string, AnimationClip>(StringComparer.OrdinalIgnoreCase);
         static readonly HashSet<string> ClipMiss = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -184,15 +187,12 @@ namespace GrandSluggers.UnityClient
                 return null;
             if (_harborKit != null) return _harborKit;
             if (_harborMiss) return null;
-            var slot = ParkKitPath(parkId);
-            if (string.IsNullOrWhiteSpace(slot))
+            var path = ParkKitFbx(parkId);
+            if (string.IsNullOrWhiteSpace(path))
             {
                 _harborMiss = true;
                 return null;
             }
-            var path = slot;
-            if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
-                path = slot.TrimEnd('/') + "/harbor-kit.fbx";
             var key = SlotToResources(path);
             if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
                 key = key.Substring(0, key.Length - 4);
@@ -206,6 +206,52 @@ namespace GrandSluggers.UnityClient
             }
             _harborKit = go;
             return go;
+        }
+
+        /// <summary>Named mesh in the Harbor kit FBX. Null keeps the primitive.</summary>
+        public static GameObject LoadParkMesh(string parkId, string meshName)
+        {
+            if (string.IsNullOrWhiteSpace(meshName)) return null;
+            var path = ParkKitFbx(parkId);
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            if (EditorLoadNamedMesh != null)
+            {
+                var named = EditorLoadNamedMesh(path, meshName);
+                if (named != null) return named;
+            }
+            var kit = LoadParkKit(parkId);
+            if (kit == null) return null;
+            var tf = kit.transform;
+            if (tf.name.Equals(meshName, StringComparison.OrdinalIgnoreCase))
+                return kit;
+            for (var i = 0; i < tf.childCount; i++)
+            {
+                var child = tf.GetChild(i);
+                if (child.name.Equals(meshName, StringComparison.OrdinalIgnoreCase))
+                    return child.gameObject;
+                var deep = FindChild(child, meshName);
+                if (deep != null) return deep.gameObject;
+            }
+            return null;
+        }
+
+        static Transform FindChild(Transform t, string name)
+        {
+            if (t.name.Equals(name, StringComparison.OrdinalIgnoreCase)) return t;
+            for (var i = 0; i < t.childCount; i++)
+            {
+                var f = FindChild(t.GetChild(i), name);
+                if (f != null) return f;
+            }
+            return null;
+        }
+
+        static string ParkKitFbx(string parkId)
+        {
+            var slot = ParkKitPath(parkId);
+            if (string.IsNullOrWhiteSpace(slot)) return "";
+            if (slot.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) return slot;
+            return slot.TrimEnd('/') + "/harbor-kit.fbx";
         }
 
         public static SkinSlot SkinOf(Character who)

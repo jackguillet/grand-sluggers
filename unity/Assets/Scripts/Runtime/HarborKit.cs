@@ -808,11 +808,9 @@ namespace GrandSluggers.UnityClient
 
         Transform DropMesh(string meshName, Transform parent, string instanceName, Vector3 pos, Quaternion rot, Vector3 scale, bool paint)
         {
-            var kit = ArtBinder.LoadParkKit("harbor-diamond");
-            if (kit == null) return null;
-            var src = FindDeep(kit.transform, meshName);
+            var src = ArtBinder.LoadParkMesh("harbor-diamond", meshName);
             if (src == null) return null;
-            var go = UnityEngine.Object.Instantiate(src.gameObject, parent);
+            var go = UnityEngine.Object.Instantiate(src, parent);
             go.name = instanceName;
             go.transform.SetPositionAndRotation(pos, rot);
             go.transform.localScale = scale;
@@ -820,17 +818,6 @@ namespace GrandSluggers.UnityClient
                 anim.enabled = false;
             if (paint) PaintKit(go.transform);
             return go.transform;
-        }
-
-        static Transform FindDeep(Transform t, string name)
-        {
-            if (t.name.Equals(name, StringComparison.OrdinalIgnoreCase)) return t;
-            for (var i = 0; i < t.childCount; i++)
-            {
-                var f = FindDeep(t.GetChild(i), name);
-                if (f != null) return f;
-            }
-            return null;
         }
 
         void EnsureKitMats()
