@@ -79,6 +79,7 @@ namespace GrandSluggers.UnityClient
             mesh.alignment = TextAlignment.Center;
             mesh.color = color;
             mesh.fontStyle = FontStyle.Bold;
+            go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             return mesh;
         }
     }

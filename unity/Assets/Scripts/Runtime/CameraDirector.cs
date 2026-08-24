@@ -91,6 +91,12 @@ namespace GrandSluggers.UnityClient
             _rig.Aim(pos, look, fov);
         }
 
+        public void CutRaw(string name, Vector3 pos, Vector3 look, float fov)
+        {
+            Shot = name;
+            _rig.Cut(pos, look, fov);
+        }
+
         public void SmashAt(Vector3 at)
         {
             var s = Must("smash");
