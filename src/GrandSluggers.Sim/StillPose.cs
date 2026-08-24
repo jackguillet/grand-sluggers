@@ -11,12 +11,15 @@ public static class StillPose
     public const double ScoopBallY = 0.40;
     /// <summary>Authored contact. Camera must be a side 3/4 — down the path hides the glove.</summary>
     public const double ScoopPoseT = 0.22;
-    public const double RunnerX = 42;
-    public const double RunnerZ = 42;
+    public const double RunnerX = 34;
+    public const double RunnerZ = 34;
     public const string ScoopGlove = "2B";
     public const double CamX = 8;
-    public const double CamY = 3.6;
-    public const double CamZ = 38;
+    public const double CamY = 3.2;
+    public const double CamZ = 16;
+    public const double ScoopLookX = 30;
+    public const double ScoopLookY = 0.55;
+    public const double ScoopLookZ = 30;
 
     public const double PlateCamX = -12.5;
     public const double PlateCamY = 5.5;
@@ -34,6 +37,12 @@ public static class StillPose
 
     public static bool CameraIsSideThreeQuarter(double camX, double camZ, double scoopX, double scoopZ) =>
         Math.Abs(camZ - scoopZ) > 8 && Math.Abs(camX - scoopX) > 8;
+
+    /// <summary>Runner is toward first and in front of the camera, not a sliver behind the lens.</summary>
+    public static bool RunnerLeavesInFrame(double camX, double camZ, double scoopX, double scoopZ, double runX, double runZ) =>
+        runX > scoopX && runZ > scoopZ
+        && runX < Diamond.First.X && runZ < Diamond.First.Z
+        && (runX - camX) + (runZ - camZ) > 12;
 
     public static bool PlateIsThirdBaseThreeQuarter(double x, double z) =>
         x < -6 && z < -3 && z > -12;
