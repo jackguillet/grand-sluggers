@@ -34,6 +34,8 @@ namespace GrandSluggers.UnityClient
         string _gloveVisual = "";
         Vector3 _look = Vector3.forward;
         Vector3 _baseScale = Vector3.one;
+        Vector3 _torsoRest = new Vector3(0, 2.28f, 0);
+        float _hunchDeg;
         Vector3 _ground;
         bool _hasGround;
         float _speed;
@@ -153,6 +155,8 @@ namespace GrandSluggers.UnityClient
             _rThigh = chain.RThigh;
             _rShin = chain.RShin;
             _ring = chain.Ring;
+            _torsoRest = chain.TorsoRest;
+            _hunchDeg = chain.HunchDeg;
             BuildBat("bat-wood");
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
@@ -276,7 +280,7 @@ namespace GrandSluggers.UnityClient
             var pose = Locomotion(_pose);
             var bob = 0.04f * Mathf.Sin(_t * 2.4f);
             if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
-            if (_torso != null) _torso.localPosition = new Vector3(0, 2.55f + bob, 0);
+            if (_torso != null) _torso.localPosition = _torsoRest + new Vector3(0, bob, 0);
 
             var batOn = _heldBat;
             var gloveOn = _heldGlove;
@@ -598,6 +602,8 @@ namespace GrandSluggers.UnityClient
             var poseSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Scoop or Pose.Slide;
             var kArm = poseSnap ? 0.55f : 0.2f;
             var kLeg = poseSnap ? 0.45f : 0.25f;
+            if (_hunchDeg != 0f)
+                torsoRot = Quaternion.Euler(_hunchDeg, 0, 0) * torsoRot;
             if (_torso != null)
                 _torso.localRotation = Quaternion.Slerp(_torso.localRotation, torsoRot, kArm);
             if (_head != null)
@@ -667,7 +673,10 @@ namespace GrandSluggers.UnityClient
 
         void Apply(MoveBones.Sample s, float kArm, float kLeg)
         {
-            Ease(ref _torso, s.Torso, kArm);
+            var torso = s.Torso;
+            if (_hunchDeg != 0f)
+                torso = new MoveBones.Euler(torso.X + _hunchDeg, torso.Y, torso.Z);
+            Ease(ref _torso, torso, kArm);
             Ease(ref _head, s.Head, kArm);
             Ease(ref _lArm, s.LUpper, kArm);
             Ease(ref _lFore, s.LFore, kArm);

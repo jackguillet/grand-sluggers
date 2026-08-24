@@ -158,6 +158,12 @@ public class ArtCatalogTests
         Assert.True(vale.Width < rio.Width, "vale stays slim");
         Assert.True(zig.Head / zig.Height > rio.Head / rio.Height, "zig stays huge-head");
         Assert.True(brondo.Width > rio.Width && brondo.Torso > rio.Torso, "brondo stays brick");
+        var konga = Silhouette.Proportions("konga");
+        var ashlord = Silhouette.Proportions("ashlord");
+        Assert.True(zig.Height < rio.Height, "zig is the baby");
+        Assert.True(ashlord.Height > konga.Height && ashlord.Height > vale.Height, "ashlord is the slug");
+        Assert.True(konga.Arms > ashlord.Arms && konga.Arms > rio.Arms, "konga has the ape arms");
+        Assert.True(Math.Abs(brondo.Height - rio.Height) < 0.12f, "brondo is rio-height, not a giant");
     }
 
     [Fact]
