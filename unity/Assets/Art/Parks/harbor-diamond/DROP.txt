@@ -1,0 +1,5 @@
+Harbor kit empties: Dugouts, Bleachers, WallDress, Town, Scoreboard, Backstop.
+
+HarborKit.Dress fills those. Dugout is an open shelter (posts, roof, bench), not a stacked slab.
+Crowd is capsule+sphere people on the bleachers. Do not emit a second diamond.
+Backstop stays. Other parks wait.
