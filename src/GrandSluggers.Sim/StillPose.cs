@@ -9,6 +9,7 @@ public static class StillPose
     public const double ScoopX = 24;
     public const double ScoopZ = 36;
     public const double ScoopBallY = 1.05;
+    public const double ScoopPoseT = 0.36;
     public const double RunnerX = 22;
     public const double RunnerZ = 22;
     public const string ScoopGlove = "2B";
