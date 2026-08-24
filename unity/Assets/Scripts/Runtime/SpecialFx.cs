@@ -40,7 +40,15 @@ namespace GrandSluggers.UnityClient
         Transform _heatBurn;
         Transform _heatCore;
         Transform _heatShell;
+        Transform _charmCore;
+        Transform _charmShell;
+        Transform _heartCore;
+        Transform _heartShell;
+        Transform _prismCore;
+        Transform _prismShell;
         Transform _crack;
+        readonly Transform[] _sparkles = new Transform[6];
+        readonly Transform[] _furnaceRim = new Transform[8];
         Transform _buddyFlash;
         float _t;
         float _pitchLinger;
@@ -66,18 +74,21 @@ namespace GrandSluggers.UnityClient
             foreach (var id in EventIds)
                 _groups[id] = Group(id);
 
-            _decoy = Ballish(Group("phonyball"), "Decoy", new Color(0.95f, 0.95f, 0.72f, 0.7f), 1.35f);
-            _swingDecoy = Ballish(Group("phony-swing"), "Decoy", new Color(0.95f, 0.95f, 0.72f, 0.7f), 1.35f);
+            _decoy = Ballish(Group("phonyball"), "Decoy", new Color(0.98f, 0.94f, 0.55f, 0.92f), 1.55f);
+            FakeFace(_decoy);
+            _swingDecoy = Ballish(Group("phony-swing"), "Decoy", new Color(0.98f, 0.94f, 0.55f, 0.92f), 1.55f);
+            FakeFace(_swingDecoy);
             _barrel = Barrel(Group("caskball"));
             _skull = Skull(Group("skullball"));
 
             var pink = Look.Unlit(new Color(1f, 0.32f, 0.58f));
             FillHearts(_hearts, Group("charmball"), pink);
             FillHearts(_swingHearts, Group("heart-swing"), pink);
+            FillSparkles(_sparkles, Group("charmball"));
 
             var wood = Look.Lit(new Color(0.4f, 0.22f, 0.1f), smooth: 0.1f);
             FillFrags(_bits, Group("cask-swing"), wood);
-            FillFrags(_shellBits, Group("shell-swing"), wood);
+            FillShell(_shellBits, Group("shell-swing"));
 
             var fire = Look.Unlit(Colors.EmberFire);
             FillEmbers(_embers, Group("heatball"), fire);
@@ -87,9 +98,21 @@ namespace GrandSluggers.UnityClient
                 Vector3.one * 0.9f, Look.Unlit(Colors.EmberFire)).transform;
             _heatShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("heatball"), Vector3.zero,
                 Vector3.one * 1.35f, Look.Unlit(new Color(1f, 0.45f, 0.12f, 0.55f))).transform;
+            _charmCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("charmball"), Vector3.zero,
+                Vector3.one * 0.88f, Look.Unlit(new Color(1f, 0.38f, 0.62f))).transform;
+            _charmShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("charmball"), Vector3.zero,
+                Vector3.one * 1.32f, Look.Unlit(new Color(1f, 0.55f, 0.78f, 0.5f))).transform;
+            _heartCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("heart-swing"), Vector3.zero,
+                Vector3.one * 0.88f, Look.Unlit(new Color(1f, 0.38f, 0.62f))).transform;
+            _heartShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("heart-swing"), Vector3.zero,
+                Vector3.one * 1.32f, Look.Unlit(new Color(1f, 0.55f, 0.78f, 0.5f))).transform;
+            _prismCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("prismball"), Vector3.zero,
+                Vector3.one * 0.86f, Look.Unlit(new Color(0.92f, 0.98f, 1f))).transform;
+            _prismShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("prismball"), Vector3.zero,
+                Vector3.one * 1.28f, Look.Unlit(new Color(0.55f, 1f, 0.85f, 0.45f))).transform;
 
             for (var i = 0; i < _prism.Length; i++)
-                _prism[i] = Ballish(Group("prismball"), "Prism" + i, Color.HSVToRGB(i / 3f, 0.7f, 1f), 1.1f);
+                _prism[i] = Ballish(Group("prismball"), "Prism" + i, Color.HSVToRGB(i / 3f, 0.75f, 1f), 1.25f);
 
             _laser = Line(_root, "Laser", Colors.EmberFire, 0.35f);
             _tongue = Line(_root, "Tongue", new Color(1f, 0.4f, 0.55f), 0.28f);
@@ -98,12 +121,16 @@ namespace GrandSluggers.UnityClient
             if (_throw != null) _throw.positionCount = 12;
             if (_throwBad != null) _throwBad.positionCount = 12;
 
-            _heatBurn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("heat-swing"), Vector3.zero, new Vector3(22f, 0.1f, 22f),
+            _heatBurn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("heat-swing"), Vector3.zero, new Vector3(8.2f, 0.1f, 8.2f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
-            _burn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("furnace"), Vector3.zero, new Vector3(22f, 0.1f, 22f),
+            _burn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("furnace"), Vector3.zero, new Vector3(7.4f, 0.12f, 7.4f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
-            _crack = Look.Prim(PrimitiveType.Cube, "Crack", Group("furnace"), Vector3.zero, new Vector3(14f, 0.12f, 1.1f),
+            _crack = Look.Prim(PrimitiveType.Cube, "Crack", Group("furnace"), Vector3.zero, new Vector3(8.5f, 0.14f, 0.9f),
                 Look.Lit(new Color(0.12f, 0.05f, 0.04f), smooth: 0.05f)).transform;
+            var rim = Look.Toon(new Color(0.22f, 0.08f, 0.04f));
+            for (var i = 0; i < _furnaceRim.Length; i++)
+                _furnaceRim[i] = Look.Prim(PrimitiveType.Cube, "Rim" + i, Group("furnace"), Vector3.zero,
+                    new Vector3(1.6f, 0.28f, 0.55f), rim).transform;
             _buddyFlash = Look.Prim(PrimitiveType.Cylinder, "Flash", Group("buddy-flash"), Vector3.zero, new Vector3(3.6f, 0.12f, 3.6f),
                 Look.Unlit(Colors.Gold)).transform;
             HideAll();
@@ -165,6 +192,9 @@ namespace GrandSluggers.UnityClient
             Prism(pitchOn && IdIs(_pitchId, "prismball"), ball);
             Embers(_embers, pitchOn && IdIs(_pitchId, "heatball"), ball, true);
             HeatCore(pitchOn && IdIs(_pitchId, "heatball"), ball);
+            CharmCore(pitchOn && IdIs(_pitchId, "charmball"), ball);
+            HeartCore(swingOn && IdIs(_swingId, "heart-swing"), ball);
+            Sparkles(_sparkles, pitchOn && IdIs(_pitchId, "charmball"), ball);
             Embers(_swingEmbers, swingOn && IdIs(_swingId, "heat-swing"), ball, false);
             Embers(_furnaceEmbers, swingOn && IdIs(_swingId, "furnace"), ball, false);
             Hearts(_hearts, pitchOn && IdIs(_pitchId, "charmball"), ball);
@@ -173,6 +203,7 @@ namespace GrandSluggers.UnityClient
             Fragments(_shellBits, swingOn && IdIs(_swingId, "shell-swing"), ball);
             Burn(_heatBurn, showBurn || swingOn && IdIs(_swingId, "heat-swing"), ball);
             Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), ball);
+            FurnaceRim(swingOn && IdIs(_swingId, "furnace"), ball);
             Crack(swingOn && IdIs(_swingId, "furnace"), ball);
             Beam(_tongue, showTongue, tongueFrom, ball);
             Beam(_laser, showLaser, tongueFrom, laserTo == Vector3.zero ? ball : laserTo);
@@ -225,7 +256,8 @@ namespace GrandSluggers.UnityClient
             if (_decoyPos.sqrMagnitude < 0.01f) _decoyPos = new Vector3(0, 5.4f, 60.5f);
             _decoyPos = Vector3.Lerp(_decoyPos, new Vector3(-1.6f, 2.6f, 4f), 1f - Mathf.Exp(-1.8f * dt));
             decoy.position = _decoyPos;
-            decoy.localScale = Vector3.one * (1.2f + 0.08f * Mathf.Sin(_t * 10f));
+            decoy.localScale = Vector3.one * (1.35f + 0.12f * Mathf.Sin(_t * 9f));
+            decoy.rotation = Quaternion.Euler(0f, _t * 40f, 6f * Mathf.Sin(_t * 5f));
         }
 
         void PlaceBarrel(bool on, Vector3 p)
@@ -234,7 +266,9 @@ namespace GrandSluggers.UnityClient
             _barrel.gameObject.SetActive(on);
             if (!on) return;
             _barrel.position = p;
-            _barrel.rotation = Quaternion.Euler(_t * 220f, 40f, _t * 90f);
+            _barrel.rotation = Quaternion.Euler(_t * 180f, 28f, _t * 70f);
+            var u = 1.05f + 0.08f * Mathf.Abs(Mathf.Sin(_t * 7f));
+            _barrel.localScale = Vector3.one * u;
         }
 
         void PlaceSkull(bool on, Vector3 p)
@@ -243,21 +277,44 @@ namespace GrandSluggers.UnityClient
             _skull.gameObject.SetActive(on);
             if (!on) return;
             _skull.position = p;
-            _skull.rotation = Quaternion.Euler(0, _t * 80f, 8f * Mathf.Sin(_t * 4f));
-            _skull.localScale = Vector3.one * 1.15f;
+            _skull.rotation = Quaternion.Euler(8f * Mathf.Sin(_t * 3f), _t * 70f, 6f * Mathf.Sin(_t * 5f));
+            var u = 1.08f + 0.12f * Mathf.Abs(Mathf.Sin(_t * 8f));
+            _skull.localScale = Vector3.one * u;
         }
 
         void Prism(bool on, Vector3 around)
         {
+            if (_prismCore != null)
+            {
+                _prismCore.gameObject.SetActive(on);
+                if (on)
+                {
+                    _prismCore.position = around;
+                    _prismCore.localScale = Vector3.one * (0.78f + 0.18f * Mathf.Abs(Mathf.Sin(_t * 14f)));
+                }
+            }
+            if (_prismShell != null)
+            {
+                _prismShell.gameObject.SetActive(on);
+                if (on)
+                {
+                    _prismShell.position = around;
+                    var hue = (_t * 0.45f) % 1f;
+                    Look.Paint(_prismShell.gameObject, Look.Unlit(Color.HSVToRGB(hue, 0.55f, 1f) * new Color(1f, 1f, 1f, 0.45f)));
+                    _prismShell.localScale = Vector3.one * (1.18f + 0.28f * Mathf.Abs(Mathf.Sin(_t * 8f)));
+                }
+            }
             for (var i = 0; i < _prism.Length; i++)
             {
                 if (_prism[i] == null) continue;
                 _prism[i].gameObject.SetActive(on);
                 if (!on) continue;
-                var a = _t * 4f + i * 2.1f;
-                _prism[i].position = around + new Vector3(Mathf.Cos(a) * 1.6f, Mathf.Sin(_t * 5f + i) * 0.7f, Mathf.Sin(a) * 1.6f);
-                var col = Color.HSVToRGB((_t * 0.35f + i / 3f) % 1f, 0.75f, 1f);
+                var a = _t * 3.4f + i * 2.094f;
+                var r = 2.15f + 0.45f * Mathf.Sin(_t * 2.2f + i);
+                _prism[i].position = around + new Vector3(Mathf.Cos(a) * r, Mathf.Sin(_t * 5f + i) * 0.85f, Mathf.Sin(a) * r);
+                var col = Color.HSVToRGB((_t * 0.4f + i / 3f) % 1f, 0.8f, 1f);
                 Look.Paint(_prism[i].gameObject, Look.Unlit(col));
+                _prism[i].localScale = Vector3.one * (1.05f + 0.2f * Mathf.Abs(Mathf.Sin(_t * 9f + i)));
             }
         }
 
@@ -303,6 +360,60 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        void CharmCore(bool on, Vector3 p) => PulseCore(_charmCore, _charmShell, on, p, 12f, 7f);
+
+        void HeartCore(bool on, Vector3 p) => PulseCore(_heartCore, _heartShell, on, p, 12f, 7f);
+
+        void PulseCore(Transform core, Transform shell, bool on, Vector3 p, float coreHz, float shellHz)
+        {
+            if (core != null)
+            {
+                core.gameObject.SetActive(on);
+                if (on)
+                {
+                    core.position = p;
+                    core.localScale = Vector3.one * (0.7f + 0.22f * Mathf.Abs(Mathf.Sin(_t * coreHz)));
+                }
+            }
+            if (shell != null)
+            {
+                shell.gameObject.SetActive(on);
+                if (on)
+                {
+                    shell.position = p;
+                    shell.localScale = Vector3.one * (1.12f + 0.28f * Mathf.Abs(Mathf.Sin(_t * shellHz + 0.4f)));
+                }
+            }
+        }
+
+        void Sparkles(Transform[] bits, bool on, Vector3 around)
+        {
+            if (bits == null) return;
+            for (var i = 0; i < bits.Length; i++)
+            {
+                if (bits[i] == null) continue;
+                bits[i].gameObject.SetActive(on);
+                if (!on) continue;
+                var a = _t * 6.5f + i * 1.2f;
+                var r = 0.7f + (i % 3) * 0.25f;
+                bits[i].position = around + new Vector3(Mathf.Cos(a) * r, 0.35f + Mathf.Abs(Mathf.Sin(_t * 8f + i)) * 0.7f, Mathf.Sin(a) * r);
+                bits[i].localScale = Vector3.one * (0.12f + 0.1f * Mathf.Abs(Mathf.Sin(_t * 14f + i)));
+            }
+        }
+
+        void FurnaceRim(bool on, Vector3 p)
+        {
+            for (var i = 0; i < _furnaceRim.Length; i++)
+            {
+                if (_furnaceRim[i] == null) continue;
+                _furnaceRim[i].gameObject.SetActive(on);
+                if (!on) continue;
+                var a = i / (float)_furnaceRim.Length * Mathf.PI * 2f;
+                _furnaceRim[i].position = new Vector3(p.x + Mathf.Cos(a) * 3.6f, 0.22f, p.z + Mathf.Sin(a) * 3.6f);
+                _furnaceRim[i].rotation = Quaternion.Euler(0f, a * Mathf.Rad2Deg, 0f);
+            }
+        }
+
         void Hearts(Transform[] bits, bool on, Vector3 around)
         {
             if (bits == null) return;
@@ -311,9 +422,11 @@ namespace GrandSluggers.UnityClient
                 if (bits[i] == null) continue;
                 bits[i].gameObject.SetActive(on);
                 if (!on) continue;
-                var a = _t * 2.2f + i * Mathf.PI * 2f / bits.Length;
-                bits[i].position = around + new Vector3(Mathf.Cos(a) * 2.6f, 1.4f + Mathf.Sin(_t * 3f + i) * 0.55f, Mathf.Sin(a) * 2.6f);
-                bits[i].rotation = Quaternion.Euler(-20, a * Mathf.Rad2Deg, 0);
+                var a = _t * 3.4f + i * Mathf.PI * 2f / bits.Length;
+                var r = 0.55f + (i % 4) * 0.18f;
+                bits[i].position = around + new Vector3(Mathf.Cos(a) * r, 0.12f + Mathf.Sin(_t * 5f + i) * 0.28f, Mathf.Sin(a) * r);
+                bits[i].rotation = Quaternion.Euler(-18f, a * Mathf.Rad2Deg, 12f * Mathf.Sin(_t * 4f + i));
+                bits[i].localScale = Vector3.one * (0.52f + 0.12f * Mathf.Abs(Mathf.Sin(_t * 7f + i)));
             }
         }
 
@@ -401,25 +514,51 @@ namespace GrandSluggers.UnityClient
 
         Transform Barrel(Transform parent)
         {
-            var wood = Look.Lit(new Color(0.45f, 0.26f, 0.1f), smooth: 0.12f);
-            var hoop = Look.Lit(new Color(0.22f, 0.16f, 0.1f), smooth: 0.05f);
-            var go = Look.Prim(PrimitiveType.Cylinder, "BarrelBall", parent, Vector3.zero, new Vector3(1.55f, 2.05f, 1.55f), wood);
-            Look.Prim(PrimitiveType.Cylinder, "HoopA", go.transform, new Vector3(0, 0.55f, 0), new Vector3(1.15f, 0.08f, 1.15f), hoop);
-            Look.Prim(PrimitiveType.Cylinder, "HoopB", go.transform, new Vector3(0, -0.55f, 0), new Vector3(1.15f, 0.08f, 1.15f), hoop);
+            var wood = Look.Lit(new Color(0.48f, 0.28f, 0.12f), smooth: 0.12f);
+            var stave = Look.Toon(new Color(0.38f, 0.2f, 0.08f));
+            var hoop = Look.Lit(new Color(0.18f, 0.12f, 0.08f), smooth: 0.05f);
+            var go = Look.Prim(PrimitiveType.Cylinder, "BarrelBall", parent, Vector3.zero, new Vector3(1.45f, 1.85f, 1.45f), wood);
+            Look.Prim(PrimitiveType.Cylinder, "HoopA", go.transform, new Vector3(0, 0.62f, 0), new Vector3(1.18f, 0.07f, 1.18f), hoop);
+            Look.Prim(PrimitiveType.Cylinder, "HoopM", go.transform, Vector3.zero, new Vector3(1.22f, 0.07f, 1.22f), hoop);
+            Look.Prim(PrimitiveType.Cylinder, "HoopB", go.transform, new Vector3(0, -0.62f, 0), new Vector3(1.18f, 0.07f, 1.18f), hoop);
+            Look.Prim(PrimitiveType.Cube, "Bung", go.transform, new Vector3(0.72f, 0.08f, 0f), new Vector3(0.18f, 0.18f, 0.18f), hoop);
+            for (var i = 0; i < 6; i++)
+            {
+                var a = i / 6f * Mathf.PI * 2f;
+                var staveGo = Look.Prim(PrimitiveType.Cube, "Stave" + i, go.transform,
+                    new Vector3(Mathf.Cos(a) * 0.62f, 0f, Mathf.Sin(a) * 0.62f),
+                    new Vector3(0.16f, 1.7f, 0.12f), stave);
+                staveGo.transform.localRotation = Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f);
+            }
             go.SetActive(false);
             return go.transform;
         }
 
         Transform Skull(Transform parent)
         {
-            var bone = Look.Lit(new Color(0.78f, 0.74f, 0.68f), smooth: 0.18f);
-            var voidMat = Look.Unlit(new Color(0.08f, 0.02f, 0.1f));
-            var go = Look.Prim(PrimitiveType.Sphere, "SkullBall", parent, Vector3.zero, Vector3.one * 1.85f, bone);
-            Look.Prim(PrimitiveType.Sphere, "EyeL", go.transform, new Vector3(-0.28f, 0.12f, 0.38f), Vector3.one * 0.32f, voidMat);
-            Look.Prim(PrimitiveType.Sphere, "EyeR", go.transform, new Vector3(0.28f, 0.12f, 0.38f), Vector3.one * 0.32f, voidMat);
-            Look.Prim(PrimitiveType.Cube, "Jaw", go.transform, new Vector3(0, -0.28f, 0.32f), new Vector3(0.7f, 0.18f, 0.35f), bone);
+            var bone = Look.Lit(new Color(0.82f, 0.78f, 0.7f), smooth: 0.16f);
+            var voidMat = Look.Unlit(new Color(0.06f, 0.01f, 0.08f));
+            var glow = Look.Unlit(new Color(0.72f, 0.18f, 0.88f));
+            var go = Look.Prim(PrimitiveType.Sphere, "SkullBall", parent, Vector3.zero, Vector3.one * 1.7f, bone);
+            Look.Prim(PrimitiveType.Sphere, "EyeL", go.transform, new Vector3(-0.26f, 0.14f, 0.4f), Vector3.one * 0.34f, voidMat);
+            Look.Prim(PrimitiveType.Sphere, "EyeR", go.transform, new Vector3(0.26f, 0.14f, 0.4f), Vector3.one * 0.34f, voidMat);
+            Look.Prim(PrimitiveType.Sphere, "GlowL", go.transform, new Vector3(-0.26f, 0.14f, 0.42f), Vector3.one * 0.16f, glow);
+            Look.Prim(PrimitiveType.Sphere, "GlowR", go.transform, new Vector3(0.26f, 0.14f, 0.42f), Vector3.one * 0.16f, glow);
+            Look.Prim(PrimitiveType.Cube, "Nose", go.transform, new Vector3(0f, -0.02f, 0.42f), new Vector3(0.16f, 0.22f, 0.14f), voidMat);
+            Look.Prim(PrimitiveType.Cube, "Jaw", go.transform, new Vector3(0, -0.32f, 0.3f), new Vector3(0.72f, 0.2f, 0.38f), bone);
+            Look.Prim(PrimitiveType.Cube, "Teeth", go.transform, new Vector3(0f, -0.24f, 0.42f), new Vector3(0.5f, 0.1f, 0.12f), bone);
             go.SetActive(false);
             return go.transform;
+        }
+
+        static void FakeFace(Transform ball)
+        {
+            if (ball == null) return;
+            var voidMat = Look.Unlit(new Color(0.12f, 0.08f, 0.1f));
+            var grin = Look.Unlit(new Color(0.62f, 0.12f, 0.18f));
+            Look.Prim(PrimitiveType.Sphere, "EyeL", ball, new Vector3(-0.22f, 0.1f, 0.48f), Vector3.one * 0.22f, voidMat);
+            Look.Prim(PrimitiveType.Sphere, "EyeR", ball, new Vector3(0.22f, 0.1f, 0.48f), Vector3.one * 0.22f, voidMat);
+            Look.Prim(PrimitiveType.Cube, "Grin", ball, new Vector3(0f, -0.16f, 0.5f), new Vector3(0.5f, 0.08f, 0.1f), grin);
         }
 
         Transform Ballish(Transform parent, string name, Color c, float scale)
@@ -507,8 +646,30 @@ namespace GrandSluggers.UnityClient
 
         void FillFrags(Transform[] dst, Transform parent, Material wood)
         {
+            var hoop = Look.Lit(new Color(0.18f, 0.12f, 0.08f), smooth: 0.05f);
             for (var i = 0; i < dst.Length; i++)
-                dst[i] = Look.Prim(PrimitiveType.Cube, "Frag", parent, Vector3.zero, new Vector3(0.9f, 0.32f, 0.5f), wood).transform;
+            {
+                var stave = i % 3 != 0;
+                dst[i] = Look.Prim(PrimitiveType.Cube, stave ? "Stave" : "Hoop", parent, Vector3.zero,
+                    stave ? new Vector3(1.15f, 0.28f, 0.38f) : new Vector3(0.9f, 0.16f, 0.9f),
+                    stave ? wood : hoop).transform;
+            }
+        }
+
+        void FillShell(Transform[] dst, Transform parent)
+        {
+            var green = Look.Toon(new Color(0.22f, 0.62f, 0.28f));
+            var cream = Look.Toon(new Color(0.92f, 0.88f, 0.7f));
+            for (var i = 0; i < dst.Length; i++)
+                dst[i] = Look.Prim(PrimitiveType.Cube, "Plate", parent, Vector3.zero,
+                    new Vector3(1.15f, 0.16f, 0.72f), i % 2 == 0 ? green : cream).transform;
+        }
+
+        void FillSparkles(Transform[] dst, Transform parent)
+        {
+            var spark = Look.Unlit(new Color(1f, 0.85f, 0.95f));
+            for (var i = 0; i < dst.Length; i++)
+                dst[i] = Look.Prim(PrimitiveType.Sphere, "Sparkle", parent, Vector3.zero, Vector3.one * 0.18f, spark).transform;
         }
 
         void FillEmbers(Transform[] dst, Transform parent, Material fire)
