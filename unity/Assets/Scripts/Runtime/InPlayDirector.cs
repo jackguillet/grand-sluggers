@@ -513,7 +513,6 @@ namespace GrandSluggers.UnityClient
 
         void BeginThrow(ThrowResult thr, Character cut, int bag)
         {
-            _park.Ball.Release();
             _throwing = true;
             _throwT = 0;
             _throwBag = bag;
@@ -521,10 +520,24 @@ namespace GrandSluggers.UnityClient
             var to = cut != null && _heroes.TryGetValue(cut.Id, out var ch) && ch != null
                 ? ch.transform.position
                 : BagWorld(bag);
-            _throwFrom = new Vector3((float)_fx, 3.2f, (float)_fz);
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            Character thrower = null;
+            if (map.TryGetValue(_glovePos, out var gloveWho)) thrower = gloveWho;
+            else thrower = _preview?.Fielder;
+            if (thrower != null && _heroes.TryGetValue(thrower.Id, out var th) && th != null && th.ThrowHand != null)
+            {
+                _park.Ball.Hold(th.ThrowHand);
+                _throwFrom = th.ThrowHand.TransformPoint(0f, 0.1f, 0.52f);
+                _park.Ball.Release();
+            }
+            else
+            {
+                _park.Ball.Release();
+                _throwFrom = new Vector3((float)_fx, 3.2f, (float)_fz);
+            }
             _throwTo = to + Vector3.up * 1.2f;
             _spec.ArmThrow(_throwFrom, to, thr);
-            _throwDur = Mathf.Max(0.28f, _spec.ThrowSeconds);
+            _throwDur = Mathf.Max(0.55f, _spec.ThrowSeconds);
             _audio?.ThrowPop();
         }
 

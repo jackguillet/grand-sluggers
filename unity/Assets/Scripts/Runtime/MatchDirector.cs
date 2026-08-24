@@ -85,6 +85,8 @@ namespace GrandSluggers.UnityClient
         bool _swung;
         float _flight;
         float _pitchDur = 0.5f;
+        bool _pitchAir;
+        Vector3 _relFrom;
         float _hitT;
         float _freeze;
         float _smash;
@@ -580,6 +582,40 @@ namespace GrandSluggers.UnityClient
             if (!_heroes.TryGetValue(who.Id, out var hero) || hero == null) return;
             var hand = hero.CatchHand;
             if (hand != null) _park.Ball.Hold(hand);
+        }
+
+        void HoldPitchInHand()
+        {
+            var hero = PitcherHero();
+            var hand = hero != null ? hero.ThrowHand : null;
+            if (hand != null) _park.Ball.Hold(hand);
+        }
+
+        bool PitcherReleased()
+        {
+            var hero = PitcherHero();
+            return hero != null && hero.Current == HeroActor.Pose.ThrowPitch
+                && hero.PoseTime >= (float)MoveBones.PitchRelease;
+        }
+
+        void CaptureReleaseFromHand()
+        {
+            var hero = PitcherHero();
+            var hand = hero != null ? hero.ThrowHand : null;
+            if (hand != null)
+                _relFrom = hand.TransformPoint(0f, 0.1f, 0.52f);
+            else
+            {
+                var rel = PitchFlight.Release(_pitch != null ? _pitch.RubberX : 0);
+                _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+            }
+        }
+
+        HeroActor PitcherHero()
+        {
+            if (_match?.Pitcher == null) return null;
+            _heroes.TryGetValue(_match.Pitcher.Id, out var hero);
+            return hero;
         }
 
         void ConsiderHighlight()
