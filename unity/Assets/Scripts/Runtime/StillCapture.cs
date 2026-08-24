@@ -286,6 +286,9 @@ namespace GrandSluggers.UnityClient
             if (shot == "smash")
             {
                 HideCatcher();
+                HideBackstop();
+                foreach (var kv in _heroes)
+                    if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(HeroActor.Pose.Swing, 1, false);
                 var chest = new Vector3(2.55f, 3.2f, 2.4f);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
@@ -295,7 +298,7 @@ namespace GrandSluggers.UnityClient
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
                 var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
-                _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, true, false);
+                _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, false, false, chest);
                 _cam.SmashCut(chest);
             }
         }
@@ -307,6 +310,12 @@ namespace GrandSluggers.UnityClient
             if (defense.TryGetValue("C", out var catcher) && catcher != null
                 && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
                 ch.gameObject.SetActive(false);
+        }
+
+        void HideBackstop()
+        {
+            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindObjectOfType<HarborKit>();
+            kit?.ShowBackstop(false);
         }
 
         HeroActor EnsureHero(Character who)
