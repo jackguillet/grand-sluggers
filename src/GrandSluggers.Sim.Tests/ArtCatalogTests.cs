@@ -188,4 +188,43 @@ public class ArtCatalogTests
         Assert.Contains("Assets/Art/Characters/SharedRig", _content.Art.Folders, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("Assets/Art/Animation/Clips", _content.Art.Folders, StringComparer.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void AuthoredHitsAreOriginalWavsNotEmpty()
+    {
+        foreach (var id in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "crowd-bed" })
+        {
+            Assert.True(_content.Art.TryAudio(id, out var slot) && slot.Authored, id);
+            Assert.True(AuthoredAudio.TryLoad(_content.Root, id, out var pcm, out var rate), id);
+            Assert.True(rate >= 22050, id + " rate " + rate);
+            Assert.True(pcm.Length > rate * 0.04, id + " too short " + pcm.Length);
+        }
+        Assert.True(_content.Art.TryAudio("throw", out var thr) && !thr.Authored);
+        Assert.False(AuthoredAudio.TryLoad(_content.Root, "throw", out _, out _));
+        Assert.True(_content.Art.TryAudio("crowd-swell", out var swell) && !swell.Authored);
+    }
+
+    [Fact]
+    public void AuthoredBatPerfectIsBrighterThanCheap()
+    {
+        Assert.True(AuthoredAudio.TryLoad(_content.Root, "bat-perfect", out var perfect, out _));
+        Assert.True(AuthoredAudio.TryLoad(_content.Root, "bat-cheap", out var cheap, out _));
+        var brightPerfect = Bright(perfect);
+        var brightCheap = Bright(cheap);
+        Assert.True(brightPerfect > brightCheap * 1.4,
+            $"perfect {brightPerfect:0.###} vs cheap {brightCheap:0.###}");
+        Assert.True(AuthoredAudio.TryLoad(_content.Root, "crowd-bed", out var bed, out var rate));
+        Assert.True(bed.Length > rate * 2, "crowd bed must loop longer than a beep");
+    }
+
+    static double Bright(float[] s)
+    {
+        double e = 0;
+        for (var i = 1; i < s.Length; i++)
+        {
+            var d = s[i] - s[i - 1];
+            e += d * d;
+        }
+        return e / s.Length;
+    }
 }
