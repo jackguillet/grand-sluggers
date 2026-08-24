@@ -86,6 +86,7 @@ namespace GrandSluggers.UnityClient
         bool _showTiming;
         bool _feelDebug;
         bool _forceMuteHud;
+        bool _gateHold;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;
@@ -190,10 +191,13 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
-            TickGun(dt);
-            _flow.Tick();
-            _atBat.Tick(dt);
-            _inPlay.Tick(dt);
+            if (!_gateHold)
+            {
+                TickGun(dt);
+                _flow.Tick();
+                _atBat.Tick(dt);
+                _inPlay.Tick(dt);
+            }
             _actors.Draw();
             _park?.Tick(_ball, dt);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);

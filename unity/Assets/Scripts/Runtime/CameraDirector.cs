@@ -99,6 +99,26 @@ namespace GrandSluggers.UnityClient
             _rig.Punch(16f);
         }
 
+        public void SmashCut(Vector3 at)
+        {
+            var s = Must("smash");
+            Shot = s.Id;
+            _rig.Cut(at + V(s.Pos), at + V(s.Target), (float)s.Fov);
+        }
+
+        public void CutLook(string id, Vector3 look)
+        {
+            var s = Must(id);
+            Shot = s.Id;
+            Vector3 pos;
+            Vector3 placed;
+            float fov;
+            if (Placed(id, out pos, out placed, out fov))
+                _rig.Cut(pos, look, fov >= 10f ? fov : (float)s.Fov);
+            else
+                _rig.Cut(V(s.Pos), look, (float)s.Fov);
+        }
+
         CameraShot Must(string id)
         {
             if (_shots != null && _shots.TryGet(id, out var shot))
