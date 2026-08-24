@@ -43,6 +43,7 @@ public class CarnivalFrontTests
         Assert.True(CarnivalFront.CardY > 2);
         Assert.True(titleHome.Z < 16, $"title captain too far z={titleHome.Z}");
         Assert.InRange(CarnivalFront.LogoZ, -10, 16);
+        Assert.True(Math.Abs(CarnivalFront.LogoX) < 8, $"logo off-frame x={CarnivalFront.LogoX}");
         Assert.True(CarnivalFront.LogoY > 5, $"logo y={CarnivalFront.LogoY}");
         Assert.Equal("GRAND SLUGGERS", CarnivalFront.Logo);
     }
