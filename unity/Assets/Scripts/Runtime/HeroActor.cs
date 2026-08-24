@@ -334,10 +334,20 @@ namespace GrandSluggers.UnityClient
                     sample = MoveBones.MirrorArms(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
-                var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
-                Apply(sample,
-                    _snap ? 1f : boneSnap ? 0.55f : 0.32f,
-                    _snap ? 1f : boneSnap ? 0.48f : 0.34f);
+                var clipT = _poseT;
+                if (!string.IsNullOrEmpty(clipId) && ArtBinder.Art != null
+                    && ArtBinder.Art.TryClip(clipId, out var slot) && slot.Loop)
+                    clipT = _t;
+                var playedDrop = TrySampleDrop(clipId, clipT);
+                if (!playedDrop)
+                {
+                    var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
+                    Apply(sample,
+                        _snap ? 1f : boneSnap ? 0.55f : 0.32f,
+                        _snap ? 1f : boneSnap ? 0.48f : 0.34f);
+                }
+                else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
+                    MirrorBoundArms();
                 if (_bat != null)
                 {
                     _bat.gameObject.SetActive(batOn);
@@ -728,6 +738,38 @@ namespace GrandSluggers.UnityClient
         {
             if (tf == null) return;
             tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e) * bind, k);
+        }
+
+        bool TrySampleDrop(string clipId, float t)
+        {
+            var clip = ArtBinder.LoadClip(clipId);
+            if (clip == null || _root == null) return false;
+            if (t < 0f) t = 0f;
+            if (clip.length > 1e-4f) t = Mathf.Min(t, clip.length);
+            var scale = _root.localScale;
+            var pos = _root.localPosition;
+            clip.SampleAnimation(_root.gameObject, t);
+            var arm = _root.Find("hero-shared");
+            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
+            _root.localScale = scale;
+            _root.localPosition = pos;
+            if (_torso != null) _torso.localPosition = _torsoRest;
+            return true;
+        }
+
+        void MirrorBoundArms()
+        {
+            MirrorLocal(ref _lArm, ref _rArm);
+            MirrorLocal(ref _lFore, ref _rFore);
+        }
+
+        static void MirrorLocal(ref Transform a, ref Transform b)
+        {
+            if (a == null || b == null) return;
+            var ea = a.localRotation.eulerAngles;
+            var eb = b.localRotation.eulerAngles;
+            a.localRotation = Quaternion.Euler(eb.x, -eb.y, -eb.z);
+            b.localRotation = Quaternion.Euler(ea.x, -ea.y, -ea.z);
         }
 
         static Quaternion Q(MoveBones.Euler e) =>

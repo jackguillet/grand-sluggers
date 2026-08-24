@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -15,6 +16,13 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>Editor Play fills this so the SharedRig FBX loads without a Resources copy.</summary>
         public static Func<string, GameObject> EditorLoadPrefab;
+
+        /// <summary>Editor Play fills this so clip FBX/anim loads without a Resources copy.</summary>
+        public static Func<string, AnimationClip> EditorLoadClip;
+
+        static readonly Dictionary<string, AnimationClip> ClipCache =
+            new Dictionary<string, AnimationClip>(StringComparer.OrdinalIgnoreCase);
+        static readonly HashSet<string> ClipMiss = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public static void Bind(ArtCatalog art) => _art = art;
 
@@ -53,6 +61,35 @@ namespace GrandSluggers.UnityClient
         {
             if (_art != null && _art.TryClip(clipId, out var clip)) return clip.Slot;
             return "";
+        }
+
+        /// <summary>Catalog AnimationClip if the slot has a Unity file; null keeps MoveBones.</summary>
+        public static AnimationClip LoadClip(string clipId)
+        {
+            if (string.IsNullOrWhiteSpace(clipId)) return null;
+            if (ClipCache.TryGetValue(clipId, out var hit)) return hit;
+            if (ClipMiss.Contains(clipId)) return null;
+
+            var slot = ClipPath(clipId);
+            if (string.IsNullOrWhiteSpace(slot))
+            {
+                ClipMiss.Add(clipId);
+                return null;
+            }
+
+            var key = SlotToResources(slot);
+            var loaded = Resources.Load<AnimationClip>(key);
+            if (loaded == null)
+                loaded = Resources.Load<AnimationClip>(key + "/" + clipId);
+            if (loaded == null && EditorLoadClip != null)
+                loaded = EditorLoadClip(slot);
+            if (loaded == null)
+            {
+                ClipMiss.Add(clipId);
+                return null;
+            }
+            ClipCache[clipId] = loaded;
+            return loaded;
         }
 
         public static string VfxPath(string eventId)

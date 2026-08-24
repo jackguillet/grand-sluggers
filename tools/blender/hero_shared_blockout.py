@@ -87,7 +87,7 @@ def skin(ob, arm_ob, bone):
     mod.use_vertex_groups = True
 
 
-def build(out: Path):
+def build_scene():
     nuke()
     jersey = mat("jersey", (0.86, 0.19, 0.16))
     trim = mat("trim", (0.86, 0.19, 0.16))
@@ -155,7 +155,10 @@ def build(out: Path):
     missing = [n for n in BONES if n not in arm_data.bones]
     if missing:
         raise RuntimeError("missing bones: " + ",".join(missing))
+    return arm_ob
 
+
+def export_fbx(out: Path, *, anim: bool = False):
     out.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.fbx(
@@ -164,7 +167,11 @@ def build(out: Path):
         object_types={"ARMATURE", "MESH"},
         use_mesh_modifiers=True,
         add_leaf_bones=False,
-        bake_anim=False,
+        bake_anim=anim,
+        bake_anim_use_all_bones=True,
+        bake_anim_use_nla_strips=False,
+        bake_anim_use_all_actions=False,
+        bake_anim_force_startend_keying=True,
         armature_nodetype="NULL",
         primary_bone_axis="Y",
         secondary_bone_axis="X",
@@ -175,6 +182,11 @@ def build(out: Path):
         path_mode="AUTO",
     )
     print("exported", out)
+
+
+def build(out: Path):
+    build_scene()
+    export_fbx(out, anim=False)
 
 
 def main(argv):
