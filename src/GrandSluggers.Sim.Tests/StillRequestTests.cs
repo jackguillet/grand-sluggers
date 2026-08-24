@@ -9,10 +9,11 @@ public class StillRequestTests
     public void DefaultRequestIsTitlePlateMoundHudOffRio()
     {
         var req = StillRequest.Parse("{}");
-        Assert.Equal(new[] { "title", "plate", "mound" }, req.ResolvedShots());
+        Assert.Equal(new[] { "title", "plate", "mound", "diamond-grounder", "smash" }, req.ResolvedShots());
         Assert.Equal("rio", req.ResolvedHome());
         Assert.Equal("ashlord", req.ResolvedAway());
         Assert.True(req.HudOff);
+        Assert.Equal(1, req.Charge01);
         Assert.False(req.FeelDebug);
         Assert.Equal(1920, req.ResolvedWidth());
         Assert.Equal(1080, req.ResolvedHeight());
@@ -21,6 +22,7 @@ public class StillRequestTests
         Assert.Contains("plate", StillRequest.AllowedShots);
         Assert.Contains("mound", StillRequest.AllowedShots);
         Assert.Contains("diamond-grounder", StillRequest.AllowedShots);
+        Assert.Equal(new[] { "diamond-grounder" }, StillRequest.Parse("""{"shots":["scoop"]}""").ResolvedShots());
     }
 
     [Fact]
