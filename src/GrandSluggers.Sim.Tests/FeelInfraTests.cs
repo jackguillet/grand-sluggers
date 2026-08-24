@@ -94,7 +94,7 @@ public class FeelInfraTests
     public void SharedClipListHasIdleRunSwingPitchScoopSlide()
     {
         var names = MoveBones.Clips.Select(c => c.ToLowerInvariant()).ToHashSet();
-        foreach (var need in new[] { "idle", "run", "jump", "swing", "pitch", "scoop", "slide" })
+        foreach (var need in new[] { "idle", "run", "jump", "swing", "pitch", "scoop", "slide", "throw" })
             Assert.Contains(need, names);
         Assert.Contains(MoveBones.ClipList, c => c.Id == "swing" && c.Marks.Contains(MoveBones.ClipEvent.Contact));
         Assert.Contains(MoveBones.ClipList, c => c.Id == "pitch" && c.Marks.Contains(MoveBones.ClipEvent.Release));
@@ -114,6 +114,29 @@ public class FeelInfraTests
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.True(_content.Shots.TryGet(AtBatShots.Plate, out _));
         Assert.True(_content.Shots.TryGet(AtBatShots.Mound, out _));
+    }
+
+    [Fact]
+    public void SetTellsAreProductStateNotF2()
+    {
+        Assert.Equal(0.15, SetTells.ChargePull);
+        Assert.False(SetTells.RingOn(0));
+        Assert.False(SetTells.RingOn(0.14));
+        Assert.True(SetTells.RingOn(0.15));
+        Assert.True(SetTells.RingOn(1));
+        Assert.True(SetTells.RingScale(1) > SetTells.RingScale(0.2));
+        Assert.Equal(0, SetTells.RingScale(0));
+        Assert.True(SetTells.ZoneOn(true));
+        Assert.False(SetTells.ZoneOn(false));
+        Assert.True(SetTells.TrailOn(true));
+        Assert.False(SetTells.TrailOn(false));
+        var mid = SetTells.Locator(0, 0);
+        var inRight = SetTells.Locator(0.4, 0);
+        Assert.True(inRight.X > mid.X);
+        Assert.Equal(PitchFlight.PlateTarget(0.4, -0.2), SetTells.Locator(0.4, -0.2));
+        Assert.True(SetTells.InZone(0, 0));
+        Assert.True(SetTells.InZone(0.4, 0.2));
+        Assert.False(SetTells.InZone(1, 1));
     }
 
     [Fact]

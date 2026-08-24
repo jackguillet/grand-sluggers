@@ -510,7 +510,7 @@ namespace GrandSluggers.UnityClient
                 var y = 3.2f + row * 2.15f;
                 var z = -44f - row * 3.6f;
                 Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 2.0f, 3.4f), conc);
-                CrowdBank(Bleachers, "CrowdH" + row, new Vector3(0, y + 0.95f, z - 1.15f), new Vector3(84 - row * 2, 0, 0), new Vector3(0, 0.12f, -0.85f), 12, 2, row * 31);
+                CrowdBank(Bleachers, "CrowdH" + row, new Vector3(0, y + 0.95f, z - 1.15f), new Vector3(84 - row * 2, 0, 0), new Vector3(0, 0.12f, -0.85f), 14, 2, row * 31);
             }
             for (var row = 0; row < 5; row++)
             {

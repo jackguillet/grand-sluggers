@@ -37,6 +37,24 @@ public static class MoveBones
 
     public enum ClipEvent { Contact, Release, FootPlant }
 
+    public enum SwingBeat { Load, Contact, FollowThrough }
+
+    public enum PitchBeat { Windup, Release, Finish }
+
+    public static SwingBeat SwingAt(double poseT)
+    {
+        if (poseT < SwingContact * 0.55) return SwingBeat.Load;
+        if (poseT < SwingContact + 0.06) return SwingBeat.Contact;
+        return SwingBeat.FollowThrough;
+    }
+
+    public static PitchBeat PitchAt(double poseT)
+    {
+        if (poseT < PitchRelease * 0.55) return PitchBeat.Windup;
+        if (poseT < PitchRelease + 0.05) return PitchBeat.Release;
+        return PitchBeat.Finish;
+    }
+
     public readonly record struct Clip(string Id, Verb Verb, ClipEvent[] Marks);
 
     /// <summary>One shared clip list. Captains are skins on this chain.</summary>
