@@ -36,6 +36,10 @@ public class FeelInfraTests
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind rubber z={mound.Pos.Z}");
         Assert.True(mound.Target.Z < 12, $"mound looks at the plate, target z={mound.Target.Z}");
         Assert.True(mound.Pos.Y > plate.Pos.Y, "mound eye is above catcher eye");
+        Assert.True(mound.Pos.X > 8, $"mound is 3/4 off the pipe x={mound.Pos.X}");
+        var moundDist = Dist(mound.Pos, new Vec3(0, 0, Diamond.Mound));
+        Assert.True(moundDist > 18, $"mound too close (pitcher blob) dist={moundDist}");
+        Assert.InRange(mound.Fov, 38, 44);
     }
 
     [Fact]
