@@ -271,13 +271,21 @@ namespace GrandSluggers.UnityClient
 
         void DressBackstop()
         {
-            var net = Look.Unlit(new Color(0.82f, 0.84f, 0.86f));
-            var post = Look.Lit(new Color(0.55f, 0.55f, 0.5f), smooth: 0.15f);
-            Cube(Backstop, "Net", new Vector3(0, 9f, -22f), new Vector3(42, 18, 0.6f), net);
-            Cube(Backstop, "BackL", new Vector3(-22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
-            Cube(Backstop, "BackR", new Vector3(22, 8f, -12f), new Vector3(0.6f, 16, 18f), net);
-            Cylinder(Backstop, "PostL", new Vector3(-21, 0, -22), 0.45f, 18f, post);
-            Cylinder(Backstop, "PostR", new Vector3(21, 0, -22), 0.45f, 18f, post);
+            var steel = Look.Lit(new Color(0.22f, 0.24f, 0.26f), smooth: 0.28f);
+            var pad = Look.Lit(new Color(0.14f, 0.15f, 0.16f), smooth: 0.08f);
+            Cube(Backstop, "RailTop", new Vector3(0, 16.2f, -22f), new Vector3(42, 0.32f, 0.55f), steel);
+            Cube(Backstop, "RailBot", new Vector3(0, 1.15f, -22f), new Vector3(42, 0.4f, 0.7f), pad);
+            Cylinder(Backstop, "PostL", new Vector3(-21, 0, -22), 0.38f, 16.4f, steel);
+            Cylinder(Backstop, "PostR", new Vector3(21, 0, -22), 0.38f, 16.4f, steel);
+            for (var i = -5; i <= 5; i++)
+                Cylinder(Backstop, "Pipe" + i, new Vector3(i * 3.6f, 0, -22), 0.07f, 15.6f, steel);
+            for (var r = 0; r < 8; r++)
+                Cube(Backstop, "Bar" + r, new Vector3(0, 2.5f + r * 1.65f, -22f), new Vector3(40.5f, 0.07f, 0.1f), steel);
+            for (var i = 0; i < 5; i++)
+            {
+                Cylinder(Backstop, "WingL" + i, new Vector3(-22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
+                Cylinder(Backstop, "WingR" + i, new Vector3(22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
+            }
         }
 
         void DressDugouts()
