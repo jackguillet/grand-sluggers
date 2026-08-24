@@ -725,16 +725,20 @@ namespace GrandSluggers.UnityClient
             var torso = s.Torso;
             if (_hunchDeg != 0f)
                 torso = new MoveBones.Euler(torso.X + _hunchDeg, torso.Y, torso.Z);
-            Ease(ref _torso, torso, kArm, _bind.Torso);
-            Ease(ref _head, s.Head, kArm, _bind.Head);
-            Ease(ref _lArm, s.LUpper, kArm, _bind.LUpper);
-            Ease(ref _lFore, s.LFore, kArm, _bind.LFore);
-            Ease(ref _rArm, s.RUpper, kArm, _bind.RUpper);
-            Ease(ref _rFore, s.RFore, kArm, _bind.RFore);
-            Ease(ref _lThigh, s.LThigh, kLeg, _bind.LThigh);
-            Ease(ref _lShin, s.LShin, kLeg, _bind.LShin);
-            Ease(ref _rThigh, s.RThigh, kLeg, _bind.RThigh);
-            Ease(ref _rShin, s.RShin, kLeg, _bind.RShin);
+            // Scoop eulers were authored for identity rest. Q(e)*FBX-bind rolls the
+            // mesh onto its back. Other verbs keep the imported bind.
+            var scoop = _pose == Pose.Scoop;
+            var id = Quaternion.identity;
+            Ease(ref _torso, torso, kArm, scoop ? id : _bind.Torso);
+            Ease(ref _head, s.Head, kArm, scoop ? id : _bind.Head);
+            Ease(ref _lArm, s.LUpper, kArm, scoop ? id : _bind.LUpper);
+            Ease(ref _lFore, s.LFore, kArm, scoop ? id : _bind.LFore);
+            Ease(ref _rArm, s.RUpper, kArm, scoop ? id : _bind.RUpper);
+            Ease(ref _rFore, s.RFore, kArm, scoop ? id : _bind.RFore);
+            Ease(ref _lThigh, s.LThigh, kLeg, scoop ? id : _bind.LThigh);
+            Ease(ref _lShin, s.LShin, kLeg, scoop ? id : _bind.LShin);
+            Ease(ref _rThigh, s.RThigh, kLeg, scoop ? id : _bind.RThigh);
+            Ease(ref _rShin, s.RShin, kLeg, scoop ? id : _bind.RShin);
         }
 
         static void Ease(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
