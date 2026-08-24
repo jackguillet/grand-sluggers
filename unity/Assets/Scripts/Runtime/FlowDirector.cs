@@ -173,7 +173,7 @@ namespace GrandSluggers.UnityClient
             _clip = null;
             _hlPath = null;
             _replaying = false;
-            _cam.Play("select");
+            _cam.Cut("select");
         }
 
         void TickSelect()
@@ -186,9 +186,7 @@ namespace GrandSluggers.UnityClient
                 if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
                 {
                     HomeCaptain = x > 0 ? PresetTeams.NextCaptain(HomeCaptain) : PresetTeams.PrevCaptain(HomeCaptain);
-                    ParkId = PresetTeams.HomeParkId(HomeCaptain);
                     _match = NewMatch();
-                    _park.Build(_match.Park, _match.Night);
                     _selectStick = 0.22f;
                 }
                 else if (Mathf.Abs(y) >= 0.45f)
@@ -202,9 +200,20 @@ namespace GrandSluggers.UnityClient
             }
             if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
                 AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
-            _cam.Play("select");
+            LookAtHomeCaptain();
             if (Controls.SouthDown && _t > 0.15f)
                 OpenLineup();
+        }
+
+        void LookAtHomeCaptain()
+        {
+            var ids = PresetTeams.CaptainIds;
+            var i = 0;
+            for (; i < ids.Length; i++)
+                if (ids[i] == HomeCaptain) break;
+            if (i >= ids.Length) i = 0;
+            var x = (i - (ids.Length - 1) * 0.5f) * 7.6f;
+            _cam.PlayLook("select", new Vector3(x, 3.2f, 12f));
         }
 
         void BeginTraining()

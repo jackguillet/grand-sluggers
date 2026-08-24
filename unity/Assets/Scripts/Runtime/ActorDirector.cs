@@ -343,8 +343,9 @@ namespace GrandSluggers.UnityClient
                 var hero = Hero(who);
                 var home = ids[i] == HomeCaptain;
                 var away = ids[i] == AwayCaptain;
-                var x = (i - (ids.Length - 1) * 0.5f) * 13.4f;
-                var z = 28f + (home ? 4f : 0f);
+                var pick = _phase == Phase.Select;
+                var x = (i - (ids.Length - 1) * 0.5f) * (pick ? 7.6f : 13.4f);
+                var z = (pick ? 12f : 28f) + (home ? 3f : 0f);
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
                 hero.SetGrow(home);
