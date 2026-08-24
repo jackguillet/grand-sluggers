@@ -228,6 +228,7 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "plate")
             {
+                HideCatcher();
                 PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
                 PosePitcher(HeroActor.Pose.Idle, 0, false);
                 _cam.CutRaw("plate",
@@ -283,10 +284,7 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "smash")
             {
-                var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-                if (defense.TryGetValue("C", out var catcher) && catcher != null
-                    && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
-                    ch.gameObject.SetActive(false);
+                HideCatcher();
                 PoseBatter(HeroActor.Pose.Swing, 1, false);
                 var chest = new Vector3(2.55f, 3.2f, 2.4f);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
@@ -299,6 +297,15 @@ namespace GrandSluggers.UnityClient
                 _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, true, false);
                 _cam.SmashCut(chest);
             }
+        }
+
+        void HideCatcher()
+        {
+            if (_match == null) return;
+            var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            if (defense.TryGetValue("C", out var catcher) && catcher != null
+                && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
+                ch.gameObject.SetActive(false);
         }
 
         HeroActor EnsureHero(Character who)
