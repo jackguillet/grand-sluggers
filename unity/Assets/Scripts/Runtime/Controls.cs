@@ -25,18 +25,18 @@ namespace GrandSluggers.UnityClient
         static Keyboard Keys => Keyboard.current;
 
         public static bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || PressedSouth;
-        public static bool SouthHeld => Key(Key.Space) || HeldSouth;
+        public static bool SouthHeld => Kb(Key.Space) || HeldSouth;
         public static bool NorthDown => KeyDown(Key.Q) || PressedNorth;
         public static bool EastDown => KeyDown(Key.G) || PressedEast;
         public static bool WestDown => KeyDown(Key.F) || PressedWest;
-        public static bool WestHeld => Key(Key.V) || Key(Key.F) || HeldWest;
+        public static bool WestHeld => Kb(Key.V) || Kb(Key.F) || HeldWest;
 
         /// <summary>Analog LT / ZL, or Shift. A light pull starts the charge clock.</summary>
         public static float Charge01
         {
             get
             {
-                var v = Key(Key.LeftShift) ? 1f : 0f;
+                var v = Kb(Key.LeftShift) ? 1f : 0f;
                 var pad = Pad;
                 if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
                 return Mathf.Clamp01(v);
@@ -60,7 +60,7 @@ namespace GrandSluggers.UnityClient
         public static bool FreezeCam => KeyDown(Key.RightBracket);
         /// <summary>Title: toggle night. N, or right-stick click.</summary>
         public static bool NightToggle => KeyDown(Key.N) || PressedR3;
-        public static bool ParkHeld => Key(Key.C);
+        public static bool ParkHeld => Kb(Key.C);
 
         public static float StickX
         {
@@ -69,8 +69,8 @@ namespace GrandSluggers.UnityClient
                 var v = 0f;
                 var pad = Pad;
                 if (pad != null) v = pad.leftStick.x.ReadValue();
-                if (Key(Key.A) || Key(Key.LeftArrow)) v -= 1f;
-                if (Key(Key.D) || Key(Key.RightArrow)) v += 1f;
+                if (Kb(Key.A) || Kb(Key.LeftArrow)) v -= 1f;
+                if (Kb(Key.D) || Kb(Key.RightArrow)) v += 1f;
                 if (Mathf.Abs(v) < StickDead) v = 0f;
                 return Mathf.Clamp(v, -1f, 1f);
             }
@@ -83,8 +83,8 @@ namespace GrandSluggers.UnityClient
                 var v = 0f;
                 var pad = Pad;
                 if (pad != null) v = pad.leftStick.y.ReadValue();
-                if (Key(Key.S) || Key(Key.DownArrow)) v -= 1f;
-                if (Key(Key.W) || Key(Key.UpArrow)) v += 1f;
+                if (Kb(Key.S) || Kb(Key.DownArrow)) v -= 1f;
+                if (Kb(Key.W) || Kb(Key.UpArrow)) v += 1f;
                 if (Mathf.Abs(v) < StickDead) v = 0f;
                 return Mathf.Clamp(v, -1f, 1f);
             }
@@ -94,10 +94,10 @@ namespace GrandSluggers.UnityClient
         {
             get
             {
-                if (Key(Key.Digit1) || DpadRight) return 1;
-                if (Key(Key.Digit2) || DpadUp) return 2;
-                if (Key(Key.Digit3) || DpadLeft) return 3;
-                if (Key(Key.Digit4) || DpadDown) return 4;
+                if (Kb(Key.Digit1) || DpadRight) return 1;
+                if (Kb(Key.Digit2) || DpadUp) return 2;
+                if (Kb(Key.Digit3) || DpadLeft) return 3;
+                if (Kb(Key.Digit4) || DpadDown) return 4;
                 return 0;
             }
         }
@@ -170,7 +170,7 @@ namespace GrandSluggers.UnityClient
         static bool DpadLeft { get { var p = Pad; return p != null && p.dpad.left.isPressed; } }
         static bool DpadDown { get { var p = Pad; return p != null && p.dpad.down.isPressed; } }
 
-        static bool Key(Key k)
+        static bool Kb(Key k)
         {
             var kb = Keys;
             return kb != null && kb[k].isPressed;
