@@ -11,7 +11,8 @@ public class SchemeTests
         foreach (var id in new[]
         {
             "confirm", "charge", "star", "aim-run", "bags",
-            "all-advance", "all-return", "steal", "cycle-pitch", "swap", "bunt"
+            "all-advance", "all-return", "steal", "changeup", "swap", "bunt",
+            "call-time", "dash", "pickoff", "skip"
         })
         {
             var v = Scheme.Must(id);
@@ -27,9 +28,10 @@ public class SchemeTests
         Assert.Equal(",", Scheme.Keys("all-advance"));
         Assert.Equal(".", Scheme.Keys("all-return"));
         Assert.Equal("Z", Scheme.Keys("steal"));
-        Assert.Equal("Tab", Scheme.Keys("cycle-pitch"));
+        Assert.Equal("V", Scheme.Keys("changeup"));
         Assert.Equal("R", Scheme.Keys("swap"));
         Assert.Equal("V", Scheme.Keys("bunt"));
+        Assert.Equal("H", Scheme.Keys("call-time"));
         Assert.Equal("South", Scheme.Pad("confirm"));
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));

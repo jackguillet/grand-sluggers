@@ -29,35 +29,43 @@ namespace GrandSluggers.UnityClient
         public Match MakeMatch(ContentCatalog content, int seed) =>
             Session != null ? Session.MakeMatch(content, seed) : Match.Exhibition(content, parkId: Training.ParkId, seed: seed);
 
-        public bool PlayerPitches => Active && Session.CurrentDrill == 1;
-        public bool PlayerBats => Active && Session.CurrentDrill == 2;
-        public bool PlayerFields => Active && Session.CurrentDrill is 3 or 4 or 5;
+        public bool PlayerPitches => Active && Session.Lesson == PracticeLesson.Pitching;
+        public bool PlayerBats => Active && Session.Lesson == PracticeLesson.Batting;
+        public bool PlayerFields => Active && Session.Lesson == PracticeLesson.Fielding;
 
         public void OnPitch(PitchCommand pitch, Match match)
         {
-            if (Session == null || Session.CurrentDrill != 1) return;
+            if (Session == null || Session.Lesson != PracticeLesson.Pitching) return;
             Session.RecordPitch(pitch, match);
         }
 
         public void OnSwing(SwingCommand swing, AtBatResult hit)
         {
-            if (Session == null || Session.CurrentDrill != 2) return;
+            if (Session == null || Session.Lesson != PracticeLesson.Batting) return;
             Session.RecordSwing(swing, hit);
         }
 
         public void OnField(FieldingResult field, Match match)
         {
             if (Session == null) return;
-            if (Session.CurrentDrill == 3)
-                Session.RecordFielding(field);
-            else if (Session.CurrentDrill == 4)
-                Session.RecordGrounder(field);
-            else if (Session.CurrentDrill == 5)
+            if (Session.Lesson == PracticeLesson.Fielding)
+            {
+                if (!Session.RecordFielding(field))
+                    Session.RecordGrounder(field);
+            }
+            else if (Session.Lesson == PracticeLesson.Special)
                 Session.RecordChemThrow(field.Throw);
+        }
+
+        public void TickSkip()
+        {
+            if (Session == null || Session.Finished) return;
+            if (Controls.Skip) Session.Skip();
         }
 
         public void Tick(Camera cam)
         {
+            TickSkip();
             if (_board == null) return;
             if (Session == null)
             {

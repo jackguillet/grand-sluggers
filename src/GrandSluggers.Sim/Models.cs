@@ -112,7 +112,11 @@ public sealed record AtBatInput(
     double SprayAimDeg = 0,
     bool PitchInZone = true,
     bool Bunt = false,
-    double LaunchAim = 0);
+    double LaunchAim = 0,
+    double Charge01 = 0,
+    double BoxOffsetX = 0,
+    double PitchAimX = 0,
+    double PitchAimY = 0);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -135,7 +139,10 @@ public sealed record PitchCommand(
     double TimingErrorFrames,
     bool Star,
     double AimX = 0,
-    double AimY = 0);
+    double AimY = 0,
+    double BreakX = 0,
+    bool Changeup = false,
+    double RubberX = 0);
 
 public sealed record SwingCommand(
     bool Swing,
@@ -144,7 +151,8 @@ public sealed record SwingCommand(
     bool Star,
     double SprayAimDeg = 0,
     bool Bunt = false,
-    double LaunchAim = 0);
+    double LaunchAim = 0,
+    double BoxOffsetX = 0);
 
 public enum PlayKind
 {

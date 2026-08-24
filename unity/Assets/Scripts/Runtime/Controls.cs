@@ -28,6 +28,7 @@ namespace GrandSluggers.UnityClient
         public static bool SouthHeld => Kb(Key.Space) || HeldSouth;
         public static bool NorthDown => KeyDown(Key.Q) || PressedNorth;
         public static bool EastDown => KeyDown(Key.G) || PressedEast;
+        public static bool EastHeld => Kb(Key.G) || HeldEast;
         public static bool WestDown => KeyDown(Key.F) || PressedWest;
         public static bool WestHeld => Kb(Key.V) || Kb(Key.F) || HeldWest;
 
@@ -45,6 +46,9 @@ namespace GrandSluggers.UnityClient
 
         public static bool Charge => Charge01 >= ChargePull;
         public static bool CyclePitch => KeyDown(Key.Tab) || PressedRb;
+        public static bool Changeup => WestHeld;
+        public static bool Skip => EastDown;
+        public static bool CallTime => Start;
         /// <summary>SET batting: all-advance (held). Lineup order uses <see cref="AllAdvanceDown"/>.</summary>
         public static bool AllAdvance => Kb(Key.Comma) || HeldLb;
         public static bool AllAdvanceDown => KeyDown(Key.Comma) || PressedLb;
@@ -192,6 +196,7 @@ namespace GrandSluggers.UnityClient
         static bool PressedSouth { get { var p = Pad; return p != null && p.buttonSouth.wasPressedThisFrame; } }
         static bool HeldSouth { get { var p = Pad; return p != null && p.buttonSouth.isPressed; } }
         static bool PressedEast { get { var p = Pad; return p != null && p.buttonEast.wasPressedThisFrame; } }
+        static bool HeldEast { get { var p = Pad; return p != null && p.buttonEast.isPressed; } }
         static bool PressedWest { get { var p = Pad; return p != null && p.buttonWest.wasPressedThisFrame; } }
         static bool HeldWest { get { var p = Pad; return p != null && p.buttonWest.isPressed; } }
         static bool PressedNorth { get { var p = Pad; return p != null && p.buttonNorth.wasPressedThisFrame; } }

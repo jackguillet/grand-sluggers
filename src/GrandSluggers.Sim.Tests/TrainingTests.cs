@@ -12,269 +12,112 @@ public class TrainingTests
     {
         var run = Training.Start(_content);
         Assert.Equal("harbor-diamond", run.Park.Id);
-        Assert.Equal(Training.ParkId, run.Park.Id);
-        Assert.Empty(run.Park.Hazards);
+        Assert.Equal(PracticeLesson.Pitching, run.Lesson);
         Assert.Equal(1, run.CurrentDrill);
         Assert.False(run.Finished);
-
         var match = run.MakeMatch(_content, seed: 1);
         Assert.Equal("harbor-diamond", match.Park.Id);
-        Assert.Empty(match.Park.Hazards);
-        Assert.False(match.Night);
         Assert.Equal("rio", match.Home.Captain.Id);
-        Assert.Equal("ashlord", match.Away.Captain.Id);
     }
 
     [Fact]
-    public void MakeMatchIgnoresOtherParks()
+    public void SkipFromLessonOneLeavesPractice()
     {
         var run = Training.Start(_content);
-        var slice = Match.Slice(_content, parkId: "ember-keep");
-        Assert.Equal("ember-keep", slice.Park.Id);
-        Assert.Equal("harbor-diamond", run.MakeMatch(_content, seed: 3).Park.Id);
+        Assert.True(run.Skip());
+        Assert.True(run.Finished);
+        Assert.Equal("Ready.", run.Caption);
+    }
+
+    [Fact]
+    public void ChooseFieldingSkipsThePitchTypesTrap()
+    {
+        var run = Training.Start(_content);
+        Assert.True(run.Choose(PracticeLesson.Fielding));
+        Assert.Equal(PracticeLesson.Fielding, run.Lesson);
+        Assert.Equal(3, run.CurrentDrill);
+        Assert.False(run.Finished);
+        Assert.True(run.RecordFielding(CaughtThrow(_content)));
+        Assert.True(run.CaughtAndThrew);
+    }
+
+    [Fact]
+    public void PitchingLessonTwoCompletesOnMaxChargesNotFourEnums()
+    {
+        var run = Training.Start(_content);
+        var max = new PitchCommand("fastball", 1, 0, false);
+        Assert.True(ChargeFeel.AtMax(1, 0, 0.5));
+        Assert.False(run.RecordPitch(max, 10, canStar: false));
+        Assert.Equal(PracticeLesson.Pitching, run.Lesson);
+        Assert.False(run.RecordPitch(max, 10, false));
+        Assert.True(run.RecordPitch(max, 10, false));
+        Assert.Equal(3, run.MaxCharges);
+        Assert.Equal(PracticeLesson.Batting, run.Lesson);
+        Assert.Equal(2, run.CurrentDrill);
     }
 
     [Fact]
     public void OutOfZonePitchDoesNotCount()
     {
         var run = Training.Start(_content);
-        var ball = new PitchCommand("fastball", 0, 0, false, 0.95, 0);
+        var ball = new PitchCommand("fastball", 1, 0, false, 0.95, 0);
         Assert.False(AtBatResolver.PitchInZone(ball, 10));
         Assert.False(run.RecordPitch(ball, 10, canStar: false));
-        Assert.Equal(1, run.CurrentDrill);
-        Assert.Empty(run.InZonePitchTypes);
+        Assert.Equal(PracticeLesson.Pitching, run.Lesson);
+        Assert.Equal(0, run.MaxCharges);
     }
 
     [Fact]
-    public void DrillOneAdvancesAfterInZoneTypes()
+    public void BattingLessonNeedsTimedChargedContact()
     {
         var run = Training.Start(_content);
-        foreach (var type in Training.CorePitches)
-        {
-            Assert.Equal(1, run.CurrentDrill);
-            run.RecordPitch(new PitchCommand(type, 0, 0, false), 10, canStar: false);
-        }
-        Assert.Equal(2, run.CurrentDrill);
-        Assert.False(run.Finished);
-        Assert.Equal(4, run.InZonePitchTypes.Count);
-    }
-
-    [Fact]
-    public void DrillOneRequiresStarWhenTheyHaveStars()
-    {
-        var run = Training.Start(_content);
-        var match = run.MakeMatch(_content, seed: 1);
-        Assert.True(match.CanStarPitch);
-
-        foreach (var type in Training.CorePitches)
-            run.RecordPitch(new PitchCommand(type, 0, 0, false), match);
-        Assert.Equal(1, run.CurrentDrill);
-        Assert.True(run.NeedStar);
-        Assert.False(run.StarPitchInZone);
-
-        Assert.True(run.RecordPitch(new PitchCommand("fastball", 0, 0, true), match));
-        Assert.Equal(2, run.CurrentDrill);
-        Assert.True(run.StarPitchInZone);
-    }
-
-    [Fact]
-    public void WrongDrillRecordsDoNotAdvance()
-    {
-        var run = Training.Start(_content);
-        var hit = SolidHit();
-        Assert.False(run.RecordSwing(new SwingCommand(true, 0.9, 0, false, 8), hit));
-        Assert.False(run.RecordFielding(CaughtThrow(_content)));
-        Assert.Equal(1, run.CurrentDrill);
-    }
-
-    [Fact]
-    public void DrillTwoNeedsTimedChargedContact()
-    {
-        var run = FinishPitchDrill(stars: false);
+        run.Choose(PracticeLesson.Batting);
         var miss = new AtBatResult(ContactQuality.Miss, false, true, 0, 0, 0, false, false, null, null);
         Assert.False(run.RecordSwing(new SwingCommand(true, 1, 20, false), miss));
-        Assert.Equal(2, run.CurrentDrill);
-
         var hit = SolidHit();
-        Assert.False(run.RecordSwing(new SwingCommand(true, 0.2, 0, false, 12), hit));
+        Assert.False(run.RecordSwing(new SwingCommand(true, 0.1, 0, false), hit));
         Assert.True(run.TimedContact);
         Assert.False(run.ChargedContact);
-        Assert.Equal(2, run.CurrentDrill);
-
-        Assert.True(run.RecordSwing(new SwingCommand(true, 0.8, 0.4, false, 12), hit));
-        Assert.True(run.ChargedContact);
-        Assert.Equal(3, run.CurrentDrill);
+        Assert.True(run.RecordSwing(new SwingCommand(true, 1, 0, false), hit));
+        Assert.Equal(PracticeLesson.Fielding, run.Lesson);
     }
 
     [Fact]
-    public void DrillTwoSprayIsOptional()
+    public void LessonsCoverPitchBatFieldRunSpecialFree()
     {
-        var run = FinishPitchDrill(stars: false);
-        var hit = SolidHit();
-        Assert.True(run.RecordSwing(new SwingCommand(true, 0.7, 0, false, 0), hit));
-        Assert.Equal(3, run.CurrentDrill);
+        Assert.Equal(6, Training.Lessons.Length);
+        Assert.Contains(PracticeLesson.Free, Training.Lessons);
+        var run = Training.Start(_content);
+        Assert.True(run.Choose(PracticeLesson.Running));
+        Assert.True(run.RecordRun());
+        Assert.Equal(PracticeLesson.Special, run.Lesson);
+        Assert.True(run.RecordSpecial(true));
+        Assert.Equal(PracticeLesson.Free, run.Lesson);
+        Assert.False(run.Finished);
     }
 
     [Fact]
-    public void DrillThreeNeedsCatchAndThrowToABag()
+    public void FieldingAcceptsBuddyToss()
     {
-        var run = FinishSwingDrill();
-        var rio = _content.Must("rio");
-        var fly = new FieldingResult(PlayKind.FlyOut, rio, null, 2.2, 0, 240, false, false);
-        Assert.False(run.RecordFielding(fly));
-        Assert.Equal(3, run.CurrentDrill);
-        Assert.False(run.CaughtAndThrew);
-
-        Assert.True(run.RecordFielding(CaughtThrow(_content)));
+        var run = Training.Start(_content);
+        run.Choose(PracticeLesson.Fielding);
+        var from = _content.Must("rio");
+        var to = _content.Must("nico");
+        var tossed = FieldDash.ApplyBuddyToss(
+            new FieldingResult(PlayKind.GroundOut, from, to, 0.8, 10, 40, false, false),
+            to, new ThrowResult(Chemistry.Good, 1.35, false));
+        Assert.True(run.RecordFielding(tossed));
         Assert.True(run.CaughtAndThrew);
-        Assert.Equal(4, run.CurrentDrill);
-    }
-
-    [Fact]
-    public void DrillFourNeedsAHopperScoopAndThrow()
-    {
-        var run = FinishFieldDrill();
-        Assert.False(run.RecordGrounder(CaughtThrow(_content)));
-        Assert.Equal(4, run.CurrentDrill);
-        Assert.True(run.RecordGrounder(HopperThrow(_content)));
-        Assert.True(run.ScoopedHopper);
-        Assert.Equal(5, run.CurrentDrill);
-    }
-
-    [Fact]
-    public void DrillFiveNeedsOneGoodAndOneBadThrowFromPlay()
-    {
-        var run = FinishGrounderDrill();
-        var match = run.MakeMatch(_content, seed: 7);
-        Assert.True(Training.TryFindChemPair(match, out var from, out var goodTo, out var badTo));
-        Assert.Equal(Chemistry.Good, match.Chemistry.Between(from, goodTo));
-        Assert.Equal(Chemistry.Bad, match.Chemistry.Between(from, badTo));
-
-        var good = match.ThrowBetween(from, goodTo);
-        var bad = match.ThrowBetween(from, badTo);
-        Assert.Equal(Chemistry.Good, good.Relation);
-        Assert.Equal(Chemistry.Bad, bad.Relation);
-        Assert.True(good.SpeedMul > bad.SpeedMul, $"good {good.SpeedMul} vs bad {bad.SpeedMul}");
-
-        var goodPlay = CaughtThrow(_content, from, goodTo, good);
-        Assert.False(run.RecordChemThrow(goodPlay.Throw));
-        Assert.Equal(5, run.CurrentDrill);
-        Assert.False(run.Finished);
-        Assert.NotNull(run.LastGoodThrow);
-        Assert.Null(run.LastBadThrow);
-
-        var badPlay = CaughtThrow(_content, from, badTo, bad);
-        Assert.True(run.RecordChemThrow(badPlay.Throw));
-        Assert.True(run.Finished);
-        Assert.Equal(6, run.CurrentDrill);
-        Assert.True(run.LastGoodThrow!.SpeedMul > run.LastBadThrow!.SpeedMul);
-        Assert.Equal("harbor-diamond", match.Park.Id);
-    }
-
-    [Fact]
-    public void DrillFiveIgnoresNeutralAndNullThrows()
-    {
-        var run = FinishGrounderDrill();
-        Assert.False(run.RecordChemThrow(null));
-        Assert.False(run.RecordChemThrow(new ThrowResult(Chemistry.Neutral, 1.0, false)));
-        Assert.Equal(5, run.CurrentDrill);
-        Assert.False(run.Finished);
-    }
-
-    [Fact]
-    public void DrillFiveTwoGoodThrowsDoNotFinish()
-    {
-        var run = FinishGrounderDrill();
-        var good = new ThrowResult(Chemistry.Good, 1.35, false);
-        var alsoGood = new ThrowResult(Chemistry.Good, 1.0, false);
-        Assert.False(run.RecordChemThrow(good));
-        Assert.False(run.RecordChemThrow(alsoGood));
-        Assert.Equal(5, run.CurrentDrill);
-        Assert.False(run.Finished);
-        Assert.Null(run.LastBadThrow);
-    }
-
-    [Fact]
-    public void FullSessionAdvancesOneTwoThreeFour()
-    {
-        var run = Training.Start(_content);
-        var match = run.MakeMatch(_content, seed: 2);
-        Assert.Equal(1, run.CurrentDrill);
-
-        foreach (var type in Training.CorePitches)
-            run.RecordPitch(new PitchCommand(type, 0, 0, false), match);
-        run.RecordPitch(new PitchCommand("slider", 0, 0, true), match);
-        Assert.Equal(2, run.CurrentDrill);
-
-        run.RecordSwing(new SwingCommand(true, 0.9, 0, false, 6), SolidHit());
-        Assert.Equal(3, run.CurrentDrill);
-
-        run.RecordFielding(CaughtThrow(_content));
-        Assert.Equal(4, run.CurrentDrill);
-        run.RecordGrounder(HopperThrow(_content));
-        Assert.Equal(5, run.CurrentDrill);
-
-        Assert.True(Training.TryFindChemPair(match, out var from, out var goodTo, out var badTo));
-        var good = match.ThrowBetween(from, goodTo);
-        var bad = match.ThrowBetween(from, badTo);
-        Assert.False(run.RecordChemThrow(CaughtThrow(_content, from, goodTo, good).Throw));
-        Assert.True(run.RecordChemThrow(CaughtThrow(_content, from, badTo, bad).Throw));
-        Assert.True(run.Finished);
-        Assert.True(run.LastGoodThrow is { } g && run.LastBadThrow is { } b && g.SpeedMul > b.SpeedMul);
-        Assert.Equal("Ready.", run.Caption);
-    }
-
-    Training FinishPitchDrill(bool stars)
-    {
-        var run = Training.Start(_content);
-        foreach (var type in Training.CorePitches)
-            run.RecordPitch(new PitchCommand(type, 0, 0, false), 10, stars);
-        if (stars)
-            run.RecordPitch(new PitchCommand("fastball", 0, 0, true), 10, true);
-        Assert.Equal(2, run.CurrentDrill);
-        return run;
-    }
-
-    Training FinishSwingDrill()
-    {
-        var run = FinishPitchDrill(stars: false);
-        run.RecordSwing(new SwingCommand(true, 0.8, 0, false), SolidHit());
-        Assert.Equal(3, run.CurrentDrill);
-        return run;
-    }
-
-    Training FinishFieldDrill()
-    {
-        var run = FinishSwingDrill();
-        run.RecordFielding(CaughtThrow(_content));
-        Assert.Equal(4, run.CurrentDrill);
-        return run;
-    }
-
-    Training FinishGrounderDrill()
-    {
-        var run = FinishFieldDrill();
-        run.RecordGrounder(HopperThrow(_content));
-        Assert.Equal(5, run.CurrentDrill);
-        return run;
     }
 
     static AtBatResult SolidHit() =>
         new(ContactQuality.Solid, true, false, 88, 22, 240, false, false, null, null);
 
-    static FieldingResult CaughtThrow(ContentCatalog content, Character? from = null, Character? to = null, ThrowResult? thr = null)
-    {
-        from ??= content.Must("rio");
-        to ??= content.Must("nico");
-        thr ??= new ThrowResult(Chemistry.Good, 1.35, false);
-        return new FieldingResult(PlayKind.FlyOut, from, to, 2.4, 12, 250, false, false, thr);
-    }
-
-    static FieldingResult HopperThrow(ContentCatalog content)
+    static FieldingResult CaughtThrow(ContentCatalog content)
     {
         var from = content.Must("rio");
         var to = content.Must("nico");
-        var thr = new ThrowResult(Chemistry.Good, 1.2, false);
-        return new FieldingResult(PlayKind.GroundOut, from, to, 0.7, 12, 48, false, false, thr);
+        return new FieldingResult(PlayKind.FlyOut, from, to, 2.4, 12, 250, false, false,
+            new ThrowResult(Chemistry.Good, 1.35, false));
     }
 }

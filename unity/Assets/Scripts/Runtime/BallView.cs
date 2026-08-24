@@ -21,7 +21,9 @@ namespace GrandSluggers.UnityClient
         Vector3 _lastPlace;
         bool _hadPlace;
         static readonly float Diameter = (float)Baseball.DiameterFt;
+        static readonly float FlightDiameter = (float)Baseball.FlightDiameterFt;
         static readonly float Sit = Diameter * 0.5f;
+        bool _inFlight;
 
         public bool Held => _held != null;
 
@@ -87,8 +89,9 @@ namespace GrandSluggers.UnityClient
             _puff.gameObject.SetActive(false);
         }
 
-        public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat)
+        public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat, bool inFlight = false)
         {
+            _inFlight = inFlight;
             if (_root == null) return;
             _root.gameObject.SetActive(true);
 
@@ -109,7 +112,7 @@ namespace GrandSluggers.UnityClient
 
             TickPuff();
 
-            var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat;
+            var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat + "|" + _inFlight;
             if (key != _look || starPitch == "prismball")
             {
                 _look = key;
@@ -151,7 +154,7 @@ namespace GrandSluggers.UnityClient
         void ApplyLook(string star, string type, bool heat)
         {
             Color col;
-            var scale = Diameter;
+            var scale = _inFlight ? FlightDiameter : Diameter;
             var glow = 0f;
             var glowCol = Colors.EmberFire;
             var matCol = new Color(0.96f, 0.93f, 0.86f);
