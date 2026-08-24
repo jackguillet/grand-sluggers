@@ -39,12 +39,12 @@ public class FeelInfraTests
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
         Assert.True(plate.Pos.Z < 0, $"plate must sit behind home, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z > -21, $"plate in front of the backstop cage, z={plate.Pos.Z}");
-        Assert.InRange(plate.Pos.Y, 2.8, 4.5);
+        Assert.True(plate.Pos.Z > -21.5, $"plate in front of the backstop cage, z={plate.Pos.Z}");
+        Assert.InRange(plate.Pos.Y, 3.2, 6.2);
         Assert.True(plate.Target.Z > 40, $"plate looks at the mound, target z={plate.Target.Z}");
         var plateDist = Dist(plate.Pos, new Vec3(0, 0, 0));
-        Assert.True(plateDist > 18, $"plate too close for toy heads (cap shot) dist={plateDist}");
-        Assert.True(plate.Fov >= 44, $"plate fov {plate.Fov} too tight for a full batter");
+        Assert.True(plateDist > 20, $"plate too close for toy heads (cap shot) dist={plateDist}");
+        Assert.True(plate.Fov >= 46, $"plate fov {plate.Fov} too tight for a full batter");
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind rubber z={mound.Pos.Z}");
         Assert.True(mound.Target.Z < 12, $"mound looks at the plate, target z={mound.Target.Z}");
         Assert.True(mound.Pos.Y > plate.Pos.Y, "mound eye is above catcher eye");
