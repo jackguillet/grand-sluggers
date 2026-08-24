@@ -33,7 +33,13 @@ public class CarnivalFrontTests
         var row = CarnivalFront.CaptainSpot(2, 6, select: true, home: false);
         var home = CarnivalFront.CaptainSpot(2, 6, select: true, home: true);
         Assert.True(home.Z < row.Z, $"home {home.Z} should be closer to camera than row {row.Z}");
-        Assert.Equal(row.X, home.X);
+        Assert.Equal(0f, home.X);
+        Assert.NotEqual(row.X, home.X);
+        var titleHome = CarnivalFront.CaptainSpot(0, 6, select: false, home: true);
+        Assert.Equal(0f, titleHome.X);
+        Assert.True(titleHome.Z < CarnivalFront.TitleRowZ);
         Assert.True(CarnivalFront.HomeStepSelectFt > CarnivalFront.HomeStepTitleFt);
+        Assert.True(CarnivalFront.CardX > 4);
+        Assert.True(CarnivalFront.CardY > 2);
     }
 }

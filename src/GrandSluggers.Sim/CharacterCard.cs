@@ -39,6 +39,8 @@ public readonly record struct CharacterCard(
             vs);
     }
 
+    public static double BarFill(int n) => Math.Clamp(n, 0, 10) / 10.0;
+
     public static string Title(string id)
     {
         if (string.IsNullOrWhiteSpace(id)) return "";
