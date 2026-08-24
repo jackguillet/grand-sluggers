@@ -159,6 +159,12 @@ public class ArtCatalogTests
             foreach (var e in _content.Art.SkinOf(_content.Must(id)).Extras)
                 Assert.Contains(e, extras);
         }
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var extrasFbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(extrasFbx), extrasFbx);
+        Assert.True(new FileInfo(extrasFbx).Length > 10_000, "extras.fbx is empty");
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
