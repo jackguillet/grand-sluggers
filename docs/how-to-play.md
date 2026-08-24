@@ -70,11 +70,11 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
 - **West / F** — back to captains
 - **R3 / N** — night
 
-### Lineup (draft the eight)
+### Lineup (the chemistry toy)
 
-Chemistry graph is the point. Starting stars come from how the eight like the captain.
+The diamond is the draft. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays.
 
-- **Stick / WASD** — slot (order) vs pool
+- **Stick / WASD** — slot (dugout) vs pool
 - **West / F** — swap highlighted pool player into the slot
 - **RB / Tab** — cycle glove (P / C / IF / OF)
 - **LB / `,` · East / G** — batting order
