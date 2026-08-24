@@ -19,6 +19,9 @@ public static class SetTells
     /// <summary>Ring sits on packed dirt, not on the toy's waist.</summary>
     public const double RingHeightFt = 0.06;
 
+    /// <summary>Cylinder Y scale. 0.045 vanished from the plate 3/4.</summary>
+    public const double RingThickFt = 0.16;
+
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;
 
     public static (double X, double Y) Locator(double aimX, double aimY) =>
