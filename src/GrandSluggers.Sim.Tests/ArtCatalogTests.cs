@@ -89,8 +89,9 @@ public class ArtCatalogTests
         var bonesPick = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, clip.ContactAt);
         Assert.True(pick.Torso.X > bonesPick.Torso.X,
             $"authored pick {pick.Torso.X} vs bones {bonesPick.Torso.X}");
-        Assert.True(pick.RUpper.X > bonesPick.RUpper.X,
-            $"authored glove {pick.RUpper.X} vs bones {bonesPick.RUpper.X}");
+        Assert.True(pick.Lift < -0.4, $"authored scoop lift {pick.Lift} is not on the dirt");
+        Assert.True(Math.Abs(pick.RUpper.Z) < 12,
+            $"authored glove abducts into a T z={pick.RUpper.Z}");
         Assert.True(_content.Art.TryAuthored("scoop", 10, out var held));
         Assert.True(_content.Art.TryAuthored("scoop", 0.50, out var up));
         Assert.Equal(up.Torso.X, held.Torso.X);
