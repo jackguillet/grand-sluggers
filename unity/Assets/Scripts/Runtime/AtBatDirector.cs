@@ -67,6 +67,8 @@ namespace GrandSluggers.UnityClient
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _park.Ball.Place(_ball, "", "fastball", false, false);
+            _pitchAir = false;
+            HoldPitchInHand();
             _aimX = _aimY = 0;
             _smash = 0;
             _gloved = false;
@@ -83,6 +85,7 @@ namespace GrandSluggers.UnityClient
 
         void TickSet(float dt)
         {
+            HoldPitchInHand();
             _pip += dt * 1.35f;
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
@@ -146,9 +149,11 @@ namespace GrandSluggers.UnityClient
         {
             _pitch = pitch;
             var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
-            _pitchDur = Mathf.Clamp((float)(Diamond.Mound / (mph * 1.4667)), 0.32f, 0.85f);
+            _pitchDur = (float)PitchFlight.AirSeconds(mph);
             _flight = 0;
+            _pitchAir = false;
             _swung = false;
+            HoldPitchInHand();
             if (!HumanBats)
             {
                 _charge = 0;
@@ -176,11 +181,24 @@ namespace GrandSluggers.UnityClient
         void TickFlight(float dt)
         {
             AimSetCamera();
+            if (!_pitchAir)
+            {
+                HoldPitchInHand();
+                if (HumanBats)
+                    TickCharge(dt, _feel.SwingChargeSeconds);
+                if (!PitcherReleased() && _t < 0.55f)
+                    return;
+                CaptureReleaseFromHand();
+                _park.Ball.Release();
+                _pitchAir = true;
+                _flight = 0;
+            }
             _flight += dt;
             var u = Mathf.Clamp01(_flight / _pitchDur);
             if (HumanPitches)
                 _breakX = Mathf.Clamp(_breakX + Controls.StickX * dt * 2.4f, -1f, 1f);
-            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX);
+            var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
+            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX, from);
             var x = (float)p.X;
             var y = (float)p.Y;
             var z = (float)p.Z;

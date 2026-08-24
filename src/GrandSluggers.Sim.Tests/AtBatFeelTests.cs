@@ -26,10 +26,13 @@ public class AtBatFeelTests
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, mound), $"mound u={u} {p}");
         }
         var mid = PitchFlight.Point("fastball", 0.55);
-        var size = PitchFlight.ApparentDeg(mid.X, mid.Y, mid.Z, plate, Baseball.FlightDiameterFt);
+        var size = PitchFlight.ApparentDeg(mid.X, mid.Y, mid.Z, plate, Baseball.ApparentScale(true, mid.Z));
         var still = PitchFlight.ApparentDeg(mid.X, mid.Y, mid.Z, plate, Baseball.DiameterFt);
         Assert.True(size > still, $"flight {size} vs still {still}");
-        Assert.True(size > 0.7, $"mid-flight speck {size} deg");
+        Assert.True(size > 1.2, $"mid-flight speck {size} deg");
+        var early = PitchFlight.Point("fastball", 0.2);
+        var earlyDeg = PitchFlight.ApparentDeg(early.X, early.Y, early.Z, plate, Baseball.ApparentScale(true, early.Z));
+        Assert.True(earlyDeg > 0.9, $"early pitch speck {earlyDeg} deg");
     }
 
     [Fact]

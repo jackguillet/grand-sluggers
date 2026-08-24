@@ -91,7 +91,7 @@ The diamond is the draft. Highlighted toy **grows**. Hearts are buddies, scribbl
 
 Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX.
 
-SET pitching is **3/4 over the pitcher** (`mound`) looking at home. SET batting is **beside the batter** (`plate`) looking at the mound — catcher stays behind the camera, charge ring on the packed dirt. The ball leaves the **hand**, stays readable to the plate, and trails. Home bats the bottom.
+SET pitching is **3/4 over the pitcher** (`mound`) looking at home. SET batting is **beside the batter** (`plate`) looking at the mound — catcher stays behind the camera, charge ring on the packed dirt. The ball sits in the throwing hand, leaves at Release, and hangs ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom.
 
 - **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets.
 - **Stick L/R after release** — curve / late bite. Not a pitch-type cycle.

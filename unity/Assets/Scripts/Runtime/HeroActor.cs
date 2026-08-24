@@ -45,7 +45,9 @@ namespace GrandSluggers.UnityClient
 
         public string Id => _id;
         public Pose Current => _pose;
+        public float PoseTime => _poseT;
         public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
+        public Transform ThrowHand => _throwsLeft ? _lFore : _rFore;
 
         public void Bind(Character who)
         {
