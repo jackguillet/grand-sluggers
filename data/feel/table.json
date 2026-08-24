@@ -13,5 +13,7 @@
   "afterOutSeconds": 1.35,
   "inPlayCommitSeconds": 1.6,
   "cpuVsHumanTake": 0.32,
-  "cpuVsHumanMiss": 0.22
+  "cpuVsHumanMiss": 0.22,
+  "chargeMaxHoldSeconds": 0.5,
+  "chargeOverchargeDecay": 0.8
 }

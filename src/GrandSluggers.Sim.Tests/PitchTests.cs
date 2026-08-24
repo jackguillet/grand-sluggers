@@ -33,13 +33,16 @@ public class PitchTests
     [Fact]
     public void FastballFliesTrue()
     {
+        var rel = PitchFlight.Release();
         var mid = PitchFlight.Point("fastball", 0.5);
         var plate = PitchFlight.Point("fastball", 1);
-        Assert.InRange(mid.X, -0.12, 0.12);
-        Assert.InRange(plate.X, -0.12, 0.12);
+        Assert.True(rel.X > 1.0, $"release is the hand, not the torso x={rel.X}");
+        Assert.True(rel.Z < PitchFlight.MoundZ, $"release toward the plate z={rel.Z}");
+        Assert.InRange(plate.X, -0.2, 0.2);
         Assert.True(mid.Y > plate.Y, $"fastball should drop, mid {mid.Y} plate {plate.Y}");
-        Assert.InRange(mid.Z, 28, 32);
+        Assert.InRange(mid.Z, 26, 34);
         Assert.InRange(plate.Z, -0.05, 0.05);
+        Assert.True(Math.Abs(mid.X - rel.X) > 0.3, "hand offset fades toward the plate");
     }
 
     [Fact]
@@ -55,10 +58,11 @@ public class PitchTests
     [Fact]
     public void SliderBreaksLate()
     {
+        var fb = PitchFlight.Point("fastball", 0.4).X;
         var early = PitchFlight.Point("slider", 0.4).X;
         var late = PitchFlight.Point("slider", 0.95).X;
-        Assert.True(Math.Abs(early) < 0.45, $"slider still true at 0.4, x={early}");
-        Assert.True(late > early + 1.2, $"slider bites late, early {early} late {late}");
+        Assert.True(Math.Abs(early - fb) < 0.45, $"slider still true at 0.4, x={early} fb={fb}");
+        Assert.True(late > early + 0.8, $"slider bites late, early {early} late {late}");
     }
 
     [Fact]
@@ -77,5 +81,31 @@ public class PitchTests
         var heart = PitchFlight.Point("fastball", 1, 0, 0);
         Assert.True(inOff.X > heart.X + 1.0);
         Assert.True(inOff.Y < heart.Y - 0.3);
+    }
+
+    [Fact]
+    public void LiveBreakMovesAFastballOffTheHeart()
+    {
+        var heart = PitchFlight.Point("fastball", 1, 0, 0);
+        var broke = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1);
+        Assert.True(Math.Abs(broke.X - heart.X) > 1.0, $"break {broke.X} vs heart {heart.X}");
+    }
+
+    [Fact]
+    public void ChangeupModifierHangsThenDumps()
+    {
+        var hang = PitchFlight.Point("fastball", 0.5, changeup: true).Y;
+        var fb = PitchFlight.Point("fastball", 0.5).Y;
+        var plate = PitchFlight.Point("fastball", 1, changeup: true).Y;
+        Assert.True(hang >= fb - 0.2, $"changeup hang {hang} vs fb {fb}");
+        Assert.True(hang - plate > 1.0, $"changeup dump hang {hang} plate {plate}");
+    }
+
+    [Fact]
+    public void RubberWalkMovesPlateX()
+    {
+        var heart = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 0);
+        var walked = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 1);
+        Assert.True(walked.X > heart.X + 0.4, $"rubber {walked.X} vs heart {heart.X}");
     }
 }

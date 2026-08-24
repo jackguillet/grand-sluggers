@@ -18,11 +18,15 @@ public static class Scheme
         new("all-advance", "LB", ","),
         new("all-return", "RB", "."),
         new("steal", "L3", "Z"),
-        new("cycle-pitch", "RB", "Tab"),
+        new("changeup", "West", "V"),
         new("swap", "Select", "R"),
         new("bunt", "West hold", "V"),
         new("cutoff", "LB", "X"),
         new("freeze", "LB+RB", "/"),
+        new("call-time", "Start", "H"),
+        new("dash", "South mash", "Space mash"),
+        new("pickoff", "D-pad + South", "1 2 3 + Space"),
+        new("skip", "East", "G"),
     ];
 
     public static readonly IReadOnlyList<string> DebugKeys = ["F1", "F2", "F3"];

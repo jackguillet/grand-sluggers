@@ -95,6 +95,8 @@ namespace GrandSluggers.UnityClient
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _charge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
+                if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
+                    x += _match.PitcherOffsetX * 2.2;
                 var look = kv.Key == "P" && _phase != Phase.InPlay
                     ? new Vector3(0, 0, -1)
                     : _phase == Phase.InPlay
@@ -122,14 +124,15 @@ namespace GrandSluggers.UnityClient
             bHero.SetHighlight(false);
             if (racing)
             {
-                var tFirst = (float)InPlay.HomeToFirstSec(batter);
+                if (Controls.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
+                var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
                 var hx = 2.55f + (float)(Diamond.First.X - 2.55) * u;
                 var hz = 2.4f + (float)(Diamond.First.Z - 2.4) * u;
                 bHero.Place(new Vector3(hx, 0, hz), new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z));
             }
             else
-                bHero.Place(new Vector3(2.55f, 0, 2.4f), new Vector3(0, 0, 1));
+                bHero.Place(new Vector3(2.55f + (float)_match.BatterOffsetX * 2.4f, 0, 2.4f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
             PlaceRunner(_match.First, Diamond.First, 1);
@@ -149,7 +152,8 @@ namespace GrandSluggers.UnityClient
             if ((_caught || _buddy) && !_throwing)
                 HoldBallInGlove();
             if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
-                _park.Ball.Place(_ball, starPitch, ptype, heat);
+                _park.Ball.Place(_ball, starPitch, ptype, heat,
+                    _phase is Phase.Flight or Phase.InPlay);
             else
                 _park.Ball.Hide();
 

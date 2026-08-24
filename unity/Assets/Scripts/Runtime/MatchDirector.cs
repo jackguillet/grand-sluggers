@@ -69,6 +69,9 @@ namespace GrandSluggers.UnityClient
         int _pitchIndex;
         bool _star;
         float _charge;
+        float _chargePast;
+        float _breakX;
+        float _dash01;
         float _t;
         float _pip;
         PitchCommand _pitch;
@@ -192,6 +195,16 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
+            if ((_phase is Phase.Set or Phase.Flight or Phase.InPlay) && Controls.CallTime && _t > 0.2f)
+            {
+                _match.TogglePause();
+                _t = 0;
+            }
+            if (_match.Paused)
+            {
+                _actors.Draw();
+                return;
+            }
             if (!_gateHold)
             {
                 TickGun(dt);

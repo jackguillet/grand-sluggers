@@ -30,8 +30,12 @@ public static class InPlay
         return rng.NextDouble() < chance;
     }
 
-    public static double HomeToFirstSec(Character batter) =>
-        Math.Clamp(4.32 - batter.Stats.Run * 0.13, 2.9, 4.35);
+    public static double HomeToFirstSec(Character batter, double dash01 = 0)
+    {
+        var run = Math.Clamp(4.32 - batter.Stats.Run * 0.13, 2.9, 4.35);
+        var dash = Math.Clamp(dash01, 0, 1);
+        return Math.Max(2.45, run * (1 - 0.12 * dash));
+    }
 
     /// <summary>Named camera for the contact type. JSON shots must exist under this id.</summary>
     public static string TheaterShot(AtBatResult hit)

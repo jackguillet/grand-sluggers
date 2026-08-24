@@ -186,6 +186,10 @@ public sealed class Match
     public double OffenseStars => Top ? AwayStars : HomeStars;
     public double DefenseStars => Top ? HomeStars : AwayStars;
     public bool StealOn { get; private set; }
+    public double PitcherOffsetX { get; private set; }
+    public double BatterOffsetX { get; private set; }
+    public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
+    public bool Paused { get; private set; }
     /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
     public bool SendAll { get; private set; }
     /// <summary>Furthest occupied bag. Control and steal apply to this runner.</summary>
@@ -292,6 +296,64 @@ public sealed class Match
     public bool CanStarPitch => DefenseStars >= PitchStarCost;
     public bool CanStarSwing => OffenseStars >= SwingStarCost;
 
+    public bool WalkPitcher(double delta)
+    {
+        if (Over) return false;
+        PitcherOffsetX = Math.Clamp(PitcherOffsetX + delta, -1, 1);
+        return true;
+    }
+
+    public bool ResetPitcher()
+    {
+        PitcherOffsetX = 0;
+        return true;
+    }
+
+    public bool WalkBatter(double delta)
+    {
+        if (Over) return false;
+        BatterOffsetX = Math.Clamp(BatterOffsetX + delta, -1, 1);
+        return true;
+    }
+
+    public bool ResetBatter()
+    {
+        BatterOffsetX = 0;
+        return true;
+    }
+
+    public bool TogglePause()
+    {
+        Paused = !Paused;
+        return Paused;
+    }
+
+    /// <summary>
+    /// Named-bag pickoff before the pitch. Glued runner (no lead, no steal) returns, never a free out.
+    /// Steal-on or a walking lead can be caught.
+    /// </summary>
+    public PlayEvent? Pickoff(int bag)
+    {
+        if (Over || Outs >= 3 || bag is < 1 or > 3) return null;
+        var runner = bag == 1 ? First : bag == 2 ? Second : Third;
+        var state = RunnerAt(bag);
+        if (runner is null || state is null) return null;
+        if (!StealOn && state.Lead01 < 0.05)
+        {
+            state.ReturnToBag(1);
+            StealOn = false;
+            var stay = Emit(PlayKind.TakeBall, new PitchCommand("fastball", 0, 0, false),
+                new SwingCommand(false, 0, 0, false), EmptyHit(true),
+                $"{runner.Name} back to the bag.", 0, []);
+            return stay;
+        }
+        var fake = new PitchCommand("fastball", 0, 0, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        StealOn = true;
+        state.StartSteal();
+        return AfterPitch(Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []));
+    }
+
     public bool ToggleSteal()
     {
         if (!CanSteal)
@@ -324,27 +386,34 @@ public sealed class Match
         finished = null;
         if (Over) throw new InvalidOperationException("game over");
 
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch);
+        var aimed = pitch with { AimX = pitch.AimX + PitcherOffsetX * 0.35 };
+        if (PitcherTired)
+            aimed = aimed with { AimX = aimed.AimX + Gauss() * 0.22, AimY = aimed.AimY + Gauss() * 0.18 };
+        var inZone = AtBatResolver.PitchInZone(aimed, Pitcher.Stats.Pitch);
         SpendPitch(pitch);
 
         if (!swing.Swing)
         {
             finished = FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
+            ResetBatter();
             return false;
         }
 
         SpendSwing(swing);
 
         var bat = OffenseBat;
+        var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
-            pitch.Type, pitch.Charge01 > 0.55, swing.Charge01 > 0.55,
+            pitch.Type, ChargeFeel.IsCharge(pitch.Charge01), ChargeFeel.IsCharge(swing.Charge01),
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             Top ? HomeStamina : AwayStamina,
-            swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim);
+            swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
+            swing.Charge01, box, aimed.AimX, aimed.AimY);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
+        ResetBatter();
         if (hit.Foul)
         {
             finished = FinishFoul(pitch, swing, hit);
@@ -432,7 +501,10 @@ public sealed class Match
             aimX *= 1.6;
             aimY *= 1.6;
         }
-        return new PitchCommand(type, charge, err, star, aimX, aimY);
+        var changeup = type == "changeup";
+        var breakX = type == "slider" ? 0.85 : type == "curve" ? 0.7 : 0;
+        return new PitchCommand(changeup ? "fastball" : type, charge, err, star, aimX, aimY,
+            breakX, changeup, PitcherOffsetX);
     }
 
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, bool vsHumanPitcher = false)
