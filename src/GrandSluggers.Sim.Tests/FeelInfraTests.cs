@@ -42,12 +42,13 @@ public class FeelInfraTests
         var mound = _content.Shots.Must("mound");
         // Batting: first-base side, slightly behind the box, looking at the mound.
         // Depth keeps Rio in the lens; X keeps the catcher off the pipe.
-        Assert.True(plate.Pos.Z > -10, $"plate in front of the cage, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z < 0, $"plate stays behind the batter so they are in frame, z={plate.Pos.Z}");
+        Assert.True(plate.Pos.Z > -12, $"plate in front of the cage, z={plate.Pos.Z}");
+        Assert.True(plate.Pos.Z < -3, $"plate is behind the batter with depth, z={plate.Pos.Z}");
         Assert.True(plate.Pos.X > 6, $"plate is first-base side of the box so the catcher is not the subject x={plate.Pos.X}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
-        Assert.True(plate.Target.Z > 40, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Z > 30, $"plate looks at the pitcher, target z={plate.Target.Z}");
         Assert.True(Math.Abs(plate.Target.X - 2.55) < 3, $"plate look is on the batter x={plate.Target.X}");
+        Assert.True(plate.Fov >= 52, $"plate fov {plate.Fov} too tight for feet-to-hat");
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
         Assert.InRange(batterDist, 8, 16);

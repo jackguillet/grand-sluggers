@@ -270,7 +270,10 @@ namespace GrandSluggers.UnityClient
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
                 }
-                _cam.CutLook("diamond-grounder", new Vector3(gx, 1.2f, gz));
+                _cam.CutRaw("diamond-grounder",
+                    new Vector3(36f, 7f, 12f),
+                    new Vector3(gx, 1.6f, gz),
+                    50f);
                 return;
             }
 
