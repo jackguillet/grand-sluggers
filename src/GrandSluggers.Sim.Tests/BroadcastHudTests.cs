@@ -44,5 +44,6 @@ public class BroadcastHudTests
         Assert.InRange(bug.OffenseStars, 0, 5);
         Assert.InRange(bug.DefenseStars, 0, 5);
         Assert.False(BroadcastHud.MutePlay(false, 0, 0));
+        Assert.Throws<ArgumentNullException>(() => BroadcastHud.From(null!));
     }
 }

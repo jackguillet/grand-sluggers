@@ -32,7 +32,7 @@ public static class BroadcastHud
 
     public static Scorebug From(Match match)
     {
-        ArgumentNullException.ThrowIfNull(match);
+        if (match == null) throw new ArgumentNullException(nameof(match));
         return new Scorebug(
             match.Inning,
             match.Top,
