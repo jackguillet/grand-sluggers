@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEngine;
@@ -6,13 +7,14 @@ using UnityEngine;
 namespace GrandSluggers.EditorTools
 {
     /// <summary>
-    /// Generic rig for the SharedRig drop. Hooks AssetDatabase load for Play
-    /// so Runtime does not reference UnityEditor.
+    /// Generic rig for the SharedRig drop and clip FBX takes. Hooks AssetDatabase
+    /// load for Play so Runtime does not reference UnityEditor.
     /// </summary>
     [InitializeOnLoad]
     public class SharedRigImport : AssetPostprocessor
     {
-        const string Folder = "Art/Characters/SharedRig/";
+        const string RigFolder = "Art/Characters/SharedRig/";
+        const string ClipFolder = "Art/Animation/Clips/";
         const string DefaultSlot = "Assets/Art/Characters/SharedRig/hero-shared.fbx";
 
         static SharedRigImport()
@@ -20,19 +22,70 @@ namespace GrandSluggers.EditorTools
             ArtBinder.EditorLoadPrefab = path =>
                 AssetDatabase.LoadAssetAtPath<GameObject>(
                     string.IsNullOrWhiteSpace(path) ? DefaultSlot : path);
+            ArtBinder.EditorLoadClip = LoadClip;
+        }
+
+        static AnimationClip LoadClip(string slot)
+        {
+            foreach (var path in ClipCandidates(slot))
+            {
+                var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+                AnimationClip found = null;
+                for (var i = 0; i < assets.Length; i++)
+                {
+                    if (assets[i] is not AnimationClip c) continue;
+                    if (c.name.StartsWith("__preview", StringComparison.Ordinal)) continue;
+                    found = c;
+                    var file = Path.GetFileNameWithoutExtension(path);
+                    if (c.name.IndexOf(file, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return c;
+                }
+                if (found != null) return found;
+                var direct = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+                if (direct != null) return direct;
+            }
+            return null;
+        }
+
+        static string[] ClipCandidates(string slot)
+        {
+            if (string.IsNullOrWhiteSpace(slot)) return Array.Empty<string>();
+            if (Path.HasExtension(slot)) return new[] { slot };
+            return new[] { slot + ".fbx", slot + ".anim" };
         }
 
         void OnPreprocessModel()
         {
-            if (assetPath.IndexOf(Folder, StringComparison.OrdinalIgnoreCase) < 0)
-                return;
+            var rig = assetPath.IndexOf(RigFolder, StringComparison.OrdinalIgnoreCase) >= 0;
+            var clip = assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!rig && !clip) return;
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
             imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            imp.importAnimation = false;
+            imp.importAnimation = clip;
             imp.addCollider = false;
             imp.importBlendShapes = false;
             imp.isReadable = false;
+        }
+
+        void OnPostprocessAnimation(GameObject go, AnimationClip clip)
+        {
+            if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0)
+                return;
+            var id = Path.GetFileNameWithoutExtension(assetPath);
+            clip.name = id;
+            clip.legacy = false;
+            var contact = -1f;
+            if (id.Equals("swing", StringComparison.OrdinalIgnoreCase)) contact = 0.30f;
+            else if (id.Equals("scoop", StringComparison.OrdinalIgnoreCase)) contact = 0.22f;
+            if (contact < 0f) return;
+            var ev = new AnimationEvent
+            {
+                time = contact,
+                functionName = "Contact",
+                stringParameter = "Contact"
+            };
+            AnimationUtility.SetAnimationEvents(clip, new[] { ev });
         }
     }
 }
