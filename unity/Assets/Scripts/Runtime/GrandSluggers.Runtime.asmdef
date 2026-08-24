@@ -3,7 +3,8 @@
   "rootNamespace": "GrandSluggers.UnityClient",
   "references": [
     "GrandSluggers.Sim",
-    "Unity.RenderPipelines.Universal.Runtime"
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.InputSystem"
   ],
   "autoReferenced": true,
   "noEngineReferences": false
