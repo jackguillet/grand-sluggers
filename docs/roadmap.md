@@ -23,7 +23,7 @@ Agents are the production line. You are the director. They are fast at systems, 
 ### Operating rules
 
 1. **One GitHub child issue = one worktree = one agent.** Never share `/Users/jack/repos/grand-sluggers` except a final ff-only pull. Never `git add -A`.
-2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, or a named Hierarchy object, the issue is too vague — rewrite it before launching.
+2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, `tools/unity-compile.sh`, or a named Hierarchy object, the issue is too vague — rewrite it before launching. Personal Unity cannot `-batchmode`; the compile script is the Unity csc gate.
 3. **Serial for feel. Parallel for slots.** Camera, swing timing, fielding verbs, and Harbor framing are one-after-another (they share the at-bat). Filling `data/art` rows, VFX event prefabs, audio event files, and captain extras can fan out **after** the shared rig and one swing clip exist.
 4. **Harbor Exhibition is the only slice.** Do not start Challenge (#36), extra parks as products (#37), role-player variants (#25), online, motion, 40-man, or full-screen blinds (#38).
 5. **Catalog first, files second.** New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. Agents that skip the catalog will grow another C# switch.
@@ -145,6 +145,7 @@ Command to keep agents honest:
 PATH=/opt/homebrew/bin:$PATH dotnet test
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- art
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
+PATH=/opt/homebrew/bin:$PATH ./tools/unity-compile.sh
 ```
 
 Unity: Play `Assets/Scenes/HarborDiamond.unity`. Editor **Grand Sluggers → Validate Art Rails**.

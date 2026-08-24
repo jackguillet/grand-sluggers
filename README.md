@@ -50,6 +50,7 @@ Sim tests and a headless match (no window, no presentation):
 ```bash
 PATH=/opt/homebrew/bin:$PATH dotnet test
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
+PATH=/opt/homebrew/bin:$PATH ./tools/unity-compile.sh
 ```
 
 ### Debug sandbox (not the game)
