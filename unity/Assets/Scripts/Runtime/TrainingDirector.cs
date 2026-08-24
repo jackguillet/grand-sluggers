@@ -13,9 +13,10 @@ namespace GrandSluggers.UnityClient
         public Training Session { get; private set; }
         public bool Active => Session != null && !Session.Finished;
 
-        public void Begin(ContentCatalog content)
+        public void Begin(ContentCatalog content, PracticeLesson lesson = PracticeLesson.Pitching)
         {
             Session = Training.Start(content);
+            Session.Choose(lesson);
             EnsureBoard();
             Refresh(null);
         }

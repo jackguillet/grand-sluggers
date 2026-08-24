@@ -120,7 +120,7 @@ Good throws are gold/purple and fast. Bad throws are muddy and offline.
 
 ## Practice (Harbor)
 
-Title **West**. Choosable lessons, **East / G skip** from lesson 1 (you are not trapped painting pitch types).
+Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free and **South** starts that lesson. **East / G** from pitching **skips to Fielding** (scoop), not the title. You are not trapped painting pitch types.
 
 1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
 2. **Batting** — walk the oval onto the ball; charge at MAX

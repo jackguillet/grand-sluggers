@@ -10,6 +10,7 @@ namespace GrandSluggers.UnityClient
     {
         public int Seed = 7;
         public int Innings = 3;
+        public PracticeLesson PracticePick = PracticeLesson.Pitching;
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
