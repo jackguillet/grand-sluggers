@@ -54,6 +54,8 @@ namespace GrandSluggers.UnityClient
         public static bool TimingAid => KeyDown(Key.F1);
         /// <summary>Debug feel overlay. F2. Not a product control.</summary>
         public static bool FeelDebug => KeyDown(Key.F2);
+        /// <summary>Debug mute play HUD. F3. Trailer stills without a star.</summary>
+        public static bool HudMute => KeyDown(Key.F3);
         /// <summary>Debug slow-mo cycle. Left bracket. Not a product control.</summary>
         public static bool SlowMo => KeyDown(Key.LeftBracket);
         /// <summary>Debug freeze camera. Right bracket. Not a product control.</summary>

@@ -4,7 +4,7 @@ Living spec for couch play. **Gamepad is the product. Keyboard is a debug overla
 
 If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file in the same PR.
 
-Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game.
+Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**.
 
 ---
 
@@ -123,10 +123,11 @@ Title **West**. Five drills, then back.
 | --- | --- |
 | F1 | Timing bar |
 | F2 | Feel overlay: shot, verb, charge, hang, rest, event |
+| F3 | Mute play HUD (trailer stills without a star) |
 | **[** | Slow-mo cycle (F2 must be on) |
 | **]** | Freeze camera (F2 must be on) |
 
-F2 is how you name the still (plate vs mound vs diamond-line). It does not replace the scorebug.
+F2 is how you name the still (plate vs mound vs diamond-line). It does not replace the scorebug. F3 mutes the scorebug so a plate still can be HUD-off. How to capture and reject those stills: `docs/screenshot-gate.md`.
 
 ---
 
