@@ -104,4 +104,41 @@ public static class InPlay
         if (secondOccupied) return [3];
         return batterBeatsThrow ? [] : [1];
     }
+
+    /// <summary>Pad stick / arrows name a bag only when you are not chasing the ball.</summary>
+    public static bool StickNamesBag(bool chasing, bool caught) => !chasing || caught;
+
+    /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
+    public static int DiamondBag(double x, double y, double mag2 = 0.55)
+    {
+        if (x * x + y * y < mag2) return 0;
+        if (Math.Abs(x) > Math.Abs(y)) return x > 0 ? 1 : 3;
+        return y > 0 ? 2 : 4;
+    }
+
+    /// <summary>
+    /// Keys (1–4 / d-pad) always arm. Stick / arrows only when <paramref name="stickOk"/>.
+    /// Chasing WASD must not arm a throw.
+    /// </summary>
+    public static int ArmedBag(int keysBag, int stickBag, bool stickOk)
+    {
+        if (keysBag is >= 1 and <= 4) return keysBag;
+        if (stickOk && stickBag is >= 1 and <= 4) return stickBag;
+        return 0;
+    }
+
+    /// <summary>
+    /// Hopper catch with no direction throws to first. Cutoff with no direction is a relay (0),
+    /// not a random bag. A named bag always wins.
+    /// </summary>
+    public static int CommitBag(int armed, bool hopperCaught, bool cutoff)
+    {
+        if (armed is >= 1 and <= 4) return armed;
+        if (cutoff) return 0;
+        if (hopperCaught) return 1;
+        return 0;
+    }
+
+    public static bool FairContactSendsBatter(AtBatResult hit) =>
+        hit.InPlay && !hit.Foul;
 }

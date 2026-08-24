@@ -79,7 +79,7 @@ namespace GrandSluggers.UnityClient
         void TickSet(float dt)
         {
             _pip += dt * 1.35f;
-            if (Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
+            if (HumanPitches && Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
             TickBaserunning(dt);
@@ -92,11 +92,12 @@ namespace GrandSluggers.UnityClient
                     ? Mathf.Min(1, _charge + dt / (float)_feel.PitchChargeSeconds)
                     : Mathf.Max(0, _charge - dt * (float)_feel.ChargeDecay);
                 AimSetCamera();
+                if (_t < (float)_feel.PitcherReadySeconds) return;
                 if (Controls.SouthDown) Launch(PlayerPitch());
                 return;
             }
             AimSetCamera();
-            if (_t > 0.55f) Launch(_match.CpuPitch());
+            if (_t > (float)_feel.PitcherReadySeconds) Launch(_match.CpuPitch());
         }
 
         PitchCommand PlayerPitch()
@@ -162,7 +163,7 @@ namespace GrandSluggers.UnityClient
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch));
+                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
             Resolve();
         }
 

@@ -212,7 +212,8 @@ namespace GrandSluggers.UnityClient
             if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
             if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) { CatchGlove(); ArmRecoil(); }
 
-            ReadThrowBag(!chasing || _caught || _buddy);
+            var stickOk = InPlay.StickNamesBag(chasing, _caught || _buddy);
+            ReadThrowBag(stickOk);
 
             if (_buddy)
                 _ball = new Vector3((float)_fx, 6.4f + (_jumpT > 0 ? 2.2f : 0f), (float)_fz);
@@ -223,7 +224,8 @@ namespace GrandSluggers.UnityClient
                 if (!_caught && _hitT < rest) return;
             }
             else if (_hitT < hang) return;
-            if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
+            var commitAt = rest + _feel.InPlayCommitSeconds;
+            if ((_caught || _buddy) && _throwBag == 0 && _hitT < commitAt)
                 return;
             BeginPlayerThrowOrCommit(map);
         }
@@ -415,14 +417,24 @@ namespace GrandSluggers.UnityClient
 
         void ReadThrowBag(bool stickOk)
         {
-            if (Controls.ThrowBag > 0) _throwBag = Controls.ThrowBag;
-            else if (stickOk && Controls.StickBag > 0) _throwBag = Controls.StickBag;
+            var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
+            var armed = InPlay.ArmedBag(Controls.ThrowBag, stick, stickOk);
+            if (armed > 0) _throwBag = armed;
         }
 
         void BeginPlayerThrowOrCommit(Dictionary<string, Character> map)
         {
-            if (!(_caught || _buddy) || _throwBag <= 0)
+            var hopperCaught = _preview != null && _preview.Grounder && (_caught || _buddy);
+            _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, Controls.Cutoff);
+            if (!(_caught || _buddy))
             {
+                CommitInPlay();
+                return;
+            }
+            if (_throwBag <= 0)
+            {
+                if (Controls.Cutoff && hopperCaught && StartGroundRelays())
+                    return;
                 CommitInPlay();
                 return;
             }

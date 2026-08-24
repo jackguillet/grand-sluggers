@@ -8,5 +8,10 @@
   "cameraBlend": 6.0,
   "chargeDecay": 1.4,
   "runHz": 2.55,
-  "fieldAssistStick": 0.35
+  "fieldAssistStick": 0.35,
+  "pitcherReadySeconds": 0.55,
+  "afterOutSeconds": 1.35,
+  "inPlayCommitSeconds": 1.6,
+  "cpuVsHumanTake": 0.32,
+  "cpuVsHumanMiss": 0.22
 }

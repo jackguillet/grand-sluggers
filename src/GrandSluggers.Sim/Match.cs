@@ -186,6 +186,8 @@ public sealed class Match
     public double OffenseStars => Top ? AwayStars : HomeStars;
     public double DefenseStars => Top ? HomeStars : AwayStars;
     public bool StealOn { get; private set; }
+    /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
+    public bool SendAll { get; private set; }
     /// <summary>Furthest occupied bag. Control and steal apply to this runner.</summary>
     public Character? LeadRunner => Third ?? Second ?? First;
     public int LeadBag => Third is not null ? 3 : Second is not null ? 2 : First is not null ? 1 : 0;
@@ -220,6 +222,47 @@ public sealed class Match
         if (state is null) return false;
         state.ReturnToBag(delta);
         StealOn = false;
+        return true;
+    }
+
+    public bool AdvanceAll(double delta = 0.25)
+    {
+        if (Over || Outs >= 3) return false;
+        var any = false;
+        foreach (var bag in new[] { 1, 2, 3 })
+        {
+            var state = RunnerAt(bag);
+            if (state is null) continue;
+            state.TakeLead(delta);
+            any = true;
+        }
+        if (any) SendAll = true;
+        return any;
+    }
+
+    public bool ReturnAll(double delta = 0.25)
+    {
+        var any = false;
+        foreach (var bag in new[] { 1, 2, 3 })
+        {
+            var state = RunnerAt(bag);
+            if (state is null) continue;
+            state.ReturnToBag(delta);
+            any = true;
+        }
+        SendAll = false;
+        StealOn = false;
+        LeadState?.CancelSteal();
+        return any;
+    }
+
+    public bool FreezeRunners()
+    {
+        if (First is null && Second is null && Third is null) return false;
+        SendAll = false;
+        StealOn = false;
+        foreach (var bag in new[] { 1, 2, 3 })
+            RunnerAt(bag)?.CancelSteal();
         return true;
     }
 
@@ -392,13 +435,20 @@ public sealed class Match
         return new PitchCommand(type, charge, err, star, aimX, aimY);
     }
 
-    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
+    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, bool vsHumanPitcher = false)
     {
         if (CanSteal && Batter.Stats.Run >= 7 && _rng.NextDouble() < 0.16)
         {
             StartSteal();
             TakeLead(0.45 + _rng.NextDouble() * 0.35);
         }
+        if (vsHumanPitcher)
+            return CpuSwingVsHuman(pitch, inZone);
+        return CpuSwingArcade(pitch, inZone);
+    }
+
+    SwingCommand CpuSwingArcade(PitchCommand pitch, bool inZone)
+    {
         var chase = !inZone && _rng.NextDouble() < 0.12;
         if (!inZone && !chase)
             return new SwingCommand(false, 0, 0, false);
@@ -409,6 +459,36 @@ public sealed class Match
         var spray = Gauss() * 12;
         var launchAim = Gauss() * 0.45;
         return new SwingCommand(true, charge, err, star, spray, LaunchAim: launchAim);
+    }
+
+    /// <summary>
+    /// Human is pitching: uncharged middle-middle fastballs mix takes, misses, and weak hoppers.
+    /// Charged / star pitches still hurt. AutoPlay stays on <see cref="CpuSwingArcade"/>.
+    /// </summary>
+    SwingCommand CpuSwingVsHuman(PitchCommand pitch, bool inZone)
+    {
+        var meatball = inZone && !pitch.Star && pitch.Charge01 < 0.55;
+        if (!inZone)
+        {
+            if (_rng.NextDouble() >= 0.10)
+                return new SwingCommand(false, 0, 0, false);
+            var chaseErr = Gauss() * (11 - Batter.Stats.Bat) * 1.4 + 6;
+            return new SwingCommand(true, 0, chaseErr, false, Gauss() * 22, LaunchAim: 0.6);
+        }
+        if (!meatball)
+            return CpuSwingArcade(pitch, inZone);
+
+        var feel = Content.Feel;
+        var roll = _rng.NextDouble();
+        if (roll < feel.CpuVsHumanTake)
+            return new SwingCommand(false, 0, 0, false);
+        if (roll < feel.CpuVsHumanTake + feel.CpuVsHumanMiss)
+            return new SwingCommand(true, 0, 9 + _rng.NextDouble() * 6, false, Gauss() * 24, LaunchAim: 0.7);
+        var err = 4.5 + Gauss() * 2.2;
+        if (Math.Abs(err) < 3.2)
+            err = err >= 0 ? 3.2 + _rng.NextDouble() : -3.2 - _rng.NextDouble();
+        var spray = Gauss() * 20;
+        return new SwingCommand(true, _rng.NextDouble() * 0.35, err, false, spray, LaunchAim: 0.55 + _rng.NextDouble() * 0.35);
     }
 
     public PlayEvent AutoPlay()
@@ -496,6 +576,8 @@ public sealed class Match
     PlayEvent FinishInPlay(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
         StealOn = false;
+        var tagUp = SendAll;
+        SendAll = false;
         var kind = field.Kind;
         var caption = "";
         var runs = 0;
@@ -609,7 +691,7 @@ public sealed class Match
                 Outs++;
                 AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                 AddStars(defense: true, 0.35);
-                if (kind == PlayKind.FlyOut && Third is not null && Outs < 3 && hit.CarryFt > 230)
+                if (kind == PlayKind.FlyOut && Third is not null && Outs < 3 && hit.CarryFt > 230 && tagUp)
                 {
                     var tag = Third;
                     SetBag(3, null);

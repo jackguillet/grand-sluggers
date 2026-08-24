@@ -84,6 +84,47 @@ public class InPlayTests
     }
 
     [Fact]
+    public void HopperCatchStickDeadThrowsToFirstDiamondIsDistinct()
+    {
+        Assert.False(InPlay.StickNamesBag(chasing: true, caught: false));
+        Assert.True(InPlay.StickNamesBag(chasing: true, caught: true));
+        Assert.True(InPlay.StickNamesBag(chasing: false, caught: false));
+        Assert.Equal(0, InPlay.DiamondBag(0, 0));
+        Assert.Equal(1, InPlay.DiamondBag(1, 0));
+        Assert.Equal(2, InPlay.DiamondBag(0, 1));
+        Assert.Equal(3, InPlay.DiamondBag(-1, 0));
+        Assert.Equal(4, InPlay.DiamondBag(0, -1));
+        Assert.Equal(0, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0), stickOk: false));
+        Assert.Equal(1, InPlay.ArmedBag(0, InPlay.DiamondBag(1, 0), stickOk: true));
+        Assert.Equal(1, InPlay.ArmedBag(1, 2, stickOk: true));
+        Assert.Equal(2, InPlay.ArmedBag(2, 1, stickOk: false));
+        Assert.Equal(3, InPlay.ArmedBag(3, 0, stickOk: false));
+        Assert.Equal(4, InPlay.ArmedBag(4, 0, stickOk: true));
+        Assert.Equal(1, InPlay.CommitBag(0, hopperCaught: true, cutoff: false));
+        Assert.Equal(0, InPlay.CommitBag(0, hopperCaught: true, cutoff: true));
+        Assert.Equal(2, InPlay.CommitBag(2, hopperCaught: true, cutoff: false));
+        Assert.Equal(4, InPlay.CommitBag(4, hopperCaught: true, cutoff: true));
+        Assert.Equal(0, InPlay.CommitBag(0, hopperCaught: false, cutoff: false));
+    }
+
+    [Fact]
+    public void HopperWithoutPlayerThrowIsAPlayEvent()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        Assert.True(InPlay.FairContactSendsBatter(hopper));
+        var field = match.ResolveFielding(hopper);
+        Assert.True(field.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut, field.Kind.ToString());
+        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false, LaunchAim: 0.6);
+        Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
+        var ev = match.FinishAtBat(pitch, swing, hit, field);
+        Assert.True(ev.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut or PlayKind.Double,
+            ev.Kind.ToString());
+        Assert.False(string.IsNullOrWhiteSpace(ev.Caption));
+    }
+
+    [Fact]
     public void HardHopperCanBobbleIntoASingle()
     {
         var match = Match.Slice(_content, seed: 1);

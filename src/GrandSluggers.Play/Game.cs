@@ -376,7 +376,7 @@ public sealed class Game : IDisposable
         if (HumanBats)
             return new SwingCommand(false, _charge, 12, false);
         var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch);
-        return _match.CpuSwing(_pitch!, inZone);
+        return _match.CpuSwing(_pitch!, inZone, vsHumanPitcher: HumanPitches);
     }
 
     void ResolvePitch()
