@@ -174,6 +174,7 @@ public class ArtCatalogTests
         Assert.True(_content.Art.TryPark("harbor-diamond", out var harbor));
         Assert.True(harbor.Placed);
         Assert.StartsWith("Assets/Art/Parks/", harbor.Slot, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(1, _content.Art.Parks.Count(p => p.Placed));
     }
 
     [Fact]

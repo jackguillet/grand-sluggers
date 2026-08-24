@@ -92,6 +92,7 @@ namespace GrandSluggers.UnityClient
                     pose = HeroActor.Pose.Charm;
                 var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
                 hero.SetPose(pose, kv.Key == "P" ? _charge : 0, kv.Key == "P" ? pType : null);
+                hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _charge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
                 var look = kv.Key == "P" && _phase != Phase.InPlay
@@ -113,6 +114,7 @@ namespace GrandSluggers.UnityClient
             var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
             var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
             bHero.SetPose(bPose, HumanBats ? _charge : 0);
+            bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
             bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
             var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
                 or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
@@ -151,7 +153,9 @@ namespace GrandSluggers.UnityClient
             else
                 _park.Ball.Hide();
 
-            _zone.Show(_phase is Phase.Set or Phase.Flight, _aimX, _aimY);
+            var setOrFlight = _phase is Phase.Set or Phase.Flight;
+            _zone.Show(SetTells.ZoneOn(setOrFlight), _aimX, _aimY);
+            _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay));
 
             Character fielder = null;
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var gloveNow))

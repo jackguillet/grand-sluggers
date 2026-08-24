@@ -25,6 +25,13 @@ namespace GrandSluggers.UnityClient
 
         public bool Held => _held != null;
 
+        public void EmitTrail(bool on)
+        {
+            if (_trail == null) return;
+            _trail.emitting = on && _held == null;
+            if (!on) _trail.Clear();
+        }
+
         public void Build(Transform parent)
         {
             if (_root != null) Destroy(_root.gameObject);

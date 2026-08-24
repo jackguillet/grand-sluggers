@@ -65,7 +65,7 @@ Chemistry graph is the point. Starting stars come from how the eight like the ca
 
 ### Pitching (Top)
 
-SET pitching is **3/4 over the pitcher** (`mound`) looking at home: rubber in the bottom, batter + catcher + **chalk batter's boxes** readable at the plate. SET batting is **over the batter's shoulder** (`plate`) looking at the mound: batter in the box (feet to hat), **two chalk rectangles and a pentagon** on packed dirt, pitcher in the distance. Infield is grass with dirt *paths* and a mound hill — not a brown slab. The catcher is not the subject. In play: hoppers stay low, lines sit mid, flies are a 3/4 in the park, homers rise with the ball, throws sit on the glove.
+SET pitching is **3/4 over the pitcher** (`mound`) looking at home: rubber in the bottom, batter + catcher + **chalk batter's boxes** readable at the plate. SET batting is **over the batter's shoulder** (`plate`) looking at the mound: batter in the box (feet to hat), **two chalk rectangles and a pentagon** on packed dirt, pitcher in the distance. Analog LT lights a **charge ring** on the dirt; the zone locator sits in the box; the ball trails in flight. Infield is grass with dirt *paths* and a mound hill — not a brown slab. The catcher is not the subject. Scorebug names inning, score, B/S/O, runners, P, AB, stars, and NEXT without F2. In play: hoppers stay low, lines sit mid, flies are a 3/4 in the park, homers rise with the ball, throws sit on the glove.
 
 - **Stick** — aim the zone
 - **LT pull** — charge (analog)
