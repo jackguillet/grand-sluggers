@@ -38,6 +38,8 @@ namespace GrandSluggers.UnityClient
         LineRenderer _throwBad;
         Transform _burn;
         Transform _heatBurn;
+        Transform _heatCore;
+        Transform _heatShell;
         Transform _crack;
         Transform _buddyFlash;
         float _t;
@@ -81,6 +83,10 @@ namespace GrandSluggers.UnityClient
             FillEmbers(_embers, Group("heatball"), fire);
             FillEmbers(_swingEmbers, Group("heat-swing"), fire);
             FillEmbers(_furnaceEmbers, Group("furnace"), fire);
+            _heatCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("heatball"), Vector3.zero,
+                Vector3.one * 0.9f, Look.Unlit(Colors.EmberFire)).transform;
+            _heatShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("heatball"), Vector3.zero,
+                Vector3.one * 1.35f, Look.Unlit(new Color(1f, 0.45f, 0.12f, 0.55f))).transform;
 
             for (var i = 0; i < _prism.Length; i++)
                 _prism[i] = Ballish(Group("prismball"), "Prism" + i, Color.HSVToRGB(i / 3f, 0.7f, 1f), 1.1f);
@@ -157,9 +163,10 @@ namespace GrandSluggers.UnityClient
             PlaceBarrel(pitchOn && IdIs(_pitchId, "caskball"), ball);
             PlaceSkull(pitchOn && IdIs(_pitchId, "skullball"), ball);
             Prism(pitchOn && IdIs(_pitchId, "prismball"), ball);
-            Embers(_embers, pitchOn && IdIs(_pitchId, "heatball"), ball);
-            Embers(_swingEmbers, swingOn && IdIs(_swingId, "heat-swing"), ball);
-            Embers(_furnaceEmbers, swingOn && IdIs(_swingId, "furnace"), ball);
+            Embers(_embers, pitchOn && IdIs(_pitchId, "heatball"), ball, true);
+            HeatCore(pitchOn && IdIs(_pitchId, "heatball"), ball);
+            Embers(_swingEmbers, swingOn && IdIs(_swingId, "heat-swing"), ball, false);
+            Embers(_furnaceEmbers, swingOn && IdIs(_swingId, "furnace"), ball, false);
             Hearts(_hearts, pitchOn && IdIs(_pitchId, "charmball"), ball);
             Hearts(_swingHearts, swingOn && IdIs(_swingId, "heart-swing"), ball);
             Fragments(_bits, showFrags || swingOn && IdIs(_swingId, "cask-swing"), ball);
@@ -254,7 +261,7 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void Embers(Transform[] bits, bool on, Vector3 around)
+        void Embers(Transform[] bits, bool on, Vector3 around, bool tight)
         {
             if (bits == null) return;
             for (var i = 0; i < bits.Length; i++)
@@ -262,11 +269,37 @@ namespace GrandSluggers.UnityClient
                 if (bits[i] == null) continue;
                 bits[i].gameObject.SetActive(on);
                 if (!on) continue;
-                var a = i * 0.7f + _t * 3f;
-                var r = 0.8f + (i % 4) * 0.45f;
-                var y = (i * 0.35f + _t * 2.4f) % 3.2f;
+                var a = i * 0.7f + _t * (tight ? 5.5f : 3f);
+                var r = tight ? 0.26f + (i % 4) * 0.14f : 0.8f + (i % 4) * 0.45f;
+                var y = tight ? (i * 0.18f + _t * 4.2f) % 1.15f : (i * 0.35f + _t * 2.4f) % 3.2f;
                 bits[i].position = around + new Vector3(Mathf.Cos(a) * r, y, Mathf.Sin(a) * r);
-                bits[i].localScale = Vector3.one * (0.28f + 0.18f * Mathf.Sin(_t * 8f + i));
+                var s = tight ? 0.24f + 0.16f * Mathf.Abs(Mathf.Sin(_t * 11f + i))
+                    : 0.28f + 0.18f * Mathf.Sin(_t * 8f + i);
+                bits[i].localScale = Vector3.one * s;
+            }
+        }
+
+        void HeatCore(bool on, Vector3 p)
+        {
+            if (_heatCore != null)
+            {
+                _heatCore.gameObject.SetActive(on);
+                if (on)
+                {
+                    _heatCore.position = p;
+                    var u = 0.72f + 0.28f * Mathf.Abs(Mathf.Sin(_t * 16f));
+                    _heatCore.localScale = Vector3.one * u;
+                }
+            }
+            if (_heatShell != null)
+            {
+                _heatShell.gameObject.SetActive(on);
+                if (on)
+                {
+                    _heatShell.position = p;
+                    var u = 1.15f + 0.35f * Mathf.Abs(Mathf.Sin(_t * 9f + 0.6f));
+                    _heatShell.localScale = Vector3.one * u;
+                }
             }
         }
 
