@@ -41,6 +41,17 @@ namespace GrandSluggers.UnityClient
                 _ring?.Hide();
                 return;
             }
+            if (_phase == Phase.Lineup && _homeDraft != null)
+            {
+                PlaceLineupToys();
+                foreach (var kv in _heroes)
+                    if (!_used.Contains(kv.Key) && kv.Value != null)
+                        kv.Value.gameObject.SetActive(false);
+                _park.Ball.Hide();
+                _zone.Show(false, 0, 0);
+                _ring?.Hide();
+                return;
+            }
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var litId = "";
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
@@ -378,6 +389,27 @@ namespace GrandSluggers.UnityClient
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
+                hero.Tick(Time.deltaTime);
+            }
+        }
+
+        void PlaceLineupToys()
+        {
+            var pick = _homeDraft.Order.Count > 0
+                ? _homeDraft.Order[Mathf.Clamp(_lineupSlot, 0, _homeDraft.Order.Count - 1)]
+                : null;
+            foreach (var pos in Diamond.Order)
+            {
+                if (!_homeDraft.Gloves.TryGetValue(pos, out var who) || who == null) continue;
+                var hero = Hero(who);
+                var at = Diamond.Positions[pos];
+                var selected = pick != null && who.Id == pick.Id;
+                hero.SetPose(selected ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle);
+                hero.SetHighlight(selected);
+                hero.SetGrow(selected);
+                hero.SetHeld(false, true);
+                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.Place(new Vector3((float)at.X, 0f, (float)at.Z), new Vector3(-(float)at.X, 0f, -(float)at.Z + 8f));
                 hero.Tick(Time.deltaTime);
             }
         }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Exhibition lineup: draft the eight around the captain, assign gloves, chemistry as a graph.
+    /// Exhibition lineup as a chemistry toy: diamond tokens, sticker graph, jumping stars.
     /// </summary>
     public static class TeamSheet
     {
@@ -20,98 +20,179 @@ namespace GrandSluggers.UnityClient
             Ensure();
             var w = Screen.width;
             var h = Screen.height;
-            GUI.DrawTexture(new Rect(24, 18, 520, 86), _panel);
-            GUI.Label(new Rect(40, 24, 500, 32), home.Name.ToUpperInvariant() + "  ·  " + match.Park.Name, _h1);
-            GUI.Label(new Rect(40, 58, 280, 22), "STARTING STARS", _tiny);
-            Stars(200, 58, home.StartingStars);
-            GUI.Label(new Rect(320, 56, 200, 22), home.StartingStars + " / 5", _gold);
-
-            OrderColumn(home, slot, !focusPool, 32, 118);
-            Graph(home, slot, w / 2f, h * 0.48f, Mathf.Min(w * 0.22f, 210f));
-            PoolColumn(home, pool, poolIndex, focusPool, w - 340, 118);
+            var t = Time.unscaledTime;
+            Sticker(home.Name.ToUpperInvariant() + "  ·  " + match.Park.Name, 36, 18, 640, 36, _h1);
+            JumpingStars(36, 58, home.StartingStars, t);
+            MiniDiamond(home, slot, 36, 118, 280, 280);
+            Graph(home, slot, w * 0.48f, h * 0.42f, Mathf.Min(w * 0.18f, 170f));
+            PoolColumn(home, pool, poolIndex, focusPool, w - 320, 88);
 
             if (home.Order.Count > 0)
             {
                 var who = home.Order[Mathf.Clamp(slot, 0, home.Order.Count - 1)];
                 var vs = who.Captain ? Chemistry.Good : home.Chem(who);
-                HudView.Card(CharacterCard.Of(who, vs), 40, h - 252);
+                BigToy(who, home.PosOf(who.Id), w * 0.5f - 70, h * 0.42f - 90);
+                HudView.Card(CharacterCard.Of(who, vs), 36, h - 248);
             }
 
-            GUI.Label(new Rect(40, h - 42, w - 80, 24),
-                "stick slot / pool   West swap   RB glove   LB / East order   South play   [B][G] gear",
+            Dugout(home, slot, !focusPool, 36, h - 328, w - 380);
+            GUI.Label(new Rect(36, h - 40, w - 80, 24),
+                "stick slot / pool    West swap    RB glove P/C/IF/OF    LB/East order    South play",
                 _gold);
         }
 
-        static void OrderColumn(TeamBuilder home, int slot, bool lit, float x, float y)
+        static void MiniDiamond(TeamBuilder home, int slot, float x, float y, float w, float h)
         {
-            GUI.Label(new Rect(x, y, 280, 22), "LINEUP", _gold);
-            y += 26;
-            for (var i = 0; i < home.Order.Count; i++)
+            var selected = home.Order.Count > 0
+                ? home.Order[Mathf.Clamp(slot, 0, home.Order.Count - 1)]
+                : null;
+            var group = selected != null ? TeamBuilder.GloveGroup(home.PosOf(selected.Id) ?? "") : "";
+            foreach (var g in TeamBuilder.GloveGroups)
             {
-                var c = home.Order[i];
-                var pos = home.PosOf(c.Id) ?? "";
-                var group = string.IsNullOrEmpty(pos) ? "" : TeamBuilder.GloveGroup(pos);
-                var r = new Rect(x, y, 300, 36);
-                var selected = lit && i == slot;
-                GUI.DrawTexture(r, selected ? _pipOn : CardTex(c));
-                var ink = selected ? _center : _body;
-                var mark = c.Captain ? "C" : (i + 1).ToString();
-                GUI.Label(new Rect(x + 8, y + 6, 28, 24), mark, ink);
-                GUI.Label(new Rect(x + 36, y + 6, 48, 24), pos + (group == pos ? "" : " " + group), selected ? _centerTiny : _tiny);
-                GUI.Label(new Rect(x + 110, y + 6, 180, 24), c.Name, ink);
-                y += 40;
+                var uv = ChemistryToy.GroupTokenSpot(g);
+                var px = x + (float)((uv.U * 0.5 + 0.5) * w);
+                var py = y + h - (float)(uv.V * h) - 22;
+                var lit = g == group;
+                var r = new Rect(px - 22, py - 14, 44, 28);
+                GUI.DrawTexture(r, lit ? _pipOn : _panel);
+                GUI.Label(r, g, lit ? _center : _centerTiny);
             }
+            foreach (var pos in Diamond.Order)
+            {
+                if (!home.Gloves.TryGetValue(pos, out var who)) continue;
+                var uv = ChemistryToy.MiniSpot(pos);
+                var px = x + (float)((uv.U * 0.42 + 0.5) * w);
+                var py = y + h - (float)(uv.V * 0.82 * h) - 18;
+                var i = SlotOf(home, who.Id);
+                var mark = who.Captain ? "C" : (i + 1).ToString();
+                var r = new Rect(px - 16, py - 16, 32, 32);
+                GUI.DrawTexture(r, i == slot ? _pipOn : CardTex(who));
+                GUI.Label(r, mark, _centerTiny);
+            }
+        }
+
+        static void Dugout(TeamBuilder home, int slot, bool lit, float x, float y, float w)
+        {
+            var n = home.Order.Count;
+            if (n == 0) return;
+            var cell = Mathf.Min(48f, w / n);
+            for (var i = 0; i < n; i++)
+            {
+                var r = new Rect(x + i * cell, y, cell - 4, 36);
+                var on = lit && i == slot;
+                GUI.DrawTexture(r, on ? _pipOn : _panel);
+                var mark = home.Order[i].Captain ? "C" : (i + 1).ToString();
+                GUI.Label(r, mark, on ? _center : _centerTiny);
+            }
+        }
+
+        static void JumpingStars(float x, float y, int filled, float t)
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                var s = (float)ChemistryToy.StarScale(i, filled, t);
+                var size = 28f * s;
+                var px = x + i * 36f + (28f - size) * 0.5f;
+                var py = y + (28f - size) * 0.5f;
+                GUI.DrawTexture(new Rect(px, py, size, size),
+                    ChemistryToy.StarFilled(i, filled) ? _pipOn : _pipOff);
+            }
+        }
+
+        static void BigToy(Character who, string pos, float x, float y)
+        {
+            var r = new Rect(x, y, 140, 176);
+            GUI.DrawTexture(r, CardTex(who));
+            if (Look.HasPortrait(who.Id))
+            {
+                var tex = Look.Portrait(who.Id);
+                if (tex != null)
+                    GUI.DrawTexture(new Rect(r.x + 8, r.y + 8, r.width - 16, r.height - 36), tex, ScaleMode.ScaleToFit);
+            }
+            GUI.Label(new Rect(r.x, r.yMax - 28, r.width, 24),
+                (string.IsNullOrEmpty(pos) ? "" : pos + "  ") + Short(who.Name), _centerTiny);
         }
 
         static void PoolColumn(TeamBuilder home, IReadOnlyList<Character> pool, int poolIndex, bool lit, float x, float y)
         {
             GUI.Label(new Rect(x, y, 300, 22), "AVAILABLE", _gold);
             y += 26;
-            var shown = Mathf.Min(pool.Count, 12);
+            var shown = Mathf.Min(pool.Count, 10);
             var start = 0;
-            if (pool.Count > 12)
+            if (pool.Count > 10)
             {
-                start = Mathf.Clamp(poolIndex - 5, 0, pool.Count - 12);
-                shown = 12;
+                start = Mathf.Clamp(poolIndex - 4, 0, pool.Count - 10);
+                shown = 10;
             }
             for (var n = 0; n < shown; n++)
             {
                 var i = start + n;
                 var c = pool[i];
-                var r = new Rect(x, y, 308, 36);
+                var r = new Rect(x, y, 292, 34);
                 var selected = lit && i == poolIndex;
                 GUI.DrawTexture(r, selected ? _pipOn : CardTex(c));
-                var chem = home.Chem(c);
-                DrawChemPip(x + 8, y + 10, chem);
-                GUI.Label(new Rect(x + 32, y + 6, 270, 24), c.Name, selected ? _center : _body);
-                y += 40;
+                StickerEdge(x + 10, y + 8, home.Chem(c));
+                GUI.Label(new Rect(x + 36, y + 6, 250, 24), c.Name, selected ? _center : _body);
+                y += 38;
             }
         }
 
         static void Graph(TeamBuilder home, int slot, float cx, float cy, float radius)
         {
             var cap = home.Captain;
-            var capR = new Rect(cx - 52, cy - 64, 104, 128);
-            DrawPerson(capR, cap, true, true, home.PosOf(cap.Id));
-
+            var capMid = new Vector2(cx, cy);
             var others = new List<Character>();
             foreach (var c in home.Order)
                 if (!c.Id.Equals(cap.Id, System.StringComparison.OrdinalIgnoreCase))
                     others.Add(c);
-
-            var capMid = new Vector2(cx, cy);
             for (var i = 0; i < others.Count; i++)
             {
                 var ang = i / (float)others.Count * Mathf.PI * 2f - Mathf.PI * 0.5f;
                 var px = cx + Mathf.Cos(ang) * radius;
                 var py = cy + Mathf.Sin(ang) * radius;
-                var r = new Rect(px - 40, py - 48, 80, 96);
                 var selected = SlotOf(home, others[i].Id) == slot;
                 var chem = home.Chem(others[i]);
-                if (chem != Chemistry.Neutral)
-                    Edge(capMid, new Vector2(px, py), chem == Chemistry.Good ? Gold : Red, selected ? 6f : 3f);
-                DrawPerson(r, others[i], selected, Look.HasPortrait(others[i].Id), home.PosOf(others[i].Id));
+                StickerSpoke(capMid, new Vector2(px, py), chem, selected);
+                var size = selected ? 96f : 56f;
+                DrawPerson(new Rect(px - size * 0.5f, py - size * 0.55f, size, size * 1.15f),
+                    others[i], selected, Look.HasPortrait(others[i].Id), home.PosOf(others[i].Id));
             }
+        }
+
+        static void StickerSpoke(Vector2 from, Vector2 to, Chemistry chem, bool selected)
+        {
+            var kind = ChemistryToy.Sticker(chem);
+            if (kind == ChemistryToy.None) return;
+            if (kind == ChemistryToy.Heart)
+            {
+                Edge(from, to, Gold, selected ? 10f : 6f);
+                var mid = (from + to) * 0.5f;
+                GUI.DrawTexture(new Rect(mid.x - 9, mid.y - 9, 18, 18), _pipOn);
+            }
+            else
+            {
+                var n = (to - from).normalized;
+                var perp = new Vector2(-n.y, n.x) * 5f;
+                Edge(from + perp, to + perp, Red, selected ? 5f : 3f);
+                Edge(from - perp, to - perp, Red, selected ? 5f : 3f);
+                Edge(from, to, Red, selected ? 4f : 2.5f);
+            }
+        }
+
+        static void StickerEdge(float x, float y, Chemistry chem)
+        {
+            var kind = ChemistryToy.Sticker(chem);
+            if (kind == ChemistryToy.Heart)
+                GUI.DrawTexture(new Rect(x, y, 16, 16), _pipOn);
+            else if (kind == ChemistryToy.Scribble)
+            {
+                var prev = GUI.color;
+                GUI.color = Red;
+                GUI.DrawTexture(new Rect(x, y + 4, 16, 8), _white);
+                GUI.color = prev;
+            }
+            else
+                GUI.DrawTexture(new Rect(x, y, 16, 16), _pipOff);
         }
 
         static void DrawPerson(Rect r, Character c, bool selected, bool portrait, string pos)
@@ -137,7 +218,7 @@ namespace GrandSluggers.UnityClient
         static int SlotOf(TeamBuilder home, string id)
         {
             for (var i = 0; i < home.Order.Count; i++)
-                if (home.Order[i].Id.Equals(id, System.StringComparison.OrdinalIgnoreCase))
+                if (home.Order[i].Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                     return i;
             return -1;
         }
@@ -157,22 +238,6 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = old;
         }
 
-        static void DrawChemPip(float x, float y, Chemistry chem)
-        {
-            var tex = chem == Chemistry.Good ? _pipOn : chem == Chemistry.Bad ? _white : _pipOff;
-            var prev = GUI.color;
-            if (chem == Chemistry.Bad) GUI.color = Red;
-            else if (chem == Chemistry.Neutral) GUI.color = new Color(1f, 1f, 1f, 0.35f);
-            GUI.DrawTexture(new Rect(x, y, 16, 16), tex);
-            GUI.color = prev;
-        }
-
-        static void Stars(float x, float y, int n)
-        {
-            for (var i = 0; i < 5; i++)
-                GUI.DrawTexture(new Rect(x + i * 20, y, 16, 16), n > i ? _pipOn : _pipOff);
-        }
-
         static Texture2D CardTex(Character c)
         {
             if (_faction.TryGetValue(c.Faction, out var t) && t != null) return t;
@@ -189,18 +254,27 @@ namespace GrandSluggers.UnityClient
             return sp >= 0 ? n.Substring(sp + 1) : n;
         }
 
+        static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)
+        {
+            var old = GUI.color;
+            GUI.color = new Color(0.06f, 0.04f, 0.08f, 0.88f);
+            GUI.Label(new Rect(x + 3, y + 3, w, h), text, style);
+            GUI.color = old;
+            GUI.Label(new Rect(x, y, w, h), text, style);
+        }
+
         static readonly Color Gold = new Color(1f, 0.82f, 0.25f, 1f);
         static readonly Color Red = new Color(0.86f, 0.18f, 0.22f, 1f);
 
         static void Ensure()
         {
             if (_h1 != null) return;
-            _h1 = Sty(26, Color.white, FontStyle.Bold);
+            _h1 = Sty(28, Color.white, FontStyle.Bold);
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
-            _gold = Sty(18, Gold, FontStyle.Bold);
+            _gold = Sty(16, Gold, FontStyle.Bold);
             _tiny = Sty(14, new Color(0.85f, 0.88f, 0.9f), FontStyle.Normal);
             _center = Sty(16, new Color(0.08f, 0.08f, 0.1f), FontStyle.Bold);
-            _center.alignment = TextAnchor.MiddleLeft;
+            _center.alignment = TextAnchor.MiddleCenter;
             _centerTiny = Sty(13, Color.white, FontStyle.Bold);
             _centerTiny.alignment = TextAnchor.MiddleCenter;
             _panel = Tex(new Color(0.07f, 0.08f, 0.1f, 0.78f));
