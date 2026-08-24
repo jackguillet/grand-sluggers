@@ -36,10 +36,10 @@ namespace GrandSluggers.UnityClient
         {
             var gold = Look.Toon(Colors.Gold);
             var ink = Look.Toon(new Color(0.12f, 0.08f, 0.04f));
-            Look.Prim(PrimitiveType.Cube, "Board", transform, Vector3.zero, new Vector3(11.6f, 2.05f, 0.16f), gold);
-            Look.Prim(PrimitiveType.Cube, "Ink", transform, new Vector3(0f, 0f, 0.06f), new Vector3(11.1f, 1.62f, 0.08f), ink);
-            Look.Prim(PrimitiveType.Cube, "Star", transform, new Vector3(-5.35f, 0.05f, 0.12f), new Vector3(0.55f, 0.55f, 0.12f), gold);
-            _copy = Label(transform, "Copy", 0.14f, 64, Colors.Gold, new Vector3(0.35f, 0.02f, 0.14f));
+            Look.Prim(PrimitiveType.Cube, "Board", transform, Vector3.zero, new Vector3(7.6f, 1.72f, 0.16f), gold);
+            Look.Prim(PrimitiveType.Cube, "Ink", transform, new Vector3(0f, 0f, 0.06f), new Vector3(7.2f, 1.32f, 0.08f), ink);
+            Look.Prim(PrimitiveType.Cube, "Star", transform, new Vector3(-3.45f, 0.05f, 0.12f), new Vector3(0.48f, 0.48f, 0.12f), gold);
+            _copy = Label(transform, "Copy", 0.10f, 64, Colors.Gold, new Vector3(0.28f, 0.02f, 0.14f));
         }
 
         static TextMesh Label(Transform parent, string name, float size, int font, Color color, Vector3 local)

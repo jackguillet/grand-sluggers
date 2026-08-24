@@ -33,6 +33,7 @@ public class FeelInfraTests
             $"title home captain is the toy, not the mound dist={Dist(title.Pos, homeToy)}");
         Assert.True(CarnivalFront.FeaturedTitleZ < 16, $"title captain too far z={CarnivalFront.FeaturedTitleZ}");
         Assert.True(CarnivalFront.LogoZ > -12 && CarnivalFront.LogoZ < 18, $"logo z={CarnivalFront.LogoZ}");
+        Assert.True(Math.Abs(CarnivalFront.LogoX) < 8, $"logo off-frame x={CarnivalFront.LogoX}");
         Assert.True(CarnivalFront.LogoY > 5, $"logo y={CarnivalFront.LogoY}");
         var select = _content.Shots.Must("select");
         Assert.True(select.Pos.Z > -20, $"select must sit in front of the backstop cage z={select.Pos.Z}");
