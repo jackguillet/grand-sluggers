@@ -105,6 +105,43 @@ namespace GrandSluggers.UnityClient
                 _gold);
         }
 
+        public static void Pause(int item, bool howTo, int page)
+        {
+            Ensure();
+            var dim = _panel;
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), dim);
+            if (howTo)
+            {
+                var p = HowToPlay.Pages[(page % HowToPlay.Pages.Count + HowToPlay.Pages.Count) % HowToPlay.Pages.Count];
+                var w = 760f;
+                var h = 52f + p.Lines.Count * 26f + 56f;
+                var x = Screen.width * 0.5f - w * 0.5f;
+                var y = Mathf.Max(36f, Screen.height * 0.5f - h * 0.5f);
+                GUI.DrawTexture(new Rect(x, y, w, h), _panel);
+                GUI.Label(new Rect(x + 24, y + 16, w - 48, 32),
+                    "HOW TO PLAY  ·  " + (page + 1) + " / " + HowToPlay.Pages.Count + "  ·  " + p.Title, _h1);
+                for (var i = 0; i < p.Lines.Count; i++)
+                    GUI.Label(new Rect(x + 28, y + 56 + i * 26, w - 56, 24), p.Lines[i], _body);
+                GUI.Label(new Rect(x + 28, y + h - 36, w - 56, 22), "South next page    stick L/R    East / Start back", _gold);
+                return;
+            }
+            var mw = 420f;
+            var mh = 64f + PauseMenu.Items.Count * 42f + 40f;
+            var mx = Screen.width * 0.5f - mw * 0.5f;
+            var my = Screen.height * 0.5f - mh * 0.5f;
+            GUI.DrawTexture(new Rect(mx, my, mw, mh), _panel);
+            GUI.Label(new Rect(mx + 24, my + 16, mw - 48, 32), "CALL TIME", _h1);
+            for (var i = 0; i < PauseMenu.Items.Count; i++)
+            {
+                var label = PauseMenu.Label(PauseMenu.Items[i]);
+                var r = new Rect(mx + 24, my + 56 + i * 42, mw - 48, 36);
+                if (i == item)
+                    GUI.DrawTexture(r, _ink);
+                GUI.Label(r, label, i == item ? _h1 : _body);
+            }
+            GUI.Label(new Rect(mx + 24, my + mh - 32, mw - 48, 22), "stick  choose    South  ok    Start / East  resume", _tiny);
+        }
+
         public static void BagTell(int bag)
         {
             Ensure();

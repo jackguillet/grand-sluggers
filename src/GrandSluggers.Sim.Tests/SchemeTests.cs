@@ -48,4 +48,30 @@ public class SchemeTests
         Assert.False(Scheme.IsDebug("Z"));
         Assert.DoesNotContain(Scheme.Product, v => v.Keys.Contains("F1") || v.Keys.Contains("F2") || v.Keys.Contains("F3"));
     }
+
+    [Fact]
+    public void PauseMenuAndHowToPlayAreTheInGameCouchMap()
+    {
+        Assert.Equal(4, PauseMenu.Items.Count);
+        Assert.Equal(PauseMenu.Item.Resume, PauseMenu.At(0));
+        Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(1));
+        Assert.Equal(PauseMenu.Item.HowToPlay, PauseMenu.At(2));
+        Assert.Equal(PauseMenu.Item.Title, PauseMenu.At(3));
+        Assert.Equal("How to play", PauseMenu.Label(PauseMenu.Item.HowToPlay));
+        Assert.Equal(PauseMenu.Item.Title, PauseMenu.At(PauseMenu.Wrap(0, -1)));
+        Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(PauseMenu.Wrap(0, 1)));
+        Assert.True(HowToPlay.Pages.Count >= 4);
+        Assert.True(HowToPlay.Mentions("South"));
+        Assert.True(HowToPlay.Mentions("Space"));
+        Assert.True(HowToPlay.Mentions("MAX"));
+        Assert.True(HowToPlay.Mentions("oval"));
+        Assert.True(HowToPlay.Mentions("changeup"));
+        Assert.True(HowToPlay.Mentions("call time"));
+        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South") && l.Contains("Space"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("charge", StringComparison.OrdinalIgnoreCase));
+        Assert.False(HowToPlay.Mentions("cycle pitch"));
+        Assert.False(HowToPlay.Mentions("cycle fastball"));
+        Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
+        Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("F1") && l.Contains("debug"));
+    }
 }

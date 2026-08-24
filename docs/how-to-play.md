@@ -2,7 +2,7 @@
 
 Living spec for couch play. **Gamepad is the couch product. Keyboard is the same scheme** — every Exhibition verb has a key. F1/F2/F3 stay debug. Mouse is not a control.
 
-If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file in the same PR.
+**In the game:** Start / H during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Those pages are `HowToPlay.Pages` (same copy as below). If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
@@ -22,7 +22,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | All advance / all return | LB / RB | `,` / `.` |
 | Freeze | LB+RB | `/` |
 | Steal | L3 | Z |
-| Cycle pitch | RB (SET pitching) | Tab |
+| Changeup (pitch) | West | V |
 | Swap pitcher / glove | Select | R |
 | Bunt | West hold | V hold |
 | Cutoff / relay | LB after catch | X |
@@ -85,7 +85,7 @@ SET pitching is **3/4 over the pitcher** (`mound`) looking at home. SET batting 
 - **Sweet-spot oval** on the dirt is smaller than the zone. Walk so it eats the ball.
 - **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
 - **Select / R** — swap pitcher (when they sweat, they are tired).
-- **Start / H** during SET or in-play — **call time** (pause). Tab on the title cycles 3 / 6 / 9 innings.
+- **Start / H** during SET or in-play — **call time**: Resume, Restart, How to play, Title. Tab on the title cycles 3 / 6 / 9 innings.
 
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
