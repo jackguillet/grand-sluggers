@@ -121,7 +121,11 @@ namespace GrandSluggers.UnityClient
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
             _hideHelp = true;
-            if (pitch.Star) _audio?.CaptainVo(_match.Pitcher.Id);
+            if (pitch.Star)
+            {
+                _audio?.CaptainVo(_match.Pitcher.Id);
+                Controls.RumbleStar();
+            }
             AimSetCamera();
         }
 
@@ -260,7 +264,13 @@ namespace GrandSluggers.UnityClient
                 _park.BurstFireworks(_ball);
             _gloved = false;
             if (hit.Quality != ContactQuality.Miss) _audio?.Bat(hit.Quality);
-            if (hit.StarSwingUsed != null) _audio?.CaptainVo(_match.Batter.Id);
+            if (hit.StarSwingUsed != null)
+            {
+                _audio?.CaptainVo(_match.Batter.Id);
+                Controls.RumbleStar();
+            }
+            else if (hit.Quality != ContactQuality.Miss)
+                Controls.RumbleContact(hit.Quality);
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
                 _freeze = (float)_feel.SmashFreeze;

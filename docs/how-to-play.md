@@ -10,7 +10,7 @@ Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`.
 
 ## Face buttons
 
-South / East / West / North are **positions**, not Nintendo vs Xbox labels.
+South / East / West / North are **positions**, not Nintendo vs Xbox labels. The bottom face button is South on Xbox and Nintendo pads.
 
 | Position | Xbox | Nintendo | Keyboard debug |
 | --- | --- | --- | --- |
@@ -18,14 +18,17 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels.
 | East | B | A | G |
 | West | X | Y | F (tap) · V (hold) |
 | North | Y | X | Q |
-| LT | LT | ZL | Shift |
+| LT | analog LT | analog ZL | Shift |
 | RT | — | — | — |
 | LB | LB | L | X |
 | RB | RB | R | Tab |
 | Start | Menu / Start | + | H |
+| Select | View / Back | − | R (swap pitcher) |
 | R3 | Right-stick click | Right-stick click | N |
 
-Left stick = WASD / arrows. D-pad bags = 1 2 3 4.
+Left stick = WASD / arrows. D-pad bags = right 1B, up 2B, left 3B, down home (keyboard 1 2 3 4).
+
+One player. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. Keyboard is a debug overlay. Mouse is not a control.
 
 ---
 
@@ -65,7 +68,7 @@ Chemistry graph is the point. Starting stars come from how the eight like the ca
 SET starts **catcher-eye** (`plate`) so you see the batter. Take the rubber (charge or aim) and the camera is **3/4 mound**. Throw cuts to mound.
 
 - **Stick** — aim the zone
-- **LT hold** — charge
+- **LT pull** — charge (analog)
 - **South** — pitch
 - **RB** — cycle fastball / changeup / curve / slider
 - **North** — star pitch (if you have a star)
@@ -75,7 +78,7 @@ Star pitch owns the ball ~2 seconds (Heatball, Charmball, Prism, Phony, Cask, Sk
 
 ### Batting (Bottom)
 
-- **LT hold** — charge
+- **LT pull** — charge (analog)
 - **South** — swing (timing vs the pitch)
 - **Stick** — spray
 - **West hold** — bunt
@@ -129,6 +132,6 @@ F2 is how you name the still (plate vs mound vs diamond-line). It does not repla
 
 Couch, pad, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
 
-**Now (Harbor Exhibition).** Title looks into the park. SET pitching starts catcher-eye, then 3/4 mound. Baseball is 0.62 ft. Heatball is a core + embers. Scorebug can mute. Shared body is a toy-proportion blockout (one chain, captain extras). Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Still not a sculpted hero.
+**Now (Harbor Exhibition).** Title looks into the park. SET pitching starts catcher-eye, then 3/4 mound. Baseball is 0.62 ft. Heatball is a core + embers. Scorebug can mute. Shared body is a toy-proportion blockout (one chain, captain extras). Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.
