@@ -15,6 +15,7 @@ namespace GrandSluggers.EditorTools
     {
         const string RigFolder = "Art/Characters/SharedRig/";
         const string ClipFolder = "Art/Animation/Clips/";
+        const string ParkFolder = "Art/Parks/";
         const string DefaultSlot = "Assets/Art/Characters/SharedRig/hero-shared.fbx";
 
         static SharedRigImport()
@@ -58,10 +59,13 @@ namespace GrandSluggers.EditorTools
         {
             var rig = assetPath.IndexOf(RigFolder, StringComparison.OrdinalIgnoreCase) >= 0;
             var clip = assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) >= 0;
-            if (!rig && !clip) return;
+            var park = assetPath.IndexOf(ParkFolder, StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!rig && !clip && !park) return;
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
-            imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            imp.avatarSetup = park
+                ? ModelImporterAvatarSetup.NoAvatar
+                : ModelImporterAvatarSetup.CreateFromThisModel;
             imp.importAnimation = clip;
             imp.addCollider = false;
             imp.importBlendShapes = false;

@@ -1,6 +1,6 @@
 Harbor kit empties: Dugouts, Bleachers, WallDress, Town, Scoreboard, Backstop.
 
-HarborKit.Dress fills those. Dugout opens to the infield (posts, back wall, roof, rail, bench, sitting people).
-Stars sit on the field-facing fascia, facing the diamond. Crowd is capsule+sphere people.
-Harbor owns the outfield wall (rotated pads). ParkView.Fence does not run on Harbor.
+Drop `harbor-kit.fbx` here (names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit).
+HarborKit instances those onto the empties. Missing file keeps the primitive dress
+(field-open dugout, rotated wall, capsule people). Stars stay on the fascia.
 Do not emit a second diamond. Backstop stays. Other parks wait.
