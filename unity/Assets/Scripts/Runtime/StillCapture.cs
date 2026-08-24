@@ -230,7 +230,8 @@ namespace GrandSluggers.UnityClient
             {
                 HideCatcher();
                 PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
-                PosePitcher(HeroActor.Pose.Idle, 0, false);
+                PosePitcher(HeroActor.Pose.ChargePitch, 1, false);
+                HoldPitchInHand();
                 _cam.CutRaw("plate",
                     new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
                     new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),

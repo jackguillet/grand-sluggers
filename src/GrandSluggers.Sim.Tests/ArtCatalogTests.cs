@@ -52,6 +52,10 @@ public class ArtCatalogTests
             (swing.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fbx), fbx);
         Assert.True(new FileInfo(fbx).Length > 10_000, "swing.fbx is empty");
+        var pitchFbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (pitch.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(pitchFbx), pitchFbx);
+        Assert.True(new FileInfo(pitchFbx).Length > 10_000, "pitch.fbx is empty");
     }
 
     [Fact]
@@ -119,10 +123,35 @@ public class ArtCatalogTests
     }
 
     [Fact]
+    public void AuthoredPitchClipIsAThrowNotRawMoveBones()
+    {
+        Assert.True(_content.Art.TryClip("pitch", out var clip) && clip.Authored);
+        Assert.False(clip.Loop);
+        Assert.Equal(MoveBones.PitchRelease, clip.ReleaseAt);
+        Assert.Contains("Release", clip.Events, StringComparer.OrdinalIgnoreCase);
+        Assert.True(_content.Art.TryAuthored("pitch", 0, out var wind));
+        var bonesWind = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, 0.04);
+        Assert.NotEqual(bonesWind.Torso.Y, wind.Torso.Y);
+        Assert.True(Math.Abs(wind.Torso.Y) > Math.Abs(bonesWind.Torso.Y),
+            $"authored windup {wind.Torso.Y} vs bones {bonesWind.Torso.Y}");
+        Assert.True(_content.Art.TryAuthored("pitch", clip.ReleaseAt, out var rel));
+        Assert.True(rel.RUpper.X > wind.RUpper.X,
+            $"release arm forward {rel.RUpper.X} vs windup {wind.RUpper.X}");
+        Assert.True(rel.LThigh.X > 20, $"release stride {rel.LThigh.X}");
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (clip.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(fbx), fbx);
+        Assert.True(new FileInfo(fbx).Length > 10_000, "pitch.fbx is empty");
+        Assert.True(_content.Art.TryAuthored("pitch", 10, out var held));
+        Assert.True(_content.Art.TryAuthored("pitch", 0.50, out var fin));
+        Assert.Equal(fin.Torso.Y, held.Torso.Y);
+    }
+
+    [Fact]
     public void MissingAuthoredClipFallsBackToMoveBones()
     {
-        Assert.True(_content.Art.TryClip("pitch", out var pitch) && !pitch.Authored);
-        Assert.False(_content.Art.TryAuthored("pitch", 0, out _));
         Assert.True(_content.Art.TryClip("slide", out var slide) && !slide.Authored);
         Assert.False(_content.Art.TryAuthored("slide", 0, out _));
         Assert.True(_content.Art.TryClip("throw", out var thr) && !thr.Authored);

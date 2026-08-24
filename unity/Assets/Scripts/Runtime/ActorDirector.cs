@@ -118,8 +118,8 @@ namespace GrandSluggers.UnityClient
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = HeroActor.Pose.Charm;
                 var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
-                hero.SetPose(pose, kv.Key == "P" ? _charge : 0, kv.Key == "P" ? pType : null);
-                hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _charge : 0f);
+                hero.SetPose(pose, kv.Key == "P" ? _pitchCharge : 0, kv.Key == "P" ? pType : null);
+                hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
