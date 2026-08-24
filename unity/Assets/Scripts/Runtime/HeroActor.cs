@@ -40,6 +40,7 @@ namespace GrandSluggers.UnityClient
         Vector3 _ground;
         bool _hasGround;
         float _speed;
+        bool _snap;
 
         public string Id => _id;
         public Pose Current => _pose;
@@ -81,6 +82,16 @@ namespace GrandSluggers.UnityClient
         public void SetHighlight(bool on) => _lit = on;
 
         public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
+
+        /// <summary>Still-gate: apply the pose in one step. Live play keeps the slerp.</summary>
+        public void SnapTick(float poseT)
+        {
+            _poseT = poseT;
+            _t = poseT;
+            _snap = true;
+            Tick(0f);
+            _snap = false;
+        }
 
         public void Place(Vector3 pos, Vector3 look)
         {
@@ -146,7 +157,7 @@ namespace GrandSluggers.UnityClient
                     var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
                     _ring.localPosition = new Vector3(0f, (float)SetTells.RingHeightFt, 0f);
                     _ring.localRotation = Quaternion.identity;
-                    _ring.localScale = new Vector3(pulse, 0.045f, pulse);
+                    _ring.localScale = new Vector3(pulse, (float)SetTells.RingThickFt, pulse);
                 }
             }
             Animate();
@@ -322,7 +333,9 @@ namespace GrandSluggers.UnityClient
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
-                Apply(sample, boneSnap ? 0.55f : 0.32f, boneSnap ? 0.48f : 0.34f);
+                Apply(sample,
+                    _snap ? 1f : boneSnap ? 0.55f : 0.32f,
+                    _snap ? 1f : boneSnap ? 0.48f : 0.34f);
                 if (_bat != null)
                 {
                     _bat.gameObject.SetActive(batOn);
@@ -621,8 +634,8 @@ namespace GrandSluggers.UnityClient
             if (pitching && _throwsLeft) MirrorArms(ref lArm, ref rArm);
 
             var poseSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Scoop or Pose.Slide;
-            var kArm = poseSnap ? 0.55f : 0.2f;
-            var kLeg = poseSnap ? 0.45f : 0.25f;
+            var kArm = _snap ? 1f : poseSnap ? 0.55f : 0.2f;
+            var kLeg = _snap ? 1f : poseSnap ? 0.45f : 0.25f;
             if (_hunchDeg != 0f)
                 torsoRot = Quaternion.Euler(_hunchDeg, 0, 0) * torsoRot;
             if (_torso != null)

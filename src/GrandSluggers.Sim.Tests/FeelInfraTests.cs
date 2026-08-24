@@ -45,8 +45,9 @@ public class FeelInfraTests
         Assert.True(StillPose.PlateIsThirdBaseThreeQuarter(plate.Pos.X, plate.Pos.Z),
             $"plate third-base 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
-        Assert.True(plate.Target.Z > 28, $"plate looks at the pitcher, target z={plate.Target.Z}");
-        Assert.True(plate.Target.Y < 1.8, $"plate look is on the dirt/box y={plate.Target.Y}");
+        Assert.True(plate.Target.Z > 10, $"plate looks into the diamond, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Z < 22, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");
+        Assert.True(plate.Target.Y < 1.4, $"plate look is on the dirt/box y={plate.Target.Y}");
         Assert.True(Math.Abs(plate.Target.X - 2.55) < 3, $"plate look is on the batter x={plate.Target.X}");
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
@@ -138,6 +139,8 @@ public class FeelInfraTests
         Assert.True(SetTells.RingOn(1));
         Assert.True(SetTells.RingScale(1) > SetTells.RingScale(0.2));
         Assert.Equal(0, SetTells.RingScale(0));
+        Assert.True(SetTells.RingThickFt > 0.1, "plate 3/4 could not see a 0.045 pancake");
+        Assert.True(SetTells.RingHeightFt < 0.2);
         Assert.True(SetTells.ZoneOn(true));
         Assert.False(SetTells.ZoneOn(false));
         Assert.True(SetTells.TrailOn(true));

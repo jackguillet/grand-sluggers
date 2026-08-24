@@ -268,7 +268,7 @@ namespace GrandSluggers.UnityClient
                     fh.SetPose(HeroActor.Pose.Scoop, 0);
                     fh.SetHeld(false, true);
                     fh.Place(new Vector3(gx, 0f, gz), new Vector3(-gx, 0f, 8f - gz));
-                    fh.Tick((float)StillPose.ScoopPoseT);
+                    fh.SnapTick((float)StillPose.ScoopPoseT);
                     _ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
@@ -292,7 +292,7 @@ namespace GrandSluggers.UnityClient
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
                 {
                     sw.gameObject.SetActive(true);
-                    sw.Tick((float)MoveBones.SwingContact);
+                    sw.SnapTick((float)MoveBones.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
                 var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
@@ -323,7 +323,7 @@ namespace GrandSluggers.UnityClient
             b.SetChargeRing(ring ? charge : 0);
             b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
             b.Place(new Vector3(2.55f, 0f, 2.4f), new Vector3(0f, 0f, 1f));
-            b.Tick(0.08f);
+            b.SnapTick(0.08f);
         }
 
         void PosePitcher(HeroActor.Pose pose, float charge, bool ring)
@@ -332,7 +332,7 @@ namespace GrandSluggers.UnityClient
             if (!_heroes.TryGetValue(_match.Pitcher.Id, out var p) || p == null) return;
             p.SetPose(pose, charge, "fastball");
             p.SetChargeRing(ring ? charge : 0);
-            p.Tick(0.08f);
+            p.SnapTick(0.08f);
         }
     }
 }

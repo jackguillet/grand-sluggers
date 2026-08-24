@@ -6,25 +6,25 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class StillPose
 {
-    public const double ScoopX = 24;
-    public const double ScoopZ = 36;
-    public const double ScoopBallY = 0.85;
+    public const double ScoopX = 26;
+    public const double ScoopZ = 26;
+    public const double ScoopBallY = 0.55;
     /// <summary>Mid-pick. Later t stands them up (12:22 PNG).</summary>
     public const double ScoopPoseT = 0.20;
-    public const double RunnerX = 30;
-    public const double RunnerZ = 30;
+    public const double RunnerX = 42;
+    public const double RunnerZ = 42;
     public const string ScoopGlove = "2B";
-    public const double CamX = 6;
-    public const double CamY = 5.8;
-    public const double CamZ = 20;
+    public const double CamX = 10;
+    public const double CamY = 4.8;
+    public const double CamZ = 12;
 
-    public const double PlateCamX = -11.4;
-    public const double PlateCamY = 5.5;
-    public const double PlateCamZ = -7.0;
+    public const double PlateCamX = -13.2;
+    public const double PlateCamY = 5.2;
+    public const double PlateCamZ = -9.2;
     public const double PlateLookX = 2.55;
-    public const double PlateLookY = 1.25;
-    public const double PlateLookZ = 34;
-    public const double PlateFov = 50;
+    public const double PlateLookY = 1.05;
+    public const double PlateLookZ = 14;
+    public const double PlateFov = 52;
 
     public static bool ScoopIsNotTheMound(double x, double z) =>
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
