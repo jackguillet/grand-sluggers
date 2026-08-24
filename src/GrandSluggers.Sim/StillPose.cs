@@ -29,6 +29,16 @@ public static class StillPose
     public const double PlateLookZ = 14;
     public const double PlateFov = 52;
 
+    public const double PitchCamX = -12.0;
+    public const double PitchCamY = 5.0;
+    public const double PitchCamZ = -4.8;
+    public const double PitchLookX = 0.7;
+    public const double PitchLookY = 5.1;
+    public const double PitchLookZ = 57.0;
+    public const double PitchFov = 34;
+    /// <summary>Just off the hand, still on the pitcher, coming at the box.</summary>
+    public const double PitchBallU = 0.12;
+
     public static bool ScoopIsNotTheMound(double x, double z) =>
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
 
@@ -65,4 +75,8 @@ public static class StillPose
         var deg = Math.Acos(Math.Clamp(cos, -1, 1)) * 180 / Math.PI;
         return deg > 40;
     }
+
+    /// <summary>From the box, third-base 3/4, looking at the pitcher — not the dirt.</summary>
+    public static bool PitchLooksAtTheThrow(double camX, double camZ, double lookY, double lookZ) =>
+        camX < -6 && camZ < 0 && camZ > -12 && lookZ > 45 && lookY > 3.5;
 }
