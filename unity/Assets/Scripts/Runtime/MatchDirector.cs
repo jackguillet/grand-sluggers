@@ -195,6 +195,8 @@ namespace GrandSluggers.UnityClient
             _park?.Tick(_ball, dt);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _stars?.Set(_match.HomeStars, _match.AwayStars);
+            if (HarborKit.Instance != null && HarborKit.Instance.OwnsDiamond)
+                HarborKit.Instance.SetScore(_match.AwayScore, _match.HomeScore, _match.Inning);
             _audio?.Tick(dt);
             if (!_freezeCam) _rig.Tick(dt);
         }
