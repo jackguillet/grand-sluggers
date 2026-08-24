@@ -249,7 +249,12 @@ namespace GrandSluggers.UnityClient
         static string ParkKitFbx(string parkId)
         {
             var slot = ParkKitPath(parkId);
-            if (string.IsNullOrWhiteSpace(slot)) return "";
+            if (string.IsNullOrWhiteSpace(slot))
+            {
+                if (parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase))
+                    return "Assets/Art/Parks/harbor-diamond/harbor-kit.fbx";
+                return "";
+            }
             if (slot.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) return slot;
             return slot.TrimEnd('/') + "/harbor-kit.fbx";
         }
