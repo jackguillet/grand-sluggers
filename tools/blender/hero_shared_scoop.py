@@ -18,39 +18,40 @@ FPS = 60
 DURATION = 0.50
 CONTACT = 0.22
 
-# data/art/pose-clips/scoop.json — Unity parent-space euler offsets (degrees).
+# Authored on the FBX bind (bones along their length). Capsule JSON eulers
+# of torso X=72 laid this mesh on its side. Contact is a crouch pick.
 KEYS = [
     (0.00, {
-        "torso": (18, 8, 0), "head": (14, 4, 0),
-        "lUpper": (22, 8, 24), "lFore": (26, 0, 0),
-        "rUpper": (26, -10, -24), "rFore": (30, 0, 0),
-        "lThigh": (52, 12, 0), "lShin": (38, 0, 0),
-        "rThigh": (44, -10, 0), "rShin": (34, 0, 0),
-        "glove": (30, 0, 0),
+        "torso": (12, 6, 0), "head": (10, 4, 0),
+        "lUpper": (18, 6, 10), "lFore": (22, 0, 0),
+        "rUpper": (20, -8, -10), "rFore": (24, 0, 0),
+        "lThigh": (28, 8, 0), "lShin": (22, 0, 0),
+        "rThigh": (24, -8, 0), "rShin": (20, 0, 0),
+        "glove": (24, 0, 0),
     }),
     (0.10, {
-        "torso": (58, 4, 0), "head": (22, 2, 0),
-        "lUpper": (48, 10, 8), "lFore": (52, 0, 0),
-        "rUpper": (55, -12, -6), "rFore": (56, 0, 0),
-        "lThigh": (70, 14, 0), "lShin": (58, 0, 0),
-        "rThigh": (64, -12, 0), "rShin": (54, 0, 0),
-        "glove": (56, 0, 0),
+        "torso": (22, 2, 0), "head": (16, 2, 0),
+        "lUpper": (32, 8, 6), "lFore": (38, 0, 0),
+        "rUpper": (36, -8, -6), "rFore": (42, 0, 0),
+        "lThigh": (42, 10, 0), "lShin": (34, 0, 0),
+        "rThigh": (38, -10, 0), "rShin": (32, 0, 0),
+        "glove": (42, 0, 0),
     }),
     (0.22, {
-        "torso": (72, 0, 0), "head": (28, 0, 0),
-        "lUpper": (52, 8, 6), "lFore": (58, 0, 0),
-        "rUpper": (58, -10, -4), "rFore": (62, 0, 0),
-        "lThigh": (78, 16, 0), "lShin": (62, 0, 0),
-        "rThigh": (72, -14, 0), "rShin": (58, 0, 0),
-        "glove": (62, 0, 0),
+        "torso": (28, 0, 0), "head": (18, 0, 0),
+        "lUpper": (40, 6, 4), "lFore": (48, 0, 0),
+        "rUpper": (44, -8, -4), "rFore": (52, 0, 0),
+        "lThigh": (48, 12, 0), "lShin": (40, 0, 0),
+        "rThigh": (44, -12, 0), "rShin": (38, 0, 0),
+        "glove": (52, 0, 0),
     }),
     (0.50, {
-        "torso": (10, -8, 0), "head": (6, -4, 0),
-        "lUpper": (18, 6, 20), "lFore": (20, 0, 0),
-        "rUpper": (16, -8, -18), "rFore": (24, 0, 0),
-        "lThigh": (28, 6, 0), "lShin": (22, 0, 0),
-        "rThigh": (22, -6, 0), "rShin": (18, 0, 0),
-        "glove": (24, 0, 0),
+        "torso": (8, -4, 0), "head": (6, -2, 0),
+        "lUpper": (14, 4, 12), "lFore": (16, 0, 0),
+        "rUpper": (12, -6, -12), "rFore": (18, 0, 0),
+        "lThigh": (18, 4, 0), "lShin": (14, 0, 0),
+        "rThigh": (16, -4, 0), "rShin": (12, 0, 0),
+        "glove": (18, 0, 0),
     }),
 ]
 
