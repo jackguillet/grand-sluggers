@@ -44,96 +44,99 @@ namespace GrandSluggers.UnityClient
             chain.BaseScale = new Vector3(spec.Width, spec.Height, spec.Width) * 1.15f;
             chain.Root.localScale = chain.BaseScale;
 
-            Look.Prim(PrimitiveType.Capsule, "Hip", chain.Root, new Vector3(0, 1.15f, 0), new Vector3(1.15f, 0.7f, 0.85f), slack);
+            Look.Prim(PrimitiveType.Sphere, "Hip", chain.Root, new Vector3(0, 1.05f, 0), new Vector3(1.45f, 1.05f, 1.15f), slack);
 
             var torsoKind = Has("cube-chest") ? PrimitiveType.Cube : PrimitiveType.Capsule;
             var torsoScale = Has("cube-chest")
-                ? new Vector3(1.55f, 1.12f, 1.12f)
-                : new Vector3(1.28f, 0.95f, 0.82f) * spec.Torso;
-            chain.Torso = Look.Prim(torsoKind, "torso", chain.Root, new Vector3(0, 2.55f, 0), torsoScale, jersey).transform;
-            Look.Prim(PrimitiveType.Cube, "Stripe", chain.Torso, new Vector3(0, 0.15f, 0.42f), new Vector3(0.18f, 0.7f, 0.08f), trim);
+                ? new Vector3(1.75f, 1.22f, 1.22f)
+                : new Vector3(1.48f, 0.88f, 0.98f) * spec.Torso;
+            chain.Torso = Look.Prim(torsoKind, "torso", chain.Root, new Vector3(0, 2.35f, 0), torsoScale, jersey).transform;
+            Look.Prim(PrimitiveType.Cube, "Stripe", chain.Torso, new Vector3(0, 0.12f, 0.48f), new Vector3(0.28f, 0.82f, 0.1f), trim);
+            Look.Prim(PrimitiveType.Cylinder, "Collar", chain.Torso, new Vector3(0, 0.52f, 0.08f), new Vector3(0.72f, 0.12f, 0.72f), trim);
 
             if (Has("neck"))
-                Look.Prim(PrimitiveType.Cylinder, "Neck", chain.Root, new Vector3(0, 3.55f, 0), new Vector3(0.28f, 0.42f, 0.28f), flesh);
+                Look.Prim(PrimitiveType.Cylinder, "Neck", chain.Root, new Vector3(0, 3.45f, 0), new Vector3(0.42f, 0.55f, 0.42f), flesh);
             if (Has("belly"))
-                Look.Prim(PrimitiveType.Sphere, "Belly", chain.Torso, new Vector3(0, -0.35f, 0.35f), new Vector3(1.05f, 0.7f, 0.85f), jersey);
+                Look.Prim(PrimitiveType.Sphere, "Belly", chain.Torso, new Vector3(0, -0.42f, 0.42f), new Vector3(1.25f, 0.85f, 1.0f), jersey);
             if (Has("sash"))
-                Look.Prim(PrimitiveType.Cube, "Sash", chain.Torso, new Vector3(0.15f, 0.05f, 0.48f), new Vector3(0.7f, 0.12f, 0.06f), Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f));
+                Look.Prim(PrimitiveType.Cube, "Sash", chain.Torso, new Vector3(0.18f, 0.08f, 0.55f), new Vector3(0.95f, 0.18f, 0.08f), Look.Lit(new Color(0.75f, 0.92f, 1f), smooth: 0.45f));
             if (Has("cape"))
-                Look.Prim(PrimitiveType.Cube, "Cape", chain.Torso, new Vector3(0, -0.15f, -0.62f), new Vector3(1.15f, 1.15f, 0.12f), trim);
+                Look.Prim(PrimitiveType.Cube, "Cape", chain.Torso, new Vector3(0, -0.22f, -0.72f), new Vector3(1.35f, 1.35f, 0.16f), trim);
 
-            var headY = Has("neck") ? 4.65f : 4.35f;
+            var headY = Has("neck") ? 4.55f : 4.15f;
             var headKind = Has("brick-jaw") ? PrimitiveType.Cube : PrimitiveType.Sphere;
             var headScale = Has("brick-jaw")
-                ? new Vector3(1.45f, 1.15f, 1.35f) * spec.Head
-                : Vector3.one * (1.55f * spec.Head);
+                ? new Vector3(1.65f, 1.35f, 1.55f) * spec.Head
+                : Vector3.one * (1.95f * spec.Head);
             chain.Head = Look.Prim(headKind, "head", chain.Root, new Vector3(0, headY, 0), headScale, flesh).transform;
             var ink = Look.Lit(new Color(0.08f, 0.07f, 0.07f), smooth: 0.05f);
             var eye = Has("ember-eyes") ? Look.Unlit(Colors.EmberFire) : ink;
-            var eyeSize = 0.22f;
-            Look.Prim(PrimitiveType.Sphere, "EyeL", chain.Head, new Vector3(-0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
-            Look.Prim(PrimitiveType.Sphere, "EyeR", chain.Head, new Vector3(0.28f, 0.1f, 0.58f), Vector3.one * eyeSize, eye);
+            const float eyeSize = 0.38f;
+            Look.Prim(PrimitiveType.Sphere, "EyeL", chain.Head, new Vector3(-0.32f, 0.08f, 0.52f), Vector3.one * eyeSize, eye);
+            Look.Prim(PrimitiveType.Sphere, "EyeR", chain.Head, new Vector3(0.32f, 0.08f, 0.52f), Vector3.one * eyeSize, eye);
             var white = Look.Unlit(Color.white);
-            Look.Prim(PrimitiveType.Sphere, "WhiteL", chain.Head, new Vector3(-0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
-            Look.Prim(PrimitiveType.Sphere, "WhiteR", chain.Head, new Vector3(0.28f, 0.1f, 0.52f), Vector3.one * (eyeSize * 1.55f), white);
-            Look.Prim(PrimitiveType.Cube, "BrowL", chain.Head, new Vector3(-0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
-            Look.Prim(PrimitiveType.Cube, "BrowR", chain.Head, new Vector3(0.28f, 0.28f, 0.52f), new Vector3(0.28f, 0.07f, 0.12f), ink);
-            Look.Prim(PrimitiveType.Cube, "Mouth", chain.Head, new Vector3(0, -0.22f, 0.55f), new Vector3(0.32f, 0.08f, 0.1f), ink);
+            Look.Prim(PrimitiveType.Sphere, "WhiteL", chain.Head, new Vector3(-0.32f, 0.08f, 0.44f), Vector3.one * (eyeSize * 1.7f), white);
+            Look.Prim(PrimitiveType.Sphere, "WhiteR", chain.Head, new Vector3(0.32f, 0.08f, 0.44f), Vector3.one * (eyeSize * 1.7f), white);
+            Look.Prim(PrimitiveType.Cube, "BrowL", chain.Head, new Vector3(-0.32f, 0.32f, 0.48f), new Vector3(0.38f, 0.1f, 0.14f), ink);
+            Look.Prim(PrimitiveType.Cube, "BrowR", chain.Head, new Vector3(0.32f, 0.32f, 0.48f), new Vector3(0.38f, 0.1f, 0.14f), ink);
+            Look.Prim(PrimitiveType.Cube, "Mouth", chain.Head, new Vector3(0, -0.28f, 0.5f), new Vector3(0.48f, 0.12f, 0.12f), ink);
+            Look.Prim(PrimitiveType.Sphere, "EarL", chain.Head, new Vector3(-0.55f, 0.05f, 0.05f), Vector3.one * 0.28f, flesh);
+            Look.Prim(PrimitiveType.Sphere, "EarR", chain.Head, new Vector3(0.55f, 0.05f, 0.05f), Vector3.one * 0.28f, flesh);
 
             if (Has("cheeks"))
             {
-                Look.Prim(PrimitiveType.Sphere, "CheekL", chain.Head, new Vector3(-0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
-                Look.Prim(PrimitiveType.Sphere, "CheekR", chain.Head, new Vector3(0.42f, -0.18f, 0.38f), Vector3.one * 0.32f, flesh);
+                Look.Prim(PrimitiveType.Sphere, "CheekL", chain.Head, new Vector3(-0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
+                Look.Prim(PrimitiveType.Sphere, "CheekR", chain.Head, new Vector3(0.48f, -0.22f, 0.38f), Vector3.one * 0.42f, flesh);
             }
             if (Has("crown"))
             {
                 var ice = Look.Lit(new Color(0.85f, 0.95f, 1f), smooth: 0.55f);
-                Look.Prim(PrimitiveType.Cylinder, "Crown", chain.Head, new Vector3(0, 0.62f, 0), new Vector3(0.7f, 0.14f, 0.7f), ice);
-                Look.Prim(PrimitiveType.Cube, "Point", chain.Head, new Vector3(0, 0.92f, 0), new Vector3(0.16f, 0.4f, 0.16f), ice);
+                Look.Prim(PrimitiveType.Cylinder, "Crown", chain.Head, new Vector3(0, 0.72f, 0), new Vector3(0.95f, 0.2f, 0.95f), ice);
+                Look.Prim(PrimitiveType.Cube, "Point", chain.Head, new Vector3(0, 1.08f, 0), new Vector3(0.22f, 0.55f, 0.22f), ice);
                 chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(0.01f, 0.01f, 0.01f), trim).transform;
             }
             else
             {
-                chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.42f, 0), new Vector3(1.15f, 0.18f, 1.15f), trim).transform;
-                var brim = Has("brim") ? new Vector3(1.35f, 0.12f, 0.95f) : new Vector3(1.1f, 0.12f, 0.7f);
-                Look.Prim(PrimitiveType.Cube, "Brim", chain.Cap, new Vector3(0, -0.6f, 0.7f), brim, Look.Lit(Colors.Gold, smooth: 0.4f));
+                chain.Cap = Look.Prim(PrimitiveType.Cylinder, "Cap", chain.Head, new Vector3(0, 0.48f, 0), new Vector3(1.35f, 0.24f, 1.35f), trim).transform;
+                var brim = Has("brim") ? new Vector3(1.65f, 0.16f, 1.2f) : new Vector3(1.25f, 0.14f, 0.85f);
+                Look.Prim(PrimitiveType.Cube, "Brim", chain.Cap, new Vector3(0, -0.55f, 0.72f), brim, Look.Lit(Colors.Gold, smooth: 0.4f));
             }
             if (Has("horns"))
             {
-                Look.Prim(PrimitiveType.Cube, "HornL", chain.Head, new Vector3(-0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
-                Look.Prim(PrimitiveType.Cube, "HornR", chain.Head, new Vector3(0.48f, 0.62f, -0.05f), new Vector3(0.2f, 0.95f, 0.2f), trim);
+                Look.Prim(PrimitiveType.Cube, "HornL", chain.Head, new Vector3(-0.52f, 0.72f, -0.08f), new Vector3(0.28f, 1.15f, 0.28f), trim);
+                Look.Prim(PrimitiveType.Cube, "HornR", chain.Head, new Vector3(0.52f, 0.72f, -0.08f), new Vector3(0.28f, 1.15f, 0.28f), trim);
             }
             if (Has("snout"))
-                Look.Prim(PrimitiveType.Sphere, "Snout", chain.Head, new Vector3(0, -0.18f, 0.62f), new Vector3(0.82f, 0.5f, 0.7f), flesh);
+                Look.Prim(PrimitiveType.Sphere, "Snout", chain.Head, new Vector3(0, -0.22f, 0.62f), new Vector3(0.95f, 0.62f, 0.85f), flesh);
             if (Has("goggles"))
             {
                 var glass = Look.Lit(new Color(0.2f, 0.85f, 0.55f), smooth: 0.6f);
-                Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
-                Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.32f, 0.12f, 0.52f), new Vector3(0.45f, 0.08f, 0.45f), glass);
+                Look.Prim(PrimitiveType.Cylinder, "GogL", chain.Head, new Vector3(-0.34f, 0.1f, 0.48f), new Vector3(0.58f, 0.12f, 0.58f), glass);
+                Look.Prim(PrimitiveType.Cylinder, "GogR", chain.Head, new Vector3(0.34f, 0.1f, 0.48f), new Vector3(0.58f, 0.12f, 0.58f), glass);
             }
             if (Has("brick-jaw"))
-                Look.Prim(PrimitiveType.Cube, "Jaw", chain.Head, new Vector3(0, -0.42f, 0.28f), new Vector3(0.95f, 0.35f, 0.7f), flesh);
+                Look.Prim(PrimitiveType.Cube, "Jaw", chain.Head, new Vector3(0, -0.48f, 0.32f), new Vector3(1.15f, 0.42f, 0.85f), flesh);
 
-            var armLen = 0.7f * spec.Arms;
-            var armThick = 0.38f;
-            chain.LUpper = Look.Prim(PrimitiveType.Capsule, "lUpper", chain.Torso, new Vector3(-0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
-            chain.LFore = Look.Prim(PrimitiveType.Capsule, "lFore", chain.LUpper, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
-            chain.RUpper = Look.Prim(PrimitiveType.Capsule, "rUpper", chain.Torso, new Vector3(0.85f * spec.Arms, 0.25f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
-            chain.RFore = Look.Prim(PrimitiveType.Capsule, "rFore", chain.RUpper, new Vector3(0, -0.85f, 0), new Vector3(0.85f, 0.7f, 0.85f), flesh).transform;
-            Look.Prim(PrimitiveType.Sphere, "LHand", chain.LFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
-            Look.Prim(PrimitiveType.Sphere, "RHand", chain.RFore, new Vector3(0, -0.7f, 0), Vector3.one * 0.55f, flesh);
+            var armLen = 0.62f * spec.Arms;
+            const float armThick = 0.55f;
+            chain.LUpper = Look.Prim(PrimitiveType.Capsule, "lUpper", chain.Torso, new Vector3(-0.92f * spec.Arms, 0.18f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
+            chain.LFore = Look.Prim(PrimitiveType.Capsule, "lFore", chain.LUpper, new Vector3(0, -0.82f, 0), new Vector3(0.92f, 0.72f, 0.92f), flesh).transform;
+            chain.RUpper = Look.Prim(PrimitiveType.Capsule, "rUpper", chain.Torso, new Vector3(0.92f * spec.Arms, 0.18f, 0), new Vector3(armThick, armLen, armThick), jersey).transform;
+            chain.RFore = Look.Prim(PrimitiveType.Capsule, "rFore", chain.RUpper, new Vector3(0, -0.82f, 0), new Vector3(0.92f, 0.72f, 0.92f), flesh).transform;
+            Look.Prim(PrimitiveType.Sphere, "LHand", chain.LFore, new Vector3(0, -0.68f, 0), Vector3.one * 0.78f, flesh);
+            Look.Prim(PrimitiveType.Sphere, "RHand", chain.RFore, new Vector3(0, -0.68f, 0), Vector3.one * 0.78f, flesh);
 
-            var thighThick = 0.42f;
-            var thighSpread = 0.38f;
-            chain.LThigh = Look.Prim(PrimitiveType.Capsule, "lThigh", chain.Root, new Vector3(-thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            chain.LShin = Look.Prim(PrimitiveType.Capsule, "lShin", chain.LThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
-            chain.RThigh = Look.Prim(PrimitiveType.Capsule, "rThigh", chain.Root, new Vector3(thighSpread, 0.7f, 0), new Vector3(thighThick, 0.7f, thighThick), slack).transform;
-            chain.RShin = Look.Prim(PrimitiveType.Capsule, "rShin", chain.RThigh, new Vector3(0, -0.9f, 0), new Vector3(0.8f, 0.7f, 0.8f), slack).transform;
+            const float thighThick = 0.58f;
+            const float thighSpread = 0.42f;
+            chain.LThigh = Look.Prim(PrimitiveType.Capsule, "lThigh", chain.Root, new Vector3(-thighSpread, 0.62f, 0), new Vector3(thighThick, 0.62f, thighThick), slack).transform;
+            chain.LShin = Look.Prim(PrimitiveType.Capsule, "lShin", chain.LThigh, new Vector3(0, -0.82f, 0), new Vector3(0.88f, 0.62f, 0.88f), slack).transform;
+            chain.RThigh = Look.Prim(PrimitiveType.Capsule, "rThigh", chain.Root, new Vector3(thighSpread, 0.62f, 0), new Vector3(thighThick, 0.62f, thighThick), slack).transform;
+            chain.RShin = Look.Prim(PrimitiveType.Capsule, "rShin", chain.RThigh, new Vector3(0, -0.82f, 0), new Vector3(0.88f, 0.62f, 0.88f), slack).transform;
             var shoe = Has("sneakers")
-                ? new Vector3(0.95f, 0.38f, 1.35f)
-                : new Vector3(0.7f, 0.28f, 1.1f);
-            Look.Prim(PrimitiveType.Cube, "LShoe", chain.LShin, new Vector3(0, -0.72f, 0.12f), shoe, leather);
-            Look.Prim(PrimitiveType.Cube, "RShoe", chain.RShin, new Vector3(0, -0.72f, 0.12f), shoe, leather);
+                ? new Vector3(1.15f, 0.48f, 1.55f)
+                : new Vector3(0.88f, 0.36f, 1.28f);
+            Look.Prim(PrimitiveType.Cube, "LShoe", chain.LShin, new Vector3(0, -0.68f, 0.18f), shoe, leather);
+            Look.Prim(PrimitiveType.Cube, "RShoe", chain.RShin, new Vector3(0, -0.68f, 0.18f), shoe, leather);
 
             var gold = Look.Unlit(Colors.Gold);
             chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", chain.Root, new Vector3(0, 0.08f, 0), new Vector3(2.0f, 0.07f, 2.0f), gold).transform;

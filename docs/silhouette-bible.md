@@ -26,12 +26,14 @@ Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso
 
 | Type | Who | Height | Width | Head | Arms | Torso | Read |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Harbor kid | Rio, Spark | 0.88 | 0.90 | 1.22 | 0.95 | 0.88 | Short, round head, chunky shoes, big brim |
-| Pageant pitcher | Vale, Royal | 1.22 | 0.68 | 0.82 | 0.88 | 0.72 | Tall, slim, long neck, sash, small crown |
+| Harbor kid | Rio, Spark | 0.88 | 0.98 | 1.45 | 1.05 | 0.92 | Short, round head, chunky shoes, big brim |
+| Pageant pitcher | Vale, Royal | 1.22 | 0.72 | 1.22 | 0.92 | 0.78 | Tall, slim, long neck, sash, ice crown — head still reads |
 | Speed | Zig, Carnival | 0.64 | 1.26 | 1.55 | 0.92 | 0.70 | Tiny body, wide head, stubby legs, goggles |
-| Brick | Brondo, Goldrush | 1.00 | 1.55 | 0.80 | 1.18 | 1.42 | Cube torso, thick neck, square jaw |
-| Ape | Konga, Canopy | 1.32 | 1.40 | 1.10 | 1.55 | 1.18 | Hunched, snout, long arms, barrel belly |
-| Villain slug | Ashlord, Ember | 1.26 | 1.16 | 1.12 | 1.10 | 1.30 | Horns, cape stub, furnace eyes, heavy boots |
+| Brick | Brondo, Goldrush | 1.00 | 1.55 | 1.12 | 1.22 | 1.42 | Cube torso, thick neck, square jaw |
+| Ape | Konga, Canopy | 1.32 | 1.40 | 1.35 | 1.55 | 1.18 | Hunched, snout, long arms, barrel belly |
+| Villain slug | Ashlord, Ember | 1.26 | 1.16 | 1.30 | 1.14 | 1.30 | Horns, cape stub, furnace eyes, heavy boots |
+
+Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in `Silhouette.cs`.
 
 Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Do not invent a seventh anatomy.
 
