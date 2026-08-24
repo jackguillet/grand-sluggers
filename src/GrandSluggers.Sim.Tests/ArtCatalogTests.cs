@@ -104,6 +104,12 @@ public class ArtCatalogTests
         Assert.True(pick.Torso.X > bonesPick.Torso.X,
             $"authored pick {pick.Torso.X} vs bones {bonesPick.Torso.X}");
         Assert.True(pick.Lift < -0.4, $"authored scoop lift {pick.Lift} is not on the dirt");
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (clip.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(fbx), fbx);
+        Assert.True(new FileInfo(fbx).Length > 10_000, "scoop.fbx is empty");
         Assert.True(Math.Abs(pick.RUpper.Z) < 12,
             $"authored glove abducts into a T z={pick.RUpper.Z}");
         Assert.True(_content.Art.TryAuthored("scoop", 10, out var held));
