@@ -73,9 +73,9 @@ public static class Hud
         }
 
         Raylib.DrawRectangle(80, 360, 680, 250, Palette.Fade(Palette.HudPaper, 210));
-        Raylib.DrawText("A/D            your captain", 100, 376, 22, Palette.HudInk);
+        Raylib.DrawText("A/D            your captain  (park stays)", 100, 376, 22, Palette.HudInk);
         Raylib.DrawText("W/S            opponent  (exhibition)", 100, 404, 22, Palette.HudInk);
-        Raylib.DrawText("C              cycle park     T  2P", 100, 432, 22, Palette.HudInk);
+        Raylib.DrawText("C              cycle park (not tied to captain)     T  2P", 100, 432, 22, Palette.HudInk);
         Raylib.DrawText("SPACE / A      pitch, swing, catch", 100, 460, 22, Palette.HudInk);
         Raylib.DrawText("SHIFT charge   WASD field   1 2 3 H throw", 100, 488, 22, Palette.HudInk);
         Raylib.DrawText("F buddy   R pitcher   Q star   X steal   E banana", 100, 516, 22, Palette.HudInk);

@@ -28,6 +28,11 @@ namespace GrandSluggers.UnityClient
                 Select(homeCap, awayCap, null);
                 return;
             }
+            if (phase == PhaseUi.Field)
+            {
+                Field(parkName, night);
+                return;
+            }
             if (phase == PhaseUi.Lineup)
             {
                 Lineup(match);
@@ -70,7 +75,7 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(w - 300, 36, 260, 260), portrait, ScaleMode.ScaleToFit);
             if (hideHelp) return;
             GUI.Label(new Rect(52, Screen.height - 56, w - 80, 22),
-                "South / Space Exhibition   West / F training   Start / H mode   stick / WASD captains", _tiny);
+                "South / Space pick captain   West / F training   Start / H mode", _tiny);
         }
 
         public static void Select(string homeId, string awayId, ContentCatalog content)
@@ -79,7 +84,7 @@ namespace GrandSluggers.UnityClient
             var w = Screen.width;
             GUI.DrawTexture(new Rect(36, 24, 560, 78), _panel);
             GUI.Label(new Rect(52, 32, 540, 36), "PICK YOUR CAPTAIN", _h1);
-            GUI.Label(new Rect(52, 68, 520, 22), "stick / WASD  home / away    South / Space  lineup", _gold);
+            GUI.Label(new Rect(52, 68, 520, 22), "stick / WASD  home / away    South / Space  the field    West / F  title", _gold);
             var ids = PresetTeams.CaptainIds;
             var card = Mathf.Min(150f, (w - 80) / ids.Length - 8);
             var x0 = (w - ids.Length * (card + 8) + 8) * 0.5f;
@@ -103,6 +108,17 @@ namespace GrandSluggers.UnityClient
                 + "  vs  "
                 + (content != null && content.Characters.TryGetValue(awayId, out var a) ? a.Name : awayId),
                 _gold);
+        }
+
+        public static void Field(string parkName, bool night)
+        {
+            Ensure();
+            var w = Screen.width;
+            GUI.DrawTexture(new Rect(36, 24, 620, 92), _panel);
+            GUI.Label(new Rect(52, 32, 600, 36), "PICK THE FIELD", _h1);
+            GUI.Label(new Rect(52, 68, 580, 28), parkName + (night ? "  ·  NIGHT" : "  ·  DAY"), night ? _gold : _body);
+            GUI.Label(new Rect(52, Screen.height - 56, w - 80, 22),
+                "stick / WASD  cycle    South / Space  lineup    West / F  captains    N night", _tiny);
         }
 
         public static void Pause(int item, bool howTo, int page)
@@ -461,5 +477,5 @@ namespace GrandSluggers.UnityClient
         }
     }
 
-    public enum PhaseUi { Title, Select, Lineup, Set, Flight, InPlay, Result, GameOver }
+    public enum PhaseUi { Title, Select, Field, Lineup, Set, Flight, InPlay, Result, GameOver }
 }

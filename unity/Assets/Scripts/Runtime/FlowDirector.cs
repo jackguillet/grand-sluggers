@@ -21,6 +21,7 @@ namespace GrandSluggers.UnityClient
             {
                 case Phase.Title: TickTitle(); break;
                 case Phase.Select: TickSelect(); break;
+                case Phase.Field: TickField(); break;
                 case Phase.Lineup: TickLineup(); break;
                 case Phase.Result: TickResult(); break;
                 case Phase.GameOver: TickGameOver(); break;
@@ -93,61 +94,10 @@ namespace GrandSluggers.UnityClient
                 BeginTraining();
                 return;
             }
-            if (_mode != PlayMode.Training)
-            {
-                if (Key(KeyCode.A) || Key(KeyCode.LeftArrow))
-                {
-                    HomeCaptain = PresetTeams.PrevCaptain(HomeCaptain);
-                    if (_mode != PlayMode.Challenge)
-                    {
-                        ParkId = PresetTeams.HomeParkId(HomeCaptain);
-                        RebuildTitlePark();
-                    }
-                }
-                if (Key(KeyCode.D) || Key(KeyCode.RightArrow))
-                {
-                    HomeCaptain = PresetTeams.NextCaptain(HomeCaptain);
-                    if (_mode != PlayMode.Challenge)
-                    {
-                        ParkId = PresetTeams.HomeParkId(HomeCaptain);
-                        RebuildTitlePark();
-                    }
-                }
-            }
-            if (_mode == PlayMode.Exhibition)
-            {
-                if (Key(KeyCode.W) || Key(KeyCode.UpArrow)) AwayCaptain = PresetTeams.PrevCaptain(AwayCaptain);
-                if (Key(KeyCode.S) || Key(KeyCode.DownArrow)) AwayCaptain = PresetTeams.NextCaptain(AwayCaptain);
-                if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
-                    AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
-            }
             if (_mode != PlayMode.Training && Controls.NightToggle)
             {
                 Night = !Night;
                 RebuildTitlePark();
-            }
-            if (_mode == PlayMode.Exhibition)
-            {
-                if (Controls.ParkHeld)
-                {
-                    _cHold += Time.deltaTime;
-                    if (_cHold > 0.4f && !_cNight)
-                    {
-                        Night = !Night;
-                        _cNight = true;
-                    }
-                }
-                else
-                {
-                    if (_cHold > 0f && _cHold < 0.4f && !_cNight)
-                    {
-                        var i = System.Array.IndexOf(Parks, ParkId);
-                        ParkId = Parks[(i < 0 ? 0 : i + 1) % Parks.Length];
-                        RebuildTitlePark();
-                    }
-                    _cHold = 0f;
-                    _cNight = false;
-                }
             }
             _cam.Play("title");
             if (Controls.SouthDown)
@@ -197,24 +147,85 @@ namespace GrandSluggers.UnityClient
                 var y = Controls.StickY;
                 if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
                 {
-                    HomeCaptain = x > 0 ? PresetTeams.NextCaptain(HomeCaptain) : PresetTeams.PrevCaptain(HomeCaptain);
-                    _match = NewMatch();
+                    ApplyPick(ExhibitionPick.CycleHome(CurrentPick(), x > 0 ? 1 : -1));
                     _selectStick = 0.22f;
                 }
                 else if (Mathf.Abs(y) >= 0.45f)
                 {
-                    AwayCaptain = y > 0 ? PresetTeams.PrevCaptain(AwayCaptain) : PresetTeams.NextCaptain(AwayCaptain);
-                    if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
-                        AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
-                    _match = NewMatch();
+                    ApplyPick(ExhibitionPick.CycleAway(CurrentPick(), y > 0 ? -1 : 1));
                     _selectStick = 0.22f;
                 }
             }
-            if (HomeCaptain.Equals(AwayCaptain, System.StringComparison.OrdinalIgnoreCase))
-                AwayCaptain = PresetTeams.NextCaptain(HomeCaptain);
             LookAtHomeCaptain();
+            if (Controls.WestDown && _t > 0.15f)
+            {
+                OpenTitle();
+                return;
+            }
+            if (Controls.SouthDown && _t > 0.15f)
+                OpenField();
+        }
+
+        void OpenField()
+        {
+            _phase = Phase.Field;
+            _t = 0;
+            _selectStick = 0;
+            _clip = null;
+            _hlPath = null;
+            _replaying = false;
+            _match = NewMatch();
+            RebuildTitlePark();
+            _cam.Play("title");
+        }
+
+        void TickField()
+        {
+            if (_selectStick > 0) _selectStick -= Time.deltaTime;
+            else
+            {
+                var x = Controls.StickX;
+                if (Mathf.Abs(x) >= 0.45f)
+                {
+                    ApplyPick(ExhibitionPick.CyclePark(CurrentPick(), x > 0 ? 1 : -1));
+                    RebuildTitlePark();
+                    _selectStick = 0.22f;
+                }
+            }
+            if (Controls.NightToggle)
+            {
+                Night = !Night;
+                RebuildTitlePark();
+            }
+            _cam.Play("title");
+            if (Controls.WestDown && _t > 0.15f)
+            {
+                OpenSelect();
+                return;
+            }
             if (Controls.SouthDown && _t > 0.15f)
                 OpenLineup();
+        }
+
+        ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId);
+
+        void ApplyPick(ExhibitionPick pick)
+        {
+            HomeCaptain = pick.Home;
+            AwayCaptain = pick.Away;
+            ParkId = pick.Park;
+            _match = NewMatch();
+        }
+
+        void OpenTitle()
+        {
+            _phase = Phase.Title;
+            _t = 0;
+            _clip = null;
+            _hlPath = null;
+            _replaying = false;
+            RebuildTitlePark();
+            _cam.Play("title");
         }
 
         void LookAtHomeCaptain()
