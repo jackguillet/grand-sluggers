@@ -1,5 +1,6 @@
-Authored pose clips live in data/art/pose-clips/{id}.json until a Unity .anim/.fbx drops here.
+Drop one file per catalog id: {id}.fbx or {id}.anim. Same bones as data/art/rig.json.
 
-HeroActor plays the catalog clip when authored; otherwise MoveBones.Evaluate.
-Loop clips sample clock time. One-shots (swing, scoop) sample pose time so Contact hits.
-Run, swing, and scoop are authored. Same bone names as data/art/rig.json.
+HeroActor samples the Unity clip when the file exists; otherwise authored pose JSON
+then MoveBones.Evaluate. Loop clips sample clock time. One-shots sample pose time
+so Contact hits. swing.fbx is the first take (Contact at 0.30).
+Generic rig, face −Z, one take. Do not add a second skeleton.

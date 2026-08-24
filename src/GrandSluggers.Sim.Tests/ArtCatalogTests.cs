@@ -46,6 +46,12 @@ public class ArtCatalogTests
         Assert.Contains("Release", pitch.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(MoveBones.PitchRelease, pitch.ReleaseAt);
         Assert.StartsWith("Assets/Art/Animation/Clips/", swing.Slot, StringComparison.OrdinalIgnoreCase);
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (swing.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(fbx), fbx);
+        Assert.True(new FileInfo(fbx).Length > 10_000, "swing.fbx is empty");
     }
 
     [Fact]
