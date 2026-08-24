@@ -55,7 +55,7 @@ Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the
 
 - **Stick / WASD L/R** — home · **U/D** — away
 - **South / Space** — lineup
-- Camera stays in front of the cage and looks at the home captain. Park stays what you picked on the title (Harbor is the slice).
+- Camera stays in front of the cage and looks at the home captain. Park stays what you picked on the title (Harbor is the slice). The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture. Stick L/R follows the home captain’s park (Crystal Rink for Vale, not a blank sky).
 
 ### Lineup (draft the eight)
 
