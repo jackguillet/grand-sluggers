@@ -12,13 +12,13 @@ public sealed class StillRequest
     public const string DoneFileName = "gs-still-done.json";
     public const string DefaultOutFolder = "gs-stills";
 
-    public static readonly string[] DefaultShots = ["title", "plate", "mound"];
+    public static readonly string[] DefaultShots = ["title", "plate", "mound", "diamond-grounder", "smash"];
 
     public static readonly HashSet<string> AllowedShots = new(StringComparer.OrdinalIgnoreCase)
     {
         "title", "select", "plate", "mound",
         "diamond", "diamond-grounder", "diamond-line", "diamond-homer", "diamond-pull",
-        "throw", "tag", "smash", "replay"
+        "throw", "tag", "smash", "replay", "scoop"
     };
 
     public string[]? Shots { get; init; }
@@ -29,7 +29,7 @@ public sealed class StillRequest
     public int Width { get; init; } = 1920;
     public int Height { get; init; } = 1080;
     public string? OutDir { get; init; }
-    public double Charge01 { get; init; }
+    public double Charge01 { get; init; } = 1;
 
     public IReadOnlyList<string> ResolvedShots()
     {
@@ -41,6 +41,8 @@ public sealed class StillRequest
             if (id.Length == 0) continue;
             if (!AllowedShots.Contains(id))
                 throw new InvalidDataException("still shot not allowed: " + id);
+            if (id.Equals("scoop", StringComparison.OrdinalIgnoreCase))
+                id = "diamond-grounder";
             list.Add(id.ToLowerInvariant());
         }
         if (list.Count == 0)

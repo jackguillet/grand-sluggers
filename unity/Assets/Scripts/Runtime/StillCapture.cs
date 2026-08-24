@@ -61,9 +61,6 @@ namespace GrandSluggers.UnityClient
                 yield break;
             }
 
-            _play.GateSkipToSet(_req.ResolvedHome(), _req.ResolvedAway(), (float)_req.Charge01, _req.FeelDebug, _req.HudOff);
-            for (var i = 0; i < 12; i++) yield return null;
-
             var outDir = _req.ResolvedOutDir(_temp);
             Directory.CreateDirectory(outDir);
             var cam = _play.GateCam;
@@ -71,13 +68,14 @@ namespace GrandSluggers.UnityClient
             var h = _req.ResolvedHeight();
             foreach (var shot in shots)
             {
-                _play.GateCut(shot);
+                _play.GateStage(shot, _req);
+                for (var i = 0; i < 8; i++) yield return null;
+                _play.GatePose(shot, _req);
                 yield return null;
-                yield return new WaitForEndOfFrame();
                 var png = StillRequest.PngPath(outDir, shot);
                 try
                 {
-                    Capture(cam, png, w, h);
+                    Capture(_play.GateCam != null ? _play.GateCam : cam, png, w, h);
                     files.Add(png);
                 }
                 catch (Exception ex)
@@ -132,29 +130,157 @@ namespace GrandSluggers.UnityClient
     {
         internal Camera GateCam => _rig != null ? _rig.Cam : Camera.main;
 
-        internal void GateSkipToSet(string home, string away, float charge, bool feelDebug, bool muteHud)
+        internal void GateStage(string shot, StillRequest req)
         {
             _mode = PlayMode.Exhibition;
-            HomeCaptain = home;
-            AwayCaptain = away;
-            _forceMuteHud = muteHud;
-            _feelDebug = feelDebug;
+            HomeCaptain = req.ResolvedHome();
+            AwayCaptain = req.ResolvedAway();
+            _forceMuteHud = req.HudOff;
+            _feelDebug = req.FeelDebug;
             _showTiming = false;
             _freezeCam = true;
-            _charge = Mathf.Clamp01(charge);
-            _match = NewMatch();
-            _park.Build(_match.Park, _match.Night);
-            _spec.Build(transform);
-            _items.Build(transform);
-            _stars?.Build(transform);
-            BeginSet();
+            _charge = Mathf.Clamp01((float)req.Charge01);
+            if (_match == null || _park == null)
+            {
+                _match = NewMatch();
+                _park.Build(_match.Park, _match.Night);
+            }
+
+            if (shot == "title" || shot == "select")
+            {
+                _phase = shot == "select" ? Phase.Select : Phase.Title;
+                _cam.Cut(shot);
+                return;
+            }
+
+            if (shot == "mound")
+            {
+                _match = NewMatch();
+                _park.Build(_match.Park, _match.Night);
+                BeginSet();
+                _cam.Cut("mound");
+                return;
+            }
+
+            if (shot == "plate")
+            {
+                _match = NewMatch();
+                _match.SkipToHomeHalf();
+                _park.Build(_match.Park, _match.Night);
+                BeginSet();
+                _cam.Cut("plate");
+                return;
+            }
+
+            if (shot == "diamond-grounder")
+            {
+                _match = NewMatch();
+                _match.SkipToHomeHalf();
+                BeginSet();
+                var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+                _pending = hopper;
+                _preview = _match.PreviewHit(hopper);
+                _playerFielding = true;
+                _caught = true;
+                InitGloves();
+                StartFly(hopper);
+                _hitT = 0.22f;
+                _cam.Cut("diamond-grounder");
+                return;
+            }
+
+            if (shot == "smash")
+            {
+                _match = NewMatch();
+                _match.SkipToHomeHalf();
+                _match.GiveOffenseStars(5);
+                BeginSet();
+                var id = _match.Batter.StarSwing;
+                var hit = new AtBatResult(ContactQuality.Perfect, true, false, 100, 28, 320, false, false, null, id);
+                _pending = hit;
+                _swing = new SwingCommand(true, 1, 0, true);
+                StartFly(hit);
+                return;
+            }
+
+            _cam.Cut(shot);
         }
 
-        internal void GateCut(string shot)
+        internal void GatePose(string shot, StillRequest req)
         {
             _freezeCam = true;
-            if (_cam == null) return;
-            _cam.Cut(shot);
+            var charge = Mathf.Clamp01((float)req.Charge01);
+            if (shot == "title" || shot == "select")
+            {
+                _cam.Cut(shot);
+                return;
+            }
+
+            if (shot == "mound")
+            {
+                PosePitcher(HeroActor.Pose.ChargePitch, charge, true);
+                PoseBatter(HeroActor.Pose.Idle, 0, false);
+                _cam.Cut("mound");
+                return;
+            }
+
+            if (shot == "plate")
+            {
+                PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
+                PosePitcher(HeroActor.Pose.Idle, 0, false);
+                _cam.Cut("plate");
+                return;
+            }
+
+            if (shot == "diamond-grounder")
+            {
+                PoseBatter(HeroActor.Pose.Run, 0, false);
+                if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var run) && run != null)
+                    run.Place(new Vector3(18f, 0f, 18f), new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
+                Character glove = _preview != null ? _preview.Fielder : null;
+                if (glove != null && _heroes.TryGetValue(glove.Id, out var fh) && fh != null)
+                {
+                    var x = _preview != null ? (float)_preview.LandingX : -20f;
+                    var z = _preview != null ? (float)_preview.LandingZ : 40f;
+                    fh.SetPose(HeroActor.Pose.Scoop, 0);
+                    fh.SetHeld(false, true);
+                    fh.Place(new Vector3(x, 0f, z), new Vector3(-x, 0f, -z));
+                    fh.Tick((float)MoveBones.Mark(MoveBones.Verb.Scoop, MoveBones.ClipEvent.Contact));
+                    _ball = new Vector3(x, 1.1f, z);
+                    _park.Ball.Place(_ball, "", "fastball", false);
+                    if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
+                }
+                _cam.Cut("diamond-grounder");
+                return;
+            }
+
+            if (shot == "smash")
+            {
+                PoseBatter(HeroActor.Pose.Swing, 1, false);
+                if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
+                    sw.Tick((float)MoveBones.SwingContact);
+                _cam.Cut("smash");
+            }
+        }
+
+        void PoseBatter(HeroActor.Pose pose, float charge, bool ring)
+        {
+            if (_match?.Batter == null) return;
+            if (!_heroes.TryGetValue(_match.Batter.Id, out var b) || b == null) return;
+            b.SetPose(pose, charge);
+            b.SetChargeRing(ring ? charge : 0);
+            b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
+            b.Place(new Vector3(2.55f, 0f, 2.4f), new Vector3(0f, 0f, 1f));
+            b.Tick(0.08f);
+        }
+
+        void PosePitcher(HeroActor.Pose pose, float charge, bool ring)
+        {
+            if (_match?.Pitcher == null) return;
+            if (!_heroes.TryGetValue(_match.Pitcher.Id, out var p) || p == null) return;
+            p.SetPose(pose, charge, "fastball");
+            p.SetChargeRing(ring ? charge : 0);
+            p.Tick(0.08f);
         }
     }
 }

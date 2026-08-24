@@ -4,7 +4,7 @@ Living spec for couch play. **Gamepad is the product. Keyboard is a debug overla
 
 If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file in the same PR.
 
-Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**.
+Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
 ---
 

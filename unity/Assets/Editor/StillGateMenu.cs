@@ -19,13 +19,15 @@ namespace GrandSluggers.EditorTools
             if (!File.Exists(path))
             {
                 File.WriteAllText(path,
-                    "{\"shots\":[\"title\",\"plate\",\"mound\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true}");
+                    "{\"shots\":[\"title\",\"plate\",\"mound\",\"diamond-grounder\",\"smash\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true,\"charge01\":1}");
             }
             try { File.Delete(StillRequest.DonePath(temp)); }
             catch { /* first run */ }
             if (EditorApplication.isPlaying)
             {
-                Debug.Log("Grand Sluggers still gate: already playing. Request at " + path);
+                EditorApplication.isPlaying = false;
+                EditorApplication.delayCall += () => EditorApplication.isPlaying = true;
+                Debug.Log("Grand Sluggers still gate: restarting Play. Request at " + path);
                 return;
             }
             var scene = EditorSceneManager.GetActiveScene();
