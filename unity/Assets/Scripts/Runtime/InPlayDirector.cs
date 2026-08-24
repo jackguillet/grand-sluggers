@@ -182,12 +182,39 @@ namespace GrandSluggers.UnityClient
 
             if (chasing && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
             {
-                var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
+                var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1)
+                    * (Controls.EastHeld ? FieldDash.ChaseMul : 1);
                 _fx += Controls.StickX * speed * dt;
                 _fz += Controls.StickY * speed * dt;
                 _gloveAt[_glovePos] = (_fx, _fz);
             }
 
+            if (Controls.Item && chasing && map.TryGetValue(_glovePos, out var tossFrom))
+            {
+                Character partner = null;
+                foreach (var kv in map)
+                {
+                    if (kv.Key == _glovePos) continue;
+                    var dist = Diamond.Dist(_fx, _fz, _gloveAt.TryGetValue(kv.Key, out var at) ? at.X : 0,
+                        _gloveAt.TryGetValue(kv.Key, out at) ? at.Z : 0);
+                    if (FieldDash.BuddyTossOffered(_match.Chemistry.Between(tossFrom, kv.Value), dist))
+                    { partner = kv.Value; break; }
+                }
+                if (partner != null)
+                {
+                    CatchGlove();
+                    var thr = _match.ThrowBetween(tossFrom, partner);
+                    _cpuField = FieldDash.ApplyBuddyToss(
+                        _cpuField ?? new FieldingResult(PlayKind.GroundOut, tossFrom, partner, 0.4, _fx, _fz, false, false),
+                        partner, thr);
+                    _glovePos = PosOf(map, partner);
+                    if (_gloveAt.TryGetValue(_glovePos, out var spot))
+                    {
+                        _fx = spot.X;
+                        _fz = spot.Z;
+                    }
+                }
+            }
             if (Controls.WestDown)
             {
                 _jumpT = buddyOn ? 0.7f : 0.55f;

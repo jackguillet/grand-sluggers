@@ -31,6 +31,9 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Set;
             _t = 0;
             _charge = 0;
+            _chargePast = 0;
+            _breakX = 0;
+            _dash01 = 0;
             _swung = false;
             _swing = null;
             _pitch = null;
@@ -60,8 +63,9 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             _gun = false;
             _gunRunner = null;
-            _ball = new Vector3(0, 5.4f, 60.5f);
-            _park.Ball.Place(_ball, "", "fastball", false);
+            var rel = PitchFlight.Release(_match.PitcherOffsetX);
+            _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+            _park.Ball.Place(_ball, "", "fastball", false, false);
             _aimX = _aimY = 0;
             _smash = 0;
             _gloved = false;
@@ -79,30 +83,62 @@ namespace GrandSluggers.UnityClient
         void TickSet(float dt)
         {
             _pip += dt * 1.35f;
-            if (HumanPitches && Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;
             TickBaserunning(dt);
+            TickCharge(dt, HumanPitches ? _feel.PitchChargeSeconds : _feel.SwingChargeSeconds);
             if (HumanPitches)
             {
-                _aimX = Mathf.Clamp(Controls.StickX, -1, 1);
-                _aimY = Mathf.Clamp(Controls.StickY, -1, 1);
+                if (Controls.StickY < -0.7f) _match.ResetPitcher();
+                else _match.WalkPitcher(Controls.StickX * dt * 1.6f);
+                _aimX = (float)_match.PitcherOffsetX;
+                _aimY = 0;
                 _zone.Show(true, _aimX, _aimY);
-                _charge = Controls.Charge
-                    ? Mathf.Min(1, _charge + dt / (float)_feel.PitchChargeSeconds)
-                    : Mathf.Max(0, _charge - dt * (float)_feel.ChargeDecay);
                 AimSetCamera();
                 if (_t < (float)_feel.PitcherReadySeconds) return;
+                if (Controls.ThrowBag > 0 && Controls.SouthDown)
+                {
+                    var po = _match.Pickoff(Controls.ThrowBag);
+                    if (po != null) { _last = po; BeginResult(); }
+                    return;
+                }
                 if (Controls.SouthDown) Launch(PlayerPitch());
                 return;
+            }
+            if (HumanBats)
+            {
+                if (Controls.StickY < -0.7f) _match.ResetBatter();
+                else _match.WalkBatter(Controls.StickX * dt * 1.6f);
             }
             AimSetCamera();
             if (_t > (float)_feel.PitcherReadySeconds) Launch(_match.CpuPitch());
         }
 
+        void TickCharge(float dt, double seconds)
+        {
+            if (Controls.Charge)
+            {
+                var next = Mathf.Min(1, _charge + dt / (float)seconds);
+                if (next >= 1 && _charge >= 1) _chargePast += dt;
+                else if (next >= 1) _chargePast = 0;
+                _charge = next;
+            }
+            else
+            {
+                _charge = Mathf.Max(0, _charge - dt * (float)_feel.ChargeDecay);
+                _chargePast = 0;
+            }
+        }
+
+        float EffectiveCharge() =>
+            (float)ChargeFeel.Effective01(_charge, _chargePast, _feel.ChargeMaxHoldSeconds, _feel.ChargeOverchargeDecay);
+
         PitchCommand PlayerPitch()
         {
-            return new PitchCommand(_pitches[_pitchIndex], _charge, 0, _star && _match.CanStarPitch, _aimX, _aimY);
+            var nice = ChargeFeel.NiceCopy(true, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
+            if (!string.IsNullOrEmpty(nice)) _banner = nice;
+            return new PitchCommand("fastball", EffectiveCharge(), 0, _star && _match.CanStarPitch,
+                _match.PitcherOffsetX, 0, 0, Controls.Changeup, _match.PitcherOffsetX);
         }
 
         void Launch(PitchCommand pitch)
@@ -115,9 +151,11 @@ namespace GrandSluggers.UnityClient
             _charge = 0;
             _phase = Phase.Flight;
             _t = 0;
-            _ball = new Vector3(0, 5.4f, 60.5f);
+            var rel = PitchFlight.Release(pitch.RubberX);
+            _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
+            _breakX = 0;
             _zone.Show(true, _aimX, _aimY);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
@@ -135,7 +173,9 @@ namespace GrandSluggers.UnityClient
             AimSetCamera();
             _flight += dt;
             var u = Mathf.Clamp01(_flight / _pitchDur);
-            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY);
+            if (HumanPitches)
+                _breakX = Mathf.Clamp(_breakX + Controls.StickX * dt * 2.4f, -1f, 1f);
+            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX);
             var x = (float)p.X;
             var y = (float)p.Y;
             var z = (float)p.Z;
@@ -153,11 +193,15 @@ namespace GrandSluggers.UnityClient
             if (HumanBats)
             {
                 if (Controls.NorthDown && _match.CanStarSwing) _star = !_star;
-                if (Controls.Charge) _charge = Mathf.Min(1, _charge + dt / (float)_feel.SwingChargeSeconds);
+                TickCharge(dt, _feel.SwingChargeSeconds);
                 if (Controls.SouthDown && !_swung)
                 {
                     _swung = true;
-                    _swing = new SwingCommand(true, _charge, (_flight - _pitchDur) * 60f, _star && _match.CanStarSwing, Controls.StickX * 18f, Controls.WestHeld, Controls.StickY);
+                    var nice = ChargeFeel.NiceCopy(false, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
+                    if (!string.IsNullOrEmpty(nice)) _banner = nice;
+                    _swing = new SwingCommand(true, EffectiveCharge(), (_flight - _pitchDur) * 60f,
+                        _star && _match.CanStarSwing, Controls.StickX * 18f, Controls.WestHeld, Controls.StickY,
+                        _match.BatterOffsetX);
                 }
             }
             if (u < 1) return;

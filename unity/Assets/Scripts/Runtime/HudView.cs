@@ -57,15 +57,15 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(36, 136, 420, exhibition ? 92 : 64), _panel);
             GUI.Label(new Rect(52, 144, 400, 36), exhibition ? "EXHIBITION" : (training ? "TRAINING" : "CHALLENGE"), _h1);
             GUI.Label(new Rect(52, 184, 390, 28),
-                exhibition ? "South / Space  ·  play ball" : (training ? "South / Space  ·  Harbor drills" : "South / Space  ·  next match"),
+                exhibition ? "South / Space  ·  play ball" : (training ? "South / Space  ·  Practice" : "South / Space  ·  next match"),
                 _gold);
             if (exhibition)
             {
                 GUI.Label(new Rect(52, 244, 640, 24), home + "  vs  " + away, _body);
-                GUI.Label(new Rect(52, 270, 640, 22), park + "  ·  " + (night ? "NIGHT" : "DAY"), night ? _gold : _tiny);
+                GUI.Label(new Rect(52, 270, 640, 22), park + "  ·  " + (night ? "NIGHT" : "DAY") + "  ·  Tab innings", night ? _gold : _tiny);
             }
             else if (training)
-                GUI.Label(new Rect(52, 216, 640, 22), "Harbor Diamond  ·  four drills", _tiny);
+                GUI.Label(new Rect(52, 216, 640, 22), "Harbor  ·  Pitch / Bat / Field / Run / Special / Free  ·  East skip", _tiny);
             if (portrait != null)
                 GUI.DrawTexture(new Rect(w - 300, 36, 260, 260), portrait, ScaleMode.ScaleToFit);
             if (hideHelp) return;

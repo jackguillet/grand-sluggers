@@ -21,18 +21,26 @@ public sealed class AtBatResolver
         contact = Math.Clamp(contact, 1, 10);
         power = Math.Clamp(power, 1, 10);
 
+        var effective = input.Bat?.ChargeAlwaysFull == true ? 1.0
+            : input.Charge01 > 0 ? input.Charge01
+            : input.ChargeSwing ? 1.0 : 0;
         var window = BaseContactWindowFrames + (contact - 5) * 0.55;
-        if (input.ChargeSwing && input.Bat?.ChargeAlwaysFull != true)
+        if (ChargeFeel.IsCharge(effective) && input.Bat?.ChargeAlwaysFull != true)
             window *= 0.78;
         if (input.UseStarPitch)
             window *= StarSkills.BatterWindowMul(input.Pitcher.StarPitch);
         window *= ParkHazards.ContactWindowMul(park, night);
 
+        var oval = SweetSpot.Overlap(input.BoxOffsetX, input.PitchAimX, input.PitchAimY);
         var timing = Math.Abs(input.TimingErrorFrames);
         var quality = timing <= PerfectWindowFrames ? ContactQuality.Perfect
             : timing <= window * 0.55 ? ContactQuality.Solid
             : timing <= window ? ContactQuality.Cheap
             : ContactQuality.Miss;
+        if (oval <= 0 && !input.Bunt)
+            quality = ContactQuality.Miss;
+        else if (oval < 1 && quality == ContactQuality.Perfect)
+            quality = ContactQuality.Cheap;
 
         if (input.UseStarPitch && input.Pitcher.StarPitch == "phonyball"
             && quality != ContactQuality.Perfect && rng.NextDouble() < 0.4)
@@ -50,7 +58,9 @@ public sealed class AtBatResolver
                 InZone: input.PitchInZone);
         }
 
-        var charge = input.ChargeSwing || input.Bat?.ChargeAlwaysFull == true ? 1.10 : 1.0;
+        var charge = 1.0 + 0.12 * Math.Clamp(effective, 0, 1);
+        if (input.Bat?.ChargeAlwaysFull == true)
+            charge = 1.10;
         var qualityMul = quality switch
         {
             ContactQuality.Perfect => 1.10,
@@ -68,7 +78,7 @@ public sealed class AtBatResolver
         // Late / under (positive frames) and stick-up (LaunchAim +) pull launch down into a hopper.
         // Early / over pops up. Square still mixes liners and some grounders.
         var signed = input.TimingErrorFrames;
-        var loft = 16 + (power - 5) * 1.0 + (input.ChargeSwing ? 2.5 : 0);
+        var loft = 16 + (power - 5) * 1.0 + (ChargeFeel.IsCharge(effective) ? 2.5 : 0);
         var launch = loft - signed * 1.35 - input.LaunchAim * 12 + (rng.NextDouble() - 0.5) * 14;
         if (quality == ContactQuality.Cheap)
             launch = signed >= 0

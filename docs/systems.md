@@ -65,6 +65,8 @@ Buddy Badge (rare gear) treats all pairs as good for one game. Do not put it in 
 
 ## Batting (arcade)
 
+Pitch and swing share tap / charge / modifier / star. Charge fills to MAX then **decays**. The sweet-spot oval at the plate is smaller than the zone; walk the box so it overlaps the ball.
+
 The batter has a **contact window** around a pitch’s plate time. Timing offset maps to quality:
 
 | Timing | Quality |
@@ -80,9 +82,9 @@ Launch angle is stick/aim + a little RNG, clamped by quality. We simulate flight
 
 ## Pitching
 
-Pitch types: fastball, changeup, curve, slider, plus captain Star Pitch.
+A tap is a fastball-shaped pitch. Charge makes it faster (MAX then decay). Stick after release is break. West through release is a changeup (hang then dump). Captain Star Pitch is both-face + commit.
 
-Each pitch has: speed, break vector, stamina cost, and a **tell** (subtle) so a good batter can read.
+Walk the rubber for location. Pickoff is a named bag before the pitch. Tired pitchers (`PitcherTired`) spray.
 
 Stamina 0 → extra break noise and “fat” fastballs. Swap or eat runs.
 

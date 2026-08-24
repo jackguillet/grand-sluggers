@@ -1,36 +1,60 @@
 namespace GrandSluggers.Sim;
 
+public enum PracticeLesson
+{
+    Pitching = 1,
+    Batting = 2,
+    Fielding = 3,
+    Running = 4,
+    Special = 5,
+    Free = 6
+}
+
 /// <summary>
-/// Harbor drills. Pitch, swing, fly, hopper, chem throw.
+/// SMS-style Practice: choosable lessons with skip. Pitching part 2 is MAX charge, not four pitch enums.
 /// </summary>
 public sealed class Training
 {
     public const string ParkId = "harbor-diamond";
     public const int DrillCount = 5;
     public static readonly string[] CorePitches = ["fastball", "changeup", "curve", "slider"];
+    public static readonly PracticeLesson[] Lessons =
+    [
+        PracticeLesson.Pitching, PracticeLesson.Batting, PracticeLesson.Fielding,
+        PracticeLesson.Running, PracticeLesson.Special, PracticeLesson.Free
+    ];
 
-    readonly HashSet<string> _inZone = new(StringComparer.OrdinalIgnoreCase);
+    int _maxCharges;
+    int _throws;
     bool _needStar;
     bool _starInZone;
     bool _timedContact;
     bool _chargedContact;
     bool _caughtAndThrew;
     bool _scoopedHopper;
+    bool _skipped;
 
     Training(Park park) => Park = park;
 
     public Park Park { get; }
-    public int CurrentDrill { get; private set; } = 1;
-    public bool Finished => CurrentDrill > DrillCount;
-    public IReadOnlyCollection<string> InZonePitchTypes => _inZone;
-    public bool StarPitchInZone => _starInZone;
+    public PracticeLesson Lesson { get; private set; } = PracticeLesson.Pitching;
+    public int LessonPart { get; private set; } = 1;
+    public int CurrentDrill
+    {
+        get => (int)Lesson;
+        private set => Lesson = (PracticeLesson)Math.Clamp(value, 1, 6);
+    }
+    public bool Finished => _skipped || (int)Lesson > DrillCount && Lesson != PracticeLesson.Free;
     public bool NeedStar => _needStar;
+    public bool StarPitchInZone => _starInZone;
     public bool TimedContact => _timedContact;
     public bool ChargedContact => _chargedContact;
     public bool CaughtAndThrew => _caughtAndThrew;
     public bool ScoopedHopper => _scoopedHopper;
+    public int MaxCharges => _maxCharges;
     public ThrowResult? LastGoodThrow { get; private set; }
     public ThrowResult? LastBadThrow { get; private set; }
+    public IReadOnlyCollection<string> InZonePitchTypes { get; } = new HashSet<string>();
 
     public static Training Start(ContentCatalog content)
     {
@@ -42,70 +66,110 @@ public sealed class Training
     public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9) =>
         Match.Exhibition(content, "rio", "ashlord", innings, seed, ParkId);
 
+    public bool Skip()
+    {
+        _skipped = true;
+        return true;
+    }
+
+    public bool Choose(PracticeLesson lesson)
+    {
+        Lesson = lesson;
+        LessonPart = 1;
+        _throws = 0;
+        _maxCharges = 0;
+        _skipped = false;
+        return true;
+    }
+
     public bool RecordPitch(PitchCommand pitch, Match match) =>
         RecordPitch(pitch, match.Pitcher.Stats.Pitch, match.CanStarPitch);
 
     public bool RecordPitch(PitchCommand pitch, int pitchStat, bool canStar)
     {
-        if (Finished || CurrentDrill != 1) return false;
+        if (Finished || Lesson != PracticeLesson.Pitching) return false;
         if (canStar) _needStar = true;
         if (!AtBatResolver.PitchInZone(pitch, pitchStat)) return false;
-
-        var type = CoreType(pitch.Type);
-        if (type is not null) _inZone.Add(type);
+        _throws++;
+        if (ChargeFeel.AtMax(pitch.Charge01, 0, 0.5) || pitch.Charge01 >= 1)
+            _maxCharges++;
         if (pitch.Star) _starInZone = true;
-        if (PitchDrillDone()) Advance();
-        return CurrentDrill != 1;
+        if (LessonPart == 1 && _throws >= 3)
+            LessonPart = 2;
+        if (LessonPart >= 2 && _maxCharges >= 3)
+        {
+            CurrentDrill = 2;
+            LessonPart = 1;
+            return true;
+        }
+        return false;
     }
 
     public bool RecordSwing(SwingCommand swing, AtBatResult hit)
     {
-        if (Finished || CurrentDrill != 2) return false;
+        if (Finished || Lesson != PracticeLesson.Batting) return false;
         if (!swing.Swing || hit.Quality == ContactQuality.Miss) return false;
-
         _timedContact = true;
-        if (swing.Charge01 > 0.5) _chargedContact = true;
-        // |spray| is optional — time + charge is the bar.
-        if (_timedContact && _chargedContact) Advance();
-        return CurrentDrill != 2;
+        if (ChargeFeel.IsCharge(swing.Charge01) || swing.Charge01 > 0.5)
+            _chargedContact = true;
+        if (_timedContact && _chargedContact)
+        {
+            CurrentDrill = 3;
+            return true;
+        }
+        return false;
     }
 
     public bool RecordFielding(FieldingResult field)
     {
-        if (Finished || CurrentDrill != 3) return false;
+        if (Finished || Lesson != PracticeLesson.Fielding) return false;
         var caught = field.Fielder is not null &&
                      field.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
         var threw = field.Throw is not null && field.Cutoff is not null;
-        if (!caught || !threw) return false;
+        var toss = field.Throw is not null && field.Fielder is not null;
+        if ((!caught || !threw) && !toss) return false;
         _caughtAndThrew = true;
-        Advance();
+        CurrentDrill = 4;
         return true;
     }
 
     public bool RecordGrounder(FieldingResult field)
     {
-        if (Finished || CurrentDrill != 4) return false;
+        if (Finished || (Lesson != PracticeLesson.Fielding && Lesson != PracticeLesson.Running)) return false;
         var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9;
-        var scooped = field.Fielder is not null && field.Throw is not null && field.Cutoff is not null;
+        var scooped = field.Fielder is not null && field.Throw is not null;
         if (!hopper || !scooped) return false;
         _scoopedHopper = true;
-        Advance();
+        if (Lesson == PracticeLesson.Fielding)
+            CurrentDrill = 4;
         return true;
     }
 
-    /// <summary>
-    /// Record one real throw from a play. Drill 5 advances only after a Good throw
-    /// and a Bad throw have both been seen (good must be faster).
-    /// </summary>
     public bool RecordChemThrow(ThrowResult? thr)
     {
-        if (Finished || CurrentDrill != 5 || thr is null) return false;
+        if (Finished || (Lesson != PracticeLesson.Special && Lesson != PracticeLesson.Fielding) || thr is null)
+            return false;
         if (thr.Relation == Chemistry.Good) LastGoodThrow = thr;
         else if (thr.Relation == Chemistry.Bad) LastBadThrow = thr;
         else return false;
         if (LastGoodThrow is null || LastBadThrow is null) return false;
         if (LastGoodThrow.SpeedMul <= LastBadThrow.SpeedMul) return false;
-        Advance();
+        CurrentDrill = 6;
+        return true;
+    }
+
+    public bool RecordRun()
+    {
+        if (Finished || Lesson != PracticeLesson.Running) return false;
+        CurrentDrill = 5;
+        return true;
+    }
+
+    public bool RecordSpecial(bool star)
+    {
+        if (Finished || Lesson != PracticeLesson.Special) return false;
+        if (!star) return false;
+        CurrentDrill = 6;
         return true;
     }
 
@@ -136,25 +200,27 @@ public sealed class Training
 
     public string Caption => Finished
         ? "Ready."
-        : CurrentDrill switch
+        : Lesson switch
         {
-            1 => "Paint the zone",
-            2 => "Time it and charge",
-            3 => "Catch it, throw a bag",
-            4 => "Grab a grounder, throw to first",
-            5 => "Throw to a buddy, then a rival",
+            PracticeLesson.Pitching => LessonPart == 2 ? "Charge at MAX" : "Throw the ball",
+            PracticeLesson.Batting => "Oval and charge",
+            PracticeLesson.Fielding => "Catch it, throw a bag",
+            PracticeLesson.Running => "Lead, steal, dash",
+            PracticeLesson.Special => "Star pitch / star swing",
+            PracticeLesson.Free => "Free practice",
             _ => ""
         };
 
     public string Verb => Finished
         ? "South  title"
-        : CurrentDrill switch
+        : Lesson switch
         {
-            1 => "South pitch   RB cycle   LT charge   North star",
-            2 => "LT charge   South swing   LS spray",
-            3 => "South catch   East dive   D-pad throw",
-            4 => "Charge it   scoop   1 throw",
-            5 => "D-pad throw  ·  buddy then rival",
+            PracticeLesson.Pitching => "South pitch   LT charge   West changeup   stick break",
+            PracticeLesson.Batting => "stick walk   LT MAX   South swing",
+            PracticeLesson.Fielding => "South catch   d-pad throw   East dash   West toss",
+            PracticeLesson.Running => "LB send   mash dash   L3 steal",
+            PracticeLesson.Special => "North + South star",
+            PracticeLesson.Free => "any verb  ·  East skip",
             _ => ""
         };
 
@@ -162,36 +228,10 @@ public sealed class Training
     {
         get
         {
-            if (Finished) return "5 / 5";
-            if (CurrentDrill == 5)
-                return (LastGoodThrow is null ? "buddy ·" : "buddy ✓") + "  " +
-                       (LastBadThrow is null ? "rival ·" : "rival ✓");
-            if (CurrentDrill != 1)
-                return $"{CurrentDrill} / {DrillCount}";
-            var bits = CorePitches.Select(p => _inZone.Contains(p) ? p : "·");
-            var star = !_needStar || _starInZone ? "*" : "star";
-            return string.Join("  ", bits) + "  " + star;
+            if (Finished) return "done";
+            if (Lesson == PracticeLesson.Pitching)
+                return LessonPart == 2 ? $"MAX {_maxCharges} / 3" : $"throws {_throws} / 3";
+            return Lesson + "  part " + LessonPart;
         }
-    }
-
-    bool PitchDrillDone()
-    {
-        foreach (var p in CorePitches)
-            if (!_inZone.Contains(p)) return false;
-        return !_needStar || _starInZone;
-    }
-
-    void Advance()
-    {
-        if (CurrentDrill <= DrillCount)
-            CurrentDrill++;
-    }
-
-    static string? CoreType(string type)
-    {
-        var t = type.Trim().ToLowerInvariant();
-        foreach (var p in CorePitches)
-            if (p == t) return p;
-        return null;
     }
 }

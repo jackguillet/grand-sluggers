@@ -67,36 +67,37 @@ Chemistry graph is the point. Starting stars come from how the eight like the ca
 - **LB / `,` · East / G** — batting order
 - **South / Space** — first pitch
 
-### Pitching (Top)
+### Pitching and hitting (same four verbs)
 
-SET pitching is **3/4 over the pitcher** (`mound`) looking at home: rubber in the bottom, batter + catcher + **chalk batter's boxes** readable at the plate. SET batting is **over the batter's shoulder** (`plate`) looking at the mound: batter in the box (feet to hat), **two chalk rectangles and a pentagon** on packed dirt, pitcher in the distance. Analog LT lights a **charge ring** on the dirt; the zone locator sits in the box; the ball trails in flight. Infield is grass with dirt *paths* and a mound hill — not a brown slab. The catcher is not the subject. Scorebug names inning, score, B/S/O, runners, P, AB, stars, and NEXT without F2. In play: hoppers stay low, lines sit mid, flies are a 3/4 in the park, homers rise with the ball, throws sit on the glove.
+| Verb | Pitch | Swing |
+| --- | --- | --- |
+| Tap South / Space | Normal — easier control | Slap — better contact |
+| Hold LT / Shift, commit at MAX | Charge pitch — fast; rings line up then **decay** | Charge swing — extra-base; same rings |
+| Modifier | West / V through release = **changeup** (hangs then dumps) | West hold / V = **bunt** |
+| North + South / Q + Space | Star pitch (costs a star even if hit) | Star swing (costs a star even on a miss) |
 
-- **Stick / WASD** — aim the zone
-- **LT / Shift** — charge (analog)
-- **South / Space** — pitch (after a short ready beat)
-- **RB / Tab** — cycle fastball / changeup / curve / slider
-- **North / Q** — star pitch (if you have a star)
-- **Select / R** — swap pitcher
+Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX.
 
-Star pitch owns the ball ~2 seconds (Heatball, Charmball, Prism, Phony, Cask, Skull). Scorebug mutes. Then baseball.
+SET pitching is **3/4 over the pitcher** (`mound`) looking at home. SET batting is **over the batter's shoulder** (`plate`) looking at the mound. The ball leaves the **hand**, stays readable to the plate, and trails. Home bats the bottom.
 
-### Batting (Bottom)
+- **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets.
+- **Stick L/R after release** — curve / late bite. Not a pitch-type cycle.
+- **Sweet-spot oval** on the dirt is smaller than the zone. Walk so it eats the ball.
+- **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
+- **Select / R** — swap pitcher (when they sweat, they are tired).
+- **Start / H** during SET or in-play — **call time** (pause). Tab on the title cycles 3 / 6 / 9 innings.
 
-Camera stays **over the batter** (`plate`) for the whole pitch: you, the box, the pitcher.
+Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
-- **LT / Shift** — charge (analog)
-- **South / Space** — swing (timing vs the pitch)
-- **Stick / WASD** — spray
-- **West hold / V** — bunt
-- **North / Q** — star swing
+### Batting (running)
+
 - **LB / `,`** — all advance · **RB / `.`** — all return · **both / `/`** — freeze
 - **L3 / Z** — steal (lead runner; no steal home)
-- **Stick / WASD** toward the next bag — lead (`Lead01`); back — return
+- **Stick** toward the next bag — lead; back — return
+- **Mash South / Space** after contact — **dash** to first
 - **West / South** near the bag — slide
 
 Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch.
-
-Perfect / star swing freeze the picture briefly. HUD mutes during the spectacle.
 
 ### Fielding (the ball is in play)
 
@@ -104,27 +105,33 @@ Nearest glove **lights**. Leave the stick still: CPU takes the hop and throws �
 
 Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove.
 
-- **Stick / WASD** — take the glove and run it (dead stick = CPU)
+- **Stick / WASD** — take the glove and run it (dead stick = CPU). **Hold East / G** to dash.
 - **South / Space** — catch (in the window) when you have the glove; after the catch, throw
-- **East / G** — dive
-- **West / F** — jump / buddy
+- **East tap / G** — dive
+- **West / F** — jump / buddy jump
+- **E** while chasing a chem partner — **buddy toss** (they take the laser)
 - **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick flick or arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
 - **Select / R** — swap the glove
-- **LT+RB / South+LT / E** — chemistry item after contact (banana grass, rocket body, POW hop), then **RB / Tab** to cycle the item, **stick / WASD** to aim the target
+- **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
 
 Good throws are gold/purple and fast. Bad throws are muddy and offline.
 
 ---
 
-## Training (Harbor drills)
+## Practice (Harbor)
 
-Title **West**. Five drills, then back.
+Title **West**. Choosable lessons, **East / G skip** from lesson 1 (you are not trapped painting pitch types).
 
-1. Paint the zone — pitches in the zone, including a star
-2. Time it and charge — swing
-3. Catch it, throw a bag
-4. Grab a grounder, throw to first
-5. Throw to a buddy, then a rival
+1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
+2. **Batting** — walk the oval onto the ball; charge at MAX
+3. **Fielding** — catch, throw a named bag, dash, buddy toss
+4. **Running** — lead, steal, dash
+5. **Special** — star pitch / star swing
+6. **Free practice** — any verb, no gate
+
+---
+
+Lineup still drafts chemistry. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF). Home bats the bottom.
 
 ---
 

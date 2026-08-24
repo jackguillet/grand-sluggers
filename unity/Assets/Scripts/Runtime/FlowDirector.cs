@@ -77,6 +77,8 @@ namespace GrandSluggers.UnityClient
                     : PlayMode.Exhibition;
                 if (_mode == PlayMode.Training) ParkId = Training.ParkId;
             }
+            if (Controls.CyclePitch && _mode == PlayMode.Exhibition)
+                Innings = Innings == 3 ? 6 : Innings == 6 ? 9 : 3;
             if (Controls.WestDown)
             {
                 BeginTraining();
