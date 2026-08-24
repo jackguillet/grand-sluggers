@@ -120,7 +120,19 @@ namespace GrandSluggers.UnityClient
             if (_root != null)
             {
                 var g = _grow ? 1.45f : 1f;
-                _root.localScale = Vector3.Lerp(_root.localScale, _baseScale * g, 0.15f);
+                var bounce = 0f;
+                if (_pose == Pose.Idle || _pose == Pose.Field)
+                    bounce = 0.07f * Mathf.Abs(Mathf.Sin(_t * 5.4f));
+                var squash = Vector3.one;
+                if (_pose == Pose.Swing && _poseT >= 0.12f && _poseT < 0.32f)
+                    squash = new Vector3(1.14f, 0.84f, 1.14f);
+                else if (_pose == Pose.Dive)
+                    squash = new Vector3(1.22f, 0.76f, 1.18f);
+                else if (_pose == Pose.Jump || _pose == Pose.Clamber)
+                    squash = new Vector3(0.86f, 1.18f, 0.86f);
+                var want = Vector3.Scale(_baseScale * g, squash);
+                _root.localScale = Vector3.Lerp(_root.localScale, want, 0.22f);
+                _root.localPosition = new Vector3(0f, bounce, 0f);
             }
             if (_ring != null)
             {
@@ -177,7 +189,7 @@ namespace GrandSluggers.UnityClient
             go.transform.SetParent(hand, false);
             go.transform.localPosition = new Vector3(0, -1.4f, 0.1f);
             go.transform.localRotation = Quaternion.Euler(0, 0, 20);
-            go.transform.localScale = Vector3.one;
+            go.transform.localScale = Vector3.one * Silhouette.BatScale;
             FillBat(go.transform, _batVisual);
             _bat = go.transform;
         }
@@ -272,7 +284,7 @@ namespace GrandSluggers.UnityClient
             var leather = _gloveVisual == "glove-gold"
                 ? Look.Lit(new Color(0.92f, 0.74f, 0.18f), smooth: 0.32f)
                 : Look.Lit(new Color(0.42f, 0.24f, 0.12f), smooth: 0.12f);
-            var scale = _gloveVisual == "glove-gold" ? 1.18f : 1f;
+            var scale = Silhouette.GloveScale * (_gloveVisual == "glove-gold" ? 1.12f : 1f);
             Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * (0.7f * scale), leather);
             Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f) * scale, leather);
             Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f) * scale, leather);

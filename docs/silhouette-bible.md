@@ -2,7 +2,7 @@
 
 Identity is a shape problem, not a palette problem. Lock this before the 25th person.
 
-Style: stylized, slightly oversized, original IP. Not Mario. Not MLB The Show. Heads sit large, limbs read at gameplay distance, and each captain is a different *cut* of the same primitive rig.
+Style: stylized, slightly oversized, original IP. Not Mario. Not MLB The Show. Heads sit large, limbs read at gameplay distance, and each captain is a different *cut* of the same primitive rig. Root scale is multiplied by `Silhouette.ToyScale` so the toys sit bigger than an honest diamond.
 
 A player can point at the screen and name the captain without the HUD.
 

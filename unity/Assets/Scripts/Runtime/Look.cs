@@ -97,7 +97,9 @@ namespace GrandSluggers.UnityClient
                 if (m.HasProperty("_Color")) m.SetColor("_Color", c);
                 if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
                 if (m.HasProperty("_ShadowTint")) m.SetColor("_ShadowTint", shadow);
-                if (m.HasProperty("_Rim")) m.SetColor("_Rim", new Color(1f, 0.92f, 0.78f, 1f));
+                if (m.HasProperty("_Rim")) m.SetColor("_Rim", new Color(1f, 0.94f, 0.82f, 1f));
+                if (m.HasProperty("_OutlineColor")) m.SetColor("_OutlineColor", new Color(0.07f, 0.05f, 0.09f, 1f));
+                if (m.HasProperty("_Outline")) m.SetFloat("_Outline", 0.048f);
                 return m;
             }
             return Lit(c, smooth: 0.04f);

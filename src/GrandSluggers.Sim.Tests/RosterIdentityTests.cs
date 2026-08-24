@@ -15,6 +15,11 @@ public class RosterIdentityTests
         Assert.Equal(6, specs.Select(s => s.Height).Distinct().Count());
         Assert.Equal(6, specs.Select(s => s.Width).Distinct().Count());
         Assert.Equal(6, specs.Select(s => s.Head).Distinct().Count());
+        Assert.True(Silhouette.ToyScale > 1f);
+        Assert.True(Silhouette.GloveScale > 1f);
+        Assert.True(Silhouette.BatScale > 1f);
+        foreach (var spec in specs)
+            Assert.True(Silhouette.HeadToHeight(spec) >= 1f, "face must still read after toy scale");
     }
 
     [Fact]
