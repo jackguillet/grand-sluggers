@@ -270,8 +270,9 @@ namespace GrandSluggers.UnityClient
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
                 }
+                // First-base dugout sits near (36, 12). Stay home-side of the hole.
                 _cam.CutRaw("diamond-grounder",
-                    new Vector3(36f, 7f, 12f),
+                    new Vector3((float)StillPose.CamX, (float)StillPose.CamY, (float)StillPose.CamZ),
                     new Vector3(gx, 1.6f, gz),
                     50f);
                 return;
