@@ -326,7 +326,8 @@ namespace GrandSluggers.UnityClient
                 if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
                 MoveBones.Sample sample;
                 var clipId = ClipId(verb);
-                if (TryAuthored(clipId, out var authored))
+                var authoredPose = TryAuthored(clipId, out var authored);
+                if (authoredPose)
                     sample = authored;
                 else
                     sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
@@ -338,7 +339,9 @@ namespace GrandSluggers.UnityClient
                 if (!string.IsNullOrEmpty(clipId) && ArtBinder.Art != null
                     && ArtBinder.Art.TryClip(clipId, out var slot) && slot.Loop)
                     clipT = _t;
-                var playedDrop = TrySampleDrop(clipId, clipT);
+                // Authored eulers are offsets on the bind pose (Q(e)*bind).
+                // SampleAnimation replaces bind and laid the scoop mesh on its side.
+                var playedDrop = !authoredPose && TrySampleDrop(clipId, clipT);
                 if (!playedDrop)
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
