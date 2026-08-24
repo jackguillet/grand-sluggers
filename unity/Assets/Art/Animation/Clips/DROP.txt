@@ -2,5 +2,5 @@ Drop one file per catalog id: {id}.fbx or {id}.anim. Same bones as data/art/rig.
 
 HeroActor samples the Unity clip when the file exists; otherwise authored pose JSON
 then MoveBones.Evaluate. Loop clips sample clock time. One-shots sample pose time
-so Contact hits. swing.fbx is the first take (Contact at 0.30).
+so Contact hits. swing.fbx Contact at 0.30. scoop.fbx Contact at 0.22 (glove on the dirt).
 Generic rig, face −Z, one take. Do not add a second skeleton.

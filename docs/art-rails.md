@@ -28,7 +28,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Slot | Data | Unity drop path | Until a file exists |
 | --- | --- | --- | --- |
 | Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | `SharedRig` primitives |
-| Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx is the first take) |
+| Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx, scoop.fbx dropped) |
 | Skins | `data/art/skins.json` | `Assets/Art/Characters/{id}` | `HeroActor` primitives + silhouette extras |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
