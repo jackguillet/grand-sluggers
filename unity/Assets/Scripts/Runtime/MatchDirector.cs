@@ -141,6 +141,7 @@ namespace GrandSluggers.UnityClient
         {
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             _content = ContentCatalog.Load(data);
+            ArtBinder.Bind(_content.Art);
             _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
@@ -166,7 +167,6 @@ namespace GrandSluggers.UnityClient
                 cam = go.AddComponent<Camera>();
                 go.AddComponent<AudioListener>();
             }
-            ArtBinder.Bind(_content.Art);
             _feel = _content.Feel;
             _rig = gameObject.AddComponent<CameraRig>();
             _rig.Bind(cam);
