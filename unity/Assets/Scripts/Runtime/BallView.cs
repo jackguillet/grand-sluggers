@@ -34,6 +34,15 @@ namespace GrandSluggers.UnityClient
             if (!on) _trail.Clear();
         }
 
+        public void SetTrailColor(Color c)
+        {
+            if (_trail == null) return;
+            _trail.startColor = c;
+            _trail.endColor = new Color(c.r, c.g, c.b, 0f);
+        }
+
+        public void ContactPuff(Vector3 p) => BurstPuff(p);
+
         public void Build(Transform parent)
         {
             if (_root != null) Destroy(_root.gameObject);

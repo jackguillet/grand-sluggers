@@ -126,12 +126,25 @@ def crowd_bed() -> list[float]:
     return out
 
 
+def throw_pop() -> list[float]:
+    n = int(RATE * 0.09)
+    out = [0.0] * n
+    for i in range(n):
+        t = i / RATE
+        snap = (1.0 - t / 0.002) * hash01(i, 23) if t < 0.002 else 0.0
+        leather = math.sin(2 * math.pi * 380.0 * t) * env_exp(t, 40.0)
+        zip = math.sin(2 * math.pi * (520.0 + t * 900.0) * t) * env_exp(t, 28.0) * 0.45
+        out[i] = snap * 0.65 + leather * 0.7 + zip
+    return out
+
+
 def main() -> None:
     write_wav("bat-perfect", bat_perfect())
     write_wav("bat-solid", bat_solid())
     write_wav("bat-cheap", bat_cheap())
     write_wav("glove", glove())
     write_wav("crowd-bed", crowd_bed())
+    write_wav("throw", throw_pop())
 
 
 if __name__ == "__main__":

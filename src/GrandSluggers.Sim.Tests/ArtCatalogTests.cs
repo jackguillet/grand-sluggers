@@ -199,15 +199,13 @@ public class ArtCatalogTests
     [Fact]
     public void AuthoredHitsAreOriginalWavsNotEmpty()
     {
-        foreach (var id in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "crowd-bed" })
+        foreach (var id in new[] { "bat-perfect", "bat-solid", "bat-cheap", "glove", "crowd-bed", "throw" })
         {
             Assert.True(_content.Art.TryAudio(id, out var slot) && slot.Authored, id);
             Assert.True(AuthoredAudio.TryLoad(_content.Root, id, out var pcm, out var rate), id);
             Assert.True(rate >= 22050, id + " rate " + rate);
             Assert.True(pcm.Length > rate * 0.04, id + " too short " + pcm.Length);
         }
-        Assert.True(_content.Art.TryAudio("throw", out var thr) && !thr.Authored);
-        Assert.False(AuthoredAudio.TryLoad(_content.Root, "throw", out _, out _));
         Assert.True(_content.Art.TryAudio("crowd-swell", out var swell) && !swell.Authored);
     }
 

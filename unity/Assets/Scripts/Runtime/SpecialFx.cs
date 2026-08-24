@@ -233,9 +233,8 @@ namespace GrandSluggers.UnityClient
 
         public static Color ThrowColor(Chemistry rel)
         {
-            if (rel == Chemistry.Good) return Color.Lerp(Colors.Gold, new Color(0.62f, 0.28f, 1f), 0.5f);
-            if (rel == Chemistry.Bad) return new Color(0.4f, 0.3f, 0.16f);
-            return Colors.Chalk;
+            var rgb = CartoonJuice.ThrowRgb(rel);
+            return new Color((float)rgb.R, (float)rgb.G, (float)rgb.B, 1f);
         }
 
         public float ThrowSeconds => _throwDur;

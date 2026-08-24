@@ -321,16 +321,24 @@ namespace GrandSluggers.UnityClient
             }
             else if (hit.Quality != ContactQuality.Miss)
                 Controls.RumbleContact(hit.Quality);
+            if (CartoonJuice.DirtPuff(hit.Quality))
+                _park.Ball.ContactPuff(_ball);
             if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
             {
                 _freeze = (float)_feel.SmashFreeze;
                 _smash = (float)_feel.SmashHold;
                 _cam.SmashAt(_ball);
+                _audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Solid)
             {
                 _freeze = (float)_feel.SolidFreeze;
-                _rig.Punch(8f);
+                _rig.Punch(CartoonJuice.Punch(hit.Quality));
+            }
+            else if (hit.Quality == ContactQuality.Cheap)
+            {
+                _freeze = (float)CartoonJuice.CheapFreeze;
+                _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             AimDiamond(hit);
         }
