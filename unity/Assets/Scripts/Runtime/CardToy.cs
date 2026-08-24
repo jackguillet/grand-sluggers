@@ -24,9 +24,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_bars == null) Build();
             transform.position = at;
-            var dir = new Vector3(face.x, 0f, face.z);
-            if (dir.sqrMagnitude < 0.01f) dir = Vector3.back;
-            transform.rotation = Quaternion.LookRotation(dir);
+            // Select/title cameras sit in -Z and look +Z. Face the camera, not the park.
+            var yaw = face.z <= 0f ? 180f : 0f;
+            transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             gameObject.SetActive(true);
             if (_name != null) _name.text = card.Name.ToUpperInvariant();
             if (_verbs != null) _verbs.text = card.StarPitch + "   " + card.StarSwing;

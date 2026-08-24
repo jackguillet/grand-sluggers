@@ -40,13 +40,14 @@ public class FeelInfraTests
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
-        // Batting: first-base side of the box looking at the mound. Catcher at (0,-4)
-        // stays behind the camera so the chalk boxes and Rio's feet-to-hat read.
-        Assert.True(plate.Pos.Z > -8, $"plate in front of the cage, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z < 6, $"plate is not on the mound, z={plate.Pos.Z}");
+        // Batting: first-base side, slightly behind the box, looking at the mound.
+        // Depth keeps Rio in the lens; X keeps the catcher off the pipe.
+        Assert.True(plate.Pos.Z > -10, $"plate in front of the cage, z={plate.Pos.Z}");
+        Assert.True(plate.Pos.Z < 0, $"plate stays behind the batter so they are in frame, z={plate.Pos.Z}");
         Assert.True(plate.Pos.X > 6, $"plate is first-base side of the box so the catcher is not the subject x={plate.Pos.X}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
-        Assert.True(plate.Target.Z > 50, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Z > 40, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        Assert.True(Math.Abs(plate.Target.X - 2.55) < 3, $"plate look is on the batter x={plate.Target.X}");
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
         Assert.InRange(batterDist, 8, 16);
@@ -73,7 +74,9 @@ public class FeelInfraTests
         Assert.True(line.Pos.Y < fly.Pos.Y, $"line height {line.Pos.Y} vs fly {fly.Pos.Y}");
         Assert.True(homer.Pos.Y > fly.Pos.Y, $"homer height {homer.Pos.Y} vs fly {fly.Pos.Y}");
         Assert.True(fly.Pos.Z > 20, $"fly is a 3/4 in the park, not high-home z={fly.Pos.Z}");
-        Assert.True(hop.Pos.Y < 14, $"hopper stays low y={hop.Pos.Y}");
+        Assert.True(hop.Pos.Y < 9, $"hopper is a 3/4, not top-down y={hop.Pos.Y}");
+        Assert.True(hop.Pos.Y > 4, $"hopper too low y={hop.Pos.Y}");
+        Assert.True(hop.Pos.Y - hop.Target.Y < 8, $"hopper look is too steep y {hop.Pos.Y} -> {hop.Target.Y}");
         Assert.NotEqual(line.Fov, fly.Fov);
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");

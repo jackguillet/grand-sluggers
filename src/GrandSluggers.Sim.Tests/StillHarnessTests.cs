@@ -44,6 +44,7 @@ public class StillHarnessTests
         Assert.True(StillPose.ScoopIsNotTheMound(StillPose.ScoopX, StillPose.ScoopZ));
         Assert.True(StillPose.ScoopZ < Diamond.Mound - 16);
         Assert.True(StillPose.ScoopX > 12);
+        Assert.InRange(StillPose.ScoopPoseT, 0.28, 0.45);
         Assert.Equal("2B", StillPose.ScoopGlove);
         var defense = FieldingResolver.Assign(
             Match.Exhibition(_content, "rio", "ashlord", seed: 7).Away.Roster,

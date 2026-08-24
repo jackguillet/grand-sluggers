@@ -265,7 +265,7 @@ namespace GrandSluggers.UnityClient
                     fh.SetPose(HeroActor.Pose.Scoop, 0);
                     fh.SetHeld(false, true);
                     fh.Place(new Vector3(gx, 0f, gz), new Vector3(-gx, 0f, 8f - gz));
-                    fh.Tick((float)MoveBones.Mark(MoveBones.Verb.Scoop, MoveBones.ClipEvent.Contact));
+                    fh.Tick((float)StillPose.ScoopPoseT);
                     _ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
