@@ -72,13 +72,12 @@ namespace GrandSluggers.UnityClient
 
         void AimSetCamera()
         {
-            if (HumanPitches) _cam.Play("mound");
-            else _cam.Play("plate");
+            var shot = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight, _charge, _aimX, _aimY);
+            _cam.Play(shot);
         }
 
         void TickSet(float dt)
         {
-            AimSetCamera();
             _pip += dt * 1.35f;
             if (Controls.CyclePitch) _pitchIndex = (_pitchIndex + 1) % _pitches.Length;
             if (Controls.SwapPitcher) _match.SwapPitcher();
@@ -92,9 +91,11 @@ namespace GrandSluggers.UnityClient
                 _charge = Controls.Charge
                     ? Mathf.Min(1, _charge + dt / (float)_feel.PitchChargeSeconds)
                     : Mathf.Max(0, _charge - dt * (float)_feel.ChargeDecay);
+                AimSetCamera();
                 if (Controls.SouthDown) Launch(PlayerPitch());
                 return;
             }
+            AimSetCamera();
             if (_t > 0.55f) Launch(_match.CpuPitch());
         }
 
@@ -121,6 +122,7 @@ namespace GrandSluggers.UnityClient
             _spec.ResetDecoy();
             _hideHelp = true;
             if (pitch.Star) _audio?.CaptainVo(_match.Pitcher.Id);
+            AimSetCamera();
         }
 
         void TickFlight(float dt)
