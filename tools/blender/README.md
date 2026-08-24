@@ -21,3 +21,10 @@ Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
 ```
 
 HeroActor samples the clip when present; missing file keeps authored eulers / MoveBones.
+
+Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-clips/scoop.json`):
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_scoop.py -- \
+  --out unity/Assets/Art/Animation/Clips/scoop.fbx
+```
