@@ -74,7 +74,7 @@ namespace GrandSluggers.UnityClient
 
             var dirt = Look.Unlit(new Color(0.12f, 0.1f, 0.08f, 0.55f));
             _shadow = Look.Prim(PrimitiveType.Cylinder, "BallShadow", parent,
-                new Vector3(0, 0.05f, 0), new Vector3(Diameter * 1.2f, 0.04f, Diameter * 1.2f), dirt).transform;
+                new Vector3(0, 0.05f, 0), new Vector3(FlightDiameter * 1.35f, 0.05f, FlightDiameter * 1.35f), dirt).transform;
             _shadow.gameObject.SetActive(false);
 
             _puff = new GameObject("HopPuff").transform;
@@ -276,7 +276,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_shadow == null) return;
             var h = Mathf.Max(0f, p.y);
-            var s = Mathf.Lerp(Diameter * 1.7f, Diameter * 0.55f, Mathf.Clamp01(h / 38f));
+            var s = Mathf.Lerp(FlightDiameter * 1.8f, FlightDiameter * 0.7f, Mathf.Clamp01(h / 38f));
             _shadow.position = new Vector3(p.x, 0.04f, p.z);
             _shadow.localScale = new Vector3(s, 0.04f, s);
             _shadow.gameObject.SetActive(true);
