@@ -11,6 +11,10 @@ namespace GrandSluggers.UnityClient
         public int Seed = 7;
         public int Innings = 3;
         public PracticeLesson PracticePick = PracticeLesson.Pitching;
+        int _pauseItem;
+        bool _pauseHowTo;
+        int _pausePage;
+        float _pauseStick;
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
@@ -196,13 +200,19 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
-            if ((_phase is Phase.Set or Phase.Flight or Phase.InPlay) && Controls.CallTime && _t > 0.2f)
+            var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.Result;
+            if (!_match.Paused && playPause && Controls.CallTime && _t > 0.2f)
             {
-                _match.TogglePause();
+                _match.SetPaused(true);
+                _pauseItem = 0;
+                _pauseHowTo = false;
+                _pausePage = 0;
+                _pauseStick = 0;
                 _t = 0;
             }
             if (_match.Paused)
             {
+                TickPause();
                 _actors.Draw();
                 return;
             }
@@ -274,6 +284,11 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay);
+            if (_match.Paused)
+            {
+                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
+                return;
+            }
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
             {
                 var hopper = _preview != null && _preview.Grounder;
@@ -299,6 +314,81 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        void TickPause()
+        {
+            var dt = Time.unscaledDeltaTime;
+            if (_pauseStick > 0) _pauseStick -= dt;
+            if (_pauseHowTo)
+            {
+                if (_pauseStick <= 0 && Mathf.Abs(Controls.StickX) >= 0.45f)
+                {
+                    _pausePage = (_pausePage + (Controls.StickX > 0 ? 1 : HowToPlay.Pages.Count - 1)) % HowToPlay.Pages.Count;
+                    _pauseStick = 0.22f;
+                }
+                if (Controls.SouthDown)
+                    _pausePage = (_pausePage + 1) % HowToPlay.Pages.Count;
+                if (Controls.EastDown || Controls.CallTime)
+                {
+                    _pauseHowTo = false;
+                    _t = 0;
+                }
+                return;
+            }
+            if (_pauseStick <= 0 && Mathf.Abs(Controls.StickY) >= 0.45f)
+            {
+                _pauseItem = PauseMenu.Wrap(_pauseItem, Controls.StickY > 0 ? -1 : 1);
+                _pauseStick = 0.22f;
+            }
+            if (Controls.SouthDown)
+            {
+                switch (PauseMenu.At(_pauseItem))
+                {
+                    case PauseMenu.Item.Resume:
+                        _match.SetPaused(false);
+                        break;
+                    case PauseMenu.Item.Restart:
+                        RestartFromPause();
+                        break;
+                    case PauseMenu.Item.HowToPlay:
+                        _pauseHowTo = true;
+                        _pausePage = 0;
+                        break;
+                    case PauseMenu.Item.Title:
+                        PauseToTitle();
+                        break;
+                }
+                return;
+            }
+            if (Controls.EastDown || Controls.CallTime)
+                _match.SetPaused(false);
+        }
+
+        void RestartFromPause()
+        {
+            Seed++;
+            _match = NewMatch();
+            _park.Build(_match.Park, _match.Night);
+            _spec.Build(transform);
+            _items.Build(transform);
+            _stars?.Build(transform);
+            _clip = null;
+            _hlPath = null;
+            BeginSet();
+            _match.SetPaused(false);
+        }
+
+        void PauseToTitle()
+        {
+            _match.SetPaused(false);
+            if (TrainingOn) _coach.Stop();
+            _phase = Phase.Title;
+            _t = 0;
+            _banner = _sub = "";
+            _replaying = false;
+            _audio?.CrowdBed(false);
+            _cam.Play("title");
+        }
+
         Match NewMatch()
         {
             if (_mode == PlayMode.Training)
@@ -306,7 +396,8 @@ namespace GrandSluggers.UnityClient
                 _campaign = null;
                 ParkId = Training.ParkId;
                 if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
-                _coach.Begin(_content);
+                var lesson = _coach.Session != null ? _coach.Session.Lesson : PracticePick;
+                _coach.Begin(_content, lesson);
                 return _coach.MakeMatch(_content, Seed);
             }
             if (_mode == PlayMode.Challenge)

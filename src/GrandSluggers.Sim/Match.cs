@@ -329,6 +329,8 @@ public sealed class Match
         return Paused;
     }
 
+    public void SetPaused(bool on) => Paused = on;
+
     /// <summary>
     /// Named-bag pickoff before the pitch. Glued runner (no lead, no steal) returns, never a free out.
     /// Steal-on or a walking lead can be caught.
