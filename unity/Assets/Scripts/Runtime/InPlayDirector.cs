@@ -83,6 +83,7 @@ namespace GrandSluggers.UnityClient
             TickBuddyPartner(dt);
             TickItem(dt);
             TickCoverBags(dt);
+            ChargeOutfield(dt);
             TryTakeGlove();
 
             if (_recoilT > 0 && !_throwing)
@@ -300,16 +301,13 @@ namespace GrandSluggers.UnityClient
             if ((grounder || line) && _path != null && !_caught)
             {
                 var live = BallFlight.PointAt(_path, spray, _hitT);
-                var speed = (21 + _preview.Fielder.Stats.Run * 1.9) * (_preview.Frozen ? 0.45 : 1);
-                var dx = live.X - _fx;
-                var dz = live.Z - _fz;
-                var dist = Math.Sqrt(dx * dx + dz * dz);
-                if (dist > 0.35)
-                {
-                    var step = Math.Min(dist, speed * dt);
-                    _fx += dx / dist * step;
-                    _fz += dz / dist * step;
-                }
+                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                TryHandoffOutfield(map, live.X, live.Z);
+                var who = map.TryGetValue(_glovePos, out var c) ? c : _preview.Fielder;
+                var speed = FieldingResolver.ChaseSpeedFt(who, _preview.Frozen);
+                var next = FieldingResolver.StepToward(_fx, _fz, live.X, live.Z, speed, dt);
+                _fx = next.X;
+                _fz = next.Z;
             }
             else if (!_caught)
             {
@@ -317,8 +315,8 @@ namespace GrandSluggers.UnityClient
                 var start = Diamond.Positions[_preview.Position];
                 _fx = start.X + (_preview.LandingX - start.X) * u;
                 _fz = start.Z + (_preview.LandingZ - start.Z) * u;
+                _glovePos = _preview.Position;
             }
-            _glovePos = _preview.Position;
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
             var reached = outPlay || _cpuField.Bobble;
@@ -357,17 +355,43 @@ namespace GrandSluggers.UnityClient
             if (_path == null) return;
             var spray = _pending != null ? _pending.SprayDeg : 0;
             var live = BallFlight.PointAt(_path, spray, _hitT);
-            var speed = (21 + pre.Fielder.Stats.Run * 1.9) * (pre.Frozen ? 0.45 : 1);
-            var dx = live.X - _fx;
-            var dz = live.Z - _fz;
-            var dist = Math.Sqrt(dx * dx + dz * dz);
-            if (dist > 0.35)
-            {
-                var step = Math.Min(dist, speed * dt);
-                _fx += dx / dist * step;
-                _fz += dz / dist * step;
-            }
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            TryHandoffOutfield(map, live.X, live.Z);
+            var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
+            var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
+            var next = FieldingResolver.StepToward(_fx, _fz, live.X, live.Z, speed, dt);
+            _fx = next.X;
+            _fz = next.Z;
             _gloveAt[_glovePos] = (_fx, _fz);
+        }
+
+        void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ)
+        {
+            var pick = FieldingResolver.PlayGlove(map, ballX, ballZ, _gloveAt);
+            if (!FieldingResolver.HandoffToOutfield(_glovePos, pick.Pos)) return;
+            _gloveAt[_glovePos] = (_fx, _fz);
+            _glovePos = pick.Pos;
+            if (_gloveAt.TryGetValue(_glovePos, out var at))
+            {
+                _fx = at.X;
+                _fz = at.Z;
+            }
+        }
+
+        void ChargeOutfield(float dt)
+        {
+            if (_preview == null || _pending == null || _path == null) return;
+            if (_caught || _buddy || _throwing) return;
+            var live = BallFlight.PointAt(_path, _pending.SprayDeg, _hitT);
+            if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, _preview.LandingX, _preview.LandingZ))
+                return;
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var of = FieldingResolver.NearestOutfielder(map, live.X, live.Z, _gloveAt);
+            if (of.Pos == _glovePos) return;
+            if (!_gloveAt.TryGetValue(of.Pos, out var at)) return;
+            var target = FieldingResolver.OutfieldChaseTarget(live.X, live.Z, _preview.LandingX, _preview.LandingZ);
+            var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, _preview.Frozen);
+            _gloveAt[of.Pos] = FieldingResolver.StepToward(at.X, at.Z, target.X, target.Z, speed, dt);
         }
 
         void AutoGlove(Dictionary<string, Character> map)

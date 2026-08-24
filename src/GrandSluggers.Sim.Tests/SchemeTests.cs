@@ -67,6 +67,7 @@ public class SchemeTests
         Assert.True(HowToPlay.Mentions("oval"));
         Assert.True(HowToPlay.Mentions("changeup"));
         Assert.True(HowToPlay.Mentions("call time"));
+        Assert.True(HowToPlay.Mentions("outfielder"));
         Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South") && l.Contains("Space"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("charge", StringComparison.OrdinalIgnoreCase));
         Assert.False(HowToPlay.Mentions("cycle pitch"));
