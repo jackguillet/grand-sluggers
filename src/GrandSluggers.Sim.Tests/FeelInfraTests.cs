@@ -21,6 +21,11 @@ public class FeelInfraTests
         Assert.False(Near(plate.Target, mound.Target),
             $"plate look {plate.Target} vs mound {mound.Target}");
         Assert.True(plate.Fov > 0 && mound.Fov > 0);
+        var title = _content.Shots.Must("title");
+        Assert.True(title.Pos.Z < 0, $"title behind home z={title.Pos.Z}");
+        Assert.True(title.Pos.Y > 12, $"title too low to see Harbor y={title.Pos.Y}");
+        Assert.True(title.Target.Z > 30, $"title looks into the park z={title.Target.Z}");
+        Assert.True(title.Fov >= 42);
     }
 
     [Fact]
