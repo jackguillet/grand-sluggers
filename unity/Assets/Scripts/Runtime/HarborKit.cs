@@ -410,7 +410,9 @@ namespace GrandSluggers.UnityClient
         bool DropDugout(float x, string side)
         {
             var mesh = x > 0f ? "dugout-1b" : "dugout-3b";
-            var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), Quaternion.identity, Vector3.one, paint: true);
+            // FBX bake_space_transform puts the open face on +X. 180 Y faces the infield.
+            var rot = Quaternion.Euler(0f, 180f, 0f);
+            var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), rot, Vector3.one, paint: true);
             if (go == null) return false;
             var inward = x > 0f ? -1f : 1f;
             var backX = x - inward * DugoutHalfDeep;
