@@ -20,7 +20,7 @@ namespace GrandSluggers.UnityClient
             Ensure();
             if (phase == PhaseUi.Title)
             {
-                Title(parkName, homeCap, awayCap, challenge, portrait, training, night, hideHelp);
+                Title(challenge, portrait, training, night, hideHelp);
                 return;
             }
             if (phase == PhaseUi.Select)
@@ -30,7 +30,7 @@ namespace GrandSluggers.UnityClient
             }
             if (phase == PhaseUi.Field)
             {
-                Field(parkName, night);
+                Field(match != null ? match.Park.Id : "", parkName, night);
                 return;
             }
             if (phase == PhaseUi.Lineup)
@@ -53,63 +53,35 @@ namespace GrandSluggers.UnityClient
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
         }
 
-        static void Title(string park, string home, string away, bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
+        static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
         {
             var w = Screen.width;
-            GUI.DrawTexture(new Rect(36, 28, 620, 92), _panel);
-            GUI.Label(new Rect(52, 36, 600, 54), "GRAND SLUGGERS", _title);
+            Sticker(CarnivalFront.Logo, 40, 28, 720, 58, _title);
+            Sticker(CarnivalFront.SkyGag(night), w - 168, 36, 140, 32, night ? _gold : _h1);
             var exhibition = !training && !challenge;
-            GUI.DrawTexture(new Rect(36, 136, 420, exhibition ? 92 : 64), _panel);
-            GUI.Label(new Rect(52, 144, 400, 36), exhibition ? "EXHIBITION" : (training ? "TRAINING" : "CHALLENGE"), _h1);
-            GUI.Label(new Rect(52, 184, 390, 28),
-                exhibition ? "South / Space  ·  play ball" : (training ? "South / Space  ·  Practice" : "South / Space  ·  next match"),
-                _gold);
             if (exhibition)
-            {
-                GUI.Label(new Rect(52, 244, 640, 24), home + "  vs  " + away, _body);
-                GUI.Label(new Rect(52, 270, 640, 22), park + "  ·  " + (night ? "NIGHT" : "DAY") + "  ·  Tab innings", night ? _gold : _tiny);
-            }
-            else if (training)
-                GUI.Label(new Rect(52, 216, 640, 22), "Harbor  ·  stick lesson  ·  South start  ·  East skip to field", _tiny);
-            if (portrait != null)
-                GUI.DrawTexture(new Rect(w - 300, 36, 260, 260), portrait, ScaleMode.ScaleToFit);
+                Sticker(CarnivalFront.PlayBall, 44, 88, 640, 28, _gold);
+            else
+                Sticker(training ? "TRAINING" : "CHALLENGE", 44, 88, 420, 32, _h1);
+            if (training)
+                GUI.Label(new Rect(44, 124, 640, 22), "Harbor  ·  stick lesson  ·  South start  ·  East skip to field", _tiny);
+            else if (challenge)
+                GUI.Label(new Rect(44, 124, 640, 22), "South / Space  ·  next match", _gold);
+            _ = portrait;
             if (hideHelp) return;
-            GUI.Label(new Rect(52, Screen.height - 56, w - 80, 22),
-                "South / Space pick captain   West / F training   Start / H mode", _tiny);
+            GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
+                "South pick captain    West / F training    Start / H mode    Tab innings", _tiny);
         }
 
         public static void Select(string homeId, string awayId, ContentCatalog content)
         {
             Ensure();
-            var w = Screen.width;
-            GUI.DrawTexture(new Rect(36, 24, 560, 78), _panel);
-            GUI.Label(new Rect(52, 32, 540, 36), "PICK YOUR CAPTAIN", _h1);
-            GUI.Label(new Rect(52, 68, 520, 22), "stick / WASD  home / away    South / Space  the field    West / F  title", _gold);
-            var ids = PresetTeams.CaptainIds;
-            var card = Mathf.Min(150f, (w - 80) / ids.Length - 8);
-            var x0 = (w - ids.Length * (card + 8) + 8) * 0.5f;
-            for (var i = 0; i < ids.Length; i++)
-            {
-                var id = ids[i];
-                var r = new Rect(x0 + i * (card + 8), Screen.height - card - 36, card, card);
-                GUI.DrawTexture(r, _panel);
-                if (id == homeId)
-                    GUI.DrawTexture(new Rect(r.x, r.y, r.width, 6), _starOn != null ? _starOn : _panel);
-                if (Look.HasPortrait(id))
-                    GUI.DrawTexture(new Rect(r.x + 8, r.y + 10, r.width - 16, r.height - 36), Look.Portrait(id), ScaleMode.ScaleToFit);
-                var label = id == homeId ? "HOME" : id == awayId ? "AWAY" : "";
-                if (content != null && content.Characters.TryGetValue(id, out var who))
-                    GUI.Label(new Rect(r.x, r.yMax - 24, r.width, 22), who.Name, _tiny);
-                else
-                    GUI.Label(new Rect(r.x, r.yMax - 24, r.width, 22), string.IsNullOrEmpty(label) ? id : label, _tiny);
-            }
-            GUI.Label(new Rect(36, 110, 700, 24),
-                (content != null && content.Characters.TryGetValue(homeId, out var h) ? h.Name : homeId)
-                + "  vs  "
-                + (content != null && content.Characters.TryGetValue(awayId, out var a) ? a.Name : awayId),
-                _gold);
             if (content != null && content.Characters.TryGetValue(homeId, out var homeWho))
-                Card(CharacterCard.Of(homeWho), 36, 148);
+                Card(CharacterCard.Of(homeWho), 36, 28);
+            if (content != null && content.Characters.TryGetValue(awayId, out var awayWho))
+                Sticker("vs  " + awayWho.Name, 36, 236, 400, 24, _gold);
+            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
+                "stick L/R home    U/D away    South the field    West title", _tiny);
         }
 
         public static void Card(CharacterCard card, float x, float y)
@@ -146,15 +118,25 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
-        public static void Field(string parkName, bool night)
+        public static void Field(string parkId, string parkName, bool night)
         {
             Ensure();
-            var w = Screen.width;
-            GUI.DrawTexture(new Rect(36, 24, 620, 92), _panel);
-            GUI.Label(new Rect(52, 32, 600, 36), "PICK THE FIELD", _h1);
-            GUI.Label(new Rect(52, 68, 580, 28), parkName + (night ? "  ·  NIGHT" : "  ·  DAY"), night ? _gold : _body);
-            GUI.Label(new Rect(52, Screen.height - 56, w - 80, 22),
-                "stick / WASD  cycle    South / Space  lineup    West / F  captains    N night", _tiny);
+            Sticker(parkName, 40, 28, 720, 48, _title);
+            Sticker(CarnivalFront.SkyGag(night), 40, 78, 200, 28, night ? _gold : _h1);
+            GUI.Label(new Rect(44, 112, 720, 26), CarnivalFront.Gimmick(parkId, night), _gold);
+            if (!CarnivalFront.HarborIsTheProduct(parkId))
+                GUI.Label(new Rect(44, 140, 720, 22), "Harbor is the slice.", _tiny);
+            GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
+                "stick L/R the field    South lineup    West captains    N night", _tiny);
+        }
+
+        static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)
+        {
+            var old = GUI.color;
+            GUI.color = new Color(0.06f, 0.04f, 0.08f, 0.88f);
+            GUI.Label(new Rect(x + 3, y + 3, w, h), text, style);
+            GUI.color = old;
+            GUI.Label(new Rect(x, y, w, h), text, style);
         }
 
         public static void Pause(int item, bool howTo, int page)
