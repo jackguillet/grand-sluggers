@@ -101,7 +101,7 @@ Fair contact always sends the batter to first. On a fly, runners hold; all-advan
 
 ### Fielding (the ball is in play)
 
-Nearest glove **lights**. Leave the stick still: CPU takes the hop and throws — the play ends. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags.
+Nearest glove **lights**. Leave the stick still: CPU takes the hop and throws — the play ends. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
 Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove.
 

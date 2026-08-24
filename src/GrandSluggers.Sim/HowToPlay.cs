@@ -69,6 +69,7 @@ public static class HowToPlay
         new("fielding", "Fielding",
         [
             "Dead stick    CPU takes the hop and throws.",
+            "Balls into the grass    the outfielder charges and takes the glove.",
             "Stick / WASD    take the glove. WASD while chasing does not throw.",
             "South / Space    catch, then throw.",
             "Hold East / G    dash. Tap East    dive. West / F    jump.",

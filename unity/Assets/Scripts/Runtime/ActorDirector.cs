@@ -77,6 +77,8 @@ namespace GrandSluggers.UnityClient
                     else
                         pose = FieldPose(who, _preview, _caught || _buddy);
                 }
+                else if (_phase == Phase.InPlay && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
+                    pose = HeroActor.Pose.Run;
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
                 if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
