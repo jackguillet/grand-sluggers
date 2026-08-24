@@ -8,15 +8,15 @@ public static class StillPose
 {
     public const double ScoopX = 26;
     public const double ScoopZ = 26;
-    public const double ScoopBallY = 0.55;
-    /// <summary>Mid-pick. Later t stands them up (12:22 PNG).</summary>
-    public const double ScoopPoseT = 0.20;
+    public const double ScoopBallY = 0.40;
+    /// <summary>Authored contact. Camera must be a side 3/4 — down the path hides the glove.</summary>
+    public const double ScoopPoseT = 0.22;
     public const double RunnerX = 42;
     public const double RunnerZ = 42;
     public const string ScoopGlove = "2B";
-    public const double CamX = 10;
-    public const double CamY = 4.8;
-    public const double CamZ = 12;
+    public const double CamX = 8;
+    public const double CamY = 3.6;
+    public const double CamZ = 38;
 
     public const double PlateCamX = -13.2;
     public const double PlateCamY = 5.2;
@@ -30,7 +30,10 @@ public static class StillPose
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
 
     public static bool CameraClearsTheDugout(double x, double z) =>
-        x < 24 && z < 28;
+        x < 26 || z > 24 || z < 4;
+
+    public static bool CameraIsSideThreeQuarter(double camX, double camZ, double scoopX, double scoopZ) =>
+        Math.Abs(camZ - scoopZ) > 8 && Math.Abs(camX - scoopX) > 8;
 
     public static bool PlateIsThirdBaseThreeQuarter(double x, double z) =>
         x < -6 && z < -3 && z > -12;
