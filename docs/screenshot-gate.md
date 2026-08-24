@@ -16,7 +16,7 @@ Three stills. HUD off means **F2 off** and the scorebug not covering the subject
 |---|---|---|---|
 | 1 | **Batting SET** (`plate`) | Full batter in the box (feet to hat). Pentagon + two chalk rectangles on packed dirt. Pitcher in the distance. You can **name the captain**. Catcher is not the subject. | Catcher-spine, cage grid in the dirt, cap close-up, “brown cube with a brim,” camera through the backstop |
 | 2 | **Scoop** | Glove on the dirt, ball in the glove, runner leaving the box, grass. Camera is a 3/4 in the park (`diamond-grounder` / hopper), not high-home. | Cubes chasing a marble, auto-glove with no scoop verb, broadcast high-home |
-| 3 | **Star swing** | Body owns ~2 seconds (Heatball core+embers on Rio, etc.). Scorebug gone. Then baseball. | Full-screen white/black blind, a smear with no body, HUD still talking |
+| 3 | **Star swing** | Body owns ~2 seconds (Heatball core+embers on Rio, etc.). Scorebug gone. Then baseball. Side 3/4 on the torso. | Full-screen white/black blind, a smear with no body, HUD still talking, cage owns the frame, fire pancake on the dirt, loose sky blobs |
 
 Bonus stills that save a later sitting (same rules):
 
@@ -141,6 +141,7 @@ One line per picture. Examples:
 - `plate: boxes read, captain reads — PASS`
 - `scoop: no glove, ball is a marble`
 - `star: HUD still up, no body in the fire`
+- `star: cage / dirt pancake / sky blobs — body does not own it`
 
 A pass is “I would put this on a trailer.” A fail files a GitHub child from the **picture**, not from a vibe. Do not reopen #189–#198 as “do the rail again.”
 

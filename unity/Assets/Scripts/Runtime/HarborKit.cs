@@ -95,6 +95,11 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        public void ShowBackstop(bool on)
+        {
+            if (Backstop != null) Backstop.gameObject.SetActive(on);
+        }
+
         public void SyncShots(CameraShots shots)
         {
             _shots = shots;

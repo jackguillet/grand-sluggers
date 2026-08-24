@@ -205,8 +205,12 @@ namespace GrandSluggers.UnityClient
             var laser = fielder != null && fielder.FieldAbility == "laser" && (_caught || (_last != null && _last.Throw != null));
             var burn = starSwing == "furnace" || starSwing == "heat-swing";
             var frags = starSwing == "cask-swing" || starSwing == "shell-swing";
+            var swingAt = Vector3.zero;
+            if (!string.IsNullOrEmpty(starSwing) && _match?.Batter != null
+                && _heroes.TryGetValue(_match.Batter.Id, out var bat) && bat != null)
+                swingAt = bat.transform.position + Vector3.up * 3.2f;
             _spec.Tick(Time.deltaTime, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
-                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags);
+                _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags, swingAt);
             var flash = _phase == Phase.InPlay && BuddySet && !_buddy && !_throwing;
             var flashAt = Vector3.zero;
             if (flash && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var planted))

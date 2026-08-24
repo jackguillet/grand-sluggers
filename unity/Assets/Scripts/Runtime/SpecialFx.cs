@@ -6,6 +6,7 @@ namespace GrandSluggers.UnityClient
 {
     /// <summary>
     /// HUD-off specials: change the ball or the field for ~2 seconds, then baseball resumes.
+    /// Heat-swing lives on the body (core + tight embers + fire ring), not a dirt pancake.
     /// Groups are catalog VFX ids. Missing Unity prefabs keep the procedural stand-in.
     /// No full-screen paint, no input invert, no invisible ball.
     /// </summary>
@@ -40,6 +41,9 @@ namespace GrandSluggers.UnityClient
         Transform _heatBurn;
         Transform _heatCore;
         Transform _heatShell;
+        Transform _swingHeatCore;
+        Transform _swingHeatShell;
+        readonly Transform[] _swingRing = new Transform[10];
         Transform _charmCore;
         Transform _charmShell;
         Transform _heartCore;
@@ -98,6 +102,13 @@ namespace GrandSluggers.UnityClient
                 Vector3.one * 0.9f, Look.Unlit(Colors.EmberFire)).transform;
             _heatShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("heatball"), Vector3.zero,
                 Vector3.one * 1.35f, Look.Unlit(new Color(1f, 0.45f, 0.12f, 0.55f))).transform;
+            _swingHeatCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("heat-swing"), Vector3.zero,
+                Vector3.one * 1.85f, Look.Unlit(Colors.EmberFire)).transform;
+            _swingHeatShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("heat-swing"), Vector3.zero,
+                Vector3.one * 2.7f, Look.Unlit(new Color(1f, 0.45f, 0.12f, 0.5f))).transform;
+            for (var i = 0; i < _swingRing.Length; i++)
+                _swingRing[i] = Look.Prim(PrimitiveType.Sphere, "Ring" + i, Group("heat-swing"), Vector3.zero,
+                    Vector3.one * 0.48f, fire).transform;
             _charmCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("charmball"), Vector3.zero,
                 Vector3.one * 0.88f, Look.Unlit(new Color(1f, 0.38f, 0.62f))).transform;
             _charmShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("charmball"), Vector3.zero,
@@ -121,7 +132,7 @@ namespace GrandSluggers.UnityClient
             if (_throw != null) _throw.positionCount = 12;
             if (_throwBad != null) _throwBad.positionCount = 12;
 
-            _heatBurn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("heat-swing"), Vector3.zero, new Vector3(8.2f, 0.1f, 8.2f),
+            _heatBurn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("heat-swing"), Vector3.zero, new Vector3(2.8f, 0.08f, 2.8f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
             _burn = Look.Prim(PrimitiveType.Cylinder, "Burn", Group("furnace"), Vector3.zero, new Vector3(7.4f, 0.12f, 7.4f),
                 Look.Lit(Colors.EmberFire, smooth: 0.35f)).transform;
@@ -149,11 +160,13 @@ namespace GrandSluggers.UnityClient
             bool showTongue,
             bool showLaser,
             bool showBurn,
-            bool showFrags)
+            bool showFrags,
+            Vector3 swingAt = default)
         {
             if (_root == null) return;
             _t += dt;
             _lastBall = ball;
+            var body = swingAt.sqrMagnitude > 0.01f ? swingAt : ball;
 
             if (flight && starPitch && Known(starPitchId))
             {
@@ -193,18 +206,21 @@ namespace GrandSluggers.UnityClient
             Embers(_embers, pitchOn && IdIs(_pitchId, "heatball"), ball, true);
             HeatCore(pitchOn && IdIs(_pitchId, "heatball"), ball);
             CharmCore(pitchOn && IdIs(_pitchId, "charmball"), ball);
-            HeartCore(swingOn && IdIs(_swingId, "heart-swing"), ball);
+            HeartCore(swingOn && IdIs(_swingId, "heart-swing"), body);
             Sparkles(_sparkles, pitchOn && IdIs(_pitchId, "charmball"), ball);
-            Embers(_swingEmbers, swingOn && IdIs(_swingId, "heat-swing"), ball, false);
-            Embers(_furnaceEmbers, swingOn && IdIs(_swingId, "furnace"), ball, false);
+            var heatSwing = swingOn && IdIs(_swingId, "heat-swing");
+            Embers(_swingEmbers, heatSwing, body, true);
+            SwingHeat(heatSwing, body);
+            FireRing(_swingRing, heatSwing, body);
+            Embers(_furnaceEmbers, swingOn && IdIs(_swingId, "furnace"), body, false);
             Hearts(_hearts, pitchOn && IdIs(_pitchId, "charmball"), ball);
-            Hearts(_swingHearts, swingOn && IdIs(_swingId, "heart-swing"), ball);
-            Fragments(_bits, showFrags || swingOn && IdIs(_swingId, "cask-swing"), ball);
-            Fragments(_shellBits, swingOn && IdIs(_swingId, "shell-swing"), ball);
-            Burn(_heatBurn, showBurn || swingOn && IdIs(_swingId, "heat-swing"), ball);
-            Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), ball);
-            FurnaceRim(swingOn && IdIs(_swingId, "furnace"), ball);
-            Crack(swingOn && IdIs(_swingId, "furnace"), ball);
+            Hearts(_swingHearts, swingOn && IdIs(_swingId, "heart-swing"), body);
+            Fragments(_bits, showFrags || swingOn && IdIs(_swingId, "cask-swing"), body);
+            Fragments(_shellBits, swingOn && IdIs(_swingId, "shell-swing"), body);
+            Burn(_heatBurn, showBurn, body);
+            Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), body);
+            FurnaceRim(swingOn && IdIs(_swingId, "furnace"), body);
+            Crack(swingOn && IdIs(_swingId, "furnace"), body);
             Beam(_tongue, showTongue, tongueFrom, ball);
             Beam(_laser, showLaser, tongueFrom, laserTo == Vector3.zero ? ball : laserTo);
             DrawThrow(dt);
@@ -335,27 +351,42 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void HeatCore(bool on, Vector3 p)
+        void HeatCore(bool on, Vector3 p) => PulseCore(_heatCore, _heatShell, on, p, 16f, 9f);
+
+        void SwingHeat(bool on, Vector3 p)
         {
-            if (_heatCore != null)
+            if (_swingHeatCore != null)
             {
-                _heatCore.gameObject.SetActive(on);
+                _swingHeatCore.gameObject.SetActive(on);
                 if (on)
                 {
-                    _heatCore.position = p;
-                    var u = 0.72f + 0.28f * Mathf.Abs(Mathf.Sin(_t * 16f));
-                    _heatCore.localScale = Vector3.one * u;
+                    _swingHeatCore.position = p;
+                    _swingHeatCore.localScale = Vector3.one * (1.05f + 0.32f * Mathf.Abs(Mathf.Sin(_t * 14f)));
                 }
             }
-            if (_heatShell != null)
+            if (_swingHeatShell != null)
             {
-                _heatShell.gameObject.SetActive(on);
+                _swingHeatShell.gameObject.SetActive(on);
                 if (on)
                 {
-                    _heatShell.position = p;
-                    var u = 1.15f + 0.35f * Mathf.Abs(Mathf.Sin(_t * 9f + 0.6f));
-                    _heatShell.localScale = Vector3.one * u;
+                    _swingHeatShell.position = p;
+                    _swingHeatShell.localScale = Vector3.one * (1.45f + 0.4f * Mathf.Abs(Mathf.Sin(_t * 8f + 0.5f)));
                 }
+            }
+        }
+
+        void FireRing(Transform[] bits, bool on, Vector3 around)
+        {
+            if (bits == null) return;
+            for (var i = 0; i < bits.Length; i++)
+            {
+                if (bits[i] == null) continue;
+                bits[i].gameObject.SetActive(on);
+                if (!on) continue;
+                var a = i / (float)bits.Length * Mathf.PI * 2f + _t * 2.4f;
+                var r = 1.72f + 0.16f * Mathf.Sin(_t * 7f + i);
+                bits[i].position = around + new Vector3(Mathf.Cos(a) * r, 0.18f * Mathf.Sin(_t * 6f + i), Mathf.Sin(a) * r);
+                bits[i].localScale = Vector3.one * (0.42f + 0.18f * Mathf.Abs(Mathf.Sin(_t * 11f + i)));
             }
         }
 
