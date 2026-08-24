@@ -40,11 +40,11 @@ public class FeelInfraTests
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
-        // Batting: beside/behind the batter looking at the mound. Catcher at (0,-4)
-        // and the cage at z=-22 stay out of the lens so the chalk boxes read.
-        Assert.True(plate.Pos.Z < 0, $"plate must sit behind home, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z > -14, $"plate in front of the cage, not catcher-spine, z={plate.Pos.Z}");
-        Assert.True(Math.Abs(plate.Pos.X) > 4, $"plate is off the pipe so the catcher is not the subject x={plate.Pos.X}");
+        // Batting: first-base side of the box looking at the mound. Catcher at (0,-4)
+        // stays behind the camera so the chalk boxes and Rio's feet-to-hat read.
+        Assert.True(plate.Pos.Z > -8, $"plate in front of the cage, z={plate.Pos.Z}");
+        Assert.True(plate.Pos.Z < 6, $"plate is not on the mound, z={plate.Pos.Z}");
+        Assert.True(plate.Pos.X > 6, $"plate is first-base side of the box so the catcher is not the subject x={plate.Pos.X}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
         Assert.True(plate.Target.Z > 50, $"plate looks at the pitcher, target z={plate.Target.Z}");
         var batter = new Vec3(2.55, 0, 2.4);
@@ -80,7 +80,8 @@ public class FeelInfraTests
         Assert.Equal("bag", tag.Look, ignoreCase: true);
         var smash = _content.Shots.Must("smash");
         Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov} is a nostril");
-        Assert.True(Math.Abs(smash.Pos.Z) >= 6, $"smash sits on the body, z={smash.Pos.Z}");
+        Assert.True(smash.Pos.X > 5, $"smash is a 3/4 off the pipe, not through the catcher x={smash.Pos.X}");
+        Assert.True(smash.Pos.Z > 4, $"smash looks from the field, not behind home z={smash.Pos.Z}");
         Assert.True(smash.Pos.Y >= 1.4, $"smash cam height {smash.Pos.Y}");
     }
 

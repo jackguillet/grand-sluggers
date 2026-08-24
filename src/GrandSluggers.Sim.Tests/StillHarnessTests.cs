@@ -37,4 +37,18 @@ public class StillHarnessTests
         var star = hopper with { StarSwingUsed = match.Batter.StarSwing, LaunchDeg = 28 };
         Assert.Equal("smash", InPlay.TheaterShot(star));
     }
+
+    [Fact]
+    public void ScoopPoseIsTheFirstBaseHoleNotTheMound()
+    {
+        Assert.True(StillPose.ScoopIsNotTheMound(StillPose.ScoopX, StillPose.ScoopZ));
+        Assert.True(StillPose.ScoopZ < Diamond.Mound - 16);
+        Assert.True(StillPose.ScoopX > 12);
+        Assert.Equal("2B", StillPose.ScoopGlove);
+        var defense = FieldingResolver.Assign(
+            Match.Exhibition(_content, "rio", "ashlord", seed: 7).Away.Roster,
+            _content.Must("ashlord"));
+        Assert.True(defense.ContainsKey(StillPose.ScoopGlove));
+        Assert.NotEqual("ashlord", defense[StillPose.ScoopGlove].Id);
+    }
 }

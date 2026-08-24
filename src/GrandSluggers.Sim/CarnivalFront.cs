@@ -12,15 +12,20 @@ public static class CarnivalFront
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 8f;
     public const float HomeStepTitleFt = 2.4f;
+    public const float FeaturedTitleZ = 18f;
+    public const float FeaturedSelectZ = 4f;
     public const float SelectSpacing = 7.6f;
     public const float TitleSpacing = 13.4f;
+    public const float CardX = 5.6f;
+    public const float CardY = 2.9f;
+    public const float CardZ = 0.2f;
 
     public static (float X, float Z) CaptainSpot(int index, int count, bool select, bool home)
     {
         var spacing = select ? SelectSpacing : TitleSpacing;
         var x = (index - (count - 1) * 0.5f) * spacing;
         var z = select ? SelectRowZ : TitleRowZ;
-        if (home) z -= select ? HomeStepSelectFt : HomeStepTitleFt;
+        if (home) return (0f, select ? FeaturedSelectZ : FeaturedTitleZ);
         return (x, z);
     }
 

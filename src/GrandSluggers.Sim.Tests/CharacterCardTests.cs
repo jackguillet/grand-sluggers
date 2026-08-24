@@ -22,6 +22,9 @@ public class CharacterCardTests
         Assert.Equal("Heatball", card.StarPitch);
         Assert.Equal("Heat Swing", card.StarSwing);
         Assert.Equal("Grow", card.FieldVerb);
+        Assert.Equal(0.7, CharacterCard.BarFill(7), 3);
+        Assert.Equal(0, CharacterCard.BarFill(-2), 3);
+        Assert.Equal(1, CharacterCard.BarFill(12), 3);
     }
 
     [Fact]

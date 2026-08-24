@@ -23,7 +23,8 @@ Bonus stills that save a later sitting (same rules):
 | Still | Shot name (F2) | Must show |
 |---|---|---|
 | Pitching SET | `mound` | Pitcher 3/4, rubber in the bottom, batter + catcher + boxes at home |
-| Title | `title` | Looks **into** Harbor, not at a menu wall |
+| Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. |
+| Captain card | `select` | Home captain + world card with P/B/F/R bars |
 | Throw | `throw` | On the glove, ball leaving the hand |
 | Fly | `diamond` | 3/4 in the park, fielder reads, ball is a baseball |
 | Homer | `diamond-homer` | Camera rises with the ball, then baseball |
@@ -74,7 +75,7 @@ Take three outs however you like (South to pitch, meatballs are fine). Bottom of
 
 ### Batting SET (`plate`) — bottom of 1 — **still 1**
 
-Camera stays over the batter looking at the mound for the whole pitch.
+Camera stays beside the batter looking at the mound for the whole pitch. Catcher stays behind the lens.
 
 - You in the box, feet to hat. Two chalk boxes + pentagon. Pitcher in the distance.
 - Hold **LT**. Charge ring on the dirt around the box.
@@ -172,7 +173,7 @@ Default request now includes the three trailer stills plus title/mound:
 
 ```json
 {
-  "shots": ["title", "plate", "mound", "diamond-grounder", "smash"],
+  "shots": ["title", "select", "plate", "mound", "diamond-grounder", "smash"],
   "home": "rio",
   "away": "ashlord",
   "hudOff": true,
