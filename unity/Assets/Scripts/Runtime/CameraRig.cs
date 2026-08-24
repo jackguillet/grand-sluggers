@@ -57,11 +57,11 @@ namespace GrandSluggers.UnityClient
         }
 
         public void FramePitch() =>
-            Aim(new Vector3(3.2f, 4.8f, 71f), new Vector3(0.2f, 3.6f, 2.5f), 40f);
+            Aim(new Vector3(9.8f, 6.4f, 76.5f), new Vector3(0.4f, 2.2f, 1.0f), 42f);
 
-        /// <summary>Catcher's-eye: full batter, pitcher readable. Not a top-down cap shot.</summary>
+        /// <summary>Over-the-batter 3/4 looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
         public void FramePlate() =>
-            Aim(new Vector3(-2.4f, 3.4f, -10.5f), new Vector3(0.6f, 4.6f, 56f), 46f);
+            Aim(new Vector3(-5.2f, 5.5f, -6.8f), new Vector3(3.4f, 2.8f, 58f), 52f);
 
         public void FrameThrow(Vector3 from, Vector3 to)
         {
@@ -70,7 +70,7 @@ namespace GrandSluggers.UnityClient
             if (dir.sqrMagnitude < 1f) dir = Vector3.forward;
             dir.Normalize();
             var side = Vector3.Cross(Vector3.up, dir);
-            Aim(from - dir * 18f + Vector3.up * 7.5f + side * 5.5f, to + Vector3.up * 1.4f, 42f);
+            Aim(from - dir * 12f + Vector3.up * 6.2f + side * 4.2f, to + Vector3.up * 1.6f, 40f);
         }
 
         public void Tick(float dt)

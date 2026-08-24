@@ -81,8 +81,8 @@ namespace GrandSluggers.UnityClient
             if (dir.sqrMagnitude < 1f) dir = Vector3.forward;
             dir.Normalize();
             var side = Vector3.Cross(Vector3.up, dir);
-            var height = (float)(s.Pos.Y > 0 ? s.Pos.Y : 7.5);
-            _rig.Aim(from - dir * 18f + Vector3.up * height + side * 5.5f, to + Vector3.up * 1.4f, (float)s.Fov);
+            var height = (float)(s.Pos.Y > 0 ? s.Pos.Y : 6.2);
+            _rig.Aim(from - dir * 12f + Vector3.up * height + side * 4.2f, to + Vector3.up * 1.6f, (float)s.Fov);
         }
 
         public void AimRaw(string name, Vector3 pos, Vector3 look, float fov)

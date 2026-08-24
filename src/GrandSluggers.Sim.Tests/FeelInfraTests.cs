@@ -34,24 +34,28 @@ public class FeelInfraTests
     }
 
     [Fact]
-    public void PlateIsCatcherEyeAndMoundIsThreeQuarter()
+    public void PlateIsBatterOverShoulderAndMoundIsPitcherThreeQuarter()
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
+        // Batting: beside/behind the batter looking at the mound. Catcher at (0,-4)
+        // and the cage at z=-22 stay out of the lens so the chalk boxes read.
         Assert.True(plate.Pos.Z < 0, $"plate must sit behind home, z={plate.Pos.Z}");
-        Assert.True(plate.Pos.Z > -21.5, $"plate in front of the backstop cage, z={plate.Pos.Z}");
-        Assert.InRange(plate.Pos.Y, 3.2, 6.2);
-        Assert.True(plate.Target.Z > 40, $"plate looks at the mound, target z={plate.Target.Z}");
-        var plateDist = Dist(plate.Pos, new Vec3(0, 0, 0));
-        Assert.True(plateDist > 20, $"plate too close for toy heads (cap shot) dist={plateDist}");
-        Assert.True(plate.Fov >= 46, $"plate fov {plate.Fov} too tight for a full batter");
+        Assert.True(plate.Pos.Z > -14, $"plate in front of the cage, not catcher-spine, z={plate.Pos.Z}");
+        Assert.True(Math.Abs(plate.Pos.X) > 4, $"plate is off the pipe so the catcher is not the subject x={plate.Pos.X}");
+        Assert.InRange(plate.Pos.Y, 4.4, 6.8);
+        Assert.True(plate.Target.Z > 50, $"plate looks at the pitcher, target z={plate.Target.Z}");
+        var batter = new Vec3(2.55, 0, 2.4);
+        var batterDist = Dist(plate.Pos, batter);
+        Assert.InRange(batterDist, 8, 16);
+        Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + infield");
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind rubber z={mound.Pos.Z}");
-        Assert.True(mound.Target.Z < 12, $"mound looks at the plate, target z={mound.Target.Z}");
-        Assert.True(mound.Pos.Y > plate.Pos.Y, "mound eye is above catcher eye");
-        Assert.True(mound.Pos.X > 8, $"mound is 3/4 off the pipe x={mound.Pos.X}");
+        Assert.True(mound.Target.Z < 8, $"mound looks at the plate/box, target z={mound.Target.Z}");
+        Assert.True(mound.Pos.X > 6, $"mound is 3/4 off the pipe x={mound.Pos.X}");
         var moundDist = Dist(mound.Pos, new Vec3(0, 0, Diamond.Mound));
-        Assert.True(moundDist > 18, $"mound too close (pitcher blob) dist={moundDist}");
-        Assert.InRange(mound.Fov, 38, 44);
+        Assert.True(moundDist > 16, $"mound too close (pitcher blob) dist={moundDist}");
+        Assert.True(moundDist < 28, $"mound too far (pitcher ant) dist={moundDist}");
+        Assert.InRange(mound.Fov, 38, 46);
     }
 
     [Fact]
@@ -60,10 +64,14 @@ public class FeelInfraTests
         var fly = _content.Shots.Must("diamond");
         var hop = _content.Shots.Must("diamond-grounder");
         var line = _content.Shots.Must("diamond-line");
+        var homer = _content.Shots.Must("diamond-homer");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
         Assert.True(line.Pos.Y > hop.Pos.Y, $"line height {line.Pos.Y} vs hopper {hop.Pos.Y}");
         Assert.True(line.Pos.Y < fly.Pos.Y, $"line height {line.Pos.Y} vs fly {fly.Pos.Y}");
+        Assert.True(homer.Pos.Y > fly.Pos.Y, $"homer height {homer.Pos.Y} vs fly {fly.Pos.Y}");
+        Assert.True(fly.Pos.Z > 20, $"fly is a 3/4 in the park, not high-home z={fly.Pos.Z}");
+        Assert.True(hop.Pos.Y < 14, $"hopper stays low y={hop.Pos.Y}");
         Assert.NotEqual(line.Fov, fly.Fov);
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
@@ -73,7 +81,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "mound", "diamond", "diamond-line", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "mound", "diamond", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);
@@ -95,13 +103,14 @@ public class FeelInfraTests
     }
 
     [Fact]
-    public void PitchingSetStartsOnPlateUntilTheRubber()
+    public void BattingSetIsPlatePitchingSetIsMound()
     {
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0.2, 0, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, true, 0, 0, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.2, 0, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0.5, 0));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, -0.4));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.True(_content.Shots.TryGet(AtBatShots.Plate, out _));
         Assert.True(_content.Shots.TryGet(AtBatShots.Mound, out _));

@@ -122,12 +122,12 @@ namespace GrandSluggers.UnityClient
             {
                 var tFirst = (float)InPlay.HomeToFirstSec(batter);
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
-                var hx = 1.6f + (float)(Diamond.First.X - 1.6) * u;
-                var hz = 0.8f + (float)(Diamond.First.Z - 0.8) * u;
+                var hx = 2.55f + (float)(Diamond.First.X - 2.55) * u;
+                var hz = 2.4f + (float)(Diamond.First.Z - 2.4) * u;
                 bHero.Place(new Vector3(hx, 0, hz), new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z));
             }
             else
-                bHero.Place(new Vector3(1.6f, 0, 0.8f), new Vector3(0, 0, 1));
+                bHero.Place(new Vector3(2.55f, 0, 2.4f), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
             PlaceRunner(_match.First, Diamond.First, 1);
