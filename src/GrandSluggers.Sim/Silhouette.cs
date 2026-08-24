@@ -28,12 +28,13 @@ public static class Silhouette
 
     public static Spec Proportions(string bodyType) => bodyType.ToLowerInvariant() switch
     {
-        "vale" => new(1.22f, 0.72f, 1.22f, 0.92f, 0.78f),
-        "zig" => new(0.64f, 1.26f, 1.55f, 0.92f, 0.70f),
-        "brondo" => new(1.00f, 1.55f, 1.12f, 1.22f, 1.42f),
-        "konga" => new(1.32f, 1.40f, 1.35f, 1.55f, 1.18f),
-        "ashlord" => new(1.26f, 1.16f, 1.30f, 1.14f, 1.30f),
-        _ => new(0.88f, 0.98f, 1.45f, 1.05f, 0.92f)
+        // Height ladder vs SMS research stills (Baby < Mario ≈ Wario < Peach < DK < Bowser).
+        "vale" => new(1.24f, 0.70f, 1.24f, 0.88f, 0.74f),
+        "zig" => new(0.56f, 1.18f, 1.62f, 0.82f, 0.68f),
+        "brondo" => new(0.96f, 1.58f, 1.16f, 1.28f, 1.48f),
+        "konga" => new(1.30f, 1.36f, 1.34f, 1.72f, 1.20f),
+        "ashlord" => new(1.44f, 1.28f, 1.48f, 1.18f, 1.38f),
+        _ => new(0.90f, 1.00f, 1.38f, 1.02f, 0.94f)
     };
 
     /// <summary>Toy read: face must be at least as big as the body is tall.</summary>
