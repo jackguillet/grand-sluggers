@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEngine;
@@ -31,14 +32,58 @@ namespace GrandSluggers.EditorTools
         {
             if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(name))
                 return null;
+            var log = new StringBuilder();
+            log.AppendLine("want " + name + " from " + path);
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            log.AppendLine("root " + (root == null ? "null" : root.name + " children=" + root.transform.childCount));
+            if (root != null)
+            {
+                Dump(root.transform, log, 0);
+                var named = FindDeep(root.transform, name);
+                if (named != null) return named.gameObject;
+                foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
+                {
+                    var mn = mf.sharedMesh != null ? mf.sharedMesh.name : "";
+                    log.AppendLine("mf " + mf.name + " mesh " + mn);
+                    if (mn.Equals(name, StringComparison.OrdinalIgnoreCase))
+                        return mf.gameObject;
+                }
+            }
+
+            Mesh mesh = null;
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
             {
+                log.AppendLine(asset.GetType().Name + ":" + asset.name);
                 if (asset is GameObject go && go.name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return go;
+                if (asset is Mesh m && m.name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    mesh = m;
             }
-            var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (root == null) return null;
-            return FindDeep(root.transform, name)?.gameObject;
+
+            if (mesh != null)
+            {
+                var wrap = new GameObject(name);
+                wrap.hideFlags = HideFlags.HideAndDontSave;
+                var filter = wrap.AddComponent<MeshFilter>();
+                filter.sharedMesh = mesh;
+                wrap.AddComponent<MeshRenderer>();
+                return wrap;
+            }
+
+            try
+            {
+                var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp", "gs-kit-assets.txt");
+                File.WriteAllText(temp, log.ToString());
+            }
+            catch { /* editor-only breadcrumb */ }
+            return null;
+        }
+
+        static void Dump(Transform t, StringBuilder log, int depth)
+        {
+            log.AppendLine(new string(' ', depth * 2) + t.name);
+            for (var i = 0; i < t.childCount; i++)
+                Dump(t.GetChild(i), log, depth + 1);
         }
 
         static Transform FindDeep(Transform t, string name)
