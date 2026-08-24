@@ -117,14 +117,14 @@ namespace GrandSluggers.UnityClient
             DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, 64f), new Vector3(92f, 0.18f, 92f), Quaternion.identity);
             HomeDirt = Anchor("HomeDirt", new Vector3(0f, 0.16f, 0f), new Vector3(36f, 0.08f, 36f), Quaternion.identity);
             DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
-            HomePlate = Anchor("HomePlate", new Vector3(0f, 0.24f, 0.4f), new Vector3(2.4f, 0.28f, 1.55f), Quaternion.identity);
-            HomePoint = Anchor("HomePoint", new Vector3(0f, 0.24f, -0.52f), new Vector3(1.7f, 0.28f, 1.7f), Quaternion.Euler(0f, 45f, 0f));
-            BoxL = Anchor("BoxL", new Vector3(-2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), Quaternion.identity);
-            BoxR = Anchor("BoxR", new Vector3(2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), Quaternion.identity);
-            FoulL = Anchor("FoulL", new Vector3(112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), Quaternion.Euler(0f, 45f, 0f));
-            FoulR = Anchor("FoulR", new Vector3(-112f, 0.14f, 112f), new Vector3(0.95f, 0.08f, 200f), Quaternion.Euler(0f, -45f, 0f));
-            Mound = Anchor("Mound", new Vector3(0f, 1.025f, 60.5f), new Vector3(20f, 0.575f, 20f), Quaternion.identity);
-            Rubber = Anchor("Rubber", new Vector3(0f, 1.08f, 60.5f), new Vector3(1.9f, 0.08f, 0.45f), Quaternion.identity);
+            HomePlate = Anchor("HomePlate", new Vector3(0f, 0.22f, 0.15f), new Vector3(1.42f, 0.12f, 1.05f), Quaternion.identity);
+            HomePoint = Anchor("HomePoint", new Vector3(0f, 0.22f, 0.88f), new Vector3(1.02f, 0.12f, 1.02f), Quaternion.Euler(0f, 45f, 0f));
+            BoxL = Anchor("BoxL", new Vector3(-2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            BoxR = Anchor("BoxR", new Vector3(2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            FoulL = Anchor("FoulL", new Vector3(-63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, -45f, 0f));
+            FoulR = Anchor("FoulR", new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
+            Mound = Anchor("Mound", new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
+            Rubber = Anchor("Rubber", new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
             ShotPlate = ShotAnchor("ShotPlate", new Vector3(-5.2f, 5.5f, -6.8f), new Vector3(3.4f, 2.8f, 58f), 52f);
             ShotMound = ShotAnchor("ShotMound", new Vector3(9.8f, 6.4f, 76.5f), new Vector3(0.4f, 2.2f, 1.0f), 42f);
             ShotDiamond = ShotAnchor("ShotDiamond", new Vector3(20f, 20f, 55f), new Vector3(0f, 14f, 220f), 48f);
@@ -147,40 +147,83 @@ namespace GrandSluggers.UnityClient
         {
             if (_dressed) return;
             EnsureAnchors();
-            var chalk = Look.Lit(Colors.Chalk, smooth: 0.05f);
-            var dirt = Look.Lit(new Color(0.62f, 0.42f, 0.26f), Look.Dirt, 3f, 0.1f);
-            var infield = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            var boxDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            if (DirtPad != null)
-            {
-                DirtPad.position = new Vector3(0f, 0.04f, 64f);
-                DirtPad.localScale = new Vector3(92f, 0.18f, 92f);
-            }
-            if (DirtDiamond != null)
-            {
-                DirtDiamond.position = new Vector3(0f, 0.12f, 63.64f);
-                DirtDiamond.localScale = new Vector3(100f, 0.24f, 100f);
-                DirtDiamond.rotation = Quaternion.Euler(0f, 45f, 0f);
-            }
-            Mesh(DirtPad, PrimitiveType.Cube, infield);
-            Mesh(HomeDirt, PrimitiveType.Cylinder, infield);
-            Mesh(DirtDiamond, PrimitiveType.Cube, infield);
-            Mesh(HomePlate, PrimitiveType.Cube, chalk);
-            Mesh(HomePoint, PrimitiveType.Cube, chalk);
-            Mesh(BoxL, PrimitiveType.Cube, chalk);
-            Mesh(BoxR, PrimitiveType.Cube, chalk);
-            Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.70f, 0.72f, 0.88f), boxDirt);
-            Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.70f, 0.72f, 0.88f), boxDirt);
-            Mesh(FoulL, PrimitiveType.Cube, chalk);
-            Mesh(FoulR, PrimitiveType.Cube, chalk);
-            Mesh(Mound, PrimitiveType.Cylinder, dirt);
-            Mesh(Rubber, PrimitiveType.Cube, chalk);
-            var bag = Look.Lit(Colors.Chalk, smooth: 0.08f);
+            DressDiamond();
+            var bag = Look.Unlit(Colors.Chalk);
             Mesh(Bag1, PrimitiveType.Cube, bag);
             Mesh(Bag2, PrimitiveType.Cube, bag);
             Mesh(Bag3, PrimitiveType.Cube, bag);
             DressPlace();
             _dressed = true;
+        }
+
+        /// <summary>
+        /// SMS diamond language from the title still: dirt *paths* and pads,
+        /// grass in the Y, mound as a hill, two white boxes + pentagon at home.
+        /// </summary>
+        void DressDiamond()
+        {
+            var chalk = Look.Unlit(Colors.Chalk);
+            var packed = Look.Lit(new Color(0.78f, 0.56f, 0.34f), Look.Dirt, 5f, 0.12f);
+            var path = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
+            var boxDirt = Look.Lit(new Color(0.62f, 0.42f, 0.24f), Look.Dirt, 4f, 0.08f);
+            var hill = Look.Lit(new Color(0.66f, 0.44f, 0.26f), Look.Dirt, 3f, 0.1f);
+            var cut = Look.Lit(Colors.Cut, Look.Grass, 12f, 0.08f);
+
+            // Kill the 100-ft dirt slab that ate the infield grass.
+            Place(DirtPad, new Vector3(0f, 0.04f, 2f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.identity);
+            if (DirtPad != null) DirtPad.gameObject.SetActive(false);
+            Place(DirtDiamond, new Vector3(0f, 0.05f, 63.64f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.Euler(0f, 45f, 0f));
+            if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
+
+            Place(HomeDirt, new Vector3(0f, 0.10f, 1.4f), new Vector3(24f, 0.12f, 24f), Quaternion.identity);
+            Wipe(HomeDirt);
+            Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
+
+            // Infield lawn under the dirt paths — the SMS "Y" of grass.
+            Slab(Grass, "InfieldLawn", new Vector3(0f, 0.05f, 63.64f), new Vector3(108f, 0.08f, 108f), Quaternion.Euler(0f, 45f, 0f), cut);
+
+            var home = Vector3.zero;
+            var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
+            var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
+            var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
+            DirtPath("PathHome1", home, first, 11f, path);
+            DirtPath("Path1to2", first, second, 11f, path);
+            DirtPath("Path2to3", second, third, 11f, path);
+            DirtPath("Path3toHome", third, home, 11f, path);
+
+            // Pentagon: 17" back edge toward the catcher, point toward the pitcher (+Z).
+            Place(HomePlate, new Vector3(0f, 0.22f, 0.15f), new Vector3(1.42f, 0.12f, 1.05f), Quaternion.identity);
+            Place(HomePoint, new Vector3(0f, 0.22f, 0.88f), new Vector3(1.02f, 0.12f, 1.02f), Quaternion.Euler(0f, 45f, 0f));
+            Wipe(HomePlate);
+            Wipe(HomePoint);
+            Mesh(HomePlate, PrimitiveType.Cube, chalk);
+            Mesh(HomePoint, PrimitiveType.Cube, chalk);
+
+            // 4×6 ft boxes, dirt fill, thick unlit chalk so they read from the mound.
+            Place(BoxL, new Vector3(-2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            Place(BoxR, new Vector3(2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            Wipe(BoxL);
+            Wipe(BoxR);
+            Mesh(BoxL, PrimitiveType.Cube, chalk);
+            Mesh(BoxR, PrimitiveType.Cube, chalk);
+            Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
+            Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
+
+            Place(FoulL, new Vector3(-63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, -45f, 0f));
+            Place(FoulR, new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
+            Wipe(FoulL);
+            Wipe(FoulR);
+            Mesh(FoulL, PrimitiveType.Cube, chalk);
+            Mesh(FoulR, PrimitiveType.Cube, chalk);
+
+            Place(Mound, new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
+            Wipe(Mound);
+            Cylinder(Mound, "HillPad", new Vector3(0f, 0f, 60.5f), 9.2f, 0.22f, packed);
+            Cylinder(Mound, "HillMid", new Vector3(0f, 0.18f, 60.5f), 6.4f, 0.38f, hill);
+            Cylinder(Mound, "HillTop", new Vector3(0f, 0.48f, 60.5f), 4.1f, 0.42f, hill);
+            Place(Rubber, new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
+            Wipe(Rubber);
+            Mesh(Rubber, PrimitiveType.Cube, chalk);
         }
 
         Transform Anchor(string name, Vector3 pos, Vector3 scale, Quaternion rot)
@@ -245,6 +288,40 @@ namespace GrandSluggers.UnityClient
             if (anchor == null) return;
             if (anchor.childCount > 0 && anchor.GetComponentInChildren<MeshRenderer>() != null) return;
             Look.Prim(type, "Mesh", anchor, Vector3.zero, Vector3.one, mat);
+        }
+
+        static void Place(Transform tf, Vector3 pos, Vector3 scale, Quaternion rot)
+        {
+            if (tf == null) return;
+            tf.position = pos;
+            tf.localScale = scale;
+            tf.rotation = rot;
+        }
+
+        static void Wipe(Transform tf)
+        {
+            if (tf == null) return;
+            for (var i = tf.childCount - 1; i >= 0; i--)
+                UnityEngine.Object.DestroyImmediate(tf.GetChild(i).gameObject);
+        }
+
+        static void Slab(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rot, Material mat)
+        {
+            if (parent == null) return;
+            if (parent.Find(name) != null) return;
+            var go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
+            go.transform.SetPositionAndRotation(pos, rot);
+            go.transform.localScale = scale;
+        }
+
+        void DirtPath(string name, Vector3 a, Vector3 b, float width, Material dirt)
+        {
+            var d = b - a;
+            d.y = 0f;
+            if (d.sqrMagnitude < 1f) return;
+            var mid = (a + b) * 0.5f;
+            mid.y = 0.11f;
+            Slab(transform, name, mid, new Vector3(width, 0.16f, d.magnitude + 6f), Quaternion.LookRotation(d.normalized, Vector3.up), dirt);
         }
 
         Transform Folder(string name)
