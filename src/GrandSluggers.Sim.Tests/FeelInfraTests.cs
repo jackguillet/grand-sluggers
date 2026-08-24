@@ -160,6 +160,7 @@ public class FeelInfraTests
         Assert.True(feel.SmashHold > 0, $"smash hold {feel.SmashHold}");
         Assert.True(feel.ThrowEase > 0, $"throw ease {feel.ThrowEase}");
         Assert.True(feel.CameraBlend > 0, $"camera blend {feel.CameraBlend}");
+        Assert.Equal(FieldAssist.StickTake, feel.FieldAssistStick);
     }
 
     [Fact]

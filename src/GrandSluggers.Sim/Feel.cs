@@ -87,7 +87,8 @@ public sealed class FeelTable
         double throwEase,
         double cameraBlend,
         double chargeDecay,
-        double runHz)
+        double runHz,
+        double fieldAssistStick)
     {
         PitchChargeSeconds = pitchChargeSeconds;
         SwingChargeSeconds = swingChargeSeconds;
@@ -98,6 +99,7 @@ public sealed class FeelTable
         CameraBlend = cameraBlend;
         ChargeDecay = chargeDecay;
         RunHz = runHz;
+        FieldAssistStick = fieldAssistStick;
     }
 
     public double PitchChargeSeconds { get; }
@@ -109,6 +111,7 @@ public sealed class FeelTable
     public double CameraBlend { get; }
     public double ChargeDecay { get; }
     public double RunHz { get; }
+    public double FieldAssistStick { get; }
 
     public static FeelTable Load(string dataRoot)
     {
@@ -123,6 +126,7 @@ public sealed class FeelTable
             ?? throw new InvalidDataException($"Bad feel table {path}");
         if (dto.PitchChargeSeconds <= 0 || dto.SmashFreeze <= 0)
             throw new InvalidDataException("Feel table charge and smash freeze must be positive");
+        var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : FieldAssist.StickTake;
         return new FeelTable(
             dto.PitchChargeSeconds,
             dto.SwingChargeSeconds,
@@ -132,7 +136,8 @@ public sealed class FeelTable
             dto.ThrowEase,
             dto.CameraBlend,
             dto.ChargeDecay,
-            dto.RunHz);
+            dto.RunHz,
+            assist);
     }
 
     sealed class FeelDto
@@ -146,5 +151,6 @@ public sealed class FeelTable
         public double CameraBlend { get; set; } = 6;
         public double ChargeDecay { get; set; } = 1.4;
         public double RunHz { get; set; } = 2.55;
+        public double FieldAssistStick { get; set; } = 0.35;
     }
 }
