@@ -92,13 +92,16 @@ Perfect / star swing freeze the picture briefly. HUD mutes during the spectacle.
 
 ### Fielding (the ball is in play)
 
-Nearest glove lights. CPU runs the hop unless you take it. Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove.
+Nearest glove **lights**. Leave the stick still: CPU takes the hop and throws — the play ends. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags.
 
-- **Stick** — run the glove
-- **South** — catch (in the window)
+Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove.
+
+- **Stick** — take the glove and run it (dead stick = CPU)
+- **South** — catch (in the window) when you have the glove
 - **East** — dive
 - **West** — jump / buddy
 - **D-pad or stick flick** — throw: right 1B, up 2B, left 3B, down home (keyboard 1 2 3 4)
+- **Select / R** — swap the glove
 - **LT+RB / South+LT / E** — chemistry item after contact (banana grass, rocket body, POW hop), then **RB** to cycle the item, **stick** to aim the target
 
 Good throws are gold/purple and fast. Bad throws are muddy and offline.

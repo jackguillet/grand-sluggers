@@ -82,6 +82,8 @@ namespace GrandSluggers.UnityClient
 
             TickBuddyPartner(dt);
             TickItem(dt);
+            TickCoverBags(dt);
+            TryTakeGlove();
 
             if (_recoilT > 0 && !_throwing)
             {
@@ -224,6 +226,39 @@ namespace GrandSluggers.UnityClient
             if ((_caught || _buddy) && _throwBag == 0 && _hitT < hang + 0.85f)
                 return;
             BeginPlayerThrowOrCommit(map);
+        }
+
+        void TryTakeGlove()
+        {
+            if (PlayerMustField) return;
+            if (_playerFielding || _caught || _buddy || _throwing) return;
+            if (_pending == null || _preview == null) return;
+            if (!FieldAssist.StickTakesGlove(Controls.StickX, Controls.StickY, _feel.FieldAssistStick, Controls.SwapPitcher))
+                return;
+            _playerFielding = true;
+            _cpuField = null;
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            if (Controls.SwapPitcher)
+                CycleGlove(map);
+            else
+                AutoGlove(map);
+        }
+
+        void TickCoverBags(float dt)
+        {
+            if (_preview == null) return;
+            foreach (var pos in new[] { "1B", "2B", "3B", "C" })
+            {
+                if (pos == _glovePos) continue;
+                if (!_gloveAt.TryGetValue(pos, out var at)) continue;
+                var goal = FieldAssist.CoverSpot(pos);
+                var dx = goal.X - at.X;
+                var dz = goal.Z - at.Z;
+                var dist = Math.Sqrt(dx * dx + dz * dz);
+                if (dist < 1.2) continue;
+                var step = Math.Min(dist, 28 * dt);
+                _gloveAt[pos] = (at.X + dx / dist * step, at.Z + dz / dist * step);
+            }
         }
 
         void TickCpuField(float dt)

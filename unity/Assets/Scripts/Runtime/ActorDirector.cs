@@ -48,7 +48,7 @@ namespace GrandSluggers.UnityClient
                 }
                 var pose = HeroActor.Pose.Idle;
                 var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
-                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || (who.Id == litId && !HumanBats) || (buddyPartner && !_buddy));
+                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_buddy));
                 if (highlighted && !buddyPartner)
                 {
                     x = _fx;

@@ -7,5 +7,6 @@
   "throwEase": 6.0,
   "cameraBlend": 6.0,
   "chargeDecay": 1.4,
-  "runHz": 2.55
+  "runHz": 2.55,
+  "fieldAssistStick": 0.35
 }

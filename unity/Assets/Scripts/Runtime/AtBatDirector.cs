@@ -194,7 +194,7 @@ namespace GrandSluggers.UnityClient
             _pending = hit;
             _preview = _match.PreviewHit(hit);
             _cpuField = null;
-            _playerFielding = PlayerFields;
+            _playerFielding = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
             _itemThrown = false;
             _itemFlying = false;
             _itemFly = 0;
