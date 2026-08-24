@@ -100,10 +100,11 @@ public class ArtCatalogTests
         Assert.NotEqual(bonesStart.Torso.X, start.Torso.X);
 
         Assert.True(_content.Art.TryAuthored("scoop", clip.ContactAt, out var pick));
-        var bonesPick = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, clip.ContactAt);
-        Assert.True(pick.Torso.X > bonesPick.Torso.X,
-            $"authored pick {pick.Torso.X} vs bones {bonesPick.Torso.X}");
+        Assert.True(pick.Torso.X > start.Torso.X,
+            $"authored pick {pick.Torso.X} vs start {start.Torso.X}");
         Assert.True(pick.Lift < -0.4, $"authored scoop lift {pick.Lift} is not on the dirt");
+        Assert.True(pick.Torso.X < 40,
+            $"authored pick {pick.Torso.X} lays the FBX bind on its side");
         var repo = Directory.GetParent(_content.Root)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
