@@ -24,6 +24,32 @@ namespace GrandSluggers.EditorTools
                 AssetDatabase.LoadAssetAtPath<GameObject>(
                     string.IsNullOrWhiteSpace(path) ? DefaultSlot : path);
             ArtBinder.EditorLoadClip = LoadClip;
+            ArtBinder.EditorLoadNamedMesh = LoadNamedMesh;
+        }
+
+        static GameObject LoadNamedMesh(string path, string name)
+        {
+            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(name))
+                return null;
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+            {
+                if (asset is GameObject go && go.name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return go;
+            }
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (root == null) return null;
+            return FindDeep(root.transform, name)?.gameObject;
+        }
+
+        static Transform FindDeep(Transform t, string name)
+        {
+            if (t.name.Equals(name, StringComparison.OrdinalIgnoreCase)) return t;
+            for (var i = 0; i < t.childCount; i++)
+            {
+                var f = FindDeep(t.GetChild(i), name);
+                if (f != null) return f;
+            }
+            return null;
         }
 
         static AnimationClip LoadClip(string slot)
@@ -63,9 +89,7 @@ namespace GrandSluggers.EditorTools
             if (!rig && !clip && !park) return;
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
-            imp.avatarSetup = park
-                ? ModelImporterAvatarSetup.NoAvatar
-                : ModelImporterAvatarSetup.CreateFromThisModel;
+            imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             imp.importAnimation = clip;
             imp.addCollider = false;
             imp.importBlendShapes = false;
