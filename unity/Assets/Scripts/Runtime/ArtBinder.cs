@@ -1,3 +1,4 @@
+using System;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -12,7 +13,24 @@ namespace GrandSluggers.UnityClient
 
         public static ArtCatalog Art => _art;
 
+        /// <summary>Editor Play fills this so the SharedRig FBX loads without a Resources copy.</summary>
+        public static Func<string, GameObject> EditorLoadPrefab;
+
         public static void Bind(ArtCatalog art) => _art = art;
+
+        /// <summary>Catalog FBX if the slot has a Unity file; null keeps SharedRig primitives.</summary>
+        public static GameObject LoadSharedRigPrefab()
+        {
+            var slot = "Assets/Art/Characters/SharedRig/hero-shared.fbx";
+            if (_art != null && !string.IsNullOrWhiteSpace(_art.Rig.Slot))
+                slot = _art.Rig.Slot;
+            var key = SlotToResources(slot);
+            if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                key = key.Substring(0, key.Length - 4);
+            var go = Resources.Load<GameObject>(key);
+            if (go != null) return go;
+            return EditorLoadPrefab != null ? EditorLoadPrefab(slot) : null;
+        }
 
         public static bool HasPortrait(string id)
         {

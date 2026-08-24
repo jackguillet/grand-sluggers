@@ -37,6 +37,7 @@ namespace GrandSluggers.UnityClient
         Vector3 _baseScale = Vector3.one;
         Vector3 _torsoRest = new Vector3(0, 2.28f, 0);
         float _hunchDeg;
+        SharedRig.BoneBind _bind;
         Vector3 _ground;
         bool _hasGround;
         float _speed;
@@ -189,6 +190,7 @@ namespace GrandSluggers.UnityClient
             _ring = chain.Ring;
             _torsoRest = chain.TorsoRest;
             _hunchDeg = chain.HunchDeg;
+            _bind = chain.Bind;
             BuildBat("bat-wood");
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
@@ -639,15 +641,15 @@ namespace GrandSluggers.UnityClient
             if (_hunchDeg != 0f)
                 torsoRot = Quaternion.Euler(_hunchDeg, 0, 0) * torsoRot;
             if (_torso != null)
-                _torso.localRotation = Quaternion.Slerp(_torso.localRotation, torsoRot, kArm);
+                _torso.localRotation = Quaternion.Slerp(_torso.localRotation, torsoRot * _bind.Torso, kArm);
             if (_head != null)
-                _head.localRotation = Quaternion.Slerp(_head.localRotation, headRot, kArm);
-            if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm, kArm);
-            if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm, kArm);
-            if (_lThigh != null) _lThigh.localRotation = Quaternion.Slerp(_lThigh.localRotation, lLeg, kLeg);
-            if (_rThigh != null) _rThigh.localRotation = Quaternion.Slerp(_rThigh.localRotation, rLeg, kLeg);
-            if (_lShin != null) _lShin.localRotation = Quaternion.Slerp(_lShin.localRotation, Quaternion.Euler(12, 0, 0), kLeg);
-            if (_rShin != null) _rShin.localRotation = Quaternion.Slerp(_rShin.localRotation, Quaternion.Euler(12, 0, 0), kLeg);
+                _head.localRotation = Quaternion.Slerp(_head.localRotation, headRot * _bind.Head, kArm);
+            if (_lArm != null) _lArm.localRotation = Quaternion.Slerp(_lArm.localRotation, lArm * _bind.LUpper, kArm);
+            if (_rArm != null) _rArm.localRotation = Quaternion.Slerp(_rArm.localRotation, rArm * _bind.RUpper, kArm);
+            if (_lThigh != null) _lThigh.localRotation = Quaternion.Slerp(_lThigh.localRotation, lLeg * _bind.LThigh, kLeg);
+            if (_rThigh != null) _rThigh.localRotation = Quaternion.Slerp(_rThigh.localRotation, rLeg * _bind.RThigh, kLeg);
+            if (_lShin != null) _lShin.localRotation = Quaternion.Slerp(_lShin.localRotation, Quaternion.Euler(12, 0, 0) * _bind.LShin, kLeg);
+            if (_rShin != null) _rShin.localRotation = Quaternion.Slerp(_rShin.localRotation, Quaternion.Euler(12, 0, 0) * _bind.RShin, kLeg);
             if (_bat != null)
             {
                 _bat.gameObject.SetActive(batOn);
@@ -710,22 +712,22 @@ namespace GrandSluggers.UnityClient
             var torso = s.Torso;
             if (_hunchDeg != 0f)
                 torso = new MoveBones.Euler(torso.X + _hunchDeg, torso.Y, torso.Z);
-            Ease(ref _torso, torso, kArm);
-            Ease(ref _head, s.Head, kArm);
-            Ease(ref _lArm, s.LUpper, kArm);
-            Ease(ref _lFore, s.LFore, kArm);
-            Ease(ref _rArm, s.RUpper, kArm);
-            Ease(ref _rFore, s.RFore, kArm);
-            Ease(ref _lThigh, s.LThigh, kLeg);
-            Ease(ref _lShin, s.LShin, kLeg);
-            Ease(ref _rThigh, s.RThigh, kLeg);
-            Ease(ref _rShin, s.RShin, kLeg);
+            Ease(ref _torso, torso, kArm, _bind.Torso);
+            Ease(ref _head, s.Head, kArm, _bind.Head);
+            Ease(ref _lArm, s.LUpper, kArm, _bind.LUpper);
+            Ease(ref _lFore, s.LFore, kArm, _bind.LFore);
+            Ease(ref _rArm, s.RUpper, kArm, _bind.RUpper);
+            Ease(ref _rFore, s.RFore, kArm, _bind.RFore);
+            Ease(ref _lThigh, s.LThigh, kLeg, _bind.LThigh);
+            Ease(ref _lShin, s.LShin, kLeg, _bind.LShin);
+            Ease(ref _rThigh, s.RThigh, kLeg, _bind.RThigh);
+            Ease(ref _rShin, s.RShin, kLeg, _bind.RShin);
         }
 
-        static void Ease(ref Transform tf, MoveBones.Euler e, float k)
+        static void Ease(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
         {
             if (tf == null) return;
-            tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e), k);
+            tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e) * bind, k);
         }
 
         static Quaternion Q(MoveBones.Euler e) =>

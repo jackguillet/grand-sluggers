@@ -1,0 +1,50 @@
+fileFormatVersion: 2
+guid: cdaaaf71b2c44aeeb5f6caa66f891fa5
+ModelImporter:
+  serializedVersion: 22200
+  animationType: 2
+  avatarSetup: 1
+  importAnimation: 0
+  addCollider: 0
+  importBlendShapes: 0
+  isReadable: 0
+  meshCompression: 0
+  animationCompression: 0
+  bakeSimulation: 0
+  resampleCurves: 1
+  animationWrapMode: 0
+  extraExposedTransformPaths: []
+  extraUserProperties: []
+  clipAnimations: []
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationPositionError: 0.5
+  animationRotationError: 0.5
+  animationScaleError: 0.5
+  animationWrapMode: 0
+  extraExposedTransformPaths: []
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

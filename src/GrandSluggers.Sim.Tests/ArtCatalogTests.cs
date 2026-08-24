@@ -23,6 +23,14 @@ public class ArtCatalogTests
         foreach (var ev in new[] { "Contact", "Release", "FootPlant" })
             Assert.Contains(ev, _content.Art.Rig.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal("hero-shared", _content.Art.Rig.Id, ignoreCase: true);
+        Assert.Contains("SharedRig", _content.Art.Rig.Slot, StringComparison.OrdinalIgnoreCase);
+        Assert.EndsWith(".fbx", _content.Art.Rig.Slot, StringComparison.OrdinalIgnoreCase);
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            _content.Art.Rig.Slot.Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(fbx), fbx);
+        Assert.True(new FileInfo(fbx).Length > 10_000, "hero-shared.fbx is empty");
     }
 
     [Fact]
