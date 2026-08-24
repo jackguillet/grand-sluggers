@@ -18,9 +18,9 @@ public static class StillPose
     public const double CamY = 3.6;
     public const double CamZ = 38;
 
-    public const double PlateCamX = -13.2;
-    public const double PlateCamY = 5.2;
-    public const double PlateCamZ = -9.2;
+    public const double PlateCamX = -12.5;
+    public const double PlateCamY = 5.5;
+    public const double PlateCamZ = -5.6;
     public const double PlateLookX = 2.55;
     public const double PlateLookY = 1.05;
     public const double PlateLookZ = 14;
@@ -37,4 +37,23 @@ public static class StillPose
 
     public static bool PlateIsThirdBaseThreeQuarter(double x, double z) =>
         x < -6 && z < -3 && z > -12;
+
+    /// <summary>
+    /// Catcher is at (0, -4). A camera further behind home puts him in the
+    /// look cone; the bound mesh then owns the right foreground.
+    /// </summary>
+    public static bool PlateCatcherClearsTheLens(double camX, double camZ, double lookX, double lookZ)
+    {
+        var (cx, cz) = Diamond.Positions["C"];
+        var ldx = lookX - camX;
+        var ldz = lookZ - camZ;
+        var cdx = cx - camX;
+        var cdz = cz - camZ;
+        var lookLen = Math.Sqrt(ldx * ldx + ldz * ldz);
+        var cLen = Math.Sqrt(cdx * cdx + cdz * cdz);
+        if (lookLen < 1 || cLen < 1) return false;
+        var cos = (ldx * cdx + ldz * cdz) / (lookLen * cLen);
+        var deg = Math.Acos(Math.Clamp(cos, -1, 1)) * 180 / Math.PI;
+        return deg > 40;
+    }
 }
