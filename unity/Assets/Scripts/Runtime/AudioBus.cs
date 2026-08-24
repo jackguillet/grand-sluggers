@@ -5,8 +5,8 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Catalog audio buses. Original generated tones are placeholders until a slot has a clip.
-    /// Never Nintendo samples. Silence is the fallback.
+    /// Catalog audio buses. Authored wavs in data/art/audio-clips fill the slot.
+    /// Missing file keeps the generated tone. Never Nintendo samples.
     /// </summary>
     public sealed class AudioBus : MonoBehaviour
     {
@@ -16,9 +16,10 @@ namespace GrandSluggers.UnityClient
         AudioSource _crowd;
         AudioSource _vo;
         readonly Dictionary<string, AudioClip> _tone = new Dictionary<string, AudioClip>(System.StringComparer.OrdinalIgnoreCase);
+        readonly Dictionary<string, AudioClip> _authored = new Dictionary<string, AudioClip>(System.StringComparer.OrdinalIgnoreCase);
         float _swell;
 
-        public void Build()
+        public void Build(string dataRoot)
         {
             _sfx = Src("Sfx", 0.9f, false);
             _crowd = Src("Crowd", 0.1f, true);
@@ -41,6 +42,7 @@ namespace GrandSluggers.UnityClient
             Tone("vo-konga", Drum("KongaVo"));
             Tone("vo-ashlord", Chord("AshlordVo", 233f, 329f, 0.26f));
             Tone("vo-guest", Chord("GuestVo", 440f, 554f, 0.18f));
+            LoadAuthored(dataRoot);
         }
 
         public void Play(string eventId, float volume = 1f)
@@ -114,6 +116,7 @@ namespace GrandSluggers.UnityClient
             if (string.IsNullOrEmpty(eventId)) return null;
             var file = ArtBinder.LoadAudio(eventId);
             if (file != null) return file;
+            if (_authored.TryGetValue(eventId, out var wav)) return wav;
             _tone.TryGetValue(eventId, out var tone);
             return tone;
         }
@@ -128,6 +131,19 @@ namespace GrandSluggers.UnityClient
             if (string.Equals(bus, "vo", System.StringComparison.OrdinalIgnoreCase))
                 return _vo != null ? _vo : _sfx;
             return _sfx;
+        }
+
+        void LoadAuthored(string dataRoot)
+        {
+            if (string.IsNullOrEmpty(dataRoot)) return;
+            foreach (var id in AuthoredAudio.Ids(dataRoot))
+            {
+                if (!AuthoredAudio.TryLoad(dataRoot, id, out var pcm, out var rate)) continue;
+                if (pcm == null || pcm.Length < 8 || rate < 8000) continue;
+                var clip = AudioClip.Create(id, pcm.Length, 1, rate, false);
+                clip.SetData(pcm, 0);
+                _authored[id] = clip;
+            }
         }
 
         void Tone(string id, AudioClip clip)

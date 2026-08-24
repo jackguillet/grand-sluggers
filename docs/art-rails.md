@@ -32,7 +32,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Skins | `data/art/skins.json` | `Assets/Art/Characters/{id}` | `HeroActor` primitives + silhouette extras |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
-| Audio | `data/art/audio.json` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
+| Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
 | Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` / `ToonFill` |
 | Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `HarborKit` for Harbor; `ParkView` elsewhere |
 

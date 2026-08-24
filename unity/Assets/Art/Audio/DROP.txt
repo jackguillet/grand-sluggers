@@ -1,0 +1,5 @@
+Authored hits live in data/art/audio-clips/{id}.wav until a Unity .wav/.ogg drops here.
+
+AudioBus plays the catalog wav when authored; otherwise generated tones.
+bat-perfect, bat-solid, bat-cheap, glove, and crowd-bed are authored.
+Never Nintendo samples. Never licensed music.

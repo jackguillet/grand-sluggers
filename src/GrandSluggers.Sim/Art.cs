@@ -9,7 +9,7 @@ public readonly record struct ClipSlot(
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
 
-public readonly record struct NamedSlot(string Id, string Slot, string Kind);
+public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
 
 public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed);
 
@@ -167,6 +167,7 @@ public sealed class ArtCatalog
         {
             if (!TryAudio("vo-" + cap, out _)) errors.Add("audio missing vo-" + cap);
         }
+        var wavs = AuthoredAudio.Ids(content.Root);
         foreach (var ev in Audio)
         {
             var bus = ev.Kind ?? "";
@@ -174,6 +175,8 @@ public sealed class ArtCatalog
                 && !bus.Equals("crowd", StringComparison.OrdinalIgnoreCase)
                 && !bus.Equals("vo", StringComparison.OrdinalIgnoreCase))
                 errors.Add("audio " + ev.Id + " unknown bus " + bus);
+            if (ev.Authored && !wavs.Contains(ev.Id))
+                errors.Add("authored audio missing wav " + ev.Id);
         }
 
         foreach (var need in new[] { "puff", "fireworks", "buddy-flash", "throw-trail-good" })
@@ -218,7 +221,7 @@ public sealed class ArtCatalog
         var vfx = (Read<EventsFile>(Path.Combine(art, "vfx.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
         var audio = (Read<EventsFile>(Path.Combine(art, "audio.json"), json).Events ?? [])
-            .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "")).ToList();
+            .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "", e.Authored)).ToList();
         var mats = (Read<MatsFile>(Path.Combine(art, "materials.json"), json).Slots ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Shader ?? "")).ToList();
         var parks = (Read<ParksFile>(Path.Combine(art, "parks.json"), json).Kits ?? [])
@@ -275,6 +278,7 @@ public sealed class ArtCatalog
         public string? Kind { get; set; }
         public string? Bus { get; set; }
         public string? Shader { get; set; }
+        public bool Authored { get; set; }
     }
 
     sealed class MatsFile { public List<EventDto>? Slots { get; set; } }
