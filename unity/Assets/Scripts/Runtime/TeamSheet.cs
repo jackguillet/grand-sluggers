@@ -30,6 +30,13 @@ namespace GrandSluggers.UnityClient
             Graph(home, slot, w / 2f, h * 0.48f, Mathf.Min(w * 0.22f, 210f));
             PoolColumn(home, pool, poolIndex, focusPool, w - 340, 118);
 
+            if (home.Order.Count > 0)
+            {
+                var who = home.Order[Mathf.Clamp(slot, 0, home.Order.Count - 1)];
+                var vs = who.Captain ? Chemistry.Good : home.Chem(who);
+                HudView.Card(CharacterCard.Of(who, vs), 40, h - 252);
+            }
+
             GUI.Label(new Rect(40, h - 42, w - 80, 24),
                 "stick slot / pool   West swap   RB glove   LB / East order   South play   [B][G] gear",
                 _gold);

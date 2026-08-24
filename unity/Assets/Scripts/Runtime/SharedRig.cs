@@ -50,7 +50,7 @@ namespace GrandSluggers.UnityClient
             chain.BaseScale = new Vector3(
                 Mathf.Lerp(spec.Height, spec.Width, 0.55f),
                 spec.Height,
-                Mathf.Lerp(spec.Height, spec.Width, 0.45f));
+                Mathf.Lerp(spec.Height, spec.Width, 0.45f)) * Silhouette.ToyScale;
             chain.Root.localScale = chain.BaseScale;
 
             var kid = body == "rio";

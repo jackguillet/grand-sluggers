@@ -10,6 +10,11 @@ public static class Silhouette
 
     public static readonly string[] Captains = ["rio", "vale", "zig", "brondo", "konga", "ashlord"];
 
+    /// <summary>SMS toys sit bigger than an honest diamond. Applied on the shared chain root.</summary>
+    public const float ToyScale = 1.18f;
+    public const float GloveScale = 1.42f;
+    public const float BatScale = 1.28f;
+
     public static string BodyType(Character who)
     {
         if (who.Captain) return who.Id.ToLowerInvariant();

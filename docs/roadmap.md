@@ -130,7 +130,14 @@ Only if A–C stills exist. Rule: **three good parks beat six ugly ones.** Harbo
 
 ## Recommended next move
 
-**File and run epic: the at-bat would not embarrass a trailer (#169).** Child 1 is the shared body (#170). Then swing/scoop (#171), pad (#172), bat crack (#173). Harbor dress and remaining specials after the body. Do not start Phase D (#25, #36, #37).
+**Nintendo-quality playset (#246).** The loop works; the toy does not. Approved order:
+
+1. Toy language (#247) — outlines, bigger toys, bounce/squash, character card (P/B/F/R).
+2. Front of house as a carnival (#248) — title / captain / field, not IMGUI boxes.
+3. Lineup as the chemistry toy (#249).
+4. In-play cartoon juice (#250) — contact punch, dirt, run cycle, original crack (#223).
+
+Do not start Phase D (#25, #36, #37) or unique meshes.
 
 Command to keep agents honest:
 

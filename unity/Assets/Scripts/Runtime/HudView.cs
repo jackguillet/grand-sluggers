@@ -108,6 +108,42 @@ namespace GrandSluggers.UnityClient
                 + "  vs  "
                 + (content != null && content.Characters.TryGetValue(awayId, out var a) ? a.Name : awayId),
                 _gold);
+            if (content != null && content.Characters.TryGetValue(homeId, out var homeWho))
+                Card(CharacterCard.Of(homeWho), 36, 148);
+        }
+
+        public static void Card(CharacterCard card, float x, float y)
+        {
+            Ensure();
+            const float w = 312f;
+            const float h = 200f;
+            GUI.DrawTexture(new Rect(x, y, w, h), _panel);
+            GUI.Label(new Rect(x + 14, y + 8, w - 50, 28), card.Name.ToUpperInvariant(), _h1);
+            ChemPip(x + w - 34, y + 14, card.VsCaptain);
+            StatRow(x + 14, y + 42, "P", card.Stats.Pitch);
+            StatRow(x + 14, y + 64, "B", card.Stats.Bat);
+            StatRow(x + 14, y + 86, "F", card.Stats.Field);
+            StatRow(x + 14, y + 108, "R", card.Stats.Run);
+            GUI.Label(new Rect(x + 14, y + 136, w - 28, 22), card.StarPitch + "    " + card.StarSwing, _gold);
+            GUI.Label(new Rect(x + 14, y + 162, w - 28, 22), card.FieldVerb, _tiny);
+        }
+
+        static void StatRow(float x, float y, string label, int n)
+        {
+            GUI.Label(new Rect(x, y, 22, 20), label, _gold);
+            n = Mathf.Clamp(n, 0, 10);
+            for (var i = 0; i < 10; i++)
+                GUI.DrawTexture(new Rect(x + 28 + i * 24, y + 3, 18, 14), i < n ? _bar : _dotOff);
+        }
+
+        static void ChemPip(float x, float y, Chemistry chem)
+        {
+            var prev = GUI.color;
+            if (chem == Chemistry.Good) GUI.color = new Color(1f, 0.82f, 0.2f, 1f);
+            else if (chem == Chemistry.Bad) GUI.color = new Color(0.92f, 0.28f, 0.22f, 1f);
+            else GUI.color = new Color(1f, 1f, 1f, 0.28f);
+            GUI.DrawTexture(new Rect(x, y, 18, 18), _dotOn != null ? _dotOn : _white);
+            GUI.color = prev;
         }
 
         public static void Field(string parkName, bool night)

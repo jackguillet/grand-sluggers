@@ -55,6 +55,7 @@ Captains and the field are two screens. The park does not follow the captain.
 - **Stick / WASD L/R** — home · **U/D** — away
 - **South / Space** — pick the field
 - **West / F** — title
+- Highlighted captain shows a **card**: P / B / F / R pips (1–10), star pitch, star swing, field verb.
 - Camera stays in front of the cage and looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
 
 ### Pick the field
