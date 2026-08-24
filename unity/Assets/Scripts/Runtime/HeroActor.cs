@@ -17,6 +17,7 @@ namespace GrandSluggers.UnityClient
         Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
+        float _chargeRing;
         string _pitchType = "fastball";
         float _t;
         float _poseT;
@@ -79,6 +80,8 @@ namespace GrandSluggers.UnityClient
 
         public void SetHighlight(bool on) => _lit = on;
 
+        public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
+
         public void Place(Vector3 pos, Vector3 look)
         {
             var ground = new Vector3(pos.x, 0f, pos.z);
@@ -121,10 +124,12 @@ namespace GrandSluggers.UnityClient
             }
             if (_ring != null)
             {
-                _ring.gameObject.SetActive(_lit);
-                if (_lit)
+                var on = SetTells.RingOn(_chargeRing);
+                _ring.gameObject.SetActive(on);
+                if (on)
                 {
-                    var pulse = 2.2f + 0.18f * Mathf.Sin(_t * 8f);
+                    var s = (float)SetTells.RingScale(_chargeRing);
+                    var pulse = s + 0.12f * Mathf.Sin(_t * 8f);
                     _ring.localScale = new Vector3(pulse, 0.08f, pulse);
                 }
             }

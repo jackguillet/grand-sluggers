@@ -194,22 +194,38 @@ namespace GrandSluggers.UnityClient
 
         static void Scorebug(Match match)
         {
+            var bug = BroadcastHud.From(match);
             const float x = 18f;
             const float y = 14f;
-            GUI.DrawTexture(new Rect(x, y, 456, 126), _panel);
-            GUI.DrawTexture(new Rect(x, y, 6, 126), _ink);
-            var half = match.Over ? "FINAL" : (match.Top ? "TOP " : "BOT ") + match.Inning;
+            GUI.DrawTexture(new Rect(x, y, 456, 148), _panel);
+            GUI.DrawTexture(new Rect(x, y, 6, 148), _ink);
+            var half = bug.Over ? "FINAL" : (bug.Top ? "TOP " : "BOT ") + bug.Inning;
             GUI.Label(new Rect(x + 16, y + 6, 180, 20), half, _gold);
 
-            Row(x + 16, y + 30, match.Away, match.AwayScore, match.AwayStars, AwayStripe(match));
-            Row(x + 16, y + 62, match.Home, match.HomeScore, match.HomeStars, HomeStripe(match));
+            Row(x + 16, y + 30, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
+            Row(x + 16, y + 62, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
 
-            Count(x + 16, y + 96, match.Balls, 4, _dotOn, _dotOff);
+            Count(x + 16, y + 96, bug.Balls, 4, _dotOn, _dotOff);
             GUI.Label(new Rect(x + 92, y + 96, 18, 18), "B", _tiny);
-            Count(x + 118, y + 96, match.Strikes, 3, _dotOn, _dotOff);
+            Count(x + 118, y + 96, bug.Strikes, 3, _dotOn, _dotOff);
             GUI.Label(new Rect(x + 176, y + 96, 18, 18), "S", _tiny);
-            Count(x + 200, y + 96, match.Outs, 3, _outOn, _outOff);
+            Count(x + 200, y + 96, bug.Outs, 3, _outOn, _outOff);
             GUI.Label(new Rect(x + 258, y + 96, 18, 18), "O", _tiny);
+
+            MiniDiamond(x + 290, y + 96, bug);
+            GUI.Label(new Rect(x + 16, y + 118, 420, 22), "NEXT  " + bug.Next, _tiny);
+        }
+
+        static void MiniDiamond(float x, float y, BroadcastHud.Scorebug bug)
+        {
+            BagPip(x + 28, y + 14, bug.RunnerSecond);
+            BagPip(x + 46, y + 4, bug.RunnerFirst);
+            BagPip(x + 10, y + 4, bug.RunnerThird);
+        }
+
+        static void BagPip(float x, float y, bool on)
+        {
+            GUI.DrawTexture(new Rect(x, y, 14, 14), on ? _outOn : _outOff);
         }
 
         static void Row(float x, float y, Team team, int runs, double stars, Texture2D stripe)
@@ -226,10 +242,11 @@ namespace GrandSluggers.UnityClient
             var x = Screen.width - 428f;
             const float y = 14f;
             GUI.DrawTexture(new Rect(x, y, 410, 118), _panel);
-            GUI.Label(new Rect(x + 16, y + 8, 280, 22), "P   " + match.Pitcher.Name, _body);
+            var bug = BroadcastHud.From(match);
+            GUI.Label(new Rect(x + 16, y + 8, 280, 22), "P   " + bug.Pitcher, _body);
             Bar(x + 16, y + 32, 220, match.PitcherStamina / 100f);
             GUI.Label(new Rect(x + 244, y + 26, 150, 20), "ARM  " + match.PitcherStamina, _tiny);
-            GUI.Label(new Rect(x + 16, y + 48, 380, 22), "AB  " + match.Batter.Name, _body);
+            GUI.Label(new Rect(x + 16, y + 48, 380, 22), "AB  " + bug.Batter, _body);
             var extra = (star ? "STAR  " : "") + (steal ? "STEAL  " : "") + (string.IsNullOrEmpty(item) ? "" : item);
             GUI.Label(new Rect(x + 16, y + 74, 380, 22), pitches[pi].ToUpperInvariant() + (extra.Length > 0 ? "   " + extra.Trim() : ""), extra.Length > 0 ? _gold : _tiny);
 

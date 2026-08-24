@@ -56,6 +56,36 @@ public class MoveBonesTests
     }
 
     [Fact]
+    public void SwingBeatsAreLoadThenContactThenFollowThrough()
+    {
+        Assert.Equal(MoveBones.SwingBeat.Load, MoveBones.SwingAt(0));
+        Assert.Equal(MoveBones.SwingBeat.Load, MoveBones.SwingAt(0.10));
+        Assert.Equal(MoveBones.SwingBeat.Contact, MoveBones.SwingAt(MoveBones.SwingContact));
+        Assert.Equal(MoveBones.SwingBeat.FollowThrough, MoveBones.SwingAt(0.48));
+        var load = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0);
+        var contact = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingContact);
+        var follow = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0.48);
+        Assert.True(contact.Torso.Y > load.Torso.Y, "contact after load");
+        Assert.True(follow.Torso.Y > contact.Torso.Y || follow.Bat.Y > contact.Bat.Y, "follow-through after contact");
+        Assert.Equal(MoveBones.SwingContact, MoveBones.Mark(MoveBones.Verb.Swing, MoveBones.ClipEvent.Contact));
+    }
+
+    [Fact]
+    public void PitchBeatsAreWindupThenReleaseThenFinish()
+    {
+        Assert.Equal(MoveBones.PitchBeat.Windup, MoveBones.PitchAt(0.04));
+        Assert.Equal(MoveBones.PitchBeat.Release, MoveBones.PitchAt(MoveBones.PitchRelease));
+        Assert.Equal(MoveBones.PitchBeat.Finish, MoveBones.PitchAt(0.49));
+        var wind = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, 0.04);
+        var rel = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchRelease);
+        Assert.True(rel.RUpper.X > wind.RUpper.X, "release arm forward of windup");
+        Assert.Equal(MoveBones.PitchRelease, MoveBones.Mark(MoveBones.Verb.Pitch, MoveBones.ClipEvent.Release));
+        Assert.Contains(MoveBones.ClipList, c => c.Id == "throw" && c.Marks.Contains(MoveBones.ClipEvent.Release));
+        Assert.Contains(MoveBones.ClipList, c => c.Id == "run" && c.Marks.Contains(MoveBones.ClipEvent.FootPlant));
+        Assert.Contains(MoveBones.ClipList, c => c.Id == "scoop" && c.Marks.Contains(MoveBones.ClipEvent.Contact));
+    }
+
+    [Fact]
     public void SwingContactIsTheCutAndPitchReleaseIsTheArmForward()
     {
         Assert.True(MoveBones.Mark(MoveBones.Verb.Swing, MoveBones.ClipEvent.Contact) > 0);

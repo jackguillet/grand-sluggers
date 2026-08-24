@@ -56,8 +56,8 @@ Shader "GrandSluggers/ToonFill"
                 float band = ndl > 0.62 ? 1.0 : (ndl > 0.28 ? 0.55 : 0.0);
                 float3 lit = lerp(_ShadowTint.rgb, _Color.rgb, band);
                 lit = lerp(lit, _Color.rgb, 0.18);
-                float rim = pow(1.0 - saturate(dot(n, normalize(i.view))), 3.0);
-                lit = lerp(lit, _Rim.rgb, rim * 0.55);
+                float rim = pow(1.0 - saturate(dot(n, normalize(i.view))), 2.4);
+                lit = lerp(lit, _Rim.rgb, rim * 0.72);
                 return fixed4(lit, 1);
             }
             ENDCG

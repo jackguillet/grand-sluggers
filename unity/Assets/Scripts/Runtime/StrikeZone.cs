@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -35,7 +36,7 @@ namespace GrandSluggers.UnityClient
             if (_root == null) return;
             _root.gameObject.SetActive(on);
             if (!on || _target == null) return;
-            var (x, y) = GrandSluggers.Sim.PitchFlight.PlateTarget(aimX, aimY);
+            var (x, y) = SetTells.Locator(aimX, aimY);
             _target.localPosition = new Vector3((float)x, (float)y, 1.15f);
         }
     }
