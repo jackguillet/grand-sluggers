@@ -191,6 +191,60 @@ public sealed class FieldingResolver
 
     public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
 
+    /// <summary>
+    /// Dirt / grass lip ~95 ft past the rubber, same split baseball games use:
+    /// infielders own the hop on the dirt; outfielders own the grass.
+    /// </summary>
+    public const double InfieldLipFt = 155;
+
+    public static bool OutfieldGrass(double x, double z) =>
+        Diamond.Dist(0, 0, x, z) >= InfieldLipFt;
+
+    public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ) =>
+        OutfieldGrass(ballX, ballZ) || OutfieldGrass(landingX, landingZ);
+
+    /// <summary>Charge the landing until the ball is on the grass, then chase the live hop.</summary>
+    public static (double X, double Z) OutfieldChaseTarget(
+        double ballX, double ballZ, double landingX, double landingZ) =>
+        OutfieldGrass(ballX, ballZ) ? (ballX, ballZ) : (landingX, landingZ);
+
+    /// <summary>
+    /// Live glove: IF while the ball is on the dirt, nearest OF once it reaches the grass.
+    /// One-way handoff — the infielder who first ran it does not keep the play in the outfield.
+    /// </summary>
+    public static (Character Fielder, string Pos) PlayGlove(
+        IReadOnlyDictionary<string, Character> assigned,
+        double ballX,
+        double ballZ,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
+        OutfieldGrass(ballX, ballZ)
+            ? NearestIn(assigned, OutfieldCorners, ballX, ballZ, at)
+            : NearestIn(assigned, InfieldPool, ballX, ballZ, at);
+
+    public static (Character Fielder, string Pos) NearestOutfielder(
+        IReadOnlyDictionary<string, Character> assigned,
+        double x,
+        double z,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
+        NearestIn(assigned, OutfieldCorners, x, z, at);
+
+    public static bool HandoffToOutfield(string currentPos, string playPos) =>
+        !IsOutfield(currentPos) && IsOutfield(playPos);
+
+    public static double ChaseSpeedFt(Character fielder, bool frozen) =>
+        (21 + fielder.Stats.Run * 1.9) * (frozen ? 0.45 : 1);
+
+    public static (double X, double Z) StepToward(
+        double x, double z, double tx, double tz, double speed, double dt)
+    {
+        var dx = tx - x;
+        var dz = tz - z;
+        var dist = Math.Sqrt(dx * dx + dz * dz);
+        if (dist <= 0.35) return (x, z);
+        var step = Math.Min(dist, speed * dt);
+        return (x + dx / dist * step, z + dz / dist * step);
+    }
+
     public static bool IsGrounder(AtBatResult hit) => hit.LaunchDeg < 14;
 
     /// <summary>Low rocket: 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
@@ -208,6 +262,10 @@ public sealed class FieldingResolver
     public static bool BuddyJumpOffered(FieldingPreview pre) =>
         pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && !pre.Line && IsOutfield(pre.Position);
 
+    static readonly string[] InfieldPool = ["P", "C", "1B", "2B", "3B", "SS"];
+    static readonly string[] OutfieldPool = ["LF", "CF", "RF", "SS", "2B"];
+    static readonly string[] OutfieldCorners = ["LF", "CF", "RF"];
+
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
         Character pitcher,
@@ -216,14 +274,25 @@ public sealed class FieldingResolver
         bool outfield)
     {
         var keyed = Assign(defense, pitcher);
-        string[] pool = outfield ? ["LF", "CF", "RF", "SS", "2B"] : ["P", "C", "1B", "2B", "3B", "SS"];
+        return NearestIn(keyed, outfield ? OutfieldPool : InfieldPool, x, z, at: null);
+    }
+
+    static (Character Fielder, string Pos) NearestIn(
+        IReadOnlyDictionary<string, Character> keyed,
+        IReadOnlyList<string> pool,
+        double x,
+        double z,
+        IReadOnlyDictionary<string, (double X, double Z)>? at)
+    {
         Character? best = null;
         var bestPos = pool[0];
         var bestD = double.MaxValue;
         foreach (var pos in pool)
         {
             if (!keyed.TryGetValue(pos, out var c)) continue;
-            var p = Diamond.Positions[pos];
+            var p = at != null && at.TryGetValue(pos, out var live)
+                ? live
+                : Diamond.Positions[pos];
             var d = Diamond.Dist(p.X, p.Z, x, z);
             if (d < bestD)
             {
@@ -232,7 +301,7 @@ public sealed class FieldingResolver
                 bestPos = pos;
             }
         }
-        return (best ?? pitcher, bestPos);
+        return (best ?? keyed.Values.First(), bestPos);
     }
 
     Character? Buddy(

@@ -90,7 +90,7 @@ Stamina 0 → extra break noise and “fat” fastballs. Swap or eat runs.
 
 ## Fielding
 
-CPU fielders run a simple utility: intercept point of the ball, catch window from Field stat, throw to the lead base with chemistry applied.
+CPU fielders run a simple utility: intercept point of the ball, catch window from Field stat, throw to the lead base with chemistry applied. Infield dirt is the infielder's hop; once the ball is on the grass the nearest outfielder charges and takes the glove (`PlayGlove`).
 
 Player fielding: move the highlighted fielder, catch button, throw-to-base buttons. Buddy Jump is a timed prompt when two good-chem outfielders are under a homer.
 

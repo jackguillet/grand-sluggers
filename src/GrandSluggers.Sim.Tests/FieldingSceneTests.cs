@@ -163,6 +163,83 @@ public class FieldingSceneTests
     }
 
     [Fact]
+    public void OutfieldGrassStartsPastTheInfieldLip()
+    {
+        var ss = Diamond.Positions["SS"];
+        var cf = Diamond.Positions["CF"];
+        Assert.False(FieldingResolver.OutfieldGrass(ss.X, ss.Z));
+        Assert.False(FieldingResolver.OutfieldGrass(0, FieldingResolver.InfieldLipFt - 1));
+        Assert.True(FieldingResolver.OutfieldGrass(0, FieldingResolver.InfieldLipFt));
+        Assert.True(FieldingResolver.OutfieldGrass(cf.X, cf.Z));
+    }
+
+    [Fact]
+    public void PlayGloveHandsTheHopToTheOutfielderOnceTheBallIsOnTheGrass()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+        var dirt = FieldingResolver.PlayGlove(assigned, 0, 120);
+        Assert.False(FieldingResolver.IsOutfield(dirt.Pos));
+        Assert.Equal("2B", dirt.Pos);
+
+        var overTheInfield = FieldingResolver.PlayGlove(assigned, 0, 140);
+        Assert.False(FieldingResolver.IsOutfield(overTheInfield.Pos),
+            "ball still on the dirt stays an infielder — they chase the hop over their head");
+
+        var grass = FieldingResolver.PlayGlove(assigned, 0, 200);
+        Assert.True(FieldingResolver.IsOutfield(grass.Pos));
+        Assert.Equal("CF", grass.Pos);
+        Assert.True(FieldingResolver.HandoffToOutfield(dirt.Pos, grass.Pos));
+        Assert.False(FieldingResolver.HandoffToOutfield(grass.Pos, dirt.Pos));
+    }
+
+    [Fact]
+    public void OutfielderChargesTheLandingThenTheLiveHop()
+    {
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 220));
+        Assert.False(FieldingResolver.OutfieldShouldCharge(0, 80, 0, 70));
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 180, 0, 70));
+        var toLanding = FieldingResolver.OutfieldChaseTarget(0, 80, -40, 220);
+        Assert.Equal(-40, toLanding.X);
+        Assert.Equal(220, toLanding.Z);
+        var toLive = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220);
+        Assert.Equal(12, toLive.X);
+        Assert.Equal(190, toLive.Z);
+
+        var match = Match.Slice(_content, seed: 1);
+        var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+        var of = FieldingResolver.NearestOutfielder(assigned, -80, 180);
+        Assert.Equal("LF", of.Pos);
+        var start = Diamond.Positions["LF"];
+        var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, frozen: false);
+        var stepped = start;
+        for (var i = 0; i < 45; i++)
+            stepped = FieldingResolver.StepToward(stepped.X, stepped.Z, -80, 180, speed, 1.0 / 30);
+        Assert.True(Diamond.Dist(stepped.X, stepped.Z, -80, 180)
+                    < Diamond.Dist(start.X, start.Z, -80, 180) - 20,
+            "outfielder must close on a ball in the grass, not stay on the pad");
+    }
+
+    [Fact]
+    public void DeepHopperStaysTheInfielderUntilPlayGloveHandsOff()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+        var deep = new AtBatResult(ContactQuality.Solid, true, false, 92, 8, 220, false, false, null, null, SprayDeg: 0);
+        Assert.True(FieldingResolver.IsGrounder(deep));
+        var pre = fielding.Preview(deep, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.True(pre.Grounder);
+        Assert.True(FieldingResolver.OutfieldGrass(pre.LandingX, pre.LandingZ));
+        Assert.False(FieldingResolver.IsOutfield(pre.Position),
+            "infielder still owns the first run so they chase a ball over their head");
+        Assert.True(FieldingResolver.OutfieldShouldCharge(0, 80, pre.LandingX, pre.LandingZ));
+        var onGrass = FieldingResolver.PlayGlove(assigned, pre.LandingX, pre.LandingZ);
+        Assert.True(FieldingResolver.IsOutfield(onGrass.Pos));
+        Assert.True(FieldingResolver.HandoffToOutfield(pre.Position, onGrass.Pos));
+    }
+
+    [Fact]
     public void LineDriveIsInfieldWindowNotAFlyRing()
     {
         var match = Match.Slice(_content, seed: 1);
