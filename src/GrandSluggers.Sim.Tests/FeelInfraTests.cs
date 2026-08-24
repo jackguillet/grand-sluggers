@@ -26,6 +26,11 @@ public class FeelInfraTests
         Assert.True(title.Pos.Y > 12, $"title too low to see Harbor y={title.Pos.Y}");
         Assert.True(title.Target.Z > 30, $"title looks into the park z={title.Target.Z}");
         Assert.True(title.Fov >= 42);
+        var select = _content.Shots.Must("select");
+        Assert.True(select.Pos.Z > -20, $"select must sit in front of the backstop cage z={select.Pos.Z}");
+        Assert.True(select.Pos.Z < 0, $"select behind home z={select.Pos.Z}");
+        Assert.InRange(select.Target.Z, 8, 22);
+        Assert.True(select.Fov >= 44, $"select fov {select.Fov} too tight for six captains");
     }
 
     [Fact]

@@ -48,6 +48,7 @@ Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the
 
 - **Stick L/R** — home · **U/D** — away
 - **South** — lineup
+- Camera stays in front of the cage and looks at the home captain. Park stays what you picked on the title (Harbor is the slice).
 
 ### Lineup (draft the eight)
 
