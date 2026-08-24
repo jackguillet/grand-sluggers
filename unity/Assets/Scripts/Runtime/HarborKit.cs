@@ -72,6 +72,7 @@ namespace GrandSluggers.UnityClient
             if (OwnsDiamond)
             {
                 Dress();
+                ApplyNight();
                 ApplyShots();
             }
         }
@@ -398,13 +399,18 @@ namespace GrandSluggers.UnityClient
         void DressNight()
         {
             if (Fireworks != null) Fireworks.position = new Vector3(0, 12, 400);
-            if (_night)
+            if (Fireworks != null && Fireworks.Find("FloodL") == null)
             {
                 Glow(Fireworks, "FloodL", new Vector3(-90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
                 Glow(Fireworks, "FloodR", new Vector3(90, 28, 40), new Color(1f, 0.92f, 0.75f), 1.8f, 140f);
                 Glow(Fireworks, "FloodH", new Vector3(0, 22, -40), new Color(1f, 0.90f, 0.70f), 1.4f, 110f);
                 Glow(Fireworks, "FloodC", new Vector3(0, 32, 240), new Color(0.85f, 0.9f, 1f), 1.2f, 180f);
             }
+            ApplyNight();
+        }
+
+        void ApplyNight()
+        {
             if (Fireworks != null) Fireworks.gameObject.SetActive(_night);
         }
 
