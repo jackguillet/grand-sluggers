@@ -125,7 +125,8 @@ namespace GrandSluggers.UnityClient
         bool TrainingOn => _coach != null && _coach.Session != null;
         bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
         bool HumanBats => TrainingOn ? _coach.PlayerBats : _match != null && !_match.Top;
-        bool PlayerFields => TrainingOn ? _coach.PlayerFields : HumanPitches;
+        bool PlayerMustField => TrainingOn && _coach.PlayerFields;
+        bool PlayerFields => _playerFielding || PlayerMustField;
         bool ItemOffered =>
             HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
             && _phase == Phase.InPlay && !_throwing;
