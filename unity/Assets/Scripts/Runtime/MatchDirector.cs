@@ -172,6 +172,7 @@ namespace GrandSluggers.UnityClient
 
         void Update()
         {
+            Controls.Tick(Time.unscaledDeltaTime);
             if (_match == null) return;
             var dt = Time.deltaTime;
             if (Controls.TimingAid) _showTiming = !_showTiming;
@@ -504,6 +505,6 @@ namespace GrandSluggers.UnityClient
             _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : new Vector3(0.4f, 3.2f, 2f));
         }
 
-        static bool Key(KeyCode k) => Input.GetKeyDown(k);
+        void OnDisable() => Controls.Silence();
     }
 }
