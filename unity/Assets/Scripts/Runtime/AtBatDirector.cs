@@ -31,6 +31,7 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Set;
             _t = 0;
             _charge = 0;
+            _pitchCharge = 0;
             _chargePast = 0;
             _breakX = 0;
             _dash01 = 0;
@@ -86,6 +87,10 @@ namespace GrandSluggers.UnityClient
         void TickSet(float dt)
         {
             HoldPitchInHand();
+            if (HumanPitches)
+                _pitchCharge = _charge;
+            else
+                _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             _pip += dt * 1.35f;
             if (Controls.SwapPitcher) _match.SwapPitcher();
             if (Controls.NorthDown && (HumanPitches ? _match.CanStarPitch : _match.CanStarSwing)) _star = !_star;

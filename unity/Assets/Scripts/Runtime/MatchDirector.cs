@@ -72,6 +72,7 @@ namespace GrandSluggers.UnityClient
         bool _star;
         float _charge;
         float _chargePast;
+        float _pitchCharge;
         float _breakX;
         float _dash01;
         float _t;

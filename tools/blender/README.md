@@ -29,6 +29,13 @@ Captain extras kit (one file, names match `data/art/skins.json`):
   --out unity/Assets/Art/Characters/SharedRig/extras.fbx
 ```
 
+Pitch take (`Release` at 0.42s, throw toward home, same keys as `data/art/pose-clips/pitch.json`):
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_pitch.py -- \
+  --out unity/Assets/Art/Animation/Clips/pitch.fbx
+```
+
 Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-clips/scoop.json`):
 
 ```bash

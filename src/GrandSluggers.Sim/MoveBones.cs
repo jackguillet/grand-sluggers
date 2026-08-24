@@ -195,15 +195,16 @@ public static class MoveBones
 
     static Sample ChargePitch(double charge, string? type)
     {
-        var arm = Slot(-40 - 72 * charge, 16, -36, type);
+        var arm = Slot(-48 - 82 * charge, 28 + 18 * charge, -42 - 12 * charge, type);
         return Pose(
-            torso: E(-10 - 16 * charge, 12, 0),
-            lUpper: E(14, 0, 26), rUpper: arm,
-            lFore: E(22, 0, 0), rFore: E(28 + 10 * charge, 0, 0),
-            lThigh: E(10 + 28 * charge, 0, 0),
-            rThigh: E(-8 * charge, 0, 0),
-            lShin: E(18 + 20 * charge, 0, 0),
-            rShin: E(10, 0, 0));
+            torso: E(-12 - 10 * charge, 18 + 8 * charge, 0),
+            head: E(6, 10, 0),
+            lUpper: E(18, 8, 28), rUpper: arm,
+            lFore: E(24, 0, 0), rFore: E(36 + 12 * charge, 0, 0),
+            lThigh: E(18 + 52 * charge, 0, 0),
+            rThigh: E(-10 * charge, 0, 0),
+            lShin: E(22 + 18 * charge, 0, 0),
+            rShin: E(12, 0, 0));
     }
 
     static Sample Pitch(double poseT, string? type)

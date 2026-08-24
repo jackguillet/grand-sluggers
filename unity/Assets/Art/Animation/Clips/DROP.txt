@@ -4,3 +4,4 @@ HeroActor samples the Unity clip when the file exists; otherwise authored pose J
 then MoveBones.Evaluate. Loop clips sample clock time. One-shots sample pose time
 so Contact hits. swing.fbx Contact at 0.30. scoop.fbx Contact at 0.22 (glove on the dirt).
 Generic rig, face −Z, one take. Do not add a second skeleton.
+pitch.fbx Release at 0.42. From the plate the arm comes forward.
