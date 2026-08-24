@@ -95,6 +95,7 @@ namespace GrandSluggers.UnityClient
             else if (_pose == Pose.Slide) lift = 0.15f;
             else if (_pose == Pose.Crouch || _pose == Pose.StealLead || _pose == Pose.Bunt) lift = -0.35f;
             else if (_pose == Pose.Cheer) lift = 0.25f;
+            else if (TryAuthoredLift(out var authoredLift)) lift = authoredLift;
             else if (_pose == Pose.Run) lift = (float)MoveBones.Evaluate(MoveBones.Verb.Run, _t, _poseT).Lift;
             else lift = 0f;
             _lift = _pose is Pose.Jump or Pose.Clamber ? lift : Mathf.Lerp(_lift, lift, 0.28f);
@@ -287,7 +288,7 @@ namespace GrandSluggers.UnityClient
                 if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
                 MoveBones.Sample sample;
                 var clipId = ClipId(verb);
-                if (clipId != null && ArtBinder.Art != null && ArtBinder.Art.TryAuthored(clipId, _t, out var authored))
+                if (TryAuthored(clipId, out var authored))
                     sample = authored;
                 else
                     sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
@@ -630,6 +631,25 @@ namespace GrandSluggers.UnityClient
             Pose.Slide => MoveBones.Verb.Slide,
             _ => null
         };
+
+        bool TryAuthoredLift(out float lift)
+        {
+            lift = 0f;
+            if (ToVerb(_pose) is not MoveBones.Verb verb) return false;
+            if (!TryAuthored(ClipId(verb), out var sample)) return false;
+            lift = (float)sample.Lift;
+            return true;
+        }
+
+        bool TryAuthored(string clipId, out MoveBones.Sample sample)
+        {
+            sample = default;
+            if (clipId == null || ArtBinder.Art == null) return false;
+            var t = _t;
+            if (ArtBinder.Art.TryClip(clipId, out var clip) && !clip.Loop)
+                t = _poseT;
+            return ArtBinder.Art.TryAuthored(clipId, t, out sample);
+        }
 
         static string ClipId(MoveBones.Verb verb) => verb switch
         {
