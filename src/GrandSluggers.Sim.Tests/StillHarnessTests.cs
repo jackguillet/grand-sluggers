@@ -55,6 +55,10 @@ public class StillHarnessTests
         Assert.True(Math.Abs(StillPose.ScoopX - StillPose.ScoopZ) < 4, "scoop sits on the first-base dirt path");
         Assert.True(StillPose.ScoopBallY < 0.5, "look at the leather on the dirt");
         Assert.True(StillPose.RunnerX > StillPose.ScoopX);
+        Assert.True(StillPose.RunnerLeavesInFrame(
+            StillPose.CamX, StillPose.CamZ, StillPose.ScoopX, StillPose.ScoopZ,
+            StillPose.RunnerX, StillPose.RunnerZ),
+            "14:16 PNG put the runner behind the camera");
         var defense = FieldingResolver.Assign(
             Match.Exhibition(_content, "rio", "ashlord", seed: 7).Away.Roster,
             _content.Must("ashlord"));

@@ -274,10 +274,11 @@ namespace GrandSluggers.UnityClient
                     _park.Ball.Place(_ball, "", "fastball", false);
                     if (fh.CatchHand != null) _park.Ball.Hold(fh.CatchHand);
                 }
-                // Side 3/4. Looking down the path (12:39 PNG) hid the glove on the dirt.
+                // Side 3/4. Looking down the path hid the glove; looking at the scoop
+                // only put the runner behind the camera.
                 _cam.CutRaw("diamond-grounder",
                     new Vector3((float)StillPose.CamX, (float)StillPose.CamY, (float)StillPose.CamZ),
-                    new Vector3(gx, (float)StillPose.ScoopBallY, gz),
+                    new Vector3((float)StillPose.ScoopLookX, (float)StillPose.ScoopLookY, (float)StillPose.ScoopLookZ),
                     50f);
                 return;
             }
