@@ -66,8 +66,11 @@ public sealed class Training
     public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9) =>
         Match.Exhibition(content, "rio", "ashlord", innings, seed, ParkId);
 
+    /// <summary>From pitching (lesson 1), skip lands on Fielding so you can scoop. Elsewhere it ends the session.</summary>
     public bool Skip()
     {
+        if (Lesson == PracticeLesson.Pitching)
+            return Choose(PracticeLesson.Fielding);
         _skipped = true;
         return true;
     }
@@ -80,6 +83,20 @@ public sealed class Training
         _maxCharges = 0;
         _skipped = false;
         return true;
+    }
+
+    public PracticeLesson Cycle(int dir)
+    {
+        Choose(Shift(Lesson, dir));
+        return Lesson;
+    }
+
+    public static PracticeLesson Shift(PracticeLesson lesson, int dir)
+    {
+        var i = Array.IndexOf(Lessons, lesson);
+        if (i < 0) i = 0;
+        var n = Lessons.Length;
+        return Lessons[(i + (dir % n) + n) % n];
     }
 
     public bool RecordPitch(PitchCommand pitch, Match match) =>

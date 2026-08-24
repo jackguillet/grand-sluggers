@@ -173,14 +173,12 @@ public sealed class AtBatResolver
 
     public static double PitchSpeedMph(PitchCommand pitch, int pitchStat)
     {
-        var baseSpeed = pitch.Type switch
-        {
-            "changeup" => 72,
-            "curve" => 76,
-            "slider" => 80,
-            _ => 86
-        };
-        var speed = baseSpeed + pitchStat * 0.9 + pitch.Charge01 * 8;
+        var changeup = pitch.Changeup || pitch.Type == "changeup";
+        var baseSpeed = changeup ? 72
+            : pitch.Type == "curve" ? 76
+            : pitch.Type == "slider" ? 80
+            : 86;
+        var speed = baseSpeed + pitchStat * 0.9 + (changeup ? pitch.Charge01 * 3 : pitch.Charge01 * 8);
         if (pitch.Star) speed *= 1.12;
         return speed;
     }

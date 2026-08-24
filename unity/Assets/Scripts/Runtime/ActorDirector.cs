@@ -125,6 +125,7 @@ namespace GrandSluggers.UnityClient
             if (racing)
             {
                 if (Controls.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
+                _match.Dash01 = _dash01;
                 var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
                 var hx = 2.55f + (float)(Diamond.First.X - 2.55) * u;

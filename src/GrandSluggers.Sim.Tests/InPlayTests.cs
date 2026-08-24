@@ -54,6 +54,33 @@ public class InPlayTests
     }
 
     [Fact]
+    public void DashTurnsACloseHopperFromOutToIn()
+    {
+        var dart = _content.Must("dart");
+        var vale = _content.Must("vale");
+        var nico = _content.Must("nico");
+        var hit = Hit(ContactQuality.Solid, 72, launch: 8, carry: 45);
+        var found = false;
+        FieldingResult? play = null;
+        for (var hang = 0.2; hang <= 2.4 && !found; hang += 0.05)
+        for (var mul = 0.45; mul <= 1.8 && !found; mul += 0.05)
+        {
+            play = new FieldingResult(PlayKind.GroundOut, vale, nico, hang, 48, 72, false, false,
+                new ThrowResult(Chemistry.Neutral, mul, false));
+            var still = InPlay.BatterBeatsThrow(dart, hit, play, 0);
+            var dash = InPlay.BatterBeatsThrow(dart, hit, play, 1);
+            if (!still && dash) found = true;
+        }
+        Assert.True(found, "need a hopper that is out at dash 0 and in at dash 1");
+        Assert.NotNull(play);
+        var match = Match.Slice(_content, seed: 1);
+        match.Dash01 = 0;
+        Assert.False(InPlay.BatterBeatsThrow(dart, hit, play, match.Dash01));
+        match.Dash01 = 1;
+        Assert.True(InPlay.BatterBeatsThrow(dart, hit, play, match.Dash01));
+    }
+
+    [Fact]
     public void ScoopMissIsASingleNotASilentGroundOut()
     {
         var match = Match.Slice(_content, seed: 4);

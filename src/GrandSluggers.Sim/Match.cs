@@ -186,6 +186,7 @@ public sealed class Match
     public double OffenseStars => Top ? AwayStars : HomeStars;
     public double DefenseStars => Top ? HomeStars : AwayStars;
     public bool StealOn { get; private set; }
+    public double Dash01 { get; set; }
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
     public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
@@ -697,7 +698,7 @@ public sealed class Match
                     Outs++;
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                     AddStars(defense: true, 0.4);
-                    if (Outs < 3 && !InPlay.BatterBeatsThrow(Batter, hit, field))
+                    if (Outs < 3 && !InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
                     {
                         Outs++;
                         caption = $"{field.Fielder?.Name} turns two.";
@@ -755,7 +756,7 @@ public sealed class Match
                     CheckInning();
                     break;
                 }
-                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field))
+                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
                 {
                     kind = PlayKind.Single;
                     goto case PlayKind.Single;
