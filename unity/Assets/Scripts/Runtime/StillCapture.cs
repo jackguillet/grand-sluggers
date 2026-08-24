@@ -51,41 +51,51 @@ namespace GrandSluggers.UnityClient
             if (_ran) yield break;
             _ran = true;
             var files = new List<string>();
-            try
-            {
-                var shots = _req.ResolvedShots();
-                _play.GateSkipToSet(_req.ResolvedHome(), _req.ResolvedAway(), (float)_req.Charge01, _req.FeelDebug, _req.HudOff);
-                for (var i = 0; i < 12; i++) yield return null;
-
-                var outDir = _req.ResolvedOutDir(_temp);
-                Directory.CreateDirectory(outDir);
-                var cam = _play.GateCam;
-                var w = _req.ResolvedWidth();
-                var h = _req.ResolvedHeight();
-                foreach (var shot in shots)
-                {
-                    _play.GateCut(shot);
-                    yield return null;
-                    yield return new WaitForEndOfFrame();
-                    var png = StillRequest.PngPath(outDir, shot);
-                    Capture(cam, png, w, h);
-                    files.Add(png);
-                }
-
-                WriteDone(_temp, true, files, "");
-                try { File.Delete(StillRequest.RequestPath(_temp)); }
-                catch { /* leftover request is ok */ }
-            }
+            string error = null;
+            IReadOnlyList<string> shots;
+            try { shots = _req.ResolvedShots(); }
             catch (Exception ex)
             {
                 WriteDone(_temp, false, files, ex.Message);
+                enabled = false;
+                yield break;
             }
+
+            _play.GateSkipToSet(_req.ResolvedHome(), _req.ResolvedAway(), (float)_req.Charge01, _req.FeelDebug, _req.HudOff);
+            for (var i = 0; i < 12; i++) yield return null;
+
+            var outDir = _req.ResolvedOutDir(_temp);
+            Directory.CreateDirectory(outDir);
+            var cam = _play.GateCam;
+            var w = _req.ResolvedWidth();
+            var h = _req.ResolvedHeight();
+            foreach (var shot in shots)
+            {
+                _play.GateCut(shot);
+                yield return null;
+                yield return new WaitForEndOfFrame();
+                var png = StillRequest.PngPath(outDir, shot);
+                try
+                {
+                    Capture(cam, png, w, h);
+                    files.Add(png);
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                    break;
+                }
+            }
+
+            WriteDone(_temp, error == null, files, error ?? "");
+            try { File.Delete(StillRequest.RequestPath(_temp)); }
+            catch { /* leftover request is ok */ }
             enabled = false;
         }
 
         static void Capture(Camera cam, string path, int w, int h)
         {
-            if (cam == null) throw new System.InvalidOperationException("no camera for still " + path);
+            if (cam == null) throw new InvalidOperationException("no camera for still " + path);
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;
@@ -96,7 +106,7 @@ namespace GrandSluggers.UnityClient
             tex.Apply();
             cam.targetTexture = prev;
             RenderTexture.active = null;
-            File.WriteAllBytes(path, tex.EncodeToPNG());
+            File.WriteAllBytes(path, ImageConversion.EncodeToPNG(tex));
             Destroy(tex);
             rt.Release();
             Destroy(rt);
