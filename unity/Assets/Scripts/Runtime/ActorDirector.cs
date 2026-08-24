@@ -32,6 +32,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             _card?.Hide();
+            _logo?.Hide();
             if (_phase == Phase.Field)
             {
                 foreach (var kv in _heroes)
@@ -399,7 +400,7 @@ namespace GrandSluggers.UnityClient
                 if (home) homeSpot = spot;
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
-                hero.SetGrow(home && pick);
+                hero.SetGrow(home);
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
@@ -407,6 +408,7 @@ namespace GrandSluggers.UnityClient
             }
             if (pick)
             {
+                _logo?.Hide();
                 if (_card == null) _card = CardToy.Attach(transform);
                 var homeWho = _content.Must(HomeCaptain);
                 _card.Show(
@@ -415,7 +417,14 @@ namespace GrandSluggers.UnityClient
                     new Vector3(0f, 0f, -1f));
             }
             else
+            {
                 _card?.Hide();
+                if (_logo == null) _logo = LogoToy.Attach(transform);
+                _logo.Show(
+                    CarnivalFront.Logo,
+                    new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
+                    new Vector3(0f, 0f, -1f));
+            }
         }
 
         void PlaceLineupToys()
