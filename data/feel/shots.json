@@ -11,65 +11,73 @@
     {
       "id": "plate",
       "look": "plate",
-      "pos": { "x": 3.6, "y": 5.4, "z": -20.8 },
-      "target": { "x": 0.2, "y": 2.4, "z": 46 },
-      "fov": 48,
+      "pos": { "x": -5.2, "y": 5.5, "z": -6.8 },
+      "target": { "x": 3.4, "y": 2.8, "z": 58 },
+      "fov": 52,
       "blend": 6
     },
     {
       "id": "mound",
       "look": "mound",
-      "pos": { "x": 12.5, "y": 7.4, "z": 86.0 },
-      "target": { "x": 0.35, "y": 2.9, "z": 8.0 },
-      "fov": 40,
+      "pos": { "x": 9.8, "y": 6.4, "z": 76.5 },
+      "target": { "x": 0.4, "y": 2.2, "z": 1.0 },
+      "fov": 42,
       "blend": 6
     },
     {
       "id": "diamond",
       "look": "ball",
-      "pos": { "x": 8, "y": 26, "z": -18 },
-      "target": { "x": 0, "y": 6, "z": 90 },
-      "fov": 50,
+      "pos": { "x": 20, "y": 20, "z": 55 },
+      "target": { "x": 0, "y": 14, "z": 220 },
+      "fov": 48,
       "blend": 8
     },
     {
       "id": "diamond-grounder",
       "look": "ball",
-      "pos": { "x": 38, "y": 14, "z": 22 },
-      "target": { "x": 0, "y": 3, "z": 80 },
-      "fov": 46,
+      "pos": { "x": 32, "y": 11, "z": 28 },
+      "target": { "x": 8, "y": 2, "z": 70 },
+      "fov": 48,
       "blend": 7
     },
     {
       "id": "diamond-pull",
       "look": "ball",
-      "pos": { "x": -32, "y": 14, "z": 36 },
-      "target": { "x": 0, "y": 3, "z": 80 },
-      "fov": 46,
+      "pos": { "x": -30, "y": 11, "z": 40 },
+      "target": { "x": -8, "y": 2, "z": 80 },
+      "fov": 48,
       "blend": 7
     },
     {
       "id": "diamond-line",
       "look": "ball",
-      "pos": { "x": 22, "y": 18, "z": 8 },
-      "target": { "x": 0, "y": 4, "z": 90 },
-      "fov": 44,
+      "pos": { "x": 18, "y": 14, "z": 18 },
+      "target": { "x": 4, "y": 5, "z": 90 },
+      "fov": 46,
       "blend": 6
+    },
+    {
+      "id": "diamond-homer",
+      "look": "ball",
+      "pos": { "x": 14, "y": 28, "z": 80 },
+      "target": { "x": 0, "y": 22, "z": 340 },
+      "fov": 44,
+      "blend": 7
     },
     {
       "id": "tag",
       "look": "bag",
-      "pos": { "x": 0, "y": 5.2, "z": -12 },
-      "target": { "x": 0, "y": 1.1, "z": 0 },
-      "fov": 38,
+      "pos": { "x": 6, "y": 4.6, "z": -8 },
+      "target": { "x": 0, "y": 1.0, "z": 0 },
+      "fov": 36,
       "blend": 4
     },
     {
       "id": "throw",
       "look": "bag",
-      "pos": { "x": 0, "y": 7.5, "z": -18 },
+      "pos": { "x": 0, "y": 6.2, "z": -14 },
       "target": { "x": 0, "y": 1.4, "z": 0 },
-      "fov": 42,
+      "fov": 40,
       "blend": 5
     },
     {
@@ -107,9 +115,9 @@
     {
       "id": "replay",
       "look": "ball",
-      "pos": { "x": 8, "y": 18, "z": -28 },
-      "target": { "x": 0, "y": 4, "z": 70 },
-      "fov": 46,
+      "pos": { "x": 16, "y": 22, "z": 40 },
+      "target": { "x": 0, "y": 10, "z": 180 },
+      "fov": 48,
       "blend": 8
     }
   ]

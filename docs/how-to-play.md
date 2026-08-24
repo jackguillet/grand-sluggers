@@ -65,7 +65,7 @@ Chemistry graph is the point. Starting stars come from how the eight like the ca
 
 ### Pitching (Top)
 
-SET starts **catcher-eye** (`plate`) so you see the **full batter** (feet to hat), not a cap. Take the rubber (charge or aim) and the camera is **3/4 mound**. Throw cuts to mound.
+SET pitching is **3/4 over the pitcher** (`mound`) looking at home: rubber in the bottom, batter + catcher + **chalk batter's boxes** readable at the plate. SET batting is **over the batter's shoulder** (`plate`) looking at the mound: batter in the box (feet to hat), pentagon and boxes in the lower frame, pitcher in the distance. The catcher is not the subject. In play: hoppers stay low, lines sit mid, flies are a 3/4 in the park, homers rise with the ball, throws sit on the glove.
 
 - **Stick** — aim the zone
 - **LT pull** — charge (analog)
@@ -77,6 +77,8 @@ SET starts **catcher-eye** (`plate`) so you see the **full batter** (feet to hat
 Star pitch owns the ball ~2 seconds (Heatball, Charmball, Prism, Phony, Cask, Skull). Scorebug mutes. Then baseball.
 
 ### Batting (Bottom)
+
+Camera stays **over the batter** (`plate`) for the whole pitch: you, the box, the pitcher.
 
 - **LT pull** — charge (analog)
 - **South** — swing (timing vs the pitch)
@@ -90,7 +92,7 @@ Perfect / star swing freeze the picture briefly. HUD mutes during the spectacle.
 
 ### Fielding (the ball is in play)
 
-Nearest glove lights. CPU runs the hop unless you take it.
+Nearest glove lights. CPU runs the hop unless you take it. Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove.
 
 - **Stick** — run the glove
 - **South** — catch (in the window)
@@ -132,6 +134,6 @@ F2 is how you name the still (plate vs mound vs diamond-line). It does not repla
 
 Couch, pad, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
 
-**Now (Harbor Exhibition).** Title looks into the park. SET pitching starts catcher-eye on the full batter, then 3/4 mound. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. Star specials own the ball or the field ~2 seconds HUD-off (Heatball core+embers; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is a toy-proportion blockout (one chain, captain extras). Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
+**Now (Harbor Exhibition).** Title looks into the park. SET pitching is 3/4 over the pitcher at the batter's box. SET batting is over the batter looking at the mound, chalk boxes on the dirt. Flies, hoppers, throws, and homers are named 3/4s in the park, not a broadcast high-home. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. Star specials own the ball or the field ~2 seconds HUD-off (Heatball core+embers; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is a toy-proportion blockout (one chain, captain extras). Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.

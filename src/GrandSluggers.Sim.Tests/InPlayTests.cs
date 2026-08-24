@@ -131,12 +131,14 @@ public class InPlayTests
         var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         var pull = hopper with { SprayDeg = -20 };
         var fly = hopper with { LaunchDeg = 32, CarryFt = 280 };
+        var homer = hopper with { LaunchDeg = 32, CarryFt = 420, HomeRun = true };
         var line = hopper with { LaunchDeg = 18, ExitVeloMph = 95, CarryFt = 180 };
         var star = hopper with { LaunchDeg = 28, StarSwingUsed = "heat-swing" };
         Assert.Equal("diamond-grounder", InPlay.TheaterShot(hopper));
         Assert.Equal("diamond-pull", InPlay.TheaterShot(pull));
         Assert.Equal("diamond-line", InPlay.TheaterShot(line));
         Assert.Equal("diamond", InPlay.TheaterShot(fly));
+        Assert.Equal("diamond-homer", InPlay.TheaterShot(homer));
         Assert.Equal("smash", InPlay.TheaterShot(star));
         Assert.True(FieldingResolver.IsLine(line));
         Assert.True(FieldingResolver.IsGrounder(hopper));

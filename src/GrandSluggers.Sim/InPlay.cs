@@ -37,6 +37,7 @@ public static class InPlay
     public static string TheaterShot(AtBatResult hit)
     {
         if (!string.IsNullOrEmpty(hit.StarSwingUsed)) return "smash";
+        if (hit.HomeRun) return "diamond-homer";
         if (FieldingResolver.IsGrounder(hit))
             return hit.SprayDeg < -8 ? "diamond-pull" : "diamond-grounder";
         if (FieldingResolver.IsLine(hit)) return "diamond-line";
