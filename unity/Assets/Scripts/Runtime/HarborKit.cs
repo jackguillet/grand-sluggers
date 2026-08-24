@@ -30,6 +30,7 @@ namespace GrandSluggers.UnityClient
         public Transform Backstop;
         public Transform Dugouts;
         public Transform WallDress;
+        public Transform Grass;
         public Transform Scoreboard;
         public Transform Bleachers;
         public Transform Town;
@@ -42,6 +43,10 @@ namespace GrandSluggers.UnityClient
         CameraShots _shots;
         Park _park;
         bool _night;
+        Transform _awayTens, _awayOnes, _homeTens, _homeOnes, _innDigit;
+        Transform _plateAwayTens, _plateAwayOnes, _plateHomeTens, _plateHomeOnes;
+        Material _ledOn;
+        Material _ledOff;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
 
@@ -109,9 +114,9 @@ namespace GrandSluggers.UnityClient
 
         public void EnsureAnchors()
         {
-            DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, 64f), new Vector3(150f, 0.18f, 150f), Quaternion.identity);
+            DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, 64f), new Vector3(92f, 0.18f, 92f), Quaternion.identity);
             HomeDirt = Anchor("HomeDirt", new Vector3(0f, 0.16f, 0f), new Vector3(36f, 0.08f, 36f), Quaternion.identity);
-            DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(132f, 0.24f, 132f), Quaternion.Euler(0f, 45f, 0f));
+            DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
             HomePlate = Anchor("HomePlate", new Vector3(0f, 0.24f, 0.4f), new Vector3(2.4f, 0.28f, 1.55f), Quaternion.identity);
             HomePoint = Anchor("HomePoint", new Vector3(0f, 0.24f, -0.52f), new Vector3(1.7f, 0.28f, 1.7f), Quaternion.Euler(0f, 45f, 0f));
             BoxL = Anchor("BoxL", new Vector3(-2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), Quaternion.identity);
@@ -128,6 +133,7 @@ namespace GrandSluggers.UnityClient
             Backstop = Folder("Backstop");
             Dugouts = Folder("Dugouts");
             WallDress = Folder("WallDress");
+            Grass = Folder("Grass");
             Scoreboard = Folder("Scoreboard");
             Bleachers = Folder("Bleachers");
             Town = Folder("Town");
@@ -145,6 +151,17 @@ namespace GrandSluggers.UnityClient
             var dirt = Look.Lit(new Color(0.62f, 0.42f, 0.26f), Look.Dirt, 3f, 0.1f);
             var infield = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
             var boxDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
+            if (DirtPad != null)
+            {
+                DirtPad.position = new Vector3(0f, 0.04f, 64f);
+                DirtPad.localScale = new Vector3(92f, 0.18f, 92f);
+            }
+            if (DirtDiamond != null)
+            {
+                DirtDiamond.position = new Vector3(0f, 0.12f, 63.64f);
+                DirtDiamond.localScale = new Vector3(100f, 0.24f, 100f);
+                DirtDiamond.rotation = Quaternion.Euler(0f, 45f, 0f);
+            }
             Mesh(DirtPad, PrimitiveType.Cube, infield);
             Mesh(HomeDirt, PrimitiveType.Cylinder, infield);
             Mesh(DirtDiamond, PrimitiveType.Cube, infield);
@@ -249,6 +266,7 @@ namespace GrandSluggers.UnityClient
             Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), 11f, 0.16f, bagDirt);
             Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), 11f, 0.16f, bagDirt);
             DressTrack(dirt);
+            DressGrass();
             DressBackstop();
             DressDugouts();
             DressWall();
@@ -308,16 +326,30 @@ namespace GrandSluggers.UnityClient
             Cube(Dugouts, "Dug3Bench", new Vector3(-42f, 1.0f, 24f), new Vector3(18f, 0.7f, 2.2f), bench);
         }
 
+        void DressGrass()
+        {
+            var lawn = Look.Lit(Colors.Grass, Look.Grass, 16f, 0.08f);
+            Cube(Grass, "OutfieldCarpet", new Vector3(0f, 0.15f, 270f), new Vector3(520f, 0.12f, 240f), lawn);
+        }
+
         void DressWall()
         {
             var pad = Look.Toon(new Color(0.18f, 0.38f, 0.28f));
+            var ivy = Look.Toon(new Color(0.14f, 0.48f, 0.22f));
+            var foam = Look.Toon(new Color(0.96f, 0.82f, 0.22f));
             var ads = new[]
             {
                 Look.Toon(Colors.Spark),
                 Look.Toon(Colors.Gold),
                 Look.Toon(new Color(0.18f, 0.42f, 0.72f)),
-                Look.Toon(new Color(0.94f, 0.94f, 0.9f))
+                Look.Toon(new Color(0.94f, 0.94f, 0.9f)),
+                Look.Toon(new Color(0.12f, 0.16f, 0.28f)),
+                Look.Toon(new Color(0.95f, 0.55f, 0.18f)),
+                Look.Toon(new Color(0.22f, 0.55f, 0.38f)),
+                Look.Toon(new Color(0.72f, 0.22f, 0.38f))
             };
+            var mark = Look.Toon(Colors.Gold);
+            var spark = Look.Toon(Colors.Spark);
             for (var i = -18; i <= 18; i++)
             {
                 var spray = i / 18f * 48f;
@@ -325,7 +357,21 @@ namespace GrandSluggers.UnityClient
                 var rad = spray * Mathf.Deg2Rad;
                 var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
                 Cube(WallDress, "Pad" + i, p + new Vector3(0f, -2.8f, 0f), new Vector3(14f, 4.4f, 2.4f), pad);
+                Cube(WallDress, "Foam" + i, p + new Vector3(0f, -0.35f, 0.2f), new Vector3(13.4f, 0.45f, 2.7f), foam);
                 Cube(WallDress, "Ad" + i, p + new Vector3(0f, 1.1f, -0.4f), new Vector3(12f, 3.4f, 0.55f), ads[Mathf.Abs(i) % ads.Length]);
+                if (i % 3 == 0)
+                    Cube(WallDress, "Ivy" + i, p + new Vector3(0f, -3.4f, 0.6f), new Vector3(5.5f, 2.2f, 0.35f), ivy);
+                if (i == 0)
+                {
+                    Cube(WallDress, "MarkSpark", p + new Vector3(0f, 1.3f, -0.85f), new Vector3(2.2f, 2.2f, 0.4f), spark);
+                    Cube(WallDress, "MarkGold", p + new Vector3(0f, 1.3f, -1.1f), new Vector3(1.1f, 1.1f, 0.35f), mark);
+                }
+                if (i == -5 || i == 5)
+                {
+                    Cube(WallDress, "WordH" + i, p + new Vector3(-2.4f, 1.35f, -0.85f), new Vector3(0.55f, 2.2f, 0.3f), mark);
+                    Cube(WallDress, "WordBar" + i, p + new Vector3(0f, 1.35f, -0.85f), new Vector3(3.6f, 0.45f, 0.3f), mark);
+                    Cube(WallDress, "WordE" + i, p + new Vector3(2.4f, 1.35f, -0.85f), new Vector3(0.55f, 2.2f, 0.3f), mark);
+                }
             }
         }
 
@@ -333,11 +379,49 @@ namespace GrandSluggers.UnityClient
         {
             var z = (float)_park.CenterFenceFt + 18f;
             var house = Look.Toon(new Color(0.12f, 0.14f, 0.18f));
-            var face = Look.Unlit(new Color(0.16f, 0.52f, 0.3f));
+            var face = Look.Unlit(new Color(0.10f, 0.22f, 0.14f));
+            _ledOn = Look.Unlit(new Color(1f, 0.78f, 0.18f));
+            _ledOff = Look.Unlit(new Color(0.08f, 0.12f, 0.09f));
+            var led = _ledOn;
+            var label = Look.Toon(new Color(0.92f, 0.94f, 0.9f));
             Cube(Scoreboard, "ScoreHouse", new Vector3(0f, 22f, z), new Vector3(48f, 28f, 8f), house);
             Cube(Scoreboard, "ScoreFace", new Vector3(0f, 22f, z - 4.2f), new Vector3(42f, 18f, 0.6f), face);
             Cube(Scoreboard, "ScoreSpark", new Vector3(0f, 34f, z - 4.4f), new Vector3(16f, 3.2f, 0.5f), Look.Toon(Colors.Spark));
             Cube(Scoreboard, "ScoreBar", new Vector3(0f, 12f, z - 4f), new Vector3(36f, 1.2f, 0.5f), Look.Toon(Colors.Gold));
+            Cube(Scoreboard, "LblAway", new Vector3(-12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), label);
+            Cube(Scoreboard, "LblHome", new Vector3(12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), Look.Toon(Colors.Spark));
+            Cube(Scoreboard, "LblInn", new Vector3(0f, 16.4f, z - 4.55f), new Vector3(4.2f, 0.9f, 0.28f), Look.Toon(Colors.Gold));
+            _awayTens = MakeDigit(Scoreboard, "AwayTens", new Vector3(-15.4f, 23.2f, z - 4.6f), led, 1f);
+            _awayOnes = MakeDigit(Scoreboard, "AwayOnes", new Vector3(-10.2f, 23.2f, z - 4.6f), led, 1f);
+            _homeTens = MakeDigit(Scoreboard, "HomeTens", new Vector3(9.6f, 23.2f, z - 4.6f), led, 1f);
+            _homeOnes = MakeDigit(Scoreboard, "HomeOnes", new Vector3(14.8f, 23.2f, z - 4.6f), led, 1f);
+            _innDigit = MakeDigit(Scoreboard, "InnDigit", new Vector3(0f, 19.4f, z - 4.6f), led, 0.85f);
+            Cube(Scoreboard, "HomeHouse", new Vector3(0f, 20.4f, -38.8f), new Vector3(22f, 11f, 2.8f), house);
+            Cube(Scoreboard, "HomeFace", new Vector3(0f, 20.4f, -37.3f), new Vector3(18.5f, 7.6f, 0.35f), face);
+            Cube(Scoreboard, "HomeLblA", new Vector3(-5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), label);
+            Cube(Scoreboard, "HomeLblH", new Vector3(5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), Look.Toon(Colors.Spark));
+            _plateAwayTens = MakeDigit(Scoreboard, "PlateAwayTens", new Vector3(-6.8f, 20.2f, -37.0f), led, 0.55f);
+            _plateAwayOnes = MakeDigit(Scoreboard, "PlateAwayOnes", new Vector3(-4.4f, 20.2f, -37.0f), led, 0.55f);
+            _plateHomeTens = MakeDigit(Scoreboard, "PlateHomeTens", new Vector3(4.4f, 20.2f, -37.0f), led, 0.55f);
+            _plateHomeOnes = MakeDigit(Scoreboard, "PlateHomeOnes", new Vector3(6.8f, 20.2f, -37.0f), led, 0.55f);
+            SetScore(0, 0, 1);
+        }
+
+        public void SetScore(int away, int home, int inning)
+        {
+            if (_awayTens == null) return;
+            away = Mathf.Clamp(away, 0, 99);
+            home = Mathf.Clamp(home, 0, 99);
+            inning = Mathf.Clamp(inning, 1, 9);
+            PaintDigit(_awayTens, away / 10);
+            PaintDigit(_awayOnes, away % 10);
+            PaintDigit(_homeTens, home / 10);
+            PaintDigit(_homeOnes, home % 10);
+            PaintDigit(_innDigit, inning);
+            PaintDigit(_plateAwayTens, away / 10);
+            PaintDigit(_plateAwayOnes, away % 10);
+            PaintDigit(_plateHomeTens, home / 10);
+            PaintDigit(_plateHomeOnes, home % 10);
         }
 
         void DressBleachers()
@@ -349,38 +433,51 @@ namespace GrandSluggers.UnityClient
                 var y = 3.2f + row * 2.15f;
                 var z = -44f - row * 3.6f;
                 Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 2.0f, 3.4f), conc);
-                CrowdCard(Bleachers, "CrowdH" + row, new Vector3(0, y + 1.6f, z - 1.4f), new Vector3(90 - row * 2, 2.8f, 0.4f));
+                CrowdBank(Bleachers, "CrowdH" + row, new Vector3(0, y + 0.95f, z - 1.15f), new Vector3(84 - row * 2, 0, 0), new Vector3(0, 0.12f, -0.85f), 12, 2, row * 31);
             }
             for (var row = 0; row < 5; row++)
             {
                 var y = 3.0f + row * 2.1f;
                 Cube(Bleachers, "LStep" + row, new Vector3(-102 - row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdCard(Bleachers, "CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
+                CrowdBank(Bleachers, "CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(-0.75f, 0.1f, 0), 10, 1, 200 + row * 17);
                 Cube(Bleachers, "RStep" + row, new Vector3(102 + row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdCard(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 1.5f, 40), new Vector3(0.4f, 2.6f, 80));
+                CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
-            Fans(new Vector3(-40, 5.2f, -46), new Vector3(8, 0, 0), 10);
-            Fans(new Vector3(-90, 6.4f, 20), new Vector3(0, 0, 8), 8);
-            Fans(new Vector3(90, 6.4f, 20), new Vector3(0, 0, 8), 8);
         }
 
-        void Fans(Vector3 origin, Vector3 step, int n)
+        void CrowdBank(Transform parent, string name, Vector3 origin, Vector3 along, Vector3 across, int seats, int deep, int seed)
         {
-            var jersey = new[] { Colors.Spark, Colors.Royal, Color.white, Colors.Gold };
-            for (var i = 0; i < n; i++)
+            if (parent == null) return;
+            var root = parent.Find(name);
+            if (root == null)
             {
-                var p = origin + step * i;
-                var body = Look.Toon(jersey[i % jersey.Length]);
-                var flesh = Look.Toon(new Color(1f, 0.8f, 0.68f));
-                Cube(Bleachers, "Fan" + origin.x + i, p + new Vector3(0, 1.1f, 0), new Vector3(1.1f, 2.0f, 0.9f), body);
-                Cube(Bleachers, "FanHead" + origin.x + i, p + new Vector3(0, 2.35f, 0), new Vector3(0.85f, 0.85f, 0.85f), flesh);
+                var go = new GameObject(name);
+                root = go.transform;
+                root.SetParent(parent, false);
             }
-        }
-
-        void CrowdCard(Transform parent, string name, Vector3 pos, Vector3 scale)
-        {
-            Cube(parent, name, pos, scale, Look.Lit(Color.white, Look.Crowd, 1f, 0.05f));
+            var jersey = new[]
+            {
+                Colors.Spark, Colors.Royal, Color.white, Colors.Gold,
+                new Color(0.14f, 0.18f, 0.34f), new Color(0.82f, 0.28f, 0.18f)
+            };
+            var flesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+            var dark = Look.Toon(new Color(0.36f, 0.24f, 0.16f));
+            var n = 0;
+            for (var d = 0; d < deep; d++)
+            {
+                for (var s = 0; s < seats; s++)
+                {
+                    var u = seats <= 1 ? 0f : s / (float)(seats - 1) - 0.5f;
+                    var p = origin + along * u + across * d;
+                    p.x += (Hash01(seed + n) - 0.5f) * 0.45f;
+                    p.z += (Hash01(seed + n + 9) - 0.5f) * 0.4f;
+                    var body = Look.Toon(jersey[n % jersey.Length]);
+                    Cube(root, "Body" + n, p + new Vector3(0f, 1.0f, 0f), new Vector3(0.95f, 1.8f, 0.78f), body);
+                    Cube(root, "Head" + n, p + new Vector3(0f, 2.08f, 0f), new Vector3(0.7f, 0.7f, 0.7f), n % 5 == 0 ? dark : flesh);
+                    n++;
+                }
+            }
         }
 
         void DressTown()
@@ -454,6 +551,73 @@ namespace GrandSluggers.UnityClient
                     Life = 1.6f + (i % 4) * 0.12f
                 };
             }
+        }
+
+        static readonly int[] DigitMask = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
+
+        Transform MakeDigit(Transform parent, string name, Vector3 pos, Material on, float scale)
+        {
+            if (parent == null) return null;
+            var root = parent.Find(name);
+            if (root == null)
+            {
+                var go = new GameObject(name);
+                root = go.transform;
+                root.SetParent(parent, false);
+            }
+            root.position = pos;
+            var w = 1.7f * scale;
+            var h = 3.1f * scale;
+            var t = 0.38f * scale;
+            var dim = _ledOff != null ? _ledOff : on;
+            Seg(root, "A", new Vector3(0f, h * 0.5f, 0f), new Vector3(w, t, t), dim);
+            Seg(root, "B", new Vector3(w * 0.5f, h * 0.25f, 0f), new Vector3(t, h * 0.42f, t), dim);
+            Seg(root, "C", new Vector3(w * 0.5f, -h * 0.25f, 0f), new Vector3(t, h * 0.42f, t), dim);
+            Seg(root, "D", new Vector3(0f, -h * 0.5f, 0f), new Vector3(w, t, t), dim);
+            Seg(root, "E", new Vector3(-w * 0.5f, -h * 0.25f, 0f), new Vector3(t, h * 0.42f, t), dim);
+            Seg(root, "F", new Vector3(-w * 0.5f, h * 0.25f, 0f), new Vector3(t, h * 0.42f, t), dim);
+            Seg(root, "G", new Vector3(0f, 0f, 0f), new Vector3(w * 0.92f, t, t), dim);
+            return root;
+        }
+
+        static void Seg(Transform parent, string name, Vector3 local, Vector3 scale, Material mat)
+        {
+            if (parent.Find(name) != null) return;
+            var go = Look.Prim(PrimitiveType.Cube, name, parent, local, scale, mat);
+            go.transform.localPosition = local;
+            go.transform.localScale = scale;
+        }
+
+        void PaintDigit(Transform root, int value)
+        {
+            if (root == null) return;
+            value = Mathf.Clamp(value, 0, 9);
+            var mask = DigitMask[value];
+            var lit = _ledOn != null ? _ledOn : Look.Unlit(new Color(1f, 0.78f, 0.18f));
+            var dim = _ledOff != null ? _ledOff : Look.Unlit(new Color(0.08f, 0.12f, 0.09f));
+            PaintSeg(root, "A", (mask & 1) != 0, lit, dim);
+            PaintSeg(root, "B", (mask & 2) != 0, lit, dim);
+            PaintSeg(root, "C", (mask & 4) != 0, lit, dim);
+            PaintSeg(root, "D", (mask & 8) != 0, lit, dim);
+            PaintSeg(root, "E", (mask & 16) != 0, lit, dim);
+            PaintSeg(root, "F", (mask & 32) != 0, lit, dim);
+            PaintSeg(root, "G", (mask & 64) != 0, lit, dim);
+        }
+
+        static void PaintSeg(Transform root, string name, bool on, Material lit, Material dim)
+        {
+            var tf = root.Find(name);
+            if (tf == null) return;
+            var r = tf.GetComponent<Renderer>();
+            if (r != null) r.sharedMaterial = on ? lit : dim;
+        }
+
+        static float Hash01(int i)
+        {
+            var n = (uint)(i * 16777619);
+            n ^= n >> 13;
+            n *= 1274126177u;
+            return (n & 0xFFFF) / 65535f;
         }
 
         static void Cube(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)
