@@ -81,6 +81,9 @@ namespace GrandSluggers.UnityClient
                     else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Scoop;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
+                    else if (_preview != null && CartoonJuice.ChaseIsARun(_caught || _buddy,
+                                 Diamond.Dist(x, z, _ball.x, _ball.z)))
+                        pose = HeroActor.Pose.Run;
                     else if (_preview != null) pose = FieldPose(who, _preview, false);
                     else pose = HeroActor.Pose.Field;
                 }
@@ -175,6 +178,10 @@ namespace GrandSluggers.UnityClient
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing)
                 HoldBallInGlove();
+            if (_throwing && _armedThrow != null)
+                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
+            else
+                _park.Ball.SetTrailColor(Color.white);
             if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat,
                     _phase is Phase.Flight or Phase.InPlay);

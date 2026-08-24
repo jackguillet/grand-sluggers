@@ -4,7 +4,7 @@
     { "id": "bat-solid", "slot": "Assets/Art/Audio/bat-solid", "bus": "sfx", "authored": true },
     { "id": "bat-cheap", "slot": "Assets/Art/Audio/bat-cheap", "bus": "sfx", "authored": true },
     { "id": "glove", "slot": "Assets/Art/Audio/glove", "bus": "sfx", "authored": true },
-    { "id": "throw", "slot": "Assets/Art/Audio/throw", "bus": "sfx" },
+    { "id": "throw", "slot": "Assets/Art/Audio/throw", "bus": "sfx", "authored": true },
     { "id": "crowd-bed", "slot": "Assets/Art/Audio/crowd-bed", "bus": "crowd", "authored": true },
     { "id": "crowd-swell", "slot": "Assets/Art/Audio/crowd-swell", "bus": "crowd" },
     { "id": "vo-rio", "slot": "Assets/Art/Audio/vo-rio", "bus": "vo" },

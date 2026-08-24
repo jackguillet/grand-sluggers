@@ -195,8 +195,9 @@ namespace GrandSluggers.UnityClient
             Shoe(chain.LShin, shoe, leather, trim, kid || Has("sneakers"));
             Shoe(chain.RShin, shoe, leather, trim, kid || Has("sneakers"));
 
-            var gold = Look.Unlit(Colors.Gold);
-            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", chain.Root, new Vector3(0, 0.08f, 0), new Vector3(2.2f, 0.07f, 2.2f), gold).transform;
+            var pink = Look.Unlit(new Color(1f, 0.48f, 0.78f));
+            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", parent, new Vector3(0, (float)SetTells.RingHeightFt, 0), new Vector3(2.6f, 0.05f, 2.6f), pink).transform;
+            Look.Prim(PrimitiveType.Cylinder, "MarkGold", chain.Ring, Vector3.zero, new Vector3(0.86f, 1.4f, 0.86f), Look.Unlit(Colors.Gold));
             chain.Ring.gameObject.SetActive(false);
             return chain;
         }
