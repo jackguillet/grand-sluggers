@@ -19,9 +19,6 @@ namespace GrandSluggers.UnityClient
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
         public bool Night;
-        static readonly string[] Parks = { "harbor-diamond", "crystal-rink", "funfair-park", "rooftop-city", "canopy-yard", "ember-keep" };
-        float _cHold;
-        bool _cNight;
         TeamBuilder _homeDraft;
         TeamBuilder _awayDraft;
         int _lineupSlot;
@@ -62,7 +59,7 @@ namespace GrandSluggers.UnityClient
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
-        enum Phase { Title, Select, Lineup, Set, Flight, InPlay, Result, GameOver }
+        enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, Result, GameOver }
         Phase _phase = Phase.Title;
         readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
         int _itemPick;
@@ -241,6 +238,12 @@ namespace GrandSluggers.UnityClient
                 HudView.Select(HomeCaptain, AwayCaptain, _content);
                 return;
             }
+            if (_phase == Phase.Field)
+            {
+                var fieldName = _content.Parks.TryGetValue(ParkId, out var pk) ? pk.Name : ParkId;
+                HudView.Field(fieldName, Night);
+                return;
+            }
             if (_phase == Phase.Lineup && _homeDraft != null)
             {
                 var taken = new List<string>();
@@ -254,6 +257,7 @@ namespace GrandSluggers.UnityClient
             {
                 Phase.Title => PhaseUi.Title,
                 Phase.Select => PhaseUi.Select,
+                Phase.Field => PhaseUi.Field,
                 Phase.Lineup => PhaseUi.Lineup,
                 Phase.GameOver => PhaseUi.GameOver,
                 _ => PhaseUi.Set
