@@ -46,6 +46,7 @@ public class StillHarnessTests
         Assert.True(StillPose.ScoopX > 12);
         Assert.InRange(StillPose.ScoopPoseT, 0.28, 0.45);
         Assert.Equal("2B", StillPose.ScoopGlove);
+        Assert.True(StillPose.CameraClearsTheDugout(StillPose.CamX, StillPose.CamZ));
         var defense = FieldingResolver.Assign(
             Match.Exhibition(_content, "rio", "ashlord", seed: 7).Away.Roster,
             _content.Must("ashlord"));
