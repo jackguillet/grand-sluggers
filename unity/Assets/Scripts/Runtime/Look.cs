@@ -89,19 +89,9 @@ namespace GrandSluggers.UnityClient
         {
             var c = Color.Lerp(color, Color.white, 0.08f);
             c = new Color(Mathf.Min(1f, c.r * 1.18f), Mathf.Min(1f, c.g * 1.12f), Mathf.Min(1f, c.b * 1.08f), 1f);
-            var shadow = Color.Lerp(c, new Color(0.16f, 0.12f, 0.22f), 0.42f);
-            var sh = ToonShader;
-            if (sh != null)
-            {
-                var m = new Material(sh);
-                if (m.HasProperty("_Color")) m.SetColor("_Color", c);
-                if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
-                if (m.HasProperty("_ShadowTint")) m.SetColor("_ShadowTint", shadow);
-                if (m.HasProperty("_Rim")) m.SetColor("_Rim", new Color(1f, 0.94f, 0.82f, 1f));
-                if (m.HasProperty("_OutlineColor")) m.SetColor("_OutlineColor", new Color(0.07f, 0.05f, 0.09f, 1f));
-                if (m.HasProperty("_Outline")) m.SetFloat("_Outline", 0.048f);
-                return m;
-            }
+            // ToonFill is CG/SRPDefaultUnlit. On llvmpipe it loses Z to URP Lit
+            // grass, so SET from the mound showed only Lit hat brims. Use Lit
+            // until ToonFill is a real URP pass.
             return Lit(c, smooth: 0.04f);
         }
 

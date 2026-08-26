@@ -203,7 +203,8 @@ namespace GrandSluggers.UnityClient
             }
             _t += dt;
             var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.Result;
-            if (!_match.Paused && playPause && Controls.CallTime && _t > 0.2f)
+            var openedPause = PauseMenu.Open(_match.Paused, playPause, Controls.CallTime, _t);
+            if (openedPause)
             {
                 _match.SetPaused(true);
                 _pauseItem = 0;
@@ -214,7 +215,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_match.Paused)
             {
-                TickPause();
+                if (!openedPause) TickPause();
                 _actors.Draw();
                 return;
             }
@@ -333,7 +334,7 @@ namespace GrandSluggers.UnityClient
                 }
                 if (Controls.SouthDown)
                     _pausePage = (_pausePage + 1) % HowToPlay.Pages.Count;
-                if (Controls.EastDown || Controls.CallTime)
+                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime, _t))
                 {
                     _pauseHowTo = false;
                     _t = 0;
@@ -365,7 +366,7 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            if (Controls.EastDown || Controls.CallTime)
+            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime, _t))
                 _match.SetPaused(false);
         }
 
