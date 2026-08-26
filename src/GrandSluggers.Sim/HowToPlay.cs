@@ -27,6 +27,15 @@ public static class PauseMenu
     }
 
     public static Item At(int index) => Items[Wrap(index, 0)];
+
+    public const float Debounce = 0.2f;
+
+    /// <summary>Start / H opens Call time. The same press must not close it.</summary>
+    public static bool Open(bool paused, bool inAtBat, bool start, float t) =>
+        !paused && inAtBat && start && t > Debounce;
+
+    public static bool Dismiss(bool startOrBack, float t) =>
+        startOrBack && t > Debounce;
 }
 
 public static class HowToPlay

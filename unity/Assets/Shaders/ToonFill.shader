@@ -9,9 +9,13 @@ Shader "GrandSluggers/ToonFill"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" "Queue"="Geometry" "RenderPipeline"="UniversalPipeline" }
-        Cull Back
+        Tags { "RenderType"="Opaque" "Queue"="Geometry+20" "RenderPipeline"="UniversalPipeline" }
+        // Draw after URP Lit grass. llvmpipe overwrites SRPDefaultUnlit characters
+        // with later Lit slabs, so SET from behind the mound showed only the gold
+        // brim (Lit) and empty turf where Rio's toon body should be.
+        Cull Off
         ZWrite On
+        ZTest LEqual
 
         Pass
         {

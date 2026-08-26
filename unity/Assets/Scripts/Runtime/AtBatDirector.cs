@@ -75,17 +75,43 @@ namespace GrandSluggers.UnityClient
             _gloved = false;
             _audio?.CrowdBed(true);
             AimSetCamera();
+            LogSetCam("begin");
             _zone.Show(true, 0, 0);
+        }
+
+        void LogSetCam(string tag)
+        {
+            var live = Camera.main;
+            var rio = PitcherHero();
+            var rp = rio != null ? rio.transform.position.ToString("F1") : "null";
+            var vp = rio != null && live != null
+                ? live.WorldToViewportPoint(rio.transform.position + Vector3.up * 2.2f).ToString("F2")
+                : "-";
+            Debug.Log("GS SET " + tag
+                + " shot=" + (_cam != null ? _cam.Shot : "?")
+                + " pos=" + (live != null ? live.transform.position.ToString("F1") : "null")
+                + " fwd=" + (live != null ? live.transform.forward.ToString("F2") : "-")
+                + " fov=" + (live != null ? live.fieldOfView.ToString("F1") : "-")
+                + " fl=" + (live != null ? live.focalLength.ToString("F1") : "-")
+                + " phys=" + (live != null && live.usePhysicalProperties)
+                + " px=" + (live != null ? live.pixelWidth + "x" + live.pixelHeight : "-")
+                + " cams=" + Camera.allCamerasCount
+                + " rio=" + rp + " vp=" + vp);
         }
 
         void AimSetCamera()
         {
             var shot = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight, _charge, _aimX, _aimY);
-            _cam.Play(shot);
+            // SET snaps. Blending from title flies the camera through the backstop.
+            if (_phase == Phase.Set)
+                _cam.Cut(shot);
+            else
+                _cam.Play(shot);
         }
 
         void TickSet(float dt)
         {
+            if (_t > 0.2f && _t < 0.28f) LogSetCam("live");
             HoldPitchInHand();
             if (HumanPitches)
                 _pitchCharge = _charge;
