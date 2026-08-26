@@ -62,14 +62,13 @@ namespace GrandSluggers.UnityClient
 
         static bool Placed(string id, out Vector3 pos, out Vector3 look, out float fov)
         {
+            // Kit shot transforms used to store FOV in localScale.x, which shears the
+            // Look child. Runtime cameras are data/feel/shots.json only.
             pos = default;
             look = default;
             fov = 0;
-            var kit = HarborKit.Instance;
-            if (kit == null || !kit.OwnsDiamond) return false;
-            if (!kit.TryShot(id, out pos, out look, out fov)) return false;
-            if (fov < 10f) fov = 0f;
-            return true;
+            _ = id;
+            return false;
         }
 
         public void ThrowTo(Vector3 from, Vector3 to, bool tag = false)

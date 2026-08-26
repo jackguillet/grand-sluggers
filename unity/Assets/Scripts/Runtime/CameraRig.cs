@@ -12,7 +12,14 @@ namespace GrandSluggers.UnityClient
         float _punch;
         float _blend = 6f;
 
-        public Camera Cam => _cam;
+        public Camera Cam
+        {
+            get
+            {
+                if (_cam == null) _cam = Camera.main;
+                return _cam;
+            }
+        }
 
         public void UseFeel(FeelTable feel)
         {
@@ -22,10 +29,27 @@ namespace GrandSluggers.UnityClient
 
         public void Bind(Camera cam)
         {
-            _cam = cam;
-            _pos = cam.transform.position;
-            _look = cam.transform.position + cam.transform.forward * 40f;
-            _fov = cam.fieldOfView;
+            _cam = cam != null ? cam : Camera.main;
+            var live = Cam;
+            if (live == null) return;
+            UnlockFov(live);
+            _pos = live.transform.position;
+            _look = live.transform.position + live.transform.forward * 40f;
+            _fov = live.fieldOfView;
+        }
+
+        static void UnlockFov(Camera cam)
+        {
+            if (cam == null) return;
+            // HarborDiamond's Main Camera is serialized Physical / 50mm. FOV writes
+            // are ignored until this is off, so SET stays a telephoto of the cage.
+            cam.usePhysicalProperties = false;
+        }
+
+        Camera[] Targets()
+        {
+            var all = Camera.allCameras;
+            return all != null && all.Length > 0 ? all : (Cam != null ? new[] { Cam } : System.Array.Empty<Camera>());
         }
 
         public void Cut(Vector3 pos, Vector3 look, float fov = 48f)
@@ -33,10 +57,14 @@ namespace GrandSluggers.UnityClient
             _pos = pos;
             _look = look;
             _fov = fov;
-            if (_cam == null) return;
-            _cam.transform.position = pos;
-            _cam.transform.LookAt(look);
-            _cam.fieldOfView = fov;
+            foreach (var cam in Targets())
+            {
+                if (cam == null) continue;
+                UnlockFov(cam);
+                cam.transform.position = pos;
+                cam.transform.LookAt(look);
+                cam.fieldOfView = fov;
+            }
         }
 
         public void Aim(Vector3 pos, Vector3 look, float fov = 48f)
@@ -57,11 +85,11 @@ namespace GrandSluggers.UnityClient
         }
 
         public void FramePitch() =>
-            Aim(new Vector3(9.8f, 6.4f, 76.5f), new Vector3(0.4f, 2.2f, 1.0f), 42f);
+            Cut(new Vector3(-12.5f, 5.5f, 54.0f), new Vector3(0.0f, 1.05f, 60.8f), 48f);
 
         /// <summary>Over-the-batter 3/4 looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
         public void FramePlate() =>
-            Aim(new Vector3(-5.2f, 5.5f, -6.8f), new Vector3(3.4f, 2.8f, 58f), 52f);
+            Cut(new Vector3(-5.2f, 5.5f, -6.8f), new Vector3(3.4f, 2.8f, 58f), 52f);
 
         public void FrameThrow(Vector3 from, Vector3 to)
         {
@@ -75,14 +103,23 @@ namespace GrandSluggers.UnityClient
 
         public void Tick(float dt)
         {
-            if (_cam == null) return;
             var k = _blend > 0 ? _blend : 6f;
-            _cam.transform.position = Vector3.Lerp(_cam.transform.position, _pos, 1f - Mathf.Exp(-k * dt));
-            var currentLook = _cam.transform.position + _cam.transform.forward * 40f;
-            var look = Vector3.Lerp(currentLook, _look, 1f - Mathf.Exp(-(k + 1f) * dt));
-            _cam.transform.LookAt(look);
+            var snap = 1f - Mathf.Exp(-k * dt);
+            var rotSnap = 1f - Mathf.Exp(-(k + 1f) * dt);
+            foreach (var cam in Targets())
+            {
+                if (cam == null) continue;
+                UnlockFov(cam);
+                cam.transform.position = Vector3.Lerp(cam.transform.position, _pos, snap);
+                var to = _look - cam.transform.position;
+                if (to.sqrMagnitude > 0.0001f)
+                {
+                    var want = Quaternion.LookRotation(to.normalized, Vector3.up);
+                    cam.transform.rotation = Quaternion.Slerp(cam.transform.rotation, want, rotSnap);
+                }
+                cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, _fov - _punch, 1f - Mathf.Exp(-10f * dt));
+            }
             _punch = Mathf.MoveTowards(_punch, 0f, dt * 28f);
-            _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, _fov - _punch, 1f - Mathf.Exp(-10f * dt));
         }
     }
 }
