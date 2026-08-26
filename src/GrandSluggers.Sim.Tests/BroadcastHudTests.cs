@@ -45,5 +45,15 @@ public class BroadcastHudTests
         Assert.InRange(bug.DefenseStars, 0, 5);
         Assert.False(BroadcastHud.MutePlay(false, 0, 0));
         Assert.Throws<ArgumentNullException>(() => BroadcastHud.From(null!));
+
+    }
+
+    [Fact]
+    public void HeadlineTakeStrikeIsStrikeNotTakeStrikeGlued()
+    {
+        Assert.Equal("STRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
+        Assert.Equal("BALL", BroadcastHud.Headline(PlayKind.TakeBall));
+        Assert.Equal("GROUNDOUT", BroadcastHud.Headline(PlayKind.GroundOut));
+        Assert.DoesNotContain("TAKESTRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
     }
 }
