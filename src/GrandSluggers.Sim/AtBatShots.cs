@@ -16,7 +16,10 @@ public static class AtBatShots
         _ = charge;
         _ = aimX;
         _ = aimY;
-        if (humanPitches) return Mound;
-        return flight ? Pitch : Plate;
+        // Flight is the throw: look at the pitcher so the ball leaves that hand toward the plate.
+        // SET pitching stays mound; SET batting stays plate. Do not keep mound through a human pitch —
+        // that camera looks CF and the throw is behind the lens (#301).
+        if (flight) return Pitch;
+        return humanPitches ? Mound : Plate;
     }
 }
