@@ -104,6 +104,13 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        /// <summary>Call time / How to play. A tap of S or Down must step once (#311).</summary>
+        public static bool MenuDown =>
+            KeyDown(Key.S) || KeyDown(Key.DownArrow) || PressedDpadDown;
+
+        public static bool MenuUp =>
+            KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpadUp;
+
         public static int ThrowBag
         {
             get
@@ -212,6 +219,8 @@ namespace GrandSluggers.UnityClient
         static bool DpadUp { get { var p = Pad; return p != null && p.dpad.up.isPressed; } }
         static bool DpadLeft { get { var p = Pad; return p != null && p.dpad.left.isPressed; } }
         static bool DpadDown { get { var p = Pad; return p != null && p.dpad.down.isPressed; } }
+        static bool PressedDpadDown { get { var p = Pad; return p != null && p.dpad.down.wasPressedThisFrame; } }
+        static bool PressedDpadUp { get { var p = Pad; return p != null && p.dpad.up.wasPressedThisFrame; } }
 
         static bool Kb(Key k)
         {

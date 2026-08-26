@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace GrandSluggers.Sim;
 
 /// <summary>
@@ -45,11 +47,21 @@ public readonly record struct CharacterCard(
     {
         if (string.IsNullOrWhiteSpace(id)) return "";
         var parts = id.Split('-', StringSplitOptions.RemoveEmptyEntries);
-        for (var i = 0; i < parts.Length; i++)
+        var words = new List<string>();
+        foreach (var raw in parts)
         {
-            var w = parts[i];
-            parts[i] = char.ToUpperInvariant(w[0]) + w[1..];
+            var w = raw;
+            if (w.Length > 4 && w.EndsWith("ball", StringComparison.OrdinalIgnoreCase))
+            {
+                words.Add(Cap(w[..^4]));
+                words.Add("Ball");
+            }
+            else
+                words.Add(Cap(w));
         }
-        return string.Join(' ', parts);
+        return string.Join(' ', words);
     }
+
+    static string Cap(string w) =>
+        string.IsNullOrEmpty(w) ? "" : char.ToUpperInvariant(w[0]) + w[1..];
 }

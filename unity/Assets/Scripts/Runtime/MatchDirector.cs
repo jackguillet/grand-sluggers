@@ -341,7 +341,17 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            if (_pauseStick <= 0 && Mathf.Abs(Controls.StickY) >= 0.45f)
+            if (Controls.MenuDown)
+            {
+                _pauseItem = PauseMenu.Wrap(_pauseItem, 1);
+                _pauseStick = 0.22f;
+            }
+            else if (Controls.MenuUp)
+            {
+                _pauseItem = PauseMenu.Wrap(_pauseItem, -1);
+                _pauseStick = 0.22f;
+            }
+            else if (_pauseStick <= 0 && Mathf.Abs(Controls.StickY) >= 0.45f)
             {
                 _pauseItem = PauseMenu.Wrap(_pauseItem, Controls.StickY > 0 ? -1 : 1);
                 _pauseStick = 0.22f;
@@ -444,7 +454,7 @@ namespace GrandSluggers.UnityClient
                 _last.Caption != null && _last.Caption.IndexOf("BUDDY", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 _banner = "BUDDY JUMP";
             else
-                _banner = _last != null ? _last.Kind.ToString().ToUpperInvariant() : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
+                _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");
         }
 

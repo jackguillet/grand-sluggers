@@ -98,7 +98,7 @@ SET pitching is **3/4 over the pitcher** (`mound`) looking at home. SET batting 
 - **Sweet-spot oval** on the dirt is smaller than the zone. Walk so it eats the ball.
 - **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
 - **Select / R** — swap pitcher (when they sweat, they are tired).
-- **Start / H** during SET or in-play — **call time**: Resume, Restart, How to play, Title. Tab on the title cycles 3 / 6 / 9 innings.
+- **Start / H** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space ok. Tab on the title cycles 3 / 6 / 9 innings.
 
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 

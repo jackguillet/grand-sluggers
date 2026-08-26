@@ -105,6 +105,7 @@ public static class HowToPlay
         new("pause-practice", "Pause and Practice",
         [
             "Start / H during a pitch or play    call time (this menu).",
+            "WASD or arrows choose. South / Space ok. Start / H or East / G resume.",
             "Resume, Restart, How to play, Title.",
             "Title West    Practice. Stick picks Pitch / Bat / Field / Run / Special / Free.",
             "East from pitching    skip to Fielding (scoop). You are not trapped in lesson 1.",

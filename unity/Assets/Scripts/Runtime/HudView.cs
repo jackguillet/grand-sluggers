@@ -5,7 +5,7 @@ namespace GrandSluggers.UnityClient
 {
     public static class HudView
     {
-        static GUIStyle _title, _h1, _body, _gold, _tiny, _score, _team;
+        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white;
         static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
 
@@ -78,7 +78,7 @@ namespace GrandSluggers.UnityClient
             if (content != null && content.Characters.TryGetValue(homeId, out var homeWho))
                 Card(CharacterCard.Of(homeWho), 36, 28);
             if (content != null && content.Characters.TryGetValue(awayId, out var awayWho))
-                Sticker("vs  " + awayWho.Name, 36, 236, 400, 24, _gold);
+                Sticker("vs  " + awayWho.Name, 36, 268, 400, 24, _gold);
             GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
                 "stick L/R home    U/D away    South the field    West title", _tiny);
         }
@@ -87,24 +87,25 @@ namespace GrandSluggers.UnityClient
         {
             Ensure();
             const float w = 312f;
-            const float h = 200f;
+            const float h = 232f;
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
             GUI.Label(new Rect(x + 14, y + 8, w - 50, 28), card.Name.ToUpperInvariant(), _h1);
             ChemPip(x + w - 34, y + 14, card.VsCaptain);
-            StatRow(x + 14, y + 42, "P", card.Stats.Pitch);
-            StatRow(x + 14, y + 64, "B", card.Stats.Bat);
-            StatRow(x + 14, y + 86, "F", card.Stats.Field);
-            StatRow(x + 14, y + 108, "R", card.Stats.Run);
-            GUI.Label(new Rect(x + 14, y + 136, w - 28, 22), card.StarPitch + "    " + card.StarSwing, _gold);
-            GUI.Label(new Rect(x + 14, y + 162, w - 28, 22), card.FieldVerb, _tiny);
+            StatRow(x + 14, y + 42, "PIT", card.Stats.Pitch);
+            StatRow(x + 14, y + 64, "BAT", card.Stats.Bat);
+            StatRow(x + 14, y + 86, "FLD", card.Stats.Field);
+            StatRow(x + 14, y + 108, "RUN", card.Stats.Run);
+            GUI.Label(new Rect(x + 14, y + 136, w - 28, 24), card.StarPitch, _body);
+            GUI.Label(new Rect(x + 14, y + 160, w - 28, 24), card.StarSwing, _body);
+            GUI.Label(new Rect(x + 14, y + 186, w - 28, 24), card.FieldVerb, _tiny);
         }
 
         static void StatRow(float x, float y, string label, int n)
         {
-            GUI.Label(new Rect(x, y, 22, 20), label, _gold);
+            GUI.Label(new Rect(x, y, 56, 20), label, _stat);
             n = Mathf.Clamp(n, 0, 10);
             for (var i = 0; i < 10; i++)
-                GUI.DrawTexture(new Rect(x + 28 + i * 24, y + 3, 18, 14), i < n ? _bar : _dotOff);
+                GUI.DrawTexture(new Rect(x + 60 + i * 22, y + 3, 16, 14), i < n ? _bar : _dotOff);
         }
 
         static void ChemPip(float x, float y, Chemistry chem)
@@ -288,9 +289,9 @@ namespace GrandSluggers.UnityClient
 
         static void MiniDiamond(float x, float y, BroadcastHud.Scorebug bug)
         {
-            BagPip(x + 28, y + 14, bug.RunnerSecond);
-            BagPip(x + 46, y + 4, bug.RunnerFirst);
-            BagPip(x + 10, y + 4, bug.RunnerThird);
+            BagPip(x + 28, y, bug.RunnerSecond);
+            BagPip(x + 46, y + 12, bug.RunnerFirst);
+            BagPip(x + 10, y + 12, bug.RunnerThird);
         }
 
         static void BagPip(float x, float y, bool on)
@@ -378,6 +379,8 @@ namespace GrandSluggers.UnityClient
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
             _gold = Sty(20, new Color(1f, 0.82f, 0.25f), FontStyle.Bold);
             _tiny = Sty(15, new Color(0.85f, 0.88f, 0.9f), FontStyle.Normal);
+            _stat = Sty(15, new Color(1f, 0.82f, 0.25f), FontStyle.Bold);
+            _stat.clipping = TextClipping.Overflow;
             _score = Sty(28, Color.white, FontStyle.Bold);
             _team = Sty(22, Color.white, FontStyle.Bold);
             _panel = Tex(new Color(0.05f, 0.06f, 0.09f, 0.86f));

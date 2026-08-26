@@ -30,6 +30,26 @@ public static class BroadcastHud
         string AwayName,
         string HomeName);
 
+    /// <summary>Banner headline. Kind.ToString() is TAKESTRIKE, not a scorebug.</summary>
+    public static string Headline(PlayKind kind) => kind switch
+    {
+        PlayKind.StolenBase => "STOLEN BASE",
+        PlayKind.CaughtStealing => "CAUGHT STEALING",
+        PlayKind.HomeRun => "HOME RUN",
+        PlayKind.Triple => "TRIPLE",
+        PlayKind.Double => "DOUBLE",
+        PlayKind.Single => "SINGLE",
+        PlayKind.Walk => "WALK",
+        PlayKind.Strikeout => "STRIKEOUT",
+        PlayKind.FlyOut => "OUT",
+        PlayKind.GroundOut => "GROUNDOUT",
+        PlayKind.Foul => "FOUL",
+        PlayKind.SwingMiss => "SWING AND A MISS",
+        PlayKind.TakeStrike => "STRIKE",
+        PlayKind.TakeBall => "BALL",
+        _ => kind.ToString().ToUpperInvariant()
+    };
+
     public static Scorebug From(Match match)
     {
         if (match == null) throw new ArgumentNullException(nameof(match));
