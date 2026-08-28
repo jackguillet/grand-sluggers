@@ -472,8 +472,10 @@ namespace GrandSluggers.UnityClient
         static void AttachRing(Chain chain, Transform parent)
         {
             var pink = Look.Unlit(new Color(1f, 0.48f, 0.78f));
-            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", parent, new Vector3(0, (float)SetTells.RingHeightFt, 0), new Vector3(2.6f, 0.05f, 2.6f), pink).transform;
-            Look.Prim(PrimitiveType.Cylinder, "MarkGold", chain.Ring, Vector3.zero, new Vector3(0.86f, 1.4f, 0.86f), Look.Unlit(Colors.Gold));
+            var hole = Look.Unlit(new Color(0.62f, 0.42f, 0.24f));
+            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", parent, new Vector3(0, (float)SetTells.RingHeightFt, 0), new Vector3(6.4f, 0.08f, 6.4f), pink).transform;
+            Look.Prim(PrimitiveType.Cylinder, "MarkHole", chain.Ring, Vector3.zero, new Vector3(0.70f, 1.6f, 0.70f), hole);
+            Look.Prim(PrimitiveType.Cylinder, "MarkGold", chain.Ring, Vector3.zero, new Vector3(0.86f, 1.25f, 0.86f), Look.Unlit(Colors.Gold));
             chain.Ring.gameObject.SetActive(false);
         }
 

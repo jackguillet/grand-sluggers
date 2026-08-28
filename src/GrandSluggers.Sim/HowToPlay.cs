@@ -90,14 +90,14 @@ public static class HowToPlay
         ]),
         new("exhibition", "Captain and field",
         [
-            "Title is the park. Logo is a sticker. Home captain is the toy in front. South / Space    play ball.",
+            "Title is the park. Logo is a sticker facing the camera. One home captain is the toy in front. South / Space    play ball.",
             "Captains are the toys. Stick L/R home, U/D away. The card is the UI.",
             "South    the field — a postcard. Gimmick is one line. Harbor is the slice.",
             "West / F    back. The park does not follow the captain.",
         ]),
         new("lineup", "Lineup",
         [
-            "The diamond is the draft. Highlighted toy grows. Card stays.",
+            "The diamond is the draft — a mini diamond of toys. Highlighted toy grows. Card stays.",
             "Hearts are buddies. Scribbles are rivals. Stars jump when a buddy comes in.",
             "Stick slot vs pool. West swap. RB glove    P / C / IF / OF.",
             "LB / East    batting order. South / Space    play ball.",

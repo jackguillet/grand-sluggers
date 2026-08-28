@@ -24,6 +24,13 @@ public static class ChemistryToy
         return (p.X / 110.0, p.Z / 305.0);
     }
 
+    /// <summary>World-space mini diamond in front of the lineup camera. Not the 90-ft field.</summary>
+    public static (double X, double Z) LineupWorldSpot(string pos)
+    {
+        var uv = MiniSpot(pos);
+        return (uv.U * 16.0, 3.0 + uv.V * 24.0);
+    }
+
     public static (double U, double V) GroupTokenSpot(string group) => group switch
     {
         "P" => (0, 0.20),

@@ -512,7 +512,10 @@ namespace GrandSluggers.UnityClient
                     Box(WallDress, "Cap" + i, p + Vector3.up * 8.92f, new Vector3(17.2f, 0.26f, 1.85f), rot, cap);
                 }
                 if (i % 2 == 0)
+                {
                     Box(WallDress, "Ad" + i, p - radial * 0.85f + Vector3.up * 5.5f, new Vector3(10.5f, 2.6f, 0.22f), rot, ads[Mathf.Abs(i) % ads.Length]);
+                    AdCopy(WallDress, "AdCopy" + i, AdWord(i), p - radial * 1.05f + Vector3.up * 5.5f, rot, Color.white);
+                }
                 if (i % 3 == 0)
                     Box(WallDress, "Ivy" + i, p - radial * 0.95f + Vector3.up * 1.6f, new Vector3(5.2f, 2.4f, 0.28f), rot, ivy);
                 if (i == 0)
@@ -549,19 +552,19 @@ namespace GrandSluggers.UnityClient
             Cube(Scoreboard, "LblAway", new Vector3(-12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), label);
             Cube(Scoreboard, "LblHome", new Vector3(12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), Look.Toon(Colors.Spark));
             Cube(Scoreboard, "LblInn", new Vector3(0f, 16.4f, z - 4.55f), new Vector3(4.2f, 0.9f, 0.28f), Look.Toon(Colors.Gold));
-            _awayTens = MakeDigit(Scoreboard, "AwayTens", new Vector3(-15.4f, 23.2f, z - 4.6f), led, 1f);
-            _awayOnes = MakeDigit(Scoreboard, "AwayOnes", new Vector3(-10.2f, 23.2f, z - 4.6f), led, 1f);
-            _homeTens = MakeDigit(Scoreboard, "HomeTens", new Vector3(9.6f, 23.2f, z - 4.6f), led, 1f);
-            _homeOnes = MakeDigit(Scoreboard, "HomeOnes", new Vector3(14.8f, 23.2f, z - 4.6f), led, 1f);
-            _innDigit = MakeDigit(Scoreboard, "InnDigit", new Vector3(0f, 19.4f, z - 4.6f), led, 0.85f);
+            _awayTens = MakeDigit(Scoreboard, "AwayTens", new Vector3(-15.4f, 23.2f, z - 4.6f), led, 1.85f);
+            _awayOnes = MakeDigit(Scoreboard, "AwayOnes", new Vector3(-10.2f, 23.2f, z - 4.6f), led, 1.85f);
+            _homeTens = MakeDigit(Scoreboard, "HomeTens", new Vector3(9.6f, 23.2f, z - 4.6f), led, 1.85f);
+            _homeOnes = MakeDigit(Scoreboard, "HomeOnes", new Vector3(14.8f, 23.2f, z - 4.6f), led, 1.85f);
+            _innDigit = MakeDigit(Scoreboard, "InnDigit", new Vector3(0f, 19.4f, z - 4.6f), led, 1.45f);
             Cube(Scoreboard, "HomeHouse", new Vector3(0f, 20.4f, -38.8f), new Vector3(22f, 11f, 2.8f), house);
             Cube(Scoreboard, "HomeFace", new Vector3(0f, 20.4f, -37.3f), new Vector3(18.5f, 7.6f, 0.35f), face);
             Cube(Scoreboard, "HomeLblA", new Vector3(-5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), label);
             Cube(Scoreboard, "HomeLblH", new Vector3(5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), Look.Toon(Colors.Spark));
-            _plateAwayTens = MakeDigit(Scoreboard, "PlateAwayTens", new Vector3(-6.8f, 20.2f, -37.0f), led, 0.55f);
-            _plateAwayOnes = MakeDigit(Scoreboard, "PlateAwayOnes", new Vector3(-4.4f, 20.2f, -37.0f), led, 0.55f);
-            _plateHomeTens = MakeDigit(Scoreboard, "PlateHomeTens", new Vector3(4.4f, 20.2f, -37.0f), led, 0.55f);
-            _plateHomeOnes = MakeDigit(Scoreboard, "PlateHomeOnes", new Vector3(6.8f, 20.2f, -37.0f), led, 0.55f);
+            _plateAwayTens = MakeDigit(Scoreboard, "PlateAwayTens", new Vector3(-6.8f, 20.2f, -37.0f), led, 0.9f);
+            _plateAwayOnes = MakeDigit(Scoreboard, "PlateAwayOnes", new Vector3(-4.4f, 20.2f, -37.0f), led, 0.9f);
+            _plateHomeTens = MakeDigit(Scoreboard, "PlateHomeTens", new Vector3(4.4f, 20.2f, -37.0f), led, 0.9f);
+            _plateHomeOnes = MakeDigit(Scoreboard, "PlateHomeOnes", new Vector3(6.8f, 20.2f, -37.0f), led, 0.9f);
             SetScore(0, 0, 1);
         }
 
@@ -603,6 +606,15 @@ namespace GrandSluggers.UnityClient
                 CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
+            var cfFence = _park != null ? (float)_park.CenterFenceFt : 310f;
+            for (var row = 0; row < 5; row++)
+            {
+                var y = 4.4f + row * 2.2f;
+                var z = cfFence + 10f + row * 3.6f;
+                Cube(Bleachers, "CfStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 4, 0.72f, 3.4f), conc);
+                CrowdBank(Bleachers, "CrowdCf" + row, new Vector3(0, y + 0.42f, z + 1.1f), new Vector3(80 - row * 4, 0, 0), new Vector3(0, 0.12f, 0.9f), 14, 2, 600 + row * 23);
+            }
+            Cube(Bleachers, "RailCf", new Vector3(0, 3.2f, cfFence + 8f), new Vector3(70, 1.2f, 1.2f), rail);
         }
 
         void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)
@@ -667,15 +679,18 @@ namespace GrandSluggers.UnityClient
 
         void DressTown()
         {
-            var white = Look.Lit(new Color(0.93f, 0.95f, 0.96f), smooth: 0.2f);
             var brick = Look.Lit(new Color(0.62f, 0.28f, 0.22f), smooth: 0.1f);
+            var navy = Look.Lit(new Color(0.16f, 0.22f, 0.38f), smooth: 0.12f);
             var red = Look.Lit(Colors.SparkDark, smooth: 0.15f);
-            Cube(Town, "Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), white);
+            var gold = Look.Lit(Colors.Gold, smooth: 0.35f);
+            var wood = Look.Lit(new Color(0.42f, 0.28f, 0.16f), smooth: 0.12f);
+            Cube(Town, "Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), brick);
             Cube(Town, "SparkHall", new Vector3(-18, 18, 505), new Vector3(22, 36, 20), red);
-            Cube(Town, "Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), white);
-            Cube(Town, "Pier", new Vector3(110, 6, 470), new Vector3(70, 5, 16), brick);
+            Cube(Town, "Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), navy);
+            Cube(Town, "Pier", new Vector3(110, 6, 470), new Vector3(70, 5, 16), wood);
             Cylinder(Town, "Light", new Vector3(155, 0, 440), 2.2f, 34f, Look.Lit(new Color(0.35f, 0.3f, 0.22f), smooth: 0.1f));
-            Cube(Town, "RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), Look.Lit(Colors.Gold, smooth: 0.4f));
+            Cube(Town, "RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), gold);
+            Cube(Town, "RoofLoft", new Vector3(55, 45, 495), new Vector3(30, 3.2f, 24), gold);
         }
 
         void DressNight()
@@ -876,6 +891,28 @@ namespace GrandSluggers.UnityClient
                 }
                 r.sharedMaterials = next;
             }
+        }
+
+        static string AdWord(int i)
+        {
+            var words = new[] { "SPARK", "GOLD", "HARBOR", "SLUG", "DAY", "NICE", "CRACK", "POP" };
+            return words[Mathf.Abs(i) % words.Length];
+        }
+
+        static void AdCopy(Transform parent, string name, string text, Vector3 pos, Quaternion rot, Color color)
+        {
+            if (parent == null || parent.Find(name) != null) return;
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.SetPositionAndRotation(pos, rot * Quaternion.Euler(0f, 180f, 0f));
+            var mesh = go.AddComponent<TextMesh>();
+            mesh.text = text;
+            mesh.fontSize = 42;
+            mesh.characterSize = 0.16f;
+            mesh.anchor = TextAnchor.MiddleCenter;
+            mesh.alignment = TextAlignment.Center;
+            mesh.color = color;
+            mesh.fontStyle = FontStyle.Bold;
         }
 
         static void Cube(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)

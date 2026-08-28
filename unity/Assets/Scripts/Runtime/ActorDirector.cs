@@ -389,6 +389,26 @@ namespace GrandSluggers.UnityClient
         {
             var ids = PresetTeams.CaptainIds;
             var pick = _phase == Phase.Select;
+            if (!pick)
+            {
+                var homeWho = _content.Must(HomeCaptain);
+                var hero = Hero(homeWho);
+                var spot = CarnivalFront.CaptainSpot(0, ids.Length, select: false, home: true);
+                hero.SetPose(HeroActor.Pose.Cheer);
+                hero.SetHighlight(true);
+                hero.SetGrow(true);
+                hero.SetHeld(false, false);
+                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
+                hero.Tick(Time.deltaTime);
+                _card?.Hide();
+                if (_logo == null) _logo = LogoToy.Attach(transform);
+                _logo.Show(
+                    CarnivalFront.Logo,
+                    new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
+                    new Vector3(0f, 0f, -1f));
+                return;
+            }
             (float X, float Z) homeSpot = (0f, 0f);
             for (var i = 0; i < ids.Length; i++)
             {
@@ -406,25 +426,13 @@ namespace GrandSluggers.UnityClient
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
                 hero.Tick(Time.deltaTime);
             }
-            if (pick)
-            {
-                _logo?.Hide();
-                if (_card == null) _card = CardToy.Attach(transform);
-                var homeWho = _content.Must(HomeCaptain);
-                _card.Show(
-                    CharacterCard.Of(homeWho),
-                    new Vector3(homeSpot.X + CarnivalFront.CardX, CarnivalFront.CardY, homeSpot.Z + CarnivalFront.CardZ),
-                    new Vector3(0f, 0f, -1f));
-            }
-            else
-            {
-                _card?.Hide();
-                if (_logo == null) _logo = LogoToy.Attach(transform);
-                _logo.Show(
-                    CarnivalFront.Logo,
-                    new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
-                    new Vector3(0f, 0f, -1f));
-            }
+            _logo?.Hide();
+            if (_card == null) _card = CardToy.Attach(transform);
+            var homeWhoPick = _content.Must(HomeCaptain);
+            _card.Show(
+                CharacterCard.Of(homeWhoPick),
+                new Vector3(homeSpot.X + CarnivalFront.CardX, CarnivalFront.CardY, homeSpot.Z + CarnivalFront.CardZ),
+                new Vector3(0f, 0f, -1f));
         }
 
         void PlaceLineupToys()
@@ -436,14 +444,14 @@ namespace GrandSluggers.UnityClient
             {
                 if (!_homeDraft.Gloves.TryGetValue(pos, out var who) || who == null) continue;
                 var hero = Hero(who);
-                var at = Diamond.Positions[pos];
+                var at = ChemistryToy.LineupWorldSpot(pos);
                 var selected = pick != null && who.Id == pick.Id;
                 hero.SetPose(selected ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle);
                 hero.SetHighlight(selected);
                 hero.SetGrow(selected);
                 hero.SetHeld(false, true);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(new Vector3((float)at.X, 0f, (float)at.Z), new Vector3(-(float)at.X, 0f, -(float)at.Z + 8f));
+                hero.Place(new Vector3((float)at.X, 0f, (float)at.Z), new Vector3(-(float)at.X, 0f, 8f - (float)at.Z));
                 hero.Tick(Time.deltaTime);
             }
         }
