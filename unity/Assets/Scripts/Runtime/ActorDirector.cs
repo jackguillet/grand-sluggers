@@ -19,6 +19,9 @@ namespace GrandSluggers.UnityClient
 
         void DrawActors()
         {
+            // Still-gate owns the frame. Live draw would put Ashlord back on the
+            // rubber during a scoop still and fill smash with the catcher mesh.
+            if (_gateHold) return;
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
             {

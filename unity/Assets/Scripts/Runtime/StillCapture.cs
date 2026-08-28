@@ -71,6 +71,7 @@ namespace GrandSluggers.UnityClient
                 _play.GateStage(shot, _req);
                 for (var i = 0; i < 8; i++) yield return null;
                 _play.GatePose(shot, _req);
+                for (var i = 0; i < 2; i++) yield return null;
                 var png = StillRequest.PngPath(outDir, shot);
                 try
                 {
@@ -223,32 +224,35 @@ namespace GrandSluggers.UnityClient
                 }
                 else
                     _cam.Cut("title");
+                PlaceSelectRoster();
                 return;
             }
 
             if (shot == "mound")
             {
+                HideAllHeroesExcept(_match.Pitcher?.Id, _match.Batter?.Id);
                 PosePitcher(HeroActor.Pose.ChargePitch, charge, true);
                 PoseBatter(HeroActor.Pose.Idle, 0, false);
+                PoseCatcher();
+                HoldPitchInHand();
                 _cam.Cut("mound");
                 return;
             }
 
             if (shot == "plate")
             {
+                HideAllHeroesExcept(_match.Batter?.Id, _match.Pitcher?.Id);
                 HideCatcher();
                 PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
                 PosePitcher(HeroActor.Pose.ChargePitch, 1, false);
                 HoldPitchInHand();
-                _cam.CutRaw("plate",
-                    new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
-                    new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
-                    (float)StillPose.PlateFov);
+                _cam.Cut("plate");
                 return;
             }
 
             if (shot == "pitch")
             {
+                HideAllHeroesExcept(_match.Batter?.Id, _match.Pitcher?.Id);
                 HideCatcher();
                 PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
                 PosePitcher(HeroActor.Pose.ThrowPitch, 1, false);
@@ -261,10 +265,7 @@ namespace GrandSluggers.UnityClient
                     ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z));
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 _park.Ball.Place(_ball, "", "fastball", false, true);
-                _cam.CutRaw("pitch",
-                    new Vector3((float)StillPose.PitchCamX, (float)StillPose.PitchCamY, (float)StillPose.PitchCamZ),
-                    new Vector3((float)StillPose.PitchLookX, (float)StillPose.PitchLookY, (float)StillPose.PitchLookZ),
-                    (float)StillPose.PitchFov);
+                _cam.Cut("pitch");
                 return;
             }
 
@@ -315,7 +316,8 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "smash")
             {
-                HideCatcher();
+                _zone.Show(false, 0, 0);
+                _ring?.Hide();
                 HideBackstop();
                 foreach (var kv in _heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
@@ -327,6 +329,7 @@ namespace GrandSluggers.UnityClient
                     sw.SnapTick((float)MoveBones.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
+                HideAllHeroesExcept(_match.Batter?.Id);
                 var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
                 _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, false, false, chest);
                 _cam.SmashCut(chest);
@@ -340,6 +343,30 @@ namespace GrandSluggers.UnityClient
             if (defense.TryGetValue("C", out var catcher) && catcher != null
                 && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
                 ch.gameObject.SetActive(false);
+        }
+
+        void HideAllHeroesExcept(params string[] keep)
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var id in keep)
+                if (!string.IsNullOrEmpty(id)) set.Add(id);
+            foreach (var kv in _heroes)
+                if (kv.Value != null && !set.Contains(kv.Key))
+                    kv.Value.gameObject.SetActive(false);
+        }
+
+        void PoseCatcher()
+        {
+            if (_match == null) return;
+            var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            if (!defense.TryGetValue("C", out var who) || who == null) return;
+            var h = EnsureHero(who);
+            if (h == null) return;
+            var at = Diamond.Positions["C"];
+            h.SetPose(HeroActor.Pose.Idle);
+            h.SetHeld(false, true);
+            h.Place(new Vector3((float)at.X, 0f, (float)at.Z), new Vector3(0f, 0f, 1f));
+            h.SnapTick(0.08f);
         }
 
         void HideBackstop()
@@ -365,7 +392,8 @@ namespace GrandSluggers.UnityClient
         void PoseBatter(HeroActor.Pose pose, float charge, bool ring)
         {
             if (_match?.Batter == null) return;
-            if (!_heroes.TryGetValue(_match.Batter.Id, out var b) || b == null) return;
+            var b = EnsureHero(_match.Batter);
+            if (b == null) return;
             b.SetPose(pose, charge);
             b.SetChargeRing(ring ? charge : 0);
             b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
@@ -376,7 +404,8 @@ namespace GrandSluggers.UnityClient
         void PosePitcher(HeroActor.Pose pose, float charge, bool ring)
         {
             if (_match?.Pitcher == null) return;
-            if (!_heroes.TryGetValue(_match.Pitcher.Id, out var p) || p == null) return;
+            var p = EnsureHero(_match.Pitcher);
+            if (p == null) return;
             p.SetPose(pose, charge, "fastball");
             p.SetChargeRing(ring ? charge : 0);
             p.SnapTick(0.08f);

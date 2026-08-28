@@ -64,5 +64,34 @@ public class StillHarnessTests
             _content.Must("ashlord"));
         Assert.True(defense.ContainsKey(StillPose.ScoopGlove));
         Assert.NotEqual("ashlord", defense[StillPose.ScoopGlove].Id);
+        Assert.NotEqual("rio", defense[StillPose.ScoopGlove].Id);
+    }
+
+    [Fact]
+    public void PlateStillIsHomeRioNotTheVisitorPitcher()
+    {
+        var req = StillRequest.Parse("""{"shots":["plate"],"home":"rio","away":"ashlord"}""");
+        Assert.Equal("rio", req.ResolvedHome());
+        Assert.Equal("ashlord", req.ResolvedAway());
+        var match = Match.Exhibition(_content, req.ResolvedHome(), req.ResolvedAway(), seed: 7);
+        match.SkipToHomeCaptainAtBat();
+        Assert.Equal("rio", match.Batter.Id);
+        Assert.Equal("ashlord", match.Pitcher.Id);
+        Assert.False(match.Top);
+        Assert.True(StillPose.PlateIsThirdBaseThreeQuarter(StillPose.PlateCamX, StillPose.PlateCamZ));
+        Assert.True(StillPose.PlateCatcherClearsTheLens(
+            StillPose.PlateCamX, StillPose.PlateCamZ, StillPose.PlateLookX, StillPose.PlateLookZ));
+    }
+
+    [Fact]
+    public void SmashShotLooksAtTheTorsoNotTheDirt()
+    {
+        var smash = _content.Shots.Must("smash");
+        Assert.True(smash.Target.Y >= 0.4, $"smash look is dirt y={smash.Target.Y}");
+        Assert.True(smash.Pos.Y >= 1.4, $"smash cam is a nostril y={smash.Pos.Y}");
+        Assert.True(smash.Pos.X > 5, $"smash is a 3/4 x={smash.Pos.X}");
+        Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov}");
+        Assert.Equal("smash", InPlay.TheaterShot(
+            new AtBatResult(ContactQuality.Perfect, true, false, 100, 28, 320, false, false, null, "heat-swing")));
     }
 }

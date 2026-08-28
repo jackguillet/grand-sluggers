@@ -184,7 +184,9 @@ Default request now includes the three trailer stills plus title/mound:
 }
 ```
 
-Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf` puts Rio at the plate; scoop and smash are staged on the real cameras and bodies (`scoop` is an alias for `diamond-grounder`).
+Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf` puts Rio at the plate; scoop and smash are staged on the real cameras and bodies (`scoop` is an alias for `diamond-grounder`). The sim **holds** after each pose (`_gateHold`) so live draw cannot put the pitcher back on the rubber or fill smash with the catcher mesh.
+
+**What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, pitcher throwing at you, star-swing camera with HUD muted.
 
 **What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, pitcher throwing at you, star-swing camera with HUD muted.
 
