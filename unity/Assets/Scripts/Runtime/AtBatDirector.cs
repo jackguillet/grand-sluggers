@@ -102,8 +102,8 @@ namespace GrandSluggers.UnityClient
         void AimSetCamera()
         {
             var shot = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight, _charge, _aimX, _aimY);
-            // SET snaps. Blending from title flies the camera through the backstop.
-            if (_phase == Phase.Set)
+            // SET snaps. Flight snaps too — a 1s blend from the SET look missed the incoming ball (#305).
+            if (_phase == Phase.Set || _phase == Phase.Flight)
                 _cam.Cut(shot);
             else
                 _cam.Play(shot);
