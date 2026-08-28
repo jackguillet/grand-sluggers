@@ -53,7 +53,7 @@ public static class HowToPlay
             "Rings line up at MAX, then power drops. Late charge is weaker.",
             "MAX commit    Nice! / Nice Hit!",
             "West / V through release    changeup (hangs, then dumps)",
-            "The pitcher throws at you. Ball leaves that hand. ~1s to the plate (not MLB 90).",
+            "The pitcher throws at you. SET pitching is 3/4 over the rubber looking at the box. SET batting is beside the batter looking at the mound. Ball leaves that hand. ~1s to the plate (not MLB 90).",
             "West hold / V    bunt",
             "North + South / Q + Space    star (costs a star even on a miss)",
         ]),

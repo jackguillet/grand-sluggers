@@ -45,7 +45,7 @@ public static class BroadcastHud
         PlayKind.GroundOut => "GROUNDOUT",
         PlayKind.Foul => "FOUL",
         PlayKind.SwingMiss => "SWING AND A MISS",
-        PlayKind.TakeStrike => "STRIKE",
+        PlayKind.TakeStrike => "TAKE STRIKE",
         PlayKind.TakeBall => "BALL",
         _ => kind.ToString().ToUpperInvariant()
     };

@@ -49,11 +49,12 @@ public class BroadcastHudTests
     }
 
     [Fact]
-    public void HeadlineTakeStrikeIsStrikeNotTakeStrikeGlued()
+    public void HeadlineTakeStrikeIsTwoWordsNotGlued()
     {
-        Assert.Equal("STRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
+        Assert.Equal("TAKE STRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
         Assert.Equal("BALL", BroadcastHud.Headline(PlayKind.TakeBall));
         Assert.Equal("GROUNDOUT", BroadcastHud.Headline(PlayKind.GroundOut));
         Assert.DoesNotContain("TAKESTRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
+        Assert.Contains(" ", BroadcastHud.Headline(PlayKind.TakeStrike));
     }
 }

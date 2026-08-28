@@ -1,8 +1,8 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// SET / pitch-flight camera. Batting SET is over-the-batter (plate + chalk).
-/// When they throw at you, look at the pitcher. Pitching SET is 3/4 over the rubber.
+/// SET / pitch-flight camera. Batting SET is beside the batter looking at the mound.
+/// When they throw at you, cut to the pitcher. Pitching SET is 3/4 over the rubber looking home.
 /// Catcher-spine is not a SET shot.
 /// </summary>
 public static class AtBatShots
@@ -17,8 +17,8 @@ public static class AtBatShots
         _ = aimX;
         _ = aimY;
         // Flight is the throw: look at the pitcher so the ball leaves that hand toward the plate.
-        // SET pitching stays mound; SET batting stays plate. Do not keep mound through a human pitch —
-        // that camera looks CF and the throw is behind the lens (#301).
+        // SET pitching stays mound; SET batting stays plate. Flight must Cut, not blend —
+        // blending from a look-at-dirt SET hid the incoming ball (#305).
         if (flight) return Pitch;
         return humanPitches ? Mound : Plate;
     }
