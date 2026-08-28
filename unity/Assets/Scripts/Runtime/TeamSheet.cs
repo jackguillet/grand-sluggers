@@ -24,9 +24,8 @@ namespace GrandSluggers.UnityClient
             var t = Time.unscaledTime;
             Sticker(home.Name.ToUpperInvariant() + "  ·  " + match.Park.Name, 36, 18, 640, 36, _h1);
             JumpingStars(36, 58, home.StartingStars, t);
-            MiniDiamond(home, slot, 36, 118, 280, 280);
             Graph(home, slot, w * 0.48f, h * 0.42f, Mathf.Min(w * 0.18f, 170f));
-            PoolColumn(home, pool, poolIndex, focusPool, w - 320, 88);
+            PoolColumn(home, pool, poolIndex, focusPool, w - 220, h - 280);
 
             if (home.Order.Count > 0)
             {
@@ -116,25 +115,25 @@ namespace GrandSluggers.UnityClient
 
         static void PoolColumn(TeamBuilder home, IReadOnlyList<Character> pool, int poolIndex, bool lit, float x, float y)
         {
-            GUI.Label(new Rect(x, y, 300, 22), "AVAILABLE", _gold);
-            y += 26;
-            var shown = Mathf.Min(pool.Count, 10);
+            GUI.Label(new Rect(x, y, 200, 18), "pool", _tiny);
+            y += 20;
+            var shown = Mathf.Min(pool.Count, 6);
             var start = 0;
-            if (pool.Count > 10)
+            if (pool.Count > 6)
             {
-                start = Mathf.Clamp(poolIndex - 4, 0, pool.Count - 10);
-                shown = 10;
+                start = Mathf.Clamp(poolIndex - 2, 0, pool.Count - 6);
+                shown = 6;
             }
             for (var n = 0; n < shown; n++)
             {
                 var i = start + n;
                 var c = pool[i];
-                var r = new Rect(x, y, 292, 34);
+                var r = new Rect(x, y, 196, 26);
                 var selected = lit && i == poolIndex;
                 GUI.DrawTexture(r, selected ? _pipOn : CardTex(c));
-                StickerEdge(x + 10, y + 8, home.Chem(c));
-                GUI.Label(new Rect(x + 36, y + 6, 250, 24), c.Name, selected ? _center : _body);
-                y += 38;
+                StickerEdge(x + 6, y + 5, home.Chem(c));
+                GUI.Label(new Rect(x + 26, y + 2, 166, 22), Short(c.Name), selected ? _center : _tiny);
+                y += 28;
             }
         }
 

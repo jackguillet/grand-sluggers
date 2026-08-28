@@ -13,7 +13,8 @@ public static class SetTells
     public static double RingScale(double charge01)
     {
         var u = Math.Clamp(charge01, 0, 1);
-        return RingOn(u) ? 2.1 + u * 1.8 : 0;
+        // Annulus on packed dirt. 2.1–3.9 ft sat under the mesh as a gold pancake (#221).
+        return RingOn(u) ? 5.4 + u * 2.4 : 0;
     }
 
     /// <summary>Ring sits on packed dirt, not on the toy's waist.</summary>

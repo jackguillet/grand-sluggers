@@ -40,6 +40,10 @@ public class FeelInfraTests
         Assert.True(select.Pos.Z < 0, $"select behind home z={select.Pos.Z}");
         Assert.InRange(select.Target.Z, 8, 22);
         Assert.True(select.Fov >= 44, $"select fov {select.Fov} too tight for six captains");
+        var lineup = _content.Shots.Must("lineup");
+        Assert.True(lineup.Pos.Y < 16, $"lineup is a toy camera, not an aerial y={lineup.Pos.Y}");
+        Assert.True(lineup.Pos.Z > -20, $"lineup sits in front of the backstop z={lineup.Pos.Z}");
+        Assert.True(lineup.Target.Z < 40, $"lineup looks at the mini diamond z={lineup.Target.Z}");
     }
 
     [Fact]
@@ -172,6 +176,8 @@ public class FeelInfraTests
         Assert.True(SetTells.RingOn(1));
         Assert.True(SetTells.RingScale(1) > SetTells.RingScale(0.2));
         Assert.Equal(0, SetTells.RingScale(0));
+        Assert.True(SetTells.RingScale(1) >= 5.0, "ring must read on packed dirt, not sit under the mesh");
+        Assert.True(SetTells.RingScale(SetTells.ChargePull) >= 5.0);
         Assert.True(SetTells.RingThickFt > 0.1, "plate 3/4 could not see a 0.045 pancake");
         Assert.True(SetTells.RingHeightFt < 0.2);
         Assert.True(SetTells.ZoneOn(true));

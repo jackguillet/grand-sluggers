@@ -42,7 +42,7 @@ Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the
 
 ### Title
 
-The park is the poster. **GRAND SLUGGERS** is a sticker in the world, not a gray box. The home captain is the toy in front. Captains stand on the grass.
+The park is the poster. **GRAND SLUGGERS** is a sticker in the world, facing the camera. One home captain is the toy in front — not six idles sharing the frame.
 
 - **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
@@ -63,7 +63,7 @@ The toys are the UI. Highlighted captain **steps forward**. The **card** (P / B 
 
 ### Pick the field
 
-A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
+A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice — crowd in CF, padded wall ads you can read, a scoreboard with numbers, town that is not white boxes.
 
 - **Stick / WASD L/R** — cycle the park. Captains stay put.
 - **South / Space** — lineup
@@ -72,7 +72,7 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
 
 ### Lineup (the chemistry toy)
 
-The diamond is the draft. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays.
+The diamond is the draft — a **mini diamond of toys**, not a name list. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays.
 
 - **Stick / WASD** — slot (dugout) vs pool
 - **West / F** — swap highlighted pool player into the slot

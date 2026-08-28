@@ -30,6 +30,15 @@ public class ChemistryToyTests
         Assert.True(of.V > inf.V);
         Assert.Equal("IF", TeamBuilder.GloveGroup("SS"));
         Assert.Equal("OF", TeamBuilder.GloveGroup("LF"));
+        var toyC = ChemistryToy.LineupWorldSpot("C");
+        var toyP = ChemistryToy.LineupWorldSpot("P");
+        var toyCf = ChemistryToy.LineupWorldSpot("CF");
+        var toy1b = ChemistryToy.LineupWorldSpot("1B");
+        Assert.True(toyCf.Z > toyP.Z);
+        Assert.True(toyP.Z > toyC.Z);
+        Assert.True(toy1b.X > 0);
+        Assert.True(toyCf.Z < 40, $"lineup CF is a mini diamond z={toyCf.Z}");
+        Assert.True(Math.Abs(toyC.X) < 4);
     }
 
     [Fact]

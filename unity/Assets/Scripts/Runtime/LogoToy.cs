@@ -21,8 +21,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_copy == null) Build();
             transform.position = at;
-            var yaw = face.z <= 0f ? 180f : 0f;
-            transform.rotation = Quaternion.Euler(0f, yaw, 8f);
+            var fwd = face.sqrMagnitude > 0.01f ? face.normalized : Vector3.back;
+            transform.rotation = Quaternion.LookRotation(fwd, Vector3.up) * Quaternion.Euler(8f, 0f, 0f);
             gameObject.SetActive(true);
             if (_copy != null) _copy.text = copy;
         }
@@ -54,7 +54,6 @@ namespace GrandSluggers.UnityClient
             mesh.alignment = TextAlignment.Center;
             mesh.color = color;
             mesh.fontStyle = FontStyle.Bold;
-            go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             return mesh;
         }
     }
