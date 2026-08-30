@@ -97,6 +97,14 @@
       "blend": 4
     },
     {
+      "id": "field",
+      "look": "park",
+      "pos": { "x": 16, "y": 18, "z": 90 },
+      "target": { "x": 0, "y": 14, "z": 380 },
+      "fov": 46,
+      "blend": 7
+    },
+    {
       "id": "select",
       "look": "plate",
       "pos": { "x": 0, "y": 7.8, "z": -12 },

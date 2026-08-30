@@ -176,7 +176,7 @@ namespace GrandSluggers.UnityClient
             _replaying = false;
             _match = NewMatch();
             RebuildTitlePark();
-            _cam.Play("title");
+            _cam.Play("field");
         }
 
         void TickField()
@@ -197,7 +197,7 @@ namespace GrandSluggers.UnityClient
                 Night = !Night;
                 RebuildTitlePark();
             }
-            _cam.Play("title");
+            _cam.Play("field");
             if (Controls.WestDown && _t > 0.15f)
             {
                 OpenSelect();
