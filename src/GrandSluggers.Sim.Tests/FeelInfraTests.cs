@@ -62,6 +62,8 @@ public class FeelInfraTests
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
         Assert.InRange(batterDist, 12, 22);
+        var batterDeg = LookDeg(plate.Pos, plate.Target, batter);
+        Assert.True(batterDeg < 28, $"batter off the plate look {batterDeg:0.0} deg");
         Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + infield");
         Assert.Equal(StillPose.PlateCamX, plate.Pos.X, 1);
         Assert.Equal(StillPose.PlateCamZ, plate.Pos.Z, 1);
