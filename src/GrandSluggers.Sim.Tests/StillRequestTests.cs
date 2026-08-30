@@ -11,6 +11,7 @@ public class StillRequestTests
         var req = StillRequest.Parse("{}");
         Assert.Equal(new[] { "title", "select", "plate", "pitch", "mound", "diamond-grounder", "smash" }, req.ResolvedShots());
         Assert.Contains("select", StillRequest.AllowedShots);
+        Assert.Contains("field", StillRequest.AllowedShots);
         Assert.Equal("rio", req.ResolvedHome());
         Assert.Equal("ashlord", req.ResolvedAway());
         Assert.True(req.HudOff);

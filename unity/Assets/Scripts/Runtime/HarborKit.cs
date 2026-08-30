@@ -603,6 +603,8 @@ namespace GrandSluggers.UnityClient
                 CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
+            // Visible from the field postcard looking CF — home bleachers sit behind the title cam.
+            CrowdBank(Bleachers, "CrowdCF", new Vector3(0, 4.2f, 318), new Vector3(92, 0, 0), new Vector3(0, 0.85f, -2.4f), 16, 3, 77);
         }
 
         void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)
@@ -667,15 +669,19 @@ namespace GrandSluggers.UnityClient
 
         void DressTown()
         {
-            var white = Look.Lit(new Color(0.93f, 0.95f, 0.96f), smooth: 0.2f);
-            var brick = Look.Lit(new Color(0.62f, 0.28f, 0.22f), smooth: 0.1f);
+            var clap = Look.Lit(new Color(0.72f, 0.58f, 0.38f), smooth: 0.12f);
+            var brick = Look.Lit(new Color(0.52f, 0.28f, 0.20f), smooth: 0.1f);
             var red = Look.Lit(Colors.SparkDark, smooth: 0.15f);
-            Cube(Town, "Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), white);
+            var pane = Look.Unlit(new Color(0.18f, 0.28f, 0.38f));
+            Cube(Town, "Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), clap);
             Cube(Town, "SparkHall", new Vector3(-18, 18, 505), new Vector3(22, 36, 20), red);
-            Cube(Town, "Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), white);
+            Cube(Town, "Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), brick);
             Cube(Town, "Pier", new Vector3(110, 6, 470), new Vector3(70, 5, 16), brick);
             Cylinder(Town, "Light", new Vector3(155, 0, 440), 2.2f, 34f, Look.Lit(new Color(0.35f, 0.3f, 0.22f), smooth: 0.1f));
             Cube(Town, "RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), Look.Lit(Colors.Gold, smooth: 0.4f));
+            Cube(Town, "WinL", new Vector3(-70, 18, 478), new Vector3(8, 6, 0.4f), pane);
+            Cube(Town, "WinC", new Vector3(-18, 20, 494), new Vector3(6, 8, 0.4f), pane);
+            Cube(Town, "WinR", new Vector3(55, 24, 483), new Vector3(7, 9, 0.4f), pane);
         }
 
         void DressNight()

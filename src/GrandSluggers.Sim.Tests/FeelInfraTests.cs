@@ -115,6 +115,11 @@ public class FeelInfraTests
         Assert.True(smash.Target.Y >= 0.4, $"smash looks at the torso y={smash.Target.Y}");
         Assert.True(Math.Abs(smash.Target.X) < 0.8, $"smash looks at the body x={smash.Target.X}");
         Assert.True(smash.Target.Z < 1.5, $"smash looks at the body z={smash.Target.Z}");
+        var field = _content.Shots.Must("field");
+        Assert.True(field.Pos.Z > 20, $"field postcard is in the park z={field.Pos.Z}");
+        Assert.True(field.Pos.Y > 12, $"field too low to see the wall y={field.Pos.Y}");
+        Assert.True(field.Target.Z > 250, $"field looks at the wall/town z={field.Target.Z}");
+        Assert.True(field.Fov >= 42);
     }
 
     [Fact]
