@@ -147,11 +147,11 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _freeze = 0;
 
-            if (shot == "title" || shot == "select")
+            if (shot == "title" || shot == "select" || shot == "field")
             {
                 if (_match == null) _match = NewMatch();
                 _park.Build(_match.Park, _match.Night);
-                _phase = shot == "select" ? Phase.Select : Phase.Title;
+                _phase = shot == "select" ? Phase.Select : shot == "field" ? Phase.Field : Phase.Title;
                 _cam.Cut(shot);
                 _gateHold = true;
                 return;
@@ -209,6 +209,12 @@ namespace GrandSluggers.UnityClient
             _freezeCam = true;
             _gateHold = true;
             var charge = Mathf.Clamp01((float)req.Charge01);
+            if (shot == "field")
+            {
+                _cam.Cut("field");
+                return;
+            }
+
             if (shot == "title" || shot == "select")
             {
                 if (shot == "select")
