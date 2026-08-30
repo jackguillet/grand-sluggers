@@ -21,13 +21,13 @@ public static class StillPose
     public const double ScoopLookY = 0.55;
     public const double ScoopLookZ = 30;
 
-    public const double PlateCamX = -12.5;
-    public const double PlateCamY = 5.5;
-    public const double PlateCamZ = -5.6;
+    public const double PlateCamX = -10.8;
+    public const double PlateCamY = 5.2;
+    public const double PlateCamZ = -4.4;
     public const double PlateLookX = 2.55;
-    public const double PlateLookY = 1.05;
-    public const double PlateLookZ = 14;
-    public const double PlateFov = 52;
+    public const double PlateLookY = 0.95;
+    public const double PlateLookZ = 11;
+    public const double PlateFov = 50;
 
     public const double PitchCamX = -12.0;
     public const double PitchCamY = 5.0;
