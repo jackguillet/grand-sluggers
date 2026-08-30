@@ -12,11 +12,11 @@ public static class CarnivalFront
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 8f;
     public const float HomeStepTitleFt = 2.4f;
-    public const float FeaturedTitleZ = 10f;
+    public const float FeaturedTitleZ = 6f;
     public const float FeaturedSelectZ = 4f;
-    public const float LogoX = -2.4f;
-    public const float LogoY = 10.4f;
-    public const float LogoZ = 8.2f;
+    public const float LogoX = -1.0f;
+    public const float LogoY = 8.2f;
+    public const float LogoZ = 6.5f;
     public const float SelectSpacing = 7.6f;
     public const float TitleSpacing = 13.4f;
     public const float CardX = 5.6f;
