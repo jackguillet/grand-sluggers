@@ -18,11 +18,13 @@ public class AtBatFeelTests
         Assert.Equal(Baseball.FlightDiameterFt, Baseball.InFlightScale(true));
         Assert.Equal(Baseball.DiameterFt, Baseball.InFlightScale(false));
         var plate = _content.Shots.Must("plate");
+        var mound = _content.Shots.Must("mound");
         var pitch = _content.Shots.Must("pitch");
         for (var u = 0.05; u <= 1; u += 0.15)
         {
             var p = PitchFlight.Point("fastball", u);
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, plate), $"plate u={u} {p}");
+            Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, mound), $"mound u={u} {p}");
             Assert.True(PitchFlight.InFrontOfLook(p.X, p.Y, p.Z, pitch), $"pitch u={u} {p}");
         }
         var leave = PitchFlight.Point("fastball", StillPose.PitchBallU);
