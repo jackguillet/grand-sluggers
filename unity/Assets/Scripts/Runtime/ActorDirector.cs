@@ -405,6 +405,8 @@ namespace GrandSluggers.UnityClient
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
                 hero.Tick(Time.deltaTime);
+                if (!pick && !home)
+                    hero.gameObject.SetActive(false);
             }
             if (pick)
             {
