@@ -72,7 +72,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                "South pick captain    West / F training    Start / H mode    Tab innings", _tiny);
+                "South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings", _tiny);
         }
 
         public static void Select(string homeId, string awayId, ContentCatalog content)
@@ -83,7 +83,7 @@ namespace GrandSluggers.UnityClient
             if (content != null && content.Characters.TryGetValue(awayId, out var awayWho))
                 Sticker("vs  " + awayWho.Name, 36, 268, 400, 24, _gold);
             GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                "pad 1 L/R home    pad 2 L/R or U/D away    South the field    West title", _tiny);
+                "pad 1 L/R home    pad 2 L/R or U/D away    South the field    West title    Esc how to play", _tiny);
         }
 
         public static void Card(CharacterCard card, float x, float y)
@@ -130,7 +130,7 @@ namespace GrandSluggers.UnityClient
             if (!CarnivalFront.HarborIsTheProduct(parkId))
                 GUI.Label(new Rect(44, 140, 720, 22), "Harbor is the slice.", _tiny);
             GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                "stick L/R the field    South lineup    West captains    N night", _tiny);
+                "stick L/R the field    South lineup    West captains    N night    Esc how to play", _tiny);
         }
 
         static void Sticker(string text, float x, float y, float w, float h, GUIStyle style)

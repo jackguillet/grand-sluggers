@@ -233,11 +233,11 @@ public sealed class LineupScreens
 
     public string Help => Step == LineupStep.TeamSetup
         ? AwaySeat == LineupSeat.Pad2
-            ? "pad 1 home    pad 2 away    stick head / slot    South drop    West remove    South when nine    next"
-            : "stick head / slot    South drop    West remove    Tab fill    South when nine    next"
+            ? "pad 1 home    pad 2 away    stick head / slot    South drop    West remove    South when nine    next    Esc how to play"
+            : "stick head / slot    South drop    West remove    Tab fill    South when nine    next    Esc how to play"
         : AwaySeat == LineupSeat.Pad2
-            ? "pad 1 home    pad 2 away    stick bar order    stick diamond glove    South first pitch    West back"
-            : "stick bar order    stick diamond glove    LB/East order    RB glove    South first pitch    West back";
+            ? "pad 1 home    pad 2 away    stick bar order    stick diamond glove    South first pitch    West back    Esc how to play"
+            : "stick bar order    stick diamond glove    LB/East order    RB glove    South first pitch    West back    Esc how to play";
 
     public bool Stick(int dx, int dy) => Stick(LineupSeat.Pad1, dx, dy);
 

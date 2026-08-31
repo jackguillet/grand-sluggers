@@ -33,7 +33,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
-One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Pad 2 is a second gamepad. Mouse stick goes dead after a beat of no movement so CPU can still take the hop.
+One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Pad 2 is a second gamepad. Mouse analog is **right-click hold and drag** — a parked cursor is dead stick, so field select stays Harbor. WASD still walks. Left click is confirm.
 
 ---
 
@@ -47,6 +47,7 @@ The park is the poster. **GRAND SLUGGERS** is a sticker in the world, not a gray
 
 - **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
+- **Esc** — How to play (the book). Works on title, captains, field, lineup, and during a pitch.
 - **West / F** — Training drills on Harbor
 - **R3 / N** — night (sky gag)
 - **Tab** — 3 / 6 / 9 innings

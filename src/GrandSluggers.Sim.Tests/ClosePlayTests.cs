@@ -60,6 +60,20 @@ public class ClosePlayTests
     }
 
     [Fact]
+    public void ParkedMouseIsDeadStickUntilRightButtonAim()
+    {
+        var parked = MouseStick.Tick(0.8f, -0.5f, dx: 40, dy: -20, analogHeld: false, dt: 0.016f);
+        Assert.Equal(0, parked.X);
+        Assert.Equal(0, parked.Y);
+        var hold = MouseStick.Tick(0, 0, dx: 40, dy: 0, analogHeld: true, dt: 0.016f);
+        Assert.True(hold.X > 0.4f);
+        Assert.InRange(hold.Y, -0.05f, 0.05f);
+        var decay = MouseStick.Tick(1, 0, dx: 0, dy: 0, analogHeld: true, dt: 0.05f);
+        Assert.True(decay.X < 1);
+        Assert.True(decay.X > 0.5f);
+    }
+
+    [Fact]
     public void HowToPlayBookLeftHalfIsBack()
     {
         var nav = HowToPlay.HitNav(200, 360, 1280, 720, 8);
