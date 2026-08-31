@@ -221,7 +221,7 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "lineup")
             {
-                if (_homeDraft == null) OpenLineup();
+                if (_lineup == null) OpenLineup();
                 _cam.Cut("lineup");
                 return;
             }

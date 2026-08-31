@@ -33,7 +33,7 @@ namespace GrandSluggers.UnityClient
                 Field(match != null ? match.Park.Id : "", parkName, night);
                 return;
             }
-            if (phase == PhaseUi.Lineup)
+            if (phase == PhaseUi.Lineup || phase == PhaseUi.TeamSetup || phase == PhaseUi.DefenseSetup)
             {
                 Lineup(match);
                 return;
@@ -516,5 +516,5 @@ namespace GrandSluggers.UnityClient
         }
     }
 
-    public enum PhaseUi { Title, Select, Field, Lineup, Set, Flight, InPlay, Result, GameOver }
+    public enum PhaseUi { Title, Select, Field, Lineup, TeamSetup, DefenseSetup, Set, Flight, InPlay, Result, GameOver }
 }
