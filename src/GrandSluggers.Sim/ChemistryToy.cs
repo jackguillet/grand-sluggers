@@ -1,8 +1,8 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Lineup as a chemistry toy: compact diamond of bodies, sticker hearts, jumping stars.
-/// World toys are the picture. HUD is stars, card, dugout — not an AVAILABLE list.
+/// Chemistry stickers and jumping stars. LineupScreens is the two-screen draft;
+/// hearts / scribbles still mark buddies and rivals vs the captain.
 /// </summary>
 public static class ChemistryToy
 {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using GrandSluggers.Sim;
 using UnityEngine;
 
@@ -309,24 +308,12 @@ namespace GrandSluggers.UnityClient
         {
             if (_mode == PlayMode.Exhibition)
             {
-                _homeDraft = TeamBuilder.Draft(_content, HomeCaptain);
-                var taken = new List<string>();
-                for (var i = 0; i < _homeDraft.Order.Count; i++)
-                    taken.Add(_homeDraft.Order[i].Id);
-                _awayDraft = TeamBuilder.Draft(_content, AwayCaptain, taken);
-                _lineupSlot = 0;
-                for (var i = 0; i < _homeDraft.Order.Count; i++)
-                    if (_homeDraft.Order[i].Captain) { _lineupSlot = i; break; }
-                _poolIndex = 0;
-                _focusPool = false;
+                _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain);
                 _lineupTouched = false;
                 _lineupStick = 0;
             }
             else
-            {
-                _homeDraft = null;
-                _awayDraft = null;
-            }
+                _lineup = null;
             _phase = Phase.Lineup;
             _t = 0;
             _clip = null;
@@ -343,7 +330,7 @@ namespace GrandSluggers.UnityClient
             if (Key(KeyCode.G)) _match.CycleGlove(true);
             if (Key(KeyCode.N)) _match.CycleBat(false);
             if (Key(KeyCode.M)) _match.CycleGlove(false);
-            if (_homeDraft == null)
+            if (_lineup == null)
             {
                 if (Controls.SouthDown || _t > 10f) BeginSet();
                 return;
@@ -353,27 +340,31 @@ namespace GrandSluggers.UnityClient
             if (Controls.WestDown)
             {
                 _lineupTouched = true;
-                TryDraftSwap();
+                _lineup.West();
             }
             if (Controls.CyclePitch)
             {
                 _lineupTouched = true;
-                var who = _homeDraft.Order[_lineupSlot];
-                _homeDraft.CycleGlove(who.Id);
+                if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill();
+                else _lineup.CycleGlove();
             }
             if (Controls.AllAdvanceDown)
             {
                 _lineupTouched = true;
-                _homeDraft.SwapOrder(_lineupSlot, _lineupSlot - 1);
-                if (_lineupSlot > 0) _lineupSlot--;
+                _lineup.StepBatting(-1);
             }
             if (Controls.EastDown)
             {
                 _lineupTouched = true;
-                _homeDraft.SwapOrder(_lineupSlot, _lineupSlot + 1);
-                if (_lineupSlot < _homeDraft.Order.Count - 1) _lineupSlot++;
+                _lineup.StepBatting(1);
             }
-            if (Controls.SouthDown || (_t > 10f && !_lineupTouched))
+            if (Controls.SouthDown)
+            {
+                _lineupTouched = true;
+                if (_lineup.Step == LineupStep.TeamSetup) _lineup.South();
+                else ConfirmDraft();
+            }
+            else if (_t > 10f && !_lineupTouched)
                 ConfirmDraft();
         }
 
@@ -393,61 +384,34 @@ namespace GrandSluggers.UnityClient
             }
             _lineupTouched = true;
             _lineupStick = 0.2f;
-            if (Mathf.Abs(x) >= Mathf.Abs(y))
-            {
-                _focusPool = x > 0;
-                return;
-            }
-            if (_focusPool)
-            {
-                var taken = new List<string>();
-                if (_awayDraft != null)
-                    for (var i = 0; i < _awayDraft.Order.Count; i++)
-                        taken.Add(_awayDraft.Order[i].Id);
-                var pool = _homeDraft.Pool(taken);
-                if (pool.Count == 0) return;
-                _poolIndex = (_poolIndex + (y < 0 ? 1 : -1) + pool.Count) % pool.Count;
-            }
-            else
-                _lineupSlot = (_lineupSlot + (y < 0 ? 1 : -1) + _homeDraft.Order.Count) % _homeDraft.Order.Count;
-        }
-
-        void TryDraftSwap()
-        {
-            if (_homeDraft == null) return;
-            var taken = new List<string>();
-            if (_awayDraft != null)
-                for (var i = 0; i < _awayDraft.Order.Count; i++)
-                    taken.Add(_awayDraft.Order[i].Id);
-            var pool = _homeDraft.Pool(taken);
-            if (pool.Count == 0) return;
-            _poolIndex = Mathf.Clamp(_poolIndex, 0, pool.Count - 1);
-            _lineupSlot = Mathf.Clamp(_lineupSlot, 0, _homeDraft.Order.Count - 1);
-            var outgoing = _homeDraft.Order[_lineupSlot];
-            var incoming = pool[_poolIndex];
-            if (!_homeDraft.Replace(outgoing.Id, incoming.Id)) return;
-            var nextTaken = new List<string>();
-            for (var i = 0; i < _homeDraft.Order.Count; i++)
-                nextTaken.Add(_homeDraft.Order[i].Id);
-            _awayDraft = TeamBuilder.Draft(_content, AwayCaptain, nextTaken);
-            var next = _homeDraft.Pool(nextTaken);
-            _poolIndex = next.Count == 0 ? 0 : Mathf.Clamp(_poolIndex, 0, next.Count - 1);
+            var dx = Mathf.Abs(x) >= Mathf.Abs(y) ? (x > 0 ? 1 : -1) : 0;
+            var dy = dx == 0 ? (y > 0 ? 1 : -1) : 0;
+            _lineup.Stick(dx, dy);
         }
 
         void ConfirmDraft()
         {
-            if (_homeDraft != null)
+            if (_lineup != null)
             {
-                var homeBat = _match.HomeBat;
-                var homeGlove = _match.HomeGlove;
-                var awayBat = _match.AwayBat;
-                var awayGlove = _match.AwayGlove;
-                var away = _awayDraft != null
-                    ? _awayDraft.ToTeam()
-                    : PresetTeams.ForCaptain(_content, AwayCaptain);
-                _match = Match.Exhibition(_content, _homeDraft.ToTeam(), away, Innings, Seed, ParkId, Night);
-                RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
+                if (_lineup.Step == LineupStep.TeamSetup)
+                {
+                    _lineup.RandomFill();
+                    _lineup.ConfirmTeam();
+                }
+                if (_lineup.Home != null)
+                {
+                    var homeBat = _match.HomeBat;
+                    var homeGlove = _match.HomeGlove;
+                    var awayBat = _match.AwayBat;
+                    var awayGlove = _match.AwayGlove;
+                    var away = _lineup.Away != null
+                        ? _lineup.Away.ToTeam()
+                        : PresetTeams.ForCaptain(_content, AwayCaptain);
+                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night);
+                    RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
+                }
             }
+            TeamSheet.HideBoard();
             BeginSet();
         }
 

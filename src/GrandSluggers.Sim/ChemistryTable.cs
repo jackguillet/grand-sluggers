@@ -54,17 +54,21 @@ public sealed class ChemistryTable
     };
 
     /// <summary>Average chemistry of everyone except the captain, with the captain.</summary>
-    public double AverageWithCaptain(Team team)
+    public double AverageWithCaptain(Character captain, IEnumerable<Character> mates)
     {
-        var others = team.Roster.Where(c => !c.Id.Equals(team.Captain.Id, StringComparison.OrdinalIgnoreCase)).ToList();
+        var others = mates
+            .Where(c => !c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase))
+            .ToList();
         if (others.Count == 0)
             return Score(Chemistry.Neutral);
-        return others.Average(c => Score(Between(team.Captain, c)));
+        return others.Average(c => Score(Between(captain, c)));
     }
 
-    public int StartingStars(Team team)
+    public double AverageWithCaptain(Team team) => AverageWithCaptain(team.Captain, team.Roster);
+
+    public int StartingStars(Character captain, IEnumerable<Character> mates)
     {
-        var avg = AverageWithCaptain(team);
+        var avg = AverageWithCaptain(captain, mates);
         if (avg >= 70) return 5;
         if (avg >= 55) return 4;
         if (avg >= 35) return 3;
@@ -72,6 +76,8 @@ public sealed class ChemistryTable
         if (avg > 0) return 1;
         return 0;
     }
+
+    public int StartingStars(Team team) => StartingStars(team.Captain, team.Roster);
 
     /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
     public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);
