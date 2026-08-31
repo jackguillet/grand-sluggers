@@ -22,7 +22,9 @@ namespace GrandSluggers.UnityClient
         LineupScreens _lineup;
         bool _lineupTouched;
         float _lineupStick;
+        float _lineupStick2;
         float _selectStick;
+        float _selectStick2;
 
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
@@ -65,10 +67,12 @@ namespace GrandSluggers.UnityClient
         float _itemFly;
         string _itemId = "";
         int _pitchIndex;
-        bool _star;
+        bool _starPitch;
+        bool _starSwing;
         float _charge;
         float _chargePast;
         float _pitchCharge;
+        float _pitchPast;
         float _breakX;
         float _dash01;
         float _t;
@@ -136,10 +140,29 @@ namespace GrandSluggers.UnityClient
         double _stealRelease;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
-        bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
-        bool HumanBats => TrainingOn ? (_coach.PlayerBats || _coach.PlayerRuns) : _match != null && !_match.Top;
+        Seats LiveSeats =>
+            TrainingOn || _mode != PlayMode.Exhibition ? Seats.One : Seats.FromPads(Controls.PadCount);
+        bool Versus => LiveSeats.BothHuman && !TrainingOn;
+        bool HumanPitches => TrainingOn
+            ? _coach.PlayerPitches
+            : _match != null && LiveSeats.HumanPitches(_match.Top);
+        bool HumanBats => TrainingOn
+            ? (_coach.PlayerBats || _coach.PlayerRuns)
+            : _match != null && LiveSeats.HumanBats(_match.Top);
         bool PlayerMustField => TrainingOn && _coach.PlayerFields;
         bool PlayerFields => _playerFielding || PlayerMustField;
+        Controls.Pad PitchPad => HumanPitches && _match != null
+            ? Controls.Of(LiveSeats.Pitching(_match.Top))
+            : Controls.Pad1;
+        Controls.Pad BatPad => HumanBats && _match != null
+            ? Controls.Of(LiveSeats.Batting(_match.Top))
+            : Controls.None;
+        Controls.Pad FieldPad => Versus && _match != null
+            ? Controls.Of(LiveSeats.Fielding(_match.Top))
+            : Controls.Pad1;
+        Controls.Pad RunPad => Versus && _match != null
+            ? Controls.Of(LiveSeats.Running(_match.Top))
+            : Controls.Pad1;
         bool ItemOffered =>
             HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
             && _phase == Phase.InPlay && !_throwing;
@@ -287,11 +310,12 @@ namespace GrandSluggers.UnityClient
                 _spec != null && _spec.Active, _smash, _freeze)
                 || _forceMuteHud || StillCapture.ForceMute;
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
-                _star, _match.StealOn, ItemHud(), _charge, timing,
+                _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
-                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay);
+                HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing);
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
@@ -300,17 +324,17 @@ namespace GrandSluggers.UnityClient
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
             {
                 var hopper = _preview != null && _preview.Grounder;
-                var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
-                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : Controls.ThrowBag, stick, true);
+                var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
+                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, true);
                 var def = _match.LiveForce
                     ? 1
                     : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
-                HudView.BagTell(InPlay.CommitBag(armed, hopper, Controls.Cutoff, def));
+                HudView.BagTell(InPlay.CommitBag(armed, hopper, FieldPad.Cutoff, def));
             }
             if (!mutePlay && _phase == Phase.StealThrow && !_throwing)
             {
-                var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
-                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : Controls.ThrowBag, stick, true);
+                var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
+                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, true);
                 HudView.BagTell(StealThrow.CommitBag(armed, _match.StealTargetBag));
             }
             if (_feelDebug)
@@ -325,7 +349,7 @@ namespace GrandSluggers.UnityClient
                 FeelOverlay.Draw(
                     _cam != null ? _cam.Shot : "",
                     verb, _charge, hang, rest,
-                    _throwBag > 0 ? _throwBag : Controls.StickBag,
+                    _throwBag > 0 ? _throwBag : FieldPad.StickBag,
                     _feelSlow, _freezeCam,
                     _spec != null ? _spec.CurrentEvent : "");
             }
@@ -489,12 +513,13 @@ namespace GrandSluggers.UnityClient
                 if (_itemFly >= ItemView.FlySeconds) _itemFlying = false;
             }
             if (!ItemOffered) return;
-            if (Controls.CyclePitch && !Controls.Item)
+            var pad = RunPad;
+            if (pad.CyclePitch && !pad.Item)
                 _itemPick = (_itemPick + 1) % ErrorItems.All.Length;
             AimItem();
             if (!TrainingOn)
                 _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
-            if (!Controls.ItemConfirm || _itemTarget == null) return;
+            if (!pad.ItemConfirm || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
             if (_cpuField != null)
             {
@@ -515,14 +540,14 @@ namespace GrandSluggers.UnityClient
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var play = _cpuField != null && _cpuField.Fielder != null ? _cpuField.Fielder
                 : _preview != null ? _preview.Fielder : null;
-            var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
+            var stick = Mathf.Abs(RunPad.StickX) + Mathf.Abs(RunPad.StickY);
             if (stick < 0.28f)
             {
                 _itemTarget = play;
                 return;
             }
-            var x = Controls.StickX * 160;
-            var z = 30 + (Controls.StickY * 0.5f + 0.5f) * 300;
+            var x = RunPad.StickX * 160;
+            var z = 30 + (RunPad.StickY * 0.5f + 0.5f) * 300;
             var pick = FieldingResolver.NearestGlove(map, x, z, _gloveAt);
             _itemTarget = pick.Fielder;
         }

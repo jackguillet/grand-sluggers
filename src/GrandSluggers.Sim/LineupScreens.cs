@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 public enum LineupStep { TeamSetup, DefenseSetup }
 
-/// <summary>Who owns a roster row. Pad 2 is a later 1v1 seat — the model already names it.</summary>
+/// <summary>Who owns a roster row. Pad 1 is home. Pad 2 sits away when a second pad is plugged in.</summary>
 public enum LineupSeat { Pad1, Pad2, Cpu }
 
 /// <summary>
@@ -28,7 +28,7 @@ public readonly record struct LineupCell(double X, double Y, double W, double H)
 
 /// <summary>
 /// Exhibition lineup is two screens: Team Setup (two bars + pool) then Offense/Defense Setup
-/// (two batting bars + two fielding diamonds). Unity draws this. Seats own a row; 1v1 later
+/// (two batting bars + two fielding diamonds). Unity draws this. Seats own a row; 1v1
 /// sits pad 2 on the away side without a second toolkit.
 /// </summary>
 public sealed class LineupScreens
@@ -38,6 +38,9 @@ public sealed class LineupScreens
     readonly ContentCatalog _content;
     readonly Character?[] _home = new Character?[Size];
     readonly Character?[] _away = new Character?[Size];
+    readonly SeatCursor _pad1 = new();
+    readonly SeatCursor _pad2 = new();
+    LineupSeat _acting = LineupSeat.Pad1;
 
     LineupScreens(
         ContentCatalog content,
@@ -54,11 +57,11 @@ public sealed class LineupScreens
         AwaySeat = awaySeat;
         LockCaptain = lockCaptain;
         Step = LineupStep.TeamSetup;
-        Focus = LineupFocus.Pool;
-        SlotIndex = FirstEmpty(_home);
-        PoolIndex = 0;
-        OrderIndex = 0;
-        GloveIndex = 0;
+        _acting = LineupSeat.Pad1;
+        _pad1.Focus = LineupFocus.Pool;
+        _pad1.SlotIndex = FirstEmpty(_home);
+        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.SlotIndex = FirstEmpty(_away);
     }
 
     public static LineupScreens Open(
@@ -76,21 +79,24 @@ public sealed class LineupScreens
         screens._away[0] = awayCap;
         if (awaySeat == LineupSeat.Cpu)
             screens.FillRow(screens._away, awayCap, exclude: [homeCap.Id]);
-        screens.SlotIndex = FirstEmpty(screens._home);
+        screens._pad1.Focus = LineupFocus.Pool;
+        screens._pad1.SlotIndex = FirstEmpty(screens._home);
+        screens._pad2.Focus = LineupFocus.Pool;
+        screens._pad2.SlotIndex = FirstEmpty(screens._away);
         return screens;
     }
 
     public LineupStep Step { get; private set; }
-    public LineupSeat HomeSeat { get; }
-    public LineupSeat AwaySeat { get; }
-    public LineupFocus Focus { get; private set; }
+    public LineupSeat HomeSeat { get; private set; }
+    public LineupSeat AwaySeat { get; private set; }
+    public LineupFocus Focus { get => Active.Focus; private set => Active.Focus = value; }
     public bool LockCaptain { get; }
     public Character HomeCaptain { get; }
     public Character AwayCaptain { get; }
-    public int SlotIndex { get; private set; }
-    public int PoolIndex { get; private set; }
-    public int OrderIndex { get; private set; }
-    public int GloveIndex { get; private set; }
+    public int SlotIndex { get => Active.SlotIndex; private set => Active.SlotIndex = value; }
+    public int PoolIndex { get => Active.PoolIndex; private set => Active.PoolIndex = value; }
+    public int OrderIndex { get => Active.OrderIndex; private set => Active.OrderIndex = value; }
+    public int GloveIndex { get => Active.GloveIndex; private set => Active.GloveIndex = value; }
     public TeamBuilder? Home { get; private set; }
     public TeamBuilder? Away { get; private set; }
 
@@ -183,35 +189,96 @@ public sealed class LineupScreens
         };
     }
 
-    public string Help => Step == LineupStep.TeamSetup
-        ? "stick head / slot    South drop    West remove    Tab fill    South when nine    next"
-        : "stick bar order    stick diamond glove    LB/East order    RB glove    South first pitch    West back";
+    public LineupFocus FocusOf(LineupSeat seat) => Cur(seat).Focus;
+    public int SlotOf(LineupSeat seat) => Cur(seat).SlotIndex;
+    public int PoolOf(LineupSeat seat) => Cur(seat).PoolIndex;
+    public int OrderOf(LineupSeat seat) => Cur(seat).OrderIndex;
+    public int GloveOf(LineupSeat seat) => Cur(seat).GloveIndex;
 
-    public bool Stick(int dx, int dy)
+    public bool Lit(LineupFocus focus, int index)
     {
-        if (dx == 0 && dy == 0) return false;
-        if (Step == LineupStep.TeamSetup) return StickTeam(dx, dy);
-        return StickDefense(dx, dy);
+        if (HumanLit(HomeSeat, focus, index)) return true;
+        if (HomeSeat != AwaySeat && HumanLit(AwaySeat, focus, index)) return true;
+        return false;
     }
 
-    public bool South()
+    /// <summary>
+    /// Live pad 2: sit away as human (empty the CPU nine) or unplug (CPU fills).
+    /// Does not restart the inning — Unity remaps seats around the same match.
+    /// </summary>
+    public void Sit(LineupSeat home, LineupSeat away)
     {
+        HomeSeat = home == LineupSeat.Cpu ? LineupSeat.Pad1 : home;
+        if (AwaySeat == away) return;
+        AwaySeat = away;
+        if (away == LineupSeat.Cpu)
+        {
+            var blocked = Occupied().Where(id =>
+                !_away.Any(c => c != null && c.Id.Equals(id, StringComparison.OrdinalIgnoreCase)));
+            FillRow(_away, AwayCaptain, blocked);
+            if (Step == LineupStep.TeamSetup)
+            {
+                _pad2.Focus = LineupFocus.AwayRow;
+                _pad2.SlotIndex = 0;
+            }
+            return;
+        }
+        if (Step != LineupStep.TeamSetup) return;
+        for (var i = 1; i < Size; i++)
+            _away[i] = null;
+        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.SlotIndex = FirstEmpty(_away);
+        ClampPool();
+    }
+
+    public string Help => Step == LineupStep.TeamSetup
+        ? AwaySeat == LineupSeat.Pad2
+            ? "pad 1 home    pad 2 away    stick head / slot    South drop    West remove    South when nine    next"
+            : "stick head / slot    South drop    West remove    Tab fill    South when nine    next"
+        : AwaySeat == LineupSeat.Pad2
+            ? "pad 1 home    pad 2 away    stick bar order    stick diamond glove    South first pitch    West back"
+            : "stick bar order    stick diamond glove    LB/East order    RB glove    South first pitch    West back";
+
+    public bool Stick(int dx, int dy) => Stick(LineupSeat.Pad1, dx, dy);
+
+    public bool Stick(LineupSeat seat, int dx, int dy)
+    {
+        if (dx == 0 && dy == 0 || seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        if (Step == LineupStep.TeamSetup) return StickTeam(seat, dx, dy);
+        return StickDefense(seat, dx, dy);
+    }
+
+    public bool South() => South(LineupSeat.Pad1);
+
+    public bool South(LineupSeat seat)
+    {
+        if (seat == LineupSeat.Cpu) return false;
+        _acting = seat;
         if (Step != LineupStep.TeamSetup) return false;
-        if (Drop()) return true;
+        if (Drop(seat)) return true;
         return ConfirmTeam();
     }
 
-    public bool West()
+    public bool West() => West(LineupSeat.Pad1);
+
+    public bool West(LineupSeat seat)
     {
-        if (Step == LineupStep.DefenseSetup) return BackToTeam();
-        return Remove();
+        if (seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        if (Step == LineupStep.DefenseSetup)
+            return seat == HomeSeat && BackToTeam();
+        return Remove(seat);
     }
 
     /// <summary>Stick picks a pool head, South drops it into the highlighted empty slot.</summary>
-    public bool Drop()
+    public bool Drop() => Drop(_acting);
+
+    public bool Drop(LineupSeat seat)
     {
-        if (Step != LineupStep.TeamSetup) return false;
-        var row = EditableRow();
+        if (Step != LineupStep.TeamSetup || seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        var row = EditableRow(seat);
         if (row == null) return false;
         var i = Math.Clamp(SlotIndex, 0, Size - 1);
         if (row[i] != null) return false;
@@ -225,10 +292,13 @@ public sealed class LineupScreens
     }
 
     /// <summary>West removes. Captain stays when <see cref="LockCaptain"/>.</summary>
-    public bool Remove()
+    public bool Remove() => Remove(_acting);
+
+    public bool Remove(LineupSeat seat)
     {
-        if (Step != LineupStep.TeamSetup) return false;
-        var row = EditableRow();
+        if (Step != LineupStep.TeamSetup || seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        var row = EditableRow(seat);
         if (row == null) return false;
         var i = Math.Clamp(SlotIndex, 0, Size - 1);
         if (row[i] == null || Locked(row[i]!, row))
@@ -250,10 +320,13 @@ public sealed class LineupScreens
         return true;
     }
 
-    public bool RandomFill()
+    public bool RandomFill() => RandomFill(_acting);
+
+    public bool RandomFill(LineupSeat seat)
     {
-        if (Step != LineupStep.TeamSetup) return false;
-        var row = EditableRow();
+        if (Step != LineupStep.TeamSetup || seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        var row = EditableRow(seat);
         if (row == null) return false;
         var cap = row == _away ? AwayCaptain : HomeCaptain;
         var exclude = Occupied().Where(id => !id.Equals(cap.Id, StringComparison.OrdinalIgnoreCase));
@@ -272,9 +345,13 @@ public sealed class LineupScreens
         Home = home;
         Away = away;
         Step = LineupStep.DefenseSetup;
-        Focus = LineupFocus.HomeOrder;
-        OrderIndex = 0;
-        GloveIndex = 0;
+        _pad1.Focus = LineupFocus.HomeOrder;
+        _pad1.OrderIndex = 0;
+        _pad1.GloveIndex = 0;
+        _pad2.Focus = LineupFocus.AwayOrder;
+        _pad2.OrderIndex = 0;
+        _pad2.GloveIndex = 0;
+        _acting = LineupSeat.Pad1;
         return true;
     }
 
@@ -282,17 +359,24 @@ public sealed class LineupScreens
     {
         if (Step != LineupStep.DefenseSetup) return false;
         Step = LineupStep.TeamSetup;
-        Focus = LineupFocus.HomeRow;
+        _pad1.Focus = LineupFocus.HomeRow;
+        _pad1.SlotIndex = 0;
+        _pad2.Focus = LineupFocus.AwayRow;
+        _pad2.SlotIndex = 0;
         Home = null;
         Away = null;
-        SlotIndex = 0;
+        _acting = LineupSeat.Pad1;
         return true;
     }
 
     /// <summary>Batting order 1–9 as a cycle. Nine steps restore.</summary>
-    public bool StepBatting(int dir)
+    public bool StepBatting(int dir) => StepBatting(_acting, dir);
+
+    public bool StepBatting(LineupSeat seat, int dir)
     {
-        var draft = EditableDraft();
+        if (seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        var draft = EditableDraft(seat);
         if (draft == null || draft.Order.Count != Size) return false;
         dir = dir >= 0 ? 1 : -1;
         if (dir > 0)
@@ -318,9 +402,13 @@ public sealed class LineupScreens
         return true;
     }
 
-    public bool CycleGlove()
+    public bool CycleGlove() => CycleGlove(_acting);
+
+    public bool CycleGlove(LineupSeat seat)
     {
-        var draft = EditableDraft();
+        if (seat == LineupSeat.Cpu) return false;
+        _acting = seat;
+        var draft = EditableDraft(seat);
         if (draft == null) return false;
         var who = Highlighted;
         if (who == null) return false;
@@ -351,13 +439,19 @@ public sealed class LineupScreens
         return true;
     }
 
-    bool StickTeam(int dx, int dy)
+    bool StickTeam(LineupSeat seat, int dx, int dy)
     {
         if (Focus == LineupFocus.Pool)
         {
-            if (dy > 0 && PoolRow() == 0) { Focus = LineupFocus.HomeRow; return true; }
+            if (dy > 0 && PoolRow() == 0)
+            {
+                if (!SeatOwns(seat, LineupFocus.HomeRow)) return false;
+                Focus = LineupFocus.HomeRow;
+                return true;
+            }
             if (dy < 0 && PoolRow() >= PoolRows() - 1)
             {
+                if (!SeatOwns(seat, LineupFocus.AwayRow)) return false;
                 Focus = LineupFocus.AwayRow;
                 SlotIndex = Math.Clamp(SlotIndex, 0, Size - 1);
                 return true;
@@ -384,13 +478,16 @@ public sealed class LineupScreens
         return false;
     }
 
-    bool StickDefense(int dx, int dy)
+    bool StickDefense(LineupSeat seat, int dx, int dy)
     {
+        var away = seat == AwaySeat && AwaySeat != LineupSeat.Cpu;
+        var order = away ? LineupFocus.AwayOrder : LineupFocus.HomeOrder;
+        var diamond = away ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond;
         if (Focus is LineupFocus.HomeDiamond or LineupFocus.AwayDiamond)
         {
             if (dy > 0 && Diamond.Order[GloveIndex] == "C")
             {
-                Focus = OwnsAway ? LineupFocus.AwayOrder : LineupFocus.HomeOrder;
+                Focus = order;
                 return true;
             }
             if (dx != 0 || dy != 0) return NudgeGlove(dx, dy);
@@ -399,10 +496,11 @@ public sealed class LineupScreens
 
         if (dy < 0)
         {
-            Focus = OwnsAway ? LineupFocus.AwayDiamond : LineupFocus.HomeDiamond;
+            Focus = diamond;
             return true;
         }
-        if (dx != 0) return StepBatting(dx);
+        if (dx != 0) return StepBatting(seat, dx);
+        if (Focus != order) Focus = order;
         return false;
     }
 
@@ -460,22 +558,62 @@ public sealed class LineupScreens
         return best;
     }
 
-    Character?[]? EditableRow()
+    Character?[]? EditableRow() => EditableRow(_acting);
+
+    Character?[]? EditableRow(LineupSeat seat)
     {
-        if (Focus == LineupFocus.AwayRow)
-            return AwaySeat == LineupSeat.Cpu ? null : _away;
-        return HomeSeat == LineupSeat.Cpu ? null : _home;
+        if (seat == LineupSeat.Cpu) return null;
+        if (seat == AwaySeat && AwaySeat != LineupSeat.Cpu)
+        {
+            if (Focus is LineupFocus.AwayRow or LineupFocus.Pool) return _away;
+            return null;
+        }
+        if (seat == HomeSeat && HomeSeat != LineupSeat.Cpu)
+        {
+            if (Focus is LineupFocus.HomeRow or LineupFocus.Pool) return _home;
+            return null;
+        }
+        return null;
     }
 
-    TeamBuilder? EditableDraft()
+    TeamBuilder? EditableDraft() => EditableDraft(_acting);
+
+    TeamBuilder? EditableDraft(LineupSeat seat)
     {
-        if (Step != LineupStep.DefenseSetup) return null;
-        if (Focus is LineupFocus.AwayOrder or LineupFocus.AwayDiamond)
-            return AwaySeat == LineupSeat.Cpu ? null : Away;
-        return HomeSeat == LineupSeat.Cpu ? null : Home;
+        if (Step != LineupStep.DefenseSetup || seat == LineupSeat.Cpu) return null;
+        if (seat == AwaySeat) return AwaySeat == LineupSeat.Cpu ? null : Away;
+        if (seat == HomeSeat) return HomeSeat == LineupSeat.Cpu ? null : Home;
+        return null;
     }
 
     bool OwnsAway => Focus is LineupFocus.AwayRow or LineupFocus.AwayOrder or LineupFocus.AwayDiamond;
+
+    SeatCursor Cur(LineupSeat seat) => seat == LineupSeat.Pad2 ? _pad2 : _pad1;
+    SeatCursor Active => Cur(_acting);
+
+    bool HumanLit(LineupSeat seat, LineupFocus focus, int index)
+    {
+        if (seat == LineupSeat.Cpu) return false;
+        var c = Cur(seat);
+        if (c.Focus != focus) return false;
+        var i = focus switch
+        {
+            LineupFocus.Pool => c.PoolIndex,
+            LineupFocus.HomeRow or LineupFocus.AwayRow => c.SlotIndex,
+            LineupFocus.HomeOrder or LineupFocus.AwayOrder => c.OrderIndex,
+            _ => c.GloveIndex
+        };
+        return i == index;
+    }
+
+    sealed class SeatCursor
+    {
+        public LineupFocus Focus;
+        public int SlotIndex;
+        public int PoolIndex;
+        public int OrderIndex;
+        public int GloveIndex;
+    }
 
     bool Locked(Character who, Character?[] row)
     {

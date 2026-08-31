@@ -136,6 +136,53 @@ public class LineupScreensTests
     }
 
     [Fact]
+    public void Pad1AndPad2DropIntoTheirOwnRows()
+    {
+        var s = LineupScreens.Open(_content, "vale", "brondo",
+            homeSeat: LineupSeat.Pad1, awaySeat: LineupSeat.Pad2);
+        var homePick = s.Pool[0];
+        Assert.True(s.South(LineupSeat.Pad1));
+        Assert.Equal(homePick.Id, s.HomeSlots[1]!.Id);
+        Assert.Null(s.AwaySlots[1]);
+        var awayPick = s.Pool[0];
+        Assert.NotEqual(homePick.Id, awayPick.Id);
+        Assert.True(s.South(LineupSeat.Pad2));
+        Assert.Equal(awayPick.Id, s.AwaySlots[1]!.Id);
+        Assert.Equal(homePick.Id, s.HomeSlots[1]!.Id);
+        s.Stick(LineupSeat.Pad1, 0, -1);
+        Assert.NotEqual(LineupFocus.AwayRow, s.FocusOf(LineupSeat.Pad1));
+        Assert.True(s.RandomFill(LineupSeat.Pad1));
+        Assert.True(s.RandomFill(LineupSeat.Pad2));
+        Assert.True(s.HomeFull);
+        Assert.True(s.AwayFull);
+        Assert.True(s.ConfirmTeam());
+        Assert.Equal(LineupFocus.HomeOrder, s.FocusOf(LineupSeat.Pad1));
+        Assert.Equal(LineupFocus.AwayOrder, s.FocusOf(LineupSeat.Pad2));
+        var home0 = s.Home!.Order[0].Id;
+        var awayStart = s.Away!.Order.Select(c => c.Id).ToArray();
+        Assert.True(s.StepBatting(LineupSeat.Pad2, 1));
+        Assert.Equal(home0, s.Home.Order[0].Id);
+        Assert.NotEqual(awayStart, s.Away.Order.Select(c => c.Id).ToArray());
+    }
+
+    [Fact]
+    public void SitUnplugFillsAwayAndPlugEmptiesForPad2()
+    {
+        var s = LineupScreens.Open(_content, "vale", "brondo");
+        Assert.True(s.AwayFull);
+        s.Sit(LineupSeat.Pad1, LineupSeat.Pad2);
+        Assert.Equal(LineupSeat.Pad2, s.AwaySeat);
+        Assert.Equal("brondo", s.AwaySlots[0]!.Id);
+        for (var i = 1; i < 9; i++)
+            Assert.Null(s.AwaySlots[i]);
+        s.Sit(LineupSeat.Pad1, LineupSeat.Cpu);
+        Assert.Equal(LineupSeat.Cpu, s.AwaySeat);
+        Assert.True(s.AwayFull);
+        Assert.Equal("brondo", s.AwayCaptain.Id);
+        Assert.DoesNotContain(s.AwaySlots, c => c != null && c.Id.Equals("vale", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void LayoutIsTwoBarsThenTwoDiamonds()
     {
         Assert.True(LineupLayout.HomeSlot(0).Y > LineupLayout.PoolCell(0, 12).Y);
