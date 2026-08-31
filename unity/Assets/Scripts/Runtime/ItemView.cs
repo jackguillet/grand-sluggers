@@ -14,6 +14,7 @@ namespace GrandSluggers.UnityClient
         Transform _banana;
         Transform _rocket;
         Transform _pow;
+        Transform _pointer;
         float _t;
 
         public void Build(Transform parent)
@@ -24,6 +25,7 @@ namespace GrandSluggers.UnityClient
             _banana = Banana();
             _rocket = Rocket();
             _pow = Pow();
+            _pointer = Pointer();
             Hide();
         }
 
@@ -82,6 +84,13 @@ namespace GrandSluggers.UnityClient
             Place(_banana, true, feet, pick == 0, Quaternion.Euler(18, _t * 40f, 12));
             Place(_rocket, true, body, pick == 1, Quaternion.Euler(80f, _t * 120f, 0));
             Place(_pow, true, hop, pick == 2, Quaternion.Euler(0, _t * 90f, 8f * Mathf.Sin(_t * 6f)));
+            if (_pointer != null)
+            {
+                _pointer.gameObject.SetActive(true);
+                _pointer.position = new Vector3(target.x, 0.08f, target.z);
+                var s = 2.4f + 0.25f * Mathf.Sin(_t * 7f);
+                _pointer.localScale = new Vector3(s, 0.08f, s);
+            }
         }
 
         void PlaceThrown(string id, Vector3 from, Vector3 to, float u)
@@ -90,6 +99,7 @@ namespace GrandSluggers.UnityClient
             if (_banana != null) _banana.gameObject.SetActive(id == "banana");
             if (_rocket != null) _rocket.gameObject.SetActive(id == "rocket");
             if (_pow != null) _pow.gameObject.SetActive(id == "pow");
+            if (_pointer != null) _pointer.gameObject.SetActive(false);
             var p = Vector3.Lerp(from, to, u);
             if (id == "banana")
                 p.y += Mathf.Sin(u * Mathf.PI) * 3.4f;
@@ -121,11 +131,22 @@ namespace GrandSluggers.UnityClient
             if (_banana != null) _banana.gameObject.SetActive(false);
             if (_rocket != null) _rocket.gameObject.SetActive(false);
             if (_pow != null) _pow.gameObject.SetActive(false);
+            if (_pointer != null) _pointer.gameObject.SetActive(false);
         }
 
         public void Hide()
         {
             HidePicker();
+        }
+
+        Transform Pointer()
+        {
+            var gold = Look.Unlit(new Color(1f, 0.82f, 0.2f));
+            var go = new GameObject("ItemPointer");
+            go.transform.SetParent(_root, false);
+            Look.Prim(PrimitiveType.Cylinder, "Ring", go.transform, Vector3.zero, new Vector3(1f, 0.06f, 1f), gold);
+            go.SetActive(false);
+            return go.transform;
         }
 
         Transform Banana()

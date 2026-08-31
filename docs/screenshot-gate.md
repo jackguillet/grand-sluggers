@@ -4,7 +4,7 @@ The rails are closed. These stills are the product. If you would not show a pict
 
 **You do not have to pitch the top to get an out.** Play menu **Grand Sluggers → Capture Still Gate** (or an agent running `tools/still-gate.sh`) jumps to batting, scoop, and star and writes PNGs. The pad path below is optional, for taste.
 
-Gamepad is the couch product. Keyboard is the same scheme (F1/F2/F3 stay debug).
+Gamepad is the couch product. Keyboard and mouse are the same scheme (F1/F2/F3 stay debug).
 
 ---
 

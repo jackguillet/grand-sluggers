@@ -40,6 +40,8 @@ public sealed class Match
     Character _homePitcher;
     Character _awayPitcher;
     public bool Over { get; private set; }
+    /// <summary>Set by the close-play button race at third or home. Null means use the sim tag race.</summary>
+    public bool? ClosePlaySafe { get; set; }
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
 
@@ -320,6 +322,18 @@ public sealed class Match
         if (First is null && Second is null && Third is null) return false;
         SendAll = false;
         ClearSteal();
+        foreach (var bag in new[] { 1, 2, 3 })
+            RunnerAt(bag)?.Halt();
+        return true;
+    }
+
+    /// <summary>Stick toward a bag + halt: freeze that runner only. SMS individual halt.</summary>
+    public bool HaltAt(int bag)
+    {
+        var state = RunnerAt(bag);
+        if (state is null) return false;
+        state.Halt();
+        if (ArmedStealBag == bag) ClearSteal();
         return true;
     }
 
@@ -879,7 +893,8 @@ public sealed class Match
                     var tagBag = InPlay.TagBag(Second is not null, Third is not null);
                     var fromBag = tagBag == 4 ? 3 : 2;
                     var runner = tagBag == 4 ? Third! : Second!;
-                    var beats = InPlay.RunnerBeatsTag(runner, hit, field, tagBag);
+                    var beats = ClosePlaySafe ?? InPlay.RunnerBeatsTag(runner, hit, field, tagBag);
+                    ClosePlaySafe = null;
                     if (!beats)
                     {
                         SetBag(fromBag, null);

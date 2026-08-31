@@ -45,6 +45,11 @@ namespace GrandSluggers.UnityClient
             _playerFielding = false;
             _cpuField = null;
             _throwing = false;
+            _closePlay = false;
+            _closeIcon = false;
+            _closePlayT = 0;
+            _closeBag = 0;
+            _closeOffAt = _closeDefAt = -1f;
             _relayBags = null;
             _relayI = 0;
             _awaitingRelay = false;

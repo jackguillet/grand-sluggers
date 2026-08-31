@@ -115,4 +115,25 @@ public static class BroadcastHud
             match.Away.Name,
             match.Home.Name);
     }
+
+    /// <summary>Booklet Game Rules spread. Copy a stranger can read without F2.</summary>
+    public const int TiredArm = 25;
+
+    public static bool PoorArm(int stamina) => stamina < TiredArm;
+
+    public static string ArmLine(int stamina) =>
+        PoorArm(stamina) ? $"ARM  {stamina}  ·  TIRED" : $"ARM  {stamina}";
+
+    public static string ControlDisplay(bool hasGlove, string pos, string name)
+    {
+        if (!hasGlove || string.IsNullOrWhiteSpace(pos)) return "";
+        return string.IsNullOrWhiteSpace(name)
+            ? "YOU  " + pos
+            : "YOU  " + pos + "  ·  " + name;
+    }
+
+    public static string ItemPointer(bool offered, string? targetName) =>
+        offered && !string.IsNullOrWhiteSpace(targetName)
+            ? "ITEM  →  " + targetName
+            : "";
 }

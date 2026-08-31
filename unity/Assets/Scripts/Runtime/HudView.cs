@@ -150,16 +150,19 @@ namespace GrandSluggers.UnityClient
             if (howTo)
             {
                 var p = HowToPlay.Pages[(page % HowToPlay.Pages.Count + HowToPlay.Pages.Count) % HowToPlay.Pages.Count];
-                var w = 760f;
-                var h = 52f + p.Lines.Count * 26f + 56f;
-                var x = Screen.width * 0.5f - w * 0.5f;
-                var y = Mathf.Max(36f, Screen.height * 0.5f - h * 0.5f);
+                var book = HowToPlay.BookPanel(Screen.width, Screen.height, p.Lines.Count);
+                var x = book.X;
+                var y = book.Y;
+                var w = book.W;
+                var h = book.H;
                 GUI.DrawTexture(new Rect(x, y, w, h), _panel);
-                GUI.Label(new Rect(x + 24, y + 16, w - 48, 32),
-                    "HOW TO PLAY  ·  " + (page + 1) + " / " + HowToPlay.Pages.Count + "  ·  " + p.Title, _h1);
+                GUI.Label(new Rect(x + 24, y + 12, w - 48, 22), "HOW TO PLAY", _gold);
+                GUI.Label(new Rect(x + 24, y + 32, w - 48, 28),
+                    p.Title.ToUpperInvariant() + "    " + (page + 1) + " / " + HowToPlay.Pages.Count, _h1);
                 for (var i = 0; i < p.Lines.Count; i++)
-                    GUI.Label(new Rect(x + 28, y + 56 + i * 26, w - 56, 24), p.Lines[i], _body);
-                GUI.Label(new Rect(x + 28, y + h - 36, w - 56, 22), "South next page    stick L/R    East / Start back", _gold);
+                    GUI.Label(new Rect(x + 28, y + 64 + i * 24, w - 56, 22), p.Lines[i], _body);
+                GUI.Label(new Rect(x + 28, y + h - 32, w - 56, 20),
+                    "South / left click next    wheel    East / right click / Esc back", _tiny);
                 return;
             }
             var mw = 420f;
@@ -176,7 +179,40 @@ namespace GrandSluggers.UnityClient
                     GUI.DrawTexture(r, _ink);
                 GUI.Label(r, label, i == item ? _h1 : _body);
             }
-            GUI.Label(new Rect(mx + 24, my + mh - 32, mw - 48, 22), "stick  choose    South  ok    Start / East  resume", _tiny);
+            GUI.Label(new Rect(mx + 24, my + mh - 32, mw - 48, 22),
+                "stick / click  choose    South / left click ok    Esc / East / right click resume", _tiny);
+        }
+
+        public static void ControlDisplay(string pos, string name)
+        {
+            var label = BroadcastHud.ControlDisplay(true, pos, name);
+            if (string.IsNullOrEmpty(label)) return;
+            Ensure();
+            GUI.DrawTexture(new Rect(36, Screen.height - 120, 280, 36), _panel);
+            GUI.Label(new Rect(48, Screen.height - 116, 256, 28), label, _gold);
+        }
+
+        public static void ItemPointer(string targetName)
+        {
+            var label = BroadcastHud.ItemPointer(true, targetName);
+            if (string.IsNullOrEmpty(label)) return;
+            Ensure();
+            GUI.DrawTexture(new Rect(Screen.width - 320, Screen.height - 120, 284, 36), _panel);
+            GUI.Label(new Rect(Screen.width - 308, Screen.height - 116, 260, 28), label, _gold);
+        }
+
+        public static void ClosePlay(int bag, bool icon)
+        {
+            Ensure();
+            var w = 520f;
+            var h = 92f;
+            var x = Screen.width * 0.5f - w * 0.5f;
+            var y = Screen.height * 0.38f;
+            GUI.DrawTexture(new Rect(x, y, w, h), _panel);
+            var bagName = bag == 4 ? "HOME" : "3B";
+            GUI.Label(new Rect(x + 20, y + 14, w - 40, 32), "CLOSE PLAY  ·  " + bagName, _h1);
+            GUI.Label(new Rect(x + 20, y + 50, w - 40, 28),
+                icon ? "PRESS SOUTH  ·  Space / left click  ·  first wins" : "Get ready…", _gold);
         }
 
         public static void BagTell(int bag)
@@ -326,13 +362,13 @@ namespace GrandSluggers.UnityClient
                 (bStar ? "STAR  " : "") + (steal ? "STEAL  " : "") + (item ?? ""),
                 Look.HasPortrait(match.Batter.Id) ? Look.Portrait(match.Batter.Id) : null);
             SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
-                "ARM  " + match.PitcherStamina,
+                BroadcastHud.ArmLine(match.PitcherStamina),
                 (pitches != null && pi >= 0 && pi < pitches.Length ? pitches[pi].ToUpperInvariant() : "")
-                    + (pStar ? "  STAR" : ""),
+                    + (pStar ? "  STAR" : "")
+                    + (BroadcastHud.PoorArm(match.PitcherStamina) ? "  SWEAT" : ""),
                 Look.HasPortrait(match.Pitcher.Id) ? Look.Portrait(match.Pitcher.Id) : null);
-            if (humanPitches)
-                Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
-                    Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
+            Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
+                Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
             if (!showTiming) return;
             var box = humanPitches ? Px(lay.PitcherCard) : Px(lay.BatterCard);
             GUI.DrawTexture(new Rect(box.x + 16, box.y + box.height - 12, 160, 6), _dotOff);

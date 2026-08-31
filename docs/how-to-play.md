@@ -1,8 +1,8 @@
 # How to play
 
-Living spec for couch play. **Gamepad is the couch product. Keyboard is the same scheme** — every Exhibition verb has a key. F1/F2/F3 stay debug. Mouse is not a control.
+Living spec for couch play. **Gamepad is the couch product. Keyboard and mouse are the same scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only. F1/F2/F3 stay debug.
 
-**In the game:** Start / H during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Those pages are `HowToPlay.Pages` (same copy as below). If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
+**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Click a row, or left-click to confirm. Those pages are `HowToPlay.Pages` (same copy as below). If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
@@ -12,27 +12,28 @@ Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`.
 
 South / East / West / North are **positions**, not Nintendo vs Xbox labels. The bottom face button is South on Xbox and Nintendo pads.
 
-| Verb | Pad | Keyboard |
-| --- | --- | --- |
-| Confirm / pitch / swing / catch / throw | South | Space / Enter |
-| Charge | LT analog | Shift (hold = 1.0) |
-| Star | North | Q |
-| Aim / run | Left stick | WASD |
-| Bags | D-pad diamond | 1 2 3 4 (arrows when not running) |
-| All advance / all return | LB / RB | `,` / `.` |
-| Freeze | LB+RB | `/` |
-| Steal | L3 | Z |
-| Changeup (pitch) | West | V |
-| Swap pitcher / glove | Select | R |
-| Bunt | West hold | V hold |
-| Cutoff / relay | LB after catch | X |
-| Dive / jump | East / West | G / F |
-| Start | Menu / Start | H |
-| Night | R3 | N |
+| Verb | Pad | Keyboard | Mouse |
+| --- | --- | --- | --- |
+| Confirm / pitch / swing / catch / throw | South | Space / Enter | Left click |
+| Charge | LT analog | Shift (hold = 1.0) | Right click hold |
+| Star | North | Q | Middle click |
+| Aim / run | Left stick | WASD | Mouse move |
+| Bags | D-pad diamond | 1 2 3 4 (arrows when not running) | Mouse quadrant / click bag |
+| All advance / all return | LB / RB | `,` / `.` | — |
+| Freeze | LB+RB | `/` | — |
+| Steal | L3 | Z | — |
+| Changeup (pitch) | West | V | Left Ctrl |
+| Swap pitcher / glove | Select | R | — |
+| Bunt | West hold | V hold | Left Ctrl hold in the box |
+| Cutoff / relay | LB after catch | X | — |
+| Dive / jump | East / West | G / F | — |
+| Attack (kick / smash item) | North in-play | B | Middle click in-play |
+| Start / call time | Menu / Start | H / Esc | Esc |
+| Night | R3 | N | — |
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
-One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. Mouse is not a control. Keyboard is player 1 only.
+One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Pad 2 is a second gamepad. Mouse stick goes dead after a beat of no movement so CPU can still take the hop.
 
 ---
 
@@ -108,21 +109,25 @@ SET is the **same plate 3/4** for pitch and swing (`plate`) — beside the batte
 - **Sweet-spot oval** on the dirt is smaller than the zone. Walk so it eats the ball.
 - **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
 - **Select / R** — swap pitcher (when they sweat, they are tired).
-- **Start / H** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space ok. Tab on the title cycles 3 / 6 / 9 innings.
+- **Start / H / Esc** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space / left click ok. Click a row. Wheel turns How to play pages. East / right click / Esc back. Tab on the title cycles 3 / 6 / 9 innings.
 
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
 ### Batting (running)
 
-- **LB / `,`** — all advance · **RB / `.`** — all return · **both / `/`** — freeze
+- **LB / `,`** — all advance · **RB / `.`** — all return · **both / `/`** — halt all
+- **Stick toward a bag + halt** — freeze that runner only. They keep the lead they have.
 - **D-pad / 1 2 3** — select a runner (right 1B, up 2B, left 3B). **Down / 4** is home — not stealable. Default highlight is the lead runner.
 - **Stick** toward the next bag — lead on the highlighted runner; back — return
 - **L3 / Z** — steal the selected runner toward their next bag. They go on the pitch. No steal home.
 - After a take or swing-and-miss the **catcher guns**. Arm **2B** (default on a steal of second) and **South**. Early throw that beats the runner is **CAUGHT STEALING**; late is **STOLEN BASE**. Dead stick: CPU catcher still guns. Take the stick and you own it.
 - **Mash South / Space** after contact — **dash** to first
 - **West / South** near the bag — slide
+- **Close play** at third or home — the camera sits on the bag. First **South / left click** after the icon wins. Runner is safe if offense is first; out if defense is first. CPU mashes on a delay from Run / Field.
 
 Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags. Mini diamond + banner match the out/safe.
+
+In-play HUD (the booklet screen): **YOU** names the glove you have (gone when the stick is dead). Landing ring is the grass the fly wants. **ITEM → name** plus a gold ring on that body when a chemistry item is armed. Pitcher card is **ARM**; below 25 it reads **TIRED** and sweats.
 
 ### Fielding (the ball is in play)
 
@@ -135,6 +140,7 @@ Hopper cam is low in the grass; a fly is a 3/4 **on the glove**; a homer rises w
 - **East tap / G** — dive
 - **West / F** — jump in the window / buddy jump. A would-be homer is a wall play: West (or two bodies, West) in the window robs. South does not. Super Jump / Grow / Clamber add window, not a skip. Miss = the ball drops (or a homer). Dead stick: CPU still can catch.
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
+- **North / B / middle click** — **attack**. Kick the ball to a nearby glove (chem partner lasers; anyone close takes a short toss). Smash a flying error item before it lands.
 - **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
 - **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. Dead stick: CPU may still turn two. You throw both — one South on the hopper is not two outs.
 - After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove. A steal gun is the same throw from the catcher, without a hop.
@@ -162,7 +168,7 @@ Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hea
 
 ### Two pads (local 1v1)
 
-Gamepad **0 is home**. Gamepad **1 is away**. Keyboard stays player 1. A second pad does not split the screen and does not go online.
+Gamepad **0 is home**. Gamepad **1 is away**. Keyboard and mouse stay player 1. A second pad does not split the screen and does not go online.
 
 - **Title / captains / Team Setup / Defense Setup.** Pad 1 edits home. Pad 2 edits away. Each picks their captain, roster, order, gloves.
 - **First pitch.** Pad 1 pitches the top, pad 2 bats. Bottom: they swap. CPU never bats or pitches while both pads are seated.
@@ -191,6 +197,6 @@ F2 is how you name the still (plate vs mound vs diamond-line). It does not repla
 
 Couch, pad, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
 
-**Now (Harbor Exhibition).** Title looks into the park. SET pitch and SET swing are the same plate 3/4 (batter in the box, pitcher full-body on the mound). Two chalk boxes and a pentagon on packed dirt. The infield is grass with dirt paths and a mound hill. Flies, hoppers, throws, and homers are named 3/4s in the park, not a broadcast high-home. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. From the box the pitcher throws — windup, then the ball leaves that hand. Star specials own the ball or the field ~2 seconds HUD-off (Heatball/heat-swing core+embers on the body; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is one chain with six SMS-ladder cuts (kid / pageant / speed / brick / ape / slug) so a HUD-off plate still names the type. Captain extras stay data. Still primitives, not a sculpted hero. Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Keyboard is the same verbs (Space confirm, WASD run, 1–4 bags). Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
+**Now (Harbor Exhibition).** Title looks into the park. SET pitch and SET swing are the same plate 3/4 (batter in the box, pitcher full-body on the mound). Two chalk boxes and a pentagon on packed dirt. The infield is grass with dirt paths and a mound hill. Flies, hoppers, throws, and homers are named 3/4s in the park, not a broadcast high-home. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. From the box the pitcher throws — windup, then the ball leaves that hand. Star specials own the ball or the field ~2 seconds HUD-off (Heatball/heat-swing core+embers on the body; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is one chain with six SMS-ladder cuts (kid / pageant / speed / brick / ape / slug) so a HUD-off plate still names the type. Captain extras stay data. Still primitives, not a sculpted hero. Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Keyboard and mouse are the same verbs (Space / left click confirm, WASD / mouse run, 1–4 bags). Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.

@@ -114,6 +114,12 @@ namespace GrandSluggers.UnityClient
         float _diveT, _jumpT, _swapLock;
         bool _throwing;
         float _throwT, _throwDur;
+        bool _closePlay;
+        float _closePlayT;
+        bool _closeIcon;
+        int _closeBag;
+        float _closeOffAt;
+        float _closeDefAt;
         int[] _relayBags;
         int _relayI;
         bool _awaitingRelay;
@@ -321,6 +327,15 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
                 return;
             }
+            if (_closePlay)
+                HudView.ClosePlay(_closeBag, _closeIcon);
+            if (!mutePlay && _phase == Phase.InPlay && _playerFielding)
+            {
+                var who = PlayFielder();
+                HudView.ControlDisplay(_glovePos, who != null ? who.Name : "");
+            }
+            if (!mutePlay && ItemOffered && _itemTarget != null)
+                HudView.ItemPointer(_itemTarget.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
             {
                 var hopper = _preview != null && _preview.Grounder;
@@ -359,22 +374,35 @@ namespace GrandSluggers.UnityClient
         {
             var dt = Time.unscaledDeltaTime;
             if (_pauseStick > 0) _pauseStick -= dt;
+            var mouse = Controls.GuiMouse;
             if (_pauseHowTo)
             {
+                var n = HowToPlay.Pages.Count;
+                var page = HowToPlay.Pages[(_pausePage % n + n) % n];
                 if (_pauseStick <= 0 && Mathf.Abs(Controls.StickX) >= 0.45f)
                 {
-                    _pausePage = (_pausePage + (Controls.StickX > 0 ? 1 : HowToPlay.Pages.Count - 1)) % HowToPlay.Pages.Count;
+                    _pausePage = (_pausePage + (Controls.StickX > 0 ? 1 : n - 1)) % n;
                     _pauseStick = 0.22f;
                 }
+                if (Controls.Wheel != 0 && _pauseStick <= 0)
+                {
+                    _pausePage = (_pausePage + (Controls.Wheel > 0 ? 1 : n - 1)) % n;
+                    _pauseStick = 0.16f;
+                }
                 if (Controls.SouthDown)
-                    _pausePage = (_pausePage + 1) % HowToPlay.Pages.Count;
-                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime, _t))
+                {
+                    var nav = HowToPlay.HitNav(mouse.x, mouse.y, Screen.width, Screen.height, page.Lines.Count);
+                    _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
+                }
+                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack, _t))
                 {
                     _pauseHowTo = false;
                     _t = 0;
                 }
                 return;
             }
+            var hit = PauseMenu.HitItem(mouse.x, mouse.y, Screen.width, Screen.height);
+            if (hit >= 0) _pauseItem = hit;
             if (Controls.MenuDown)
             {
                 _pauseItem = PauseMenu.Wrap(_pauseItem, 1);
@@ -410,7 +438,7 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime, _t))
+            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack, _t))
                 _match.SetPaused(false);
         }
 
@@ -511,6 +539,21 @@ namespace GrandSluggers.UnityClient
             {
                 _itemFly += dt;
                 if (_itemFly >= ItemView.FlySeconds) _itemFlying = false;
+            }
+            if (_itemFlying && FieldPad.Attack)
+            {
+                var dest = ItemTargetWorld();
+                var dist = Diamond.Dist(_fx, _fz, dest.x, dest.z);
+                if (FieldDash.DestroysItem(true, true, dist))
+                {
+                    if (_cpuField != null)
+                        _cpuField = ErrorItems.Smash(_cpuField, _preview != null && _preview.Grounder);
+                    _itemFlying = false;
+                    _itemId = "";
+                    _items?.Hide();
+                    _sub = "Item smashed.";
+                    return;
+                }
             }
             if (!ItemOffered) return;
             var pad = RunPad;

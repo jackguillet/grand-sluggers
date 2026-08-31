@@ -18,6 +18,7 @@ public class SchemeTests
             var v = Scheme.Must(id);
             Assert.False(string.IsNullOrWhiteSpace(v.Pad), id);
             Assert.False(string.IsNullOrWhiteSpace(v.Keys), id);
+            Assert.False(string.IsNullOrWhiteSpace(v.Mouse), id);
             Assert.False(Scheme.IsDebug(v.Keys));
         }
         Assert.Equal("Space / Enter", Scheme.Keys("confirm"));
@@ -31,7 +32,10 @@ public class SchemeTests
         Assert.Equal("V", Scheme.Keys("changeup"));
         Assert.Equal("R", Scheme.Keys("swap"));
         Assert.Equal("V", Scheme.Keys("bunt"));
-        Assert.Equal("H", Scheme.Keys("call-time"));
+        Assert.Equal("H / Esc", Scheme.Keys("call-time"));
+        Assert.Equal("Left click", Scheme.Mouse("confirm"));
+        Assert.Equal("Right click hold", Scheme.Mouse("charge"));
+        Assert.Equal("Mouse move", Scheme.Mouse("aim-run"));
         Assert.Equal("South", Scheme.Pad("confirm"));
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
@@ -61,6 +65,14 @@ public class SchemeTests
         Assert.Equal(PauseMenu.Item.Title, PauseMenu.At(PauseMenu.Wrap(0, -1)));
         Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(PauseMenu.Wrap(0, 1)));
         Assert.True(HowToPlay.Pages.Count >= 4);
+        Assert.Equal("contents", HowToPlay.Pages[0].Id);
+        Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
+        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
+        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("landing ring"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("TIRED"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("ITEM"));
         Assert.True(HowToPlay.Mentions("South"));
         Assert.True(HowToPlay.Mentions("Space"));
         Assert.True(HowToPlay.Mentions("MAX"));
@@ -79,6 +91,15 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Two diamonds") || l.Contains("two diamonds"));
         Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South") && l.Contains("Space"));
+        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("Left click"));
+        Assert.True(HowToPlay.Mentions("mouse") || HowToPlay.Mentions("Mouse"));
+        Assert.True(HowToPlay.Mentions("Esc"));
+        Assert.Contains(HowToPlay.Must("chemistry").Lines, l => l.Contains("Hearts"));
+        Assert.Contains(HowToPlay.Must("stars").Lines, l => l.Contains("two seconds"));
+        Assert.Contains(HowToPlay.Must("abilities").Lines, l => l.Contains("field verb"));
+        Assert.Contains(HowToPlay.Must("items").Lines, l => l.Contains("banana"));
+        Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("Close play"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("attack"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("charge", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("plate") && l.Contains("SET"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("you are the glove"));
@@ -104,7 +125,7 @@ public class SchemeTests
         var two = HowToPlay.Must("two-pads").Lines;
         Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("home"));
         Assert.Contains(two, l => l.Contains("Gamepad 1") && l.Contains("away"));
-        Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("player 1"));
+        Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("mouse") && l.Contains("player 1"));
         Assert.Contains(two, l => l.Contains("Unplug"));
         Assert.Contains(two, l => l.Contains("plate"));
         Assert.Contains(two, l => l.Contains("CPU never"));

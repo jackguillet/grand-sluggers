@@ -24,4 +24,19 @@ public class PauseMenuTests
         Assert.True(PauseMenu.Dismiss(startOrBack: true, t: PauseMenu.Debounce + 0.01f));
         Assert.False(PauseMenu.Dismiss(startOrBack: false, t: 1f));
     }
+
+    [Fact]
+    public void ClickHitsTheHighlightedRow()
+    {
+        const float sw = 1280f;
+        const float sh = 720f;
+        var howTo = PauseMenu.HitItem(0, 0, sw, sh);
+        Assert.Equal(-1, howTo);
+        for (var i = 0; i < PauseMenu.Items.Count; i++)
+        {
+            var r = PauseMenu.ItemRect(i, sw, sh);
+            Assert.Equal(i, PauseMenu.HitItem(r.X + 8, r.Y + 8, sw, sh));
+        }
+        Assert.True(PauseMenu.Contains(sw * 0.5f, sh * 0.5f, sw, sh));
+    }
 }
