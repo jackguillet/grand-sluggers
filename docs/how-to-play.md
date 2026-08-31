@@ -128,12 +128,12 @@ Fair contact always sends the batter to first. On a fly, runners hold; all-advan
 
 Nearest glove **lights**. Leave the stick still: CPU takes the hop and throws — the play ends. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
-Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with the ball; a throw sits on the glove. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
+Hopper cam is low in the grass; a fly is a 3/4 **on the glove**; a homer rises with the ball, then **sits on the wall** with the fielder; a throw sits on the glove. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
 - **Stick / WASD** — take the glove and run it (dead stick = CPU). **Hold East / G** to dash.
-- **South / Space** — catch (in the window) when you have the glove; after the catch, throw
+- **South / Space** — catch (in the window) when you have the glove; after the catch, throw. On a fly, South still scoops if you are under it.
 - **East tap / G** — dive
-- **West / F** — jump / buddy jump
+- **West / F** — jump in the window / buddy jump. A would-be homer is a wall play: West (or two bodies, West) in the window robs. South does not. Super Jump / Grow / Clamber add window, not a skip. Miss = the ball drops (or a homer). Dead stick: CPU still can catch.
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
 - **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
 - **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. Dead stick: CPU may still turn two. You throw both — one South on the hopper is not two outs.
@@ -151,7 +151,7 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 
 1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
 2. **Batting** — walk the oval onto the ball; charge at MAX
-3. **Fielding** — catch, throw a named bag, **turn two** (second, then first), dash, buddy toss
+3. **Fielding** — catch, jump a fly, throw a named bag, **turn two** (second, then first), dash, buddy toss
 4. **Running** — pick a runner, lead, steal, dash
 5. **Special** — star pitch / star swing
 6. **Free practice** — any verb, no gate

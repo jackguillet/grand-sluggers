@@ -72,6 +72,8 @@ public class PlayCameraTests
         Assert.Equal("diamond", PlayCamera.FromHit(fly));
         Assert.Equal("diamond-homer", PlayCamera.FromHit(homer));
         Assert.Equal("smash", PlayCamera.FromHit(star));
+        Assert.Equal(PlayCamera.Beat.Homer, PlayCamera.BeatFrom(homer));
+        Assert.Equal(PlayCamera.Beat.Fly, PlayCamera.BeatFrom(fly));
     }
 
     [Fact]

@@ -55,24 +55,20 @@ namespace GrandSluggers.UnityClient
                         new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
                         new Vector3((float)_fx, 2.2f, (float)_fz), 46f);
             }
-            else if (BuddySet && _hitT > 0.7f)
-            {
-                var plant = WallPlant(_preview);
-                _cam.AimRaw("wall",
-                    new Vector3((float)plant.X + 24f, 15f, (float)plant.Z - 34f),
-                    new Vector3((float)plant.X, 5.5f, (float)plant.Z),
-                    42f);
-            }
+            else if (_pending != null && _preview != null && FlyCatch.IsFly(_preview))
+                AimFlyCam();
             else if (_pending != null)
                 AimDiamond(_pending);
             else
                 _cam.AimRaw("chase", _ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
-            if (_ring != null && _preview != null && !_preview.Grounder && !_preview.Line && !_caught && !_buddy)
+            if (_ring != null && _preview != null && FlyCatch.IsFly(_preview) && !_caught && !_buddy)
             {
-                var hang = BallFlight.HangTime(_path);
-                var red = _hitT >= hang - 0.48f && _hitT <= hang + 0.14f;
-                _ring.Show(_preview.LandingX, _preview.LandingZ, (float)_preview.CatchRadius, red);
+                var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
+                var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
+                var who = PlayFielder();
+                var red = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
+                _ring.Show(plant.X, plant.Z, (float)_preview.CatchRadius, red);
             }
             else
                 _ring?.Hide();
@@ -151,8 +147,10 @@ namespace GrandSluggers.UnityClient
             var rest = BallFlight.RestTime(_path);
             var chasing = !_caught && !_buddy && (pre.Grounder || pre.Line ? _hitT < rest : _hitT < hang);
             var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
-            var plant = buddyOn ? WallPlant(pre) : (X: pre.LandingX, Z: pre.LandingZ);
-            _buddyWindow = buddyOn && _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
+            var needsJump = FlyCatch.NeedsJump(pre);
+            var plant = FlyCatch.ChaseTarget(pre, _match.Park);
+            var who = map.TryGetValue(_glovePos, out var gloveNow) ? gloveNow : pre.Fielder;
+            _buddyWindow = buddyOn && FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
 
             if (Controls.SwapPitcher && !buddyOn)
             {
@@ -163,7 +161,7 @@ namespace GrandSluggers.UnityClient
             var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
             if (chasing && _swapLock <= 0 && stick < 0.35f)
             {
-                if (buddyOn)
+                if (needsJump)
                 {
                     var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
                     var dx = plant.X - _fx;
@@ -218,28 +216,36 @@ namespace GrandSluggers.UnityClient
                 }
             }
             if (Controls.WestDown)
-            {
-                _jumpT = buddyOn ? 0.7f : 0.55f;
-                if (buddyOn)
-                {
-                    var near = Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26;
-                    if (_buddyWindow && near && _ball.y > 4.5f)
-                    {
-                        _buddy = true;
-                        CatchGlove();
-                        _fx = plant.X;
-                        _fz = plant.Z;
-                        _gloveAt[_glovePos] = (_fx, _fz);
-                    }
-                }
-            }
+                _jumpT = needsJump || buddyOn ? 0.7f : 0.55f;
             if (Controls.EastDown) _diveT = 0.5f;
 
             var window = CatchWindow(map);
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
-            if (Controls.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
-            if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
-            if (!buddyOn && _jumpT > 0 && d < window && _ball.y > 2.2f) { CatchGlove(); ArmRecoil(); }
+            if (pre.Grounder || pre.Line)
+            {
+                if (Controls.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
+                if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
+            }
+            else
+            {
+                var inWin = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
+                var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
+                var jumpTry = Controls.WestDown && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
+                if (FlyCatch.PlayerCaught(jumpTry, Controls.SouthDown, under, inWin, needsJump))
+                {
+                    if (buddyOn && inWin && Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26)
+                    {
+                        _buddy = true;
+                        _fx = plant.X;
+                        _fz = plant.Z;
+                        _gloveAt[_glovePos] = (_fx, _fz);
+                    }
+                    CatchGlove();
+                    ArmRecoil();
+                }
+                if (!needsJump && _diveT > 0 && d < window && _ball.y < 7.5f)
+                { CatchGlove(); ArmRecoil(); }
+            }
 
             var stickOk = InPlay.StickNamesBag(chasing, _caught || _buddy);
             ReadThrowBag(stickOk);
@@ -330,8 +336,9 @@ namespace GrandSluggers.UnityClient
             {
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
                 var start = Diamond.Positions[_preview.Position];
-                _fx = start.X + (_preview.LandingX - start.X) * u;
-                _fz = start.Z + (_preview.LandingZ - start.Z) * u;
+                var target = FlyCatch.ChaseTarget(_preview, _match.Park);
+                _fx = start.X + (target.X - start.X) * u;
+                _fz = start.Z + (target.Z - start.Z) * u;
                 _glovePos = _preview.Position;
             }
             _gloveAt[_glovePos] = (_fx, _fz);
@@ -452,19 +459,45 @@ namespace GrandSluggers.UnityClient
         {
             var who = map.TryGetValue(_glovePos, out var c) ? c : _preview.Fielder;
             var radius = 10 + who.Stats.Field * 0.6 + FieldAbilities.CatchBonus(who);
+            if (_preview != null && FlyCatch.IsFly(_preview))
+                radius += FieldAbilities.FlyRangeBonus(who);
+            if (_preview != null && ParkHazards.CanClamber(_match.Park, who))
+                radius += 6;
             return FieldingResolver.CatchWindowFt(radius, _diveT > 0, _jumpT > 0);
         }
 
         bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);
 
-        static (double X, double Z) WallPlant(FieldingPreview pre)
+        (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _match?.Park);
+
+        void AimFlyCam()
         {
-            var x = pre.LandingX;
-            var z = pre.LandingZ;
-            var dist = Math.Sqrt(x * x + z * z);
-            if (dist < 1) return (x, z);
-            var pull = 10.0 / dist;
-            return (x * (1 - pull), z * (1 - pull));
+            var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
+            var beat = FlyCatch.LiveBeat(_pending, _preview, _hitT, hang, _caught || _buddy);
+            var id = PlayCamera.Shot(beat);
+            Vector3 subject;
+            if (beat == PlayCamera.Beat.Wall)
+            {
+                var plant = FlyCatch.WallPlant(_preview, _match.Park);
+                var hx = _fx;
+                var hz = _fz;
+                if (BuddySet && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var bud))
+                {
+                    hx = (_fx + bud.X) * 0.5;
+                    hz = (_fz + bud.Z) * 0.5;
+                }
+                if (Diamond.Dist(hx, hz, plant.X, plant.Z) > 40)
+                {
+                    hx = plant.X;
+                    hz = plant.Z;
+                }
+                subject = new Vector3((float)hx, 5.5f, (float)hz);
+            }
+            else if (beat == PlayCamera.Beat.Homer)
+                subject = _ball;
+            else
+                subject = new Vector3((float)_fx, Mathf.Max(3.2f, _ball.y * 0.25f + 2.2f), (float)_fz);
+            _cam.Follow(id, subject);
         }
 
         static string PosOf(Dictionary<string, Character> map, Character who)
@@ -486,12 +519,12 @@ namespace GrandSluggers.UnityClient
             _buddyPos = PosOf(map, _preview.Buddy);
             if (string.IsNullOrEmpty(_buddyPos)) return;
             var hang = BallFlight.HangTime(_path);
-            var plant = WallPlant(_preview);
+            var plant = FlyCatch.WallPlant(_preview, _match.Park);
             var u = Mathf.Clamp01(_hitT / Mathf.Max(0.25f, (float)hang - 0.4f));
             var start = Diamond.Positions[_buddyPos];
             _gloveAt[_buddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
             if (!_playerFielding)
-                _buddyWindow = _hitT >= hang - 0.48f && _hitT <= hang + 0.12f;
+                _buddyWindow = FlyCatch.JumpWindow(_hitT, hang, _preview.Fielder, _match.Park);
         }
 
         void ReadThrowBag(bool stickOk)
@@ -754,14 +787,12 @@ namespace GrandSluggers.UnityClient
             {
                 if (_bobbling || _playerBobble)
                     return new FieldingResult(PlayKind.Single, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, Bobble: true);
-                var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
+                var kind = FlyCatch.PlayerKind(true, pre, hit);
                 var knock = pre.Grounder && hit != null ? InPlay.KnockbackSec(InPlay.Energy(hit), from) : 0;
                 return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, KnockbackSec: knock);
             }
-            if (pre.HomeRunLikely)
-                return new FieldingResult(PlayKind.HomeRun, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
-            var extra = hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single;
-            return new FieldingResult(extra, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+            var miss = FlyCatch.PlayerKind(false, pre, hit);
+            return new FieldingResult(miss, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
         }
 
         void StartStealThrow(PlayEvent pitch)

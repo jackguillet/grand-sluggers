@@ -294,7 +294,7 @@ public sealed class Training
             PracticeLesson.Batting => "stick walk   LT MAX   South swing",
             PracticeLesson.Fielding => LessonPart >= 2
                 ? "South to second    South to first"
-                : "South catch   d-pad throw   East dash   West toss",
+                : "South catch   West jump   d-pad throw   East dash",
             PracticeLesson.Running => "D-pad pick   stick lead   L3 steal",
             PracticeLesson.Special => "North + South star",
             PracticeLesson.Free => "any verb  ·  East skip",
