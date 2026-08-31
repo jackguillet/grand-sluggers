@@ -79,7 +79,7 @@ namespace GrandSluggers.UnityClient
                 {
                     x = _fx;
                     z = _fz;
-                    if (_throwing) pose = HeroActor.Pose.Throw;
+                    if (_throwing) pose = HeroActor.Pose.Catch;
                     else if (_bobbling) pose = HeroActor.Pose.Miss;
                     else if (_recoilT > 0) pose = HeroActor.Pose.Dive;
                     else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
@@ -112,6 +112,8 @@ namespace GrandSluggers.UnityClient
                     pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
                 if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
                     pose = HeroActor.Pose.Crouch;
+                if (_throwing && kv.Key == _throwFromPos)
+                    pose = HeroActor.Pose.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = HeroActor.Pose.Catch;
                 if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
@@ -133,7 +135,7 @@ namespace GrandSluggers.UnityClient
                     : _phase == Phase.InPlay
                         ? new Vector3(_ball.x - (float)x, 0, _ball.z - (float)z)
                         : new Vector3((float)-x, 0, (float)-z + 8f);
-                if (_throwing && highlighted)
+                if (_throwing && (highlighted || kv.Key == _throwFromPos))
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
                 if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
