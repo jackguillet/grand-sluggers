@@ -158,9 +158,10 @@ namespace GrandSluggers.UnityClient
                         _ring.SetParent(transform, false);
                     var s = (float)SetTells.RingScale(_chargeRing);
                     var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
-                    _ring.localPosition = new Vector3(0f, (float)SetTells.RingHeightFt, 0f);
+                    // Uniform scale: a Y squash turned the torus into the gold pancake.
+                    _ring.localPosition = new Vector3(0f, (float)(SetTells.RingHeightFt + SetTells.RingThickFt), 0f);
                     _ring.localRotation = Quaternion.identity;
-                    _ring.localScale = new Vector3(pulse, (float)SetTells.RingThickFt, pulse);
+                    _ring.localScale = Vector3.one * pulse;
                 }
             }
             Animate();
