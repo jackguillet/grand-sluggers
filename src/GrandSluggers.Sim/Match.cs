@@ -240,6 +240,12 @@ public sealed class Match
     public bool CanSteal =>
         !Over && Outs < 3 &&
         Baserunning.CanSteal(SelectedBag, First is not null, Second is not null, Third is not null);
+    /// <summary>
+    /// Steal is armed after a take or swing-and-miss. Resolve with
+    /// <see cref="GunSteal"/> (CPU) or <see cref="ResolveStealThrow"/> (player throw).
+    /// </summary>
+    public bool StealThrowPending =>
+        StealOn && !Over && Outs < 3 && ArmedStealBag is 1 or 2;
 
     public RunnerState? RunnerAt(int bag) => bag switch
     {
@@ -502,8 +508,10 @@ public sealed class Match
         var fake = new PitchCommand("fastball", 0, 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         StealOn = true;
-        state.StartSteal();
-        return AfterPitch(Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []));
+        var target = Baserunning.StealTarget(bag);
+        state.StartSteal(target);
+        var ev = Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []);
+        return GunSteal(ev);
     }
 
     public bool ToggleSteal()
@@ -520,7 +528,7 @@ public sealed class Match
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
     {
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
-            return finished!;
+            return StealThrowPending ? GunSteal(finished!) : finished!;
         var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night);
         field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
@@ -1153,46 +1161,76 @@ public sealed class Match
         else HomeStars = Math.Max(0, HomeStars - cost);
     }
 
-    PlayEvent AfterPitch(PlayEvent ev) => StealOn ? ResolveSteal(ev) : ResolvePickoff(ev);
+    PlayEvent AfterPitch(PlayEvent ev) => StealOn ? ev : ResolvePickoff(ev);
 
-    PlayEvent ResolveSteal(PlayEvent ev)
+    /// <summary>Dead-stick CPU catcher still guns. 1P vs CPU does not require the throw.</summary>
+    public PlayEvent GunSteal(PlayEvent ev)
+    {
+        if (!StealThrowPending) return ev;
+        if (!TryStealActors(out var fromBag, out var target, out var state, out var runner, out var catcher))
+        {
+            ClearSteal();
+            return ev;
+        }
+        var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(target));
+        var thr = cover != null ? ThrowBetween(catcher, cover) : ThrowBetween(catcher, runner);
+        var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng);
+        return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught);
+    }
+
+    /// <summary>
+    /// Live catcher throw. Early + beat the runner is out; late or the wrong bag is a steal.
+    /// Independent of the old one-roll.
+    /// </summary>
+    public PlayEvent ResolveStealThrow(PlayEvent ev, int throwBag, double releaseSec, ThrowResult? thr)
+    {
+        if (!StealThrowPending) return ev;
+        if (!TryStealActors(out var fromBag, out var target, out var state, out var runner, out var catcher))
+        {
+            ClearSteal();
+            return ev;
+        }
+        thr ??= ThrowBetween(catcher, runner);
+        var caught = StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01);
+        return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught);
+    }
+
+    bool TryStealActors(
+        out int fromBag, out int target, out RunnerState state, out Character runner, out Character catcher)
+    {
+        fromBag = ArmedStealBag;
+        target = 0;
+        state = null!;
+        runner = null!;
+        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        catcher = map.GetValueOrDefault("C") ?? Pitcher;
+        var live = RunnerAt(fromBag);
+        if (live?.Who is null || fromBag is not 1 and not 2)
+            return false;
+        target = live.StealTarget is 2 or 3 ? live.StealTarget : Baserunning.StealTarget(fromBag);
+        if (target is not 2 and not 3) return false;
+        if (target == 2 && Second is not null) return false;
+        if (target == 3 && Third is not null) return false;
+        state = live;
+        runner = live.Who;
+        return true;
+    }
+
+    PlayEvent ApplySteal(
+        PlayEvent ev, int fromBag, int target, Character runner, Character catcher, ThrowResult thr, bool caught)
     {
         StealOn = false;
-        if (Over || Outs >= 3)
-            return ev;
-
-        var fromBag = ArmedStealBag;
-        var state = RunnerAt(fromBag);
-        var runner = state?.Who;
-        var target = state?.StealTarget ?? 0;
-        if (target is not 2 and not 3)
-            target = Baserunning.StealTarget(fromBag);
-        if (runner is null || fromBag is not 1 and not 2 || target is not 2 and not 3)
-            return ev;
-        if (target == 2 && Second is not null) return ev;
-        if (target == 3 && Third is not null) return ev;
-
-        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
-        var catcher = map.GetValueOrDefault("C") ?? Pitcher;
-        var gun = catcher.Stats.Field + 2.0;
-        var lead = state!.Lead01;
-        var jump = runner.Stats.Run + Gauss() * 1.6 + lead * 3.4;
-        var thr = ThrowBetween(catcher, runner);
-        if (thr.Error) gun -= 4;
-        gun += (thr.SpeedMul - 1) * 4;
-
         PlayEvent result;
-        var toThird = target == 3;
-        if (jump > gun)
+        if (!caught)
         {
-            if (toThird) { SetBag(3, runner); SetBag(2, null); }
+            if (target == 3) { SetBag(3, runner); SetBag(2, null); }
             else { SetBag(2, runner); SetBag(1, null); }
             AddMvp(runner.Id, 2);
             AddStars(defense: false, 0.35);
             result = ev with
             {
                 Kind = PlayKind.StolenBase,
-                Caption = ev.Caption + $"  {runner.Name} steals {(toThird ? "third" : "second")}.",
+                Caption = ev.Caption + $"  {runner.Name} steals {(target == 3 ? "third" : "second")}.",
                 Fielder = catcher,
                 Throw = thr
             };
@@ -1215,6 +1253,7 @@ public sealed class Match
             result = result with { OutsAfter = Outs };
         }
 
+        ClearSteal();
         if (_log.Count > 0)
             _log[^1] = result;
         return result;

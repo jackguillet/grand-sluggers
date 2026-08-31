@@ -66,6 +66,10 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             _gun = false;
             _gunRunner = null;
+            _stealPitch = null;
+            _stealT = 0;
+            _cpuGunAt = 0;
+            _stealRelease = 0;
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _park.Ball.Place(_ball, "", "fastball", false, false);
@@ -279,6 +283,11 @@ namespace GrandSluggers.UnityClient
                 NoteTrainingPitch();
                 NoteTrainingSwing();
                 Banner();
+                if (finished != null && _match.StealThrowPending)
+                {
+                    StartStealThrow(finished);
+                    return;
+                }
                 if (finished != null && stealRunner != null &&
                     (finished.Kind == PlayKind.StolenBase || finished.Kind == PlayKind.CaughtStealing))
                 {
