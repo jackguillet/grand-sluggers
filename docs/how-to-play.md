@@ -32,13 +32,13 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
-One player. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. Mouse is not a control.
+One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. Mouse is not a control. Keyboard is player 1 only.
 
 ---
 
 ## Exhibition (the product)
 
-Three innings at Harbor. Home bats in the bottom. You pitch the top, you hit the bottom.
+Three innings at Harbor. Home bats in the bottom. One pad: you pitch the top, you hit the bottom. Two pads: pad 1 is home, pad 2 is away — they pitch and hit at the same time.
 
 ### Title
 
@@ -56,7 +56,7 @@ Captains and the field are two screens. The park does not follow the captain.
 
 The toys are the UI. Highlighted captain **steps forward**. The **card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
-- **Stick / WASD L/R** — home · **U/D** — away
+- **Stick / WASD L/R** — home · **U/D** — away (pad 2 L/R away when seated)
 - **South / Space** — pick the field
 - **West / F** — title
 - Camera looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
@@ -101,7 +101,7 @@ Two screens. Not a 3D huddle with a name list.
 
 Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX.
 
-SET is the **same plate 3/4** for pitch and swing (`plate`) — beside the batter, looking at the mound. Catcher stays behind the camera. One pad or two, same picture. Training pitching may still stand behind the rubber (`mound`). Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). When they throw, the camera looks at the pitcher (`pitch`): arm through, ball leaving that hand toward you. ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Those anchors do not move.
+SET is the **same plate 3/4** for pitch and swing (`plate`) — beside the batter, looking at the mound. Catcher stays behind the camera. One pad or two, same picture. Pad 2 does not fork the camera or the HUD. Training pitching may still stand behind the rubber (`mound`). Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). When they throw, the camera looks at the pitcher (`pitch`): arm through, ball leaving that hand toward you. ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
 
 - **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets.
 - **Stick L/R after release** — curve / late bite. Not a pitch-type cycle.
@@ -159,6 +159,17 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 ---
 
 Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hearts and scribbles. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF) on two diamonds. Home bats the bottom.
+
+### Two pads (local 1v1)
+
+Gamepad **0 is home**. Gamepad **1 is away**. Keyboard stays player 1. A second pad does not split the screen and does not go online.
+
+- **Title / captains / Team Setup / Defense Setup.** Pad 1 edits home. Pad 2 edits away. Each picks their captain, roster, order, gloves.
+- **First pitch.** Pad 1 pitches the top, pad 2 bats. Bottom: they swap. CPU never bats or pitches while both pads are seated.
+- **SET.** Same `plate` shot as 1P. Cards stay batter bottom-left, pitcher bottom-right. Highlight yours.
+- **Pitch / swing.** Pad-on-mound walks the rubber, charges, throws. Pad-in-the-box walks the box, charges, swings. Same four verbs as 1P.
+- **In-play.** Fielding pad takes the glove (stick to take, dead stick = CPU cover). Batting pad sends / returns / steals. Both at once.
+- **Unplug pad 2.** That team becomes CPU without restarting the inning.
 
 ---
 

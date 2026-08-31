@@ -15,12 +15,13 @@ public static class AtBatShots
     /// always uses plate so 1P pitching equals 2P pitching.
     /// </param>
     public static string SetShot(
-        bool humanPitches, bool flight, double charge, double aimX, double aimY, bool training = false)
+        bool humanPitches, bool flight, double charge, double aimX, double aimY,
+        bool training = false, int seats = 1)
     {
         _ = charge;
         _ = aimX;
         _ = aimY;
-        if (flight) return PlayCamera.Shot(PlayCamera.Beat.PitchFlight);
-        return PlayCamera.Shot(PlayCamera.Beat.Set, trainingPitchingSet: training && humanPitches);
+        if (flight) return PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats);
+        return PlayCamera.Shot(PlayCamera.Beat.Set, seats, training && humanPitches);
     }
 }

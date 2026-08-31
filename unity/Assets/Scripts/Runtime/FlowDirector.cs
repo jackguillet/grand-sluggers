@@ -131,6 +131,7 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.Select;
             _t = 0;
             _selectStick = 0;
+            _selectStick2 = 0;
             _clip = null;
             _hlPath = null;
             _replaying = false;
@@ -139,20 +140,31 @@ namespace GrandSluggers.UnityClient
 
         void TickSelect()
         {
+            var p1 = Controls.Pad1;
+            var p2 = Controls.Pad2;
             if (_selectStick > 0) _selectStick -= Time.deltaTime;
             else
             {
-                var x = Controls.StickX;
-                var y = Controls.StickY;
+                var x = p1.StickX;
+                var y = p1.StickY;
                 if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
                 {
                     ApplyPick(ExhibitionPick.CycleHome(CurrentPick(), x > 0 ? 1 : -1));
                     _selectStick = 0.22f;
                 }
-                else if (Mathf.Abs(y) >= 0.45f)
+                else if (!p2.Present && Mathf.Abs(y) >= 0.45f)
                 {
                     ApplyPick(ExhibitionPick.CycleAway(CurrentPick(), y > 0 ? -1 : 1));
                     _selectStick = 0.22f;
+                }
+            }
+            if (p2.Present)
+            {
+                if (_selectStick2 > 0) _selectStick2 -= Time.deltaTime;
+                else if (Mathf.Abs(p2.StickX) >= 0.45f)
+                {
+                    ApplyPick(ExhibitionPick.CycleAway(CurrentPick(), p2.StickX > 0 ? 1 : -1));
+                    _selectStick2 = 0.22f;
                 }
             }
             LookAtHomeCaptain();
@@ -308,9 +320,11 @@ namespace GrandSluggers.UnityClient
         {
             if (_mode == PlayMode.Exhibition)
             {
-                _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain);
+                var seats = LiveSeats;
+                _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain, seats.Home, seats.Away);
                 _lineupTouched = false;
                 _lineupStick = 0;
+                _lineupStick2 = 0;
             }
             else
                 _lineup = null;
@@ -336,57 +350,73 @@ namespace GrandSluggers.UnityClient
                 return;
             }
 
-            TickLineupStick();
-            if (Controls.WestDown)
-            {
-                _lineupTouched = true;
-                _lineup.West();
-            }
-            if (Controls.CyclePitch)
-            {
-                _lineupTouched = true;
-                if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill();
-                else _lineup.CycleGlove();
-            }
-            if (Controls.AllAdvanceDown)
-            {
-                _lineupTouched = true;
-                _lineup.StepBatting(-1);
-            }
-            if (Controls.EastDown)
-            {
-                _lineupTouched = true;
-                _lineup.StepBatting(1);
-            }
-            if (Controls.SouthDown)
-            {
-                _lineupTouched = true;
-                if (_lineup.Step == LineupStep.TeamSetup) _lineup.South();
-                else ConfirmDraft();
-            }
+            SyncLineupSeats();
+            TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupStick);
+            if (_lineup.AwaySeat == LineupSeat.Pad2)
+                TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupStick2);
             else if (_t > 10f && !_lineupTouched)
                 ConfirmDraft();
         }
 
-        void TickLineupStick()
+        void SyncLineupSeats()
         {
-            var x = Controls.StickX;
-            var y = Controls.StickY;
+            if (_lineup == null) return;
+            var seats = LiveSeats;
+            if (_lineup.HomeSeat != seats.Home || _lineup.AwaySeat != seats.Away)
+                _lineup.Sit(seats.Home, seats.Away);
+        }
+
+        void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref float stickT)
+        {
+            TickLineupStick(pad, seat, ref stickT);
+            if (pad.WestDown)
+            {
+                _lineupTouched = true;
+                _lineup.West(seat);
+            }
+            if (pad.CyclePitch)
+            {
+                _lineupTouched = true;
+                if (_lineup.Step == LineupStep.TeamSetup) _lineup.RandomFill(seat);
+                else _lineup.CycleGlove(seat);
+            }
+            if (pad.AllAdvanceDown)
+            {
+                _lineupTouched = true;
+                _lineup.StepBatting(seat, -1);
+            }
+            if (pad.EastDown)
+            {
+                _lineupTouched = true;
+                _lineup.StepBatting(seat, 1);
+            }
+            if (pad.SouthDown)
+            {
+                _lineupTouched = true;
+                if (_lineup.Step == LineupStep.TeamSetup) _lineup.South(seat);
+                else ConfirmDraft();
+            }
+        }
+
+        void TickLineupStick(Controls.Pad pad, LineupSeat seat, ref float stickT)
+        {
+            var x = pad.StickX;
+            var y = pad.StickY;
             if (Mathf.Abs(x) < 0.4f && Mathf.Abs(y) < 0.4f)
             {
-                _lineupStick = 0;
+                stickT = 0;
                 return;
             }
-            if (_lineupStick > 0)
+            if (stickT > 0)
             {
-                _lineupStick -= Time.deltaTime;
+                stickT -= Time.deltaTime;
                 return;
             }
             _lineupTouched = true;
-            _lineupStick = 0.2f;
+            stickT = 0.2f;
             var dx = Mathf.Abs(x) >= Mathf.Abs(y) ? (x > 0 ? 1 : -1) : 0;
             var dy = dx == 0 ? (y > 0 ? 1 : -1) : 0;
-            _lineup.Stick(dx, dy);
+            _lineup.Stick(seat, dx, dy);
         }
 
         void ConfirmDraft()

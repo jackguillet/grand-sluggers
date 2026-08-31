@@ -17,7 +17,11 @@ namespace GrandSluggers.UnityClient
     {
         internal void TickLive(float dt)
         {
-            if (_phase == Phase.InPlay) TickInPlay(dt);
+            if (_phase == Phase.InPlay)
+            {
+                TickBaserunning(dt);
+                TickInPlay(dt);
+            }
             else if (_phase == Phase.StealThrow) TickStealThrow(dt);
         }
 
@@ -47,7 +51,7 @@ namespace GrandSluggers.UnityClient
                 _cam.ThrowTo(_throwFrom, _throwTo, TagCam(_throwBag));
             else if ((_caught || _buddy) && !_throwing)
             {
-                var bag = _throwBag > 0 ? _throwBag : Controls.StickBag;
+                var bag = _throwBag > 0 ? _throwBag : FieldPad.StickBag;
                 if (bag > 0)
                     _cam.ThrowTo(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag), TagCam(bag));
                 else
@@ -152,13 +156,13 @@ namespace GrandSluggers.UnityClient
             var who = map.TryGetValue(_glovePos, out var gloveNow) ? gloveNow : pre.Fielder;
             _buddyWindow = buddyOn && FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
 
-            if (Controls.SwapPitcher && !buddyOn)
+            if (FieldPad.SwapPitcher && !buddyOn)
             {
                 CycleGlove(map);
                 _swapLock = 0.7f;
             }
 
-            var stick = Mathf.Abs(Controls.StickX) + Mathf.Abs(Controls.StickY);
+            var stick = Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY);
             if (chasing && _swapLock <= 0 && stick < 0.35f)
             {
                 if (needsJump)
@@ -183,13 +187,13 @@ namespace GrandSluggers.UnityClient
             if (chasing && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
             {
                 var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1)
-                    * (Controls.EastHeld ? FieldDash.ChaseMul : 1);
-                _fx += Controls.StickX * speed * dt;
-                _fz += Controls.StickY * speed * dt;
+                    * (FieldPad.EastHeld ? FieldDash.ChaseMul : 1);
+                _fx += FieldPad.StickX * speed * dt;
+                _fz += FieldPad.StickY * speed * dt;
                 _gloveAt[_glovePos] = (_fx, _fz);
             }
 
-            if (Controls.Item && chasing && map.TryGetValue(_glovePos, out var tossFrom))
+            if (FieldPad.Item && chasing && map.TryGetValue(_glovePos, out var tossFrom))
             {
                 Character partner = null;
                 foreach (var kv in map)
@@ -215,23 +219,23 @@ namespace GrandSluggers.UnityClient
                     }
                 }
             }
-            if (Controls.WestDown)
+            if (FieldPad.WestDown)
                 _jumpT = needsJump || buddyOn ? 0.7f : 0.55f;
-            if (Controls.EastDown) _diveT = 0.5f;
+            if (FieldPad.EastDown) _diveT = 0.5f;
 
             var window = CatchWindow(map);
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
             if (pre.Grounder || pre.Line)
             {
-                if (Controls.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
+                if (FieldPad.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
                 if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
             }
             else
             {
                 var inWin = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
                 var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
-                var jumpTry = Controls.WestDown && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
-                if (FlyCatch.PlayerCaught(jumpTry, Controls.SouthDown, under, inWin, needsJump))
+                var jumpTry = FieldPad.WestDown && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
+                if (FlyCatch.PlayerCaught(jumpTry, FieldPad.SouthDown, under, inWin, needsJump))
                 {
                     if (buddyOn && inWin && Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26)
                     {
@@ -257,10 +261,10 @@ namespace GrandSluggers.UnityClient
             {
                 if (_throwBag <= 0) _throwBag = 1;
                 var batterIn = _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
-                if (!Controls.SouthDown && !batterIn)
+                if (!FieldPad.SouthDown && !batterIn)
                     return;
                 _awaitingRelay = false;
-                if (batterIn && !Controls.SouthDown)
+                if (batterIn && !FieldPad.SouthDown)
                 {
                     CommitInPlay();
                     return;
@@ -286,12 +290,12 @@ namespace GrandSluggers.UnityClient
             if (PlayerMustField) return;
             if (_playerFielding || _caught || _buddy || _throwing) return;
             if (_pending == null || _preview == null) return;
-            if (!FieldAssist.StickTakesGlove(Controls.StickX, Controls.StickY, _feel.FieldAssistStick, Controls.SwapPitcher))
+            if (!FieldAssist.StickTakesGlove(FieldPad.StickX, FieldPad.StickY, _feel.FieldAssistStick, FieldPad.SwapPitcher))
                 return;
             _playerFielding = true;
             _cpuField = null;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            if (Controls.SwapPitcher)
+            if (FieldPad.SwapPitcher)
                 CycleGlove(map);
             else
                 AutoGlove(map);
@@ -438,7 +442,7 @@ namespace GrandSluggers.UnityClient
                     ? live
                     : Diamond.Positions[kv.Key];
             }
-            var next = FieldAssist.SwapGlove(_glovePos, spots, _ball.x, _ball.z, Controls.StickX, Controls.StickY);
+            var next = FieldAssist.SwapGlove(_glovePos, spots, _ball.x, _ball.z, FieldPad.StickX, FieldPad.StickY);
             if (!map.ContainsKey(next)) next = "P";
             _gloveAt[_glovePos] = (_fx, _fz);
             _glovePos = next;
@@ -529,8 +533,8 @@ namespace GrandSluggers.UnityClient
 
         void ReadThrowBag(bool stickOk)
         {
-            var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
-            var armed = InPlay.ArmedBag(Controls.ThrowBag, stick, stickOk);
+            var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
+            var armed = InPlay.ArmedBag(FieldPad.ThrowBag, stick, stickOk);
             if (armed > 0) _throwBag = armed;
         }
 
@@ -540,7 +544,7 @@ namespace GrandSluggers.UnityClient
             var def = _match.LiveForce
                 ? 1
                 : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
-            _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, Controls.Cutoff, def);
+            _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, FieldPad.Cutoff, def);
             if (!(_caught || _buddy))
             {
                 CommitInPlay();
@@ -548,7 +552,7 @@ namespace GrandSluggers.UnityClient
             }
             if (_throwBag <= 0)
             {
-                if (Controls.Cutoff && hopperCaught)
+                if (FieldPad.Cutoff && hopperCaught)
                 {
                     if (_playerFielding)
                         _throwBag = def is >= 1 and <= 4 ? def : 1;
@@ -776,7 +780,7 @@ namespace GrandSluggers.UnityClient
             var from = map.TryGetValue(_glovePos, out var glove) ? glove : pre.Fielder;
             Character cut = _armedCut;
             ThrowResult thr = _armedThrow;
-            var bag = _throwBag > 0 ? _throwBag : Controls.ThrowBag;
+            var bag = _throwBag > 0 ? _throwBag : FieldPad.ThrowBag;
             if (thr == null && (_caught || _buddy) && bag > 0)
             {
                 var key = bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : "C";
@@ -869,13 +873,13 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3((float)_fx, 2.2f, (float)_fz);
             AimStealThrowCam();
             var fieldSeat = PlayerMustField || HumanPitches;
-            if (fieldSeat && Controls.SwapPitcher)
+            if (fieldSeat && FieldPad.SwapPitcher)
             {
                 CycleGlove(map);
                 _playerFielding = true;
             }
             if (!_playerFielding && fieldSeat &&
-                FieldAssist.StickTakesGlove(Controls.StickX, Controls.StickY, _feel.FieldAssistStick, false))
+                FieldAssist.StickTakesGlove(FieldPad.StickX, FieldPad.StickY, _feel.FieldAssistStick, false))
             {
                 _playerFielding = true;
                 _glovePos = "C";
@@ -889,7 +893,7 @@ namespace GrandSluggers.UnityClient
 
             if (_playerFielding)
             {
-                if (Controls.SouthDown)
+                if (FieldPad.SouthDown)
                 {
                     FireStealThrow(map);
                     return;

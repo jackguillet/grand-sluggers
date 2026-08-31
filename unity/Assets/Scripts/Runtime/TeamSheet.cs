@@ -32,15 +32,15 @@ namespace GrandSluggers.UnityClient
 
             if (team)
             {
-                DrawBar(lineup, true, false, lineup.Focus == LineupFocus.HomeRow);
+                DrawBar(lineup, true, false, LineupFocus.HomeRow);
                 DrawPool(lineup);
-                DrawBar(lineup, false, false, lineup.Focus == LineupFocus.AwayRow);
+                DrawBar(lineup, false, false, LineupFocus.AwayRow);
             }
             else
             {
-                DrawBar(lineup, true, true, lineup.Focus == LineupFocus.HomeOrder);
+                DrawBar(lineup, true, true, LineupFocus.HomeOrder);
                 DrawDiamonds(lineup);
-                DrawBar(lineup, false, true, lineup.Focus == LineupFocus.AwayOrder);
+                DrawBar(lineup, false, true, LineupFocus.AwayOrder);
             }
 
             var card = lineup.HighlightCard();
@@ -68,7 +68,7 @@ namespace GrandSluggers.UnityClient
             _board?.Hide();
         }
 
-        static void DrawBar(LineupScreens lineup, bool home, bool numbered, bool lit)
+        static void DrawBar(LineupScreens lineup, bool home, bool numbered, LineupFocus focus)
         {
             for (var i = 0; i < LineupScreens.Size; i++)
             {
@@ -78,8 +78,8 @@ namespace GrandSluggers.UnityClient
                 var who = numbered
                     ? OrderAt(home ? lineup.Home : lineup.Away, i)
                     : (home ? lineup.HomeSlots : lineup.AwaySlots)[i];
-                var drop = lineup.Step == LineupStep.TeamSetup && home && i == lineup.SlotIndex;
-                var on = (lit && i == (numbered ? lineup.OrderIndex : lineup.SlotIndex)) || drop;
+                var drop = lineup.Step == LineupStep.TeamSetup && lineup.Lit(focus, i);
+                var on = lineup.Lit(focus, i) || drop;
                 Head(cell, who, on, numbered ? (i + 1).ToString() : (who != null && who.Captain ? "C" : ""),
                     lineup.ChemSticker(who));
             }
@@ -96,7 +96,7 @@ namespace GrandSluggers.UnityClient
             var pool = lineup.Pool;
             for (var i = 0; i < pool.Count; i++)
             {
-                var on = lineup.Focus == LineupFocus.Pool && i == lineup.PoolIndex;
+                var on = lineup.Lit(LineupFocus.Pool, i);
                 Head(LineupLayout.PoolCell(i, pool.Count), pool[i], on, "", lineup.ChemSticker(pool[i]));
             }
         }
@@ -119,7 +119,7 @@ namespace GrandSluggers.UnityClient
                 Character who = null;
                 if (draft != null && draft.Gloves.TryGetValue(pos, out var glove))
                     who = glove;
-                var on = lineup.Focus == focus && Diamond.Order[lineup.GloveIndex] == pos;
+                var on = lineup.Lit(focus, System.Array.IndexOf(Diamond.Order, pos));
                 Head(cell, who, on, pos, lineup.ChemSticker(who));
             }
         }
@@ -291,18 +291,18 @@ namespace GrandSluggers.UnityClient
                     for (var i = 0; i < LineupScreens.Size; i++)
                     {
                         var who = lineup.HomeSlots[i];
-                        var on = (lineup.Focus == LineupFocus.HomeRow && i == lineup.SlotIndex) || i == lineup.SlotIndex;
+                        var on = lineup.Lit(LineupFocus.HomeRow, i);
                         Put(LineupLayout.HomeSlot(i), who, on, who != null && who.Captain ? "C" : "");
                     }
                     var pool = lineup.Pool;
                     for (var i = 0; i < pool.Count; i++)
                         Put(LineupLayout.PoolCell(i, pool.Count), pool[i],
-                            lineup.Focus == LineupFocus.Pool && i == lineup.PoolIndex, "");
+                            lineup.Lit(LineupFocus.Pool, i), "");
                     for (var i = 0; i < LineupScreens.Size; i++)
                     {
                         var who = lineup.AwaySlots[i];
                         Put(LineupLayout.AwaySlot(i), who,
-                            lineup.Focus == LineupFocus.AwayRow && i == lineup.SlotIndex,
+                            lineup.Lit(LineupFocus.AwayRow, i),
                             who != null && who.Captain ? "C" : "");
                     }
                 }
@@ -311,26 +311,26 @@ namespace GrandSluggers.UnityClient
                     for (var i = 0; i < LineupScreens.Size; i++)
                     {
                         var who = lineup.Home != null && i < lineup.Home.Order.Count ? lineup.Home.Order[i] : null;
-                        Put(LineupLayout.HomeOrder(i), who, lineup.Focus == LineupFocus.HomeOrder && i == lineup.OrderIndex, (i + 1).ToString());
+                        Put(LineupLayout.HomeOrder(i), who, lineup.Lit(LineupFocus.HomeOrder, i), (i + 1).ToString());
                     }
                     foreach (var pos in Diamond.Order)
                     {
                         Character who = null;
                         if (lineup.Home != null && lineup.Home.Gloves.TryGetValue(pos, out var g)) who = g;
-                        var on = lineup.Focus == LineupFocus.HomeDiamond && Diamond.Order[lineup.GloveIndex] == pos;
+                        var on = lineup.Lit(LineupFocus.HomeDiamond, System.Array.IndexOf(Diamond.Order, pos));
                         Put(LineupLayout.DiamondHead(true, pos), who, on, pos);
                     }
                     foreach (var pos in Diamond.Order)
                     {
                         Character who = null;
                         if (lineup.Away != null && lineup.Away.Gloves.TryGetValue(pos, out var g)) who = g;
-                        var on = lineup.Focus == LineupFocus.AwayDiamond && Diamond.Order[lineup.GloveIndex] == pos;
+                        var on = lineup.Lit(LineupFocus.AwayDiamond, System.Array.IndexOf(Diamond.Order, pos));
                         Put(LineupLayout.DiamondHead(false, pos), who, on, pos);
                     }
                     for (var i = 0; i < LineupScreens.Size; i++)
                     {
                         var who = lineup.Away != null && i < lineup.Away.Order.Count ? lineup.Away.Order[i] : null;
-                        Put(LineupLayout.AwayOrder(i), who, lineup.Focus == LineupFocus.AwayOrder && i == lineup.OrderIndex, (i + 1).ToString());
+                        Put(LineupLayout.AwayOrder(i), who, lineup.Lit(LineupFocus.AwayOrder, i), (i + 1).ToString());
                     }
                 }
 
