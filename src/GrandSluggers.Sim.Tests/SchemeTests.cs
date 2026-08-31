@@ -32,10 +32,12 @@ public class SchemeTests
         Assert.Equal("V", Scheme.Keys("changeup"));
         Assert.Equal("R", Scheme.Keys("swap"));
         Assert.Equal("V", Scheme.Keys("bunt"));
-        Assert.Equal("H / Esc", Scheme.Keys("call-time"));
+        Assert.Equal("H", Scheme.Keys("call-time"));
+        Assert.Equal("Esc", Scheme.Keys("how-to"));
+        Assert.Equal("Esc", Scheme.Mouse("how-to"));
         Assert.Equal("Left click", Scheme.Mouse("confirm"));
         Assert.Equal("Right click hold", Scheme.Mouse("charge"));
-        Assert.Equal("Mouse move", Scheme.Mouse("aim-run"));
+        Assert.Equal("Right-drag", Scheme.Mouse("aim-run"));
         Assert.Equal("South", Scheme.Pad("confirm"));
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
@@ -69,6 +71,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));
+        Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Esc"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("landing ring"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("TIRED"));

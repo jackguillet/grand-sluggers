@@ -13,6 +13,7 @@ namespace GrandSluggers.UnityClient
         public PracticeLesson PracticePick = PracticeLesson.Pitching;
         int _pauseItem;
         bool _pauseHowTo;
+        bool _pauseFromHowTo;
         int _pausePage;
         float _pauseStick;
         public string ParkId = "harbor-diamond";
@@ -235,12 +236,16 @@ namespace GrandSluggers.UnityClient
             }
             _t += dt;
             var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Result;
-            var openedPause = PauseMenu.Open(_match.Paused, playPause, Controls.CallTime, _t);
-            if (openedPause)
+            var front = _phase is Phase.Title or Phase.Select or Phase.Field or Phase.Lineup;
+            var openedHowTo = PauseMenu.OpenHowTo(_match.Paused, playPause || front, Controls.HowTo, _t);
+            var openedPause = PauseMenu.Open(_match.Paused, playPause || _phase is Phase.Select or Phase.Field or Phase.Lineup,
+                Controls.CallTime, _t);
+            if (openedHowTo || openedPause)
             {
                 _match.SetPaused(true);
-                _pauseItem = 0;
-                _pauseHowTo = false;
+                _pauseItem = openedHowTo ? 2 : 0;
+                _pauseHowTo = openedHowTo;
+                _pauseFromHowTo = openedHowTo;
                 _pausePage = 0;
                 _pauseStick = 0;
                 _t = 0;
@@ -394,10 +399,15 @@ namespace GrandSluggers.UnityClient
                     var nav = HowToPlay.HitNav(mouse.x, mouse.y, Screen.width, Screen.height, page.Lines.Count);
                     _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
                 }
-                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack, _t))
+                if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 {
                     _pauseHowTo = false;
                     _t = 0;
+                    if (_pauseFromHowTo)
+                    {
+                        _pauseFromHowTo = false;
+                        _match.SetPaused(false);
+                    }
                 }
                 return;
             }
@@ -438,7 +448,7 @@ namespace GrandSluggers.UnityClient
                 }
                 return;
             }
-            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack, _t))
+            if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 _match.SetPaused(false);
         }
 

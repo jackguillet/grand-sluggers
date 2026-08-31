@@ -65,7 +65,8 @@ namespace GrandSluggers.UnityClient
             public bool CyclePitch => KeyDown(Key.Tab) || Pressed(Device?.rightShoulder);
             public bool Changeup => WestHeld;
             public bool Skip => EastDown;
-            public bool Start => KeyDown(Key.H) || KeyDown(Key.Escape) || Pressed(Device?.startButton);
+            public bool Start => KeyDown(Key.H) || Pressed(Device?.startButton);
+            public bool Esc => KeyDown(Key.Escape);
             public bool AllAdvance => Kb(Key.Comma) || Held(Device?.leftShoulder);
             public bool AllAdvanceDown => KeyDown(Key.Comma) || Pressed(Device?.leftShoulder);
             public bool AllReturn => Kb(Key.Period) || Held(Device?.rightShoulder);
@@ -227,6 +228,9 @@ namespace GrandSluggers.UnityClient
         public static bool Changeup => Pad1.Changeup;
         public static bool Skip => Pad1.Skip;
         public static bool CallTime => Pad1.Start || (Pad2.Present && Pad2.Start);
+        public static bool Esc => Pad1.Esc || (Pad2.Present && Pad2.Esc);
+        /// <summary>Esc opens the book. Title Start still cycles mode (#348).</summary>
+        public static bool HowTo => Esc;
         public static bool Attack => Pad1.Attack;
         public static bool MouseBack => MouseRightDown;
         public static Vector2 GuiMouse
@@ -296,24 +300,11 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             var d = m.delta.ReadValue();
-            if (d.sqrMagnitude > 4f)
-            {
-                var p = m.position.ReadValue();
-                var w = Mathf.Max(1f, Screen.width);
-                var h = Mathf.Max(1f, Screen.height);
-                _mouseX = Mathf.Clamp((p.x / w - 0.5f) * 2.4f, -1f, 1f);
-                _mouseY = Mathf.Clamp((p.y / h - 0.5f) * 2.4f, -1f, 1f);
-                _mouseLive = 0.35f;
-            }
-            else
-            {
-                _mouseLive -= dt;
-                if (_mouseLive <= 0f)
-                {
-                    _mouseLive = 0f;
-                    _mouseX = _mouseY = 0f;
-                }
-            }
+            var hold = m.rightButton.isPressed;
+            var next = MouseStick.Tick(_mouseX, _mouseY, d.x, d.y, hold, dt);
+            _mouseX = next.X;
+            _mouseY = next.Y;
+            _mouseLive = hold && (Mathf.Abs(_mouseX) > 0.02f || Mathf.Abs(_mouseY) > 0.02f) ? 1f : 0f;
         }
 
         static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;

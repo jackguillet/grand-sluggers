@@ -8,12 +8,12 @@ public class PauseMenuTests
     [Fact]
     public void StartOpensCallTimeAfterTheReadyBeat()
     {
-        Assert.False(PauseMenu.Open(paused: false, inAtBat: true, start: true, t: 0f));
-        Assert.False(PauseMenu.Open(paused: false, inAtBat: true, start: true, t: 0.19f));
-        Assert.True(PauseMenu.Open(paused: false, inAtBat: true, start: true, t: 0.21f));
-        Assert.False(PauseMenu.Open(paused: true, inAtBat: true, start: true, t: 1f));
-        Assert.False(PauseMenu.Open(paused: false, inAtBat: false, start: true, t: 1f));
-        Assert.False(PauseMenu.Open(paused: false, inAtBat: true, start: false, t: 1f));
+        Assert.False(PauseMenu.Open(paused: false, allowed: true, start: true, t: 0f));
+        Assert.False(PauseMenu.Open(paused: false, allowed: true, start: true, t: 0.19f));
+        Assert.True(PauseMenu.Open(paused: false, allowed: true, start: true, t: 0.21f));
+        Assert.False(PauseMenu.Open(paused: true, allowed: true, start: true, t: 1f));
+        Assert.False(PauseMenu.Open(paused: false, allowed: false, start: true, t: 1f));
+        Assert.False(PauseMenu.Open(paused: false, allowed: true, start: false, t: 1f));
     }
 
     [Fact]
@@ -38,5 +38,15 @@ public class PauseMenuTests
             Assert.Equal(i, PauseMenu.HitItem(r.X + 8, r.Y + 8, sw, sh));
         }
         Assert.True(PauseMenu.Contains(sw * 0.5f, sh * 0.5f, sw, sh));
+    }
+
+    [Fact]
+    public void EscOpensHowToOnTheFrontOfHouse()
+    {
+        Assert.False(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: true, t: 0f));
+        Assert.True(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: true, t: 0.21f));
+        Assert.False(PauseMenu.OpenHowTo(paused: false, allowed: false, howTo: true, t: 1f));
+        Assert.False(PauseMenu.OpenHowTo(paused: true, allowed: true, howTo: true, t: 1f));
+        Assert.True(PauseMenu.Open(paused: false, allowed: true, start: true, t: 1f));
     }
 }
