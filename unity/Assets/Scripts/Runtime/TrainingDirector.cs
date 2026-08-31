@@ -32,6 +32,7 @@ namespace GrandSluggers.UnityClient
 
         public bool PlayerPitches => Active && Session.Lesson == PracticeLesson.Pitching;
         public bool PlayerBats => Active && Session.Lesson == PracticeLesson.Batting;
+        public bool PlayerRuns => Active && Session.Lesson == PracticeLesson.Running;
         public bool PlayerFields => Active && Session.Lesson == PracticeLesson.Fielding;
 
         public void OnPitch(PitchCommand pitch, Match match)
@@ -44,6 +45,12 @@ namespace GrandSluggers.UnityClient
         {
             if (Session == null || Session.Lesson != PracticeLesson.Batting) return;
             Session.RecordSwing(swing, hit);
+        }
+
+        public void OnRun(Match match)
+        {
+            if (Session == null || Session.Lesson != PracticeLesson.Running) return;
+            Session.RecordRun(match);
         }
 
         public void OnField(FieldingResult field, Match match)

@@ -162,6 +162,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (Controls.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
                 _match.Dash01 = _dash01;
+                if (TrainingOn) _coach.OnRun(_match);
                 var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
                 var hx = 2.55f + (float)(Diamond.First.X - 2.55) * u;
@@ -290,8 +291,8 @@ namespace GrandSluggers.UnityClient
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
-            var lead = _match.LeadRunner;
-            h.SetHighlight(HumanBats && lead != null && who.Id == lead.Id && _phase is Phase.Set or Phase.Flight);
+            var selected = _match.SelectedRunner ?? _match.LeadRunner;
+            h.SetHighlight(HumanBats && selected != null && who.Id == selected.Id && _phase is Phase.Set or Phase.Flight);
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
                 new Vector3((float)(next.X - bag.X), 0, (float)(next.Z - bag.Z)));
             h.Tick(Time.deltaTime);
@@ -335,27 +336,38 @@ namespace GrandSluggers.UnityClient
             if (_match == null || _match.LeadBag == 0) return;
             if (HumanBats && _phase is Phase.Set or Phase.Flight)
             {
+                if (Controls.ThrowBag > 0)
+                    _match.SelectRunner(Controls.ThrowBag);
                 if (Controls.FreezeRunners)
                     _match.FreezeRunners();
                 else if (Controls.AllAdvance)
                     _match.AdvanceAll(dt * 1.7f);
                 else if (Controls.AllReturn)
                     _match.ReturnAll(dt * 2.0f);
-                var bag = _match.LeadBag;
-                var next = bag == 3 ? 4 : bag + 1;
-                var prev = bag == 1 ? 4 : bag - 1;
-                var stick = Controls.AimBag;
+                var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
+                var next = Baserunning.NextBag(bag);
+                var prev = Baserunning.PrevBag(bag);
+                var stick = InPlay.DiamondBag(Controls.StickX, Controls.StickY);
                 if (stick == next) _match.TakeLead(dt * 1.7f);
                 else if (stick == bag || stick == prev) _match.ReturnToBag(dt * 2.0f);
                 if (Controls.Steal) _match.ToggleSteal();
                 var near = _match.Lead01 <= 0.24 || (_match.StealAttempt && _match.Lead01 >= 0.7);
                 if (near && (Controls.WestDown || Controls.SouthDown))
                     _match.Slide();
+                if (TrainingOn) _coach.OnRun(_match);
             }
             if (_phase == Phase.Flight && _match.StealOn)
-                _match.TakeLead(dt * 2.4f);
-            else if (_match.Returning)
-                _match.ReturnToBag(dt * 2.2f);
+            {
+                var stealBag = _match.ArmedStealBag;
+                if (stealBag > 0) _match.TakeLeadAt(stealBag, dt * 2.4f);
+                else _match.TakeLead(dt * 2.4f);
+            }
+            else
+            {
+                for (var bag = 1; bag <= 3; bag++)
+                    if (_match.RunnerAt(bag)?.Returning == true)
+                        _match.ReturnToBagAt(bag, dt * 2.2f);
+            }
         }
 
         void TickGun(float dt)
@@ -377,7 +389,8 @@ namespace GrandSluggers.UnityClient
             _gunLead = lead;
             _gunSafe = ev.Kind == PlayKind.StolenBase;
             _gunPickoff = ev.Caption != null && ev.Caption.IndexOf("picked off", System.StringComparison.OrdinalIgnoreCase) >= 0;
-            _gunToBag = _gunPickoff ? fromBag : fromBag == 1 ? 2 : fromBag == 2 ? 3 : 4;
+            _gunToBag = _gunPickoff ? fromBag : Baserunning.StealTarget(fromBag);
+            if (_gunToBag <= 0) _gunToBag = fromBag;
             var origin = _gunPickoff ? Diamond.Rubber : Diamond.Positions["C"];
             var dest = Diamond.Bag(_gunToBag);
             _gunFrom = new Vector3((float)origin.X, 3.4f, (float)origin.Z);

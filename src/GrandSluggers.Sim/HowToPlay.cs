@@ -72,9 +72,11 @@ public static class HowToPlay
         new("running", "Running",
         [
             "LB / ,    all advance    RB / .    all return    both / /    freeze",
-            "L3 / Z    steal the lead runner. No steal home.",
-            "Stick toward the next bag    lead. Back    return.",
+            "D-pad / 1 2 3    select a runner (right 1B, up 2B, left 3B). Down / 4 is home — not stealable.",
+            "Stick toward the next bag    lead on the highlighted runner. Back    return.",
+            "L3 / Z    steal the selected runner toward their next bag. They go on the pitch. No steal home.",
             "Mash South / Space after contact    dash to first.",
+            "West / South near the bag    slide.",
             "Fair contact always sends the batter to first.",
             "Fly: hold. All-advance tags up after the catch.",
         ]),

@@ -112,7 +112,7 @@ Field abilities fire as verbs. One per character:
 
 ## Steals
 
-Control the **lead runner** (furthest along). Stick toward the next bag takes a visible lead (`Lead01` 0–1); stick back returns. **LB / `,`** sends everyone; **RB / `.`** returns everyone; both (or `/`) freeze. **L3 / Z** arms a steal on the lead runner. More lead = a better jump and more pickoff risk on a take. Steal is a catcher gun (speed vs gun + throw chemistry) on a take or swing-and-miss. Walks and strikeouts cancel. Fair contact always sends the batter to first. On a fly, runners hold unless all-advance is on (then they tag up). No steal home in this pass.
+Control a **named runner**. Default highlight is the lead runner (furthest along). D-pad / 1–3 selects (right 1B, up 2B, left 3B; home is not stealable). Stick toward the next bag takes a visible lead (`Lead01` 0–1 on that bag); stick back returns. **LB / `,`** sends everyone; **RB / `.`** returns everyone; both (or `/`) freeze. **L3 / Z** arms a steal on the selected runner toward their next bag. They go on the pitch. More lead = a better jump and more pickoff risk on a take. Steal is a catcher gun (speed vs gun + throw chemistry) on a take or swing-and-miss. Walks and strikeouts cancel. Fair contact always sends the batter to first. On a fly, runners hold unless all-advance is on (then they tag up). Mini diamond shows leads. No steal home in this pass.
 
 ## Error items (chemistry batting)
 
