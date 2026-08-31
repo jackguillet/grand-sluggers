@@ -429,19 +429,18 @@ public sealed class Game : IDisposable
             var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (_frozenSlow ? 0.4 : 1);
             _fx += field.MoveX * speed * dt;
             _fz += field.MoveZ * speed * dt;
-            if (field.Jump && FieldingResolver.BuddyJumpOffered(pre))
-                _buddyJump = true;
-            if (field.ConfirmPressed)
-            {
-                var d = Diamond.Dist(_fx, _fz, _ball.X, _ball.Z);
-                if (d < pre.CatchRadius + 4) _caught = true;
-            }
-
             var hang = BallFlight.HangTime(_hitPath);
-            if (_hitT >= hang && !_caught && !_buddyJump)
+            var needsJump = FlyCatch.NeedsJump(pre);
+            var plant = FlyCatch.ChaseTarget(pre, _match.Park);
+            var window = FieldingResolver.CatchWindowFt(pre.CatchRadius, false, field.Jump);
+            var under = FlyCatch.Under(_fx, _fz, _ball.X, _ball.Z, plant.X, plant.Z, window, needsJump);
+            var inWin = FlyCatch.JumpWindow(_hitT, hang, pre.Fielder, _match.Park);
+            var jumpTry = field.Jump && FlyCatch.HighEnough(_ball.Y, needsJump || FieldingResolver.BuddyJumpOffered(pre));
+            if (FlyCatch.PlayerCaught(jumpTry, field.ConfirmPressed, under, inWin, needsJump))
             {
-                var d = Diamond.Dist(_fx, _fz, pre.LandingX, pre.LandingZ);
-                if (d < pre.CatchRadius + 6) _caught = true;
+                _caught = true;
+                if (FieldingResolver.BuddyJumpOffered(pre) && inWin)
+                    _buddyJump = true;
             }
 
             if (_hitT >= hang + 0.15f)
@@ -463,23 +462,10 @@ public sealed class Game : IDisposable
                 }
 
                 FieldingResult result;
-                if (_buddyJump || _caught)
-                {
-                    var kind = pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
-                    result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
-                        pre.Heatball, pre.Furnace, thr, pre.Buddy, pre.Warped);
-                }
-                else if (pre.HomeRunLikely)
-                {
-                    result = new FieldingResult(PlayKind.HomeRun, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
-                        pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
-                }
-                else
-                {
-                    var kind = hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single;
-                    result = new FieldingResult(kind, pre.Fielder, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
-                        pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
-                }
+                var caught = _buddyJump || _caught;
+                var kind = FlyCatch.PlayerKind(caught, pre, hit);
+                result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
+                    pre.Heatball, pre.Furnace, caught ? thr : null, pre.Buddy, pre.Warped);
 
                 result = _match.ApplyOffenseItem(hit, result, null);
                 _last = _match.FinishAtBat(_pitch!, _swing!, hit, result);

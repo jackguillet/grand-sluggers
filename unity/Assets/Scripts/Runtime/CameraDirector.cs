@@ -71,6 +71,21 @@ namespace GrandSluggers.UnityClient
             return false;
         }
 
+        /// <summary>
+        /// Named shot, look sitting on a live subject. Wall / fly / homer follow-cams.
+        /// 1P and 1v1 share <see cref="PlayCamera.Shot"/>.
+        /// </summary>
+        public void Follow(string id, Vector3 subject)
+        {
+            var s = Must(id);
+            Shot = s.Id;
+            var framed = PlayCamera.Follow(s, new Vec3(subject.x, subject.y, subject.z));
+            _rig.Aim(
+                new Vector3((float)framed.Pos.X, (float)framed.Pos.Y, (float)framed.Pos.Z),
+                new Vector3((float)framed.Look.X, (float)framed.Look.Y, (float)framed.Look.Z),
+                (float)framed.Fov);
+        }
+
         public void ThrowTo(Vector3 from, Vector3 to, bool tag = false)
         {
             var s = Must(tag ? "tag" : "throw");
