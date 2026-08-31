@@ -19,11 +19,7 @@ namespace GrandSluggers.UnityClient
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
         public bool Night;
-        TeamBuilder _homeDraft;
-        TeamBuilder _awayDraft;
-        int _lineupSlot;
-        int _poolIndex;
-        bool _focusPool;
+        LineupScreens _lineup;
         bool _lineupTouched;
         float _lineupStick;
         float _selectStick;
@@ -250,13 +246,9 @@ namespace GrandSluggers.UnityClient
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
                 return;
             }
-            if (_phase == Phase.Lineup && _homeDraft != null)
+            if (_phase == Phase.Lineup && _lineup != null)
             {
-                var taken = new List<string>();
-                if (_awayDraft != null)
-                    for (var i = 0; i < _awayDraft.Order.Count; i++)
-                        taken.Add(_awayDraft.Order[i].Id);
-                TeamSheet.Draw(_match, _homeDraft, _homeDraft.Pool(taken), _lineupSlot, _poolIndex, _focusPool);
+                TeamSheet.Draw(_match, _lineup);
                 return;
             }
             var ui = _phase switch
@@ -264,7 +256,9 @@ namespace GrandSluggers.UnityClient
                 Phase.Title => PhaseUi.Title,
                 Phase.Select => PhaseUi.Select,
                 Phase.Field => PhaseUi.Field,
-                Phase.Lineup => PhaseUi.Lineup,
+                Phase.Lineup => _lineup != null && _lineup.Step == LineupStep.DefenseSetup
+                    ? PhaseUi.DefenseSetup
+                    : PhaseUi.TeamSetup,
                 Phase.GameOver => PhaseUi.GameOver,
                 _ => PhaseUi.Set
             };

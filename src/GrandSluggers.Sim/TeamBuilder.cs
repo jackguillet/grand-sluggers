@@ -33,8 +33,25 @@ public sealed class TeamBuilder
         bool lockCaptain = true)
     {
         var filled = PresetTeams.ForCaptain(content, captainId, exclude);
-        var b = new TeamBuilder(content, filled.Captain, lockCaptain);
-        foreach (var c in Team.DefaultBattingOrder(filled.Captain, filled.Roster))
+        return FromRoster(content, filled.Captain, filled.Roster, lockCaptain)
+            ?? throw new InvalidOperationException("draft needs nine");
+    }
+
+    /// <summary>A complete nine: batting order and gloves. LineupScreens confirms into this.</summary>
+    public static TeamBuilder? FromRoster(
+        ContentCatalog content,
+        Character captain,
+        IReadOnlyList<Character> roster,
+        bool lockCaptain = true)
+    {
+        if (roster.Count != Size) return null;
+        if (roster.Select(c => c.Id).Distinct(StringComparer.OrdinalIgnoreCase).Count() != Size)
+            return null;
+        if (roster.All(c => !c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase)))
+            return null;
+
+        var b = new TeamBuilder(content, captain, lockCaptain);
+        foreach (var c in Team.DefaultBattingOrder(captain, roster))
             b._order.Add(c);
         b.AssignDefaultGloves();
         return b;

@@ -70,14 +70,24 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
 - **West / F** — back to captains
 - **R3 / N** — night
 
-### Lineup (the chemistry toy)
+### Lineup (Team Setup, then Offense / Defense Setup)
 
-The diamond is the toys. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays. The bench is stick-right, not the picture.
+Two screens. Not a 3D huddle with a name list.
 
-- **Stick / WASD** — slot (dugout) vs bench
-- **West / F** — swap highlighted pool player into the slot
-- **RB / Tab** — cycle glove (P / C / IF / OF)
-- **LB / `,` · East / G** — batting order
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second pad sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Starting stars **jump** on the home row.
+
+- **Stick / WASD** — pick a head (center) or a slot (home row)
+- **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
+- **West / F** — remove (captain stays)
+- **Tab** — random fill. A button, not the product path
+
+**Offense / Defense Setup.** Home batting **1–9 as a bar of heads** across the top. Away bar across the bottom. **Two fielding diamonds** in the middle (home left, away right). Heads sit on P / C / 1B / 2B / 3B / SS / LF / CF / RF. The character card stickers the highlighted head — it does not replace the diamonds.
+
+- **Stick on the bar** — reorder batting (1–9 round-trips)
+- **Stick on the diamond** — move the glove
+- **LB / `,` · East / G** — cycle order
+- **RB / Tab** — cycle glove
+- **West / F** — back to Team Setup
 - **South / Space** — first pitch
 
 ### Pitching and hitting (same four verbs)
@@ -144,7 +154,7 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 
 ---
 
-Lineup still drafts chemistry. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF). Home bats the bottom.
+Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hearts and scribbles. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF) on two diamonds. Home bats the bottom.
 
 ---
 
