@@ -362,6 +362,8 @@ public sealed class Game : IDisposable
         {
             if (!_match.BeginAtBat(_pitch!, _swing!, out var hit, out var finished))
             {
+                if (finished != null && _match.StealThrowPending)
+                    finished = _match.GunSteal(finished);
                 _last = finished;
                 _banner = Label(_last!);
                 _sub = _last!.Caption;

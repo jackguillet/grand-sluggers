@@ -118,10 +118,11 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 - **D-pad / 1 2 3** — select a runner (right 1B, up 2B, left 3B). **Down / 4** is home — not stealable. Default highlight is the lead runner.
 - **Stick** toward the next bag — lead on the highlighted runner; back — return
 - **L3 / Z** — steal the selected runner toward their next bag. They go on the pitch. No steal home.
+- After a take or swing-and-miss the **catcher guns**. Arm **2B** (default on a steal of second) and **South**. Early throw that beats the runner is **CAUGHT STEALING**; late is **STOLEN BASE**. Dead stick: CPU catcher still guns. Take the stick and you own it.
 - **Mash South / Space** after contact — **dash** to first
 - **West / South** near the bag — slide
 
-Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags.
+Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags. Mini diamond + banner match the out/safe.
 
 ### Fielding (the ball is in play)
 
@@ -136,7 +137,7 @@ Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with t
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
 - **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
 - **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. Dead stick: CPU may still turn two. You throw both — one South on the hopper is not two outs.
-- After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove.
+- After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove. A steal gun is the same throw from the catcher, without a hop.
 - **Select / R** — swap. Stick points at who you want; dead stick is the next-nearest to the ball.
 - **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
 

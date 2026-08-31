@@ -55,7 +55,7 @@ namespace GrandSluggers.UnityClient
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
-        enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, Result, GameOver }
+        enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         Phase _phase = Phase.Title;
         readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
         int _itemPick;
@@ -130,6 +130,10 @@ namespace GrandSluggers.UnityClient
         int _gunFromBag, _gunToBag;
         bool _gunSafe, _gunPickoff;
         double _gunLead;
+        PlayEvent _stealPitch;
+        float _stealT;
+        float _cpuGunAt;
+        double _stealRelease;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         bool HumanPitches => TrainingOn ? _coach.PlayerPitches : _match != null && _match.Top;
@@ -201,7 +205,7 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
-            var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.Result;
+            var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Result;
             var openedPause = PauseMenu.Open(_match.Paused, playPause, Controls.CallTime, _t);
             if (openedPause)
             {
@@ -302,6 +306,12 @@ namespace GrandSluggers.UnityClient
                     ? 1
                     : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
                 HudView.BagTell(InPlay.CommitBag(armed, hopper, Controls.Cutoff, def));
+            }
+            if (!mutePlay && _phase == Phase.StealThrow && !_throwing)
+            {
+                var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
+                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : Controls.ThrowBag, stick, true);
+                HudView.BagTell(StealThrow.CommitBag(armed, _match.StealTargetBag));
             }
             if (_feelDebug)
             {

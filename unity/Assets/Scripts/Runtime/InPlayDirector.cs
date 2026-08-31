@@ -18,6 +18,7 @@ namespace GrandSluggers.UnityClient
         internal void TickLive(float dt)
         {
             if (_phase == Phase.InPlay) TickInPlay(dt);
+            else if (_phase == Phase.StealThrow) TickStealThrow(dt);
         }
 
         void TickInPlay(float dt)
@@ -292,7 +293,7 @@ namespace GrandSluggers.UnityClient
 
         void TickCoverBags(float dt)
         {
-            if (_preview == null) return;
+            if (_preview == null && _phase != Phase.StealThrow) return;
             foreach (var pos in new[] { "1B", "2B", "3B", "C" })
             {
                 if (pos == _glovePos) continue;
@@ -761,6 +762,165 @@ namespace GrandSluggers.UnityClient
                 return new FieldingResult(PlayKind.HomeRun, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
             var extra = hit.CarryFt >= 250 ? PlayKind.Double : PlayKind.Single;
             return new FieldingResult(extra, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+        }
+
+        void StartStealThrow(PlayEvent pitch)
+        {
+            _stealPitch = pitch;
+            _last = pitch;
+            _stealT = 0;
+            _stealRelease = 0;
+            _phase = Phase.StealThrow;
+            _t = 0;
+            _pending = null;
+            _preview = null;
+            _cpuField = null;
+            _path = null;
+            _caught = true;
+            _buddy = false;
+            _throwing = false;
+            _relayBags = null;
+            _relayI = 0;
+            _throwBag = StealThrow.DefaultBag(_match.StealTargetBag);
+            _coverPos = FieldAssist.CoverKey(_throwBag);
+            _playerFielding = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
+            InitStealGloves();
+            _armedThrow = null;
+            _armedCut = null;
+            _park.Ball.Release();
+            CatchGlove();
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var catcher = map.TryGetValue("C", out var c) ? c : _match.Pitcher;
+            _cpuGunAt = (float)StealThrow.CpuReleaseSec(catcher, new System.Random(catcher.Stats.Field * 17 + 3));
+            AimStealThrowCam();
+        }
+
+        void InitStealGloves()
+        {
+            _gloveAt.Clear();
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            foreach (var kv in map)
+                _gloveAt[kv.Key] = Diamond.Positions[kv.Key];
+            _glovePos = "C";
+            var spot = StealThrow.CatcherSpot;
+            _fx = spot.X;
+            _fz = spot.Z;
+            _gloveAt["C"] = (_fx, _fz);
+            if (!string.IsNullOrEmpty(_coverPos))
+                _gloveAt[_coverPos] = FieldAssist.CoverSpot(_coverPos);
+        }
+
+        void TickStealThrow(float dt)
+        {
+            _stealT += dt;
+            TickCoverBags(dt);
+            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var fromBag = _match.ArmedStealBag;
+            var state = _match.RunnerAt(fromBag);
+            var remain = state != null
+                ? (float)StealThrow.RunnerRemainSec(state.Who, state.Lead01)
+                : 1.6f;
+
+            if (_throwing)
+            {
+                _throwT += dt;
+                var u = Mathf.Clamp01(_throwT / Mathf.Max(0.05f, _throwDur));
+                var arc = _armedThrow != null && _armedThrow.Relation == Chemistry.Good ? 5.2f
+                    : _armedThrow != null && _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
+                _ball = Vector3.Lerp(_throwFrom, _throwTo, u);
+                _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
+                _cam.ThrowTo(_throwFrom, _throwTo, TagCam(_throwBag));
+                if (_throwT >= _throwDur)
+                    CommitStealThrow();
+                return;
+            }
+
+            _ball = new Vector3((float)_fx, 2.2f, (float)_fz);
+            AimStealThrowCam();
+            var fieldSeat = PlayerMustField || HumanPitches;
+            if (fieldSeat && Controls.SwapPitcher)
+            {
+                CycleGlove(map);
+                _playerFielding = true;
+            }
+            if (!_playerFielding && fieldSeat &&
+                FieldAssist.StickTakesGlove(Controls.StickX, Controls.StickY, _feel.FieldAssistStick, false))
+            {
+                _playerFielding = true;
+                _glovePos = "C";
+                var spot = StealThrow.CatcherSpot;
+                _fx = spot.X;
+                _fz = spot.Z;
+                _gloveAt["C"] = (_fx, _fz);
+            }
+
+            ReadThrowBag(stickOk: true);
+
+            if (_playerFielding)
+            {
+                if (Controls.SouthDown)
+                {
+                    FireStealThrow(map);
+                    return;
+                }
+            }
+            else if (_stealT >= _cpuGunAt)
+            {
+                _throwBag = StealThrow.DefaultBag(_match.StealTargetBag);
+                FireStealThrow(map);
+                return;
+            }
+
+            if (_stealT >= remain)
+            {
+                _throwBag = 0;
+                _stealRelease = remain;
+                CommitStealThrow();
+            }
+        }
+
+        void FireStealThrow(Dictionary<string, Character> map)
+        {
+            var target = _match.StealTargetBag;
+            _throwBag = StealThrow.CommitBag(_throwBag, target);
+            if (_throwBag <= 0) _throwBag = StealThrow.DefaultBag(target);
+            _stealRelease = _stealT;
+            var key = FieldAssist.CoverKey(_throwBag);
+            map.TryGetValue(key, out var cut);
+            var from = map.TryGetValue(_glovePos, out var glove) ? glove : (map.TryGetValue("C", out var catcher) ? catcher : null);
+            ThrowResult thr = null;
+            if (from != null && cut != null) thr = _match.ThrowBetween(from, cut);
+            _armedThrow = thr ?? new ThrowResult(Chemistry.Neutral, 1.0, false);
+            _armedCut = cut;
+            BeginThrow(_armedThrow, cut, _throwBag);
+        }
+
+        void CommitStealThrow()
+        {
+            if (_stealPitch == null)
+            {
+                BeginResult();
+                return;
+            }
+            var bag = _throwBag;
+            _last = _match.ResolveStealThrow(_stealPitch, bag, _stealRelease, _armedThrow);
+            Banner();
+            _throwing = false;
+            _caught = false;
+            _coverPos = "";
+            _throwFromPos = "";
+            _stealPitch = null;
+            _playerFielding = false;
+            _park.Ball.Release();
+            BeginResult();
+        }
+
+        void AimStealThrowCam()
+        {
+            var bag = _throwBag > 0 ? _throwBag : _match.StealTargetBag;
+            if (bag <= 0) bag = 2;
+            var from = new Vector3((float)_fx, 3.2f, (float)_fz);
+            _cam.ThrowTo(from, BagWorld(bag), TagCam(bag));
         }
 
     }
