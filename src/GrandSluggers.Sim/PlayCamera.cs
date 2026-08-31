@@ -59,4 +59,20 @@ public static class PlayCamera
     }
 
     public static string FromHit(AtBatResult hit) => Shot(BeatFrom(hit));
+
+    /// <summary>
+    /// Translate a named shot so its authored look sits on <paramref name="subject"/>.
+    /// Wall and live fly/homer are follow-cams, not a second JSON park still.
+    /// </summary>
+    public readonly record struct Framing(string Shot, Vec3 Pos, Vec3 Look, double Fov);
+
+    public static Framing Follow(CameraShot shot, Vec3 subject) =>
+        new(
+            shot.Id,
+            new Vec3(
+                shot.Pos.X + subject.X - shot.Target.X,
+                shot.Pos.Y + subject.Y - shot.Target.Y,
+                shot.Pos.Z + subject.Z - shot.Target.Z),
+            subject,
+            shot.Fov);
 }

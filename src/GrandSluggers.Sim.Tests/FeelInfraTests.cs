@@ -92,11 +92,16 @@ public class FeelInfraTests
         var hop = _content.Shots.Must("diamond-grounder");
         var line = _content.Shots.Must("diamond-line");
         var homer = _content.Shots.Must("diamond-homer");
+        var wall = _content.Shots.Must("wall");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
         Assert.True(line.Pos.Y > hop.Pos.Y, $"line height {line.Pos.Y} vs hopper {hop.Pos.Y}");
         Assert.True(line.Pos.Y < fly.Pos.Y, $"line height {line.Pos.Y} vs fly {fly.Pos.Y}");
         Assert.True(homer.Pos.Y > fly.Pos.Y, $"homer height {homer.Pos.Y} vs fly {fly.Pos.Y}");
+        Assert.Equal("glove", wall.Look, ignoreCase: true);
+        Assert.True(wall.Pos.Y < homer.Pos.Y, $"wall height {wall.Pos.Y} vs homer {homer.Pos.Y}");
+        Assert.True(Math.Abs(wall.Target.X) < 4 && Math.Abs(wall.Target.Z) < 4, "wall is a follow-cam on the glove");
+        Assert.Equal(PlayCamera.Wall, wall.Id);
         Assert.True(fly.Pos.Z > 20, $"fly is a 3/4 in the park, not high-home z={fly.Pos.Z}");
         Assert.True(hop.Pos.Y < 9, $"hopper is a 3/4, not top-down y={hop.Pos.Y}");
         Assert.True(hop.Pos.Y > 4, $"hopper too low y={hop.Pos.Y}");
@@ -138,7 +143,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-line", "diamond-homer", "wall", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);

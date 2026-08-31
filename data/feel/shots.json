@@ -73,6 +73,14 @@
       "blend": 7
     },
     {
+      "id": "wall",
+      "look": "glove",
+      "pos": { "x": 24, "y": 15, "z": -34 },
+      "target": { "x": 0, "y": 5.5, "z": 0 },
+      "fov": 42,
+      "blend": 6
+    },
+    {
       "id": "tag",
       "look": "bag",
       "pos": { "x": 6, "y": 4.6, "z": -8 },
