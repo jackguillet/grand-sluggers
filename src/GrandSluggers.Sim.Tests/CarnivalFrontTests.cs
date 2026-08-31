@@ -47,4 +47,16 @@ public class CarnivalFrontTests
         Assert.True(CarnivalFront.LogoY > 5, $"logo y={CarnivalFront.LogoY}");
         Assert.Equal("GRAND SLUGGERS", CarnivalFront.Logo);
     }
+
+    [Fact]
+    public void SelectLookIsTheChestNotTheBrim()
+    {
+        var look = CarnivalFront.SelectLook(5, 6);
+        Assert.Equal(0f, look.X);
+        Assert.Equal(CarnivalFront.FeaturedSelectZ, look.Z);
+        Assert.True(look.Y < 3.2f, $"select look is the brim y={look.Y}");
+        Assert.True(CarnivalFront.FeaturedSelectZ >= 6.5f, $"select pick too close z={CarnivalFront.FeaturedSelectZ}");
+        Assert.True(CarnivalFront.FeaturedSelectZ < CarnivalFront.SelectRowZ);
+        Assert.Equal(CarnivalFront.SelectRowZ - CarnivalFront.FeaturedSelectZ, CarnivalFront.HomeStepSelectFt);
+    }
 }

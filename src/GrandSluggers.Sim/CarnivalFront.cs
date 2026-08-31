@@ -10,10 +10,12 @@ public static class CarnivalFront
     public const string PlayBall = "South / Space    play ball";
     public const float TitleRowZ = 26f;
     public const float SelectRowZ = 12f;
-    public const float HomeStepSelectFt = 8f;
+    public const float HomeStepSelectFt = 4f;
     public const float HomeStepTitleFt = 2.4f;
     public const float FeaturedTitleZ = 10f;
-    public const float FeaturedSelectZ = 4f;
+    public const float FeaturedSelectZ = 8f;
+    /// <summary>Chest. Y=4.4 at Z=4 is Ashlord's brim.</summary>
+    public const float SelectLookY = 2.6f;
     public const float LogoX = 0.4f;
     public const float LogoY = 8.8f;
     public const float LogoZ = 7.4f;
@@ -30,6 +32,12 @@ public static class CarnivalFront
         var z = select ? SelectRowZ : TitleRowZ;
         if (home) return (0f, select ? FeaturedSelectZ : FeaturedTitleZ);
         return (x, z);
+    }
+
+    public static (float X, float Y, float Z) SelectLook(int index, int count)
+    {
+        var spot = CaptainSpot(index, count, select: true, home: true);
+        return (spot.X, SelectLookY, spot.Z);
     }
 
     public static string SkyGag(bool night) => night ? "NIGHT" : "DAY";

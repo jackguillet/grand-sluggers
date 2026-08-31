@@ -457,7 +457,7 @@ namespace GrandSluggers.UnityClient
                 if (home) homeSpot = spot;
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
-                hero.SetGrow(home);
+                hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));

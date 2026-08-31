@@ -40,6 +40,9 @@ public class FeelInfraTests
         Assert.True(select.Pos.Z < 0, $"select behind home z={select.Pos.Z}");
         Assert.InRange(select.Target.Z, 8, 22);
         Assert.True(select.Fov >= 44, $"select fov {select.Fov} too tight for six captains");
+        var pickLook = new Vec3(0, CarnivalFront.SelectLookY, CarnivalFront.FeaturedSelectZ);
+        Assert.True(CarnivalFront.SelectLookY < 3.2, $"select look is the brim y={CarnivalFront.SelectLookY}");
+        Assert.True(Dist(select.Pos, pickLook) > 18, $"select look too close dist={Dist(select.Pos, pickLook)}");
     }
 
     [Fact]

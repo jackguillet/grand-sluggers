@@ -235,8 +235,8 @@ namespace GrandSluggers.UnityClient
                     for (; i < ids.Length; i++)
                         if (ids[i] == HomeCaptain) break;
                     if (i >= ids.Length) i = 0;
-                    var spot = CarnivalFront.CaptainSpot(i, ids.Length, select: true, home: true);
-                    _cam.CutLook("select", new Vector3(spot.X, 4.4f, spot.Z));
+                    var look = CarnivalFront.SelectLook(i, ids.Length);
+                    _cam.CutLook("select", new Vector3(look.X, look.Y, look.Z));
                 }
                 else
                     _cam.Cut("title");
