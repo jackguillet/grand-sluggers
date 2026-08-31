@@ -12,7 +12,7 @@ public sealed class StillRequest
     public const string DoneFileName = "gs-still-done.json";
     public const string DefaultOutFolder = "gs-stills";
 
-    public static readonly string[] DefaultShots = ["title", "select", "plate", "pitch", "mound", "diamond-grounder", "smash"];
+    public static readonly string[] DefaultShots = ["title", "select", "lineup", "plate", "pitch", "mound", "diamond-grounder", "smash"];
 
     public static readonly HashSet<string> AllowedShots = new(StringComparer.OrdinalIgnoreCase)
     {

@@ -155,7 +155,7 @@ A pass is “I would put this on a trailer.” A fail files a GitHub child from 
 Personal Unity cannot `-batchmode`. The agent does **not** invent a screenshot. It drives the **already-open editor**.
 
 1. Write `unity/Temp/gs-still-request.json` (schema: `StillRequest` in Sim).
-2. Enter Play on `HarborDiamond.unity` (menu **Grand Sluggers → Capture Still Gate**, or Cmd+P after the request exists).
+2. Enter Play on `HarborDiamond.unity` (menu **Grand Sluggers → Capture Still Gate**). Do not Cmd+P — Grok/Safari steal it.
 3. Play skips the title, jumps to Exhibition SET, **cuts** named cameras, writes PNGs with `Camera.Render` (world only — no OnGUI, so HUD-off is honest).
 4. Done file: `unity/Temp/gs-still-done.json`. PNGs default to `unity/Temp/gs-stills/{shot}.png`.
 
@@ -177,7 +177,7 @@ Default request now includes the three trailer stills plus title/mound:
 
 ```json
 {
-  "shots": ["title", "select", "plate", "pitch", "mound", "diamond-grounder", "smash"],
+  "shots": ["title", "select", "lineup", "plate", "pitch", "mound", "diamond-grounder", "smash"],
   "home": "rio",
   "away": "ashlord",
   "hudOff": true,
@@ -193,4 +193,4 @@ Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf
 
 Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers session.
 
-Shell: `tools/still-gate.sh` writes the request and toggles Play. Menu **Grand Sluggers → Capture Still Gate** does the same. PNGs: `unity/Temp/gs-stills/`.
+Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → Capture Still Gate** (not Cmd+P). PNGs: `unity/Temp/gs-stills/`.

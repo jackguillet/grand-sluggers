@@ -19,7 +19,7 @@ namespace GrandSluggers.EditorTools
             if (!File.Exists(path))
             {
                 File.WriteAllText(path,
-                    "{\"shots\":[\"title\",\"select\",\"plate\",\"pitch\",\"mound\",\"diamond-grounder\",\"smash\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true,\"charge01\":1}");
+                    "{\"shots\":[\"title\",\"select\",\"lineup\",\"plate\",\"pitch\",\"mound\",\"diamond-grounder\",\"smash\"],\"home\":\"rio\",\"away\":\"ashlord\",\"hudOff\":true,\"charge01\":1}");
             }
             try { File.Delete(StillRequest.DonePath(temp)); }
             catch { /* first run */ }

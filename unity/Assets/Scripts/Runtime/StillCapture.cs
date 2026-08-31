@@ -69,8 +69,9 @@ namespace GrandSluggers.UnityClient
             foreach (var shot in shots)
             {
                 _play.GateStage(shot, _req);
-                for (var i = 0; i < 8; i++) yield return null;
+                for (var i = 0; i < 24; i++) yield return null;
                 _play.GatePose(shot, _req);
+                for (var i = 0; i < 4; i++) yield return null;
                 var png = StillRequest.PngPath(outDir, shot);
                 try
                 {
@@ -272,6 +273,11 @@ namespace GrandSluggers.UnityClient
                     ph.SnapTick((float)MoveBones.PitchRelease);
                 _pitch ??= new PitchCommand("fastball", 1, 0, false);
                 CaptureReleaseFromHand();
+                if (!StillPose.PitchReleaseIsOnTheMound(_relFrom.z))
+                {
+                    var rel = PitchFlight.Release(_pitch.RubberX);
+                    _relFrom = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
+                }
                 _park.Ball.Release();
                 var p = PitchFlight.Point("fastball", StillPose.PitchBallU, 0, 0, 0, false, 0,
                     ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z));
@@ -392,10 +398,15 @@ namespace GrandSluggers.UnityClient
         void PosePitcher(HeroActor.Pose pose, float charge, bool ring)
         {
             if (_match?.Pitcher == null) return;
-            if (!_heroes.TryGetValue(_match.Pitcher.Id, out var p) || p == null) return;
+            var p = EnsureHero(_match.Pitcher);
+            if (p == null) return;
             p.SetPose(pose, charge, "fastball");
             p.SetChargeRing(ring ? charge : 0);
-            p.SnapTick(0.08f);
+            p.SetHeld(false, false);
+            p.Place(
+                new Vector3(0f, 0f, (float)Diamond.Mound),
+                new Vector3(0f, 0f, -1f));
+            p.SnapTick(pose == HeroActor.Pose.ThrowPitch ? (float)MoveBones.PitchRelease : 0.08f);
         }
     }
 }
