@@ -10,16 +10,20 @@ public static class SetTells
 
     public static bool RingOn(double charge01) => charge01 >= ChargePull;
 
+    /// <summary>
+    /// Major radius in feet. Small values sat under the mesh as a gold pancake.
+    /// Pull already clears the toy; max grows around the box.
+    /// </summary>
     public static double RingScale(double charge01)
     {
         var u = Math.Clamp(charge01, 0, 1);
-        return RingOn(u) ? 2.1 + u * 1.8 : 0;
+        return RingOn(u) ? 3.6 + u * 2.0 : 0;
     }
 
-    /// <summary>Ring sits on packed dirt, not on the toy's waist.</summary>
+    /// <summary>Bottom of the tube sits on packed dirt, not on the toy's waist.</summary>
     public const double RingHeightFt = 0.06;
 
-    /// <summary>Cylinder Y scale. 0.045 vanished from the plate 3/4.</summary>
+    /// <summary>Torus tube radius. 0.045 vanished from the plate 3/4.</summary>
     public const double RingThickFt = 0.16;
 
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;

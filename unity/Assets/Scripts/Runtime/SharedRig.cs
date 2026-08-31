@@ -210,10 +210,7 @@ namespace GrandSluggers.UnityClient
             Shoe(chain.LShin, shoe, leather, trim, kid || Has("sneakers"));
             Shoe(chain.RShin, shoe, leather, trim, kid || Has("sneakers"));
 
-            var pink = Look.Unlit(new Color(1f, 0.48f, 0.78f));
-            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", parent, new Vector3(0, (float)SetTells.RingHeightFt, 0), new Vector3(2.6f, 0.05f, 2.6f), pink).transform;
-            Look.Prim(PrimitiveType.Cylinder, "MarkGold", chain.Ring, Vector3.zero, new Vector3(0.86f, 1.4f, 0.86f), Look.Unlit(Colors.Gold));
-            chain.Ring.gameObject.SetActive(false);
+            AttachRing(chain, parent);
             return chain;
         }
 
@@ -471,10 +468,16 @@ namespace GrandSluggers.UnityClient
 
         static void AttachRing(Chain chain, Transform parent)
         {
+            var root = new GameObject("Mark");
+            root.transform.SetParent(parent, false);
             var pink = Look.Unlit(new Color(1f, 0.48f, 0.78f));
-            chain.Ring = Look.Prim(PrimitiveType.Cylinder, "Mark", parent, new Vector3(0, (float)SetTells.RingHeightFt, 0), new Vector3(2.6f, 0.05f, 2.6f), pink).transform;
-            Look.Prim(PrimitiveType.Cylinder, "MarkGold", chain.Ring, Vector3.zero, new Vector3(0.86f, 1.4f, 0.86f), Look.Unlit(Colors.Gold));
-            chain.Ring.gameObject.SetActive(false);
+            var gold = Look.Unlit(Colors.Gold);
+            // Unit major radius. Hero scales uniformly by RingScale so the tube
+            // stays a tube (~RingThickFt at charge 1), not a pancake.
+            Look.Torus("Pink", root.transform, 1f, 0.032f, pink);
+            Look.Torus("Gold", root.transform, 0.86f, 0.024f, gold);
+            chain.Ring = root.transform;
+            root.SetActive(false);
         }
 
         static void PaintDrop(GameObject go, Material jersey, Material flesh, Material slack, Material leather, Material ink, Material white)

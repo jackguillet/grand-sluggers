@@ -122,6 +122,62 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
+        /// <summary>Annulus you can stand in. A scaled cylinder is a pancake.</summary>
+        public static GameObject Torus(string name, Transform parent, float major, float minor, Material mat, int seg = 28, int sides = 10)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var mf = go.AddComponent<MeshFilter>();
+            var mr = go.AddComponent<MeshRenderer>();
+            mf.sharedMesh = BuildTorus(major, minor, seg, sides);
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            return go;
+        }
+
+        static Mesh BuildTorus(float major, float minor, int seg, int sides)
+        {
+            seg = Mathf.Max(8, seg);
+            sides = Mathf.Max(6, sides);
+            var verts = new Vector3[(seg + 1) * (sides + 1)];
+            var tris = new int[seg * sides * 6];
+            for (var i = 0; i <= seg; i++)
+            {
+                var theta = i * Mathf.PI * 2f / seg;
+                var ct = Mathf.Cos(theta);
+                var st = Mathf.Sin(theta);
+                for (var j = 0; j <= sides; j++)
+                {
+                    var phi = j * Mathf.PI * 2f / sides;
+                    var cp = Mathf.Cos(phi);
+                    var sp = Mathf.Sin(phi);
+                    verts[i * (sides + 1) + j] =
+                        new Vector3(ct * (major + minor * cp), minor * sp, st * (major + minor * cp));
+                }
+            }
+            var t = 0;
+            for (var i = 0; i < seg; i++)
+            {
+                for (var j = 0; j < sides; j++)
+                {
+                    var a = i * (sides + 1) + j;
+                    var b = a + sides + 1;
+                    tris[t++] = a;
+                    tris[t++] = a + 1;
+                    tris[t++] = b;
+                    tris[t++] = a + 1;
+                    tris[t++] = b + 1;
+                    tris[t++] = b;
+                }
+            }
+            var mesh = new Mesh { name = "Torus" };
+            mesh.vertices = verts;
+            mesh.triangles = tris;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
         public static void SetupLighting(Camera cam, Color sky)
         {
             cam.clearFlags = CameraClearFlags.SolidColor;
