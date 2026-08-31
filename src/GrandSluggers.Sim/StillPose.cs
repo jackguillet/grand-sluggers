@@ -39,6 +39,13 @@ public static class StillPose
     /// <summary>Just off the hand, still on the pitcher, coming at the box.</summary>
     public const double PitchBallU = 0.12;
 
+    /// <summary>Throwing hand must be on the rubber. Home-plate from was a beach ball in the lens.</summary>
+    public static bool PitchReleaseIsOnTheMound(double z) =>
+        z > Diamond.Mound - 16 && z < Diamond.Mound + 8;
+
+    public static bool PitchBallIsOffTheHand(double ballZ) =>
+        ballZ > 40 && ballZ < Diamond.Mound;
+
     public static bool ScoopIsNotTheMound(double x, double z) =>
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
 
