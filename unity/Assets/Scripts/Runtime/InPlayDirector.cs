@@ -87,6 +87,13 @@ namespace GrandSluggers.UnityClient
             ChargeOutfield(dt);
             TryTakeGlove();
 
+            if (_closePlay)
+            {
+                _cam.ThrowTo(_throwFrom, _throwTo, true);
+                TickClosePlay(dt);
+                return;
+            }
+
             if (_recoilT > 0 && !_throwing)
             {
                 if (!_bobbling && _caught)
@@ -120,6 +127,7 @@ namespace GrandSluggers.UnityClient
                 if (_throwT >= _throwDur && !_itemFlying)
                 {
                     if (OnThrowArrived()) return;
+                    if (TryBeginClosePlay()) return;
                     CommitInPlay();
                 }
                 return;
@@ -193,7 +201,7 @@ namespace GrandSluggers.UnityClient
                 _gloveAt[_glovePos] = (_fx, _fz);
             }
 
-            if (FieldPad.Item && chasing && map.TryGetValue(_glovePos, out var tossFrom))
+            if ((FieldPad.Item || FieldPad.Attack) && chasing && map.TryGetValue(_glovePos, out var tossFrom))
             {
                 Character partner = null;
                 foreach (var kv in map)
@@ -203,6 +211,18 @@ namespace GrandSluggers.UnityClient
                         _gloveAt.TryGetValue(kv.Key, out at) ? at.Z : 0);
                     if (FieldDash.BuddyTossOffered(_match.Chemistry.Between(tossFrom, kv.Value), dist))
                     { partner = kv.Value; break; }
+                }
+                if (partner == null && FieldPad.Attack)
+                {
+                    var best = 99.0;
+                    foreach (var kv in map)
+                    {
+                        if (kv.Key == _glovePos) continue;
+                        var dist = Diamond.Dist(_fx, _fz, _gloveAt.TryGetValue(kv.Key, out var at) ? at.X : 0,
+                            _gloveAt.TryGetValue(kv.Key, out at) ? at.Z : 0);
+                        if (FieldDash.KickOffered(dist) && dist < best)
+                        { best = dist; partner = kv.Value; }
+                    }
                 }
                 if (partner != null)
                 {
@@ -762,6 +782,8 @@ namespace GrandSluggers.UnityClient
             _pending = null;
             _cpuField = null;
             _throwing = false;
+            _closePlay = false;
+            _closeIcon = false;
             _relayBags = null;
             _awaitingRelay = false;
             _coverPos = "";
@@ -956,6 +978,71 @@ namespace GrandSluggers.UnityClient
             if (bag <= 0) bag = 2;
             var from = new Vector3((float)_fx, 3.2f, (float)_fz);
             _cam.ThrowTo(from, BagWorld(bag), TagCam(bag));
+        }
+
+        bool TryBeginClosePlay()
+        {
+            if (_match == null) return false;
+            if (!ClosePlay.Offered(_throwBag, _match.Second != null, _match.Third != null))
+                return false;
+            _closePlay = true;
+            _closePlayT = 0;
+            _closeIcon = false;
+            _closeBag = _throwBag;
+            _closeOffAt = _closeDefAt = -1f;
+            return true;
+        }
+
+        void TickClosePlay(float dt)
+        {
+            _closePlayT += dt;
+            if (!_closeIcon)
+            {
+                if (_closePlayT < ClosePlay.IconDelay) return;
+                _closeIcon = true;
+                _closePlayT = 0;
+                return;
+            }
+
+            var runner = _closeBag == 4 ? _match.Third : _match.Second;
+            var fielder = PlayFielder();
+            var offenseHuman = Versus ? HumanBats : HumanBats && !PlayerMustField && !_playerFielding;
+            var defenseHuman = Versus
+                ? (_playerFielding || HumanPitches || PlayerMustField)
+                : (_playerFielding || HumanPitches || PlayerMustField);
+
+            if (_closeOffAt < 0f)
+            {
+                if (offenseHuman)
+                {
+                    if (RunPad.SouthDown) _closeOffAt = _closePlayT;
+                }
+                else
+                {
+                    var cpu = (float)ClosePlay.CpuReactionSec(runner != null ? runner.Stats.Run : 5);
+                    if (_closePlayT >= cpu) _closeOffAt = cpu;
+                }
+            }
+            if (_closeDefAt < 0f)
+            {
+                if (defenseHuman)
+                {
+                    if (FieldPad.SouthDown) _closeDefAt = _closePlayT;
+                }
+                else
+                {
+                    var cpu = (float)ClosePlay.CpuReactionSec(fielder != null ? fielder.Stats.Field : 5);
+                    if (_closePlayT >= cpu) _closeDefAt = cpu;
+                }
+            }
+
+            if (_closeOffAt < 0f || _closeDefAt < 0f) return;
+            var safe = ClosePlay.OffenseSafe(_closeOffAt, _closeDefAt);
+            _match.ClosePlaySafe = safe;
+            _sub = ClosePlay.Caption(_closeBag, safe);
+            _closePlay = false;
+            _closeIcon = false;
+            CommitInPlay();
         }
 
     }

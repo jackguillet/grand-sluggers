@@ -63,4 +63,11 @@ public static class FieldDash
 
     public static FieldingResult ApplyBuddyToss(FieldingResult field, Character partner, ThrowResult thr) =>
         field with { Fielder = partner, Throw = thr };
+
+    public const double KickFt = 22;
+
+    public static bool KickOffered(double distFt) => distFt < KickFt;
+
+    public static bool DestroysItem(bool attack, bool itemFlying, double distFt) =>
+        attack && itemFlying && distFt < 24;
 }
