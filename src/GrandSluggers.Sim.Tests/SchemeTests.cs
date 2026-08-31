@@ -101,5 +101,14 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("window"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("3/4") && l.Contains("glove"));
+        var two = HowToPlay.Must("two-pads").Lines;
+        Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("home"));
+        Assert.Contains(two, l => l.Contains("Gamepad 1") && l.Contains("away"));
+        Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("player 1"));
+        Assert.Contains(two, l => l.Contains("Unplug"));
+        Assert.Contains(two, l => l.Contains("plate"));
+        Assert.Contains(two, l => l.Contains("CPU never"));
+        Assert.Contains(two, l => l.Contains("fielding pad") || l.Contains("Fielding pad"));
+        Assert.True(HowToPlay.Mentions("pad 2") || HowToPlay.Mentions("Pad 2"));
     }
 }
