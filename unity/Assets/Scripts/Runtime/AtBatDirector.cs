@@ -47,6 +47,7 @@ namespace GrandSluggers.UnityClient
             _throwing = false;
             _relayBags = null;
             _relayI = 0;
+            _awaitingRelay = false;
             _coverPos = "";
             _recoilT = 0;
             _bobbling = false;
@@ -77,6 +78,9 @@ namespace GrandSluggers.UnityClient
             AimSetCamera();
             LogSetCam("begin");
             _zone.Show(true, 0, 0);
+            if (TrainingOn && _coach != null && _coach.Session != null && _match != null
+                && _coach.Session.Lesson == PracticeLesson.Fielding && _coach.Session.LessonPart >= 2)
+                _coach.Session.SetupTurnTwo(_match);
         }
 
         void LogSetCam(string tag)
@@ -311,6 +315,7 @@ namespace GrandSluggers.UnityClient
             _throwing = false;
             _relayBags = null;
             _relayI = 0;
+            _awaitingRelay = false;
             _coverPos = "";
             _recoilT = 0;
             _bobbling = false;

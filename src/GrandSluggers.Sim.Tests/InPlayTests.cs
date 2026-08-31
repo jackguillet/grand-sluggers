@@ -108,6 +108,52 @@ public class InPlayTests
         Assert.Equal(4, InPlay.TagBag(true, true));
         Assert.Equal(3, InPlay.TagBag(true, false));
         Assert.Equal(0, InPlay.TagBag(false, false));
+        Assert.Equal(2, InPlay.DefaultGroundBag(true));
+        Assert.Equal(1, InPlay.DefaultGroundBag(false));
+        Assert.Equal(3, InPlay.DefaultGroundBag(false, true, false));
+        Assert.Equal(4, InPlay.DefaultGroundBag(false, true, true));
+        Assert.Equal(1, InPlay.NextBagAfterForce(2, 1));
+        Assert.Equal(0, InPlay.NextBagAfterForce(2, 3));
+        Assert.True(InPlay.DoublePlayOffered(true, 0));
+        Assert.True(InPlay.DoublePlayOffered(true, 1));
+        Assert.False(InPlay.DoublePlayOffered(true, 2));
+        Assert.False(InPlay.DoublePlayOffered(false, 0));
+        Assert.True(FieldingResolver.DoublePlayHopper(true, true, 0));
+        Assert.False(FieldingResolver.DoublePlayHopper(false, true, 0));
+        Assert.Equal(2, InPlay.CommitBag(0, hopperCaught: true, cutoff: false, defaultBag: 2));
+        Assert.Equal(1, InPlay.CommitBag(0, hopperCaught: true, cutoff: false, defaultBag: 1));
+        Assert.Equal(0, InPlay.CommitBag(0, hopperCaught: true, cutoff: true, defaultBag: 2));
+        Assert.Equal(3, InPlay.CommitBag(3, hopperCaught: true, cutoff: false, defaultBag: 2));
+    }
+
+    [Fact]
+    public void ThrowToBagStepsForceThenFirstWithoutCollapsingThePlay()
+    {
+        var force = InPlay.ThrowToBag(2, true, false, runnerBeats: false, outs: 0, "Vale", "Rio");
+        Assert.True(force.Out);
+        Assert.True(force.Force);
+        Assert.False(force.TurnedTwo);
+        Assert.False(force.PlayOver);
+        Assert.Equal(1, force.NextDefaultBag);
+        Assert.Contains("forces the runner", force.Caption);
+
+        var two = InPlay.ThrowToBag(1, false, alreadyForced: true, runnerBeats: false, outs: 1, "Vale", "Rio");
+        Assert.True(two.Out);
+        Assert.True(two.TurnedTwo);
+        Assert.True(two.PlayOver);
+        Assert.Contains("turns two", two.Caption);
+
+        var late = InPlay.ThrowToBag(1, false, alreadyForced: true, runnerBeats: true, outs: 1, "Vale", "Rio");
+        Assert.False(late.Out);
+        Assert.False(late.TurnedTwo);
+        Assert.True(late.BatterSafe);
+        Assert.Contains("Force at second", late.Caption);
+        Assert.Contains("Rio", late.Caption);
+
+        var thirdOut = InPlay.ThrowToBag(2, true, false, runnerBeats: false, outs: 2, "Vale", "Rio");
+        Assert.True(thirdOut.Out);
+        Assert.True(thirdOut.PlayOver);
+        Assert.Equal(0, thirdOut.NextDefaultBag);
     }
 
     [Fact]

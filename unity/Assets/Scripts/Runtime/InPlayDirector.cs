@@ -118,7 +118,7 @@ namespace GrandSluggers.UnityClient
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
                 if (_throwT >= _throwDur && !_itemFlying)
                 {
-                    if (AdvanceRelay()) return;
+                    if (OnThrowArrived()) return;
                     CommitInPlay();
                 }
                 return;
@@ -245,6 +245,22 @@ namespace GrandSluggers.UnityClient
 
             if (_buddy)
                 _ball = new Vector3((float)_fx, 6.4f + (_jumpT > 0 ? 2.2f : 0f), (float)_fz);
+
+            if (_awaitingRelay)
+            {
+                if (_throwBag <= 0) _throwBag = 1;
+                var batterIn = _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
+                if (!Controls.SouthDown && !batterIn)
+                    return;
+                _awaitingRelay = false;
+                if (batterIn && !Controls.SouthDown)
+                {
+                    CommitInPlay();
+                    return;
+                }
+                BeginPlayerThrowOrCommit(map);
+                return;
+            }
 
             if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
             if (pre.Grounder || pre.Line)
@@ -487,7 +503,10 @@ namespace GrandSluggers.UnityClient
         void BeginPlayerThrowOrCommit(Dictionary<string, Character> map)
         {
             var hopperCaught = _preview != null && _preview.Grounder && (_caught || _buddy);
-            _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, Controls.Cutoff);
+            var def = _match.LiveForce
+                ? 1
+                : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
+            _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, Controls.Cutoff, def);
             if (!(_caught || _buddy))
             {
                 CommitInPlay();
@@ -495,10 +514,18 @@ namespace GrandSluggers.UnityClient
             }
             if (_throwBag <= 0)
             {
-                if (Controls.Cutoff && hopperCaught && StartGroundRelays())
+                if (Controls.Cutoff && hopperCaught)
+                {
+                    if (_playerFielding)
+                        _throwBag = def is >= 1 and <= 4 ? def : 1;
+                    else if (StartGroundRelays())
+                        return;
+                }
+                if (_throwBag <= 0)
+                {
+                    CommitInPlay();
                     return;
-                CommitInPlay();
-                return;
+                }
             }
             var key = _throwBag == 1 ? "1B" : _throwBag == 2 ? "2B" : _throwBag == 3 ? "3B" : "C";
             map.TryGetValue(key, out var cut);
@@ -509,13 +536,7 @@ namespace GrandSluggers.UnityClient
             _armedCut = cut;
             if (thr != null)
             {
-                if (_preview != null && _preview.Grounder && _throwBag == 2 && _match.First != null && _pending != null)
-                {
-                    var beats = InPlay.BatterBeatsThrow(_match.Batter, _pending, BuildPlayerResult(), _dash01);
-                    _relayBags = beats ? new[] { 2 } : new[] { 2, 1 };
-                }
-                else
-                    _relayBags = new[] { _throwBag };
+                _relayBags = new[] { _throwBag };
                 _relayI = 0;
                 BeginThrow(thr, cut, _throwBag);
             }
@@ -607,18 +628,70 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
-        bool AdvanceRelay()
+        bool OnThrowArrived()
         {
-            if (_relayBags == null || _relayI + 1 >= _relayBags.Length) return false;
-            var bag = _relayBags[_relayI];
+            var bag = _throwBag;
             var dest = BagWorld(bag);
             _fx = dest.x;
             _fz = dest.z;
-            _glovePos = CoverKey(bag);
-            if (!string.IsNullOrEmpty(_glovePos))
+            var cover = CoverKey(bag);
+            if (!string.IsNullOrEmpty(cover))
+            {
+                _glovePos = cover;
                 _gloveAt[_glovePos] = (_fx, _fz);
+            }
             _throwing = false;
             CatchGlove();
+
+            InPlay.GroundThrowStep? step = null;
+            if (_match != null && (_match.First != null || _match.LiveForce))
+            {
+                step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
+                if (!string.IsNullOrEmpty(step.Value.Caption))
+                    _sub = step.Value.Caption;
+            }
+
+            if (step != null && WaitForNextThrow(step.Value))
+                return true;
+            if (!_playerFielding)
+                return AdvanceRelay();
+            return false;
+        }
+
+        bool RelayBeats(int bag)
+        {
+            if (_playerFielding)
+            {
+                if (bag == 1)
+                    return _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
+                if (bag == 2 && _match.First != null)
+                    return _hitT >= InPlay.BagToBagSec(_match.First);
+                return false;
+            }
+            if (bag == 1 && _pending != null && _cpuField != null)
+                return InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField, _dash01);
+            return false;
+        }
+
+        Character PlayFielder()
+        {
+            if (_cpuField != null && _cpuField.Fielder != null) return _cpuField.Fielder;
+            return _preview != null ? _preview.Fielder : _match.Pitcher;
+        }
+
+        bool WaitForNextThrow(InPlay.GroundThrowStep step)
+        {
+            if (!_playerFielding) return false;
+            if (step.PlayOver || step.NextDefaultBag <= 0) return false;
+            _awaitingRelay = true;
+            _throwBag = step.NextDefaultBag;
+            _relayBags = null;
+            return true;
+        }
+
+        bool AdvanceRelay()
+        {
+            if (_relayBags == null || _relayI + 1 >= _relayBags.Length) return false;
             _relayI++;
             return FireRelay();
         }
@@ -652,6 +725,7 @@ namespace GrandSluggers.UnityClient
             _cpuField = null;
             _throwing = false;
             _relayBags = null;
+            _awaitingRelay = false;
             _coverPos = "";
             _throwFromPos = "";
             _bobbling = false;

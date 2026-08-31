@@ -82,6 +82,8 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("charge", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("plate") && l.Contains("SET"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("you are the glove"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("turn two"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("throw both"));
         Assert.False(HowToPlay.Mentions("cycle pitch"));
         Assert.False(HowToPlay.Mentions("cycle fastball"));
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
