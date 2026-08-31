@@ -56,7 +56,7 @@ Captains and the field are two screens. The park does not follow the captain.
 
 ### Pick captain
 
-The toys are the UI. Highlighted captain **steps forward**. The **card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
+The toys are the UI. Highlighted captain **steps forward**. Camera looks at the **chest**, not the brim — Ashlord's hat is not the picture. The **card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
 - **Stick / WASD L/R** — home · **U/D** — away (pad 2 L/R away when seated)
 - **South / Space** — pick the field
