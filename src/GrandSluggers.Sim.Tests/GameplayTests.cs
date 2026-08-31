@@ -323,7 +323,9 @@ public class GameplayTests
     [Fact]
     public void BiggerLeadStealsMoreOften()
     {
-        Assert.True(StealWins(1.0) > StealWins(0), "more lead should steal more");
+        var walked = StealWins(1.0);
+        var glued = StealWins(0);
+        Assert.True(walked > glued, $"more lead should steal more: max {walked} vs glued {glued}");
     }
 
     [Fact]

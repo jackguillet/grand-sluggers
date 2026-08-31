@@ -62,7 +62,7 @@ namespace GrandSluggers.UnityClient
             _chem?.Hide();
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var litId = "";
-            if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
+            if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;
             var itemLit = ItemOffered && _itemTarget != null ? _itemTarget.Id : "";
             foreach (var kv in defense)
@@ -77,7 +77,7 @@ namespace GrandSluggers.UnityClient
                 }
                 var pose = HeroActor.Pose.Idle;
                 var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
-                var highlighted = _phase == Phase.InPlay && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_buddy));
+                var highlighted = (_phase is Phase.InPlay or Phase.StealThrow) && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_buddy));
                 if (highlighted && !buddyPartner)
                 {
                     x = _fx;
@@ -109,7 +109,7 @@ namespace GrandSluggers.UnityClient
                     else
                         pose = FieldPose(who, _preview, _caught || _buddy);
                 }
-                else if (_phase == Phase.InPlay && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
+                else if ((_phase is Phase.InPlay or Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
                     pose = HeroActor.Pose.Run;
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
@@ -133,9 +133,9 @@ namespace GrandSluggers.UnityClient
                 hero.SetHeld(false, true);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     x += _match.PitcherOffsetX * 2.2;
-                var look = kv.Key == "P" && _phase != Phase.InPlay
+                var look = kv.Key == "P" && _phase is not Phase.InPlay and not Phase.StealThrow
                     ? new Vector3(0, 0, -1)
-                    : _phase == Phase.InPlay
+                    : _phase is Phase.InPlay or Phase.StealThrow
                         ? new Vector3(_ball.x - (float)x, 0, _ball.z - (float)z)
                         : new Vector3((float)-x, 0, (float)-z + 8f);
                 if (_throwing && (highlighted || kv.Key == _throwFromPos))
@@ -193,18 +193,18 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
             else
                 _park.Ball.SetTrailColor(Color.white);
-            if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.Set || _spec.Active)
+            if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat,
-                    _phase is Phase.Flight or Phase.InPlay);
+                    _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow);
             else
                 _park.Ball.Hide();
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
             _zone.Show(SetTells.ZoneOn(setOrFlight), _aimX, _aimY);
-            _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay));
+            _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
 
             Character fielder = null;
-            if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var gloveNow))
+            if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var gloveNow))
                 fielder = gloveNow;
             else if (_preview != null) fielder = _preview.Fielder;
             else if (_last != null) fielder = _last.Fielder;
@@ -270,6 +270,7 @@ namespace GrandSluggers.UnityClient
         void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)
         {
             if (who == null) return;
+            if (_phase == Phase.StealThrow && _match.ArmedStealBag == bagNum) return;
             if (_gun && _gunRunner != null && who.Id == _gunRunner.Id) return;
             var state = _match.RunnerAt(bagNum);
             var spot = Diamond.LeadSpot(bagNum, state != null ? state.Lead01 : 0);
@@ -300,6 +301,11 @@ namespace GrandSluggers.UnityClient
 
         void PlaceStealRunner()
         {
+            if (_phase == Phase.StealThrow)
+            {
+                PlaceLiveStealRunner();
+                return;
+            }
             if (!_gun || _gunRunner == null) return;
             var u = Mathf.Clamp01(_gunT / Mathf.Max(0.05f, _gunDur));
             double x, z;
@@ -368,6 +374,31 @@ namespace GrandSluggers.UnityClient
                     if (_match.RunnerAt(bag)?.Returning == true)
                         _match.ReturnToBagAt(bag, dt * 2.2f);
             }
+        }
+
+        void PlaceLiveStealRunner()
+        {
+            var fromBag = _match.ArmedStealBag;
+            var state = _match.RunnerAt(fromBag);
+            var runner = state?.Who;
+            if (runner == null || fromBag is not 1 and not 2) return;
+            var target = state.StealTarget is 2 or 3 ? state.StealTarget : Baserunning.StealTarget(fromBag);
+            if (target is not 2 and not 3) return;
+            var remain = (float)StealThrow.RunnerRemainSec(runner, state.Lead01);
+            var u = Mathf.Clamp01(_stealT / Mathf.Max(0.2f, remain));
+            var from = Diamond.LeadSpot(fromBag, state.Lead01);
+            var to = Diamond.Bag(target);
+            var x = from.X + (to.X - from.X) * u;
+            var z = from.Z + (to.Z - from.Z) * u;
+            var h = Hero(runner);
+            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
+            if (_throwing && _throwT >= _throwDur * 0.85f && u < 0.92f) pose = HeroActor.Pose.Dive;
+            h.SetPose(pose);
+            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetHeld(false, false);
+            h.SetHighlight(true);
+            h.Place(new Vector3((float)x, 0, (float)z), new Vector3((float)(to.X - x), 0, (float)(to.Z - z)));
+            h.Tick(Time.deltaTime);
         }
 
         void TickGun(float dt)

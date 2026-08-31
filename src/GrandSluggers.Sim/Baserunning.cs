@@ -3,6 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Named-bag running. Same diamond as throws (right 1B, up 2B, left 3B, down home).
 /// Home is never a steal target. Per-bag lead lives on <see cref="RunnerState"/>.
+/// After the pitch, a steal is a catcher gun (<see cref="StealThrow"/>), not a sim roll.
 /// </summary>
 public static class Baserunning
 {
