@@ -32,6 +32,9 @@ public sealed class Training
     bool _chargedContact;
     bool _caughtAndThrew;
     bool _scoopedHopper;
+    bool _ranLead;
+    bool _ranSteal;
+    bool _ranDash;
     bool _skipped;
 
     Training(Park park) => Park = park;
@@ -63,8 +66,22 @@ public sealed class Training
         return new Training(park);
     }
 
-    public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9) =>
-        Match.Exhibition(content, "rio", "ashlord", innings, seed, ParkId);
+    public Match MakeMatch(ContentCatalog content, int seed = 1, int innings = 9)
+    {
+        var match = Match.Exhibition(content, "rio", "ashlord", innings, seed, ParkId);
+        if (Lesson == PracticeLesson.Running)
+            SeedFirst(match);
+        return match;
+    }
+
+    static void SeedFirst(Match match)
+    {
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        var n = 0;
+        while (match.First is null && !match.Over && n++ < 16)
+            match.Play(wild, take);
+    }
 
     /// <summary>From pitching (lesson 1), skip lands on Fielding so you can scoop. Elsewhere it ends the session.</summary>
     public bool Skip()
@@ -81,6 +98,9 @@ public sealed class Training
         LessonPart = 1;
         _throws = 0;
         _maxCharges = 0;
+        _ranLead = false;
+        _ranSteal = false;
+        _ranDash = false;
         _skipped = false;
         return true;
     }
@@ -175,9 +195,19 @@ public sealed class Training
         return true;
     }
 
-    public bool RecordRun()
+    public bool RecordRun(Match? match = null)
     {
         if (Finished || Lesson != PracticeLesson.Running) return false;
+        if (match != null)
+        {
+            if ((match.SelectedState?.Lead01 ?? 0) > 0.2 || match.Lead01 > 0.2)
+                _ranLead = true;
+            if (match.StealOn || match.StealAttempt || match.ArmedStealBag > 0)
+                _ranSteal = true;
+            if (match.Dash01 > 0.25)
+                _ranDash = true;
+        }
+        if (!_ranLead || (!_ranSteal && !_ranDash)) return false;
         CurrentDrill = 5;
         return true;
     }
@@ -222,7 +252,7 @@ public sealed class Training
             PracticeLesson.Pitching => LessonPart == 2 ? "Charge at MAX" : "Throw the ball",
             PracticeLesson.Batting => "Oval and charge",
             PracticeLesson.Fielding => "Catch it, throw a bag",
-            PracticeLesson.Running => "Lead, steal, dash",
+            PracticeLesson.Running => "Pick a runner, lead, steal",
             PracticeLesson.Special => "Star pitch / star swing",
             PracticeLesson.Free => "Free practice",
             _ => ""
@@ -235,7 +265,7 @@ public sealed class Training
             PracticeLesson.Pitching => "South pitch   LT charge   West changeup   stick break",
             PracticeLesson.Batting => "stick walk   LT MAX   South swing",
             PracticeLesson.Fielding => "South catch   d-pad throw   East dash   West toss",
-            PracticeLesson.Running => "LB send   mash dash   L3 steal",
+            PracticeLesson.Running => "D-pad pick   stick lead   L3 steal",
             PracticeLesson.Special => "North + South star",
             PracticeLesson.Free => "any verb  ·  East skip",
             _ => ""

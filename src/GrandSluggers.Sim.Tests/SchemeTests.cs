@@ -86,5 +86,11 @@ public class SchemeTests
         Assert.False(HowToPlay.Mentions("cycle fastball"));
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
         Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("F1") && l.Contains("debug"));
+        var running = HowToPlay.Must("running").Lines;
+        Assert.Contains(running, l => l.Contains("D-pad") && l.Contains("1B"));
+        Assert.Contains(running, l => l.Contains("highlighted"));
+        Assert.Contains(running, l => l.Contains("selected runner"));
+        Assert.Contains(running, l => l.Contains("No steal home"));
+        Assert.DoesNotContain(running, l => l.Contains("steal the lead runner"));
     }
 }

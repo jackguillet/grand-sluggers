@@ -115,12 +115,13 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 ### Batting (running)
 
 - **LB / `,`** — all advance · **RB / `.`** — all return · **both / `/`** — freeze
-- **L3 / Z** — steal (lead runner; no steal home)
-- **Stick** toward the next bag — lead; back — return
+- **D-pad / 1 2 3** — select a runner (right 1B, up 2B, left 3B). **Down / 4** is home — not stealable. Default highlight is the lead runner.
+- **Stick** toward the next bag — lead on the highlighted runner; back — return
+- **L3 / Z** — steal the selected runner toward their next bag. They go on the pitch. No steal home.
 - **Mash South / Space** after contact — **dash** to first
 - **West / South** near the bag — slide
 
-Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch.
+Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags.
 
 ### Fielding (the ball is in play)
 
@@ -149,7 +150,7 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
 2. **Batting** — walk the oval onto the ball; charge at MAX
 3. **Fielding** — catch, throw a named bag, dash, buddy toss
-4. **Running** — lead, steal, dash
+4. **Running** — pick a runner, lead, steal, dash
 5. **Special** — star pitch / star swing
 6. **Free practice** — any verb, no gate
 

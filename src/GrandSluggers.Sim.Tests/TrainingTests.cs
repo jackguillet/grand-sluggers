@@ -93,12 +93,28 @@ public class TrainingTests
         Assert.Equal(6, Training.Lessons.Length);
         Assert.Contains(PracticeLesson.Free, Training.Lessons);
         var run = Training.Start(_content);
-        Assert.True(run.Choose(PracticeLesson.Running));
-        Assert.True(run.RecordRun());
-        Assert.Equal(PracticeLesson.Special, run.Lesson);
+        Assert.True(run.Choose(PracticeLesson.Special));
         Assert.True(run.RecordSpecial(true));
         Assert.Equal(PracticeLesson.Free, run.Lesson);
         Assert.False(run.Finished);
+    }
+
+    [Fact]
+    public void RunningLessonNeedsLeadAndStealOnANamedBag()
+    {
+        var run = Training.Start(_content);
+        Assert.True(run.Choose(PracticeLesson.Running));
+        var match = run.MakeMatch(_content, seed: 1);
+        Assert.NotNull(match.First);
+        Assert.Equal(1, match.SelectedBag);
+        Assert.False(run.RecordRun(match));
+        Assert.True(match.SelectRunner(1));
+        Assert.True(match.TakeLead(0.5));
+        Assert.False(run.RecordRun(match), "lead alone does not finish the drill");
+        Assert.True(match.StartSteal());
+        Assert.Equal(2, match.StealTargetBag);
+        Assert.True(run.RecordRun(match));
+        Assert.Equal(PracticeLesson.Special, run.Lesson);
     }
 
     [Fact]
