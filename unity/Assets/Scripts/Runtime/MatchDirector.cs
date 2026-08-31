@@ -277,20 +277,18 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             if (_phase == Phase.Select)
-            {
                 HudView.Select(HomeCaptain, AwayCaptain, _content);
-                return;
-            }
-            if (_phase == Phase.Field)
-            {
+            else if (_phase == Phase.Field)
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
-                return;
-            }
-            if (_phase == Phase.Lineup && _lineup != null)
-            {
+            else if (_phase == Phase.Lineup && _lineup != null)
                 TeamSheet.Draw(_match, _lineup);
+            if (_match.Paused && _phase is Phase.Select or Phase.Field or Phase.Lineup)
+            {
+                HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
                 return;
             }
+            if (_phase == Phase.Select || _phase == Phase.Field || (_phase == Phase.Lineup && _lineup != null))
+                return;
             var ui = _phase switch
             {
                 Phase.Title => PhaseUi.Title,
