@@ -3,11 +3,45 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Scorebug is the product. Mute it while a special or smash owns the picture.
 /// Title, select, lineup, and final still draw.
+/// Play HUD anchors are normalized 0–1, Y down (IMGUI). 1P and 2P share one layout (#325).
 /// </summary>
 public static class BroadcastHud
 {
     public static bool MutePlay(bool spectacleActive, double smashSeconds, double freezeSeconds = 0)
         => spectacleActive || smashSeconds > 0 || freezeSeconds > 0;
+
+    /// <summary>Normalized rect. X/Y is top-left. Pixel() scales to a screen.</summary>
+    public readonly record struct HudRect(double X, double Y, double W, double H)
+    {
+        public (double X, double Y, double W, double H) Pixel(double screenW, double screenH) =>
+            (X * screenW, Y * screenH, W * screenW, H * screenH);
+    }
+
+    public sealed record PlayLayout(
+        HudRect Score,
+        HudRect Count,
+        HudRect MiniDiamond,
+        HudRect BatterCard,
+        HudRect PitcherCard,
+        HudRect Banner);
+
+    /// <summary>
+    /// SMS information architecture: score top-right, S/B/O + diamond under it,
+    /// batter card bottom-left, pitcher card bottom-right. Seat count must not move them.
+    /// </summary>
+    public static PlayLayout Layout(int seats = 1)
+    {
+        _ = seats;
+        return Standard;
+    }
+
+    public static readonly PlayLayout Standard = new(
+        Score: new(0.70, 0.018, 0.28, 0.14),
+        Count: new(0.78, 0.165, 0.20, 0.08),
+        MiniDiamond: new(0.70, 0.165, 0.08, 0.08),
+        BatterCard: new(0.012, 0.78, 0.26, 0.20),
+        PitcherCard: new(0.728, 0.78, 0.26, 0.20),
+        Banner: new(0.28, 0.018, 0.40, 0.10));
 
     /// <summary>Couch scorebug. Every field is readable without F2.</summary>
     public sealed record Scorebug(
