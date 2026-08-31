@@ -265,9 +265,10 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            var stealRunner = _match.LeadRunner;
-            var stealBag = _match.LeadBag;
-            var stealLead = _match.Lead01;
+            var stealBag = _match.ArmedStealBag > 0 ? _match.ArmedStealBag : _match.SelectedBag;
+            var stealState = _match.RunnerAt(stealBag);
+            var stealRunner = stealState?.Who;
+            var stealLead = stealState?.Lead01 ?? 0;
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;
