@@ -22,6 +22,7 @@ namespace GrandSluggers.UnityClient
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
             {
+                _chem?.Hide();
                 PlaceSelectRoster();
                 foreach (var kv in _heroes)
                     if (!_used.Contains(kv.Key) && kv.Value != null)
@@ -35,6 +36,7 @@ namespace GrandSluggers.UnityClient
             _logo?.Hide();
             if (_phase == Phase.Field)
             {
+                _chem?.Hide();
                 foreach (var kv in _heroes)
                     if (kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
@@ -54,6 +56,7 @@ namespace GrandSluggers.UnityClient
                 _ring?.Hide();
                 return;
             }
+            _chem?.Hide();
             var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var litId = "";
             if (_phase == Phase.InPlay && defense.TryGetValue(_glovePos, out var litWho))
@@ -434,20 +437,39 @@ namespace GrandSluggers.UnityClient
             var pick = _homeDraft.Order.Count > 0
                 ? _homeDraft.Order[Mathf.Clamp(_lineupSlot, 0, _homeDraft.Order.Count - 1)]
                 : null;
+            var capPos = "C";
+            foreach (var pos in Diamond.Order)
+            {
+                if (_homeDraft.Gloves.TryGetValue(pos, out var who) && who != null && who.Captain)
+                    capPos = pos;
+            }
+            var capAt = ChemistryToy.WorldSpot(capPos);
+            if (_chem == null) _chem = ChemToy.Attach(transform);
+            var edges = new List<(Vector3 At, string Kind)>();
             foreach (var pos in Diamond.Order)
             {
                 if (!_homeDraft.Gloves.TryGetValue(pos, out var who) || who == null) continue;
                 var hero = Hero(who);
-                var at = Diamond.Positions[pos];
+                var at = ChemistryToy.WorldSpot(pos);
                 var selected = pick != null && who.Id == pick.Id;
+                var x = at.X + (selected ? ChemistryToy.HighlightX : 0);
+                var z = at.Z + (selected ? ChemistryToy.HighlightZ : 0);
                 hero.SetPose(selected ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle);
                 hero.SetHighlight(selected);
                 hero.SetGrow(selected);
                 hero.SetHeld(false, true);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(new Vector3((float)at.X, 0f, (float)at.Z), new Vector3(-(float)at.X, 0f, -(float)at.Z + 8f));
+                hero.Place(
+                    new Vector3((float)x, 0f, (float)z),
+                    new Vector3((float)(ChemistryToy.CamX - x), 0f, (float)(ChemistryToy.CamZ - z)));
                 hero.Tick(Time.deltaTime);
+                if (who.Captain) continue;
+                var kind = ChemistryToy.Sticker(_homeDraft.Chem(who));
+                if (kind == ChemistryToy.None) continue;
+                var mid = ChemistryToy.HeartSpot(capAt, at);
+                edges.Add((new Vector3((float)mid.X, (float)mid.Y, (float)mid.Z), kind));
             }
+            _chem.Show(edges);
         }
 
         HeroActor Hero(Character who)
