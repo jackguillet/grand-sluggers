@@ -285,14 +285,20 @@ namespace GrandSluggers.UnityClient
 
         static void MiniDiamond(float x, float y, BroadcastHud.Scorebug bug)
         {
-            BagPip(x + 28, y, bug.RunnerSecond);
-            BagPip(x + 46, y + 12, bug.RunnerFirst);
-            BagPip(x + 10, y + 12, bug.RunnerThird);
+            const float size = 36f;
+            BagPip(x, y, size, 1, bug.RunnerFirst, bug.LeadFirst, bug.SelectedBag);
+            BagPip(x, y, size, 2, bug.RunnerSecond, bug.LeadSecond, bug.SelectedBag);
+            BagPip(x, y, size, 3, bug.RunnerThird, bug.LeadThird, bug.SelectedBag);
         }
 
-        static void BagPip(float x, float y, bool on)
+        static void BagPip(float x, float y, float size, int bag, bool on, double lead, int selected)
         {
-            GUI.DrawTexture(new Rect(x, y, 14, 14), on ? _outOn : _outOff);
+            var uv = Baserunning.MiniLead(bag, on ? lead : 0);
+            var px = x + (float)(uv.U * size);
+            var py = y + size - (float)(uv.V * size);
+            var pip = on && bag == selected ? 16f : 14f;
+            var tex = !on ? _outOff : bag == selected ? _ink : _outOn;
+            GUI.DrawTexture(new Rect(px - pip * 0.5f, py - pip * 0.5f, pip, pip), tex);
         }
 
         static void Row(float x, float y, Team team, int runs, double stars, Texture2D stripe)

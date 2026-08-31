@@ -234,9 +234,90 @@ public class GameplayTests
         Assert.NotNull(match.Second);
         Assert.Equal(2, match.LeadBag);
         Assert.Equal(match.Second!.Id, match.LeadRunner!.Id);
+        Assert.Equal(2, match.SelectedBag);
         Assert.True(match.TakeLead(0.5));
         Assert.InRange(match.RunnerAt(2)!.Lead01, 0.49, 0.51);
         Assert.Equal(0, match.RunnerAt(1)!.Lead01);
+    }
+
+    [Fact]
+    public void SelectRunnerOnFirstVsSecondIndependently()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        WalkOn(match);
+        WalkOnSecond(match);
+        Assert.Equal(2, match.SelectedBag);
+        Assert.False(match.SelectRunner(4));
+        Assert.False(match.SelectRunner(0));
+        Assert.Equal(2, match.SelectedBag);
+        Assert.True(match.SelectRunner(1));
+        Assert.Equal(1, match.SelectedBag);
+        Assert.Equal(match.First!.Id, match.SelectedRunner!.Id);
+        Assert.True(match.TakeLead(0.5));
+        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.49, 0.51);
+        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
+        Assert.True(match.SelectRunner(2));
+        Assert.True(match.TakeLead(0.4));
+        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.39, 0.41);
+        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.49, 0.51);
+        Assert.True(match.SelectRunner(1));
+        Assert.False(match.CanSteal, "second occupied, runner on first cannot steal");
+        Assert.False(match.StartSteal());
+        Assert.True(match.SelectRunner(2));
+        Assert.True(match.CanSteal, "selected second can steal third");
+        Assert.True(match.StartSteal());
+        Assert.Equal(2, match.ArmedStealBag);
+        Assert.Equal(3, match.StealTargetBag);
+        Assert.True(match.RunnerAt(2)!.StealAttempt);
+        Assert.False(match.RunnerAt(1)!.StealAttempt);
+    }
+
+    [Fact]
+    public void StealHomeIsRejected()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        WalkOn(match);
+        WalkOnSecond(match);
+        WalkOnThird(match);
+        Assert.NotNull(match.Third);
+        Assert.Equal(3, match.LeadBag);
+        Assert.True(match.SelectRunner(3));
+        Assert.False(match.CanSteal);
+        Assert.False(match.StartSteal());
+        Assert.False(match.StealOn);
+        Assert.Equal(0, match.StealTargetBag);
+        Assert.Equal(0, Baserunning.StealTarget(3));
+        Assert.False(match.SelectRunner(4));
+    }
+
+    [Fact]
+    public void WalksAndStrikeoutsCancelASteal()
+    {
+        var walkMatch = Match.Slice(_content, seed: 1);
+        WalkOn(walkMatch);
+        var wild = new PitchCommand("fastball", 0, 40, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        while (walkMatch.Balls < 3 && !walkMatch.Over)
+            walkMatch.Play(wild, take);
+        Assert.True(walkMatch.SelectRunner(1));
+        Assert.True(walkMatch.StartSteal());
+        Assert.True(walkMatch.StealOn);
+        Assert.Equal(2, walkMatch.StealTargetBag);
+        var walked = walkMatch.Play(wild, take);
+        Assert.Equal(PlayKind.Walk, walked.Kind);
+        Assert.False(walkMatch.StealOn);
+        Assert.Equal(0, walkMatch.ArmedStealBag);
+
+        var kMatch = Match.Slice(_content, seed: 2);
+        WalkOn(kMatch);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        while (kMatch.Strikes < 2 && !kMatch.Over)
+            kMatch.Play(paint, take);
+        Assert.True(kMatch.StartSteal());
+        var punched = kMatch.Play(paint, take);
+        Assert.Equal(PlayKind.Strikeout, punched.Kind);
+        Assert.False(kMatch.StealOn);
+        Assert.Equal(0, kMatch.ArmedStealBag);
     }
 
     [Fact]

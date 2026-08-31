@@ -42,15 +42,8 @@ public static class FieldAssist
         return string.IsNullOrEmpty(cover) ? currentPos : cover;
     }
 
-    /// <summary>Mini-diamond UV. U 0=3B 1=1B. V 0=home 1=second.</summary>
-    public static (double U, double V) BagPip(int bag) => bag switch
-    {
-        1 => (1.0, 0.5),
-        2 => (0.5, 1.0),
-        3 => (0.0, 0.5),
-        4 => (0.5, 0.0),
-        _ => (0.5, 0.5)
-    };
+    /// <summary>Mini-diamond UV. Same named-bag map as running leads.</summary>
+    public static (double U, double V) BagPip(int bag) => Baserunning.DiamondPip(bag);
 
     /// <summary>
     /// Select / R: stick points at who you want; dead stick takes the next-nearest to the ball.

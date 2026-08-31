@@ -207,6 +207,8 @@ public sealed class RunnerState
     public Character Who { get; }
     public double Lead01 { get; private set; }
     public bool StealAttempt { get; private set; }
+    /// <summary>Named next bag while a steal is armed. 0 none; never 4 (no steal home).</summary>
+    public int StealTarget { get; private set; }
     public bool Returning { get; private set; }
     public bool Sliding { get; private set; }
 
@@ -223,20 +225,26 @@ public sealed class RunnerState
     {
         Returning = true;
         StealAttempt = false;
+        StealTarget = 0;
         Sliding = false;
         Lead01 = Math.Clamp(Lead01 - Math.Abs(delta), 0, 1);
         if (Lead01 <= 0) Returning = false;
     }
 
-    public void StartSteal()
+    public void StartSteal(int targetBag = 0)
     {
         StealAttempt = true;
+        StealTarget = targetBag is 2 or 3 ? targetBag : 0;
         Returning = false;
         Sliding = false;
         if (Lead01 < 0.2) Lead01 = 0.2;
     }
 
-    public void CancelSteal() => StealAttempt = false;
+    public void CancelSteal()
+    {
+        StealAttempt = false;
+        StealTarget = 0;
+    }
 
     public void Slide() => Sliding = true;
 }
