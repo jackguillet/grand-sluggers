@@ -118,6 +118,27 @@ public class TrainingTests
     }
 
     [Fact]
+    public void FieldingLessonTurnsTwoOnTheSecondHopper()
+    {
+        var run = Training.Start(_content);
+        run.Choose(PracticeLesson.Fielding);
+        Assert.Equal("Catch it, throw a bag", run.Caption);
+        Assert.True(run.RecordFielding(CaughtThrow(_content)));
+        Assert.True(run.CaughtAndThrew);
+        Assert.Equal(PracticeLesson.Fielding, run.Lesson);
+        Assert.Equal(2, run.LessonPart);
+        Assert.Equal("Turn two", run.Caption);
+        Assert.Contains("second", run.Verb);
+        var match = run.MakeMatch(_content, seed: 2);
+        Assert.True(run.SetupTurnTwo(match));
+        Assert.NotNull(match.First);
+        Assert.False(run.RecordTurnTwo("Force at second. Rio Sparks in at first."));
+        Assert.True(run.RecordTurnTwo("Vale Glass turns two."));
+        Assert.True(run.TurnedTwo);
+        Assert.Equal(PracticeLesson.Running, run.Lesson);
+    }
+
+    [Fact]
     public void FieldingAcceptsBuddyToss()
     {
         var run = Training.Start(_content);

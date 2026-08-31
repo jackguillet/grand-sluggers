@@ -32,6 +32,7 @@ public sealed class Training
     bool _chargedContact;
     bool _caughtAndThrew;
     bool _scoopedHopper;
+    bool _turnedTwo;
     bool _ranLead;
     bool _ranSteal;
     bool _ranDash;
@@ -54,6 +55,7 @@ public sealed class Training
     public bool ChargedContact => _chargedContact;
     public bool CaughtAndThrew => _caughtAndThrew;
     public bool ScoopedHopper => _scoopedHopper;
+    public bool TurnedTwo => _turnedTwo;
     public int MaxCharges => _maxCharges;
     public ThrowResult? LastGoodThrow { get; private set; }
     public ThrowResult? LastBadThrow { get; private set; }
@@ -166,8 +168,34 @@ public sealed class Training
         var toss = field.Throw is not null && field.Fielder is not null;
         if ((!caught || !threw) && !toss) return false;
         _caughtAndThrew = true;
+        if (LessonPart < 2)
+            LessonPart = 2;
+        return true;
+    }
+
+    /// <summary>Fielding part 2: hopper with a runner on first, two throws, two outs.</summary>
+    public bool RecordTurnTwo(string? caption)
+    {
+        if (Finished || Lesson != PracticeLesson.Fielding) return false;
+        if (string.IsNullOrEmpty(caption)
+            || caption.IndexOf("turns two", StringComparison.OrdinalIgnoreCase) < 0)
+            return false;
+        _turnedTwo = true;
         CurrentDrill = 4;
         return true;
+    }
+
+    /// <summary>Put the on-deck hitter on first so the next hopper can turn two.</summary>
+    public bool SetupTurnTwo(Match match)
+    {
+        if (Lesson != PracticeLesson.Fielding) return false;
+        if (match.First is not null) return true;
+        var who = match.OnDeck;
+        if (who is null || who.Id.Equals(match.Batter.Id, StringComparison.OrdinalIgnoreCase))
+            who = match.Offense.Roster.FirstOrDefault(c =>
+                !c.Id.Equals(match.Batter.Id, StringComparison.OrdinalIgnoreCase));
+        if (who is null) return false;
+        return match.StationRunner(1, who);
     }
 
     public bool RecordGrounder(FieldingResult field)
@@ -251,7 +279,7 @@ public sealed class Training
         {
             PracticeLesson.Pitching => LessonPart == 2 ? "Charge at MAX" : "Throw the ball",
             PracticeLesson.Batting => "Oval and charge",
-            PracticeLesson.Fielding => "Catch it, throw a bag",
+            PracticeLesson.Fielding => LessonPart >= 2 ? "Turn two" : "Catch it, throw a bag",
             PracticeLesson.Running => "Pick a runner, lead, steal",
             PracticeLesson.Special => "Star pitch / star swing",
             PracticeLesson.Free => "Free practice",
@@ -264,7 +292,9 @@ public sealed class Training
         {
             PracticeLesson.Pitching => "South pitch   LT charge   West changeup   stick break",
             PracticeLesson.Batting => "stick walk   LT MAX   South swing",
-            PracticeLesson.Fielding => "South catch   d-pad throw   East dash   West toss",
+            PracticeLesson.Fielding => LessonPart >= 2
+                ? "South to second    South to first"
+                : "South catch   d-pad throw   East dash   West toss",
             PracticeLesson.Running => "D-pad pick   stick lead   L3 steal",
             PracticeLesson.Special => "North + South star",
             PracticeLesson.Free => "any verb  ·  East skip",

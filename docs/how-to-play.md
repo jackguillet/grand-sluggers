@@ -134,7 +134,8 @@ Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with t
 - **East tap / G** — dive
 - **West / F** — jump / buddy jump
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
-- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
+- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
+- **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. Dead stick: CPU may still turn two. You throw both — one South on the hopper is not two outs.
 - After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove.
 - **Select / R** — swap. Stick points at who you want; dead stick is the next-nearest to the ball.
 - **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
@@ -149,7 +150,7 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 
 1. **Pitching** — throw; charge at MAX (rings line up); changeup / break; star
 2. **Batting** — walk the oval onto the ball; charge at MAX
-3. **Fielding** — catch, throw a named bag, dash, buddy toss
+3. **Fielding** — catch, throw a named bag, **turn two** (second, then first), dash, buddy toss
 4. **Running** — pick a runner, lead, steal, dash
 5. **Special** — star pitch / star swing
 6. **Free practice** — any verb, no gate

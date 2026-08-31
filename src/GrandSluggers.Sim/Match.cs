@@ -189,6 +189,17 @@ public sealed class Match
     public double DefenseStars => Top ? HomeStars : AwayStars;
     public bool StealOn { get; private set; }
     public double Dash01 { get; set; }
+
+    bool _liveOpen;
+    bool _liveForce;
+    bool _liveTurnedTwo;
+    string _liveCaption = "";
+    int _liveThrows;
+    /// <summary>Player has the glove: outs record as throws land. CPU FinishAtBat still turns two in one call.</summary>
+    public bool LivePlay => _liveOpen;
+    public bool LiveForce => _liveForce;
+    public bool LiveTurnedTwo => _liveTurnedTwo;
+    public int LiveThrows => _liveThrows;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
     public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
@@ -328,6 +339,103 @@ public sealed class Match
         if (state is null) return false;
         state.Slide();
         return true;
+    }
+
+    /// <summary>Station a runner for a drill or a live setup. Does not arm a steal or a lead.</summary>
+    public bool StationRunner(int bag, Character who)
+    {
+        if (Over || who is null || bag is < 1 or > 3) return false;
+        SetBag(bag, who);
+        return true;
+    }
+
+    /// <summary>
+    /// Player has the glove. FinishAtBat will not auto-turn two; <see cref="StepThrow"/> records
+    /// each out as the ball lands so the mini diamond can update immediately.
+    /// </summary>
+    public void OpenLivePlay()
+    {
+        if (_liveOpen) return;
+        _liveOpen = true;
+        _liveForce = false;
+        _liveTurnedTwo = false;
+        _liveCaption = "";
+        _liveThrows = 0;
+    }
+
+    /// <summary>
+    /// One throw arriving at a bag. Force at second is out #1. Throw to first is out #2 when
+    /// the batter does not beat it. Returns the step so the director can wait for throw 2.
+    /// </summary>
+    public InPlay.GroundThrowStep StepThrow(int bag, bool runnerBeats, Character? fielder = null)
+    {
+        OpenLivePlay();
+        var step = InPlay.ThrowToBag(
+            bag, First is not null, _liveForce, runnerBeats, Outs,
+            fielder?.Name ?? "", Batter.Name);
+        ApplyThrowStep(step, fielder);
+        return step;
+    }
+
+    void ApplyThrowStep(InPlay.GroundThrowStep step, Character? fielder)
+    {
+        _liveThrows++;
+        if (!string.IsNullOrEmpty(step.Caption))
+            _liveCaption = step.Caption;
+        if (step.Force) _liveForce = true;
+        if (step.TurnedTwo) _liveTurnedTwo = true;
+        if (!step.Out) return;
+        if (step.Force && step.Bag == 2)
+            SetBag(1, null);
+        Outs++;
+        AddMvp(fielder?.Id ?? Pitcher.Id, 2);
+        AddStars(defense: true, 0.4);
+    }
+
+    void ClearLivePlay()
+    {
+        _liveOpen = false;
+        _liveForce = false;
+        _liveTurnedTwo = false;
+        _liveCaption = "";
+        _liveThrows = 0;
+    }
+
+    /// <summary>
+    /// Close a live (or CPU-stepped) double-play race. Null means no force was recorded —
+    /// FinishInPlay falls through to a one-out / infield single without auto-turning two.
+    /// </summary>
+    string? CloseLiveGround(FieldingResult field, ref int runs, ref IReadOnlyList<string> scorers)
+    {
+        if (!_liveForce && !_liveTurnedTwo)
+        {
+            ClearLivePlay();
+            return null;
+        }
+
+        string caption;
+        if (_liveTurnedTwo)
+        {
+            caption = string.IsNullOrEmpty(_liveCaption)
+                ? $"{field.Fielder?.Name} turns two."
+                : _liveCaption;
+        }
+        else if (Outs < 3)
+        {
+            (runs, scorers) = AdvanceHit(Batter, 1);
+            caption = $"Force at second. {Batter.Name} in at first.";
+        }
+        else
+        {
+            caption = string.IsNullOrEmpty(_liveCaption)
+                ? $"{field.Fielder?.Name} forces the runner."
+                : _liveCaption;
+        }
+
+        NextBatter();
+        CheckInning();
+        ClearLivePlay();
+        return caption;
     }
 
     public int StarCost(Character who, Character teamCaptain) =>
@@ -729,28 +837,32 @@ public sealed class Match
                 break;
             case PlayKind.FlyOut:
             case PlayKind.GroundOut:
-                if (kind == PlayKind.GroundOut && First is not null)
+                if (kind == PlayKind.GroundOut && (First is not null || _liveForce || _liveTurnedTwo))
                 {
-                    SetBag(1, null);
+                    if (!_liveOpen)
+                    {
+                        StepThrow(2, runnerBeats: false, field.Fielder);
+                        if (Outs < 3)
+                            StepThrow(1, InPlay.BatterBeatsThrow(Batter, hit, field, Dash01), field.Fielder);
+                    }
+                    var closed = CloseLiveGround(field, ref runs, ref scorers);
+                    if (closed is not null)
+                    {
+                        caption = closed;
+                        break;
+                    }
+                    if (InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
+                    {
+                        kind = PlayKind.Single;
+                        goto case PlayKind.Single;
+                    }
                     Outs++;
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                    AddStars(defense: true, 0.4);
-                    if (Outs < 3 && !InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
-                    {
-                        Outs++;
-                        caption = $"{field.Fielder?.Name} turns two.";
-                        NextBatter();
-                    }
-                    else if (Outs < 3)
-                    {
-                        (runs, scorers) = AdvanceHit(Batter, 1);
-                        caption = $"Force at second. {Batter.Name} in at first.";
-                    }
-                    else
-                    {
-                        caption = $"{field.Fielder?.Name} forces the runner.";
-                        NextBatter();
-                    }
+                    AddStars(defense: true, 0.35);
+                    caption = field.Throw is { SpeedMul: > 1.2 }
+                        ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
+                        : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
+                    NextBatter();
                     CheckInning();
                     break;
                 }
@@ -850,6 +962,7 @@ public sealed class Match
             };
         }
 
+        ClearLivePlay();
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace);

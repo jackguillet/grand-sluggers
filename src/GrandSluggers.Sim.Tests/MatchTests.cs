@@ -33,6 +33,104 @@ public class MatchTests
     }
 
     [Fact]
+    public void PlayerHopperWithFirstOccupiedDoesNotTurnTwoUntilThrowTwoLands()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        match.OpenLivePlay();
+        var before = BroadcastHud.From(match);
+        Assert.True(before.RunnerFirst);
+        Assert.Equal(0, before.Outs);
+
+        var force = match.StepThrow(2, runnerBeats: false, field.Fielder);
+        Assert.True(force.Out);
+        Assert.True(force.Force);
+        Assert.False(force.TurnedTwo);
+        Assert.Equal(1, match.Outs);
+        Assert.Equal(1, match.LiveThrows);
+        Assert.Null(match.First);
+        Assert.DoesNotContain("turns two", force.Caption, StringComparison.OrdinalIgnoreCase);
+        var mid = BroadcastHud.From(match);
+        Assert.False(mid.RunnerFirst);
+        Assert.Equal(1, mid.Outs);
+
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(1, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.Contains("Force at second", ev.Caption);
+        Assert.DoesNotContain("turns two", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        var after = BroadcastHud.From(match);
+        Assert.True(after.RunnerFirst);
+        Assert.Equal(1, after.Outs);
+        Assert.Equal(after.Outs, match.Outs);
+        Assert.Equal(after.RunnerFirst, match.First is not null);
+    }
+
+    [Fact]
+    public void PlayerThrowTwoOnTimeTurnsTwo()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        match.OpenLivePlay();
+        match.StepThrow(2, runnerBeats: false, field.Fielder);
+        Assert.Equal(1, match.Outs);
+        var two = match.StepThrow(1, runnerBeats: false, field.Fielder);
+        Assert.True(two.TurnedTwo);
+        Assert.Equal(2, match.Outs);
+        var pip = BroadcastHud.From(match);
+        Assert.Equal(2, pip.Outs);
+        Assert.False(pip.RunnerFirst);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Contains("turns two", ev.Caption);
+        Assert.Equal(2, match.Outs);
+        Assert.Null(match.First);
+        Assert.Equal(BroadcastHud.From(match).Outs, match.Outs);
+    }
+
+    [Fact]
+    public void PlayerThrowTwoLateIsForceOnly()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        match.OpenLivePlay();
+        match.StepThrow(2, runnerBeats: false, field.Fielder);
+        var late = match.StepThrow(1, runnerBeats: true, field.Fielder);
+        Assert.False(late.Out);
+        Assert.True(late.BatterSafe);
+        Assert.Equal(1, match.Outs);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(1, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.Contains("Force at second", ev.Caption);
+        Assert.DoesNotContain("turns two", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CpuDeadStickStillTurnsTwo()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        Assert.False(InPlay.BatterBeatsThrow(match.Batter, hit, field));
+        Assert.False(match.LivePlay);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Contains("turns two", ev.Caption);
+        Assert.Equal(2, match.Outs);
+        Assert.Null(match.First);
+        var bug = BroadcastHud.From(match);
+        Assert.Equal(2, bug.Outs);
+        Assert.False(bug.RunnerFirst);
+    }
+
+    (Match Match, PitchCommand Pitch, SwingCommand Swing, AtBatResult Hit, FieldingResult Field) LiveHopperOnFirst()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        Assert.True(match.StationRunner(1, match.OnDeck!));
+        Assert.NotNull(match.First);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        return (match, paint, swing, hit, field);
+    }
+
+    [Fact]
     public void GrounderWithRunnerOnFirstForcesTheLead()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
