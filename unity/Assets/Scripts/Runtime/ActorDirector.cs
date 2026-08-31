@@ -160,7 +160,7 @@ namespace GrandSluggers.UnityClient
             bHero.SetHighlight(false);
             if (racing)
             {
-                if (Controls.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
+                if (RunPad.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
                 _match.Dash01 = _dash01;
                 if (TrainingOn) _coach.OnRun(_match);
                 var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
@@ -340,25 +340,26 @@ namespace GrandSluggers.UnityClient
         void TickBaserunning(float dt)
         {
             if (_match == null || _match.LeadBag == 0) return;
-            if (HumanBats && _phase is Phase.Set or Phase.Flight)
+            if (HumanBats && (_phase is Phase.Set or Phase.Flight || (_phase == Phase.InPlay && Versus)))
             {
-                if (Controls.ThrowBag > 0)
-                    _match.SelectRunner(Controls.ThrowBag);
-                if (Controls.FreezeRunners)
+                var run = RunPad;
+                if (run.ThrowBag > 0)
+                    _match.SelectRunner(run.ThrowBag);
+                if (run.FreezeRunners)
                     _match.FreezeRunners();
-                else if (Controls.AllAdvance)
+                else if (run.AllAdvance)
                     _match.AdvanceAll(dt * 1.7f);
-                else if (Controls.AllReturn)
+                else if (run.AllReturn)
                     _match.ReturnAll(dt * 2.0f);
                 var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
                 var next = Baserunning.NextBag(bag);
                 var prev = Baserunning.PrevBag(bag);
-                var stick = InPlay.DiamondBag(Controls.StickX, Controls.StickY);
+                var stick = InPlay.DiamondBag(run.StickX, run.StickY);
                 if (stick == next) _match.TakeLead(dt * 1.7f);
                 else if (stick == bag || stick == prev) _match.ReturnToBag(dt * 2.0f);
-                if (Controls.Steal) _match.ToggleSteal();
+                if ((_phase is Phase.Set or Phase.Flight) && run.Steal) _match.ToggleSteal();
                 var near = _match.Lead01 <= 0.24 || (_match.StealAttempt && _match.Lead01 >= 0.7);
-                if (near && (Controls.WestDown || Controls.SouthDown))
+                if (near && (run.WestDown || run.SouthDown))
                     _match.Slide();
                 if (TrainingOn) _coach.OnRun(_match);
             }

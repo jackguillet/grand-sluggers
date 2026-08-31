@@ -1,11 +1,13 @@
 using GrandSluggers.Sim;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// One gamepad is the couch product. Keyboard is the same scheme (docs/how-to-play.md, Scheme.cs).
+    /// Pad 1 is gamepad 0 + keyboard. Pad 2 is gamepad 1. Not Gamepad.current —
+    /// two pads must not steer the same pitcher. Menus and 1P read Pad1.
     /// South / East / West / North are positions (Xbox A/B/X/Y, Nintendo B/A/Y/X).
     /// F1/F2/F3 stay debug. Update how-to-play in the same PR.
     /// </summary>
@@ -18,148 +20,222 @@ namespace GrandSluggers.UnityClient
         static float _rumbleLow;
         static float _rumbleHigh;
 
-        /// <summary>One player: last-used pad, else the first connected pad.</summary>
-        static Gamepad Pad => Gamepad.current != null ? Gamepad.current
-            : Gamepad.all.Count > 0 ? Gamepad.all[0] : null;
-
-        static Keyboard Keys => Keyboard.current;
-
-        public static bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || PressedSouth;
-        public static bool SouthHeld => Kb(Key.Space) || HeldSouth;
-        public static bool NorthDown => KeyDown(Key.Q) || PressedNorth;
-        public static bool EastDown => KeyDown(Key.G) || PressedEast;
-        public static bool EastHeld => Kb(Key.G) || HeldEast;
-        public static bool WestDown => KeyDown(Key.F) || PressedWest;
-        public static bool WestHeld => Kb(Key.V) || Kb(Key.F) || HeldWest;
-
-        /// <summary>Analog LT / ZL, or Shift. A light pull starts the charge clock.</summary>
-        public static float Charge01
+        /// <summary>One seated pad. Index 0 is home (keyboard too). Index 1 is away. CPU is dead.</summary>
+        public readonly struct Pad
         {
-            get
+            readonly int _index;
+            readonly bool _keys;
+
+            public Pad(int index, bool keys)
             {
-                var v = Kb(Key.LeftShift) ? 1f : 0f;
-                var pad = Pad;
-                if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
-                return Mathf.Clamp01(v);
+                _index = index;
+                _keys = keys;
             }
+
+            public bool Present => Device != null || _keys;
+
+            Gamepad Device =>
+                _index >= 0 && Gamepad.all.Count > _index ? Gamepad.all[_index] : null;
+
+            public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth);
+            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth);
+            public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth);
+            public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
+            public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
+            public bool WestDown => KeyDown(Key.F) || Pressed(Device?.buttonWest);
+            public bool WestHeld => Kb(Key.V) || Kb(Key.F) || Held(Device?.buttonWest);
+
+            public float Charge01
+            {
+                get
+                {
+                    var v = Kb(Key.LeftShift) ? 1f : 0f;
+                    var pad = Device;
+                    if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
+                    return Mathf.Clamp01(v);
+                }
+            }
+
+            public bool Charge => Charge01 >= ChargePull;
+            public bool CyclePitch => KeyDown(Key.Tab) || Pressed(Device?.rightShoulder);
+            public bool Changeup => WestHeld;
+            public bool Skip => EastDown;
+            public bool Start => KeyDown(Key.H) || Pressed(Device?.startButton);
+            public bool AllAdvance => Kb(Key.Comma) || Held(Device?.leftShoulder);
+            public bool AllAdvanceDown => KeyDown(Key.Comma) || Pressed(Device?.leftShoulder);
+            public bool AllReturn => Kb(Key.Period) || Held(Device?.rightShoulder);
+            public bool FreezeRunners => Kb(Key.Slash) || (Held(Device?.leftShoulder) && Held(Device?.rightShoulder));
+            public bool Steal => KeyDown(Key.Z) || Pressed(Device?.leftStickButton);
+            public bool Cutoff => Kb(Key.X) || Held(Device?.leftShoulder);
+            public bool Item => KeyDown(Key.E) || (Charge && Pressed(Device?.rightShoulder));
+            public bool ItemConfirm => Item || (SouthDown && Charge);
+            public bool SwapPitcher => KeyDown(Key.R) || Pressed(Device?.selectButton);
+            public bool NightToggle => KeyDown(Key.N) || Pressed(Device?.rightStickButton);
+
+            public float StickX
+            {
+                get
+                {
+                    var v = 0f;
+                    var pad = Device;
+                    if (pad != null) v = pad.leftStick.x.ReadValue();
+                    if (Kb(Key.A)) v -= 1f;
+                    if (Kb(Key.D)) v += 1f;
+                    if (Mathf.Abs(v) < StickDead) v = 0f;
+                    return Mathf.Clamp(v, -1f, 1f);
+                }
+            }
+
+            public float StickY
+            {
+                get
+                {
+                    var v = 0f;
+                    var pad = Device;
+                    if (pad != null) v = pad.leftStick.y.ReadValue();
+                    if (Kb(Key.S)) v -= 1f;
+                    if (Kb(Key.W)) v += 1f;
+                    if (Mathf.Abs(v) < StickDead) v = 0f;
+                    return Mathf.Clamp(v, -1f, 1f);
+                }
+            }
+
+            public bool MenuDown =>
+                KeyDown(Key.S) || KeyDown(Key.DownArrow) || PressedDpad(Device?.dpad.down);
+            public bool MenuUp =>
+                KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpad(Device?.dpad.up);
+
+            public int ThrowBag
+            {
+                get
+                {
+                    if (Kb(Key.Digit1) || Dpad(Device?.dpad.right)) return 1;
+                    if (Kb(Key.Digit2) || Dpad(Device?.dpad.up)) return 2;
+                    if (Kb(Key.Digit3) || Dpad(Device?.dpad.left)) return 3;
+                    if (Kb(Key.Digit4) || Dpad(Device?.dpad.down)) return 4;
+                    return 0;
+                }
+            }
+
+            public int StickBag
+            {
+                get
+                {
+                    var pad = Device;
+                    if (pad == null) return 0;
+                    var x = pad.leftStick.x.ReadValue();
+                    var y = pad.leftStick.y.ReadValue();
+                    if (Mathf.Abs(x) < StickDead && Mathf.Abs(y) < StickDead) return 0;
+                    return InPlay.DiamondBag(x, y);
+                }
+            }
+
+            public int ArrowBag
+            {
+                get
+                {
+                    if (!_keys) return 0;
+                    if (Kb(Key.RightArrow)) return 1;
+                    if (Kb(Key.UpArrow)) return 2;
+                    if (Kb(Key.LeftArrow)) return 3;
+                    if (Kb(Key.DownArrow)) return 4;
+                    return 0;
+                }
+            }
+
+            public int AimBag
+            {
+                get
+                {
+                    var n = InPlay.DiamondBag(StickX, StickY);
+                    if (n > 0) return n;
+                    return ArrowBag;
+                }
+            }
+
+            public void Rumble(float low, float high)
+            {
+                var pad = Device;
+                if (pad != null) pad.SetMotorSpeeds(low, high);
+            }
+
+            public void Silence()
+            {
+                var pad = Device;
+                if (pad != null) pad.ResetHaptics();
+            }
+
+            bool Kb(Key k)
+            {
+                if (!_keys) return false;
+                var kb = Keyboard.current;
+                return kb != null && kb[k].isPressed;
+            }
+
+            bool KeyDown(Key k)
+            {
+                if (!_keys) return false;
+                var kb = Keyboard.current;
+                return kb != null && kb[k].wasPressedThisFrame;
+            }
+
+            static bool Pressed(ButtonControl b) => b != null && b.wasPressedThisFrame;
+            static bool Held(ButtonControl b) => b != null && b.isPressed;
+            static bool Dpad(ButtonControl b) => b != null && b.isPressed;
+            static bool PressedDpad(ButtonControl b) => b != null && b.wasPressedThisFrame;
         }
 
-        public static bool Charge => Charge01 >= ChargePull;
-        public static bool CyclePitch => KeyDown(Key.Tab) || PressedRb;
-        public static bool Changeup => WestHeld;
-        public static bool Skip => EastDown;
-        public static bool CallTime => Start;
-        /// <summary>SET batting: all-advance (held). Lineup order uses <see cref="AllAdvanceDown"/>.</summary>
-        public static bool AllAdvance => Kb(Key.Comma) || HeldLb;
-        public static bool AllAdvanceDown => KeyDown(Key.Comma) || PressedLb;
-        public static bool AllReturn => Kb(Key.Period) || HeldRb;
-        public static bool FreezeRunners => Kb(Key.Slash) || (HeldLb && HeldRb);
-        /// <summary>Steal is L3 / Z so bumpers can send / return.</summary>
-        public static bool Steal => KeyDown(Key.Z) || PressedL3;
-        /// <summary>No-direction cutoff after a catch: LB / X. Relay, not a random bag.</summary>
-        public static bool Cutoff => Kb(Key.X) || HeldLb;
-        public static bool Item => KeyDown(Key.E) || (Charge && PressedRb);
-        /// <summary>Throw a chemistry item: E, LT+RB, or South+LT.</summary>
-        public static bool ItemConfirm => Item || (SouthDown && Charge);
-        public static bool Start => KeyDown(Key.H) || PressedStart;
-        public static bool SwapPitcher => KeyDown(Key.R) || PressedSelect;
+        public static Pad Pad1 { get; } = new(0, true);
+        public static Pad Pad2 { get; } = new(1, false);
+        public static Pad None { get; } = new(-1, false);
+
+        public static int PadCount => Gamepad.all.Count;
+
+        public static Pad Of(LineupSeat seat) => seat switch
+        {
+            LineupSeat.Pad2 => Pad2,
+            LineupSeat.Cpu => None,
+            _ => Pad1
+        };
+
+        public static bool SouthDown => Pad1.SouthDown;
+        public static bool SouthHeld => Pad1.SouthHeld;
+        public static bool NorthDown => Pad1.NorthDown;
+        public static bool EastDown => Pad1.EastDown;
+        public static bool EastHeld => Pad1.EastHeld;
+        public static bool WestDown => Pad1.WestDown;
+        public static bool WestHeld => Pad1.WestHeld;
+        public static float Charge01 => Pad1.Charge01;
+        public static bool Charge => Pad1.Charge;
+        public static bool CyclePitch => Pad1.CyclePitch;
+        public static bool Changeup => Pad1.Changeup;
+        public static bool Skip => Pad1.Skip;
+        public static bool CallTime => Pad1.Start || (Pad2.Present && Pad2.Start);
+        public static bool AllAdvance => Pad1.AllAdvance;
+        public static bool AllAdvanceDown => Pad1.AllAdvanceDown;
+        public static bool AllReturn => Pad1.AllReturn;
+        public static bool FreezeRunners => Pad1.FreezeRunners;
+        public static bool Steal => Pad1.Steal;
+        public static bool Cutoff => Pad1.Cutoff;
+        public static bool Item => Pad1.Item;
+        public static bool ItemConfirm => Pad1.ItemConfirm;
+        public static bool Start => Pad1.Start;
+        public static bool SwapPitcher => Pad1.SwapPitcher;
         public static bool TimingAid => KeyDown(Key.F1);
-        /// <summary>Debug feel overlay. F2. Not a product control.</summary>
         public static bool FeelDebug => KeyDown(Key.F2);
-        /// <summary>Debug mute play HUD. F3. Trailer stills without a star.</summary>
         public static bool HudMute => KeyDown(Key.F3);
-        /// <summary>Debug slow-mo cycle. Left bracket. Not a product control.</summary>
         public static bool SlowMo => KeyDown(Key.LeftBracket);
-        /// <summary>Debug freeze camera. Right bracket. Not a product control.</summary>
         public static bool FreezeCam => KeyDown(Key.RightBracket);
-        /// <summary>Title: toggle night. N, or right-stick click.</summary>
-        public static bool NightToggle => KeyDown(Key.N) || PressedR3;
+        public static bool NightToggle => Pad1.NightToggle;
         public static bool ParkHeld => Kb(Key.C);
-
-        public static float StickX
-        {
-            get
-            {
-                var v = 0f;
-                var pad = Pad;
-                if (pad != null) v = pad.leftStick.x.ReadValue();
-                if (Kb(Key.A)) v -= 1f;
-                if (Kb(Key.D)) v += 1f;
-                if (Mathf.Abs(v) < StickDead) v = 0f;
-                return Mathf.Clamp(v, -1f, 1f);
-            }
-        }
-
-        public static float StickY
-        {
-            get
-            {
-                var v = 0f;
-                var pad = Pad;
-                if (pad != null) v = pad.leftStick.y.ReadValue();
-                if (Kb(Key.S)) v -= 1f;
-                if (Kb(Key.W)) v += 1f;
-                if (Mathf.Abs(v) < StickDead) v = 0f;
-                return Mathf.Clamp(v, -1f, 1f);
-            }
-        }
-
-        /// <summary>Call time / How to play. A tap of S or Down must step once (#311).</summary>
-        public static bool MenuDown =>
-            KeyDown(Key.S) || KeyDown(Key.DownArrow) || PressedDpadDown;
-
-        public static bool MenuUp =>
-            KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpadUp;
-
-        public static int ThrowBag
-        {
-            get
-            {
-                if (Kb(Key.Digit1) || DpadRight) return 1;
-                if (Kb(Key.Digit2) || DpadUp) return 2;
-                if (Kb(Key.Digit3) || DpadLeft) return 3;
-                if (Kb(Key.Digit4) || DpadDown) return 4;
-                return 0;
-            }
-        }
-
-        /// <summary>Pad stick diamond: right 1B, up 2B, left 3B, down home. WASD is run, not throw.</summary>
-        public static int StickBag
-        {
-            get
-            {
-                var pad = Pad;
-                if (pad == null) return 0;
-                var x = pad.leftStick.x.ReadValue();
-                var y = pad.leftStick.y.ReadValue();
-                if (Mathf.Abs(x) < StickDead && Mathf.Abs(y) < StickDead) return 0;
-                return InPlay.DiamondBag(x, y);
-            }
-        }
-
-        /// <summary>Arrows name a bag when not chasing (same diamond as the d-pad).</summary>
-        public static int ArrowBag
-        {
-            get
-            {
-                if (Kb(Key.RightArrow)) return 1;
-                if (Kb(Key.UpArrow)) return 2;
-                if (Kb(Key.LeftArrow)) return 3;
-                if (Kb(Key.DownArrow)) return 4;
-                return 0;
-            }
-        }
-
-        /// <summary>SET lead: pad stick or WASD toward the next bag.</summary>
-        public static int AimBag
-        {
-            get
-            {
-                var n = InPlay.DiamondBag(StickX, StickY);
-                if (n > 0) return n;
-                return ArrowBag;
-            }
-        }
+        public static float StickX => Pad1.StickX;
+        public static float StickY => Pad1.StickY;
+        public static bool MenuDown => Pad1.MenuDown;
+        public static bool MenuUp => Pad1.MenuUp;
+        public static int ThrowBag => Pad1.ThrowBag;
+        public static int StickBag => Pad1.StickBag;
+        public static int ArrowBag => Pad1.ArrowBag;
+        public static int AimBag => Pad1.AimBag;
 
         public static void Tick(float dt)
         {
@@ -181,8 +257,8 @@ namespace GrandSluggers.UnityClient
         public static void Silence()
         {
             _rumbleT = 0f;
-            var pad = Pad;
-            if (pad != null) pad.ResetHaptics();
+            Pad1.Silence();
+            Pad2.Silence();
         }
 
         static void Pulse(float seconds, float low, float high)
@@ -195,42 +271,19 @@ namespace GrandSluggers.UnityClient
 
         static void ApplyRumble()
         {
-            var pad = Pad;
-            if (pad == null) return;
-            pad.SetMotorSpeeds(_rumbleLow, _rumbleHigh);
+            Pad1.Rumble(_rumbleLow, _rumbleHigh);
+            if (Pad2.Present) Pad2.Rumble(_rumbleLow, _rumbleHigh);
         }
-
-        static bool PressedSouth { get { var p = Pad; return p != null && p.buttonSouth.wasPressedThisFrame; } }
-        static bool HeldSouth { get { var p = Pad; return p != null && p.buttonSouth.isPressed; } }
-        static bool PressedEast { get { var p = Pad; return p != null && p.buttonEast.wasPressedThisFrame; } }
-        static bool HeldEast { get { var p = Pad; return p != null && p.buttonEast.isPressed; } }
-        static bool PressedWest { get { var p = Pad; return p != null && p.buttonWest.wasPressedThisFrame; } }
-        static bool HeldWest { get { var p = Pad; return p != null && p.buttonWest.isPressed; } }
-        static bool PressedNorth { get { var p = Pad; return p != null && p.buttonNorth.wasPressedThisFrame; } }
-        static bool PressedLb { get { var p = Pad; return p != null && p.leftShoulder.wasPressedThisFrame; } }
-        static bool HeldLb { get { var p = Pad; return p != null && p.leftShoulder.isPressed; } }
-        static bool PressedRb { get { var p = Pad; return p != null && p.rightShoulder.wasPressedThisFrame; } }
-        static bool HeldRb { get { var p = Pad; return p != null && p.rightShoulder.isPressed; } }
-        static bool PressedL3 { get { var p = Pad; return p != null && p.leftStickButton.wasPressedThisFrame; } }
-        static bool PressedStart { get { var p = Pad; return p != null && p.startButton.wasPressedThisFrame; } }
-        static bool PressedSelect { get { var p = Pad; return p != null && p.selectButton.wasPressedThisFrame; } }
-        static bool PressedR3 { get { var p = Pad; return p != null && p.rightStickButton.wasPressedThisFrame; } }
-        static bool DpadRight { get { var p = Pad; return p != null && p.dpad.right.isPressed; } }
-        static bool DpadUp { get { var p = Pad; return p != null && p.dpad.up.isPressed; } }
-        static bool DpadLeft { get { var p = Pad; return p != null && p.dpad.left.isPressed; } }
-        static bool DpadDown { get { var p = Pad; return p != null && p.dpad.down.isPressed; } }
-        static bool PressedDpadDown { get { var p = Pad; return p != null && p.dpad.down.wasPressedThisFrame; } }
-        static bool PressedDpadUp { get { var p = Pad; return p != null && p.dpad.up.wasPressedThisFrame; } }
 
         static bool Kb(Key k)
         {
-            var kb = Keys;
+            var kb = Keyboard.current;
             return kb != null && kb[k].isPressed;
         }
 
         static bool KeyDown(Key k)
         {
-            var kb = Keys;
+            var kb = Keyboard.current;
             return kb != null && kb[k].wasPressedThisFrame;
         }
     }
