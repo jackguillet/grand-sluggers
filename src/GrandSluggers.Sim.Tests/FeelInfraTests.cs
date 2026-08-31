@@ -165,9 +165,10 @@ public class FeelInfraTests
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0.2, 0, 0));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(false, true, 0, 0, 0));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.2, 0, 0));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0.5, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0.2, 0, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0.5, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.True(_content.Shots.TryGet(AtBatShots.Plate, out _));
         Assert.True(_content.Shots.TryGet(AtBatShots.Pitch, out var pitch));

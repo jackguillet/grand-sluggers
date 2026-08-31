@@ -37,16 +37,8 @@ public static class InPlay
         return Math.Max(2.45, run * (1 - 0.12 * dash));
     }
 
-    /// <summary>Named camera for the contact type. JSON shots must exist under this id.</summary>
-    public static string TheaterShot(AtBatResult hit)
-    {
-        if (!string.IsNullOrEmpty(hit.StarSwingUsed)) return "smash";
-        if (hit.HomeRun) return "diamond-homer";
-        if (FieldingResolver.IsGrounder(hit))
-            return hit.SprayDeg < -8 ? "diamond-pull" : "diamond-grounder";
-        if (FieldingResolver.IsLine(hit)) return "diamond-line";
-        return "diamond";
-    }
+    /// <summary>Named camera for the contact type. One table: <see cref="PlayCamera"/>.</summary>
+    public static string TheaterShot(AtBatResult hit) => PlayCamera.FromHit(hit);
 
     public static double ThrowSec(double distFt, ThrowResult? thr)
     {

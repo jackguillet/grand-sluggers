@@ -15,7 +15,7 @@ namespace GrandSluggers.UnityClient
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
             bool training = false, string drillProgress = null, bool night = false,
             bool hideHelp = false, string highlight = null, bool replaying = false,
-            bool mutePlay = false)
+            bool mutePlay = false, int seats = 1)
         {
             Ensure();
             if (phase == PhaseUi.Title)
@@ -50,7 +50,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (mutePlay) return;
-            Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub);
+            Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub, seats);
         }
 
         static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
@@ -235,44 +235,52 @@ namespace GrandSluggers.UnityClient
         }
 
         static void Play(Match match, string[] pitches, int pi, bool star, bool steal, string item,
-            float charge, float timing, bool showTiming, string banner, string sub)
+            float charge, float timing, bool showTiming, string banner, string sub, int seats)
         {
-            Scorebug(match);
-            Matchup(match, pitches, pi, star, steal, item, charge, timing, showTiming);
+            var lay = BroadcastHud.Layout(seats);
+            Scorebug(match, lay);
+            Cards(match, pitches, pi, star, steal, item, charge, timing, showTiming, lay);
 
             if (!string.IsNullOrEmpty(banner))
             {
-                GUI.DrawTexture(new Rect(18, 148, 456, 64), _panel);
-                GUI.Label(new Rect(30, 152, 432, 28), banner, _h1);
+                var r = Px(lay.Banner);
+                GUI.DrawTexture(r, _panel);
+                GUI.Label(new Rect(r.x + 12, r.y + 6, r.width - 24, 28), banner, _h1);
                 if (!string.IsNullOrEmpty(sub))
-                    GUI.Label(new Rect(30, 180, 432, 24), sub, _gold);
+                    GUI.Label(new Rect(r.x + 12, r.y + 34, r.width - 24, 22), sub, _gold);
             }
             else if (!string.IsNullOrEmpty(sub))
-                GUI.Label(new Rect(24, 146, 456, 22), sub, _tiny);
+            {
+                var r = Px(lay.Banner);
+                GUI.Label(new Rect(r.x + 12, r.y + 8, r.width - 24, 22), sub, _tiny);
+            }
         }
 
-        static void Scorebug(Match match)
+        static Rect Px(BroadcastHud.HudRect r)
+        {
+            var p = r.Pixel(Screen.width, Screen.height);
+            return new Rect((float)p.X, (float)p.Y, (float)p.W, (float)p.H);
+        }
+
+        static void Scorebug(Match match, BroadcastHud.PlayLayout lay)
         {
             var bug = BroadcastHud.From(match);
-            const float x = 18f;
-            const float y = 14f;
-            GUI.DrawTexture(new Rect(x, y, 456, 148), _panel);
-            GUI.DrawTexture(new Rect(x, y, 6, 148), _ink);
+            var r = Px(lay.Score);
+            GUI.DrawTexture(r, _panel);
+            GUI.DrawTexture(new Rect(r.x, r.y, 6, r.height), _ink);
             var half = bug.Over ? "FINAL" : (bug.Top ? "TOP " : "BOT ") + bug.Inning;
-            GUI.Label(new Rect(x + 16, y + 6, 180, 20), half, _gold);
+            GUI.Label(new Rect(r.x + 14, r.y + 4, r.width - 24, 20), half, _gold);
+            Row(r.x + 14, r.y + 28, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
+            Row(r.x + 14, r.y + 56, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
 
-            Row(x + 16, y + 30, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
-            Row(x + 16, y + 62, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
-
-            Count(x + 16, y + 96, bug.Balls, 4, _dotOn, _dotOff);
-            GUI.Label(new Rect(x + 92, y + 96, 18, 18), "B", _tiny);
-            Count(x + 118, y + 96, bug.Strikes, 3, _dotOn, _dotOff);
-            GUI.Label(new Rect(x + 176, y + 96, 18, 18), "S", _tiny);
-            Count(x + 200, y + 96, bug.Outs, 3, _outOn, _outOff);
-            GUI.Label(new Rect(x + 258, y + 96, 18, 18), "O", _tiny);
-
-            MiniDiamond(x + 290, y + 96, bug);
-            GUI.Label(new Rect(x + 16, y + 118, 420, 22), "NEXT  " + bug.Next, _tiny);
+            var c = Px(lay.Count);
+            Count(c.x, c.y + 4, bug.Balls, 4, _dotOn, _dotOff);
+            GUI.Label(new Rect(c.x + 68, c.y + 4, 18, 18), "B", _tiny);
+            Count(c.x, c.y + 24, bug.Strikes, 3, _dotOn, _dotOff);
+            GUI.Label(new Rect(c.x + 68, c.y + 24, 18, 18), "S", _tiny);
+            Count(c.x, c.y + 44, bug.Outs, 3, _outOn, _outOff);
+            GUI.Label(new Rect(c.x + 68, c.y + 44, 18, 18), "O", _tiny);
+            MiniDiamond(Px(lay.MiniDiamond).x, Px(lay.MiniDiamond).y + 8, bug);
         }
 
         static void MiniDiamond(float x, float y, BroadcastHud.Scorebug bug)
@@ -290,37 +298,60 @@ namespace GrandSluggers.UnityClient
         static void Row(float x, float y, Team team, int runs, double stars, Texture2D stripe)
         {
             GUI.DrawTexture(new Rect(x, y + 4, 8, 22), stripe);
-            GUI.Label(new Rect(x + 16, y, 210, 28), Short(team), _team);
-            GUI.Label(new Rect(x + 220, y - 2, 70, 32), runs.ToString(), _score);
-            Stars(x + 292, y + 6, stars);
+            GUI.Label(new Rect(x + 12, y, 120, 28), Short(team), _team);
+            GUI.Label(new Rect(x + 128, y - 2, 40, 32), runs.ToString(), _score);
+            Stars(x + 168, y + 6, stars);
         }
 
-        static void Matchup(Match match, string[] pitches, int pi, bool star, bool steal, string item,
-            float charge, float timing, bool showTiming)
+        static void Cards(Match match, string[] pitches, int pi, bool star, bool steal, string item,
+            float charge, float timing, bool showTiming, BroadcastHud.PlayLayout lay)
         {
-            var x = Screen.width - 428f;
-            const float y = 14f;
-            GUI.DrawTexture(new Rect(x, y, 410, 118), _panel);
             var bug = BroadcastHud.From(match);
-            GUI.Label(new Rect(x + 16, y + 8, 280, 22), "P   " + bug.Pitcher, _body);
-            Bar(x + 16, y + 32, 220, match.PitcherStamina / 100f);
-            GUI.Label(new Rect(x + 244, y + 26, 150, 20), "ARM  " + match.PitcherStamina, _tiny);
-            GUI.Label(new Rect(x + 16, y + 48, 380, 22), "AB  " + bug.Batter, _body);
-            var extra = (star ? "STAR  " : "") + (steal ? "STEAL  " : "") + (string.IsNullOrEmpty(item) ? "" : item);
-            GUI.Label(new Rect(x + 16, y + 74, 380, 22), pitches[pi].ToUpperInvariant() + (extra.Length > 0 ? "   " + extra.Trim() : ""), extra.Length > 0 ? _gold : _tiny);
-
+            var youPitch = match.Top;
+            SeatCard(Px(lay.BatterCard), "AB", bug.Batter, !youPitch,
+                "NEXT  " + bug.Next,
+                (star && !youPitch ? "STAR  " : "") + (steal ? "STEAL  " : "") + (item ?? ""),
+                Look.HasPortrait(match.Batter.Id) ? Look.Portrait(match.Batter.Id) : null);
+            SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, youPitch,
+                "ARM  " + match.PitcherStamina,
+                (pitches != null && pi >= 0 && pi < pitches.Length ? pitches[pi].ToUpperInvariant() : "")
+                    + (star && youPitch ? "  STAR" : ""),
+                Look.HasPortrait(match.Pitcher.Id) ? Look.Portrait(match.Pitcher.Id) : null);
+            if (youPitch)
+                Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
+                    Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
             if (!showTiming) return;
-            GUI.DrawTexture(new Rect(x + 16, y + 98, 220, 8), _dotOff);
-            GUI.DrawTexture(new Rect(x + 16 + 96, y + 96, 28, 12), _starOn);
-            var pip = x + 16 + Mathf.Clamp01(timing) * 220f;
-            GUI.DrawTexture(new Rect(pip - 2, y + 94, 4, 16), _white);
-            GUI.DrawTexture(new Rect(x + 250, y + 100, Mathf.Clamp01(charge) * 140f, 6), _starOn);
+            var box = youPitch ? Px(lay.PitcherCard) : Px(lay.BatterCard);
+            GUI.DrawTexture(new Rect(box.x + 16, box.y + box.height - 12, 160, 6), _dotOff);
+            var pip = box.x + 16 + Mathf.Clamp01(timing) * 160f;
+            GUI.DrawTexture(new Rect(pip - 2, box.y + box.height - 16, 4, 14), _white);
+            GUI.DrawTexture(new Rect(box.x + 186, box.y + box.height - 12, Mathf.Clamp01(charge) * 80f, 6), _starOn);
+        }
+
+        static void SeatCard(Rect r, string role, string name, bool you, string line2, string extra, Texture2D face)
+        {
+            if (you)
+            {
+                var edge = new Rect(r.x - 3, r.y - 3, r.width + 6, r.height + 6);
+                GUI.DrawTexture(edge, _ink);
+            }
+            GUI.DrawTexture(r, _panel);
+            var x = r.x + 12;
+            if (face != null)
+            {
+                GUI.DrawTexture(new Rect(x, r.y + 10, 44, 44), face, ScaleMode.ScaleToFit);
+                x += 52;
+            }
+            GUI.Label(new Rect(x, r.y + 8, r.width - (x - r.x) - 12, 22), role + "  " + name, you ? _h1 : _body);
+            GUI.Label(new Rect(x, r.y + 34, r.width - (x - r.x) - 12, 20), line2, _tiny);
+            if (!string.IsNullOrWhiteSpace(extra))
+                GUI.Label(new Rect(x, r.y + 54, r.width - (x - r.x) - 12, 20), extra.Trim(), _gold);
         }
 
         static void Stars(float x, float y, double n)
         {
             for (var i = 0; i < 5; i++)
-                GUI.DrawTexture(new Rect(x + i * 22, y, 18, 18), n > i ? _starOn : _starOff);
+                GUI.DrawTexture(new Rect(x + i * 16, y, 14, 14), n > i ? _starOn : _starOff);
         }
 
         static void Count(float x, float y, int n, int max, Texture2D on, Texture2D off)
