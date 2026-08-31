@@ -179,17 +179,17 @@ namespace GrandSluggers.UnityClient
         public static void BagTell(int bag)
         {
             Ensure();
-            var labels = new[] { "1B", "2B", "3B", "HOME" };
-            var w = 88f;
-            var x0 = Screen.width * 0.5f - (w * 4 + 24) * 0.5f;
-            var y = Screen.height - 78f;
-            GUI.Label(new Rect(x0, y - 26, 400, 22), "throw  ·  d-pad / 1 2 3 4", _tiny);
-            for (var i = 0; i < 4; i++)
+            const float size = 88f;
+            var x = Screen.width * 0.5f - size * 0.5f;
+            var y = Screen.height - 168f;
+            GUI.Label(new Rect(x - 40, y - 22, size + 80, 20), "throw", _tiny);
+            for (var i = 1; i <= 4; i++)
             {
-                var r = new Rect(x0 + i * (w + 8), y, w, 48);
-                GUI.DrawTexture(r, _panel);
-                var lit = bag == i + 1;
-                GUI.Label(r, labels[i], lit ? _gold : _body);
+                var uv = FieldAssist.BagPip(i);
+                var px = x + (float)(uv.U * size);
+                var py = y + size - (float)(uv.V * size);
+                var r = new Rect(px - 10, py - 10, 20, 20);
+                GUI.DrawTexture(r, i == bag ? _outOn : _outOff);
             }
         }
 

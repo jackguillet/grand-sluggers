@@ -87,8 +87,11 @@ public static class HowToPlay
             "South / Space    catch, then throw.",
             "Hold East / G    dash. Tap East    dive. West / F    jump.",
             "E near a chem partner    buddy toss (they laser).",
-            "D-pad / 1 2 3 4    arm a bag. Stick-dead hopper goes to first.",
+            "D-pad / 1 2 3 4    arm a bag. Mini-diamond pip is the armed bag.",
+            "Stick-dead hopper goes to first. WASD while chasing does not throw.",
             "LB / X with no bag    relay, not a random bag.",
+            "After you throw, you are the glove at that bag.",
+            "Select / R swaps. Stick points at who you want.",
         ]),
         new("exhibition", "Captain and field",
         [
