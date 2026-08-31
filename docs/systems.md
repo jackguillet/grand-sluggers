@@ -38,7 +38,7 @@ Three states: `good`, `neutral`, `bad`. Stored as a sparse pair list in `data/ch
 
 Exhibition pregame is two picks: captains, then the field. Cycling a captain does not move the park (`ExhibitionPick`).
 
-Exhibition lineup is a live draft: eight around the captain (swap freely), gloves P / C / IF / OF, chemistry as hearts and scribbles on the diamond. Average the roster’s chemistry score with the **captain** (good=100, neutral=50, bad=10), then:
+Exhibition lineup is two screens (`LineupScreens`): **Team Setup** (home nine along the top, away nine along the bottom, pool of heads in the center) then **Offense / Defense Setup** (batting 1–9 as a bar of heads, two fielding diamonds with gloves on P / C / 1B / 2B / 3B / SS / LF / CF / RF). Chemistry is hearts and scribbles vs the captain. Average the roster’s chemistry score with the **captain** (good=100, neutral=50, bad=10), then:
 
 | Average | Stars |
 | --- | --- |

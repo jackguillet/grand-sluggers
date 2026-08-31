@@ -102,10 +102,14 @@ public static class HowToPlay
         ]),
         new("lineup", "Lineup",
         [
-            "The diamond is the toys. Highlighted toy grows. Card stays.",
+            "Two screens: Team Setup, then Offense / Defense Setup.",
+            "Team Setup: home nine along the top, away nine along the bottom. Center is heads.",
+            "Stick picks a head. South drops into the empty slot. West removes. Captain stays.",
             "Hearts are buddies. Scribbles are rivals. Stars jump when a buddy comes in.",
-            "Stick slot vs bench. West swap. RB glove    P / C / IF / OF.",
-            "LB / East    batting order. South / Space    play ball.",
+            "Away is CPU until a second pad sits. Tab random-fills — not the product path.",
+            "Offense / Defense: batting 1–9 as a bar of heads. Two diamonds, gloves on P C 1B 2B 3B SS LF CF RF.",
+            "Stick on the bar reorders. Stick on the diamond moves the glove. LB / East still cycle order.",
+            "Card stickers the highlighted head. South / Space    first pitch.",
         ]),
         new("pause-practice", "Pause and Practice",
         [

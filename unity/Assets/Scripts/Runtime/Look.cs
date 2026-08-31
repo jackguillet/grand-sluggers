@@ -95,12 +95,17 @@ namespace GrandSluggers.UnityClient
             return Lit(c, smooth: 0.04f);
         }
 
-        public static Material Unlit(Color color)
+        public static Material Unlit(Color color, Texture2D tex = null)
         {
             var sh = Shader.Find("Universal Render Pipeline/Unlit") ?? LitShader;
             var m = new Material(sh);
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", color);
             else m.color = color;
+            if (tex != null)
+            {
+                if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+                m.mainTexture = tex;
+            }
             return m;
         }
 
