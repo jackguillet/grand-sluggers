@@ -22,6 +22,8 @@ Agents are the production line. You are the director. They are fast at systems, 
 
 ### Operating rules
 
+Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)**. Long-term product, not the current still. **No quick fixes.** If a hack would close the issue and a rail would serve 1P, 1v1, and the next play type, build the rail.
+
 1. **One GitHub child issue = one worktree = one agent.** Never share `/Users/jack/repos/grand-sluggers` except a final ff-only pull. Never `git add -A`.
 2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, `tools/unity-compile.sh`, or a named Hierarchy object, the issue is too vague — rewrite it before launching. Personal Unity cannot `-batchmode`; the compile script is the Unity csc gate.
 3. **Serial for feel. Parallel for slots.** Camera, swing timing, fielding verbs, and Harbor framing are one-after-another (they share the at-bat). Filling `data/art` rows, VFX event prefabs, audio event files, and captain extras can fan out **after** the shared rig and one swing clip exist.
@@ -55,7 +57,7 @@ Do **not** parallel six parks or a Challenge island.
 
 ### Suggested agent launch shape
 
-Issue body already has acceptance. Prompt the agent with: parent epic, worktree slug, banned list, `cli art` must stay OK, Unity Play path, “no new skeleton, no new park, no MatchDirector god-file.” After merge: skeptic agent with the screenshot checklist.
+Issue body already has acceptance. Prompt the agent with: **AGENTS.md (rails, not patches)**, parent epic, worktree slug, banned list, `cli art` must stay OK, Unity Play path, “no new skeleton, no new park, no MatchDirector god-file.” After merge: skeptic agent with the screenshot checklist. A still that only works because of a one-off is not done.
 
 Large systems: write a design (`docs/` or a GitHub epic), then execute children. Small children: one agent.
 
