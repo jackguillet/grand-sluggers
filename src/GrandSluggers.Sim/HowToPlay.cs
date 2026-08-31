@@ -30,9 +30,13 @@ public static class PauseMenu
 
     public const float Debounce = 0.2f;
 
-    /// <summary>Start / H opens Call time. The same press must not close it.</summary>
-    public static bool Open(bool paused, bool inAtBat, bool start, float t) =>
-        !paused && inAtBat && start && t > Debounce;
+    /// <summary>Start / H opens Call time in an at-bat. Front-of-house uses the same menu.</summary>
+    public static bool Open(bool paused, bool allowed, bool start, float t) =>
+        !paused && allowed && start && t > Debounce;
+
+    /// <summary>Esc opens How to play on title / select / field / lineup without cycling mode.</summary>
+    public static bool OpenHowTo(bool paused, bool allowed, bool howTo, float t) =>
+        !paused && allowed && howTo && t > Debounce;
 
     public static bool Dismiss(bool startOrBack, float t) =>
         startOrBack && t > Debounce;
@@ -198,6 +202,7 @@ public static class HowToPlay
         new("getting-started", "Getting started",
         [
             "Title is the park. South / Space / left click    play ball (pick captain).",
+            "Esc    How to play (this book) from title, captains, field, lineup, or a pitch.",
             "Exhibition    pick captains, a field, a lineup, play. The product.",
             "Training    Title West. Harbor drills: Pitch, Bat, Field, Run, Special, Free.",
             "Two pads    gamepad 0 home, gamepad 1 away. Keyboard and mouse stay player 1.",
@@ -249,7 +254,7 @@ public static class HowToPlay
         ]),
         new("pause-practice", "Pause and Practice",
         [
-            "Start / H / Esc during a pitch or play    call time (this menu).",
+            "Start / H during a pitch or play    call time (this menu). Esc    How to play from title too.",
             "WASD or arrows choose. South / Space / left click ok. Start / H / Esc or East / G / right click resume.",
             "Click a row. Wheel turns How to play pages.",
             "Resume, Restart, How to play, Title.",
