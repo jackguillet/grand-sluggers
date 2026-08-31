@@ -101,6 +101,87 @@ public static class InPlay
         return batterBeatsThrow ? [] : [1];
     }
 
+    /// <summary>Default hopper throw: second when first is occupied, else first / the tag bag.</summary>
+    public static int DefaultGroundBag(bool firstOccupied, bool secondOccupied = false, bool thirdOccupied = false)
+    {
+        var bags = GroundThrowBags(firstOccupied, secondOccupied, thirdOccupied, batterBeatsThrow: false);
+        return bags.Length > 0 ? bags[0] : 0;
+    }
+
+    /// <summary>After a force at second the next throw is first, unless the inning is over.</summary>
+    public static int NextBagAfterForce(int forceBag, int outsAfterForce)
+    {
+        if (outsAfterForce >= 3) return 0;
+        return forceBag == 2 ? 1 : 0;
+    }
+
+    /// <summary>Runner on first, fewer than two outs: two throws can turn two.</summary>
+    public static bool DoublePlayOffered(bool firstOccupied, int outs) =>
+        firstOccupied && outs < 2;
+
+    /// <summary>
+    /// One throw of a live double-play race. The director steps this as the ball lands so
+    /// outs and the mini diamond update immediately. CPU FinishAtBat applies the same table
+    /// for both throws at once. Does not invent a PlayKind — GroundOut stays the contact.
+    /// </summary>
+    public readonly record struct GroundThrowStep(
+        int Bag,
+        bool Out,
+        bool Force,
+        bool TurnedTwo,
+        bool BatterSafe,
+        bool PlayOver,
+        int NextDefaultBag,
+        string Caption);
+
+    /// <summary>
+    /// Pure baseball for one throw to a bag. Match applies it; the director decides when.
+    /// </summary>
+    public static GroundThrowStep ThrowToBag(
+        int bag,
+        bool firstOccupied,
+        bool alreadyForced,
+        bool runnerBeats,
+        int outs,
+        string? fielderName,
+        string? batterName)
+    {
+        fielderName ??= "";
+        batterName ??= "";
+        if (outs >= 3)
+            return new(bag, false, alreadyForced, false, false, true, 0, "");
+
+        if (bag == 2 && firstOccupied && !alreadyForced)
+        {
+            if (runnerBeats)
+                return new(bag, false, false, false, true, true, 0, $"{batterName} beats the throw.");
+            var outsAfter = outs + 1;
+            var over = outsAfter >= 3;
+            return new(
+                bag,
+                Out: true,
+                Force: true,
+                TurnedTwo: false,
+                BatterSafe: false,
+                PlayOver: over,
+                NextDefaultBag: NextBagAfterForce(2, outsAfter),
+                Caption: $"{fielderName} forces the runner.");
+        }
+
+        if (bag == 1 && alreadyForced)
+        {
+            if (runnerBeats)
+                return new(
+                    bag, false, true, false, true, true, 0,
+                    $"Force at second. {batterName} in at first.");
+            return new(
+                bag, true, true, true, false, true, 0,
+                $"{fielderName} turns two.");
+        }
+
+        return new(bag, false, alreadyForced, false, false, false, 0, "");
+    }
+
     /// <summary>Pad stick / arrows name a bag only when you are not chasing the ball.</summary>
     public static bool StickNamesBag(bool chasing, bool caught) => !chasing || caught;
 
@@ -124,14 +205,17 @@ public static class InPlay
     }
 
     /// <summary>
-    /// Hopper catch with no direction throws to first. Cutoff with no direction is a relay (0),
-    /// not a random bag. A named bag always wins.
+    /// Hopper catch with no direction throws to the default bag (first, or second when first
+    /// is occupied). Cutoff with no direction is a relay (0), not a random bag. A named bag always wins.
     /// </summary>
-    public static int CommitBag(int armed, bool hopperCaught, bool cutoff)
+    public static int CommitBag(int armed, bool hopperCaught, bool cutoff) =>
+        CommitBag(armed, hopperCaught, cutoff, defaultBag: 1);
+
+    public static int CommitBag(int armed, bool hopperCaught, bool cutoff, int defaultBag)
     {
         if (armed is >= 1 and <= 4) return armed;
         if (cutoff) return 0;
-        if (hopperCaught) return 1;
+        if (hopperCaught) return defaultBag is >= 1 and <= 4 ? defaultBag : 1;
         return 0;
     }
 

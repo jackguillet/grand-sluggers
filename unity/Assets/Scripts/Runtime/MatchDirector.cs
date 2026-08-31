@@ -112,6 +112,7 @@ namespace GrandSluggers.UnityClient
         float _throwT, _throwDur;
         int[] _relayBags;
         int _relayI;
+        bool _awaitingRelay;
         string _coverPos = "";
         float _recoilT;
         bool _bobbling;
@@ -297,7 +298,10 @@ namespace GrandSluggers.UnityClient
                 var hopper = _preview != null && _preview.Grounder;
                 var stick = Controls.StickBag > 0 ? Controls.StickBag : Controls.ArrowBag;
                 var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : Controls.ThrowBag, stick, true);
-                HudView.BagTell(InPlay.CommitBag(armed, hopper, Controls.Cutoff));
+                var def = _match.LiveForce
+                    ? 1
+                    : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
+                HudView.BagTell(InPlay.CommitBag(armed, hopper, Controls.Cutoff, def));
             }
             if (_feelDebug)
             {
@@ -545,6 +549,9 @@ namespace GrandSluggers.UnityClient
             _caught = true;
             _gloved = true;
             HoldBallInGlove();
+            if (_playerFielding && _preview != null && _preview.Grounder
+                && _match != null && _match.First != null)
+                _match.OpenLivePlay();
         }
 
         void ArmRecoil()

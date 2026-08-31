@@ -247,6 +247,13 @@ public sealed class FieldingResolver
 
     public static bool IsGrounder(AtBatResult hit) => hit.LaunchDeg < 14;
 
+    /// <summary>
+    /// Hopper with first occupied is a two-throw race. Director steps <see cref="InPlay.ThrowToBag"/>;
+    /// do not collapse it into one GroundOut.
+    /// </summary>
+    public static bool DoublePlayHopper(bool grounder, bool firstOccupied, int outs) =>
+        grounder && InPlay.DoublePlayOffered(firstOccupied, outs);
+
     /// <summary>Low rocket: 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
     public static bool IsLine(AtBatResult hit) =>
         hit.LaunchDeg is >= 14 and < 22 && hit.ExitVeloMph >= 78 && !IsGrounder(hit);

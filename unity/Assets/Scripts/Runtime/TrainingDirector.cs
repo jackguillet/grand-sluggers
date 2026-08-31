@@ -60,6 +60,8 @@ namespace GrandSluggers.UnityClient
             {
                 if (!Session.RecordFielding(field))
                     Session.RecordGrounder(field);
+                if (match.Log.Count > 0)
+                    Session.RecordTurnTwo(match.Log[match.Log.Count - 1].Caption);
             }
             else if (Session.Lesson == PracticeLesson.Special)
                 Session.RecordChemThrow(field.Throw);
