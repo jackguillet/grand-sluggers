@@ -346,7 +346,11 @@ namespace GrandSluggers.UnityClient
                 if (run.ThrowBag > 0)
                     _match.SelectRunner(run.ThrowBag);
                 if (run.FreezeRunners)
-                    _match.FreezeRunners();
+                {
+                    var haltBag = InPlay.DiamondBag(run.StickX, run.StickY);
+                    if (haltBag is >= 1 and <= 3) _match.HaltAt(haltBag);
+                    else _match.FreezeRunners();
+                }
                 else if (run.AllAdvance)
                     _match.AdvanceAll(dt * 1.7f);
                 else if (run.AllReturn)

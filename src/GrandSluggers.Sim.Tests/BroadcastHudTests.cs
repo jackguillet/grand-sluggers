@@ -79,4 +79,20 @@ public class BroadcastHudTests
         var walked = Baserunning.MiniLead(1, bug.LeadFirst);
         Assert.True(walked.V > glued.V);
     }
+
+    [Fact]
+    public void GameRulesSpreadNamesArmControlAndItemPointer()
+    {
+        Assert.False(BroadcastHud.PoorArm(40));
+        Assert.True(BroadcastHud.PoorArm(24));
+        Assert.Equal("ARM  80", BroadcastHud.ArmLine(80));
+        Assert.Contains("TIRED", BroadcastHud.ArmLine(12));
+        Assert.Equal("", BroadcastHud.ControlDisplay(false, "RF", "Vale"));
+        Assert.Equal("", BroadcastHud.ControlDisplay(true, "", "Vale"));
+        Assert.Equal("YOU  RF", BroadcastHud.ControlDisplay(true, "RF", ""));
+        Assert.Equal("YOU  RF  ·  Vale", BroadcastHud.ControlDisplay(true, "RF", "Vale"));
+        Assert.Equal("", BroadcastHud.ItemPointer(false, "Vale"));
+        Assert.Equal("", BroadcastHud.ItemPointer(true, ""));
+        Assert.Equal("ITEM  →  Vale", BroadcastHud.ItemPointer(true, "Vale"));
+    }
 }

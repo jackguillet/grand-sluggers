@@ -95,6 +95,16 @@ public static class ErrorItems
         };
     }
 
+    /// <summary>Attack smashed the flying item. An out that became a single goes back to an out.</summary>
+    public static FieldingResult Smash(FieldingResult field, bool grounder)
+    {
+        if (string.IsNullOrEmpty(field.Item)) return field;
+        var restored = field.Kind is PlayKind.Single or PlayKind.Double
+            ? (grounder ? PlayKind.GroundOut : PlayKind.FlyOut)
+            : field.Kind;
+        return field with { Kind = restored, Item = null };
+    }
+
     static bool HitsPlay(FieldingResult field, string item, Character? target)
     {
         if (target is null) return true;

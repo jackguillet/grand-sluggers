@@ -6,7 +6,7 @@ using UnityEngine.InputSystem.Controls;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Pad 1 is gamepad 0 + keyboard. Pad 2 is gamepad 1. Not Gamepad.current —
+    /// Pad 1 is gamepad 0 + keyboard + mouse. Pad 2 is gamepad 1. Not Gamepad.current —
     /// two pads must not steer the same pitcher. Menus and 1P read Pad1.
     /// South / East / West / North are positions (Xbox A/B/X/Y, Nintendo B/A/Y/X).
     /// F1/F2/F3 stay debug. Update how-to-play in the same PR.
@@ -19,6 +19,9 @@ namespace GrandSluggers.UnityClient
         static float _rumbleT;
         static float _rumbleLow;
         static float _rumbleHigh;
+        static float _mouseX;
+        static float _mouseY;
+        static float _mouseLive;
 
         /// <summary>One seated pad. Index 0 is home (keyboard too). Index 1 is away. CPU is dead.</summary>
         public readonly struct Pad
@@ -37,19 +40,21 @@ namespace GrandSluggers.UnityClient
             Gamepad Device =>
                 _index >= 0 && Gamepad.all.Count > _index ? Gamepad.all[_index] : null;
 
-            public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth);
-            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth);
-            public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth);
+            public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth)
+                || (_keys && MouseLeftDown);
+            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (_keys && MouseLeftHeld);
+            public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (_keys && MouseMiddleDown);
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
             public bool WestDown => KeyDown(Key.F) || Pressed(Device?.buttonWest);
-            public bool WestHeld => Kb(Key.V) || Kb(Key.F) || Held(Device?.buttonWest);
+            public bool WestHeld => Kb(Key.V) || Kb(Key.F) || Kb(Key.LeftCtrl) || Held(Device?.buttonWest);
+            public bool Attack => NorthDown || KeyDown(Key.B);
 
             public float Charge01
             {
                 get
                 {
-                    var v = Kb(Key.LeftShift) ? 1f : 0f;
+                    var v = Kb(Key.LeftShift) || (_keys && MouseRightHeld) ? 1f : 0f;
                     var pad = Device;
                     if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
                     return Mathf.Clamp01(v);
@@ -60,7 +65,7 @@ namespace GrandSluggers.UnityClient
             public bool CyclePitch => KeyDown(Key.Tab) || Pressed(Device?.rightShoulder);
             public bool Changeup => WestHeld;
             public bool Skip => EastDown;
-            public bool Start => KeyDown(Key.H) || Pressed(Device?.startButton);
+            public bool Start => KeyDown(Key.H) || KeyDown(Key.Escape) || Pressed(Device?.startButton);
             public bool AllAdvance => Kb(Key.Comma) || Held(Device?.leftShoulder);
             public bool AllAdvanceDown => KeyDown(Key.Comma) || Pressed(Device?.leftShoulder);
             public bool AllReturn => Kb(Key.Period) || Held(Device?.rightShoulder);
@@ -81,6 +86,7 @@ namespace GrandSluggers.UnityClient
                     if (pad != null) v = pad.leftStick.x.ReadValue();
                     if (Kb(Key.A)) v -= 1f;
                     if (Kb(Key.D)) v += 1f;
+                    if (_keys) v += MouseStickX;
                     if (Mathf.Abs(v) < StickDead) v = 0f;
                     return Mathf.Clamp(v, -1f, 1f);
                 }
@@ -95,6 +101,7 @@ namespace GrandSluggers.UnityClient
                     if (pad != null) v = pad.leftStick.y.ReadValue();
                     if (Kb(Key.S)) v -= 1f;
                     if (Kb(Key.W)) v += 1f;
+                    if (_keys) v += MouseStickY;
                     if (Mathf.Abs(v) < StickDead) v = 0f;
                     return Mathf.Clamp(v, -1f, 1f);
                 }
@@ -121,10 +128,19 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
+                    var x = 0f;
+                    var y = 0f;
                     var pad = Device;
-                    if (pad == null) return 0;
-                    var x = pad.leftStick.x.ReadValue();
-                    var y = pad.leftStick.y.ReadValue();
+                    if (pad != null)
+                    {
+                        x = pad.leftStick.x.ReadValue();
+                        y = pad.leftStick.y.ReadValue();
+                    }
+                    if (_keys)
+                    {
+                        x += MouseStickX;
+                        y += MouseStickY;
+                    }
                     if (Mathf.Abs(x) < StickDead && Mathf.Abs(y) < StickDead) return 0;
                     return InPlay.DiamondBag(x, y);
                 }
@@ -211,6 +227,30 @@ namespace GrandSluggers.UnityClient
         public static bool Changeup => Pad1.Changeup;
         public static bool Skip => Pad1.Skip;
         public static bool CallTime => Pad1.Start || (Pad2.Present && Pad2.Start);
+        public static bool Attack => Pad1.Attack;
+        public static bool MouseBack => MouseRightDown;
+        public static Vector2 GuiMouse
+        {
+            get
+            {
+                var m = Mouse.current;
+                if (m == null) return default;
+                var p = m.position.ReadValue();
+                return new Vector2(p.x, Screen.height - p.y);
+            }
+        }
+        public static int Wheel
+        {
+            get
+            {
+                var m = Mouse.current;
+                if (m == null) return 0;
+                var y = m.scroll.ReadValue().y;
+                if (y > 0.1f) return -1;
+                if (y < -0.1f) return 1;
+                return 0;
+            }
+        }
         public static bool AllAdvance => Pad1.AllAdvance;
         public static bool AllAdvanceDown => Pad1.AllAdvanceDown;
         public static bool AllReturn => Pad1.AllReturn;
@@ -239,11 +279,50 @@ namespace GrandSluggers.UnityClient
 
         public static void Tick(float dt)
         {
+            UpdateMouse(dt);
             if (_rumbleT <= 0f) return;
             _rumbleT -= dt;
             if (_rumbleT <= 0f) Silence();
             else ApplyRumble();
         }
+
+        static void UpdateMouse(float dt)
+        {
+            var m = Mouse.current;
+            if (m == null)
+            {
+                _mouseLive = 0f;
+                _mouseX = _mouseY = 0f;
+                return;
+            }
+            var d = m.delta.ReadValue();
+            if (d.sqrMagnitude > 4f)
+            {
+                var p = m.position.ReadValue();
+                var w = Mathf.Max(1f, Screen.width);
+                var h = Mathf.Max(1f, Screen.height);
+                _mouseX = Mathf.Clamp((p.x / w - 0.5f) * 2.4f, -1f, 1f);
+                _mouseY = Mathf.Clamp((p.y / h - 0.5f) * 2.4f, -1f, 1f);
+                _mouseLive = 0.35f;
+            }
+            else
+            {
+                _mouseLive -= dt;
+                if (_mouseLive <= 0f)
+                {
+                    _mouseLive = 0f;
+                    _mouseX = _mouseY = 0f;
+                }
+            }
+        }
+
+        static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        static bool MouseLeftHeld => Mouse.current != null && Mouse.current.leftButton.isPressed;
+        static bool MouseRightHeld => Mouse.current != null && Mouse.current.rightButton.isPressed;
+        static bool MouseRightDown => Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
+        static bool MouseMiddleDown => Mouse.current != null && Mouse.current.middleButton.wasPressedThisFrame;
+        static float MouseStickX => _mouseLive > 0f ? _mouseX : 0f;
+        static float MouseStickY => _mouseLive > 0f ? _mouseY : 0f;
 
         public static void RumbleContact(ContactQuality quality)
         {

@@ -247,4 +247,13 @@ public sealed class RunnerState
     }
 
     public void Slide() => Sliding = true;
+
+    /// <summary>Hold this lead. Does not walk back; cancels a steal.</summary>
+    public void Halt()
+    {
+        Returning = false;
+        StealAttempt = false;
+        StealTarget = 0;
+        Sliding = false;
+    }
 }
