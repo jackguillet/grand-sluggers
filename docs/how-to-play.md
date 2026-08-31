@@ -123,8 +123,9 @@ Hopper cam is low in the grass; a fly is a 3/4 in the park; a homer rises with t
 - **East tap / G** — dive
 - **West / F** — jump / buddy jump
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
-- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick flick or arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
-- **Select / R** — swap the glove
+- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. Hopper with no direction throws to **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove. WASD while chasing does not throw.
+- After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove.
+- **Select / R** — swap. Stick points at who you want; dead stick is the next-nearest to the ball.
 - **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
 
 Good throws are gold/purple and fast. Bad throws are muddy and offline.

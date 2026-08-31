@@ -133,7 +133,7 @@ namespace GrandSluggers.UnityClient
             _poseT += dt;
             if (_root != null)
             {
-                var g = _grow ? 1.45f : 1f;
+                var g = (_grow ? 1.45f : 1f) * (_lit ? 1.18f : 1f);
                 var bounce = 0f;
                 if (_pose == Pose.Idle || _pose == Pose.Field)
                     bounce = 0.07f * Mathf.Abs(Mathf.Sin(_t * 5.4f));

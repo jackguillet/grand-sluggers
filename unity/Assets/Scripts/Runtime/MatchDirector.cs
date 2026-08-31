@@ -108,6 +108,7 @@ namespace GrandSluggers.UnityClient
         int _throwBag;
         readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
         string _glovePos = "P";
+        string _throwFromPos = "";
         string _buddyPos = "";
         bool _buddyWindow;
         float _diveT, _jumpT, _swapLock;
