@@ -72,9 +72,9 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
 
 ### Lineup (the chemistry toy)
 
-The diamond is the draft. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays.
+The diamond is the toys. Highlighted toy **grows**. Hearts are buddies, scribbles are rivals. Starting stars **jump** when you swap a buddy in. Glove is a token on P / C / IF / OF. The character card stays. The bench is stick-right, not the picture.
 
-- **Stick / WASD** — slot (dugout) vs pool
+- **Stick / WASD** — slot (dugout) vs bench
 - **West / F** — swap highlighted pool player into the slot
 - **RB / Tab** — cycle glove (P / C / IF / OF)
 - **LB / `,` · East / G** — batting order

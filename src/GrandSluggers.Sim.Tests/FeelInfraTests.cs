@@ -120,6 +120,19 @@ public class FeelInfraTests
         Assert.True(field.Pos.Y > 12, $"field too low to see the wall y={field.Pos.Y}");
         Assert.True(field.Target.Z > 250, $"field looks at the wall/town z={field.Target.Z}");
         Assert.True(field.Fov >= 42);
+        var lineup = _content.Shots.Must("lineup");
+        Assert.True(ChemistryToy.CameraIsThreeQuarter(lineup.Pos.X, lineup.Pos.Y, lineup.Pos.Z),
+            $"lineup bird's-eye x={lineup.Pos.X} y={lineup.Pos.Y} z={lineup.Pos.Z}");
+        Assert.Equal(ChemistryToy.CamX, lineup.Pos.X, 1);
+        Assert.Equal(ChemistryToy.CamZ, lineup.Pos.Z, 1);
+        Assert.Equal(ChemistryToy.LookZ, lineup.Target.Z, 1);
+        Assert.Equal(ChemistryToy.Fov, lineup.Fov, 1);
+        var catcher = ChemistryToy.WorldSpot("C");
+        var cf = ChemistryToy.WorldSpot("CF");
+        var catcherDeg = LookDeg(lineup.Pos, lineup.Target, new Vec3(catcher.X, 1.6, catcher.Z));
+        var cfDeg = LookDeg(lineup.Pos, lineup.Target, new Vec3(cf.X, 1.6, cf.Z));
+        Assert.True(catcherDeg < 28, $"lineup catcher off look {catcherDeg:0.0} deg");
+        Assert.True(cfDeg < 28, $"lineup CF off look {cfDeg:0.0} deg");
     }
 
     [Fact]

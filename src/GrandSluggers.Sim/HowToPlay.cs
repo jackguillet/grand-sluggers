@@ -97,9 +97,9 @@ public static class HowToPlay
         ]),
         new("lineup", "Lineup",
         [
-            "The diamond is the draft. Highlighted toy grows. Card stays.",
+            "The diamond is the toys. Highlighted toy grows. Card stays.",
             "Hearts are buddies. Scribbles are rivals. Stars jump when a buddy comes in.",
-            "Stick slot vs pool. West swap. RB glove    P / C / IF / OF.",
+            "Stick slot vs bench. West swap. RB glove    P / C / IF / OF.",
             "LB / East    batting order. South / Space    play ball.",
         ]),
         new("pause-practice", "Pause and Practice",

@@ -147,11 +147,14 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _freeze = 0;
 
-            if (shot == "title" || shot == "select" || shot == "field")
+            if (shot == "title" || shot == "select" || shot == "field" || shot == "lineup")
             {
                 if (_match == null) _match = NewMatch();
                 _park.Build(_match.Park, _match.Night);
-                _phase = shot == "select" ? Phase.Select : shot == "field" ? Phase.Field : Phase.Title;
+                if (shot == "lineup")
+                    OpenLineup();
+                else
+                    _phase = shot == "select" ? Phase.Select : shot == "field" ? Phase.Field : Phase.Title;
                 _cam.Cut(shot);
                 _gateHold = true;
                 return;
@@ -212,6 +215,13 @@ namespace GrandSluggers.UnityClient
             if (shot == "field")
             {
                 _cam.Cut("field");
+                return;
+            }
+
+            if (shot == "lineup")
+            {
+                if (_homeDraft == null) OpenLineup();
+                _cam.Cut("lineup");
                 return;
             }
 

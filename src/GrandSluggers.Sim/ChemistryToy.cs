@@ -1,14 +1,31 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Lineup as a chemistry toy: mini diamond, sticker edges, jumping stars.
-/// HUD draws this; tests lock the layout.
+/// Lineup as a chemistry toy: compact diamond of bodies, sticker hearts, jumping stars.
+/// World toys are the picture. HUD is stars, card, dugout — not an AVAILABLE list.
 /// </summary>
 public static class ChemistryToy
 {
     public const string Heart = "heart";
     public const string Scribble = "scribble";
     public const string None = "none";
+
+    /// <summary>1B 3/4 on the huddle. Not bird's-eye high-home.</summary>
+    public const double CamX = 14.0;
+    public const double CamY = 9.5;
+    public const double CamZ = -8.0;
+    public const double LookX = 0.4;
+    public const double LookY = 2.4;
+    public const double LookZ = 20.0;
+    public const double Fov = 50;
+
+    /// <summary>Compact diamond on the infield dirt so nine toys fill the 3/4.</summary>
+    public const double ToySpanX = 18;
+    public const double ToySpanZ = 26;
+    public const double ToyHomeZ = 8;
+    public const double HeartY = 3.2;
+    public const double HighlightX = 2.4;
+    public const double HighlightZ = -2.8;
 
     public static string Sticker(Chemistry chem) => chem switch
     {
@@ -33,6 +50,17 @@ public static class ChemistryToy
         _ => (0, 0.40)
     };
 
+    /// <summary>World feet on the compact diamond. CF is in front of the real wall.</summary>
+    public static (double X, double Z) WorldSpot(string pos)
+    {
+        var uv = MiniSpot(pos);
+        return (uv.U * ToySpanX, ToyHomeZ + uv.V * ToySpanZ);
+    }
+
+    public static (double X, double Y, double Z) HeartSpot(
+        (double X, double Z) a, (double X, double Z) b) =>
+        ((a.X + b.X) * 0.5, HeartY, (a.Z + b.Z) * 0.5);
+
     /// <summary>Filled stars bounce. Empty stars stay small.</summary>
     public static double StarScale(int index, int filled, double t)
     {
@@ -42,4 +70,7 @@ public static class ChemistryToy
     }
 
     public static bool StarFilled(int index, int filled) => index >= 0 && index < filled;
+
+    public static bool CameraIsThreeQuarter(double x, double y, double z) =>
+        x > 8 && z < 0 && z > -20 && y < 16 && y > 6;
 }

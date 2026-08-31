@@ -315,8 +315,10 @@ namespace GrandSluggers.UnityClient
                     taken.Add(_homeDraft.Order[i].Id);
                 _awayDraft = TeamBuilder.Draft(_content, AwayCaptain, taken);
                 _lineupSlot = 0;
+                for (var i = 0; i < _homeDraft.Order.Count; i++)
+                    if (_homeDraft.Order[i].Captain) { _lineupSlot = i; break; }
                 _poolIndex = 0;
-                _focusPool = true;
+                _focusPool = false;
                 _lineupTouched = false;
                 _lineupStick = 0;
             }
