@@ -407,17 +407,28 @@ namespace GrandSluggers.UnityClient
 
         void CycleGlove(Dictionary<string, Character> map)
         {
-            var order = Diamond.Order;
-            var i = 0;
-            for (; i < order.Length; i++)
-                if (order[i] == _glovePos) break;
-            var next = order[(i + 1) % order.Length];
+            var spots = new Dictionary<string, (double X, double Z)>();
+            foreach (var kv in map)
+            {
+                spots[kv.Key] = _gloveAt.TryGetValue(kv.Key, out var live)
+                    ? live
+                    : Diamond.Positions[kv.Key];
+            }
+            var next = FieldAssist.SwapGlove(_glovePos, spots, _ball.x, _ball.z, Controls.StickX, Controls.StickY);
             if (!map.ContainsKey(next)) next = "P";
             _gloveAt[_glovePos] = (_fx, _fz);
             _glovePos = next;
-            var at = _gloveAt[_glovePos];
-            _fx = at.X;
-            _fz = at.Z;
+            if (_gloveAt.TryGetValue(_glovePos, out var at))
+            {
+                _fx = at.X;
+                _fz = at.Z;
+            }
+            else if (Diamond.Positions.TryGetValue(_glovePos, out var pad))
+            {
+                _fx = pad.X;
+                _fz = pad.Z;
+                _gloveAt[_glovePos] = (_fx, _fz);
+            }
         }
 
         double CatchWindow(Dictionary<string, Character> map)
@@ -516,33 +527,53 @@ namespace GrandSluggers.UnityClient
             _throwing = true;
             _throwT = 0;
             _throwBag = bag;
-            _coverPos = CoverKey(bag);
-            var to = cut != null && _heroes.TryGetValue(cut.Id, out var ch) && ch != null
-                ? ch.transform.position
-                : BagWorld(bag);
+            _coverPos = FieldAssist.CoverKey(bag);
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             Character thrower = null;
             if (map.TryGetValue(_glovePos, out var gloveWho)) thrower = gloveWho;
             else thrower = _preview?.Fielder;
+            var fromHand = new Vector3((float)_fx, 3.2f, (float)_fz);
             if (thrower != null && _heroes.TryGetValue(thrower.Id, out var th) && th != null && th.ThrowHand != null)
             {
                 _park.Ball.Hold(th.ThrowHand);
-                _throwFrom = th.ThrowHand.TransformPoint(0f, 0.1f, 0.52f);
+                fromHand = th.ThrowHand.TransformPoint(0f, 0.1f, 0.52f);
                 _park.Ball.Release();
             }
             else
-            {
                 _park.Ball.Release();
-                _throwFrom = new Vector3((float)_fx, 3.2f, (float)_fz);
-            }
+            TakeCoverAfterThrow(bag);
+            var to = cut != null && _heroes.TryGetValue(cut.Id, out var ch) && ch != null
+                ? ch.transform.position
+                : BagWorld(bag);
+            _throwFrom = fromHand;
             _throwTo = to + Vector3.up * 1.2f;
             _spec.ArmThrow(_throwFrom, to, thr);
             _throwDur = Mathf.Max(0.55f, _spec.ThrowSeconds);
             _audio?.ThrowPop();
         }
 
-        static string CoverKey(int bag) =>
-            bag == 1 ? "1B" : bag == 2 ? "2B" : bag == 3 ? "3B" : bag == 4 ? "C" : "";
+        void TakeCoverAfterThrow(int bag)
+        {
+            _throwFromPos = _glovePos;
+            var cover = FieldAssist.AfterThrowPos(_glovePos, bag);
+            if (string.IsNullOrEmpty(cover) || cover == _glovePos) return;
+            _gloveAt[_glovePos] = (_fx, _fz);
+            _glovePos = cover;
+            if (_gloveAt.TryGetValue(_glovePos, out var at))
+            {
+                _fx = at.X;
+                _fz = at.Z;
+            }
+            else
+            {
+                var spot = FieldAssist.CoverSpot(_glovePos);
+                _fx = spot.X;
+                _fz = spot.Z;
+                _gloveAt[_glovePos] = (_fx, _fz);
+            }
+        }
+
+        static string CoverKey(int bag) => FieldAssist.CoverKey(bag);
 
         bool StartGroundRelays()
         {
@@ -622,6 +653,7 @@ namespace GrandSluggers.UnityClient
             _throwing = false;
             _relayBags = null;
             _coverPos = "";
+            _throwFromPos = "";
             _bobbling = false;
             _recoilT = 0;
             _park.Ball.Release();

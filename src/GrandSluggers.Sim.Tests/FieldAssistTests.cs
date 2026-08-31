@@ -40,4 +40,38 @@ public class FieldAssistTests
         Assert.Equal(Diamond.Home, FieldAssist.CoverSpot("C"));
         Assert.Equal(Diamond.Rubber, FieldAssist.CoverSpot("P"));
     }
+
+    [Fact]
+    public void AfterThrowToSecondYouAreTheCoverAtSecond()
+    {
+        Assert.Equal("2B", FieldAssist.AfterThrowPos("SS", 2));
+        Assert.Equal("1B", FieldAssist.AfterThrowPos("SS", 1));
+        Assert.Equal("3B", FieldAssist.AfterThrowPos("LF", 3));
+        Assert.Equal("C", FieldAssist.AfterThrowPos("RF", 4));
+        Assert.Equal("SS", FieldAssist.AfterThrowPos("SS", 0));
+        Assert.Equal("SS", FieldAssist.AfterThrowPos("SS", InPlay.CommitBag(0, hopperCaught: true, cutoff: true)));
+        Assert.Equal("1B", FieldAssist.AfterThrowPos("SS", InPlay.CommitBag(0, hopperCaught: true, cutoff: false)));
+        Assert.Equal("2B", FieldAssist.CoverKey(2));
+        Assert.Equal("", FieldAssist.CoverKey(0));
+    }
+
+    [Fact]
+    public void SwapGloveIsTowardStickOrNextNearestToBallNotDiamondOrder()
+    {
+        var at = new Dictionary<string, (double X, double Z)>
+        {
+            ["SS"] = Diamond.Positions["SS"],
+            ["2B"] = Diamond.Positions["2B"],
+            ["1B"] = Diamond.Positions["1B"],
+            ["3B"] = Diamond.Positions["3B"],
+            ["P"] = Diamond.Positions["P"],
+        };
+        var ball = Diamond.Positions["SS"];
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 1, 0));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, -1, 0));
+        Assert.Equal("1B", FieldAssist.SwapGlove("P", at, ball.X, ball.Z, 1, -0.4));
+        var nearSecond = (Diamond.Positions["2B"].X, Diamond.Positions["2B"].Z + 4);
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0));
+    }
 }
