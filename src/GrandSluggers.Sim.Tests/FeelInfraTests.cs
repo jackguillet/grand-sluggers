@@ -194,6 +194,9 @@ public class FeelInfraTests
         Assert.True(SetTells.RingOn(1));
         Assert.True(SetTells.RingScale(1) > SetTells.RingScale(0.2));
         Assert.Equal(0, SetTells.RingScale(0));
+        Assert.True(SetTells.RingScale(SetTells.ChargePull) > 3,
+            $"pull ring under the feet r={SetTells.RingScale(SetTells.ChargePull)}");
+        Assert.True(SetTells.RingScale(1) >= 5, $"max ring must clear the toy r={SetTells.RingScale(1)}");
         Assert.True(SetTells.RingThickFt > 0.1, "plate 3/4 could not see a 0.045 pancake");
         Assert.True(SetTells.RingHeightFt < 0.2);
         Assert.True(SetTells.ZoneOn(true));
