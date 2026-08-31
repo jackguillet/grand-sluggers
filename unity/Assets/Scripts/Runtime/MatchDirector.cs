@@ -97,6 +97,7 @@ namespace GrandSluggers.UnityClient
         bool _gateHold;
         CardToy _card;
         LogoToy _logo;
+        ChemToy _chem;
         float _feelSlow = 1f;
         bool _freezeCam;
         float _aimX, _aimY;

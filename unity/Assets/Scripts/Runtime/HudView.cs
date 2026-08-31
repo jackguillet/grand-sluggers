@@ -206,19 +206,7 @@ namespace GrandSluggers.UnityClient
 
         static void Lineup(Match match)
         {
-            GUI.Label(new Rect(40, 36, 1000, 32), "TEAM SHEET  ·  " + match.Park.Name + (match.Night ? "  NIGHT" : ""), _h1);
-            GUI.Label(new Rect(40, 72, 1000, 22),
-                match.Home.Name + "  " + match.HomeBat.Name + " / " + match.HomeGlove.Name + "   [B][G]", _body);
-            var y = 110;
-            foreach (var c in match.HomeOrder)
-            {
-                var mark = c.Captain ? "C" : "+";
-                GUI.Label(new Rect(48, y, 700, 22),
-                    mark + "  " + c.Name + "   B" + c.Stats.Bat + "  P" + c.Stats.Pitch + "  F" + c.Stats.Field + "  R" + c.Stats.Run,
-                    _body);
-                y += 24;
-            }
-            GUI.Label(new Rect(40, y + 16, 800, 22), "SPACE  first pitch", _gold);
+            _ = match;
         }
 
         static void Replay(Match match, string highlight)

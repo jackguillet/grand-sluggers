@@ -115,10 +115,10 @@
     {
       "id": "lineup",
       "look": "plate",
-      "pos": { "x": 0, "y": 38, "z": -48 },
-      "target": { "x": 0, "y": 2, "z": 90 },
-      "fov": 48,
-      "blend": 8
+      "pos": { "x": 14, "y": 9.5, "z": -8 },
+      "target": { "x": 0.4, "y": 2.4, "z": 20 },
+      "fov": 50,
+      "blend": 6
     },
     {
       "id": "result",
