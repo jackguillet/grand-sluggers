@@ -193,9 +193,10 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
             else
                 _park.Ball.SetTrailColor(Color.white);
-            if (_replaying || _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Set || _spec.Active)
-                _park.Ball.Place(_ball, starPitch, ptype, heat,
-                    _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow);
+            var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
+            var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
+            if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
+                _park.Ball.Place(_ball, starPitch, ptype, heat, inFlight, inPlay);
             else
                 _park.Ball.Hide();
 

@@ -2,21 +2,26 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Drawn baseball in game feet (sim units). Real ball is ~0.25.
-/// DiameterFt is the posed still (mound must not become a beach ball).
-/// FlightDiameterFt is the in-flight scale so a pitch reads at 60 ft.
+/// DiameterFt is the posed still (held, mound, glove).
+/// FlightDiameterFt is pitch-toward-plate at the mound so a pitch reads at 60 ft.
+/// InPlayDiameterFt is contact, hops, and throws — a glove, not a torso.
 /// </summary>
 public static class Baseball
 {
     public const double DiameterFt = 0.62;
-    public const double FlightDiameterFt = 2.05;
+    public const double FlightDiameterFt = 1.15;
+    public const double InPlayDiameterFt = 0.70;
 
     public static double InFlightScale(bool inFlight) =>
         inFlight ? FlightDiameterFt : DiameterFt;
 
-    /// <summary>Far from the plate the toy is big. It eases to DiameterFt in the box.</summary>
-    public static double ApparentScale(bool inFlight, double z)
+    /// <summary>
+    /// Pitch far from the plate eases up so it reads. In-play never uses that far-scale.
+    /// </summary>
+    public static double ApparentScale(bool inFlight, double z, bool inPlay = false)
     {
         if (!inFlight) return DiameterFt;
+        if (inPlay) return InPlayDiameterFt;
         var far = Math.Clamp((z - 8) / 40, 0, 1);
         return DiameterFt + (FlightDiameterFt - DiameterFt) * far;
     }
