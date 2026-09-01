@@ -45,4 +45,35 @@ public class ExhibitionPickTests
         Assert.NotEqual("rio", next.Away);
         Assert.Equal("harbor-diamond", next.Park);
     }
+
+    [Fact]
+    public void Pad1CanSitAwayWithoutMovingCaptainsOrPark()
+    {
+        var start = ExhibitionPick.Default;
+        Assert.True(start.Pad1Home);
+        Assert.Equal("rio", start.Yours);
+        Assert.Equal("ashlord", start.Theirs);
+        var away = ExhibitionPick.ToggleSeat(start);
+        Assert.False(away.Pad1Home);
+        Assert.Equal("rio", away.Home);
+        Assert.Equal("ashlord", away.Away);
+        Assert.Equal("ashlord", away.Yours);
+        Assert.Equal("rio", away.Theirs);
+        Assert.Equal("harbor-diamond", away.Park);
+        Assert.True(ExhibitionPick.ToggleSeat(away).Pad1Home);
+    }
+
+    [Fact]
+    public void CycleYoursFollowsTheSeat()
+    {
+        var home = ExhibitionPick.Default;
+        var nextHome = ExhibitionPick.CycleYours(home, 1);
+        Assert.Equal("vale", nextHome.Home);
+        Assert.Equal("ashlord", nextHome.Away);
+        var away = ExhibitionPick.ToggleSeat(home);
+        var nextAway = ExhibitionPick.CycleYours(away, 1);
+        Assert.Equal("rio", nextAway.Home);
+        Assert.NotEqual("ashlord", nextAway.Away);
+        Assert.Equal(nextAway.Away, nextAway.Yours);
+    }
 }

@@ -16,6 +16,10 @@ public class CarnivalFrontTests
         Assert.Contains("Fireworks", CarnivalFront.Gimmick("harbor-diamond", true), StringComparison.OrdinalIgnoreCase);
         Assert.Equal("DAY", CarnivalFront.SkyGag(false));
         Assert.Equal("NIGHT", CarnivalFront.SkyGag(true));
+        Assert.Equal("HOME", CarnivalFront.SeatMark(true));
+        Assert.Equal("AWAY", CarnivalFront.SeatMark(false));
+        Assert.Contains("bottom", CarnivalFront.SeatHint(true), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("top", CarnivalFront.SeatHint(false), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

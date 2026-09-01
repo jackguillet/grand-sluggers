@@ -17,7 +17,7 @@ namespace GrandSluggers.UnityClient
             bool hideHelp = false, string highlight = null, bool replaying = false,
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
-            bool starPitch = false, bool starSwing = false)
+            bool starPitch = false, bool starSwing = false, bool pad1Home = true)
         {
             Ensure();
             if (phase == PhaseUi.Title)
@@ -27,7 +27,7 @@ namespace GrandSluggers.UnityClient
             }
             if (phase == PhaseUi.Select)
             {
-                Select(homeCap, awayCap, null);
+                Select(homeCap, awayCap, pad1Home, null);
                 return;
             }
             if (phase == PhaseUi.Field)
@@ -75,15 +75,20 @@ namespace GrandSluggers.UnityClient
                 "South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings", _tiny);
         }
 
-        public static void Select(string homeId, string awayId, ContentCatalog content)
+        public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content)
         {
             Ensure();
-            if (content != null && content.Characters.TryGetValue(homeId, out var homeWho))
-                Card(CharacterCard.Of(homeWho), 36, 28);
-            if (content != null && content.Characters.TryGetValue(awayId, out var awayWho))
-                Sticker("vs  " + awayWho.Name, 36, 268, 400, 24, _gold);
+            var yours = pad1Home ? homeId : awayId;
+            var theirs = pad1Home ? awayId : homeId;
+            if (content != null && content.Characters.TryGetValue(yours, out var youWho))
+                Card(CharacterCard.Of(youWho), 36, 28);
+            var vs = "vs  ";
+            if (content != null && content.Characters.TryGetValue(theirs, out var themWho))
+                vs += themWho.Name;
+            Sticker(CarnivalFront.SeatMark(pad1Home) + "  " + vs, 36, 268, 480, 24, _gold);
+            GUI.Label(new Rect(36, 300, 520, 22), CarnivalFront.SeatHint(pad1Home), _tiny);
             GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                "pad 1 L/R home    pad 2 L/R or U/D away    South the field    West title    Esc how to play", _tiny);
+                "L/R your team    U/D the other    North HOME/AWAY    South the field    West title    Esc how to play", _tiny);
         }
 
         public static void Card(CharacterCard card, float x, float y)

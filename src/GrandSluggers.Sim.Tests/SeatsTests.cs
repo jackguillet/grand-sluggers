@@ -73,6 +73,29 @@ public class SeatsTests
     }
 
     [Fact]
+    public void Pad1CanSitAwayVsCpuAndInVersus()
+    {
+        var one = Seats.FromPads(1, pad1Home: false);
+        Assert.Equal(Seats.AwayOne, one);
+        Assert.Equal(LineupSeat.Cpu, one.Home);
+        Assert.Equal(LineupSeat.Pad1, one.Away);
+        Assert.Equal(1, one.Count);
+        Assert.True(one.CpuPitches(top: true));
+        Assert.True(one.HumanBats(top: true));
+        Assert.True(one.HumanPitches(top: false));
+        Assert.True(one.CpuBats(top: false));
+
+        var vs = Seats.FromPads(2, pad1Home: false);
+        Assert.Equal(Seats.AwayVersus, vs);
+        Assert.Equal(LineupSeat.Pad2, vs.Home);
+        Assert.Equal(LineupSeat.Pad1, vs.Away);
+        Assert.True(vs.BothHuman);
+        Assert.Equal(LineupSeat.Pad2, vs.Pitching(top: true));
+        Assert.Equal(LineupSeat.Pad1, vs.Batting(top: true));
+        Assert.Equal(Seats.FromPads(1), Seats.FromPads(1, pad1Home: true));
+    }
+
+    [Fact]
     public void SetCamera1PFollowsRoleTwoPadsStayPlate()
     {
         Assert.Equal(1, Seats.One.Count);
