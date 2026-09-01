@@ -92,7 +92,7 @@ namespace GrandSluggers.UnityClient
             const float w = 312f;
             const float h = 232f;
             GUI.DrawTexture(new Rect(x, y, w, h), _panel);
-            GUI.Label(new Rect(x + 14, y + 8, w - 50, 28), card.Name.ToUpperInvariant(), _h1);
+            GUI.Label(new Rect(x + 18, y + 8, w - 56, 28), card.Name.ToUpperInvariant(), _h1);
             ChemPip(x + w - 34, y + 14, card.VsCaptain);
             StatRow(x + 14, y + 42, "PIT", card.Stats.Pitch);
             StatRow(x + 14, y + 64, "BAT", card.Stats.Bat);
@@ -375,13 +375,13 @@ namespace GrandSluggers.UnityClient
             SeatCard(Px(lay.BatterCard), "AB", bug.Batter, humanBats,
                 "NEXT  " + bug.Next,
                 (bStar ? "STAR  " : "") + (steal ? "STEAL  " : "") + (item ?? ""),
-                Look.HasPortrait(match.Batter.Id) ? Look.Portrait(match.Batter.Id) : null);
+                Look.Portrait(match.Batter));
             SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
                 BroadcastHud.ArmLine(match.PitcherStamina),
                 (pitches != null && pi >= 0 && pi < pitches.Length ? pitches[pi].ToUpperInvariant() : "")
                     + (pStar ? "  STAR" : "")
                     + (BroadcastHud.PoorArm(match.PitcherStamina) ? "  SWEAT" : ""),
-                Look.HasPortrait(match.Pitcher.Id) ? Look.Portrait(match.Pitcher.Id) : null);
+                Look.Portrait(match.Pitcher));
             Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
                 Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
             if (!showTiming) return;
@@ -465,6 +465,8 @@ namespace GrandSluggers.UnityClient
             if (_title != null) return;
             _title = Sty(42, new Color(1f, 0.85f, 0.2f), FontStyle.Bold);
             _h1 = Sty(26, Color.white, FontStyle.Bold);
+            _h1.clipping = TextClipping.Overflow;
+            _h1.padding = new RectOffset(4, 4, 0, 0);
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
             _gold = Sty(20, new Color(1f, 0.82f, 0.25f), FontStyle.Bold);
             _tiny = Sty(15, new Color(0.85f, 0.88f, 0.9f), FontStyle.Normal);
