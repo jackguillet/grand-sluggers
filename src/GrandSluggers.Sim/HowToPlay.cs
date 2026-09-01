@@ -151,8 +151,8 @@ public static class HowToPlay
         new("exhibition", "Captain and field", "exhibition",
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield.",
-            "Home captain is the toy in front. South / Space    play ball.",
-            "Captains are the toys. Stick L/R home. Camera looks at the toy, not the brim, not the dirt.",
+            "Your captain is the toy in front. North / Q    you are HOME or AWAY. HOME bats the bottom.",
+            "Captains are the toys. Stick L/R your team. U/D the other. Camera looks at the toy, not the brim, not the dirt.",
             "South    the field — a postcard with a crowd and a padded wall. Harbor is the slice. The park does not follow the captain.",
         ]),
         new("lineup", "Lineup", "lineup",
@@ -164,7 +164,7 @@ public static class HowToPlay
         ]),
         new("two-pads", "Two pads", "exhibition",
         [
-            "Gamepad 0 is home. Gamepad 1 is away. Keyboard and mouse are player 1 only.",
+            "Gamepad 0 is player 1. North picks HOME or AWAY. Gamepad 1 sits the other side. Keyboard and mouse are player 1 only.",
             "Unplug pad 2 and that team is CPU.",
             "You pitch the top. Friend bats. CPU never bats when both pads sit.",
             "Two pads: camera stays on the plate, behind home. The fielding pad takes the glove.",
