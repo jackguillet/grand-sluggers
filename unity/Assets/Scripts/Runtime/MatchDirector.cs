@@ -538,7 +538,8 @@ namespace GrandSluggers.UnityClient
             _items?.Hide();
             _zone.Show(false, 0, 0);
             _ring?.Hide();
-            _cam.Play("result");
+            // Between pitches is SET, not the backstop result postcard (#301).
+            _cam.Cut(AtBatShots.SetShot(HumanPitches, false, 0, 0, 0, TrainingOn, LiveSeats.Count));
         }
 
         void TickItem(float dt)
@@ -696,8 +697,10 @@ namespace GrandSluggers.UnityClient
         bool PitcherReleased()
         {
             var hero = PitcherHero();
-            return hero != null && hero.Current == HeroActor.Pose.ThrowPitch
-                && hero.PoseTime >= (float)MoveBones.PitchRelease;
+            if (hero == null) return true;
+            var due = (float)MoveBones.PitchRelease;
+            if (hero.Current != HeroActor.Pose.ThrowPitch) return _t >= due;
+            return hero.PoseTime >= due;
         }
 
         void CaptureReleaseFromHand()

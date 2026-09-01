@@ -1,9 +1,9 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// One named shot per play. 1P and 2P use the same picture (#325).
-/// Exhibition SET is <see cref="AtBatShots.Plate"/> for pitch and swing.
-/// Training pitching may still stand behind the rubber.
+/// One named shot per play. 1P and 2P share the recipe for the same role (#301, #304).
+/// SET forks pitcher view vs batter view, not seat count: human pitching is
+/// <see cref="AtBatShots.Mound"/>, human batting is <see cref="AtBatShots.Plate"/>.
 /// </summary>
 public static class PlayCamera
 {
@@ -25,15 +25,18 @@ public static class PlayCamera
 
     public const string Wall = "wall";
 
+    public readonly record struct Viewport(double X, double Y, double Depth);
+
     /// <summary>
     /// Seat count must not change the shot. Pass it so 1v1 cannot invent a second rig.
+    /// <paramref name="pitchingSet"/> is the role: on the rubber vs in the box.
     /// </summary>
-    public static string Shot(Beat beat, int seats = 1, bool trainingPitchingSet = false)
+    public static string Shot(Beat beat, int seats = 1, bool pitchingSet = false)
     {
         _ = seats;
         return beat switch
         {
-            Beat.Set => trainingPitchingSet ? AtBatShots.Mound : AtBatShots.Plate,
+            Beat.Set => pitchingSet ? AtBatShots.Mound : AtBatShots.Plate,
             Beat.PitchFlight => AtBatShots.Pitch,
             Beat.Grounder => "diamond-grounder",
             Beat.GrounderPull => "diamond-pull",
@@ -47,6 +50,46 @@ public static class PlayCamera
             _ => AtBatShots.Plate
         };
     }
+
+    /// <summary>
+    /// Unity-style vertical FOV projection. Rubber in the bottom of mound SET
+    /// is a viewport Y, not a look-at-dirt target.
+    /// </summary>
+    public static Viewport? Project(CameraShot shot, Vec3 p, double aspect = 16.0 / 9.0)
+    {
+        var fx = shot.Target.X - shot.Pos.X;
+        var fy = shot.Target.Y - shot.Pos.Y;
+        var fz = shot.Target.Z - shot.Pos.Z;
+        var fl = Math.Sqrt(fx * fx + fy * fy + fz * fz);
+        if (fl < 1e-6) return null;
+        fx /= fl;
+        fy /= fl;
+        fz /= fl;
+        var rx = fz;
+        var rz = -fx;
+        var rl = Math.Sqrt(rx * rx + rz * rz);
+        if (rl < 1e-6) return null;
+        rx /= rl;
+        rz /= rl;
+        var ux = fy * rz;
+        var uy = fz * rx - fx * rz;
+        var uz = -fy * rx;
+        var dx = p.X - shot.Pos.X;
+        var dy = p.Y - shot.Pos.Y;
+        var dz = p.Z - shot.Pos.Z;
+        var z = fx * dx + fy * dy + fz * dz;
+        if (z <= 0.01) return null;
+        var x = rx * dx + rz * dz;
+        var y = ux * dx + uy * dy + uz * dz;
+        var vfov = shot.Fov * Math.PI / 180.0;
+        var hfov = 2 * Math.Atan(Math.Tan(vfov / 2) * aspect);
+        var ndcX = x / z / Math.Tan(hfov / 2);
+        var ndcY = y / z / Math.Tan(vfov / 2);
+        return new Viewport(0.5 + 0.5 * ndcX, 0.5 + 0.5 * ndcY, z);
+    }
+
+    public static bool InFrame(Viewport? v, double margin = 0.04) =>
+        v is { } p && p.X > margin && p.X < 1 - margin && p.Y > margin && p.Y < 1 - margin;
 
     public static Beat BeatFrom(AtBatResult hit)
     {

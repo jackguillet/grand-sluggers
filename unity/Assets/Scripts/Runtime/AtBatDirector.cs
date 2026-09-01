@@ -232,6 +232,12 @@ namespace GrandSluggers.UnityClient
                 _audio?.CaptainVo(_match.Pitcher.Id);
                 Controls.RumbleStar();
             }
+            var hero = PitcherHero();
+            if (hero != null)
+                hero.SetPose(HeroActor.Pose.ThrowPitch, 0f, pitch.Type);
+            // Cut, do not blend. SET→flight blending looks at dirt while the
+            // ball stays in the hand (#301).
+            _cam.Cut(AtBatShots.Pitch);
             AimSetCamera();
         }
 
@@ -243,7 +249,10 @@ namespace GrandSluggers.UnityClient
                 HoldPitchInHand();
                 if (HumanBats)
                     TickCharge(dt, _feel.SwingChargeSeconds, BatPad, ref _charge, ref _chargePast);
-                if (!PitcherReleased() && _t < 0.55f)
+                // Authored release even if ThrowPitch never plays. Waiting on
+                // the clip left the ball in the glove while the count ticked.
+                var due = (float)MoveBones.PitchRelease;
+                if (!PitcherReleased() && _t < due)
                     return;
                 CaptureReleaseFromHand();
                 _park.Ball.Release();

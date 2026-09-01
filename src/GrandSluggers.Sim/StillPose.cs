@@ -36,6 +36,15 @@ public static class StillPose
     public const double PitchLookY = 5.1;
     public const double PitchLookZ = 57.0;
     public const double PitchFov = 34;
+
+    /// <summary>3/4 behind the rubber. Rubber in the bottom, box at home in frame.</summary>
+    public const double MoundCamX = 8.0;
+    public const double MoundCamY = 7.4;
+    public const double MoundCamZ = 78.0;
+    public const double MoundLookX = 0.4;
+    public const double MoundLookY = 1.4;
+    public const double MoundLookZ = 3.0;
+    public const double MoundFov = 44;
     /// <summary>Just off the hand, still on the pitcher, coming at the box.</summary>
     public const double PitchBallU = 0.12;
 

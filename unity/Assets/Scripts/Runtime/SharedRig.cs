@@ -294,6 +294,7 @@ namespace GrandSluggers.UnityClient
             PaintDrop(go, jersey, flesh, slack, leather, ink, white);
             HideNamed(go.transform, "EyeL");
             HideNamed(go.transform, "EyeR");
+            HideLookRays(go.transform);
             Face(chain.Head, Has("ember-eyes") || slug, ink, white, flesh);
             AttachHatAndExtras(chain, body, Has, jersey, trim, flesh, ink);
             AttachRing(chain);
@@ -507,6 +508,28 @@ namespace GrandSluggers.UnityClient
                     Look.Paint(r.gameObject, slack);
             }
         }
+
+        /// <summary>F2 leftover look helpers. A white ray from the brim must not ship.</summary>
+        static void HideLookRays(Transform root)
+        {
+            if (root == null) return;
+            if (IsLookName(root.name))
+            {
+                foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+                    r.enabled = false;
+                foreach (var lr in root.GetComponentsInChildren<LineRenderer>(true))
+                    lr.enabled = false;
+                root.gameObject.SetActive(false);
+                return;
+            }
+            for (var i = 0; i < root.childCount; i++)
+                HideLookRays(root.GetChild(i));
+        }
+
+        static bool IsLookName(string n) =>
+            n.Equals("Look", StringComparison.OrdinalIgnoreCase)
+            || n.Equals("LookS", StringComparison.OrdinalIgnoreCase)
+            || n.Equals("LookRay", StringComparison.OrdinalIgnoreCase);
 
         static void HideNamed(Transform root, string name)
         {
