@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Who sits home and away. Gamepad 0 is home (keyboard is that seat too).
 /// Gamepad 1 sits away; missing pad 2 is CPU. Unplug remaps without restarting
-/// the inning — Exhibition SET stays <see cref="PlayCamera.Beat.Set"/> / plate.
+/// the inning — SET still forks pitcher view vs batter view, not seat count.
 /// </summary>
 public readonly record struct Seats(LineupSeat Home, LineupSeat Away)
 {

@@ -6,31 +6,35 @@ namespace GrandSluggers.Sim.Tests;
 public class PlayCameraTests
 {
     [Fact]
-    public void ExhibitionSetIsPlateForPitchAndSwingOnePadOrTwo()
+    public void SetForksPitcherViewVsBatterViewNotSeatCount()
     {
         Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set));
-        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1));
-        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, pitchingSet: true));
+        Assert.Equal(
+            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true),
+            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
         Assert.Equal(
             PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1),
             PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0.4, 0.5, -0.2));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.4, 0.5, -0.2));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(false, true, 0, 0, 0));
     }
 
     [Fact]
-    public void TrainingPitchingMayUseMoundExhibitionDoesNot()
+    public void TrainingPitchingUsesTheSameMoundRecipe()
     {
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, training: true));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0, training: true));
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, trainingPitchingSet: true));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, pitchingSet: true));
         Assert.Equal(
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, trainingPitchingSet: true),
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, trainingPitchingSet: true));
+            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true),
+            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
     }
 
     [Fact]
