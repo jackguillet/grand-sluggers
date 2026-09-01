@@ -144,7 +144,10 @@ namespace GrandSluggers.UnityClient
             FoulR = Anchor("FoulR", new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
             Mound = Anchor("Mound", new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
             Rubber = Anchor("Rubber", new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
-            ShotPlate = ShotAnchor("ShotPlate", new Vector3(-10.8f, 5.2f, -4.4f), new Vector3(2.55f, 0.95f, 11f), 50f);
+            ShotPlate = ShotAnchor("ShotPlate",
+                new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
+                new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
+                (float)StillPose.PlateFov);
             ShotMound = ShotAnchor("ShotMound", new Vector3(10.2f, 6.2f, 75.8f), new Vector3(0.4f, 1.6f, 2.2f), 42f);
             ShotDiamond = ShotAnchor("ShotDiamond", new Vector3(20f, 20f, 55f), new Vector3(0f, 14f, 220f), 48f);
             ShotThrow = ShotAnchor("ShotThrow", new Vector3(0f, 6.2f, -14f), new Vector3(0f, 1.4f, 0f), 40f);

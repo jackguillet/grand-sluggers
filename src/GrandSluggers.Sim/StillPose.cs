@@ -21,13 +21,17 @@ public static class StillPose
     public const double ScoopLookY = 0.55;
     public const double ScoopLookZ = 30;
 
-    public const double PlateCamX = -10.8;
-    public const double PlateCamY = 5.2;
-    public const double PlateCamZ = -4.4;
-    public const double PlateLookX = 2.55;
-    public const double PlateLookY = 0.95;
-    public const double PlateLookZ = 11;
-    public const double PlateFov = 50;
+    /// <summary>
+    /// First-base 3/4 behind home. Batter sits left of the look; the pitcher
+    /// is in the diamond, not a dirt close-up of the box.
+    /// </summary>
+    public const double PlateCamX = 8.0;
+    public const double PlateCamY = 5.0;
+    public const double PlateCamZ = -5.6;
+    public const double PlateLookX = 0.4;
+    public const double PlateLookY = 1.8;
+    public const double PlateLookZ = 16;
+    public const double PlateFov = 54;
 
     public const double PitchCamX = -12.0;
     public const double PitchCamY = 5.0;
@@ -70,8 +74,8 @@ public static class StillPose
         && runX < Diamond.First.X && runZ < Diamond.First.Z
         && (runX - camX) + (runZ - camZ) > 12;
 
-    public static bool PlateIsThirdBaseThreeQuarter(double x, double z) =>
-        x < -6 && z < -3 && z > -12;
+    public static bool PlateIsBatterOverShoulder(double x, double z) =>
+        x > 6 && z < -3 && z > -12;
 
     /// <summary>
     /// Catcher is at (0, -4). A camera further behind home puts him in the
