@@ -66,16 +66,19 @@ namespace GrandSluggers.UnityClient
             else
                 _cam.AimRaw("chase", _ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
 
-            if (_ring != null && _preview != null && FlyCatch.IsFly(_preview) && !_caught && !_buddy)
+            if (_ring != null && _preview != null)
             {
                 var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-                var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
-                var who = PlayFielder();
-                var red = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
-                _ring.Show(plant.X, plant.Z, (float)_preview.CatchRadius, red);
+                if (LandingMark.On(_preview, _ball.y, _hitT, _caught, _buddy, hang))
+                {
+                    var plant = LandingMark.At(_preview, _match.Park);
+                    var who = PlayFielder();
+                    _ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_preview),
+                        LandingMark.Hot(_hitT, hang, who, _match.Park));
+                }
+                else
+                    _ring.Hide();
             }
-            else
-                _ring?.Hide();
 
             if (_diveT > 0) _diveT -= dt;
             if (_jumpT > 0) _jumpT -= dt;

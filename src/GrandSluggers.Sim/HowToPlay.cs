@@ -145,7 +145,7 @@ public static class HowToPlay
             "Don't move: the outfielder runs to the landing on a fly, not the ball. Contact puffs dirt.",
             "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
-            "West jump in the window. East    dive. North    attack. A homer sits on the wall.",
+            "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",
             "Fly camera is a 3/4 on the glove. A steal gun is a catcher throw without a hop.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
@@ -180,7 +180,7 @@ public static class HowToPlay
         [
             "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
             "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. Select / R swaps.",
-            "The landing ring is the grass the ball wants. YOU is the glove you have.",
+            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU is the glove you have.",
             "ITEM → name when an error item is ready.",
         ]),
         new("chemistry", "Chemistry", "chemistry",

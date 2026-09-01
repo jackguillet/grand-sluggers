@@ -1,24 +1,29 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
 {
-    /// <summary>SMS fly locator: yellow while it's coming, red in the catch window.</summary>
+    /// <summary>
+    /// Circle on the grass at the landing. Yellow while it is coming, red in
+    /// the catch window. Tube from <see cref="LandingMark"/> — not a pancake.
+    /// </summary>
     public sealed class LandingRing : MonoBehaviour
     {
         Transform _root;
         Transform _ring;
+        Material _gold;
+        Material _hot;
 
         public void Build(Transform parent)
         {
             if (_root != null) Destroy(_root.gameObject);
+            _gold = Look.Unlit(new Color(1f, 0.86f, 0.12f));
+            _hot = Look.Unlit(new Color(0.95f, 0.18f, 0.16f));
             _root = new GameObject("LandingRing").transform;
             _root.SetParent(parent, false);
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.name = "Ring";
-            go.transform.SetParent(_root, false);
-            go.transform.localScale = new Vector3(14f, 0.06f, 14f);
-            Destroy(go.GetComponent<Collider>());
-            _ring = go.transform;
+            var max = (float)Mathf.Max((float)LandingMark.MinRadiusFt, 0.01f);
+            var minor = (float)(LandingMark.ThickFt / max);
+            _ring = Look.Torus("Circle", _root, 1f, minor, _gold, seg: 40, sides: 8).transform;
             Hide();
         }
 
@@ -26,11 +31,11 @@ namespace GrandSluggers.UnityClient
         {
             if (_root == null) return;
             _root.gameObject.SetActive(true);
-            _root.position = new Vector3((float)x, 0.16f, (float)z);
-            var d = Mathf.Max(8f, radius * 1.6f);
-            _ring.localScale = new Vector3(d, 0.07f, d);
-            var col = catchWindow ? new Color(0.95f, 0.18f, 0.16f, 1f) : new Color(1f, 0.86f, 0.12f, 1f);
-            Look.Paint(_ring.gameObject, Look.Unlit(col));
+            _root.position = new Vector3((float)x, (float)LandingMark.WorldY, (float)z);
+            var r = Mathf.Max((float)LandingMark.MinRadiusFt, radius);
+            _root.localScale = Vector3.one * r;
+            if (_ring != null)
+                Look.Paint(_ring.gameObject, catchWindow ? _hot : _gold);
         }
 
         public void Hide()
