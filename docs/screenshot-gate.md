@@ -14,7 +14,7 @@ Three stills. HUD off means **F2 off** and the scorebug not covering the subject
 
 | # | Still | Must show | Fail if |
 |---|---|---|---|
-| 1 | **Batting SET** (`plate`) | Over-the-shoulder 3/4. Full batter in the box (feet to hat) **left of the look**. Pentagon + two chalk rectangles on packed dirt. **Pink/gold charge ring around the box** (LT / `charge01: 1`). Pitcher **in the look**, in a windup, not a T-pose. You can **name the captain**. Catcher is not the subject. | Catcher-spine, looking down at the box dirt, pitcher a corner speck, cage grid in the dirt, cap close-up, “brown cube with a brim,” camera through the backstop, pitcher idle with both arms hanging, gold pancake under the feet, no ring |
+| 1 | **Batting SET** (`plate`) | **Behind home** looking at the pitcher. Full batter in the box (feet to hat) **left of the look**. Pentagon + two chalk rectangles with dirt between them. **Pink/gold charge ring around the box** (LT / `charge01: 1`). Pitcher **in the look**, in a windup. You can **name the captain**. Catcher is behind the camera. | First-base foul-line crop, hat/brim as the picture, catcher-spine, boxes kissing the plate, pitcher a corner speck, cage grid in the dirt, camera through the backstop, pitcher idle with both arms hanging, gold pancake under the feet, no ring |
 | 2 | **Scoop** | Glove on the dirt, ball in the glove, runner leaving the box, grass. Camera is a 3/4 in the park (`diamond-grounder` / hopper), not high-home. | Cubes chasing a marble, auto-glove with no scoop verb, broadcast high-home |
 | 3 | **Star swing** | Body owns ~2 seconds (Heatball core+embers on Rio, etc.). Scorebug gone. Then baseball. Side 3/4 on the torso. | Full-screen white/black blind, a smear with no body, HUD still talking, cage owns the frame, fire pancake on the dirt, loose sky blobs |
 
@@ -78,13 +78,13 @@ Take three outs however you like (South to pitch, meatballs are fine). Bottom of
 
 ### Batting SET (`plate`) — bottom of 1 — **still 1**
 
-Camera stays over the batter’s shoulder looking at the mound for the whole pitch. Batter is large on the left. Catcher stays behind the lens.
+Camera sits **behind home** looking at the mound for the whole pitch. Batter is a full body on the left. Catcher is behind the lens. Pentagon and both boxes read with dirt between them.
 
-- You in the box, feet to hat. Two chalk boxes + pentagon. Pitcher in the distance.
+- You in the box, feet to hat — not a brim close-up. Pitcher in the look.
 - Hold **LT**. Charge ring on the dirt around the box.
 - F2: `SHOT PLATE`. Off. F3: HUD off.
 - Capture **before** you swing.
-- Fail the still if you are looking through the cage or at the catcher’s spine.
+- Fail the still if you are looking down the foul line, at a hat, through the cage, or at the catcher’s spine.
 
 ### Star swing — **still 3**
 

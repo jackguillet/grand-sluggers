@@ -21,17 +21,14 @@ public static class StillPose
     public const double ScoopLookY = 0.55;
     public const double ScoopLookZ = 30;
 
-    /// <summary>
-    /// First-base 3/4 behind home. Batter sits left of the look; the pitcher
-    /// is in the diamond, not a dirt close-up of the box.
-    /// </summary>
-    public const double PlateCamX = 8.0;
-    public const double PlateCamY = 5.0;
-    public const double PlateCamZ = -5.6;
-    public const double PlateLookX = 0.4;
-    public const double PlateLookY = 1.8;
-    public const double PlateLookZ = 16;
-    public const double PlateFov = 54;
+    /// <summary>Behind home looking at the mound. Numbers live on <see cref="HomeSet"/>.</summary>
+    public const double PlateCamX = HomeSet.CamX;
+    public const double PlateCamY = HomeSet.CamY;
+    public const double PlateCamZ = HomeSet.CamZ;
+    public const double PlateLookX = HomeSet.LookX;
+    public const double PlateLookY = HomeSet.LookY;
+    public const double PlateLookZ = HomeSet.LookZ;
+    public const double PlateFov = HomeSet.Fov;
 
     public const double PitchCamX = -12.0;
     public const double PitchCamY = 5.0;
@@ -77,15 +74,15 @@ public static class StillPose
         && runX < Diamond.First.X && runZ < Diamond.First.Z
         && (runX - camX) + (runZ - camZ) > 12;
 
-    public static bool PlateIsBatterOverShoulder(double x, double z) =>
-        x > 6 && z < -3 && z > -12;
+    public static bool PlateIsBehindHome(double x, double z) =>
+        HomeSet.CameraIsBehindHome(x, z);
 
     public static bool MoundIsPitcherOverShoulder(double x, double z) =>
         x > 4 && z > Diamond.Mound + 8 && z < Diamond.Mound + 16;
 
     /// <summary>
-    /// Catcher is at (0, -4). A camera further behind home puts him in the
-    /// look cone; the bound mesh then owns the right foreground.
+    /// Catcher crouches behind the batting SET (<see cref="HomeSet.CatcherZ"/>).
+    /// A catcher at z=−4 sat in the look cone and owned the foreground.
     /// </summary>
     public static bool PlateCatcherClearsTheLens(double camX, double camZ, double lookX, double lookZ)
     {

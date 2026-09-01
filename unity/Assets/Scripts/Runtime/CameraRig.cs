@@ -90,7 +90,7 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)StillPose.MoundLookX, (float)StillPose.MoundLookY, (float)StillPose.MoundLookZ),
                 (float)StillPose.MoundFov);
 
-        /// <summary>Over-the-batter 3/4 looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
+        /// <summary>Behind home looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
         public void FramePlate() =>
             Cut(
                 new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),

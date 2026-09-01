@@ -439,7 +439,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_match?.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var b) && b != null)
                 return b.transform.position + Vector3.up * 3.2f;
-            return _ball.sqrMagnitude > 0.4f ? _ball : new Vector3(2.55f, 3.2f, 2.4f);
+            return _ball.sqrMagnitude > 0.4f
+                ? _ball
+                : new Vector3((float)HomeSet.BatterX, (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
         void AimDiamond(AtBatResult hit)
