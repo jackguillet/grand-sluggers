@@ -148,7 +148,10 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
                 new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
                 (float)StillPose.PlateFov);
-            ShotMound = ShotAnchor("ShotMound", new Vector3(10.2f, 6.2f, 75.8f), new Vector3(0.4f, 1.6f, 2.2f), 42f);
+            ShotMound = ShotAnchor("ShotMound",
+                new Vector3((float)StillPose.MoundCamX, (float)StillPose.MoundCamY, (float)StillPose.MoundCamZ),
+                new Vector3((float)StillPose.MoundLookX, (float)StillPose.MoundLookY, (float)StillPose.MoundLookZ),
+                (float)StillPose.MoundFov);
             ShotDiamond = ShotAnchor("ShotDiamond", new Vector3(20f, 20f, 55f), new Vector3(0f, 14f, 220f), 48f);
             ShotThrow = ShotAnchor("ShotThrow", new Vector3(0f, 6.2f, -14f), new Vector3(0f, 1.4f, 0f), 40f);
             WarningTrack = Folder("WarningTrack");
