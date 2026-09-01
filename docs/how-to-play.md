@@ -2,7 +2,7 @@
 
 Living spec for couch play. **Gamepad is the couch product. Keyboard and mouse are the same scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only. F1/F2/F3 stay debug.
 
-**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. Click a row, or left-click to confirm. Those pages are `HowToPlay.Pages` (same copy as below). If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
+**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. How to play is a **full-screen illustrated booklet** for a 12-year-old: a picture of our toys, a handful of short sentences, couch-sized type. Click a row, or left-click to confirm. Those pages are `HowToPlay.Pages` (same map as below). Pictures live in `unity/Assets/Resources/Art/Booklet/`. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 

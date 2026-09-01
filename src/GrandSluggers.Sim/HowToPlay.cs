@@ -92,193 +92,128 @@ public static class PauseMenu
 
 public static class HowToPlay
 {
-    public sealed record Page(string Id, string Title, IReadOnlyList<string> Lines);
+    public sealed record Page(string Id, string Title, string Picture, IReadOnlyList<string> Lines);
 
-    public const float BookW = 760f;
+    /// <summary>Couch book. Fills most of a 1280×800 player. 12-year-old type.</summary>
+    public const float BookMargin = 0.04f;
+    public const int KidLineMax = 6;
+    public const float KidLineH = 36f;
 
     public static readonly IReadOnlyList<Page> Pages =
     [
-        new("contents", "Contents",
+        new("contents", "Contents", "contents",
         [
-            "This is Grand Sluggers' instruction booklet. Call time opens it.",
-            "Controls                  pad and keyboard / mouse",
-            "Pitch and swing           tap, charge, star, bunt, scatter",
-            "The box and the rubber    walk, curve, pickoff",
-            "Running                   send, return, halt, steal, close plays",
-            "Fielding                  glove, throw, jump, attack, buddy",
-            "Captain and field         Exhibition front-of-house",
-            "Lineup                    chemistry draft",
-            "Two pads                  local 1v1",
-            "Chemistry · Stars · Abilities · Error items",
-            "Pause and Practice        call time, Training",
-            "Pad is the nunchuk map: stick + face buttons. Keyboard and mouse are the pointer.",
-            "Both work at once. Keyboard and mouse are player 1 only.",
+            "This is the instruction booklet. Call time (H) or Esc opens it.",
+            "Pictures first. Short sentences. You can read it from the couch.",
+            "South / Space / left click    next page. East / Esc    back.",
+            "Pad, keyboard, and mouse all work. Keyboard and mouse are player 1 only.",
+            "Exhibition is the game. Training is practice.",
         ]),
-        new("controls", "Controls",
-            new[]
-            {
-                "Two schemes. Pad is couch. Keyboard + mouse is the pointer. Same verbs.",
-                "Offense and defense share the face buttons. Context decides the verb.",
-                "Verb    Pad    Keyboard    Mouse",
-            }
-                .Concat(Scheme.Product.Select(v => $"{TitleCase(v.Id)}    {v.Pad}    {v.Keys}    {v.Mouse}"))
-                .Append("Menus: point / stick, South / left click confirm, East / right click cancel.")
-                .ToArray()),
-        new("pitch-swing", "Pitch and swing",
+        new("controls", "Controls", "exhibition",
         [
-            "Same four verbs on the mound and in the box.",
-            "Tap South / Space / left click    normal pitch    slap hit (easier contact)",
-            "Hold LT / Shift / right click, commit at MAX    charge pitch    charge swing",
-            "Rings line up at MAX, then power drops. Late charge is weaker.",
-            "MAX commit    Nice! / Nice Hit!",
-            "West / V through release    changeup (hangs, then dumps)",
-            "SET when you pitch is the mound 3/4: over the pitcher, rubber in the bottom, looking at the box. SET when you bat is the plate 3/4, looking at the mound.",
-            "Same recipe with one pad or two — pitcher view vs batter view, not seat count. Pad 2 does not move the HUD.",
-            "When they throw, the camera cuts to pitch: arm through, ball leaving that hand. ~1s to the plate (not MLB 90).",
-            "West hold / V / Left Ctrl    bunt",
-            "North + South / Q + Space / middle + left click    star (costs a star even on a miss)",
-            "Stick / mouse L/R at contact    scatter the hit.",
+            "South / Space / Left click    pitch, swing, catch, throw.",
+            "Hold LT / Shift / right click    charge. Rings gold at MAX.",
+            "Stick / WASD / mouse    move. D-pad / 1 2 3 4    bags.",
+            "Start / H    call time. Esc    this book. East / G / right click    back.",
+            "Same verbs on pad and on keyboard + mouse. Mouse is player 1 only.",
         ]),
-        new("the-box", "The box and the rubber",
+        new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
-            "Stick L/R / mouse    walk the rubber (pitch) or the box (hit). Down resets.",
-            "Sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
-            "Stick L/R / mouse after the ball is in the air    curve / late bite.",
-            "Not a four-type pitch cycle.",
-            "D-pad / 1 2 3 + South before the pitch    pickoff.",
-            "A glued runner goes back. A dancing lead can be out.",
-            "Select / R    swap pitcher when they sweat.",
+            "Tap South / Space / left click to pitch or swing. Hold charge for a bigger one.",
+            "Charge ring sits on the dirt. Commit at MAX. Late charge is weaker.",
+            "SET when you pitch is the mound. SET when you bat is the plate.",
+            "When they throw, the camera cuts to pitch: the ball leaving the hand.",
+            "West / V    changeup. North + South    star. Stick L/R at contact    scatter.",
         ]),
-        new("running", "Running",
+        new("the-box", "The box and the rubber", "the-box",
         [
-            "LB / ,    all advance    RB / .    all return    both / /    halt all",
-            "D-pad / 1 2 3    select a runner (right 1B, up 2B, left 3B). Down / 4 is home — not stealable.",
-            "Stick toward the next bag    lead on the highlighted runner. Back    return.",
-            "Stick toward a bag + halt    freeze that runner only. They hold the lead they have.",
-            "L3 / Z    steal the selected runner toward their next bag. They go on the pitch. No steal home.",
-            "After a take or miss the catcher guns. Arm 2B (default on a steal of second) and South.",
-            "Early throw that beats the runner is CAUGHT STEALING. Late is STOLEN BASE.",
-            "Dead stick    CPU catcher still guns. Take the stick and you own it.",
-            "Mash South / Space after contact    dash to first.",
-            "West / South near the bag    slide.",
-            "Close play at 3rd or home    first South / left click after the icon. Runner safe if offense wins.",
-            "Fair contact always sends the batter to first.",
-            "Fly: hold. All-advance tags up after the catch.",
+            "Stick L/R / mouse    walk the rubber (pitch) or the box (hit).",
+            "The sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
+            "After the pitch is in the air, stick L/R    curve.",
+            "D-pad / 1 2 3 + South    pickoff. Select / R    swap a tired pitcher.",
         ]),
-        new("fielding", "Fielding",
+        new("running", "Running", "running",
         [
-            "Dead stick    CPU takes the hop and throws.",
-            "Fielders run the hop. Contact puffs dirt. Charge ring sits on the dirt around the box.",
-            "Balls into the grass    the outfielder charges and takes the glove.",
-            "Stick / WASD / mouse    take the glove. WASD while chasing does not throw.",
-            "South / Space / left click    catch, then throw.",
-            "On a fly    West jump in the window. South scoops if you are under it. Miss    the ball drops.",
-            "A would-be homer sits on the wall. West (or buddy West) in the window robs. South does not.",
-            "Super Jump / Grow / Clamber add window, not a skip. Dead stick    CPU still can catch.",
-            "Camera    fly is a 3/4 on the glove. Homer rises with the ball, then the wall with the fielder.",
-            "Hold East / G    dash. Tap East    dive. West / F    jump / buddy jump.",
-            "North / B / middle click    attack. Kick the ball to a nearby glove, or smash a flying item.",
-            "E near a chem partner    buddy toss (they laser). Attack also kicks if they are close.",
-            "D-pad / 1 2 3 4    arm a bag. Mini-diamond pip is the armed bag.",
-            "Hopper default is second when first is occupied, else first. WASD while chasing does not throw.",
-            "Runner on first: throw to second (force), you are that glove, throw to first. You throw both. Dead stick CPU can turn two.",
-            "LB / X with no bag    relay, not a random bag.",
-            "After you throw, you are the glove at that bag.",
-            "A steal gun is the same throw to a bag, from the catcher, without a hop.",
-            "Select / R swaps. Stick points at who you want.",
+            "Hit the ball and you run to first. Mash South / Space    dash.",
+            "LB / ,    all advance. RB / .    all return. Both    halt.",
+            "D-pad 1B 2B 3B picks the highlighted selected runner. L3 / Z    steal. No steal home.",
+            "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
+            "Close play: first South / left click wins. Fly: hold, then tag up.",
         ]),
-        new("exhibition", "Captain and field",
+        new("fielding", "Fielding", "fielding",
         [
-            "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield. Home captain is the toy in front. South / Space    play ball.",
-            "Captains are the toys. Stick L/R home, U/D away. The HUD card is the UI. The pick steps forward. Camera looks at the toy, not the brim, not the plate dirt.",
-            "South    the field — a postcard: crowd of people, padded wall with ads, scoreboard, brick town. Harbor is the slice.",
-            "West / F    back. The park does not follow the captain.",
+            "Don't move and the outfielder still can catch. Contact puffs dirt.",
+            "Move the stick / WASD / mouse to take the glove. South    catch, then throw.",
+            "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
+            "West jump in the window. East    dive. North    attack. A homer sits on the wall.",
+            "Fly camera is a 3/4 on the glove. A steal gun is a catcher throw without a hop.",
         ]),
-        new("lineup", "Lineup",
+        new("exhibition", "Captain and field", "exhibition",
         [
-            "Two screens: Team Setup, then Offense / Defense Setup.",
-            "Team Setup: home nine along the top, away nine along the bottom. Center is heads.",
-            "Stick picks a head. South drops into the empty slot. West removes. Captain stays.",
-            "Hearts are buddies. Scribbles are rivals. Stars jump when a buddy comes in.",
-            "Away is CPU until a second pad sits. Pad 1 edits home. Pad 2 edits away. Tab random-fills — not the product path.",
-            "Offense / Defense: batting 1–9 as a bar of heads. Two diamonds, gloves on P C 1B 2B 3B SS LF CF RF.",
-            "Stick on the bar reorders. Stick on the diamond moves the glove. LB / East still cycle order.",
-            "Card stickers the highlighted head. South / Space    first pitch.",
+            "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield.",
+            "Home captain is the toy in front. South / Space    play ball.",
+            "Captains are the toys. Stick L/R home. Camera looks at the toy, not the brim, not the dirt.",
+            "South    the field — a postcard with a crowd and a padded wall. Harbor is the slice. The park does not follow the captain.",
         ]),
-        new("two-pads", "Two pads",
+        new("lineup", "Lineup", "lineup",
+        [
+            "Team Setup first, then Offense / Defense Setup.",
+            "Pick a head. South drops them in. Hearts are buddies. Stars jump when a buddy comes in.",
+            "Two diamonds: gloves on P C 1B 2B 3B SS LF CF RF.",
+            "South / Space    first pitch.",
+        ]),
+        new("two-pads", "Two pads", "exhibition",
         [
             "Gamepad 0 is home. Gamepad 1 is away. Keyboard and mouse are player 1 only.",
-            "Missing pad 2    that team is CPU. Unplug pad 2    they become CPU without restarting the inning.",
-            "Title / captains / Team Setup / Defense Setup: pad 1 home, pad 2 away. Each edits their captain, roster, order, gloves.",
-            "First pitch: pad 1 pitches the top, pad 2 bats. Bottom: they swap. CPU never bats or pitches when both pads are seated.",
-            "SET is mound when a human is on the rubber, plate when you bat vs CPU. Same role recipe as 1P. Batter card bottom-left, pitcher card bottom-right. Highlight your card. HUD corners do not move.",
-            "Pad-on-mound walks the rubber, charges, throws. Pad-in-the-box walks the box, charges, swings. Same verbs as 1P.",
-            "In-play: the fielding pad takes the glove (stick to take, dead stick = CPU cover). The batting pad sends / returns / steals. Both at once.",
+            "Unplug pad 2 and that team is CPU.",
+            "You pitch the top. Friend bats. CPU never bats when both pads sit.",
+            "SET is mound when you pitch, plate when you bat. The fielding pad takes the glove.",
         ]),
-        new("getting-started", "Getting started",
+        new("getting-started", "Getting started", "getting-started",
         [
-            "Title is the park. South / Space / left click    play ball (pick captain).",
-            "Esc    How to play (this book) from title, captains, field, lineup, or a pitch.",
-            "Exhibition    pick captains, a field, a lineup, play. The product.",
-            "Training    Title West. Harbor drills: Pitch, Bat, Field, Run, Special, Free.",
-            "Two pads    gamepad 0 home, gamepad 1 away. Keyboard and mouse stay player 1.",
-            "Challenge, Toy Field, minigames, and records stay later. Exhibition is why people stay.",
-            "Tab on the title    3 / 6 / 9 innings. Home bats the bottom.",
+            "South / Space / left click    play ball. Esc    this book.",
+            "Exhibition    pick captains, a field, a lineup, play.",
+            "Training    Title West. Harbor drills.",
+            "Tab    3 / 6 / 9 innings. Home bats the bottom.",
         ]),
-        new("screen", "The game screen",
+        new("screen", "The game screen", "exhibition",
         [
             "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
-            "Mini diamond    who is on. Highlighted pip is the selected runner. Leads walk off the bag.",
-            "Batter card    AB, next batter, star, steal, error item. Pitcher card    ARM stamina.",
-            "When the pitcher sweats, the card says TIRED. Ball speed and control drop. Select / R swaps.",
-            "In-play    landing ring is the grass the ball wants. YOU  RF  ·  name is the glove you have. Dead stick    no YOU.",
-            "Error item pointer    gold ring on the body, ITEM → name. Stick / mouse aim. E / left+right to throw.",
-            "CPU fielding    the camera is the plate 3/4. You still see the mound.",
+            "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. Select / R swaps.",
+            "The landing ring is the grass the ball wants. YOU is the glove you have.",
+            "ITEM → name when an error item is ready.",
         ]),
-        new("chemistry", "Chemistry",
+        new("chemistry", "Chemistry", "chemistry",
         [
-            "How well toys play together is chemistry. Hearts are buddies. Scribbles are rivals.",
-            "Good throwing    faster, on-line, purple laser. Buddy jump and buddy toss.",
-            "Bad throwing    slow, off the mark. Sometimes a comedy error.",
-            "Good batting    if the on-deck toy likes the batter, an error item appears after contact.",
-            "Buddies on base    juice a charge swing. Starting stars come from the captain's friends.",
-            "A stacked team of strangers starts starved. A crew that likes each other starts loaded.",
+            "Hearts are buddies. Scribbles are rivals.",
+            "Buddies throw faster. Rivals miss. Buddy jump. Buddy toss.",
+            "A buddy on deck can gift a banana after you hit.",
+            "Friends on your team start with more stars.",
         ]),
-        new("stars", "Star skills",
+        new("stars", "Star skills", "stars",
         [
-            "Shared meter, max 5. Spend 1 for your toy's star. A guest captain spends 2.",
-            "Captains have a unique Star Pitch and Star Swing. Role players get juice (fast / hang / break).",
-            "North + South / Q + Space / middle + left click    fire. Costs a star even on a miss.",
+            "You get up to 5 stars. Spend 1 to fire your toy's star.",
+            "North + South / Q + Space / middle + left click    fire.",
             "A special breaks a baseball rule for about two seconds, then baseball resumes.",
-            "Not a free home run. The ball or the field changes — not the other player's eyes.",
+            "Not a free home run. The ball or the field changes.",
         ]),
-        new("abilities", "Who you are",
+        new("abilities", "Who you are", "abilities",
         [
             "Each toy has one field verb. Super Jump / Grow / Lick Catch add range.",
-            "Dive / Burrow eat grounders. Laser / Snap Throw laser the bag.",
-            "Clamber robs a wall. Spin Check knocks an extra-base hit down a bag.",
             "The card shows P / B / F / R, the star pitch, the star swing, and the field verb.",
-            "Pitchers sweat. Stamina drops on long outings and star pitches. Swap when they are tired.",
+            "Pitchers sweat. Swap when they are TIRED.",
         ]),
-        new("items", "Error items",
+        new("items", "Error items", "items",
         [
-            "On-deck buddy    banana, rocket, or POW after contact.",
-            "Stick / mouse aim at a glove. E / LT+RB / South+LT / left click+right    throw.",
-            "Banana    peel on the grass. Rocket    daze the body. POW    infield hop.",
-            "Fielding attack (North / B / middle click) smashes a flying item before it lands.",
-            "Smoke, ghost, and paint stay banned. No full-screen blinds.",
+            "A buddy on deck can give you a banana, rocket, or POW after contact.",
+            "Aim with the stick / mouse. Throw with E or left click + right click.",
+            "Banana    peel. Rocket    daze. POW    hop. Attack smashes a flying item.",
         ]),
-        new("pause-practice", "Pause and Practice",
+        new("pause-practice", "Pause and Practice", "pause-practice",
         [
-            "Start / H during a pitch or play    call time (this menu). Esc    How to play from title too.",
-            "WASD or arrows choose. South / Space / left click ok. Start / H / Esc or East / G / right click resume.",
-            "Click a row. Wheel turns How to play pages.",
-            "Resume, Restart, How to play, Title.",
-            "Title West    Practice. Stick picks Pitch / Bat / Field / Run / Special / Free.",
-            "Fielding    catch, jump a fly, throw a bag, turn two.",
-            "East from pitching    skip to Fielding (scoop). You are not trapped in lesson 1.",
-            "Tab on the title    3 / 6 / 9 innings. Home bats the bottom.",
-            "F1 F2 F3 stay debug, not this page.",
+            "Start / H    call time. Esc    this book from title too.",
+            "South / Space / left click ok. East / G / right click resume.",
+            "Title West    Training. F1 F2 F3 stay debug, not this page.",
         ]),
     ];
 
@@ -291,12 +226,32 @@ public static class HowToPlay
             p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
             p.Lines.Any(l => l.Contains(needle, StringComparison.OrdinalIgnoreCase)));
 
-    public static (float X, float Y, float W, float H) BookPanel(float screenW, float screenH, int lineCount)
+    public static (float X, float Y, float W, float H) BookPanel(float screenW, float screenH, int lineCount = 0)
     {
-        var h = 64f + lineCount * 24f + 48f;
-        var x = screenW * 0.5f - BookW * 0.5f;
-        var y = Math.Max(36f, screenH * 0.5f - h * 0.5f);
-        return (x, y, BookW, h);
+        _ = lineCount;
+        var x = screenW * BookMargin;
+        var y = screenH * BookMargin;
+        var w = screenW * (1f - 2f * BookMargin);
+        var h = screenH * (1f - 2f * BookMargin);
+        return (x, y, w, h);
+    }
+
+    public static (float X, float Y, float W, float H) PictureRect(float screenW, float screenH)
+    {
+        var p = BookPanel(screenW, screenH);
+        var top = 88f;
+        var foot = 44f;
+        var picW = p.W * 0.52f - 20f;
+        var picH = p.H - top - foot - 16f;
+        return (p.X + 16f, p.Y + top, picW, picH);
+    }
+
+    public static (float X, float Y, float W, float H) TextRect(float screenW, float screenH)
+    {
+        var p = BookPanel(screenW, screenH);
+        var pic = PictureRect(screenW, screenH);
+        var x = pic.X + pic.W + 16f;
+        return (x, pic.Y, p.X + p.W - 16f - x, pic.H);
     }
 
     /// <summary>-1 previous page, 1 next, 0 miss. Left half of the book is back.</summary>
