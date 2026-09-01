@@ -54,7 +54,22 @@ namespace GrandSluggers.UnityClient
             if (who.Id == _id && _root != null) return;
             _id = who.Id;
             if (_root != null) Destroy(_root.gameObject);
+            DropRing();
             Build(who);
+        }
+
+        void OnDisable()
+        {
+            if (_ring != null) _ring.gameObject.SetActive(false);
+        }
+
+        void OnDestroy() => DropRing();
+
+        void DropRing()
+        {
+            if (_ring == null) return;
+            Destroy(_ring.gameObject);
+            _ring = null;
         }
 
         public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
@@ -148,23 +163,27 @@ namespace GrandSluggers.UnityClient
                 _root.localScale = Vector3.Lerp(_root.localScale, want, 0.22f);
                 _root.localPosition = new Vector3(0f, bounce, 0f);
             }
-            if (_ring != null)
-            {
-                var on = SetTells.RingOn(_chargeRing);
-                _ring.gameObject.SetActive(on);
-                if (on)
-                {
-                    if (_ring.parent != transform)
-                        _ring.SetParent(transform, false);
-                    var s = (float)SetTells.RingScale(_chargeRing);
-                    var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
-                    // Uniform scale: a Y squash turned the torus into the gold pancake.
-                    _ring.localPosition = new Vector3(0f, (float)(SetTells.RingHeightFt + SetTells.RingThickFt), 0f);
-                    _ring.localRotation = Quaternion.identity;
-                    _ring.localScale = Vector3.one * pulse;
-                }
-            }
+            PlaceRing();
             Animate();
+        }
+
+        void PlaceRing()
+        {
+            if (_ring == null) return;
+            var on = SetTells.RingOn(_chargeRing);
+            _ring.gameObject.SetActive(on);
+            if (!on) return;
+            if (_ring.parent != null)
+                _ring.SetParent(null, true);
+            var s = (float)SetTells.RingScale(_chargeRing);
+            var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
+            var feetX = _hasGround ? _ground.x : transform.position.x;
+            var feetZ = _hasGround ? _ground.z : transform.position.z;
+            var at = SetTells.RingAt(feetX, feetZ, transform.position.y, _lift);
+            _ring.SetPositionAndRotation(
+                new Vector3((float)at.X, (float)at.Y, (float)at.Z),
+                Quaternion.identity);
+            _ring.localScale = Vector3.one * pulse;
         }
 
         void Build(Character who)

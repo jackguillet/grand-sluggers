@@ -137,6 +137,7 @@ namespace GrandSluggers.UnityClient
             mf.sharedMesh = BuildTorus(major, minor, seg, sides);
             mr.sharedMaterial = mat;
             mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
             return go;
         }
 
@@ -167,12 +168,14 @@ namespace GrandSluggers.UnityClient
                 {
                     var a = i * (sides + 1) + j;
                     var b = a + sides + 1;
+                    // Clockwise from outside: Unity culls CCW, which hid the tube
+                    // from the plate 3/4 (only the hole's inner wall was front-facing).
                     tris[t++] = a;
-                    tris[t++] = a + 1;
                     tris[t++] = b;
                     tris[t++] = a + 1;
+                    tris[t++] = a + 1;
+                    tris[t++] = b;
                     tris[t++] = b + 1;
-                    tris[t++] = b;
                 }
             }
             var mesh = new Mesh { name = "Torus" };
