@@ -62,26 +62,43 @@ public class FeelInfraTests
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
-        // Third-base 3/4 so the loaded bat is not the lens. Look at the dirt
-        // around the box (ring + feet), not the brim.
-        Assert.True(StillPose.PlateIsThirdBaseThreeQuarter(plate.Pos.X, plate.Pos.Z),
-            $"plate third-base 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
+        // First-base 3/4 over the shoulder: batter left of the look, pitcher
+        // in the diamond. Looking at the box dirt shoves the pitcher off-frame.
+        Assert.True(StillPose.PlateIsBatterOverShoulder(plate.Pos.X, plate.Pos.Z),
+            $"plate over-shoulder 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.True(StillPose.PlateCatcherClearsTheLens(
             plate.Pos.X, plate.Pos.Z, plate.Target.X, plate.Target.Z),
             $"plate catcher in the look cone x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.InRange(plate.Pos.Y, 4.4, 6.8);
-        Assert.True(plate.Target.Z > 10, $"plate looks into the diamond, target z={plate.Target.Z}");
-        Assert.True(plate.Target.Z < 22, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");
-        Assert.True(plate.Target.Y < 1.4, $"plate look is on the dirt/box y={plate.Target.Y}");
-        Assert.True(Math.Abs(plate.Target.X - 2.55) < 3, $"plate look is on the batter x={plate.Target.X}");
+        Assert.True(plate.Target.Z > 12, $"plate looks into the diamond, target z={plate.Target.Z}");
+        Assert.True(plate.Target.Z < 24, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");
+        Assert.InRange(plate.Target.Y, 1.4, 2.8);
+        Assert.True(Math.Abs(plate.Target.X) < 2, $"plate look is the pipe, not the hip x={plate.Target.X}");
         var batter = new Vec3(2.55, 0, 2.4);
         var batterDist = Dist(plate.Pos, batter);
-        Assert.InRange(batterDist, 12, 22);
+        Assert.InRange(batterDist, 8, 16);
         var batterDeg = LookDeg(plate.Pos, plate.Target, batter);
         Assert.True(batterDeg < 28, $"batter off the plate look {batterDeg:0.0} deg");
-        Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + infield");
+        var pitcherDegPlate = LookDeg(plate.Pos, plate.Target, new Vec3(0, 3.2, Diamond.Mound));
+        Assert.True(pitcherDegPlate < 20, $"pitcher off the plate look {pitcherDegPlate:0.0} deg");
+        Assert.True(plate.Fov >= 50, $"plate fov {plate.Fov} too tight for box + pitcher");
         Assert.Equal(StillPose.PlateCamX, plate.Pos.X, 1);
         Assert.Equal(StillPose.PlateCamZ, plate.Pos.Z, 1);
+        var plateHome = PlayCamera.Project(plate, new Vec3(0, 0.2, 0));
+        var plateFeet = PlayCamera.Project(plate, new Vec3(2.55, 0.15, 2.4));
+        var plateChest = PlayCamera.Project(plate, new Vec3(2.55, 3.2, 2.4));
+        var plateHat = PlayCamera.Project(plate, new Vec3(2.55, 5.0, 2.4));
+        var platePitcher = PlayCamera.Project(plate, new Vec3(0, 3.2, Diamond.Mound));
+        var plateCatcher = PlayCamera.Project(plate, new Vec3(0, 1.6, -4));
+        Assert.True(PlayCamera.InFrame(plateHome, 0.02), $"home plate off batting frame {plateHome}");
+        Assert.True(PlayCamera.InFrame(plateFeet), $"batter feet off batting frame {plateFeet}");
+        Assert.True(PlayCamera.InFrame(plateChest), $"batter chest off batting frame {plateChest}");
+        Assert.True(PlayCamera.InFrame(plateHat, 0.0), $"batter hat off batting frame {plateHat}");
+        Assert.True(PlayCamera.InFrame(platePitcher), $"pitcher off batting frame {platePitcher}");
+        Assert.True(plateChest!.Value.X < 0.42, $"batter should sit left of the look vx={plateChest.Value.X}");
+        Assert.True(plateHat!.Value.Y - plateFeet!.Value.Y > 0.42,
+            $"batter too small in batting frame h={plateHat.Value.Y - plateFeet.Value.Y}");
+        Assert.False(PlayCamera.InFrame(plateCatcher, 0.02), $"catcher in batting look {plateCatcher}");
         // 3/4 behind the rubber looking at home. Rubber in the bottom; the
         // box is the look. Portrait/dirt and CF are both fails (#304).
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind the rubber z={mound.Pos.Z}");
