@@ -73,14 +73,16 @@ public class SeatsTests
     }
 
     [Fact]
-    public void SetCameraForksBySeatNotByRole()
+    public void SetCamera1PFollowsRoleTwoPadsStayPlate()
     {
         Assert.Equal(1, Seats.One.Count);
         Assert.Equal(2, Seats.Versus.Count);
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.One.Count));
-        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.Versus.Count));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.One.Count, pitchingSet: true));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.One.Count, pitchingSet: false));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.Versus.Count, pitchingSet: true));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: Seats.Versus.Count, pitchingSet: false));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 1));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 1));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 2));
         Assert.Equal(BroadcastHud.Layout(1), BroadcastHud.Layout(2));

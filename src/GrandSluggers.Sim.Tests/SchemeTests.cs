@@ -114,9 +114,9 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("Close play"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("attack"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("charge", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("mound") && l.Contains("SET"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("behind the pitcher") && l.Contains("behind home"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("plate") && l.Contains("SET"));
-        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("does not cut") || l.Contains("behind the pitcher"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Lines, l => l.Contains("does not cut"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("you are the glove"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("turn two"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("throw both"));

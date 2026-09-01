@@ -6,28 +6,31 @@ namespace GrandSluggers.Sim.Tests;
 public class PlayCameraTests
 {
     [Fact]
-    public void SetIsMoundIn1PAndPlateIn1v1()
+    public void SetIsMoundWhen1PPitchesPlateWhenBattingOr1v1()
     {
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1));
         Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true));
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 1));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 1));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 1, pitchingSet: true));
         Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2));
         Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
-        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 2));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 2, pitchingSet: true));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 1));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 1));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, true, 0, 0, 0, seats: 1));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, true, 0, 0, 0, seats: 2));
     }
 
     [Fact]
-    public void Training1PStaysBehindThePitcher()
+    public void Training1PFollowsTheRole()
     {
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true, seats: 1));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(false, false, 0, 0, 0, training: true, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, training: true, seats: 1));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0, training: true, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, true, 0, 0, 0, training: true, seats: 1));
     }
 
     [Fact]

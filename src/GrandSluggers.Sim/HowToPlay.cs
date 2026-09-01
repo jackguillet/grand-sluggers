@@ -121,7 +121,7 @@ public static class HowToPlay
         [
             "Tap South / Space / left click to pitch or swing. Hold charge for a bigger one.",
             "Charge ring sits on the dirt. Commit at MAX. Late charge is weaker.",
-            "One pad: SET stays on the mound, behind the pitcher. The throw does not cut.",
+            "One pad: you pitch from behind the pitcher. You hit from behind home. The throw does not cut.",
             "Two pads: SET stays on the plate, behind home.",
             "West / V    changeup. North + South    star. Stick L/R at contact    scatter.",
         ]),
