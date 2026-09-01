@@ -128,7 +128,9 @@ namespace GrandSluggers.UnityClient
                 {
                     if (OnThrowArrived()) return;
                     if (TryBeginClosePlay()) return;
-                    CommitInPlay();
+                    TickOccupy(0);
+                    if (PlayIsTime())
+                        CommitInPlay();
                 }
                 return;
             }
@@ -153,6 +155,7 @@ namespace GrandSluggers.UnityClient
 
         void TickPlayerField(float dt)
         {
+            TickOccupy(dt);
             var pre = _preview;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var hang = BallFlight.HangTime(_path);
@@ -299,9 +302,17 @@ namespace GrandSluggers.UnityClient
                 if (!_caught && _hitT < rest) return;
             }
             else if (_hitT < hang) return;
-            var commitAt = rest + _feel.InPlayCommitSeconds;
-            if ((_caught || _buddy) && _throwBag == 0 && _hitT < commitAt)
+            if (_caught || _buddy)
+            {
+                if (_throwBag > 0 || FieldPad.SouthDown)
+                {
+                    BeginPlayerThrowOrCommit(map);
+                    return;
+                }
+                if (PlayIsTime())
+                    CommitInPlay();
                 return;
+            }
             BeginPlayerThrowOrCommit(map);
         }
 
@@ -340,6 +351,7 @@ namespace GrandSluggers.UnityClient
 
         void TickCpuField(float dt)
         {
+            TickOccupy(dt);
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
             var grounder = _preview.Grounder;
@@ -393,7 +405,8 @@ namespace GrandSluggers.UnityClient
             if (_cpuField.Kind == PlayKind.HomeRun && _hitT < 2.4f) return;
             if (!grounder && _hitT < hang + 0.35f) return;
             if (_itemFlying) return;
-            CommitInPlay();
+            if (PlayIsTime())
+                CommitInPlay();
         }
 
         static bool TagCam(int bag) => bag is 3 or 4;
@@ -580,10 +593,7 @@ namespace GrandSluggers.UnityClient
                         return;
                 }
                 if (_throwBag <= 0)
-                {
-                    CommitInPlay();
                     return;
-                }
             }
             var key = _throwBag == 1 ? "1B" : _throwBag == 2 ? "2B" : _throwBag == 3 ? "3B" : "C";
             map.TryGetValue(key, out var cut);
@@ -781,6 +791,7 @@ namespace GrandSluggers.UnityClient
             _playerFielding = false;
             _pending = null;
             _cpuField = null;
+            _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _throwing = false;
             _closePlay = false;
             _closeIcon = false;
@@ -813,7 +824,8 @@ namespace GrandSluggers.UnityClient
             {
                 if (_bobbling || _playerBobble)
                     return new FieldingResult(PlayKind.Single, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, Bobble: true);
-                var kind = FlyCatch.PlayerKind(true, pre, hit);
+                var hangNow = _path != null ? BallFlight.HangTime(_path) : pre.HangTimeSec;
+                var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: _hitT < hangNow);
                 var knock = pre.Grounder && hit != null ? InPlay.KnockbackSec(InPlay.Energy(hit), from) : 0;
                 return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, KnockbackSec: knock);
             }
@@ -1045,5 +1057,61 @@ namespace GrandSluggers.UnityClient
             CommitInPlay();
         }
 
+        PlayKind LiveKind()
+        {
+            if (_cpuField != null) return _cpuField.Kind;
+            if (_preview == null || _pending == null) return PlayKind.Single;
+            var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
+            var inAir = !_caught && !_buddy || _hitT < hang;
+            return FlyCatch.PlayerKind(_caught || _buddy, _preview, _pending, inAir);
+        }
+
+        void TickOccupy(float dt)
+        {
+            if (_match == null || _pending == null) return;
+            var kind = LiveKind();
+            var dest = InPlay.BatterDestBag(kind);
+            var batter = _match.Batter;
+            var feet = InPlay.RunFeet(_hitT, batter, _dash01);
+            var (bx, bz) = dest > 0
+                ? InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ)
+                : (HomeSet.BatterX, HomeSet.BatterZ);
+            var batterOn = dest > 0 && InPlay.OccupyingBag(bx, bz);
+            var bat = InPlay.TickOccupy(batterOn, _occupyBatter, dt);
+            _occupyBatter = (float)bat.Sec;
+
+            TickOccupied(1, _match.First, kind, dt, ref _occupy1);
+            TickOccupied(2, _match.Second, kind, dt, ref _occupy2);
+            TickOccupied(3, _match.Third, kind, dt, ref _occupy3);
+        }
+
+        void TickOccupied(int fromBag, Character who, PlayKind kind, float dt, ref float sec)
+        {
+            if (who == null) { sec = 0; return; }
+            var dest = InPlay.OccupiedDestBag(fromBag, kind);
+            var feet = InPlay.RunFeet(_hitT, who);
+            var (x, z) = InPlay.TowardBag(fromBag, dest, feet);
+            var on = InPlay.OccupyingBag(x, z);
+            var o = InPlay.TickOccupy(on, sec, dt);
+            sec = (float)o.Sec;
+        }
+
+        bool PlayIsTime()
+        {
+            if (_match == null) return false;
+            var kind = LiveKind();
+            var batterDest = InPlay.BatterDestBag(kind);
+            var batter = batterDest <= 0
+                ? new InPlay.Occupy(true, InPlay.TimeOnBagSec)
+                : new InPlay.Occupy(_occupyBatter > 0, _occupyBatter);
+            return InPlay.Time(
+                _caught || _buddy,
+                _throwing,
+                _match.Outs,
+                batter,
+                _match.First != null ? new InPlay.Occupy(_occupy1 > 0, _occupy1) : null,
+                _match.Second != null ? new InPlay.Occupy(_occupy2 > 0, _occupy2) : null,
+                _match.Third != null ? new InPlay.Occupy(_occupy3 > 0, _occupy3) : null);
+        }
     }
 }

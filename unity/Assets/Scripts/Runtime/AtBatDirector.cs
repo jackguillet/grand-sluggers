@@ -400,6 +400,7 @@ namespace GrandSluggers.UnityClient
             _path = new Sample[list.Count];
             for (var i = 0; i < list.Count; i++) _path[i] = list[i];
             _hitT = 0;
+            _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _phase = Phase.InPlay;
             _t = 0;
             if (hit.HomeRun && _match.Night)

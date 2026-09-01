@@ -221,4 +221,97 @@ public static class InPlay
 
     public static bool FairContactSendsBatter(AtBatResult hit) =>
         hit.InPlay && !hit.Foul;
+
+    /// <summary>
+    /// Time. The glove has the ball, nobody is throwing, and every live runner
+    /// has occupied a bag for <see cref="TimeOnBagSec"/>. Three outs end it now.
+    /// Picking up the ball is not Time.
+    /// </summary>
+    public const double TimeOnBagSec = 1.0;
+
+    public readonly record struct Occupy(bool OnBag, double Sec);
+
+    public static bool Time(
+        bool hasBall,
+        bool throwing,
+        int outs,
+        Occupy batter,
+        Occupy? first = null,
+        Occupy? second = null,
+        Occupy? third = null)
+    {
+        if (outs >= 3) return true;
+        if (!hasBall || throwing) return false;
+        if (!Settled(batter)) return false;
+        if (first is { } a && !Settled(a)) return false;
+        if (second is { } b && !Settled(b)) return false;
+        if (third is { } c && !Settled(c)) return false;
+        return true;
+    }
+
+    static bool Settled(Occupy o) => o.OnBag && o.Sec + 1e-9 >= TimeOnBagSec;
+
+    public static Occupy TickOccupy(bool onBag, double sec, double dt) =>
+        onBag ? new Occupy(true, sec + dt) : new Occupy(false, 0);
+
+    /// <summary>Bags the batter is awarded. 0 = out (not running as a runner).</summary>
+    public static int BatterDestBag(PlayKind kind) => kind switch
+    {
+        PlayKind.HomeRun => 4,
+        PlayKind.Triple => 3,
+        PlayKind.Double => 2,
+        PlayKind.Single => 1,
+        PlayKind.Walk => 1,
+        PlayKind.GroundOut => 1,
+        _ => 0
+    };
+
+    /// <summary>Occupied runner's dest on that contact. 4 = scores.</summary>
+    public static int OccupiedDestBag(int fromBag, PlayKind kind)
+    {
+        var extra = BatterDestBag(kind);
+        if (extra <= 0) return fromBag;
+        var dest = fromBag + extra;
+        return dest > 4 ? 4 : dest;
+    }
+
+    public const double OccupyRadiusFt = 6;
+
+    public static bool OccupyingBag(double x, double z, double radius = OccupyRadiusFt)
+    {
+        if (Diamond.Dist(x, z, 0, 0) <= radius) return true;
+        for (var bag = 1; bag <= 3; bag++)
+        {
+            var p = Diamond.Bag(bag);
+            if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Feet along home → 1B → 2B → 3B → home. destBag 1..4. fromBag 0 is home.</summary>
+    public static (double X, double Z) TowardBag(
+        int fromBag, int destBag, double feet, double homeX = 0, double homeZ = 0)
+    {
+        if (destBag <= fromBag)
+            return fromBag <= 0 ? (homeX, homeZ) : Diamond.Bag(fromBag);
+        var cap = (destBag - fromBag) * Diamond.Baseline;
+        feet = Math.Clamp(feet, 0, cap);
+        if (feet >= cap - 0.5)
+        {
+            var end = destBag >= 4 ? Diamond.Home : Diamond.Bag(destBag);
+            return (end.X, end.Z);
+        }
+        var seg = (int)(feet / Diamond.Baseline);
+        var u = (feet - seg * Diamond.Baseline) / Diamond.Baseline;
+        var a = fromBag + seg;
+        var from = a <= 0 ? (X: homeX, Z: homeZ) : Diamond.Bag(a);
+        var to = Diamond.Bag(a + 1);
+        return (from.X + (to.X - from.X) * u, from.Z + (to.Z - from.Z) * u);
+    }
+
+    public static (double X, double Z) AlongBases(double feet, int destBag, double startX = 0, double startZ = 0) =>
+        TowardBag(0, destBag, feet, startX, startZ);
+
+    public static double RunFeet(double elapsed, Character who, double dash01 = 0) =>
+        elapsed * Diamond.Baseline / Math.Max(0.4, HomeToFirstSec(who, dash01));
 }
