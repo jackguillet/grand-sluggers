@@ -1,5 +1,6 @@
 using GrandSluggers.Sim;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace GrandSluggers.UnityClient
 {
@@ -12,7 +13,8 @@ namespace GrandSluggers.UnityClient
         Light _glow;
         Transform _shadow;
         Transform _puff;
-        readonly Transform[] _bits = new Transform[6];
+        Transform _cloud;
+        readonly Transform[] _bits = new Transform[5];
         string _look = "";
         Transform _held;
         float _lastY = 4f;
@@ -21,9 +23,9 @@ namespace GrandSluggers.UnityClient
         Vector3 _lastPlace;
         bool _hadPlace;
         static readonly float Diameter = (float)Baseball.DiameterFt;
-        static readonly float FlightDiameter = (float)Baseball.FlightDiameterFt;
         static readonly float Sit = Diameter * 0.5f;
         bool _inFlight;
+        bool _inPlay;
 
         public bool Held => _held != null;
 
@@ -37,7 +39,7 @@ namespace GrandSluggers.UnityClient
         public void SetTrailColor(Color c)
         {
             if (_trail == null) return;
-            _trail.startColor = c;
+            _trail.startColor = new Color(c.r, c.g, c.b, 0.85f);
             _trail.endColor = new Color(c.r, c.g, c.b, 0f);
         }
 
@@ -64,14 +66,23 @@ namespace GrandSluggers.UnityClient
             Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
             Stitch(_ball.transform);
 
-            _trail = _ball.AddComponent<TrailRenderer>();
-            _trail.time = 0.42f;
-            _trail.startWidth = Diameter * 0.35f;
-            _trail.endWidth = Diameter * 0.04f;
-            _trail.material = new Material(Shader.Find("Sprites/Default") ?? Look.LitShader);
-            _trail.startColor = Color.white;
-            _trail.endColor = new Color(1, 1, 1, 0);
-            _trail.minVertexDistance = 0.12f;
+            var trailGo = new GameObject("Trail");
+            trailGo.transform.SetParent(_root, false);
+            trailGo.transform.localPosition = new Vector3(0f, Sit, 0f);
+            _trail = trailGo.AddComponent<TrailRenderer>();
+            _trail.time = 0.28f;
+            _trail.startWidth = Diameter * 0.12f;
+            _trail.endWidth = Diameter * 0.02f;
+            _trail.widthMultiplier = 1f;
+            _trail.alignment = LineAlignment.View;
+            _trail.numCapVertices = 4;
+            _trail.numCornerVertices = 4;
+            _trail.minVertexDistance = 0.08f;
+            _trail.shadowCastingMode = ShadowCastingMode.Off;
+            _trail.receiveShadows = false;
+            _trail.material = MotionArc();
+            _trail.startColor = new Color(1f, 1f, 1f, 0.85f);
+            _trail.endColor = new Color(1f, 1f, 1f, 0f);
 
             var glowGo = new GameObject("Glow");
             glowGo.transform.SetParent(_root, false);
@@ -83,24 +94,26 @@ namespace GrandSluggers.UnityClient
 
             var dirt = Look.Unlit(new Color(0.12f, 0.1f, 0.08f, 0.55f));
             _shadow = Look.Prim(PrimitiveType.Cylinder, "BallShadow", parent,
-                new Vector3(0, 0.05f, 0), new Vector3(FlightDiameter * 1.35f, 0.05f, FlightDiameter * 1.35f), dirt).transform;
+                new Vector3(0, 0.04f, 0), new Vector3(Diameter * 1.15f, 0.04f, Diameter * 1.15f), dirt).transform;
             _shadow.gameObject.SetActive(false);
 
             _puff = new GameObject("HopPuff").transform;
             _puff.SetParent(parent, false);
-            var dust = Look.Unlit(new Color(0.48f, 0.34f, 0.18f, 0.85f));
-            Look.Prim(PrimitiveType.Cylinder, "Cloud", _puff, Vector3.zero, new Vector3(1.4f, 0.1f, 1.4f), dust);
+            var dust = Look.Unlit(new Color(0.40f, 0.28f, 0.16f, 0.75f));
+            _cloud = Look.Prim(PrimitiveType.Cylinder, "Cloud", _puff, Vector3.zero,
+                new Vector3(0.55f, 0.06f, 0.55f), dust).transform;
             for (var i = 0; i < _bits.Length; i++)
             {
-                _bits[i] = Look.Prim(PrimitiveType.Cube, "Bit" + i, _puff, Vector3.zero,
-                    new Vector3(0.38f, 0.22f, 0.3f), Look.Lit(new Color(0.42f, 0.28f, 0.12f), smooth: 0.08f)).transform;
+                _bits[i] = Look.Prim(PrimitiveType.Sphere, "Bit" + i, _puff, Vector3.zero,
+                    Vector3.one * 0.14f, dust).transform;
             }
             _puff.gameObject.SetActive(false);
         }
 
-        public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat, bool inFlight = false)
+        public void Place(Vector3 p, string starPitch, string pitchType, bool inPlayHeat, bool inFlight = false, bool inPlay = false)
         {
             _inFlight = inFlight;
+            _inPlay = inPlay;
             if (_root == null) return;
             _root.gameObject.SetActive(true);
 
@@ -121,12 +134,13 @@ namespace GrandSluggers.UnityClient
 
             TickPuff();
 
-            var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat + "|" + _inFlight;
+            var key = (starPitch ?? "") + "|" + pitchType + "|" + inPlayHeat + "|" + _inFlight + "|" + _inPlay;
             if (key != _look || starPitch == "prismball")
             {
                 _look = key;
                 ApplyLook(starPitch, pitchType, inPlayHeat);
             }
+            StampScale(starPitch, inPlayHeat);
         }
 
         public void Hold(Transform glove)
@@ -163,7 +177,6 @@ namespace GrandSluggers.UnityClient
         void ApplyLook(string star, string type, bool heat)
         {
             Color col;
-            var scale = _inFlight ? FlightDiameter : Diameter;
             var glow = 0f;
             var glowCol = Colors.EmberFire;
             var matCol = new Color(0.96f, 0.93f, 0.86f);
@@ -173,7 +186,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = Colors.EmberFire;
                 col = Colors.EmberFire;
-                scale = Diameter * 1.15f;
                 glow = 3.6f;
                 smooth = 0.15f;
             }
@@ -181,7 +193,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(1f, 0.42f, 0.68f);
                 col = matCol;
-                scale = Diameter * 1.08f;
                 glow = 2.8f;
                 glowCol = matCol;
                 smooth = 0.35f;
@@ -190,7 +201,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.55f, 1f, 0.75f);
                 col = Color.HSVToRGB((Time.time * 0.4f) % 1f, 0.7f, 1f);
-                scale = Diameter;
                 glow = 1.8f;
                 glowCol = col;
             }
@@ -198,7 +208,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.12f, 0.08f, 0.14f);
                 col = new Color(0.7f, 0.2f, 0.85f);
-                scale = Diameter * 1.22f;
                 glow = 2.4f;
                 glowCol = col;
                 smooth = 0.1f;
@@ -207,7 +216,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.42f, 0.24f, 0.1f);
                 col = matCol;
-                scale = Diameter * 1.3f;
                 glow = 0.6f;
                 glowCol = matCol;
                 smooth = 0.08f;
@@ -216,7 +224,6 @@ namespace GrandSluggers.UnityClient
             {
                 matCol = new Color(0.96f, 0.93f, 0.86f);
                 col = Color.white;
-                scale = Diameter;
             }
             else
             {
@@ -227,15 +234,28 @@ namespace GrandSluggers.UnityClient
             }
 
             Look.Paint(_ball, Look.Lit(matCol, smooth: smooth));
-            if (_inFlight && star != "heatball" && !heat && star != "caskball" && star != "skullball")
-                scale = (float)Baseball.ApparentScale(true, _root.position.z);
-            _ball.transform.localScale = Vector3.one * scale;
-            _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
-            _trail.startColor = col;
-            _trail.endColor = new Color(col.r, col.g, col.b, 0);
-            _trail.time = star == "prismball" ? 0.7f : 0.42f;
+            SetTrailColor(col);
+            _trail.time = star == "prismball" ? 0.55f : 0.28f;
             _glow.color = glowCol;
             _glow.intensity = glow;
+        }
+
+        void StampScale(string star, bool heat)
+        {
+            if (_ball == null) return;
+            float scale;
+            if (star == "heatball" || heat)
+                scale = Diameter * 1.15f;
+            else if (star == "caskball")
+                scale = Diameter * 1.3f;
+            else if (star == "skullball")
+                scale = Diameter * 1.22f;
+            else if (!_inFlight && star == "charmball")
+                scale = Diameter * 1.08f;
+            else
+                scale = (float)Baseball.ApparentScale(_inFlight, _root.position.z, _inPlay);
+            _ball.transform.localScale = Vector3.one * scale;
+            _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
         }
 
         public void Hide()
@@ -244,9 +264,23 @@ namespace GrandSluggers.UnityClient
             if (_root != null) _root.gameObject.SetActive(false);
             if (_shadow != null) _shadow.gameObject.SetActive(false);
             if (_puff != null) _puff.gameObject.SetActive(false);
+            _puffT = -1f;
             _look = "";
             _hadY = false;
             _hadPlace = false;
+        }
+
+        static Material MotionArc()
+        {
+            var sh = Shader.Find("Sprites/Default") ?? Look.LitShader;
+            var m = new Material(sh);
+            m.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+            m.SetInt("_DstBlend", (int)BlendMode.One);
+            m.SetInt("_ZWrite", 0);
+            m.renderQueue = 3000;
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", Color.white);
+            m.color = Color.white;
+            return m;
         }
 
         static void Stitch(Transform ball)
@@ -287,7 +321,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_shadow == null) return;
             var h = Mathf.Max(0f, p.y);
-            var s = Mathf.Lerp(FlightDiameter * 1.8f, FlightDiameter * 0.7f, Mathf.Clamp01(h / 38f));
+            var d = (float)Baseball.ApparentScale(_inFlight, p.z, _inPlay);
+            var s = Mathf.Lerp(d * 1.2f, d * 0.5f, Mathf.Clamp01(h / 38f));
             _shadow.position = new Vector3(p.x, 0.04f, p.z);
             _shadow.localScale = new Vector3(s, 0.04f, s);
             _shadow.gameObject.SetActive(true);
@@ -306,12 +341,16 @@ namespace GrandSluggers.UnityClient
             if (_puff == null) return;
             _puffT = 0f;
             _puff.position = new Vector3(p.x, 0.08f, p.z);
+            _puff.localScale = Vector3.one;
             _puff.gameObject.SetActive(true);
+            if (_cloud != null)
+                _cloud.localScale = new Vector3(0.55f, 0.06f, 0.55f);
             for (var i = 0; i < _bits.Length; i++)
             {
                 if (_bits[i] == null) continue;
                 var a = i * (Mathf.PI * 2f / _bits.Length);
-                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * 0.4f, 0.12f, Mathf.Sin(a) * 0.4f);
+                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * 0.12f, 0.06f, Mathf.Sin(a) * 0.12f);
+                _bits[i].localScale = Vector3.one * 0.14f;
             }
         }
 
@@ -319,20 +358,24 @@ namespace GrandSluggers.UnityClient
         {
             if (_puffT < 0f || _puff == null) return;
             _puffT += Time.deltaTime;
-            var u = Mathf.Clamp01(_puffT / 0.38f);
+            var u = Mathf.Clamp01(_puffT / 0.18f);
             if (u >= 1f)
             {
                 _puff.gameObject.SetActive(false);
                 _puffT = -1f;
                 return;
             }
-            _puff.localScale = new Vector3(1.1f + 4.2f * u, 0.12f + 0.2f * (1f - u), 1.1f + 4.2f * u);
+            var fade = 1f - u;
+            if (_cloud != null)
+                _cloud.localScale = new Vector3(0.55f + 0.7f * u, 0.05f, 0.55f + 0.7f * u);
             for (var i = 0; i < _bits.Length; i++)
             {
                 if (_bits[i] == null) continue;
                 var a = i * (Mathf.PI * 2f / _bits.Length);
-                var r = 0.4f + 2.4f * u;
-                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * r, 0.12f + 1.4f * u * (1f - u), Mathf.Sin(a) * r);
+                var r = 0.12f + 0.45f * u;
+                _bits[i].localPosition = new Vector3(Mathf.Cos(a) * r, 0.06f + 0.22f * u * fade, Mathf.Sin(a) * r);
+                var s = 0.14f * fade;
+                _bits[i].localScale = Vector3.one * s;
             }
         }
     }
