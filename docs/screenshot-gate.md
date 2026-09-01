@@ -24,7 +24,7 @@ Bonus stills that save a later sitting (same rules):
 |---|---|---|
 | Pitching SET | `mound` | 3/4 over the pitcher, rubber in the bottom, batter + catcher + boxes at home. Fail if home is a speck, CF, or dirt/brim is the picture. |
 | Pitch at you | `pitch` | From the box, looking at the pitcher. Arm through, ball leaving that hand toward you. |
-| Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. **GRAND SLUGGERS** is a sticker in the world (still-gate can see it). |
+| Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front (not six idles, not a corner crop). **GRAND SLUGGERS** is a sticker over the infield, readable in the live player without F2. The board is not through the toy. |
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
 | Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
 | Throw | `throw` | On the glove, ball leaving the hand |

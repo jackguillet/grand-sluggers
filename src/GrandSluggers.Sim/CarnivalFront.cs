@@ -12,7 +12,7 @@ public static class CarnivalFront
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 4f;
     public const float HomeStepTitleFt = 2.4f;
-    public const float FeaturedTitleZ = 10f;
+    public const float FeaturedTitleZ = 9f;
     public const float FeaturedSelectZ = 8f;
     /// <summary>Chest. Y=4.4 at Z=4 is Ashlord's brim.</summary>
     public const float SelectLookY = 2.6f;
@@ -21,9 +21,11 @@ public static class CarnivalFront
     public const float SelectCamMaxY = 6.0f;
     /// <summary>Downward slope (ΔY/ΔZ). 5.2/20 from the berm shot.</summary>
     public const float SelectMaxDown = 0.18f;
-    public const float LogoX = 0.4f;
-    public const float LogoY = 8.8f;
-    public const float LogoZ = 7.4f;
+    /// <summary>Over the infield, above the home toy. Z=7 Y=8.8 sat on Rio's hat.</summary>
+    public const float LogoX = 0.8f;
+    public const float LogoY = 12.2f;
+    public const float LogoZ = 15.6f;
+    public const float TitleHeroChestY = 1.8f;
     public const float SelectSpacing = 7.6f;
     public const float TitleSpacing = 13.4f;
     public const float CardX = 5.6f;
@@ -56,6 +58,41 @@ public static class CarnivalFront
         var dy = camY - SelectLookY;
         var dz = FeaturedSelectZ - camZ;
         return dz > 0 && dy / dz < SelectMaxDown;
+    }
+
+    public static Vec3 TitleHeroChest => new(0, TitleHeroChestY, FeaturedTitleZ);
+
+    public static Vec3 TitleLogoAt => new(LogoX, LogoY, LogoZ);
+
+    /// <summary>
+    /// Title is one toy + a sticker over the diamond. Fail if the board
+    /// sits on the hat or the hero is a corner crop.
+    /// </summary>
+    public static bool TitlePoster(Vec3 cam, Vec3 look)
+    {
+        var hero = TitleHeroChest;
+        var logo = TitleLogoAt;
+        return OffLook(cam, look, hero) < 22
+            && OffLook(cam, look, logo) < 20
+            && OffLook(cam, hero, logo) > 12
+            && LogoZ > FeaturedTitleZ
+            && LogoY > 10
+            && Math.Abs(LogoX) < 8;
+    }
+
+    public static double OffLook(Vec3 pos, Vec3 target, Vec3 p)
+    {
+        var lx = target.X - pos.X;
+        var ly = target.Y - pos.Y;
+        var lz = target.Z - pos.Z;
+        var dx = p.X - pos.X;
+        var dy = p.Y - pos.Y;
+        var dz = p.Z - pos.Z;
+        var ln = Math.Sqrt(lx * lx + ly * ly + lz * lz);
+        var dn = Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        if (ln < 1e-6 || dn < 1e-6) return 180;
+        var dot = Math.Clamp((lx * dx + ly * dy + lz * dz) / (ln * dn), -1, 1);
+        return Math.Acos(dot) * 180 / Math.PI;
     }
 
     public static string SkyGag(bool night) => night ? "NIGHT" : "DAY";
