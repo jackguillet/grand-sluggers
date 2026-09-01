@@ -143,6 +143,11 @@ namespace GrandSluggers.UnityClient
         {
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
+            if (p1.NorthDown && _t > 0.15f)
+            {
+                ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+                _selectStick = 0.22f;
+            }
             if (_selectStick > 0) _selectStick -= Time.deltaTime;
             else
             {
@@ -150,12 +155,12 @@ namespace GrandSluggers.UnityClient
                 var y = p1.StickY;
                 if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
                 {
-                    ApplyPick(ExhibitionPick.CycleHome(CurrentPick(), x > 0 ? 1 : -1));
+                    ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), x > 0 ? 1 : -1));
                     _selectStick = 0.22f;
                 }
                 else if (!p2.Present && Mathf.Abs(y) >= 0.45f)
                 {
-                    ApplyPick(ExhibitionPick.CycleAway(CurrentPick(), y > 0 ? -1 : 1));
+                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), y > 0 ? -1 : 1));
                     _selectStick = 0.22f;
                 }
             }
@@ -164,11 +169,11 @@ namespace GrandSluggers.UnityClient
                 if (_selectStick2 > 0) _selectStick2 -= Time.deltaTime;
                 else if (Mathf.Abs(p2.StickX) >= 0.45f)
                 {
-                    ApplyPick(ExhibitionPick.CycleAway(CurrentPick(), p2.StickX > 0 ? 1 : -1));
+                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), p2.StickX > 0 ? 1 : -1));
                     _selectStick2 = 0.22f;
                 }
             }
-            LookAtHomeCaptain();
+            LookAtYourCaptain();
             if (Controls.WestDown && _t > 0.15f)
             {
                 OpenTitle();
@@ -219,13 +224,14 @@ namespace GrandSluggers.UnityClient
                 OpenLineup();
         }
 
-        ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId);
+        ExhibitionPick CurrentPick() => new(HomeCaptain, AwayCaptain, ParkId, Pad1Home);
 
         void ApplyPick(ExhibitionPick pick)
         {
             HomeCaptain = pick.Home;
             AwayCaptain = pick.Away;
             ParkId = pick.Park;
+            Pad1Home = pick.Pad1Home;
             _match = NewMatch();
         }
 
@@ -240,12 +246,13 @@ namespace GrandSluggers.UnityClient
             _cam.Cut("title");
         }
 
-        void LookAtHomeCaptain()
+        void LookAtYourCaptain()
         {
+            var yours = CurrentPick().Yours;
             var ids = PresetTeams.CaptainIds;
             var i = 0;
             for (; i < ids.Length; i++)
-                if (ids[i] == HomeCaptain) break;
+                if (ids[i] == yours) break;
             if (i >= ids.Length) i = 0;
             var look = CarnivalFront.SelectLook(i, ids.Length);
             _cam.PlayLook("select", new Vector3(look.X, look.Y, look.Z));

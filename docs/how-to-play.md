@@ -58,7 +58,8 @@ Captains and the field are two screens. The park does not follow the captain.
 
 The toys are the UI. Highlighted captain **steps forward**. Camera looks at the **toy** (face and body), not the brim and not the plate dirt. The **HUD card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
-- **Stick / WASD L/R** — home · **U/D** — away (pad 2 L/R away when seated)
+- **Stick / WASD L/R** — your team · **U/D** — the other (pad 2 L/R their team when seated)
+- **North / Q** — you are **HOME** or **AWAY**. HOME bats the bottom. AWAY bats the top.
 - **South / Space** — pick the field
 - **West / F** — title
 - Camera looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
@@ -169,10 +170,10 @@ Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hea
 
 ### Two pads (local 1v1)
 
-Gamepad **0 is home**. Gamepad **1 is away**. Keyboard and mouse stay player 1. A second pad does not split the screen and does not go online.
+Gamepad **0 is player 1**. **North** on captains picks HOME or AWAY for that pad. Gamepad **1 sits the other side**. Keyboard and mouse stay player 1. A second pad does not split the screen and does not go online.
 
-- **Title / captains / Team Setup / Defense Setup.** Pad 1 edits home. Pad 2 edits away. Each picks their captain, roster, order, gloves.
-- **First pitch.** Pad 1 pitches the top, pad 2 bats. Bottom: they swap. CPU never bats or pitches while both pads are seated.
+- **Title / captains / Team Setup / Defense Setup.** Pad 1 edits their team. Pad 2 edits the other. Each picks their captain, roster, order, gloves.
+- **First pitch.** Home pitches the top, away bats. Bottom: they swap. CPU never bats or pitches while both pads are seated.
 - **SET.** Mound when a human is on the rubber, plate when you bat vs CPU. Same role recipe as 1P. Cards stay batter bottom-left, pitcher bottom-right. Highlight yours.
 - **Pitch / swing.** Pad-on-mound walks the rubber, charges, throws. Pad-in-the-box walks the box, charges, swings. Same four verbs as 1P.
 - **In-play.** Fielding pad takes the glove (stick to take, dead stick = CPU cover). Batting pad sends / returns / steals. Both at once.

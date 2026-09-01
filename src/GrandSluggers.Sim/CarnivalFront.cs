@@ -8,6 +8,13 @@ public static class CarnivalFront
 {
     public const string Logo = "GRAND SLUGGERS";
     public const string PlayBall = "South / Space    play ball";
+    public const string YouAreHome = "HOME";
+    public const string YouAreAway = "AWAY";
+
+    public static string SeatMark(bool pad1Home) => pad1Home ? YouAreHome : YouAreAway;
+
+    public static string SeatHint(bool pad1Home) =>
+        pad1Home ? "You pitch the top. You bat the bottom." : "You bat the top. You pitch the bottom.";
     public const float TitleRowZ = 26f;
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 4f;
