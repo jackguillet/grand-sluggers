@@ -226,6 +226,16 @@ public class FeelInfraTests
     {
         Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);
         Assert.True(Baseball.DiameterFt < 1.0, "1.5 ft was a beach ball on mound");
+        Assert.True(Baseball.InPlayDiameterFt < 1.0, "in-play ball is a glove, not a torso");
+        Assert.True(Baseball.FlightDiameterFt < 1.6, "2ft was a torso on a ~6ft toy");
+        Assert.True(Baseball.FlightDiameterFt > Baseball.DiameterFt);
+        Assert.Equal(Baseball.DiameterFt, Baseball.ApparentScale(false, 60));
+        Assert.Equal(Baseball.InPlayDiameterFt, Baseball.ApparentScale(true, 45, inPlay: true));
+        Assert.Equal(Baseball.InPlayDiameterFt, Baseball.ApparentScale(true, 280, inPlay: true));
+        Assert.True(Baseball.ApparentScale(true, 58) > Baseball.DiameterFt, "pitch-toward-plate may grow");
+        Assert.True(Baseball.ApparentScale(true, 2) <= Baseball.DiameterFt + 0.02);
+        Assert.True(Baseball.ApparentScale(true, 45) > Baseball.ApparentScale(true, 45, inPlay: true),
+            "infield hopper must not inherit pitch far-scale");
     }
 
     [Fact]

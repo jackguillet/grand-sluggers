@@ -14,9 +14,14 @@ public class AtBatFeelTests
         Assert.True(rel.X > 1.2, $"hand x={rel.X}");
         Assert.True(rel.Z < Diamond.Mound - 1.5, $"in front of rubber z={rel.Z}");
         Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);
+        Assert.True(Baseball.DiameterFt < 1.0, "posed ball is glove-sized");
         Assert.True(Baseball.FlightDiameterFt > Baseball.DiameterFt);
+        Assert.True(Baseball.FlightDiameterFt < 1.6, "2ft pitch scale was a torso on the toys");
+        Assert.True(Baseball.InPlayDiameterFt < 1.0, "in-play ball is not a torso");
         Assert.Equal(Baseball.FlightDiameterFt, Baseball.InFlightScale(true));
         Assert.Equal(Baseball.DiameterFt, Baseball.InFlightScale(false));
+        Assert.Equal(Baseball.InPlayDiameterFt, Baseball.ApparentScale(true, 48, inPlay: true));
+        Assert.True(Baseball.ApparentScale(true, 280, inPlay: true) < 1.0, "outfield hopper stays a ball");
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
         var pitch = _content.Shots.Must("pitch");
