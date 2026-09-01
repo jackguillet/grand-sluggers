@@ -203,6 +203,95 @@ public class LineupScreensTests
     }
 
     [Fact]
+    public void TitleFitsCouchWindowAboveTheHomeBar()
+    {
+        const double w = LineupLayout.CouchW, h = LineupLayout.CouchH;
+        var title = LineupLayout.GuiPixel(LineupLayout.Title, w, h);
+        Assert.True(title.Y >= 16, $"title y {title.Y} clips the top of {w}x{h}");
+        Assert.True(title.Y + title.H <= h - 8);
+        Assert.True(title.X >= 16);
+        Assert.True(title.X + title.W <= w - 8);
+        Assert.True(title.H >= 28, "TEAM SETUP / OFFENSE / DEFENSE SETUP need a full line");
+        var home = LineupLayout.GuiPixel(LineupLayout.HomeSlot(0), w, h);
+        Assert.True(home.Y >= title.Y + title.H, "home bar must sit below TEAM SETUP");
+        var caption = LineupLayout.GuiPixel(LineupLayout.HomeCaption, w, h);
+        Assert.True(caption.Y >= title.Y + title.H - 1);
+        Assert.True(caption.Y + caption.H <= home.Y + 1);
+    }
+
+    [Fact]
+    public void NameLabelIsPaddedSoJesterDoesNotClip()
+    {
+        var cell = LineupLayout.PoolCell(0, 12);
+        var name = LineupLayout.NameRect(cell);
+        Assert.True(name.X > cell.X);
+        Assert.True(name.X - cell.X >= cell.W * LineupLayout.LabelPadX - 1e-6);
+        Assert.True(name.X + name.W < cell.X + cell.W);
+        Assert.True(name.Y >= cell.Y);
+        Assert.True(name.Y + name.H <= cell.Y + cell.H);
+        var face = LineupLayout.FaceRect(cell);
+        Assert.True(face.Y >= name.Y + name.H - 1e-6, "face sits above the name strip");
+        Assert.True(face.X > cell.X);
+        Assert.True(face.X + face.W < cell.X + cell.W);
+        var jester = LineupLayout.NameRect(LineupLayout.HomeSlot(3));
+        Assert.True(jester.X > LineupLayout.HomeSlot(3).X);
+        Assert.True(jester.W >= LineupLayout.HomeSlot(3).W * 0.7);
+    }
+
+    [Fact]
+    public void RosterMarksAreOrderAndPositionNotNineCaptains()
+    {
+        var s = Filled();
+        var caps = 0;
+        for (var i = 0; i < 9; i++)
+        {
+            var mark = LineupLayout.TeamMark(s.HomeSlots[i]);
+            if (mark == "C") caps++;
+            else Assert.Equal("", mark);
+            Assert.Equal((i + 1).ToString(), LineupLayout.OrderMark(i));
+        }
+        Assert.Equal(1, caps);
+        Assert.Equal("C", LineupLayout.TeamMark(s.HomeCaptain));
+        Assert.Equal("", LineupLayout.TeamMark(_content.Must("jester")));
+        foreach (var pos in Diamond.Order)
+        {
+            Assert.Equal(pos, LineupLayout.GloveMark(pos));
+            Assert.False(pos != "C" && LineupLayout.GloveMark(pos) == "C", pos);
+        }
+    }
+
+    [Fact]
+    public void HomeAndAwayDiamondsDoNotStack()
+    {
+        Assert.True(LineupLayout.HomeDiamondPanel.X + LineupLayout.HomeDiamondPanel.W
+            < LineupLayout.AwayDiamondPanel.X);
+        foreach (var pos in Diamond.Order)
+        {
+            var home = LineupLayout.DiamondHead(true, pos);
+            var away = LineupLayout.DiamondHead(false, pos);
+            Assert.True(home.X + home.W < away.X, pos + " home/away heads overlap");
+        }
+    }
+
+    [Fact]
+    public void RolePlayersShareCaptainPortraitId()
+    {
+        foreach (var c in _content.Characters.Values)
+        {
+            var id = Silhouette.PortraitId(c);
+            Assert.Contains(id, Silhouette.Captains);
+            if (c.Captain)
+                Assert.Equal(c.Id, id, ignoreCase: true);
+        }
+        Assert.Equal("rio", Silhouette.PortraitId(_content.Must("nico")));
+        Assert.Equal("vale", Silhouette.PortraitId(_content.Must("frost")));
+        Assert.Equal("zig", Silhouette.PortraitId(_content.Must("jester")));
+        Assert.Equal("brondo", Silhouette.PortraitId(_content.Must("boom")));
+        Assert.Equal("konga", Silhouette.PortraitId(_content.Must("vine")));
+        Assert.Equal("ashlord", Silhouette.PortraitId(_content.Must("cinder")));
+    }
+
+    [Fact]
     public void HeartsStayOnTheHighlightedHeadVersusTheCaptain()
     {
         var s = LineupScreens.Open(_content, "vale", "brondo");

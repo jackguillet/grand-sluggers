@@ -693,11 +693,20 @@ public static class LineupLayout
 {
     public const int Size = TeamBuilder.Size;
     public const int PoolColumns = 6;
+    public const double LabelPadX = 0.12;
+    public const double CouchW = 1280;
+    public const double CouchH = 800;
 
-    public static LineupCell HomeSlot(int i) => Bar(i, 0.86);
-    public static LineupCell AwaySlot(int i) => Bar(i, 0.06);
-    public static LineupCell HomeOrder(int i) => Bar(i, 0.86);
-    public static LineupCell AwayOrder(int i) => Bar(i, 0.06);
+    public static LineupCell Title => new(0.018, 0.922, 0.56, 0.052);
+    public static LineupCell HomeCaption => new(0.018, 0.888, 0.30, 0.030);
+    public static LineupCell AwayCaption => new(0.70, 0.888, 0.28, 0.030);
+    public static LineupCell ParkLine => new(0.018, 0.862, 0.36, 0.022);
+    public static LineupCell Help => new(0.018, 0.008, 0.96, 0.032);
+
+    public static LineupCell HomeSlot(int i) => Bar(i, 0.76);
+    public static LineupCell AwaySlot(int i) => Bar(i, 0.08);
+    public static LineupCell HomeOrder(int i) => Bar(i, 0.76);
+    public static LineupCell AwayOrder(int i) => Bar(i, 0.08);
 
     public static LineupCell PoolCell(int index, int count)
     {
@@ -706,7 +715,7 @@ public static class LineupLayout
         var rows = Math.Max(3, (n + cols - 1) / cols);
         var col = index % cols;
         var row = index / cols;
-        const double left = 0.16, width = 0.68, top = 0.72, height = 0.50;
+        const double left = 0.14, width = 0.54, top = 0.66, height = 0.44;
         var w = width / cols;
         var h = height / rows;
         return new LineupCell(left + col * w + w * 0.04, top - (row + 1) * h + h * 0.08, w * 0.90, h * 0.84);
@@ -717,8 +726,8 @@ public static class LineupLayout
         var uv = ChemistryToy.MiniSpot(pos);
         var u01 = Math.Clamp(uv.U * 0.5 + 0.5, 0, 1);
         var v01 = Math.Clamp(uv.V, 0, 1);
-        var left = home ? 0.10 : 0.54;
-        const double width = 0.36, bottom = 0.20, height = 0.58, s = 0.072;
+        var left = home ? 0.08 : 0.50;
+        const double width = 0.34, bottom = 0.24, height = 0.50, s = 0.078;
         return new LineupCell(
             left + u01 * width - s * 0.5,
             bottom + v01 * height - s * 0.5,
@@ -726,8 +735,32 @@ public static class LineupLayout
             s * 1.2);
     }
 
-    public static LineupCell HomeDiamondPanel => new(0.08, 0.18, 0.40, 0.62);
-    public static LineupCell AwayDiamondPanel => new(0.52, 0.18, 0.40, 0.62);
+    public static LineupCell HomeDiamondPanel => new(0.06, 0.22, 0.38, 0.54);
+    public static LineupCell AwayDiamondPanel => new(0.48, 0.22, 0.38, 0.54);
+
+    /// <summary>Padded name strip at the bottom of a tile so JESTER does not clip to IESTER.</summary>
+    public static LineupCell NameRect(LineupCell cell)
+    {
+        var padX = Math.Max(cell.W * LabelPadX, 0.006);
+        var h = Math.Min(cell.H * 0.28, 0.034);
+        return new LineupCell(cell.X + padX, cell.Y + cell.H * 0.02, cell.W - padX * 2, h);
+    }
+
+    public static LineupCell FaceRect(LineupCell cell)
+    {
+        var padX = cell.W * 0.08;
+        var name = NameRect(cell);
+        var y = name.Y + name.H;
+        var top = cell.Y + cell.H - cell.H * 0.06;
+        return new LineupCell(cell.X + padX, y, cell.W - padX * 2, Math.Max(0.02, top - y));
+    }
+
+    public static (double X, double Y, double W, double H) GuiPixel(LineupCell c, double screenW, double screenH) =>
+        (c.X * screenW, (1.0 - c.Y - c.H) * screenH, c.W * screenW, c.H * screenH);
+
+    public static string TeamMark(Character? who) => who != null && who.Captain ? "C" : "";
+    public static string OrderMark(int i) => (Math.Clamp(i, 0, Size - 1) + 1).ToString();
+    public static string GloveMark(string pos) => string.IsNullOrEmpty(pos) ? "" : pos;
 
     static LineupCell Bar(int i, double y)
     {

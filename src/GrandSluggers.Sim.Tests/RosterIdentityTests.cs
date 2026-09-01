@@ -33,6 +33,8 @@ public class RosterIdentityTests
         Assert.Equal("brondo", Silhouette.BodyType(_content.Must("boom")));
         Assert.Equal("konga", Silhouette.BodyType(_content.Must("vine")));
         Assert.Equal("ashlord", Silhouette.BodyType(_content.Must("cinder")));
+        Assert.Equal(Silhouette.BodyType(_content.Must("jester")), Silhouette.PortraitId(_content.Must("jester")));
+        Assert.Equal("zig", Silhouette.PortraitId(_content.Must("jester")));
     }
 
     [Fact]
