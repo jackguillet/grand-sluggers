@@ -41,7 +41,7 @@ Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not 
 2. Click the **Game** tab. Not Scene. The editor Scene/Game view looking **through the backstop cage** is not Exhibition.
 3. Hover the Game panel, **Shift+Space** to maximize it. Scale **1x** if the Game view scale slider is below 1.
 4. Plug in a pad. Xbox A / Nintendo B is **South**. Analog **LT / ZL** charges.
-5. Day. Harbor. Home **Rio** (short, round) vs away **Ashlord** or **Konga** (so the height ladder is obvious). Stick L/R home, U/D away on the title.
+5. Day. Harbor. Home **Rio** (short, round) vs away **Ashlord** or **Konga** (so the height ladder is obvious). Stick L/R your team, U/D the other. North HOME/AWAY. Default is HOME.
 6. F1 (timing bar) **off**. F2 **off** for trailer stills. F3 mutes the scorebug when you need HUD-off without a star.
 7. Put Dolphin on the other display if you want a live compare. Screenshot it with macOS **Cmd+Shift+5 → window**, not a phone pic of the editor chrome.
 

@@ -99,6 +99,8 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("toys"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("brim"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("dirt"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("HOME") && l.Contains("AWAY"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("North"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Hearts"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Stars jump"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));
@@ -138,8 +140,9 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("3/4") && l.Contains("glove"));
         var two = HowToPlay.Must("two-pads").Lines;
-        Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("home"));
-        Assert.Contains(two, l => l.Contains("Gamepad 1") && l.Contains("away"));
+        Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("player 1"));
+        Assert.Contains(two, l => l.Contains("North") && l.Contains("HOME"));
+        Assert.Contains(two, l => l.Contains("Gamepad 1"));
         Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("mouse") && l.Contains("player 1"));
         Assert.Contains(two, l => l.Contains("Unplug"));
         Assert.Contains(two, l => l.Contains("plate"));

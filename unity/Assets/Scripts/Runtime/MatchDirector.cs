@@ -19,6 +19,7 @@ namespace GrandSluggers.UnityClient
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
+        public bool Pad1Home = true;
         public bool Night;
         LineupScreens _lineup;
         bool _lineupTouched;
@@ -148,7 +149,9 @@ namespace GrandSluggers.UnityClient
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats LiveSeats =>
-            TrainingOn || _mode != PlayMode.Exhibition ? Seats.One : Seats.FromPads(Controls.PadCount);
+            TrainingOn || _mode != PlayMode.Exhibition
+                ? Seats.One
+                : Seats.FromPads(Controls.PadCount, Pad1Home);
         bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
@@ -277,7 +280,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             if (_phase == Phase.Select)
-                HudView.Select(HomeCaptain, AwayCaptain, _content);
+                HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content);
             else if (_phase == Phase.Field)
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
             else if (_phase == Phase.Lineup && _lineup != null)
@@ -324,7 +327,7 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing);
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home);
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
