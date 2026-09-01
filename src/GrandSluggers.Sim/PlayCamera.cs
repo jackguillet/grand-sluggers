@@ -1,10 +1,10 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// One named shot per play. SET and the throw fork by seat count (#368):
-/// 1P stays behind the pitcher (<see cref="AtBatShots.Mound"/>).
-/// 1v1 stays behind home (<see cref="AtBatShots.Plate"/>).
-/// In-play theater does not fork.
+/// One named shot per play. SET and the throw: 1P follows the role
+/// (mound when pitching, plate when batting). 1v1 stays behind home.
+/// Flight stays on that SET shot (no <c>pitch</c> cut). In-play theater
+/// does not fork.
 /// </summary>
 public static class PlayCamera
 {
@@ -29,13 +29,13 @@ public static class PlayCamera
     public readonly record struct Viewport(double X, double Y, double Depth);
 
     /// <summary>
-    /// SET / throw: 1P mound, 1v1 plate. <paramref name="pitchingSet"/> is ignored —
-    /// the camera does not follow the role.
+    /// SET / throw. Two pads: always <see cref="AtBatShots.Plate"/>.
+    /// One pad: <paramref name="pitchingSet"/> is the role — mound on the
+    /// rubber, plate in the box.
     /// </summary>
     public static string Shot(Beat beat, int seats = 1, bool pitchingSet = false)
     {
-        _ = pitchingSet;
-        var set = seats >= 2 ? AtBatShots.Plate : AtBatShots.Mound;
+        var set = seats >= 2 || !pitchingSet ? AtBatShots.Plate : AtBatShots.Mound;
         return beat switch
         {
             Beat.Set or Beat.PitchFlight => set,
