@@ -79,10 +79,10 @@ public static class FlyCatch
         bool needsJump) =>
         (jumpDown && inWindow && under) || (southDown && under && !needsJump);
 
-    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit)
+    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true)
     {
-        if (caught)
-            return pre.Grounder ? PlayKind.GroundOut : PlayKind.FlyOut;
+        if (caught && pre.Grounder) return PlayKind.GroundOut;
+        if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
         if (pre.HomeRunLikely)
             return PlayKind.HomeRun;
         var carry = hit?.CarryFt ?? 0;

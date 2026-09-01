@@ -127,6 +127,8 @@ public class SchemeTests
         Assert.DoesNotContain(HowToPlay.Pages.SelectMany(p => p.Lines), l => l.Contains("F1") && l.Contains("timing", StringComparison.OrdinalIgnoreCase) && !l.Contains("debug"));
         Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("F1") && l.Contains("debug"));
         var running = HowToPlay.Must("running").Lines;
+        Assert.Contains(running, l => l.Contains("on a bag") && l.Contains("second"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Pickup") || l.Contains("does not end"));
         Assert.Contains(running, l => l.Contains("D-pad") && l.Contains("1B"));
         Assert.Contains(running, l => l.Contains("highlighted"));
         Assert.Contains(running, l => l.Contains("selected runner"));

@@ -259,6 +259,36 @@ public class InPlayTests
         Assert.False(FieldingResolver.IsGrounder(fly));
     }
 
+    [Fact]
+    public void TimeWaitsUntilEveryRunnerHasBeenOnABagASecond()
+    {
+        Assert.Equal(1.0, InPlay.TimeOnBagSec);
+        var between = new InPlay.Occupy(false, 0);
+        var justOn = new InPlay.Occupy(true, 0.4);
+        var settled = new InPlay.Occupy(true, 1.0);
+        Assert.True(InPlay.Time(true, false, 3, between), "three outs is Time");
+        Assert.False(InPlay.Time(false, false, 0, settled), "no ball is not Time");
+        Assert.False(InPlay.Time(true, true, 0, settled), "a throw is not Time");
+        Assert.False(InPlay.Time(true, false, 0, between), "batter between bags");
+        Assert.False(InPlay.Time(true, false, 0, justOn), "batter just arrived");
+        Assert.True(InPlay.Time(true, false, 0, settled));
+        Assert.False(InPlay.Time(true, false, 0, settled, first: between), "runner between");
+        Assert.True(InPlay.Time(true, false, 0, settled, first: settled));
+        Assert.Equal(2, InPlay.BatterDestBag(PlayKind.Double));
+        Assert.Equal(3, InPlay.OccupiedDestBag(1, PlayKind.Double));
+        Assert.Equal(1, InPlay.BatterDestBag(PlayKind.GroundOut));
+        Assert.Equal(0, InPlay.BatterDestBag(PlayKind.FlyOut));
+        var mid = InPlay.AlongBases(Diamond.Baseline * 0.5, 2);
+        Assert.False(InPlay.OccupyingBag(mid.X, mid.Z), "halfway to first is not a bag");
+        var atTwo = InPlay.TowardBag(0, 2, Diamond.Baseline * 2);
+        Assert.True(InPlay.OccupyingBag(atTwo.X, atTwo.Z), "double dest is second");
+        Assert.Equal(Diamond.Second.X, atTwo.X, 1);
+        var tick = InPlay.TickOccupy(true, 0.4, 0.7);
+        Assert.True(tick.OnBag);
+        Assert.True(tick.Sec >= InPlay.TimeOnBagSec);
+        Assert.Equal(0, InPlay.TickOccupy(false, 1.5, 0.1).Sec);
+    }
+
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
         new(q, true, false, exit, launch, carry, false, false, null, null);
 }
