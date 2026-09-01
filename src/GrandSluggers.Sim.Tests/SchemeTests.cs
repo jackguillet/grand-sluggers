@@ -90,6 +90,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("toys"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("brim"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("dirt"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Hearts"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Stars jump"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));

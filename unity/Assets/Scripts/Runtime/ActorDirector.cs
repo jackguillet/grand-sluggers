@@ -446,7 +446,6 @@ namespace GrandSluggers.UnityClient
         {
             var ids = PresetTeams.CaptainIds;
             var pick = _phase == Phase.Select;
-            (float X, float Z) homeSpot = (0f, 0f);
             for (var i = 0; i < ids.Length; i++)
             {
                 var who = _content.Must(ids[i]);
@@ -454,7 +453,6 @@ namespace GrandSluggers.UnityClient
                 var home = ids[i] == HomeCaptain;
                 var away = ids[i] == AwayCaptain;
                 var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, home);
-                if (home) homeSpot = spot;
                 hero.SetPose(home ? HeroActor.Pose.Cheer : away ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
                 hero.SetHighlight(home);
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
@@ -468,12 +466,8 @@ namespace GrandSluggers.UnityClient
             if (pick)
             {
                 _logo?.Hide();
-                if (_card == null) _card = CardToy.Attach(transform);
-                var homeWho = _content.Must(HomeCaptain);
-                _card.Show(
-                    CharacterCard.Of(homeWho),
-                    new Vector3(homeSpot.X + CarnivalFront.CardX, CarnivalFront.CardY, homeSpot.Z + CarnivalFront.CardZ),
-                    new Vector3(0f, 0f, -1f));
+                // HUD is the select card. World placard covered the toys (#354).
+                _card?.Hide();
             }
             else
             {
