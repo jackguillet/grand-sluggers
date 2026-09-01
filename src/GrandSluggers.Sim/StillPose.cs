@@ -41,14 +41,17 @@ public static class StillPose
     public const double PitchLookZ = 57.0;
     public const double PitchFov = 34;
 
-    /// <summary>3/4 behind the rubber. Rubber in the bottom, box at home in frame.</summary>
-    public const double MoundCamX = 8.0;
-    public const double MoundCamY = 7.4;
-    public const double MoundCamZ = 78.0;
+    /// <summary>
+    /// First-base 3/4 behind the rubber. Pitcher sits right of the look;
+    /// rubber in the bottom; the box at home is the look, not CF or brim.
+    /// </summary>
+    public const double MoundCamX = 5.0;
+    public const double MoundCamY = 5.4;
+    public const double MoundCamZ = 72.0;
     public const double MoundLookX = 0.4;
-    public const double MoundLookY = 1.4;
-    public const double MoundLookZ = 3.0;
-    public const double MoundFov = 44;
+    public const double MoundLookY = 1.2;
+    public const double MoundLookZ = 6.0;
+    public const double MoundFov = 46;
     /// <summary>Just off the hand, still on the pitcher, coming at the box.</summary>
     public const double PitchBallU = 0.12;
 
@@ -76,6 +79,9 @@ public static class StillPose
 
     public static bool PlateIsBatterOverShoulder(double x, double z) =>
         x > 6 && z < -3 && z > -12;
+
+    public static bool MoundIsPitcherOverShoulder(double x, double z) =>
+        x > 4 && z > Diamond.Mound + 8 && z < Diamond.Mound + 16;
 
     /// <summary>
     /// Catcher is at (0, -4). A camera further behind home puts him in the
