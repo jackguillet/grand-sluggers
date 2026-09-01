@@ -342,7 +342,7 @@ namespace GrandSluggers.UnityClient
                 foreach (var kv in _heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(HeroActor.Pose.Swing, 1, false);
-                var chest = new Vector3(2.55f, 3.2f, 2.4f);
+                var chest = new Vector3((float)HomeSet.BatterX, (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
                 {
                     sw.gameObject.SetActive(true);
@@ -391,7 +391,7 @@ namespace GrandSluggers.UnityClient
             b.SetPose(pose, charge);
             b.SetChargeRing(ring ? charge : 0);
             b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
-            b.Place(new Vector3(2.55f, 0f, 2.4f), new Vector3(0f, 0f, 1f));
+            b.Place(new Vector3((float)HomeSet.BatterX, 0f, (float)HomeSet.BatterZ), new Vector3(0f, 0f, 1f));
             b.SnapTick(0.08f);
         }
 

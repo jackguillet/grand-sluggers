@@ -136,10 +136,18 @@ namespace GrandSluggers.UnityClient
             DirtPad = Anchor("DirtPad", new Vector3(0f, 0.04f, 64f), new Vector3(92f, 0.18f, 92f), Quaternion.identity);
             HomeDirt = Anchor("HomeDirt", new Vector3(0f, 0.16f, 0f), new Vector3(36f, 0.08f, 36f), Quaternion.identity);
             DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
-            HomePlate = Anchor("HomePlate", new Vector3(0f, 0.22f, 0.15f), new Vector3(1.42f, 0.12f, 1.05f), Quaternion.identity);
-            HomePoint = Anchor("HomePoint", new Vector3(0f, 0.22f, 0.88f), new Vector3(1.02f, 0.12f, 1.02f), Quaternion.Euler(0f, 45f, 0f));
-            BoxL = Anchor("BoxL", new Vector3(-2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
-            BoxR = Anchor("BoxR", new Vector3(2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            HomePlate = Anchor("HomePlate",
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+            HomePoint = Anchor("HomePoint",
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
+                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
+            BoxL = Anchor("BoxL",
+                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
+            BoxR = Anchor("BoxR",
+                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
             FoulL = Anchor("FoulL", new Vector3(-63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, -45f, 0f));
             FoulR = Anchor("FoulR", new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
             Mound = Anchor("Mound", new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
@@ -205,7 +213,7 @@ namespace GrandSluggers.UnityClient
             Place(DirtDiamond, new Vector3(0f, 0.05f, 63.64f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.Euler(0f, 45f, 0f));
             if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
 
-            Place(HomeDirt, new Vector3(0f, 0.10f, 1.4f), new Vector3(24f, 0.12f, 24f), Quaternion.identity);
+            Place(HomeDirt, new Vector3(0f, 0.10f, -2f), new Vector3(34f, 0.12f, 42f), Quaternion.identity);
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
 
@@ -221,17 +229,24 @@ namespace GrandSluggers.UnityClient
             DirtPath("Path2to3", second, third, 11f, path);
             DirtPath("Path3toHome", third, home, 11f, path);
 
-            // Pentagon: 17" back edge toward the catcher, point toward the pitcher (+Z).
-            Place(HomePlate, new Vector3(0f, 0.22f, 0.15f), new Vector3(1.42f, 0.12f, 1.05f), Quaternion.identity);
-            Place(HomePoint, new Vector3(0f, 0.22f, 0.88f), new Vector3(1.02f, 0.12f, 1.02f), Quaternion.Euler(0f, 45f, 0f));
+            // Pentagon + two boxes with dirt between them so a behind-home SET can read.
+            Place(HomePlate,
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+            Place(HomePoint,
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
+                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
             Wipe(HomePlate);
             Wipe(HomePoint);
             Mesh(HomePlate, PrimitiveType.Cube, chalk);
             Mesh(HomePoint, PrimitiveType.Cube, chalk);
 
-            // 4×6 ft boxes, dirt fill, thick unlit chalk so they read from the mound.
-            Place(BoxL, new Vector3(-2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
-            Place(BoxR, new Vector3(2.72f, 0.20f, 3.05f), new Vector3(4.0f, 0.12f, 6.1f), Quaternion.identity);
+            Place(BoxL,
+                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
+            Place(BoxR,
+                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
             Wipe(BoxL);
             Wipe(BoxR);
             Mesh(BoxL, PrimitiveType.Cube, chalk);
