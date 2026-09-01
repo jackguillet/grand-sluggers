@@ -203,10 +203,41 @@ public sealed class FieldingResolver
     public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ) =>
         OutfieldGrass(ballX, ballZ) || OutfieldGrass(landingX, landingZ);
 
-    /// <summary>Charge the landing until the ball is on the grass, then chase the live hop.</summary>
+    /// <summary>
+    /// Still up: fly or liner, hang not due, height above a hop.
+    /// A hopper is never in the air for chase — they charge the live ball.
+    /// </summary>
+    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null)
+    {
+        if (pre.Grounder) return false;
+        var hang = hangSec ?? pre.HangTimeSec;
+        return hitT < hang && ballY > 0.75;
+    }
+
+    /// <summary>
+    /// Where the glove runs. Air → landing / wall plant. Dirt hop → live ball.
+    /// Chasing live XZ while the ball is still up is the home-first path
+    /// (run to the plate, then watch it fly over).
+    /// </summary>
+    public static (double X, double Z) GloveChaseTarget(
+        FieldingPreview pre,
+        Park? park,
+        double ballX,
+        double ballZ,
+        double ballY,
+        double hitT,
+        double? hangSec = null) =>
+        InAir(pre, ballY, hitT, hangSec)
+            ? FlyCatch.ChaseTarget(pre, park)
+            : (ballX, ballZ);
+
+    /// <summary>
+    /// Charge the landing while the ball is in the air or still on the dirt.
+    /// Live hop only once it is on the grass.
+    /// </summary>
     public static (double X, double Z) OutfieldChaseTarget(
-        double ballX, double ballZ, double landingX, double landingZ) =>
-        OutfieldGrass(ballX, ballZ) ? (ballX, ballZ) : (landingX, landingZ);
+        double ballX, double ballZ, double landingX, double landingZ, bool inAir = false) =>
+        inAir || !OutfieldGrass(ballX, ballZ) ? (landingX, landingZ) : (ballX, ballZ);
 
     /// <summary>
     /// Live glove: IF while the ball is on the dirt, nearest OF once it reaches the grass.
