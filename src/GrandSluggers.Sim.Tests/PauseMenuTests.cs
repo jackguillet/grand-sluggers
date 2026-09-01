@@ -49,4 +49,21 @@ public class PauseMenuTests
         Assert.False(PauseMenu.OpenHowTo(paused: true, allowed: true, howTo: true, t: 1f));
         Assert.True(PauseMenu.Open(paused: false, allowed: true, start: true, t: 1f));
     }
+
+    [Theory]
+    [InlineData(1280, 800)]
+    [InlineData(1920, 1080)]
+    public void CallTimeFooterKeepsEscResumeInFrame(int screenW, int screenH)
+    {
+        var p = PauseMenu.Panel(screenW, screenH);
+        var f = PauseMenu.FooterRect(screenW, screenH);
+        Assert.True(p.X >= 8 && p.X + p.W <= screenW - 8);
+        Assert.True(p.Y >= 8 && p.Y + p.H <= screenH - 8);
+        Assert.True(f.X >= 8 && f.X + f.W <= screenW - 8);
+        Assert.True(f.Y >= p.Y && f.Y + f.H <= p.Y + p.H + 0.01f);
+        Assert.True(f.W >= 400);
+        Assert.Equal(2, PauseMenu.FooterLines.Count);
+        Assert.Contains("Esc / East / right click resume", PauseMenu.FooterLines[1]);
+        Assert.DoesNotContain("Esc /", PauseMenu.FooterLines[0]);
+    }
 }
