@@ -65,7 +65,7 @@ The toys are the UI. Highlighted captain **steps forward**. Camera looks at the 
 
 ### Pick the field
 
-A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice.
+A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice — crowd of people, padded wall with ads, a scoreboard that keeps the score, brick town. Not an empty diamond.
 
 - **Stick / WASD L/R** — cycle the park. Captains stay put.
 - **South / Space** — lineup

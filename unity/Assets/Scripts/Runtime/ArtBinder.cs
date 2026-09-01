@@ -217,22 +217,31 @@ namespace GrandSluggers.UnityClient
             if (EditorLoadNamedMesh != null)
             {
                 var named = EditorLoadNamedMesh(path, meshName);
-                if (named != null) return named;
+                if (UsableMesh(named)) return named;
             }
             var kit = LoadParkKit(parkId);
             if (kit == null) return null;
             var tf = kit.transform;
             if (tf.name.Equals(meshName, StringComparison.OrdinalIgnoreCase))
-                return kit;
+                return UsableMesh(kit) ? kit : null;
             for (var i = 0; i < tf.childCount; i++)
             {
                 var child = tf.GetChild(i);
                 if (child.name.Equals(meshName, StringComparison.OrdinalIgnoreCase))
-                    return child.gameObject;
+                    return UsableMesh(child.gameObject) ? child.gameObject : null;
                 var deep = FindChild(child, meshName);
-                if (deep != null) return deep.gameObject;
+                if (deep != null)
+                    return UsableMesh(deep.gameObject) ? deep.gameObject : null;
             }
             return null;
+        }
+
+        static bool UsableMesh(GameObject go)
+        {
+            if (go == null) return false;
+            var r = go.GetComponentInChildren<MeshRenderer>(true);
+            var f = go.GetComponentInChildren<MeshFilter>(true);
+            return r != null && f != null && f.sharedMesh != null;
         }
 
         static Transform FindChild(Transform t, string name)

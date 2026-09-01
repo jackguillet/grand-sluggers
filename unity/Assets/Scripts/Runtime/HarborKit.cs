@@ -85,11 +85,12 @@ namespace GrandSluggers.UnityClient
         {
             _park = park;
             _night = night;
-            OwnsDiamond = park != null && park.Id == "harbor-diamond";
+            OwnsDiamond = HarborPostcard.Owns(park != null ? park.Id : null);
             gameObject.SetActive(OwnsDiamond);
             if (OwnsDiamond)
             {
                 Dress();
+                HookDigits();
                 ApplyNight();
                 ApplyShots();
             }
@@ -163,14 +164,19 @@ namespace GrandSluggers.UnityClient
 
         public void Dress()
         {
-            if (_dressed) return;
             EnsureAnchors();
+            if (_dressed && WallDress != null && WallDress.childCount > 0)
+            {
+                HookDigits();
+                return;
+            }
             DressDiamond();
             var bag = Look.Unlit(Colors.Chalk);
             Mesh(Bag1, PrimitiveType.Cube, bag);
             Mesh(Bag2, PrimitiveType.Cube, bag);
             Mesh(Bag3, PrimitiveType.Cube, bag);
             DressPlace();
+            HookDigits();
             _dressed = true;
         }
 
@@ -501,22 +507,25 @@ namespace GrandSluggers.UnityClient
         void DressWall()
         {
             Wipe(WallDress);
-            var pad = Look.Toon(new Color(0.16f, 0.42f, 0.28f));
-            var cap = Look.Toon(Colors.Gold);
-            var ivy = Look.Toon(new Color(0.14f, 0.48f, 0.22f));
+            var h = HarborPostcard.WallHeightFt;
+            var thick = HarborPostcard.WallThickFt;
+            var w = HarborPostcard.WallPanelWidthFt;
+            var pad = Look.Lit(new Color(0.18f, 0.46f, 0.30f), Look.Grass, 3f, 0.08f);
+            var cap = Look.Unlit(Colors.Gold);
+            var ivy = Look.Lit(new Color(0.14f, 0.48f, 0.22f), Look.Grass, 2f, 0.08f);
             var ads = new[]
             {
-                Look.Toon(Colors.Spark),
-                Look.Toon(Colors.Gold),
-                Look.Toon(new Color(0.18f, 0.42f, 0.72f)),
-                Look.Toon(new Color(0.94f, 0.94f, 0.9f)),
-                Look.Toon(new Color(0.12f, 0.16f, 0.28f)),
-                Look.Toon(new Color(0.95f, 0.55f, 0.18f)),
-                Look.Toon(new Color(0.22f, 0.55f, 0.38f)),
-                Look.Toon(new Color(0.72f, 0.22f, 0.38f))
+                Look.Unlit(Colors.Spark),
+                Look.Unlit(Colors.Gold),
+                Look.Unlit(new Color(0.18f, 0.42f, 0.72f)),
+                Look.Unlit(new Color(0.94f, 0.94f, 0.9f)),
+                Look.Unlit(new Color(0.12f, 0.16f, 0.28f)),
+                Look.Unlit(new Color(0.95f, 0.55f, 0.18f)),
+                Look.Unlit(new Color(0.22f, 0.55f, 0.38f)),
+                Look.Unlit(new Color(0.72f, 0.22f, 0.38f))
             };
-            var mark = Look.Toon(Colors.Gold);
-            var spark = Look.Toon(Colors.Spark);
+            var mark = Look.Unlit(Colors.Gold);
+            var spark = Look.Unlit(Colors.Spark);
             for (var i = -18; i <= 18; i++)
             {
                 var spray = i / 18f * 48f;
@@ -525,58 +534,57 @@ namespace GrandSluggers.UnityClient
                 var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
                 var p = radial * fence;
                 var rot = Quaternion.LookRotation(radial, Vector3.up);
-                if (DropMesh("wall-panel", WallDress, "Wall" + i, p, rot, Vector3.one, paint: true) == null)
-                {
-                    Box(WallDress, "Wall" + i, p + Vector3.up * 4.4f, new Vector3(17.2f, 8.8f, 1.45f), rot, pad);
-                    Box(WallDress, "Cap" + i, p + Vector3.up * 8.92f, new Vector3(17.2f, 0.26f, 1.85f), rot, cap);
-                }
+                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
+                Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
                 if (i % 2 == 0)
-                    Box(WallDress, "Ad" + i, p - radial * 0.85f + Vector3.up * 5.5f, new Vector3(10.5f, 2.6f, 0.22f), rot, ads[Mathf.Abs(i) % ads.Length]);
+                    Box(WallDress, "Ad" + i, p - radial * (thick * 0.55f) + Vector3.up * (h * 0.62f),
+                        new Vector3(HarborPostcard.AdWidthFt, HarborPostcard.AdHeightFt, 0.45f), rot, ads[Mathf.Abs(i) % ads.Length]);
                 if (i % 3 == 0)
-                    Box(WallDress, "Ivy" + i, p - radial * 0.95f + Vector3.up * 1.6f, new Vector3(5.2f, 2.4f, 0.28f), rot, ivy);
+                    Box(WallDress, "Ivy" + i, p - radial * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
                 if (i == 0)
                 {
-                    Box(WallDress, "MarkSpark", p - radial * 1.05f + Vector3.up * 5.6f, new Vector3(2.2f, 2.2f, 0.28f), rot, spark);
-                    Box(WallDress, "MarkGold", p - radial * 1.2f + Vector3.up * 5.6f, new Vector3(1.1f, 1.1f, 0.22f), rot, mark);
+                    Box(WallDress, "MarkSpark", p - radial * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
+                    Box(WallDress, "MarkGold", p - radial * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
                 }
             }
             var lf = (float)_park.LeftFenceFt;
             var rf = (float)_park.RightFenceFt;
-            var pole = Look.Toon(Colors.Gold);
+            var pole = Look.Unlit(Colors.Gold);
             var flag = Look.Unlit(new Color(0.95f, 0.9f, 0.55f));
             var poleL = new Vector3(Mathf.Sin(-0.78f) * lf, 0f, Mathf.Cos(-0.78f) * lf);
             var poleR = new Vector3(Mathf.Sin(0.78f) * rf, 0f, Mathf.Cos(0.78f) * rf);
-            Cylinder(WallDress, "PoleL", poleL, 0.55f, 44f, pole);
-            Cylinder(WallDress, "PoleR", poleR, 0.55f, 44f, pole);
-            Box(WallDress, "ScreenL", poleL + Vector3.up * 38f, new Vector3(0.2f, 18f, 8f), Quaternion.LookRotation(poleL.normalized, Vector3.up), flag);
-            Box(WallDress, "ScreenR", poleR + Vector3.up * 38f, new Vector3(0.2f, 18f, 8f), Quaternion.LookRotation(poleR.normalized, Vector3.up), flag);
+            Cylinder(WallDress, "PoleL", poleL, 0.7f, 52f, pole);
+            Cylinder(WallDress, "PoleR", poleR, 0.7f, 52f, pole);
+            Box(WallDress, "ScreenL", poleL + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleL.normalized, Vector3.up), flag);
+            Box(WallDress, "ScreenR", poleR + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleR.normalized, Vector3.up), flag);
         }
 
         void DressScoreboard()
         {
-            var z = (float)_park.CenterFenceFt + 18f;
-            var house = Look.Toon(new Color(0.12f, 0.14f, 0.18f));
+            var z = (float)_park.CenterFenceFt + HarborPostcard.ScoreboardPastFenceFt;
+            var house = Look.Lit(new Color(0.12f, 0.14f, 0.18f), smooth: 0.08f);
             var face = Look.Unlit(new Color(0.10f, 0.22f, 0.14f));
             _ledOn = Look.Unlit(new Color(1f, 0.78f, 0.18f));
             _ledOff = Look.Unlit(new Color(0.08f, 0.12f, 0.09f));
             var led = _ledOn;
-            var label = Look.Toon(new Color(0.92f, 0.94f, 0.9f));
-            Cube(Scoreboard, "ScoreHouse", new Vector3(0f, 22f, z), new Vector3(48f, 28f, 8f), house);
-            Cube(Scoreboard, "ScoreFace", new Vector3(0f, 22f, z - 4.2f), new Vector3(42f, 18f, 0.6f), face);
-            Cube(Scoreboard, "ScoreSpark", new Vector3(0f, 34f, z - 4.4f), new Vector3(16f, 3.2f, 0.5f), Look.Toon(Colors.Spark));
-            Cube(Scoreboard, "ScoreBar", new Vector3(0f, 12f, z - 4f), new Vector3(36f, 1.2f, 0.5f), Look.Toon(Colors.Gold));
-            Cube(Scoreboard, "LblAway", new Vector3(-12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), label);
-            Cube(Scoreboard, "LblHome", new Vector3(12.5f, 28.6f, z - 4.55f), new Vector3(6.4f, 1.1f, 0.28f), Look.Toon(Colors.Spark));
-            Cube(Scoreboard, "LblInn", new Vector3(0f, 16.4f, z - 4.55f), new Vector3(4.2f, 0.9f, 0.28f), Look.Toon(Colors.Gold));
-            _awayTens = MakeDigit(Scoreboard, "AwayTens", new Vector3(-15.4f, 23.2f, z - 4.6f), led, 1f);
-            _awayOnes = MakeDigit(Scoreboard, "AwayOnes", new Vector3(-10.2f, 23.2f, z - 4.6f), led, 1f);
-            _homeTens = MakeDigit(Scoreboard, "HomeTens", new Vector3(9.6f, 23.2f, z - 4.6f), led, 1f);
-            _homeOnes = MakeDigit(Scoreboard, "HomeOnes", new Vector3(14.8f, 23.2f, z - 4.6f), led, 1f);
-            _innDigit = MakeDigit(Scoreboard, "InnDigit", new Vector3(0f, 19.4f, z - 4.6f), led, 0.85f);
+            var label = Look.Unlit(new Color(0.92f, 0.94f, 0.9f));
+            var digit = HarborPostcard.DigitHeightFt / 3.1f;
+            Cube(Scoreboard, "ScoreHouse", new Vector3(0f, 28f, z), new Vector3(64f, 40f, 10f), house);
+            Cube(Scoreboard, "ScoreFace", new Vector3(0f, 28f, z - 5.2f), new Vector3(56f, 28f, 0.7f), face);
+            Cube(Scoreboard, "ScoreSpark", new Vector3(0f, 46f, z - 5.5f), new Vector3(22f, 4.4f, 0.6f), Look.Unlit(Colors.Spark));
+            Cube(Scoreboard, "ScoreBar", new Vector3(0f, 12f, z - 5f), new Vector3(48f, 1.6f, 0.6f), Look.Unlit(Colors.Gold));
+            Cube(Scoreboard, "LblAway", new Vector3(-16.5f, 40.2f, z - 5.7f), new Vector3(10f, 1.8f, 0.35f), label);
+            Cube(Scoreboard, "LblHome", new Vector3(16.5f, 40.2f, z - 5.7f), new Vector3(10f, 1.8f, 0.35f), Look.Unlit(Colors.Spark));
+            Cube(Scoreboard, "LblInn", new Vector3(0f, 18.4f, z - 5.7f), new Vector3(6.4f, 1.4f, 0.35f), Look.Unlit(Colors.Gold));
+            _awayTens = MakeDigit(Scoreboard, "AwayTens", new Vector3(-20.4f, 30.2f, z - 5.8f), led, digit);
+            _awayOnes = MakeDigit(Scoreboard, "AwayOnes", new Vector3(-12.2f, 30.2f, z - 5.8f), led, digit);
+            _homeTens = MakeDigit(Scoreboard, "HomeTens", new Vector3(12.2f, 30.2f, z - 5.8f), led, digit);
+            _homeOnes = MakeDigit(Scoreboard, "HomeOnes", new Vector3(20.4f, 30.2f, z - 5.8f), led, digit);
+            _innDigit = MakeDigit(Scoreboard, "InnDigit", new Vector3(0f, 22.4f, z - 5.8f), led, digit * 0.72f);
             Cube(Scoreboard, "HomeHouse", new Vector3(0f, 20.4f, -38.8f), new Vector3(22f, 11f, 2.8f), house);
             Cube(Scoreboard, "HomeFace", new Vector3(0f, 20.4f, -37.3f), new Vector3(18.5f, 7.6f, 0.35f), face);
             Cube(Scoreboard, "HomeLblA", new Vector3(-5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), label);
-            Cube(Scoreboard, "HomeLblH", new Vector3(5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), Look.Toon(Colors.Spark));
+            Cube(Scoreboard, "HomeLblH", new Vector3(5.6f, 23.0f, -37.05f), new Vector3(3.2f, 0.7f, 0.22f), Look.Unlit(Colors.Spark));
             _plateAwayTens = MakeDigit(Scoreboard, "PlateAwayTens", new Vector3(-6.8f, 20.2f, -37.0f), led, 0.55f);
             _plateAwayOnes = MakeDigit(Scoreboard, "PlateAwayOnes", new Vector3(-4.4f, 20.2f, -37.0f), led, 0.55f);
             _plateHomeTens = MakeDigit(Scoreboard, "PlateHomeTens", new Vector3(4.4f, 20.2f, -37.0f), led, 0.55f);
@@ -584,8 +592,25 @@ namespace GrandSluggers.UnityClient
             SetScore(0, 0, 1);
         }
 
+        void HookDigits()
+        {
+            if (Scoreboard == null) return;
+            if (_awayTens == null) _awayTens = Scoreboard.Find("AwayTens");
+            if (_awayOnes == null) _awayOnes = Scoreboard.Find("AwayOnes");
+            if (_homeTens == null) _homeTens = Scoreboard.Find("HomeTens");
+            if (_homeOnes == null) _homeOnes = Scoreboard.Find("HomeOnes");
+            if (_innDigit == null) _innDigit = Scoreboard.Find("InnDigit");
+            if (_plateAwayTens == null) _plateAwayTens = Scoreboard.Find("PlateAwayTens");
+            if (_plateAwayOnes == null) _plateAwayOnes = Scoreboard.Find("PlateAwayOnes");
+            if (_plateHomeTens == null) _plateHomeTens = Scoreboard.Find("PlateHomeTens");
+            if (_plateHomeOnes == null) _plateHomeOnes = Scoreboard.Find("PlateHomeOnes");
+            if (_ledOn == null) _ledOn = Look.Unlit(new Color(1f, 0.78f, 0.18f));
+            if (_ledOff == null) _ledOff = Look.Unlit(new Color(0.08f, 0.12f, 0.09f));
+        }
+
         public void SetScore(int away, int home, int inning)
         {
+            if (_awayTens == null) HookDigits();
             if (_awayTens == null) return;
             away = Mathf.Clamp(away, 0, 99);
             home = Mathf.Clamp(home, 0, 99);
@@ -604,6 +629,7 @@ namespace GrandSluggers.UnityClient
         void DressBleachers()
         {
             Wipe(Bleachers);
+            if (_park == null) return;
             var conc = Look.Lit(new Color(0.74f, 0.75f, 0.76f), smooth: 0.1f);
             var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
             for (var row = 0; row < 6; row++)
@@ -622,8 +648,17 @@ namespace GrandSluggers.UnityClient
                 CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
-            // Visible from the field postcard looking CF — home bleachers sit behind the title cam.
-            CrowdBank(Bleachers, "CrowdCF", new Vector3(0, 4.2f, 318), new Vector3(92, 0, 0), new Vector3(0, 0.85f, -2.4f), 16, 3, 77);
+            var fence = (float)_park.CenterFenceFt;
+            var crowdZ = fence - HarborPostcard.CrowdInsideFt;
+            var crowdTex = Look.Lit(Color.white, Look.Crowd, 4f, 0.05f);
+            for (var row = 0; row < 4; row++)
+            {
+                var y = 6.4f + row * 3.4f;
+                var z = crowdZ - row * 4.2f;
+                Cube(Bleachers, "CfDeck" + row, new Vector3(0, y - 1.4f, z + 1.6f), new Vector3(118 - row * 4, 2.2f, 3.6f), conc);
+                Cube(Bleachers, "CfCrowdTex" + row, new Vector3(0, y + 1.1f, z), new Vector3(110 - row * 4, HarborPostcard.CrowdPersonFt * 0.85f, 0.7f), crowdTex);
+            }
+            CrowdBank(Bleachers, "CrowdCF", new Vector3(0, 5.2f, crowdZ - 1.2f), new Vector3(108, 0, 0), new Vector3(0, 2.6f, -3.8f), 18, 4, 77);
         }
 
         void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)
@@ -674,13 +709,15 @@ namespace GrandSluggers.UnityClient
                     p.x += (Hash01(seed + n) - 0.5f) * 0.45f;
                     p.z += (Hash01(seed + n + 9) - 0.5f) * 0.4f;
                     var body = Look.Toon(jersey[n % jersey.Length]);
-                    if (DropFan("fan-stand", root, "Fan" + n, p, body))
+                    var tall = HarborPostcard.CrowdPersonFt;
+                    var scale = tall / 1.8f;
+                    if (DropFan("fan-stand", root, "Fan" + n, p, body, scale))
                     {
                         n++;
                         continue;
                     }
-                    Capsule(root, "Body" + n, p + new Vector3(0f, 0.92f, 0f), new Vector3(0.62f, 0.62f, 0.62f), body);
-                    Sphere(root, "Head" + n, p + new Vector3(0f, 1.68f, 0f), 0.34f, n % 5 == 0 ? dark : flesh);
+                    Capsule(root, "Body" + n, p + new Vector3(0f, tall * 0.42f, 0f), new Vector3(tall * 0.38f, tall * 0.42f, tall * 0.38f), body);
+                    Sphere(root, "Head" + n, p + new Vector3(0f, tall * 0.82f, 0f), tall * 0.16f, n % 5 == 0 ? dark : flesh);
                     n++;
                 }
             }
@@ -688,19 +725,39 @@ namespace GrandSluggers.UnityClient
 
         void DressTown()
         {
-            var clap = Look.Lit(new Color(0.72f, 0.58f, 0.38f), smooth: 0.12f);
-            var brick = Look.Lit(new Color(0.52f, 0.28f, 0.20f), smooth: 0.1f);
-            var red = Look.Lit(Colors.SparkDark, smooth: 0.15f);
-            var pane = Look.Unlit(new Color(0.18f, 0.28f, 0.38f));
-            Cube(Town, "Wharf", new Vector3(-70, 16, 490), new Vector3(36, 32, 24), clap);
-            Cube(Town, "SparkHall", new Vector3(-18, 18, 505), new Vector3(22, 36, 20), red);
-            Cube(Town, "Loft", new Vector3(55, 22, 495), new Vector3(28, 44, 22), brick);
-            Cube(Town, "Pier", new Vector3(110, 6, 470), new Vector3(70, 5, 16), brick);
-            Cylinder(Town, "Light", new Vector3(155, 0, 440), 2.2f, 34f, Look.Lit(new Color(0.35f, 0.3f, 0.22f), smooth: 0.1f));
-            Cube(Town, "RoofSpark", new Vector3(-18, 38, 505), new Vector3(24, 4, 22), Look.Lit(Colors.Gold, smooth: 0.4f));
-            Cube(Town, "WinL", new Vector3(-70, 18, 478), new Vector3(8, 6, 0.4f), pane);
-            Cube(Town, "WinC", new Vector3(-18, 20, 494), new Vector3(6, 8, 0.4f), pane);
-            Cube(Town, "WinR", new Vector3(55, 24, 483), new Vector3(7, 9, 0.4f), pane);
+            Wipe(Town);
+            var z0 = (float)_park.CenterFenceFt + HarborPostcard.TownPastFenceFt;
+            var h = HarborPostcard.TownHeightFt;
+            var clap = Look.Lit(new Color(0.78f, 0.58f, 0.36f), Look.Dirt, 4f, 0.12f);
+            var brick = Look.Lit(new Color(0.62f, 0.28f, 0.20f), Look.Dirt, 5f, 0.1f);
+            var red = Look.Lit(Colors.SparkDark, Look.Dirt, 3f, 0.12f);
+            var pane = Look.Unlit(new Color(0.22f, 0.36f, 0.48f));
+            var roof = Look.Unlit(Colors.Gold);
+            Cube(Town, "Wharf", new Vector3(-88, h * 0.38f, z0 + 8f), new Vector3(42, h * 0.76f, 28), clap);
+            Cube(Town, "SparkHall", new Vector3(-18, h * 0.48f, z0 + 22f), new Vector3(28, h * 0.96f, 24), red);
+            Cube(Town, "Loft", new Vector3(58, h * 0.55f, z0 + 12f), new Vector3(34, h * 1.1f, 26), brick);
+            Cube(Town, "BlockR", new Vector3(118, h * 0.42f, z0 - 6f), new Vector3(40, h * 0.84f, 22), brick);
+            Cube(Town, "BlockL", new Vector3(-140, h * 0.32f, z0 - 18f), new Vector3(36, h * 0.64f, 20), clap);
+            Cube(Town, "Pier", new Vector3(110, 6, z0 - 28f), new Vector3(78, 6, 18), brick);
+            Cylinder(Town, "Light", new Vector3(168, 0, z0 - 42f), 2.6f, 42f, Look.Lit(new Color(0.35f, 0.3f, 0.22f), Look.Dirt, 1f, 0.1f));
+            Cube(Town, "RoofSpark", new Vector3(-18, h * 0.98f, z0 + 22f), new Vector3(32, 5, 26), roof);
+            Windows(Town, "WinWharf", new Vector3(-88, h * 0.4f, z0 - 6f), 5, 4, pane);
+            Windows(Town, "WinHall", new Vector3(-18, h * 0.5f, z0 + 10f), 4, 5, pane);
+            Windows(Town, "WinLoft", new Vector3(58, h * 0.55f, z0 - 1f), 4, 6, pane);
+            Windows(Town, "WinBlock", new Vector3(118, h * 0.42f, z0 - 17f), 4, 4, pane);
+        }
+
+        static void Windows(Transform parent, string name, Vector3 origin, int cols, int rows, Material pane)
+        {
+            for (var r = 0; r < rows; r++)
+            {
+                for (var c = 0; c < cols; c++)
+                {
+                    var x = origin.x + (c - (cols - 1) * 0.5f) * 5.6f;
+                    var y = origin.y + (r - (rows - 1) * 0.5f) * 6.2f;
+                    Cube(parent, name + r + c, new Vector3(x, y, origin.z), new Vector3(3.2f, 3.8f, 0.45f), pane);
+                }
+            }
         }
 
         void DressNight()
@@ -763,7 +820,7 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static readonly int[] DigitMask = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
+        static readonly int[] DigitMask = HarborPostcard.DigitMask;
 
         Transform MakeDigit(Transform parent, string name, Vector3 pos, Material on, float scale)
         {
@@ -819,6 +876,7 @@ namespace GrandSluggers.UnityClient
             var tf = root.Find(name);
             if (tf == null) return;
             var r = tf.GetComponent<Renderer>();
+            if (r == null) r = tf.GetComponentInChildren<Renderer>(true);
             if (r != null) r.sharedMaterial = on ? lit : dim;
         }
 
@@ -830,9 +888,9 @@ namespace GrandSluggers.UnityClient
             return (n & 0xFFFF) / 65535f;
         }
 
-        bool DropFan(string mesh, Transform parent, string name, Vector3 pos, Material jersey)
+        bool DropFan(string mesh, Transform parent, string name, Vector3 pos, Material jersey, float scale = 1f)
         {
-            var go = DropMesh(mesh, parent, name, pos, Quaternion.identity, Vector3.one, paint: false);
+            var go = DropMesh(mesh, parent, name, pos, Quaternion.identity, Vector3.one * Mathf.Max(0.2f, scale), paint: false);
             if (go == null) return false;
             PaintFan(go, jersey);
             return true;
@@ -848,6 +906,11 @@ namespace GrandSluggers.UnityClient
             go.transform.localScale = scale;
             foreach (var anim in go.GetComponentsInChildren<Animator>(true))
                 anim.enabled = false;
+            if (go.GetComponentInChildren<MeshRenderer>(true) == null)
+            {
+                UnityEngine.Object.Destroy(go);
+                return null;
+            }
             if (paint) PaintKit(go.transform);
             return go.transform;
         }
@@ -869,6 +932,11 @@ namespace GrandSluggers.UnityClient
             foreach (var r in t.GetComponentsInChildren<Renderer>(true))
             {
                 var mats = r.sharedMaterials;
+                if (mats == null || mats.Length == 0)
+                {
+                    r.sharedMaterial = _kitWood;
+                    continue;
+                }
                 var next = new Material[mats.Length];
                 for (var i = 0; i < mats.Length; i++)
                 {
@@ -891,6 +959,11 @@ namespace GrandSluggers.UnityClient
             foreach (var r in fan.GetComponentsInChildren<Renderer>(true))
             {
                 var mats = r.sharedMaterials;
+                if (mats == null || mats.Length == 0)
+                {
+                    r.sharedMaterial = jersey;
+                    continue;
+                }
                 var next = new Material[mats.Length];
                 for (var i = 0; i < mats.Length; i++)
                 {
@@ -911,7 +984,15 @@ namespace GrandSluggers.UnityClient
         static void Box(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rot, Material mat)
         {
             if (parent == null) return;
-            var go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
+            var tf = parent.Find(name);
+            GameObject go;
+            if (tf != null)
+            {
+                go = tf.gameObject;
+                Look.Paint(go, mat);
+            }
+            else
+                go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
             go.transform.SetPositionAndRotation(pos, rot);
             go.transform.localScale = scale;
         }
