@@ -121,8 +121,8 @@ public static class HowToPlay
         [
             "Tap South / Space / left click to pitch or swing. Hold charge for a bigger one.",
             "Charge ring sits on the dirt. Commit at MAX. Late charge is weaker.",
-            "SET when you pitch is the mound. SET when you bat is the plate.",
-            "When they throw, the camera cuts to pitch: the ball leaving the hand.",
+            "One pad: SET stays on the mound, behind the pitcher. The throw does not cut.",
+            "Two pads: SET stays on the plate, behind home.",
             "West / V    changeup. North + South    star. Stick L/R at contact    scatter.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
@@ -167,7 +167,7 @@ public static class HowToPlay
             "Gamepad 0 is home. Gamepad 1 is away. Keyboard and mouse are player 1 only.",
             "Unplug pad 2 and that team is CPU.",
             "You pitch the top. Friend bats. CPU never bats when both pads sit.",
-            "SET is mound when you pitch, plate when you bat. The fielding pad takes the glove.",
+            "Two pads: camera stays on the plate, behind home. The fielding pad takes the glove.",
         ]),
         new("getting-started", "Getting started", "getting-started",
         [

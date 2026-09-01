@@ -1,9 +1,10 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// One named shot per play. 1P and 2P share the recipe for the same role (#301, #304).
-/// SET forks pitcher view vs batter view, not seat count: human pitching is
-/// <see cref="AtBatShots.Mound"/>, human batting is <see cref="AtBatShots.Plate"/>.
+/// One named shot per play. SET and the throw fork by seat count (#368):
+/// 1P stays behind the pitcher (<see cref="AtBatShots.Mound"/>).
+/// 1v1 stays behind home (<see cref="AtBatShots.Plate"/>).
+/// In-play theater does not fork.
 /// </summary>
 public static class PlayCamera
 {
@@ -28,16 +29,16 @@ public static class PlayCamera
     public readonly record struct Viewport(double X, double Y, double Depth);
 
     /// <summary>
-    /// Seat count must not change the shot. Pass it so 1v1 cannot invent a second rig.
-    /// <paramref name="pitchingSet"/> is the role: on the rubber vs in the box.
+    /// SET / throw: 1P mound, 1v1 plate. <paramref name="pitchingSet"/> is ignored —
+    /// the camera does not follow the role.
     /// </summary>
     public static string Shot(Beat beat, int seats = 1, bool pitchingSet = false)
     {
-        _ = seats;
+        _ = pitchingSet;
+        var set = seats >= 2 ? AtBatShots.Plate : AtBatShots.Mound;
         return beat switch
         {
-            Beat.Set => pitchingSet ? AtBatShots.Mound : AtBatShots.Plate,
-            Beat.PitchFlight => AtBatShots.Pitch,
+            Beat.Set or Beat.PitchFlight => set,
             Beat.Grounder => "diamond-grounder",
             Beat.GrounderPull => "diamond-pull",
             Beat.Line => "diamond-line",

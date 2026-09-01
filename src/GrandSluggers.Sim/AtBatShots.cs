@@ -1,8 +1,8 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// SET / pitch-flight camera ids. Role, not pad count: pitcher view is mound,
-/// batter view is plate. Flight is always pitch. Catcher-spine is not a SET shot.
+/// SET / throw camera ids. 1P is mound (behind the pitcher). 1v1 is plate
+/// (behind home). Catcher-spine is not a SET shot. <c>pitch</c> stays a still-gate id.
 /// </summary>
 public static class AtBatShots
 {
@@ -10,19 +10,17 @@ public static class AtBatShots
     public const string Mound = "mound";
     public const string Pitch = "pitch";
 
-    /// <param name="humanPitches">
-    /// Pitcher view when a human is on the rubber (Exhibition top, 1v1, Training
-    /// pitching). Batter view otherwise. Seats are ignored.
-    /// </param>
+    /// <param name="seats">1 = behind the pitcher. 2 = behind home. Role is ignored.</param>
     public static string SetShot(
         bool humanPitches, bool flight, double charge, double aimX, double aimY,
         bool training = false, int seats = 1)
     {
+        _ = humanPitches;
         _ = charge;
         _ = aimX;
         _ = aimY;
         _ = training;
-        if (flight) return PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats);
-        return PlayCamera.Shot(PlayCamera.Beat.Set, seats, pitchingSet: humanPitches);
+        var beat = flight ? PlayCamera.Beat.PitchFlight : PlayCamera.Beat.Set;
+        return PlayCamera.Shot(beat, seats);
     }
 }

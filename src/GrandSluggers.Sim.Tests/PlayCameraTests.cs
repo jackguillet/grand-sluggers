@@ -6,42 +6,36 @@ namespace GrandSluggers.Sim.Tests;
 public class PlayCameraTests
 {
     [Fact]
-    public void SetForksPitcherViewVsBatterViewNotSeatCount()
+    public void SetIsMoundIn1PAndPlateIn1v1()
     {
-        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set));
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, pitchingSet: true));
-        Assert.Equal(
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true),
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
-        Assert.Equal(
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1),
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.4, 0.5, -0.2));
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true));
+        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 1));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
+        Assert.Equal(AtBatShots.Plate, PlayCamera.Shot(PlayCamera.Beat.PitchFlight, seats: 2));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0, seats: 1));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 2));
-        Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0));
-        Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(false, true, 0, 0, 0));
+        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, true, 0, 0, 0, seats: 2));
     }
 
     [Fact]
-    public void TrainingPitchingUsesTheSameMoundRecipe()
+    public void Training1PStaysBehindThePitcher()
     {
-        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, training: true));
-        Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0, training: true));
-        Assert.Equal(AtBatShots.Mound, PlayCamera.Shot(PlayCamera.Beat.Set, pitchingSet: true));
-        Assert.Equal(
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 1, pitchingSet: true),
-            PlayCamera.Shot(PlayCamera.Beat.Set, seats: 2, pitchingSet: true));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true, seats: 1));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(false, false, 0, 0, 0, training: true, seats: 1));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, true, 0, 0, 0, training: true, seats: 1));
     }
 
     [Fact]
-    public void BeatTableDoesNotForkBySeatCount()
+    public void InPlayTheaterDoesNotForkBySeatCount()
     {
         foreach (PlayCamera.Beat beat in Enum.GetValues<PlayCamera.Beat>())
         {
+            if (beat is PlayCamera.Beat.Set or PlayCamera.Beat.PitchFlight) continue;
             var one = PlayCamera.Shot(beat, seats: 1);
             var two = PlayCamera.Shot(beat, seats: 2);
             Assert.Equal(one, two);
@@ -57,7 +51,6 @@ public class PlayCameraTests
         Assert.Equal("throw", PlayCamera.Shot(PlayCamera.Beat.StealThrow));
         Assert.Equal("tag", PlayCamera.Shot(PlayCamera.Beat.Tag));
         Assert.Equal(PlayCamera.Wall, PlayCamera.Shot(PlayCamera.Beat.Wall));
-        Assert.Equal(AtBatShots.Pitch, PlayCamera.Shot(PlayCamera.Beat.PitchFlight));
     }
 
     [Fact]
