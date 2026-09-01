@@ -26,6 +26,28 @@ public static class SetTells
     /// <summary>Torus tube radius. 0.045 vanished from the plate 3/4.</summary>
     public const double RingThickFt = 0.16;
 
+    /// <summary>Home pad / batter's box top. Ring sits on this, not at Y=0 under the mesh.</summary>
+    public const double BoxDirtY = 0.26;
+
+    /// <summary>Mound hill / rubber top. Pitching SET uses the same ring language here.</summary>
+    public const double RubberDirtY = 0.96;
+
+    /// <summary>
+    /// World Y of the torus center at the player's feet. Packed dirt, never chest
+    /// or a child of hero lift/grow. Presentation must not parent this to the toy.
+    /// </summary>
+    public static double RingWorldY(double feetZ = 0, double heroY = 0, double lift = 0)
+    {
+        _ = heroY;
+        _ = lift;
+        var dirt = Math.Abs(feetZ - Diamond.Mound) < 12 ? RubberDirtY : BoxDirtY;
+        return dirt + RingThickFt;
+    }
+
+    public static (double X, double Y, double Z) RingAt(
+        double feetX, double feetZ, double heroY = 0, double lift = 0) =>
+        (feetX, RingWorldY(feetZ, heroY, lift), feetZ);
+
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;
 
     public static (double X, double Y) Locator(double aimX, double aimY) =>

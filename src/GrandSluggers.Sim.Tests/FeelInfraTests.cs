@@ -222,6 +222,23 @@ public class FeelInfraTests
     }
 
     [Fact]
+    public void ChargeRingWorldYIsDirtNotChest()
+    {
+        const double chestY = 2.28;
+        const double lift = 1.2;
+        var box = SetTells.RingAt(2.55, 2.4, chestY, lift);
+        Assert.Equal(2.55, box.X);
+        Assert.Equal(2.4, box.Z);
+        Assert.InRange(box.Y, 0.2, 0.8);
+        Assert.True(box.Y < 1.0, $"box ring must sit on packed dirt, not chest y={box.Y}");
+        Assert.Equal(SetTells.RingWorldY(2.4), SetTells.RingWorldY(2.4, chestY, lift));
+        var rubber = SetTells.RingAt(0, Diamond.Mound, chestY, lift);
+        Assert.InRange(rubber.Y, 0.8, 1.4);
+        Assert.True(rubber.Y < chestY, $"rubber ring is in the torso y={rubber.Y}");
+        Assert.Equal(SetTells.RingAt(0, Diamond.Mound).Y, rubber.Y);
+    }
+
+    [Fact]
     public void BaseballDiameterReadsOnPlateWithoutEatingMound()
     {
         Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);

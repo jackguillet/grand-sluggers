@@ -210,7 +210,7 @@ namespace GrandSluggers.UnityClient
             Shoe(chain.LShin, shoe, leather, trim, kid || Has("sneakers"));
             Shoe(chain.RShin, shoe, leather, trim, kid || Has("sneakers"));
 
-            AttachRing(chain, parent);
+            AttachRing(chain);
             return chain;
         }
 
@@ -296,7 +296,7 @@ namespace GrandSluggers.UnityClient
             HideNamed(go.transform, "EyeR");
             Face(chain.Head, Has("ember-eyes") || slug, ink, white, flesh);
             AttachHatAndExtras(chain, body, Has, jersey, trim, flesh, ink);
-            AttachRing(chain, parent);
+            AttachRing(chain);
             return chain;
         }
 
@@ -466,16 +466,17 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        static void AttachRing(Chain chain, Transform parent)
+        static void AttachRing(Chain chain)
         {
             var root = new GameObject("Mark");
-            root.transform.SetParent(parent, false);
+            var max = Math.Max(SetTells.RingScale(1), 0.01);
+            var minor = (float)(SetTells.RingThickFt / max);
             var pink = Look.Unlit(new Color(1f, 0.48f, 0.78f));
             var gold = Look.Unlit(Colors.Gold);
-            // Unit major radius. Hero scales uniformly by RingScale so the tube
-            // stays a tube (~RingThickFt at charge 1), not a pancake.
-            Look.Torus("Pink", root.transform, 1f, 0.032f, pink);
-            Look.Torus("Gold", root.transform, 0.86f, 0.024f, gold);
+            // World-space unit torus. HeroActor places it on packed dirt and
+            // scales uniformly by RingScale so the tube stays a tube, not a pancake.
+            Look.Torus("Pink", root.transform, 1f, minor, pink);
+            Look.Torus("Gold", root.transform, 0.86f, minor * 0.75f, gold);
             chain.Ring = root.transform;
             root.SetActive(false);
         }
