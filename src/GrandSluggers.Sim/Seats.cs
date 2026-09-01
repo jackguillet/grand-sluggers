@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Who sits home and away. Gamepad 0 is home (keyboard is that seat too).
 /// Gamepad 1 sits away; missing pad 2 is CPU. Unplug remaps without restarting
-/// the inning — SET is mound in 1P, plate in 1v1.
+/// the inning — SET is mound when 1P pitches, plate when 1P bats, plate in 1v1.
 /// </summary>
 public readonly record struct Seats(LineupSeat Home, LineupSeat Away)
 {
