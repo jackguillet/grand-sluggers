@@ -134,7 +134,7 @@ public static class HowToPlay
         ]),
         new("running", "Running", "running",
         [
-            "Hit the ball and you run to first. Mash South / Space    dash.",
+            "Hit it and you run. Play lives until everyone is on a bag for a second (or 3 outs).",
             "LB / ,    all advance. RB / .    all return. Both    halt.",
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 / Z    steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
@@ -143,7 +143,7 @@ public static class HowToPlay
         new("fielding", "Fielding", "fielding",
         [
             "Don't move and the outfielder still can catch. Contact puffs dirt.",
-            "Move the stick / WASD / mouse to take the glove. South    catch, then throw.",
+            "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window. East    dive. North    attack. A homer sits on the wall.",
             "Fly camera is a 3/4 on the glove. A steal gun is a catcher throw without a hop.",

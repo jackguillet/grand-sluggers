@@ -91,6 +91,7 @@ namespace GrandSluggers.UnityClient
         bool _pitchAir;
         Vector3 _relFrom;
         float _hitT;
+        float _occupyBatter, _occupy1, _occupy2, _occupy3;
         float _freeze;
         float _smash;
         bool _showTiming;
