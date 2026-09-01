@@ -28,13 +28,17 @@ public class FeelInfraTests
         Assert.True(Math.Abs(title.Pos.X) > 6, $"title is a 3/4, not through the pipe x={title.Pos.X}");
         Assert.True(title.Target.Z > 30, $"title looks into the park z={title.Target.Z}");
         Assert.True(title.Fov >= 42);
-        var homeToy = new Vec3(0, 0, CarnivalFront.FeaturedTitleZ);
+        var homeToy = CarnivalFront.TitleHeroChest;
         Assert.True(Dist(title.Pos, homeToy) < Dist(title.Pos, new Vec3(0, 0, Diamond.Mound)),
             $"title home captain is the toy, not the mound dist={Dist(title.Pos, homeToy)}");
         Assert.True(CarnivalFront.FeaturedTitleZ < 16, $"title captain too far z={CarnivalFront.FeaturedTitleZ}");
         Assert.True(CarnivalFront.LogoZ > -12 && CarnivalFront.LogoZ < 18, $"logo z={CarnivalFront.LogoZ}");
         Assert.True(Math.Abs(CarnivalFront.LogoX) < 8, $"logo off-frame x={CarnivalFront.LogoX}");
-        Assert.True(CarnivalFront.LogoY > 5, $"logo y={CarnivalFront.LogoY}");
+        Assert.True(CarnivalFront.LogoY > 10, $"logo through the hat y={CarnivalFront.LogoY}");
+        Assert.True(CarnivalFront.TitlePoster(title.Pos, title.Target),
+            $"title poster failed heroDeg={CarnivalFront.OffLook(title.Pos, title.Target, homeToy):0.0} " +
+            $"logoDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleLogoAt):0.0} " +
+            $"sep={CarnivalFront.OffLook(title.Pos, homeToy, CarnivalFront.TitleLogoAt):0.0}");
         var select = _content.Shots.Must("select");
         Assert.True(select.Pos.Z > -20, $"select must sit in front of the backstop cage z={select.Pos.Z}");
         Assert.True(select.Pos.Z < 0, $"select behind home z={select.Pos.Z}");

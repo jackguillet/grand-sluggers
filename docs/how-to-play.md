@@ -43,7 +43,7 @@ Three innings at Harbor. Home bats in the bottom. One pad: you pitch the top, yo
 
 ### Title
 
-The park is the poster. **GRAND SLUGGERS** is a sticker in the world, not a gray box. The home captain is the toy in front. Captains stand on the grass.
+The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — readable without F2, not a board through the toy. The home captain is the toy in front. Other captains wait for select.
 
 - **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)

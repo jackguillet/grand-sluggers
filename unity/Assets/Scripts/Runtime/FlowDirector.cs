@@ -98,7 +98,7 @@ namespace GrandSluggers.UnityClient
                 Night = !Night;
                 RebuildTitlePark();
             }
-            _cam.Play("title");
+            _cam.Cut("title");
             if (Controls.SouthDown)
             {
                 if (_mode == PlayMode.Training)
@@ -123,7 +123,8 @@ namespace GrandSluggers.UnityClient
             if (_park == null || _content == null) return;
             if (!_content.Parks.TryGetValue(ParkId, out var park)) return;
             _park.Build(park, Night);
-            _cam?.Play("title");
+            if (_phase == Phase.Title)
+                _cam?.Cut("title");
         }
 
         void OpenSelect()
@@ -236,7 +237,7 @@ namespace GrandSluggers.UnityClient
             _hlPath = null;
             _replaying = false;
             RebuildTitlePark();
-            _cam.Play("title");
+            _cam.Cut("title");
         }
 
         void LookAtHomeCaptain()
