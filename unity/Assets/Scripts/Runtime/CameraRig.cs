@@ -92,7 +92,10 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>Over-the-batter 3/4 looking at the mound. Plate and chalk boxes read. Not catcher-spine.</summary>
         public void FramePlate() =>
-            Cut(new Vector3(-10.8f, 5.2f, -4.4f), new Vector3(2.55f, 0.95f, 11f), 50f);
+            Cut(
+                new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
+                new Vector3((float)StillPose.PlateLookX, (float)StillPose.PlateLookY, (float)StillPose.PlateLookZ),
+                (float)StillPose.PlateFov);
 
         public void FrameThrow(Vector3 from, Vector3 to)
         {
