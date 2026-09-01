@@ -68,6 +68,14 @@ public class SchemeTests
         Assert.Equal(PauseMenu.Item.Restart, PauseMenu.At(PauseMenu.Wrap(0, 1)));
         Assert.True(HowToPlay.Pages.Count >= 4);
         Assert.Equal("contents", HowToPlay.Pages[0].Id);
+        var book = HowToPlay.BookPanel(1280, 800);
+        Assert.True(book.W >= 1100, $"book too narrow w={book.W}");
+        Assert.True(book.H >= 700, $"book too short h={book.H}");
+        foreach (var page in HowToPlay.Pages)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(page.Picture), page.Id);
+            Assert.InRange(page.Lines.Count, 1, HowToPlay.KidLineMax);
+        }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));

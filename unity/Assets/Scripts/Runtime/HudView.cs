@@ -5,7 +5,7 @@ namespace GrandSluggers.UnityClient
 {
     public static class HudView
     {
-        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team;
+        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine, _bookHead;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white;
         static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
 
@@ -149,20 +149,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), dim);
             if (howTo)
             {
-                var p = HowToPlay.Pages[(page % HowToPlay.Pages.Count + HowToPlay.Pages.Count) % HowToPlay.Pages.Count];
-                var book = HowToPlay.BookPanel(Screen.width, Screen.height, p.Lines.Count);
-                var x = book.X;
-                var y = book.Y;
-                var w = book.W;
-                var h = book.H;
-                GUI.DrawTexture(new Rect(x, y, w, h), _panel);
-                GUI.Label(new Rect(x + 24, y + 12, w - 48, 22), "HOW TO PLAY", _gold);
-                GUI.Label(new Rect(x + 24, y + 32, w - 48, 28),
-                    p.Title.ToUpperInvariant() + "    " + (page + 1) + " / " + HowToPlay.Pages.Count, _h1);
-                for (var i = 0; i < p.Lines.Count; i++)
-                    GUI.Label(new Rect(x + 28, y + 64 + i * 24, w - 56, 22), p.Lines[i], _body);
-                GUI.Label(new Rect(x + 28, y + h - 32, w - 56, 20),
-                    "South / left click next    wheel    East / right click / Esc back", _tiny);
+                Book(page);
                 return;
             }
             var panel = PauseMenu.Panel(Screen.width, Screen.height);
@@ -181,6 +168,40 @@ namespace GrandSluggers.UnityClient
             var lineH = foot.H / Mathf.Max(1, PauseMenu.FooterLines.Count);
             for (var i = 0; i < PauseMenu.FooterLines.Count; i++)
                 GUI.Label(new Rect(foot.X, foot.Y + i * lineH, foot.W, lineH), PauseMenu.FooterLines[i], _tiny);
+        }
+
+        static void Book(int page)
+        {
+            var n = HowToPlay.Pages.Count;
+            var p = HowToPlay.Pages[(page % n + n) % n];
+            var book = HowToPlay.BookPanel(Screen.width, Screen.height);
+            var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
+            var text = HowToPlay.TextRect(Screen.width, Screen.height);
+            GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _panel);
+            GUI.Label(new Rect(book.X + 28, book.Y + 10, 280, 28), "HOW TO PLAY", _gold);
+            GUI.Label(new Rect(book.X + 28, book.Y + 38, book.W - 56, 44),
+                p.Title.ToUpperInvariant() + "   " + (page + 1) + " / " + n, _bookHead);
+            var tex = BookPic(p.Picture);
+            if (tex != null)
+                GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), tex, ScaleMode.ScaleToFit);
+            else
+                GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), _dotOff);
+            var lineH = HowToPlay.KidLineH;
+            for (var i = 0; i < p.Lines.Count; i++)
+                GUI.Label(new Rect(text.X, text.Y + i * lineH, text.W, lineH + 8f), p.Lines[i], _bookLine);
+            GUI.Label(new Rect(book.X + 28, book.Y + book.H - 36, book.W - 56, 28),
+                "South / left click next     wheel     East / right click / Esc back", _tiny);
+        }
+
+        static readonly System.Collections.Generic.Dictionary<string, Texture2D> _bookPics = new();
+
+        static Texture2D BookPic(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (_bookPics.TryGetValue(id, out var cached) && cached != null) return cached;
+            var tex = Resources.Load<Texture2D>("Art/Booklet/" + id);
+            if (tex != null) _bookPics[id] = tex;
+            return tex;
         }
 
         public static void ControlDisplay(string pos, string name)
@@ -467,6 +488,12 @@ namespace GrandSluggers.UnityClient
             _h1 = Sty(26, Color.white, FontStyle.Bold);
             _h1.clipping = TextClipping.Overflow;
             _h1.padding = new RectOffset(4, 4, 0, 0);
+            _bookHead = Sty(36, Color.white, FontStyle.Bold);
+            _bookHead.clipping = TextClipping.Overflow;
+            _bookTitle = Sty(42, new Color(1f, 0.85f, 0.2f), FontStyle.Bold);
+            _bookLine = Sty(24, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
+            _bookLine.wordWrap = true;
+            _bookLine.clipping = TextClipping.Overflow;
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
             _gold = Sty(20, new Color(1f, 0.82f, 0.25f), FontStyle.Bold);
             _tiny = Sty(15, new Color(0.85f, 0.88f, 0.9f), FontStyle.Normal);
