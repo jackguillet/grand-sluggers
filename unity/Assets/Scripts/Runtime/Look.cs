@@ -9,7 +9,7 @@ namespace GrandSluggers.UnityClient
     public static class Look
     {
         static Shader _lit, _toon;
-        static Texture2D _grass, _dirt, _crowd, _rio, _vale, _zig, _brondo, _konga, _ashlord;
+        static Texture2D _grass, _dirt, _crowd, _white, _rio, _vale, _zig, _brondo, _konga, _ashlord;
         static readonly Dictionary<string, Texture2D> _generated = new Dictionary<string, Texture2D>();
 
         public static Shader LitShader
@@ -137,15 +137,32 @@ namespace GrandSluggers.UnityClient
             var m = new Material(LitShader);
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", color);
             else m.color = color;
-            if (tex != null)
-            {
-                if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
-                m.mainTexture = tex;
-                m.mainTextureScale = new Vector2(tile, tile);
-            }
+            // URP Lit on llvmpipe treats a missing base map as white and
+            // drops _BaseColor — Harbor town became four untextured boxes.
+            var map = tex != null ? tex : White;
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", map);
+            m.mainTexture = map;
+            m.mainTextureScale = new Vector2(tile, tile);
             if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", smooth);
             if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0f);
             return m;
+        }
+
+        static Texture2D White
+        {
+            get
+            {
+                if (_white == null)
+                {
+                    _white = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+                    _white.SetPixel(0, 0, Color.white);
+                    _white.Apply();
+                    _white.wrapMode = TextureWrapMode.Repeat;
+                    _white.filterMode = FilterMode.Point;
+                    _white.name = "LookWhite";
+                }
+                return _white;
+            }
         }
 
         public static Shader ToonShader
@@ -175,11 +192,9 @@ namespace GrandSluggers.UnityClient
             var m = new Material(sh);
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", color);
             else m.color = color;
-            if (tex != null)
-            {
-                if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
-                m.mainTexture = tex;
-            }
+            var map = tex != null ? tex : White;
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", map);
+            m.mainTexture = map;
             return m;
         }
 
@@ -287,8 +302,8 @@ namespace GrandSluggers.UnityClient
             SetupLighting(cam, sky);
             cam.backgroundColor = sky;
             RenderSettings.fogColor = new Color(0.78f, 0.80f, 0.72f);
-            RenderSettings.fogStartDistance = 240f;
-            RenderSettings.fogEndDistance = 760f;
+            RenderSettings.fogStartDistance = 380f;
+            RenderSettings.fogEndDistance = 820f;
             RenderSettings.ambientSkyColor = new Color(0.58f, 0.74f, 0.90f);
             RenderSettings.ambientEquatorColor = new Color(0.86f, 0.74f, 0.52f);
             RenderSettings.ambientGroundColor = new Color(0.30f, 0.24f, 0.16f);

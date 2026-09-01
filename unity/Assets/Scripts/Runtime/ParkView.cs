@@ -94,7 +94,9 @@ namespace GrandSluggers.UnityClient
 
             Quad("Water", new Vector3(0, -1.4f, 240), new Vector3(1100, 1, 1100), waterMat);
             Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
-            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindObjectOfType<HarborKit>();
+            var kit = HarborKit.Instance != null
+                ? HarborKit.Instance
+                : FindFirstObjectByType<HarborKit>(FindObjectsInactive.Include);
             if (kit == null && harbor)
             {
                 var go = new GameObject("HarborKit");
