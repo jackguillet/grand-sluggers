@@ -19,8 +19,8 @@ namespace GrandSluggers.UnityClient
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
-        public bool Pad1Home = true;
         public bool Night;
+        [System.NonSerialized] public bool Pad1Home = true;
         LineupScreens _lineup;
         bool _lineupTouched;
         float _lineupStick;
