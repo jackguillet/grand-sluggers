@@ -42,7 +42,15 @@ public class FeelInfraTests
         Assert.True(select.Fov >= 44, $"select fov {select.Fov} too tight for six captains");
         var pickLook = new Vec3(0, CarnivalFront.SelectLookY, CarnivalFront.FeaturedSelectZ);
         Assert.True(CarnivalFront.SelectLookY < 3.2, $"select look is the brim y={CarnivalFront.SelectLookY}");
-        Assert.True(Dist(select.Pos, pickLook) > 18, $"select look too close dist={Dist(select.Pos, pickLook)}");
+        Assert.True(CarnivalFront.FeaturedSelectZ >= 6.5, $"select pick too close z={CarnivalFront.FeaturedSelectZ}");
+        Assert.True(CarnivalFront.SelectCamIsTheToy(select.Pos.Y, select.Pos.Z),
+            $"select looks at the berm y={select.Pos.Y} z={select.Pos.Z}");
+        Assert.InRange(select.Pos.Y, CarnivalFront.SelectCamMinY, CarnivalFront.SelectCamMaxY);
+        var down = (select.Pos.Y - CarnivalFront.SelectLookY) / (CarnivalFront.FeaturedSelectZ - select.Pos.Z);
+        Assert.True(down < CarnivalFront.SelectMaxDown, $"select looks down at the berm slope={down}");
+        var dist = Dist(select.Pos, pickLook);
+        Assert.True(dist > 14, $"select look too close (hat) dist={dist}");
+        Assert.True(dist < 22, $"select too far (dirt is the picture) dist={dist}");
     }
 
     [Fact]

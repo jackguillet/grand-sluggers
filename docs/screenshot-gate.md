@@ -26,7 +26,7 @@ Bonus stills that save a later sitting (same rules):
 | Pitch at you | `pitch` | From the box, looking at the pitcher. Arm through, ball leaving that hand toward you. |
 | Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. **GRAND SLUGGERS** is a sticker in the world (still-gate can see it). |
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
-| Captain card | `select` | Home captain + world card with P/B/F/R bars |
+| Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
 | Throw | `throw` | On the glove, ball leaving the hand |
 | Fly | `diamond` | 3/4 in the park, fielder reads, ball is a baseball |
 | Homer | `diamond-homer` | Camera rises with the ball, then baseball |

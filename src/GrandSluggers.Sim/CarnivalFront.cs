@@ -16,6 +16,11 @@ public static class CarnivalFront
     public const float FeaturedSelectZ = 8f;
     /// <summary>Chest. Y=4.4 at Z=4 is Ashlord's brim.</summary>
     public const float SelectLookY = 2.6f;
+    /// <summary>Chest-height. Y=7.8 looking at Z=8 from Z=-12 is the plate berm.</summary>
+    public const float SelectCamMinY = 3.6f;
+    public const float SelectCamMaxY = 6.0f;
+    /// <summary>Downward slope (ΔY/ΔZ). 5.2/20 from the berm shot.</summary>
+    public const float SelectMaxDown = 0.18f;
     public const float LogoX = 0.4f;
     public const float LogoY = 8.8f;
     public const float LogoZ = 7.4f;
@@ -38,6 +43,19 @@ public static class CarnivalFront
     {
         var spot = CaptainSpot(index, count, select: true, home: true);
         return (spot.X, SelectLookY, spot.Z);
+    }
+
+    /// <summary>
+    /// Select sits at chest height and looks at the toy. High-home looking down
+    /// at Z=8 is the packed-dirt berm. Y=4.4 at Z=4 is Ashlord's brim.
+    /// </summary>
+    public static bool SelectCamIsTheToy(double camY, double camZ)
+    {
+        if (camY < SelectCamMinY || camY > SelectCamMaxY) return false;
+        if (camZ >= 0 || camZ <= -20) return false;
+        var dy = camY - SelectLookY;
+        var dz = FeaturedSelectZ - camZ;
+        return dz > 0 && dy / dz < SelectMaxDown;
     }
 
     public static string SkyGag(bool night) => night ? "NIGHT" : "DAY";

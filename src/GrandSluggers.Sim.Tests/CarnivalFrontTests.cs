@@ -59,4 +59,14 @@ public class CarnivalFrontTests
         Assert.True(CarnivalFront.FeaturedSelectZ < CarnivalFront.SelectRowZ);
         Assert.Equal(CarnivalFront.SelectRowZ - CarnivalFront.FeaturedSelectZ, CarnivalFront.HomeStepSelectFt);
     }
+
+    [Fact]
+    public void SelectCamIsTheToyNotTheBerm()
+    {
+        Assert.True(CarnivalFront.SelectCamIsTheToy(4.6, -10));
+        Assert.False(CarnivalFront.SelectCamIsTheToy(7.8, -12), "y=7.8 at z=-12 looks down at the plate dirt");
+        Assert.False(CarnivalFront.SelectCamIsTheToy(4.4, 4), "z=4 / look y=4.4 is Ashlord's brim");
+        Assert.False(CarnivalFront.SelectCamIsTheToy(2.0, -10), "cam in the dirt");
+        Assert.False(CarnivalFront.SelectCamIsTheToy(4.6, -22), "through the backstop cage");
+    }
 }
