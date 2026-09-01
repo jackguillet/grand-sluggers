@@ -2,7 +2,7 @@
 
 How Grand Sluggers takes a lot of art later without rewriting baseball. This document is the **concept**. The living spec is `data/art/` plus `dotnet run --project src/GrandSluggers.Cli -- art`.
 
-No paintings live here. Slots do.
+No paintings live here. Slots do. What the pictures should feel like: `docs/look.md`.
 
 ## What first-party sports games actually scale
 
