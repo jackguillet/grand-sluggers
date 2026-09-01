@@ -474,10 +474,11 @@ namespace GrandSluggers.UnityClient
             {
                 _card?.Hide();
                 if (_logo == null) _logo = LogoToy.Attach(transform);
+                var titleShot = _content.Shots.Must("title");
                 _logo.Show(
                     CarnivalFront.Logo,
                     new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
-                    new Vector3(0f, 0f, -1f));
+                    new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
             }
         }
 

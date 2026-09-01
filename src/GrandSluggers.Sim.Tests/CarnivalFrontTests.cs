@@ -42,10 +42,26 @@ public class CarnivalFrontTests
         Assert.True(CarnivalFront.CardX > 4);
         Assert.True(CarnivalFront.CardY > 2);
         Assert.True(titleHome.Z < 16, $"title captain too far z={titleHome.Z}");
+        Assert.True(CarnivalFront.LogoZ > CarnivalFront.FeaturedTitleZ,
+            $"logo on the toy z={CarnivalFront.LogoZ} hero={CarnivalFront.FeaturedTitleZ}");
         Assert.InRange(CarnivalFront.LogoZ, -10, 16);
         Assert.True(Math.Abs(CarnivalFront.LogoX) < 8, $"logo off-frame x={CarnivalFront.LogoX}");
-        Assert.True(CarnivalFront.LogoY > 5, $"logo y={CarnivalFront.LogoY}");
+        Assert.True(CarnivalFront.LogoY > 10, $"logo through the hat y={CarnivalFront.LogoY}");
         Assert.Equal("GRAND SLUGGERS", CarnivalFront.Logo);
+    }
+
+    [Fact]
+    public void TitleIsOneToyAndAStickerOverTheInfield()
+    {
+        var title = ContentCatalog.Load().Shots.Must("title");
+        Assert.True(CarnivalFront.TitlePoster(title.Pos, title.Target),
+            $"title is not a sticker poster cam={title.Pos} look={title.Target} " +
+            $"heroDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleHeroChest):0.0} " +
+            $"logoDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleLogoAt):0.0} " +
+            $"sep={CarnivalFront.OffLook(title.Pos, CarnivalFront.TitleHeroChest, CarnivalFront.TitleLogoAt):0.0}");
+        var row = CarnivalFront.CaptainSpot(1, 6, select: false, home: false);
+        Assert.True(row.Z > CarnivalFront.FeaturedTitleZ + 8,
+            $"title row should wait off-frame z={row.Z}");
     }
 
     [Fact]
