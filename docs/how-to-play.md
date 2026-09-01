@@ -129,7 +129,7 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
 Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags. Mini diamond + banner match the out/safe.
 
-In-play HUD (the booklet screen): **YOU** names the glove you have (gone when the stick is dead). Landing ring is the grass the fly wants. **ITEM → name** plus a gold ring on that body when a chemistry item is armed. Pitcher card is **ARM**; below 25 it reads **TIRED** and sweats.
+In-play HUD (the booklet screen): **YOU** names the glove you have (gone when the stick is dead). A **yellow circle on the grass** is where the fly lands (the landing ring). It turns **red** in the jump window. **ITEM → name** plus a gold ring on that body when a chemistry item is armed. Pitcher card is **ARM**; below 25 it reads **TIRED** and sweats.
 
 ### Fielding (the ball is in play)
 
