@@ -99,18 +99,19 @@ public class FeelInfraTests
         Assert.True(plateHat!.Value.Y - plateFeet!.Value.Y > 0.42,
             $"batter too small in batting frame h={plateHat.Value.Y - plateFeet.Value.Y}");
         Assert.False(PlayCamera.InFrame(plateCatcher, 0.02), $"catcher in batting look {plateCatcher}");
-        // 3/4 behind the rubber looking at home. Rubber in the bottom; the
-        // box is the look. Portrait/dirt and CF are both fails (#304).
-        Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind the rubber z={mound.Pos.Z}");
-        Assert.True(Math.Abs(mound.Pos.X) > 6, $"mound is a 3/4 off the pipe x={mound.Pos.X}");
-        Assert.InRange(mound.Pos.Y, 6.0, 8.5);
+        // Close 3/4 behind the rubber looking at home. Pitcher large on the
+        // right; rubber in the bottom; the box is the look. Distant 3/4 and
+        // down-the-pipe are both fails.
+        Assert.True(StillPose.MoundIsPitcherOverShoulder(mound.Pos.X, mound.Pos.Z),
+            $"mound over-shoulder 3/4 x={mound.Pos.X} z={mound.Pos.Z}");
+        Assert.InRange(mound.Pos.Y, 5.0, 7.0);
         Assert.True(mound.Target.Z < 8, $"mound looks at the box, not CF z={mound.Target.Z}");
         Assert.True(mound.Target.Z > -2, $"mound look past the cage z={mound.Target.Z}");
         Assert.True(mound.Target.Y < 2.4, $"mound look too high y={mound.Target.Y}");
         var moundDist = Dist(mound.Pos, new Vec3(0, 0, Diamond.Mound));
-        Assert.True(moundDist > 14, $"mound too close (pitcher blob) dist={moundDist}");
-        Assert.True(moundDist < 28, $"mound too far (pitcher ant) dist={moundDist}");
-        Assert.InRange(mound.Fov, 40, 48);
+        Assert.True(moundDist > 11, $"mound too close (pitcher blob) dist={moundDist}");
+        Assert.True(moundDist < 18, $"mound too far (pitcher ant) dist={moundDist}");
+        Assert.InRange(mound.Fov, 42, 50);
         var boxDeg = LookDeg(mound.Pos, mound.Target, new Vec3(0, 1.0, 2.4));
         Assert.True(boxDeg < 8, $"box off the mound look {boxDeg:0.0} deg");
         var pitcherDeg = LookDeg(mound.Pos, mound.Target, new Vec3(0, 2.2, Diamond.Mound));
@@ -121,12 +122,20 @@ public class FeelInfraTests
         var boxVp = PlayCamera.Project(mound, new Vec3(0, 1.0, 2.4));
         var batterVp = PlayCamera.Project(mound, new Vec3(2.55, 3.2, 2.4));
         var catcherVp = PlayCamera.Project(mound, new Vec3(0, 1.6, -4));
+        var pFeet = PlayCamera.Project(mound, new Vec3(0, 0.15, Diamond.Mound));
+        var pChest = PlayCamera.Project(mound, new Vec3(0, 3.2, Diamond.Mound));
+        var pHat = PlayCamera.Project(mound, new Vec3(0, 5.0, Diamond.Mound));
         Assert.True(PlayCamera.InFrame(rubberVp, 0.02), $"rubber off mound frame {rubberVp}");
         Assert.True(PlayCamera.InFrame(boxVp), $"box off mound frame {boxVp}");
         Assert.True(PlayCamera.InFrame(batterVp), $"batter off mound frame {batterVp}");
         Assert.True(PlayCamera.InFrame(catcherVp), $"catcher off mound frame {catcherVp}");
+        Assert.True(PlayCamera.InFrame(pChest), $"pitcher chest off mound frame {pChest}");
+        Assert.True(PlayCamera.InFrame(pHat, 0.0), $"pitcher hat off mound frame {pHat}");
         Assert.InRange(rubberVp!.Value.Y, 0.04, 0.28);
         Assert.True(boxVp!.Value.Y > rubberVp.Value.Y, $"box should sit above the rubber vy={boxVp.Value.Y} vs {rubberVp.Value.Y}");
+        Assert.True(pChest!.Value.X > 0.55, $"pitcher should sit right of the look vx={pChest.Value.X}");
+        Assert.True(pHat!.Value.Y - pFeet!.Value.Y > 0.40,
+            $"pitcher too small in mound frame h={pHat.Value.Y - pFeet.Value.Y}");
     }
 
     [Fact]
