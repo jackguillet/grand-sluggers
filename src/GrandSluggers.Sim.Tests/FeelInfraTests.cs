@@ -58,45 +58,56 @@ public class FeelInfraTests
     }
 
     [Fact]
-    public void PlateIsBatterOverShoulderAndMoundIsPitcherThreeQuarter()
+    public void PlateIsBehindHomeLookingAtThePitcher()
     {
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
-        // First-base 3/4 over the shoulder: batter left of the look, pitcher
-        // in the diamond. Looking at the box dirt shoves the pitcher off-frame.
-        Assert.True(StillPose.PlateIsBatterOverShoulder(plate.Pos.X, plate.Pos.Z),
-            $"plate over-shoulder 3/4 x={plate.Pos.X} z={plate.Pos.Z}");
+        Assert.True(HomeSet.BoxesClearThePlate(),
+            $"boxes kiss the plate inner={HomeSet.BoxX - HomeSet.BoxW / 2} plate={HomeSet.PlateW / 2}");
+        Assert.True(HomeSet.CatcherIsBehindCamera(plate.Pos.Z),
+            $"catcher z={HomeSet.CatcherZ} must sit behind cam z={plate.Pos.Z}");
+        Assert.Equal(HomeSet.CatcherZ, Diamond.Positions["C"].Z);
+        // Behind home looking at the mound. A first-base 3/4 into the hat
+        // (x=8, z=−5.6) was the sitting fail.
+        Assert.True(StillPose.PlateIsBehindHome(plate.Pos.X, plate.Pos.Z),
+            $"plate behind home x={plate.Pos.X} z={plate.Pos.Z}");
         Assert.True(StillPose.PlateCatcherClearsTheLens(
             plate.Pos.X, plate.Pos.Z, plate.Target.X, plate.Target.Z),
             $"plate catcher in the look cone x={plate.Pos.X} z={plate.Pos.Z}");
-        Assert.InRange(plate.Pos.Y, 4.4, 6.8);
+        Assert.InRange(plate.Pos.Y, 5.0, 7.2);
         Assert.True(plate.Target.Z > 12, $"plate looks into the diamond, target z={plate.Target.Z}");
-        Assert.True(plate.Target.Z < 24, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");
-        Assert.InRange(plate.Target.Y, 1.4, 2.8);
+        Assert.True(plate.Target.Z < 28, $"plate look too far past the box, Rio crops, z={plate.Target.Z}");
+        Assert.InRange(plate.Target.Y, 1.0, 2.8);
         Assert.True(Math.Abs(plate.Target.X) < 2, $"plate look is the pipe, not the hip x={plate.Target.X}");
-        var batter = new Vec3(2.55, 0, 2.4);
+        var batter = new Vec3(HomeSet.BatterX, 0, HomeSet.BatterZ);
         var batterDist = Dist(plate.Pos, batter);
-        Assert.InRange(batterDist, 8, 16);
+        Assert.InRange(batterDist, 10, 20);
         var batterDeg = LookDeg(plate.Pos, plate.Target, batter);
         Assert.True(batterDeg < 28, $"batter off the plate look {batterDeg:0.0} deg");
         var pitcherDegPlate = LookDeg(plate.Pos, plate.Target, new Vec3(0, 3.2, Diamond.Mound));
         Assert.True(pitcherDegPlate < 20, $"pitcher off the plate look {pitcherDegPlate:0.0} deg");
-        Assert.True(plate.Fov >= 50, $"plate fov {plate.Fov} too tight for box + pitcher");
+        Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + pitcher");
         Assert.Equal(StillPose.PlateCamX, plate.Pos.X, 1);
         Assert.Equal(StillPose.PlateCamZ, plate.Pos.Z, 1);
-        var plateHome = PlayCamera.Project(plate, new Vec3(0, 0.2, 0));
-        var plateFeet = PlayCamera.Project(plate, new Vec3(2.55, 0.15, 2.4));
-        var plateChest = PlayCamera.Project(plate, new Vec3(2.55, 3.2, 2.4));
-        var plateHat = PlayCamera.Project(plate, new Vec3(2.55, 5.0, 2.4));
+        var plateHome = PlayCamera.Project(plate, new Vec3(0, HomeSet.PlateY, HomeSet.PlateZ));
+        var plateFeet = PlayCamera.Project(plate, new Vec3(HomeSet.BatterX, 0.15, HomeSet.BatterZ));
+        var plateChest = PlayCamera.Project(plate, new Vec3(HomeSet.BatterX, HomeSet.BatterChestY, HomeSet.BatterZ));
+        var plateHat = PlayCamera.Project(plate, new Vec3(HomeSet.BatterX, 5.0, HomeSet.BatterZ));
+        var zigHat = PlayCamera.Project(plate, new Vec3(HomeSet.BatterX, 3.6, HomeSet.BatterZ));
         var platePitcher = PlayCamera.Project(plate, new Vec3(0, 3.2, Diamond.Mound));
-        var plateCatcher = PlayCamera.Project(plate, new Vec3(0, 1.6, -4));
+        var plateCatcher = PlayCamera.Project(plate, new Vec3(0, 1.6, HomeSet.CatcherZ));
+        var boxL = PlayCamera.Project(plate, new Vec3(-HomeSet.BoxX, HomeSet.BoxY, HomeSet.BoxZ));
+        var boxR = PlayCamera.Project(plate, new Vec3(HomeSet.BoxX, HomeSet.BoxY, HomeSet.BoxZ));
         Assert.True(PlayCamera.InFrame(plateHome, 0.02), $"home plate off batting frame {plateHome}");
         Assert.True(PlayCamera.InFrame(plateFeet), $"batter feet off batting frame {plateFeet}");
         Assert.True(PlayCamera.InFrame(plateChest), $"batter chest off batting frame {plateChest}");
         Assert.True(PlayCamera.InFrame(plateHat, 0.0), $"batter hat off batting frame {plateHat}");
         Assert.True(PlayCamera.InFrame(platePitcher), $"pitcher off batting frame {platePitcher}");
+        Assert.True(PlayCamera.InFrame(boxL, 0.0), $"third-base box off batting frame {boxL}");
+        Assert.True(PlayCamera.InFrame(boxR, 0.0), $"first-base box off batting frame {boxR}");
         Assert.True(plateChest!.Value.X < 0.42, $"batter should sit left of the look vx={plateChest.Value.X}");
-        Assert.True(plateHat!.Value.Y - plateFeet!.Value.Y > 0.42,
+        Assert.True(zigHat!.Value.X < 0.40, $"Zig hat was the picture vx={zigHat.Value.X}");
+        Assert.True(plateHat!.Value.Y - plateFeet!.Value.Y > 0.32,
             $"batter too small in batting frame h={plateHat.Value.Y - plateFeet.Value.Y}");
         Assert.False(PlayCamera.InFrame(plateCatcher, 0.02), $"catcher in batting look {plateCatcher}");
         // Close 3/4 behind the rubber looking at home. Pitcher large on the
@@ -120,8 +131,8 @@ public class FeelInfraTests
         Assert.Equal(StillPose.MoundCamZ, mound.Pos.Z, 1);
         var rubberVp = PlayCamera.Project(mound, new Vec3(0, 0.2, Diamond.Mound));
         var boxVp = PlayCamera.Project(mound, new Vec3(0, 1.0, 2.4));
-        var batterVp = PlayCamera.Project(mound, new Vec3(2.55, 3.2, 2.4));
-        var catcherVp = PlayCamera.Project(mound, new Vec3(0, 1.6, -4));
+        var batterVp = PlayCamera.Project(mound, new Vec3(HomeSet.BatterX, HomeSet.BatterChestY, HomeSet.BatterZ));
+        var catcherVp = PlayCamera.Project(mound, new Vec3(0, 1.6, HomeSet.CatcherZ));
         var pFeet = PlayCamera.Project(mound, new Vec3(0, 0.15, Diamond.Mound));
         var pChest = PlayCamera.Project(mound, new Vec3(0, 3.2, Diamond.Mound));
         var pHat = PlayCamera.Project(mound, new Vec3(0, 5.0, Diamond.Mound));
@@ -277,9 +288,9 @@ public class FeelInfraTests
     {
         const double chestY = 2.28;
         const double lift = 1.2;
-        var box = SetTells.RingAt(2.55, 2.4, chestY, lift);
-        Assert.Equal(2.55, box.X);
-        Assert.Equal(2.4, box.Z);
+        var box = SetTells.RingAt(HomeSet.BatterX, HomeSet.BatterZ, chestY, lift);
+        Assert.Equal(HomeSet.BatterX, box.X);
+        Assert.Equal(HomeSet.BatterZ, box.Z);
         Assert.InRange(box.Y, 0.2, 0.8);
         Assert.True(box.Y < 1.0, $"box ring must sit on packed dirt, not chest y={box.Y}");
         Assert.Equal(SetTells.RingWorldY(2.4), SetTells.RingWorldY(2.4, chestY, lift));

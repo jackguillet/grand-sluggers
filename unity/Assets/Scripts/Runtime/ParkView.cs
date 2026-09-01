@@ -354,10 +354,14 @@ namespace GrandSluggers.UnityClient
                 new Vector3(0f, 0.12f, 63.64f), new Vector3(132f, 0.24f, 132f), dirt);
             diamond.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
             // Beside the plate, in fair ground — not crossed by the 45° foul lines.
-            Cube("BoxL", new Vector3(-2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), chalk);
-            Cube("BoxR", new Vector3(2.85f, 0.21f, 3.1f), new Vector3(2.2f, 0.07f, 5.6f), chalk);
-            Cube("BoxLIn", new Vector3(-2.85f, 0.23f, 3.1f), new Vector3(1.55f, 0.05f, 4.9f), dirt);
-            Cube("BoxRIn", new Vector3(2.85f, 0.23f, 3.1f), new Vector3(1.55f, 0.05f, 4.9f), dirt);
+            Cube("BoxL", new Vector3((float)-HomeSet.BoxX, 0.21f, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.07f, (float)HomeSet.BoxD), chalk);
+            Cube("BoxR", new Vector3((float)HomeSet.BoxX, 0.21f, (float)HomeSet.BoxZ),
+                new Vector3((float)HomeSet.BoxW, 0.07f, (float)HomeSet.BoxD), chalk);
+            Cube("BoxLIn", new Vector3((float)-HomeSet.BoxX, 0.23f, (float)HomeSet.BoxZ),
+                new Vector3((float)(HomeSet.BoxW * 0.78), 0.05f, (float)(HomeSet.BoxD * 0.88)), dirt);
+            Cube("BoxRIn", new Vector3((float)HomeSet.BoxX, 0.23f, (float)HomeSet.BoxZ),
+                new Vector3((float)(HomeSet.BoxW * 0.78), 0.05f, (float)(HomeSet.BoxD * 0.88)), dirt);
         }
 
         void HarborDugoutsPlus()

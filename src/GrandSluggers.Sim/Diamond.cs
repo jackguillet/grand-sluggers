@@ -15,7 +15,7 @@ public static class Diamond
         new Dictionary<string, (double X, double Z)>
         {
             ["P"] = Rubber,
-            ["C"] = (0, -4),
+            ["C"] = (0, HomeSet.CatcherZ),
             ["1B"] = (78, 72),
             ["2B"] = (42, 118),
             ["3B"] = (-78, 72),

@@ -165,12 +165,15 @@ namespace GrandSluggers.UnityClient
                 if (TrainingOn) _coach.OnRun(_match);
                 var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
                 var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
-                var hx = 2.55f + (float)(Diamond.First.X - 2.55) * u;
-                var hz = 2.4f + (float)(Diamond.First.Z - 2.4) * u;
+                var hx = (float)HomeSet.BatterX + (float)(Diamond.First.X - HomeSet.BatterX) * u;
+                var hz = (float)HomeSet.BatterZ + (float)(Diamond.First.Z - HomeSet.BatterZ) * u;
                 bHero.Place(new Vector3(hx, 0, hz), new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z));
             }
             else
-                bHero.Place(new Vector3(2.55f + (float)_match.BatterOffsetX * 2.4f, 0, 2.4f), new Vector3(0, 0, 1));
+                bHero.Place(new Vector3(
+                    (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
+                    0,
+                    (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
             bHero.Tick(Time.deltaTime);
 
             PlaceRunner(_match.First, Diamond.First, 1);
