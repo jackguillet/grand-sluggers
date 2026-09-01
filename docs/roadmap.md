@@ -22,7 +22,7 @@ Agents are the production line. You are the director. They are fast at systems, 
 
 ### Operating rules
 
-Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)**. Long-term product, not the current still. **No quick fixes.** If a hack would close the issue and a rail would serve 1P, 1v1, and the next play type, build the rail.
+Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)** (stack, sitting, rails, look). Long-term product, not the current still. **No quick fixes.** If a hack would close the issue and a rail would serve 1P, 1v1, and the next play type, build the rail. Look: **[docs/look.md](look.md)**.
 
 1. **One GitHub child issue = one worktree = one agent.** Never share `/Users/jack/repos/grand-sluggers` except a final ff-only pull. Never `git add -A`.
 2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, `tools/unity-compile.sh`, or a named Hierarchy object, the issue is too vague — rewrite it before launching. Personal Unity cannot `-batchmode`; the compile script is the Unity csc gate.

@@ -4,7 +4,7 @@ Grand Sluggers is a **local-multiplayer arcade baseball game** with a large cart
 
 The north star is *Mario Super Sluggers* on Wii: nine-on-nine baseball where characters have personalities, parks have hazards, and drafting a team of friends beats drafting nine isolated stars.
 
-This is original IP. We steal *systems*, not names, faces, or Nintendo set dressing.
+This is original IP. We steal *systems*, not names, faces, or Nintendo set dressing. The look (Sluggers weight, original toys): `docs/look.md`.
 
 ## Fantasy
 
