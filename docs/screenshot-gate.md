@@ -22,7 +22,7 @@ Bonus stills that save a later sitting (same rules):
 
 | Still | Shot name (F2) | Must show |
 |---|---|---|
-| Pitching SET | `plate` (Exhibition) | Same picture as batting SET. Training may still use `mound`. |
+| Pitching SET | `mound` | 3/4 over the pitcher, rubber in the bottom, batter + catcher + boxes at home. Fail if home is a speck, CF, or dirt/brim is the picture. |
 | Pitch at you | `pitch` | From the box, looking at the pitcher. Arm through, ball leaving that hand toward you. |
 | Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front. **GRAND SLUGGERS** is a sticker in the world (still-gate can see it). |
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
@@ -65,12 +65,12 @@ Drop them in this chat or `scratchpad/stills/`.
 
 Title → South (pick captain) → South (lineup) → South (first pitch). Do not tap Start (that cycles Exhibition / Challenge / Training). Do not tap West (Training). Leave park on Harbor (`C` cycles parks; skip it).
 
-### Pitching SET (`plate`) — top of 1
+### Pitching SET (`mound`) — top of 1
 
-You pitch the top. Camera is the **same plate 3/4 as batting** — batter in the box, pitcher full-body on the mound. Do not use `mound` for Exhibition SET (`mound` is Training).
+You pitch the top. Camera is the **mound 3/4** — over the pitcher, rubber in the bottom, looking at the box. You can name pitcher and batter without the HUD.
 
 - Hold **LT** to charge. Ring / pull-back should read. Stick aims the zone locator.
-- F2 once: the overlay must say `SHOT PLATE`. F2 again (off). F3 if you want HUD off.
+- F2 once: the overlay must say `SHOT MOUND`. F2 again (off). F3 if you want HUD off.
 - HUD: score top-right, batter card bottom-left, pitcher card bottom-right. Same corners after a second pad.
 - Capture.
 

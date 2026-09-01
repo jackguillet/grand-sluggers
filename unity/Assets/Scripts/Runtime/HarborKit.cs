@@ -277,6 +277,7 @@ namespace GrandSluggers.UnityClient
                 aim.SetParent(tf, false);
                 aim.position = look;
             }
+            HideLookRay(aim);
             return tf;
         }
 
@@ -298,7 +299,25 @@ namespace GrandSluggers.UnityClient
             tf.localScale = Vector3.one;
             tf.LookAt(look);
             var aim = tf.Find("Look");
-            if (aim != null) aim.position = look;
+            if (aim != null)
+            {
+                aim.position = look;
+                HideLookRay(aim);
+            }
+        }
+
+        /// <summary>
+        /// Shot Look children used to store FOV in scale and drew a white ray
+        /// from the brim. Runtime cameras are data/feel/shots.json only.
+        /// </summary>
+        static void HideLookRay(Transform aim)
+        {
+            if (aim == null) return;
+            foreach (var r in aim.GetComponentsInChildren<Renderer>(true))
+                r.enabled = false;
+            foreach (var lr in aim.GetComponentsInChildren<LineRenderer>(true))
+                lr.enabled = false;
+            aim.gameObject.SetActive(false);
         }
 
         static void Mesh(Transform anchor, PrimitiveType type, Material mat)

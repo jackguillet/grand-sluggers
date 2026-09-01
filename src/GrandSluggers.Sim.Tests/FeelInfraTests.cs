@@ -78,22 +78,34 @@ public class FeelInfraTests
         Assert.True(plate.Fov >= 48, $"plate fov {plate.Fov} too tight for box + infield");
         Assert.Equal(StillPose.PlateCamX, plate.Pos.X, 1);
         Assert.Equal(StillPose.PlateCamZ, plate.Pos.Z, 1);
-        // 3/4 behind the rubber looking at home. Looking at her feet is a
-        // portrait; looking CF puts the throw behind the lens (#304).
+        // 3/4 behind the rubber looking at home. Rubber in the bottom; the
+        // box is the look. Portrait/dirt and CF are both fails (#304).
         Assert.True(mound.Pos.Z > Diamond.Mound, $"mound camera behind the rubber z={mound.Pos.Z}");
         Assert.True(Math.Abs(mound.Pos.X) > 6, $"mound is a 3/4 off the pipe x={mound.Pos.X}");
-        Assert.InRange(mound.Pos.Y, 5.4, 7.2);
+        Assert.InRange(mound.Pos.Y, 6.0, 8.5);
         Assert.True(mound.Target.Z < 8, $"mound looks at the box, not CF z={mound.Target.Z}");
         Assert.True(mound.Target.Z > -2, $"mound look past the cage z={mound.Target.Z}");
         Assert.True(mound.Target.Y < 2.4, $"mound look too high y={mound.Target.Y}");
         var moundDist = Dist(mound.Pos, new Vec3(0, 0, Diamond.Mound));
         Assert.True(moundDist > 14, $"mound too close (pitcher blob) dist={moundDist}");
         Assert.True(moundDist < 28, $"mound too far (pitcher ant) dist={moundDist}");
-        Assert.InRange(mound.Fov, 38, 46);
+        Assert.InRange(mound.Fov, 40, 48);
         var boxDeg = LookDeg(mound.Pos, mound.Target, new Vec3(0, 1.0, 2.4));
         Assert.True(boxDeg < 8, $"box off the mound look {boxDeg:0.0} deg");
         var pitcherDeg = LookDeg(mound.Pos, mound.Target, new Vec3(0, 2.2, Diamond.Mound));
-        Assert.True(pitcherDeg < 32, $"pitcher off the mound look {pitcherDeg:0.0} deg");
+        Assert.True(pitcherDeg < 24, $"pitcher off the mound look {pitcherDeg:0.0} deg");
+        Assert.Equal(StillPose.MoundCamX, mound.Pos.X, 1);
+        Assert.Equal(StillPose.MoundCamZ, mound.Pos.Z, 1);
+        var rubberVp = PlayCamera.Project(mound, new Vec3(0, 0.2, Diamond.Mound));
+        var boxVp = PlayCamera.Project(mound, new Vec3(0, 1.0, 2.4));
+        var batterVp = PlayCamera.Project(mound, new Vec3(2.55, 3.2, 2.4));
+        var catcherVp = PlayCamera.Project(mound, new Vec3(0, 1.6, -4));
+        Assert.True(PlayCamera.InFrame(rubberVp, 0.02), $"rubber off mound frame {rubberVp}");
+        Assert.True(PlayCamera.InFrame(boxVp), $"box off mound frame {boxVp}");
+        Assert.True(PlayCamera.InFrame(batterVp), $"batter off mound frame {batterVp}");
+        Assert.True(PlayCamera.InFrame(catcherVp), $"catcher off mound frame {catcherVp}");
+        Assert.InRange(rubberVp!.Value.Y, 0.04, 0.28);
+        Assert.True(boxVp!.Value.Y > rubberVp.Value.Y, $"box should sit above the rubber vy={boxVp.Value.Y} vs {rubberVp.Value.Y}");
     }
 
     [Fact]
@@ -181,16 +193,16 @@ public class FeelInfraTests
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0.2, 0, 0));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(false, true, 0, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0.2, 0, 0));
-        Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0.5, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0.2, 0, 0));
+        Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0.5, 0));
         Assert.Equal(AtBatShots.Mound, AtBatShots.SetShot(true, false, 0, 0, 0, training: true));
         Assert.Equal(AtBatShots.Pitch, AtBatShots.SetShot(true, true, 0, 0, 0));
         Assert.True(_content.Shots.TryGet(AtBatShots.Plate, out _));
         Assert.True(_content.Shots.TryGet(AtBatShots.Pitch, out var pitch));
         Assert.True(_content.Shots.TryGet(AtBatShots.Mound, out var mound));
         Assert.True(mound.Target.Z < 8, $"mound looks at the box, not the rubber dirt z={mound.Target.Z}");
-        Assert.True(LookDeg(mound.Pos, mound.Target, new Vec3(0, 2.2, Diamond.Mound)) < 32,
+        Assert.True(LookDeg(mound.Pos, mound.Target, new Vec3(0, 2.2, Diamond.Mound)) < 24,
             $"pitching SET must keep Rio in the look cone");
         Assert.True(StillPose.PitchLooksAtTheThrow(pitch.Pos.X, pitch.Pos.Z, pitch.Target.Y, pitch.Target.Z),
             $"pitch looks at dirt/cage x={pitch.Pos.X} z={pitch.Pos.Z} look={pitch.Target.Y},{pitch.Target.Z}");
