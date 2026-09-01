@@ -205,6 +205,9 @@ public class FieldingSceneTests
         var toLive = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220);
         Assert.Equal(12, toLive.X);
         Assert.Equal(190, toLive.Z);
+        var stillUp = FieldingResolver.OutfieldChaseTarget(12, 190, -40, 220, inAir: true);
+        Assert.Equal(-40, stillUp.X);
+        Assert.Equal(220, stillUp.Z);
 
         var match = Match.Slice(_content, seed: 1);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
@@ -254,6 +257,95 @@ public class FieldingSceneTests
         Assert.False(FieldingResolver.BuddyJumpOffered(pre));
         var flyHang = BallFlight.HangTime(BallFlight.Trajectory(95, 28, 0));
         Assert.True(pre.HangTimeSec < flyHang, $"line hang {pre.HangTimeSec} vs fly {flyHang}");
+    }
+
+    [Fact]
+    public void GloveChaseOnAFlyIsTheLandingNotTheLiveBall()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var fly = Fly(280, 28, 8);
+        Assert.False(FieldingResolver.IsGrounder(fly));
+        Assert.False(FieldingResolver.IsLine(fly));
+        var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.False(pre.Grounder);
+        Assert.True(FieldingResolver.InAir(pre, ballY: 18, hitT: 0.25));
+
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 3, ballZ: 14, ballY: 18, hitT: 0.25);
+        var plant = FlyCatch.ChaseTarget(pre, match.Park);
+        Assert.Equal(plant.X, chase.X, 3);
+        Assert.Equal(plant.Z, chase.Z, 3);
+        Assert.True(Diamond.Dist(chase.X, chase.Z, 0, 0) > 150,
+            "air chase must be the landing, not the plate");
+
+        var start = Diamond.Positions[pre.Position];
+        var at = start;
+        var speed = FieldingResolver.ChaseSpeedFt(pre.Fielder, frozen: false);
+        for (var i = 0; i < 24; i++)
+            at = FieldingResolver.StepToward(at.X, at.Z, chase.X, chase.Z, speed, 1.0 / 30);
+        Assert.True(Diamond.Dist(at.X, at.Z, chase.X, chase.Z)
+                    < Diamond.Dist(start.X, start.Z, chase.X, chase.Z) - 12,
+            "glove must close on the landing");
+        Assert.True(Diamond.Dist(at.X, at.Z, chase.X, chase.Z)
+                    < Diamond.Dist(at.X, at.Z, 3, 14),
+            "closer to the landing than to the live ball at home");
+
+        var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+        var liveGlove = FieldingResolver.PlayGlove(assigned, 3, 14);
+        Assert.False(FieldingResolver.IsOutfield(liveGlove.Pos),
+            "live XZ near home is an infielder — that is the bug if chase used it");
+        var landingGlove = FieldingResolver.PlayGlove(assigned, chase.X, chase.Z);
+        Assert.True(FieldingResolver.IsOutfield(landingGlove.Pos));
+    }
+
+    [Fact]
+    public void GloveChaseOnALinerInTheAirIsStillTheLanding()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var liner = new AtBatResult(ContactQuality.Solid, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
+        Assert.True(FieldingResolver.IsLine(liner));
+        var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.True(pre.Line);
+        Assert.True(FieldingResolver.InAir(pre, ballY: 7, hitT: 0.2));
+
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 5, ballZ: 16, ballY: 7, hitT: 0.2);
+        Assert.Equal(pre.LandingX, chase.X, 3);
+        Assert.Equal(pre.LandingZ, chase.Z, 3);
+        Assert.True(Diamond.Dist(chase.X, chase.Z, 0, 0) > Diamond.Dist(5, 16, 0, 0) + 40,
+            "liner still up must not chase the live ball near home");
+    }
+
+    [Fact]
+    public void GloveChaseOnAHopperIsTheLiveHop()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 88, 8, 90, false, false, null, null, SprayDeg: -12);
+        Assert.True(FieldingResolver.IsGrounder(hopper));
+        var pre = fielding.Preview(hopper, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.True(pre.Grounder);
+        Assert.False(FieldingResolver.InAir(pre, ballY: 4, hitT: 0.1));
+
+        var chase = FieldingResolver.GloveChaseTarget(pre, match.Park, ballX: 18, ballZ: 62, ballY: 1.2, hitT: 0.35);
+        Assert.Equal(18, chase.X);
+        Assert.Equal(62, chase.Z);
+    }
+
+    [Fact]
+    public void GloveChaseAfterTheBallIsDownIsTheLiveHop()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var fielding = new FieldingResolver(_content.Chemistry);
+        var fly = Fly(260, 26, -10);
+        var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
+        Assert.False(pre.Grounder);
+        Assert.False(FieldingResolver.InAir(pre, ballY: 0.2, hitT: pre.HangTimeSec + 0.3));
+
+        var chase = FieldingResolver.GloveChaseTarget(
+            pre, match.Park, ballX: 22, ballZ: 205, ballY: 0.2, hitT: pre.HangTimeSec + 0.3);
+        Assert.Equal(22, chase.X);
+        Assert.Equal(205, chase.Z);
     }
 
     static AtBatResult Fly(double carry, double launch, double spray, bool hr = false) =>
