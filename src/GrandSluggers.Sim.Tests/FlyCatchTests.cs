@@ -134,6 +134,32 @@ public class FlyCatchTests
     }
 
     [Fact]
+    public void LandingMarkIsACircleOnTheGrassWhileTheBallIsInTheAir()
+    {
+        var rio = _content.Must("rio");
+        var fly = Routine(rio);
+        Assert.True(LandingMark.On(fly, ballY: 18, hitT: 0.4, caught: false, buddy: false));
+        Assert.False(LandingMark.On(fly, ballY: 18, hitT: 0.4, caught: true, buddy: false));
+        Assert.False(LandingMark.On(fly, ballY: 0.2, hitT: fly.HangTimeSec + 0.3, caught: false, buddy: false));
+        var plant = LandingMark.At(fly, Harbor);
+        Assert.Equal((fly.LandingX, fly.LandingZ), plant);
+        Assert.True(LandingMark.RadiusFt(fly) >= LandingMark.MinRadiusFt);
+        Assert.True(LandingMark.WorldY > LandingMark.DirtY);
+        Assert.True(LandingMark.ThickFt > 0.4, "tube must read from the fly 3/4, not a pancake");
+        Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, rio, Harbor));
+        Assert.True(LandingMark.Hot(fly.HangTimeSec - 0.2, fly.HangTimeSec, rio, Harbor));
+
+        var liner = new FieldingPreview(rio, "SS", null, 1.1, 20, 110, false, false, false, false, false, 12, Line: true);
+        Assert.True(LandingMark.On(liner, ballY: 7, hitT: 0.2, caught: false, buddy: false),
+            "a liner still up gets the circle — it looks like a fly");
+        var hopper = new FieldingPreview(rio, "SS", null, 0.6, 12, 70, true, false, false, false, false, 12);
+        Assert.False(LandingMark.On(hopper, ballY: 3, hitT: 0.1, caught: false, buddy: false),
+            "a hopper has no circle — they chase the live hop");
+        var wall = Wall(rio);
+        Assert.Equal(FlyCatch.WallPlant(wall, Harbor), LandingMark.At(wall, Harbor));
+    }
+
+    [Fact]
     public void BuddyJumpOfferStillNeedsTwoGoodChemOutfieldersUnderAHomer()
     {
         var dart = _content.Must("dart");
