@@ -163,11 +163,15 @@ namespace GrandSluggers.UnityClient
                 if (RunPad.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
                 _match.Dash01 = _dash01;
                 if (TrainingOn) _coach.OnRun(_match);
-                var tFirst = (float)InPlay.HomeToFirstSec(batter, _dash01);
-                var u = Mathf.Clamp01(_hitT / Mathf.Max(0.4f, tFirst));
-                var hx = (float)HomeSet.BatterX + (float)(Diamond.First.X - HomeSet.BatterX) * u;
-                var hz = (float)HomeSet.BatterZ + (float)(Diamond.First.Z - HomeSet.BatterZ) * u;
-                bHero.Place(new Vector3(hx, 0, hz), new Vector3((float)Diamond.First.X, 0, (float)Diamond.First.Z));
+                var kind = LiveKind();
+                var dest = InPlay.BatterDestBag(kind);
+                if (dest <= 0) dest = 1;
+                var feet = InPlay.RunFeet(_hitT, batter, _dash01);
+                var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                var look = dest >= 2 && feet > Diamond.Baseline
+                    ? Diamond.Bag(Math.Min(dest, 3))
+                    : Diamond.First;
+                bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
             }
             else
                 bHero.Place(new Vector3(
@@ -281,14 +285,18 @@ namespace GrandSluggers.UnityClient
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = HeroActor.Pose.Idle;
-            var racing = _phase == Phase.InPlay && _pending != null && (_preview == null || _preview.Grounder || _pending.LaunchDeg < 18);
+            var racing = _phase == Phase.InPlay && _pending != null;
             if (racing)
             {
-                var u = Mathf.Clamp01(_hitT / 3.1f);
-                spot = (spot.X + (next.X - spot.X) * u, spot.Z + (next.Z - spot.Z) * u);
-                var tagBag = bagNum >= 3 ? 4 : bagNum + 1;
+                var kind = LiveKind();
+                var dest = InPlay.OccupiedDestBag(bagNum, kind);
+                var feet = InPlay.RunFeet(_hitT, who);
+                var at = InPlay.TowardBag(bagNum, dest, feet);
+                spot = (at.X, at.Z);
+                var tagBag = dest > bagNum ? dest : bagNum + 1;
                 var threatened = _throwing && _throwBag == tagBag;
-                pose = (threatened && u > 0.42f) || u > 0.82f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
+                var going = dest > bagNum && !InPlay.OccupyingBag(at.X, at.Z);
+                pose = going ? (threatened ? HeroActor.Pose.Slide : HeroActor.Pose.Run) : pose;
             }
             else if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
             else if (state != null && state.StealAttempt) pose = HeroActor.Pose.Run;

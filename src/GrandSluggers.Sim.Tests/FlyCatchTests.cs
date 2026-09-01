@@ -22,6 +22,8 @@ public class FlyCatchTests
         Assert.False(FlyCatch.JumpWindow(pre.HangTimeSec + 0.4, pre.HangTimeSec, rio, Harbor), "jump late");
         Assert.False(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: false, needsJump: false));
         Assert.Equal(PlayKind.Single, FlyCatch.PlayerKind(false, pre, pop));
+        var gap = pop with { CarryFt = 260 };
+        Assert.Equal(PlayKind.Double, FlyCatch.PlayerKind(true, pre, gap, inAir: false));
         Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
             "South still scoops a routine fly you are under");
     }
