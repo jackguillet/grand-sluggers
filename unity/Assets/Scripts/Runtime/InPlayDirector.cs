@@ -175,25 +175,7 @@ namespace GrandSluggers.UnityClient
 
             var stick = Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY);
             if (chasing && _swapLock <= 0 && stick < 0.35f)
-            {
-                if (needsJump)
-                {
-                    var speed = (18 + pre.Fielder.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1);
-                    var dx = plant.X - _fx;
-                    var dz = plant.Z - _fz;
-                    var dist = Math.Sqrt(dx * dx + dz * dz);
-                    if (dist > 8)
-                    {
-                        var step = Math.Min(dist, speed * dt);
-                        _fx += dx / dist * step;
-                        _fz += dz / dist * step;
-                    }
-                    _gloveAt[_glovePos] = (_fx, _fz);
-                }
-                else if (pre.Grounder || pre.Line)
-                    ChaseLiveHop(dt, pre);
-                else AutoGlove(map);
-            }
+                ChaseGlove(dt, pre);
 
             if (chasing && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
             {
@@ -356,27 +338,8 @@ namespace GrandSluggers.UnityClient
             var rest = BallFlight.RestTime(_path);
             var grounder = _preview.Grounder;
             var line = _preview.Line;
-            var spray = _pending != null ? _pending.SprayDeg : 0;
-            if ((grounder || line) && _path != null && !_caught)
-            {
-                var live = BallFlight.PointAt(_path, spray, _hitT);
-                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-                TryHandoffOutfield(map, live.X, live.Z);
-                var who = map.TryGetValue(_glovePos, out var c) ? c : _preview.Fielder;
-                var speed = FieldingResolver.ChaseSpeedFt(who, _preview.Frozen);
-                var next = FieldingResolver.StepToward(_fx, _fz, live.X, live.Z, speed, dt);
-                _fx = next.X;
-                _fz = next.Z;
-            }
-            else if (!_caught)
-            {
-                var u = Mathf.Clamp01(_hitT / Mathf.Max(0.2f, (float)hang));
-                var start = Diamond.Positions[_preview.Position];
-                var target = FlyCatch.ChaseTarget(_preview, _match.Park);
-                _fx = start.X + (target.X - start.X) * u;
-                _fz = start.Z + (target.Z - start.Z) * u;
-                _glovePos = _preview.Position;
-            }
+            if (!_caught && _path != null)
+                ChaseGlove(dt, _preview);
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
             var reached = outPlay || _cpuField.Bobble;
@@ -411,16 +374,19 @@ namespace GrandSluggers.UnityClient
 
         static bool TagCam(int bag) => bag is 3 or 4;
 
-        void ChaseLiveHop(float dt, FieldingPreview pre)
+        void ChaseGlove(float dt, FieldingPreview pre)
         {
             if (_path == null) return;
             var spray = _pending != null ? _pending.SprayDeg : 0;
             var live = BallFlight.PointAt(_path, spray, _hitT);
+            var hang = BallFlight.HangTime(_path);
+            var target = FieldingResolver.GloveChaseTarget(
+                pre, _match.Park, live.X, live.Z, live.Y, _hitT, hang);
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            TryHandoffOutfield(map, live.X, live.Z);
+            TryHandoffOutfield(map, target.X, target.Z);
             var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
-            var next = FieldingResolver.StepToward(_fx, _fz, live.X, live.Z, speed, dt);
+            var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt);
             _fx = next.X;
             _fz = next.Z;
             _gloveAt[_glovePos] = (_fx, _fz);
@@ -444,20 +410,34 @@ namespace GrandSluggers.UnityClient
             if (_preview == null || _pending == null || _path == null) return;
             if (_caught || _buddy || _throwing) return;
             var live = BallFlight.PointAt(_path, _pending.SprayDeg, _hitT);
-            if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, _preview.LandingX, _preview.LandingZ))
+            var hang = BallFlight.HangTime(_path);
+            var inAir = FieldingResolver.InAir(_preview, live.Y, _hitT, hang);
+            var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
+            if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z))
                 return;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            var of = FieldingResolver.NearestOutfielder(map, live.X, live.Z, _gloveAt);
+            var aim = inAir ? plant : (live.X, live.Z);
+            var of = FieldingResolver.NearestOutfielder(map, aim.X, aim.Z, _gloveAt);
             if (of.Pos == _glovePos) return;
             if (!_gloveAt.TryGetValue(of.Pos, out var at)) return;
-            var target = FieldingResolver.OutfieldChaseTarget(live.X, live.Z, _preview.LandingX, _preview.LandingZ);
+            var target = FieldingResolver.OutfieldChaseTarget(live.X, live.Z, plant.X, plant.Z, inAir);
             var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, _preview.Frozen);
             _gloveAt[of.Pos] = FieldingResolver.StepToward(at.X, at.Z, target.X, target.Z, speed, dt);
         }
 
         void AutoGlove(Dictionary<string, Character> map)
         {
-            var pick = FieldingResolver.NearestGlove(map, _ball.x, _ball.z, _gloveAt);
+            var x = (double)_ball.x;
+            var z = (double)_ball.z;
+            if (_preview != null)
+            {
+                var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
+                var t = FieldingResolver.GloveChaseTarget(
+                    _preview, _match.Park, _ball.x, _ball.z, _ball.y, _hitT, hang);
+                x = t.X;
+                z = t.Z;
+            }
+            var pick = FieldingResolver.PlayGlove(map, x, z, _gloveAt);
             if (pick.Pos == _glovePos) return;
             _gloveAt[_glovePos] = (_fx, _fz);
             _glovePos = pick.Pos;
