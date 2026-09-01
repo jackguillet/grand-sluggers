@@ -29,6 +29,9 @@ public static class Silhouette
         };
     }
 
+    /// <summary>Lineup face. Role players reuse the faction captain — no unique JPGs.</summary>
+    public static string PortraitId(Character who) => BodyType(who);
+
     public static Spec Proportions(Character who) => Proportions(BodyType(who));
 
     public static Spec Proportions(string bodyType) => bodyType.ToLowerInvariant() switch

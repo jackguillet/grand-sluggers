@@ -488,8 +488,6 @@ namespace GrandSluggers.UnityClient
 
         void PlaceLineupBoard()
         {
-            if (_chem == null) _chem = ChemToy.Attach(transform);
-            if (_card == null) _card = CardToy.Attach(transform);
             TeamSheet.Place(_lineup, transform, _chem, _card);
         }
 

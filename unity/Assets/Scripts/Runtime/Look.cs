@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using GrandSluggers.Sim;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -8,6 +10,7 @@ namespace GrandSluggers.UnityClient
     {
         static Shader _lit, _toon;
         static Texture2D _grass, _dirt, _crowd, _rio, _vale, _zig, _brondo, _konga, _ashlord;
+        static readonly Dictionary<string, Texture2D> _generated = new Dictionary<string, Texture2D>();
 
         public static Shader LitShader
         {
@@ -28,6 +31,7 @@ namespace GrandSluggers.UnityClient
 
         public static bool HasPortrait(string id)
         {
+            if (string.IsNullOrEmpty(id)) return false;
             if (ArtBinder.HasPortrait(id)) return true;
             switch (id)
             {
@@ -45,6 +49,24 @@ namespace GrandSluggers.UnityClient
 
         public static Texture2D Portrait(string id)
         {
+            var file = LoadPortraitFile(id);
+            if (file != null) return file;
+            return Rio;
+        }
+
+        /// <summary>Every drafted head gets a face. Role players reuse the faction captain.</summary>
+        public static Texture2D Portrait(Character who)
+        {
+            if (who == null) return null;
+            var own = LoadPortraitFile(who.Id);
+            if (own != null) return own;
+            var cap = LoadPortraitFile(Silhouette.PortraitId(who));
+            if (cap != null) return cap;
+            return GeneratedHead(who);
+        }
+
+        static Texture2D LoadPortraitFile(string id)
+        {
             var bound = ArtBinder.LoadPortrait(id);
             if (bound != null) return bound;
             switch (id)
@@ -54,8 +76,60 @@ namespace GrandSluggers.UnityClient
                 case "brondo": return _brondo ??= Load("brondo-hero.jpg", false);
                 case "konga": return _konga ??= Load("konga-hero.jpg", false);
                 case "ashlord": return _ashlord ??= Load("ashlord-hero.jpg", false);
-                default: return Rio;
+                case "rio": return Rio;
+                default: return null;
             }
+        }
+
+        static Texture2D GeneratedHead(Character who)
+        {
+            var key = who.Faction + ":" + Silhouette.PortraitId(who);
+            if (_generated.TryGetValue(key, out var tex) && tex != null) return tex;
+            var spec = Silhouette.Proportions(who);
+            const int n = 64;
+            tex = new Texture2D(n, n, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            var body = Colors.Body(who.Faction);
+            var skin = Colors.SkinTone(who.Faction);
+            var ink = new Color(0.12f, 0.10f, 0.12f, 1f);
+            var cx = 31.5f;
+            var cy = 34f;
+            var rx = 16f * Mathf.Clamp(spec.Width, 0.7f, 1.6f);
+            var ry = 18f * Mathf.Clamp(spec.Head, 0.9f, 1.8f);
+            var pixels = new Color[n * n];
+            for (var y = 0; y < n; y++)
+            {
+                for (var x = 0; x < n; x++)
+                {
+                    var dx = (x - cx) / rx;
+                    var dy = (y - cy) / ry;
+                    var col = body;
+                    if (dx * dx + dy * dy <= 1f)
+                    {
+                        col = skin;
+                        var eyeY = cy + ry * 0.12f;
+                        var eyeX = rx * 0.32f;
+                        var el = Dist2(x, y, cx - eyeX, eyeY) < 6.5f;
+                        var er = Dist2(x, y, cx + eyeX, eyeY) < 6.5f;
+                        if (el || er) col = ink;
+                    }
+                    pixels[y * n + x] = col;
+                }
+            }
+            tex.SetPixels(pixels);
+            tex.Apply();
+            _generated[key] = tex;
+            return tex;
+        }
+
+        static float Dist2(float x, float y, float ax, float ay)
+        {
+            var dx = x - ax;
+            var dy = y - ay;
+            return dx * dx + dy * dy;
         }
 
         public static Material Lit(Color color, Texture tex = null, float tile = 1f, float smooth = 0.22f)
