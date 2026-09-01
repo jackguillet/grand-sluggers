@@ -49,7 +49,81 @@ public class BroadcastHudTests
         Assert.InRange(bug.DefenseStars, 0, 5);
         Assert.False(BroadcastHud.MutePlay(false, 0, 0));
         Assert.Throws<ArgumentNullException>(() => BroadcastHud.From(null!));
+        Assert.Equal(match.Innings, bug.Innings);
+        Assert.Equal(3, bug.Innings);
+    }
 
+    [Theory]
+    [InlineData(1280, 800)]
+    [InlineData(1920, 1080)]
+    public void PlayHudRectsStayInFrameWithMargin(int screenW, int screenH)
+    {
+        var one = BroadcastHud.Layout(1);
+        var two = BroadcastHud.Layout(2);
+        Assert.Equal(one, two);
+        Assert.Equal(BroadcastHud.Standard, one);
+        foreach (var r in new[] { one.Score, one.Count, one.MiniDiamond, one.PitcherCard, one.BatterCard, one.Banner })
+            Assert.True(BroadcastHud.InFrame(r, screenW, screenH), $"{r} at {screenW}x{screenH}");
+    }
+
+    [Fact]
+    public void CountAndDiamondSitOnTheScorebugNotInTheSky()
+    {
+        var lay = BroadcastHud.Layout();
+        Assert.True(BroadcastHud.OnScorebug(lay.Score, lay.Count));
+        Assert.True(BroadcastHud.OnScorebug(lay.Score, lay.MiniDiamond));
+        Assert.True(BroadcastHud.Contains(lay.Score, lay.Count));
+        Assert.True(BroadcastHud.Contains(lay.Score, lay.MiniDiamond));
+        Assert.False(BroadcastHud.Contains(lay.Score, lay.PitcherCard));
+        Assert.True(lay.Count.Y > lay.Score.Y);
+        Assert.True(lay.Count.Bottom <= lay.Score.Bottom + 1e-9);
+    }
+
+    [Theory]
+    [InlineData(1280, 800)]
+    [InlineData(1920, 1080)]
+    public void NameAndRunsAreSeparateColumnsWithAGap(int screenW, int screenH)
+    {
+        var score = BroadcastHud.Layout().Score;
+        Assert.Equal("ASHLORD", BroadcastHud.BugName("Ashlord"));
+        Assert.Equal("SPARKS", BroadcastHud.BugName("Rio Sparks"));
+        Assert.Equal("0", BroadcastHud.RunsLabel(0));
+        Assert.Equal("ASHLORD0", BroadcastHud.BugName("Ashlord") + BroadcastHud.RunsLabel(0));
+        Assert.NotEqual("ASHLORD0", BroadcastHud.BugName("Ashlord") + " " + BroadcastHud.RunsLabel(0));
+        for (var row = 0; row < 2; row++)
+        {
+            var name = BroadcastHud.NameCol(score, row);
+            var runs = BroadcastHud.RunsCol(score, row);
+            Assert.True(BroadcastHud.Contains(score, name));
+            Assert.True(BroadcastHud.Contains(score, runs));
+            var (nx, _, nw, _) = name.Pixel(screenW, screenH);
+            var (rx, _, _, _) = runs.Pixel(screenW, screenH);
+            Assert.True(nx + nw + 8 <= rx, $"name/runs gap row {row} at {screenW}x{screenH}");
+        }
+    }
+
+    [Theory]
+    [InlineData(1280, 800, 3)]
+    [InlineData(1280, 800, 9)]
+    [InlineData(1920, 1080, 3)]
+    [InlineData(1920, 1080, 9)]
+    public void InningBoxesAreReadableNotMashedGlyphs(int screenW, int screenH, int innings)
+    {
+        var score = BroadcastHud.Layout().Score;
+        Assert.True(BroadcastHud.InFrame(BroadcastHud.InningMark(score), screenW, screenH));
+        for (var i = 1; i <= innings; i++)
+        {
+            var box = BroadcastHud.InningBox(score, i, innings);
+            Assert.True(BroadcastHud.Contains(score, box), $"inning {i}");
+            var (_, _, w, h) = box.Pixel(screenW, screenH);
+            Assert.True(w >= 22, $"inning {i} width {w} at {screenW}x{screenH} innings={innings}");
+            Assert.True(h >= 22, $"inning {i} height {h} at {screenW}x{screenH} innings={innings}");
+            if (i > 1)
+            {
+                var prev = BroadcastHud.InningBox(score, i - 1, innings);
+                Assert.True(prev.Right <= box.X + 1e-9, "inning boxes do not overlap");
+            }
+        }
     }
 
     [Fact]

@@ -41,13 +41,29 @@ public static class PauseMenu
     public static bool Dismiss(bool startOrBack, float t) =>
         startOrBack && t > Debounce;
 
-    public const float PanelW = 420f;
+    public const float PanelW = 720f;
     public const float ItemH = 42f;
+    public const float FooterH = 44f;
+
+    public static readonly IReadOnlyList<string> FooterLines =
+    [
+        "stick / click  choose    South / left click ok",
+        "Esc / East / right click resume"
+    ];
 
     public static (float X, float Y, float W, float H) Panel(float screenW, float screenH)
     {
-        var mh = 64f + Items.Count * ItemH + 40f;
-        return (screenW * 0.5f - PanelW * 0.5f, screenH * 0.5f - mh * 0.5f, PanelW, mh);
+        var w = Math.Min(PanelW, Math.Max(16f, screenW - 16f));
+        var mh = 64f + Items.Count * ItemH + FooterH + 16f;
+        var x = screenW * 0.5f - w * 0.5f;
+        var y = Math.Max(8f, screenH * 0.5f - mh * 0.5f);
+        return (x, y, w, mh);
+    }
+
+    public static (float X, float Y, float W, float H) FooterRect(float screenW, float screenH)
+    {
+        var p = Panel(screenW, screenH);
+        return (p.X + 24f, p.Y + p.H - FooterH - 8f, p.W - 48f, FooterH);
     }
 
     public static (float X, float Y, float W, float H) ItemRect(int index, float screenW, float screenH)

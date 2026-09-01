@@ -165,22 +165,22 @@ namespace GrandSluggers.UnityClient
                     "South / left click next    wheel    East / right click / Esc back", _tiny);
                 return;
             }
-            var mw = 420f;
-            var mh = 64f + PauseMenu.Items.Count * 42f + 40f;
-            var mx = Screen.width * 0.5f - mw * 0.5f;
-            var my = Screen.height * 0.5f - mh * 0.5f;
-            GUI.DrawTexture(new Rect(mx, my, mw, mh), _panel);
-            GUI.Label(new Rect(mx + 24, my + 16, mw - 48, 32), "CALL TIME", _h1);
+            var panel = PauseMenu.Panel(Screen.width, Screen.height);
+            GUI.DrawTexture(new Rect(panel.X, panel.Y, panel.W, panel.H), _panel);
+            GUI.Label(new Rect(panel.X + 24, panel.Y + 16, panel.W - 48, 32), "CALL TIME", _h1);
             for (var i = 0; i < PauseMenu.Items.Count; i++)
             {
                 var label = PauseMenu.Label(PauseMenu.Items[i]);
-                var r = new Rect(mx + 24, my + 56 + i * 42, mw - 48, 36);
+                var ir = PauseMenu.ItemRect(i, Screen.width, Screen.height);
+                var r = new Rect(ir.X, ir.Y, ir.W, ir.H);
                 if (i == item)
                     GUI.DrawTexture(r, _ink);
                 GUI.Label(r, label, i == item ? _h1 : _body);
             }
-            GUI.Label(new Rect(mx + 24, my + mh - 32, mw - 48, 22),
-                "stick / click  choose    South / left click ok    Esc / East / right click resume", _tiny);
+            var foot = PauseMenu.FooterRect(Screen.width, Screen.height);
+            var lineH = foot.H / Mathf.Max(1, PauseMenu.FooterLines.Count);
+            for (var i = 0; i < PauseMenu.FooterLines.Count; i++)
+                GUI.Label(new Rect(foot.X, foot.Y + i * lineH, foot.W, lineH), PauseMenu.FooterLines[i], _tiny);
         }
 
         public static void ControlDisplay(string pos, string name)
@@ -309,24 +309,35 @@ namespace GrandSluggers.UnityClient
             var r = Px(lay.Score);
             GUI.DrawTexture(r, _panel);
             GUI.DrawTexture(new Rect(r.x, r.y, 6, r.height), _ink);
-            var half = bug.Over ? "FINAL" : (bug.Top ? "TOP " : "BOT ") + bug.Inning;
-            GUI.Label(new Rect(r.x + 14, r.y + 4, r.width - 24, 20), half, _gold);
-            Row(r.x + 14, r.y + 28, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
-            Row(r.x + 14, r.y + 56, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
+            var half = bug.Over ? "FINAL" : (bug.Top ? "TOP" : "BOT");
+            GUI.Label(Px(BroadcastHud.InningMark(lay.Score)), half, _gold);
+            var innings = Mathf.Max(1, bug.Innings);
+            for (var i = 1; i <= innings; i++)
+            {
+                var box = Px(BroadcastHud.InningBox(lay.Score, i, innings));
+                var prev = GUI.color;
+                GUI.color = i == bug.Inning
+                    ? new Color(0.12f, 0.10f, 0.06f, 1f)
+                    : new Color(1f, 1f, 1f, 0.14f);
+                GUI.DrawTexture(box, _white);
+                GUI.color = prev;
+                GUI.Label(box, i.ToString(), i == bug.Inning ? _gold : _tiny);
+            }
+            Row(lay.Score, 0, match.Away, bug.AwayScore, match.AwayStars, AwayStripe(match));
+            Row(lay.Score, 1, match.Home, bug.HomeScore, match.HomeStars, HomeStripe(match));
 
             var c = Px(lay.Count);
-            Count(c.x, c.y + 4, bug.Balls, 4, _dotOn, _dotOff);
-            GUI.Label(new Rect(c.x + 68, c.y + 4, 18, 18), "B", _tiny);
-            Count(c.x, c.y + 24, bug.Strikes, 3, _dotOn, _dotOff);
-            GUI.Label(new Rect(c.x + 68, c.y + 24, 18, 18), "S", _tiny);
-            Count(c.x, c.y + 44, bug.Outs, 3, _outOn, _outOff);
-            GUI.Label(new Rect(c.x + 68, c.y + 44, 18, 18), "O", _tiny);
-            MiniDiamond(Px(lay.MiniDiamond).x, Px(lay.MiniDiamond).y + 8, bug);
+            CountLine(c, 0, bug.Balls, 4, "B", _dotOn, _dotOff);
+            CountLine(c, 1, bug.Strikes, 3, "S", _dotOn, _dotOff);
+            CountLine(c, 2, bug.Outs, 3, "O", _outOn, _outOff);
+            MiniDiamond(Px(lay.MiniDiamond), bug);
         }
 
-        static void MiniDiamond(float x, float y, BroadcastHud.Scorebug bug)
+        static void MiniDiamond(Rect r, BroadcastHud.Scorebug bug)
         {
-            const float size = 36f;
+            var size = Mathf.Min(r.width, r.height) * 0.72f;
+            var x = r.x + (r.width - size) * 0.5f;
+            var y = r.y + (r.height - size) * 0.15f;
             BagPip(x, y, size, 1, bug.RunnerFirst, bug.LeadFirst, bug.SelectedBag);
             BagPip(x, y, size, 2, bug.RunnerSecond, bug.LeadSecond, bug.SelectedBag);
             BagPip(x, y, size, 3, bug.RunnerThird, bug.LeadThird, bug.SelectedBag);
@@ -342,12 +353,16 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(px - pip * 0.5f, py - pip * 0.5f, pip, pip), tex);
         }
 
-        static void Row(float x, float y, Team team, int runs, double stars, Texture2D stripe)
+        static void Row(BroadcastHud.HudRect score, int row, Team team, int runs, double stars, Texture2D stripe)
         {
-            GUI.DrawTexture(new Rect(x, y + 4, 8, 22), stripe);
-            GUI.Label(new Rect(x + 12, y, 120, 28), Short(team), _team);
-            GUI.Label(new Rect(x + 128, y - 2, 40, 32), runs.ToString(), _score);
-            Stars(x + 168, y + 6, stars);
+            var stripeR = Px(BroadcastHud.StripeCol(score, row));
+            var nameR = Px(BroadcastHud.NameCol(score, row));
+            var runR = Px(BroadcastHud.RunsCol(score, row));
+            var starR = Px(BroadcastHud.StarsCol(score, row));
+            GUI.DrawTexture(stripeR, stripe);
+            GUI.Label(nameR, BroadcastHud.BugName(team.Captain.Name), _team);
+            GUI.Label(runR, BroadcastHud.RunsLabel(runs), _score);
+            Stars(starR.x, starR.y, stars);
         }
 
         static void Cards(Match match, string[] pitches, int pi, bool star, bool steal, string item,
@@ -381,20 +396,24 @@ namespace GrandSluggers.UnityClient
         {
             if (you)
             {
-                var edge = new Rect(r.x - 3, r.y - 3, r.width + 6, r.height + 6);
+                var pad = Mathf.Min(3f, r.height * 0.02f);
+                var edge = new Rect(r.x - pad, r.y - pad, r.width + pad * 2, r.height + pad * 2);
                 GUI.DrawTexture(edge, _ink);
             }
             GUI.DrawTexture(r, _panel);
-            var x = r.x + 12;
+            var x = r.x + r.width * 0.05f;
+            var faceSize = Mathf.Min(44f, r.height * 0.28f);
             if (face != null)
             {
-                GUI.DrawTexture(new Rect(x, r.y + 10, 44, 44), face, ScaleMode.ScaleToFit);
-                x += 52;
+                GUI.DrawTexture(new Rect(x, r.y + r.height * 0.08f, faceSize, faceSize), face, ScaleMode.ScaleToFit);
+                x += faceSize + r.width * 0.04f;
             }
-            GUI.Label(new Rect(x, r.y + 8, r.width - (x - r.x) - 12, 22), role + "  " + name, you ? _h1 : _body);
-            GUI.Label(new Rect(x, r.y + 34, r.width - (x - r.x) - 12, 20), line2, _tiny);
+            var textW = r.x + r.width - x - r.width * 0.04f;
+            var nameH = r.height * 0.22f;
+            GUI.Label(new Rect(x, r.y + r.height * 0.07f, textW, nameH), role + "  " + name, you ? _h1 : _body);
+            GUI.Label(new Rect(x, r.y + r.height * 0.32f, textW, r.height * 0.18f), line2, _tiny);
             if (!string.IsNullOrWhiteSpace(extra))
-                GUI.Label(new Rect(x, r.y + 54, r.width - (x - r.x) - 12, 20), extra.Trim(), _gold);
+                GUI.Label(new Rect(x, r.y + r.height * 0.50f, textW, r.height * 0.18f), extra.Trim(), _gold);
         }
 
         static void Stars(float x, float y, double n)
@@ -403,10 +422,17 @@ namespace GrandSluggers.UnityClient
                 GUI.DrawTexture(new Rect(x + i * 16, y, 14, 14), n > i ? _starOn : _starOff);
         }
 
-        static void Count(float x, float y, int n, int max, Texture2D on, Texture2D off)
+        static void CountLine(Rect r, int row, int n, int max, string tag, Texture2D on, Texture2D off)
         {
+            var h = r.height / 3f;
+            var y = r.y + row * h + h * 0.12f;
+            var pip = Mathf.Min(14f, h * 0.72f);
+            var gap = pip * 0.18f;
+            var tagW = Mathf.Min(18f, r.width * 0.16f);
+            var x0 = r.x + 4f;
             for (var i = 0; i < max; i++)
-                GUI.DrawTexture(new Rect(x + i * 16, y, 14, 14), i < n ? on : off);
+                GUI.DrawTexture(new Rect(x0 + i * (pip + gap), y, pip, pip), i < n ? on : off);
+            GUI.Label(new Rect(r.x + r.width - tagW - 2f, y - 2f, tagW, h), tag, _tiny);
         }
 
         static void Bar(float x, float y, float w, float u)
@@ -415,12 +441,7 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(x, y, w * Mathf.Clamp01(u), 8), _bar);
         }
 
-        static string Short(Team t)
-        {
-            var n = t.Captain.Name;
-            var sp = n.LastIndexOf(' ');
-            return (sp >= 0 ? n.Substring(sp + 1) : n).ToUpperInvariant();
-        }
+        static string Short(Team t) => BroadcastHud.BugName(t.Captain.Name);
 
         static Texture2D HomeStripe(Match match) => Stripe(match.Home.Captain.Faction);
         static Texture2D AwayStripe(Match match) => Stripe(match.Away.Captain.Faction);
