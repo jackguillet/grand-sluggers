@@ -201,7 +201,7 @@ public sealed class Training
     public bool RecordGrounder(FieldingResult field)
     {
         if (Finished || (Lesson != PracticeLesson.Fielding && Lesson != PracticeLesson.Running)) return false;
-        var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9;
+        var hopper = field.Kind is PlayKind.GroundOut or PlayKind.Single && field.HangTimeSec < 1.9 * BallFlight.TimeScale;
         var scooped = field.Fielder is not null && field.Throw is not null;
         if (!hopper || !scooped) return false;
         _scoopedHopper = true;

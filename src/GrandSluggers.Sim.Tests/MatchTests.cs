@@ -259,7 +259,7 @@ public class MatchTests
     {
         var samples = BallFlight.Trajectory(95, 28, 0);
         Assert.True(samples.Count > 10);
-        Assert.InRange(BallFlight.HangTime(samples), 3.0, 6.5);
+        Assert.InRange(BallFlight.HangTime(samples), 3.0 * BallFlight.TimeScale, 6.5 * BallFlight.TimeScale);
         var p = BallFlight.PointAt(samples, 0, 0.5);
         Assert.True(p.Y > 2);
         Assert.True(p.Z > 0);
