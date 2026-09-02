@@ -86,17 +86,15 @@ namespace GrandSluggers.UnityClient
                 (float)framed.Fov);
         }
 
+        /// <summary>Live play holds <see cref="PlayCamera.InPlay"/>. No behind-the-thrower cut.</summary>
+        public void HoldInPlay() => Play(PlayCamera.InPlay);
+
         public void ThrowTo(Vector3 from, Vector3 to, bool tag = false)
         {
-            var s = Must(tag ? "tag" : "throw");
-            Shot = s.Id;
-            var dir = to - from;
-            dir.y = 0f;
-            if (dir.sqrMagnitude < 1f) dir = Vector3.forward;
-            dir.Normalize();
-            var side = Vector3.Cross(Vector3.up, dir);
-            var height = (float)(s.Pos.Y > 0 ? s.Pos.Y : 6.2);
-            _rig.Aim(from - dir * 12f + Vector3.up * height + side * 4.2f, to + Vector3.up * 1.6f, (float)s.Fov);
+            _ = from;
+            _ = to;
+            _ = tag;
+            HoldInPlay();
         }
 
         public void AimRaw(string name, Vector3 pos, Vector3 look, float fov)
