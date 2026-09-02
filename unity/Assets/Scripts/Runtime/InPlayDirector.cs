@@ -250,6 +250,8 @@ namespace GrandSluggers.UnityClient
                 var inWin = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
                 var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
                 var jumpTry = FieldPad.WestDown && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
+                if (stick < 0.35f && FlyCatch.AutoCatch(under, inWin, needsJump))
+                { CatchGlove(); ArmRecoil(); }
                 if (FlyCatch.PlayerCaught(jumpTry, FieldPad.SouthDown, under, inWin, needsJump))
                 {
                     if (buddyOn && inWin && Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26)
@@ -353,7 +355,23 @@ namespace GrandSluggers.UnityClient
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
             var reached = outPlay || _cpuField.Bobble;
-            if (reached && (grounder ? _hitT >= hang && _ball.y < 3.2f
+            if (!_caught && !grounder && _preview != null)
+            {
+                var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
+                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                var window = CatchWindow(map);
+                var needsJump = FlyCatch.NeedsJump(_preview);
+                var inWin = FlyCatch.JumpWindow(_hitT, hang, PlayFielder(), _match.Park);
+                var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
+                if (FlyCatch.AutoCatch(under, inWin, needsJump))
+                {
+                    CatchGlove();
+                    if (_cpuField.Kind is not PlayKind.FlyOut)
+                        _cpuField = _cpuField with { Kind = PlayKind.FlyOut };
+                    ArmRecoil();
+                }
+            }
+            if (!_caught && reached && (grounder ? _hitT >= hang && _ball.y < 3.2f
                 : line ? _hitT >= hang - 0.12f && _ball.y < 8f
                 : _hitT >= hang - 0.18f))
             {
@@ -395,7 +413,11 @@ namespace GrandSluggers.UnityClient
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             TryHandoffOutfield(map, target.X, target.Z);
             var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
-            var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
+            var run = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
+            var speed = run;
+            if (FieldingResolver.InAir(pre, live.Y, _hitT, hang))
+                speed = FieldingResolver.CatchUpSpeedFt(
+                    Diamond.Dist(_fx, _fz, target.X, target.Z), hang - _hitT, run, pre.Frozen);
             var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt, _match.Park);
             _fx = next.X;
             _fz = next.Z;

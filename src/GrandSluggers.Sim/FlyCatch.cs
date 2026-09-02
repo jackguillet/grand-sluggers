@@ -61,10 +61,12 @@ public static class FlyCatch
         double windowFt,
         bool needsJump)
     {
-        var tx = needsJump ? plantX : ballX;
-        var tz = needsJump ? plantZ : ballZ;
+        _ = ballX;
+        _ = ballZ;
+        // The landing ring is the catch. Live XZ while the ball is still up
+        // is the home-first miss — standing in the circle was a drop.
         var reach = needsJump ? Math.Max(windowFt, 22) : windowFt;
-        return Diamond.Dist(gloveX, gloveZ, tx, tz) < reach;
+        return Diamond.Dist(gloveX, gloveZ, plantX, plantZ) < reach;
     }
 
     /// <summary>
@@ -78,6 +80,10 @@ public static class FlyCatch
         bool inWindow,
         bool needsJump) =>
         (jumpDown && inWindow && under) || (southDown && under && !needsJump);
+
+    /// <summary>Dead-stick / CPU: under a routine fly in the window is a catch. Not a rob.</summary>
+    public static bool AutoCatch(bool under, bool inWindow, bool needsJump) =>
+        under && inWindow && !needsJump;
 
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true)
     {
