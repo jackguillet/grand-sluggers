@@ -448,7 +448,7 @@ namespace GrandSluggers.UnityClient
         void AimDiamond(AtBatResult hit)
         {
             _ = hit;
-            _cam.HoldInPlay();
+            _cam.HoldInPlay(_ball);
         }
 
     }

@@ -4,7 +4,7 @@ namespace GrandSluggers.Sim;
 /// One named shot per play. SET and the throw: 1P follows the role
 /// (mound when pitching, plate when batting). 1v1 stays behind home.
 /// Flight stays on that SET shot (no <c>pitch</c> cut). In-play is one
-/// high diamond (CF at the top) for 1P and 1v1.
+/// top-down follow on the dirt under the ball (CF at the top) for 1P and 1v1.
 /// </summary>
 public static class PlayCamera
 {
@@ -27,8 +27,8 @@ public static class PlayCamera
     public const string Wall = "wall";
 
     /// <summary>
-    /// Live batted ball. High, centered, behind home, CF at the top of the frame.
-    /// Hopper / fly / throw / tag stay here — not a follow-cam on the glove.
+    /// Live batted ball. Top-down offset: high Y, small −Z so CF is the top of the frame.
+    /// <see cref="FollowGround"/> puts the look on the dirt under the ball.
     /// </summary>
     public const string InPlay = "diamond";
 
@@ -116,4 +116,14 @@ public static class PlayCamera
                 shot.Pos.Z + subject.Z - shot.Target.Z),
             subject,
             shot.Fov);
+
+    /// <summary>Dirt under the ball. Looking at the airborne ball tilts the grass out of frame.</summary>
+    public static Vec3 GroundUnder(double x, double y, double z)
+    {
+        _ = y;
+        return new Vec3(x, 0, z);
+    }
+
+    public static Framing FollowGround(CameraShot shot, Vec3 at) =>
+        Follow(shot, GroundUnder(at.X, at.Y, at.Z));
 }

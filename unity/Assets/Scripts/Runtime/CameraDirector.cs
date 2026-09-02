@@ -86,15 +86,25 @@ namespace GrandSluggers.UnityClient
                 (float)framed.Fov);
         }
 
-        /// <summary>Live play holds <see cref="PlayCamera.InPlay"/>. No behind-the-thrower cut.</summary>
-        public void HoldInPlay() => Play(PlayCamera.InPlay);
+        /// <summary>
+        /// Live play: top-down on the dirt under the ball. CF stays the top of the frame.
+        /// </summary>
+        public void HoldInPlay(Vector3 at)
+        {
+            var s = Must(PlayCamera.InPlay);
+            Shot = s.Id;
+            var framed = PlayCamera.FollowGround(s, new Vec3(at.x, at.y, at.z));
+            _rig.Aim(
+                new Vector3((float)framed.Pos.X, (float)framed.Pos.Y, (float)framed.Pos.Z),
+                new Vector3((float)framed.Look.X, (float)framed.Look.Y, (float)framed.Look.Z),
+                (float)framed.Fov);
+        }
 
         public void ThrowTo(Vector3 from, Vector3 to, bool tag = false)
         {
             _ = from;
-            _ = to;
             _ = tag;
-            HoldInPlay();
+            HoldInPlay(to);
         }
 
         public void AimRaw(string name, Vector3 pos, Vector3 look, float fov)
