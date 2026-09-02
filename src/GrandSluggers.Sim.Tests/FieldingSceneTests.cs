@@ -348,6 +348,46 @@ public class FieldingSceneTests
         Assert.Equal(205, chase.Z);
     }
 
+    [Fact]
+    public void FieldBoundsUseEachParkFenceNotAHarborConstant()
+    {
+        var harbor = _content.Parks["harbor-diamond"];
+        var canopy = _content.Parks["canopy-yard"];
+        var ember = _content.Parks["ember-keep"];
+        Assert.Equal(400, harbor.CenterFenceFt);
+        Assert.Equal(378, canopy.CenterFenceFt);
+        Assert.Equal(408, ember.CenterFenceFt);
+
+        var cf = Diamond.Positions["CF"];
+        Assert.True(FieldBounds.Inside(harbor, cf.X, cf.Z));
+        Assert.True(FieldBounds.Inside(canopy, cf.X, cf.Z));
+        Assert.True(FieldBounds.Inside(harbor, 0, HomeSet.CatcherZ), "catcher stays behind the plate");
+
+        var pastHarbor = FieldBounds.Clamp(harbor, 0, 500);
+        var pastCanopy = FieldBounds.Clamp(canopy, 0, 500);
+        Assert.True(FieldBounds.Inside(harbor, pastHarbor.X, pastHarbor.Z));
+        Assert.True(FieldBounds.Inside(canopy, pastCanopy.X, pastCanopy.Z));
+        Assert.True(pastHarbor.Z < 400 - FieldBounds.InsideFt + 0.5);
+        Assert.True(pastCanopy.Z < pastHarbor.Z - 10,
+            "Canopy's shorter fence must clip sooner than Harbor");
+        Assert.False(FieldBounds.Inside(harbor, 0, 500));
+        Assert.False(FieldBounds.Inside(canopy, 0, 500));
+
+        var rio = _content.Must("rio");
+        var deep = new FieldingPreview(rio, "CF", null, 4.0, 0, 460, false, false, false, false, false, 14);
+        var plant = FlyCatch.ChaseTarget(deep, harbor);
+        Assert.True(FieldBounds.Inside(harbor, plant.X, plant.Z),
+            "a 460 ft fly chase is the wall, not the seats");
+        Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < harbor.CenterFenceFt);
+
+        var start = Diamond.Positions["CF"];
+        var at = start;
+        for (var i = 0; i < 90; i++)
+            at = FieldingResolver.StepToward(at.X, at.Z, 0, 520, 28, 1.0 / 30, harbor);
+        Assert.True(FieldBounds.Inside(harbor, at.X, at.Z), "running at the wall stops on the grass");
+        Assert.True(at.Z < harbor.CenterFenceFt - 4);
+    }
+
     static AtBatResult Fly(double carry, double launch, double spray, bool hr = false) =>
         new(ContactQuality.Solid, true, false, 95, launch, carry, hr, false, null, null, SprayDeg: spray);
 }

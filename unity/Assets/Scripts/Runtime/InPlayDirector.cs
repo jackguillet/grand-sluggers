@@ -89,6 +89,7 @@ namespace GrandSluggers.UnityClient
             TickCoverBags(dt);
             ChargeOutfield(dt);
             TryTakeGlove();
+            ClampField();
 
             if (_closePlay)
             {
@@ -110,6 +111,7 @@ namespace GrandSluggers.UnityClient
                         _gloveAt[_glovePos] = (_fx, _fz);
                     }
                 }
+                ClampField();
                 _recoilT -= dt;
                 if (_recoilT <= 0 && _bobbling)
                 {
@@ -141,12 +143,14 @@ namespace GrandSluggers.UnityClient
             if (_playerFielding && _preview != null && _pending != null)
             {
                 TickPlayerField(dt);
+                ClampField();
                 return;
             }
 
             if (_preview != null && _cpuField != null && _pending != null)
             {
                 TickCpuField(dt);
+                ClampField();
                 return;
             }
 
@@ -186,6 +190,9 @@ namespace GrandSluggers.UnityClient
                     * (FieldPad.EastHeld ? FieldDash.ChaseMul : 1);
                 _fx += FieldPad.StickX * speed * dt;
                 _fz += FieldPad.StickY * speed * dt;
+                var stickFeet = FieldBounds.Clamp(_match.Park, _fx, _fz);
+                _fx = stickFeet.X;
+                _fz = stickFeet.Z;
                 _gloveAt[_glovePos] = (_fx, _fz);
             }
 
@@ -389,7 +396,7 @@ namespace GrandSluggers.UnityClient
             TryHandoffOutfield(map, target.X, target.Z);
             var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
-            var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt);
+            var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt, _match.Park);
             _fx = next.X;
             _fz = next.Z;
             _gloveAt[_glovePos] = (_fx, _fz);
@@ -425,7 +432,26 @@ namespace GrandSluggers.UnityClient
             if (!_gloveAt.TryGetValue(of.Pos, out var at)) return;
             var target = FieldingResolver.OutfieldChaseTarget(live.X, live.Z, plant.X, plant.Z, inAir);
             var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, _preview.Frozen);
-            _gloveAt[of.Pos] = FieldingResolver.StepToward(at.X, at.Z, target.X, target.Z, speed, dt);
+            _gloveAt[of.Pos] = FieldingResolver.StepToward(at.X, at.Z, target.X, target.Z, speed, dt, _match.Park);
+        }
+
+        void ClampField()
+        {
+            if (_match?.Park == null) return;
+            var park = _match.Park;
+            var feet = FieldBounds.Clamp(park, _fx, _fz);
+            _fx = feet.X;
+            _fz = feet.Z;
+            if (_gloveAt.Count == 0)
+            {
+                _gloveAt[_glovePos] = feet;
+                return;
+            }
+            var keys = new string[_gloveAt.Count];
+            _gloveAt.Keys.CopyTo(keys, 0);
+            foreach (var k in keys)
+                _gloveAt[k] = FieldBounds.Clamp(park, _gloveAt[k].X, _gloveAt[k].Z);
+            _gloveAt[_glovePos] = feet;
         }
 
         void AutoGlove(Dictionary<string, Character> map)

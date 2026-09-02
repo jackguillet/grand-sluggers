@@ -107,8 +107,11 @@ public static class FlyCatch
         return (x * s, z * s);
     }
 
-    public static (double X, double Z) ChaseTarget(FieldingPreview pre, Park? park = null) =>
-        NeedsJump(pre) ? WallPlant(pre, park) : (pre.LandingX, pre.LandingZ);
+    public static (double X, double Z) ChaseTarget(FieldingPreview pre, Park? park = null)
+    {
+        var raw = NeedsJump(pre) ? WallPlant(pre, park) : (X: pre.LandingX, Z: pre.LandingZ);
+        return park == null ? raw : FieldBounds.Clamp(park, raw.X, raw.Z);
+    }
 
     /// <summary>
     /// Fly sits on the glove. Homer rises with the ball, then the wall.

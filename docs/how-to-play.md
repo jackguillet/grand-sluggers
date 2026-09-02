@@ -133,7 +133,7 @@ In-play HUD (the booklet screen): **YOU** names the glove you have (gone when th
 
 ### Fielding (the ball is in play)
 
-Nearest glove **lights**. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first), then chases the hop once it is down. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
+Nearest glove **lights**. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first), then chases the hop once it is down. Gloves stay **inside the wall** — each park's fence is the boundary. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
 Hopper cam is low in the grass; a fly is a 3/4 **on the glove**; a homer rises with the ball, then **sits on the wall** with the fielder; a throw sits on the glove. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
