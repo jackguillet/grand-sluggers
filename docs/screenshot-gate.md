@@ -28,8 +28,8 @@ Bonus stills that save a later sitting (same rules):
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
 | Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
 | Throw | `diamond` | 45° on the dirt under the ball. CF at the top, home under second. No behind-the-thrower cut. |
-| Fly | `diamond` | 45° follow on the grass under the ball. CF at the top. Fielder reads, ball is a baseball |
-| Homer | `diamond` | Same 45° follow. The ball flies toward CF at the top of the frame |
+| Fly | `diamond-fly` | Same 45°, pulled back, more FOV. CF at the top. Fielder reads, ball is a baseball |
+| Homer | `diamond-fly` | Same pulled-back 45°. The ball flies toward CF at the top of the frame |
 
 Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not mash A into a live session unless you are okay with skipping a prompt.
 

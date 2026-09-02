@@ -33,6 +33,9 @@ public static class PlayCamera
     /// </summary>
     public const string InPlay = "diamond";
 
+    /// <summary>Same 45°, farther back and a little more FOV so a fly has grass.</summary>
+    public const string InPlayFly = "diamond-fly";
+
     public const double InPlayLookDownDeg = 45;
 
     public readonly record struct Viewport(double X, double Y, double Depth);
@@ -48,6 +51,7 @@ public static class PlayCamera
         return beat switch
         {
             Beat.Set or Beat.PitchFlight => set,
+            Beat.Fly or Beat.Homer or Beat.Wall => InPlayFly,
             _ => InPlay
         };
     }
@@ -103,6 +107,8 @@ public static class PlayCamera
     }
 
     public static string FromHit(AtBatResult hit) => Shot(BeatFrom(hit));
+
+    public static string FollowShot(bool fly) => fly ? InPlayFly : InPlay;
 
     /// <summary>
     /// Translate a named shot so its authored look sits on <paramref name="subject"/>.

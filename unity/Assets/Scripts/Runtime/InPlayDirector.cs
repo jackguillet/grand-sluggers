@@ -47,7 +47,7 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             }
             if (_smash > 0) _smash -= dt;
-            _cam.HoldInPlay(_ball);
+            _cam.HoldInPlay(_ball, FlyCam());
 
             if (_ring != null && _preview != null)
             {
@@ -156,17 +156,20 @@ namespace GrandSluggers.UnityClient
             var who = map.TryGetValue(_glovePos, out var gloveNow) ? gloveNow : pre.Fielder;
             _buddyWindow = buddyOn && FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
 
-            if (FieldPad.SwapPitcher && !buddyOn)
+            NoteSwitchHint(map, pre);
+            if (FieldPad.SwapPitcher && !buddyOn && !(_caught || _buddy))
             {
                 CycleGlove(map);
                 _swapLock = 0.7f;
             }
 
             var stick = Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY);
+            var hasBall = _caught || _buddy;
+            var steering = (chasing || hasBall) && !_throwing;
             if (chasing && _swapLock <= 0 && stick < 0.35f)
                 ChaseGlove(dt, pre);
 
-            if (chasing && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
+            if (steering && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)
             {
                 var speed = (18 + glove.Stats.Run * 1.8) * (pre.Frozen ? 0.4 : 1)
                     * (FieldPad.EastHeld ? FieldDash.ChaseMul : 1);
@@ -280,6 +283,7 @@ namespace GrandSluggers.UnityClient
             else if (_hitT < hang) return;
             if (_caught || _buddy)
             {
+                _switchPos = "";
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
                     BeginPlayerThrowOrCommit(map);
@@ -332,6 +336,11 @@ namespace GrandSluggers.UnityClient
             var rest = BallFlight.RestTime(_path);
             var grounder = _preview.Grounder;
             var line = _preview.Line;
+            if (HumanOwnsThrow && !(_caught || _buddy))
+            {
+                var hintMap = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                NoteSwitchHint(hintMap, _preview);
+            }
             if (!_caught && _path != null)
                 ChaseGlove(dt, _preview);
             _gloveAt[_glovePos] = (_fx, _fz);
@@ -368,7 +377,7 @@ namespace GrandSluggers.UnityClient
             {
                 _playerFielding = true;
                 var owned = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-                ReadThrowBag(true);
+                ReadThrowBag(InPlay.StickNamesBag(false, true));
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
                     BeginPlayerThrowOrCommit(owned);
@@ -493,6 +502,43 @@ namespace GrandSluggers.UnityClient
             _fz = at.Z;
         }
 
+        bool FlyCam()
+        {
+            if (_preview != null) return FlyCatch.IsFly(_preview);
+            if (_pending != null)
+                return !FieldingResolver.IsGrounder(_pending) && !FieldingResolver.IsLine(_pending);
+            return _last != null
+                && !FieldingResolver.IsGrounder(_last.AtBat)
+                && !FieldingResolver.IsLine(_last.AtBat);
+        }
+
+        (double X, double Z) SwitchAim(FieldingPreview pre)
+        {
+            if (pre != null && FlyCatch.IsFly(pre) && _path != null)
+            {
+                var hang = BallFlight.HangTime(_path);
+                if (_hitT < hang)
+                    return FlyCatch.ChaseTarget(pre, _match.Park);
+            }
+            return (_ball.x, _ball.z);
+        }
+
+        void NoteSwitchHint(Dictionary<string, Character> map, FieldingPreview pre)
+        {
+            if (_caught || _buddy || _throwing)
+            {
+                _switchPos = "";
+                return;
+            }
+            var spots = new Dictionary<string, (double X, double Z)>();
+            foreach (var kv in map)
+                spots[kv.Key] = _gloveAt.TryGetValue(kv.Key, out var live) ? live : Diamond.Positions[kv.Key];
+            var aim = SwitchAim(pre);
+            _switchPos = FieldAssist.SwitchHint(_glovePos, spots, aim.X, aim.Z, FieldPad.StickX, FieldPad.StickY);
+            if (!map.ContainsKey(_switchPos) || _switchPos == _glovePos)
+                _switchPos = "";
+        }
+
         void CycleGlove(Dictionary<string, Character> map)
         {
             var spots = new Dictionary<string, (double X, double Z)>();
@@ -502,7 +548,8 @@ namespace GrandSluggers.UnityClient
                     ? live
                     : Diamond.Positions[kv.Key];
             }
-            var next = FieldAssist.SwapGlove(_glovePos, spots, _ball.x, _ball.z, FieldPad.StickX, FieldPad.StickY);
+            var aim = SwitchAim(_preview);
+            var next = FieldAssist.SwapGlove(_glovePos, spots, aim.X, aim.Z, FieldPad.StickX, FieldPad.StickY);
             if (!map.ContainsKey(next)) next = "P";
             _gloveAt[_glovePos] = (_fx, _fz);
             _glovePos = next;
@@ -534,7 +581,7 @@ namespace GrandSluggers.UnityClient
 
         (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _match?.Park);
 
-        void AimFlyCam() => _cam.HoldInPlay(_ball);
+        void AimFlyCam() => _cam.HoldInPlay(_ball, FlyCam());
 
         static string PosOf(Dictionary<string, Character> map, Character who)
         {

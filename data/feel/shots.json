@@ -41,6 +41,14 @@
       "blend": 8
     },
     {
+      "id": "diamond-fly",
+      "look": "ball",
+      "pos": { "x": 0, "y": 72, "z": -72 },
+      "target": { "x": 0, "y": 0, "z": 0 },
+      "fov": 56,
+      "blend": 8
+    },
+    {
       "id": "diamond-grounder",
       "look": "ball",
       "pos": { "x": 42, "y": 6.2, "z": 20 },

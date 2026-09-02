@@ -145,9 +145,11 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("window"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("gun to first") || l.Contains("throw is yours"));
-        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("45") && l.Contains("ball"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("45") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("CF") && l.Contains("top"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Home") && l.Contains("second"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Select") && l.Contains("pulses"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("runs with the ball"));
         var two = HowToPlay.Must("two-pads").Lines;
         Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("player 1"));
         Assert.Contains(two, l => l.Contains("North") && l.Contains("HOME"));

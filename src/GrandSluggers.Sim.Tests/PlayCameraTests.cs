@@ -47,13 +47,13 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Grounder));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.GrounderPull));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Line));
-        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Fly));
-        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Homer));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Fly));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Homer));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Smash));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Throw));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.StealThrow));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Tag));
-        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Wall));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Wall));
     }
 
     [Fact]
@@ -69,8 +69,8 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(hopper));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(pull));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(line));
-        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(fly));
-        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(homer));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(fly));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(homer));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(star));
         Assert.Equal(PlayCamera.Beat.Homer, PlayCamera.BeatFrom(homer));
         Assert.Equal(PlayCamera.Beat.Fly, PlayCamera.BeatFrom(fly));

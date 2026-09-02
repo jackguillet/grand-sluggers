@@ -89,9 +89,9 @@ namespace GrandSluggers.UnityClient
         /// <summary>
         /// Live play: top-down on the dirt under the ball. CF stays the top of the frame.
         /// </summary>
-        public void HoldInPlay(Vector3 at)
+        public void HoldInPlay(Vector3 at, bool fly = false)
         {
-            var s = Must(PlayCamera.InPlay);
+            var s = Must(PlayCamera.FollowShot(fly));
             Shot = s.Id;
             var framed = PlayCamera.FollowGround(s, new Vec3(at.x, at.y, at.z));
             _rig.Aim(

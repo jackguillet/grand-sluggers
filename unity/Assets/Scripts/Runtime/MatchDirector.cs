@@ -111,6 +111,7 @@ namespace GrandSluggers.UnityClient
         int _throwBag;
         readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
         string _glovePos = "P";
+        string _switchPos = "";
         string _throwFromPos = "";
         string _buddyPos = "";
         bool _buddyWindow;
@@ -337,10 +338,17 @@ namespace GrandSluggers.UnityClient
             }
             if (_closePlay)
                 HudView.ClosePlay(_closeBag, _closeIcon);
-            if (!mutePlay && _phase == Phase.InPlay && _playerFielding)
+            if (!mutePlay && _phase == Phase.InPlay && HumanOwnsThrow)
             {
                 var who = PlayFielder();
-                HudView.ControlDisplay(_glovePos, who != null ? who.Name : "");
+                if (_playerFielding)
+                    HudView.ControlDisplay(_glovePos, who != null ? who.Name : "");
+                if (!string.IsNullOrEmpty(_switchPos) && _switchPos != _glovePos && !(_caught || _buddy))
+                {
+                    var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                    map.TryGetValue(_switchPos, out var hint);
+                    HudView.SwitchTell(_glovePos, _switchPos, hint != null ? hint.Name : "", false);
+                }
             }
             if (!mutePlay && ItemOffered && _itemTarget != null)
                 HudView.ItemPointer(_itemTarget.Name);
@@ -348,7 +356,7 @@ namespace GrandSluggers.UnityClient
             {
                 var hopper = _preview != null && _preview.Grounder;
                 var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
-                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, true);
+                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, false);
                 var def = _match.LiveForce
                     ? 1
                     : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);

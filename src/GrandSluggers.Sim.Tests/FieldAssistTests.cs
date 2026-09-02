@@ -75,5 +75,8 @@ public class FieldAssistTests
         var nearSecond = (Diamond.Positions["2B"].X, Diamond.Positions["2B"].Z + 4);
         Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0));
         Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0));
+        Assert.Equal(
+            FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0),
+            FieldAssist.SwitchHint("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0));
     }
 }

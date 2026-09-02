@@ -170,7 +170,7 @@ public class InPlayTests
     public void HopperCatchStickDeadThrowsToFirstDiamondIsDistinct()
     {
         Assert.False(InPlay.StickNamesBag(chasing: true, caught: false));
-        Assert.True(InPlay.StickNamesBag(chasing: true, caught: true));
+        Assert.False(InPlay.StickNamesBag(chasing: false, caught: true));
         Assert.True(InPlay.StickNamesBag(chasing: false, caught: false));
         Assert.Equal(0, InPlay.DiamondBag(0, 0));
         Assert.Equal(1, InPlay.DiamondBag(1, 0));
@@ -261,8 +261,8 @@ public class InPlayTests
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(hopper));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(pull));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(line));
-        Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(fly));
-        Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(homer));
+        Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(fly));
+        Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(homer));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(star));
         Assert.True(FieldingResolver.IsLine(line));
         Assert.True(FieldingResolver.IsGrounder(hopper));
