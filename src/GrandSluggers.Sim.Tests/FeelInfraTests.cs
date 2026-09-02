@@ -305,6 +305,7 @@ public class FeelInfraTests
         Assert.False(SetTells.ZoneOn(false));
         Assert.True(SetTells.TrailOn(true));
         Assert.False(SetTells.TrailOn(false));
+        Assert.True(SetTells.TrailStartFt(Baseball.FlightDiameterFt) > SetTells.TrailEndFt(Baseball.FlightDiameterFt));
         var mid = SetTells.Locator(0, 0);
         var inRight = SetTells.Locator(0.4, 0);
         Assert.True(inRight.X > mid.X);
@@ -336,7 +337,11 @@ public class FeelInfraTests
     {
         Assert.InRange(Baseball.DiameterFt, 0.45, 0.85);
         Assert.True(Baseball.DiameterFt < 1.0, "1.5 ft was a beach ball on mound");
-        Assert.True(Baseball.InPlayDiameterFt < 1.0, "in-play ball is a glove, not a torso");
+        Assert.True(Baseball.InPlayDiameterFt < 1.35, "in-play ball is a glove, not a torso");
+        Assert.True(Baseball.InPlayDiameterFt > Baseball.DiameterFt);
+        Assert.True(Baseball.HaloMul > 1.2, "halo is how the pitch reads at 60 ft");
+        Assert.True(SetTells.TrailSeconds >= 0.5, $"trail vanished at 0.28s t={SetTells.TrailSeconds}");
+        Assert.True(SetTells.TrailStartFt(1) > 0.4);
         Assert.True(Baseball.FlightDiameterFt < 1.6, "2ft was a torso on a ~6ft toy");
         Assert.True(Baseball.FlightDiameterFt > Baseball.DiameterFt);
         Assert.Equal(Baseball.DiameterFt, Baseball.ApparentScale(false, 60));

@@ -60,4 +60,18 @@ public static class SetTells
     }
 
     public static bool TrailOn(bool flight) => flight;
+
+    /// <summary>Seconds of streak. 0.28 vanished on plate SET.</summary>
+    public const double TrailSeconds = 0.62;
+
+    /// <summary>Start width as a fraction of the live ball diameter.</summary>
+    public const double TrailStartMul = 0.62;
+
+    public const double TrailEndMul = 0.10;
+
+    public static double TrailStartFt(double diameter) =>
+        Math.Max(0.28, diameter * TrailStartMul);
+
+    public static double TrailEndFt(double diameter) =>
+        Math.Max(0.06, diameter * TrailEndMul);
 }
