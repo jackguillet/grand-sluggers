@@ -195,12 +195,14 @@ public sealed class Match
     bool _liveOpen;
     bool _liveForce;
     bool _liveTurnedTwo;
+    bool _liveBatterOut;
     string _liveCaption = "";
     int _liveThrows;
     /// <summary>Player has the glove: outs record as throws land. CPU FinishAtBat still turns two in one call.</summary>
     public bool LivePlay => _liveOpen;
     public bool LiveForce => _liveForce;
     public bool LiveTurnedTwo => _liveTurnedTwo;
+    public bool LiveBatterOut => _liveBatterOut;
     public int LiveThrows => _liveThrows;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
@@ -379,6 +381,7 @@ public sealed class Match
         _liveOpen = true;
         _liveForce = false;
         _liveTurnedTwo = false;
+        _liveBatterOut = false;
         _liveCaption = "";
         _liveThrows = 0;
     }
@@ -404,6 +407,8 @@ public sealed class Match
             _liveCaption = step.Caption;
         if (step.Force) _liveForce = true;
         if (step.TurnedTwo) _liveTurnedTwo = true;
+        if (step.Out && step.Bag == 1 && !step.Force)
+            _liveBatterOut = true;
         if (!step.Out) return;
         if (step.Force && step.Bag == 2)
             SetBag(1, null);
@@ -417,6 +422,7 @@ public sealed class Match
         _liveOpen = false;
         _liveForce = false;
         _liveTurnedTwo = false;
+        _liveBatterOut = false;
         _liveCaption = "";
         _liveThrows = 0;
     }
@@ -932,6 +938,16 @@ public sealed class Match
                 {
                     kind = PlayKind.Single;
                     goto case PlayKind.Single;
+                }
+                if (_liveBatterOut)
+                {
+                    caption = string.IsNullOrEmpty(_liveCaption)
+                        ? $"{field.Fielder?.Name} to first."
+                        : _liveCaption;
+                    NextBatter();
+                    CheckInning();
+                    ClearLivePlay();
+                    break;
                 }
                 Outs++;
                 AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);

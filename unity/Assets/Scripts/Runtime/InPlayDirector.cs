@@ -721,7 +721,7 @@ namespace GrandSluggers.UnityClient
             CatchGlove();
 
             InPlay.GroundThrowStep? step = null;
-            if (_match != null && (_match.First != null || _match.LiveForce))
+            if (_match != null && bag is >= 1 and <= 4)
             {
                 step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
                 if (!string.IsNullOrEmpty(step.Value.Caption))
@@ -1097,7 +1097,7 @@ namespace GrandSluggers.UnityClient
         void TickOccupied(int fromBag, Character who, PlayKind kind, float dt, ref float sec)
         {
             if (who == null) { sec = 0; return; }
-            var dest = InPlay.OccupiedDestBag(fromBag, kind);
+            var dest = InPlay.OccupiedDestBag(fromBag, kind, _match.SendAll, _caught || _buddy);
             var feet = InPlay.RunFeet(_hitT, who);
             var (x, z) = InPlay.TowardBag(fromBag, dest, feet);
             var on = InPlay.OccupyingBag(x, z);
@@ -1109,10 +1109,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return false;
             var kind = LiveKind();
-            var batterDest = InPlay.BatterDestBag(kind);
-            var batter = batterDest <= 0
-                ? new InPlay.Occupy(true, InPlay.TimeOnBagSec)
-                : new InPlay.Occupy(_occupyBatter > 0, _occupyBatter);
+            var batterOut = !InPlay.LiveBatter(kind, _match.LiveBatterOut);
+            var batter = new InPlay.Occupy(_occupyBatter > 0, _occupyBatter);
             return InPlay.Time(
                 _caught || _buddy,
                 _throwing,
@@ -1120,7 +1118,8 @@ namespace GrandSluggers.UnityClient
                 batter,
                 _match.First != null ? new InPlay.Occupy(_occupy1 > 0, _occupy1) : null,
                 _match.Second != null ? new InPlay.Occupy(_occupy2 > 0, _occupy2) : null,
-                _match.Third != null ? new InPlay.Occupy(_occupy3 > 0, _occupy3) : null);
+                _match.Third != null ? new InPlay.Occupy(_occupy3 > 0, _occupy3) : null,
+                batterOut);
         }
     }
 }

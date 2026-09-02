@@ -179,6 +179,16 @@ public static class InPlay
                 $"{fielderName} turns two.");
         }
 
+        if (bag == 1)
+        {
+            if (runnerBeats)
+                return new(bag, false, false, false, true, false, 0, "");
+            var outsAfter = outs + 1;
+            return new(
+                bag, true, false, false, false, outsAfter >= 3, 0,
+                $"{fielderName} to first.");
+        }
+
         return new(bag, false, alreadyForced, false, false, false, 0, "");
     }
 
@@ -223,9 +233,10 @@ public static class InPlay
         hit.InPlay && !hit.Foul;
 
     /// <summary>
-    /// Time. The glove has the ball, nobody is throwing, and every live runner
-    /// has occupied a bag for <see cref="TimeOnBagSec"/>. Three outs end it now.
-    /// Picking up the ball is not Time.
+    /// Time. The glove has the ball, nobody is throwing.
+    /// Three outs end it now. A putout with no remaining live runners ends it now.
+    /// Otherwise every live runner has occupied a bag for <see cref="TimeOnBagSec"/>.
+    /// Picking up the ball is not Time — the batter is still live until the out.
     /// </summary>
     public const double TimeOnBagSec = 1.0;
 
@@ -238,16 +249,21 @@ public static class InPlay
         Occupy batter,
         Occupy? first = null,
         Occupy? second = null,
-        Occupy? third = null)
+        Occupy? third = null,
+        bool batterOut = false)
     {
         if (outs >= 3) return true;
         if (!hasBall || throwing) return false;
-        if (!Settled(batter)) return false;
+        if (!batterOut && !Settled(batter)) return false;
         if (first is { } a && !Settled(a)) return false;
         if (second is { } b && !Settled(b)) return false;
         if (third is { } c && !Settled(c)) return false;
         return true;
     }
+
+    /// <summary>Still racing or awarded a bag. An out is not a live runner.</summary>
+    public static bool LiveBatter(PlayKind kind, bool putOut) =>
+        BatterDestBag(kind) > 0 && !putOut;
 
     static bool Settled(Occupy o) => o.OnBag && o.Sec + 1e-9 >= TimeOnBagSec;
 
@@ -266,9 +282,11 @@ public static class InPlay
         _ => 0
     };
 
-    /// <summary>Occupied runner's dest on that contact. 4 = scores.</summary>
-    public static int OccupiedDestBag(int fromBag, PlayKind kind)
+    /// <summary>Occupied runner's dest on that contact. 4 = scores. Tag-up leaves on the catch.</summary>
+    public static int OccupiedDestBag(int fromBag, PlayKind kind, bool tagUp = false, bool caught = false)
     {
+        if (kind == PlayKind.FlyOut && tagUp && caught && fromBag is >= 1 and <= 3)
+            return fromBag >= 3 ? 4 : fromBag + 1;
         var extra = BatterDestBag(kind);
         if (extra <= 0) return fromBag;
         var dest = fromBag + extra;
