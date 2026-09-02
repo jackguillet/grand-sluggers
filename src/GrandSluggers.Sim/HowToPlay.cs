@@ -142,7 +142,7 @@ public static class HowToPlay
         ]),
         new("fielding", "Fielding", "fielding",
         [
-            "Don't move: the outfielder runs to the landing on a fly, not the ball. Contact puffs dirt.",
+            "Don't move: the outfielder runs to the landing on a fly and still can catch. Contact puffs dirt.",
             "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",

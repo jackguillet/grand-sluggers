@@ -58,6 +58,26 @@ public class FlyCatchTests
         var field = fielding.Resolve(pop, match.Park, match.Defense.Roster, match.Pitcher, new Random(1), pre: pre);
         Assert.Equal(PlayKind.FlyOut, field.Kind);
         Assert.NotNull(field.Fielder);
+
+        var plant = FlyCatch.ChaseTarget(pre, match.Park);
+        Assert.True(FlyCatch.Under(plant.X, plant.Z, ballX: 0, ballZ: plant.Z - 40, plant.X, plant.Z, 22, needsJump: false),
+            "standing in the landing ring is under — live XZ still short is not a drop");
+        Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: false));
+        Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true), "dead-stick does not rob");
+
+        var start = Diamond.Positions[pre.Position];
+        var hang = Math.Max(0.8, pre.HangTimeSec);
+        var run = FieldingResolver.ChaseSpeedFt(pre.Fielder, frozen: false);
+        var at = start;
+        const double dt = 1.0 / 30;
+        for (var t = 0.0; t < hang - 0.18; t += dt)
+        {
+            var speed = FieldingResolver.CatchUpSpeedFt(
+                Diamond.Dist(at.X, at.Z, plant.X, plant.Z), hang - t, run);
+            at = FieldingResolver.StepToward(at.X, at.Z, plant.X, plant.Z, speed, dt, match.Park);
+        }
+        Assert.True(Diamond.Dist(at.X, at.Z, plant.X, plant.Z) < 18,
+            "catch-up speed must be under the ring by hang");
     }
 
     [Fact]
