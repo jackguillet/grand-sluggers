@@ -289,7 +289,7 @@ namespace GrandSluggers.UnityClient
             if (racing)
             {
                 var kind = LiveKind();
-                var dest = InPlay.OccupiedDestBag(bagNum, kind);
+                var dest = InPlay.OccupiedDestBag(bagNum, kind, _match.SendAll, _caught || _buddy);
                 var feet = InPlay.RunFeet(_hitT, who);
                 var at = InPlay.TowardBag(bagNum, dest, feet);
                 spot = (at.X, at.Z);

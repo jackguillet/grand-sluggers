@@ -154,6 +154,16 @@ public class InPlayTests
         Assert.True(thirdOut.Out);
         Assert.True(thirdOut.PlayOver);
         Assert.Equal(0, thirdOut.NextDefaultBag);
+
+        var first = InPlay.ThrowToBag(1, false, alreadyForced: false, runnerBeats: false, outs: 0, "Vale", "Rio");
+        Assert.True(first.Out);
+        Assert.False(first.Force);
+        Assert.False(first.PlayOver, "outs < 3: Time decides, remaining runners may still be live");
+        Assert.Contains("first", first.Caption);
+
+        var beat = InPlay.ThrowToBag(1, false, alreadyForced: false, runnerBeats: true, outs: 0, "Vale", "Rio");
+        Assert.False(beat.Out);
+        Assert.True(beat.BatterSafe);
     }
 
     [Fact]
@@ -274,10 +284,22 @@ public class InPlayTests
         Assert.True(InPlay.Time(true, false, 0, settled));
         Assert.False(InPlay.Time(true, false, 0, settled, first: between), "runner between");
         Assert.True(InPlay.Time(true, false, 0, settled, first: settled));
+        Assert.True(InPlay.Time(true, false, 0, between, batterOut: true),
+            "out at first, nobody else on: Time now");
+        Assert.False(InPlay.Time(true, false, 0, between, first: between, batterOut: true),
+            "out at first but another runner is still live");
+        Assert.True(InPlay.Time(true, false, 0, between, first: settled, batterOut: true),
+            "putout, remaining runner settled");
+        Assert.False(InPlay.LiveBatter(PlayKind.GroundOut, putOut: true));
+        Assert.True(InPlay.LiveBatter(PlayKind.GroundOut, putOut: false));
+        Assert.False(InPlay.LiveBatter(PlayKind.FlyOut, putOut: false));
         Assert.Equal(2, InPlay.BatterDestBag(PlayKind.Double));
         Assert.Equal(3, InPlay.OccupiedDestBag(1, PlayKind.Double));
         Assert.Equal(1, InPlay.BatterDestBag(PlayKind.GroundOut));
         Assert.Equal(0, InPlay.BatterDestBag(PlayKind.FlyOut));
+        Assert.Equal(3, InPlay.OccupiedDestBag(3, PlayKind.FlyOut));
+        Assert.Equal(3, InPlay.OccupiedDestBag(3, PlayKind.FlyOut, tagUp: true, caught: false));
+        Assert.Equal(4, InPlay.OccupiedDestBag(3, PlayKind.FlyOut, tagUp: true, caught: true));
         var mid = InPlay.AlongBases(Diamond.Baseline * 0.5, 2);
         Assert.False(InPlay.OccupyingBag(mid.X, mid.Z), "halfway to first is not a bag");
         var atTwo = InPlay.TowardBag(0, 2, Diamond.Baseline * 2);

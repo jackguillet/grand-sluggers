@@ -134,7 +134,7 @@ public static class HowToPlay
         ]),
         new("running", "Running", "running",
         [
-            "Hit it and you run. Play lives until everyone is on a bag for a second (or 3 outs).",
+            "Hit it and you run. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
             "LB / ,    all advance. RB / .    all return. Both    halt.",
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 / Z    steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
