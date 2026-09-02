@@ -117,6 +117,21 @@ public class MatchTests
         Assert.False(bug.RunnerFirst);
     }
 
+    [Fact]
+    public void LivePlayWithoutAThrowDoesNotGuessAForce()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        match.OpenLivePlay();
+        Assert.Equal(0, match.Outs);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.Single, ev.Kind);
+        Assert.DoesNotContain("Force at second", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("forces the runner", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(0, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.NotNull(match.Second);
+    }
+
     (Match Match, PitchCommand Pitch, SwingCommand Swing, AtBatResult Hit, FieldingResult Field) LiveHopperOnFirst()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
