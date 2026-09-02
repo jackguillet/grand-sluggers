@@ -10,6 +10,18 @@ public sealed class AtBatResolver
     public const double PerfectWindowFrames = 1.0;
     public const double BaseContactWindowFrames = 7.0;
 
+    /// <summary>Chalk. Past this spray is foul territory, not a caption on a fair fly.</summary>
+    public const double FoulLineDeg = 45;
+
+    /// <summary>Full stick at contact pulls down the line (spread can take it foul).</summary>
+    public const double SprayAimMaxDeg = 42;
+
+    public static double SprayAimDeg(double stickX) =>
+        Math.Clamp(stickX, -1, 1) * SprayAimMaxDeg;
+
+    public static bool IsFoul(double sprayDeg) =>
+        Math.Abs(sprayDeg) > FoulLineDeg;
+
     readonly ChemistryTable _chem;
 
     public AtBatResolver(ChemistryTable chem) => _chem = chem;
@@ -100,11 +112,14 @@ public sealed class AtBatResolver
             spray += (rng.NextDouble() - 0.5) * 22;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * 18;
+        if (input.Bunt)
+            spray += (rng.NextDouble() - 0.5) * 28;
+        spray = CheapFoulPull(quality, spray, rng);
 
         var carry = BallFlight.CarryFeet(exit, launch, park.WindMph);
+        var foul = IsFoul(spray);
         var fence = FenceAt(park, spray);
-        var homer = !input.Bunt && carry >= fence && launch is > 18 and < 38;
-        var foul = !homer && (Math.Abs(spray) > 45 || (quality == ContactQuality.Cheap && Math.Abs(spray) > 32 && rng.NextDouble() < 0.45));
+        var homer = !foul && !input.Bunt && carry >= fence && launch is > 18 and < 38;
 
         return new AtBatResult(
             quality,
@@ -126,13 +141,25 @@ public sealed class AtBatResolver
     {
         ContactQuality.Perfect => 8,
         ContactQuality.Solid => 18,
-        _ => 36
+        _ => 52
     };
+
+    /// <summary>
+    /// Cheap contact already pulled toward a line can skip past the chalk.
+    /// The ball flies foul — we do not stamp Foul on a fair spray.
+    /// </summary>
+    static double CheapFoulPull(ContactQuality quality, double spray, Random rng)
+    {
+        if (quality != ContactQuality.Cheap || Math.Abs(spray) <= 20 || rng.NextDouble() >= 0.4)
+            return spray;
+        var side = spray >= 0 ? 1 : -1;
+        return side * (FoulLineDeg + 6 + rng.NextDouble() * 14);
+    }
 
     public static double FenceAt(Park park, double sprayDeg)
     {
         // spray  -45 left, 0 center, +45 right. Piecewise lerp of the three fences.
-        var t = Math.Clamp((sprayDeg + 45) / 90, 0, 1);
+        var t = Math.Clamp((sprayDeg + FoulLineDeg) / (FoulLineDeg * 2), 0, 1);
         if (t < 0.5)
             return Lerp(park.LeftFenceFt, park.CenterFenceFt, t * 2);
         return Lerp(park.CenterFenceFt, park.RightFenceFt, (t - 0.5) * 2);
