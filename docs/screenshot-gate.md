@@ -27,9 +27,9 @@ Bonus stills that save a later sitting (same rules):
 | Title | `title` | Looks **into** Harbor, not at a menu wall. Home captain is the toy in front (not six idles, not a corner crop). **GRAND SLUGGERS** is a sticker over the infield, readable in the live player without F2. The board is not through the toy. |
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
 | Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
-| Throw | `diamond` | Same high diamond as contact. No behind-the-thrower cut. |
-| Fly | `diamond` | High, centered, behind home, CF at the top. Fielder reads, ball is a baseball |
-| Homer | `diamond` | Same high diamond. The ball flies toward CF at the top of the frame |
+| Throw | `diamond` | Top-down on the dirt under the ball. CF at the top. No behind-the-thrower cut. |
+| Fly | `diamond` | Top-down follow on the grass under the ball. CF at the top. Fielder reads, ball is a baseball |
+| Homer | `diamond` | Same top-down follow. The ball flies toward CF at the top of the frame |
 
 Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not mash A into a live session unless you are okay with skipping a prompt.
 

@@ -148,7 +148,7 @@ public static class HowToPlay
             "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",
-            "On contact the camera goes high and centered. CF is the top. It stays through the throw.",
+            "On contact the camera goes top-down on the ball. CF is the top. It follows the grass under it.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
