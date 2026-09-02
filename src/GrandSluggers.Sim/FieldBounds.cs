@@ -13,8 +13,8 @@ public static class FieldBounds
     /// <summary>Catcher stands here; the backstop is a few feet further.</summary>
     public static double BackstopZ => HomeSet.CatcherZ - 8;
 
-    /// <summary>Harbor wall panels run to ±48°. A little foul along the line, not the stands.</summary>
-    public const double FoulSprayDeg = 50;
+    /// <summary>A little past <see cref="AtBatResolver.FoulLineDeg"/> so a glove can take a ball along the line, not the stands.</summary>
+    public const double FoulSprayDeg = AtBatResolver.FoulLineDeg + 5;
 
     public static double SprayDeg(double x, double z) =>
         Math.Atan2(x, z) * (180.0 / Math.PI);
