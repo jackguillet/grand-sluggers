@@ -100,6 +100,8 @@ namespace GrandSluggers.UnityClient
                     CommitInPlay();
                     return;
                 }
+                if (!_bobbling && (_caught || _buddy) && TickLiveTag())
+                    return;
                 if (_recoilT > 0) return;
             }
 
@@ -280,7 +282,7 @@ namespace GrandSluggers.UnityClient
             {
                 if (!_caught && _hitT < rest) return;
             }
-            else if (_hitT < hang) return;
+            else if (!(_caught || _buddy) && _hitT < hang) return;
             if (_caught || _buddy)
             {
                 _switchPos = "";
@@ -371,7 +373,7 @@ namespace GrandSluggers.UnityClient
                 CatchGlove();
                 ArmRecoil();
             }
-            if (!grounder && !line && _hitT < hang) return;
+            if (!grounder && !line && !_caught && !_buddy && _hitT < hang) return;
             if ((grounder || line) && !_caught && _hitT < rest) return;
             if (_cpuField.Bobble && _caught)
                 return;
@@ -1153,8 +1155,7 @@ namespace GrandSluggers.UnityClient
                 var dest = InPlay.BatterDestBag(kind);
                 var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
                 var (bx, bz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
-                var on = InPlay.OccupyingBag(bx, bz);
-                if (InPlay.Touches(true, false, _fx, _fz, bx, bz, on) && _match.StepTag(0, glove))
+                if (InPlay.Touches(true, false, _fx, _fz, bx, bz) && _match.StepTag(0, glove))
                 {
                     _sub = _match.LiveCaption;
                     if (_match.Outs >= 3 || PlayIsTime())
@@ -1166,11 +1167,10 @@ namespace GrandSluggers.UnityClient
             {
                 var who = _match.RunnerAt(bag)?.Who;
                 if (who is null) continue;
-                var dest = InPlay.OccupiedDestBag(bag, kind, _match.SendAll, true);
+                var dest = InPlay.OccupiedDestBag(bag, kind, _match.SendAll, _caught || _buddy);
                 var feet = InPlay.RunFeet(_hitT, who);
                 var (x, z) = InPlay.TowardBag(bag, dest, feet);
-                var on = InPlay.OccupyingBag(x, z);
-                if (InPlay.Touches(true, false, _fx, _fz, x, z, on) && _match.StepTag(bag, glove))
+                if (InPlay.Touches(true, false, _fx, _fz, x, z) && _match.StepTag(bag, glove))
                 {
                     _sub = _match.LiveCaption;
                     if (_match.Outs >= 3 || PlayIsTime())
