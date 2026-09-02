@@ -129,6 +129,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("pause-practice").Lines, l => l.Contains("F1") && l.Contains("debug"));
         var running = HowToPlay.Must("running").Lines;
         Assert.Contains(running, l => l.Contains("on a bag") && l.Contains("second"));
+        Assert.Contains(running, l => l.Contains("nobody left") || l.Contains("out with nobody"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Pickup") || l.Contains("does not end"));
         Assert.Contains(running, l => l.Contains("D-pad") && l.Contains("1B"));
         Assert.Contains(running, l => l.Contains("highlighted"));
