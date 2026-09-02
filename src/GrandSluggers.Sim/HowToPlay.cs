@@ -144,10 +144,11 @@ public static class HowToPlay
         new("fielding", "Fielding", "fielding",
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. Contact puffs dirt.",
+            "The throw is yours: bag + South. They do not gun to first for you.",
             "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",
-            "Fly camera is a 3/4 on the glove. A steal gun is a catcher throw without a hop.",
+            "On contact the camera goes high and centered. CF is the top. It stays through the throw.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
