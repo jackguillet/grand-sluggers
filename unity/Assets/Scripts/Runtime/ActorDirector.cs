@@ -202,8 +202,6 @@ namespace GrandSluggers.UnityClient
                 HoldBallInGlove();
             if (_throwing && _armedThrow != null)
                 _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
-            else
-                _park.Ball.SetTrailColor(Color.white);
             var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
             var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
             if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)

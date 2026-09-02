@@ -17,11 +17,14 @@ public class AtBatFeelTests
         Assert.True(Baseball.DiameterFt < 1.0, "posed ball is glove-sized");
         Assert.True(Baseball.FlightDiameterFt > Baseball.DiameterFt);
         Assert.True(Baseball.FlightDiameterFt < 1.6, "2ft pitch scale was a torso on the toys");
-        Assert.True(Baseball.InPlayDiameterFt < 1.0, "in-play ball is not a torso");
+        Assert.True(Baseball.InPlayDiameterFt < 1.35, "in-play ball is not a torso");
+        Assert.True(Baseball.HaloMul > 1.2);
+        Assert.True(SetTells.TrailSeconds > 0.45);
+        Assert.True(SetTells.TrailStartFt(Baseball.InPlayDiameterFt) > 0.25);
         Assert.Equal(Baseball.FlightDiameterFt, Baseball.InFlightScale(true));
         Assert.Equal(Baseball.DiameterFt, Baseball.InFlightScale(false));
         Assert.Equal(Baseball.InPlayDiameterFt, Baseball.ApparentScale(true, 48, inPlay: true));
-        Assert.True(Baseball.ApparentScale(true, 280, inPlay: true) < 1.0, "outfield hopper stays a ball");
+        Assert.True(Baseball.ApparentScale(true, 280, inPlay: true) < 1.35, "outfield hopper stays a ball");
         var plate = _content.Shots.Must("plate");
         var mound = _content.Shots.Must("mound");
         var pitch = _content.Shots.Must("pitch");
@@ -43,6 +46,12 @@ public class AtBatFeelTests
         var early = PitchFlight.Point("fastball", 0.2);
         var earlyDeg = PitchFlight.ApparentDeg(early.X, early.Y, early.Z, plate, Baseball.ApparentScale(true, early.Z));
         Assert.True(earlyDeg > 0.9, $"early pitch speck {earlyDeg} deg");
+        for (var u = 0.15; u <= 0.9; u += 0.2)
+        {
+            var pt = PitchFlight.Point("fastball", u);
+            var vp = PlayCamera.Project(plate, new Vec3(pt.X, pt.Y, pt.Z));
+            Assert.True(PlayCamera.InFrame(vp, 0.0), $"hitter lost the pitch u={u} {vp}");
+        }
     }
 
     [Fact]

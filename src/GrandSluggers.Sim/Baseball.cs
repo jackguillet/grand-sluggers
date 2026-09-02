@@ -9,8 +9,12 @@ namespace GrandSluggers.Sim;
 public static class Baseball
 {
     public const double DiameterFt = 0.62;
-    public const double FlightDiameterFt = 1.15;
-    public const double InPlayDiameterFt = 0.70;
+    public const double FlightDiameterFt = 1.42;
+    public const double InPlayDiameterFt = 1.12;
+
+    /// <summary>Unlit gold shell so a pitch reads at 60 ft without a 2 ft mesh.</summary>
+    public const double HaloMul = 1.55;
+    public const double FlightGlow = 1.6;
 
     public static double InFlightScale(bool inFlight) =>
         inFlight ? FlightDiameterFt : DiameterFt;
