@@ -4,7 +4,8 @@ namespace GrandSluggers.Sim;
 /// One named shot per play. SET and the throw: 1P follows the role
 /// (mound when pitching, plate when batting). 1v1 stays behind home.
 /// Flight stays on that SET shot (no <c>pitch</c> cut). In-play is one
-/// top-down follow on the dirt under the ball (CF at the top) for 1P and 1v1.
+/// 45° follow on the dirt under the ball (CF at the top, home under second)
+/// for 1P and 1v1.
 /// </summary>
 public static class PlayCamera
 {
@@ -27,10 +28,12 @@ public static class PlayCamera
     public const string Wall = "wall";
 
     /// <summary>
-    /// Live batted ball. Top-down offset: high Y, small −Z so CF is the top of the frame.
-    /// <see cref="FollowGround"/> puts the look on the dirt under the ball.
+    /// Live batted ball. 45° down from the home side of the dirt under the ball
+    /// so CF is the top of the frame and home sits under second.
     /// </summary>
     public const string InPlay = "diamond";
+
+    public const double InPlayLookDownDeg = 45;
 
     public readonly record struct Viewport(double X, double Y, double Depth);
 
@@ -126,4 +129,15 @@ public static class PlayCamera
 
     public static Framing FollowGround(CameraShot shot, Vec3 at) =>
         Follow(shot, GroundUnder(at.X, at.Y, at.Z));
+
+    /// <summary>Degrees below horizontal. 90 is straight down, 45 is the in-play look.</summary>
+    public static double LookDownDeg(CameraShot shot)
+    {
+        var dx = shot.Target.X - shot.Pos.X;
+        var dy = shot.Target.Y - shot.Pos.Y;
+        var dz = shot.Target.Z - shot.Pos.Z;
+        var horiz = Math.Sqrt(dx * dx + dz * dz);
+        if (horiz < 1e-6) return dy < 0 ? 90 : 0;
+        return Math.Atan2(-dy, horiz) * (180.0 / Math.PI);
+    }
 }

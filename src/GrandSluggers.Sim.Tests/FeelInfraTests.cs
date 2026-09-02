@@ -164,16 +164,28 @@ public class FeelInfraTests
         Assert.InRange(fly.Target.Y, -0.5, 1);
         Assert.InRange(fly.Target.Z, -1, 1);
         Assert.True(fly.Pos.Z < 0, $"in-play offset looks toward CF z={fly.Pos.Z}");
-        Assert.True(fly.Pos.Y >= 70, $"in-play is top-down y={fly.Pos.Y}");
-        Assert.True(fly.Pos.Y > 4 * Math.Abs(fly.Pos.Z),
-            $"in-play should be steeper than a 3/4 y={fly.Pos.Y} z={fly.Pos.Z}");
+        Assert.InRange(PlayCamera.LookDownDeg(fly), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
+        Assert.InRange(fly.Pos.Y, Math.Abs(fly.Pos.Z) - 2, Math.Abs(fly.Pos.Z) + 2);
         var air = new Vec3(Diamond.First.X, 18, Diamond.First.Z);
         var framed = PlayCamera.FollowGround(fly, air);
         Assert.Equal(0, framed.Look.Y);
         Assert.InRange(framed.Look.X, Diamond.First.X - 0.2, Diamond.First.X + 0.2);
         Assert.InRange(framed.Look.Z, Diamond.First.Z - 0.2, Diamond.First.Z + 0.2);
-        Assert.True(framed.Pos.Y >= 70, $"follow stays top-down y={framed.Pos.Y}");
+        Assert.InRange(framed.Pos.X, framed.Look.X - 0.2, framed.Look.X + 0.2);
         Assert.True(framed.Pos.Z < framed.Look.Z, "follow keeps CF at the top");
+        var atHome = PlayCamera.FollowGround(fly, new Vec3(0, 8, 0));
+        var live = new CameraShot(fly.Id, fly.Look, atHome.Pos, atHome.Look, fly.Fov, fly.Blend);
+        var homeVp = PlayCamera.Project(live, new Vec3(0, 0.2, 0));
+        var secondVp = PlayCamera.Project(live, new Vec3(Diamond.Second.X, 0.4, Diamond.Second.Z));
+        var firstVp = PlayCamera.Project(live, new Vec3(Diamond.First.X, 0.4, Diamond.First.Z));
+        var thirdVp = PlayCamera.Project(live, new Vec3(Diamond.Third.X, 0.4, Diamond.Third.Z));
+        Assert.True(PlayCamera.InFrame(homeVp, 0.02), $"home off 45° {homeVp}");
+        Assert.True(homeVp is { } h && secondVp is { } s && Math.Abs(h.X - s.X) < 0.04,
+            $"home should sit under second homeX={homeVp?.X} secondX={secondVp?.X}");
+        Assert.True(homeVp is { } h2 && secondVp is { } s2 && h2.Y < s2.Y,
+            $"home should be below second homeY={homeVp?.Y} secondY={secondVp?.Y}");
+        Assert.True(firstVp is { } f && thirdVp is { } t && f.X > t.X,
+            $"first should be right of third firstX={firstVp?.X} thirdX={thirdVp?.X}");
         var dirt = PlayCamera.Project(
             new CameraShot(fly.Id, fly.Look, framed.Pos, framed.Look, fly.Fov, fly.Blend),
             new Vec3(Diamond.First.X, 0, Diamond.First.Z));
