@@ -12,6 +12,8 @@ public class FieldAssistTests
     {
         Assert.False(FieldAssist.PlayerStartsOnGlove(false));
         Assert.True(FieldAssist.PlayerStartsOnGlove(true));
+        Assert.True(FieldAssist.HumanOwnsThrow(true));
+        Assert.False(FieldAssist.HumanOwnsThrow(false));
         Assert.Equal(0.35, FieldAssist.StickTake);
         Assert.Equal(0.35, _content.Feel.FieldAssistStick);
         Assert.False(FieldAssist.StickTakesGlove(0, 0, FieldAssist.StickTake, false));

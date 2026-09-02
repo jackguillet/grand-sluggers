@@ -33,9 +33,9 @@ public class StillHarnessTests
         Assert.True(match.CanStarSwing);
         Assert.False(string.IsNullOrWhiteSpace(match.Batter.StarSwing));
         var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
-        Assert.Equal("diamond-grounder", InPlay.TheaterShot(hopper));
+        Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(hopper));
         var star = hopper with { StarSwingUsed = match.Batter.StarSwing, LaunchDeg = 28 };
-        Assert.Equal("smash", InPlay.TheaterShot(star));
+        Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(star));
     }
 
     [Fact]

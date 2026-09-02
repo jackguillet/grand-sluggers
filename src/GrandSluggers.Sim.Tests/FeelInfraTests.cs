@@ -152,28 +152,42 @@ public class FeelInfraTests
     [Fact]
     public void LineAndTagShotsAreDistinctFromFlyAndThrow()
     {
-        var fly = _content.Shots.Must("diamond");
+        var fly = _content.Shots.Must(PlayCamera.InPlay);
         var hop = _content.Shots.Must("diamond-grounder");
         var line = _content.Shots.Must("diamond-line");
         var homer = _content.Shots.Must("diamond-homer");
         var wall = _content.Shots.Must("wall");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
-        Assert.True(line.Pos.Y > hop.Pos.Y, $"line height {line.Pos.Y} vs hopper {hop.Pos.Y}");
-        Assert.True(line.Pos.Y < fly.Pos.Y, $"line height {line.Pos.Y} vs fly {fly.Pos.Y}");
-        Assert.True(homer.Pos.Y > fly.Pos.Y, $"homer height {homer.Pos.Y} vs fly {fly.Pos.Y}");
+        Assert.InRange(fly.Pos.X, -2, 2);
+        Assert.True(fly.Pos.Z < 0, $"in-play is behind home z={fly.Pos.Z}");
+        Assert.True(fly.Pos.Y >= 36, $"in-play is high looking down y={fly.Pos.Y}");
+        Assert.True(fly.Target.Z > fly.Pos.Z + 80, "in-play looks toward CF");
+        Assert.InRange(fly.Target.X, -4, 4);
+        var homeVp = PlayCamera.Project(fly, new Vec3(0, 0.2, 0));
+        var moundVp = PlayCamera.Project(fly, new Vec3(0, 0.4, Diamond.Mound));
+        var firstVp = PlayCamera.Project(fly, new Vec3(Diamond.First.X, 0.4, Diamond.First.Z));
+        var thirdVp = PlayCamera.Project(fly, new Vec3(Diamond.Third.X, 0.4, Diamond.Third.Z));
+        var secondVp = PlayCamera.Project(fly, new Vec3(Diamond.Second.X, 0.4, Diamond.Second.Z));
+        var cfVp = PlayCamera.Project(fly, new Vec3(0, 1.6, 250));
+        Assert.True(PlayCamera.InFrame(homeVp, 0.02), $"home off in-play {homeVp}");
+        Assert.True(PlayCamera.InFrame(moundVp, 0.02), $"mound off in-play {moundVp}");
+        Assert.True(PlayCamera.InFrame(firstVp, 0.02), $"first off in-play {firstVp}");
+        Assert.True(PlayCamera.InFrame(thirdVp, 0.02), $"third off in-play {thirdVp}");
+        Assert.True(PlayCamera.InFrame(secondVp, 0.02), $"second off in-play {secondVp}");
+        Assert.True(homeVp is { } h && cfVp is { } cfLook && cfLook.Y > h.Y,
+            $"CF should sit above home in the frame homeY={homeVp?.Y} cfY={cfVp?.Y}");
         Assert.Equal("glove", wall.Look, ignoreCase: true);
-        Assert.True(wall.Pos.Y < homer.Pos.Y, $"wall height {wall.Pos.Y} vs homer {homer.Pos.Y}");
         Assert.True(Math.Abs(wall.Target.X) < 4 && Math.Abs(wall.Target.Z) < 4, "wall is a follow-cam on the glove");
         Assert.Equal(PlayCamera.Wall, wall.Id);
-        Assert.True(fly.Pos.Z > 20, $"fly is a 3/4 in the park, not high-home z={fly.Pos.Z}");
-        Assert.True(hop.Pos.Y < 9, $"hopper is a 3/4, not top-down y={hop.Pos.Y}");
-        Assert.True(hop.Pos.Y > 4, $"hopper too low y={hop.Pos.Y}");
-        Assert.True(hop.Pos.Y - hop.Target.Y < 8, $"hopper look is too steep y {hop.Pos.Y} -> {hop.Target.Y}");
-        Assert.NotEqual(line.Fov, fly.Fov);
+        Assert.True(hop.Pos.Y < 9, $"scoop still is a 3/4, not top-down y={hop.Pos.Y}");
+        Assert.True(hop.Pos.Y > 4, $"scoop still too low y={hop.Pos.Y}");
+        Assert.True(hop.Pos.Y - hop.Target.Y < 8, $"scoop still look is too steep y {hop.Pos.Y} -> {hop.Target.Y}");
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
         Assert.Equal("bag", tag.Look, ignoreCase: true);
+        _ = line;
+        _ = homer;
         var smash = _content.Shots.Must("smash");
         Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov} is a nostril");
         Assert.True(smash.Pos.X > 5, $"smash is a 3/4 off the pipe, not through the catcher x={smash.Pos.X}");

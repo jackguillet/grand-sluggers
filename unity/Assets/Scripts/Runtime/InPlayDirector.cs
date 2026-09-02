@@ -47,24 +47,7 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             }
             if (_smash > 0) _smash -= dt;
-            else if (_throwing)
-                _cam.ThrowTo(_throwFrom, _throwTo, TagCam(_throwBag));
-            else if ((_caught || _buddy) && !_throwing)
-            {
-                var bag = _throwBag > 0 ? _throwBag : FieldPad.StickBag;
-                if (bag > 0)
-                    _cam.ThrowTo(new Vector3((float)_fx, 3.2f, (float)_fz), BagWorld(bag), TagCam(bag));
-                else
-                    _cam.AimRaw("glove",
-                        new Vector3((float)_fx + 12f, 9f, (float)_fz - 14f),
-                        new Vector3((float)_fx, 2.2f, (float)_fz), 46f);
-            }
-            else if (_pending != null && _preview != null && FlyCatch.IsFly(_preview))
-                AimFlyCam();
-            else if (_pending != null)
-                AimDiamond(_pending);
-            else
-                _cam.AimRaw("chase", _ball + new Vector3(14, 11, -20), _ball + new Vector3(0, 2, 6), 50f);
+            _cam.HoldInPlay();
 
             if (_ring != null && _preview != null)
             {
@@ -93,7 +76,6 @@ namespace GrandSluggers.UnityClient
 
             if (_closePlay)
             {
-                _cam.ThrowTo(_throwFrom, _throwTo, true);
                 TickClosePlay(dt);
                 return;
             }
@@ -298,7 +280,7 @@ namespace GrandSluggers.UnityClient
             else if (_hitT < hang) return;
             if (_caught || _buddy)
             {
-                if (_throwBag > 0 || FieldPad.SouthDown)
+                if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
                     BeginPlayerThrowOrCommit(map);
                     return;
@@ -382,6 +364,20 @@ namespace GrandSluggers.UnityClient
             if ((grounder || line) && !_caught && _hitT < rest) return;
             if (_cpuField.Bobble && _caught)
                 return;
+            if (HumanOwnsThrow && (_caught || _buddy))
+            {
+                _playerFielding = true;
+                var owned = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                ReadThrowBag(true);
+                if (FieldPad.SouthDown || FieldPad.Cutoff)
+                {
+                    BeginPlayerThrowOrCommit(owned);
+                    return;
+                }
+                if (PlayIsTime())
+                    CommitInPlay();
+                return;
+            }
             if (outPlay && grounder)
             {
                 if (StartGroundRelays()) return;
@@ -538,35 +534,7 @@ namespace GrandSluggers.UnityClient
 
         (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _match?.Park);
 
-        void AimFlyCam()
-        {
-            var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-            var beat = FlyCatch.LiveBeat(_pending, _preview, _hitT, hang, _caught || _buddy);
-            var id = PlayCamera.Shot(beat);
-            Vector3 subject;
-            if (beat == PlayCamera.Beat.Wall)
-            {
-                var plant = FlyCatch.WallPlant(_preview, _match.Park);
-                var hx = _fx;
-                var hz = _fz;
-                if (BuddySet && !string.IsNullOrEmpty(_buddyPos) && _gloveAt.TryGetValue(_buddyPos, out var bud))
-                {
-                    hx = (_fx + bud.X) * 0.5;
-                    hz = (_fz + bud.Z) * 0.5;
-                }
-                if (Diamond.Dist(hx, hz, plant.X, plant.Z) > 40)
-                {
-                    hx = plant.X;
-                    hz = plant.Z;
-                }
-                subject = new Vector3((float)hx, 5.5f, (float)hz);
-            }
-            else if (beat == PlayCamera.Beat.Homer)
-                subject = _ball;
-            else
-                subject = new Vector3((float)_fx, Mathf.Max(3.2f, _ball.y * 0.25f + 2.2f), (float)_fz);
-            _cam.Follow(id, subject);
-        }
+        void AimFlyCam() => _cam.HoldInPlay();
 
         static string PosOf(Dictionary<string, Character> map, Character who)
         {

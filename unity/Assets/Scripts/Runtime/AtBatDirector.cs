@@ -420,7 +420,7 @@ namespace GrandSluggers.UnityClient
             {
                 _freeze = (float)_feel.SmashFreeze;
                 _smash = (float)_feel.SmashHold;
-                _cam.SmashAt(SmashLook());
+                _rig.Punch(CartoonJuice.Punch(hit.Quality));
                 _audio?.Swell();
             }
             else if (hit.Quality == ContactQuality.Solid)
@@ -447,18 +447,8 @@ namespace GrandSluggers.UnityClient
 
         void AimDiamond(AtBatResult hit)
         {
-            var id = InPlay.TheaterShot(hit);
-            var look = _ball.sqrMagnitude > 1 ? _ball : new Vector3((float)(_preview?.LandingX ?? 0), 3f, (float)(_preview?.LandingZ ?? 80));
-            if (id == "smash")
-            {
-                _cam.SmashAt(SmashLook());
-                return;
-            }
-            if (FieldingResolver.IsGrounder(hit) || FieldingResolver.IsLine(hit))
-                look.y = Mathf.Min(look.y, 3.2f);
-            else
-                look += new Vector3(0, 3, 10);
-            _cam.PlayLook(id, look);
+            _ = hit;
+            _cam.HoldInPlay();
         }
 
     }

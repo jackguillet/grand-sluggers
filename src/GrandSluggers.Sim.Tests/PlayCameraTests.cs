@@ -44,16 +44,16 @@ public class PlayCameraTests
             Assert.Equal(one, two);
             Assert.False(string.IsNullOrWhiteSpace(one), beat.ToString());
         }
-        Assert.Equal("diamond-grounder", PlayCamera.Shot(PlayCamera.Beat.Grounder));
-        Assert.Equal("diamond-pull", PlayCamera.Shot(PlayCamera.Beat.GrounderPull));
-        Assert.Equal("diamond-line", PlayCamera.Shot(PlayCamera.Beat.Line));
-        Assert.Equal("diamond", PlayCamera.Shot(PlayCamera.Beat.Fly));
-        Assert.Equal("diamond-homer", PlayCamera.Shot(PlayCamera.Beat.Homer));
-        Assert.Equal("smash", PlayCamera.Shot(PlayCamera.Beat.Smash));
-        Assert.Equal("throw", PlayCamera.Shot(PlayCamera.Beat.Throw));
-        Assert.Equal("throw", PlayCamera.Shot(PlayCamera.Beat.StealThrow));
-        Assert.Equal("tag", PlayCamera.Shot(PlayCamera.Beat.Tag));
-        Assert.Equal(PlayCamera.Wall, PlayCamera.Shot(PlayCamera.Beat.Wall));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Grounder));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.GrounderPull));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Line));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Fly));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Homer));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Smash));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Throw));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.StealThrow));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Tag));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Wall));
     }
 
     [Fact]
@@ -66,12 +66,12 @@ public class PlayCameraTests
         var line = hopper with { LaunchDeg = 18, ExitVeloMph = 95, CarryFt = 180 };
         var star = hopper with { LaunchDeg = 28, StarSwingUsed = "heat-swing" };
         Assert.Equal(InPlay.TheaterShot(hopper), PlayCamera.FromHit(hopper));
-        Assert.Equal("diamond-grounder", PlayCamera.FromHit(hopper));
-        Assert.Equal("diamond-pull", PlayCamera.FromHit(pull));
-        Assert.Equal("diamond-line", PlayCamera.FromHit(line));
-        Assert.Equal("diamond", PlayCamera.FromHit(fly));
-        Assert.Equal("diamond-homer", PlayCamera.FromHit(homer));
-        Assert.Equal("smash", PlayCamera.FromHit(star));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(hopper));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(pull));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(line));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(fly));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(homer));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(star));
         Assert.Equal(PlayCamera.Beat.Homer, PlayCamera.BeatFrom(homer));
         Assert.Equal(PlayCamera.Beat.Fly, PlayCamera.BeatFrom(fly));
     }
