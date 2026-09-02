@@ -9,6 +9,7 @@ namespace GrandSluggers.UnityClient
         Transform _home;
         Transform _root;
         GameObject _ball;
+        GameObject _halo;
         TrailRenderer _trail;
         Light _glow;
         Transform _shadow;
@@ -66,13 +67,27 @@ namespace GrandSluggers.UnityClient
             Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
             Stitch(_ball.transform);
 
+            _halo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            _halo.name = "Halo";
+            _halo.transform.SetParent(_root, false);
+            _halo.transform.localPosition = new Vector3(0f, Sit, 0f);
+            Destroy(_halo.GetComponent<Collider>());
+            Look.Paint(_halo, Look.Unlit(new Color(1f, 0.88f, 0.28f, 0.72f)));
+            var haloR = _halo.GetComponent<Renderer>();
+            if (haloR != null)
+            {
+                haloR.shadowCastingMode = ShadowCastingMode.Off;
+                haloR.receiveShadows = false;
+            }
+            _halo.SetActive(false);
+
             var trailGo = new GameObject("Trail");
             trailGo.transform.SetParent(_root, false);
             trailGo.transform.localPosition = new Vector3(0f, Sit, 0f);
             _trail = trailGo.AddComponent<TrailRenderer>();
-            _trail.time = 0.28f;
-            _trail.startWidth = Diameter * 0.12f;
-            _trail.endWidth = Diameter * 0.02f;
+            _trail.time = (float)SetTells.TrailSeconds;
+            _trail.startWidth = (float)SetTells.TrailStartFt(Diameter);
+            _trail.endWidth = (float)SetTells.TrailEndFt(Diameter);
             _trail.widthMultiplier = 1f;
             _trail.alignment = LineAlignment.View;
             _trail.numCapVertices = 4;
@@ -81,8 +96,8 @@ namespace GrandSluggers.UnityClient
             _trail.shadowCastingMode = ShadowCastingMode.Off;
             _trail.receiveShadows = false;
             _trail.material = MotionArc();
-            _trail.startColor = new Color(1f, 1f, 1f, 0.85f);
-            _trail.endColor = new Color(1f, 1f, 1f, 0f);
+            _trail.startColor = new Color(1f, 0.86f, 0.28f, 0.95f);
+            _trail.endColor = new Color(1f, 0.78f, 0.18f, 0f);
 
             var glowGo = new GameObject("Glow");
             glowGo.transform.SetParent(_root, false);
@@ -230,14 +245,16 @@ namespace GrandSluggers.UnityClient
                 col = type == "curve" ? new Color(0.45f, 0.75f, 1f)
                     : type == "slider" ? new Color(0.85f, 0.55f, 1f)
                     : type == "changeup" ? new Color(1f, 0.92f, 0.45f)
-                    : Color.white;
+                    : new Color(1f, 0.86f, 0.28f);
+                glow = (float)Baseball.FlightGlow;
+                glowCol = col;
             }
 
             Look.Paint(_ball, Look.Lit(matCol, smooth: smooth));
             SetTrailColor(col);
-            _trail.time = star == "prismball" ? 0.55f : 0.28f;
+            _trail.time = star == "prismball" ? 0.7f : (float)SetTells.TrailSeconds;
             _glow.color = glowCol;
-            _glow.intensity = glow;
+            _glow.intensity = _inFlight ? glow : 0f;
         }
 
         void StampScale(string star, bool heat)
@@ -256,6 +273,21 @@ namespace GrandSluggers.UnityClient
                 scale = (float)Baseball.ApparentScale(_inFlight, _root.position.z, _inPlay);
             _ball.transform.localScale = Vector3.one * scale;
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
+            if (_halo != null)
+            {
+                var on = _inFlight && _held == null;
+                _halo.SetActive(on);
+                if (on)
+                {
+                    _halo.transform.localScale = Vector3.one * scale * (float)Baseball.HaloMul;
+                    _halo.transform.localPosition = new Vector3(0f, Sit, 0f);
+                }
+            }
+            if (_trail != null)
+            {
+                _trail.startWidth = (float)SetTells.TrailStartFt(scale);
+                _trail.endWidth = (float)SetTells.TrailEndFt(scale);
+            }
         }
 
         public void Hide()
@@ -272,14 +304,15 @@ namespace GrandSluggers.UnityClient
 
         static Material MotionArc()
         {
-            var sh = Shader.Find("Sprites/Default") ?? Look.LitShader;
+            var sh = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                ?? Shader.Find("Universal Render Pipeline/Unlit")
+                ?? Look.LitShader;
             var m = new Material(sh);
-            m.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-            m.SetInt("_DstBlend", (int)BlendMode.One);
-            m.SetInt("_ZWrite", 0);
+            var gold = new Color(1f, 0.86f, 0.28f, 1f);
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", gold);
+            if (m.HasProperty("_Color")) m.SetColor("_Color", gold);
+            m.color = gold;
             m.renderQueue = 3000;
-            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", Color.white);
-            m.color = Color.white;
             return m;
         }
 

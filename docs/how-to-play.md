@@ -102,7 +102,7 @@ Two screens. Not a 3D huddle with a name list.
 | Modifier | West / V through release = **changeup** (hangs then dumps) | West hold / V = **bunt** |
 | North + South / Q + Space | Star pitch (costs a star even if hit) | Star swing (costs a star even on a miss) |
 
-Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX.
+Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX. The pitch has a **gold streak** so you can see it come in.
 
 SET forks **by role in 1P**, and **stays behind home in 1v1**. **One pad, pitching:** camera stays on the **mound 3/4** (`mound`) — first-base over-the-shoulder behind the rubber, pitcher large on the right, rubber in the bottom, looking at the box — through SET and the throw. **One pad, batting:** camera stays on the **plate 3/4** (`plate`) — behind home looking at the mound, batter left of the look, pitcher in the diamond — through SET and the throw. Catcher crouches behind the camera. Pentagon and two boxes have dirt between them. It does not cut to `pitch`. **Two pads:** camera stays on the **plate 3/4** (`plate`) — behind home — through SET and the throw, whether you pitch or hit. Pad 2 does not fork the HUD. Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
 
@@ -136,7 +136,7 @@ In-play HUD (the booklet screen): **YOU** names the glove you have (gone when th
 
 Nearest glove **lights**. The ball **hangs** so you can get there. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first) and **still can catch** if they are under the ring. Then they chase the hop once it is down. They do **not** throw for you. Gloves stay **inside the wall** — each park's fence is the boundary. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
-On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. A **fly pulls back** (same angle, more grass). It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
+On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. A **fly pulls back** (same angle, more grass). The ball keeps the gold streak. It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
 - **Stick / WASD** — take the glove and run it (dead stick = CPU). After the catch, stick still **runs with the ball**. **Hold East / G** to dash.
 - **Select / R** — swap to the pulsing glove (stick points at who you want; dead stick is next-nearest to the landing / ball). HUD **R → CF**. Not while you hold the ball.

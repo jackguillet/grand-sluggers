@@ -119,7 +119,7 @@ public static class HowToPlay
         ]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
-            "Tap South / Space / left click to pitch or swing. Hold charge for a bigger one.",
+            "Tap South / Space / left click to pitch or swing. Hold charge. The pitch has a gold streak.",
             "Charge ring sits on the dirt. Commit at MAX. Late charge is weaker.",
             "One pad: you pitch over the pitcher's shoulder looking at the box. You hit from behind home looking at the pitcher. The throw does not cut.",
             "Two pads: SET stays on the plate, behind home.",
