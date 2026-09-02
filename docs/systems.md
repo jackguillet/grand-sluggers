@@ -80,7 +80,7 @@ The batter has a **contact window** around a pitch’s plate time. Timing offset
 
 Charge (hold, then swing) trades a smaller window for more power. Contact-first bats invert that (Waluigi-style: charge *helps* contact, hurts power).
 
-Launch angle is stick/aim + a little RNG, clamped by quality. Spray is stick L/R at contact. Past the foul lines (`FoulLineDeg` 45°) is a **foul** — strike unless two, same batter, not a homer even if it would clear the fence. The ball flies into foul territory; we do not stamp Foul on a fair spray. We simulate flight with a ballistic + drag + park wind, not a full CFD.
+Launch angle is stick/aim + a little RNG, clamped by quality. Spray is stick L/R at contact. Past the foul lines (`FoulLineDeg` 45°) is a **foul** — strike unless two, same batter, not a homer even if it would clear the fence. The ball flies into foul territory; we do not stamp Foul on a fair spray. We simulate flight with a ballistic + drag + park wind, not a full CFD. Sample time is stretched (`BallFlight.TimeScale`) so gloves can get under it; carry does not change. Pitches and throws stay snappy.
 
 ## Pitching
 

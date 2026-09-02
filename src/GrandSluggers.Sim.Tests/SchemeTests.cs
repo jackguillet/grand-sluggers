@@ -142,6 +142,7 @@ public class SchemeTests
         Assert.Contains(running, l => l.Contains("Dead stick"));
         Assert.DoesNotContain(running, l => l.Contains("steal the lead runner"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("landing") && l.Contains("fly"));
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("hangs"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("West") && l.Contains("window"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("wall"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("gun to first") || l.Contains("throw is yours"));
