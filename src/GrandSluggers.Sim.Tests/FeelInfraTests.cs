@@ -153,6 +153,7 @@ public class FeelInfraTests
     public void LineAndTagShotsAreDistinctFromFlyAndThrow()
     {
         var fly = _content.Shots.Must(PlayCamera.InPlay);
+        var flyPull = _content.Shots.Must(PlayCamera.InPlayFly);
         var hop = _content.Shots.Must("diamond-grounder");
         var line = _content.Shots.Must("diamond-line");
         var homer = _content.Shots.Must("diamond-homer");
@@ -166,6 +167,9 @@ public class FeelInfraTests
         Assert.True(fly.Pos.Z < 0, $"in-play offset looks toward CF z={fly.Pos.Z}");
         Assert.InRange(PlayCamera.LookDownDeg(fly), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
         Assert.InRange(fly.Pos.Y, Math.Abs(fly.Pos.Z) - 2, Math.Abs(fly.Pos.Z) + 2);
+        Assert.InRange(PlayCamera.LookDownDeg(flyPull), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
+        Assert.True(Math.Abs(flyPull.Pos.Z) > Math.Abs(fly.Pos.Z) + 8, "fly shot pulls back");
+        Assert.True(flyPull.Fov > fly.Fov, $"fly fov {flyPull.Fov} vs hopper {fly.Fov}");
         var air = new Vec3(Diamond.First.X, 18, Diamond.First.Z);
         var framed = PlayCamera.FollowGround(fly, air);
         Assert.Equal(0, framed.Look.Y);
@@ -234,7 +238,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-line", "diamond-homer", "wall", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-line", "diamond-homer", "wall", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);

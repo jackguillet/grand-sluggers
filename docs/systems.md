@@ -94,7 +94,7 @@ Stamina 0 → extra break noise and “fat” fastballs. Swap or eat runs.
 
 CPU fielders run a simple utility: while the ball is in the air they run to the landing (or wall plant), not the live XZ — chasing the ball itself is the home-first path as it flies over them. Once it is a hopper or already down they chase the live hop. Gloves stay inside that park's fence (`FieldBounds` from the JSON L/C/R distances) — they plant on the warning track, they do not run through the wall. A yellow circle on the grass (`LandingMark`) is that landing; it turns red in the jump window. Catch window from Field stat, throw to the lead base with chemistry applied. Infield dirt is the infielder's hop; once the ball is on the grass the nearest outfielder charges and takes the glove (`PlayGlove`).
 
-Player fielding: move the highlighted fielder, catch button, throw-to-base buttons. Dead stick may still run and catch; the throw is a verb (bag + South) when a human is on defense. Buddy Jump is a timed prompt when two good-chem outfielders are under a homer. On contact the camera is one 45° diamond (CF at the top, home under second) that follows the dirt under the ball.
+Player fielding: move the highlighted fielder, catch button, throw-to-base buttons. Dead stick may still run and catch; the throw is a verb (bag + South) when a human is on defense. Stick still runs after the catch. Select / R smart-switches to the hinted glove (next-nearest to the landing / ball; stick aims). Buddy Jump is a timed prompt when two good-chem outfielders are under a homer. On contact the camera is one 45° diamond (CF at the top, home under second) that follows the dirt under the ball; a fly uses a farther `diamond-fly`.
 
 Field abilities fire as verbs. One per character:
 

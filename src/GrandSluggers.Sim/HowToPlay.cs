@@ -144,11 +144,11 @@ public static class HowToPlay
         new("fielding", "Fielding", "fielding",
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. Contact puffs dirt.",
-            "The throw is yours: bag + South. They do not gun to first for you.",
-            "Move the stick / WASD / mouse to take the glove. South    catch, then throw. Pickup does not end it.",
+            "The throw is yours: bag + South. Stick still runs with the ball. They do not gun to first.",
+            "Move the stick to take the glove. Select / R swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",
-            "On contact the camera sits at 45°. CF is the top. Home is under second. It follows the grass under the ball.",
+            "On contact the camera sits at 45°. A fly pulls back. CF is the top. Home is under second.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [

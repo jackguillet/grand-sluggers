@@ -192,8 +192,11 @@ public static class InPlay
         return new(bag, false, alreadyForced, false, false, false, 0, "");
     }
 
-    /// <summary>Pad stick / arrows name a bag only when you are not chasing the ball.</summary>
-    public static bool StickNamesBag(bool chasing, bool caught) => !chasing || caught;
+    /// <summary>
+    /// Stick runs the glove. D-pad / keys arm a bag. After the catch the stick
+    /// still runs — it does not steal the throw.
+    /// </summary>
+    public static bool StickNamesBag(bool chasing, bool caught) => !chasing && !caught;
 
     /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
     public static int DiamondBag(double x, double y, double mag2 = 0.55)
