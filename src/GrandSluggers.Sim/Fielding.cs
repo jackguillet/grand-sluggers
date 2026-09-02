@@ -265,6 +265,16 @@ public sealed class FieldingResolver
     public static double ChaseSpeedFt(Character fielder, bool frozen) =>
         (21 + fielder.Stats.Run * 1.9) * (frozen ? 0.45 : 1);
 
+    /// <summary>
+    /// Get under the landing before hang. Run speed, or dist/remain if that's faster.
+    /// Frozen gloves stay slow and can miss.
+    /// </summary>
+    public static double CatchUpSpeedFt(double dist, double remainSec, double runSpeed, bool frozen = false)
+    {
+        if (frozen) return runSpeed;
+        return Math.Max(runSpeed, dist / Math.Max(0.25, remainSec));
+    }
+
     public static (double X, double Z) StepToward(
         double x, double z, double tx, double tz, double speed, double dt, Park? park = null)
     {
