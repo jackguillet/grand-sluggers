@@ -298,8 +298,14 @@ public static class InPlay
 
     public const double OccupyRadiusFt = 6;
 
-    /// <summary>Glove with the ball touches a runner off a bag.</summary>
-    public const double TagReachFt = 5.5;
+    /// <summary>
+    /// Glove with the ball touches a runner. Toy bodies read big from the
+    /// diamond camera — this is body contact, not a force at the bag.
+    /// </summary>
+    public const double TagReachFt = 14;
+
+    /// <summary>Standing on the bag. Tighter than Time occupy so a step off is a tag.</summary>
+    public const double TagSafeRadiusFt = 3.5;
 
     public static bool Touches(
         bool hasBall,
@@ -308,9 +314,11 @@ public static class InPlay
         double gloveZ,
         double runnerX,
         double runnerZ,
-        bool runnerOnBag)
+        bool? runnerOnBag = null)
     {
-        if (!hasBall || throwing || runnerOnBag) return false;
+        if (!hasBall || throwing) return false;
+        var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, TagSafeRadiusFt);
+        if (onBag) return false;
         return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt;
     }
 

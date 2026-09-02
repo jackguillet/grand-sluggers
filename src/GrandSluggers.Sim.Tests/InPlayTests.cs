@@ -315,14 +315,27 @@ public class InPlayTests
     public void TouchesIsATagOffTheBag()
     {
         var midPath = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
-        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z));
-        Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: false));
+        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z, InPlay.TagSafeRadiusFt));
+        Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z));
         Assert.False(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: true),
             "on a bag they are safe");
-        Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z, false), "no ball");
-        Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z, false), "throwing");
-        Assert.False(InPlay.Touches(true, false, 0, 0, Diamond.First.X, Diamond.First.Z, false), "too far");
-        Assert.True(InPlay.TagReachFt < InPlay.OccupyRadiusFt, "occupy beats the tag reach");
+        Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z), "no ball");
+        Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z), "throwing");
+        var first = Diamond.First;
+        Assert.True(InPlay.OccupyingBag(first.X, first.Z, InPlay.TagSafeRadiusFt));
+        Assert.False(InPlay.Touches(true, false, first.X, first.Z, first.X, first.Z),
+            "standing on first is not a tag");
+        var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1);
+        Assert.False(InPlay.OccupyingBag(off.X, off.Z, InPlay.TagSafeRadiusFt), "off home toward first");
+        Assert.True(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z),
+            "toy bodies overlap from the diamond camera");
+        var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1);
+        Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, InPlay.TagSafeRadiusFt),
+            "a step off first is a tag");
+        Assert.True(InPlay.Touches(true, false, stepOffFirst.X, stepOffFirst.Z, stepOffFirst.X, stepOffFirst.Z));
+        Assert.False(InPlay.Touches(true, false, 0, 0, midPath.X, midPath.Z), "too far");
+        Assert.True(InPlay.TagSafeRadiusFt < InPlay.OccupyRadiusFt);
+        Assert.True(InPlay.TagSafeRadiusFt < InPlay.TagReachFt);
     }
 
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
