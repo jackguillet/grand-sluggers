@@ -266,14 +266,15 @@ public sealed class FieldingResolver
         (21 + fielder.Stats.Run * 1.9) * (frozen ? 0.45 : 1);
 
     public static (double X, double Z) StepToward(
-        double x, double z, double tx, double tz, double speed, double dt)
+        double x, double z, double tx, double tz, double speed, double dt, Park? park = null)
     {
         var dx = tx - x;
         var dz = tz - z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist <= 0.35) return (x, z);
+        if (dist <= 0.35) return park == null ? (x, z) : FieldBounds.Clamp(park, x, z);
         var step = Math.Min(dist, speed * dt);
-        return (x + dx / dist * step, z + dz / dist * step);
+        var next = (X: x + dx / dist * step, Z: z + dz / dist * step);
+        return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
     }
 
     public static bool IsGrounder(AtBatResult hit) => hit.LaunchDeg < 14;
