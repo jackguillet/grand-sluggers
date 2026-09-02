@@ -23,11 +23,22 @@ public class BallFlightTests
     {
         var samples = BallFlight.Trajectory(95, 28, 0);
         var hang = BallFlight.HangTime(samples);
-        Assert.InRange(hang, 3.0, 6.5);
+        Assert.InRange(hang, 3.0 * BallFlight.TimeScale, 6.5 * BallFlight.TimeScale);
         Assert.True(BallFlight.RestTime(samples) >= hang);
         var p = BallFlight.PointAt(samples, 0, 0.5);
         Assert.True(p.Y > 2);
         Assert.True(p.Z > 0);
+    }
+
+    [Fact]
+    public void ArcadeTimeStretchesHangWithoutCuttingCarry()
+    {
+        Assert.True(BallFlight.TimeScale >= 1.5, $"arcade hang {BallFlight.TimeScale}");
+        var samples = BallFlight.Trajectory(95, 28, 0);
+        var hang = BallFlight.HangTime(samples);
+        var carry = BallFlight.CarryFeet(95, 28, 0);
+        Assert.True(hang > 4.5, $"fly should hang for gloves, hang {hang}");
+        Assert.InRange(carry, 300, 450);
     }
 
     [Fact]
@@ -48,7 +59,7 @@ public class BallFlightTests
         var lineHang = BallFlight.HangTime(line);
         var flyHang = BallFlight.HangTime(fly);
         Assert.True(lineHang < flyHang, $"line hang {lineHang} vs fly {flyHang}");
-        Assert.True(lineHang < 2.6, $"line should get on you, hang {lineHang}");
+        Assert.True(lineHang < 2.6 * BallFlight.TimeScale, $"line should get on you, hang {lineHang}");
         Assert.True(BallFlight.RestTime(line) > lineHang + 0.15, "line skips after first grass");
         Assert.True(line[^1].Dist > BallFlight.FirstLandingDist(line) + 8, "skip carries past first grass");
     }
