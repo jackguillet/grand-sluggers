@@ -52,6 +52,19 @@ public static class FieldAssist
     public static (double U, double V) BagPip(int bag) => Baserunning.DiamondPip(bag);
 
     /// <summary>
+    /// Who Select / R would take. Stick points at them; dead stick is the next-nearest
+    /// to the landing (fly) or the ball (dirt). Not while you hold the ball.
+    /// </summary>
+    public static string SwitchHint(
+        string current,
+        IReadOnlyDictionary<string, (double X, double Z)> at,
+        double aimX,
+        double aimZ,
+        double stickX,
+        double stickY) =>
+        SwapGlove(current, at, aimX, aimZ, stickX, stickY);
+
+    /// <summary>
     /// Select / R: stick points at who you want; dead stick takes the next-nearest to the ball.
     /// Not Diamond.Order.
     /// </summary>

@@ -24,6 +24,7 @@ namespace GrandSluggers.UnityClient
         float _lift;
         bool _grow;
         bool _lit;
+        bool _hint;
         bool _heldBat;
         bool _heldGlove;
         bool _batsLeft;
@@ -99,6 +100,8 @@ namespace GrandSluggers.UnityClient
 
         public void SetHighlight(bool on) => _lit = on;
 
+        public void SetHint(bool on) => _hint = on;
+
         public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
 
         /// <summary>Still-gate: apply the pose in one step. Live play keeps the slerp.</summary>
@@ -148,7 +151,7 @@ namespace GrandSluggers.UnityClient
             _poseT += dt;
             if (_root != null)
             {
-                var g = (_grow ? 1.45f : 1f) * (_lit ? 1.18f : 1f);
+                var g = (_grow ? 1.45f : 1f) * (_lit ? 1.18f : _hint ? 1.12f : 1f);
                 var bounce = 0f;
                 if (_pose == Pose.Idle || _pose == Pose.Field)
                     bounce = 0.07f * Mathf.Abs(Mathf.Sin(_t * 5.4f));
