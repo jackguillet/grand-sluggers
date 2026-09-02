@@ -103,16 +103,16 @@ public class FlyCatchTests
         var pre = Wall(rio);
         var hang = 3.2;
         Assert.Equal(PlayCamera.Beat.Homer, FlyCatch.LiveBeat(hr, pre, 0.2, hang, false));
-        Assert.Equal(PlayCamera.InPlay, FlyCatch.LiveShot(hr, pre, 0.2, hang, false));
+        Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(hr, pre, 0.2, hang, false));
         Assert.Equal(PlayCamera.Beat.Wall, FlyCatch.LiveBeat(hr, pre, hang - 0.4, hang, false));
-        Assert.Equal(PlayCamera.InPlay, FlyCatch.LiveShot(hr, pre, hang - 0.4, hang, false));
+        Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(hr, pre, hang - 0.4, hang, false));
         Assert.Equal(
             FlyCatch.LiveShot(hr, pre, hang - 0.4, hang, false, seats: 1),
             FlyCatch.LiveShot(hr, pre, hang - 0.4, hang, false, seats: 2));
         var pop = Pop();
         var routine = Routine(rio);
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, hang - 0.4, hang, false));
-        Assert.Equal("diamond", FlyCatch.LiveShot(pop, routine, hang - 0.4, hang, false));
+        Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, 0.1, hang, false));
         var smash = hr with { StarSwingUsed = "heat-swing" };
         Assert.Equal(PlayCamera.Beat.Smash, PlayCamera.BeatFrom(smash));
@@ -135,7 +135,7 @@ public class FlyCatchTests
         var one = PlayCamera.Shot(PlayCamera.Beat.Wall, seats: 1);
         var two = PlayCamera.Shot(PlayCamera.Beat.Wall, seats: 2);
         Assert.Equal(one, two);
-        Assert.Equal(PlayCamera.InPlay, one);
+        Assert.Equal(PlayCamera.InPlayFly, one);
     }
 
     [Fact]

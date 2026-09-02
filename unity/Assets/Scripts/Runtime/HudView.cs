@@ -218,6 +218,15 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(48, Screen.height - 116, 256, 28), label, _gold);
         }
 
+        public static void SwitchTell(string current, string hint, string hintName, bool hasBall)
+        {
+            var label = BroadcastHud.SwitchTell(current, hint, hintName, hasBall);
+            if (string.IsNullOrEmpty(label)) return;
+            Ensure();
+            GUI.DrawTexture(new Rect(36, Screen.height - 160, 280, 36), _panel);
+            GUI.Label(new Rect(48, Screen.height - 156, 256, 28), label, _gold);
+        }
+
         public static void ItemPointer(string targetName)
         {
             var label = BroadcastHud.ItemPointer(true, targetName);

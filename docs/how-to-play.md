@@ -136,18 +136,18 @@ In-play HUD (the booklet screen): **YOU** names the glove you have (gone when th
 
 Nearest glove **lights**. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first) and **still can catch** if they are under the ring. Then they chase the hop once it is down. They do **not** throw for you. Gloves stay **inside the wall** — each park's fence is the boundary. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
-On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
+On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. A **fly pulls back** (same angle, more grass). It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
-- **Stick / WASD** — take the glove and run it (dead stick = CPU). **Hold East / G** to dash.
+- **Stick / WASD** — take the glove and run it (dead stick = CPU). After the catch, stick still **runs with the ball**. **Hold East / G** to dash.
+- **Select / R** — swap to the pulsing glove (stick points at who you want; dead stick is next-nearest to the landing / ball). HUD **R → CF**. Not while you hold the ball.
 - **South / Space** — catch (in the window) when you have the glove; after the catch, throw. On a fly, South still scoops if you are under it.
 - **East tap / G** — dive
 - **West / F** — jump in the window / buddy jump. A would-be homer is a wall play: West (or two bodies, West) in the window robs. South does not. Super Jump / Grow / Clamber add window, not a skip. Miss = the ball drops (or a homer). Dead stick: CPU still can catch.
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)
 - **North / B / middle click** — **attack**. Kick the ball to a nearby glove (chem partner lasers; anyone close takes a short toss). Smash a flying error item before it lands.
-- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). Stick / arrows after the catch. A mini-diamond pip lights the armed bag. **South** throws. Hopper with no bag throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove; the throw waits for South. WASD while chasing does not throw. They do not gun to first on a dead stick when you are on defense. CPU defense (you are batting) still throws.
+- **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). A mini-diamond pip lights the armed bag. **South** throws. Hopper with no bag throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove; the throw waits for South. Stick after the catch **runs**, it does not throw. They do not gun to first on a dead stick when you are on defense. CPU defense (you are batting) still throws.
 - **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. You throw both — one South on the hopper is not two outs. Dead stick does not turn two for you when you are on defense.
 - After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove. A steal gun is the same throw from the catcher, without a hop.
-- **Select / R** — swap. Stick points at who you want; dead stick is the next-nearest to the ball.
 - **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
 
 Good throws are gold/purple and fast. Bad throws are muddy and offline.

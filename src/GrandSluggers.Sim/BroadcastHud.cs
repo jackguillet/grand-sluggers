@@ -218,6 +218,15 @@ public static class BroadcastHud
             : "YOU  " + pos + "  ·  " + name;
     }
 
+    /// <summary>Smart switch tell. Empty when the hint is you, or you have the ball.</summary>
+    public static string SwitchTell(string current, string hint, string? hintName, bool hasBall)
+    {
+        if (hasBall || string.IsNullOrWhiteSpace(hint) || hint == current) return "";
+        return string.IsNullOrWhiteSpace(hintName)
+            ? "R  →  " + hint
+            : "R  →  " + hint + "  ·  " + hintName;
+    }
+
     public static string ItemPointer(bool offered, string? targetName) =>
         offered && !string.IsNullOrWhiteSpace(targetName)
             ? "ITEM  →  " + targetName
