@@ -311,6 +311,20 @@ public class InPlayTests
         Assert.Equal(0, InPlay.TickOccupy(false, 1.5, 0.1).Sec);
     }
 
+    [Fact]
+    public void TouchesIsATagOffTheBag()
+    {
+        var midPath = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
+        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z));
+        Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: false));
+        Assert.False(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: true),
+            "on a bag they are safe");
+        Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z, false), "no ball");
+        Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z, false), "throwing");
+        Assert.False(InPlay.Touches(true, false, 0, 0, Diamond.First.X, Diamond.First.Z, false), "too far");
+        Assert.True(InPlay.TagReachFt < InPlay.OccupyRadiusFt, "occupy beats the tag reach");
+    }
+
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
         new(q, true, false, exit, launch, carry, false, false, null, null);
 }

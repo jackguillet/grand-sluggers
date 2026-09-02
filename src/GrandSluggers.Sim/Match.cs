@@ -199,7 +199,7 @@ public sealed class Match
     string _liveCaption = "";
     int _liveThrows;
     /// <summary>
-    /// Exhibition opens this on contact. Outs record on a catch or when a throw lands.
+    /// Exhibition opens this on contact. Outs record on a catch, a throw, or a tag.
     /// Headless Match.Play leaves it closed and FinishInPlay batches CPU throws.
     /// </summary>
     public bool LivePlay => _liveOpen;
@@ -207,6 +207,7 @@ public sealed class Match
     public bool LiveTurnedTwo => _liveTurnedTwo;
     public bool LiveBatterOut => _liveBatterOut;
     public int LiveThrows => _liveThrows;
+    public string LiveCaption => _liveCaption;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
     public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
@@ -403,6 +404,35 @@ public sealed class Match
         return step;
     }
 
+    /// <summary>
+    /// Live tag. <paramref name="fromBag"/> 0 is the batter; 1–3 is the runner
+    /// who started on that bag. No-op if they are already out.
+    /// </summary>
+    public bool StepTag(int fromBag, Character? fielder = null)
+    {
+        OpenLivePlay();
+        if (Outs >= 3) return false;
+        var glove = fielder?.Name ?? Pitcher.Name;
+        if (fromBag <= 0)
+        {
+            if (_liveBatterOut) return false;
+            _liveBatterOut = true;
+            _liveCaption = $"{glove} tags {Batter.Name}.";
+            Outs++;
+            AddMvp(fielder?.Id ?? Pitcher.Id, 2);
+            AddStars(defense: true, 0.4);
+            return true;
+        }
+        var who = RunnerAt(fromBag)?.Who;
+        if (who is null) return false;
+        SetBag(fromBag, null);
+        _liveCaption = $"{glove} tags {who.Name}.";
+        Outs++;
+        AddMvp(fielder?.Id ?? Pitcher.Id, 2);
+        AddStars(defense: true, 0.4);
+        return true;
+    }
+
     void ApplyThrowStep(InPlay.GroundThrowStep step, Character? fielder)
     {
         _liveThrows++;
@@ -437,10 +467,7 @@ public sealed class Match
     string? CloseLiveGround(FieldingResult field, ref int runs, ref IReadOnlyList<string> scorers)
     {
         if (!_liveForce && !_liveTurnedTwo)
-        {
-            ClearLivePlay();
             return null;
-        }
 
         string caption;
         if (_liveTurnedTwo)
@@ -861,10 +888,13 @@ public sealed class Match
                 (runs, scorers) = AdvanceHit(Batter, 1);
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, 0.4);
-                caption = field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
+                caption = !string.IsNullOrEmpty(_liveCaption)
+                    ? $"{_liveCaption} {Batter.Name} in at first."
+                    : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
                     : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
                     : $"{Batter.Name} singles.";
                 NextBatter();
+                ClearLivePlay();
                 break;
             case PlayKind.FlyOut:
             case PlayKind.GroundOut:
@@ -883,8 +913,17 @@ public sealed class Match
                         break;
                     }
                     // Live play, no throw landed. Do not caption a force.
-                    kind = PlayKind.Single;
-                    goto case PlayKind.Single;
+                    // A live tag of the batter is handled below — do not place them.
+                }
+                if (_liveBatterOut)
+                {
+                    caption = string.IsNullOrEmpty(_liveCaption)
+                        ? $"{field.Fielder?.Name} tags {Batter.Name}."
+                        : _liveCaption;
+                    NextBatter();
+                    CheckInning();
+                    ClearLivePlay();
+                    break;
                 }
                 if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
                 {
@@ -936,24 +975,17 @@ public sealed class Match
                     kind = PlayKind.Single;
                     goto case PlayKind.Single;
                 }
-                if (_liveBatterOut)
-                {
-                    caption = string.IsNullOrEmpty(_liveCaption)
-                        ? $"{field.Fielder?.Name} to first."
-                        : _liveCaption;
-                    NextBatter();
-                    CheckInning();
-                    ClearLivePlay();
-                    break;
-                }
                 if (kind == PlayKind.GroundOut && _liveOpen)
                 {
                     kind = PlayKind.Single;
                     goto case PlayKind.Single;
                 }
-                Outs++;
-                AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                AddStars(defense: true, 0.35);
+                if (Outs < 3)
+                {
+                    Outs++;
+                    AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
+                    AddStars(defense: true, 0.35);
+                }
                 if (kind == PlayKind.FlyOut && Third is not null && Outs < 3 && hit.CarryFt > 230 && tagUp)
                 {
                     var tag = Third;
@@ -1002,6 +1034,9 @@ public sealed class Match
                 _ => $"  {item}!"
             };
         }
+
+        if (!string.IsNullOrEmpty(_liveCaption) && !caption.Contains(_liveCaption))
+            caption = $"{_liveCaption} {caption}";
 
         ClearLivePlay();
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,

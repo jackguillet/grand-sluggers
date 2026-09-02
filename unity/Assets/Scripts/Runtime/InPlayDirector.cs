@@ -284,6 +284,8 @@ namespace GrandSluggers.UnityClient
             if (_caught || _buddy)
             {
                 _switchPos = "";
+                if (TickLiveTag())
+                    return;
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
                     BeginPlayerThrowOrCommit(map);
@@ -377,6 +379,8 @@ namespace GrandSluggers.UnityClient
             {
                 _playerFielding = true;
                 var owned = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                if (TickLiveTag())
+                    return;
                 ReadThrowBag(InPlay.StickNamesBag(false, true));
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
@@ -387,6 +391,8 @@ namespace GrandSluggers.UnityClient
                     CommitInPlay();
                 return;
             }
+            if ((_caught || _buddy) && !_throwing && TickLiveTag())
+                return;
             if (outPlay && grounder)
             {
                 if (StartGroundRelays()) return;
@@ -1134,6 +1140,45 @@ namespace GrandSluggers.UnityClient
             var on = InPlay.OccupyingBag(x, z);
             var o = InPlay.TickOccupy(on, sec, dt);
             sec = (float)o.Sec;
+        }
+
+        bool TickLiveTag()
+        {
+            if (_match == null || _pending == null) return false;
+            if (!(_caught || _buddy) || _throwing) return false;
+            var kind = LiveKind();
+            var glove = PlayFielder();
+            if (InPlay.LiveBatter(kind, _match.LiveBatterOut))
+            {
+                var dest = InPlay.BatterDestBag(kind);
+                var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
+                var (bx, bz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                var on = InPlay.OccupyingBag(bx, bz);
+                if (InPlay.Touches(true, false, _fx, _fz, bx, bz, on) && _match.StepTag(0, glove))
+                {
+                    _sub = _match.LiveCaption;
+                    if (_match.Outs >= 3 || PlayIsTime())
+                        CommitInPlay();
+                    return true;
+                }
+            }
+            for (var bag = 1; bag <= 3; bag++)
+            {
+                var who = _match.RunnerAt(bag)?.Who;
+                if (who is null) continue;
+                var dest = InPlay.OccupiedDestBag(bag, kind, _match.SendAll, true);
+                var feet = InPlay.RunFeet(_hitT, who);
+                var (x, z) = InPlay.TowardBag(bag, dest, feet);
+                var on = InPlay.OccupyingBag(x, z);
+                if (InPlay.Touches(true, false, _fx, _fz, x, z, on) && _match.StepTag(bag, glove))
+                {
+                    _sub = _match.LiveCaption;
+                    if (_match.Outs >= 3 || PlayIsTime())
+                        CommitInPlay();
+                    return true;
+                }
+            }
+            return false;
         }
 
         bool PlayIsTime()

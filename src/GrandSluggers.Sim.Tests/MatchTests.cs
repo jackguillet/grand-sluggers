@@ -132,6 +132,71 @@ public class MatchTests
         Assert.NotNull(match.Second);
     }
 
+    [Fact]
+    public void LiveTagOfTheBatterIsAnOut()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        match.OpenLivePlay();
+        Assert.True(match.StepTag(0, field.Fielder));
+        Assert.Equal(1, match.Outs);
+        Assert.True(match.LiveBatterOut);
+        Assert.Contains("tags", match.LiveCaption, StringComparison.OrdinalIgnoreCase);
+        Assert.False(match.StepTag(0, field.Fielder), "already out");
+        Assert.Equal(1, match.Outs);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(1, match.Outs);
+        Assert.Null(match.First);
+        Assert.Contains("tags", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("singles", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void LiveTagOfTheLeadRunnerTheBatterTakesFirst()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        var lead = match.First!;
+        match.OpenLivePlay();
+        Assert.True(match.StepTag(1, field.Fielder));
+        Assert.Equal(1, match.Outs);
+        Assert.Null(match.First);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.Single, ev.Kind);
+        Assert.Equal(1, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.NotEqual(lead.Id, match.First.Id);
+        Assert.Contains("tags", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("first", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void LiveTagOfTheBatterWithARunnerOnFirstDoesNotPlaceTheBatter()
+    {
+        var (match, paint, swing, hit, field) = LiveHopperOnFirst();
+        var lead = match.First!;
+        match.OpenLivePlay();
+        Assert.True(match.StepTag(0, field.Fielder));
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(1, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.Equal(lead.Id, match.First.Id);
+        Assert.Contains("tags", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("singles", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void StepTagWithNobodyOnThatBagIsANoOp()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        match.OpenLivePlay();
+        Assert.False(match.StepTag(2, match.Pitcher));
+        Assert.Equal(0, match.Outs);
+    }
+
     (Match Match, PitchCommand Pitch, SwingCommand Swing, AtBatResult Hit, FieldingResult Field) LiveHopperOnFirst()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);

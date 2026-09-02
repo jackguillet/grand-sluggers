@@ -140,11 +140,12 @@ public static class HowToPlay
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 / Z    steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
             "Close play: first South / left click wins. Fly: hold, then tag up.",
+            "Have the ball and touch a runner off a bag. That's a tag.",
         ]),
         new("fielding", "Fielding", "fielding",
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
-            "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch or the throw — they do not guess a force.",
+            "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch, the throw, or a tag — they do not guess a force.",
             "Move the stick to take the glove. Select / R swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East    dive. North    attack. A homer sits on the wall.",
