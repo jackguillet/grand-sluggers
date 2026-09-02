@@ -123,7 +123,8 @@ public static class HowToPlay
             "Charge ring sits on the dirt. Commit at MAX. Late charge is weaker.",
             "One pad: you pitch over the pitcher's shoulder looking at the box. You hit from behind home looking at the pitcher. The throw does not cut.",
             "Two pads: SET stays on the plate, behind home.",
-            "West / V    changeup. North + South    star. Stick L/R at contact    scatter.",
+            "West / V    changeup. North + South    star. Stick L/R at contact    spray.",
+            "A ball past the foul line is a foul. Strike unless you already have two.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
         [

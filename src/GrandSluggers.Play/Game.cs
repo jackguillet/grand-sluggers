@@ -338,7 +338,7 @@ public sealed class Game : IDisposable
             {
                 _playerSwung = true;
                 var frames = (_flightAge - _pitchDur) * 60;
-                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, batter.Spray * 18);
+                _swing = new SwingCommand(true, _charge, frames, _starArmed && _match.CanStarSwing, AtBatResolver.SprayAimDeg(batter.Spray));
             }
         }
 
