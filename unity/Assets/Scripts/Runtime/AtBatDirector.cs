@@ -290,7 +290,7 @@ namespace GrandSluggers.UnityClient
                     var nice = ChargeFeel.NiceCopy(false, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
                     if (!string.IsNullOrEmpty(nice)) _banner = nice;
                     _swing = new SwingCommand(true, EffectiveCharge(_charge, _chargePast), (_flight - _pitchDur) * 60f,
-                        _starSwing && _match.CanStarSwing, box.StickX * 18f, box.WestHeld, box.StickY,
+                        _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), box.WestHeld, box.StickY,
                         _match.BatterOffsetX);
                 }
             }
