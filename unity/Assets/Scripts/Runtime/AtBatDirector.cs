@@ -403,6 +403,7 @@ namespace GrandSluggers.UnityClient
             _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _phase = Phase.InPlay;
             _t = 0;
+            _match.OpenLivePlay();
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
             _gloved = false;

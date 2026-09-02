@@ -198,7 +198,10 @@ public sealed class Match
     bool _liveBatterOut;
     string _liveCaption = "";
     int _liveThrows;
-    /// <summary>Player has the glove: outs record as throws land. CPU FinishAtBat still turns two in one call.</summary>
+    /// <summary>
+    /// Exhibition opens this on contact. Outs record on a catch or when a throw lands.
+    /// Headless Match.Play leaves it closed and FinishInPlay batches CPU throws.
+    /// </summary>
     public bool LivePlay => _liveOpen;
     public bool LiveForce => _liveForce;
     public bool LiveTurnedTwo => _liveTurnedTwo;
@@ -879,23 +882,17 @@ public sealed class Match
                         caption = closed;
                         break;
                     }
-                    if (InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
+                    // Live play, no throw landed. Do not caption a force.
+                    kind = PlayKind.Single;
+                    goto case PlayKind.Single;
+                }
+                if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
+                {
+                    if (_liveOpen)
                     {
                         kind = PlayKind.Single;
                         goto case PlayKind.Single;
                     }
-                    Outs++;
-                    AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                    AddStars(defense: true, 0.35);
-                    caption = field.Throw is { SpeedMul: > 1.2 }
-                        ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
-                        : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
-                    NextBatter();
-                    CheckInning();
-                    break;
-                }
-                if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
-                {
                     var tagBag = InPlay.TagBag(Second is not null, Third is not null);
                     var fromBag = tagBag == 4 ? 3 : 2;
                     var runner = tagBag == 4 ? Third! : Second!;
@@ -948,6 +945,11 @@ public sealed class Match
                     CheckInning();
                     ClearLivePlay();
                     break;
+                }
+                if (kind == PlayKind.GroundOut && _liveOpen)
+                {
+                    kind = PlayKind.Single;
+                    goto case PlayKind.Single;
                 }
                 Outs++;
                 AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
