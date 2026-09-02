@@ -298,6 +298,22 @@ public static class InPlay
 
     public const double OccupyRadiusFt = 6;
 
+    /// <summary>Glove with the ball touches a runner off a bag.</summary>
+    public const double TagReachFt = 5.5;
+
+    public static bool Touches(
+        bool hasBall,
+        bool throwing,
+        double gloveX,
+        double gloveZ,
+        double runnerX,
+        double runnerZ,
+        bool runnerOnBag)
+    {
+        if (!hasBall || throwing || runnerOnBag) return false;
+        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt;
+    }
+
     public static bool OccupyingBag(double x, double z, double radius = OccupyRadiusFt)
     {
         if (Diamond.Dist(x, z, 0, 0) <= radius) return true;
