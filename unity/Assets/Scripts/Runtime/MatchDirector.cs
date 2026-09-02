@@ -162,6 +162,7 @@ namespace GrandSluggers.UnityClient
             : _match != null && LiveSeats.HumanBats(_match.Top);
         bool PlayerMustField => TrainingOn && _coach.PlayerFields;
         bool PlayerFields => _playerFielding || PlayerMustField;
+        bool HumanOwnsThrow => FieldAssist.HumanOwnsThrow(PlayerMustField || Versus || HumanPitches);
         Controls.Pad PitchPad => HumanPitches && _match != null
             ? Controls.Of(LiveSeats.Pitching(_match.Top))
             : Controls.Pad1;

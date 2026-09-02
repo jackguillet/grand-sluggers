@@ -10,6 +10,12 @@ public static class FieldAssist
 
     public static bool PlayerStartsOnGlove(bool trainingRequiresPlayer) => trainingRequiresPlayer;
 
+    /// <summary>
+    /// Human is on defense: they throw. CPU may still run and catch on a dead stick.
+    /// They do not gun to first for you.
+    /// </summary>
+    public static bool HumanOwnsThrow(bool humanDefense) => humanDefense;
+
     public static bool StickTakesGlove(double stickX, double stickY, double threshold, bool swapPressed)
         => swapPressed || Math.Abs(stickX) + Math.Abs(stickY) >= threshold;
 
