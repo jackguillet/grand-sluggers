@@ -160,23 +160,24 @@ public class FeelInfraTests
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
         Assert.InRange(fly.Pos.X, -2, 2);
-        Assert.True(fly.Pos.Z < 0, $"in-play is behind home z={fly.Pos.Z}");
-        Assert.True(fly.Pos.Y >= 36, $"in-play is high looking down y={fly.Pos.Y}");
-        Assert.True(fly.Target.Z > fly.Pos.Z + 80, "in-play looks toward CF");
-        Assert.InRange(fly.Target.X, -4, 4);
-        var homeVp = PlayCamera.Project(fly, new Vec3(0, 0.2, 0));
-        var moundVp = PlayCamera.Project(fly, new Vec3(0, 0.4, Diamond.Mound));
-        var firstVp = PlayCamera.Project(fly, new Vec3(Diamond.First.X, 0.4, Diamond.First.Z));
-        var thirdVp = PlayCamera.Project(fly, new Vec3(Diamond.Third.X, 0.4, Diamond.Third.Z));
-        var secondVp = PlayCamera.Project(fly, new Vec3(Diamond.Second.X, 0.4, Diamond.Second.Z));
-        var cfVp = PlayCamera.Project(fly, new Vec3(0, 1.6, 250));
-        Assert.True(PlayCamera.InFrame(homeVp, 0.02), $"home off in-play {homeVp}");
-        Assert.True(PlayCamera.InFrame(moundVp, 0.02), $"mound off in-play {moundVp}");
-        Assert.True(PlayCamera.InFrame(firstVp, 0.02), $"first off in-play {firstVp}");
-        Assert.True(PlayCamera.InFrame(thirdVp, 0.02), $"third off in-play {thirdVp}");
-        Assert.True(PlayCamera.InFrame(secondVp, 0.02), $"second off in-play {secondVp}");
-        Assert.True(homeVp is { } h && cfVp is { } cfLook && cfLook.Y > h.Y,
-            $"CF should sit above home in the frame homeY={homeVp?.Y} cfY={cfVp?.Y}");
+        Assert.InRange(fly.Target.X, -1, 1);
+        Assert.InRange(fly.Target.Y, -0.5, 1);
+        Assert.InRange(fly.Target.Z, -1, 1);
+        Assert.True(fly.Pos.Z < 0, $"in-play offset looks toward CF z={fly.Pos.Z}");
+        Assert.True(fly.Pos.Y >= 70, $"in-play is top-down y={fly.Pos.Y}");
+        Assert.True(fly.Pos.Y > 4 * Math.Abs(fly.Pos.Z),
+            $"in-play should be steeper than a 3/4 y={fly.Pos.Y} z={fly.Pos.Z}");
+        var air = new Vec3(Diamond.First.X, 18, Diamond.First.Z);
+        var framed = PlayCamera.FollowGround(fly, air);
+        Assert.Equal(0, framed.Look.Y);
+        Assert.InRange(framed.Look.X, Diamond.First.X - 0.2, Diamond.First.X + 0.2);
+        Assert.InRange(framed.Look.Z, Diamond.First.Z - 0.2, Diamond.First.Z + 0.2);
+        Assert.True(framed.Pos.Y >= 70, $"follow stays top-down y={framed.Pos.Y}");
+        Assert.True(framed.Pos.Z < framed.Look.Z, "follow keeps CF at the top");
+        var dirt = PlayCamera.Project(
+            new CameraShot(fly.Id, fly.Look, framed.Pos, framed.Look, fly.Fov, fly.Blend),
+            new Vec3(Diamond.First.X, 0, Diamond.First.Z));
+        Assert.True(PlayCamera.InFrame(dirt, 0.02), $"dirt under the ball off frame {dirt}");
         Assert.Equal("glove", wall.Look, ignoreCase: true);
         Assert.True(Math.Abs(wall.Target.X) < 4 && Math.Abs(wall.Target.Z) < 4, "wall is a follow-cam on the glove");
         Assert.Equal(PlayCamera.Wall, wall.Id);
