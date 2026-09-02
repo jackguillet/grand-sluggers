@@ -79,14 +79,16 @@ public class PlayCameraTests
     [Fact]
     public void FollowGroundLooksAtDirtNotTheAirborneBall()
     {
-        var shot = new CameraShot(PlayCamera.InPlay, "ball", new Vec3(0, 82, -12), new Vec3(0, 0, 0), 48, 8);
+        var shot = new CameraShot(PlayCamera.InPlay, "ball", new Vec3(0, 54, -54), new Vec3(0, 0, 0), 50, 8);
         var air = new Vec3(40, 22, 90);
         var framed = PlayCamera.FollowGround(shot, air);
         Assert.Equal(PlayCamera.GroundUnder(air.X, air.Y, air.Z), framed.Look);
         Assert.Equal(0, framed.Look.Y);
-        Assert.Equal(82, framed.Pos.Y);
+        Assert.Equal(54, framed.Pos.Y);
+        Assert.InRange(PlayCamera.LookDownDeg(shot), 44, 46);
         Assert.True(framed.Pos.Z < framed.Look.Z);
         Assert.Equal(air.X, framed.Look.X);
+        Assert.Equal(air.X, framed.Pos.X);
         Assert.Equal(air.Z, framed.Look.Z);
     }
 
