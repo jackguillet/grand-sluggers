@@ -47,7 +47,7 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             }
             if (_smash > 0) _smash -= dt;
-            _cam.HoldInPlay();
+            _cam.HoldInPlay(_ball);
 
             if (_ring != null && _preview != null)
             {
@@ -534,7 +534,7 @@ namespace GrandSluggers.UnityClient
 
         (double X, double Z) WallPlant(FieldingPreview pre) => FlyCatch.WallPlant(pre, _match?.Park);
 
-        void AimFlyCam() => _cam.HoldInPlay();
+        void AimFlyCam() => _cam.HoldInPlay(_ball);
 
         static string PosOf(Dictionary<string, Character> map, Character who)
         {
@@ -897,7 +897,7 @@ namespace GrandSluggers.UnityClient
                     : _armedThrow != null && _armedThrow.Relation == Chemistry.Bad ? 1.6f : 3.2f;
                 _ball = Vector3.Lerp(_throwFrom, _throwTo, u);
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
-                _cam.ThrowTo(_throwFrom, _throwTo, TagCam(_throwBag));
+                _cam.HoldInPlay(_ball);
                 if (_throwT >= _throwDur)
                     CommitStealThrow();
                 return;
@@ -983,13 +983,7 @@ namespace GrandSluggers.UnityClient
             BeginResult();
         }
 
-        void AimStealThrowCam()
-        {
-            var bag = _throwBag > 0 ? _throwBag : _match.StealTargetBag;
-            if (bag <= 0) bag = 2;
-            var from = new Vector3((float)_fx, 3.2f, (float)_fz);
-            _cam.ThrowTo(from, BagWorld(bag), TagCam(bag));
-        }
+        void AimStealThrowCam() => _cam.HoldInPlay(_ball);
 
         bool TryBeginClosePlay()
         {
