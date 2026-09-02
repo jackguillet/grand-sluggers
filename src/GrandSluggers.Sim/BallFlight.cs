@@ -4,11 +4,16 @@ namespace GrandSluggers.Sim;
 /// Toy ballistic with linear drag, then hops and a roll.
 /// Carry / hang are first grass — the play continues after that.
 /// Tuned so a 95 mph / 28° first landing is ~380 ft in still air.
+/// Time on the samples is stretched (<see cref="TimeScale"/>) so gloves can get there.
+/// Carry does not change.
 /// </summary>
 public static class BallFlight
 {
     public const double Gravity = 32.174;
     public const double Drag = 0.0019;
+
+    /// <summary>Arcade hang. Distances stay; the clock is slower than the ballistic.</summary>
+    public const double TimeScale = 1.65;
     public const double PlateHeightFt = 2.5;
     public const double BounceRestitution = 0.48;
     public const double BounceHoriz = 0.82;
@@ -44,12 +49,12 @@ public static class BallFlight
                 if (Math.Abs(vx) <= decel)
                 {
                     vx = 0;
-                    list.Add(new Sample((i + 1) * dt, x, 0));
+                    list.Add(new Sample((i + 1) * dt * TimeScale, x, 0));
                     break;
                 }
                 vx -= Math.Sign(vx) * decel;
                 x += vx * dt;
-                list.Add(new Sample((i + 1) * dt, x, 0));
+                list.Add(new Sample((i + 1) * dt * TimeScale, x, 0));
                 if (Math.Abs(vx) < RestSpeed)
                     break;
                 continue;
@@ -59,7 +64,7 @@ public static class BallFlight
             vy -= (Gravity + Drag * speed * vy) * dt;
             x += vx * dt;
             y += vy * dt;
-            var t = (i + 1) * dt;
+            var t = (i + 1) * dt * TimeScale;
             if (i > 8 && y <= 0)
             {
                 y = 0;
