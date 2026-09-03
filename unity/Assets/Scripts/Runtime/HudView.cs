@@ -190,6 +190,8 @@ namespace GrandSluggers.UnityClient
                 DrawHardware(scheme);
             else if (p.Id == "roles")
                 DrawRoleTables(scheme);
+            else if (p.Id == "pitch-swing")
+                DrawHowToComics(scheme, p);
             else
             {
                 var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
@@ -304,6 +306,78 @@ namespace GrandSluggers.UnityClient
 
         static Rect Map((float X, float Y, float W, float H) board, float u, float v, float w, float h) =>
             new(board.X + u * board.W, board.Y + v * board.H, w * board.W, h * board.H);
+
+        static void DrawHowToComics(InputScheme scheme, HowToPlay.Page page)
+        {
+            var strips = HowToComic.OnPitchSwingPage;
+            for (var i = 0; i < strips.Count; i++)
+            {
+                var strip = strips[i];
+                var row = HowToComic.Row(i, Screen.width, Screen.height);
+                var r = new Rect(row.X, row.Y, row.W, row.H);
+                GUI.DrawTexture(r, _dotOff);
+                GUI.Label(new Rect(r.x + 10, r.y + 4, r.width - 20, 24), strip.Title.ToUpperInvariant(), _gold);
+                var innerY = r.y + 30;
+                var innerH = r.height - 58;
+                var stillW = r.width * 0.28f;
+                var gap = 10f;
+                DrawComicStill(new Rect(r.x + 10, innerY, stillW, innerH), strip.First);
+                DrawArrow(r.x + 12 + stillW, innerY + innerH * 0.45f);
+                DrawComicStill(new Rect(r.x + 34 + stillW, innerY, stillW, innerH), strip.Second);
+                var motionX = r.x + 48 + stillW * 2;
+                var motionW = r.x + r.width - 10 - motionX;
+                DrawComicMotion(new Rect(motionX, innerY, motionW, innerH), HowToComic.MotionOf(strip, scheme));
+                GUI.Label(new Rect(r.x + 10, r.y + r.height - 26, r.width - 20, 22),
+                    HowToComic.Caption(strip, scheme), _bookLine);
+            }
+            var band = HowToComic.LineBand(Screen.width, Screen.height);
+            var lines = page.Shown(scheme);
+            var lineH = HowToPlay.KidLineH * 0.72f;
+            for (var i = 0; i < lines.Count; i++)
+                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+        }
+
+        static void DrawComicStill(Rect r, HowToComic.Panel panel)
+        {
+            var tex = BookPic(panel.Picture);
+            GUI.DrawTexture(r, _panel);
+            if (tex != null)
+                GUI.DrawTexture(new Rect(r.x + 4, r.y + 4, r.width - 8, r.height - 28), tex, ScaleMode.ScaleToFit);
+            else
+            {
+                var prev = GUI.color;
+                GUI.color = new Color(0.45f, 0.32f, 0.18f, 1f);
+                GUI.DrawTexture(new Rect(r.x + 8, r.y + r.height * 0.55f, r.width - 16, r.height * 0.28f), _white);
+                GUI.color = new Color(1f, 0.82f, 0.2f, 1f);
+                var ring = Mathf.Min(r.width, r.height) * 0.28f;
+                GUI.DrawTexture(new Rect(r.x + r.width * 0.5f - ring * 0.5f, r.y + r.height * 0.28f, ring, ring), _dotOn);
+                GUI.color = prev;
+                GUI.Label(new Rect(r.x + 8, r.y + 8, r.width - 16, 22), panel.Shot.ToUpperInvariant(), _tiny);
+            }
+            GUI.Label(new Rect(r.x + 6, r.y + r.height - 24, r.width - 12, 20), panel.Label, _tiny);
+        }
+
+        static void DrawArrow(float x, float y)
+        {
+            GUI.Label(new Rect(x, y, 22, 22), "→", _gold);
+        }
+
+        static void DrawComicMotion(Rect r, HowToComic.Motion motion)
+        {
+            GUI.Label(new Rect(r.x, r.y + 4, r.width, 20), "MOTION", _tiny);
+            var chipH = 36f;
+            var chipW = r.width * 0.42f;
+            var y = r.y + r.height * 0.35f;
+            DrawMotionChip(new Rect(r.x, y, chipW, chipH), motion.Charge);
+            DrawArrow(r.x + chipW + 2, y + 6);
+            DrawMotionChip(new Rect(r.x + r.width - chipW, y, chipW, chipH), motion.Commit);
+        }
+
+        static void DrawMotionChip(Rect r, string label)
+        {
+            GUI.DrawTexture(r, _ink);
+            GUI.Label(new Rect(r.x + 6, r.y + 8, r.width - 12, r.height - 10), label, _tiny);
+        }
 
         static void DrawRoleTables(InputScheme scheme)
         {
