@@ -188,6 +188,8 @@ namespace GrandSluggers.UnityClient
             DrawSchemeToggle(scheme);
             if (p.Id == "controls")
                 DrawHardware(scheme);
+            else if (p.Id == "roles")
+                DrawRoleTables(scheme);
             else
             {
                 var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
@@ -302,6 +304,31 @@ namespace GrandSluggers.UnityClient
 
         static Rect Map((float X, float Y, float W, float H) board, float u, float v, float w, float h) =>
             new(board.X + u * board.W, board.Y + v * board.H, w * board.W, h * board.H);
+
+        static void DrawRoleTables(InputScheme scheme)
+        {
+            var blocks = RoleTables.Of(scheme);
+            for (var i = 0; i < blocks.Count; i++)
+            {
+                var cell = RoleTables.Cell(i, Screen.width, Screen.height);
+                var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
+                GUI.DrawTexture(r, _dotOff);
+                var head = new Rect(r.x, r.y, r.width, 28);
+                var prev = GUI.color;
+                GUI.color = new Color(0.22f, 0.62f, 0.32f, 1f);
+                GUI.DrawTexture(head, _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(head.x + 10, head.y + 2, head.width - 16, 24), blocks[i].Title, _h1);
+                var rows = blocks[i].Rows;
+                var rowH = Mathf.Max(22f, (r.height - 36) / Mathf.Max(1, rows.Count));
+                for (var n = 0; n < rows.Count; n++)
+                {
+                    var y = r.y + 32 + n * rowH;
+                    GUI.Label(new Rect(r.x + 10, y, r.width * 0.42f, rowH), rows[n].Verb, _gold);
+                    GUI.Label(new Rect(r.x + r.width * 0.44f, y, r.width * 0.54f, rowH), rows[n].Press, _tiny);
+                }
+            }
+        }
 
         static readonly System.Collections.Generic.Dictionary<string, Texture2D> _bookPics = new();
 
