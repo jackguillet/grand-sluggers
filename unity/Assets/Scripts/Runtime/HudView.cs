@@ -179,24 +179,129 @@ namespace GrandSluggers.UnityClient
         {
             var n = HowToPlay.Pages.Count;
             var p = HowToPlay.Pages[(page % n + n) % n];
+            var scheme = BookScheme.Current;
             var book = HowToPlay.BookPanel(Screen.width, Screen.height);
-            var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
-            var text = HowToPlay.TextRect(Screen.width, Screen.height);
             GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _panel);
             GUI.Label(new Rect(book.X + 28, book.Y + 10, 280, 28), "HOW TO PLAY", _gold);
-            GUI.Label(new Rect(book.X + 28, book.Y + 38, book.W - 56, 44),
+            GUI.Label(new Rect(book.X + 28, book.Y + 38, book.W - 380, 44),
                 p.Title.ToUpperInvariant() + "   " + (page + 1) + " / " + n, _bookHead);
-            var tex = BookPic(p.Picture);
-            if (tex != null)
-                GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), tex, ScaleMode.ScaleToFit);
+            DrawSchemeToggle(scheme);
+            if (p.Id == "controls")
+                DrawHardware(scheme);
             else
-                GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), _dotOff);
-            var lineH = HowToPlay.KidLineH;
-            for (var i = 0; i < p.Lines.Count; i++)
-                GUI.Label(new Rect(text.X, text.Y + i * lineH, text.W, lineH + 8f), p.Lines[i], _bookLine);
+            {
+                var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
+                var text = HowToPlay.TextRect(Screen.width, Screen.height);
+                var tex = BookPic(p.Picture);
+                if (tex != null)
+                    GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), tex, ScaleMode.ScaleToFit);
+                else
+                    GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), _dotOff);
+                var lines = p.Shown(scheme);
+                var lineH = HowToPlay.KidLineH;
+                for (var i = 0; i < lines.Count; i++)
+                    GUI.Label(new Rect(text.X, text.Y + i * lineH, text.W, lineH + 8f), lines[i], _bookLine);
+            }
             GUI.Label(new Rect(book.X + 28, book.Y + book.H - 36, book.W - 56, 28),
-                "South / left click next     wheel     East / right click / Esc back", _tiny);
+                BookScheme.Footer(scheme), _tiny);
         }
+
+        static void DrawSchemeToggle(InputScheme scheme)
+        {
+            DrawTab(InputScheme.Pad, scheme);
+            DrawTab(InputScheme.Keys, scheme);
+        }
+
+        static void DrawTab(InputScheme kind, InputScheme current)
+        {
+            var t = BookScheme.Tab(kind, Screen.width, Screen.height);
+            var r = new Rect(t.X, t.Y, t.W, t.H);
+            var on = kind == current;
+            GUI.DrawTexture(r, on ? _ink : _dotOff);
+            GUI.Label(new Rect(r.x + 8, r.y + 6, r.width - 12, r.height - 8), BookScheme.Label(kind), on ? _h1 : _tiny);
+        }
+
+        static void DrawHardware(InputScheme scheme)
+        {
+            var b = ControlDiagram.Board(Screen.width, Screen.height);
+            var prev = GUI.color;
+            GUI.color = new Color(0.22f, 0.78f, 0.38f, 1f);
+            GUI.DrawTexture(new Rect(b.X, b.Y + 4, 16, 16), _dotOn);
+            GUI.color = prev;
+            GUI.Label(new Rect(b.X + 22, b.Y, 120, 22), BookScheme.OffenseLabel, _tiny);
+            GUI.color = new Color(0.92f, 0.28f, 0.22f, 1f);
+            GUI.DrawTexture(new Rect(b.X + 150, b.Y + 4, 16, 16), _dotOn);
+            GUI.color = prev;
+            GUI.Label(new Rect(b.X + 172, b.Y, 140, 22), BookScheme.DefenseLabel, _tiny);
+
+            foreach (var part in ControlDiagram.Parts(scheme))
+            {
+                var r = Map(b, part.U, part.V, part.W, part.H);
+                GUI.color = part.Id is "body" or "mouse" or "space" or "shift"
+                    ? new Color(0.18f, 0.20f, 0.24f, 0.95f)
+                    : new Color(0.82f, 0.84f, 0.88f, 1f);
+                GUI.DrawTexture(r, _white);
+                GUI.color = prev;
+                if (part.Id is "south" or "east" or "west" or "north" or "wasd-w" or "wasd-a" or "wasd-s" or "wasd-d"
+                    or "n1" or "n2" or "n3" or "n4" or "lt" or "stick" or "dpad" or "start" or "select")
+                {
+                    var tag = part.Id switch
+                    {
+                        "south" => "S",
+                        "east" => "E",
+                        "west" => "W",
+                        "north" => "N",
+                        "wasd-w" => "W",
+                        "wasd-a" => "A",
+                        "wasd-s" => "S",
+                        "wasd-d" => "D",
+                        "n1" => "1",
+                        "n2" => "2",
+                        "n3" => "3",
+                        "n4" => "4",
+                        "lt" => "LT",
+                        "stick" => "",
+                        "dpad" => "+",
+                        "start" => "▶",
+                        "select" => "≡",
+                        _ => ""
+                    };
+                    if (tag.Length > 0)
+                        GUI.Label(r, tag, _tiny);
+                }
+            }
+
+            foreach (var c in ControlDiagram.Callouts(scheme))
+            {
+                var r = new Rect(b.X + c.U * b.W, b.Y + c.V * b.H, b.W * 0.27f, 58f);
+                GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.92f);
+                GUI.DrawTexture(r, _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(r.x + 8, r.y + 2, r.width - 12, 18), c.Hardware, _gold);
+                var y = r.y + 20;
+                if (c.Always.Length > 0)
+                {
+                    GUI.Label(new Rect(r.x + 8, y, r.width - 12, 16), c.Always, _tiny);
+                    y += 16;
+                }
+                if (c.Offense.Length > 0)
+                {
+                    GUI.color = new Color(0.45f, 0.95f, 0.55f, 1f);
+                    GUI.Label(new Rect(r.x + 8, y, r.width - 12, 16), c.Offense, _tiny);
+                    GUI.color = prev;
+                    y += 16;
+                }
+                if (c.Defense.Length > 0)
+                {
+                    GUI.color = new Color(1f, 0.45f, 0.38f, 1f);
+                    GUI.Label(new Rect(r.x + 8, y, r.width - 12, 16), c.Defense, _tiny);
+                    GUI.color = prev;
+                }
+            }
+        }
+
+        static Rect Map((float X, float Y, float W, float H) board, float u, float v, float w, float h) =>
+            new(board.X + u * board.W, board.Y + v * board.H, w * board.W, h * board.H);
 
         static readonly System.Collections.Generic.Dictionary<string, Texture2D> _bookPics = new();
 

@@ -92,7 +92,16 @@ public static class PauseMenu
 
 public static class HowToPlay
 {
-    public sealed record Page(string Id, string Title, string Picture, IReadOnlyList<string> Lines);
+    public sealed record Page(
+        string Id,
+        string Title,
+        string Picture,
+        IReadOnlyList<string> Lines,
+        IReadOnlyList<string>? KeyLines = null)
+    {
+        public IReadOnlyList<string> Shown(InputScheme scheme) =>
+            scheme == InputScheme.Keys && KeyLines is { Count: > 0 } ? KeyLines : Lines;
+    }
 
     /// <summary>Couch book. Fills most of a 1280×800 player. 12-year-old type.</summary>
     public const float BookMargin = 0.04f;
@@ -103,19 +112,33 @@ public static class HowToPlay
     [
         new("contents", "Contents", "contents",
         [
-            "This is the instruction booklet. Call time (H) or Esc opens it.",
+            "This is the instruction booklet. Call time (Start) opens it. Esc too.",
             "Pictures first. Short sentences. You can read it from the couch.",
-            "South / Space / left click    next page. East / Esc    back.",
-            "Pad, keyboard, and mouse all work. Keyboard and mouse are player 1 only.",
+            "South next page. East back. Toggle Pad or Keyboard + mouse up top.",
+            "Keyboard + mouse is player 1 only.",
+            "Exhibition is the game. Training is practice.",
+        ],
+        [
+            "This is the instruction booklet. H or Esc opens it.",
+            "Pictures first. Short sentences. You can read it from the couch.",
+            "Left click / Space next page. Esc / right click back. Toggle up top.",
+            "Keyboard + mouse is player 1 only.",
             "Exhibition is the game. Training is practice.",
         ]),
-        new("controls", "Controls", "exhibition",
+        new("controls", "Controls", "controls",
         [
-            "South / Space / Left click    pitch, swing, catch, throw.",
-            "Hold LT / Shift / right click    charge. Rings gold at MAX.",
-            "Stick / WASD / mouse    move. D-pad / 1 2 3 4    bags.",
-            "Start / H    call time. Esc    this book. East / G / right click    back.",
-            "Same verbs on pad and on keyboard + mouse. Mouse is player 1 only.",
+            "Green is offense. Red is defense.",
+            "South pitches, swings, catches, throws. Hold LT to charge.",
+            "Stick runs. D-pad names a bag.",
+            "Start calls time. East back.",
+            "Keyboard + mouse is player 1 only. Toggle up top.",
+        ],
+        [
+            "Green is offense. Red is defense.",
+            "Space / left click pitches, swings, catches, throws. Hold Shift to charge.",
+            "WASD runs. 1 2 3 4 name a bag. Right-drag aims.",
+            "H calls time. Esc this book.",
+            "Keyboard + mouse is player 1 only. Toggle up top.",
         ]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
@@ -227,7 +250,8 @@ public static class HowToPlay
     public static bool Mentions(string needle) =>
         Pages.Any(p =>
             p.Title.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
-            p.Lines.Any(l => l.Contains(needle, StringComparison.OrdinalIgnoreCase)));
+            p.Lines.Any(l => l.Contains(needle, StringComparison.OrdinalIgnoreCase)) ||
+            (p.KeyLines != null && p.KeyLines.Any(l => l.Contains(needle, StringComparison.OrdinalIgnoreCase))));
 
     public static (float X, float Y, float W, float H) BookPanel(float screenW, float screenH, int lineCount = 0)
     {
@@ -257,9 +281,10 @@ public static class HowToPlay
         return (x, pic.Y, p.X + p.W - 16f - x, pic.H);
     }
 
-    /// <summary>-1 previous page, 1 next, 0 miss. Left half of the book is back.</summary>
+    /// <summary>-1 previous page, 1 next, 0 miss. Left half of the book is back. Toggle is not nav.</summary>
     public static int HitNav(float mx, float my, float screenW, float screenH, int lineCount)
     {
+        if (BookScheme.HitToggle(mx, my, screenW, screenH) is not null) return 0;
         var p = BookPanel(screenW, screenH, lineCount);
         if (mx < p.X || mx > p.X + p.W || my < p.Y || my > p.Y + p.H) return 0;
         return mx < p.X + p.W * 0.5f ? -1 : 1;

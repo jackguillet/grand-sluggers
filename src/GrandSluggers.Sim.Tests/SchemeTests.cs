@@ -75,6 +75,8 @@ public class SchemeTests
         {
             Assert.False(string.IsNullOrWhiteSpace(page.Picture), page.Id);
             Assert.InRange(page.Lines.Count, 1, HowToPlay.KidLineMax);
+            if (page.KeyLines != null)
+                Assert.InRange(page.KeyLines.Count, 1, HowToPlay.KidLineMax);
         }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
@@ -106,8 +108,10 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Stars jump"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Team Setup"));
         Assert.Contains(HowToPlay.Must("lineup").Lines, l => l.Contains("Two diamonds") || l.Contains("two diamonds"));
-        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South") && l.Contains("Space"));
-        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("Left click"));
+        Assert.Contains(HowToPlay.Must("controls").Lines, l => l.Contains("South"));
+        Assert.DoesNotContain(HowToPlay.Must("controls").Lines, l => l.Contains("Space"));
+        Assert.Contains(HowToPlay.Must("controls").KeyLines!, l => l.Contains("Space") || l.Contains("left click"));
+        Assert.DoesNotContain(HowToPlay.Must("controls").KeyLines!, l => l.Contains("South"));
         Assert.True(HowToPlay.Mentions("mouse") || HowToPlay.Mentions("Mouse"));
         Assert.True(HowToPlay.Mentions("Esc"));
         Assert.Contains(HowToPlay.Must("chemistry").Lines, l => l.Contains("Hearts"));
