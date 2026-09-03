@@ -140,6 +140,17 @@ public static class HowToPlay
             "H calls time. Esc this book.",
             "Keyboard + mouse is player 1 only. Toggle up top.",
         ]),
+        new("roles", "In-game controls", "roles",
+        [
+            "Four tables: batting, pitching, fielding, running.",
+            "Verb on the left. What you press on the right.",
+            "Same verbs as the hardware page. One scheme at a time.",
+        ],
+        [
+            "Four tables: batting, pitching, fielding, running.",
+            "Verb on the left. What you press on the right.",
+            "Keyboard + mouse is player 1 only. One scheme at a time.",
+        ]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
             "Tap South to pitch or swing. Hold LT to charge. The pitch has a gold streak.",
