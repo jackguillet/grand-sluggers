@@ -241,6 +241,7 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
+            Controls.NoteInput();
             var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Result;
             var front = _phase is Phase.Title or Phase.Select or Phase.Field or Phase.Lineup;
             var openedHowTo = PauseMenu.OpenHowTo(_match.Paused, playPause || front, Controls.HowTo, _t);
@@ -255,6 +256,7 @@ namespace GrandSluggers.UnityClient
                 _pausePage = 0;
                 _pauseStick = 0;
                 _t = 0;
+                if (openedHowTo) BookScheme.Open();
             }
             if (_match.Paused)
             {
@@ -407,12 +409,19 @@ namespace GrandSluggers.UnityClient
                 }
                 if (Controls.SouthDown)
                 {
-                    var nav = HowToPlay.HitNav(mouse.x, mouse.y, Screen.width, Screen.height, page.Lines.Count);
-                    _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
+                    var tab = BookScheme.HitToggle(mouse.x, mouse.y, Screen.width, Screen.height);
+                    if (tab is { } kind)
+                        BookScheme.Select(kind);
+                    else
+                    {
+                        var nav = HowToPlay.HitNav(mouse.x, mouse.y, Screen.width, Screen.height, page.Lines.Count);
+                        _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
+                    }
                 }
                 if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 {
                     _pauseHowTo = false;
+                    BookScheme.Close();
                     _t = 0;
                     if (_pauseFromHowTo)
                     {
@@ -452,6 +461,7 @@ namespace GrandSluggers.UnityClient
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
                         _pausePage = 0;
+                        BookScheme.Open();
                         break;
                     case PauseMenu.Item.Title:
                         PauseToTitle();

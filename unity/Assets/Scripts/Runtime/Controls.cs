@@ -331,6 +331,41 @@ namespace GrandSluggers.UnityClient
             Pad2.Silence();
         }
 
+        /// <summary>How to play follows last input until the booklet toggle locks.</summary>
+        public static void NoteInput()
+        {
+            if (KeysSpoke()) BookScheme.Observe(InputScheme.Keys);
+            else if (PadSpoke()) BookScheme.Observe(InputScheme.Pad);
+        }
+
+        static bool PadSpoke()
+        {
+            for (var i = 0; i < Gamepad.all.Count; i++)
+            {
+                var g = Gamepad.all[i];
+                if (g.buttonSouth.wasPressedThisFrame || g.buttonEast.wasPressedThisFrame
+                    || g.buttonWest.wasPressedThisFrame || g.buttonNorth.wasPressedThisFrame
+                    || g.startButton.wasPressedThisFrame || g.selectButton.wasPressedThisFrame
+                    || g.leftShoulder.wasPressedThisFrame || g.rightShoulder.wasPressedThisFrame
+                    || g.leftStickButton.wasPressedThisFrame
+                    || g.leftTrigger.ReadValue() > 0.25f
+                    || g.leftStick.ReadValue().sqrMagnitude > 0.2f)
+                    return true;
+            }
+            return false;
+        }
+
+        static bool KeysSpoke()
+        {
+            var mouse = Mouse.current;
+            if (mouse != null && (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame
+                || mouse.middleButton.wasPressedThisFrame || Mathf.Abs(mouse.scroll.ReadValue().y) > 0.01f
+                || mouse.rightButton.isPressed))
+                return true;
+            var kb = Keyboard.current;
+            return kb != null && kb.anyKey.wasPressedThisFrame;
+        }
+
         static void Pulse(float seconds, float low, float high)
         {
             _rumbleT = seconds;

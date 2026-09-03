@@ -1,8 +1,8 @@
 # How to play
 
-Living spec for couch play. **Gamepad is the couch product. Keyboard and mouse are the same scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only. F1/F2/F3 stay debug.
+Living spec for couch play. **Gamepad is the couch product. Keyboard and mouse are the other scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only. F1/F2/F3 stay debug.
 
-**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. How to play is a **full-screen illustrated booklet** for a 12-year-old: a picture of our toys, a handful of short sentences, couch-sized type. Click a row, or left-click to confirm. Those pages are `HowToPlay.Pages` (same map as below). Pictures live in `unity/Assets/Resources/Art/Booklet/`. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
+**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. How to play is a **full-screen illustrated booklet** for a 12-year-old. It opens on the last input you used. A **Pad | Keyboard + mouse** toggle at the top of the book locks the scheme until you close it. The **Controls** page is a drawn pad or a drawn keyboard+mouse: orange callouts, **green offense / red defense**. Never print South / Space / left click on one line. Pictures live in `unity/Assets/Resources/Art/Booklet/`. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
@@ -34,6 +34,8 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
 One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Pad 2 is a second gamepad. Mouse analog is **right-click hold and drag** — a parked cursor is dead stick, so field select stays Harbor. WASD still walks. Left click is confirm.
+
+The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Pad | Keyboard + mouse** (`BookScheme`) follows last input; the toggle locks it. Green is offense. Red is defense.
 
 ---
 
