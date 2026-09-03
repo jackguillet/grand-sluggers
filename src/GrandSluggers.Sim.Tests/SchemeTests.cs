@@ -169,5 +169,19 @@ public class SchemeTests
         Assert.Contains(two, l => l.Contains("CPU never"));
         Assert.Contains(two, l => l.Contains("fielding pad") || l.Contains("Fielding pad"));
         Assert.True(HowToPlay.Mentions("pad 2") || HowToPlay.Mentions("Pad 2"));
+        foreach (var page in HowToPlay.Pages)
+        {
+            foreach (var line in page.Shown(InputScheme.Pad))
+                Assert.False(HowToPlay.MixesHardware(line), page.Id + " pad: " + line);
+            foreach (var line in page.Shown(InputScheme.Keys))
+                Assert.False(HowToPlay.MixesHardware(line), page.Id + " keys: " + line);
+        }
+        Assert.True(HowToPlay.Must("pitch-swing").KeyLines is { Count: > 0 });
+        Assert.True(HowToPlay.Must("fielding").KeyLines is { Count: > 0 });
+        Assert.True(HowToPlay.Must("running").KeyLines is { Count: > 0 });
+        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("South"));
+        Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("Space"));
+        Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("Space"));
+        Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
     }
 }
