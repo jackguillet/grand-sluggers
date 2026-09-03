@@ -79,8 +79,8 @@ public class ClosePlayTests
         var nav = HowToPlay.HitNav(200, 360, 1280, 720, 8);
         var panel = HowToPlay.BookPanel(1280, 720, 8);
         Assert.True(panel.W > 700);
-        var left = HowToPlay.HitNav(panel.X + 20, panel.Y + 40, 1280, 720, 8);
-        var right = HowToPlay.HitNav(panel.X + panel.W - 20, panel.Y + 40, 1280, 720, 8);
+        var left = HowToPlay.HitNav(panel.X + 20, panel.Y + 80, 1280, 720, 8);
+        var right = HowToPlay.HitNav(panel.X + panel.W - 20, panel.Y + 80, 1280, 720, 8);
         Assert.Equal(-1, left);
         Assert.Equal(1, right);
         Assert.Equal(0, HowToPlay.HitNav(4, 4, 1280, 720, 8));
