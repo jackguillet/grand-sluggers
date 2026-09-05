@@ -6,9 +6,10 @@ using UnityEngine;
 namespace GrandSluggers.EditorTools
 {
     /// <summary>
-    /// Character GLB/FBX drop: sidecar albedo, URP Lit, prefab.
+    /// Character package import: sidecar albedo, URP Lit, prefab.
     /// Unity's embedded FBX materials stay white in URP. We assign the
     /// {id}-albedo.png next to the mesh and save a prefab as the playable unit.
+    /// Generic rig is set by SharedRigImport for Art/Characters/.
     /// </summary>
     public class CharacterDropImport : AssetPostprocessor
     {

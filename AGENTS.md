@@ -13,7 +13,7 @@ Agents start here. Do not pick a lower row because it is easier.
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
 
-**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes (#25), online, motion, 40-man, full-screen blinds (#38), a second skeleton, a second input toolkit.
+**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit. Unique *captains* are character packages (`docs/character-package.md`) — not Mixamo, not a second Humanoid.
 
 ## Done means you played it
 
@@ -54,8 +54,8 @@ Catalog first, files second. New clip / VFX / audio / skin = JSON slot + validat
 Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 
 - **Look:** oversized cartoon toys, fat silhouettes, saturated toon, personality in extras (brim, crown, goggles, snout, horns). Heads read at catcher-eye. 10-foot UI.
-- **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord + faction role players. Role players reuse the captain body type and **must not** grow captain extras. No seventh anatomy.
-- **One shared sculpt.** Captains are skins on `hero-shared`. No unique meshes, no second skeleton. Clips are named slots. Style lock: `tools/blender/style-lock/`.
+- **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type and **must not** grow captain extras.
+- **Shared sockets, unique packages.** Bone names in `data/art/rig.json` are the contract. Unique anatomy (Fenn) is a character package: own mesh, own rest pose, segmented pieces by default. Do not heat-weight a posed toy onto Rio’s T-pose. The original six stay on `hero-shared` until they are packages. Spec: `docs/character-package.md`. Style lock: `tools/blender/style-lock/`.
 - **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay.
 - **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.

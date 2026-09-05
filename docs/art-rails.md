@@ -41,10 +41,10 @@ Role players inherit the faction body type and **must not** grow captain extras 
 
 ## Drop rules (when art is ready)
 
-1. **Do not add a second skeleton.** Retarget to `hero-shared`. Unused bones are fine (SMS Boo legs).
-1b. **Unique character package.** Living spec: [character-package.md](character-package.md). GLB → `drop_character.py` (bones inside **this** mesh, outward normals, local-X flexion). Runtime **CharacterMotion** (`bind * Q(e)`), not MoveBones humanoid eulers. Sidecar `{id}-albedo.png`. Authored clips on this rig still win.
+1. **Shared sockets, unique packages.** Bone **names** stay in `data/art/rig.json`. Unique anatomy is a [character package](character-package.md) (`bind: segmented` by default — rigid pieces, not heat weights). Do not retarget a posed toy onto Rio’s T-pose. The original six stay on `hero-shared` until they are packages.
+1b. **Drop.** GLB/FBX → `drop_character.py` → `{id}.fbx` + `{id}-albedo.png` under `Art/Characters/{id}` and the Resources copy. Runtime **CharacterMotion** on that rest pose. Authored clips on this armature still win.
 2. **One clip file per catalog id.** Name the file the clip id (`swing.fbx` / `swing.anim`). Events on the clip: `Contact`, `Release`, `FootPlant` — the same names Sim already understands.
-3. **Captains are skins.** Palette, extras, portrait, scale. `Silhouette.Proportions` stays the identity.
+3. **Captains are skins or packages.** Palette, extras, portrait, scale. Unique anatomy is a package. `Silhouette.Proportions` stays the identity.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** The binder keeps MoveBones / generated audio / code VFX until the slot is filled.

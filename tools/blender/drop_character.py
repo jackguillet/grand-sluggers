@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
-"""Drop a character GLB into the shared-rig slot.
+"""Drop a unique character into a Grand Sluggers package.
 
-The source is a posed toy (often no skeleton). We do **not** auto-weight it to
-hero-shared limbs — that explodes in Unity when MoveBones poses the chain.
-Default bind is **skinned**: bones are fitted *inside this mesh*, then heat-weighted
-so MoveBones can swing / scoop / run without shredding a posed toy. Pass
-`--bind rigid` only for a statue.
+Art is made in Blender. A posed GLB with no skeleton is a *source*, not a
+Unity skin. We do **not** heat-weight a fused toy onto bones — that shreds
+the mesh the first time a limb rotates.
+
+Default bind is **segmented**: split the mesh into rigid pieces (shell, head,
+arms, legs) and parent each piece to a named socket from data/art/rig.json.
+Limbs rotate independently. The shell cannot invert.
 
   /opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-    --src /path/to/hero.glb --id fenn \
+    --src /path/to/hero.glb --id fenn --bind segmented \
     --out unity/Assets/Art/Characters/fenn/fenn.fbx \
     --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
     --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 
-Rotate a captain in: character JSON + skins.json mesh/bind=rigid + this drop.
+--bind skinned  only when the source already has painted weights (quality path).
+--bind rigid    statue (debug).
+--keep-weights  keep imported vertex groups (do not strip a previous drop).
+
+Rotate in: character JSON + skins.json mesh/bind=segmented + this drop.
+Rotate out: delete the JSON rows and Assets/Art/Characters/{id}/.
 Missing FBX keeps SharedRig primitives.
 """
 from __future__ import annotations
@@ -22,8 +29,10 @@ import argparse
 import math
 import shutil
 import sys
+from collections import defaultdict
 from pathlib import Path
 
+import bmesh
 import bpy
 from mathutils import Vector
 
@@ -42,6 +51,19 @@ BONES = [
     "rShin",
     "bat",
     "glove",
+]
+
+LIMB_PIECES = [
+    "torso",
+    "head",
+    "lUpper",
+    "lFore",
+    "rUpper",
+    "rFore",
+    "lThigh",
+    "lShin",
+    "rThigh",
+    "rShin",
 ]
 
 TARGET_HEIGHT = 4.40
@@ -92,6 +114,20 @@ def join_meshes():
     return body
 
 
+def strip_rig():
+    """Previous drops leave a fitted armature and heat groups. Those are not art."""
+    for ob in list(bpy.data.objects):
+        if ob.type == "ARMATURE":
+            bpy.data.objects.remove(ob, do_unlink=True)
+    for ob in bpy.data.objects:
+        if ob.type != "MESH":
+            continue
+        for mod in list(ob.modifiers):
+            ob.modifiers.remove(mod)
+        for g in list(ob.vertex_groups):
+            ob.vertex_groups.remove(g)
+
+
 def stand_on_origin(body):
     """Feet on Z=0, facing +Y, height TARGET_HEIGHT. Shared rig is Z-up in Blender."""
     bpy.ops.object.select_all(action="DESELECT")
@@ -116,7 +152,7 @@ def stand_on_origin(body):
     bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
 
 
-def decimate(body, target_faces=28000):
+def decimate(body, target_faces=40000):
     faces = len(body.data.polygons)
     if faces <= target_faces:
         return faces
@@ -159,9 +195,7 @@ def world_verts(body):
 
 
 def fit_armature(body):
-    """Place hero-shared bones *inside* this mesh. A T-pose humanoid in a
-    crouched toy is what shredded Fenn — arms weighted to bones in the shell.
-    """
+    """Named sockets inside THIS mesh. Not Rio's T-pose."""
     verts = world_verts(body)
     xs = [v.x for v in verts]
     zs = [v.z for v in verts]
@@ -192,9 +226,9 @@ def fit_armature(body):
     l_sh = Vector(((torso_c.x + larm_c.x) * 0.5, (torso_c.y + larm_c.y) * 0.5, larm_c.z))
     r_sh = Vector(((torso_c.x + rarm_c.x) * 0.5, (torso_c.y + rarm_c.y) * 0.5, rarm_c.z))
 
-    print("fit head", tuple(head_c), "torso", tuple(torso_c))
-    print("fit larm", tuple(larm_c), "rarm", tuple(rarm_c))
-    print("fit lfoot", tuple(lfoot_c), "rfoot", tuple(rfoot_c))
+    print("fit head", tuple(round(c, 3) for c in head_c), "torso", tuple(round(c, 3) for c in torso_c))
+    print("fit larm", tuple(round(c, 3) for c in larm_c), "rarm", tuple(round(c, 3) for c in rarm_c))
+    print("fit lfoot", tuple(round(c, 3) for c in lfoot_c), "rfoot", tuple(round(c, 3) for c in rfoot_c))
 
     arm_data = bpy.data.armatures.new("hero-shared-data")
     arm_ob = bpy.data.objects.new("hero-shared", arm_data)
@@ -218,30 +252,25 @@ def fit_armature(body):
     missing = [n for n in BONES if n not in arm_data.bones]
     if missing:
         raise RuntimeError("missing bones: " + ",".join(missing))
-    return arm_ob
+    return arm_ob, {
+        "z_hip": hip_z,
+        "z_neck": neck.z,
+        "z_knee_l": lknee.z,
+        "z_knee_r": rknee.z,
+        "x_arm_l": larm_c.x,
+        "x_arm_r": rarm_c.x,
+        "l_sh": l_sh,
+        "r_sh": r_sh,
+        "larm_c": larm_c,
+        "rarm_c": rarm_c,
+        "lhand_c": lhand_c,
+        "rhand_c": rhand_c,
+        "lknee": lknee,
+        "rknee": rknee,
+    }
 
 
-def skin_mesh(body, arm_ob):
-    """Heat weights with bones already inside the toy. Rest pose = this mesh."""
-    for mod in list(body.modifiers):
-        body.modifiers.remove(mod)
-    for g in list(body.vertex_groups):
-        body.vertex_groups.remove(g)
-    bpy.ops.object.select_all(action="DESELECT")
-    body.select_set(True)
-    arm_ob.select_set(True)
-    bpy.context.view_layer.objects.active = arm_ob
-    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
-    bpy.context.view_layer.objects.active = body
-    try:
-        bpy.ops.object.vertex_group_limit_total(limit=4)
-    except Exception:
-        pass
-    print("skin groups", [g.name for g in body.vertex_groups])
-
-
-def finish_rig(arm_ob, body):
-    """Bone roll so local X is a swing axis. Outward normals so URP Lit does not show the inside."""
+def finish_roll(arm_ob):
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.armature.select_all(action="SELECT")
@@ -250,15 +279,133 @@ def finish_rig(arm_ob, body):
     except Exception as ex:
         print("roll skip", ex)
     bpy.ops.object.mode_set(mode="OBJECT")
-    bpy.context.view_layer.objects.active = body
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.object.mode_set(mode="OBJECT")
+
+
+def dist2(a, b):
+    d = a - b
+    return d.x * d.x + d.y * d.y + d.z * d.z
+
+
+def assign_vertices(body, fit):
+    """Protruding limbs only. The shell/core stays torso so it never tears."""
+    verts = world_verts(body)
+    xs = [v.x for v in verts]
+    zs = [v.z for v in verts]
+    x_arm_l = pct(xs, 0.10)
+    x_arm_r = pct(xs, 0.90)
+    z_head = pct(zs, 0.86)
+    z_hip = fit["z_hip"]
+    z_knee_l = fit["z_knee_l"]
+    z_knee_r = fit["z_knee_r"]
+    larm_c = fit["larm_c"]
+    rarm_c = fit["rarm_c"]
+    lhand_c = fit["lhand_c"]
+    rhand_c = fit["rhand_c"]
+    l_sh = fit["l_sh"]
+    r_sh = fit["r_sh"]
+
+    names = []
+    counts = defaultdict(int)
+    for v in verts:
+        name = "torso"
+        if v.z >= z_head and abs(v.x) < max(abs(x_arm_l), abs(x_arm_r)) * 0.72:
+            name = "head"
+        elif v.x <= x_arm_l and v.z >= z_hip * 0.85:
+            name = "lFore" if dist2(v, lhand_c) < dist2(v, l_sh) * 0.85 or v.z < larm_c.z - 0.15 else "lUpper"
+        elif v.x >= x_arm_r and v.z >= z_hip * 0.85:
+            name = "rFore" if dist2(v, rhand_c) < dist2(v, r_sh) * 0.85 or v.z < rarm_c.z - 0.15 else "rUpper"
+        elif v.z <= z_hip:
+            if v.x < 0:
+                name = "lShin" if v.z <= z_knee_l else "lThigh"
+            else:
+                name = "rShin" if v.z <= z_knee_r else "rThigh"
+        names.append(name)
+        counts[name] += 1
+    print("assign", dict(counts))
+    return names
+
+
+def outward_normals(mesh, origin):
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    flip = 0
+    for f in bm.faces:
+        to_f = f.calc_center_median() - origin
+        if to_f.length > 1e-6 and to_f.dot(f.normal) < 0:
+            flip += 1
+    if bm.faces and flip > len(bm.faces) * 0.5:
+        bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+
+
+def split_pieces(body, assignment, id_):
+    """One rigid mesh per socket. Mixed faces go to every group that owns a vert (overlap, no holes)."""
+    src = body.data
+    uv_src = src.uv_layers.active
+    materials = list(src.materials)
+    origin = Vector((0.0, 0.0, TARGET_HEIGHT * 0.45))
+
+    faces_by = defaultdict(list)
+    for poly in src.polygons:
+        names = {assignment[i] for i in poly.vertices}
+        for name in names:
+            if name in LIMB_PIECES:
+                faces_by[name].append(poly)
+
+    pieces = []
+    for name in LIMB_PIECES:
+        polys = faces_by.get(name) or []
+        if len(polys) < 4:
+            print("piece skip", name, "faces", len(polys))
+            continue
+        used = []
+        old_to_new = {}
+        for poly in polys:
+            for i in poly.vertices:
+                if i not in old_to_new:
+                    old_to_new[i] = len(used)
+                    used.append(src.vertices[i].co.copy())
+        faces = []
+        face_uvs = []
+        for poly in polys:
+            faces.append([old_to_new[i] for i in poly.vertices])
+            if uv_src:
+                face_uvs.append([uv_src.data[li].uv.copy() for li in poly.loop_indices])
+        mesh = bpy.data.meshes.new(id_ + "_" + name)
+        mesh.from_pydata(used, [], faces)
+        mesh.update()
+        if face_uvs:
+            uv = mesh.uv_layers.new(name="UVMap")
+            loop_i = 0
+            for fu in face_uvs:
+                for u in fu:
+                    uv.data[loop_i].uv = u
+                    loop_i += 1
+        for mat in materials:
+            mesh.materials.append(mat)
+        outward_normals(mesh, origin)
+        ob = bpy.data.objects.new(id_ + "_" + name, mesh)
+        bpy.context.collection.objects.link(ob)
+        ob.matrix_world = body.matrix_world.copy()
+        pieces.append((name, ob))
+        print("piece", name, "verts", len(used), "faces", len(faces))
+    if not any(n == "torso" for n, _ in pieces):
+        raise RuntimeError("segmented drop produced no torso piece")
+    return pieces
+
+
+def parent_piece(ob, arm, bone_name):
+    mw = ob.matrix_world.copy()
+    ob.parent = arm
+    ob.parent_type = "BONE"
+    ob.parent_bone = bone_name
+    ob.matrix_world = mw
 
 
 def rigid_parent(body, arm_ob):
-    """Mesh follows the actor root. No limb weights."""
     for mod in list(body.modifiers):
         body.modifiers.remove(mod)
     for g in list(body.vertex_groups):
@@ -270,8 +417,21 @@ def rigid_parent(body, arm_ob):
     body.rotation_euler = (0.0, 0.0, 0.0)
 
 
+def keep_painted_skin(body, arm_ob):
+    """Quality path: source already has groups. Parent to the armature, keep weights."""
+    has = {g.name for g in body.vertex_groups}
+    if not any(n in has for n in LIMB_PIECES):
+        return False
+    body.parent = arm_ob
+    body.parent_type = "ARMATURE"
+    if not any(m.type == "ARMATURE" for m in body.modifiers):
+        mod = body.modifiers.new("Armature", "ARMATURE")
+        mod.object = arm_ob
+    print("keep painted groups", [g.name for g in body.vertex_groups])
+    return True
+
+
 def albedo_image(body):
-    """Principled Base Color map, else the largest color image (not the ORM pack)."""
     for slot in body.material_slots:
         mat = slot.material
         if not mat or not mat.use_nodes:
@@ -383,8 +543,9 @@ def main():
     p.add_argument("--out", required=True)
     p.add_argument("--resources", default="")
     p.add_argument("--portrait", default="")
-    p.add_argument("--faces", type=int, default=28000)
-    p.add_argument("--bind", default="skinned", choices=("skinned", "rigid"))
+    p.add_argument("--faces", type=int, default=40000)
+    p.add_argument("--bind", default="segmented", choices=("segmented", "skinned", "rigid"))
+    p.add_argument("--keep-weights", action="store_true")
     argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else sys.argv[1:]
     args = p.parse_args(argv)
 
@@ -404,30 +565,51 @@ def main():
     else:
         raise SystemExit("unsupported drop format " + suffix + " (glb/gltf/fbx/obj)")
 
+    if not args.keep_weights:
+        strip_rig()
+
     body = join_meshes()
     body.name = args.id
     stand_on_origin(body)
     faces = decimate(body, args.faces)
     print("faces after decimate", faces, "verts", len(body.data.vertices))
-    arm = fit_armature(body)
-    finish_rig(arm, body)
-    if args.bind == "rigid":
+
+    arm, fit = fit_armature(body)
+    finish_roll(arm)
+
+    bind = args.bind
+    existing = out.parent / (args.id + "-albedo.png")
+    albedo = save_albedo(body, existing, size=1024)
+
+    if bind == "rigid":
         rigid_parent(body, arm)
+        print("bind rigid (statue)")
+    elif bind == "skinned" and args.keep_weights and keep_painted_skin(body, arm):
+        print("bind skinned (painted weights)")
     else:
-        skin_mesh(body, arm)
-    albedo = save_albedo(body, out.parent / (args.id + "-albedo.png"), size=1024)
+        if bind == "skinned":
+            print("skinned requested without painted weights — using segmented")
+        assignment = assign_vertices(body, fit)
+        pieces = split_pieces(body, assignment, args.id)
+        for name, ob in pieces:
+            parent_piece(ob, arm, name)
+        bpy.data.objects.remove(body, do_unlink=True)
+        print("bind segmented pieces", len(pieces))
+
     export_fbx(out)
     if args.resources:
         dest = Path(args.resources)
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.resolve() != out.resolve():
             shutil.copy2(out, dest)
-        if albedo and albedo.is_file():
-            shutil.copy2(albedo, dest.parent / albedo.name)
+        albedo_name = args.id + "-albedo.png"
+        src_albedo = out.parent / albedo_name
+        if src_albedo.is_file():
+            shutil.copy2(src_albedo, dest.parent / albedo_name)
         print("WROTE", dest)
     if args.portrait:
         render_portrait(Path(args.portrait))
-    print("WROTE", out)
+    print("WROTE", out, "bind", bind)
 
 
 if __name__ == "__main__":
