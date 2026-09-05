@@ -192,6 +192,8 @@ namespace GrandSluggers.UnityClient
                 DrawRoleTables(scheme);
             else if (p.Id == "pitch-swing")
                 DrawHowToComics(scheme, p);
+            else if (p.Id == "running")
+                DrawBagDiagrams(scheme, p);
             else
             {
                 var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
@@ -306,6 +308,118 @@ namespace GrandSluggers.UnityClient
 
         static Rect Map((float X, float Y, float W, float H) board, float u, float v, float w, float h) =>
             new(board.X + u * board.W, board.Y + v * board.H, w * board.W, h * board.H);
+
+        static void DrawBagDiagrams(InputScheme scheme, HowToPlay.Page page)
+        {
+            for (var i = 0; i < BagDiagrams.Running.Count; i++)
+            {
+                var diagram = BagDiagrams.Running[i];
+                var cell = BagDiagrams.Card(i, Screen.width, Screen.height);
+                var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
+                GUI.DrawTexture(r, _dotOff);
+                GUI.Label(new Rect(r.x + 10, r.y + 8, r.width - 20, 24), diagram.Title.ToUpperInvariant(), _gold);
+
+                var press = BagDiagrams.Press(diagram, scheme);
+                GUI.DrawTexture(new Rect(r.x + 10, r.y + 38, r.width - 20, 26), _ink);
+                GUI.Label(new Rect(r.x + 16, r.y + 43, r.width - 32, 18), press, _tiny);
+
+                var size = Mathf.Min(r.width * 0.76f, r.height * 0.50f);
+                var x = r.x + (r.width - size) * 0.5f;
+                var y = r.y + 76f;
+                DrawBagDiamond(x, y, size, diagram);
+                GUI.Label(new Rect(r.x + 10, r.y + r.height - 44, r.width - 20, 36),
+                    BagDiagramCaption(diagram.Kind), _bookLine);
+            }
+
+            var band = BagDiagrams.LineBand(Screen.width, Screen.height);
+            var lines = page.Shown(scheme);
+            var lineH = HowToPlay.KidLineH * 0.72f;
+            for (var i = 0; i < lines.Count; i++)
+                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+        }
+
+        static string BagDiagramCaption(BagDiagrams.Kind kind) => kind switch
+        {
+            BagDiagrams.Kind.BagMap => "PICK A RUNNER · ARM A THROW",
+            BagDiagrams.Kind.Advance => "EVERY RUNNER GOES FOR THE NEXT BAG",
+            BagDiagrams.Kind.Return => "EVERY RUNNER COMES BACK ONE BAG",
+            _ => ""
+        };
+
+        static void DrawBagDiamond(float x, float y, float size, BagDiagrams.Diagram diagram)
+        {
+            for (var bag = 1; bag <= 4; bag++)
+            {
+                var point = BagDiagramPoint(x, y, size, bag);
+                DrawBagBase(point, BagDiagrams.BagName(bag));
+            }
+
+            if (diagram.Kind == BagDiagrams.Kind.BagMap)
+            {
+                DrawBagDirection(BagDiagramPoint(x, y, size, 1), 1, new Vector2(12, -10));
+                DrawBagDirection(BagDiagramPoint(x, y, size, 2), 2, new Vector2(-24, -34));
+                DrawBagDirection(BagDiagramPoint(x, y, size, 3), 3, new Vector2(-54, -10));
+                DrawBagDirection(BagDiagramPoint(x, y, size, 4), 4, new Vector2(-30, 14));
+                return;
+            }
+
+            var color = diagram.Kind == BagDiagrams.Kind.Advance
+                ? new Color(0.30f, 0.92f, 0.48f, 1f)
+                : new Color(1f, 0.62f, 0.22f, 1f);
+            foreach (var route in diagram.Routes)
+                DrawBagRoute(BagDiagramPoint(x, y, size, route.FromBag), BagDiagramPoint(x, y, size, route.ToBag), color);
+        }
+
+        static Vector2 BagDiagramPoint(float x, float y, float size, int bag)
+        {
+            var uv = BagDiagrams.Pip(bag);
+            return new Vector2(x + (float)(uv.U * size), y + size - (float)(uv.V * size));
+        }
+
+        static void DrawBagBase(Vector2 point, string label)
+        {
+            var matrix = GUI.matrix;
+            GUIUtility.RotateAroundPivot(45f, point);
+            var prev = GUI.color;
+            GUI.color = new Color(0.95f, 0.91f, 0.72f, 1f);
+            GUI.DrawTexture(new Rect(point.x - 10, point.y - 10, 20, 20), _white);
+            GUI.color = prev;
+            GUI.matrix = matrix;
+            GUI.Label(new Rect(point.x - 20, point.y - 8, 40, 16), label, _tiny);
+        }
+
+        static void DrawBagDirection(Vector2 point, int bag, Vector2 offset)
+        {
+            var mark = bag switch
+            {
+                1 => "→ 1B",
+                2 => "↑ 2B",
+                3 => "3B ←",
+                4 => "↓ HOME",
+                _ => ""
+            };
+            GUI.Label(new Rect(point.x + offset.x, point.y + offset.y, 62, 20), mark, _gold);
+        }
+
+        static void DrawBagRoute(Vector2 from, Vector2 to, Color color)
+        {
+            var prev = GUI.color;
+            GUI.color = color;
+            GUI.DrawTexture(new Rect(from.x - 8, from.y - 8, 16, 16), _dotOn);
+            GUI.color = prev;
+
+            var mid = (from + to) * 0.5f;
+            var dx = to.x - from.x;
+            var dy = to.y - from.y;
+            var arrow = dx > 12f
+                ? (dy > 12f ? "↘" : dy < -12f ? "↗" : "→")
+                : dx < -12f
+                    ? (dy > 12f ? "↙" : dy < -12f ? "↖" : "←")
+                    : dy > 0f ? "↓" : "↑";
+            GUI.color = color;
+            GUI.Label(new Rect(mid.x - 14, mid.y - 14, 28, 28), arrow, _h1);
+            GUI.color = prev;
+        }
 
         static void DrawHowToComics(InputScheme scheme, HowToPlay.Page page)
         {
