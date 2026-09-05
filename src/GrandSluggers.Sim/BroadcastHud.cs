@@ -50,6 +50,12 @@ public static class BroadcastHud
         PitcherCard: new(0.728, 0.735, 0.260, 0.225),
         Banner: new(0.28, 0.018, 0.40, 0.10));
 
+    /// <summary>In-play YOU tell. Same recipe 1P and 1v1.</summary>
+    public static readonly HudRect YouTell = new(0.028125, 0.850, 0.21875, 0.045);
+
+    /// <summary>In-play ITEM pointer. Opposite corner from YOU.</summary>
+    public static readonly HudRect ItemTell = new(0.750, 0.850, 0.221875, 0.045);
+
     public const double FrameMarginPx = 8;
 
     public static bool InFrame(HudRect r, double screenW, double screenH, double marginPx = FrameMarginPx)
