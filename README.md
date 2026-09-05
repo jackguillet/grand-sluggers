@@ -76,6 +76,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
 | [docs/silhouette-bible.md](docs/silhouette-bible.md) | Locked camera, six body types, signature bats |
+| [docs/character-package.md](docs/character-package.md) | Unique toys: Blender drop, paint, limb motion |
 | [docs/parks.md](docs/parks.md) | Ballparks and gimmicks |
 | [docs/roadmap.md](docs/roadmap.md) | Now → Nintendo-level Exhibition; how to use coding agents |
 

@@ -31,6 +31,7 @@ namespace GrandSluggers.UnityClient
         bool _throwsLeft;
         bool _captain;
         bool _meshStaff;
+        bool _packageBody;
         string _id = "";
         string _body = "rio";
         string _batVisual = "";
@@ -217,6 +218,9 @@ namespace GrandSluggers.UnityClient
             _torsoRest = chain.TorsoRest;
             _hunchDeg = chain.HunchDeg;
             _bind = chain.Bind;
+            _packageBody = ArtBinder.Art != null
+                && string.Equals(ArtBinder.SkinOf(who).Bind, "skinned", System.StringComparison.OrdinalIgnoreCase)
+                && ArtBinder.LoadBodyPrefab(who.Id) != null;
             _meshStaff = false;
             for (var i = 0; i < extras.Count; i++)
             {
@@ -375,6 +379,8 @@ namespace GrandSluggers.UnityClient
                     : TryAuthored(clipId, out authored);
                 if (authoredPose)
                     sample = authored;
+                else if (_packageBody)
+                    sample = CharacterMotion.Evaluate(verb, _t, _poseT, _charge);
                 else
                     sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
@@ -391,9 +397,14 @@ namespace GrandSluggers.UnityClient
                 if (!playedDrop)
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
-                    Apply(sample,
-                        _snap ? 1f : pose == Pose.ThrowPitch ? 0.82f : boneSnap ? 0.55f : 0.32f,
-                        _snap ? 1f : pose == Pose.ThrowPitch ? 0.72f : boneSnap ? 0.48f : 0.34f);
+                    if (_packageBody)
+                        ApplyPackage(sample,
+                            _snap ? 1f : boneSnap ? 0.55f : 0.32f,
+                            _snap ? 1f : boneSnap ? 0.48f : 0.34f);
+                    else
+                        Apply(sample,
+                            _snap ? 1f : pose == Pose.ThrowPitch ? 0.82f : boneSnap ? 0.55f : 0.32f,
+                            _snap ? 1f : pose == Pose.ThrowPitch ? 0.72f : boneSnap ? 0.48f : 0.34f);
                 }
                 else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
                     MirrorBoundArms();
@@ -772,6 +783,30 @@ namespace GrandSluggers.UnityClient
             MoveBones.Verb.Throw => "throw",
             _ => null
         };
+
+        /// <summary>
+        /// Unique drop: offset the authored rest pose in bone-local space
+        /// (bind * Q). MoveBones Q * bind assumes Rio's axes and inverts a turtle.
+        /// </summary>
+        void ApplyPackage(MoveBones.Sample s, float kArm, float kLeg)
+        {
+            EaseLocal(ref _torso, s.Torso, kArm, _bind.Torso);
+            EaseLocal(ref _head, s.Head, kArm, _bind.Head);
+            EaseLocal(ref _lArm, s.LUpper, kArm, _bind.LUpper);
+            EaseLocal(ref _lFore, s.LFore, kArm, _bind.LFore);
+            EaseLocal(ref _rArm, s.RUpper, kArm, _bind.RUpper);
+            EaseLocal(ref _rFore, s.RFore, kArm, _bind.RFore);
+            EaseLocal(ref _lThigh, s.LThigh, kLeg, _bind.LThigh);
+            EaseLocal(ref _lShin, s.LShin, kLeg, _bind.LShin);
+            EaseLocal(ref _rThigh, s.RThigh, kLeg, _bind.RThigh);
+            EaseLocal(ref _rShin, s.RShin, kLeg, _bind.RShin);
+        }
+
+        static void EaseLocal(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
+        {
+            if (tf == null) return;
+            tf.localRotation = Quaternion.Slerp(tf.localRotation, bind * Q(e), k);
+        }
 
         void Apply(MoveBones.Sample s, float kArm, float kLeg)
         {

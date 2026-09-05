@@ -42,7 +42,7 @@ Role players inherit the faction body type and **must not** grow captain extras 
 ## Drop rules (when art is ready)
 
 1. **Do not add a second skeleton.** Retarget to `hero-shared`. Unused bones are fine (SMS Boo legs).
-1b. **GLB / posed toy drop.** One mesh (textures or vertex colors). No skeleton required. Run `tools/blender/drop_character.py --src hero.glb --id {id}` — it scales to the shared height, **fits hero-shared bones inside this mesh**, heat-weights, and writes Art + Resources FBX plus `{id}-albedo.png` (1024). `skins.json` gets `"mesh"` and `"bind": "skinned"` so MoveBones can swing the limbs. `--bind rigid` is a statue. Do **not** skin a crouched toy to a T-pose humanoid (bones in the shell) — that shreds the mesh. Runtime assigns URP Lit from the sidecar albedo.
+1b. **Unique character package.** Living spec: [character-package.md](character-package.md). GLB → `drop_character.py` (bones inside **this** mesh, outward normals, local-X flexion). Runtime **CharacterMotion** (`bind * Q(e)`), not MoveBones humanoid eulers. Sidecar `{id}-albedo.png`. Authored clips on this rig still win.
 2. **One clip file per catalog id.** Name the file the clip id (`swing.fbx` / `swing.anim`). Events on the clip: `Contact`, `Release`, `FootPlant` — the same names Sim already understands.
 3. **Captains are skins.** Palette, extras, portrait, scale. `Silhouette.Proportions` stays the identity.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
