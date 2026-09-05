@@ -174,6 +174,44 @@ def rigid_parent(body, arm_ob):
     body.rotation_euler = (0.0, 0.0, 0.0)
 
 
+def albedo_image(body):
+    """Principled Base Color map, else the largest color image (not the ORM pack)."""
+    for slot in body.material_slots:
+        mat = slot.material
+        if not mat or not mat.use_nodes:
+            continue
+        bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        if bsdf is None:
+            continue
+        sock = bsdf.inputs.get("Base Color")
+        if sock and sock.links:
+            node = sock.links[0].from_node
+            if node.type == "TEX_IMAGE" and node.image:
+                return node.image
+    colored = []
+    for img in bpy.data.images:
+        if not img.has_data or img.size[0] < 16:
+            continue
+        colored.append(img)
+    colored.sort(key=lambda i: i.size[0] * i.size[1], reverse=True)
+    return colored[0] if colored else None
+
+
+def save_albedo(body, dest: Path, size=1024):
+    img = albedo_image(body)
+    if img is None:
+        print("no albedo image")
+        return None
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    work = img.copy()
+    work.scale(size, size)
+    work.filepath_raw = str(dest)
+    work.file_format = "PNG"
+    work.save()
+    print("WROTE", dest, work.size[0], "x", work.size[1])
+    return dest
+
+
 def export_fbx(out: Path):
     out.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action="SELECT")
@@ -276,12 +314,15 @@ def main():
     print("faces after decimate", faces, "verts", len(body.data.vertices))
     arm = build_armature()
     rigid_parent(body, arm)
+    albedo = save_albedo(body, out.parent / (args.id + "-albedo.png"), size=1024)
     export_fbx(out)
     if args.resources:
         dest = Path(args.resources)
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.resolve() != out.resolve():
             shutil.copy2(out, dest)
+        if albedo and albedo.is_file():
+            shutil.copy2(albedo, dest.parent / albedo.name)
         print("WROTE", dest)
     if args.portrait:
         render_portrait(Path(args.portrait))
