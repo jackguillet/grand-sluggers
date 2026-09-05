@@ -188,6 +188,8 @@ namespace GrandSluggers.UnityClient
             DrawSchemeToggle(scheme);
             if (p.Id == "contents")
                 DrawContentsToc(p);
+            else if (p.Id == "getting-started")
+                DrawGettingStarted(scheme, p);
             else if (p.Id == "controls")
                 DrawHardware(scheme);
             else if (p.Id == "roles")
@@ -427,6 +429,40 @@ namespace GrandSluggers.UnityClient
             GUI.color = color;
             GUI.Label(new Rect(mid.x - 14, mid.y - 14, 28, 28), arrow, _h1);
             GUI.color = prev;
+        }
+
+        static void DrawGettingStarted(InputScheme scheme, HowToPlay.Page page)
+        {
+            for (var i = 0; i < GettingStarted.Path.Count; i++)
+            {
+                var step = GettingStarted.Path[i];
+                var cell = GettingStarted.StepCell(i, Screen.width, Screen.height);
+                var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
+                GUI.DrawTexture(r, _dotOff);
+                GUI.Label(new Rect(r.x + 8, r.y + 4, 28, 22), (i + 1).ToString(), _gold);
+                GUI.Label(new Rect(r.x + 32, r.y + 4, r.width - 40, 22), step.Title.ToUpperInvariant(), _tiny);
+                var still = new Rect(r.x + 6, r.y + 28, r.width - 12, r.height - 58);
+                var tex = BookPic(step.Picture);
+                GUI.DrawTexture(still, _panel);
+                if (tex != null)
+                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
+                GUI.Label(new Rect(r.x + 6, r.y + r.height - 28, r.width - 12, 26),
+                    GettingStarted.Caption(step, scheme), _tiny);
+            }
+            for (var i = 0; i < GettingStarted.Modes.Count; i++)
+            {
+                var mode = GettingStarted.Modes[i];
+                var row = GettingStarted.ModeRow(i, Screen.width, Screen.height);
+                var head = new Rect(row.X, row.Y + 2, 168, row.H - 4);
+                var prev = GUI.color;
+                GUI.color = new Color(0.22f, 0.62f, 0.32f, 1f);
+                GUI.DrawTexture(head, _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(head.x + 8, head.y + 4, head.width - 12, head.height - 8), mode.Title, _h1);
+                GUI.Label(new Rect(row.X + 180, row.Y + 4, row.W - 188, row.H - 8),
+                    GettingStarted.Line(mode, scheme), _bookLine);
+            }
+            DrawBookLines(page, GettingStarted.LineBand(Screen.width, Screen.height));
         }
 
         static void DrawContentsToc(HowToPlay.Page page)
