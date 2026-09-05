@@ -517,6 +517,7 @@ public class GameplayTests
     {
         Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("zig")));
         Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("rio")));
+        Assert.Equal(6, FieldAbilities.CatchBonus(_content.Must("fenn")));
         Assert.Equal(0, FieldAbilities.CatchBonus(_content.Must("ashlord")));
         Assert.Equal(PlayKind.Single, FieldAbilities.SpinCheck(_content.Must("ashlord"), PlayKind.Double));
     }

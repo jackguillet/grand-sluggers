@@ -8,14 +8,14 @@ public class ChallengeTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
-    public void SixCaptainsExist()
+    public void CaptainsExist()
     {
         foreach (var id in PresetTeams.CaptainIds)
         {
             var c = _content.Must(id);
             Assert.True(c.Captain, id);
         }
-        Assert.Equal(6, PresetTeams.CaptainIds.Length);
+        Assert.Equal(Silhouette.Captains.Length, PresetTeams.CaptainIds.Length);
     }
 
     [Fact]
@@ -125,6 +125,6 @@ public class ChallengeTests
         var roles = _content.Characters.Values.Count(c => !c.Captain);
         var caps = _content.Characters.Values.Count(c => c.Captain);
         Assert.True(roles >= 18, $"role players {roles}");
-        Assert.Equal(6, caps);
+        Assert.Equal(Silhouette.Captains.Length, caps);
     }
 }

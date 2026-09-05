@@ -5,7 +5,7 @@ public static class FieldAbilities
 {
     public static double CatchBonus(Character c) => c.FieldAbility switch
     {
-        "lick-catch" or "grow" => 6,
+        "lick-catch" or "grow" or "withdraw" => 6,
         "super-jump" => 3,
         _ => 0
     };
@@ -121,6 +121,7 @@ public static class StarSkills
         "heatball" => 1.15,
         "skullball" => 1.20,
         "charmball" => 0.90,
+        "fogball" => 0.82,
         "caskball" => 0.85,
         "fastball" => 1.25,
         "changeup" => 0.70,
@@ -133,6 +134,7 @@ public static class StarSkills
     public static double BatterWindowMul(string? starPitch) => starPitch switch
     {
         "charmball" => 0.75,
+        "fogball" => 0.78,
         "skullball" => 0.80,
         _ => 1.0
     };
@@ -142,7 +144,7 @@ public static class StarSkills
         "furnace" => 1.25,
         "cask-swing" => 1.20,
         "heat-swing" => 1.15,
-        "shell-swing" or "phony-swing" => 1.10,
+        "shell-swing" or "phony-swing" or "staff-swing" => 1.10,
         "heart-swing" => 1.05,
         "ground" or "fly" => 1.20,
         "line" => 1.25,

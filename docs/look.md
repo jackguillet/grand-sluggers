@@ -19,7 +19,7 @@ A player who loved Sluggers should feel at home in three pitches and never think
 
 ## The cast (this is the art)
 
-Six captains, six body types, one shared rig. Role players are palette + jersey on the faction cut — no crown, horns, snout, goggles, or cape.
+Six faction cuts plus Elder Fenn. One shared rig. Role players are palette + jersey on the faction cut — no crown, horns, snout, goggles, cape, or shell.
 
 | Captain | Cut | Read |
 | --- | --- | --- |
@@ -29,8 +29,9 @@ Six captains, six body types, one shared rig. Role players are palette + jersey 
 | **Brondo** | Brick | Cube torso, thick neck, square jaw |
 | **Konga** | Ape | Hunch, snout, long arms, barrel belly |
 | **Ashlord** | Villain slug | Tallest, horns, cape, furnace eyes, heavy boots |
+| **Elder Fenn** | Turtle elder | Short, wide shell-brim, cane, cream plastron — authored mesh on the shared chain |
 
-Do not invent a seventh anatomy. Do not unique-sculpt a role player. Numbers live in `Silhouette.cs`.
+Do not unique-sculpt a role player. Fenn is the Boo pattern: unique mesh, same bones. Numbers live in `Silhouette.cs`.
 
 ## Cameras look at toys
 
