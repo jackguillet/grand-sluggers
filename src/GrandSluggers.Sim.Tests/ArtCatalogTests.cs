@@ -202,7 +202,9 @@ public class ArtCatalogTests
         var fennRes = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Resources/Art/Characters/fenn/fenn.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fennRes), fennRes);
-        Assert.False(string.IsNullOrWhiteSpace(_content.Art.SkinOf(_content.Must("fenn")).Mesh));
+        var fennSkin = _content.Art.SkinOf(_content.Must("fenn"));
+        Assert.False(string.IsNullOrWhiteSpace(fennSkin.Mesh));
+        Assert.Equal("rigid", fennSkin.Bind);
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
