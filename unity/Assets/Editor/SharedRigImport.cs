@@ -129,9 +129,10 @@ namespace GrandSluggers.EditorTools
         void OnPreprocessModel()
         {
             var rig = assetPath.IndexOf(RigFolder, StringComparison.OrdinalIgnoreCase) >= 0;
+            var body = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0;
             var clip = assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) >= 0;
             var park = assetPath.IndexOf(ParkFolder, StringComparison.OrdinalIgnoreCase) >= 0;
-            if (!rig && !clip && !park) return;
+            if (!rig && !body && !clip && !park) return;
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
             imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;

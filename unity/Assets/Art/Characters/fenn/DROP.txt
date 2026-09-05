@@ -1,5 +1,6 @@
 Elder Fenn. Unique mesh on the shared hero-shared bones. Do not add a second skeleton.
 
   fenn.fbx     skinned body (tools/blender/hero_fenn.py)
+  Resources/Art/Characters/fenn/fenn.fbx   player copy (Resources.Load)
 
-Missing file keeps SharedRig primitives + staff extras.
+Missing file keeps SharedRig primitives. Never throw the authored mesh away.
