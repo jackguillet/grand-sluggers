@@ -55,6 +55,21 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
+        /// <summary>Authored body mesh on the shared chain. Null keeps hero-shared / primitives.</summary>
+        public static GameObject LoadBodyPrefab(string id)
+        {
+            if (_art == null || string.IsNullOrWhiteSpace(id)) return null;
+            if (!_art.Skins.TryGetValue(id, out var skin) || string.IsNullOrWhiteSpace(skin.Mesh))
+                return null;
+            var slot = skin.Mesh;
+            var key = SlotToResources(slot);
+            if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                key = key.Substring(0, key.Length - 4);
+            var go = Resources.Load<GameObject>(key);
+            if (go != null) return go;
+            return EditorLoadPrefab != null ? EditorLoadPrefab(slot) : null;
+        }
+
         /// <summary>Catalog FBX if the slot has a Unity file; null keeps SharedRig primitives.</summary>
         public static GameObject LoadSharedRigPrefab()
         {

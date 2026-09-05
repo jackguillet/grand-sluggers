@@ -8,18 +8,19 @@ public class StarSpectacleTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
-    public void SixCaptainsHaveUniquePitchAndSwing()
+    public void CaptainsHaveUniquePitchAndSwing()
     {
         var caps = _content.Characters.Values.Where(c => c.Captain).ToList();
-        Assert.Equal(6, caps.Count);
-        Assert.Equal(6, caps.Select(c => c.StarPitch).Distinct().Count());
-        Assert.Equal(6, caps.Select(c => c.StarSwing).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, caps.Count);
+        Assert.Equal(Silhouette.Captains.Length, caps.Select(c => c.StarPitch).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, caps.Select(c => c.StarSwing).Distinct().Count());
         Assert.Contains(caps, c => c.Id == "rio" && c.StarPitch == "heatball" && c.StarSwing == "heat-swing");
         Assert.Contains(caps, c => c.Id == "vale" && c.StarPitch == "charmball" && c.StarSwing == "heart-swing");
         Assert.Contains(caps, c => c.Id == "zig" && c.StarPitch == "prismball" && c.StarSwing == "shell-swing");
         Assert.Contains(caps, c => c.Id == "brondo" && c.StarPitch == "phonyball" && c.StarSwing == "phony-swing");
         Assert.Contains(caps, c => c.Id == "konga" && c.StarPitch == "caskball" && c.StarSwing == "cask-swing");
         Assert.Contains(caps, c => c.Id == "ashlord" && c.StarPitch == "skullball" && c.StarSwing == "furnace");
+        Assert.Contains(caps, c => c.Id == "fenn" && c.StarPitch == "fogball" && c.StarSwing == "staff-swing");
     }
 
     [Fact]
@@ -57,8 +58,8 @@ public class StarSpectacleTests
     {
         foreach (var id in new[]
         {
-            "charmball", "prismball", "phonyball", "caskball", "skullball",
-            "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace"
+            "charmball", "prismball", "phonyball", "caskball", "skullball", "fogball",
+            "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace", "staff-swing"
         })
         {
             Assert.Equal(2.0, StarSkills.SpectacleSeconds(id));

@@ -12,6 +12,7 @@ public static class GearMesh
         "brondo" => "gold-brick",
         "konga" => "barrel-bat",
         "ashlord" => "furnace-club",
+        "fenn" => "fen-cane",
         _ => "harbor-lumber"
     };
 

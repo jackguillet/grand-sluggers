@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 public static class PresetTeams
 {
-    public static readonly string[] CaptainIds = ["rio", "vale", "zig", "brondo", "konga", "ashlord"];
+    public static readonly string[] CaptainIds = ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"];
 
     public static Team SparkAllStars(ContentCatalog content) => content.Team(
         "Spark All-Stars",
@@ -52,6 +52,7 @@ public static class PresetTeams
         "brondo" => "Goldrush",
         "konga" => "Canopy Clan",
         "ashlord" => "Ember Court",
+        "fenn" => "Stillwater",
         _ => captain.Name
     };
 

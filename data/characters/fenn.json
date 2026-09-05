@@ -1,0 +1,16 @@
+{
+  "id": "fenn",
+  "name": "Elder Fenn",
+  "faction": "fen",
+  "captain": true,
+  "pitch": 7,
+  "bat": 5,
+  "field": 8,
+  "run": 3,
+  "bats": "R",
+  "throws": "R",
+  "starPitch": "fogball",
+  "starSwing": "staff-swing",
+  "fieldAbility": "withdraw",
+  "bio": "A harbor turtle who has seen every skip. The cane is the bat. The shell is the brim."
+}

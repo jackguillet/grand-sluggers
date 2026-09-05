@@ -8,13 +8,13 @@ public class RosterIdentityTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
-    public void SixCaptainsHaveDistinctSilhouettes()
+    public void CaptainsHaveDistinctSilhouettes()
     {
         var specs = Silhouette.Captains.Select(Silhouette.Proportions).ToList();
-        Assert.Equal(6, specs.Select(s => (s.Height, s.Width, s.Head, s.Arms, s.Torso)).Distinct().Count());
-        Assert.Equal(6, specs.Select(s => s.Height).Distinct().Count());
-        Assert.Equal(6, specs.Select(s => s.Width).Distinct().Count());
-        Assert.Equal(6, specs.Select(s => s.Head).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => (s.Height, s.Width, s.Head, s.Arms, s.Torso)).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Height).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Width).Distinct().Count());
+        Assert.Equal(Silhouette.Captains.Length, specs.Select(s => s.Head).Distinct().Count());
         Assert.True(Silhouette.ToyScale > 1f);
         Assert.True(Silhouette.GloveScale > 1f);
         Assert.True(Silhouette.BatScale > 1f);
@@ -33,6 +33,7 @@ public class RosterIdentityTests
         Assert.Equal("brondo", Silhouette.BodyType(_content.Must("boom")));
         Assert.Equal("konga", Silhouette.BodyType(_content.Must("vine")));
         Assert.Equal("ashlord", Silhouette.BodyType(_content.Must("cinder")));
+        Assert.Equal("fenn", Silhouette.BodyType(_content.Must("fenn")));
         Assert.Equal(Silhouette.BodyType(_content.Must("jester")), Silhouette.PortraitId(_content.Must("jester")));
         Assert.Equal("zig", Silhouette.PortraitId(_content.Must("jester")));
     }
@@ -41,9 +42,10 @@ public class RosterIdentityTests
     public void SignatureBatIdsAndVisualsAreUnique()
     {
         var ids = Silhouette.Captains.Select(GearMesh.SignatureBatId).ToList();
-        Assert.Equal(6, ids.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(Silhouette.Captains.Length, ids.Distinct(StringComparer.OrdinalIgnoreCase).Count());
         var visuals = ids.Select(id => GearMesh.BatVisual(_content.Bats[id])).ToList();
-        Assert.Equal(6, visuals.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(Silhouette.Captains.Length, visuals.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal("bat-staff", GearMesh.BatVisual(_content.Bats["fen-cane"]));
         Assert.Equal("bat-spark", GearMesh.BatVisual(_content.Bats["harbor-lumber"]));
         Assert.Equal("bat-wand", GearMesh.BatVisual(_content.Bats["pageant-wand"]));
         Assert.Equal("bat-short", GearMesh.BatVisual(_content.Bats["prism-stick"]));

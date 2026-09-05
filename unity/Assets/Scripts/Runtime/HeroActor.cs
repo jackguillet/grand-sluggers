@@ -30,6 +30,7 @@ namespace GrandSluggers.UnityClient
         bool _batsLeft;
         bool _throwsLeft;
         bool _captain;
+        bool _meshStaff;
         string _id = "";
         string _body = "rio";
         string _batVisual = "";
@@ -92,7 +93,7 @@ namespace GrandSluggers.UnityClient
             if (_root == null) return;
             var batVis = GearMesh.BatVisual(bat);
             var gloveVis = GearMesh.GloveVisual(glove);
-            if (batVis != _batVisual) BuildBat(batVis);
+            if (!_meshStaff && batVis != _batVisual) BuildBat(batVis);
             if (gloveVis != _gloveVisual) BuildGlove(gloveVis);
         }
 
@@ -216,7 +217,14 @@ namespace GrandSluggers.UnityClient
             _torsoRest = chain.TorsoRest;
             _hunchDeg = chain.HunchDeg;
             _bind = chain.Bind;
-            BuildBat("bat-wood");
+            _meshStaff = false;
+            for (var i = 0; i < extras.Count; i++)
+            {
+                if (extras[i].Equals("staff", System.StringComparison.OrdinalIgnoreCase)
+                    && ArtBinder.LoadBodyPrefab(who.Id) != null)
+                    _meshStaff = true;
+            }
+            if (!_meshStaff) BuildBat("bat-wood");
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
         }
@@ -302,6 +310,15 @@ namespace GrandSluggers.UnityClient
                 {
                     var gold = Look.Lit(Colors.Gold, smooth: 0.5f);
                     Look.Prim(PrimitiveType.Cylinder, "Bat", root, Vector3.zero, new Vector3(0.22f, 1.7f, 0.22f), gold);
+                    break;
+                }
+                case "bat-staff":
+                {
+                    var wood = Look.Lit(new Color(0.42f, 0.26f, 0.12f), smooth: 0.12f);
+                    var cream = Look.Lit(Colors.FenCream, smooth: 0.28f);
+                    Look.Prim(PrimitiveType.Cylinder, "Shaft", root, Vector3.zero, new Vector3(0.14f, 1.85f, 0.14f), wood);
+                    Look.Prim(PrimitiveType.Sphere, "Knob", root, new Vector3(0, 1.72f, 0), Vector3.one * 0.28f, cream);
+                    Look.Prim(PrimitiveType.Cylinder, "Ferrule", root, new Vector3(0, -1.65f, 0), new Vector3(0.16f, 0.12f, 0.16f), cream);
                     break;
                 }
                 default:

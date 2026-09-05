@@ -16,6 +16,7 @@ Stats are 1–10. They will move.
 | **Goldrush** | Yellow | Schemers, rooftop industrial | Power + stamina, bad gloves | Rooftop City |
 | **Canopy Clan** | Brown | Jungle family, climbers | Power + wall climbs, slow | Canopy Yard |
 | **Ember Keep** | Black / purple | Villain castle, lava | Pure slug, laser throws, no legs | Ember Keep |
+| **Stillwater** | Sage / cream | Harbor turtle elders | Glove + slow fog, no legs | Harbor Diamond |
 
 Cross-faction buddy examples (authored, not generated): a Spark pitcher who grew up with a Carnival runner; a Royal and a Goldrush who date and therefore *hate* fielding together some days — no: keep bad chem as rivalry, good as buddy. Royals buddy with Spark. Goldrush buddy only with each other plus one traitor. Ember hates Spark and Royals. Canopy hates Ember’s mercenary lizards (a sub-rival).
 
@@ -72,6 +73,14 @@ Names are working titles. Replace freely; keep the *roles*.
 - Star Swing: **Furnace** — scorched fly; warning track becomes lava for a beat.
 - Field: **Spin Check** — knock runners off the base path on contact.
 - Bats/throws: L/R
+
+### Elder Fenn — Stillwater
+
+- Stats: Pitch 7 / Bat 5 / Field 8 / Run 3
+- Star Pitch: **Fogball** — slow wet pitch; batter’s window shrinks in the mist.
+- Star Swing: **Staff Swing** — cane hop that randomizes infield bounces.
+- Field: **Withdraw** — shell catch, bigger glove window, still slow.
+- Bats/throws: R/R
 
 ## Role players (slice set)
 

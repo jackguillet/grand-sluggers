@@ -47,6 +47,15 @@
       "extras": ["horns", "cape", "ember-eyes"],
       "portrait": "Resources/Art/ashlord-hero",
       "palette": "ember"
+    },
+    {
+      "id": "fenn",
+      "bodyType": "fenn",
+      "captain": true,
+      "extras": ["shell", "staff"],
+      "portrait": "Resources/Art/fenn-hero",
+      "palette": "fen",
+      "mesh": "Assets/Art/Characters/fenn/fenn.fbx"
     }
   ]
 }
