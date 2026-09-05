@@ -194,6 +194,8 @@ namespace GrandSluggers.UnityClient
                 DrawHowToComics(scheme, p);
             else if (p.Id == "running")
                 DrawBagDiagrams(scheme, p);
+            else if (p.Id == "screen")
+                DrawHudCallouts(p);
             else
             {
                 var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
@@ -421,6 +423,45 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
+        static void DrawHudCallouts(HowToPlay.Page page)
+        {
+            var spreads = HudCallouts.OnScreenPage;
+            for (var i = 0; i < spreads.Count; i++)
+            {
+                var spread = spreads[i];
+                var row = HudCallouts.Row(i, Screen.width, Screen.height);
+                var r = new Rect(row.X, row.Y, row.W, row.H);
+                GUI.DrawTexture(r, _dotOff);
+                GUI.Label(new Rect(r.x + 8, r.y + 4, 160, 22), spread.Title.ToUpperInvariant(), _gold);
+                var still = new Rect(r.x + r.width * 0.20f, r.y + 26, r.width * 0.60f, r.height - 34);
+                var tex = BookPic(spread.Picture);
+                GUI.DrawTexture(still, _panel);
+                if (tex != null)
+                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
+                else
+                    GUI.Label(new Rect(still.x + 8, still.y + 8, still.width - 16, 22), spread.Shot.ToUpperInvariant(), _tiny);
+                foreach (var mark in spread.Marks)
+                {
+                    var left = mark.Anchor is { } a && a.X < 0.5;
+                    var y = still.y + (mark.Anchor is { } b ? (float)b.Y * still.height : still.height * 0.42f);
+                    y = Mathf.Clamp(y, still.y, still.y + still.height - 28);
+                    var box = left
+                        ? new Rect(r.x + 6, y, r.width * 0.18f, 26)
+                        : new Rect(r.x + r.width * 0.81f, y, r.width * 0.18f, 26);
+                    var prev = GUI.color;
+                    GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
+                    GUI.DrawTexture(box, _white);
+                    GUI.color = prev;
+                    GUI.Label(new Rect(box.x + 6, box.y + 4, box.width - 10, 18), mark.Label, _tiny);
+                }
+            }
+            var band = HudCallouts.LineBand(Screen.width, Screen.height);
+            var lines = page.Shown(BookScheme.Current);
+            var lineH = HowToPlay.KidLineH * 0.72f;
+            for (var i = 0; i < lines.Count; i++)
+                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+        }
+
         static void DrawHowToComics(InputScheme scheme, HowToPlay.Page page)
         {
             var strips = HowToComic.OnPitchSwingPage;
@@ -534,8 +575,9 @@ namespace GrandSluggers.UnityClient
             var label = BroadcastHud.ControlDisplay(true, pos, name);
             if (string.IsNullOrEmpty(label)) return;
             Ensure();
-            GUI.DrawTexture(new Rect(36, Screen.height - 120, 280, 36), _panel);
-            GUI.Label(new Rect(48, Screen.height - 116, 256, 28), label, _gold);
+            var r = Px(BroadcastHud.YouTell);
+            GUI.DrawTexture(r, _panel);
+            GUI.Label(new Rect(r.x + 12, r.y + 4, r.width - 16, r.height - 6), label, _gold);
         }
 
         public static void SwitchTell(string current, string hint, string hintName, bool hasBall)
@@ -552,8 +594,9 @@ namespace GrandSluggers.UnityClient
             var label = BroadcastHud.ItemPointer(true, targetName);
             if (string.IsNullOrEmpty(label)) return;
             Ensure();
-            GUI.DrawTexture(new Rect(Screen.width - 320, Screen.height - 120, 284, 36), _panel);
-            GUI.Label(new Rect(Screen.width - 308, Screen.height - 116, 260, 28), label, _gold);
+            var r = Px(BroadcastHud.ItemTell);
+            GUI.DrawTexture(r, _panel);
+            GUI.Label(new Rect(r.x + 12, r.y + 4, r.width - 16, r.height - 6), label, _gold);
         }
 
         public static void ClosePlay(int bag, bool icon)
