@@ -240,6 +240,23 @@ def skin_mesh(body, arm_ob):
     print("skin groups", [g.name for g in body.vertex_groups])
 
 
+def finish_rig(arm_ob, body):
+    """Bone roll so local X is a swing axis. Outward normals so URP Lit does not show the inside."""
+    bpy.context.view_layer.objects.active = arm_ob
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.armature.select_all(action="SELECT")
+    try:
+        bpy.ops.armature.calculate_roll(type="GLOBAL_POS_Z")
+    except Exception as ex:
+        print("roll skip", ex)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+
+
 def rigid_parent(body, arm_ob):
     """Mesh follows the actor root. No limb weights."""
     for mod in list(body.modifiers):
@@ -393,6 +410,7 @@ def main():
     faces = decimate(body, args.faces)
     print("faces after decimate", faces, "verts", len(body.data.vertices))
     arm = fit_armature(body)
+    finish_rig(arm, body)
     if args.bind == "rigid":
         rigid_parent(body, arm)
     else:
