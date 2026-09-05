@@ -196,6 +196,10 @@ namespace GrandSluggers.UnityClient
                 DrawBagDiagrams(scheme, p);
             else if (p.Id == "screen")
                 DrawHudCallouts(p);
+            else if (p.Id == "chemistry")
+                DrawChemBook(p);
+            else if (p.Id == "abilities")
+                DrawAbilityBook(scheme, p);
             else
             {
                 var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
@@ -421,6 +425,77 @@ namespace GrandSluggers.UnityClient
             GUI.color = color;
             GUI.Label(new Rect(mid.x - 14, mid.y - 14, 28, 28), arrow, _h1);
             GUI.color = prev;
+        }
+
+        static void DrawChemBook(HowToPlay.Page page)
+        {
+            for (var i = 0; i < ChemBook.ChemistryPairs.Count; i++)
+            {
+                var pair = ChemBook.ChemistryPairs[i];
+                var cell = ChemBook.ChemCell(i, Screen.width, Screen.height);
+                var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
+                GUI.DrawTexture(r, _dotOff);
+                GUI.Label(new Rect(r.x + 10, r.y + 8, r.width - 48, 24), pair.Title.ToUpperInvariant(), _gold);
+                ChemPip(r.x + r.width - 34, r.y + 12, pair.Chem);
+                var still = new Rect(r.x + 10, r.y + 40, r.width - 20, r.height - 88);
+                var tex = BookPic(pair.Picture);
+                GUI.DrawTexture(still, _panel);
+                if (tex != null)
+                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
+                var prev = GUI.color;
+                GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
+                GUI.DrawTexture(new Rect(r.x + 10, r.y + r.height - 40, r.width - 20, 30), _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(r.x + 16, r.y + r.height - 36, r.width - 32, 22), pair.Caption, _tiny);
+            }
+            DrawBookLines(page, ChemBook.LineBand(Screen.width, Screen.height));
+        }
+
+        static void DrawAbilityBook(InputScheme scheme, HowToPlay.Page page)
+        {
+            var stillCell = ChemBook.AbilityStill(Screen.width, Screen.height);
+            var tableCell = ChemBook.TypeTable(Screen.width, Screen.height);
+            var still = new Rect(stillCell.X, stillCell.Y, stillCell.W, stillCell.H);
+            GUI.DrawTexture(still, _dotOff);
+            var tex = BookPic(ChemBook.AbilityPicture);
+            if (tex != null)
+                GUI.DrawTexture(new Rect(still.x + 8, still.y + 36, still.width - 16, still.height - 48), tex, ScaleMode.ScaleToFit);
+            GUI.Label(new Rect(still.x + 10, still.y + 8, still.width - 20, 24), "THE CARD", _gold);
+            for (var i = 0; i < ChemBook.CardStats.Count; i++)
+            {
+                var y = still.y + 44 + i * 26;
+                var prev = GUI.color;
+                GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
+                GUI.DrawTexture(new Rect(still.x + 10, y, 72, 22), _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(still.x + 16, y + 2, 64, 18), ChemBook.CardStats[i], _tiny);
+            }
+            var table = new Rect(tableCell.X, tableCell.Y, tableCell.W, tableCell.H);
+            GUI.DrawTexture(table, _dotOff);
+            GUI.Label(new Rect(table.x + 10, table.y + 8, table.width - 20, 24), "SPECIAL ABILITY TYPES", _gold);
+            var rowH = (table.height - 44) / ChemBook.Types.Count;
+            for (var i = 0; i < ChemBook.Types.Count; i++)
+            {
+                var row = ChemBook.Types[i];
+                var y = table.y + 40 + i * rowH;
+                var head = new Rect(table.x + 10, y, table.width - 20, 24);
+                var prev = GUI.color;
+                GUI.color = new Color(0.22f, 0.62f, 0.32f, 1f);
+                GUI.DrawTexture(head, _white);
+                GUI.color = prev;
+                GUI.Label(new Rect(head.x + 8, head.y + 2, head.width - 16, 20), row.Title, _h1);
+                GUI.Label(new Rect(table.x + 18, y + 28, table.width - 36, rowH - 32), row.Line, _tiny);
+            }
+            DrawBookLines(page, ChemBook.LineBand(Screen.width, Screen.height));
+            _ = scheme;
+        }
+
+        static void DrawBookLines(HowToPlay.Page page, (float X, float Y, float W, float H) band)
+        {
+            var lines = page.Shown(BookScheme.Current);
+            var lineH = HowToPlay.KidLineH * 0.72f;
+            for (var i = 0; i < lines.Count; i++)
+                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
         }
 
         static void DrawHudCallouts(HowToPlay.Page page)
