@@ -14,8 +14,8 @@ namespace GrandSluggers.UnityClient
     {
         static readonly string[] EventIds =
         {
-            "heatball", "charmball", "prismball", "phonyball", "caskball", "skullball",
-            "heat-swing", "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace",
+            "heatball", "charmball", "prismball", "phonyball", "caskball", "skullball", "fogball",
+            "heat-swing", "heart-swing", "shell-swing", "phony-swing", "cask-swing", "furnace", "staff-swing",
             "buddy-flash", "throw-trail-good", "throw-trail-bad"
         };
 
@@ -50,6 +50,10 @@ namespace GrandSluggers.UnityClient
         Transform _heartShell;
         Transform _prismCore;
         Transform _prismShell;
+        Transform _fogCore;
+        Transform _fogShell;
+        readonly Transform[] _fogPuffs = new Transform[8];
+        readonly Transform[] _staffBits = new Transform[10];
         Transform _crack;
         readonly Transform[] _sparkles = new Transform[6];
         readonly Transform[] _furnaceRim = new Transform[8];
@@ -93,6 +97,7 @@ namespace GrandSluggers.UnityClient
             var wood = Look.Lit(new Color(0.4f, 0.22f, 0.1f), smooth: 0.1f);
             FillFrags(_bits, Group("cask-swing"), wood);
             FillShell(_shellBits, Group("shell-swing"));
+            FillFrags(_staffBits, Group("staff-swing"), wood);
 
             var fire = Look.Unlit(Colors.EmberFire);
             FillEmbers(_embers, Group("heatball"), fire);
@@ -121,6 +126,15 @@ namespace GrandSluggers.UnityClient
                 Vector3.one * 0.86f, Look.Unlit(new Color(0.92f, 0.98f, 1f))).transform;
             _prismShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("prismball"), Vector3.zero,
                 Vector3.one * 1.28f, Look.Unlit(new Color(0.55f, 1f, 0.85f, 0.45f))).transform;
+            var moss = Look.Unlit(new Color(0.42f, 0.72f, 0.52f));
+            var mist = Look.Unlit(new Color(0.72f, 0.88f, 0.78f, 0.45f));
+            _fogCore = Look.Prim(PrimitiveType.Sphere, "Core", Group("fogball"), Vector3.zero,
+                Vector3.one * 0.95f, moss).transform;
+            _fogShell = Look.Prim(PrimitiveType.Sphere, "Shell", Group("fogball"), Vector3.zero,
+                Vector3.one * 1.55f, mist).transform;
+            for (var i = 0; i < _fogPuffs.Length; i++)
+                _fogPuffs[i] = Look.Prim(PrimitiveType.Sphere, "Puff" + i, Group("fogball"), Vector3.zero,
+                    Vector3.one * 0.55f, mist).transform;
 
             for (var i = 0; i < _prism.Length; i++)
                 _prism[i] = Ballish(Group("prismball"), "Prism" + i, Color.HSVToRGB(i / 3f, 0.75f, 1f), 1.25f);
@@ -191,12 +205,14 @@ namespace GrandSluggers.UnityClient
             Show("phonyball", pitchOn && IdIs(_pitchId, "phonyball"));
             Show("caskball", pitchOn && IdIs(_pitchId, "caskball"));
             Show("skullball", pitchOn && IdIs(_pitchId, "skullball"));
+            Show("fogball", pitchOn && IdIs(_pitchId, "fogball"));
             Show("heat-swing", swingOn && IdIs(_swingId, "heat-swing"));
             Show("heart-swing", swingOn && IdIs(_swingId, "heart-swing"));
             Show("shell-swing", swingOn && IdIs(_swingId, "shell-swing"));
             Show("phony-swing", swingOn && IdIs(_swingId, "phony-swing"));
             Show("cask-swing", showFrags || swingOn && IdIs(_swingId, "cask-swing"));
             Show("furnace", swingOn && IdIs(_swingId, "furnace"));
+            Show("staff-swing", swingOn && IdIs(_swingId, "staff-swing"));
 
             PlaceDecoy(_decoy, pitchOn && IdIs(_pitchId, "phonyball"), ball, dt);
             PlaceDecoy(_swingDecoy, swingOn && IdIs(_swingId, "phony-swing"), ball, dt);
@@ -206,6 +222,7 @@ namespace GrandSluggers.UnityClient
             Embers(_embers, pitchOn && IdIs(_pitchId, "heatball"), ball, true);
             HeatCore(pitchOn && IdIs(_pitchId, "heatball"), ball);
             CharmCore(pitchOn && IdIs(_pitchId, "charmball"), ball);
+            FogCore(pitchOn && IdIs(_pitchId, "fogball"), ball);
             HeartCore(swingOn && IdIs(_swingId, "heart-swing"), body);
             Sparkles(_sparkles, pitchOn && IdIs(_pitchId, "charmball"), ball);
             var heatSwing = swingOn && IdIs(_swingId, "heat-swing");
@@ -217,6 +234,7 @@ namespace GrandSluggers.UnityClient
             Hearts(_swingHearts, swingOn && IdIs(_swingId, "heart-swing"), body);
             Fragments(_bits, showFrags || swingOn && IdIs(_swingId, "cask-swing"), body);
             Fragments(_shellBits, swingOn && IdIs(_swingId, "shell-swing"), body);
+            Fragments(_staffBits, swingOn && IdIs(_swingId, "staff-swing"), body);
             Burn(_heatBurn, showBurn, body);
             Burn(_burn, showBurn || swingOn && IdIs(_swingId, "furnace"), body);
             FurnaceRim(swingOn && IdIs(_swingId, "furnace"), body);
@@ -391,6 +409,22 @@ namespace GrandSluggers.UnityClient
         }
 
         void CharmCore(bool on, Vector3 p) => PulseCore(_charmCore, _charmShell, on, p, 12f, 7f);
+
+        void FogCore(bool on, Vector3 p)
+        {
+            PulseCore(_fogCore, _fogShell, on, p, 8f, 5f);
+            for (var i = 0; i < _fogPuffs.Length; i++)
+            {
+                if (_fogPuffs[i] == null) continue;
+                _fogPuffs[i].gameObject.SetActive(on);
+                if (!on) continue;
+                var a = i * 0.85f + _t * 1.6f;
+                var r = 0.55f + (i % 4) * 0.28f;
+                var y = (i * 0.22f + _t * 1.4f) % 1.6f;
+                _fogPuffs[i].position = p + new Vector3(Mathf.Cos(a) * r, y, Mathf.Sin(a) * r);
+                _fogPuffs[i].localScale = Vector3.one * (0.45f + 0.22f * Mathf.Abs(Mathf.Sin(_t * 4f + i)));
+            }
+        }
 
         void HeartCore(bool on, Vector3 p) => PulseCore(_heartCore, _heartShell, on, p, 12f, 7f);
 

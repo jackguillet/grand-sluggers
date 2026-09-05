@@ -13,6 +13,7 @@
     { "id": "vo-brondo", "slot": "Assets/Art/Audio/vo-brondo", "bus": "vo" },
     { "id": "vo-konga", "slot": "Assets/Art/Audio/vo-konga", "bus": "vo" },
     { "id": "vo-ashlord", "slot": "Assets/Art/Audio/vo-ashlord", "bus": "vo" },
+    { "id": "vo-fenn", "slot": "Assets/Art/Audio/vo-fenn", "bus": "vo" },
     { "id": "banana", "slot": "Assets/Art/Audio/banana", "bus": "sfx" },
     { "id": "rocket", "slot": "Assets/Art/Audio/rocket", "bus": "sfx" },
     { "id": "pow", "slot": "Assets/Art/Audio/pow", "bus": "sfx" }

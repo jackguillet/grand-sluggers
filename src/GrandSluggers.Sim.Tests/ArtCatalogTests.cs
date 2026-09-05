@@ -181,7 +181,8 @@ public class ArtCatalogTests
         {
             "brim", "cheeks", "sneakers", "sash", "crown", "neck",
             "goggles", "cube-chest", "brick-jaw", "snout", "belly",
-            "horns", "cape", "ember-eyes"
+            "horns", "cape", "ember-eyes",
+            "shell", "staff"
         };
         foreach (var id in Silhouette.Captains)
         {
@@ -194,6 +195,11 @@ public class ArtCatalogTests
             "Assets/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(extrasFbx), extrasFbx);
         Assert.True(new FileInfo(extrasFbx).Length > 10_000, "extras.fbx is empty");
+        var fennFbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Art/Characters/fenn/fenn.fbx".Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(fennFbx), fennFbx);
+        Assert.True(new FileInfo(fennFbx).Length > 10_000, "fenn.fbx is empty");
+        Assert.False(string.IsNullOrWhiteSpace(_content.Art.SkinOf(_content.Must("fenn")).Mesh));
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
@@ -221,6 +227,9 @@ public class ArtCatalogTests
         Assert.True(ashlord.Height > konga.Height && ashlord.Height > vale.Height, "ashlord is the slug");
         Assert.True(konga.Arms > ashlord.Arms && konga.Arms > rio.Arms, "konga has the ape arms");
         Assert.True(Math.Abs(brondo.Height - rio.Height) < 0.12f, "brondo is rio-height, not a giant");
+        var fenn = Silhouette.Proportions("fenn");
+        Assert.True(fenn.Height < rio.Height && fenn.Height > zig.Height, "fenn is a short turtle, not the baby");
+        Assert.True(fenn.Width > rio.Width && fenn.Head > rio.Head, "fenn shell reads as the brim");
     }
 
     [Fact]

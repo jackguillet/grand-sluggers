@@ -150,9 +150,9 @@ public class AtBatTests
     }
 
     [Fact]
-    public void RosterHasSixCaptains()
+    public void RosterHasTheCaptains()
     {
-        Assert.Equal(6, _content.Characters.Values.Count(c => c.Captain));
+        Assert.Equal(Silhouette.Captains.Length, _content.Characters.Values.Count(c => c.Captain));
         Assert.True(_content.Characters.Count >= 16);
     }
 

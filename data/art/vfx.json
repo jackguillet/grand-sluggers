@@ -12,6 +12,8 @@
     { "id": "phony-swing", "slot": "Assets/Art/VFX/phony-swing", "kind": "field" },
     { "id": "cask-swing", "slot": "Assets/Art/VFX/cask-swing", "kind": "field" },
     { "id": "furnace", "slot": "Assets/Art/VFX/furnace", "kind": "field" },
+    { "id": "fogball", "slot": "Assets/Art/VFX/fogball", "kind": "ball" },
+    { "id": "staff-swing", "slot": "Assets/Art/VFX/staff-swing", "kind": "field" },
     { "id": "puff", "slot": "Assets/Art/VFX/puff", "kind": "contact" },
     { "id": "fireworks", "slot": "Assets/Art/VFX/fireworks", "kind": "park" },
     { "id": "buddy-flash", "slot": "Assets/Art/VFX/buddy-flash", "kind": "field" },

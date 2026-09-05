@@ -17,6 +17,8 @@ namespace GrandSluggers.UnityClient
         public static readonly Color Carnival = Hex(0x28AA5A);
         public static readonly Color Goldrush = Hex(0xE8BC28);
         public static readonly Color Canopy = Hex(0x784E2A);
+        public static readonly Color Fen = Hex(0x5B8F62);
+        public static readonly Color FenCream = Hex(0xE8DCC0);
         public static readonly Color Skin = Hex(0xF2C9A4);
         public static readonly Color SkinShadow = new Color(0.35f, 0.3f, 0.36f);
         public static readonly Color Gold = Hex(0xFFCC40);
@@ -35,6 +37,7 @@ namespace GrandSluggers.UnityClient
                 case "goldrush": return Goldrush;
                 case "canopy": return Canopy;
                 case "ember": return Ember;
+                case "fen": return Fen;
                 default: return new Color(0.47f, 0.47f, 0.5f);
             }
         }
@@ -49,6 +52,7 @@ namespace GrandSluggers.UnityClient
                 case "goldrush": return EmberFire;
                 case "canopy": return new Color(0.31f, 0.63f, 0.27f);
                 case "ember": return EmberFire;
+                case "fen": return FenCream;
                 default: return Gold;
             }
         }

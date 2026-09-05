@@ -43,6 +43,15 @@ Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-c
   --out unity/Assets/Art/Animation/Clips/scoop.fbx
 ```
 
+Elder Fenn unique mesh on the shared chain (no second skeleton). Source GLB is not in-repo:
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
+  --src /path/to/elder-game.glb \
+  --out unity/Assets/Art/Characters/fenn/fenn.fbx \
+  --portrait unity/Assets/Resources/Art/fenn-hero.jpg
+```
+
 Harbor kit (dugout, wall panel, crowd). Missing file keeps HarborKit primitives:
 
 ```bash

@@ -8,7 +8,7 @@ public static class Silhouette
 {
     public readonly record struct Spec(float Height, float Width, float Head, float Arms, float Torso);
 
-    public static readonly string[] Captains = ["rio", "vale", "zig", "brondo", "konga", "ashlord"];
+    public static readonly string[] Captains = ["rio", "vale", "zig", "brondo", "konga", "ashlord", "fenn"];
 
     /// <summary>SMS toys sit bigger than an honest diamond. Applied on the shared chain root.</summary>
     public const float ToyScale = 1.18f;
@@ -25,6 +25,7 @@ public static class Silhouette
             "goldrush" => "brondo",
             "canopy" => "konga",
             "ember" => "ashlord",
+            "fen" => "fenn",
             _ => "rio"
         };
     }
@@ -42,6 +43,7 @@ public static class Silhouette
         "brondo" => new(0.96f, 1.58f, 1.16f, 1.28f, 1.48f),
         "konga" => new(1.30f, 1.36f, 1.34f, 1.72f, 1.20f),
         "ashlord" => new(1.44f, 1.28f, 1.48f, 1.18f, 1.38f),
+        "fenn" => new(0.78f, 1.48f, 1.70f, 0.96f, 1.12f),
         _ => new(0.90f, 1.00f, 1.38f, 1.02f, 0.94f)
     };
 
