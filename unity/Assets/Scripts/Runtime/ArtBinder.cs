@@ -62,12 +62,47 @@ namespace GrandSluggers.UnityClient
             if (!_art.Skins.TryGetValue(id, out var skin) || string.IsNullOrWhiteSpace(skin.Mesh))
                 return null;
             var slot = skin.Mesh;
-            var key = SlotToResources(slot);
-            if (key.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
-                key = key.Substring(0, key.Length - 4);
-            var go = Resources.Load<GameObject>(key);
-            if (go != null) return go;
-            return EditorLoadPrefab != null ? EditorLoadPrefab(slot) : null;
+            foreach (var key in BodyResourceKeys(id, slot))
+            {
+                var go = Resources.Load<GameObject>(key);
+                if (go != null) return go;
+            }
+            if (EditorLoadPrefab == null) return null;
+            foreach (var path in BodyEditorPaths(id, slot))
+            {
+                var go = EditorLoadPrefab(path);
+                if (go != null) return go;
+            }
+            return null;
+        }
+
+        static string[] BodyResourceKeys(string id, string slot)
+        {
+            var trimmed = SlotToResources(slot ?? "");
+            if (trimmed.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring(0, trimmed.Length - 4);
+            if (trimmed.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
+                trimmed = trimmed.Substring("Resources/".Length);
+            return new[]
+            {
+                trimmed,
+                "Art/Characters/" + id + "/" + id,
+                "Art/" + id
+            };
+        }
+
+        static string[] BodyEditorPaths(string id, string slot)
+        {
+            var a = string.IsNullOrWhiteSpace(slot) ? "" : slot;
+            if (a.Length > 0 && !a.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
+                && !a.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
+                a = "Assets/" + a;
+            return new[]
+            {
+                a,
+                "Assets/Resources/Art/Characters/" + id + "/" + id + ".fbx",
+                "Assets/Art/Characters/" + id + "/" + id + ".fbx"
+            };
         }
 
         /// <summary>Catalog FBX if the slot has a Unity file; null keeps SharedRig primitives.</summary>
