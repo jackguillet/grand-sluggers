@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Elder Fenn drop — wrapper around drop_character.py (rigid GLB on shared sockets)."""
+"""Elder Fenn drop — wrapper around drop_character.py (segmented character package)."""
 from __future__ import annotations
 
 import runpy

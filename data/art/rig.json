@@ -1,7 +1,7 @@
 {
   "id": "hero-shared",
   "slot": "Assets/Art/Characters/SharedRig/hero-shared.fbx",
-  "notes": "One chain. Captains are skins. Do not add a second skeleton.",
+  "notes": "Named sockets. Unique captains are packages with this bone list; Rio six stay on this chain.",
   "bones": [
     "root",
     "torso",

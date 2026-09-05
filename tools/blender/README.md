@@ -10,7 +10,7 @@ Meshes are vertex-group skinned (Unity SkinnedMeshRenderer), not bone-parented.
 
 Unity import: Generic rig (not Humanoid). Root at origin, faces −Z.
 `Silhouette.ToyScale` (1.18) is applied in Play — do not scale the FBX again.
-Captains stay extras on this chain. Do not add a second skeleton.
+Rio six stay extras on this chain. Unique captains are packages (`docs/character-package.md`).
 Missing FBX keeps `SharedRig` primitives.
 
 Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
@@ -43,19 +43,19 @@ Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-c
   --out unity/Assets/Art/Animation/Clips/scoop.fbx
 ```
 
-Character GLB drop (rigid visual on shared sockets). Source is not in-repo:
+Unique character package (posed GLB/FBX → segmented pieces on named sockets). Source is not in-repo:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-  --src /path/to/hero.glb --id fenn \
+  --src /path/to/hero.glb --id fenn --bind segmented \
   --out unity/Assets/Art/Characters/fenn/fenn.fbx \
   --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Writes `{id}-albedo.png` (1024) next to the FBX. Default `--bind skinned` fits bones *inside this mesh* so limbs move. `--bind rigid` is a statue.
+Writes `{id}-albedo.png` (1024) next to the FBX. Default `--bind segmented` splits the mesh so limbs rotate without shredding. `--bind skinned --keep-weights` is the painted-weight quality path. `--bind rigid` is a statue.
 
-Runtime assigns URP Lit from the sidecar albedo.
+Runtime assigns URP Lit from the sidecar albedo. Spec: `docs/character-package.md`.
 
 Elder Fenn (wrapper):
 

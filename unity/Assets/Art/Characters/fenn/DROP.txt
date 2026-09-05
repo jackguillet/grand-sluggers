@@ -1,8 +1,10 @@
-Elder Fenn. GLB drop, rigid visual on shared sockets.
+Elder Fenn. Unique character package (segmented).
 
-  fenn.fbx
-  fenn-albedo.png   1024 base color (URP Lit). Required for paint.
+  fenn.fbx            rigid pieces parented to named sockets
+  fenn-albedo.png     1024 base color (URP Lit). Required for paint.
   Resources/Art/Characters/fenn/   player copies (fbx + albedo)
 
-bind=skinned in skins.json. Bones are fitted inside this mesh. Sidecar albedo.
+bind=segmented in skins.json. Limbs rotate; the shell does not deform.
 Missing file keeps SharedRig primitives.
+Spec: docs/character-package.md
+

@@ -219,7 +219,7 @@ namespace GrandSluggers.UnityClient
             _hunchDeg = chain.HunchDeg;
             _bind = chain.Bind;
             _packageBody = ArtBinder.Art != null
-                && string.Equals(ArtBinder.SkinOf(who).Bind, "skinned", System.StringComparison.OrdinalIgnoreCase)
+                && CharacterPackage.IsUnique(ArtBinder.SkinOf(who).Bind)
                 && ArtBinder.LoadBodyPrefab(who.Id) != null;
             _meshStaff = false;
             for (var i = 0; i < extras.Count; i++)
@@ -372,15 +372,20 @@ namespace GrandSluggers.UnityClient
                 if (pose is Pose.ChargeSwing or Pose.Swing or Pose.Slide) gloveOn = false;
                 MoveBones.Sample sample;
                 var clipId = ClipId(verb);
-                // SET holds the windup on the pitch take. Charge loads the kick; it does not throw.
-                MoveBones.Sample authored;
-                var authoredPose = pose == Pose.ChargePitch
-                    ? TryAuthoredAt("pitch", (1f - _charge) * 0.12f, out authored)
-                    : TryAuthored(clipId, out authored);
-                if (authoredPose)
-                    sample = authored;
-                else if (_packageBody)
+                // Unique packages never play Rio's authored takes or clip FBX.
+                // CharacterMotion flexes THIS rest pose in bone-local space.
+                MoveBones.Sample authored = default;
+                var authoredPose = false;
+                if (!_packageBody)
+                {
+                    authoredPose = pose == Pose.ChargePitch
+                        ? TryAuthoredAt("pitch", (1f - _charge) * 0.12f, out authored)
+                        : TryAuthored(clipId, out authored);
+                }
+                if (_packageBody)
                     sample = CharacterMotion.Evaluate(verb, _t, _poseT, _charge);
+                else if (authoredPose)
+                    sample = authored;
                 else
                     sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
@@ -393,7 +398,7 @@ namespace GrandSluggers.UnityClient
                     clipT = _t;
                 // Authored eulers are offsets on the bind pose (Q(e)*bind).
                 // SampleAnimation replaces bind and laid the scoop mesh on its side.
-                var playedDrop = !authoredPose && TrySampleDrop(clipId, clipT);
+                var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
                 if (!playedDrop)
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
