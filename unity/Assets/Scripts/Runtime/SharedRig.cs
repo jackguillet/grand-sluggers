@@ -271,23 +271,17 @@ namespace GrandSluggers.UnityClient
 
             var chain = new Chain();
             chain.Root = go.transform;
-            chain.Torso = FindDeep(go.transform, "torso");
-            chain.Head = FindDeep(go.transform, "head");
-            chain.LUpper = FindDeep(go.transform, "lUpper");
-            chain.LFore = FindDeep(go.transform, "lFore");
-            chain.RUpper = FindDeep(go.transform, "rUpper");
-            chain.RFore = FindDeep(go.transform, "rFore");
-            chain.LThigh = FindDeep(go.transform, "lThigh");
-            chain.LShin = FindDeep(go.transform, "lShin");
-            chain.RThigh = FindDeep(go.transform, "rThigh");
-            chain.RShin = FindDeep(go.transform, "rShin");
-            if (chain.Torso == null || chain.Head == null || chain.LUpper == null || chain.LFore == null
-                || chain.RUpper == null || chain.RFore == null || chain.LThigh == null || chain.LShin == null
-                || chain.RThigh == null || chain.RShin == null)
-            {
-                UnityEngine.Object.Destroy(go);
-                return null;
-            }
+            // Keep the authored mesh even if Unity hid a bone — primitives are not the toy.
+            chain.Torso = FindBone(go.transform, "torso") ?? go.transform;
+            chain.Head = FindBone(go.transform, "head") ?? chain.Torso;
+            chain.LUpper = FindBone(go.transform, "lUpper") ?? chain.Torso;
+            chain.LFore = FindBone(go.transform, "lFore") ?? chain.LUpper;
+            chain.RUpper = FindBone(go.transform, "rUpper") ?? chain.Torso;
+            chain.RFore = FindBone(go.transform, "rFore") ?? chain.RUpper;
+            chain.LThigh = FindBone(go.transform, "lThigh") ?? go.transform;
+            chain.LShin = FindBone(go.transform, "lShin") ?? chain.LThigh;
+            chain.RThigh = FindBone(go.transform, "rThigh") ?? go.transform;
+            chain.RShin = FindBone(go.transform, "rShin") ?? chain.RThigh;
 
             chain.BaseScale = Vector3.one * Silhouette.ToyScale;
             chain.Root.localScale = chain.BaseScale;
@@ -297,6 +291,26 @@ namespace GrandSluggers.UnityClient
             HideLookRays(go.transform);
             AttachRing(chain);
             return chain;
+        }
+
+        static Transform FindBone(Transform root, string name)
+        {
+            var hit = FindDeep(root, name);
+            if (hit != null) return hit;
+            return FindNameContains(root, name);
+        }
+
+        static Transform FindNameContains(Transform t, string name)
+        {
+            if (t.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0
+                && t.name.IndexOf("Mesh", StringComparison.OrdinalIgnoreCase) < 0)
+                return t;
+            for (var i = 0; i < t.childCount; i++)
+            {
+                var f = FindNameContains(t.GetChild(i), name);
+                if (f != null) return f;
+            }
+            return null;
         }
 
         static Chain TryBindDrop(
