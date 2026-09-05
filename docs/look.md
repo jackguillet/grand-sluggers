@@ -29,9 +29,9 @@ Six faction cuts plus Elder Fenn. One shared rig. Role players are palette + jer
 | **Brondo** | Brick | Cube torso, thick neck, square jaw |
 | **Konga** | Ape | Hunch, snout, long arms, barrel belly |
 | **Ashlord** | Villain slug | Tallest, horns, cape, furnace eyes, heavy boots |
-| **Elder Fenn** | Turtle elder | Short, wide shell-brim, cane, cream plastron — authored mesh on the shared chain |
+| **Elder Fenn** | Turtle elder | Short, wide shell-brim, cane, cream plastron — unique character package |
 
-Do not unique-sculpt a role player. Fenn is the Boo pattern: unique mesh, same bones. Numbers live in `Silhouette.cs`.
+Do not unique-sculpt a role player. Unique captains are packages (same bone names, own mesh). Numbers live in `Silhouette.cs`. Spec: `docs/character-package.md`.
 
 ## Cameras look at toys
 
@@ -47,4 +47,4 @@ Readable in a half-second: charge ring, dirt puff, heat trail, buddy flash, smas
 
 ## Pipeline
 
-One chain (`hero-shared`). Named clips. Skins and extras. Harbor kit for the diamond. Artists fill slots; code does not grow a switch. After a drop: `dotnet test` and `cli art` still print `OK`.
+Shared sockets (`hero-shared` names). Unique captains are packages. Named clips. Harbor kit for the diamond. Artists fill slots; code does not grow a switch. After a drop: `dotnet test` and `cli art` still print `OK`.

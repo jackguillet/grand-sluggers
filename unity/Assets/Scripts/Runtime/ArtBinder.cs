@@ -55,7 +55,7 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
-        /// <summary>Authored body mesh on the shared chain. Null keeps hero-shared / primitives.</summary>
+        /// <summary>Character package body. Null keeps hero-shared / primitives.</summary>
         public static GameObject LoadBodyPrefab(string id)
         {
             if (_art == null || string.IsNullOrWhiteSpace(id)) return null;

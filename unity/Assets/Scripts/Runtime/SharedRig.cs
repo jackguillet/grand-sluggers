@@ -6,9 +6,9 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// One body chain. Captains are extras on this topology. Cuts are
-    /// SMS-ladder outlines (kid / pageant / speed / brick / ape / slug / turtle),
-    /// not extra skeletons. Authored body FBX binds when the skin names a mesh;
+    /// One body chain. Captains on hero-shared are extras on this topology.
+    /// Unique anatomy is a character package (segmented pieces or painted skin)
+    /// with the same bone names. Authored body FBX binds when the skin names a mesh;
     /// otherwise hero-shared.fbx; otherwise primitives.
     /// </summary>
     public static class SharedRig
@@ -55,8 +55,7 @@ namespace GrandSluggers.UnityClient
             if (authored != null)
             {
                 var skin = ArtBinder.SkinOf(who);
-                var rigid = !string.Equals(skin.Bind, "skinned", StringComparison.OrdinalIgnoreCase);
-                var unique = TryBindAuthored(parent, authored, rigid, who.Id);
+                var unique = TryBindAuthored(parent, authored, skin.Bind, who.Id);
                 if (unique != null) return unique;
             }
 
@@ -259,11 +258,11 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// GLB/FBX drop on the shared sockets. Rigid bind (default) freezes skin so
-        /// MoveBones cannot tear a posed toy. Skinned bind keeps the SMR for meshes
-        /// authored on hero-shared. Never paint, never add a primitive face.
+        /// Unique character package on the named sockets. Segmented: rigid pieces
+        /// parented to bones (limbs move, shell cannot invert). Skinned: keep SMR
+        /// for painted weights. Rigid: statue. Never paint a primitive face on top.
         /// </summary>
-        static Chain TryBindAuthored(Transform parent, GameObject prefab, bool rigid, string id)
+        static Chain TryBindAuthored(Transform parent, GameObject prefab, string bind, string id)
         {
             var go = UnityEngine.Object.Instantiate(prefab, parent, false);
             go.name = "root";
@@ -271,9 +270,6 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.identity;
             foreach (var anim in go.GetComponentsInChildren<Animator>(true))
                 anim.enabled = false;
-            if (rigid)
-                FreezeSkin(go);
-            PaintAuthored(go, id);
 
             var chain = new Chain();
             chain.Root = go.transform;
@@ -288,14 +284,97 @@ namespace GrandSluggers.UnityClient
             chain.RThigh = FindBone(go.transform, "rThigh") ?? EnsureBone(go.transform, "rThigh", new Vector3(0.42f, 1.05f, 0));
             chain.RShin = FindBone(go.transform, "rShin") ?? EnsureBone(chain.RThigh, "rShin", new Vector3(0, -0.6f, 0));
 
+            if (CharacterPackage.IsSegmented(bind))
+                BindPieces(go, chain);
+            else if (!CharacterPackage.IsSkinned(bind))
+                FreezeSkin(go);
+            PaintAuthored(go, id);
+
             chain.BaseScale = Vector3.one * Silhouette.ToyScale;
             chain.Root.localScale = chain.BaseScale;
             chain.TorsoRest = chain.Torso.localPosition;
             chain.HunchDeg = 0f;
-            chain.Bind = rigid ? IdentityBind() : CaptureBind(chain);
+            chain.Bind = CaptureBind(chain);
             HideLookRays(go.transform);
             AttachRing(chain);
             return chain;
+        }
+
+        /// <summary>
+        /// Each named piece is a MeshRenderer parented to its socket. Heat-weighted
+        /// SMRs are converted so rotating a bone cannot invert a connected shell.
+        /// </summary>
+        static void BindPieces(GameObject go, Chain chain)
+        {
+            var renderers = go.GetComponentsInChildren<Renderer>(true);
+            for (var i = 0; i < renderers.Length; i++)
+            {
+                var r = renderers[i];
+                if (r is LineRenderer) continue;
+                var boneName = PieceBone(r.name);
+                var bone = BoneOf(chain, boneName) ?? FindBone(go.transform, boneName);
+                if (bone == null) bone = chain.Torso != null ? chain.Torso : go.transform;
+                var tf = r.transform;
+                if (r is SkinnedMeshRenderer smr)
+                    FreezeOne(smr);
+                if (tf == bone || IsAncestor(tf, bone))
+                    continue;
+                if (tf.parent != go.transform)
+                    tf.SetParent(go.transform, true);
+                tf.SetParent(bone, true);
+            }
+        }
+
+        static string PieceBone(string name)
+        {
+            for (var i = 0; i < CharacterPackage.Sockets.Count; i++)
+            {
+                var bone = CharacterPackage.Sockets[i];
+                if (name.IndexOf(bone, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return bone;
+            }
+            return "torso";
+        }
+
+        static Transform BoneOf(Chain c, string name)
+        {
+            if (name.Equals("torso", StringComparison.OrdinalIgnoreCase)) return c.Torso;
+            if (name.Equals("head", StringComparison.OrdinalIgnoreCase)) return c.Head;
+            if (name.Equals("lUpper", StringComparison.OrdinalIgnoreCase)) return c.LUpper;
+            if (name.Equals("lFore", StringComparison.OrdinalIgnoreCase)) return c.LFore;
+            if (name.Equals("rUpper", StringComparison.OrdinalIgnoreCase)) return c.RUpper;
+            if (name.Equals("rFore", StringComparison.OrdinalIgnoreCase)) return c.RFore;
+            if (name.Equals("lThigh", StringComparison.OrdinalIgnoreCase)) return c.LThigh;
+            if (name.Equals("lShin", StringComparison.OrdinalIgnoreCase)) return c.LShin;
+            if (name.Equals("rThigh", StringComparison.OrdinalIgnoreCase)) return c.RThigh;
+            if (name.Equals("rShin", StringComparison.OrdinalIgnoreCase)) return c.RShin;
+            return null;
+        }
+
+        static bool IsAncestor(Transform maybeParent, Transform child)
+        {
+            var t = child;
+            while (t != null)
+            {
+                if (t == maybeParent) return true;
+                t = t.parent;
+            }
+            return false;
+        }
+
+        static void FreezeOne(SkinnedMeshRenderer smr)
+        {
+            var mesh = smr.sharedMesh;
+            var mats = smr.sharedMaterials;
+            var holder = smr.gameObject;
+            UnityEngine.Object.DestroyImmediate(smr);
+            if (mesh == null) return;
+            var filter = holder.GetComponent<MeshFilter>();
+            if (filter == null) filter = holder.AddComponent<MeshFilter>();
+            filter.sharedMesh = mesh;
+            var rend = holder.GetComponent<MeshRenderer>();
+            if (rend == null) rend = holder.AddComponent<MeshRenderer>();
+            rend.sharedMaterials = mats;
         }
 
         /// <summary>
@@ -352,14 +431,37 @@ namespace GrandSluggers.UnityClient
 
         static Transform FindBone(Transform root, string name)
         {
-            var hit = FindDeep(root, name);
-            if (hit != null) return hit;
+            Transform bone = null;
+            Transform meshed = null;
+            FindExact(root, name, ref bone, ref meshed);
+            if (bone != null) return bone;
+            if (meshed != null) return meshed;
             return FindNameContains(root, name);
         }
 
+        static void FindExact(Transform t, string name, ref Transform bone, ref Transform meshed)
+        {
+            if (t.name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!HasMesh(t))
+                {
+                    if (bone == null) bone = t;
+                }
+                else if (meshed == null) meshed = t;
+            }
+            for (var i = 0; i < t.childCount; i++)
+                FindExact(t.GetChild(i), name, ref bone, ref meshed);
+        }
+
+        static bool HasMesh(Transform t) =>
+            t.GetComponent<MeshFilter>() != null
+            || t.GetComponent<MeshRenderer>() != null
+            || t.GetComponent<SkinnedMeshRenderer>() != null;
+
         static Transform FindNameContains(Transform t, string name)
         {
-            if (t.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0
+            if (!HasMesh(t)
+                && t.name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0
                 && t.name.IndexOf("Mesh", StringComparison.OrdinalIgnoreCase) < 0)
                 return t;
             for (var i = 0; i < t.childCount; i++)

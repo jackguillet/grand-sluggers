@@ -1,10 +1,10 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Limb motion for a unique skinned drop. Eulers are <b>local flexion</b> on
-/// the bone (X = swing along the authored rest pose), then applied as
-/// bind * Q(e). MoveBones humanoid eulers assume Rio's bone axes; Q(e)*bind
-/// folds a turtle through itself. Authored clips on this rig still win.
+/// Limb motion for a unique character package. Eulers are <b>local flexion</b>
+/// on the bone (X = swing along the authored rest pose), then applied as
+/// bind * Q(e). Shared MoveBones / clip FBX assume Rio's axes and must not
+/// drive a unique rest pose. Authored clips on THIS armature still win.
 /// </summary>
 public static class CharacterMotion
 {
