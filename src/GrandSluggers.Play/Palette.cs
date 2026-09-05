@@ -22,6 +22,8 @@ public static class Palette
     public static readonly Color Carnival = C(40, 170, 90);
     public static readonly Color Goldrush = C(232, 188, 40);
     public static readonly Color Canopy = C(120, 78, 42);
+    public static readonly Color Fen = C(91, 143, 98);
+    public static readonly Color FenCream = C(232, 220, 192);
 
     public static Color Body(string faction) => faction switch
     {
@@ -31,6 +33,7 @@ public static class Palette
         "goldrush" => Goldrush,
         "canopy" => Canopy,
         "ember" => Ember,
+        "fen" => Fen,
         _ => C(120, 120, 128)
     };
 
@@ -42,6 +45,7 @@ public static class Palette
         "goldrush" => C(255, 120, 40),
         "canopy" => C(80, 160, 70),
         "ember" => EmberFire,
+        "fen" => FenCream,
         _ => Gold
     };
 

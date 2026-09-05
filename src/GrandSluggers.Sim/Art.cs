@@ -7,7 +7,8 @@ public readonly record struct ClipSlot(
     double ContactAt, double ReleaseAt, double FootPlantAt, bool Authored);
 
 public readonly record struct SkinSlot(
-    string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
+    string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette,
+    string? Mesh = null);
 
 public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
 
@@ -57,7 +58,7 @@ public sealed class ArtCatalog
     public SkinSlot SkinOf(Character who)
     {
         if (Skins.TryGetValue(who.Id, out var skin)) return skin;
-        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction);
+        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction, null);
     }
 
     public bool TryClip(string id, out ClipSlot clip)
@@ -216,7 +217,7 @@ public sealed class ArtCatalog
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
         foreach (var s in skinDto.Skins ?? [])
-            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette);
+            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette, s.Mesh);
 
         var vfx = (Read<EventsFile>(Path.Combine(art, "vfx.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
@@ -269,6 +270,7 @@ public sealed class ArtCatalog
         public List<string>? Extras { get; set; }
         public string? Portrait { get; set; }
         public string Palette { get; set; } = "";
+        public string? Mesh { get; set; }
     }
 
     sealed class EventsFile { public List<EventDto>? Events { get; set; } }

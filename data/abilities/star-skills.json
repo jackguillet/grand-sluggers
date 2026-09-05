@@ -48,6 +48,14 @@
       "staminaCost": 22,
       "batterWindowMul": 0.8
     },
+    "fogball": {
+      "id": "fogball",
+      "name": "Fogball",
+      "kind": "status",
+      "speedMul": 0.82,
+      "staminaCost": 16,
+      "batterWindowMul": 0.78
+    },
     "fastball": { "id": "fastball", "name": "Star Fastball", "kind": "generic", "speedMul": 1.25, "staminaCost": 10 },
     "changeup": { "id": "changeup", "name": "Star Change", "kind": "generic", "speedMul": 0.7, "staminaCost": 8 },
     "breaker": { "id": "breaker", "name": "Star Breaker", "kind": "generic", "speedMul": 0.85, "staminaCost": 10, "lateBreak": true }
@@ -59,6 +67,7 @@
     "phony-swing": { "id": "phony-swing", "name": "Phony Swing", "kind": "decoy", "exitVeloMul": 1.1, "decoy": true },
     "cask-swing": { "id": "cask-swing", "name": "Cask Swing", "kind": "payload", "exitVeloMul": 1.2, "fragments": true },
     "furnace": { "id": "furnace", "name": "Furnace", "kind": "terrain", "exitVeloMul": 1.25, "terrain": "warning-lava" },
+    "staff-swing": { "id": "staff-swing", "name": "Staff Swing", "kind": "bounce", "exitVeloMul": 1.08, "infieldChaos": true },
     "ground": { "id": "ground", "name": "Star Grounder", "kind": "generic", "launchDeg": 8, "exitVeloMul": 1.2 },
     "fly": { "id": "fly", "name": "Star Fly", "kind": "generic", "launchDeg": 38, "exitVeloMul": 1.2 },
     "line": { "id": "line", "name": "Star Line", "kind": "generic", "launchDeg": 18, "exitVeloMul": 1.25 }

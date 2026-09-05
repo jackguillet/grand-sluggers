@@ -32,12 +32,13 @@ Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso
 | Brick | Brondo, Goldrush | 0.96 | 1.58 | 1.16 | 1.28 | 1.48 | Rio-height, cube torso, thick neck, square jaw |
 | Ape | Konga, Canopy | 1.30 | 1.36 | 1.34 | 1.72 | 1.20 | Hunched, snout, longest arms, barrel belly |
 | Villain slug | Ashlord, Ember | 1.44 | 1.28 | 1.48 | 1.18 | 1.38 | Tallest, horns, cape, furnace eyes, heavy boots |
+| Turtle elder | Fenn, Fen | 0.78 | 1.48 | 1.70 | 0.96 | 1.12 | Short, wide shell-brim, cane, cream plastron |
 
 SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK < Bowser. Head/Height ≥ 1.0 so the face still reads.
 
 Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in `Silhouette.cs`.
 
-Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Do not invent a seventh anatomy.
+Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Role players do not get a new anatomy. Fenn is an authored mesh on the shared chain (SMS Boo), not a second skeleton.
 
 ## Role players
 
@@ -51,6 +52,7 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 - **Brondo** — cube chest, brick jaw
 - **Konga** — ape snout, hanging arms, belly
 - **Ashlord** — horns, short cape, unlit ember eyes
+- **Fenn** — shell-as-brim, walking cane, cream plastron. Authored mesh on `hero-shared` bones.
 
 ## Bats (shape, not a string)
 
@@ -64,6 +66,7 @@ Loadout mesh follows `BatItem.Visual`. Defaults:
 | Brondo | Gold Brick | `bat-brick` |
 | Konga | Barrel Bat | `bat-barrel` |
 | Ashlord | Furnace Club | `bat-furnace` |
+| Fenn | Fen Cane | `bat-staff` |
 
 `Match.CycleBat` swaps the sim item **and** the mesh. Charge Bat (`bat-gold`) is the shop stick.
 

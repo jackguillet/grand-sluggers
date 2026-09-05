@@ -6,9 +6,10 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// One body chain. Captains are extras on this topology. Six cuts are
-    /// SMS-ladder outlines (kid / pageant / speed / brick / ape / slug), not
-    /// six skeletons. hero-shared.fbx binds when present; otherwise primitives.
+    /// One body chain. Captains are extras on this topology. Cuts are
+    /// SMS-ladder outlines (kid / pageant / speed / brick / ape / slug / turtle),
+    /// not extra skeletons. Authored body FBX binds when the skin names a mesh;
+    /// otherwise hero-shared.fbx; otherwise primitives.
     /// </summary>
     public static class SharedRig
     {
@@ -49,6 +50,13 @@ namespace GrandSluggers.UnityClient
             var leather = Look.Lit(Color.Lerp(Colors.Body(faction), Color.black, 0.38f), smooth: 0.18f);
             var ink = Look.Lit(new Color(0.08f, 0.07f, 0.07f), smooth: 0.05f);
             var white = Look.Unlit(Color.white);
+
+            var authored = ArtBinder.LoadBodyPrefab(who.Id);
+            if (authored != null)
+            {
+                var unique = TryBindAuthored(parent, authored);
+                if (unique != null) return unique;
+            }
 
             var prefab = ArtBinder.LoadSharedRigPrefab();
             if (prefab != null)
@@ -246,6 +254,49 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Sphere, "Toe", shin, new Vector3(0, y - 0.02f, 0.22f + scale.z * 0.28f), new Vector3(scale.x * 0.85f, scale.y * 0.9f, scale.x * 0.7f), leather);
             if (fat)
                 Look.Prim(PrimitiveType.Cube, "Stripe", shin, new Vector3(0, y + 0.12f, 0.18f), new Vector3(scale.x * 0.55f, 0.12f, scale.z * 0.55f), trim);
+        }
+
+        /// <summary>
+        /// Unique mesh, shared bone names. Skip primitive face/hat/paint — the drop is the toy.
+        /// Scale is uniform toy scale; silhouette squash is for the shared blockout.
+        /// </summary>
+        static Chain TryBindAuthored(Transform parent, GameObject prefab)
+        {
+            var go = UnityEngine.Object.Instantiate(prefab, parent, false);
+            go.name = "root";
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            foreach (var anim in go.GetComponentsInChildren<Animator>(true))
+                anim.enabled = false;
+
+            var chain = new Chain();
+            chain.Root = go.transform;
+            chain.Torso = FindDeep(go.transform, "torso");
+            chain.Head = FindDeep(go.transform, "head");
+            chain.LUpper = FindDeep(go.transform, "lUpper");
+            chain.LFore = FindDeep(go.transform, "lFore");
+            chain.RUpper = FindDeep(go.transform, "rUpper");
+            chain.RFore = FindDeep(go.transform, "rFore");
+            chain.LThigh = FindDeep(go.transform, "lThigh");
+            chain.LShin = FindDeep(go.transform, "lShin");
+            chain.RThigh = FindDeep(go.transform, "rThigh");
+            chain.RShin = FindDeep(go.transform, "rShin");
+            if (chain.Torso == null || chain.Head == null || chain.LUpper == null || chain.LFore == null
+                || chain.RUpper == null || chain.RFore == null || chain.LThigh == null || chain.LShin == null
+                || chain.RThigh == null || chain.RShin == null)
+            {
+                UnityEngine.Object.Destroy(go);
+                return null;
+            }
+
+            chain.BaseScale = Vector3.one * Silhouette.ToyScale;
+            chain.Root.localScale = chain.BaseScale;
+            chain.TorsoRest = chain.Torso.localPosition;
+            chain.HunchDeg = 0f;
+            chain.Bind = CaptureBind(chain);
+            HideLookRays(go.transform);
+            AttachRing(chain);
+            return chain;
         }
 
         static Chain TryBindDrop(
