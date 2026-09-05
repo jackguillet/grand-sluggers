@@ -182,7 +182,7 @@ public static class HowToPlay
         new("running", "Running", "running",
         [
             "Hit it and you run. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
-            "LB all advance. RB all return. Both halt.",
+            "The pictures are the diamond. LB all advance. RB all return. Both halt.",
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
             "Close play: first South wins. Fly: hold, then tag up.",
@@ -190,7 +190,7 @@ public static class HowToPlay
         ],
         [
             "Hit it and you run. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
-            ", all advance. . all return. Both halt.",
+            "The pictures are the diamond. , all advance. . all return. / halts both.",
             "1 2 3 picks the highlighted selected runner. Z steal. No steal home.",
             "Don't move: the catcher still guns. Early throw    CAUGHT STEALING.",
             "Close play: first Space / left click wins. Fly: hold, then tag up.",
