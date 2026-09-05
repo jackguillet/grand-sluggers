@@ -205,6 +205,10 @@ public class ArtCatalogTests
         var fennSkin = _content.Art.SkinOf(_content.Must("fenn"));
         Assert.False(string.IsNullOrWhiteSpace(fennSkin.Mesh));
         Assert.Equal("rigid", fennSkin.Bind);
+        var albedo = Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Resources/Art/Characters/fenn/fenn-albedo.png".Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(albedo), albedo);
+        Assert.True(new FileInfo(albedo).Length > 10_000, "fenn-albedo.png empty");
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
