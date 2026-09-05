@@ -186,7 +186,9 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(book.X + 28, book.Y + 38, book.W - 380, 44),
                 p.Title.ToUpperInvariant() + "   " + (page + 1) + " / " + n, _bookHead);
             DrawSchemeToggle(scheme);
-            if (p.Id == "controls")
+            if (p.Id == "contents")
+                DrawContentsToc(p);
+            else if (p.Id == "controls")
                 DrawHardware(scheme);
             else if (p.Id == "roles")
                 DrawRoleTables(scheme);
@@ -427,6 +429,29 @@ namespace GrandSluggers.UnityClient
             GUI.color = prev;
         }
 
+        static void DrawContentsToc(HowToPlay.Page page)
+        {
+            var still = ContentsToc.Still(Screen.width, Screen.height);
+            var stillRect = new Rect(still.X, still.Y, still.W, still.H);
+            var tex = BookPic(ContentsToc.Picture);
+            GUI.DrawTexture(stillRect, _dotOff);
+            if (tex != null)
+                GUI.DrawTexture(stillRect, tex, ScaleMode.ScaleAndCrop);
+            var card = ContentsToc.Card(Screen.width, Screen.height);
+            var prev = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.92f);
+            GUI.DrawTexture(new Rect(card.X, card.Y, card.W, card.H), _white);
+            GUI.color = prev;
+            for (var i = 0; i < ContentsToc.Chapters.Count; i++)
+            {
+                var chapter = ContentsToc.Chapters[i];
+                var row = ContentsToc.Row(i, Screen.width, Screen.height);
+                GUI.Label(new Rect(row.X, row.Y, row.W - 40, row.H), chapter.Title, _bookLine);
+                GUI.Label(new Rect(row.X + row.W - 40, row.Y, 40, row.H), chapter.Number.ToString(), _gold);
+            }
+            DrawBookLines(page, ContentsToc.LineBand(Screen.width, Screen.height));
+        }
+
         static void DrawChemBook(HowToPlay.Page page)
         {
             for (var i = 0; i < ChemBook.ChemistryPairs.Count; i++)
@@ -551,9 +576,9 @@ namespace GrandSluggers.UnityClient
                 var innerH = r.height - 58;
                 var stillW = r.width * 0.28f;
                 var gap = 10f;
-                DrawComicStill(new Rect(r.x + 10, innerY, stillW, innerH), strip.First);
-                DrawArrow(r.x + 12 + stillW, innerY + innerH * 0.45f);
-                DrawComicStill(new Rect(r.x + 34 + stillW, innerY, stillW, innerH), strip.Second);
+                DrawComicStill(new Rect(r.x + gap, innerY, stillW, innerH), strip.First);
+                DrawArrow(r.x + gap + 2 + stillW, innerY + innerH * 0.45f);
+                DrawComicStill(new Rect(r.x + gap + 24 + stillW, innerY, stillW, innerH), strip.Second);
                 var motionX = r.x + 48 + stillW * 2;
                 var motionW = r.x + r.width - 10 - motionX;
                 DrawComicMotion(new Rect(motionX, innerY, motionW, innerH), HowToComic.MotionOf(strip, scheme));

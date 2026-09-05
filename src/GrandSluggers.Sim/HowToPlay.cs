@@ -113,17 +113,17 @@ public static class HowToPlay
         new("contents", "Contents", "contents",
         [
             "This is the instruction booklet. Call time (Start) opens it. Esc too.",
-            "Pictures first. Short sentences. You can read it from the couch.",
+            "The list is the book. Numbers match the pages.",
             "South next page. East back. Toggle the scheme up top.",
+            "Pictures first. Short sentences. You can read it from the couch.",
             "Keyboard + mouse is player 1 only.",
-            "Exhibition is the game. Training is practice.",
         ],
         [
             "This is the instruction booklet. H or Esc opens it.",
-            "Pictures first. Short sentences. You can read it from the couch.",
+            "The list is the book. Numbers match the pages.",
             "Left click / Space next page. Esc / right click back. Toggle up top.",
+            "Pictures first. Short sentences. You can read it from the couch.",
             "Keyboard + mouse is player 1 only.",
-            "Exhibition is the game. Training is practice.",
         ]),
         new("controls", "Controls", "controls",
         [
