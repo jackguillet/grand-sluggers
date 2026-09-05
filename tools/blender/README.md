@@ -53,9 +53,9 @@ Character GLB drop (rigid visual on shared sockets). Source is not in-repo:
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Writes `{id}-albedo.png` (1024) next to the FBX. Runtime assigns URP Lit from that map — embedded FBX materials stay white in URP.
+Writes `{id}-albedo.png` (1024) next to the FBX. Default `--bind skinned` fits bones *inside this mesh* so limbs move. `--bind rigid` is a statue.
 
-Do not auto-weight a posed toy to limb bones. `skins.json` `bind` is `rigid` unless the mesh was authored on `hero-shared`.
+Runtime assigns URP Lit from the sidecar albedo.
 
 Elder Fenn (wrapper):
 
