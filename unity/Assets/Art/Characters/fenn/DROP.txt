@@ -1,6 +1,7 @@
-Elder Fenn. Unique mesh on the shared hero-shared bones. Do not add a second skeleton.
+Elder Fenn. GLB drop, rigid visual on shared sockets.
 
-  fenn.fbx     skinned body (tools/blender/hero_fenn.py)
-  Resources/Art/Characters/fenn/fenn.fbx   player copy (Resources.Load)
+  fenn.fbx   tools/blender/drop_character.py --id fenn
+  Resources/Art/Characters/fenn/fenn.fbx   player copy
 
-Missing file keeps SharedRig primitives. Never throw the authored mesh away.
+bind=rigid in skins.json. Do not auto-weight posed GLBs onto limb bones.
+Missing file keeps SharedRig primitives.

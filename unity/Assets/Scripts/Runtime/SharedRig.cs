@@ -54,7 +54,9 @@ namespace GrandSluggers.UnityClient
             var authored = ArtBinder.LoadBodyPrefab(who.Id);
             if (authored != null)
             {
-                var unique = TryBindAuthored(parent, authored);
+                var skin = ArtBinder.SkinOf(who);
+                var rigid = !string.Equals(skin.Bind, "skinned", StringComparison.OrdinalIgnoreCase);
+                var unique = TryBindAuthored(parent, authored, rigid);
                 if (unique != null) return unique;
             }
 
@@ -257,10 +259,11 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// Unique mesh, shared bone names. Skip primitive face/hat/paint — the drop is the toy.
-        /// Scale is uniform toy scale; silhouette squash is for the shared blockout.
+        /// GLB/FBX drop on the shared sockets. Rigid bind (default) freezes skin so
+        /// MoveBones cannot tear a posed toy. Skinned bind keeps the SMR for meshes
+        /// authored on hero-shared. Never paint, never add a primitive face.
         /// </summary>
-        static Chain TryBindAuthored(Transform parent, GameObject prefab)
+        static Chain TryBindAuthored(Transform parent, GameObject prefab, bool rigid)
         {
             var go = UnityEngine.Object.Instantiate(prefab, parent, false);
             go.name = "root";
@@ -268,29 +271,65 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.identity;
             foreach (var anim in go.GetComponentsInChildren<Animator>(true))
                 anim.enabled = false;
+            if (rigid)
+                FreezeSkin(go);
 
             var chain = new Chain();
             chain.Root = go.transform;
-            // Keep the authored mesh even if Unity hid a bone — primitives are not the toy.
-            chain.Torso = FindBone(go.transform, "torso") ?? go.transform;
-            chain.Head = FindBone(go.transform, "head") ?? chain.Torso;
-            chain.LUpper = FindBone(go.transform, "lUpper") ?? chain.Torso;
-            chain.LFore = FindBone(go.transform, "lFore") ?? chain.LUpper;
-            chain.RUpper = FindBone(go.transform, "rUpper") ?? chain.Torso;
-            chain.RFore = FindBone(go.transform, "rFore") ?? chain.RUpper;
-            chain.LThigh = FindBone(go.transform, "lThigh") ?? go.transform;
-            chain.LShin = FindBone(go.transform, "lShin") ?? chain.LThigh;
-            chain.RThigh = FindBone(go.transform, "rThigh") ?? go.transform;
-            chain.RShin = FindBone(go.transform, "rShin") ?? chain.RThigh;
+            chain.Torso = FindBone(go.transform, "torso") ?? EnsureBone(go.transform, "torso", new Vector3(0, 2.28f, 0));
+            chain.Head = FindBone(go.transform, "head") ?? EnsureBone(chain.Torso, "head", new Vector3(0, 1.6f, 0));
+            chain.LUpper = FindBone(go.transform, "lUpper") ?? EnsureBone(chain.Torso, "lUpper", new Vector3(-0.95f, 0.1f, 0));
+            chain.LFore = FindBone(go.transform, "lFore") ?? EnsureBone(chain.LUpper, "lFore", new Vector3(0, -0.9f, 0));
+            chain.RUpper = FindBone(go.transform, "rUpper") ?? EnsureBone(chain.Torso, "rUpper", new Vector3(0.95f, 0.1f, 0));
+            chain.RFore = FindBone(go.transform, "rFore") ?? EnsureBone(chain.RUpper, "rFore", new Vector3(0, -0.9f, 0));
+            chain.LThigh = FindBone(go.transform, "lThigh") ?? EnsureBone(go.transform, "lThigh", new Vector3(-0.42f, 1.05f, 0));
+            chain.LShin = FindBone(go.transform, "lShin") ?? EnsureBone(chain.LThigh, "lShin", new Vector3(0, -0.6f, 0));
+            chain.RThigh = FindBone(go.transform, "rThigh") ?? EnsureBone(go.transform, "rThigh", new Vector3(0.42f, 1.05f, 0));
+            chain.RShin = FindBone(go.transform, "rShin") ?? EnsureBone(chain.RThigh, "rShin", new Vector3(0, -0.6f, 0));
 
             chain.BaseScale = Vector3.one * Silhouette.ToyScale;
             chain.Root.localScale = chain.BaseScale;
             chain.TorsoRest = chain.Torso.localPosition;
             chain.HunchDeg = 0f;
-            chain.Bind = CaptureBind(chain);
+            chain.Bind = rigid ? IdentityBind() : CaptureBind(chain);
             HideLookRays(go.transform);
             AttachRing(chain);
             return chain;
+        }
+
+        /// <summary>
+        /// Bind-pose mesh as a MeshRenderer. Auto-weights on a posed GLB plus MoveBones
+        /// is what shredded Fenn. Rigid drops must not stay skinned to limb bones.
+        /// </summary>
+        static void FreezeSkin(GameObject go)
+        {
+            var skins = go.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            for (var i = 0; i < skins.Length; i++)
+            {
+                var smr = skins[i];
+                var mesh = smr.sharedMesh;
+                var mats = smr.sharedMaterials;
+                var holder = smr.gameObject;
+                UnityEngine.Object.DestroyImmediate(smr);
+                if (mesh == null) continue;
+                var filter = holder.GetComponent<MeshFilter>();
+                if (filter == null) filter = holder.AddComponent<MeshFilter>();
+                filter.sharedMesh = mesh;
+                var rend = holder.GetComponent<MeshRenderer>();
+                if (rend == null) rend = holder.AddComponent<MeshRenderer>();
+                rend.sharedMaterials = mats;
+            }
+        }
+
+        static Transform EnsureBone(Transform parent, string name, Vector3 localPos)
+        {
+            var existing = FindBone(parent, name);
+            if (existing != null) return existing;
+            var bone = new GameObject(name).transform;
+            bone.SetParent(parent, false);
+            bone.localPosition = localPos;
+            bone.localRotation = Quaternion.identity;
+            return bone;
         }
 
         static Transform FindBone(Transform root, string name)
