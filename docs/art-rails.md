@@ -30,6 +30,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | `SharedRig` primitives |
 | Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx, scoop.fbx dropped) |
 | Skins | `data/art/skins.json` | `Assets/Art/Characters/SharedRig/extras.fbx` | primitive extras on the shared chain |
+| Body mesh | skin `mesh` + `bind` | `Assets/Art/Characters/{id}/{id}.fbx` and `Resources/Art/Characters/{id}/{id}.fbx` | SharedRig primitives |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
 | Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
@@ -41,6 +42,7 @@ Role players inherit the faction body type and **must not** grow captain extras 
 ## Drop rules (when art is ready)
 
 1. **Do not add a second skeleton.** Retarget to `hero-shared`. Unused bones are fine (SMS Boo legs).
+1b. **GLB / posed toy drop.** One mesh (textures or vertex colors). No skeleton required. Run `tools/blender/drop_character.py --src hero.glb --id {id}` — it scales to the shared height, writes the Art + Resources FBX, and parents the mesh as a **rigid** visual. `skins.json` gets `"mesh"` and `"bind": "rigid"`. MoveBones still owns bat / glove sockets. Do **not** auto-weight a posed GLB onto limb bones — that shreds the toy. `"bind": "skinned"` is only for meshes authored on the shared chain.
 2. **One clip file per catalog id.** Name the file the clip id (`swing.fbx` / `swing.anim`). Events on the clip: `Contact`, `Release`, `FootPlant` — the same names Sim already understands.
 3. **Captains are skins.** Palette, extras, portrait, scale. `Silhouette.Proportions` stays the identity.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
