@@ -4,5 +4,5 @@ Elder Fenn. GLB drop, rigid visual on shared sockets.
   fenn-albedo.png   1024 base color (URP Lit). Required for paint.
   Resources/Art/Characters/fenn/   player copies (fbx + albedo)
 
-bind=rigid in skins.json. Sidecar albedo — do not rely on embedded FBX materials.
+bind=skinned in skins.json. Bones are fitted inside this mesh. Sidecar albedo.
 Missing file keeps SharedRig primitives.

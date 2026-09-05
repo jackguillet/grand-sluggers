@@ -204,7 +204,7 @@ public class ArtCatalogTests
         Assert.True(File.Exists(fennRes), fennRes);
         var fennSkin = _content.Art.SkinOf(_content.Must("fenn"));
         Assert.False(string.IsNullOrWhiteSpace(fennSkin.Mesh));
-        Assert.Equal("rigid", fennSkin.Bind);
+        Assert.Equal("skinned", fennSkin.Bind);
         var albedo = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Resources/Art/Characters/fenn/fenn-albedo.png".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(albedo), albedo);
