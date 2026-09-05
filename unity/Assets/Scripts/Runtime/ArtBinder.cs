@@ -76,6 +76,15 @@ namespace GrandSluggers.UnityClient
             return null;
         }
 
+        /// <summary>{id}-albedo in Resources/Art/Characters/{id}/ or Resources/Art/.</summary>
+        public static Texture2D LoadBodyAlbedo(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+            var a = Resources.Load<Texture2D>("Art/Characters/" + id + "/" + id + "-albedo");
+            if (a != null) return a;
+            return Resources.Load<Texture2D>("Art/" + id + "-albedo");
+        }
+
         static string[] BodyResourceKeys(string id, string slot)
         {
             var trimmed = SlotToResources(slot ?? "");

@@ -1,7 +1,8 @@
 Elder Fenn. GLB drop, rigid visual on shared sockets.
 
-  fenn.fbx   tools/blender/drop_character.py --id fenn
-  Resources/Art/Characters/fenn/fenn.fbx   player copy
+  fenn.fbx
+  fenn-albedo.png   1024 base color (URP Lit). Required for paint.
+  Resources/Art/Characters/fenn/   player copies (fbx + albedo)
 
-bind=rigid in skins.json. Do not auto-weight posed GLBs onto limb bones.
+bind=rigid in skins.json. Sidecar albedo — do not rely on embedded FBX materials.
 Missing file keeps SharedRig primitives.

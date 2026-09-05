@@ -56,7 +56,7 @@ namespace GrandSluggers.UnityClient
             {
                 var skin = ArtBinder.SkinOf(who);
                 var rigid = !string.Equals(skin.Bind, "skinned", StringComparison.OrdinalIgnoreCase);
-                var unique = TryBindAuthored(parent, authored, rigid);
+                var unique = TryBindAuthored(parent, authored, rigid, who.Id);
                 if (unique != null) return unique;
             }
 
@@ -263,7 +263,7 @@ namespace GrandSluggers.UnityClient
         /// MoveBones cannot tear a posed toy. Skinned bind keeps the SMR for meshes
         /// authored on hero-shared. Never paint, never add a primitive face.
         /// </summary>
-        static Chain TryBindAuthored(Transform parent, GameObject prefab, bool rigid)
+        static Chain TryBindAuthored(Transform parent, GameObject prefab, bool rigid, string id)
         {
             var go = UnityEngine.Object.Instantiate(prefab, parent, false);
             go.name = "root";
@@ -273,6 +273,7 @@ namespace GrandSluggers.UnityClient
                 anim.enabled = false;
             if (rigid)
                 FreezeSkin(go);
+            PaintAuthored(go, id);
 
             var chain = new Chain();
             chain.Root = go.transform;
@@ -318,6 +319,23 @@ namespace GrandSluggers.UnityClient
                 var rend = holder.GetComponent<MeshRenderer>();
                 if (rend == null) rend = holder.AddComponent<MeshRenderer>();
                 rend.sharedMaterials = mats;
+            }
+        }
+
+        /// <summary>
+        /// Sidecar albedo from the drop folder. Embedded FBX materials stay white
+        /// in URP unless we assign Universal Render Pipeline/Lit ourselves.
+        /// </summary>
+        static void PaintAuthored(GameObject go, string id)
+        {
+            var tex = ArtBinder.LoadBodyAlbedo(id);
+            if (tex == null) return;
+            var mat = Look.Lit(Color.white, tex, tile: 1f, smooth: 0.22f);
+            var rs = go.GetComponentsInChildren<Renderer>(true);
+            for (var i = 0; i < rs.Length; i++)
+            {
+                if (rs[i] is LineRenderer) continue;
+                rs[i].sharedMaterial = mat;
             }
         }
 
