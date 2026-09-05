@@ -144,9 +144,9 @@ public sealed class ArtCatalog
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
             if (!string.IsNullOrWhiteSpace(skin.Mesh))
             {
-                var bind = string.IsNullOrWhiteSpace(skin.Bind) ? "rigid" : skin.Bind;
-                if (bind != "rigid" && bind != "skinned")
-                    errors.Add("skin " + id + " bind must be rigid or skinned");
+                var bind = string.IsNullOrWhiteSpace(skin.Bind) ? CharacterPackage.Rigid : skin.Bind;
+                if (!CharacterPackage.Valid(bind))
+                    errors.Add("skin " + id + " bind must be shared, segmented, skinned, or rigid");
             }
         }
 
@@ -200,6 +200,8 @@ public sealed class ArtCatalog
         }
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
+        foreach (var skin in Skins.Values)
+            errors.AddRange(CharacterPackage.ValidateFiles(content.Root, skin));
         return errors;
     }
 

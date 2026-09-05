@@ -38,7 +38,7 @@ SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK
 
 Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in `Silhouette.cs`.
 
-Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Role players do not get a new anatomy. Fenn is an authored mesh on the shared chain (SMS Boo), not a second skeleton.
+Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Role players do not get a new anatomy. Unique captains (Fenn) are character packages: same bone names, own mesh and rest pose. Spec: `docs/character-package.md`.
 
 ## Role players
 
@@ -52,7 +52,7 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 - **Brondo** — cube chest, brick jaw
 - **Konga** — ape snout, hanging arms, belly
 - **Ashlord** — horns, short cape, unlit ember eyes
-- **Fenn** — shell-as-brim, walking cane, cream plastron. Authored mesh on `hero-shared` bones.
+- **Fenn** — shell-as-brim, walking cane, cream plastron. Unique package (`bind: segmented`).
 
 ## Bats (shape, not a string)
 
@@ -74,4 +74,4 @@ Gloves sit on the fielding hand (non-throwing) whenever the body is on defense �
 
 ## Animation
 
-Procedural on this rig until a clip file fills the slot. No 2D sprites on the 3D diamond. Shared clip list (idle, walk, run, jump, swing, pitch, scoop, slide, throw) lives in `data/art/clips.json` and `MoveBones.ClipList`. Captains are skins (`data/art/skins.json`), not new skeletons. See `docs/art-rails.md`.
+Procedural on this rig until a clip file fills the slot. No 2D sprites on the 3D diamond. Shared clip list (idle, walk, run, jump, swing, pitch, scoop, slide, throw) lives in `data/art/clips.json` and `MoveBones.ClipList`. Unique captains are packages (`docs/character-package.md`). See `docs/art-rails.md`.
