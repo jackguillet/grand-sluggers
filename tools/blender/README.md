@@ -43,7 +43,19 @@ Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-c
   --out unity/Assets/Art/Animation/Clips/scoop.fbx
 ```
 
-Elder Fenn unique mesh on the shared chain (no second skeleton). Source GLB is not in-repo:
+Character GLB drop (rigid visual on shared sockets). Source is not in-repo:
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
+  --src /path/to/hero.glb --id fenn \
+  --out unity/Assets/Art/Characters/fenn/fenn.fbx \
+  --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
+  --portrait unity/Assets/Resources/Art/fenn-hero.jpg
+```
+
+Do not auto-weight a posed toy to limb bones. `skins.json` `bind` is `rigid` unless the mesh was authored on `hero-shared`.
+
+Elder Fenn (wrapper):
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \

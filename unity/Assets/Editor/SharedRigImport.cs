@@ -140,6 +140,7 @@ namespace GrandSluggers.EditorTools
             imp.addCollider = false;
             imp.importBlendShapes = false;
             imp.isReadable = false;
+            imp.optimizeGameObjects = false;
         }
 
         void OnPostprocessAnimation(GameObject go, AnimationClip clip)

@@ -8,7 +8,7 @@ public readonly record struct ClipSlot(
 
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette,
-    string? Mesh = null);
+    string? Mesh = null, string Bind = "");
 
 public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
 
@@ -58,7 +58,7 @@ public sealed class ArtCatalog
     public SkinSlot SkinOf(Character who)
     {
         if (Skins.TryGetValue(who.Id, out var skin)) return skin;
-        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction, null);
+        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction, null, "");
     }
 
     public bool TryClip(string id, out ClipSlot clip)
@@ -142,6 +142,12 @@ public sealed class ArtCatalog
                 errors.Add("skin " + id + " bodyType should be self");
             if (skin.Extras.Count == 0) errors.Add("captain skin " + id + " needs extras");
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
+            if (!string.IsNullOrWhiteSpace(skin.Mesh))
+            {
+                var bind = string.IsNullOrWhiteSpace(skin.Bind) ? "rigid" : skin.Bind;
+                if (bind != "rigid" && bind != "skinned")
+                    errors.Add("skin " + id + " bind must be rigid or skinned");
+            }
         }
 
         foreach (var who in content.Characters.Values)
@@ -217,7 +223,12 @@ public sealed class ArtCatalog
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
         foreach (var s in skinDto.Skins ?? [])
-            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette, s.Mesh);
+        {
+            var bind = string.IsNullOrWhiteSpace(s.Bind)
+                ? (string.IsNullOrWhiteSpace(s.Mesh) ? "" : "rigid")
+                : s.Bind.Trim().ToLowerInvariant();
+            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette, s.Mesh, bind);
+        }
 
         var vfx = (Read<EventsFile>(Path.Combine(art, "vfx.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
@@ -271,6 +282,7 @@ public sealed class ArtCatalog
         public string? Portrait { get; set; }
         public string Palette { get; set; } = "";
         public string? Mesh { get; set; }
+        public string? Bind { get; set; }
     }
 
     sealed class EventsFile { public List<EventDto>? Events { get; set; } }
