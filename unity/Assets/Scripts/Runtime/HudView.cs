@@ -320,7 +320,6 @@ namespace GrandSluggers.UnityClient
                 var innerY = r.y + 30;
                 var innerH = r.height - 58;
                 var stillW = r.width * 0.28f;
-                var gap = 10f;
                 DrawComicStill(new Rect(r.x + 10, innerY, stillW, innerH), strip.First);
                 DrawArrow(r.x + 12 + stillW, innerY + innerH * 0.45f);
                 DrawComicStill(new Rect(r.x + 34 + stillW, innerY, stillW, innerH), strip.Second);
@@ -365,12 +364,44 @@ namespace GrandSluggers.UnityClient
         static void DrawComicMotion(Rect r, HowToComic.Motion motion)
         {
             GUI.Label(new Rect(r.x, r.y + 4, r.width, 20), "MOTION", _tiny);
-            var chipH = 36f;
-            var chipW = r.width * 0.42f;
-            var y = r.y + r.height * 0.35f;
-            DrawMotionChip(new Rect(r.x, y, chipW, chipH), motion.Charge);
-            DrawArrow(r.x + chipW + 2, y + 6);
-            DrawMotionChip(new Rect(r.x + r.width - chipW, y, chipW, chipH), motion.Commit);
+            GUI.Label(new Rect(r.x, r.y + 25, r.width, 18), "HOLD, THEN TAP", _tiny);
+
+            // The booklet needs to teach the gesture at a glance, not just repeat its
+            // labels. This is an original little hand drawing on a dirt-colored motion
+            // lane: charge on the left, then follow the hand to the commit on the right.
+            var lane = new Rect(r.x, r.y + r.height * 0.35f, r.width, 52f);
+            var prev = GUI.color;
+            GUI.color = new Color(0.34f, 0.20f, 0.11f, 0.95f);
+            GUI.DrawTexture(lane, _white);
+            GUI.color = new Color(1f, 0.72f, 0.18f, 1f);
+            GUI.DrawTexture(new Rect(lane.x + 5, lane.y + lane.height * 0.45f, lane.width - 10, 4f), _white);
+            GUI.color = prev;
+
+            var chipH = 32f;
+            var chipW = Mathf.Min(112f, r.width * 0.38f);
+            DrawMotionChip(new Rect(r.x, lane.y + 10, chipW, chipH), motion.Charge);
+            DrawMotionHand(lane.x + lane.width * 0.52f, lane.y + 26f, 36f);
+            DrawMotionChip(new Rect(r.x + r.width - chipW, lane.y + 10, chipW, chipH), motion.Commit);
+        }
+
+        static void DrawMotionHand(float x, float y, float size)
+        {
+            var matrix = GUI.matrix;
+            GUIUtility.RotateAroundPivot(-18f, new Vector2(x, y));
+            var prev = GUI.color;
+            GUI.color = new Color(1f, 0.67f, 0.38f, 1f);
+
+            // Palm, wrist, thumb and three fingers: deliberately chunky so the gesture
+            // reads at couch distance and remains our own drawn language.
+            GUI.DrawTexture(new Rect(x - size * 0.30f, y - size * 0.20f, size * 0.48f, size * 0.48f), _dotOn);
+            GUI.DrawTexture(new Rect(x - size * 0.58f, y + size * 0.02f, size * 0.40f, size * 0.24f), _white);
+            GUI.DrawTexture(new Rect(x + size * 0.12f, y - size * 0.44f, size * 0.13f, size * 0.46f), _white);
+            GUI.DrawTexture(new Rect(x + size * 0.28f, y - size * 0.39f, size * 0.13f, size * 0.41f), _white);
+            GUI.DrawTexture(new Rect(x + size * 0.44f, y - size * 0.31f, size * 0.13f, size * 0.33f), _white);
+            GUI.DrawTexture(new Rect(x - size * 0.03f, y + size * 0.16f, size * 0.31f, size * 0.13f), _white);
+
+            GUI.color = prev;
+            GUI.matrix = matrix;
         }
 
         static void DrawMotionChip(Rect r, string label)
