@@ -398,8 +398,11 @@ namespace GrandSluggers.UnityClient
                     clipT = _t;
                 // Authored eulers are offsets on the bind pose (Q(e)*bind).
                 // SampleAnimation replaces bind and laid the scoop mesh on its side.
+                var packageClip = PackageClipId(pose);
+                var playedPackage = _packageBody && !string.IsNullOrEmpty(packageClip)
+                    && TrySamplePackage(packageClip, pose == Pose.Idle ? clipT : clipT);
                 var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
-                if (!playedDrop)
+                if (!playedPackage && !playedDrop)
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
                     if (_packageBody)
@@ -838,6 +841,33 @@ namespace GrandSluggers.UnityClient
         {
             if (tf == null) return;
             tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e) * bind, k);
+        }
+
+        static string PackageClipId(Pose pose) => pose switch
+        {
+            Pose.Idle => "idle",
+            Pose.Swing or Pose.ChargeSwing => "pose",
+            _ => null
+        };
+
+        bool TrySamplePackage(string clipId, float t)
+        {
+            var clip = ArtBinder.LoadPackageClip(_id, clipId);
+            if (clip == null || _root == null) return false;
+            if (t < 0f) t = 0f;
+            if (clip.length > 1e-4f)
+            {
+                if (_pose == Pose.Idle) t %= clip.length;
+                else t = Mathf.Min(t, clip.length);
+            }
+            var scale = _root.localScale;
+            var pos = _root.localPosition;
+            clip.SampleAnimation(_root.gameObject, t);
+            var arm = _root.Find("hero-shared");
+            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
+            _root.localScale = scale;
+            _root.localPosition = pos;
+            return true;
         }
 
         bool TrySampleDrop(string clipId, float t)

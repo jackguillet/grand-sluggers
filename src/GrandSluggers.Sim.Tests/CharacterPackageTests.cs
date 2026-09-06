@@ -40,6 +40,10 @@ public class CharacterPackageTests
         Assert.Equal("fenn", fenn.BodyType, ignoreCase: true);
         foreach (var bone in CharacterPackage.Sockets)
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
+        foreach (var clip in CharacterPackage.PackageClips)
+            Assert.True(File.Exists(Path.Combine(Directory.GetParent(_content.Root)!.FullName, "unity",
+                CharacterPackage.ClipSlot("fenn", clip).Replace('/', Path.DirectorySeparatorChar))),
+                "missing package clip " + clip);
     }
 
     [Fact]
