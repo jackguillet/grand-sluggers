@@ -35,7 +35,7 @@ A posed GLB is a **source**.
 ## Verify (then stop)
 
 1. `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` print `OK`.
-2. Capture `char-{id}-rest.png` and `char-{id}-pose.png` per screenshot-gate. File them. **Do not pass the look gate.**
+2. Capture with `tools/still-gate-character.sh {id}` (or menu **Grand Sluggers → Capture Character Stills**). Copy PNGs from `unity/Temp/gs-stills/` to `scratchpad/stills/`. **Do not pass the look gate.**
 3. Do not rebuild the Mac player as proof.
 
 Remove: delete JSON rows + `Assets/Art/Characters/{id}/` + Resources copy. Missing FBX keeps primitives.

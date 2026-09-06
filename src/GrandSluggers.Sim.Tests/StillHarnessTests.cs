@@ -71,4 +71,13 @@ public class StillHarnessTests
         Assert.True(defense.ContainsKey(StillPose.ScoopGlove));
         Assert.NotEqual("ashlord", defense[StillPose.ScoopGlove].Id);
     }
+
+    [Fact]
+    public void CharacterTurntableLooksAtTheChestNotTheBrim()
+    {
+        Assert.True(StillPose.CharCameraLooksAtChest(StillPose.CharLookY));
+        Assert.True(StillPose.CharCameraIsNotBrim(StillPose.CharLookY, StillPose.CharCamY));
+        Assert.Equal(MoveBones.SwingContact, StillPose.CharPoseT);
+        Assert.True(StillPose.CharCamZ < StillPose.CharZ, "camera sits in front of the toy");
+    }
 }

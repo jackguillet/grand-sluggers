@@ -35,7 +35,7 @@ Bonus stills that save a later sitting (same rules):
 
 Any change under `Art/Characters/`, `drop_character.py`, or a unique `skins.json` bind needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
 
-Until a turntable scene exists, capture Exhibition **select** or SET of that captain (Game view, same setup as below).
+Capture: `tools/still-gate-character.sh fenn` (or menu **Grand Sluggers → Capture Character Stills**). PNGs land in `unity/Temp/gs-stills/`. Copy into `scratchpad/stills/` for the PR. Do not rebuild the Mac player as proof.
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
