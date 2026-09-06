@@ -76,6 +76,19 @@ namespace GrandSluggers.UnityClient
             return null;
         }
 
+        /// <summary>Per-package Generic clip (idle, pose, …). Null keeps CharacterMotion.</summary>
+        public static AnimationClip LoadPackageClip(string id, string clipId)
+        {
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(clipId)) return null;
+            var key = "Art/Characters/" + id + "/" + id + "-" + clipId;
+            var loaded = Resources.Load<AnimationClip>(key);
+            if (loaded == null)
+                loaded = Resources.Load<AnimationClip>(key + "/" + clipId);
+            if (loaded != null) return loaded;
+            if (EditorLoadClip == null) return null;
+            return EditorLoadClip("Assets/Art/Characters/" + id + "/" + id + "-" + clipId + ".fbx");
+        }
+
         /// <summary>{id}-albedo in Resources/Art/Characters/{id}/ or Resources/Art/.</summary>
         public static Texture2D LoadBodyAlbedo(string id)
         {

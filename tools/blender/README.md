@@ -53,7 +53,16 @@ Unique character package. Spec: `docs/character-package.md`. A posed unrigged GL
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Writes `{id}-albedo.png` (1024) next to the FBX. `--keep-weights` only when the source already has painted groups. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
+Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` requires `--keep-weights`. `--bind segmented` is a stopgap. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
+
+Generic idle + pose takes on an existing package (no remesh):
+
+```bash
+/opt/homebrew/bin/blender --background --python tools/blender/package_clips.py -- \
+  --src unity/Assets/Art/Characters/fenn/fenn.fbx --id fenn \
+  --out-dir unity/Assets/Art/Characters/fenn \
+  --resources unity/Assets/Resources/Art/Characters/fenn
+```
 
 Elder Fenn (wrapper):
 
