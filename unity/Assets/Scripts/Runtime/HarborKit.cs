@@ -515,6 +515,7 @@ namespace GrandSluggers.UnityClient
 
             Stairs(side, "H", x, zHome, 1f, conc);
             Stairs(side, "F", x, zFirst, -1f, conc);
+            FieldStairs(side, x, fieldX, inward, zHome + 2.4f, conc);
 
             Cylinder(Dugouts, "Dug" + side + "PostFH", new Vector3(fieldX, 0f, zHome + 0.55f), 0.26f, 4.05f, post);
             Cylinder(Dugouts, "Dug" + side + "PostFF", new Vector3(fieldX, 0f, zFirst - 0.55f), 0.26f, 4.05f, post);
@@ -553,6 +554,24 @@ namespace GrandSluggers.UnityClient
                 var z = zLip + into * (0.12f + i * stepD);
                 Cube(Dugouts, "Dug" + side + "Stair" + end + i,
                     new Vector3(x, y, z), new Vector3(deep, stepH, stepD + 0.04f), conc);
+            }
+        }
+
+        /// <summary>
+        /// Flight on the field-side grass at the home end so the scoop still
+        /// can see steps down. End stairs sit in the pit and vanish under the lawn.
+        /// </summary>
+        void FieldStairs(string side, float xMid, float fieldX, float inward, float z, Material conc)
+        {
+            var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
+            var stepD = HarborDugout.StairDepth;
+            for (var i = 0; i < HarborDugout.StairCount; i++)
+            {
+                var y = -stepH * (i + 0.5f);
+                var along = HarborDugout.StairCount - i;
+                var sx = fieldX + inward * along * stepD;
+                Cube(Dugouts, "Dug" + side + "FieldStair" + i,
+                    new Vector3(sx, y, z), new Vector3(stepD + 0.08f, stepH, 3.2f), conc);
             }
         }
 
