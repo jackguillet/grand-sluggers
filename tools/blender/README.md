@@ -53,7 +53,7 @@ Unique character package. Spec: `docs/character-package.md`. A posed unrigged GL
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` requires `--keep-weights`. Default `--bind rigid`. `--bind segmented` is Blender-authored pieces only — a Python split shredded Fenn. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
+Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` is painted groups (`--keep-weights`) or hard 1.0 groups on fitted bones. Default `--bind rigid`. `--bind segmented` is Blender-authored pieces only — a Python split shredded Fenn. `--clay-dir` rest + limb extremes; look at those before Unity. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
 
 Generic idle + pose takes on an existing package (no remesh):
 

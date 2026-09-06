@@ -14,10 +14,12 @@ posed GLB shredded Fenn's face. Do not do that again.
     --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
     --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 
---bind skinned    only when the source already has painted weights (quality path).
+--bind skinned    painted groups (`--keep-weights`) or hard 1.0 groups on fitted bones
+                  (shell/head/plastron = torso; limbs only). Not heat-weight. Not a split.
 --bind rigid      posed authored mesh. Limbs do not move.
 --bind segmented  Blender-authored pieces only — never a percentile split of a posed GLB.
 --keep-weights    keep imported vertex groups (do not strip a previous drop).
+--clay-dir        rest + extreme-pose clay PNGs. Look at these before Unity.
 
 Rotate in: character JSON + skins.json mesh/bind + this drop.
 Rotate out: delete the JSON rows and Assets/Art/Characters/{id}/.
@@ -198,15 +200,19 @@ def fit_armature(body):
     """Named sockets inside THIS mesh. Not Rio's T-pose."""
     verts = world_verts(body)
     xs = [v.x for v in verts]
+    ys = [v.y for v in verts]
     zs = [v.z for v in verts]
     z10, z35, z50, z65, z82 = pct(zs, 0.10), pct(zs, 0.35), pct(zs, 0.50), pct(zs, 0.65), pct(zs, 0.82)
     x12, x88 = pct(xs, 0.12), pct(xs, 0.88)
+    y_front = pct(ys, 0.28)
     head_pts = [v for v in verts if v.z >= z82]
     torso_pts = [v for v in verts if z35 <= v.z <= z65 and abs(v.x) < max(0.4, 0.45 * (x88 - x12))]
-    larm_pts = [v for v in verts if v.x <= x12 and z35 <= v.z <= z82]
-    rarm_pts = [v for v in verts if v.x >= x88 and z35 <= v.z <= z82]
-    lhand_pts = [v for v in verts if v.x <= pct(xs, 0.08) and v.z <= z50]
-    rhand_pts = [v for v in verts if v.x >= pct(xs, 0.92) and v.z <= z50]
+    # Arms live in front of the shell. Widest-X verts on a turtle are the shell rim.
+    front = [v for v in verts if v.y <= y_front]
+    larm_pts = [v for v in front if v.x <= 0 and z35 <= v.z <= z82]
+    rarm_pts = [v for v in front if v.x > 0 and z35 <= v.z <= z82]
+    lhand_pts = [v for v in front if v.x <= 0 and v.z <= z50]
+    rhand_pts = [v for v in front if v.x > 0 and v.z <= z50]
     lfoot_pts = [v for v in verts if v.x < 0 and v.z <= z10]
     rfoot_pts = [v for v in verts if v.x >= 0 and v.z <= z10]
     head_c = centroid(head_pts) if head_pts else Vector((0, 0, z82))
@@ -267,6 +273,10 @@ def fit_armature(body):
         "rhand_c": rhand_c,
         "lknee": lknee,
         "rknee": rknee,
+        "torso_c": torso_c,
+        "head_c": head_c,
+        "lfoot_c": lfoot_c,
+        "rfoot_c": rfoot_c,
     }
 
 
@@ -287,37 +297,32 @@ def dist2(a, b):
 
 
 def assign_vertices(body, fit):
-    """Limbs only. Shell + head + plastron stay torso — cutting the head off
-    the shell is the black hole in char-fenn-rest.png."""
+    """Hard groups around fitted limb centroids. Default torso so the shell,
+    head, and plastron cannot ride an arm. Percentile-X on a turtle is the
+    shell rim — that is what turned clay-swing into a slab."""
     verts = world_verts(body)
-    xs = [v.x for v in verts]
-    zs = [v.z for v in verts]
-    x_arm_l = pct(xs, 0.08)
-    x_arm_r = pct(xs, 0.92)
-    z_hip = fit["z_hip"]
-    z_knee_l = fit["z_knee_l"]
-    z_knee_r = fit["z_knee_r"]
-    z_foot = pct(zs, 0.12)
-    half = max(0.2, 0.5 * (x_arm_r - x_arm_l))
-    larm_c = fit["larm_c"]
-    rarm_c = fit["rarm_c"]
-    lhand_c = fit["lhand_c"]
-    rhand_c = fit["rhand_c"]
-    l_sh = fit["l_sh"]
-    r_sh = fit["r_sh"]
-
+    torso_c = fit["torso_c"]
+    limbs = [
+        ("lFore", fit["lhand_c"], 0.38),
+        ("rFore", fit["rhand_c"], 0.38),
+        ("lUpper", fit["larm_c"], 0.32),
+        ("rUpper", fit["rarm_c"], 0.32),
+        ("lShin", fit["lfoot_c"], 0.34),
+        ("rShin", fit["rfoot_c"], 0.34),
+        ("lThigh", fit["lknee"], 0.30),
+        ("rThigh", fit["rknee"], 0.30),
+    ]
     names = []
     counts = defaultdict(int)
     for v in verts:
         name = "torso"
-        if v.x <= x_arm_l and v.z >= z_hip * 0.85:
-            name = "lFore" if dist2(v, lhand_c) < dist2(v, l_sh) * 0.85 or v.z < larm_c.z - 0.15 else "lUpper"
-        elif v.x >= x_arm_r and v.z >= z_hip * 0.85:
-            name = "rFore" if dist2(v, rhand_c) < dist2(v, r_sh) * 0.85 or v.z < rarm_c.z - 0.15 else "rUpper"
-        elif v.z <= z_foot and abs(v.x) > 0.22 * half:
-            name = "lShin" if v.x < 0 else "rShin"
-        elif v.z <= z_hip and abs(v.x) > 0.28 * half:
-            name = "lThigh" if v.x < 0 else "rThigh"
+        d_torso = dist2(v, torso_c)
+        best = d_torso * 0.42
+        for limb, center, radius in limbs:
+            d = dist2(v, center)
+            if d <= radius * radius and d < best:
+                best = d
+                name = limb
         names.append(name)
         counts[name] += 1
     print("assign", dict(counts))
@@ -428,6 +433,109 @@ def keep_painted_skin(body, arm_ob):
         mod.object = arm_ob
     print("keep painted groups", [g.name for g in body.vertex_groups])
     return True
+
+
+def hard_skin(body, arm_ob, assignment):
+    """One mesh. Weight 1.0 to a single socket. Shell cannot invert because it
+    is not weighted to an arm. Not heat-weight; not a split (the face stays)."""
+    for g in list(body.vertex_groups):
+        body.vertex_groups.remove(g)
+    groups = {name: body.vertex_groups.new(name=name) for name in LIMB_PIECES}
+    counts = defaultdict(int)
+    for i, name in enumerate(assignment):
+        if name not in groups:
+            name = "torso"
+        groups[name].add([i], 1.0, "REPLACE")
+        counts[name] += 1
+    for mod in list(body.modifiers):
+        body.modifiers.remove(mod)
+    body.parent = arm_ob
+    body.parent_type = "OBJECT"
+    body.parent_bone = ""
+    mod = body.modifiers.new("Armature", "ARMATURE")
+    mod.object = arm_ob
+    mod.use_vertex_groups = True
+    print("hard skin", dict(counts))
+
+
+def _clay_material():
+    mat = bpy.data.materials.new("clay")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf:
+        bsdf.inputs["Base Color"].default_value = (0.82, 0.80, 0.76, 1)
+        bsdf.inputs["Roughness"].default_value = 0.55
+    return mat
+
+
+def render_clay_poses(body, arm_ob, dest: Path):
+    """Rest + limb extremes. A shredded clay still means do not export to Unity."""
+    dest = Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    clay = _clay_material()
+    body.data.materials.clear()
+    body.data.materials.append(clay)
+
+    mins, maxs = world_bounds([body])
+    c = (mins + maxs) * 0.5
+    size = maxs - mins
+    span = max(size.x, size.y, size.z, 1.0)
+
+    scene = bpy.context.scene
+    scene.render.engine = "BLENDER_EEVEE"
+    scene.render.resolution_x = 1280
+    scene.render.resolution_y = 720
+    world = scene.world or bpy.data.worlds.new("clay-world")
+    scene.world = world
+    world.use_nodes = True
+    bg = world.node_tree.nodes.get("Background")
+    if bg:
+        bg.inputs[0].default_value = (0.62, 0.78, 0.95, 1)
+        bg.inputs[1].default_value = 0.8
+
+    camd = bpy.data.cameras.new("clay-cam")
+    cam = bpy.data.objects.new("clay-cam", camd)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    cam.data.lens = 45
+    target = c + Vector((0, 0, size.z * 0.05))
+    cam.location = c + Vector((span * 1.3, -span * 2.0, span * 0.5))
+    cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
+    sun = bpy.data.objects.new("clay-sun", bpy.data.lights.new("clay-sun", "SUN"))
+    scene.collection.objects.link(sun)
+    sun.rotation_euler = (math.radians(55), 0, math.radians(25))
+    sun.data.energy = 4
+
+    bpy.context.view_layer.objects.active = arm_ob
+    bpy.ops.object.mode_set(mode="POSE")
+    for b in arm_ob.pose.bones:
+        b.rotation_mode = "XYZ"
+        b.rotation_euler = (0.0, 0.0, 0.0)
+
+    def snap(name, euler):
+        for b in arm_ob.pose.bones:
+            b.rotation_euler = (0.0, 0.0, 0.0)
+        bone = arm_ob.pose.bones.get(name)
+        if bone is not None:
+            bone.rotation_euler = euler
+
+    shots = [
+        ("clay-rest.png", None, (0.0, 0.0, 0.0)),
+        ("clay-swing.png", "rUpper", (math.radians(90), 0.0, math.radians(-8))),
+        ("clay-glove.png", "lUpper", (math.radians(70), 0.0, math.radians(10))),
+        ("clay-step.png", "rThigh", (math.radians(-40), 0.0, 0.0)),
+    ]
+    for filename, bone, euler in shots:
+        if bone:
+            snap(bone, euler)
+        else:
+            snap("torso", (0.0, 0.0, 0.0))
+        bpy.context.view_layer.update()
+        scene.render.filepath = str(dest / filename)
+        bpy.ops.render.render(write_still=True)
+        print("clay", dest / filename)
+    snap("torso", (0.0, 0.0, 0.0))
+    bpy.ops.object.mode_set(mode="OBJECT")
 
 
 def albedo_image(body):
@@ -545,6 +653,7 @@ def main():
     p.add_argument("--faces", type=int, default=40000)
     p.add_argument("--bind", default="rigid", choices=("segmented", "skinned", "rigid"))
     p.add_argument("--keep-weights", action="store_true")
+    p.add_argument("--clay-dir", default="")
     argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else sys.argv[1:]
     args = p.parse_args(argv)
 
@@ -584,13 +693,12 @@ def main():
         rigid_parent(body, arm)
         print("bind rigid (statue)")
     elif bind == "skinned":
-        if not args.keep_weights or not keep_painted_skin(body, arm):
-            raise SystemExit(
-                "bind=skinned needs --keep-weights and painted groups on the source. "
-                "A posed unrigged GLB is a source, not a Unity character. "
-                "See docs/character-package.md"
-            )
-        print("bind skinned (painted weights)")
+        if args.keep_weights and keep_painted_skin(body, arm):
+            print("bind skinned (painted weights)")
+        else:
+            assignment = assign_vertices(body, fit)
+            hard_skin(body, arm, assignment)
+            print("bind skinned (hard groups, not heat-weight, not a split)")
     else:
         print("STOPGAP bind=segmented — not the ship path for the next GLB")
         assignment = assign_vertices(body, fit)
@@ -613,6 +721,8 @@ def main():
         print("WROTE", dest)
     if args.portrait:
         render_portrait(Path(args.portrait))
+    if args.clay_dir and bind != "segmented":
+        render_clay_poses(body, arm, Path(args.clay_dir))
     print("WROTE", out, "bind", bind)
 
 

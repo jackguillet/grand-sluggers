@@ -1,11 +1,13 @@
-Elder Fenn. Authored posed turtle (aa0b9c1). One mesh. Face, shell, cane.
+Elder Fenn. Authored posed turtle. One mesh. Face, shell, cane.
 
-  fenn.fbx            unsplit body. Do not run drop_character.py --bind segmented on this.
-  fenn-albedo.png     1024 base color (URP Lit). Required for paint.
-  Resources/Art/Characters/fenn/   player copies (fbx + albedo)
+  fenn.fbx            unsplit body + fitted Generic armature + hard 1.0 groups
+  fenn-idle.fbx / fenn-pose.fbx   takes on THIS armature (pose = check-swing)
+  fenn-albedo.png     1024 base color (URP Lit)
+  Resources/Art/Characters/fenn/   player copies
 
-bind=rigid. Python vertex-split shredded the face into a black interior.
-Quality path is painted weights (bind=skinned) on a T/A-pose, not another split.
-Idle/pose clip files stay for the catalog; they must not drive this statue.
-Humans pass look. Spec: docs/character-package.md
+bind=skinned. Hard groups: shell/head/plastron = torso; limbs by centroid.
+Do not --bind segmented (that shredded the face). Do not heat-weight.
+Clay rest must show a face; clay 90° arm may stretch the limb — pose take is ~38°.
+Painted weights are the quality fill. Humans pass look.
+Spec: docs/character-package.md
 

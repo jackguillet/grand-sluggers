@@ -120,12 +120,14 @@ def main():
         (24, "torso", (0, 0, 0)),
         (24, "head", (0, 0, 0)),
     ])
+    # Check-swing, not 90°. Hard groups on a connected mesh stretch into a
+    # slab at extreme eulers (clay-swing.png). Face and shell stay at ~38°.
     pose = make_action(arm, "pose", [
         (1, "rUpper", (0, 0, 0)),
         (1, "rFore", (0, 0, 0)),
-        (10, "rUpper", (90, 0, -8)),
-        (10, "rFore", (24, 0, 0)),
-        (10, "torso", (-6, 8, 0)),
+        (10, "rUpper", (38, 0, -6)),
+        (10, "rFore", (18, 0, 0)),
+        (10, "torso", (-4, 8, 0)),
     ])
 
     out = Path(args.out_dir)
