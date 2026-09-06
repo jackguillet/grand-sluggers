@@ -29,7 +29,7 @@ A posed GLB is a **source**.
 1. Export **FBX** (mesh + skeleton + clips). Not GLB as the player asset.
 2. Unity Rig tab: **Generic**, Root node set, Avatar from this model. Humanoid only for T-pose bipeds.
 3. Sidecar `{id}-albedo.png` → URP Lit (`_BaseMap`). Embedded Standard stays white.
-4. Catalog: `data/characters/{id}.json` + `skins.json` `mesh` + `bind: skinned` (quality), `rigid` (posed authored mesh, statue), or `segmented` (Blender-authored pieces only — never a Python split of a posed GLB). Fenn is **rigid** until painted weights.
+4. Catalog: `data/characters/{id}.json` + `skins.json` `mesh` + `bind: skinned` (painted or hard 1.0 groups on fitted bones), `rigid` (statue), or `segmented` (Blender-authored pieces only — never a Python split of a posed GLB). Clay rest + a limb pose **before** Unity. Fenn is **skinned** (hard groups) until painted weights.
 5. Prefab. Animator Controller when clips exist (`idle` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on this armature).
 
 ## Verify (then stop)
