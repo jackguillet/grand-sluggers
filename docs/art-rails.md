@@ -41,18 +41,19 @@ Role players inherit the faction body type and **must not** grow captain extras 
 
 ## Drop rules (when art is ready)
 
-1. **Shared sockets, unique packages.** Bone **names** stay in `data/art/rig.json`. Unique anatomy is a [character package](character-package.md) (`bind: segmented` by default — rigid pieces, not heat weights). Do not retarget a posed toy onto Rio’s T-pose. The original six stay on `hero-shared` until they are packages.
-1b. **Drop.** GLB/FBX → `drop_character.py` → `{id}.fbx` + `{id}-albedo.png` under `Art/Characters/{id}` and the Resources copy. Runtime **CharacterMotion** on that rest pose. Authored clips on this armature still win.
+1. **Shared sockets, unique packages.** Bone **names** stay in `data/art/rig.json`. Unique anatomy is a [character package](character-package.md): Generic FBX, painted weights (or Blender-authored pieces), clips on **that** armature. A posed GLB is a source. Do not heat-weight it onto Rio’s T-pose. The original six stay on `hero-shared` until they are packages.
+1b. **Drop.** Rigged FBX + `{id}-albedo.png` under `Art/Characters/{id}` and the Resources copy. URP Lit on import. Animator when clips exist. Character stills in [screenshot-gate](screenshot-gate.md) before a player rebuild.
 2. **One clip file per catalog id.** Name the file the clip id (`swing.fbx` / `swing.anim`). Events on the clip: `Contact`, `Release`, `FootPlant` — the same names Sim already understands.
 3. **Captains are skins or packages.** Palette, extras, portrait, scale. Unique anatomy is a package. `Silhouette.Proportions` stays the identity.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** The binder keeps MoveBones / generated audio / code VFX until the slot is filled.
-7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`.
+7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character mesh drops also need [character stills](screenshot-gate.md).
 
 ## Import (Unity)
 
-- Clips: Generic rig (not a new Humanoid avatar per captain). Loop only what the catalog marks `loop`.
+- Unique bodies: Generic rig, Avatar from this model. Humanoid only for T-pose bipeds that share clips.
+- Clips: Generic rig (not a new Humanoid avatar per unique captain). Loop only what the catalog marks `loop`.
 - Portraits: sRGB, no mip maps, square.
 - Park textures: sRGB, mips on.
 - FBX: bake animations, one take per file, root at origin, facing −Z to match the silhouette bible.
