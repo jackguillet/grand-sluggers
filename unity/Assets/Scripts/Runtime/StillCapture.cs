@@ -395,13 +395,15 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ));
             if (pose)
             {
+                hero.enabled = true;
                 hero.SetPose(HeroActor.Pose.Swing, 1);
                 hero.SnapTick((float)StillPose.CharPoseT);
             }
             else
             {
+                // Bind pose. Idle take / CharacterMotion was shredding the rest still.
                 hero.SetPose(HeroActor.Pose.Idle, 0);
-                hero.SnapTick(0.08f);
+                hero.enabled = false;
             }
             _cam.CutRaw("select",
                 new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ),
