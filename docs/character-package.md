@@ -1,93 +1,85 @@
 # Character package
 
-How a unique toy gets into Grand Sluggers and stays a toy: painted, addable, removable, limbs that move independently. Art is made in Blender.
+How a unique toy gets into Grand Sluggers: painted, addable, removable, limbs that move. Art is made in **Blender**. Unity presents it.
 
-This is the contract. `data/art/skins.json` + `tools/blender/drop_character.py` + a Unity Generic FBX are the living fill.
+This is the contract. Research and citations: [research-ai-characters.md](research-ai-characters.md). Procedure for agents: `.grok/skills/character-art/`. Stills: [screenshot-gate.md](screenshot-gate.md).
+
+## Unity’s contract (do not skip)
+
+A playable character is already **modeled, rigged, and skinned** in a DCC, then imported:
+
+1. **Mesh** — UVs, albedo, feet on origin, facing −Z in Unity.
+2. **Armature** — named sockets from `data/art/rig.json` (`torso` `head` `lUpper` `lFore` `rUpper` `rFore` `lThigh` `lShin` `rThigh` `rShin` `bat` `glove`).
+3. **Skin** — painted weights, or rigid pieces **authored in Blender** (not a Python split of a posed GLB).
+4. **Export FBX** — mesh + skeleton + clips. FBX is the player format, not GLB.
+5. **Unity import** — **Generic** for unique anatomy (turtle, ape extras that are not a human T-pose). **Humanoid** only for T-pose bipeds that share Mixamo-style clips. Prefab + **Animator Controller**. Even one clip lives in a controller.
+
+Bind pose and T-pose are not the same thing. A posed import can map bones and still be wrong. Do not retarget Rio’s `swing.fbx` onto a unique rest pose.
 
 ## What we will not do
 
-- Heat-weight a posed GLB onto a T-pose humanoid. Bones in the shell shred the mesh.
-- Drive a unique rest pose with Rio’s MoveBones eulers or shared clip FBX (`swing.fbx`). That folds the turtle through itself.
-- Freeze the whole mesh to stop tearing. That is a statue.
-- Rely on embedded FBX Standard materials in URP. They render white.
-- Mixamo / AccuRIG as identity. Those are humanoid scans, not a turtle.
+- Drop an unrigged posed GLB into `Assets/` as the player mesh.
+- Heat-weight a posed mesh onto fitted or T-pose bones. That shreds and inverts the shell.
+- Freeze a SkinnedMeshRenderer to hide tearing. That is a statue.
+- Drive a unique rest pose with Rio `MoveBones` eulers or shared clip FBX.
+- Trust embedded FBX Standard materials in URP. They render white. Sidecar `{id}-albedo.png` + URP Lit.
+- Mixamo / AccuRIG as identity for unique toys. Humanoid scans only.
+- Declare look done from `dotnet test`, `unity-compile.sh`, or a rebuilt `.app`.
 
-## The unit is a package, not an FBX string
+A posed GLB is a **source**. It is not a Unity character.
+
+## The unit is a package
 
 ```
 data/characters/{id}.json
 data/art/skins.json                 mesh + bind
 unity/Assets/Art/Characters/{id}/
-  {id}.fbx                          mesh pieces + named sockets, rest pose = idle
+  {id}.fbx                          Generic armature + mesh, rest pose = idle
   {id}-albedo.png                   1024 base color (URP Lit)
   {id}.mat / {id}.prefab            editor import
+  {id}.controller                   Animator Controller (when clips exist)
 unity/Assets/Resources/Art/Characters/{id}/   player copies of fbx + albedo
 unity/Assets/Resources/Art/{id}-hero.jpg      portrait
 ```
 
-**Add:** character JSON + skins.json row + drop script.
+**Add:** character JSON + skins.json row + a **rigged** FBX (Blender, or a generator only after T/A-pose + auto-rig that you then inspect in clay).
 **Remove:** delete those rows and `Assets/Art/Characters/{id}/` (and the Resources copy). Missing FBX keeps SharedRig primitives — it must not crash.
 
-Bone **names** (`data/art/rig.json`) are the contract: `torso` `head` `lUpper` `lFore` `rUpper` `rFore` `lThigh` `lShin` `rThigh` `rShin` `bat` `glove`. Rest pose, mesh, and weights are per character.
+Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mesh, and weights are per character.
 
 ## Bind
 
 | `skins.json` bind | What it is | When |
 | --- | --- | --- |
 | *(empty)* / `shared` | hero-shared + extras | Rio six and role players |
-| `segmented` | Rigid pieces parented to sockets | Posed GLB/FBX with no painted weights. **Default auto path.** |
-| `skinned` | SkinnedMeshRenderer, painted weights | Artist weight-painted in Blender. Quality path. Never the auto default. |
-| `rigid` | Whole mesh frozen | Statue / debug only |
+| `skinned` | SkinnedMeshRenderer, **painted** weights, Generic Avatar | Quality path for unique captains. Clips on **this** armature. |
+| `segmented` | Rigid pieces parented to sockets | Stopgap only (Fenn today). Not the default for the next GLB. |
+| `rigid` | Whole mesh frozen | Statue / debug |
 
-Segmented is how cartoon toys actually work: the shell does not deform; arms and legs rotate at the sockets. Connected heat-weights on a fused turtle is what inverted Fenn.
-
-## Blender
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-  --src /path/to/hero.glb --id {id} --bind segmented \
-  --out unity/Assets/Art/Characters/{id}/{id}.fbx \
-  --resources unity/Assets/Resources/Art/Characters/{id}/{id}.fbx \
-  --portrait unity/Assets/Resources/Art/{id}-hero.jpg
-```
-
-The drop:
-
-1. Imports GLB / GLTF / FBX / OBJ.
-2. Strips a previous fitted armature (re-drops are safe).
-3. Stands the toy on Z=0 at catalog height.
-4. Fits named sockets **inside this mesh**.
-5. **Splits** the mesh into rigid pieces (shell stays torso; protruding limbs become arms/legs/head).
-6. Parents each piece to its bone. Outward normals. Sidecar `{id}-albedo.png`.
-
-`--bind skinned --keep-weights` only when the source already has painted groups you want to keep.
-
-A rigger can open the FBX in Blender, join pieces, weight-paint, and re-export as `skinned`. Same bone names. That is the quality path.
+Quality fill: Blender actions named `idle` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature, exported as FBX takes, played by Animator. Until those clips exist, unique packages may use `CharacterMotion` local flexion — that is a stand-in, not the ship pipeline.
 
 ## Runtime
 
 - SharedRig primitives and `hero-shared` extras still use **MoveBones**.
-- A unique package uses **CharacterMotion**: local flexion `bind * Q(e)` on this rest pose. Shared authored pose-clips and `swing.fbx` are not applied.
-- Segmented pieces are MeshRenderers parented to bones at spawn. Rotating `lUpper` rotates the arm piece; the shell cannot invert.
-- Albedo is a sidecar PNG assigned as URP Lit. Never trust the embedded FBX material.
-
-## Authored clips (quality fill, same slot)
-
-Name Blender actions `idle` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature. Until those clips exist, CharacterMotion is the limb rail. Do not retarget Rio’s takes onto a unique rest pose.
+- Unique packages must not play Rio authored pose-clips or `swing.fbx`.
+- Albedo is a sidecar PNG assigned as URP Lit on import.
 
 ## The original six
 
-Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they are authored as packages. Role players still reuse the captain body type and must not grow captain extras.
+Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they are authored as packages. Role players reuse the captain body type and must not grow captain extras.
 
 ## Tools
 
 | Tool | Need it? |
 | --- | --- |
-| **Blender** | Yes. Source of truth. Already in the pipeline. |
-| Weight painting in Blender | Only for `skinned` smooth deformation. Segmented does not need it. |
-| Auto-Rig Pro (paid) | Optional later, if we paint a dozen unique fused meshes. Not required. |
-| Mixamo / AccuRIG | No. Humanoid only. |
-| Unity Animation Rigging | Optional later for IK (hand to bat). Not required for the rail. |
+| **Blender** | Yes. Source of truth. |
+| Weight painting / Rigify metarig | Yes for `skinned` unique anatomy. Rigify does not auto-skin a posed mesh; you place the metarig. |
+| Meshy / Tripo auto-rig | Optional **base** after T/A-pose. Not the player asset until clay + extreme-pose pass. Humanoid/quadruped templates; unique turtles are not Mixamo. |
+| Auto-Rig Pro (paid) | Optional if a human is painting many fused meshes. |
+| Mixamo / AccuRIG | No for unique toys. Humanoid only. |
+| Unity Animation Rigging | Optional later for IK (hand to bat). |
 | glTFast | No. FBX remains the player format. |
 
-Nothing extra is required to add Fenn or the next unique GLB.
+## Acceptance
+
+Idle is not the test. A unique package is not done until [screenshot-gate](screenshot-gate.md) **character stills** exist: rest (painted, not inverted) and a ~90° limb pose (shell intact). Agents do not pass that gate.
