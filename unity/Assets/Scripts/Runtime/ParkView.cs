@@ -92,8 +92,6 @@ namespace GrandSluggers.UnityClient
                         : Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.12f);
             var waterMat = Look.Lit(waterCol, smooth: ice ? 0.92f : 0.85f);
 
-            Quad("Water", new Vector3(0, -1.4f, 240), new Vector3(1100, 1, 1100), waterMat);
-            Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
             var kit = HarborKit.Instance != null
                 ? HarborKit.Instance
                 : FindFirstObjectByType<HarborKit>(FindObjectsInactive.Include);
@@ -105,6 +103,15 @@ namespace GrandSluggers.UnityClient
             }
             if (kit != null) kit.Bind(park, night);
             var placed = kit != null && kit.OwnsDiamond;
+            // Harbor owns the lawn and cuts dugout pits. A 620-ft sheet here
+            // capped the wells. Water stays past the infield so the pit floor shows.
+            if (placed)
+                Quad("Water", new Vector3(0, -1.4f, 480), new Vector3(1100, 1, 700), waterMat);
+            else
+            {
+                Quad("Water", new Vector3(0, -1.4f, 240), new Vector3(1100, 1, 1100), waterMat);
+                Quad("Outfield", new Vector3(0, -0.12f, 190), new Vector3(620, 0.35f, 620), grassMat);
+            }
             if (!placed)
             {
                 Infield(dirtMat);

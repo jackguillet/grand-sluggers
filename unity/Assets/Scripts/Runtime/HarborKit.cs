@@ -579,6 +579,27 @@ namespace GrandSluggers.UnityClient
         {
             var lawn = Look.Lit(Colors.Grass, Look.Grass, 16f, 0.08f);
             Cube(Grass, "OutfieldCarpet", new Vector3(0f, 0.15f, 270f), new Vector3(520f, 0.12f, 240f), lawn);
+            // Leave two holes at the dugout pits. One sheet here is what hid the wells.
+            var y = 0.08f;
+            var h = 0.12f;
+            var xFar = 280f;
+            var zHome = -36f;
+            var zCf = 165f;
+            var z0 = HarborDugout.HoleMinZ;
+            var z1 = HarborDugout.HoleMaxZ;
+            var xIn = HarborDugout.HoleMinX;
+            var xOut = HarborDugout.HoleMaxX;
+            LawnBand("LawnHome", 0f, y, (zHome + z0) * 0.5f, xFar * 2f, h, z0 - zHome, lawn);
+            LawnBand("LawnCf", 0f, y, (z1 + zCf) * 0.5f, xFar * 2f, h, zCf - z1, lawn);
+            LawnBand("LawnMidL", -(xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
+            LawnBand("LawnMidC", 0f, y, (z0 + z1) * 0.5f, xIn * 2f, h, z1 - z0, lawn);
+            LawnBand("LawnMidR", (xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
+        }
+
+        void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)
+        {
+            if (sx < 1f || sz < 1f) return;
+            Cube(Grass, name, new Vector3(x, y, z), new Vector3(sx, sy, sz), lawn);
         }
 
         void DressWall()

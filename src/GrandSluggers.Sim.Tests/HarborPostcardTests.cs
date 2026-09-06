@@ -52,6 +52,14 @@ public class HarborPostcardTests
             "a camera in the pit is not clear");
         Assert.InRange(HarborDugout.StarZ0, HarborDugout.Z - HarborDugout.HalfAlong,
             HarborDugout.Z + HarborDugout.HalfAlong);
+        Assert.True(HarborDugout.InPitHole(HarborDugout.X, HarborDugout.Z));
+        Assert.True(HarborDugout.InPitHole(-HarborDugout.X, HarborDugout.Z));
+        Assert.False(HarborDugout.LawnCovers(HarborDugout.X, HarborDugout.Z),
+            "lawn must not cap the pit");
+        Assert.True(HarborDugout.LawnCovers(0, HarborDugout.Z), "grass between the dugouts");
+        Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
+        Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
+        Assert.True(HarborDugout.HoleMinX > 48, "hole stays off the dirt path");
     }
 
     [Fact]

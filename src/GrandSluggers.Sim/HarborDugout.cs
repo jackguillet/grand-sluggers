@@ -33,6 +33,23 @@ public static class HarborDugout
 
     public static float PitFloorY => -PitDepth;
 
+    /// <summary>Lawn must not cover this box (pit + field stairs). Pad so the lip reads.</summary>
+    public const float HolePad = 1.2f;
+
+    public static float HoleMinX => FieldX(X) - StairCount * StairDepth - HolePad;
+    public static float HoleMaxX => X + HalfDeep + HolePad;
+    public static float HoleMinZ => Z - HalfAlong - HolePad;
+    public static float HoleMaxZ => Z + HalfAlong + HolePad;
+
+    public static bool InPitHole(double x, double z)
+    {
+        if (z < HoleMinZ || z > HoleMaxZ) return false;
+        var ax = Math.Abs(x);
+        return ax >= HoleMinX && ax <= HoleMaxX;
+    }
+
+    public static bool LawnCovers(double x, double z) => !InPitHole(x, z);
+
     /// <summary>Field-side lip is past the 11-ft dirt path on the 45° line.</summary>
     public static bool IsSetBackFromTheDirt() => FieldX(X) > 52f;
 
