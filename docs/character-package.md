@@ -53,8 +53,8 @@ Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mes
 | --- | --- | --- |
 | *(empty)* / `shared` | hero-shared + extras | Rio six and role players |
 | `skinned` | SkinnedMeshRenderer, **painted** weights, Generic Avatar | Quality path for unique captains. Clips on **this** armature. |
-| `segmented` | Rigid pieces parented to sockets | Stopgap only (Fenn today). Not the default for the next GLB. |
-| `rigid` | Whole mesh frozen | Statue / debug |
+| `segmented` | Rigid pieces **authored in Blender** parented to sockets | Stopgap only. A Python split of a posed GLB shredded Fenn's face. Do not do that again. |
+| `rigid` | Whole mesh frozen | Fenn today (authored posed turtle) until painted weights. Statue — limbs do not move. |
 
 Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
 
