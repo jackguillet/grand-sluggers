@@ -78,6 +78,7 @@ public class StillHarnessTests
         Assert.True(StillPose.CharCameraLooksAtChest(StillPose.CharLookY));
         Assert.True(StillPose.CharCameraIsNotBrim(StillPose.CharLookY, StillPose.CharCamY));
         Assert.Equal(MoveBones.SwingContact, StillPose.CharPoseT);
-        Assert.True(StillPose.CharCamZ < StillPose.CharZ, "camera sits in front of the toy");
+        Assert.True(StillPose.CharZ - StillPose.CharCamZ >= 16,
+            "camera must sit back far enough that a full toy reads, not a torso filling the lens");
     }
 }
