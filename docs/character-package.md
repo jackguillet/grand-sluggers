@@ -56,7 +56,7 @@ Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mes
 | `segmented` | Rigid pieces parented to sockets | Stopgap only (Fenn today). Not the default for the next GLB. |
 | `rigid` | Whole mesh frozen | Statue / debug |
 
-Quality fill: Blender actions named `idle` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature, exported as FBX takes, played by Animator. Until those clips exist, unique packages may use `CharacterMotion` local flexion — that is a stand-in, not the ship pipeline.
+Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
 
 ## Runtime
 

@@ -136,7 +136,8 @@ namespace GrandSluggers.EditorTools
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
             imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            imp.importAnimation = clip;
+            var packageTake = body && assetPath.IndexOf("SharedRig", StringComparison.OrdinalIgnoreCase) < 0;
+            imp.importAnimation = clip || packageTake;
             imp.addCollider = false;
             imp.importBlendShapes = false;
             imp.isReadable = false;
@@ -145,9 +146,13 @@ namespace GrandSluggers.EditorTools
 
         void OnPostprocessAnimation(GameObject go, AnimationClip clip)
         {
-            if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0)
+            var packageTake = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0
+                && assetPath.IndexOf("SharedRig", StringComparison.OrdinalIgnoreCase) < 0;
+            if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0 && !packageTake)
                 return;
             var id = Path.GetFileNameWithoutExtension(assetPath);
+            if (packageTake && id.IndexOf('-') >= 0)
+                id = id.Substring(id.LastIndexOf('-') + 1);
             clip.name = id;
             clip.legacy = false;
             var contact = -1f;

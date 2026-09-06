@@ -584,11 +584,16 @@ def main():
     if bind == "rigid":
         rigid_parent(body, arm)
         print("bind rigid (statue)")
-    elif bind == "skinned" and args.keep_weights and keep_painted_skin(body, arm):
+    elif bind == "skinned":
+        if not args.keep_weights or not keep_painted_skin(body, arm):
+            raise SystemExit(
+                "bind=skinned needs --keep-weights and painted groups on the source. "
+                "A posed unrigged GLB is a source, not a Unity character. "
+                "See docs/character-package.md"
+            )
         print("bind skinned (painted weights)")
     else:
-        if bind == "skinned":
-            print("skinned requested without painted weights — using segmented")
+        print("STOPGAP bind=segmented — not the ship path for the next GLB")
         assignment = assign_vertices(body, fit)
         pieces = split_pieces(body, assignment, args.id)
         for name, ob in pieces:
