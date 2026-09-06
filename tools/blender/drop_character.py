@@ -5,21 +5,21 @@ Art is made in Blender. A posed GLB with no skeleton is a *source*, not a
 Unity skin. We do **not** heat-weight a fused toy onto bones — that shreds
 the mesh the first time a limb rotates.
 
-Default bind is **segmented**: split the mesh into rigid pieces (shell, head,
-arms, legs) and parent each piece to a named socket from data/art/rig.json.
-Limbs rotate independently. The shell cannot invert.
+Default bind is **rigid** (whole mesh, statue). A Python vertex-split of a
+posed GLB shredded Fenn's face. Do not do that again.
 
   /opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-    --src /path/to/hero.glb --id fenn --bind segmented \
+    --src /path/to/hero.glb --id fenn --bind rigid \
     --out unity/Assets/Art/Characters/fenn/fenn.fbx \
     --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
     --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 
---bind skinned  only when the source already has painted weights (quality path).
---bind rigid    statue (debug).
---keep-weights  keep imported vertex groups (do not strip a previous drop).
+--bind skinned    only when the source already has painted weights (quality path).
+--bind rigid      posed authored mesh. Limbs do not move.
+--bind segmented  Blender-authored pieces only — never a percentile split of a posed GLB.
+--keep-weights    keep imported vertex groups (do not strip a previous drop).
 
-Rotate in: character JSON + skins.json mesh/bind=segmented + this drop.
+Rotate in: character JSON + skins.json mesh/bind + this drop.
 Rotate out: delete the JSON rows and Assets/Art/Characters/{id}/.
 Missing FBX keeps SharedRig primitives.
 """
@@ -543,7 +543,7 @@ def main():
     p.add_argument("--resources", default="")
     p.add_argument("--portrait", default="")
     p.add_argument("--faces", type=int, default=40000)
-    p.add_argument("--bind", default="segmented", choices=("segmented", "skinned", "rigid"))
+    p.add_argument("--bind", default="rigid", choices=("segmented", "skinned", "rigid"))
     p.add_argument("--keep-weights", action="store_true")
     argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else sys.argv[1:]
     args = p.parse_args(argv)
