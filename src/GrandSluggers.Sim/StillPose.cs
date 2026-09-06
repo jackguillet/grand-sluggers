@@ -53,21 +53,24 @@ public static class StillPose
     public const double PitchBallU = 0.12;
 
     /// <summary>
-    /// Character turntable. One body on the dirt, camera at chest, not the brim.
-    /// Toy faces the lens (−Z). Pose still is a ~90° hitting-arm flex.
+    /// Character turntable. 3/4 on the face/chest, full toy in frame.
+    /// Look-at is a world point (the camera), not a direction.
     /// </summary>
     public const double CharX = 0;
-    public const double CharZ = 22;
-    public const double CharCamX = 0;
-    public const double CharCamY = 4.2;
-    public const double CharCamZ = 2;
-    public const double CharLookY = 2.6;
-    public const double CharFov = 32;
+    public const double CharZ = 20;
+    public const double CharCamX = 8;
+    public const double CharCamY = 3.4;
+    public const double CharCamZ = 9;
+    public const double CharLookY = 2.5;
+    public const double CharFov = 34;
     public const double CharPoseT = MoveBones.SwingContact;
 
     public static bool CharCameraLooksAtChest(double lookY) => lookY >= 2.0 && lookY <= 4.0;
 
     public static bool CharCameraIsNotBrim(double lookY, double camY) => lookY < camY;
+
+    public static bool CharCameraIsThreeQuarter(double camX, double camZ, double charZ) =>
+        Math.Abs(camX) >= 6 && camZ < charZ && charZ - camZ >= 8;
 
     /// <summary>Throwing hand must be on the rubber. Home-plate from was a beach ball in the lens.</summary>
     public static bool PitchReleaseIsOnTheMound(double z) =>

@@ -390,9 +390,9 @@ namespace GrandSluggers.UnityClient
             hero.gameObject.SetActive(true);
             hero.SetHeld(false, false);
             hero.SetChargeRing(0);
-            hero.Place(
+            hero.PlaceStill(
                 new Vector3((float)StillPose.CharX, 0f, (float)StillPose.CharZ),
-                new Vector3((float)StillPose.CharCamX, 0f, (float)StillPose.CharCamZ));
+                new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ));
             if (pose)
             {
                 hero.SetPose(HeroActor.Pose.Swing, 1);
