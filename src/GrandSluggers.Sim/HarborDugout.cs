@@ -27,6 +27,9 @@ public static class HarborDugout
     public const int StairCount = 5;
     public const float StairDepth = 0.82f;
 
+    /// <summary>How far field stairs run onto the grass. Scoop still has to see the descent.</summary>
+    public const float FieldStairRun = 8f;
+
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 
     public static float FieldX(float x) => x > 0f ? x - HalfDeep : x + HalfDeep;
@@ -36,7 +39,7 @@ public static class HarborDugout
     /// <summary>Lawn must not cover this box (pit + field stairs). Pad so the lip reads.</summary>
     public const float HolePad = 1.2f;
 
-    public static float HoleMinX => FieldX(X) - StairCount * StairDepth - HolePad;
+    public static float HoleMinX => FieldX(X) - FieldStairRun - HolePad;
     public static float HoleMaxX => X + HalfDeep + HolePad;
     public static float HoleMinZ => Z - HalfAlong - HolePad;
     public static float HoleMaxZ => Z + HalfAlong + HolePad;

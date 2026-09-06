@@ -564,14 +564,16 @@ namespace GrandSluggers.UnityClient
         void FieldStairs(string side, float xMid, float fieldX, float inward, float z, Material conc)
         {
             var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
-            var stepD = HarborDugout.StairDepth;
-            for (var i = 0; i < HarborDugout.StairCount; i++)
+            var run = HarborDugout.FieldStairRun;
+            var n = HarborDugout.StairCount;
+            var stepD = run / n;
+            for (var i = 0; i < n; i++)
             {
                 var y = -stepH * (i + 0.5f);
-                var along = HarborDugout.StairCount - i;
-                var sx = fieldX + inward * along * stepD;
+                var t = n == 1 ? 0f : i / (float)(n - 1);
+                var sx = fieldX + inward * run * (1f - t);
                 Cube(Dugouts, "Dug" + side + "FieldStair" + i,
-                    new Vector3(sx, y, z), new Vector3(stepD + 0.08f, stepH, 3.2f), conc);
+                    new Vector3(sx, y, z), new Vector3(stepD + 0.12f, stepH, 3.4f), conc);
             }
         }
 

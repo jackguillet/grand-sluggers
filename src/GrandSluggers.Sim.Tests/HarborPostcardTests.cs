@@ -60,6 +60,8 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
         Assert.True(HarborDugout.HoleMinX > 48, "hole stays off the dirt path");
+        Assert.True(HarborDugout.FieldX(HarborDugout.X) - HarborDugout.HoleMinX >= 8,
+            "field-side hole must be wide enough to see the pit from scoop");
     }
 
     [Fact]

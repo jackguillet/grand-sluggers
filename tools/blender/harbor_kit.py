@@ -19,6 +19,7 @@ HALF_DEEP = 5.4
 PIT = 2.6
 STAIR_COUNT = 5
 STAIR_DEPTH = 0.82
+FIELD_STAIR_RUN = 8.0
 
 
 def nuke():
@@ -122,12 +123,14 @@ def build_dugout(name, wood, roof, gold, pad, post, conc, well, flip_x):
     pieces.extend(stairs(name + "H", wood, conc, y0, 1))
     pieces.extend(stairs(name + "F", wood, conc, y1, -1))
     step_h = PIT / STAIR_COUNT
+    step_d = FIELD_STAIR_RUN / STAIR_COUNT
     for i in range(STAIR_COUNT):
+        t = 0 if STAIR_COUNT == 1 else i / (STAIR_COUNT - 1)
         z_c = -step_h * (i + 0.5)
-        x_c = field_x - (STAIR_COUNT - i) * STAIR_DEPTH
+        x_c = field_x - FIELD_STAIR_RUN * (1 - t)
         pieces.append(
             prim("cube", name + "FS" + str(i), (x_c, y0 + 2.4, z_c),
-                 (STAIR_DEPTH + 0.08, 3.2, step_h), conc)
+                 (step_d + 0.12, 3.4, step_h), conc)
         )
     bevel(pieces[8], 0.08, 2)
     dug = join_in_place(name, pieces)
