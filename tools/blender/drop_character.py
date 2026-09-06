@@ -287,16 +287,18 @@ def dist2(a, b):
 
 
 def assign_vertices(body, fit):
-    """Protruding limbs only. The shell/core stays torso so it never tears."""
+    """Limbs only. Shell + head + plastron stay torso — cutting the head off
+    the shell is the black hole in char-fenn-rest.png."""
     verts = world_verts(body)
     xs = [v.x for v in verts]
     zs = [v.z for v in verts]
-    x_arm_l = pct(xs, 0.10)
-    x_arm_r = pct(xs, 0.90)
-    z_head = pct(zs, 0.86)
+    x_arm_l = pct(xs, 0.08)
+    x_arm_r = pct(xs, 0.92)
     z_hip = fit["z_hip"]
     z_knee_l = fit["z_knee_l"]
     z_knee_r = fit["z_knee_r"]
+    z_foot = pct(zs, 0.12)
+    half = max(0.2, 0.5 * (x_arm_r - x_arm_l))
     larm_c = fit["larm_c"]
     rarm_c = fit["rarm_c"]
     lhand_c = fit["lhand_c"]
@@ -308,17 +310,14 @@ def assign_vertices(body, fit):
     counts = defaultdict(int)
     for v in verts:
         name = "torso"
-        if v.z >= z_head and abs(v.x) < max(abs(x_arm_l), abs(x_arm_r)) * 0.72:
-            name = "head"
-        elif v.x <= x_arm_l and v.z >= z_hip * 0.85:
+        if v.x <= x_arm_l and v.z >= z_hip * 0.85:
             name = "lFore" if dist2(v, lhand_c) < dist2(v, l_sh) * 0.85 or v.z < larm_c.z - 0.15 else "lUpper"
         elif v.x >= x_arm_r and v.z >= z_hip * 0.85:
             name = "rFore" if dist2(v, rhand_c) < dist2(v, r_sh) * 0.85 or v.z < rarm_c.z - 0.15 else "rUpper"
-        elif v.z <= z_hip:
-            if v.x < 0:
-                name = "lShin" if v.z <= z_knee_l else "lThigh"
-            else:
-                name = "rShin" if v.z <= z_knee_r else "rThigh"
+        elif v.z <= z_foot and abs(v.x) > 0.22 * half:
+            name = "lShin" if v.x < 0 else "rShin"
+        elif v.z <= z_hip and abs(v.x) > 0.28 * half:
+            name = "lThigh" if v.x < 0 else "rThigh"
         names.append(name)
         counts[name] += 1
     print("assign", dict(counts))

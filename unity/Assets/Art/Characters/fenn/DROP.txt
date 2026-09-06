@@ -4,7 +4,7 @@ Elder Fenn. Unique character package (segmented).
   fenn-albedo.png     1024 base color (URP Lit). Required for paint.
   Resources/Art/Characters/fenn/   player copies (fbx + albedo)
 
-bind=segmented in skins.json (stopgap). Generic idle/pose takes: fenn-idle.fbx, fenn-pose.fbx.
-Stills: tools/still-gate-character.sh fenn. Humans pass look.
+bind=segmented (stopgap). Shell+head+plastron are one torso piece — do not cut the head off the shell.
+Generic idle/pose takes. Rest still is bind pose. Humans pass look.
 Spec: docs/character-package.md
 
