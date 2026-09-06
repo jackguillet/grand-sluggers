@@ -72,7 +72,7 @@ namespace GrandSluggers.UnityClient
                 for (var i = 0; i < 24; i++) yield return null;
                 _play.GatePose(shot, _req);
                 for (var i = 0; i < 4; i++) yield return null;
-                var png = StillRequest.PngPath(outDir, shot);
+                var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome());
                 try
                 {
                     Capture(_play.GateCam != null ? _play.GateCam : cam, png, w, h);
@@ -148,6 +148,15 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _freeze = 0;
 
+            if (shot == "char-rest" || shot == "char-pose")
+            {
+                if (_match == null) _match = NewMatch();
+                _park.Build(_match.Park, _match.Night);
+                _phase = Phase.Select;
+                _gateHold = true;
+                return;
+            }
+
             if (shot == "title" || shot == "select" || shot == "field" || shot == "lineup")
             {
                 if (_match == null) _match = NewMatch();
@@ -213,6 +222,12 @@ namespace GrandSluggers.UnityClient
             _freezeCam = true;
             _gateHold = true;
             var charge = Mathf.Clamp01((float)req.Charge01);
+            if (shot == "char-rest" || shot == "char-pose")
+            {
+                PoseCharacterTurntable(shot == "char-pose");
+                return;
+            }
+
             if (shot == "field")
             {
                 _cam.Cut("field");
@@ -353,6 +368,36 @@ namespace GrandSluggers.UnityClient
                 _spec.Tick(0, chest, false, true, false, "", star ?? "", chest, chest, false, false, false, false, chest);
                 _cam.SmashCut(chest);
             }
+        }
+
+        void PoseCharacterTurntable(bool pose)
+        {
+            HideBackstop();
+            foreach (var kv in _heroes)
+                if (kv.Value != null) kv.Value.gameObject.SetActive(false);
+            var who = _content.Must(HomeCaptain);
+            var hero = EnsureHero(who);
+            if (hero == null) return;
+            hero.gameObject.SetActive(true);
+            hero.SetHeld(false, false);
+            hero.SetChargeRing(0);
+            hero.Place(
+                new Vector3((float)StillPose.CharX, 0f, (float)StillPose.CharZ),
+                new Vector3((float)StillPose.CharCamX, 0f, (float)StillPose.CharCamZ));
+            if (pose)
+            {
+                hero.SetPose(HeroActor.Pose.Swing, 1);
+                hero.SnapTick((float)StillPose.CharPoseT);
+            }
+            else
+            {
+                hero.SetPose(HeroActor.Pose.Idle, 0);
+                hero.SnapTick(0.08f);
+            }
+            _cam.CutRaw("select",
+                new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ),
+                new Vector3((float)StillPose.CharX, (float)StillPose.CharLookY, (float)StillPose.CharZ),
+                (float)StillPose.CharFov);
         }
 
         void HideCatcher()

@@ -52,6 +52,23 @@ public static class StillPose
     /// <summary>Just off the hand, still on the pitcher, coming at the box.</summary>
     public const double PitchBallU = 0.12;
 
+    /// <summary>
+    /// Character turntable. One body on the dirt, camera at chest, not the brim.
+    /// Toy faces the lens (−Z). Pose still is a ~90° hitting-arm flex.
+    /// </summary>
+    public const double CharX = 0;
+    public const double CharZ = 14;
+    public const double CharCamX = 0;
+    public const double CharCamY = 3.6;
+    public const double CharCamZ = 4.2;
+    public const double CharLookY = 2.8;
+    public const double CharFov = 38;
+    public const double CharPoseT = MoveBones.SwingContact;
+
+    public static bool CharCameraLooksAtChest(double lookY) => lookY >= 2.0 && lookY <= 4.0;
+
+    public static bool CharCameraIsNotBrim(double lookY, double camY) => lookY < camY;
+
     /// <summary>Throwing hand must be on the rubber. Home-plate from was a beach ball in the lens.</summary>
     public static bool PitchReleaseIsOnTheMound(double z) =>
         z > Diamond.Mound - 16 && z < Diamond.Mound + 8;

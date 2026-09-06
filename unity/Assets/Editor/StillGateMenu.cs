@@ -36,5 +36,15 @@ namespace GrandSluggers.EditorTools
             EditorApplication.isPlaying = true;
             Debug.Log("Grand Sluggers still gate: Play. PNGs → " + Path.Combine(temp, StillRequest.DefaultOutFolder));
         }
+
+        [MenuItem("Grand Sluggers/Capture Character Stills")]
+        public static void CaptureCharacters()
+        {
+            var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp");
+            Directory.CreateDirectory(temp);
+            File.WriteAllText(StillRequest.RequestPath(temp),
+                "{\"shots\":[\"char-rest\",\"char-pose\"],\"home\":\"fenn\",\"away\":\"rio\",\"hudOff\":true,\"width\":1920,\"height\":1080}");
+            Capture();
+        }
     }
 }
