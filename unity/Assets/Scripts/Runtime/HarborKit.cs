@@ -452,11 +452,27 @@ namespace GrandSluggers.UnityClient
         void DressDugouts()
         {
             Wipe(Dugouts);
-            if (DropDugout(DugoutX, "1B") && DropDugout(-DugoutX, "3B"))
-                return;
-            Wipe(Dugouts);
-            BuildDugout(DugoutX, "1B");
-            BuildDugout(-DugoutX, "3B");
+            if (!(DropDugout(DugoutX, "1B") && DropDugout(-DugoutX, "3B")))
+            {
+                Wipe(Dugouts);
+                BuildDugout(DugoutX, "1B");
+                BuildDugout(-DugoutX, "3B");
+            }
+            // Dirt floor under the lawn holes so the scoop still sees a pit, not sky.
+            var pad = Look.Lit(new Color(0.58f, 0.40f, 0.24f), Look.Dirt, 3f, 0.1f);
+            PitWell(1f, pad);
+            PitWell(-1f, pad);
+        }
+
+        void PitWell(float xSign, Material pad)
+        {
+            var cx = xSign * (HarborDugout.HoleMinX + HarborDugout.HoleMaxX) * 0.5f;
+            var cz = (HarborDugout.HoleMinZ + HarborDugout.HoleMaxZ) * 0.5f;
+            var sx = HarborDugout.HoleMaxX - HarborDugout.HoleMinX;
+            var sz = HarborDugout.HoleMaxZ - HarborDugout.HoleMinZ;
+            Cube(Dugouts, xSign > 0f ? "Well1B" : "Well3B",
+                new Vector3(cx, HarborDugout.PitFloorY, cz),
+                new Vector3(sx, 0.22f, sz), pad);
         }
 
         bool DropDugout(float x, string side)
