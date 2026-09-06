@@ -31,6 +31,26 @@ Bonus stills that save a later sitting (same rules):
 | Fly | `diamond-fly` | Same 45°, pulled back, more FOV. CF at the top. Fielder reads, ball is a baseball |
 | Homer | `diamond-fly` | Same pulled-back 45°. The ball flies toward CF at the top of the frame |
 
+## Character stills (look gate)
+
+Any change under `Art/Characters/`, `drop_character.py`, or a unique `skins.json` bind needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
+
+Until a turntable scene exists, capture Exhibition **select** or SET of that captain (Game view, same setup as below).
+
+| Still | Must show | Fail if |
+| --- | --- | --- |
+| **Rest** | Painted albedo (not white clay). Feet on dirt. Silhouette reads. Not a primitive fallback. | Inside-out / black interior, shredded cloth, gold brim on a unique package, missing albedo |
+| **Pose** | Same body, one limb flexed ~90° (arm or leg). Torso/shell stays a solid volume. | No limb delta (statue), mesh tears at the joint, interior showing, Rio T-pose through a turtle |
+
+Name files:
+
+```
+char-{id}-rest.png
+char-{id}-pose.png
+```
+
+Spec: `docs/character-package.md`.
+
 Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not mash A into a live session unless you are okay with skipping a prompt.
 
 ---
@@ -55,6 +75,8 @@ mound-rio.png
 scoop.png
 star-rio-heat.png
 plate-rio-f2.png          (optional, F2 on, so we can read SHOT)
+char-fenn-rest.png
+char-fenn-pose.png
 ```
 
 Drop them in this chat or `scratchpad/stills/`.
