@@ -147,13 +147,17 @@ namespace GrandSluggers.UnityClient
             _path = null;
             _smash = 0;
             _freeze = 0;
+            _turntable = false;
 
             if (shot == "char-rest" || shot == "char-pose")
             {
                 if (_match == null) _match = NewMatch();
                 _park.Build(_match.Park, _match.Night);
-                _phase = Phase.Select;
+                _phase = Phase.Field;
                 _gateHold = true;
+                _turntable = true;
+                _logo?.Hide();
+                _card?.Hide();
                 return;
             }
 
@@ -373,8 +377,13 @@ namespace GrandSluggers.UnityClient
         void PoseCharacterTurntable(bool pose)
         {
             HideBackstop();
+            _logo?.Hide();
+            _card?.Hide();
             foreach (var kv in _heroes)
-                if (kv.Value != null) kv.Value.gameObject.SetActive(false);
+            {
+                if (kv.Value == null) continue;
+                kv.Value.gameObject.SetActive(kv.Key.Equals(HomeCaptain, StringComparison.OrdinalIgnoreCase));
+            }
             var who = _content.Must(HomeCaptain);
             var hero = EnsureHero(who);
             if (hero == null) return;

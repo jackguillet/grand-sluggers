@@ -57,12 +57,12 @@ public static class StillPose
     /// Toy faces the lens (−Z). Pose still is a ~90° hitting-arm flex.
     /// </summary>
     public const double CharX = 0;
-    public const double CharZ = 14;
+    public const double CharZ = 22;
     public const double CharCamX = 0;
-    public const double CharCamY = 3.6;
-    public const double CharCamZ = 4.2;
-    public const double CharLookY = 2.8;
-    public const double CharFov = 38;
+    public const double CharCamY = 4.2;
+    public const double CharCamZ = 2;
+    public const double CharLookY = 2.6;
+    public const double CharFov = 32;
     public const double CharPoseT = MoveBones.SwingContact;
 
     public static bool CharCameraLooksAtChest(double lookY) => lookY >= 2.0 && lookY <= 4.0;

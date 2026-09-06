@@ -19,6 +19,7 @@ namespace GrandSluggers.UnityClient
 
         void DrawActors()
         {
+            if (_turntable) return;
             _used.Clear();
             if (_phase is Phase.Title or Phase.Select)
             {
