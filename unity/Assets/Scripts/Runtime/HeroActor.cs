@@ -147,6 +147,23 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        /// <summary>
+        /// Still-gate: stand on the dirt looking at a world point. Live Place()
+        /// slerps and treats the vector as a direction — that put Fenn's shell in the lens.
+        /// </summary>
+        public void PlaceStill(Vector3 pos, Vector3 lookAt)
+        {
+            transform.position = pos;
+            var d = lookAt - pos;
+            d.y = 0f;
+            if (d.sqrMagnitude < 0.01f) d = Vector3.back;
+            transform.rotation = Quaternion.LookRotation(d);
+            _look = d.normalized;
+            _ground = new Vector3(pos.x, 0f, pos.z);
+            _hasGround = true;
+            _lift = 0f;
+        }
+
         public void Tick(float dt)
         {
             _t += dt;
