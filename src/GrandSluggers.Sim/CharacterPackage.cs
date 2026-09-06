@@ -52,6 +52,10 @@ public static class CharacterPackage
     public static string ResourcesFolder(string id) => "Assets/Resources/Art/Characters/" + id;
     public static string MeshSlot(string id) => ArtFolder(id) + "/" + id + ".fbx";
     public static string AlbedoName(string id) => id + "-albedo.png";
+    public static string ClipSlot(string id, string clip) =>
+        ArtFolder(id) + "/" + id + "-" + clip + ".fbx";
+
+    public static readonly IReadOnlyList<string> PackageClips = ["idle", "pose"];
 
     public static IReadOnlyList<string> ValidateFiles(string dataRoot, SkinSlot skin)
     {
@@ -76,6 +80,13 @@ public static class CharacterPackage
         if (!File.Exists(res)) errors.Add("package missing player FBX " + res);
         if (!File.Exists(albedo)) errors.Add("package missing albedo " + albedo);
         else if (new FileInfo(albedo).Length < 10_000) errors.Add("package albedo empty " + id);
+        foreach (var clip in PackageClips)
+        {
+            var take = Path.Combine(unity, ArtFolder(id).Replace('/', Path.DirectorySeparatorChar),
+                id + "-" + clip + ".fbx");
+            if (!File.Exists(take)) errors.Add("package missing clip " + take);
+            else if (new FileInfo(take).Length < 1_000) errors.Add("package clip empty " + id + "-" + clip);
+        }
         return errors;
     }
 }
