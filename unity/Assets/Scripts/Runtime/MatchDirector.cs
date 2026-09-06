@@ -56,6 +56,7 @@ namespace GrandSluggers.UnityClient
         Sample[] _hlPath;
         float _hlSpray;
         bool _replaying;
+        bool _turntable;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
         readonly HashSet<string> _used = new HashSet<string>();
 
