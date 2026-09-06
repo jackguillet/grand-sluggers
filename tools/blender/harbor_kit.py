@@ -121,6 +121,14 @@ def build_dugout(name, wood, roof, gold, pad, post, conc, well, flip_x):
     ]
     pieces.extend(stairs(name + "H", wood, conc, y0, 1))
     pieces.extend(stairs(name + "F", wood, conc, y1, -1))
+    step_h = PIT / STAIR_COUNT
+    for i in range(STAIR_COUNT):
+        z_c = -step_h * (i + 0.5)
+        x_c = field_x - (STAIR_COUNT - i) * STAIR_DEPTH
+        pieces.append(
+            prim("cube", name + "FS" + str(i), (x_c, y0 + 2.4, z_c),
+                 (STAIR_DEPTH + 0.08, 3.2, step_h), conc)
+        )
     bevel(pieces[8], 0.08, 2)
     dug = join_in_place(name, pieces)
     if flip_x:
