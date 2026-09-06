@@ -273,10 +273,10 @@ namespace GrandSluggers.UnityClient
         {
             var roof = Look.Lit(new Color(0.18f, 0.32f, 0.22f), smooth: 0.12f);
             var pad = Look.Lit(new Color(0.55f, 0.42f, 0.28f), Look.Dirt, 2f, 0.1f);
-            Cube("Dugout1B", new Vector3(42, 2.4f, 22), new Vector3(22, 1.2f, 10), roof);
-            Cube("Dugout1BPad", new Vector3(42, 0.3f, 22), new Vector3(20, 0.4f, 8), pad);
-            Cube("Dugout3B", new Vector3(-42, 2.4f, 22), new Vector3(22, 1.2f, 10), roof);
-            Cube("Dugout3BPad", new Vector3(-42, 0.3f, 22), new Vector3(20, 0.4f, 8), pad);
+            Cube("Dugout1B", new Vector3(HarborDugout.X, 2.4f, HarborDugout.Z), new Vector3(22, 1.2f, 10), roof);
+            Cube("Dugout1BPad", new Vector3(HarborDugout.X, 0.3f, HarborDugout.Z), new Vector3(20, 0.4f, 8), pad);
+            Cube("Dugout3B", new Vector3(-HarborDugout.X, 2.4f, HarborDugout.Z), new Vector3(22, 1.2f, 10), roof);
+            Cube("Dugout3BPad", new Vector3(-HarborDugout.X, 0.3f, HarborDugout.Z), new Vector3(20, 0.4f, 8), pad);
         }
 
         void HarborBleachers()
@@ -369,12 +369,12 @@ namespace GrandSluggers.UnityClient
             var roof = Look.Toon(new Color(0.16f, 0.28f, 0.2f));
             var rail = Look.Toon(Colors.Gold);
             var bench = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.1f);
-            Cube("Dug1Roof", new Vector3(42f, 5.2f, 22f), new Vector3(24f, 0.5f, 12f), roof);
-            Cube("Dug3Roof", new Vector3(-42f, 5.2f, 22f), new Vector3(24f, 0.5f, 12f), roof);
-            Cube("Dug1Rail", new Vector3(42f, 3.4f, 16f), new Vector3(20f, 0.35f, 0.5f), rail);
-            Cube("Dug3Rail", new Vector3(-42f, 3.4f, 16f), new Vector3(20f, 0.35f, 0.5f), rail);
-            Cube("Dug1Bench", new Vector3(42f, 1.0f, 24f), new Vector3(18f, 0.7f, 2.2f), bench);
-            Cube("Dug3Bench", new Vector3(-42f, 1.0f, 24f), new Vector3(18f, 0.7f, 2.2f), bench);
+            Cube("Dug1Roof", new Vector3(HarborDugout.X, 5.2f, HarborDugout.Z), new Vector3(24f, 0.5f, 12f), roof);
+            Cube("Dug3Roof", new Vector3(-HarborDugout.X, 5.2f, HarborDugout.Z), new Vector3(24f, 0.5f, 12f), roof);
+            Cube("Dug1Rail", new Vector3(HarborDugout.X, 3.4f, HarborDugout.Z - 6f), new Vector3(20f, 0.35f, 0.5f), rail);
+            Cube("Dug3Rail", new Vector3(-HarborDugout.X, 3.4f, HarborDugout.Z - 6f), new Vector3(20f, 0.35f, 0.5f), rail);
+            Cube("Dug1Bench", new Vector3(HarborDugout.X, HarborDugout.PitFloorY + 1.0f, HarborDugout.Z), new Vector3(18f, 0.7f, 2.2f), bench);
+            Cube("Dug3Bench", new Vector3(-HarborDugout.X, HarborDugout.PitFloorY + 1.0f, HarborDugout.Z), new Vector3(18f, 0.7f, 2.2f), bench);
         }
 
         void HarborWallDress(Park park)

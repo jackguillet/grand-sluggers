@@ -37,6 +37,24 @@ public class HarborPostcardTests
     }
 
     [Fact]
+    public void DugoutsAreSunkenAndSetBackOffTheDirt()
+    {
+        Assert.True(HarborDugout.IsSetBackFromTheDirt(),
+            $"field lip {HarborDugout.FieldX(HarborDugout.X)} still on the path");
+        Assert.True(HarborDugout.IsSunken());
+        Assert.True(HarborDugout.HasStairs());
+        Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
+        Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
+        Assert.True(HarborDugout.Z > 30);
+        Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
+        Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
+        Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),
+            "a camera in the pit is not clear");
+        Assert.InRange(HarborDugout.StarZ0, HarborDugout.Z - HarborDugout.HalfAlong,
+            HarborDugout.Z + HarborDugout.HalfAlong);
+    }
+
+    [Fact]
     public void HarborKitFbxIsInThePlayerResourcesSlot()
     {
         var repo = Directory.GetParent(_content.Root)?.FullName
