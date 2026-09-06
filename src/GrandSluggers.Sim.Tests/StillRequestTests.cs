@@ -48,6 +48,20 @@ public class StillRequestTests
     }
 
     [Fact]
+    public void CharacterShotsWriteNamedPngs()
+    {
+        Assert.Contains("char-rest", StillRequest.AllowedShots);
+        Assert.Contains("char-pose", StillRequest.AllowedShots);
+        var req = StillRequest.Parse("""{"shots":["char-rest","char-pose"],"home":"fenn"}""");
+        Assert.Equal(new[] { "char-rest", "char-pose" }, req.ResolvedShots());
+        Assert.Equal("fenn", req.ResolvedHome());
+        Assert.Equal("/tmp/gs/char-fenn-rest.png", StillRequest.PngPath("/tmp/gs", "char-rest", req.ResolvedHome()));
+        Assert.Equal("/tmp/gs/char-fenn-pose.png", StillRequest.PngPath("/tmp/gs", "char-pose", "fenn"));
+        Assert.True(StillRequest.IsCharShot("char-rest"));
+        Assert.False(StillRequest.IsCharShot("plate"));
+    }
+
+    [Fact]
     public void AwayWillNotMatchHome()
     {
         var req = StillRequest.Parse("""{"home":"rio","away":"rio"}""");
