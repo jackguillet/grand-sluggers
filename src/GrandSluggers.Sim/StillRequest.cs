@@ -18,7 +18,8 @@ public sealed class StillRequest
     {
         "title", "select", "field", "lineup", "plate", "pitch", "mound",
         "diamond", "diamond-grounder", "diamond-line", "diamond-homer", "diamond-pull",
-        "throw", "tag", "smash", "replay", "scoop"
+        "throw", "tag", "smash", "replay", "scoop",
+        "char-rest", "char-pose"
     };
 
     public string[]? Shots { get; init; }
@@ -73,8 +74,20 @@ public sealed class StillRequest
 
     public static string DonePath(string unityTemp) => Path.Combine(unityTemp, DoneFileName);
 
-    public static string PngPath(string outDir, string shot) =>
-        Path.Combine(outDir, shot.ToLowerInvariant() + ".png");
+    public static bool IsCharShot(string shot) =>
+        shot.Equals("char-rest", StringComparison.OrdinalIgnoreCase)
+        || shot.Equals("char-pose", StringComparison.OrdinalIgnoreCase);
+
+    public static string PngPath(string outDir, string shot, string? who = null)
+    {
+        var id = (shot ?? "").ToLowerInvariant();
+        if (IsCharShot(id) && !string.IsNullOrWhiteSpace(who))
+        {
+            var kind = id.EndsWith("pose", StringComparison.Ordinal) ? "pose" : "rest";
+            return Path.Combine(outDir, "char-" + who.Trim().ToLowerInvariant() + "-" + kind + ".png");
+        }
+        return Path.Combine(outDir, id + ".png");
+    }
 
     public static StillRequest Parse(string json)
     {
