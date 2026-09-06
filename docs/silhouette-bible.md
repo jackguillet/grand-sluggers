@@ -52,7 +52,7 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 - **Brondo** — cube chest, brick jaw
 - **Konga** — ape snout, hanging arms, belly
 - **Ashlord** — horns, short cape, unlit ember eyes
-- **Fenn** — shell-as-brim, walking cane, cream plastron. Unique package (`bind: segmented`).
+- **Fenn** — shell-as-brim, walking cane, cream plastron. Unique Generic package (`docs/character-package.md`).
 
 ## Bats (shape, not a string)
 

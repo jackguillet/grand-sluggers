@@ -43,19 +43,17 @@ Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-c
   --out unity/Assets/Art/Animation/Clips/scoop.fbx
 ```
 
-Unique character package (posed GLB/FBX → segmented pieces on named sockets). Source is not in-repo:
+Unique character package. Spec: `docs/character-package.md`. A posed unrigged GLB is a **source**, not a player mesh. Quality path is a Generic FBX with painted weights (or Blender-authored pieces) and clips on that armature. `drop_character.py` is a converter, not the ship pipeline.
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-  --src /path/to/hero.glb --id fenn --bind segmented \
+  --src /path/to/hero.glb --id fenn --bind skinned --keep-weights \
   --out unity/Assets/Art/Characters/fenn/fenn.fbx \
   --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Writes `{id}-albedo.png` (1024) next to the FBX. Default `--bind segmented` splits the mesh so limbs rotate without shredding. `--bind skinned --keep-weights` is the painted-weight quality path. `--bind rigid` is a statue.
-
-Runtime assigns URP Lit from the sidecar albedo. Spec: `docs/character-package.md`.
+Writes `{id}-albedo.png` (1024) next to the FBX. `--keep-weights` only when the source already has painted groups. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
 
 Elder Fenn (wrapper):
 

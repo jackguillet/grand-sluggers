@@ -2,7 +2,7 @@
 
 Grand Sluggers should **feel and look like Mario Super Sluggers** — party baseball, oversized toys, readable at ten feet — with a **different cast**. We steal weight, cameras, juice, and the “real diamond plus gimmick parks” shape. We do not steal faces, names, mushrooms, or Nintendo set dressing.
 
-Identity stills and proportions: `docs/silhouette-bible.md`. Slots and drop rules: `docs/art-rails.md`. Systems teardown: `docs/research-sluggers.md`. Style lock (Rio, three views): `tools/blender/style-lock/`.
+Identity stills and proportions: `docs/silhouette-bible.md`. Character contract: `docs/character-package.md`. Slots and drop rules: `docs/art-rails.md`. Systems teardown: `docs/research-sluggers.md`. Style lock (Rio, three views): `tools/blender/style-lock/`.
 
 ## What “like Sluggers” means here
 
@@ -10,7 +10,7 @@ Identity stills and proportions: `docs/silhouette-bible.md`. Slots and drop rule
 | --- | --- |
 | Fat silhouettes, big heads, simple shapes | Mario, Peach, DK, Bowser, or lookalikes |
 | Saturated toon fill, hard color blocks | PBR sports-game sheen, MLB broadcast |
-| Personality in extras (hat, crown, goggles, snout, horns, cape) | A unique skeleton per captain |
+| Personality in extras (hat, crown, goggles, snout, horns, cape) | Mixamo as identity; unique sculpts on role players |
 | One expensive “real” diamond (Harbor) | Shipping six park kits before Exhibition is fun |
 | Timing + charge, star cutscenes, chemistry comedy | Motion controls, Nintendo UI chrome |
 | 10-foot couch read: you can point at a body and name them HUD-off | Fine print, nostril cameras, brim-as-the-picture |
@@ -19,7 +19,7 @@ A player who loved Sluggers should feel at home in three pitches and never think
 
 ## The cast (this is the art)
 
-Six faction cuts plus Elder Fenn. One shared rig. Role players are palette + jersey on the faction cut — no crown, horns, snout, goggles, cape, or shell.
+Six faction cuts plus Elder Fenn. Shared bone names; unique captains are Generic packages. Role players are palette + jersey on the faction cut — no crown, horns, snout, goggles, cape, or shell.
 
 | Captain | Cut | Read |
 | --- | --- | --- |
@@ -47,4 +47,4 @@ Readable in a half-second: charge ring, dirt puff, heat trail, buddy flash, smas
 
 ## Pipeline
 
-Shared sockets (`hero-shared` names). Unique captains are packages. Named clips. Harbor kit for the diamond. Artists fill slots; code does not grow a switch. After a drop: `dotnet test` and `cli art` still print `OK`.
+Shared sockets (`hero-shared` names). Unique captains are DCC Generic packages (`docs/character-package.md`). Named clips. Harbor kit for the diamond. Artists fill slots; code does not grow a switch. After a drop: `dotnet test` and `cli art` still print `OK`, **and** character stills exist.
