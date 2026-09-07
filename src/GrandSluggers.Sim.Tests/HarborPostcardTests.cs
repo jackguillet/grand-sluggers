@@ -88,6 +88,13 @@ public class HarborPostcardTests
         Assert.True(new FileInfo(drop).Length > 10_000, "harbor-kit.fbx is empty");
         Assert.True(File.Exists(player), player + " — kit must bind in the Linux player, not only Editor Play");
         Assert.True(new FileInfo(player).Length > 10_000, "player harbor-kit.fbx is empty");
+        var ascii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(drop));
+        Assert.Contains("home-plate", ascii);
+        Assert.Contains("bag", ascii);
+        Assert.Equal(new FileInfo(drop).Length, new FileInfo(player).Length);
+        var dropTxt = File.ReadAllText(Path.Combine(Path.GetDirectoryName(drop)!, "DROP.txt"));
+        Assert.Contains("home-plate", dropTxt);
+        Assert.Contains("bag", dropTxt);
     }
 
     [Fact]

@@ -1,0 +1,12 @@
+# Project MCP servers. User ~/.grok/config.toml still applies for other tools.
+# Blender GUI must be open with MCP for Blender → Start MCP Server (port 9876).
+# Do not also run `uvx blender-mcp` in a terminal — Grok spawns it.
+
+[mcp_servers.blender]
+command = "/opt/homebrew/bin/uvx"
+args = ["blender-mcp"]
+enabled = true
+startup_timeout_sec = 60
+
+[mcp_servers.blender.env]
+DISABLE_TELEMETRY = "true"
