@@ -41,15 +41,16 @@ namespace GrandSluggers.UnityClient
         public Transform Bag3;
 
         // 1B at +X, 3B at −X. Open to the infield. StarMeter sits on this fascia.
-        public const float DugoutX = 42f;
-        public const float DugoutZ = 21.4f;
-        public const float DugoutHalfAlong = 6.2f;
-        public const float DugoutHalfDeep = 4.6f;
-        public const float DugoutFasciaY = 4.18f;
-        public const float DugoutStarSpacing = 2.05f;
-        public const float DugoutStarZ0 = 17.3f;
+        // Numbers live in HarborDugout so the still-gate cannot drift.
+        public const float DugoutX = HarborDugout.X;
+        public const float DugoutZ = HarborDugout.Z;
+        public const float DugoutHalfAlong = HarborDugout.HalfAlong;
+        public const float DugoutHalfDeep = HarborDugout.HalfDeep;
+        public const float DugoutFasciaY = HarborDugout.FasciaY;
+        public const float DugoutStarSpacing = HarborDugout.StarSpacing;
+        public static float DugoutStarZ0 => HarborDugout.StarZ0;
 
-        public static float DugoutFieldX(float x) => x > 0f ? x - DugoutHalfDeep : x + DugoutHalfDeep;
+        public static float DugoutFieldX(float x) => HarborDugout.FieldX(x);
 
         bool _dressed;
         CameraShots _shots;
@@ -451,11 +452,27 @@ namespace GrandSluggers.UnityClient
         void DressDugouts()
         {
             Wipe(Dugouts);
-            if (DropDugout(DugoutX, "1B") && DropDugout(-DugoutX, "3B"))
-                return;
-            Wipe(Dugouts);
-            BuildDugout(DugoutX, "1B");
-            BuildDugout(-DugoutX, "3B");
+            if (!(DropDugout(DugoutX, "1B") && DropDugout(-DugoutX, "3B")))
+            {
+                Wipe(Dugouts);
+                BuildDugout(DugoutX, "1B");
+                BuildDugout(-DugoutX, "3B");
+            }
+            // Dirt floor under the lawn holes so the scoop still sees a pit, not sky.
+            var pad = Look.Lit(new Color(0.58f, 0.40f, 0.24f), Look.Dirt, 3f, 0.1f);
+            PitWell(1f, pad);
+            PitWell(-1f, pad);
+        }
+
+        void PitWell(float xSign, Material pad)
+        {
+            var cx = xSign * (HarborDugout.HoleMinX + HarborDugout.HoleMaxX) * 0.5f;
+            var cz = (HarborDugout.HoleMinZ + HarborDugout.HoleMaxZ) * 0.5f;
+            var sx = HarborDugout.HoleMaxX - HarborDugout.HoleMinX;
+            var sz = HarborDugout.HoleMaxZ - HarborDugout.HoleMinZ;
+            Cube(Dugouts, xSign > 0f ? "Well1B" : "Well3B",
+                new Vector3(cx, HarborDugout.PitFloorY, cz),
+                new Vector3(sx, 0.22f, sz), pad);
         }
 
         bool DropDugout(float x, string side)
@@ -470,8 +487,8 @@ namespace GrandSluggers.UnityClient
             SitRow(
                 Dugouts,
                 "Dug" + side + "Sit",
-                new Vector3(backX + inward * 1.7f, 0f, DugoutZ),
-                new Vector3(0f, 0f, DugoutHalfAlong * 1.55f),
+                new Vector3(backX + inward * 1.7f, HarborDugout.PitFloorY, DugoutZ),
+                new Vector3(0f, 0f, DugoutHalfAlong * 1.2f),
                 5,
                 side == "1B" ? 11 : 71,
                 side == "1B");
@@ -479,50 +496,128 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
-        /// Pavilion open to the infield. Scoop cam sits at the home-facing
-        /// end — a field-side wall there is a brown box. Back wall + far
-        /// end + roof + rail + bench. People sit. Stars live on the fascia.
+        /// Sunken dugout. Floor below grade, stairs at both ends, rail at
+        /// field, roof and fascia above the dirt. People sit in the pit.
+        /// Stars live on the fascia. Missing kit FBX still looks like this.
         /// </summary>
         void BuildDugout(float x, string side)
         {
             var wood = Look.Toon(new Color(0.42f, 0.26f, 0.12f));
             var roofMat = Look.Toon(new Color(0.14f, 0.32f, 0.20f));
             var pad = Look.Lit(new Color(0.58f, 0.40f, 0.24f), Look.Dirt, 3f, 0.1f);
+            var well = Look.Lit(new Color(0.50f, 0.34f, 0.20f), Look.Dirt, 2f, 0.12f);
             var rail = Look.Toon(Colors.Gold);
             var post = Look.Toon(new Color(0.28f, 0.22f, 0.16f));
+            var conc = Look.Lit(new Color(0.62f, 0.60f, 0.56f), smooth: 0.12f);
             var inward = x > 0f ? -1f : 1f;
             var fieldX = DugoutFieldX(x);
             var backX = x - inward * DugoutHalfDeep;
             var zMid = DugoutZ;
             var zHome = zMid - DugoutHalfAlong;
             var zFirst = zMid + DugoutHalfAlong;
-            Cube(Dugouts, "Dug" + side + "Pad", new Vector3(x, 0.10f, zMid), new Vector3(DugoutHalfDeep * 2f + 1.2f, 0.20f, DugoutHalfAlong * 2f + 0.8f), pad);
-            Cylinder(Dugouts, "Dug" + side + "PostFH", new Vector3(fieldX, 0f, zHome + 0.45f), 0.26f, 4.05f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostFF", new Vector3(fieldX, 0f, zFirst - 0.45f), 0.26f, 4.05f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBH", new Vector3(backX, 0f, zHome + 0.45f), 0.26f, 4.2f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBF", new Vector3(backX, 0f, zFirst - 0.45f), 0.26f, 4.2f, post);
-            Cube(Dugouts, "Dug" + side + "Back", new Vector3(backX, 2.05f, zMid), new Vector3(0.40f, 4.0f, DugoutHalfAlong * 2f - 0.5f), wood);
-            Cube(Dugouts, "Dug" + side + "End", new Vector3(x, 2.0f, zFirst), new Vector3(DugoutHalfDeep * 2f - 0.2f, 3.9f, 0.36f), wood);
-            Cube(Dugouts, "Dug" + side + "Roof", new Vector3(x, 4.32f, zMid), new Vector3(DugoutHalfDeep * 2f + 1.6f, 0.26f, DugoutHalfAlong * 2f + 1.3f), roofMat);
-            Cube(Dugouts, "Dug" + side + "Fascia", new Vector3(fieldX, DugoutFasciaY, zMid), new Vector3(0.32f, 0.28f, DugoutHalfAlong * 2f + 0.5f), rail);
-            Cube(Dugouts, "Dug" + side + "Rail", new Vector3(fieldX, 1.02f, zMid), new Vector3(0.22f, 0.30f, DugoutHalfAlong * 2f - 0.9f), rail);
-            Cube(Dugouts, "Dug" + side + "Bench", new Vector3(backX + inward * 1.55f, 0.88f, zMid), new Vector3(1.45f, 0.22f, DugoutHalfAlong * 2f - 2.0f), wood);
-            Cylinder(Dugouts, "Dug" + side + "LegH", new Vector3(backX + inward * 1.55f, 0f, zHome + 1.6f), 0.14f, 0.78f, post);
-            Cylinder(Dugouts, "Dug" + side + "LegF", new Vector3(backX + inward * 1.55f, 0f, zFirst - 1.6f), 0.14f, 0.78f, post);
+            var pit = HarborDugout.PitDepth;
+            var floorY = HarborDugout.PitFloorY;
+            var wallH = pit + 0.15f;
+            var along = DugoutHalfAlong * 2f;
+            var deep = DugoutHalfDeep * 2f;
+
+            Cube(Dugouts, "Dug" + side + "Floor",
+                new Vector3(x, floorY, zMid), new Vector3(deep + 1.0f, 0.22f, along + 0.6f), pad);
+            Cube(Dugouts, "Dug" + side + "BackWall",
+                new Vector3(backX, floorY + wallH * 0.5f, zMid), new Vector3(0.42f, wallH, along - 0.4f), well);
+            Cube(Dugouts, "Dug" + side + "FrontWall",
+                new Vector3(fieldX, floorY + wallH * 0.42f, zMid),
+                new Vector3(0.38f, wallH * 0.84f, along - HarborDugout.StairCount * HarborDugout.StairDepth * 2f - 0.8f), well);
+
+            Stairs(side, "H", x, zHome, 1f, conc);
+            Stairs(side, "F", x, zFirst, -1f, conc);
+            FieldStairs(side, x, fieldX, inward, zHome + 2.4f, conc);
+
+            Cylinder(Dugouts, "Dug" + side + "PostFH", new Vector3(fieldX, 0f, zHome + 0.55f), 0.26f, 4.05f, post);
+            Cylinder(Dugouts, "Dug" + side + "PostFF", new Vector3(fieldX, 0f, zFirst - 0.55f), 0.26f, 4.05f, post);
+            Cylinder(Dugouts, "Dug" + side + "PostBH", new Vector3(backX, floorY, zHome + 0.55f), 0.26f, 4.2f + pit, post);
+            Cylinder(Dugouts, "Dug" + side + "PostBF", new Vector3(backX, floorY, zFirst - 0.55f), 0.26f, 4.2f + pit, post);
+            Cube(Dugouts, "Dug" + side + "Back", new Vector3(backX, 2.05f, zMid), new Vector3(0.40f, 4.0f, along - 0.5f), wood);
+            Cube(Dugouts, "Dug" + side + "Roof", new Vector3(x, 4.32f, zMid), new Vector3(deep + 1.6f, 0.26f, along + 1.3f), roofMat);
+            Cube(Dugouts, "Dug" + side + "Fascia", new Vector3(fieldX, DugoutFasciaY, zMid), new Vector3(0.32f, 0.28f, along + 0.5f), rail);
+            Cube(Dugouts, "Dug" + side + "Rail", new Vector3(fieldX, 1.02f, zMid),
+                new Vector3(0.22f, 0.30f, along - HarborDugout.StairCount * HarborDugout.StairDepth * 2f - 0.4f), rail);
+            Cube(Dugouts, "Dug" + side + "Bench",
+                new Vector3(backX + inward * 1.55f, floorY + 0.88f, zMid),
+                new Vector3(1.45f, 0.22f, along - 3.2f), wood);
+            Cylinder(Dugouts, "Dug" + side + "LegH",
+                new Vector3(backX + inward * 1.55f, floorY, zHome + 2.2f), 0.14f, 0.78f, post);
+            Cylinder(Dugouts, "Dug" + side + "LegF",
+                new Vector3(backX + inward * 1.55f, floorY, zFirst - 2.2f), 0.14f, 0.78f, post);
             SitRow(
                 Dugouts,
                 "Dug" + side + "Sit",
-                new Vector3(backX + inward * 1.7f, 0f, zMid),
-                new Vector3(0f, 0f, DugoutHalfAlong * 1.55f),
+                new Vector3(backX + inward * 1.7f, floorY, zMid),
+                new Vector3(0f, 0f, along * 0.62f),
                 5,
                 side == "1B" ? 11 : 71,
                 side == "1B");
+        }
+
+        void Stairs(string side, string end, float x, float zLip, float into, Material conc)
+        {
+            var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
+            var stepD = HarborDugout.StairDepth;
+            var deep = DugoutHalfDeep * 2f - 0.7f;
+            for (var i = 0; i < HarborDugout.StairCount; i++)
+            {
+                var y = -stepH * (i + 0.5f);
+                var z = zLip + into * (0.12f + i * stepD);
+                Cube(Dugouts, "Dug" + side + "Stair" + end + i,
+                    new Vector3(x, y, z), new Vector3(deep, stepH, stepD + 0.04f), conc);
+            }
+        }
+
+        /// <summary>
+        /// Flight on the field-side grass at the home end so the scoop still
+        /// can see steps down. End stairs sit in the pit and vanish under the lawn.
+        /// </summary>
+        void FieldStairs(string side, float xMid, float fieldX, float inward, float z, Material conc)
+        {
+            var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
+            var run = HarborDugout.FieldStairRun;
+            var n = HarborDugout.StairCount;
+            var stepD = run / n;
+            for (var i = 0; i < n; i++)
+            {
+                var y = -stepH * (i + 0.5f);
+                var t = n == 1 ? 0f : i / (float)(n - 1);
+                var sx = fieldX + inward * run * (1f - t);
+                Cube(Dugouts, "Dug" + side + "FieldStair" + i,
+                    new Vector3(sx, y, z), new Vector3(stepD + 0.12f, stepH, 3.4f), conc);
+            }
         }
 
         void DressGrass()
         {
             var lawn = Look.Lit(Colors.Grass, Look.Grass, 16f, 0.08f);
             Cube(Grass, "OutfieldCarpet", new Vector3(0f, 0.15f, 270f), new Vector3(520f, 0.12f, 240f), lawn);
+            // Leave two holes at the dugout pits. One sheet here is what hid the wells.
+            var y = 0.08f;
+            var h = 0.12f;
+            var xFar = 280f;
+            var zHome = -36f;
+            var zCf = 165f;
+            var z0 = HarborDugout.HoleMinZ;
+            var z1 = HarborDugout.HoleMaxZ;
+            var xIn = HarborDugout.HoleMinX;
+            var xOut = HarborDugout.HoleMaxX;
+            LawnBand("LawnHome", 0f, y, (zHome + z0) * 0.5f, xFar * 2f, h, z0 - zHome, lawn);
+            LawnBand("LawnCf", 0f, y, (z1 + zCf) * 0.5f, xFar * 2f, h, zCf - z1, lawn);
+            LawnBand("LawnMidL", -(xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
+            LawnBand("LawnMidC", 0f, y, (z0 + z1) * 0.5f, xIn * 2f, h, z1 - z0, lawn);
+            LawnBand("LawnMidR", (xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
+        }
+
+        void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)
+        {
+            if (sx < 1f || sz < 1f) return;
+            Cube(Grass, name, new Vector3(x, y, z), new Vector3(sx, sy, sz), lawn);
         }
 
         void DressWall()

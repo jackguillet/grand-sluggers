@@ -83,7 +83,7 @@ public static class StillPose
         Diamond.Dist(x, z, 0, Diamond.Mound) > 20;
 
     public static bool CameraClearsTheDugout(double x, double z) =>
-        x < 26 || z > 24 || z < 4;
+        HarborDugout.CameraClears(x, z);
 
     public static bool CameraIsSideThreeQuarter(double camX, double camZ, double scoopX, double scoopZ) =>
         Math.Abs(camZ - scoopZ) > 8 && Math.Abs(camX - scoopX) > 8;
