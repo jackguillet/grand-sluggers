@@ -65,7 +65,7 @@ namespace GrandSluggers.UnityClient
                 _ball.name = "Mesh";
                 _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
                 _ball.transform.localRotation = Quaternion.identity;
-                _ball.transform.localScale = Vector3.one * Diameter;
+                _ball.transform.localScale = Vector3.one * ToyMesh.BallViewScale(false, 0);
                 foreach (var c in _ball.GetComponentsInChildren<Collider>(true))
                     UnityEngine.Object.Destroy(c);
             }
@@ -75,7 +75,7 @@ namespace GrandSluggers.UnityClient
                 _ball.name = "Mesh";
                 _ball.transform.SetParent(_root, false);
                 _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
-                _ball.transform.localScale = Vector3.one * Diameter;
+                _ball.transform.localScale = Vector3.one * ToyMesh.BallViewScale(false, 0);
                 Destroy(_ball.GetComponent<Collider>());
                 Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
                 Stitch(_ball.transform);
@@ -276,15 +276,15 @@ namespace GrandSluggers.UnityClient
             if (_ball == null) return;
             float scale;
             if (star == "heatball" || heat)
-                scale = Diameter * 1.15f;
+                scale = ToyMesh.BallViewScale(false, 0) * 1.15f;
             else if (star == "caskball")
-                scale = Diameter * 1.3f;
+                scale = ToyMesh.BallViewScale(false, 0) * 1.3f;
             else if (star == "skullball")
-                scale = Diameter * 1.22f;
+                scale = ToyMesh.BallViewScale(false, 0) * 1.22f;
             else if (!_inFlight && star == "charmball")
-                scale = Diameter * 1.08f;
+                scale = ToyMesh.BallViewScale(false, 0) * 1.08f;
             else
-                scale = (float)Baseball.ApparentScale(_inFlight, _root.position.z, _inPlay);
+                scale = ToyMesh.BallViewScale(_inFlight, _root.position.z, _inPlay);
             _ball.transform.localScale = Vector3.one * scale;
             _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
             if (_halo != null)
