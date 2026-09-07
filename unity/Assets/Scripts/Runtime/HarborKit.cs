@@ -279,7 +279,7 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
 
             DressFoulLines(chalk);
-            DressMound(packed, hill, chalk);
+            DressMound(hill, chalk);
         }
 
         Transform Anchor(string name, Vector3 pos, Vector3 scale, Quaternion rot)
@@ -480,22 +480,16 @@ namespace GrandSluggers.UnityClient
             Mesh(FoulR, PrimitiveType.Cube, chalk);
         }
 
-        void DressMound(Material packed, Material hill, Material chalk)
+        void DressMound(Material hill, Material chalk)
         {
             var z = (float)Diamond.Mound;
             Place(Mound, new Vector3(0f, 0f, z), Vector3.one, Quaternion.identity);
             Wipe(Mound);
-            if (DropMesh("mound", Mound, "Mesh", new Vector3(0f, 0f, z), Quaternion.identity, Vector3.one, paint: true) != null)
+            if (DropMesh("mound", Mound, "Mesh", new Vector3(0f, 0f, z), Quaternion.identity, Vector3.one, paint: true) == null)
             {
-                Place(Rubber, new Vector3(0f, ParkDiamond.RubberY, z),
-                    new Vector3(ParkDiamond.RubberW, ParkDiamond.RubberH, ParkDiamond.RubberD), Quaternion.identity);
-                Wipe(Rubber);
-                Mesh(Rubber, PrimitiveType.Cube, chalk);
-                return;
+                Look.Prim(PrimitiveType.Sphere, "Hill", Mound, Vector3.zero,
+                    new Vector3(ParkDiamond.MoundR * 2f, ParkDiamond.MoundH * 2f, ParkDiamond.MoundR * 2f), hill);
             }
-            Cylinder(Mound, "HillPad", new Vector3(0f, 0f, z), ParkDiamond.MoundPadR, ParkDiamond.MoundPadH, packed);
-            Cylinder(Mound, "HillMid", new Vector3(0f, ParkDiamond.MoundMidY, z), ParkDiamond.MoundMidR, ParkDiamond.MoundMidH, hill);
-            Cylinder(Mound, "HillTop", new Vector3(0f, ParkDiamond.MoundTopY, z), ParkDiamond.MoundTopR, ParkDiamond.MoundTopH, hill);
             Place(Rubber, new Vector3(0f, ParkDiamond.RubberY, z),
                 new Vector3(ParkDiamond.RubberW, ParkDiamond.RubberH, ParkDiamond.RubberD), Quaternion.identity);
             Wipe(Rubber);

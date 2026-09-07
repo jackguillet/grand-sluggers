@@ -31,6 +31,9 @@ PATH_CORNER = 14.0
 PATH_Y = 0.26
 PATH_THICK = 0.24
 HOME_PACKED_R = 16.0
+MOUND_R = 9.2
+MOUND_H = 0.98
+MOUND_TABLE_R = 2.2
 
 
 def nuke():
@@ -288,14 +291,60 @@ def build_bag(chalk, navy):
 
 
 def build_mound(dirt, hill):
-    pad = prim("cylinder", "MoundPad", (0, 0, 0.11), (18.4, 18.4, 0.22), dirt)
-    mid = prim("cylinder", "MoundMid", (0, 0, 0.37), (12.8, 12.8, 0.38), hill)
-    top = prim("cylinder", "MoundTop", (0, 0, 0.69), (8.2, 8.2, 0.42), hill)
-    rubber = prim("cube", "Rubber", (0, 0, 1.02), (1.7, 0.42, 0.07), hill)
-    rubber.data.materials.clear()
-    rubber.data.materials.append(dirt)
-    mound = join_in_place("mound", [pad, mid, top, rubber])
-    return origin_world(mound)
+    """Smooth dirt hill with a flat rubber table. Not stacked cylinders.
+
+    Origin at ground center. Rubber is a Play primitive on ParkDiamond.RubberY.
+    Height matches ParkDiamond.MoundH so the crown meets the rubber.
+    """
+    segs = 32
+    table_rings = 4
+    slope_rings = 10
+    mesh = bpy.data.meshes.new("mound")
+    ob = bpy.data.objects.new("mound", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+
+    def z_at(r):
+        if r <= MOUND_TABLE_R:
+            return MOUND_H
+        if r >= MOUND_R:
+            return 0.0
+        u = (r - MOUND_TABLE_R) / (MOUND_R - MOUND_TABLE_R)
+        s = u * u * (3.0 - 2.0 * u)
+        return MOUND_H * (1.0 - s)
+
+    radii = [MOUND_TABLE_R * (i / max(1, table_rings - 1)) for i in range(table_rings)]
+    for i in range(1, slope_rings + 1):
+        radii.append(MOUND_TABLE_R + (MOUND_R - MOUND_TABLE_R) * (i / slope_rings))
+
+    rings = []
+    for r in radii:
+        z = z_at(r)
+        row = []
+        for s in range(segs):
+            a = 2.0 * math.pi * s / segs
+            row.append(bm.verts.new((r * math.cos(a), r * math.sin(a), z)))
+        rings.append(row)
+
+    for i in range(len(rings) - 1):
+        inner, outer = rings[i], rings[i + 1]
+        for s in range(segs):
+            t = (s + 1) % segs
+            bm.faces.new((inner[s], inner[t], outer[t], outer[s]))
+
+    bot = bm.verts.new((0.0, 0.0, 0.0))
+    lip = rings[-1]
+    for s in range(segs):
+        t = (s + 1) % segs
+        bm.faces.new((bot, lip[t], lip[s]))
+
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(hill)
+    return origin_world(ob)
 
 
 def build_foul_pole(gold, chalk):

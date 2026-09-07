@@ -27,14 +27,11 @@ public static class ParkDiamond
     /// <summary>Packed dirt around the plate. Not a 34-ft oval.</summary>
     public const float HomePackedR = 16f;
 
-    public const float MoundPadR = 9.2f;
-    public const float MoundMidR = 6.4f;
-    public const float MoundTopR = 4.1f;
-    public const float MoundPadH = 0.22f;
-    public const float MoundMidY = 0.18f;
-    public const float MoundMidH = 0.38f;
-    public const float MoundTopY = 0.48f;
-    public const float MoundTopH = 0.42f;
+    /// <summary>One smooth dirt hill. Not stacked cylinders.</summary>
+    public const float MoundR = 9.2f;
+    public const float MoundH = 0.98f;
+    /// <summary>Flat crown the rubber sits on. Wider than the rubber, smaller than the hill.</summary>
+    public const float MoundTableR = 2.2f;
     public const float RubberY = 1.02f;
     public const float RubberW = 1.7f;
     public const float RubberH = 0.07f;
@@ -67,7 +64,12 @@ public static class ParkDiamond
     public static bool HomePackedIsAPad() => HomePackedR < 34f;
 
     public static bool MoundIsAHill() =>
-        MoundPadR > MoundMidR && MoundMidR > MoundTopR && RubberY > 0.8f && RubberY < 1.4f;
+        MoundR > 7f && MoundR < 14f
+        && MoundTableR > RubberW * 0.45f && MoundTableR < MoundR * 0.45f
+        && MoundH > GrassTop + 0.5f
+        && MoundH <= RubberY
+        && RubberY - MoundH < 0.08f
+        && RubberY > 0.8f && RubberY < 1.4f;
 
     public static bool StripeReadsAtCouch() => StripeWidth >= 12f && StripeWidth <= 28f;
 

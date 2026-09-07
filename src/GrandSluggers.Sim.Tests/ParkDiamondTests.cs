@@ -52,8 +52,14 @@ public class ParkDiamondTests
         var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
         Assert.Contains("PATH_Y = 0.26", py);
         Assert.Contains("PATH_THICK = 0.24", py);
+        Assert.Contains("MOUND_R = 9.2", py);
+        Assert.Contains("MOUND_H = 0.98", py);
+        Assert.DoesNotContain("MoundPad", py);
+        Assert.DoesNotContain("MoundMid", py);
         Assert.Equal(0.26f, ParkDiamond.PathY);
         Assert.Equal(0.24f, ParkDiamond.PathThick);
+        Assert.Equal(9.2f, ParkDiamond.MoundR);
+        Assert.Equal(0.98f, ParkDiamond.MoundH);
     }
 
     [Fact]
