@@ -11,7 +11,7 @@ Dimensions are feet, approximate, MLB-ish but cartoon-short in the corners so ho
 - Gimmick: none
 - Night: fireworks on homers, same play (no sim rule)
 - Fence: 330 / 400 / 330
-- Why it exists: teach baseball before we teach gimmicks. Control park **and** trailer still: afternoon light, warning track, **sunken dugouts with stairs** set back off the dirt, backstop, bleachers with crowd in the seats. Town sits beyond the fence, not in other parks. Layout: `HarborDugout`.
+- Why it exists: teach baseball before we teach gimmicks. Control park **and** trailer still: afternoon light, warning track, **sunken dugouts with stairs** set back off the dirt, backstop, bleachers with crowd in the seats. Town sits beyond the fence, not in other parks. Dirt is **paths and pads** (`HarborInfield`), not a lake. Bags are diamond-aligned squares. Lawn holes stay on `HarborDugout`.
 
 ## Crystal Rink
 

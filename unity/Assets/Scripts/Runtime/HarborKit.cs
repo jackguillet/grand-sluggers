@@ -172,9 +172,12 @@ namespace GrandSluggers.UnityClient
             Bleachers = Folder("Bleachers");
             Town = Folder("Town");
             Fireworks = Folder("Fireworks");
-            Bag1 = Anchor("1B", new Vector3((float)Diamond.First.X, 0.28f, (float)Diamond.First.Z), new Vector3(2.4f, 0.4f, 2.4f), Quaternion.identity);
-            Bag2 = Anchor("2B", new Vector3((float)Diamond.Second.X, 0.28f, (float)Diamond.Second.Z), new Vector3(2.4f, 0.4f, 2.4f), Quaternion.identity);
-            Bag3 = Anchor("3B", new Vector3((float)Diamond.Third.X, 0.28f, (float)Diamond.Third.Z), new Vector3(2.4f, 0.4f, 2.4f), Quaternion.identity);
+            var bag = HarborInfield.BagSize;
+            var bagY = HarborInfield.BagY;
+            var diamond = Quaternion.Euler(0f, 45f, 0f);
+            Bag1 = Anchor("1B", new Vector3((float)Diamond.First.X, bagY, (float)Diamond.First.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag2 = Anchor("2B", new Vector3((float)Diamond.Second.X, bagY, (float)Diamond.Second.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag3 = Anchor("3B", new Vector3((float)Diamond.Third.X, bagY, (float)Diamond.Third.Z), new Vector3(bag, 0.28f, bag), diamond);
         }
 
         public void Dress()
@@ -186,6 +189,12 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             DressDiamond();
+            var bagSize = HarborInfield.BagSize;
+            var bagY = HarborInfield.BagY;
+            var diamond = Quaternion.Euler(0f, 45f, 0f);
+            Place(Bag1, new Vector3((float)Diamond.First.X, bagY, (float)Diamond.First.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
+            Place(Bag2, new Vector3((float)Diamond.Second.X, bagY, (float)Diamond.Second.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
+            Place(Bag3, new Vector3((float)Diamond.Third.X, bagY, (float)Diamond.Third.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
             var bag = Look.Unlit(Colors.Chalk);
             Mesh(Bag1, PrimitiveType.Cube, bag);
             Mesh(Bag2, PrimitiveType.Cube, bag);
@@ -214,7 +223,8 @@ namespace GrandSluggers.UnityClient
             Place(DirtDiamond, new Vector3(0f, 0.05f, 63.64f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.Euler(0f, 45f, 0f));
             if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
 
-            Place(HomeDirt, new Vector3(0f, 0.10f, -2f), new Vector3(34f, 0.12f, 42f), Quaternion.identity);
+            var homeR = HarborInfield.HomePackedR;
+            Place(HomeDirt, new Vector3(0f, 0.10f, -1.2f), new Vector3(homeR * 2f, 0.12f, homeR * 2.2f), Quaternion.identity);
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
 
@@ -225,10 +235,11 @@ namespace GrandSluggers.UnityClient
             var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
             var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
             var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
-            DirtPath("PathHome1", home, first, 11f, path);
-            DirtPath("Path1to2", first, second, 11f, path);
-            DirtPath("Path2to3", second, third, 11f, path);
-            DirtPath("Path3toHome", third, home, 11f, path);
+            var pathW = HarborInfield.PathWidth;
+            DirtPath("PathHome1", home, first, pathW, path);
+            DirtPath("Path1to2", first, second, pathW, path);
+            DirtPath("Path2to3", second, third, pathW, path);
+            DirtPath("Path3toHome", third, home, pathW, path);
 
             // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             Place(HomePlate,
@@ -404,9 +415,10 @@ namespace GrandSluggers.UnityClient
             if (_park == null) return;
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
             var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), 11f, 0.16f, bagDirt);
-            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), 11f, 0.16f, bagDirt);
-            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), 11f, 0.16f, bagDirt);
+            var bagR = HarborInfield.BagDirtR;
+            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), bagR, 0.16f, bagDirt);
+            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), bagR, 0.16f, bagDirt);
+            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), bagR, 0.16f, bagDirt);
             DressTrack(dirt);
             DressGrass();
             DressBackstop();
