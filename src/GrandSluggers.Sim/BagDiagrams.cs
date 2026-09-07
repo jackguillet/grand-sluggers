@@ -40,6 +40,25 @@ public static class BagDiagrams
 
     public static readonly IReadOnlyList<Diagram> Running = [BagMap, Advance, Return];
 
+    public sealed record Callout(string Title, string PadPress, string KeysPress, string Line);
+
+    public static readonly Callout ClosePlay = new(
+        "Close play",
+        "FIRST SOUTH",
+        "FIRST SPACE / LEFT CLICK",
+        "Camera on 3rd or home. Offense first is safe. Defense first is out.");
+
+    public static readonly Callout Tag = new(
+        "Tag",
+        "TOUCH OFF THE BAG",
+        "TOUCH OFF THE BAG",
+        "Have the ball and touch a runner off a bag. On a bag they are safe. Force still needs a throw.");
+
+    public static readonly IReadOnlyList<Callout> Callouts = [ClosePlay, Tag];
+
+    public static string CalloutPress(Callout callout, InputScheme scheme) =>
+        scheme == InputScheme.Keys ? callout.KeysPress : callout.PadPress;
+
     public static string Press(Diagram diagram, InputScheme scheme) =>
         scheme == InputScheme.Keys ? diagram.KeysPress : diagram.PadPress;
 
@@ -69,13 +88,21 @@ public static class BagDiagrams
         var board = ControlDiagram.Board(screenW, screenH);
         const float gap = 12f;
         var w = (board.W - gap * 2f) / 3f;
-        return (board.X + index * (w + gap), board.Y, w, board.H - HowToPlay.KidLineH * 2.15f);
+        return (board.X + index * (w + gap), board.Y, w, board.H - HowToPlay.KidLineH * 3.4f);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 2.15f;
+        var h = HowToPlay.KidLineH * 3.4f;
         return (board.X, board.Y + board.H - h, board.W, h);
+    }
+
+    public static (float X, float Y, float W, float H) CalloutCard(int index, float screenW, float screenH)
+    {
+        var band = LineBand(screenW, screenH);
+        const float gap = 12f;
+        var w = (band.W - gap) * 0.5f;
+        return (band.X + index * (w + gap), band.Y, w, band.H);
     }
 }
