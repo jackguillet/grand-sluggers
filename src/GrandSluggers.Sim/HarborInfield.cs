@@ -6,24 +6,17 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class HarborInfield
 {
-    /// <summary>Dirt path width (ft). 11 ate the grass Y.</summary>
-    public const float PathWidth = 8f;
+    public const float PathWidth = ParkDiamond.PathWidth;
+    public const float BagDirtR = ParkDiamond.BagDirtR;
+    public const float BagSize = ParkDiamond.BagSize;
+    public const float BagY = ParkDiamond.BagY;
+    public const float HomePackedR = ParkDiamond.HomePackedR;
 
-    /// <summary>Packed dirt circle around each bag. Not an 11-ft cylinder.</summary>
-    public const float BagDirtR = 5.2f;
+    public static bool PathIsNotALake() => ParkDiamond.PathIsNotALake();
 
-    /// <summary>White bag edge. Square, diamond-aligned.</summary>
-    public const float BagSize = 1.85f;
-    public const float BagY = 0.22f;
+    public static bool BagIsABag() => ParkDiamond.BagIsABag();
 
-    /// <summary>Packed dirt around the plate. Not a 34-ft oval.</summary>
-    public const float HomePackedR = 16f;
-
-    public static bool PathIsNotALake() => PathWidth < 11f;
-
-    public static bool BagIsABag() => BagSize < 2.2f && BagDirtR < 7f && BagDirtR > BagSize;
-
-    public static bool HomePackedIsAPad() => HomePackedR < 34f;
+    public static bool HomePackedIsAPad() => ParkDiamond.HomePackedIsAPad();
 
     /// <summary>Infield lawn must not recap a dugout well.</summary>
     public static bool LawnRespectsPits() =>
