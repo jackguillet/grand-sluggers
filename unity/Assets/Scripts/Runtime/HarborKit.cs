@@ -60,7 +60,7 @@ namespace GrandSluggers.UnityClient
         Transform _plateAwayTens, _plateAwayOnes, _plateHomeTens, _plateHomeOnes;
         Material _ledOn;
         Material _ledOff;
-        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh;
+        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
 
@@ -189,19 +189,52 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             DressDiamond();
-            var bagSize = HarborInfield.BagSize;
-            var bagY = HarborInfield.BagY;
-            var diamond = Quaternion.Euler(0f, 45f, 0f);
-            Place(Bag1, new Vector3((float)Diamond.First.X, bagY, (float)Diamond.First.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
-            Place(Bag2, new Vector3((float)Diamond.Second.X, bagY, (float)Diamond.Second.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
-            Place(Bag3, new Vector3((float)Diamond.Third.X, bagY, (float)Diamond.Third.Z), new Vector3(bagSize, 0.28f, bagSize), diamond);
-            var bag = Look.Unlit(Colors.Chalk);
-            Mesh(Bag1, PrimitiveType.Cube, bag);
-            Mesh(Bag2, PrimitiveType.Cube, bag);
-            Mesh(Bag3, PrimitiveType.Cube, bag);
+            DressBags();
             DressPlace();
             HookDigits();
             _dressed = true;
+        }
+
+        void DressBags()
+        {
+            DressBag(Bag1, Diamond.First);
+            DressBag(Bag2, Diamond.Second);
+            DressBag(Bag3, Diamond.Third);
+        }
+
+        void DressBag(Transform anchor, (double X, double Z) at)
+        {
+            if (anchor == null) return;
+            var pos = new Vector3((float)at.X, 0f, (float)at.Z);
+            Place(anchor, pos, Vector3.one, Quaternion.identity);
+            Wipe(anchor);
+            if (DropMesh("bag", anchor, "Mesh", pos, Quaternion.identity, Vector3.one, paint: true) != null)
+                return;
+            var bagSize = HarborInfield.BagSize;
+            Place(anchor, new Vector3((float)at.X, HarborInfield.BagY, (float)at.Z),
+                new Vector3(bagSize, 0.28f, bagSize), Quaternion.Euler(0f, 45f, 0f));
+            Mesh(anchor, PrimitiveType.Cube, Look.Unlit(Colors.Chalk));
+        }
+
+        void DressPlate(Material chalk)
+        {
+            Wipe(HomePlate);
+            Wipe(HomePoint);
+            Place(HomePlate, Vector3.zero, Vector3.one, Quaternion.identity);
+            if (DropMesh("home-plate", HomePlate, "Mesh", Vector3.zero, Quaternion.identity, Vector3.one, paint: true) != null)
+            {
+                if (HomePoint != null) HomePoint.gameObject.SetActive(false);
+                return;
+            }
+            if (HomePoint != null) HomePoint.gameObject.SetActive(true);
+            Place(HomePlate,
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+            Place(HomePoint,
+                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
+                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
+            Mesh(HomePlate, PrimitiveType.Cube, chalk);
+            Mesh(HomePoint, PrimitiveType.Cube, chalk);
         }
 
         /// <summary>
@@ -242,16 +275,7 @@ namespace GrandSluggers.UnityClient
             DirtPath("Path3toHome", third, home, pathW, path);
 
             // Pentagon + two boxes with dirt between them so a behind-home SET can read.
-            Place(HomePlate,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
-                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
-            Place(HomePoint,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
-                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
-            Wipe(HomePlate);
-            Wipe(HomePoint);
-            Mesh(HomePlate, PrimitiveType.Cube, chalk);
-            Mesh(HomePoint, PrimitiveType.Cube, chalk);
+            DressPlate(chalk);
 
             Place(BoxL,
                 new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
@@ -1052,6 +1076,8 @@ namespace GrandSluggers.UnityClient
             _kitPad = Look.Toon(new Color(0.16f, 0.42f, 0.28f));
             _kitPost = Look.Toon(new Color(0.28f, 0.22f, 0.16f));
             _kitFlesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+            _kitChalk = Look.Unlit(Colors.Chalk);
+            _kitNavy = Look.Toon(new Color(0.06f, 0.18f, 0.42f));
         }
 
         void PaintKit(Transform t)
@@ -1075,6 +1101,8 @@ namespace GrandSluggers.UnityClient
                     else if (n.Contains("pad")) next[i] = _kitPad;
                     else if (n.Contains("post")) next[i] = _kitPost;
                     else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
+                    else if (n.Contains("chalk") || n.Contains("cream")) next[i] = _kitChalk;
+                    else if (n.Contains("navy")) next[i] = _kitNavy;
                     else next[i] = _kitWood;
                 }
                 r.sharedMaterials = next;
