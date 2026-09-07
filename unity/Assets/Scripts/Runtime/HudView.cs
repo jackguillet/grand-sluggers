@@ -182,10 +182,12 @@ namespace GrandSluggers.UnityClient
             var scheme = BookScheme.Current;
             var book = HowToPlay.BookPanel(Screen.width, Screen.height);
             GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _panel);
-            GUI.Label(new Rect(book.X + 28, book.Y + 10, 280, 28), "HOW TO PLAY", _gold);
-            GUI.Label(new Rect(book.X + 28, book.Y + 38, book.W - 380, 44),
+            DrawChapterMascot(p.Id);
+            GUI.Label(new Rect(book.X + 88, book.Y + 10, 280, 28), "HOW TO PLAY", _gold);
+            GUI.Label(new Rect(book.X + 88, book.Y + 38, book.W - 440, 44),
                 p.Title.ToUpperInvariant() + "   " + (page + 1) + " / " + n, _bookHead);
             DrawSchemeToggle(scheme);
+            DrawSchemeBadges(p, scheme);
             if (p.Id == "contents")
                 DrawContentsToc(p);
             else if (p.Id == "getting-started")
@@ -226,6 +228,35 @@ namespace GrandSluggers.UnityClient
         {
             DrawTab(InputScheme.Pad, scheme);
             DrawTab(InputScheme.Keys, scheme);
+        }
+
+        static void DrawChapterMascot(string pageId)
+        {
+            var book = HowToPlay.BookPanel(Screen.width, Screen.height);
+            var r = new Rect(book.X + 16, book.Y + 10, 56, 56);
+            var tex = Look.Portrait(BookChapter.Captain(pageId));
+            GUI.DrawTexture(r, _ink);
+            if (tex != null)
+                GUI.DrawTexture(new Rect(r.x + 4, r.y + 4, r.width - 8, r.height - 8), tex, ScaleMode.ScaleAndCrop);
+        }
+
+        static void DrawSchemeBadges(HowToPlay.Page page, InputScheme scheme)
+        {
+            var book = HowToPlay.BookPanel(Screen.width, Screen.height);
+            var x = book.X + 220;
+            var y = book.Y + 12;
+            void Pill(string label)
+            {
+                var w = Mathf.Max(88f, 16f + label.Length * 7.2f);
+                var r = new Rect(x, y, w, 22);
+                GUI.DrawTexture(r, _ink);
+                GUI.Label(new Rect(r.x + 8, r.y + 2, r.width - 12, r.height - 2), label, _gold);
+                x += w + 8;
+            }
+            var seat = BookScheme.SeatBadge(scheme);
+            if (!string.IsNullOrEmpty(seat)) Pill(seat);
+            var pageBadge = BookScheme.PageBadge(page.Id, scheme);
+            if (!string.IsNullOrEmpty(pageBadge)) Pill(pageBadge);
         }
 
         static void DrawTab(InputScheme kind, InputScheme current)
@@ -321,6 +352,7 @@ namespace GrandSluggers.UnityClient
 
         static void DrawBagDiagrams(InputScheme scheme, HowToPlay.Page page)
         {
+            _ = page;
             for (var i = 0; i < BagDiagrams.Running.Count; i++)
             {
                 var diagram = BagDiagrams.Running[i];
@@ -341,11 +373,18 @@ namespace GrandSluggers.UnityClient
                     BagDiagramCaption(diagram.Kind), _bookLine);
             }
 
-            var band = BagDiagrams.LineBand(Screen.width, Screen.height);
-            var lines = page.Shown(scheme);
-            var lineH = HowToPlay.KidLineH * 0.72f;
-            for (var i = 0; i < lines.Count; i++)
-                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+            for (var i = 0; i < BagDiagrams.Callouts.Count; i++)
+            {
+                var call = BagDiagrams.Callouts[i];
+                var cell = BagDiagrams.CalloutCard(i, Screen.width, Screen.height);
+                var box = new Rect(cell.X, cell.Y, cell.W, cell.H);
+                GUI.DrawTexture(box, _ink);
+                GUI.Label(new Rect(box.x + 10, box.y + 6, box.width - 20, 22), call.Title.ToUpperInvariant(), _gold);
+                GUI.DrawTexture(new Rect(box.x + 10, box.y + 30, box.width - 20, 22), _dotOff);
+                GUI.Label(new Rect(box.x + 14, box.y + 32, box.width - 28, 18),
+                    BagDiagrams.CalloutPress(call, scheme), _tiny);
+                GUI.Label(new Rect(box.x + 10, box.y + 56, box.width - 20, box.height - 62), call.Line, _bookLine);
+            }
         }
 
         static string BagDiagramCaption(BagDiagrams.Kind kind) => kind switch

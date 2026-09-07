@@ -53,6 +53,18 @@ public static class BookScheme
             ? "Left click / Space next     wheel     Esc / right click back"
             : "South next     stick     East back";
 
+    /// <summary>Seat pill. Not a sentence on every page.</summary>
+    public static string? SeatBadge(InputScheme scheme) =>
+        scheme == InputScheme.Keys ? "Player 1 only" : null;
+
+    /// <summary>Page pill for scheme- or seat-specific spreads.</summary>
+    public static string? PageBadge(string pageId, InputScheme scheme)
+    {
+        if (string.Equals(pageId, "two-pads", StringComparison.OrdinalIgnoreCase))
+            return "Two pads";
+        return null;
+    }
+
     public static (float X, float Y, float W, float H) ToggleBar(float screenW, float screenH)
     {
         var book = HowToPlay.BookPanel(screenW, screenH);
