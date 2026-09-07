@@ -7,3 +7,5 @@ The lawn is cut at those footprints so the pit shows. HarborKit instances the ki
 onto the empties. `home-plate` is a pentagon (point toward the pitcher). `bag` is a
 diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
 Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
+Diamond ground (paths, mound, striped grass, foul poles, warning track) is
+`ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
