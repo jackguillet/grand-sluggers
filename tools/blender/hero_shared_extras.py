@@ -139,8 +139,10 @@ def build():
     thumb = prim("cylinder", "Thumb", (-0.32, 0.05, 0.08), (0.18, 0.18, 0.55), leather, rot=(0, math.radians(28), 0))
     fingers = prim("cube", "Fingers", (0.12, 0.18, 0.06), (0.48, 0.22, 0.42), leather)
     join("glove-brown", [palm, web, thumb, fingers])
-    ball = prim("uv_sphere", "BallBody", (0, 0, 0), (0.62, 0.62, 0.62), cream)
-    seam = prim("cube", "Seam", (0, 0, 0), (0.08, 0.58, 0.08), stitch)
+    # Diameter 1 (uv_sphere r=0.5 × scale 1) — Unity PrimitiveType.Sphere rest.
+    # BallView localScale is Baseball.ApparentScale / ToyMesh.BaseballRestDiameter.
+    ball = prim("uv_sphere", "BallBody", (0, 0, 0), (1.0, 1.0, 1.0), cream)
+    seam = prim("cube", "Seam", (0, 0, 0), (0.12, 0.94, 0.12), stitch)
     join("baseball", [ball, seam])
 
     for o in list(bpy.data.objects):

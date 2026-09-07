@@ -379,19 +379,20 @@ namespace GrandSluggers.UnityClient
             go.transform.SetParent(hand, false);
             go.transform.localPosition = new Vector3(0, -0.72f, 0.12f);
             go.transform.localRotation = Quaternion.Euler(20, 0, 0);
+            var gold = _gloveVisual == "glove-gold";
+            go.transform.localScale = Vector3.one * ToyMesh.GloveRootScale(gold);
             if (TryDropToy(_gloveVisual, go.transform) || TryDropToy("glove-brown", go.transform))
             {
                 _glove = go.transform;
                 return;
             }
-            var leather = _gloveVisual == "glove-gold"
+            var leather = gold
                 ? Look.Lit(new Color(0.92f, 0.74f, 0.18f), smooth: 0.32f)
                 : Look.Lit(new Color(0.42f, 0.24f, 0.12f), smooth: 0.12f);
-            var scale = Silhouette.GloveScale * (_gloveVisual == "glove-gold" ? 1.12f : 1f);
-            Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * (0.7f * scale), leather);
-            Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f) * scale, leather);
-            Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f) * scale, leather);
-            Look.Prim(PrimitiveType.Capsule, "Fingers", go.transform, new Vector3(0.12f, 0.22f, 0.08f), new Vector3(0.42f, 0.28f, 0.22f) * scale, leather);
+            Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * 0.7f, leather);
+            Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f), leather);
+            Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f), leather);
+            Look.Prim(PrimitiveType.Capsule, "Fingers", go.transform, new Vector3(0.12f, 0.22f, 0.08f), new Vector3(0.42f, 0.28f, 0.22f), leather);
             _glove = go.transform;
         }
 

@@ -200,6 +200,11 @@ public class ArtCatalogTests
         Assert.Contains("glove-brown", extrasAscii);
         Assert.Contains("baseball", extrasAscii);
         Assert.Contains("brim", extrasAscii);
+        var extrasPy = Path.GetFullPath(Path.Combine(repo, "tools", "blender", "hero_shared_extras.py"));
+        Assert.True(File.Exists(extrasPy), extrasPy);
+        var extrasSrc = File.ReadAllText(extrasPy);
+        Assert.Contains("Diameter 1", extrasSrc);
+        Assert.Contains("(1.0, 1.0, 1.0), cream)", extrasSrc);
         var extrasRes = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Resources/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(extrasRes), extrasRes + " — toys must bind in the Linux player");
