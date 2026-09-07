@@ -58,14 +58,28 @@ namespace GrandSluggers.UnityClient
 
             _root = new GameObject("Ball").transform;
             _root.SetParent(parent, false);
-            _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _ball.name = "Mesh";
-            _ball.transform.SetParent(_root, false);
-            _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
-            _ball.transform.localScale = Vector3.one * Diameter;
-            Destroy(_ball.GetComponent<Collider>());
-            Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
-            Stitch(_ball.transform);
+            var toy = ArtBinder.LoadExtraMesh("baseball");
+            if (toy != null)
+            {
+                _ball = UnityEngine.Object.Instantiate(toy, _root);
+                _ball.name = "Mesh";
+                _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
+                _ball.transform.localRotation = Quaternion.identity;
+                _ball.transform.localScale = Vector3.one * Diameter;
+                foreach (var c in _ball.GetComponentsInChildren<Collider>(true))
+                    UnityEngine.Object.Destroy(c);
+            }
+            else
+            {
+                _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                _ball.name = "Mesh";
+                _ball.transform.SetParent(_root, false);
+                _ball.transform.localPosition = new Vector3(0f, Sit, 0f);
+                _ball.transform.localScale = Vector3.one * Diameter;
+                Destroy(_ball.GetComponent<Collider>());
+                Look.Paint(_ball, Look.Lit(new Color(0.96f, 0.93f, 0.86f), smooth: 0.45f));
+                Stitch(_ball.transform);
+            }
 
             _halo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             _halo.name = "Halo";

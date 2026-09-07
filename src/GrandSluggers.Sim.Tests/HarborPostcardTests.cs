@@ -91,10 +91,18 @@ public class HarborPostcardTests
         var ascii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(drop));
         Assert.Contains("home-plate", ascii);
         Assert.Contains("bag", ascii);
+        Assert.Contains("mound", ascii);
+        Assert.Contains("foul-pole", ascii);
+        Assert.Contains("warning-track", ascii);
+        Assert.Contains("infield-dirt", ascii);
         Assert.Equal(new FileInfo(drop).Length, new FileInfo(player).Length);
         var dropTxt = File.ReadAllText(Path.Combine(Path.GetDirectoryName(drop)!, "DROP.txt"));
         Assert.Contains("home-plate", dropTxt);
         Assert.Contains("bag", dropTxt);
+        Assert.Contains("mound", dropTxt);
+        Assert.Contains("foul-pole", dropTxt);
+        Assert.Contains("warning-track", dropTxt);
+        Assert.Contains("infield-dirt", dropTxt);
     }
 
     [Fact]

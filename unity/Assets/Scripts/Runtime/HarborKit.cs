@@ -61,7 +61,7 @@ namespace GrandSluggers.UnityClient
         Transform _plateAwayTens, _plateAwayOnes, _plateHomeTens, _plateHomeOnes;
         Material _ledOn;
         Material _ledOff;
-        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy;
+        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy, _kitDirt;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
 
@@ -268,10 +268,13 @@ namespace GrandSluggers.UnityClient
             var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
             var pathW = ParkDiamond.PathWidth;
             var inset = ParkDiamond.PathCornerR;
-            DirtPath("PathHome1", home, first, pathW, inset, path);
-            DirtPath("Path1to2", first, second, pathW, inset, path);
-            DirtPath("Path2to3", second, third, pathW, inset, path);
-            DirtPath("Path3toHome", third, home, pathW, inset, path);
+            if (DropMesh("infield-dirt", transform, "InfieldDirt", Vector3.zero, Quaternion.identity, Vector3.one, paint: true) == null)
+            {
+                DirtPath("PathHome1", home, first, pathW, inset, path);
+                DirtPath("Path1to2", first, second, pathW, inset, path);
+                DirtPath("Path2to3", second, third, pathW, inset, path);
+                DirtPath("Path3toHome", third, home, pathW, inset, path);
+            }
 
             // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             DressPlate(chalk);
@@ -432,9 +435,12 @@ namespace GrandSluggers.UnityClient
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
             var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
             var cornerR = ParkDiamond.PathCornerR;
-            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+            if (transform.Find("InfieldDirt") == null)
+            {
+                Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+                Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+                Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+            }
             DressTrack(dirt);
             DressGrass();
             DressPoles();
@@ -471,6 +477,14 @@ namespace GrandSluggers.UnityClient
             var z = (float)Diamond.Mound;
             Place(Mound, new Vector3(0f, 0f, z), Vector3.one, Quaternion.identity);
             Wipe(Mound);
+            if (DropMesh("mound", Mound, "Mesh", new Vector3(0f, 0f, z), Quaternion.identity, Vector3.one, paint: true) != null)
+            {
+                Place(Rubber, new Vector3(0f, ParkDiamond.RubberY, z),
+                    new Vector3(ParkDiamond.RubberW, ParkDiamond.RubberH, ParkDiamond.RubberD), Quaternion.identity);
+                Wipe(Rubber);
+                Mesh(Rubber, PrimitiveType.Cube, chalk);
+                return;
+            }
             Cylinder(Mound, "HillPad", new Vector3(0f, 0f, z), ParkDiamond.MoundPadR, ParkDiamond.MoundPadH, packed);
             Cylinder(Mound, "HillMid", new Vector3(0f, ParkDiamond.MoundMidY, z), ParkDiamond.MoundMidR, ParkDiamond.MoundMidH, hill);
             Cylinder(Mound, "HillTop", new Vector3(0f, ParkDiamond.MoundTopY, z), ParkDiamond.MoundTopR, ParkDiamond.MoundTopH, hill);
@@ -497,8 +511,9 @@ namespace GrandSluggers.UnityClient
                 var rot = Quaternion.LookRotation(radial, Vector3.up);
                 var dTheta = (float)AtBatResolver.FoulLineDeg * 2f / n * Mathf.Deg2Rad;
                 var chord = 2f * midR * Mathf.Tan(dTheta * 0.5f) + 1.4f;
-                Box(WarningTrack, "Track" + i, p,
-                    new Vector3(chord, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), rot, dirt);
+                if (DropMesh("warning-track", WarningTrack, "Track" + i, p, rot, Vector3.one, paint: true) == null)
+                    Box(WarningTrack, "Track" + i, p,
+                        new Vector3(chord, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), rot, dirt);
             }
         }
 
@@ -513,12 +528,14 @@ namespace GrandSluggers.UnityClient
                 var pz = ParkDiamond.FoulPole(_park, sign);
                 var pos = new Vector3((float)pz.X, 0f, (float)pz.Z);
                 var name = sign < 0 ? "L" : "R";
-                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.35f, pole);
                 var radial = new Vector3((float)pz.X, 0f, (float)pz.Z);
                 if (radial.sqrMagnitude < 1f) continue;
                 radial.Normalize();
                 var rot = Quaternion.LookRotation(radial, Vector3.up);
+                if (DropMesh("foul-pole", Poles, "Pole" + name, pos, rot, Vector3.one, paint: true) != null)
+                    continue;
+                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
+                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.35f, pole);
                 Box(Poles, "Screen" + name,
                     pos + Vector3.up * ParkDiamond.PoleScreenY - radial * 0.4f,
                     new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, 0.18f), rot, screen);
@@ -762,7 +779,8 @@ namespace GrandSluggers.UnityClient
                 var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
                 var p = radial * fence;
                 var rot = Quaternion.LookRotation(radial, Vector3.up);
-                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
+                if (DropMesh("wall-panel", WallDress, "Wall" + i, p, rot, Vector3.one, paint: true) == null)
+                    Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
                 Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
                 if (i % 2 == 0)
                     Box(WallDress, "Ad" + i, p - radial * (thick * 0.55f) + Vector3.up * (h * 0.62f),
@@ -1154,6 +1172,7 @@ namespace GrandSluggers.UnityClient
             _kitFlesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
             _kitChalk = Look.Unlit(Colors.Chalk);
             _kitNavy = Look.Toon(new Color(0.06f, 0.18f, 0.42f));
+            _kitDirt = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
         }
 
         void PaintKit(Transform t)
@@ -1179,6 +1198,7 @@ namespace GrandSluggers.UnityClient
                     else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
                     else if (n.Contains("chalk") || n.Contains("cream")) next[i] = _kitChalk;
                     else if (n.Contains("navy")) next[i] = _kitNavy;
+                    else if (n.Contains("dirt") || n.Contains("hill")) next[i] = _kitDirt;
                     else next[i] = _kitWood;
                 }
                 r.sharedMaterials = next;

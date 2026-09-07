@@ -195,6 +195,15 @@ public class ArtCatalogTests
             "Assets/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(extrasFbx), extrasFbx);
         Assert.True(new FileInfo(extrasFbx).Length > 10_000, "extras.fbx is empty");
+        var extrasAscii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(extrasFbx));
+        Assert.Contains("bat-wood", extrasAscii);
+        Assert.Contains("glove-brown", extrasAscii);
+        Assert.Contains("baseball", extrasAscii);
+        Assert.Contains("brim", extrasAscii);
+        var extrasRes = Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Resources/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(extrasRes), extrasRes + " — toys must bind in the Linux player");
+        Assert.Equal(new FileInfo(extrasFbx).Length, new FileInfo(extrasRes).Length);
         var fennFbx = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Art/Characters/fenn/fenn.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fennFbx), fennFbx);
