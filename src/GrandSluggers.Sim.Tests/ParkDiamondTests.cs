@@ -18,6 +18,8 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.StripeReadsAtCouch());
         Assert.True(ParkDiamond.StripesRunHomeToCf());
         Assert.True(ParkDiamond.PathCornersAreRound());
+        Assert.True(ParkDiamond.DirtClearsTheLawn(),
+            $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
         Assert.True(ParkDiamond.LawnRespectsPits());
     }
 
@@ -40,6 +42,18 @@ public class ParkDiamondTests
             < Diamond.Dist(0, 0, harborPole.X, harborPole.Z) - 20,
             "a shorter fence must pull the pole in — not a Harbor 330 hardcode");
         Assert.True(ParkDiamond.TrackMid(shortPark, 0) < ParkDiamond.TrackMid(Harbor, 0) - 20);
+    }
+
+    [Fact]
+    public void InfieldDirtAuthoringMatchesParkDiamond()
+    {
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
+        Assert.Contains("PATH_Y = 0.26", py);
+        Assert.Contains("PATH_THICK = 0.24", py);
+        Assert.Equal(0.26f, ParkDiamond.PathY);
+        Assert.Equal(0.24f, ParkDiamond.PathThick);
     }
 
     [Fact]

@@ -23,9 +23,14 @@ PIT = 2.6
 STAIR_COUNT = 5
 STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
-# Keep in sync with HarborInfield.BagSize / HomeSet.PlateW (feet).
+# Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 1.85
 PLATE_HALF_W = 1.20
+PATH_WIDTH = 8.0
+PATH_CORNER = 14.0
+PATH_Y = 0.26
+PATH_THICK = 0.24
+HOME_PACKED_R = 16.0
 
 
 def nuke():
@@ -308,13 +313,16 @@ def build_warning_track(dirt):
 
 
 def build_infield_dirt(dirt):
-    """Rounded diamond ring at home origin. Inner grass shows through."""
+    """Rounded diamond ring at home origin. Inner grass shows through.
+
+    Height matches ParkDiamond.PathY / PathThick so the ring sits on the lawn,
+    not in it (a 0.16-ft slab at z=0.11 z-fights the grass and vanishes).
+    """
     home = (0.0, 0.0)
     first = (63.64, 63.64)
     second = (0.0, 127.28)
     third = (-63.64, 63.64)
-    width = 8.0
-    inset = 14.0
+    inset = PATH_CORNER
     pieces = []
 
     def segment(name, a, b):
@@ -328,14 +336,20 @@ def build_infield_dirt(dirt):
         mx, my = (sx + ex) * 0.5, (sy + ey) * 0.5
         length = math.hypot(ex - sx, ey - sy)
         ang = math.atan2(uy, ux)
-        return prim("cube", name, (mx, my, 0.11), (length, width, 0.16), dirt, rot=(0, 0, ang))
+        return prim("cube", name, (mx, my, PATH_Y), (length, PATH_WIDTH, PATH_THICK), dirt, rot=(0, 0, ang))
 
     pieces.append(segment("DirtH1", home, first))
     pieces.append(segment("Dirt12", first, second))
     pieces.append(segment("Dirt23", second, third))
     pieces.append(segment("Dirt3H", third, home))
-    for name, pos in (("Dirt1", first), ("Dirt2", second), ("Dirt3", third), ("DirtH", home)):
-        pieces.append(prim("cylinder", name, (pos[0], pos[1], 0.11), (28.0, 28.0, 0.16), dirt))
+    for name, pos, radius in (
+        ("Dirt1", first, PATH_CORNER),
+        ("Dirt2", second, PATH_CORNER),
+        ("Dirt3", third, PATH_CORNER),
+        ("DirtH", home, HOME_PACKED_R),
+    ):
+        d = radius * 2.0
+        pieces.append(prim("cylinder", name, (pos[0], pos[1], PATH_Y), (d, d, PATH_THICK), dirt))
     ring = join_in_place("infield-dirt", pieces)
     return origin_world(ring)
 

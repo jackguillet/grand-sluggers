@@ -9,8 +9,11 @@ public static class ParkDiamond
 {
     /// <summary>Dirt path width (ft). 11 ate the grass Y.</summary>
     public const float PathWidth = 8f;
-    public const float PathY = 0.11f;
-    public const float PathThick = 0.16f;
+    /// <summary>Center of the dirt slab. Must sit above <see cref="GrassTop"/> so the ring reads at couch.</summary>
+    public const float PathY = 0.26f;
+    public const float PathThick = 0.24f;
+    /// <summary>Dirt top minus grass top. A 0.05-ft lip z-fights and vanishes under the lawn.</summary>
+    public const float PathLip = 0.18f;
     /// <summary>Rounded diamond corners at the bags. Bigger than half the path so the ring reads round, not a cross.</summary>
     public const float PathCornerR = 14f;
 
@@ -70,6 +73,14 @@ public static class ParkDiamond
 
     public static bool PathCornersAreRound() =>
         PathCornerR >= PathWidth && PathCornerR < Diamond.Baseline * 0.4f;
+
+    public static float GrassTop => GrassY + GrassThick * 0.5f;
+    public static float PathTop => PathY + PathThick * 0.5f;
+    public static float PathBottom => PathY - PathThick * 0.5f;
+
+    /// <summary>Dirt ring sits on the lawn, not in it. Grass is drawn first; dirt after.</summary>
+    public static bool DirtClearsTheLawn() =>
+        PathTop >= GrassTop + PathLip && PathBottom >= GrassTop - 0.02f && PathY > GrassY;
 
     /// <summary>Stripes are columns along CF (X bands), not rows along 1B–3B.</summary>
     public static bool StripesRunHomeToCf() => true;
