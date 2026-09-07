@@ -65,6 +65,17 @@ public class HarborPostcardTests
     }
 
     [Fact]
+    public void InfieldIsPathsAndBagsNotADirtLake()
+    {
+        Assert.True(HarborInfield.PathIsNotALake());
+        Assert.True(HarborInfield.BagIsABag());
+        Assert.True(HarborInfield.HomePackedIsAPad());
+        Assert.True(HarborInfield.LawnRespectsPits());
+        Assert.True(HarborInfield.PathWidth < 11f);
+        Assert.True(HarborInfield.BagDirtR < 11f);
+    }
+
+    [Fact]
     public void HarborKitFbxIsInThePlayerResourcesSlot()
     {
         var repo = Directory.GetParent(_content.Root)?.FullName
