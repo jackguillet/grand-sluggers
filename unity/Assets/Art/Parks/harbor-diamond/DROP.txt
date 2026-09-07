@@ -1,6 +1,7 @@
 Harbor kit empties: Dugouts, Bleachers, WallDress, Town, Scoreboard, Backstop.
 
 Drop `harbor-kit.fbx` here (names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit).
-HarborKit instances those onto the empties. Missing file keeps the primitive dress
-(field-open dugout, rotated wall, capsule people). Stars stay on the fascia.
-Do not emit a second diamond. Backstop stays. Other parks wait.
+Dugouts are sunken pits with stairs, set back off the dirt (`HarborDugout` numbers).
+The lawn is cut at those footprints so the pit shows. HarborKit instances the kit
+onto the empties. Missing file keeps the primitive pit.
+Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.

@@ -13,8 +13,13 @@ from pathlib import Path
 import bpy
 
 
-HALF_ALONG = 6.2
-HALF_DEEP = 4.6
+# Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
+HALF_ALONG = 8.0
+HALF_DEEP = 5.4
+PIT = 2.6
+STAIR_COUNT = 5
+STAIR_DEPTH = 0.82
+FIELD_STAIR_RUN = 8.0
 
 
 def nuke():
@@ -72,28 +77,62 @@ def bevel(ob, width=0.06, segs=2):
     bpy.ops.object.modifier_apply(modifier="bev")
 
 
-def build_dugout(name, wood, roof, gold, pad, post, flip_x):
+def stairs(name, wood, conc, y_lip, sign):
+    """Steps down from field into the pit. sign +1 walks toward +Y (into the box)."""
+    step_h = PIT / STAIR_COUNT
+    pieces = []
+    for i in range(STAIR_COUNT):
+        z_c = -step_h * (i + 0.5)
+        y_c = y_lip + sign * (0.12 + i * STAIR_DEPTH)
+        pieces.append(
+            prim("cube", name + "S" + str(i), (0, y_c, z_c),
+                 (HALF_DEEP * 2 - 0.7, STAIR_DEPTH + 0.04, step_h), conc)
+        )
+    return pieces
+
+
+def build_dugout(name, wood, roof, gold, pad, post, conc, well, flip_x):
     field_x = -HALF_DEEP
     back_x = HALF_DEEP
     y0 = -HALF_ALONG
     y1 = HALF_ALONG
+    along = HALF_ALONG * 2
+    deep = HALF_DEEP * 2
+    wall_h = PIT + 0.15
+    stair_cut = STAIR_COUNT * STAIR_DEPTH * 2 + 0.8
     pieces = [
-        prim("cube", name + "Pad", (0, 0, 0.10), (HALF_DEEP * 2 + 1.2, HALF_ALONG * 2 + 0.8, 0.20), pad),
-        prim("cylinder", name + "PostFH", (field_x, y0 + 0.45, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostFF", (field_x, y1 - 0.45, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostBH", (back_x, y0 + 0.45, 2.10), (0.52, 0.52, 4.20), post),
-        prim("cylinder", name + "PostBF", (back_x, y1 - 0.45, 2.10), (0.52, 0.52, 4.20), post),
-        prim("cube", name + "Back", (back_x, 0, 2.05), (0.42, HALF_ALONG * 2 - 0.5, 4.0), wood),
-        prim("cube", name + "End", (0, y1, 2.0), (HALF_DEEP * 2 - 0.2, 0.38, 3.9), wood),
-        prim("cube", name + "Roof", (0, 0, 4.32), (HALF_DEEP * 2 + 1.8, HALF_ALONG * 2 + 1.4, 0.28), roof),
-        prim("cube", name + "Ridge", (0, 0, 4.52), (1.1, HALF_ALONG * 2 + 0.6, 0.22), roof),
-        prim("cube", name + "Fascia", (field_x, 0, 4.18), (0.34, HALF_ALONG * 2 + 0.5, 0.30), gold),
-        prim("cube", name + "Rail", (field_x, 0, 1.02), (0.24, HALF_ALONG * 2 - 0.9, 0.32), gold),
-        prim("cube", name + "Bench", (back_x - 1.55, 0, 0.88), (1.5, HALF_ALONG * 2 - 2.0, 0.24), wood),
-        prim("cylinder", name + "LegH", (back_x - 1.55, y0 + 1.6, 0.39), (0.28, 0.28, 0.78), post),
-        prim("cylinder", name + "LegF", (back_x - 1.55, y1 - 1.6, 0.39), (0.28, 0.28, 0.78), post),
+        prim("cube", name + "Floor", (0, 0, -PIT), (deep + 1.0, along + 0.6, 0.22), pad),
+        prim("cube", name + "BackWall", (back_x, 0, -PIT + wall_h * 0.5), (0.42, along - 0.4, wall_h), well),
+        prim("cube", name + "FrontWall", (field_x, 0, -PIT + wall_h * 0.42),
+             (0.38, along - stair_cut, wall_h * 0.84), well),
+        prim("cylinder", name + "PostFH", (field_x, y0 + 0.55, 2.02), (0.52, 0.52, 4.05), post),
+        prim("cylinder", name + "PostFF", (field_x, y1 - 0.55, 2.02), (0.52, 0.52, 4.05), post),
+        prim("cylinder", name + "PostBH", (back_x, y0 + 0.55, -PIT + (4.2 + PIT) * 0.5),
+             (0.52, 0.52, 4.2 + PIT), post),
+        prim("cylinder", name + "PostBF", (back_x, y1 - 0.55, -PIT + (4.2 + PIT) * 0.5),
+             (0.52, 0.52, 4.2 + PIT), post),
+        prim("cube", name + "Back", (back_x, 0, 2.05), (0.42, along - 0.5, 4.0), wood),
+        prim("cube", name + "Roof", (0, 0, 4.32), (deep + 1.8, along + 1.4, 0.28), roof),
+        prim("cube", name + "Ridge", (0, 0, 4.52), (1.1, along + 0.6, 0.22), roof),
+        prim("cube", name + "Fascia", (field_x, 0, 4.18), (0.34, along + 0.5, 0.30), gold),
+        prim("cube", name + "Rail", (field_x, 0, 1.02), (0.24, along - stair_cut + 0.4, 0.32), gold),
+        prim("cube", name + "Bench", (back_x - 1.55, 0, -PIT + 0.88), (1.5, along - 3.2, 0.24), wood),
+        prim("cylinder", name + "LegH", (back_x - 1.55, y0 + 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
+        prim("cylinder", name + "LegF", (back_x - 1.55, y1 - 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
     ]
-    bevel(pieces[7], 0.08, 2)
+    pieces.extend(stairs(name + "H", wood, conc, y0, 1))
+    pieces.extend(stairs(name + "F", wood, conc, y1, -1))
+    step_h = PIT / STAIR_COUNT
+    step_d = FIELD_STAIR_RUN / STAIR_COUNT
+    for i in range(STAIR_COUNT):
+        t = 0 if STAIR_COUNT == 1 else i / (STAIR_COUNT - 1)
+        z_c = -step_h * (i + 0.5)
+        x_c = field_x - FIELD_STAIR_RUN * (1 - t)
+        pieces.append(
+            prim("cube", name + "FS" + str(i), (x_c, y0 + 2.4, z_c),
+                 (step_d + 0.12, 3.4, step_h), conc)
+        )
+    bevel(pieces[8], 0.08, 2)
     dug = join_in_place(name, pieces)
     if flip_x:
         bpy.ops.object.select_all(action="DESELECT")
@@ -153,12 +192,15 @@ def build():
     roof = mat("roof", (0.14, 0.32, 0.20))
     gold = mat("gold", (1.0, 0.80, 0.25))
     pad = mat("pad", (0.16, 0.42, 0.28))
+    dirt = mat("dirt", (0.58, 0.40, 0.24))
+    well = mat("well", (0.50, 0.34, 0.20))
+    conc = mat("conc", (0.62, 0.60, 0.56))
     post = mat("post", (0.28, 0.22, 0.16))
     jersey = mat("jersey", (0.86, 0.19, 0.16))
     flesh = mat("flesh", (1.0, 0.80, 0.68))
     cap = mat("cap", (1.0, 0.80, 0.25))
-    build_dugout("dugout-1b", wood, roof, gold, pad, post, flip_x=False)
-    build_dugout("dugout-3b", wood, roof, gold, pad, post, flip_x=True)
+    build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
+    build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
     build_wall(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)

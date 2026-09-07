@@ -73,7 +73,7 @@ Elder Fenn (wrapper):
   --portrait unity/Assets/Resources/Art/fenn-hero.jpg
 ```
 
-Harbor kit (dugout, wall panel, crowd). Missing file keeps HarborKit primitives:
+Harbor kit (sunken dugout + stairs, wall panel, crowd). Missing file keeps HarborKit primitives. Layout: `HarborDugout`.
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/harbor_kit.py -- \

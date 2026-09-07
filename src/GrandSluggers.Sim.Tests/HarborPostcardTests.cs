@@ -37,6 +37,34 @@ public class HarborPostcardTests
     }
 
     [Fact]
+    public void DugoutsAreSunkenAndSetBackOffTheDirt()
+    {
+        Assert.True(HarborDugout.IsSetBackFromTheDirt(),
+            $"field lip {HarborDugout.FieldX(HarborDugout.X)} still on the path");
+        Assert.True(HarborDugout.IsSunken());
+        Assert.True(HarborDugout.HasStairs());
+        Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
+        Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
+        Assert.True(HarborDugout.Z > 30);
+        Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
+        Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
+        Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),
+            "a camera in the pit is not clear");
+        Assert.InRange(HarborDugout.StarZ0, HarborDugout.Z - HarborDugout.HalfAlong,
+            HarborDugout.Z + HarborDugout.HalfAlong);
+        Assert.True(HarborDugout.InPitHole(HarborDugout.X, HarborDugout.Z));
+        Assert.True(HarborDugout.InPitHole(-HarborDugout.X, HarborDugout.Z));
+        Assert.False(HarborDugout.LawnCovers(HarborDugout.X, HarborDugout.Z),
+            "lawn must not cap the pit");
+        Assert.True(HarborDugout.LawnCovers(0, HarborDugout.Z), "grass between the dugouts");
+        Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
+        Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
+        Assert.True(HarborDugout.HoleMinX > 48, "hole stays off the dirt path");
+        Assert.True(HarborDugout.FieldX(HarborDugout.X) - HarborDugout.HoleMinX >= 8,
+            "field-side hole must be wide enough to see the pit from scoop");
+    }
+
+    [Fact]
     public void HarborKitFbxIsInThePlayerResourcesSlot()
     {
         var repo = Directory.GetParent(_content.Root)?.FullName
