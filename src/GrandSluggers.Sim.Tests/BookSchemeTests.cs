@@ -80,6 +80,42 @@ public class BookSchemeTests : IDisposable
     }
 
     [Fact]
+    public void SchemeBadgesArePillsNotASentenceOnEveryPage()
+    {
+        Assert.Null(BookScheme.SeatBadge(InputScheme.Pad));
+        Assert.Equal("Player 1 only", BookScheme.SeatBadge(InputScheme.Keys));
+        Assert.Equal("Two pads", BookScheme.PageBadge("two-pads", InputScheme.Pad));
+        Assert.Equal("Two pads", BookScheme.PageBadge("two-pads", InputScheme.Keys));
+        Assert.Null(BookScheme.PageBadge("controls", InputScheme.Pad));
+        var contents = HowToPlay.Must("contents");
+        Assert.DoesNotContain(contents.Lines, l => l.Contains("player 1 only", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(contents.KeyLines!, l => l.Contains("player 1 only", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void RunningSpreadHasClosePlayAndTagCallouts()
+    {
+        Assert.Equal(2, BagDiagrams.Callouts.Count);
+        Assert.Contains(BagDiagrams.Callouts, c => c.Title.Equals("Close play", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(BagDiagrams.Callouts, c => c.Title.Equals("Tag", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("SOUTH", BagDiagrams.CalloutPress(BagDiagrams.ClosePlay, InputScheme.Pad), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("LEFT CLICK", BagDiagrams.CalloutPress(BagDiagrams.ClosePlay, InputScheme.Keys), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("off", BagDiagrams.Tag.Line, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("on a bag they are out", BagDiagrams.Tag.Line, StringComparison.OrdinalIgnoreCase);
+        Assert.True(HowToPlay.Mentions("Close play"));
+    }
+
+    [Fact]
+    public void ChapterMascotsAreRosterCaptains()
+    {
+        Assert.True(BookChapter.EveryPageHasARosterCaptain());
+        Assert.Equal("rio", BookChapter.Captain("contents"));
+        Assert.Equal("konga", BookChapter.Captain("running"));
+        Assert.Equal("ashlord", BookChapter.Captain("fielding"));
+        Assert.DoesNotContain(BookChapter.Captains.Values, id => id.Equals("mario", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ControlsPageSplitsPadAndKeys()
     {
         var page = HowToPlay.Must("controls");

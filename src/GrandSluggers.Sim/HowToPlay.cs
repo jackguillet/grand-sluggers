@@ -116,14 +116,12 @@ public static class HowToPlay
             "The list is the book. Numbers match the pages.",
             "South next page. East back. Toggle the scheme up top.",
             "Pictures first. Short sentences. You can read it from the couch.",
-            "Keyboard + mouse is player 1 only.",
         ],
         [
             "This is the instruction booklet. H or Esc opens it.",
             "The list is the book. Numbers match the pages.",
             "Left click / Space next page. Esc / right click back. Toggle up top.",
             "Pictures first. Short sentences. You can read it from the couch.",
-            "Keyboard + mouse is player 1 only.",
         ]),
         new("controls", "Controls", "controls",
         [
@@ -131,14 +129,12 @@ public static class HowToPlay
             "South pitches, swings, catches, throws. Hold LT to charge.",
             "Stick runs. D-pad names a bag.",
             "Start calls time. East back.",
-            "Keyboard + mouse is player 1 only. Toggle up top.",
         ],
         [
             "Green is offense. Red is defense.",
             "Space / left click pitches, swings, catches, throws. Hold Shift to charge.",
             "WASD runs. 1 2 3 4 name a bag. Right-drag aims.",
             "H calls time. Esc this book.",
-            "Keyboard + mouse is player 1 only. Toggle up top.",
         ]),
         new("roles", "In-game controls", "roles",
         [
@@ -149,7 +145,7 @@ public static class HowToPlay
         [
             "Four tables: batting, pitching, fielding, running.",
             "Verb on the left. What you press on the right.",
-            "Keyboard + mouse is player 1 only. One scheme at a time.",
+            "One scheme at a time.",
         ]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
@@ -162,7 +158,7 @@ public static class HowToPlay
         [
             "Charge ring sits on the dirt. The pitch has a gold streak. Commit at MAX. Late charge is weaker.",
             "You pitch over the pitcher's shoulder looking at the box. You hit from behind home. The throw does not cut.",
-            "Two pads: SET stays on the plate, behind home. Keyboard + mouse is player 1 only.",
+            "Two pads: SET stays on the plate, behind home.",
             "V / Ctrl changeup. Q + Space star. A/D at contact spray.",
             "A ball past the foul line is a foul. Strike unless you already have two.",
         ]),
@@ -185,16 +181,14 @@ public static class HowToPlay
             "The pictures are the diamond. LB all advance. RB all return. Both halt.",
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
-            "Close play: first South wins. Fly: hold, then tag up.",
-            "Have the ball and touch a runner off a bag. That's a tag.",
+            "Fly: hold, then tag up. Close play and tag are the pictures below. First South wins. Have the ball and touch a runner off a bag to tag.",
         ],
         [
             "Hit it and you run. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
             "The pictures are the diamond. , all advance. . all return. / halts both.",
             "1 2 3 picks the highlighted selected runner. Z steal. No steal home.",
             "Don't move: the catcher still guns. Early throw    CAUGHT STEALING.",
-            "Close play: first Space / left click wins. Fly: hold, then tag up.",
-            "Have the ball and touch a runner off a bag. That's a tag.",
+            "Fly: hold, then tag up. Close play and tag are the pictures below. First Space / left click wins. Touch a runner off a bag to tag.",
         ]),
         new("fielding", "Fielding", "fielding",
         [
@@ -260,14 +254,12 @@ public static class HowToPlay
             "South play ball. Esc this book.",
             "Two pads: friend sits pad 2. Unplug and that team is CPU.",
             "Home bats the bottom. Harbor is the slice.",
-            "Keyboard + mouse is player 1 only.",
         ],
         [
             "The pictures are the path. Exhibition is the game. Training is practice.",
             "Space / left click play ball. Esc this book.",
             "Two pads: friend sits pad 2. Unplug and that team is CPU.",
             "Home bats the bottom. Harbor is the slice.",
-            "Keyboard + mouse is player 1 only.",
         ]),
         new("screen", "The game screen", "exhibition",
         [
