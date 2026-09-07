@@ -11,3 +11,4 @@ Diamond ground (paths, mound, striped grass, foul poles, warning track) is
 `ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
 `infield-dirt` is the rounded path ring; it sits on the lawn (`PathY` / `PathLip`),
 not in it. Missing name keeps path slabs + bag pads.
+`mound` is one smooth hill with a flat rubber table — not stacked cylinders.
