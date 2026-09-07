@@ -247,7 +247,6 @@ namespace GrandSluggers.UnityClient
         {
             var chalk = Look.Unlit(Colors.Chalk);
             var packed = Look.Lit(new Color(0.78f, 0.56f, 0.34f), Look.Dirt, 5f, 0.12f);
-            var path = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
             var boxDirt = Look.Lit(new Color(0.62f, 0.42f, 0.24f), Look.Dirt, 4f, 0.08f);
             var hill = Look.Lit(new Color(0.66f, 0.44f, 0.26f), Look.Dirt, 3f, 0.1f);
 
@@ -258,23 +257,10 @@ namespace GrandSluggers.UnityClient
             if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
 
             var homeR = HarborInfield.HomePackedR;
-            Place(HomeDirt, new Vector3(0f, 0.10f, -1.2f), new Vector3(homeR * 2f, 0.12f, homeR * 2.2f), Quaternion.identity);
+            Place(HomeDirt, new Vector3(0f, ParkDiamond.PathY, -1.2f),
+                new Vector3(homeR * 2f, ParkDiamond.PathThick * 0.5f, homeR * 2.2f), Quaternion.identity);
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
-
-            var home = Vector3.zero;
-            var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
-            var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
-            var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
-            var pathW = ParkDiamond.PathWidth;
-            var inset = ParkDiamond.PathCornerR;
-            if (DropMesh("infield-dirt", transform, "InfieldDirt", Vector3.zero, Quaternion.identity, Vector3.one, paint: true) == null)
-            {
-                DirtPath("PathHome1", home, first, pathW, inset, path);
-                DirtPath("Path1to2", first, second, pathW, inset, path);
-                DirtPath("Path2to3", second, third, pathW, inset, path);
-                DirtPath("Path3toHome", third, home, pathW, inset, path);
-            }
 
             // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             DressPlate(chalk);
@@ -419,6 +405,35 @@ namespace GrandSluggers.UnityClient
             Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, len), Quaternion.LookRotation(dir, Vector3.up), dirt);
         }
 
+        /// <summary>
+        /// Dirt ring after the lawn so it wins the depth buffer. Kit mesh first;
+        /// missing name keeps path slabs + rounded bag pads from ParkDiamond.
+        /// </summary>
+        void DressInfieldDirt()
+        {
+            var path = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
+            var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
+            if (DropMesh("infield-dirt", transform, "InfieldDirt", Vector3.zero, Quaternion.identity, Vector3.one, paint: true) == null)
+            {
+                var home = Vector3.zero;
+                var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
+                var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
+                var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
+                var pathW = ParkDiamond.PathWidth;
+                var inset = ParkDiamond.PathCornerR;
+                DirtPath("PathHome1", home, first, pathW, inset, path);
+                DirtPath("Path1to2", first, second, pathW, inset, path);
+                DirtPath("Path2to3", second, third, pathW, inset, path);
+                DirtPath("Path3toHome", third, home, pathW, inset, path);
+                var y = ParkDiamond.PathBottom;
+                var h = ParkDiamond.PathThick;
+                var r = ParkDiamond.PathCornerR;
+                Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, y, (float)Diamond.First.Z), r, h, bagDirt);
+                Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, y, (float)Diamond.Second.Z), r, h, bagDirt);
+                Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, y, (float)Diamond.Third.Z), r, h, bagDirt);
+            }
+        }
+
         Transform Folder(string name)
         {
             var tf = transform.Find(name);
@@ -433,16 +448,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_park == null) return;
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
-            var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            var cornerR = ParkDiamond.PathCornerR;
-            if (transform.Find("InfieldDirt") == null)
-            {
-                Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-                Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-                Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-            }
             DressTrack(dirt);
             DressGrass();
+            DressInfieldDirt();
             DressPoles();
             DressBackstop();
             DressDugouts();
