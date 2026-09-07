@@ -282,6 +282,64 @@ def build_bag(chalk, navy):
     return origin_world(bag)
 
 
+def build_mound(dirt, hill):
+    pad = prim("cylinder", "MoundPad", (0, 0, 0.11), (18.4, 18.4, 0.22), dirt)
+    mid = prim("cylinder", "MoundMid", (0, 0, 0.37), (12.8, 12.8, 0.38), hill)
+    top = prim("cylinder", "MoundTop", (0, 0, 0.69), (8.2, 8.2, 0.42), hill)
+    rubber = prim("cube", "Rubber", (0, 0, 1.02), (1.7, 0.42, 0.07), hill)
+    rubber.data.materials.clear()
+    rubber.data.materials.append(dirt)
+    mound = join_in_place("mound", [pad, mid, top, rubber])
+    return origin_world(mound)
+
+
+def build_foul_pole(gold, chalk):
+    shaft = prim("cylinder", "PoleShaft", (0, 0, 26.0), (1.7, 1.7, 52.0), gold)
+    ball = prim("uv_sphere", "PoleBall", (0, 0, 52.0), (2.2, 2.2, 2.2), gold)
+    screen = prim("cube", "PoleScreen", (0, -0.4, 38.0), (7.0, 0.18, 16.0), chalk)
+    pole = join_in_place("foul-pole", [shaft, ball, screen])
+    return origin_world(pole)
+
+
+def build_warning_track(dirt):
+    """One radial slab. HarborKit instances around the fence. Local +Y = along wall, +X = radial."""
+    track = prim("cube", "warning-track", (0, 0, 0.11), (22.0, 15.0, 0.22), dirt)
+    return origin_world(track)
+
+
+def build_infield_dirt(dirt):
+    """Rounded diamond ring at home origin. Inner grass shows through."""
+    home = (0.0, 0.0)
+    first = (63.64, 63.64)
+    second = (0.0, 127.28)
+    third = (-63.64, 63.64)
+    width = 8.0
+    inset = 14.0
+    pieces = []
+
+    def segment(name, a, b):
+        ax, ay = a
+        bx, by = b
+        dx, dy = bx - ax, by - ay
+        span = math.hypot(dx, dy)
+        ux, uy = dx / span, dy / span
+        sx, sy = ax + ux * inset, ay + uy * inset
+        ex, ey = bx - ux * inset, by - uy * inset
+        mx, my = (sx + ex) * 0.5, (sy + ey) * 0.5
+        length = math.hypot(ex - sx, ey - sy)
+        ang = math.atan2(uy, ux)
+        return prim("cube", name, (mx, my, 0.11), (length, width, 0.16), dirt, rot=(0, 0, ang))
+
+    pieces.append(segment("DirtH1", home, first))
+    pieces.append(segment("Dirt12", first, second))
+    pieces.append(segment("Dirt23", second, third))
+    pieces.append(segment("Dirt3H", third, home))
+    for name, pos in (("Dirt1", first), ("Dirt2", second), ("Dirt3", third), ("DirtH", home)):
+        pieces.append(prim("cylinder", name, (pos[0], pos[1], 0.11), (28.0, 28.0, 0.16), dirt))
+    ring = join_in_place("infield-dirt", pieces)
+    return origin_world(ring)
+
+
 def build_fan(name, sit, jersey, flesh, cap):
     if sit:
         body = prim("cylinder", name + "Body", (0, 0, 0.78), (0.72, 0.72, 1.20), jersey)
@@ -323,6 +381,11 @@ def build():
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
     build_home_plate(chalk, navy)
     build_bag(chalk, navy)
+    hill = mat("hill", (0.66, 0.44, 0.26))
+    build_mound(dirt, hill)
+    build_foul_pole(gold, chalk)
+    build_warning_track(dirt)
+    build_infield_dirt(dirt)
 
 
 def export_fbx(out: Path):

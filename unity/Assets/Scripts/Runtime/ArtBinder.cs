@@ -280,6 +280,32 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
+        /// <summary>Named mesh in extras.fbx (bat-wood, glove-brown, baseball, brim, …). Null keeps the primitive.</summary>
+        public static GameObject LoadExtraMesh(string meshName)
+        {
+            if (string.IsNullOrWhiteSpace(meshName)) return null;
+            const string slot = "Assets/Art/Characters/SharedRig/extras.fbx";
+            if (EditorLoadNamedMesh != null)
+            {
+                var named = EditorLoadNamedMesh(slot, meshName);
+                if (UsableMesh(named)) return named;
+            }
+            var kit = LoadExtrasKit();
+            if (kit == null) return null;
+            if (kit.name.Equals(meshName, StringComparison.OrdinalIgnoreCase) && UsableMesh(kit))
+                return kit;
+            var tf = kit.transform;
+            for (var i = 0; i < tf.childCount; i++)
+            {
+                var child = tf.GetChild(i);
+                if (child.name.Equals(meshName, StringComparison.OrdinalIgnoreCase) && UsableMesh(child.gameObject))
+                    return child.gameObject;
+                var deep = FindChild(child, meshName);
+                if (deep != null && UsableMesh(deep.gameObject)) return deep.gameObject;
+            }
+            return null;
+        }
+
         /// <summary>Named mesh in the Harbor kit FBX. Null keeps the primitive.</summary>
         public static GameObject LoadParkMesh(string parkId, string meshName)
         {
