@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Harbor kit meshes: dugout, wall panel, crowd. Bind in HarborKit; missing file keeps primitives.
+"""Harbor kit meshes: dugout, wall, crowd, home plate, bag. Bind in HarborKit; missing file keeps primitives.
 
-Unity Generic, axis_forward -Z, axis_up Y. Names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit.
+Unity Generic, axis_forward -Z, axis_up Y.
+Names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit, home-plate, bag.
 """
 from __future__ import annotations
 
@@ -10,7 +11,9 @@ import math
 import sys
 from pathlib import Path
 
+import bmesh
 import bpy
+from mathutils import Matrix
 
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
@@ -20,6 +23,9 @@ PIT = 2.6
 STAIR_COUNT = 5
 STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
+# Keep in sync with HarborInfield.BagSize / HomeSet.PlateW (feet).
+BAG_SIZE = 1.85
+PLATE_HALF_W = 1.20
 
 
 def nuke():
@@ -167,6 +173,115 @@ def build_wall(pad, cap):
     return wall
 
 
+def origin_world(ob):
+    bpy.ops.object.select_all(action="DESELECT")
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    bpy.context.scene.cursor.location = (0.0, 0.0, 0.0)
+    bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
+    ob.location = (0.0, 0.0, 0.0)
+    return ob
+
+
+def build_home_plate(chalk, navy):
+    """MLB pentagon, Harbor-fat. Point +Y (pitcher after FBX Y-up)."""
+    mesh = bpy.data.meshes.new("home-plate")
+    ob = bpy.data.objects.new("home-plate", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+    w = PLATE_HALF_W
+    verts2d = [(-w, -0.95), (w, -0.95), (w, 0.28), (0.0, 1.38), (-w, 0.28)]
+    bottom = [bm.verts.new((x, y, 0.0)) for x, y in verts2d]
+    top = [bm.verts.new((x, y, 0.22)) for x, y in verts2d]
+    bm.faces.new(bottom)
+    bm.faces.new(list(reversed(top)))
+    n = len(bottom)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((bottom[i], bottom[j], top[j], top[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bmesh.ops.bevel(bm, geom=bm.edges, offset=0.05, segments=2, affect="EDGES")
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(chalk)
+
+    rim_mesh = bpy.data.meshes.new("home-plate-rim")
+    rim = bpy.data.objects.new("home-plate-rim", rim_mesh)
+    bpy.context.collection.objects.link(rim)
+    bm = bmesh.new()
+    scale = 0.86
+    inner = [(x * scale, y * scale + 0.04) for x, y in verts2d]
+    outer_v = [bm.verts.new((x, y, 0.225)) for x, y in verts2d]
+    inner_v = [bm.verts.new((x, y, 0.225)) for x, y in inner]
+    n = len(outer_v)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((outer_v[i], outer_v[j], inner_v[j], inner_v[i]))
+    geom = bmesh.ops.extrude_face_region(bm, geom=bm.faces)
+    for v in [e for e in geom["geom"] if isinstance(e, bmesh.types.BMVert)]:
+        v.co.z += 0.04
+    bm.to_mesh(rim_mesh)
+    bm.free()
+    rim.data.materials.append(navy)
+    plate = join_in_place("home-plate", [ob, rim])
+    return origin_world(plate)
+
+
+def build_bag(chalk, navy):
+    """Stuffed canvas pillow, diamond-aligned. HarborKit instances at 1B/2B/3B."""
+    mesh = bpy.data.meshes.new("bag")
+    ob = bpy.data.objects.new("bag", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts:
+        v.co.x *= BAG_SIZE
+        v.co.y *= BAG_SIZE
+        v.co.z *= 0.46
+        v.co.z += 0.23
+    bmesh.ops.rotate(
+        bm, verts=bm.verts, cent=(0, 0, 0),
+        matrix=Matrix.Rotation(math.radians(45), 3, "Z"),
+    )
+    bmesh.ops.bevel(bm, geom=bm.edges, offset=0.22, segments=5, profile=0.7, affect="EDGES")
+    for v in bm.verts:
+        if v.co.z > 0.18:
+            r = math.hypot(v.co.x, v.co.y)
+            v.co.z += 0.12 * max(0.0, 1.0 - (r / 1.05) ** 2)
+    bm.normal_update()
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(chalk)
+    for poly in ob.data.polygons:
+        poly.use_smooth = True
+
+    curve = bpy.data.curves.new("bag-piping", "CURVE")
+    curve.dimensions = "3D"
+    curve.bevel_depth = 0.032
+    curve.bevel_resolution = 2
+    curve.fill_mode = "FULL"
+    spline = curve.splines.new("BEZIER")
+    r = BAG_SIZE * 0.52
+    pts = [(r, 0.0), (0.0, r), (-r, 0.0), (0.0, -r)]
+    spline.bezier_points.add(len(pts) - 1)
+    spline.use_cyclic_u = True
+    for i, (x, y) in enumerate(pts):
+        p = spline.bezier_points[i]
+        p.co = (x, y, 0.48)
+        p.handle_left_type = "VECTOR"
+        p.handle_right_type = "VECTOR"
+    piping = bpy.data.objects.new("bag-piping", curve)
+    bpy.context.collection.objects.link(piping)
+    piping.data.materials.append(navy)
+    bpy.ops.object.select_all(action="DESELECT")
+    piping.select_set(True)
+    bpy.context.view_layer.objects.active = piping
+    bpy.ops.object.convert(target="MESH")
+    piping = bpy.context.active_object
+    bag = join_in_place("bag", [ob, piping])
+    return origin_world(bag)
+
+
 def build_fan(name, sit, jersey, flesh, cap):
     if sit:
         body = prim("cylinder", name + "Body", (0, 0, 0.78), (0.72, 0.72, 1.20), jersey)
@@ -199,11 +314,15 @@ def build():
     jersey = mat("jersey", (0.86, 0.19, 0.16))
     flesh = mat("flesh", (1.0, 0.80, 0.68))
     cap = mat("cap", (1.0, 0.80, 0.25))
+    chalk = mat("chalk", (0.96, 0.91, 0.80))
+    navy = mat("navy", (0.06, 0.18, 0.42))
     build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
     build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
     build_wall(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
+    build_home_plate(chalk, navy)
+    build_bag(chalk, navy)
 
 
 def export_fbx(out: Path):
