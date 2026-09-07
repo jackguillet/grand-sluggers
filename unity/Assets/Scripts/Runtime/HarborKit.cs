@@ -36,6 +36,7 @@ namespace GrandSluggers.UnityClient
         public Transform Bleachers;
         public Transform Town;
         public Transform Fireworks;
+        public Transform Poles;
         public Transform Bag1;
         public Transform Bag2;
         public Transform Bag3;
@@ -172,6 +173,7 @@ namespace GrandSluggers.UnityClient
             Bleachers = Folder("Bleachers");
             Town = Folder("Town");
             Fireworks = Folder("Fireworks");
+            Poles = Folder("Poles");
             var bag = HarborInfield.BagSize;
             var bagY = HarborInfield.BagY;
             var diamond = Quaternion.Euler(0f, 45f, 0f);
@@ -248,7 +250,6 @@ namespace GrandSluggers.UnityClient
             var path = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
             var boxDirt = Look.Lit(new Color(0.62f, 0.42f, 0.24f), Look.Dirt, 4f, 0.08f);
             var hill = Look.Lit(new Color(0.66f, 0.44f, 0.26f), Look.Dirt, 3f, 0.1f);
-            var cut = Look.Lit(Colors.Cut, Look.Grass, 12f, 0.08f);
 
             // Kill the 100-ft dirt slab that ate the infield grass.
             Place(DirtPad, new Vector3(0f, 0.04f, 2f), new Vector3(0.2f, 0.02f, 0.2f), Quaternion.identity);
@@ -260,9 +261,6 @@ namespace GrandSluggers.UnityClient
             Place(HomeDirt, new Vector3(0f, 0.10f, -1.2f), new Vector3(homeR * 2f, 0.12f, homeR * 2.2f), Quaternion.identity);
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
-
-            // Infield lawn under the dirt paths — the SMS "Y" of grass.
-            Slab(Grass, "InfieldLawn", new Vector3(0f, 0.05f, 63.64f), new Vector3(108f, 0.08f, 108f), Quaternion.Euler(0f, 45f, 0f), cut);
 
             var home = Vector3.zero;
             var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
@@ -290,21 +288,8 @@ namespace GrandSluggers.UnityClient
             Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
             Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
 
-            Place(FoulL, new Vector3(-63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, -45f, 0f));
-            Place(FoulR, new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
-            Wipe(FoulL);
-            Wipe(FoulR);
-            Mesh(FoulL, PrimitiveType.Cube, chalk);
-            Mesh(FoulR, PrimitiveType.Cube, chalk);
-
-            Place(Mound, new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
-            Wipe(Mound);
-            Cylinder(Mound, "HillPad", new Vector3(0f, 0f, 60.5f), 9.2f, 0.22f, packed);
-            Cylinder(Mound, "HillMid", new Vector3(0f, 0.18f, 60.5f), 6.4f, 0.38f, hill);
-            Cylinder(Mound, "HillTop", new Vector3(0f, 0.48f, 60.5f), 4.1f, 0.42f, hill);
-            Place(Rubber, new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
-            Wipe(Rubber);
-            Mesh(Rubber, PrimitiveType.Cube, chalk);
+            DressFoulLines(chalk);
+            DressMound(packed, hill, chalk);
         }
 
         Transform Anchor(string name, Vector3 pos, Vector3 scale, Quaternion rot)
@@ -420,8 +405,8 @@ namespace GrandSluggers.UnityClient
             d.y = 0f;
             if (d.sqrMagnitude < 1f) return;
             var mid = (a + b) * 0.5f;
-            mid.y = 0.11f;
-            Slab(transform, name, mid, new Vector3(width, 0.16f, d.magnitude + 6f), Quaternion.LookRotation(d.normalized, Vector3.up), dirt);
+            mid.y = ParkDiamond.PathY;
+            Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, d.magnitude + 6f), Quaternion.LookRotation(d.normalized, Vector3.up), dirt);
         }
 
         Transform Folder(string name)
@@ -445,6 +430,7 @@ namespace GrandSluggers.UnityClient
             Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), bagR, 0.16f, bagDirt);
             DressTrack(dirt);
             DressGrass();
+            DressPoles();
             DressBackstop();
             DressDugouts();
             DressWall();
@@ -454,15 +440,81 @@ namespace GrandSluggers.UnityClient
             DressNight();
         }
 
+        void DressFoulLines(Material chalk)
+        {
+            var run = 186f;
+            if (_park != null)
+            {
+                var pole = ParkDiamond.FoulPole(_park, 1);
+                run = (float)Diamond.Dist(0, 0, pole.X, pole.Z) + 4f;
+            }
+            var mid = run * 0.5f;
+            Place(FoulR, new Vector3(mid * 0.7071f, 0.18f, mid * 0.7071f),
+                new Vector3(0.48f, 0.14f, run), Quaternion.Euler(0f, 45f, 0f));
+            Place(FoulL, new Vector3(-mid * 0.7071f, 0.18f, mid * 0.7071f),
+                new Vector3(0.48f, 0.14f, run), Quaternion.Euler(0f, -45f, 0f));
+            Wipe(FoulL);
+            Wipe(FoulR);
+            Mesh(FoulL, PrimitiveType.Cube, chalk);
+            Mesh(FoulR, PrimitiveType.Cube, chalk);
+        }
+
+        void DressMound(Material packed, Material hill, Material chalk)
+        {
+            var z = (float)Diamond.Mound;
+            Place(Mound, new Vector3(0f, 0f, z), Vector3.one, Quaternion.identity);
+            Wipe(Mound);
+            Cylinder(Mound, "HillPad", new Vector3(0f, 0f, z), ParkDiamond.MoundPadR, ParkDiamond.MoundPadH, packed);
+            Cylinder(Mound, "HillMid", new Vector3(0f, ParkDiamond.MoundMidY, z), ParkDiamond.MoundMidR, ParkDiamond.MoundMidH, hill);
+            Cylinder(Mound, "HillTop", new Vector3(0f, ParkDiamond.MoundTopY, z), ParkDiamond.MoundTopR, ParkDiamond.MoundTopH, hill);
+            Place(Rubber, new Vector3(0f, ParkDiamond.RubberY, z),
+                new Vector3(ParkDiamond.RubberW, ParkDiamond.RubberH, ParkDiamond.RubberD), Quaternion.identity);
+            Wipe(Rubber);
+            Mesh(Rubber, PrimitiveType.Cube, chalk);
+        }
+
         void DressTrack(Material dirt)
         {
-            for (var i = -18; i <= 18; i++)
+            Wipe(WarningTrack);
+            if (_park == null) return;
+            var n = ParkDiamond.TrackSegs;
+            var half = n * 0.5f;
+            for (var i = 0; i <= n; i++)
             {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(_park, spray) - 12f;
+                var spray = (i / half - 1f) * (float)AtBatResolver.FoulLineDeg;
+                var midR = (float)ParkDiamond.TrackMid(_park, spray);
                 var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 0.14f, Mathf.Cos(rad) * fence);
-                Cube(WarningTrack, "Track" + i, p, new Vector3(16, 0.2f, 10f), dirt);
+                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
+                var p = radial * midR;
+                p.y = ParkDiamond.TrackY;
+                var rot = Quaternion.LookRotation(radial, Vector3.up);
+                var dTheta = (float)AtBatResolver.FoulLineDeg * 2f / n * Mathf.Deg2Rad;
+                var chord = 2f * midR * Mathf.Tan(dTheta * 0.5f) + 1.4f;
+                Box(WarningTrack, "Track" + i, p,
+                    new Vector3(chord, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), rot, dirt);
+            }
+        }
+
+        void DressPoles()
+        {
+            Wipe(Poles);
+            if (_park == null) return;
+            var pole = Look.Unlit(Colors.Gold);
+            var screen = Look.Unlit(new Color(0.92f, 0.92f, 0.78f));
+            for (var sign = -1; sign <= 1; sign += 2)
+            {
+                var pz = ParkDiamond.FoulPole(_park, sign);
+                var pos = new Vector3((float)pz.X, 0f, (float)pz.Z);
+                var name = sign < 0 ? "L" : "R";
+                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
+                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.35f, pole);
+                var radial = new Vector3((float)pz.X, 0f, (float)pz.Z);
+                if (radial.sqrMagnitude < 1f) continue;
+                radial.Normalize();
+                var rot = Quaternion.LookRotation(radial, Vector3.up);
+                Box(Poles, "Screen" + name,
+                    pos + Vector3.up * ParkDiamond.PoleScreenY - radial * 0.4f,
+                    new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, 0.18f), rot, screen);
             }
         }
 
@@ -631,23 +683,40 @@ namespace GrandSluggers.UnityClient
 
         void DressGrass()
         {
-            var lawn = Look.Lit(Colors.Grass, Look.Grass, 16f, 0.08f);
-            Cube(Grass, "OutfieldCarpet", new Vector3(0f, 0.15f, 270f), new Vector3(520f, 0.12f, 240f), lawn);
-            // Leave two holes at the dugout pits. One sheet here is what hid the wells.
-            var y = 0.08f;
-            var h = 0.12f;
-            var xFar = 280f;
-            var zHome = -36f;
-            var zCf = 165f;
-            var z0 = HarborDugout.HoleMinZ;
-            var z1 = HarborDugout.HoleMaxZ;
+            Wipe(Grass);
+            var dark = Look.Lit(Colors.Grass, Look.Grass, 16f, 0.08f);
+            var light = Look.Lit(Colors.Cut, Look.Grass, 12f, 0.08f);
+            var y = ParkDiamond.GrassY;
+            var h = ParkDiamond.GrassThick;
+            var stripe = ParkDiamond.StripeWidth;
+            var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
+            var i = 0;
+            for (var z = ParkDiamond.GrassZ0; z < zEnd; z += stripe, i++)
+            {
+                var zc = z + stripe * 0.5f;
+                var sz = stripe + 0.4f;
+                var halfW = ParkDiamond.GrassHalfWidth(zc);
+                var mat = (i & 1) == 0 ? dark : light;
+                StripeBand("Stripe" + i, zc, sz, halfW, y, h, mat);
+            }
+        }
+
+        void StripeBand(string name, float zc, float sz, float halfW, float y, float h, Material lawn)
+        {
+            var z0 = zc - sz * 0.5f;
+            var z1 = zc + sz * 0.5f;
+            if (z1 < HarborDugout.HoleMinZ || z0 > HarborDugout.HoleMaxZ)
+            {
+                LawnBand(name, 0f, y, zc, halfW * 2f, h, sz, lawn);
+                return;
+            }
             var xIn = HarborDugout.HoleMinX;
             var xOut = HarborDugout.HoleMaxX;
-            LawnBand("LawnHome", 0f, y, (zHome + z0) * 0.5f, xFar * 2f, h, z0 - zHome, lawn);
-            LawnBand("LawnCf", 0f, y, (z1 + zCf) * 0.5f, xFar * 2f, h, zCf - z1, lawn);
-            LawnBand("LawnMidL", -(xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
-            LawnBand("LawnMidC", 0f, y, (z0 + z1) * 0.5f, xIn * 2f, h, z1 - z0, lawn);
-            LawnBand("LawnMidR", (xOut + xFar) * 0.5f, y, (z0 + z1) * 0.5f, xFar - xOut, h, z1 - z0, lawn);
+            LawnBand(name + "C", 0f, y, zc, xIn * 2f, h, sz, lawn);
+            var sideW = halfW - xOut;
+            if (sideW < 2f) return;
+            LawnBand(name + "L", -(xOut + halfW) * 0.5f, y, zc, sideW, h, sz, lawn);
+            LawnBand(name + "R", (xOut + halfW) * 0.5f, y, zc, sideW, h, sz, lawn);
         }
 
         void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)

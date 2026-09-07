@@ -244,24 +244,28 @@ namespace GrandSluggers.UnityClient
                 Cube("Fence" + i, p, new Vector3(14, 10.4f, 1.8f), funfair && (i & 1) == 0 ? wallAlt : wall);
                 Cube("Cap" + i, p + new Vector3(0, 5.4f, 0), new Vector3(14, 0.35f, 2.1f), cap);
             }
-            var lf = (float)park.LeftFenceFt;
-            var rf = (float)park.RightFenceFt;
-            Cylinder("PoleL", new Vector3(Mathf.Sin(-0.78f) * lf, 0, Mathf.Cos(-0.78f) * lf), 0.7f, 52f, pole);
-            Cylinder("PoleR", new Vector3(Mathf.Sin(0.78f) * rf, 0, Mathf.Cos(0.78f) * rf), 0.7f, 52f, pole);
-            Cube("ScreenL", new Vector3(Mathf.Sin(-0.78f) * lf, 38f, Mathf.Cos(-0.78f) * lf), new Vector3(0.2f, 18f, 8f), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
-            Cube("ScreenR", new Vector3(Mathf.Sin(0.78f) * rf, 38f, Mathf.Cos(0.78f) * rf), new Vector3(0.2f, 18f, 8f), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
+            var poleL = ParkDiamond.FoulPole(park, -1);
+            var poleR = ParkDiamond.FoulPole(park, 1);
+            Cylinder("PoleL", new Vector3((float)poleL.X, 0, (float)poleL.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
+            Cylinder("PoleR", new Vector3((float)poleR.X, 0, (float)poleR.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
+            Cube("ScreenL", new Vector3((float)poleL.X, ParkDiamond.PoleScreenY, (float)poleL.Z),
+                new Vector3(0.2f, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenW), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
+            Cube("ScreenR", new Vector3((float)poleR.X, ParkDiamond.PoleScreenY, (float)poleR.Z),
+                new Vector3(0.2f, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenW), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
         }
 
         void WarningTrack(Park park)
         {
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
-            for (var i = -18; i <= 18; i++)
+            var n = ParkDiamond.TrackSegs;
+            var half = n * 0.5f;
+            for (var i = 0; i <= n; i++)
             {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(park, spray) - 12f;
+                var spray = (i / half - 1f) * (float)AtBatResolver.FoulLineDeg;
+                var midR = (float)ParkDiamond.TrackMid(park, spray);
                 var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 0.14f, Mathf.Cos(rad) * fence);
-                Cube("Track" + i, p, new Vector3(16, 0.2f, 10f), dirt);
+                var p = new Vector3(Mathf.Sin(rad) * midR, ParkDiamond.TrackY, Mathf.Cos(rad) * midR);
+                Cube("Track" + i, p, new Vector3(16, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), dirt);
             }
         }
 
