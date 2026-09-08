@@ -25,9 +25,10 @@ STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 1.85
-PLATE_HALF_W = 1.00
-PLATE_FRONT = 2.00
-PLATE_SHOULDER = 1.00
+# OBR 2.02: 17″ front, 8½″ shoulders, point at origin (catcher).
+PLATE_HALF_W = 17.0 / 12.0 / 2.0
+PLATE_FRONT = 17.0 / 12.0
+PLATE_SHOULDER = 8.5 / 12.0
 PATH_WIDTH = 8.0
 PATH_CORNER = 14.0
 PATH_Y = 0.26

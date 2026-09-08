@@ -245,6 +245,53 @@ namespace GrandSluggers.UnityClient
         }
 
         /// <summary>
+        /// OBR Diagram 2 chalk: 4′×6′ batter’s boxes 6″ off the plate, catcher’s
+        /// box 8′×43″ on the rear line. Lines, not filled pads. Interior is dirt.
+        /// </summary>
+        void DressHomeChalk(Material chalk)
+        {
+            Place(BoxL,
+                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                Vector3.one, Quaternion.identity);
+            Place(BoxR,
+                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                Vector3.one, Quaternion.identity);
+            Wipe(BoxL);
+            Wipe(BoxR);
+            ChalkRect(BoxL, (float)HomeSet.BoxW, (float)HomeSet.BoxD, chalk);
+            ChalkRect(BoxR, (float)HomeSet.BoxW, (float)HomeSet.BoxD, chalk);
+
+            var catcher = transform.Find("CatcherBox");
+            if (catcher == null)
+            {
+                var go = new GameObject("CatcherBox");
+                catcher = go.transform;
+                catcher.SetParent(transform, false);
+            }
+            Place(catcher,
+                new Vector3(0f, (float)HomeSet.BoxY, (float)HomeSet.CatcherBoxZ),
+                Vector3.one, Quaternion.identity);
+            Wipe(catcher);
+            ChalkRect(catcher, (float)HomeSet.CatcherBoxW, (float)HomeSet.CatcherBoxD, chalk);
+            foreach (var n in new[] { "CatcherBoxIn" })
+            {
+                var old = transform.Find(n);
+                if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            }
+        }
+
+        static void ChalkRect(Transform parent, float w, float d, Material chalk)
+        {
+            if (parent == null) return;
+            var t = (float)HomeSet.ChalkW;
+            var h = (float)ParkDiamond.FoulThick;
+            Look.Prim(PrimitiveType.Cube, "N", parent, new Vector3(0f, 0f, d * 0.5f), new Vector3(w + t, h, t), chalk);
+            Look.Prim(PrimitiveType.Cube, "S", parent, new Vector3(0f, 0f, -d * 0.5f), new Vector3(w + t, h, t), chalk);
+            Look.Prim(PrimitiveType.Cube, "E", parent, new Vector3(w * 0.5f, 0f, 0f), new Vector3(t, h, d), chalk);
+            Look.Prim(PrimitiveType.Cube, "W", parent, new Vector3(-w * 0.5f, 0f, 0f), new Vector3(t, h, d), chalk);
+        }
+
+        /// <summary>
         /// SMS diamond language from the title still: dirt *paths* and pads,
         /// grass in the Y, mound as a hill, two white boxes + pentagon at home.
         /// </summary>
@@ -252,7 +299,6 @@ namespace GrandSluggers.UnityClient
         {
             var chalk = Look.Unlit(Colors.Chalk);
             var packed = Look.Lit(new Color(0.78f, 0.56f, 0.34f), Look.Dirt, 5f, 0.12f);
-            var boxDirt = Look.Lit(new Color(0.62f, 0.42f, 0.24f), Look.Dirt, 4f, 0.08f);
             var hill = Look.Lit(new Color(0.66f, 0.44f, 0.26f), Look.Dirt, 3f, 0.1f);
 
             // Kill the 100-ft dirt slab that ate the infield grass.
@@ -267,27 +313,8 @@ namespace GrandSluggers.UnityClient
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
 
-            // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             DressPlate(chalk);
-
-            Place(BoxL,
-                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
-            Place(BoxR,
-                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
-            Wipe(BoxL);
-            Wipe(BoxR);
-            Mesh(BoxL, PrimitiveType.Cube, chalk);
-            Mesh(BoxR, PrimitiveType.Cube, chalk);
-            Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
-            Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
-            Look.Prim(PrimitiveType.Cube, "CatcherBox", transform,
-                new Vector3(0f, (float)HomeSet.BoxY, (float)HomeSet.CatcherBoxZ),
-                new Vector3((float)HomeSet.CatcherBoxW, 0.08f, (float)HomeSet.CatcherBoxD), chalk);
-            Look.Prim(PrimitiveType.Cube, "CatcherBoxIn", transform,
-                new Vector3(0f, (float)HomeSet.BoxY + 0.02f, (float)HomeSet.CatcherBoxZ),
-                new Vector3((float)HomeSet.CatcherBoxW * 0.88f, 0.06f, (float)HomeSet.CatcherBoxD * 0.82f), boxDirt);
+            DressHomeChalk(chalk);
 
             DressMound(hill, chalk);
         }
