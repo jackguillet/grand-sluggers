@@ -97,9 +97,18 @@ public static class ParkDiamond
     public static float PathTop => PathY + PathThick * 0.5f;
     public static float PathBottom => PathY - PathThick * 0.5f;
 
+    /// <summary>Chalk sits on the dirt, not in it. Cube is centered at FoulY.</summary>
+    public const float FoulWidth = 0.55f;
+    public const float FoulThick = 0.12f;
+    public const float FoulLip = 0.08f;
+    public static float FoulY => PathTop + FoulThick * 0.5f;
+
     /// <summary>Dirt ring sits on the lawn, not in it. Grass is drawn first; dirt after.</summary>
     public static bool DirtClearsTheLawn() =>
         PathTop >= GrassTop + PathLip && PathBottom >= GrassTop - 0.02f && PathY > GrassY;
+
+    public static bool ChalkClearsTheDirt() =>
+        FoulY + FoulThick * 0.5f >= PathTop + FoulLip && FoulY > PathTop;
 
     public static float CenterZ => (float)(Diamond.Second.Z * 0.5);
 

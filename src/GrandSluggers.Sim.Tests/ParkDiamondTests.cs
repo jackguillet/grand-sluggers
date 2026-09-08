@@ -21,6 +21,8 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.BackApronIsCurved());
         Assert.True(ParkDiamond.DirtClearsTheLawn(),
             $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
+        Assert.True(ParkDiamond.ChalkClearsTheDirt(),
+            $"foul top {ParkDiamond.FoulY + ParkDiamond.FoulThick * 0.5f:0.00} dirt top {ParkDiamond.PathTop:0.00} — chalk is buried");
         Assert.True(ParkDiamond.LawnRespectsPits());
         Assert.True(ParkDiamond.OnDirt(0, 0), "home packed");
         Assert.True(ParkDiamond.OnDirt(Diamond.First.X, Diamond.First.Z), "1B pad");
