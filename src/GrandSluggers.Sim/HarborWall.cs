@@ -10,8 +10,8 @@ public static class HarborWall
     public const int OutfieldSegs = 48;
     public const int FoulSegs = 20;
     public const int HomeSegs = 8;
-    /// <summary>Outfield inclusive + RF wrap + home + LF wrap minus duplicate poles.</summary>
-    public const int WrapSegs = (OutfieldSegs + 1) + FoulSegs + (HomeSegs - 1) + (FoulSegs - 1);
+    /// <summary>One side (CF→RF→home) mirrored. Must stay even.</summary>
+    public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + HomeSegs / 2) - 2;
     /// <summary>
     /// Hip wall offset from the foul line along the infield. Sits just behind
     /// the dugout. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
@@ -56,26 +56,27 @@ public static class HarborWall
 
     static (double X, double Z)[] BuildLoop(Park park)
     {
-        var pts = new List<(double X, double Z)>(WrapSegs);
-        for (var i = 0; i <= OutfieldSegs; i++)
+        // Build CF → RF pole → behind home, then mirror so 1B/3B match.
+        var half = new List<(double X, double Z)>(WrapSegs / 2 + 2);
+        for (var i = OutfieldSegs / 2; i <= OutfieldSegs; i++)
         {
             var spray = -AtBatResolver.FoulLineDeg
                 + 2 * AtBatResolver.FoulLineDeg * i / OutfieldSegs;
-            pts.Add(FencePoint(park, spray));
+            half.Add(FencePoint(park, spray));
         }
         var poleR = AtBatResolver.FenceAt(park, AtBatResolver.FoulLineDeg);
         for (var i = 1; i <= FoulSegs; i++)
-            pts.Add(FoulWall(1, poleR * (1 - i / (double)FoulSegs), poleR));
-        var rightHome = pts[^1];
-        var leftHome = FoulWall(-1, 0, poleR);
-        for (var i = 1; i < HomeSegs; i++)
+            half.Add(FoulWall(1, poleR * (1 - i / (double)FoulSegs), poleR));
+        var rightHome = half[^1];
+        var home = (0.0, (double)HomeZ);
+        for (var i = 1; i <= HomeSegs / 2; i++)
         {
-            var t = i / (double)HomeSegs;
-            pts.Add(LerpPt(rightHome, (0, HomeZ), leftHome, t));
+            var t = i / (double)(HomeSegs / 2);
+            half.Add(Lerp2(rightHome, home, t));
         }
-        var poleL = AtBatResolver.FenceAt(park, -AtBatResolver.FoulLineDeg);
-        for (var i = 1; i < FoulSegs; i++)
-            pts.Add(FoulWall(-1, poleL * (i / (double)FoulSegs), poleL));
+        var pts = new List<(double X, double Z)>(half);
+        for (var i = half.Count - 2; i >= 1; i--)
+            pts.Add((-half[i].X, half[i].Z));
         return pts.ToArray();
     }
 
@@ -104,14 +105,31 @@ public static class HarborWall
         return (Math.Sin(rad) * r, Math.Cos(rad) * r);
     }
 
-    static (double X, double Z) LerpPt(
-        (double X, double Z) a, (double X, double Z) b, (double X, double Z) c, double t)
+    static (double X, double Z) Lerp2((double X, double Z) a, (double X, double Z) b, double t)
     {
-        // Quadratic through 1B-home, behind home, 3B-home.
-        var omt = 1 - t;
-        return (
-            omt * omt * a.X + 2 * omt * t * b.X + t * t * c.X,
-            omt * omt * a.Z + 2 * omt * t * b.Z + t * t * c.Z);
+        t = Math.Clamp(t, 0, 1);
+        t = t * t * (3 - 2 * t);
+        return (a.X + (b.X - a.X) * t, a.Z + (b.Z - a.Z) * t);
+    }
+
+    public static bool LoopIsSymmetric(Park park)
+    {
+        var loop = Loop(park);
+        if (loop.Length != WrapSegs) return false;
+        foreach (var p in loop)
+        {
+            var ok = false;
+            foreach (var q in loop)
+            {
+                if (Math.Abs(q.X + p.X) < 1.2 && Math.Abs(q.Z - p.Z) < 1.2)
+                {
+                    ok = true;
+                    break;
+                }
+            }
+            if (!ok) return false;
+        }
+        return true;
     }
 
     public static (double X, double Z) TrackInner(Park park, int i)
@@ -202,7 +220,8 @@ public static class HarborWall
         if (minDug < HarborDugout.HalfDeep + 6) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
-        return WrapStaysInFoul(park) && !HasNet && !DropAuthoredRing
+        return WrapStaysInFoul(park) && LoopIsSymmetric(park)
+            && !HasNet && !DropAuthoredRing
             && OutfieldIsTallerThanTheHip()
             && Height(park, 0) >= OutfieldHeight - 0.1f;
     }
