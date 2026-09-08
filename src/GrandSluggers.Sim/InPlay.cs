@@ -281,6 +281,7 @@ public static class InPlay
         PlayKind.Double => 2,
         PlayKind.Single => 1,
         PlayKind.Walk => 1,
+        PlayKind.HitByPitch => 1,
         PlayKind.GroundOut => 1,
         _ => 0
     };
