@@ -39,6 +39,7 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.OnDirt(v1.X + ParkDiamond.BagPadR * 0.5, v1.Z), "1B pad");
         Assert.True(ParkDiamond.BagIsInsideTheFoulLine(1), "1B must sit in fair, not on the chalk");
         Assert.True(ParkDiamond.BagIsInsideTheFoulLine(3), "3B must sit in fair, not on the chalk");
+        Assert.True(ParkDiamond.FoulLinesAreSquare(), "1B and 3B lines from home are a 90° corner");
         Assert.True(HomeSet.PlatePointFacesTheCatcher());
         Assert.True(HomeSet.BoxesClearThePlate());
     }
@@ -48,6 +49,11 @@ public class ParkDiamondTests
     {
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(Harbor));
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(Harbor));
+        Assert.Equal(Harbor.CenterFenceFt, AtBatResolver.FenceAt(Harbor, 0), 1);
+        Assert.Equal(Harbor.LeftFenceFt, AtBatResolver.FenceAt(Harbor, -AtBatResolver.FoulLineDeg), 1);
+        Assert.Equal(Harbor.RightFenceFt, AtBatResolver.FenceAt(Harbor, AtBatResolver.FoulLineDeg), 1);
+        Assert.True(AtBatResolver.FenceIsSmoothAtCenter(Harbor),
+            "CF wall must be a round arc, not two lerps meeting in a point");
         Assert.True(ParkDiamond.TrackIsInsideTheWall(Harbor));
         Assert.True(ParkDiamond.TrackSegs >= 48);
         Assert.True(ParkDiamond.TrackFollowsTheFenceArc(Harbor),

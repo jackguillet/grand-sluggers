@@ -12,7 +12,7 @@ public static class HarborPostcard
     public const float WallHeightFt = 26f;
     public const float WallThickFt = 3.4f;
     /// <summary>Pieces along the foul-line-to-foul-line fence. Chord width, not a fixed slab.</summary>
-    public const int WallSegs = 48;
+    public const int WallSegs = 64;
     public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;

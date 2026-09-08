@@ -151,9 +151,9 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
                 new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
             FoulL = Anchor("FoulL", new Vector3(-63.64f, ParkDiamond.FoulY, 63.64f),
-                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, -45f, 0f));
+                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, ParkDiamond.FoulYaw(-1), 0f));
             FoulR = Anchor("FoulR", new Vector3(63.64f, ParkDiamond.FoulY, 63.64f),
-                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, 45f, 0f));
+                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, ParkDiamond.FoulYaw(1), 0f));
             Mound = Anchor("Mound", new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
             Rubber = Anchor("Rubber", new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
             ShotPlate = ShotAnchor("ShotPlate",
@@ -513,9 +513,9 @@ namespace GrandSluggers.UnityClient
             var r = ParkDiamond.FoulLineCenter(1, mid);
             var l = ParkDiamond.FoulLineCenter(-1, mid);
             Place(FoulR, new Vector3(r.X, y, r.Z),
-                new Vector3(w, h, len), Quaternion.Euler(0f, 45f, 0f));
+                new Vector3(w, h, len), Quaternion.Euler(0f, ParkDiamond.FoulYaw(1), 0f));
             Place(FoulL, new Vector3(l.X, y, l.Z),
-                new Vector3(w, h, len), Quaternion.Euler(0f, -45f, 0f));
+                new Vector3(w, h, len), Quaternion.Euler(0f, ParkDiamond.FoulYaw(-1), 0f));
             Wipe(FoulL);
             Wipe(FoulR);
             Mesh(FoulL, PrimitiveType.Cube, chalk);

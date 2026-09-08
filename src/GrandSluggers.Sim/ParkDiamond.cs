@@ -140,6 +140,24 @@ public static class ParkDiamond
         return Math.Abs(p.X) < p.Z - 0.05;
     }
 
+    /// <summary>1B and 3B lines from home are perpendicular and equal. Always 90°.</summary>
+    public static bool FoulLinesAreSquare()
+    {
+        var f = Diamond.First;
+        var t = Diamond.Third;
+        var dot = f.X * t.X + f.Z * t.Z;
+        var magF = Dist(0, 0, f.X, f.Z);
+        var magT = Dist(0, 0, t.X, t.Z);
+        var yaw = Math.Abs(AtBatResolver.FoulLineDeg);
+        return Math.Abs(dot) < 0.5
+            && Math.Abs(magF - Diamond.Baseline) < 0.2
+            && Math.Abs(magT - Diamond.Baseline) < 0.2
+            && Math.Abs(yaw - 45) < 0.01;
+    }
+
+    public static float FoulYaw(int sign) =>
+        (float)(Math.Sign(sign) * AtBatResolver.FoulLineDeg);
+
     /// <summary>Chalk strip sits in foul, fair edge on the 90-ft line.</summary>
     public static (float X, float Z) FoulLineCenter(int sign, float midAlong)
     {
