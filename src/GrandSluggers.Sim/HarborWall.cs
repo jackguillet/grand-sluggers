@@ -9,7 +9,7 @@ public static class HarborWall
 {
     public const int OutfieldSegs = 48;
     public const int FoulSegs = 20;
-    public const int HomeSegs = 8;
+    public const int HomeSegs = 16;
     /// <summary>One side (CF→RF→home) mirrored. Must stay even.</summary>
     public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + HomeSegs / 2) - 2;
     /// <summary>
@@ -17,8 +17,8 @@ public static class HarborWall
     /// the dugout. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
     /// </summary>
     public const float FoulOffset = 36f;
-    /// <summary>Backstop distance behind the plate. MLB prefers ~60 ft.</summary>
-    public const float HomeZ = -56f;
+    /// <summary>Round wrap behind the plate. Radius is the offset line’s closest point, not a V to a farther apex.</summary>
+    public const float HomeZ = -36f;
     public const float DugoutPad = 18f;
     public const float OutfieldHeight = 26f;
     /// <summary>Hip-high rail around the infield, dugouts, and home.</summary>
@@ -68,11 +68,14 @@ public static class HarborWall
         for (var i = 1; i <= FoulSegs; i++)
             half.Add(FoulWall(1, poleR * (1 - i / (double)FoulSegs), poleR));
         var rightHome = half[^1];
-        var home = (0.0, (double)HomeZ);
+        var r = Math.Sqrt(rightHome.X * rightHome.X + rightHome.Z * rightHome.Z);
+        var a0 = Math.Atan2(rightHome.X, rightHome.Z);
+        const double a1 = Math.PI;
         for (var i = 1; i <= HomeSegs / 2; i++)
         {
             var t = i / (double)(HomeSegs / 2);
-            half.Add(Lerp2(rightHome, home, t));
+            var a = a0 + (a1 - a0) * t;
+            half.Add((Math.Sin(a) * r, Math.Cos(a) * r));
         }
         var pts = new List<(double X, double Z)>(half);
         for (var i = half.Count - 2; i >= 1; i--)
@@ -215,6 +218,26 @@ public static class HarborWall
         return (ox, oz);
     }
 
+    /// <summary>Behind home is a circular arc, not two lines to a point.</summary>
+    public static bool HomeWrapIsRound(Park park)
+    {
+        var loop = Loop(park);
+        var home = loop.OrderBy(p => p.Z).First();
+        if (Math.Abs(home.X) > 4) return false;
+        (double X, double Z)? left = null, right = null;
+        foreach (var p in loop)
+        {
+            if (p.Z >= -8) continue;
+            if (p.X < -8 && (left == null || p.Z < left.Value.Z)) left = p;
+            if (p.X > 8 && (right == null || p.Z < right.Value.Z)) right = p;
+        }
+        if (left == null || right == null) return false;
+        double R((double X, double Z) p) => Math.Sqrt(p.X * p.X + p.Z * p.Z);
+        return Math.Abs(R(home) - R(left.Value)) < 6
+            && Math.Abs(R(home) - R(right.Value)) < 6
+            && home.Z > -FoulOffset - 8;
+    }
+
     public static bool WrapStaysInFoul(Park park)
     {
         foreach (var p in Loop(park))
@@ -242,6 +265,7 @@ public static class HarborWall
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
         return WrapStaysInFoul(park) && LoopIsSymmetric(park)
+            && HomeWrapIsRound(park)
             && !HasNet && !DropAuthoredRing
             && OutfieldIsTallerThanTheHip()
             && Height(park, 0) >= OutfieldHeight - 0.1f;

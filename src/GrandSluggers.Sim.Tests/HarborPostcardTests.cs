@@ -44,6 +44,7 @@ public class HarborPostcardTests
             "wrap must follow foul territory, not cut the infield");
         Assert.True(HarborWall.LoopIsSymmetric(harbor),
             "1B and 3B walls must match — the home wrap is mirrored, not two different polylines");
+        Assert.True(HarborWall.HomeWrapIsRound(harbor), "behind home is an arc, not a V");
         var cf = HarborPostcard.WallPoint(harbor, 0);
         var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         Assert.InRange(cfDist, harbor.CenterFenceFt - 4, harbor.CenterFenceFt + 4);
@@ -76,9 +77,10 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
         Assert.True(HarborDugout.StartsAfterHome(), "starts just after home, not on the plate");
         Assert.True(HarborDugout.EndsBeforeTheBag(), "ends before 1B/3B, not on the bag");
-        Assert.True(HarborDugout.HalfAlong >= 24f, "spans home-to-bag, not a short shed");
+        Assert.True(HarborDugout.HalfAlong >= 16f && HarborDugout.HalfAlong <= 24f,
+            "dugout is two-thirds the old home-to-bag shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
-        Assert.True(Math.Abs(HarborDugout.YawDeg(1) - 45) < 0.1, "1B dugout opens toward the diamond");
+        Assert.True(Math.Abs(HarborDugout.YawDeg(1) + 135) < 0.1, "1B rail faces the diamond");
         Assert.True(HarborDugout.RailIsTheHipWall(), "front rail is the short wall, pit behind it");
         Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));

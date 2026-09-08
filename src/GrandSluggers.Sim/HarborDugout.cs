@@ -12,13 +12,14 @@ public static class HarborDugout
     public const float Along0 = 52f;
 
     /// <summary>Center X. 1B is +X, 3B is −X. HalfDeep behind the hip wall.</summary>
-    public const float X = 65.9f;
+    public const float X = 64.7f;
 
     /// <summary>Center Z. Spans just after home to just before the bag.</summary>
-    public const float Z = 7.64f;
+    public const float Z = 8.84f;
 
-    public const float HalfAlong = 32f;
-    public const float HalfDeep = 5.2f;
+    /// <summary>Two-thirds of the first home-to-bag span.</summary>
+    public const float HalfAlong = 21.3f;
+    public const float HalfDeep = 3.5f;
 
     /// <summary>Floor below field grade. Half-underground like a big-league pit.</summary>
     public const float PitDepth = 3.2f;
@@ -34,8 +35,8 @@ public static class HarborDugout
     /// <summary>Steps stay in the home-end opening, not a runway onto the grass.</summary>
     public const float FieldStairRun = 1.2f;
 
-    /// <summary>1B opens toward the diamond (local −X after yaw). 3B mirrored.</summary>
-    public static float YawDeg(int sign) => sign > 0 ? 45f : 135f;
+    /// <summary>Rail (local −X of the kit) faces the diamond. 180° from the stands-facing drop.</summary>
+    public static float YawDeg(int sign) => sign > 0 ? -135f : -45f;
 
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 
@@ -100,9 +101,9 @@ public static class HarborDugout
         var ax = Math.Abs(x);
         var along = (ax + z) * Inv;
         var into = (ax - z) * Inv;
-        return along > Along0 - HalfAlong - 2f
-            && along < Along0 + HalfAlong + 2f
-            && Math.Abs(into - HarborWall.FoulOffset) < 8f
+        return along > Along0 - HalfAlong + 1f
+            && along < Along0 + HalfAlong - 1f
+            && Math.Abs(into - HarborWall.FoulOffset) < 5f
             && z < 95;
     }
 
