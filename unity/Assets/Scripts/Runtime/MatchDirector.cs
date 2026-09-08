@@ -333,6 +333,11 @@ namespace GrandSluggers.UnityClient
             var mutePlay = BroadcastHud.MutePlay(
                 _spec != null && _spec.Active, _smash, _freeze)
                 || _forceMuteHud || StillCapture.ForceMute;
+            if (_match.Paused && _pauseHowTo)
+            {
+                HudView.Pause(_pauseItem, true, _pausePage);
+                return;
+            }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
