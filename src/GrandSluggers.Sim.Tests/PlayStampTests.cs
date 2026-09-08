@@ -61,4 +61,19 @@ public class PlayStampTests
         Assert.True(PlayStamp.PopSeconds(PlayKind.TakeBall) < PlayStamp.PopSeconds(PlayKind.FlyOut));
         Assert.InRange(PlayStamp.Scale(PlayKind.Walk), 0.6, 0.85);
     }
+
+    [Fact]
+    public void HitsAndOutsStampOnTheFieldNotTheNextPitch()
+    {
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.Single));
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.Double));
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.HomeRun));
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.GroundOut));
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.FlyOut));
+        Assert.True(PlayStamp.HoldsLiveCamera(PlayKind.Strikeout));
+        Assert.False(PlayStamp.HoldsLiveCamera(PlayKind.TakeBall));
+        Assert.False(PlayStamp.HoldsLiveCamera(PlayKind.TakeStrike));
+        Assert.False(PlayStamp.HoldsLiveCamera(PlayKind.Foul));
+        Assert.False(PlayStamp.HoldsLiveCamera(PlayKind.Walk));
+    }
 }
