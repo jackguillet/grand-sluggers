@@ -36,8 +36,10 @@ public class HarborPostcardTests
         Assert.True(HarborPostcard.WallSegs >= 36);
         Assert.True(HarborPostcard.WallOverlapFt >= 0.6f);
         Assert.True(HarborPostcard.WallPiecesConnect(harbor),
-            "wall pieces must overlap along the 330–400–330 fence, not sit as gapped slabs");
-        var cf = HarborPostcard.WallPiece(harbor, HarborPostcard.WallSegs / 2);
+            "wall pieces must overlap along the ground loop, not sit as gapped slabs");
+        Assert.True(HarborWall.WrapStaysInFoul(harbor),
+            "wrap must follow foul territory, not cut the infield");
+        var cf = HarborPostcard.WallPoint(harbor, 0);
         var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         Assert.InRange(cfDist, harbor.CenterFenceFt - 4, harbor.CenterFenceFt + 4);
         var lf = HarborPostcard.WallPoint(harbor, -AtBatResolver.FoulLineDeg);
@@ -116,7 +118,6 @@ public class HarborPostcardTests
         Assert.Contains("foul-pole", ascii);
         Assert.Contains("warning-track", ascii);
         Assert.Contains("infield-dirt", ascii);
-        Assert.Contains("wall-ring", ascii);
         Assert.Equal(new FileInfo(drop).Length, new FileInfo(player).Length);
         var dropTxt = File.ReadAllText(Path.Combine(Path.GetDirectoryName(drop)!, "DROP.txt"));
         Assert.Contains("home-plate", dropTxt);
@@ -125,7 +126,6 @@ public class HarborPostcardTests
         Assert.Contains("foul-pole", dropTxt);
         Assert.Contains("warning-track", dropTxt);
         Assert.Contains("infield-dirt", dropTxt);
-        Assert.Contains("wall-ring", dropTxt);
     }
 
     [Fact]

@@ -31,30 +31,34 @@ public static class HarborPostcard
     public static bool Owns(string? parkId) =>
         parkId != null && parkId.Equals(ParkId, StringComparison.OrdinalIgnoreCase);
 
-    public static (double X, double Z) WallPoint(Park park, double sprayDeg) =>
-        HarborWall.Point(park, sprayDeg);
+    public static (double X, double Z) WallPoint(Park park, double sprayDeg)
+    {
+        var fence = AtBatResolver.FenceAt(park, sprayDeg);
+        var rad = sprayDeg * Math.PI / 180.0;
+        return (Math.Sin(rad) * fence, Math.Cos(rad) * fence);
+    }
 
     /// <summary>
-    /// One fence piece spanning spray i → i+1 around the full loop.
-    /// Width is the chord plus overlap so adjacent boxes meet.
+    /// One piece of the ground loop (outfield + foul wrap). Chord plus overlap.
     /// </summary>
-    public static (double X, double Z, double Width, double Spray0, double Spray1) WallPiece(Park park, int i)
+    public static (double X, double Z, double Width, int I0, int I1) WallPiece(Park park, int i)
     {
-        var n = WallSegs;
+        var n = HarborWall.Loop(park).Length;
         var i0 = ((i % n) + n) % n;
-        var a0 = HarborWall.WrapSpray(i0);
-        var a1 = HarborWall.WrapSpray(i0 + 1);
-        var p0 = WallPoint(park, a0);
-        var p1 = WallPoint(park, a1);
+        var i1 = (i0 + 1) % n;
+        var p0 = HarborWall.LoopPoint(park, i0);
+        var p1 = HarborWall.LoopPoint(park, i1);
         var dx = p1.X - p0.X;
         var dz = p1.Z - p0.Z;
         var chord = Math.Sqrt(dx * dx + dz * dz);
-        return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, a0, a1);
+        return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, i0, i1);
     }
 
     public static bool WallPiecesConnect(Park park)
     {
-        for (var i = 0; i < WallSegs; i++)
+        var n = HarborWall.Loop(park).Length;
+        if (n != HarborWall.WrapSegs) return false;
+        for (var i = 0; i < n; i++)
         {
             var a = WallPiece(park, i);
             var b = WallPiece(park, i + 1);
