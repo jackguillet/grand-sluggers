@@ -147,22 +147,26 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(x, y, w, h), text, style);
         }
 
-        /// <summary>End-of-play cartoon stamp. Only after the play is dead.</summary>
-        public static void PlayStamp(string text, float t)
+        /// <summary>End-of-play cartoon stamp. Only after the play is dead. Counts are smaller and quicker.</summary>
+        public static void PlayStamp(string text, float t, float size = 1f, float popSeconds = 0.16f)
         {
             Ensure();
             if (string.IsNullOrEmpty(text)) return;
-            var pop = Mathf.Clamp01(t / 0.16f);
-            var scale = Mathf.Lerp(0.35f, 1.12f, pop);
-            if (pop >= 1f) scale = 1.06f + 0.04f * Mathf.Sin(t * 5.5f);
+            var popDur = popSeconds > 0.01f ? popSeconds : 0.16f;
+            var pop = Mathf.Clamp01(t / popDur);
+            var peak = size < 1f ? 1.06f : 1.12f;
+            var scale = Mathf.Lerp(0.35f, peak, pop);
+            if (pop >= 1f)
+                scale = size < 1f ? 1f : 1.06f + 0.04f * Mathf.Sin(t * 5.5f);
+            scale *= size;
             var w = Screen.width;
             var h = Screen.height;
             var cx = w * 0.5f;
             var cy = h * 0.40f;
-            var rw = w * 0.92f;
-            var rh = h * 0.28f;
+            var rw = w * (size < 1f ? 0.70f : 0.92f);
+            var rh = h * (size < 1f ? 0.20f : 0.28f);
             var matrix = GUI.matrix;
-            GUIUtility.RotateAroundPivot(-7f, new Vector2(cx, cy));
+            GUIUtility.RotateAroundPivot(size < 1f ? -5f : -7f, new Vector2(cx, cy));
             GUIUtility.ScaleAroundPivot(new Vector2(scale, scale), new Vector2(cx, cy));
             Sticker(text, cx - rw * 0.5f, cy - rh * 0.5f, rw, rh, _stamp);
             GUI.matrix = matrix;

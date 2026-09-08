@@ -87,6 +87,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("TIRED"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("ITEM"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("BALL") && l.Contains("STRIKE") && l.Contains("WALK") && l.Contains("stamp"));
         Assert.True(HowToPlay.Mentions("South"));
         Assert.True(HowToPlay.Mentions("Space"));
         Assert.True(HowToPlay.Mentions("MAX"));

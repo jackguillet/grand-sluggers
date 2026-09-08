@@ -18,11 +18,21 @@ public class PlayStampTests
         Assert.Equal("TRIPLE", PlayStamp.Label(PlayKind.Triple, 0, 1));
         Assert.Equal("HOME RUN", PlayStamp.Label(PlayKind.HomeRun, 0, 1));
         Assert.Equal("GRAND SLAM", PlayStamp.Label(PlayKind.HomeRun, 0, 4));
-        Assert.False(PlayStamp.Shows(PlayKind.TakeBall));
-        Assert.False(PlayStamp.Shows(PlayKind.Foul));
-        Assert.False(PlayStamp.Shows(PlayKind.Walk));
+        Assert.Equal("BALL", PlayStamp.Label(PlayKind.TakeBall, 0, 0));
+        Assert.Equal("STRIKE", PlayStamp.Label(PlayKind.TakeStrike, 0, 0));
+        Assert.Equal("STRIKE", PlayStamp.Label(PlayKind.SwingMiss, 0, 0));
+        Assert.Equal("FOUL", PlayStamp.Label(PlayKind.Foul, 0, 0));
+        Assert.Equal("WALK", PlayStamp.Label(PlayKind.Walk, 0, 0));
+        Assert.True(PlayStamp.Shows(PlayKind.TakeBall));
+        Assert.True(PlayStamp.Shows(PlayKind.TakeStrike));
+        Assert.True(PlayStamp.Shows(PlayKind.SwingMiss));
+        Assert.True(PlayStamp.Shows(PlayKind.Foul));
+        Assert.True(PlayStamp.Shows(PlayKind.Walk));
         Assert.True(PlayStamp.Shows(PlayKind.FlyOut));
         Assert.True(PlayStamp.Shows(PlayKind.HomeRun));
+        Assert.True(PlayStamp.IsCount(PlayKind.Walk));
+        Assert.False(PlayStamp.IsCount(PlayKind.Single));
+        Assert.False(PlayStamp.IsCount(PlayKind.Strikeout));
     }
 
     [Fact]
@@ -42,5 +52,13 @@ public class PlayStampTests
         Assert.InRange(PlayStamp.HoldSeconds(PlayKind.FlyOut, feel), 1.0, 2.0);
         Assert.True(PlayStamp.HoldSeconds(PlayKind.HomeRun, feel) >
             PlayStamp.HoldSeconds(PlayKind.Single, feel));
+        Assert.True(PlayStamp.HoldSeconds(PlayKind.TakeBall, feel) <
+            PlayStamp.HoldSeconds(PlayKind.FlyOut, feel));
+        Assert.True(PlayStamp.HoldSeconds(PlayKind.Walk, feel) <
+            PlayStamp.HoldSeconds(PlayKind.Single, feel));
+        Assert.InRange(PlayStamp.HoldSeconds(PlayKind.Foul, feel), 0.4, 0.9);
+        Assert.True(PlayStamp.Scale(PlayKind.Strikeout) > PlayStamp.Scale(PlayKind.TakeStrike));
+        Assert.True(PlayStamp.PopSeconds(PlayKind.TakeBall) < PlayStamp.PopSeconds(PlayKind.FlyOut));
+        Assert.InRange(PlayStamp.Scale(PlayKind.Walk), 0.6, 0.85);
     }
 }
