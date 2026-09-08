@@ -5,7 +5,7 @@ namespace GrandSluggers.UnityClient
 {
     public static class HudView
     {
-        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine, _bookHead;
+        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine, _bookHead, _stamp;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white;
         static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
 
@@ -145,6 +145,31 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(x + 3, y + 3, w, h), text, style);
             GUI.color = old;
             GUI.Label(new Rect(x, y, w, h), text, style);
+        }
+
+        /// <summary>End-of-play cartoon stamp. Only after the play is dead. Counts are smaller and quicker.</summary>
+        public static void PlayStamp(string text, float t, float size = 1f, float popSeconds = 0.16f)
+        {
+            Ensure();
+            if (string.IsNullOrEmpty(text)) return;
+            var popDur = popSeconds > 0.01f ? popSeconds : 0.16f;
+            var pop = Mathf.Clamp01(t / popDur);
+            var peak = size < 1f ? 1.06f : 1.12f;
+            var scale = Mathf.Lerp(0.35f, peak, pop);
+            if (pop >= 1f)
+                scale = size < 1f ? 1f : 1.06f + 0.04f * Mathf.Sin(t * 5.5f);
+            scale *= size;
+            var w = Screen.width;
+            var h = Screen.height;
+            var cx = w * 0.5f;
+            var cy = h * 0.40f;
+            var rw = w * (size < 1f ? 0.70f : 0.92f);
+            var rh = h * (size < 1f ? 0.20f : 0.28f);
+            var matrix = GUI.matrix;
+            GUIUtility.RotateAroundPivot(size < 1f ? -5f : -7f, new Vector2(cx, cy));
+            GUIUtility.ScaleAroundPivot(new Vector2(scale, scale), new Vector2(cx, cy));
+            Sticker(text, cx - rw * 0.5f, cy - rh * 0.5f, rw, rh, _stamp);
+            GUI.matrix = matrix;
         }
 
         public static void Pause(int item, bool howTo, int page)
@@ -1040,6 +1065,10 @@ namespace GrandSluggers.UnityClient
             _h1 = Sty(26, Color.white, FontStyle.Bold);
             _h1.clipping = TextClipping.Overflow;
             _h1.padding = new RectOffset(4, 4, 0, 0);
+            _stamp = Sty(92, new Color(1f, 0.82f, 0.18f), FontStyle.Bold);
+            _stamp.alignment = TextAnchor.MiddleCenter;
+            _stamp.clipping = TextClipping.Overflow;
+            _stamp.wordWrap = false;
             _bookHead = Sty(36, Color.white, FontStyle.Bold);
             _bookHead.clipping = TextClipping.Overflow;
             _bookTitle = Sty(42, new Color(1f, 0.85f, 0.2f), FontStyle.Bold);

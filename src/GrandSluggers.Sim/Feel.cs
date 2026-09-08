@@ -91,6 +91,7 @@ public sealed class FeelTable
         double fieldAssistStick,
         double pitcherReadySeconds,
         double afterOutSeconds,
+        double afterCountSeconds,
         double inPlayCommitSeconds,
         double cpuVsHumanTake,
         double cpuVsHumanMiss,
@@ -109,6 +110,7 @@ public sealed class FeelTable
         FieldAssistStick = fieldAssistStick;
         PitcherReadySeconds = pitcherReadySeconds;
         AfterOutSeconds = afterOutSeconds;
+        AfterCountSeconds = afterCountSeconds;
         InPlayCommitSeconds = inPlayCommitSeconds;
         CpuVsHumanTake = cpuVsHumanTake;
         CpuVsHumanMiss = cpuVsHumanMiss;
@@ -128,6 +130,7 @@ public sealed class FeelTable
     public double FieldAssistStick { get; }
     public double PitcherReadySeconds { get; }
     public double AfterOutSeconds { get; }
+    public double AfterCountSeconds { get; }
     public double InPlayCommitSeconds { get; }
     public double CpuVsHumanTake { get; }
     public double CpuVsHumanMiss { get; }
@@ -150,6 +153,7 @@ public sealed class FeelTable
         var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : FieldAssist.StickTake;
         var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
         var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
+        var count = dto.AfterCountSeconds > 0 ? dto.AfterCountSeconds : 0.7;
         var commit = dto.InPlayCommitSeconds > 0 ? dto.InPlayCommitSeconds : 1.6;
         var take = dto.CpuVsHumanTake > 0 ? dto.CpuVsHumanTake : 0.32;
         var miss = dto.CpuVsHumanMiss > 0 ? dto.CpuVsHumanMiss : 0.22;
@@ -168,6 +172,7 @@ public sealed class FeelTable
             assist,
             ready,
             after,
+            count,
             commit,
             take,
             miss,
@@ -189,6 +194,7 @@ public sealed class FeelTable
         public double FieldAssistStick { get; set; } = 0.35;
         public double PitcherReadySeconds { get; set; } = 0.55;
         public double AfterOutSeconds { get; set; } = 1.35;
+        public double AfterCountSeconds { get; set; } = 0.7;
         public double InPlayCommitSeconds { get; set; } = 1.6;
         public double CpuVsHumanTake { get; set; } = 0.32;
         public double CpuVsHumanMiss { get; set; } = 0.22;
