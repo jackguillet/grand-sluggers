@@ -577,7 +577,6 @@ def build():
     build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
     build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
     build_wall(pad, gold)
-    build_wall_ring(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
     build_home_plate(chalk, navy)
