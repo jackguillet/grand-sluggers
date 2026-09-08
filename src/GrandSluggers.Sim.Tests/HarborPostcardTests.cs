@@ -41,6 +41,8 @@ public class HarborPostcardTests
             "wall pieces must overlap along the ground loop, not sit as gapped slabs");
         Assert.True(HarborWall.WrapStaysInFoul(harbor),
             "wrap must follow foul territory, not cut the infield");
+        Assert.True(HarborWall.LoopIsSymmetric(harbor),
+            "1B and 3B walls must match — the home wrap is mirrored, not two different polylines");
         var cf = HarborPostcard.WallPoint(harbor, 0);
         var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
         Assert.InRange(cfDist, harbor.CenterFenceFt - 4, harbor.CenterFenceFt + 4);
