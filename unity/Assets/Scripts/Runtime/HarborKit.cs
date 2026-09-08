@@ -652,6 +652,18 @@ namespace GrandSluggers.UnityClient
             var rot = Quaternion.Euler(0f, yaw, 0f);
             var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), rot, Vector3.one, paint: true);
             if (go == null) return false;
+            var mf = go.GetComponentInChildren<MeshFilter>(true);
+            var alongSpan = 0f;
+            if (mf != null && mf.sharedMesh != null)
+            {
+                var size = mf.sharedMesh.bounds.size;
+                alongSpan = Mathf.Max(size.x, size.z);
+            }
+            if (!HarborDugout.KitSpansTheOpening(alongSpan))
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                return false;
+            }
             var along = rot * Vector3.forward * (DugoutHalfAlong * 1.2f);
             var back = rot * Vector3.right;
             SitRow(
@@ -828,9 +840,10 @@ namespace GrandSluggers.UnityClient
                 var mid = new Vector3((float)((p0.X + p1.X) * 0.5), 0f, (float)((p0.Z + p1.Z) * 0.5));
                 var h0 = HarborWall.Height(_park, i);
                 var h1 = HarborWall.Height(_park, i + 1);
-                if (h0 <= HarborWall.HipHeight + 0.5f && HarborDugout.WallOpensHere(p0.X, p0.Z))
-                    continue;
-                if (h1 <= HarborWall.HipHeight + 0.5f && HarborDugout.WallOpensHere(p1.X, p1.Z))
+                // Skip the open span only. A vertex sits on each rail end, so
+                // the adjacent wall segment butts the dugout instead of a 16-ft gap.
+                var midOpen = HarborDugout.WallOpensHere((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5);
+                if (h0 <= HarborWall.HipHeight + 0.5f && h1 <= HarborWall.HipHeight + 0.5f && midOpen)
                     continue;
                 var o = HarborWall.Outward(_park, i);
                 var outward = new Vector3((float)o.X, 0f, (float)o.Z);
