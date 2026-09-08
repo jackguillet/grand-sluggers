@@ -10,30 +10,32 @@ public static class ParkDiamond
     /// <summary>
     /// Grass Y: L1 diamond around second/mound. Bags sit outside this, on the dirt.
     /// </summary>
-    public const float InnerHalf = 48f;
+    public const float InnerHalf = 50f;
+    /// <summary>Home→1B / home→3B path width. Thin legs along the foul lines.</summary>
+    public const float PathWidth = 10f;
     /// <summary>
-    /// Euclidean offset of the grass Y. Corner radius equals this so paths and
-    /// bag pads are one rounded diamond — not straight slabs butted to circles.
+    /// Outer arc of the 1B–2B–3B dirt, from the mound. Farther than the
+    /// home legs so the back of the diamond is a curve, not a matching frame.
     /// </summary>
-    public const float SkinWidth = 22f;
-    public const float PathWidth = SkinWidth;
-    public const int SkinArcSegs = 10;
-    public const int SkinEdgeSegs = 6;
+    public const float BackR = 92f;
+    /// <summary>Round dirt at each bag. Joins the thin paths to the back arc.</summary>
+    public const float BagPadR = 12f;
+    public const int SkinLoopSegs = 72;
     /// <summary>Center of the dirt slab. Must sit above <see cref="GrassTop"/> so the ring reads at couch.</summary>
     public const float PathY = 0.26f;
     public const float PathThick = 0.24f;
     /// <summary>Dirt top minus grass top. A 0.05-ft lip z-fights and vanishes under the lawn.</summary>
     public const float PathLip = 0.18f;
 
-    /// <summary>Packed dirt circle around each bag. Not an 11-ft cylinder.</summary>
-    public const float BagDirtR = 5.2f;
+    /// <summary>Packed dirt circle around each bag. Alias of <see cref="BagPadR"/>.</summary>
+    public const float BagDirtR = BagPadR;
 
     /// <summary>White bag edge. Square, diamond-aligned.</summary>
     public const float BagSize = 1.85f;
     public const float BagY = 0.22f;
 
     /// <summary>Packed dirt around the plate. Not a 34-ft oval.</summary>
-    public const float HomePackedR = 16f;
+    public const float HomePackedR = 18f;
 
     /// <summary>One smooth dirt hill. Not stacked cylinders.</summary>
     public const float MoundR = 9.2f;
@@ -66,9 +68,9 @@ public static class ParkDiamond
     public const float FoulGrassFt = 36f;
 
     public static bool PathIsNotALake() =>
-        InnerHalf > 40f && SkinWidth < 28f && InnerHalf > SkinWidth * 1.5f;
+        InnerHalf > 40f && PathWidth < 14f && PathWidth * 4 < BackR;
 
-    public static bool BagIsABag() => BagSize < 2.2f && BagDirtR < 7f && BagDirtR > BagSize;
+    public static bool BagIsABag() => BagSize < 2.2f && BagPadR > BagSize && BagPadR < 16f;
 
     public static bool HomePackedIsAPad() => HomePackedR < 34f;
 
@@ -82,9 +84,14 @@ public static class ParkDiamond
 
     public static bool StripeReadsAtCouch() => StripeWidth >= 12f && StripeWidth <= 28f;
 
-    /// <summary>Corner radius equals skin width (Minkowski offset). Slabs+bigger circles gap.</summary>
-    public static bool PathCornersAreRound() =>
-        SkinWidth >= 16f && SkinWidth <= 26f && Math.Abs(PathWidth - SkinWidth) < 0.01f;
+    /// <summary>1B–2B–3B apron is a mound-centered arc, thicker than the home legs.</summary>
+    public static bool BackApronIsCurved()
+    {
+        var pastSecond = BackR - Dist(0, Diamond.Mound, 0, Diamond.Second.Z);
+        return pastSecond > 18 && pastSecond > PathWidth;
+    }
+
+    public static bool PathCornersAreRound() => BackApronIsCurved();
 
     public static float GrassTop => GrassY + GrassThick * 0.5f;
     public static float PathTop => PathY + PathThick * 0.5f;
@@ -96,8 +103,8 @@ public static class ParkDiamond
 
     public static float CenterZ => (float)(Diamond.Second.Z * 0.5);
 
-    public static float DirtMaxX => InnerHalf + SkinWidth;
-    public static float DirtMaxZ => CenterZ + InnerHalf + SkinWidth;
+    public static float DirtMaxX => BackR;
+    public static float DirtMaxZ => (float)Diamond.Mound + BackR;
 
     /// <summary>L1 diamond of the grass Y. Vertices point at the bags.</summary>
     public static (double X, double Z)[] InnerVerts() =>
@@ -109,15 +116,22 @@ public static class ParkDiamond
     ];
 
     /// <summary>
-    /// Packed home, mound pad, and a constant-width rounded diamond around the Y.
+    /// Home circle, thin foul-line paths, bag pads, mound, and a curved
+    /// 1B–2B–3B apron (inside <see cref="BackR"/> from the mound).
     /// </summary>
     public static bool OnDirt(double x, double z)
     {
         if (Dist(x, z, 0, 0) <= HomePackedR) return true;
         if (Dist(x, z, 0, Diamond.Mound) <= MoundR) return true;
+        if (Dist(x, z, Diamond.First.X, Diamond.First.Z) <= BagPadR) return true;
+        if (Dist(x, z, Diamond.Second.X, Diamond.Second.Z) <= BagPadR) return true;
+        if (Dist(x, z, Diamond.Third.X, Diamond.Third.Z) <= BagPadR) return true;
+        var half = PathWidth * 0.5;
+        if (DistToSegment(x, z, 0, 0, Diamond.First.X, Diamond.First.Z) <= half) return true;
+        if (DistToSegment(x, z, 0, 0, Diamond.Third.X, Diamond.Third.Z) <= half) return true;
         var l1 = Math.Abs(x) + Math.Abs(z - CenterZ);
         if (l1 <= InnerHalf) return false;
-        return DistToInnerDiamond(x, z) <= SkinWidth;
+        return Dist(x, z, 0, Diamond.Mound) <= BackR && z >= CenterZ - BagPadR;
     }
 
     /// <summary>Grass Y inside the diamond, not home dirt and not the mound pad.</summary>
@@ -129,43 +143,18 @@ public static class ParkDiamond
     }
 
     /// <summary>
-    /// Outer edge of the dirt skin: offset inner diamond by <see cref="SkinWidth"/>,
-    /// quarter-circles at the vertices. CCW from home.
+    /// Outer dirt edge around the diamond center. Back is the mound arc;
+    /// home legs stay thin until they flare at 1B/3B.
     /// </summary>
     public static (double X, double Z)[] OuterVerts()
     {
-        var inner = InnerVerts();
-        var n = inner.Length;
-        var pts = new List<(double X, double Z)>(n * (SkinEdgeSegs + SkinArcSegs));
-        for (var i = 0; i < n; i++)
+        var pts = new (double X, double Z)[SkinLoopSegs];
+        for (var i = 0; i < SkinLoopSegs; i++)
         {
-            var a = inner[i];
-            var b = inner[(i + 1) % n];
-            var c = inner[(i + 2) % n];
-            var n1 = Outward(a, b);
-            var n2 = Outward(b, c);
-            var ax = a.X + n1.X * SkinWidth;
-            var az = a.Z + n1.Z * SkinWidth;
-            var bx = b.X + n1.X * SkinWidth;
-            var bz = b.Z + n1.Z * SkinWidth;
-            for (var s = 0; s < SkinEdgeSegs; s++)
-            {
-                var t = s / (double)SkinEdgeSegs;
-                pts.Add((ax + (bx - ax) * t, az + (bz - az) * t));
-            }
-            var a0 = Math.Atan2(n1.Z, n1.X);
-            var a1 = Math.Atan2(n2.Z, n2.X);
-            var da = a1 - a0;
-            while (da > Math.PI) da -= 2 * Math.PI;
-            while (da < -Math.PI) da += 2 * Math.PI;
-            for (var s = 1; s <= SkinArcSegs; s++)
-            {
-                var t = s / (double)SkinArcSegs;
-                var ang = a0 + da * t;
-                pts.Add((b.X + Math.Cos(ang) * SkinWidth, b.Z + Math.Sin(ang) * SkinWidth));
-            }
+            var ang = i * (2 * Math.PI / SkinLoopSegs);
+            pts[i] = OuterAt(ang);
         }
-        return pts.ToArray();
+        return pts;
     }
 
     public static (double X, double Z) InnerOnRay(double x, double z)
@@ -178,34 +167,52 @@ public static class ParkDiamond
         return (dx * s, CenterZ + dz * s);
     }
 
-    static (double X, double Z) Outward((double X, double Z) a, (double X, double Z) b)
+    static (double X, double Z) OuterAt(double ang)
     {
-        var dx = b.X - a.X;
-        var dz = b.Z - a.Z;
-        var len = Math.Sqrt(dx * dx + dz * dz);
-        var nx = dz / len;
-        var nz = -dx / len;
-        var mx = (a.X + b.X) * 0.5;
-        var mz = (a.Z + b.Z) * 0.5 - CenterZ;
-        if (nx * mx + nz * mz < 0)
-        {
-            nx = -nx;
-            nz = -nz;
-        }
-        return (nx, nz);
+        var ux = Math.Cos(ang);
+        var uz = Math.Sin(ang);
+        var inn = InnerOnRay(ux, CenterZ + uz);
+        var rInner = Dist(inn.X, inn.Z, 0, CenterZ);
+        var rPath = rInner + PathWidth;
+        var rHome = RayCircleFar(0, CenterZ, ux, uz, 0, 0, HomePackedR);
+        var rBack = RayCircleFar(0, CenterZ, ux, uz, 0, Diamond.Mound, BackR);
+        var rBag = Math.Max(
+            RayCircleFar(0, CenterZ, ux, uz, Diamond.First.X, Diamond.First.Z, BagPadR),
+            Math.Max(
+                RayCircleFar(0, CenterZ, ux, uz, Diamond.Second.X, Diamond.Second.Z, BagPadR),
+                RayCircleFar(0, CenterZ, ux, uz, Diamond.Third.X, Diamond.Third.Z, BagPadR)));
+        var rFront = Math.Max(rPath, Math.Max(rHome, rBag));
+        var dHome = AngularDist(ang, -Math.PI / 2);
+        var u = (dHome - Math.PI / 4) / (Math.PI / 4);
+        if (u < 0) u = 0;
+        if (u > 1) u = 1;
+        var blend = u * u * (3 - 2 * u);
+        var r = rFront + (Math.Max(rBack, rFront) - rFront) * blend;
+        r = Math.Max(r, rBag);
+        return (ux * r, CenterZ + uz * r);
     }
 
-    static double DistToInnerDiamond(double x, double z)
+    static double RayCircleFar(
+        double ox, double oz, double dx, double dz,
+        double cx, double cz, double r)
     {
-        var v = InnerVerts();
-        var best = double.MaxValue;
-        for (var i = 0; i < v.Length; i++)
-        {
-            var a = v[i];
-            var b = v[(i + 1) % v.Length];
-            best = Math.Min(best, DistToSegment(x, z, a.X, a.Z, b.X, b.Z));
-        }
-        return best;
+        var fx = ox - cx;
+        var fz = oz - cz;
+        var b = fx * dx + fz * dz;
+        var c = fx * fx + fz * fz - r * r;
+        var disc = b * b - c;
+        if (disc < 0) return 0;
+        var s = Math.Sqrt(disc);
+        var t = Math.Max(-b - s, -b + s);
+        return t > 0.01 ? t : 0;
+    }
+
+    static double AngularDist(double a, double b)
+    {
+        var d = a - b;
+        while (d > Math.PI) d -= 2 * Math.PI;
+        while (d < -Math.PI) d += 2 * Math.PI;
+        return Math.Abs(d);
     }
 
     static double Dist(double x1, double z1, double x2, double z2)

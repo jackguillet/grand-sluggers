@@ -9,6 +9,6 @@ diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
 Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
 Diamond ground (paths, mound, striped grass, foul poles, warning track) is
 `ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
-Dirt skin is a rounded diamond: grass Y offset by `SkinWidth` so paths and
-bag pads are one shape (not slabs butted to circles). Outfield keeps mow stripes.
+Dirt: thin home→1B/3B paths, a mound-centered arc behind 1B–2B–3B (thicker
+and more curved than the home legs), bag pads, home circle. Grass Y inside.
 `mound` is one smooth hill with a flat rubber table — not stacked cylinders.

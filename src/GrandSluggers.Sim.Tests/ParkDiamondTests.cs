@@ -18,6 +18,7 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.StripeReadsAtCouch());
         Assert.True(ParkDiamond.StripesRunHomeToCf());
         Assert.True(ParkDiamond.PathCornersAreRound());
+        Assert.True(ParkDiamond.BackApronIsCurved());
         Assert.True(ParkDiamond.DirtClearsTheLawn(),
             $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
         Assert.True(ParkDiamond.LawnRespectsPits());
@@ -28,11 +29,12 @@ public class ParkDiamondTests
         Assert.False(ParkDiamond.OnDirt(0, 90), "inner grass Y");
         Assert.True(ParkDiamond.OnInfieldGrass(0, 90));
         Assert.False(ParkDiamond.OnDirt(0, 220), "outfield");
+        Assert.True(ParkDiamond.OnDirt(0, Diamond.Second.Z + 16), "curved apron past 2B");
+        Assert.False(ParkDiamond.OnDirt(43.3, 20.7), "foul of the thin home-1B path");
         var outer = ParkDiamond.OuterVerts();
-        Assert.True(outer.Length > 16, "rounded diamond is an offset loop, not 4 corners");
+        Assert.True(outer.Length > 16, "outer is a sampled loop, not 4 corners");
         var v1 = ParkDiamond.InnerVerts()[1];
-        var atBag = ParkDiamond.OnDirt(v1.X + ParkDiamond.SkinWidth * 0.5, v1.Z);
-        Assert.True(atBag, "bag pad is the corner of the skin, not a separate circle");
+        Assert.True(ParkDiamond.OnDirt(v1.X + ParkDiamond.BagPadR * 0.5, v1.Z), "1B pad");
     }
 
     [Fact]
