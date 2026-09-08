@@ -138,6 +138,9 @@ namespace GrandSluggers.UnityClient
         Character _armedCut;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
+        int _stampOutsBefore;
+        int _stampInning;
+        bool _stampTop;
         bool _gun;
         float _gunT, _gunDur;
         Vector3 _gunFrom, _gunTo;
@@ -324,6 +327,9 @@ namespace GrandSluggers.UnityClient
                 banner = _coach.Session.Caption;
                 sub = _coach.Session.Verb;
             }
+            var stamp = _phase == Phase.Result && _last != null && PlayStamp.Shows(_last.Kind)
+                ? banner : "";
+            if (!string.IsNullOrEmpty(stamp)) banner = "";
             var mutePlay = BroadcastHud.MutePlay(
                 _spec != null && _spec.Active, _smash, _freeze)
                 || _forceMuteHud || StillCapture.ForceMute;
@@ -334,6 +340,8 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home);
+            if (!string.IsNullOrEmpty(stamp) && !mutePlay)
+                HudView.PlayStamp(stamp, _t);
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
@@ -536,6 +544,14 @@ namespace GrandSluggers.UnityClient
             _coach.OnSwing(_swing, _last.AtBat);
         }
 
+        void RememberStamp()
+        {
+            if (_match == null) return;
+            _stampOutsBefore = _match.Outs;
+            _stampInning = _match.Inning;
+            _stampTop = _match.Top;
+        }
+
         void Banner()
         {
             if (TrainingOn && _phase != Phase.Result && _last == null)
@@ -547,6 +563,11 @@ namespace GrandSluggers.UnityClient
             if (_last != null && _last.Kind == PlayKind.FlyOut &&
                 _last.Caption != null && _last.Caption.IndexOf("BUDDY", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 _banner = "BUDDY JUMP";
+            else if (_last != null && PlayStamp.Shows(_last.Kind))
+            {
+                var outs = PlayStamp.OutsRecorded(_stampOutsBefore, _stampInning, _stampTop, _match);
+                _banner = PlayStamp.Label(_last.Kind, outs, _last.RunsScored);
+            }
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");

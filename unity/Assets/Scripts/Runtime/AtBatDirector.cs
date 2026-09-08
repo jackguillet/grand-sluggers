@@ -152,7 +152,7 @@ namespace GrandSluggers.UnityClient
                     if (mound.ThrowBag > 0 && mound.SouthDown)
                     {
                         var po = _match.Pickoff(mound.ThrowBag);
-                        if (po != null) { _last = po; BeginResult(); }
+                        if (po != null) { RememberStamp(); _last = po; Banner(); BeginResult(); }
                         return;
                     }
                     if (mound.SouthDown)
@@ -307,6 +307,7 @@ namespace GrandSluggers.UnityClient
             var stealState = _match.RunnerAt(stealBag);
             var stealRunner = stealState?.Who;
             var stealLead = stealState?.Lead01 ?? 0;
+            RememberStamp();
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;

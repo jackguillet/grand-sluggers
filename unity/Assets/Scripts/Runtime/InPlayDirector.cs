@@ -831,11 +831,13 @@ namespace GrandSluggers.UnityClient
                 var result = BuildPlayerResult();
                 // Player already resolved catch/throw. CPU bananas must play visibly
                 // during InPlay (TickItem) — never a silent 40% roll after the glove.
+                RememberStamp();
                 _last = _match.FinishAtBat(_pitch, _swing, _pending, result);
                 _coach?.OnField(result, _match);
             }
             else if (_cpuField != null && _pending != null)
             {
+                RememberStamp();
                 _last = _match.FinishAtBat(_pitch, _swing, _pending, _cpuField);
                 _coach?.OnField(_cpuField, _match);
             }
@@ -1026,6 +1028,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             var bag = _throwBag;
+            RememberStamp();
             _last = _match.ResolveStealThrow(_stealPitch, bag, _stealRelease, _armedThrow);
             Banner();
             _throwing = false;
