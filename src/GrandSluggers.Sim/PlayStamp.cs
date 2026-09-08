@@ -16,11 +16,13 @@ public static class PlayStamp
         or PlayKind.CaughtStealing
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
-    public static string Label(PlayKind kind, int outsThisPlay, int runs)
+    public static string Label(PlayKind kind, int outsThisPlay, int runs, bool dive = false, bool jump = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
+        if (jump && kind == PlayKind.FlyOut) return "JUMP";
+        if (dive && kind is PlayKind.GroundOut or PlayKind.FlyOut) return "DIVE";
         return kind switch
         {
             PlayKind.HomeRun => "HOME RUN",
