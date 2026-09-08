@@ -16,12 +16,12 @@ namespace GrandSluggers.UnityClient
         bool _pauseFromHowTo;
         int _pausePage;
         float _pauseStick;
-        float _menuArmed;
-        float _pauseArmedY;
+        MenuNav.Gate _menuX;
+        MenuNav.Gate _pauseY;
         bool _wheelSpin;
-        float _selectArmedX;
-        float _selectArmedY;
-        float _selectArmedX2;
+        MenuNav.Gate _selectX;
+        MenuNav.Gate _selectY;
+        MenuNav.Gate _selectX2;
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
@@ -29,10 +29,10 @@ namespace GrandSluggers.UnityClient
         [System.NonSerialized] public bool Pad1Home = true;
         LineupScreens _lineup;
         bool _lineupTouched;
-        float _lineupStick;
-        float _lineupStick2;
-        float _lineupArmedY;
-        float _lineupArmedY2;
+        MenuNav.Gate _lineupX;
+        MenuNav.Gate _lineupX2;
+        MenuNav.Gate _lineupY;
+        MenuNav.Gate _lineupY2;
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
         Challenge _campaign;
@@ -264,8 +264,8 @@ namespace GrandSluggers.UnityClient
                 _pauseFromHowTo = openedHowTo;
                 _pausePage = 0;
                 _pauseStick = 0;
-                _menuArmed = MenuNav.Arm(Controls.MenuX);
-                _pauseArmedY = MenuNav.Arm(Controls.MenuY);
+                _menuX.Catch(Controls.MenuX);
+                _pauseY.Catch(Controls.MenuY);
                 _wheelSpin = true;
                 _t = 0;
                 if (openedHowTo) BookScheme.Open();
@@ -421,7 +421,7 @@ namespace GrandSluggers.UnityClient
             {
                 var n = HowToPlay.Pages.Count;
                 var page = HowToPlay.Pages[(_pausePage % n + n) % n];
-                var axis = MenuNav.Step(Controls.MenuX, Controls.MenuTapX, ref _menuArmed);
+                var axis = _menuX.Tick(Controls.MenuX, Controls.MenuTapX, dt);
                 if (axis != 0)
                     _pausePage = (_pausePage + (axis > 0 ? 1 : n - 1)) % n;
                 var wheel = MenuNav.WheelStep(Controls.ScrollY, ref _wheelSpin);
@@ -468,7 +468,7 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                var dy = MenuNav.Step(Controls.MenuY, Controls.MenuTapY, ref _pauseArmedY);
+                var dy = _pauseY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
                 if (dy != 0)
                     _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1);
             }
@@ -485,7 +485,7 @@ namespace GrandSluggers.UnityClient
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
                         _pausePage = 0;
-                        _menuArmed = MenuNav.Arm(Controls.MenuX);
+                        _menuX.Catch(Controls.MenuX);
                         _wheelSpin = true;
                         BookScheme.Open();
                         break;
