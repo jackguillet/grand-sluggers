@@ -198,6 +198,21 @@ public sealed class AtBatResolver
         return Math.Abs(pitch.TimingErrorFrames) <= window;
     }
 
+    /// <summary>
+    /// Body sits in the third-base box (negative X). An inside take that
+    /// reaches the torso is hit-by-pitch, not a ball.
+    /// </summary>
+    public const double BatterBodyInside = 0.75;
+    public const double BatterBodyR = 0.32;
+
+    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY)
+    {
+        var bodyX = boxOffsetX - BatterBodyInside;
+        var dx = pitchAimX - bodyX;
+        var dy = pitchAimY;
+        return dx * dx + dy * dy <= BatterBodyR * BatterBodyR;
+    }
+
     public static double PitchSpeedMph(PitchCommand pitch, int pitchStat)
     {
         var changeup = pitch.Changeup || pitch.Type == "changeup";

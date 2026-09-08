@@ -31,6 +31,16 @@ public class PitchTests
     }
 
     [Fact]
+    public void InsideTakeCanPlunkTheBatter()
+    {
+        Assert.False(AtBatResolver.HitsBatter(0, 0, 0));
+        Assert.False(AtBatResolver.HitsBatter(0, 0.9, 0));
+        Assert.False(AtBatResolver.HitsBatter(0, 0, -0.9));
+        Assert.True(AtBatResolver.HitsBatter(0, -0.85, 0));
+        Assert.True(AtBatResolver.HitsBatter(0.5, -0.2, 0.05));
+    }
+
+    [Fact]
     public void AirSecondsIsSluggersPaceNotMlbNinety()
     {
         var meat = PitchFlight.AirSeconds(86);

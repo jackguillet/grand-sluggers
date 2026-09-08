@@ -13,6 +13,7 @@ public static class PlayStamp
 
     public static bool Shows(PlayKind kind) => IsCount(kind) || kind is
         PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Strikeout
+        or PlayKind.HitByPitch
         or PlayKind.CaughtStealing
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
@@ -31,7 +32,9 @@ public static class PlayStamp
             PlayKind.TakeStrike or PlayKind.SwingMiss => "STRIKE",
             PlayKind.Foul => "FOUL",
             PlayKind.Walk => "WALK",
-            PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Strikeout
+            PlayKind.HitByPitch => "HIT BY PITCH",
+            PlayKind.Strikeout => "STRIKE OUT",
+            PlayKind.FlyOut or PlayKind.GroundOut
                 or PlayKind.CaughtStealing => "OUT",
             _ => BroadcastHud.Headline(kind)
         };
@@ -54,7 +57,7 @@ public static class PlayStamp
 
     public static double HoldSeconds(PlayKind kind, FeelTable feel)
     {
-        if (IsCount(kind))
+        if (IsCount(kind) || kind == PlayKind.HitByPitch)
             return feel != null ? feel.AfterCountSeconds : 0.7;
         var beat = feel != null ? feel.AfterOutSeconds : 1.35;
         return kind is PlayKind.HomeRun ? Math.Max(2.4, beat) : beat;
