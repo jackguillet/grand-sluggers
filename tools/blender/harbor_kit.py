@@ -17,8 +17,8 @@ from mathutils import Matrix
 
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
-HALF_ALONG = 32.0
-HALF_DEEP = 5.2
+HALF_ALONG = 21.3
+HALF_DEEP = 3.5
 PIT = 3.2
 STAIR_COUNT = 4
 STAIR_DEPTH = 0.70
@@ -135,7 +135,7 @@ def build_dugout(name, wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x
     deep = HALF_DEEP * 2
     rail_y = 4.2
     roof_y = rail_y + 3.0
-    gate = 5.2
+    gate = 3.5
     mesh_y1 = y_home - gate
     mesh_along = along - gate - 0.4
     mesh_mid = (y_bag + mesh_y1) * 0.5

@@ -694,7 +694,7 @@ namespace GrandSluggers.UnityClient
             var railY = DugoutFasciaY;
             var home = -DugoutHalfAlong;
             var bag = DugoutHalfAlong;
-            var gate = 5.2f;
+            var gate = 3.5f;
             var meshAlong = along - gate - 0.4f;
             var meshMid = (home + gate + bag) * 0.5f;
 
