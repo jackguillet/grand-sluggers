@@ -14,6 +14,12 @@ public class ClosePlayTests
         Assert.True(ClosePlay.Offered(4, secondOccupied: true, thirdOccupied: true));
         Assert.False(ClosePlay.Offered(3, secondOccupied: true, thirdOccupied: true));
         Assert.False(ClosePlay.Offered(4, false, false));
+        var loaded = InPlay.ForceState.FromOccupancy(true, true, true);
+        Assert.False(ClosePlay.Offered(4, loaded, true, true), "force at home is the throw, not a mash");
+        var corner = InPlay.ForceState.FromOccupancy(true, true, false);
+        Assert.False(ClosePlay.Offered(3, corner, true, false), "force at third is the throw, not a mash");
+        var tag = InPlay.ForceState.FromOccupancy(false, true, false);
+        Assert.True(ClosePlay.Offered(3, tag, true, false));
     }
 
     [Fact]

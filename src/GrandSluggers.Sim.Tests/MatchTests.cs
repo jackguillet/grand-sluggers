@@ -165,7 +165,7 @@ public class MatchTests
         Assert.Equal(1, match.Outs);
         Assert.Null(match.First);
         var ev = match.FinishAtBat(paint, swing, hit, field);
-        Assert.Equal(PlayKind.Single, ev.Kind);
+        Assert.Equal(PlayKind.GroundOut, ev.Kind);
         Assert.Equal(1, match.Outs);
         Assert.NotNull(match.First);
         Assert.NotEqual(lead.Id, match.First.Id);
@@ -208,6 +208,76 @@ public class MatchTests
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         return (match, paint, swing, hit, field);
+    }
+
+    [Fact]
+    public void LiveThrowToThirdWithFirstAndSecondOccupiedIsAForceOut()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        Assert.True(match.StationRunner(1, match.OnDeck!));
+        Assert.True(match.StationRunner(2, match.AwayOrder[2]));
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        var lead = match.Second!;
+        match.OpenLivePlay();
+        Assert.True(match.LiveForces.At(3));
+        var step = match.StepThrow(3, runnerBeats: false, field.Fielder);
+        Assert.True(step.Out);
+        Assert.True(step.Force);
+        Assert.Equal(1, match.Outs);
+        Assert.Null(match.Second);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.GroundOut, ev.Kind);
+        Assert.Equal(1, match.Outs);
+        Assert.DoesNotContain("singles", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.True(match.Second is null || match.Second.Id != lead.Id);
+    }
+
+    [Fact]
+    public void LiveThrowToThirdTagsTheRunnerWhenFirstIsEmpty()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        Assert.True(match.StationRunner(2, match.OnDeck!));
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        match.OpenLivePlay();
+        Assert.False(match.LiveForces.At(3));
+        var step = match.StepThrow(3, runnerBeats: false, field.Fielder);
+        Assert.True(step.Out);
+        Assert.False(step.Force);
+        Assert.Equal(1, match.Outs);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.GroundOut, ev.Kind);
+        Assert.Equal(1, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.DoesNotContain("singles", ev.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("tags", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void LiveThrowToThirdLateIsASingleNotAnOut()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        Assert.True(match.StationRunner(2, match.OnDeck!));
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        match.OpenLivePlay();
+        var step = match.StepThrow(3, runnerBeats: true, field.Fielder);
+        Assert.False(step.Out);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.Single, ev.Kind);
+        Assert.Equal(0, match.Outs);
+        Assert.NotNull(match.First);
+        Assert.NotNull(match.Third);
     }
 
     [Fact]

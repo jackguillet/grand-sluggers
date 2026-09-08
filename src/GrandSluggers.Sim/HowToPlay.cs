@@ -193,7 +193,7 @@ public static class HowToPlay
         new("fielding", "Fielding", "fielding",
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
-            "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch, the throw, or a tag — they do not guess a force.",
+            "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch, the throw, or a tag. Force: second when first is on, third when first and second, home when loaded.",
             "Move the stick to take the glove. Select swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East dive. North attack. A homer sits on the wall.",
@@ -201,7 +201,7 @@ public static class HowToPlay
         ],
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
-            "The throw is yours: bag + Space. WASD still runs with the ball. Outs land on the catch, the throw, or a tag — they do not guess a force.",
+            "The throw is yours: bag + Space. WASD still runs with the ball. Outs land on the catch, the throw, or a tag. Force: second when first is on, third when first and second, home when loaded.",
             "WASD takes the glove. R swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "F jump in the window (the circle turns red). G dive. B attack. A homer sits on the wall.",
