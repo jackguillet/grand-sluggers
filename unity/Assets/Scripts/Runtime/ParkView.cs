@@ -248,10 +248,16 @@ namespace GrandSluggers.UnityClient
             var poleR = ParkDiamond.FoulPole(park, 1);
             Cylinder("PoleL", new Vector3((float)poleL.X, 0, (float)poleL.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
             Cylinder("PoleR", new Vector3((float)poleR.X, 0, (float)poleR.Z), ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-            Cube("ScreenL", new Vector3((float)poleL.X, ParkDiamond.PoleScreenY, (float)poleL.Z),
-                new Vector3(0.2f, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenW), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
-            Cube("ScreenR", new Vector3((float)poleR.X, ParkDiamond.PoleScreenY, (float)poleR.Z),
-                new Vector3(0.2f, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenW), Look.Unlit(new Color(0.9f, 0.9f, 0.7f)));
+            var yellow = Look.Unlit(Colors.Gold);
+            var fairL = ParkDiamond.FairInward(-1);
+            var fairR = ParkDiamond.FairInward(1);
+            var rotL = Quaternion.LookRotation(new Vector3((float)fairL.X, 0f, (float)fairL.Z), Vector3.up);
+            var rotR = Quaternion.LookRotation(new Vector3((float)fairR.X, 0f, (float)fairR.Z), Vector3.up);
+            var off = ParkDiamond.PoleScreenThick * 0.5f + ParkDiamond.PoleRadius;
+            Cube("ScreenL", new Vector3((float)(poleL.X + fairL.X * off), ParkDiamond.PoleScreenY, (float)(poleL.Z + fairL.Z * off)),
+                new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), yellow, rotL);
+            Cube("ScreenR", new Vector3((float)(poleR.X + fairR.X * off), ParkDiamond.PoleScreenY, (float)(poleR.Z + fairR.Z * off)),
+                new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), yellow, rotR);
         }
 
         void WarningTrack(Park park)
@@ -1280,12 +1286,12 @@ namespace GrandSluggers.UnityClient
         void Quad(string name, Vector3 pos, Vector3 scale, Material mat) =>
             Cube(name, pos, scale, mat);
 
-        void Cube(string name, Vector3 pos, Vector3 scale, Material mat)
+        void Cube(string name, Vector3 pos, Vector3 scale, Material mat, Quaternion? rot = null)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = name;
             go.transform.SetParent(_root, false);
-            go.transform.position = pos;
+            go.transform.SetPositionAndRotation(pos, rot ?? Quaternion.identity);
             go.transform.localScale = scale;
             Destroy(go.GetComponent<Collider>());
             Look.Paint(go, mat);

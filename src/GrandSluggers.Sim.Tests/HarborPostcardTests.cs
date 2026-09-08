@@ -25,6 +25,7 @@ public class HarborPostcardTests
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
         Assert.True(HarborWall.WrapsTheDiamond(harbor));
         Assert.True(HarborWall.OutfieldIsTallerThanTheHip());
+        Assert.True(HarborWall.TaperIsARamp(harbor), "taper is a ramp, not stairs");
         Assert.False(HarborStands.HasRoofs, "white roof slabs are not the postcard");
         Assert.True(HarborStands.CrowdIsPeople(),
             $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");

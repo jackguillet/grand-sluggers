@@ -594,24 +594,23 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(Poles);
             if (_park == null) return;
-            var pole = Look.Unlit(Colors.Gold);
-            var screen = Look.Unlit(new Color(0.92f, 0.92f, 0.78f));
+            var yellow = Look.Unlit(Colors.Gold);
             for (var sign = -1; sign <= 1; sign += 2)
             {
                 var pz = ParkDiamond.FoulPole(_park, sign);
                 var pos = new Vector3((float)pz.X, 0f, (float)pz.Z);
                 var name = sign < 0 ? "L" : "R";
-                var radial = new Vector3((float)pz.X, 0f, (float)pz.Z);
-                if (radial.sqrMagnitude < 1f) continue;
-                radial.Normalize();
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
-                if (DropMesh("foul-pole", Poles, "Pole" + name, pos, rot, Vector3.one, paint: true) != null)
-                    continue;
-                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.35f, pole);
+                var fair = ParkDiamond.FairInward(sign);
+                var fairV = new Vector3((float)fair.X, 0f, (float)fair.Z);
+                // Face the grate toward fair: local Z is the thin axis, so the
+                // big face looks at the diamond. Offset the panel onto the fair side.
+                var rot = Quaternion.LookRotation(fairV, Vector3.up);
+                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, yellow);
+                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.25f, yellow);
                 Box(Poles, "Screen" + name,
-                    pos + Vector3.up * ParkDiamond.PoleScreenY - radial * 0.4f,
-                    new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, 0.18f), rot, screen);
+                    pos + Vector3.up * ParkDiamond.PoleScreenY
+                        + fairV * (ParkDiamond.PoleScreenThick * 0.5f + ParkDiamond.PoleRadius),
+                    new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), rot, yellow);
             }
         }
 
@@ -821,34 +820,81 @@ namespace GrandSluggers.UnityClient
             var spark = Look.Unlit(Colors.Spark);
             var loop = HarborWall.Loop(_park);
             var n = loop.Length;
+            var half = thick * 0.5f;
             for (var i = 0; i < n; i++)
             {
-                var piece = HarborPostcard.WallPiece(_park, i);
-                var p0 = HarborWall.LoopPoint(_park, piece.I0);
-                var p1 = HarborWall.LoopPoint(_park, piece.I1);
-                var p = new Vector3((float)piece.X, 0f, (float)piece.Z);
-                var chord = new Vector3((float)(p1.X - p0.X), 0f, (float)(p1.Z - p0.Z));
-                if (chord.sqrMagnitude < 0.01f) continue;
+                var p0 = HarborWall.LoopPoint(_park, i);
+                var p1 = HarborWall.LoopPoint(_park, i + 1);
+                var mid = new Vector3((float)((p0.X + p1.X) * 0.5), 0f, (float)((p0.Z + p1.Z) * 0.5));
+                var h0 = HarborWall.Height(_park, i);
+                var h1 = HarborWall.Height(_park, i + 1);
+                if (h0 <= HarborWall.HipHeight + 0.5f && HarborDugout.WallOpensHere(p0.X, p0.Z))
+                    continue;
+                if (h1 <= HarborWall.HipHeight + 0.5f && HarborDugout.WallOpensHere(p1.X, p1.Z))
+                    continue;
                 var o = HarborWall.Outward(_park, i);
                 var outward = new Vector3((float)o.X, 0f, (float)o.Z);
+                var a = new Vector3((float)p0.X, 0f, (float)p0.Z);
+                var b = new Vector3((float)p1.X, 0f, (float)p1.Z);
+                RampPrism(WallDress, "Wall" + i, a, b, h0, h1, half, outward, pad);
+                RampCap(WallDress, "Cap" + i, a, b, h0, h1, half + 0.25f, outward, cap);
+                var hh = (h0 + h1) * 0.5f;
+                var w = Vector3.Distance(a, b);
                 var rot = Quaternion.LookRotation(outward, Vector3.up);
-                var w = (float)piece.Width;
-                var hh = HarborWall.Height(_park, i);
-                if (hh <= HarborWall.HipHeight + 0.5f && HarborDugout.WallOpensHere(p.x, p.z))
-                    continue;
-                Box(WallDress, "Wall" + i, p + Vector3.up * (hh * 0.5f), new Vector3(w, hh, thick), rot, pad);
-                Box(WallDress, "Cap" + i, p + Vector3.up * (hh + 0.35f), new Vector3(w, 0.55f, thick + 0.5f), rot, cap);
                 if (hh > 10f && i % 2 == 0)
-                    Box(WallDress, "Ad" + i, p - outward * (thick * 0.55f) + Vector3.up * (hh * 0.62f),
+                    Box(WallDress, "Ad" + i, mid - outward * (thick * 0.55f) + Vector3.up * (hh * 0.62f),
                         new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
                 if (hh > 10f && i % 3 == 0)
-                    Box(WallDress, "Ivy" + i, p - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
-                if (Mathf.Abs((float)p.x) < 8f && p.z > 300f)
+                    Box(WallDress, "Ivy" + i, mid - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
+                if (Mathf.Abs(mid.x) < 8f && mid.z > 300f)
                 {
-                    Box(WallDress, "MarkSpark", p - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
-                    Box(WallDress, "MarkGold", p - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
+                    Box(WallDress, "MarkSpark", mid - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
+                    Box(WallDress, "MarkGold", mid - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
                 }
             }
+        }
+
+        /// <summary>Wall segment whose top slopes from h0 to h1 — a ramp, not a stair.</summary>
+        void RampPrism(Transform parent, string name, Vector3 a, Vector3 b, float h0, float h1, float half, Vector3 outward, Material mat)
+        {
+            var in0 = a - outward * half;
+            var out0 = a + outward * half;
+            var in1 = b - outward * half;
+            var out1 = b + outward * half;
+            var verts = new[]
+            {
+                in0, out0, in0 + Vector3.up * h0, out0 + Vector3.up * h0,
+                in1, out1, in1 + Vector3.up * h1, out1 + Vector3.up * h1
+            };
+            // 0 in-bot, 1 out-bot, 2 in-top, 3 out-top at A; 4–7 at B.
+            var tris = new int[36];
+            var t = 0;
+            t = Quad(tris, t, 0, 2, 6, 4); // inner (field) face
+            t = Quad(tris, t, 1, 5, 7, 3); // outer face
+            t = Quad(tris, t, 2, 3, 7, 6); // top ramp
+            t = Quad(tris, t, 0, 4, 5, 1); // bottom
+            t = Quad(tris, t, 0, 1, 3, 2); // A end
+            t = Quad(tris, t, 4, 6, 7, 5); // B end
+            Look.Solid(name, parent, verts, tris, mat);
+        }
+
+        void RampCap(Transform parent, string name, Vector3 a, Vector3 b, float h0, float h1, float half, Vector3 outward, Material mat)
+        {
+            var in0 = a - outward * half + Vector3.up * h0;
+            var out0 = a + outward * half + Vector3.up * h0;
+            var in1 = b - outward * half + Vector3.up * h1;
+            var out1 = b + outward * half + Vector3.up * h1;
+            var lift = Vector3.up * 0.45f;
+            var verts = new[] { in0, out0, in0 + lift, out0 + lift, in1, out1, in1 + lift, out1 + lift };
+            var tris = new int[36];
+            var t = 0;
+            t = Quad(tris, t, 0, 2, 6, 4);
+            t = Quad(tris, t, 1, 5, 7, 3);
+            t = Quad(tris, t, 2, 3, 7, 6);
+            t = Quad(tris, t, 0, 4, 5, 1);
+            t = Quad(tris, t, 0, 1, 3, 2);
+            t = Quad(tris, t, 4, 6, 7, 5);
+            Look.Solid(name, parent, verts, tris, mat);
         }
 
         void DressScoreboard()

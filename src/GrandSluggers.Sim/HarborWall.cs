@@ -172,6 +172,26 @@ public static class HarborWall
         OutfieldHeight >= 18f && HipHeight >= 3.2f && HipHeight <= 5.5f
         && OutfieldHeight > HipHeight * 3f;
 
+    /// <summary>
+    /// Neighboring samples in the hip→outfield blend differ by a little, not a
+    /// 4-ft stair. Dress must use both endpoint heights (a ramp), not one box height.
+    /// </summary>
+    public static bool TaperIsARamp(Park park)
+    {
+        var n = Loop(park).Length;
+        var taper = 0;
+        for (var i = 0; i < n; i++)
+        {
+            var a = Height(park, i);
+            var b = Height(park, i + 1);
+            if (Math.Abs(a - b) > HipHeight * 2f) return false;
+            if (a <= HipHeight + 1f || a >= OutfieldHeight - 1f) continue;
+            taper++;
+            if (Math.Abs(a - b) > 8f) return false;
+        }
+        return taper >= 6;
+    }
+
     public static (double X, double Z) Outward(Park park, int i)
     {
         var a = LoopPoint(park, i);

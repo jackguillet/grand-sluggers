@@ -60,11 +60,31 @@ public static class ParkDiamond
     /// <summary>Outer ring tucks under the wall face, not past it.</summary>
     public const float TrackWallInset = 0.5f;
 
-    public const float PoleHeight = 52f;
-    public const float PoleRadius = 0.85f;
-    public const float PoleScreenH = 16f;
-    public const float PoleScreenW = 7f;
-    public const float PoleScreenY = 38f;
+    /// <summary>Yellow pole above the 26-ft wall. Photo-scale: ~3× the fence.</summary>
+    public const float PoleHeight = 72f;
+    public const float PoleRadius = 0.62f;
+    /// <summary>Grate from the wall cap up the shaft. Faces fair, sits on the fair side of the pole.</summary>
+    public const float PoleScreenH = 38f;
+    public const float PoleScreenW = 5.6f;
+    public const float PoleScreenY = 45f;
+    public const float PoleScreenThick = 0.22f;
+
+    /// <summary>From the pole into fair, perpendicular to the foul line.</summary>
+    public static (double X, double Z) FairInward(int sign)
+    {
+        const double inv = 0.7071067811865476;
+        var s = Math.Sign(sign);
+        return (-s * inv, inv);
+    }
+
+    public static bool ScreenFacesFair()
+    {
+        var rf = FairInward(1);
+        var lf = FairInward(-1);
+        return rf.X < 0 && rf.Z > 0 && lf.X > 0 && lf.Z > 0
+            && PoleHeight > HarborWall.OutfieldHeight * 2.2f
+            && PoleScreenH > HarborWall.OutfieldHeight;
+    }
 
     /// <summary>Mow stripe width. Bands of constant X — home → CF, vertical in the overhead.</summary>
     public const float StripeWidth = 18f;
