@@ -51,17 +51,17 @@ public static class ContentsToc
     public static (float X, float Y, float W, float H) Still(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var lineBand = HowToPlay.KidLineH * 2.2f;
+        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y, board.W, board.H - lineBand);
     }
 
-    /// <summary>White card on the left of the still, SMS Contents shape.</summary>
+    /// <summary>Full-width chapter card. No splash still.</summary>
     public static (float X, float Y, float W, float H) Card(float screenW, float screenH)
     {
         var still = Still(screenW, screenH);
         var rows = Math.Max(1, Chapters.Count);
         var h = Math.Min(still.H - 24f, 20f + rows * 38f);
-        return (still.X + 16f, still.Y + 16f, still.W * 0.42f, h);
+        return (still.X + 16f, still.Y + 16f, still.W - 32f, h);
     }
 
     public static (float X, float Y, float W, float H) Row(int index, float screenW, float screenH)
@@ -76,7 +76,7 @@ public static class ContentsToc
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 2.2f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }

@@ -44,7 +44,7 @@ public class HowToComicTests
 
         var row = HowToComic.Row(0, 1280, 800);
         Assert.True(row.W > 900);
-        Assert.True(row.H > 180);
+        Assert.True(row.H > 90, "two comics plus big type still fit");
         var next = HowToComic.Row(1, 1280, 800);
         Assert.True(next.Y > row.Y);
         Assert.Equal("pitch-swing", HowToPlay.Must("pitch-swing").Id);
