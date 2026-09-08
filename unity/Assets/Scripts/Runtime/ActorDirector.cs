@@ -93,10 +93,15 @@ namespace GrandSluggers.UnityClient
                     else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Scoop;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
-                    else if (_preview != null && CartoonJuice.ChaseIsARun(_caught || _buddy,
-                                 Diamond.Dist(x, z, _ball.x, _ball.z)))
-                        pose = HeroActor.Pose.Run;
-                    else if (_preview != null) pose = FieldPose(who, _preview, false);
+                    else if (_preview != null)
+                    {
+                        var plant = FieldingResolver.GloveChaseTarget(
+                            _preview, _match.Park, _ball.x, _ball.z, _ball.y, _hitT);
+                        if (CartoonJuice.ChaseIsARun(_caught || _buddy, Diamond.Dist(x, z, plant.X, plant.Z)))
+                            pose = HeroActor.Pose.Run;
+                        else
+                            pose = FieldPose(who, _preview, false);
+                    }
                     else pose = HeroActor.Pose.Field;
                 }
                 else if (buddyPartner)
