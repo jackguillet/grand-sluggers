@@ -17,7 +17,7 @@ from mathutils import Matrix
 
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
-HALF_ALONG = 16.0
+HALF_ALONG = 32.0
 HALF_DEEP = 5.2
 PIT = 2.4
 STAIR_COUNT = 4
