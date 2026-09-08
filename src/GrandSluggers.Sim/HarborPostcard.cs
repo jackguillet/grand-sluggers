@@ -16,7 +16,7 @@ public static class HarborPostcard
     public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;
-    public const float CrowdPersonFt = 12f;
+    public const float CrowdPersonFt = HarborStands.PersonFt;
     public const float CrowdInsideFt = 18f;
     /// <summary>CF decks sit on the wall and flatten the postcard. Home and 1B/3B stands stay.</summary>
     public const bool CenterFieldHasBleachers = false;
@@ -93,10 +93,8 @@ public static class HarborPostcard
     {
         if (field.Pos.Z < 20 || field.Target.Z < 250) return false;
         var wallZ = centerFenceFt;
-        var crowdZ = centerFenceFt - CrowdInsideFt;
         var boardZ = centerFenceFt + ScoreboardPastFenceFt;
         if (SubtendDeg(field.Pos.Z, wallZ, WallHeightFt) < 4) return false;
-        if (SubtendDeg(field.Pos.Z, crowdZ, CrowdPersonFt) < 2) return false;
         if (SubtendDeg(field.Pos.Z, boardZ, DigitHeightFt) < 1.5) return false;
         if (centerFenceFt + TownPastFenceFt <= wallZ) return false;
         return true;

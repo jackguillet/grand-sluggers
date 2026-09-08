@@ -22,6 +22,15 @@ public class HarborPostcardTests
         Assert.True(HarborPostcard.CrowdInsideFt < 40);
         Assert.True(HarborPostcard.TownPastFenceFt > 20);
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
+        Assert.True(HarborStands.CrowdIsPeople(),
+            $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");
+        Assert.True(HarborStands.CenterFieldIsOpen());
+        Assert.True(HarborStands.WingsClearTheDugout());
+        Assert.True(HarborStands.WingsSitInFoul());
+        Assert.True(HarborStands.CornersSitBehindTheWall());
+        Assert.True(HarborStands.BowlReadsFromField(field, harbor),
+            "LF/RF bowl must still read from the field postcard with small people");
+        Assert.Equal(HarborStands.PersonFt, HarborPostcard.CrowdPersonFt);
         Assert.True(HarborPostcard.WallSegs >= 36);
         Assert.True(HarborPostcard.WallOverlapFt >= 0.6f);
         Assert.True(HarborPostcard.WallPiecesConnect(harbor),
