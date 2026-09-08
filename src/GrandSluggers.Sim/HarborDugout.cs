@@ -1,41 +1,57 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Harbor dugouts: sunken, set back from the dirt, stairs down.
-/// HarborKit, StarMeter, and the still-gate all read these.
-/// Side bleachers sit at |X|≈102. The old pavilion was at 42 / 21.4 on the path.
+/// Harbor dugouts: the hip wall <b>is</b> the rail. Pit behind it toward the
+/// stands, roof over the bench, stairs at the home end. HarborKit dresses these.
 /// </summary>
 public static class HarborDugout
 {
-    /// <summary>Center X. 1B is +X, 3B is −X. Foul, against the hip wall.</summary>
-    public const float X = 52f;
+    const float Inv = 0.70710678f;
+
+    /// <summary>Midpoint along the 90-ft baseline (home → bag).</summary>
+    public const float Along0 = 52f;
+
+    /// <summary>Center X. 1B is +X, 3B is −X. HalfDeep behind the hip wall.</summary>
+    public const float X = 65.9f;
 
     /// <summary>Center Z. Spans just after home to just before the bag.</summary>
-    public const float Z = 21f;
+    public const float Z = 7.64f;
 
     public const float HalfAlong = 32f;
     public const float HalfDeep = 5.2f;
 
-    /// <summary>Floor below field grade. Cartoon-readable pit, not a shed on the grass.</summary>
-    public const float PitDepth = 2.4f;
+    /// <summary>Floor below field grade. Half-underground like a big-league pit.</summary>
+    public const float PitDepth = 3.2f;
 
-    /// <summary>Gold fascia above field, not above the pit floor. StarMeter sits here.</summary>
-    public const float FasciaY = 3.15f;
+    /// <summary>Gold fascia = hip wall height so the rail continues the short wall.</summary>
+    public const float FasciaY = 4.2f;
 
     public const float StarSpacing = 2.55f;
 
     public const int StairCount = 4;
     public const float StairDepth = 0.7f;
 
-    /// <summary>Steps are in the pit lip, not a runway onto the grass.</summary>
+    /// <summary>Steps stay in the home-end opening, not a runway onto the grass.</summary>
     public const float FieldStairRun = 1.2f;
 
-    /// <summary>1B open toward the diamond along the foul line. 3B mirrored.</summary>
-    public static float YawDeg(int sign) => sign > 0 ? -45f : -135f;
+    /// <summary>1B opens toward the diamond (local −X after yaw). 3B mirrored.</summary>
+    public static float YawDeg(int sign) => sign > 0 ? 45f : 135f;
 
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 
-    public static float FieldX(float x) => x > 0f ? x - HalfDeep : x + HalfDeep;
+    /// <summary>World X of the field-side rail (the hip wall).</summary>
+    public static float FieldX(float x) => x > 0f ? RailX(1) : RailX(-1);
+
+    public static float RailX(int sign) => sign * Inv * (Along0 + HarborWall.FoulOffset);
+
+    public static float RailZ() => Inv * (Along0 - HarborWall.FoulOffset);
+
+    /// <summary>Hip-wall point at this distance along the baseline.</summary>
+    public static (float X, float Z) RailAt(int sign, float along)
+    {
+        var off = HarborWall.FoulOffset;
+        return (sign * (Inv * along + Inv * off), Inv * along - Inv * off);
+    }
 
     public static float PitFloorY => -PitDepth;
 
@@ -49,14 +65,11 @@ public static class HarborDugout
 
     public static bool InPitHole(double x, double z)
     {
-        const double inv = 0.7071067811865476;
         var ax = Math.Abs(x);
-        var along = (ax + z) * inv;
-        var into = (ax - z) * inv;
-        var along0 = (X + Z) * inv;
-        var into0 = (X - Z) * inv;
-        return Math.Abs(along - along0) <= HalfAlong + HolePad
-            && Math.Abs(into - into0) <= HalfDeep + FieldStairRun + HolePad;
+        var along = (ax + z) * Inv;
+        var into = (ax - z) * Inv;
+        return Math.Abs(along - Along0) <= HalfAlong + HolePad
+            && Math.Abs(into - (HarborWall.FoulOffset + HalfDeep)) <= HalfDeep + FieldStairRun + HolePad;
     }
 
     /// <summary>Z span of the pit at this X, for punching a lawn hole on a 45° dugout.</summary>
@@ -78,37 +91,53 @@ public static class HarborDugout
 
     public static bool LawnCovers(double x, double z) => !InPitHole(x, z);
 
-    /// <summary>Field-side lip is past the 11-ft dirt path on the 45° line.</summary>
+    /// <summary>
+    /// The short wall opens here: DressWall skips the hip boxes so the
+    /// padded rail is the wall along home-to-bag.
+    /// </summary>
+    public static bool WallOpensHere(double x, double z)
+    {
+        var ax = Math.Abs(x);
+        var along = (ax + z) * Inv;
+        var into = (ax - z) * Inv;
+        return along > Along0 - HalfAlong - 2f
+            && along < Along0 + HalfAlong + 2f
+            && Math.Abs(into - HarborWall.FoulOffset) < 8f
+            && z < 95;
+    }
+
+    /// <summary>Front rail sits on the hip wall, pit behind it into foul.</summary>
+    public static bool RailIsTheHipWall()
+    {
+        var into = Math.Abs(X - Z) / 1.41421356f;
+        return Math.Abs(into - (HarborWall.FoulOffset + HalfDeep)) < 0.8f
+            && Math.Abs(FasciaY - HarborWall.HipHeight) < 0.15f;
+    }
+
+    /// <summary>Field-side lip is the hip wall, past the 11-ft dirt path.</summary>
     public static bool IsSetBackFromTheDirt() =>
-        Math.Abs(X - Z) / 1.41421356f > 12f;
+        HarborWall.FoulOffset > 12f;
 
     /// <summary>Just past the plate dirt, not on the chalk.</summary>
     public static bool StartsAfterHome() =>
-        (X + Z) * 0.70710678f - HalfAlong > 12f;
+        Along0 - HalfAlong > 12f;
 
     /// <summary>Stops short of the 90-ft bag.</summary>
     public static bool EndsBeforeTheBag() =>
-        (X + Z) * 0.70710678f + HalfAlong < Diamond.Baseline - 4;
+        Along0 + HalfAlong < Diamond.Baseline - 4;
 
     public static bool IsSunken() => PitDepth >= 2f;
 
     public static bool HasStairs() => StairCount >= 4 && StairDepth > 0.4f;
 
     /// <summary>MLB pit: padded rail and mesh front, not a wooden shed.</summary>
-    public static bool HasMeshFront() => FasciaY > 2.6f && FasciaY < 4.0f && PitDepth >= 2f;
+    public static bool HasMeshFront() => FasciaY > 3.2f && FasciaY < 5.0f && PitDepth >= 2f;
 
     /// <summary>
     /// Scoop / plate cameras must not sit inside either dugout box (roof included).
     /// </summary>
     public static bool CameraClears(double camX, double camZ)
     {
-        var pad = 3.0;
-        var minZ = Z - HalfAlong - pad;
-        var maxZ = Z + HalfAlong + pad;
-        var minX = X - HalfDeep - pad;
-        var maxX = X + HalfDeep + pad;
-        var in1B = camX > minX && camX < maxX && camZ > minZ && camZ < maxZ;
-        var in3B = camX < -minX && camX > -maxX && camZ > minZ && camZ < maxZ;
-        return !in1B && !in3B;
+        return !InPitHole(camX, camZ);
     }
 }
