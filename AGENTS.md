@@ -17,8 +17,11 @@ Agents start here. Do not pick a lower row because it is easier.
 
 ## Done means you played it
 
-Unit tests are necessary and not sufficient.
+Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a fail. Rule: `.grok/rules/exact-work.md`.
 
+- Research the spec (MLB, the reference still, existing tables) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists."
+- **View the change** (Play `HarborDiamond` + Scene orbit, still, live bounds vs the reference). Math-only is not verification. If you cannot look, say so — do not claim look done.
+- "Close" / "better" from Jack is a correction, not acceptance.
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
 - A menu still is not a half. HID Space is confirm, not baseball.
 - Human gates (#346 and screenshot gates) stay human. Note what stuck. File children. Do not declare pass because CI is green.
