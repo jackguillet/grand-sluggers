@@ -17,7 +17,11 @@ namespace GrandSluggers.UnityClient
         int _pausePage;
         float _pauseStick;
         float _menuArmed;
+        float _pauseArmedY;
         bool _wheelSpin;
+        float _selectArmedX;
+        float _selectArmedY;
+        float _selectArmedX2;
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
@@ -27,9 +31,8 @@ namespace GrandSluggers.UnityClient
         bool _lineupTouched;
         float _lineupStick;
         float _lineupStick2;
-        float _selectStick;
-        float _selectStick2;
-
+        float _lineupArmedY;
+        float _lineupArmedY2;
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
         Challenge _campaign;
@@ -262,6 +265,7 @@ namespace GrandSluggers.UnityClient
                 _pausePage = 0;
                 _pauseStick = 0;
                 _menuArmed = MenuNav.Arm(Controls.MenuX);
+                _pauseArmedY = MenuNav.Arm(Controls.MenuY);
                 _wheelSpin = true;
                 _t = 0;
                 if (openedHowTo) BookScheme.Open();
@@ -417,7 +421,7 @@ namespace GrandSluggers.UnityClient
             {
                 var n = HowToPlay.Pages.Count;
                 var page = HowToPlay.Pages[(_pausePage % n + n) % n];
-                var axis = MenuNav.AxisStep(Controls.MenuX, ref _menuArmed);
+                var axis = MenuNav.Step(Controls.MenuX, Controls.MenuTapX, ref _menuArmed);
                 if (axis != 0)
                     _pausePage = (_pausePage + (axis > 0 ? 1 : n - 1)) % n;
                 var wheel = MenuNav.WheelStep(Controls.ScrollY, ref _wheelSpin);
@@ -462,10 +466,11 @@ namespace GrandSluggers.UnityClient
                 _pauseItem = PauseMenu.Wrap(_pauseItem, -1);
                 _pauseStick = 0.22f;
             }
-            else if (_pauseStick <= 0 && Mathf.Abs(Controls.StickY) >= 0.45f)
+            else
             {
-                _pauseItem = PauseMenu.Wrap(_pauseItem, Controls.StickY > 0 ? -1 : 1);
-                _pauseStick = 0.22f;
+                var dy = MenuNav.Step(Controls.MenuY, Controls.MenuTapY, ref _pauseArmedY);
+                if (dy != 0)
+                    _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1);
             }
             if (Controls.SouthDown)
             {
@@ -480,6 +485,8 @@ namespace GrandSluggers.UnityClient
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
                         _pausePage = 0;
+                        _menuArmed = MenuNav.Arm(Controls.MenuX);
+                        _wheelSpin = true;
                         BookScheme.Open();
                         break;
                     case PauseMenu.Item.Title:

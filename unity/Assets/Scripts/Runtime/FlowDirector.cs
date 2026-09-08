@@ -133,8 +133,9 @@ namespace GrandSluggers.UnityClient
         {
             _phase = Phase.Select;
             _t = 0;
-            _selectStick = 0;
-            _selectStick2 = 0;
+            _selectArmedX = MenuNav.Arm(Controls.Pad1.MenuAxisX);
+            _selectArmedY = MenuNav.Arm(Controls.Pad1.MenuAxisY);
+            _selectArmedX2 = MenuNav.Arm(Controls.Pad2.MenuAxisX);
             _clip = null;
             _hlPath = null;
             _replaying = false;
@@ -146,34 +147,18 @@ namespace GrandSluggers.UnityClient
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
             if (p1.NorthDown && _t > 0.15f)
-            {
                 ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
-                _selectStick = 0.22f;
-            }
-            if (_selectStick > 0) _selectStick -= Time.deltaTime;
-            else
-            {
-                var x = p1.StickX;
-                var y = p1.StickY;
-                if (Mathf.Abs(x) >= 0.45f && Mathf.Abs(x) >= Mathf.Abs(y))
-                {
-                    ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), x > 0 ? 1 : -1));
-                    _selectStick = 0.22f;
-                }
-                else if (!p2.Present && Mathf.Abs(y) >= 0.45f)
-                {
-                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), y > 0 ? -1 : 1));
-                    _selectStick = 0.22f;
-                }
-            }
+            var dx = MenuNav.Step(p1.MenuAxisX, p1.MenuTapX, ref _selectArmedX);
+            var dy = MenuNav.Step(p1.MenuAxisY, p1.MenuTapY, ref _selectArmedY);
+            if (dx != 0)
+                ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), dx));
+            else if (dy != 0 && !p2.Present)
+                ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), dy > 0 ? -1 : 1));
             if (p2.Present)
             {
-                if (_selectStick2 > 0) _selectStick2 -= Time.deltaTime;
-                else if (Mathf.Abs(p2.StickX) >= 0.45f)
-                {
-                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), p2.StickX > 0 ? 1 : -1));
-                    _selectStick2 = 0.22f;
-                }
+                var d2 = MenuNav.Step(p2.MenuAxisX, p2.MenuTapX, ref _selectArmedX2);
+                if (d2 != 0)
+                    ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), d2));
             }
             LookAtYourCaptain();
             if (Controls.WestDown && _t > 0.15f)
@@ -189,7 +174,7 @@ namespace GrandSluggers.UnityClient
         {
             _phase = Phase.Field;
             _t = 0;
-            _selectStick = 0;
+            _selectArmedX = MenuNav.Arm(Controls.MenuX);
             _clip = null;
             _hlPath = null;
             _replaying = false;
@@ -200,16 +185,11 @@ namespace GrandSluggers.UnityClient
 
         void TickField()
         {
-            if (_selectStick > 0) _selectStick -= Time.deltaTime;
-            else
+            var dx = MenuNav.Step(Controls.MenuX, Controls.MenuTapX, ref _selectArmedX);
+            if (dx != 0)
             {
-                var x = Controls.StickX;
-                if (Mathf.Abs(x) >= 0.45f)
-                {
-                    ApplyPick(ExhibitionPick.CyclePark(CurrentPick(), x > 0 ? 1 : -1));
-                    RebuildTitlePark();
-                    _selectStick = 0.22f;
-                }
+                ApplyPick(ExhibitionPick.CyclePark(CurrentPick(), dx));
+                RebuildTitlePark();
             }
             if (Controls.NightToggle)
             {
@@ -333,8 +313,10 @@ namespace GrandSluggers.UnityClient
                 var seats = LiveSeats;
                 _lineup = LineupScreens.Open(_content, HomeCaptain, AwayCaptain, seats.Home, seats.Away);
                 _lineupTouched = false;
-                _lineupStick = 0;
-                _lineupStick2 = 0;
+                _lineupStick = MenuNav.Arm(Controls.Pad1.MenuAxisX);
+                _lineupStick2 = MenuNav.Arm(Controls.Pad2.MenuAxisX);
+                _lineupArmedY = MenuNav.Arm(Controls.Pad1.MenuAxisY);
+                _lineupArmedY2 = MenuNav.Arm(Controls.Pad2.MenuAxisY);
             }
             else
                 _lineup = null;
@@ -361,9 +343,9 @@ namespace GrandSluggers.UnityClient
             }
 
             SyncLineupSeats();
-            TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupStick);
+            TickLineupPad(Controls.Pad1, LineupSeat.Pad1, ref _lineupStick, ref _lineupArmedY);
             if (_lineup.AwaySeat == LineupSeat.Pad2)
-                TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupStick2);
+                TickLineupPad(Controls.Pad2, LineupSeat.Pad2, ref _lineupStick2, ref _lineupArmedY2);
             else if (_t > 10f && !_lineupTouched)
                 ConfirmDraft();
         }
@@ -376,9 +358,9 @@ namespace GrandSluggers.UnityClient
                 _lineup.Sit(seats.Home, seats.Away);
         }
 
-        void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref float stickT)
+        void TickLineupPad(Controls.Pad pad, LineupSeat seat, ref float armedX, ref float armedY)
         {
-            TickLineupStick(pad, seat, ref stickT);
+            TickLineupStick(pad, seat, ref armedX, ref armedY);
             if (pad.WestDown)
             {
                 _lineupTouched = true;
@@ -408,24 +390,17 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void TickLineupStick(Controls.Pad pad, LineupSeat seat, ref float stickT)
+        void TickLineupStick(Controls.Pad pad, LineupSeat seat, ref float armedX, ref float armedY)
         {
-            var x = pad.StickX;
-            var y = pad.StickY;
-            if (Mathf.Abs(x) < 0.4f && Mathf.Abs(y) < 0.4f)
-            {
-                stickT = 0;
-                return;
-            }
-            if (stickT > 0)
-            {
-                stickT -= Time.deltaTime;
-                return;
-            }
+            var dx = MenuNav.Step(pad.MenuAxisX, pad.MenuTapX, ref armedX);
+            var dy = MenuNav.Step(pad.MenuAxisY, pad.MenuTapY, ref armedY);
+            if (dx == 0 && dy == 0) return;
+            if (dx != 0 && Mathf.Abs(pad.MenuAxisX) >= Mathf.Abs(pad.MenuAxisY))
+                dy = 0;
+            else if (dy != 0)
+                dx = 0;
+            if (dx == 0 && dy == 0) return;
             _lineupTouched = true;
-            stickT = 0.2f;
-            var dx = Mathf.Abs(x) >= Mathf.Abs(y) ? (x > 0 ? 1 : -1) : 0;
-            var dy = dx == 0 ? (y > 0 ? 1 : -1) : 0;
             _lineup.Stick(seat, dx, dy);
         }
 

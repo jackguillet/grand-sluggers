@@ -14,6 +14,17 @@ public static class MenuNav
     public static float Arm(float axis) =>
         axis >= Threshold ? 1f : axis <= -Threshold ? -1f : 0f;
 
+    /// <summary>Digital tap wins. Analog still has to rest. A drifted pad does not eat the keys.</summary>
+    public static int Step(float axis, int tap, ref float armed)
+    {
+        if (tap != 0)
+        {
+            armed = tap > 0 ? 1f : -1f;
+            return tap > 0 ? 1 : -1;
+        }
+        return AxisStep(axis, ref armed);
+    }
+
     /// <summary>+1 / -1 when the axis leaves dead and crosses threshold. Must rest to fire again.</summary>
     public static int AxisStep(float axis, ref float armed)
     {
