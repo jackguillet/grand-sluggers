@@ -26,6 +26,11 @@ public class FlyCatchTests
         Assert.Equal(PlayKind.Double, FlyCatch.PlayerKind(true, pre, gap, inAir: false));
         Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
             "South still scoops a routine fly you are under");
+        Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false),
+            "the leap stays armed after the press");
+        Assert.True(FlyCatch.PlayerDiveCatch(true, distFt: 16, windowFt: 20, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(false, distFt: 16, windowFt: 20, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(true, distFt: 30, windowFt: 20, ballY: 2));
     }
 
     [Fact]

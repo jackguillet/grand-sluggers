@@ -86,6 +86,9 @@ public class FieldingSceneTests
         Assert.True(jump > plain);
         Assert.True(both > dive);
         Assert.True(both > jump);
+        var lunged = FieldDash.Lunge(0, 0, 30, 0, 10);
+        Assert.InRange(lunged.X, 9, 11);
+        Assert.Equal(0, lunged.Z);
     }
 
     [Fact]
