@@ -28,6 +28,15 @@ public class MenuNavTests
     }
 
     [Fact]
+    public void TapStillWorksWhileAnalogIsLatched()
+    {
+        var armed = MenuNav.Arm(0.9f);
+        Assert.Equal(0, MenuNav.Step(0.9f, 0, ref armed));
+        Assert.Equal(-1, MenuNav.Step(0.9f, -1, ref armed));
+        Assert.Equal(0, MenuNav.Step(0.9f, 0, ref armed));
+    }
+
+    [Fact]
     public void DriftBelowThresholdIsDead()
     {
         var armed = 0f;
