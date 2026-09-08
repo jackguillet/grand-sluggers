@@ -70,7 +70,7 @@ public static class ParkDiamond
     public const float StripeWidth = 18f;
     public const float GrassY = 0.08f;
     public const float GrassThick = 0.12f;
-    public const float GrassZ0 = -28f;
+    public const float GrassZ0 = -32f;
     /// <summary>Foul-territory grass past the 45° line.</summary>
     public const float FoulGrassFt = 36f;
 

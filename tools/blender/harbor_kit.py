@@ -25,6 +25,22 @@ STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 4.0
+# Keep in sync with HarborWall / HarborPostcard / HarborDugout.
+LEFT_FENCE = 330.0
+CENTER_FENCE = 400.0
+RIGHT_FENCE = 330.0
+FOUL_DEG = 45.0
+HOME_RADIUS = 34.0
+WRAP_SEGS = 120
+WALL_H = 26.0
+WALL_THICK = 3.4
+DUGOUT_X = 70.0
+DUGOUT_Z = 40.0
+DUGOUT_PAD = 14.0
+DUGOUT_CLEAR_X = DUGOUT_X + HALF_DEEP + DUGOUT_PAD
+DUGOUT_CLEAR_Z = DUGOUT_Z + HALF_ALONG + 10.0
+DUGOUT_R = math.hypot(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z)
+DUGOUT_SPRAY = math.degrees(math.atan2(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z))
 # OBR 2.02: 17″ front, 8½″ shoulders, point at origin (catcher).
 PLATE_HALF_W = 17.0 / 12.0 / 2.0
 PLATE_FRONT = 17.0 / 12.0
@@ -182,6 +198,123 @@ def build_wall(pad, cap):
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     wall.location = (0.0, 0.0, 0.0)
     return wall
+
+
+def _norm_spray(s):
+    s = s % 360.0
+    if s > 180.0:
+        s -= 360.0
+    if s < -180.0:
+        s += 360.0
+    return s
+
+
+def _post(r, spray):
+    rad = math.radians(spray)
+    return r * math.sin(rad), r * math.cos(rad)
+
+
+def _fence_at(spray):
+    t = max(0.0, min(1.0, (spray + FOUL_DEG) / (FOUL_DEG * 2.0)))
+    spray = -FOUL_DEG + t * 2.0 * FOUL_DEG
+    lf, cf, rf = _post(LEFT_FENCE, -FOUL_DEG), _post(CENTER_FENCE, 0.0), _post(RIGHT_FENCE, FOUL_DEG)
+    ax, az = lf
+    bx, bz = cf
+    cx, cz = rf
+    d = 2.0 * (ax * (bz - cz) + bx * (cz - az) + cx * (az - bz))
+    if abs(d) < 1e-6:
+        return CENTER_FENCE
+    a2, b2, c2 = ax * ax + az * az, bx * bx + bz * bz, cx * cx + cz * cz
+    ux = (a2 * (bz - cz) + b2 * (cz - az) + c2 * (az - bz)) / d
+    uz = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d
+    r2 = (ux - bx) ** 2 + (uz - bz) ** 2
+    rad = math.radians(spray)
+    sx, sz = math.sin(rad), math.cos(rad)
+    b = sx * ux + sz * uz
+    disc = b * b - (ux * ux + uz * uz - r2)
+    if disc < 0:
+        return CENTER_FENCE
+    root = math.sqrt(disc)
+    return max(b + root, b - root)
+
+
+def _smoothstep(u):
+    u = max(0.0, min(1.0, u))
+    return u * u * (3.0 - 2.0 * u)
+
+
+def wall_radius(spray):
+    s = _norm_spray(spray)
+    a = abs(s)
+    if a <= FOUL_DEG:
+        return _fence_at(s)
+    pole = _fence_at(FOUL_DEG if s >= 0 else -FOUL_DEG)
+    knots = (
+        (FOUL_DEG, pole),
+        (DUGOUT_SPRAY, DUGOUT_R),
+        (95.0, DUGOUT_CLEAR_X),
+        (180.0, HOME_RADIUS),
+    )
+    if a <= knots[0][0]:
+        return knots[0][1]
+    for i in range(len(knots) - 1):
+        a0, r0 = knots[i]
+        a1, r1 = knots[i + 1]
+        if a > a1:
+            continue
+        u = 0.0 if a1 - a0 < 1e-6 else (a - a0) / (a1 - a0)
+        return r0 + (r1 - r0) * _smoothstep(u)
+    return knots[-1][1]
+
+
+def wall_point(spray):
+    r = wall_radius(spray)
+    rad = math.radians(_norm_spray(spray))
+    return r * math.sin(rad), r * math.cos(rad)
+
+
+def build_wall_ring(pad, cap):
+    """Full padded loop at home origin. Blender XY = Unity XZ. HarborKit drops at world 0."""
+    n = WRAP_SEGS
+    h, thick = WALL_H, WALL_THICK
+    half = thick * 0.5
+    mesh = bpy.data.meshes.new("wall-ring")
+    ob = bpy.data.objects.new("wall-ring", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+    inner_b, inner_t, outer_b, outer_t = [], [], [], []
+    for i in range(n):
+        spray = -180.0 + 360.0 * i / n
+        x, y = wall_point(spray)
+        r = math.hypot(x, y)
+        ux, uy = (x / r, y / r) if r > 1e-6 else (0.0, 1.0)
+        ix, iy = x - ux * half, y - uy * half
+        ox, oy = x + ux * half, y + uy * half
+        inner_b.append(bm.verts.new((ix, iy, 0.0)))
+        inner_t.append(bm.verts.new((ix, iy, h)))
+        outer_b.append(bm.verts.new((ox, oy, 0.0)))
+        outer_t.append(bm.verts.new((ox, oy, h)))
+    cap_verts = []
+    for i in range(n):
+        x, y = wall_point(-180.0 + 360.0 * i / n)
+        r = math.hypot(x, y)
+        ux, uy = (x / r, y / r) if r > 1e-6 else (0.0, 1.0)
+        cap_verts.append(bm.verts.new((x + ux * (half + 0.35), y + uy * (half + 0.35), h + 0.45)))
+    bm.verts.ensure_lookup_table()
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((inner_t[i], outer_t[i], outer_t[j], inner_t[j]))
+        bm.faces.new((inner_b[i], inner_t[i], inner_t[j], inner_b[j]))
+        bm.faces.new((outer_t[i], outer_b[i], outer_b[j], outer_t[j]))
+        bm.faces.new((outer_b[i], inner_b[i], inner_b[j], outer_b[j]))
+        bm.faces.new((outer_t[i], cap_verts[i], cap_verts[j], outer_t[j]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(pad)
+    for poly in ob.data.polygons:
+        poly.use_smooth = True
+    return origin_world(ob)
 
 
 def origin_world(ob):
@@ -444,6 +577,7 @@ def build():
     build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
     build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
     build_wall(pad, gold)
+    build_wall_ring(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
     build_home_plate(chalk, navy)

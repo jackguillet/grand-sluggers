@@ -22,6 +22,8 @@ public class HarborPostcardTests
         Assert.True(HarborPostcard.CrowdInsideFt < 40);
         Assert.True(HarborPostcard.TownPastFenceFt > 20);
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
+        Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
+        Assert.True(HarborWall.WrapsTheDiamond(harbor));
         Assert.True(HarborStands.CrowdIsPeople(),
             $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");
         Assert.True(HarborStands.CenterFieldIsOpen());
@@ -114,6 +116,7 @@ public class HarborPostcardTests
         Assert.Contains("foul-pole", ascii);
         Assert.Contains("warning-track", ascii);
         Assert.Contains("infield-dirt", ascii);
+        Assert.Contains("wall-ring", ascii);
         Assert.Equal(new FileInfo(drop).Length, new FileInfo(player).Length);
         var dropTxt = File.ReadAllText(Path.Combine(Path.GetDirectoryName(drop)!, "DROP.txt"));
         Assert.Contains("home-plate", dropTxt);
@@ -122,6 +125,7 @@ public class HarborPostcardTests
         Assert.Contains("foul-pole", dropTxt);
         Assert.Contains("warning-track", dropTxt);
         Assert.Contains("infield-dirt", dropTxt);
+        Assert.Contains("wall-ring", dropTxt);
     }
 
     [Fact]

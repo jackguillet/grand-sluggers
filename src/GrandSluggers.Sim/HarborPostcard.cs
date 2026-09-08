@@ -11,8 +11,8 @@ public static class HarborPostcard
 
     public const float WallHeightFt = 26f;
     public const float WallThickFt = 3.4f;
-    /// <summary>Pieces along the foul-line-to-foul-line fence. Chord width, not a fixed slab.</summary>
-    public const int WallSegs = 64;
+    /// <summary>Full loop: outfield plus the wrap behind dugouts and home.</summary>
+    public const int WallSegs = HarborWall.WrapSegs;
     public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;
@@ -31,23 +31,19 @@ public static class HarborPostcard
     public static bool Owns(string? parkId) =>
         parkId != null && parkId.Equals(ParkId, StringComparison.OrdinalIgnoreCase);
 
-    public static (double X, double Z) WallPoint(Park park, double sprayDeg)
-    {
-        var fence = AtBatResolver.FenceAt(park, sprayDeg);
-        var rad = sprayDeg * Math.PI / 180.0;
-        return (Math.Sin(rad) * fence, Math.Cos(rad) * fence);
-    }
+    public static (double X, double Z) WallPoint(Park park, double sprayDeg) =>
+        HarborWall.Point(park, sprayDeg);
 
     /// <summary>
-    /// One fence piece spanning spray i → i+1. Width is the chord plus overlap
-    /// so adjacent boxes meet on Harbor's 330–400–330 curve.
+    /// One fence piece spanning spray i → i+1 around the full loop.
+    /// Width is the chord plus overlap so adjacent boxes meet.
     /// </summary>
     public static (double X, double Z, double Width, double Spray0, double Spray1) WallPiece(Park park, int i)
     {
         var n = WallSegs;
-        var i0 = Math.Clamp(i, 0, n - 1);
-        var a0 = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i0 / n;
-        var a1 = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * (i0 + 1) / n;
+        var i0 = ((i % n) + n) % n;
+        var a0 = HarborWall.WrapSpray(i0);
+        var a1 = HarborWall.WrapSpray(i0 + 1);
         var p0 = WallPoint(park, a0);
         var p1 = WallPoint(park, a1);
         var dx = p1.X - p0.X;
@@ -58,7 +54,7 @@ public static class HarborPostcard
 
     public static bool WallPiecesConnect(Park park)
     {
-        for (var i = 0; i < WallSegs - 1; i++)
+        for (var i = 0; i < WallSegs; i++)
         {
             var a = WallPiece(park, i);
             var b = WallPiece(park, i + 1);
@@ -67,9 +63,10 @@ public static class HarborPostcard
             var gap = Math.Sqrt(dx * dx + dz * dz);
             if (gap > (a.Width + b.Width) * 0.5 - 0.2) return false;
         }
-        var cf = WallPiece(park, WallSegs / 2);
+        var cf = WallPoint(park, 0);
         var dist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
-        return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2;
+        return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2
+            && HarborWall.WrapsTheDiamond(park);
     }
 
     public static bool SegOn(int value, int bit)
