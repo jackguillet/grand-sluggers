@@ -52,7 +52,7 @@ public static class HowToComic
     {
         var board = ControlDiagram.Board(screenW, screenH);
         const float gap = 10f;
-        var lineBand = HowToPlay.KidLineH * 2.2f;
+        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         var h = (board.H - lineBand - gap) * 0.5f;
         return (board.X, board.Y + index * (h + gap), board.W, h);
     }
@@ -60,7 +60,7 @@ public static class HowToComic
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 2.2f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }

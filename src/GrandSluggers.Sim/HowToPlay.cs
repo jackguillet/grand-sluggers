@@ -106,7 +106,11 @@ public static class HowToPlay
     /// <summary>Couch book. Fills most of a 1280×800 player. 12-year-old type.</summary>
     public const float BookMargin = 0.04f;
     public const int KidLineMax = 6;
-    public const float KidLineH = 36f;
+    public const float KidLineH = 52f;
+    /// <summary>IMGUI point size. 24pt vanished at 10 feet.</summary>
+    public const int BookLinePt = 36;
+    /// <summary>Bottom copy band. Must fit KidLineMax at KidLineH.</summary>
+    public const float LineBandMul = 4.6f;
 
     public static readonly IReadOnlyList<Page> Pages =
     [
@@ -115,13 +119,13 @@ public static class HowToPlay
             "This is the instruction booklet. Call time (Start) opens it. Esc too.",
             "The list is the book. Numbers match the pages.",
             "South next page. East back. Toggle the scheme up top.",
-            "Pictures first. Short sentences. You can read it from the couch.",
+            "Big type. Short sentences. You can read it from the couch.",
         ],
         [
             "This is the instruction booklet. H or Esc opens it.",
             "The list is the book. Numbers match the pages.",
             "Left click / Space next page. Esc / right click back. Toggle up top.",
-            "Pictures first. Short sentences. You can read it from the couch.",
+            "Big type. Short sentences. You can read it from the couch.",
         ]),
         new("controls", "Controls", "controls",
         [
@@ -384,22 +388,26 @@ public static class HowToPlay
         return (x, y, w, h);
     }
 
+    /// <summary>Splash stills ate the type. Diagram pages draw their own boards.</summary>
+    public static bool ShowsSplash(string id)
+    {
+        _ = id;
+        return false;
+    }
+
     public static (float X, float Y, float W, float H) PictureRect(float screenW, float screenH)
     {
         var p = BookPanel(screenW, screenH);
-        var top = 88f;
-        var foot = 44f;
-        var picW = p.W * 0.52f - 20f;
-        var picH = p.H - top - foot - 16f;
-        return (p.X + 16f, p.Y + top, picW, picH);
+        var top = 96f;
+        return (p.X + 16f, p.Y + top, p.W - 32f, 0f);
     }
 
     public static (float X, float Y, float W, float H) TextRect(float screenW, float screenH)
     {
         var p = BookPanel(screenW, screenH);
-        var pic = PictureRect(screenW, screenH);
-        var x = pic.X + pic.W + 16f;
-        return (x, pic.Y, p.X + p.W - 16f - x, pic.H);
+        var top = 96f;
+        var foot = 48f;
+        return (p.X + 28f, p.Y + top, p.W - 56f, p.H - top - foot);
     }
 
     /// <summary>-1 previous page, 1 next, 0 miss. Left half of the book is back. Toggle is not nav.</summary>

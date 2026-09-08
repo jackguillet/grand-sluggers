@@ -233,20 +233,14 @@ namespace GrandSluggers.UnityClient
                 DrawAbilityBook(scheme, p);
             else
             {
-                var pic = HowToPlay.PictureRect(Screen.width, Screen.height);
                 var text = HowToPlay.TextRect(Screen.width, Screen.height);
-                var tex = BookPic(p.Picture);
-                if (tex != null)
-                    GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), tex, ScaleMode.ScaleToFit);
-                else
-                    GUI.DrawTexture(new Rect(pic.X, pic.Y, pic.W, pic.H), _dotOff);
                 var lines = p.Shown(scheme);
                 var lineH = HowToPlay.KidLineH;
                 for (var i = 0; i < lines.Count; i++)
-                    GUI.Label(new Rect(text.X, text.Y + i * lineH, text.W, lineH + 8f), lines[i], _bookLine);
+                    Sticker(lines[i], text.X, text.Y + i * lineH, text.W, lineH + 10f, _bookLine);
             }
-            GUI.Label(new Rect(book.X + 28, book.Y + book.H - 36, book.W - 56, 28),
-                BookScheme.Footer(scheme), _tiny);
+            GUI.Label(new Rect(book.X + 28, book.Y + book.H - 40, book.W - 56, 32),
+                BookScheme.Footer(scheme), _gold);
         }
 
         static void DrawSchemeToggle(InputScheme scheme)
@@ -503,15 +497,10 @@ namespace GrandSluggers.UnityClient
                 var cell = GettingStarted.StepCell(i, Screen.width, Screen.height);
                 var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
                 GUI.DrawTexture(r, _dotOff);
-                GUI.Label(new Rect(r.x + 8, r.y + 4, 28, 22), (i + 1).ToString(), _gold);
-                GUI.Label(new Rect(r.x + 32, r.y + 4, r.width - 40, 22), step.Title.ToUpperInvariant(), _tiny);
-                var still = new Rect(r.x + 6, r.y + 28, r.width - 12, r.height - 58);
-                var tex = BookPic(step.Picture);
-                GUI.DrawTexture(still, _panel);
-                if (tex != null)
-                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
-                GUI.Label(new Rect(r.x + 6, r.y + r.height - 28, r.width - 12, 26),
-                    GettingStarted.Caption(step, scheme), _tiny);
+                GUI.Label(new Rect(r.x + 8, r.y + 8, 36, 36), (i + 1).ToString(), _bookHead);
+                GUI.Label(new Rect(r.x + 44, r.y + 8, r.width - 52, 32), step.Title.ToUpperInvariant(), _bookHead);
+                GUI.Label(new Rect(r.x + 12, r.y + 48, r.width - 24, r.height - 56),
+                    GettingStarted.Caption(step, scheme), _bookLine);
             }
             for (var i = 0; i < GettingStarted.Modes.Count; i++)
             {
@@ -532,11 +521,7 @@ namespace GrandSluggers.UnityClient
         static void DrawContentsToc(HowToPlay.Page page)
         {
             var still = ContentsToc.Still(Screen.width, Screen.height);
-            var stillRect = new Rect(still.X, still.Y, still.W, still.H);
-            var tex = BookPic(ContentsToc.Picture);
-            GUI.DrawTexture(stillRect, _dotOff);
-            if (tex != null)
-                GUI.DrawTexture(stillRect, tex, ScaleMode.ScaleAndCrop);
+            GUI.DrawTexture(new Rect(still.X, still.Y, still.W, still.H), _ink);
             var card = ContentsToc.Card(Screen.width, Screen.height);
             var prev = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, 0.92f);
@@ -560,18 +545,9 @@ namespace GrandSluggers.UnityClient
                 var cell = ChemBook.ChemCell(i, Screen.width, Screen.height);
                 var r = new Rect(cell.X, cell.Y, cell.W, cell.H);
                 GUI.DrawTexture(r, _dotOff);
-                GUI.Label(new Rect(r.x + 10, r.y + 8, r.width - 48, 24), pair.Title.ToUpperInvariant(), _gold);
-                ChemPip(r.x + r.width - 34, r.y + 12, pair.Chem);
-                var still = new Rect(r.x + 10, r.y + 40, r.width - 20, r.height - 88);
-                var tex = BookPic(pair.Picture);
-                GUI.DrawTexture(still, _panel);
-                if (tex != null)
-                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
-                var prev = GUI.color;
-                GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
-                GUI.DrawTexture(new Rect(r.x + 10, r.y + r.height - 40, r.width - 20, 30), _white);
-                GUI.color = prev;
-                GUI.Label(new Rect(r.x + 16, r.y + r.height - 36, r.width - 32, 22), pair.Caption, _tiny);
+                GUI.Label(new Rect(r.x + 16, r.y + 16, r.width - 56, 36), pair.Title.ToUpperInvariant(), _bookHead);
+                ChemPip(r.x + r.width - 40, r.y + 20, pair.Chem);
+                GUI.Label(new Rect(r.x + 16, r.y + 60, r.width - 32, r.height - 76), pair.Caption, _bookLine);
             }
             DrawBookLines(page, ChemBook.LineBand(Screen.width, Screen.height));
         }
@@ -581,19 +557,12 @@ namespace GrandSluggers.UnityClient
             var stillCell = ChemBook.AbilityStill(Screen.width, Screen.height);
             var tableCell = ChemBook.TypeTable(Screen.width, Screen.height);
             var still = new Rect(stillCell.X, stillCell.Y, stillCell.W, stillCell.H);
-            GUI.DrawTexture(still, _dotOff);
-            var tex = BookPic(ChemBook.AbilityPicture);
-            if (tex != null)
-                GUI.DrawTexture(new Rect(still.x + 8, still.y + 36, still.width - 16, still.height - 48), tex, ScaleMode.ScaleToFit);
-            GUI.Label(new Rect(still.x + 10, still.y + 8, still.width - 20, 24), "THE CARD", _gold);
+            GUI.DrawTexture(still, _ink);
+            GUI.Label(new Rect(still.x + 12, still.y + 10, still.width - 24, 36), "THE CARD", _bookHead);
             for (var i = 0; i < ChemBook.CardStats.Count; i++)
             {
-                var y = still.y + 44 + i * 26;
-                var prev = GUI.color;
-                GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
-                GUI.DrawTexture(new Rect(still.x + 10, y, 72, 22), _white);
-                GUI.color = prev;
-                GUI.Label(new Rect(still.x + 16, y + 2, 64, 18), ChemBook.CardStats[i], _tiny);
+                var y = still.y + 52 + i * 40;
+                Sticker(ChemBook.CardStats[i], still.x + 16, y, still.width - 32, 36, _bookLine);
             }
             var table = new Rect(tableCell.X, tableCell.Y, tableCell.W, tableCell.H);
             GUI.DrawTexture(table, _dotOff);
@@ -608,8 +577,8 @@ namespace GrandSluggers.UnityClient
                 GUI.color = new Color(0.22f, 0.62f, 0.32f, 1f);
                 GUI.DrawTexture(head, _white);
                 GUI.color = prev;
-                GUI.Label(new Rect(head.x + 8, head.y + 2, head.width - 16, 20), row.Title, _h1);
-                GUI.Label(new Rect(table.x + 18, y + 28, table.width - 36, rowH - 32), row.Line, _tiny);
+                GUI.Label(new Rect(head.x + 8, head.y + 2, head.width - 16, 28), row.Title, _bookHead);
+                GUI.Label(new Rect(table.x + 18, y + 34, table.width - 36, rowH - 40), row.Line, _bookLine);
             }
             DrawBookLines(page, ChemBook.LineBand(Screen.width, Screen.height));
             _ = scheme;
@@ -618,9 +587,9 @@ namespace GrandSluggers.UnityClient
         static void DrawBookLines(HowToPlay.Page page, (float X, float Y, float W, float H) band)
         {
             var lines = page.Shown(BookScheme.Current);
-            var lineH = HowToPlay.KidLineH * 0.72f;
+            var lineH = HowToPlay.KidLineH;
             for (var i = 0; i < lines.Count; i++)
-                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+                Sticker(lines[i], band.X, band.Y + i * lineH, band.W, lineH, _bookLine);
         }
 
         static void DrawHudCallouts(HowToPlay.Page page)
@@ -632,34 +601,14 @@ namespace GrandSluggers.UnityClient
                 var row = HudCallouts.Row(i, Screen.width, Screen.height);
                 var r = new Rect(row.X, row.Y, row.W, row.H);
                 GUI.DrawTexture(r, _dotOff);
-                GUI.Label(new Rect(r.x + 8, r.y + 4, 160, 22), spread.Title.ToUpperInvariant(), _gold);
-                var still = new Rect(r.x + r.width * 0.20f, r.y + 26, r.width * 0.60f, r.height - 34);
-                var tex = BookPic(spread.Picture);
-                GUI.DrawTexture(still, _panel);
-                if (tex != null)
-                    GUI.DrawTexture(still, tex, ScaleMode.ScaleToFit);
-                else
-                    GUI.Label(new Rect(still.x + 8, still.y + 8, still.width - 16, 22), spread.Shot.ToUpperInvariant(), _tiny);
-                foreach (var mark in spread.Marks)
+                GUI.Label(new Rect(r.x + 12, r.y + 8, 280, 32), spread.Title.ToUpperInvariant(), _bookHead);
+                for (var m = 0; m < spread.Marks.Count; m++)
                 {
-                    var left = mark.Anchor is { } a && a.X < 0.5;
-                    var y = still.y + (mark.Anchor is { } b ? (float)b.Y * still.height : still.height * 0.42f);
-                    y = Mathf.Clamp(y, still.y, still.y + still.height - 28);
-                    var box = left
-                        ? new Rect(r.x + 6, y, r.width * 0.18f, 26)
-                        : new Rect(r.x + r.width * 0.81f, y, r.width * 0.18f, 26);
-                    var prev = GUI.color;
-                    GUI.color = new Color(0.92f, 0.52f, 0.14f, 0.95f);
-                    GUI.DrawTexture(box, _white);
-                    GUI.color = prev;
-                    GUI.Label(new Rect(box.x + 6, box.y + 4, box.width - 10, 18), mark.Label, _tiny);
+                    var mark = spread.Marks[m];
+                    Sticker("•  " + mark.Label, r.x + 16, r.y + 48 + m * 36, r.width - 32, 34, _bookLine);
                 }
             }
-            var band = HudCallouts.LineBand(Screen.width, Screen.height);
-            var lines = page.Shown(BookScheme.Current);
-            var lineH = HowToPlay.KidLineH * 0.72f;
-            for (var i = 0; i < lines.Count; i++)
-                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+            DrawBookLines(page, HudCallouts.LineBand(Screen.width, Screen.height));
         }
 
         static void DrawHowToComics(InputScheme scheme, HowToPlay.Page page)
@@ -685,31 +634,21 @@ namespace GrandSluggers.UnityClient
                 GUI.Label(new Rect(r.x + 10, r.y + r.height - 26, r.width - 20, 22),
                     HowToComic.Caption(strip, scheme), _bookLine);
             }
-            var band = HowToComic.LineBand(Screen.width, Screen.height);
-            var lines = page.Shown(scheme);
-            var lineH = HowToPlay.KidLineH * 0.72f;
-            for (var i = 0; i < lines.Count; i++)
-                GUI.Label(new Rect(band.X, band.Y + i * lineH, band.W, lineH), lines[i], _tiny);
+            DrawBookLines(page, HowToComic.LineBand(Screen.width, Screen.height));
         }
 
         static void DrawComicStill(Rect r, HowToComic.Panel panel)
         {
-            var tex = BookPic(panel.Picture);
-            GUI.DrawTexture(r, _panel);
-            if (tex != null)
-                GUI.DrawTexture(new Rect(r.x + 4, r.y + 4, r.width - 8, r.height - 28), tex, ScaleMode.ScaleToFit);
-            else
-            {
-                var prev = GUI.color;
-                GUI.color = new Color(0.45f, 0.32f, 0.18f, 1f);
-                GUI.DrawTexture(new Rect(r.x + 8, r.y + r.height * 0.55f, r.width - 16, r.height * 0.28f), _white);
-                GUI.color = new Color(1f, 0.82f, 0.2f, 1f);
-                var ring = Mathf.Min(r.width, r.height) * 0.28f;
-                GUI.DrawTexture(new Rect(r.x + r.width * 0.5f - ring * 0.5f, r.y + r.height * 0.28f, ring, ring), _dotOn);
-                GUI.color = prev;
-                GUI.Label(new Rect(r.x + 8, r.y + 8, r.width - 16, 22), panel.Shot.ToUpperInvariant(), _tiny);
-            }
-            GUI.Label(new Rect(r.x + 6, r.y + r.height - 24, r.width - 12, 20), panel.Label, _tiny);
+            GUI.DrawTexture(r, _ink);
+            var prev = GUI.color;
+            GUI.color = new Color(0.45f, 0.32f, 0.18f, 1f);
+            GUI.DrawTexture(new Rect(r.x + 8, r.y + r.height * 0.55f, r.width - 16, r.height * 0.28f), _white);
+            GUI.color = new Color(1f, 0.92f, 0.2f, 1f);
+            var ring = Mathf.Min(r.width, r.height) * 0.28f;
+            GUI.DrawTexture(new Rect(r.x + r.width * 0.5f - ring * 0.5f, r.y + r.height * 0.22f, ring, ring), _dotOn);
+            GUI.color = prev;
+            GUI.Label(new Rect(r.x + 8, r.y + 8, r.width - 16, 28), panel.Shot.ToUpperInvariant(), _gold);
+            GUI.Label(new Rect(r.x + 8, r.y + r.height - 32, r.width - 16, 28), panel.Label, _bookLine);
         }
 
         static void DrawArrow(float x, float y)
@@ -1069,10 +1008,10 @@ namespace GrandSluggers.UnityClient
             _stamp.alignment = TextAnchor.MiddleCenter;
             _stamp.clipping = TextClipping.Overflow;
             _stamp.wordWrap = false;
-            _bookHead = Sty(36, Color.white, FontStyle.Bold);
+            _bookHead = Sty(44, new Color(1f, 0.92f, 0.28f), FontStyle.Bold);
             _bookHead.clipping = TextClipping.Overflow;
-            _bookTitle = Sty(42, new Color(1f, 0.85f, 0.2f), FontStyle.Bold);
-            _bookLine = Sty(24, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
+            _bookTitle = Sty(48, new Color(1f, 0.92f, 0.28f), FontStyle.Bold);
+            _bookLine = Sty(HowToPlay.BookLinePt, Color.white, FontStyle.Bold);
             _bookLine.wordWrap = true;
             _bookLine.clipping = TextClipping.Overflow;
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);

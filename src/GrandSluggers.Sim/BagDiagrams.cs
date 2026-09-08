@@ -88,13 +88,13 @@ public static class BagDiagrams
         var board = ControlDiagram.Board(screenW, screenH);
         const float gap = 12f;
         var w = (board.W - gap * 2f) / 3f;
-        return (board.X + index * (w + gap), board.Y, w, board.H - HowToPlay.KidLineH * 3.4f);
+        return (board.X + index * (w + gap), board.Y, w, board.H - HowToPlay.KidLineH * HowToPlay.LineBandMul);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 3.4f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 
