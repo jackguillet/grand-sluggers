@@ -147,7 +147,7 @@ namespace GrandSluggers.UnityClient
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
                 if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
-                hero.Place(new Vector3((float)x, 0, (float)z), look);
+                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
                 hero.Tick(Time.deltaTime);
             }
 
@@ -199,7 +199,7 @@ namespace GrandSluggers.UnityClient
                 : _last != null ? _last.AtBat.StarSwingUsed : null;
             var ptype = _pitch != null ? _pitch.Type : "fastball";
             var heat = _last != null && _last.Heatball;
-            if ((_caught || _buddy) && !_throwing)
+            if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
             if (_throwing && _armedThrow != null)
                 _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));

@@ -62,6 +62,8 @@ namespace GrandSluggers.UnityClient
             _gloveAt.Clear();
             _starPitch = false;
             _starSwing = false;
+            _caught = false;
+            _buddy = false;
             _pitchPast = 0;
             _itemThrown = false;
             _itemFlying = false;
