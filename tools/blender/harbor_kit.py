@@ -502,9 +502,12 @@ def build_mound(dirt, hill):
 
 
 def build_foul_pole(gold, chalk):
-    shaft = prim("cylinder", "PoleShaft", (0, 0, 26.0), (1.7, 1.7, 52.0), gold)
-    ball = prim("uv_sphere", "PoleBall", (0, 0, 52.0), (2.2, 2.2, 2.2), gold)
-    screen = prim("cube", "PoleScreen", (0, -0.4, 38.0), (7.0, 0.18, 16.0), chalk)
+    """Yellow shaft + fair-facing grate. HarborKit dresses these in world; this is the kit slot."""
+    h = 72.0
+    shaft = prim("cylinder", "PoleShaft", (0, 0, h * 0.5), (1.24, 1.24, h), gold)
+    ball = prim("uv_sphere", "PoleBall", (0, 0, h), (1.6, 1.6, 1.6), gold)
+    # Thin in Y: after FBX, HarborKit LookRotation(fair) puts that axis toward the diamond.
+    screen = prim("cube", "PoleScreen", (0, 0.9, 45.0), (5.6, 0.22, 38.0), gold)
     pole = join_in_place("foul-pole", [shaft, ball, screen])
     return origin_world(pole)
 

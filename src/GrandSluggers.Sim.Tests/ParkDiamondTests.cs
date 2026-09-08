@@ -51,6 +51,10 @@ public class ParkDiamondTests
     {
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(Harbor));
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(Harbor));
+        Assert.True(ParkDiamond.ScreenFacesFair(),
+            "yellow grate sits in fair and is taller than the wall");
+        Assert.True(HarborWall.TaperIsARamp(Harbor),
+            "hip→outfield wall is a ramp, not stair boxes");
         Assert.Equal(Harbor.CenterFenceFt, AtBatResolver.FenceAt(Harbor, 0), 1);
         Assert.Equal(Harbor.LeftFenceFt, AtBatResolver.FenceAt(Harbor, -AtBatResolver.FoulLineDeg), 1);
         Assert.Equal(Harbor.RightFenceFt, AtBatResolver.FenceAt(Harbor, AtBatResolver.FoulLineDeg), 1);
