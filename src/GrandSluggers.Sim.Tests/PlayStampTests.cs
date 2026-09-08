@@ -36,6 +36,23 @@ public class PlayStampTests
     }
 
     [Fact]
+    public void StrikeoutKeepsThatBatterInTheBox()
+    {
+        var match = Match.Slice(ContentCatalog.Load(), innings: 3, seed: 1);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var take = new SwingCommand(false, 0, 0, false);
+        PlayEvent? ev = null;
+        for (var i = 0; i < 8 && (ev == null || ev.Kind != PlayKind.Strikeout); i++)
+            ev = match.Play(paint, take);
+        Assert.NotNull(ev);
+        Assert.Equal(PlayKind.Strikeout, ev.Kind);
+        var box = PlayStamp.BoxBatter(ev, match);
+        Assert.NotNull(box);
+        Assert.Equal(ev.Batter.Id, box.Id);
+        Assert.NotEqual(match.Batter.Id, ev.Batter.Id);
+    }
+
+    [Fact]
     public void OutsRecordedSurvivesTheInningFlip()
     {
         var content = ContentCatalog.Load();
