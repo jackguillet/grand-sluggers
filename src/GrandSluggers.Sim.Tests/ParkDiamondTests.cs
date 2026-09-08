@@ -17,6 +17,8 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.MoundIsAHill());
         Assert.True(ParkDiamond.StripeReadsAtCouch());
         Assert.True(ParkDiamond.StripesRunHomeToCf());
+        Assert.True(ParkDiamond.StripesAreCenteredOnTheField(),
+            "mow band 0 must sit on home→CF, not start from the lawn’s left edge");
         Assert.True(ParkDiamond.PathCornersAreRound());
         Assert.True(ParkDiamond.BackApronIsCurved());
         Assert.True(ParkDiamond.DirtClearsTheLawn(),

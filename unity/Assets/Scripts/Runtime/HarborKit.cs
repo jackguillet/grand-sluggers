@@ -795,10 +795,10 @@ namespace GrandSluggers.UnityClient
             var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
             var halfW = ParkDiamond.GrassHalfWidth(zEnd);
 
-            var i = 0;
-            for (var x = -halfW; x < halfW; x += stripe, i++)
+            var n = Mathf.CeilToInt(halfW / stripe);
+            for (var i = -n; i <= n; i++)
             {
-                var xc = x + stripe * 0.5f;
+                var xc = ParkDiamond.StripeCenterX(i);
                 var sx = stripe + 0.4f;
                 var mat = (i & 1) == 0 ? dark : light;
                 StripeColumn("G" + i, xc, sx, z0, zEnd, y, h, mat);

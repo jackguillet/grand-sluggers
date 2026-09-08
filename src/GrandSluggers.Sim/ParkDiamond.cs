@@ -302,6 +302,12 @@ public static class ParkDiamond
     /// <summary>Stripes are columns along CF (X bands), not rows along 1B–3B.</summary>
     public static bool StripesRunHomeToCf() => true;
 
+    /// <summary>Band 0 sits on the home→CF axis so the mow is symmetric with the diamond.</summary>
+    public static float StripeCenterX(int i) => i * StripeWidth;
+
+    public static bool StripesAreCenteredOnTheField() =>
+        StripeCenterX(0) == 0f && StripeCenterX(1) == -StripeCenterX(-1) && StripeCenterX(1) == StripeWidth;
+
     public static (double X, double Z) FoulPole(Park park, int sign)
     {
         var spray = Math.Sign(sign) * AtBatResolver.FoulLineDeg;
