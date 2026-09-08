@@ -10,11 +10,13 @@ public static class HarborWall
     public const int OutfieldSegs = 48;
     public const int FoulSegs = 20;
     public const int HomeSegs = 16;
+    /// <summary>Home and bag rail ends, pinned on each foul wrap so the wall butts the dugout.</summary>
+    public const int DugoutEnds = 2;
     /// <summary>One side (CF→RF→home) mirrored. Must stay even.</summary>
-    public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + HomeSegs / 2) - 2;
+    public const int WrapSegs = 2 * (OutfieldSegs / 2 + 1 + FoulSegs + DugoutEnds + HomeSegs / 2) - 2;
     /// <summary>
-    /// Hip wall offset from the foul line along the infield. Sits just behind
-    /// the dugout. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
+    /// Hip wall offset from the foul line along the infield. The dugout rail
+    /// <b>is</b> this line. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
     /// </summary>
     public const float FoulOffset = 36f;
     /// <summary>Round wrap behind the plate. Radius is the offset line’s closest point, not a V to a farther apex.</summary>
@@ -65,8 +67,14 @@ public static class HarborWall
             half.Add(FencePoint(park, spray));
         }
         var poleR = AtBatResolver.FenceAt(park, AtBatResolver.FoulLineDeg);
+        var alongs = new List<double>(FoulSegs + DugoutEnds);
         for (var i = 1; i <= FoulSegs; i++)
-            half.Add(FoulWall(1, poleR * (1 - i / (double)FoulSegs), poleR));
+            alongs.Add(poleR * (1 - i / (double)FoulSegs));
+        alongs.Add(HarborDugout.AlongBag);
+        alongs.Add(HarborDugout.AlongHome);
+        alongs.Sort((a, b) => b.CompareTo(a));
+        foreach (var s in alongs)
+            half.Add(FoulWall(1, s, poleR));
         var rightHome = half[^1];
         var r = Math.Sqrt(rightHome.X * rightHome.X + rightHome.Z * rightHome.Z);
         var a0 = Math.Atan2(rightHome.X, rightHome.Z);
