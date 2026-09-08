@@ -121,6 +121,8 @@ namespace GrandSluggers.UnityClient
         float _throwT, _throwDur;
         bool _closePlay;
         float _closePlayT;
+        string _bagStamp = "";
+        float _bagStampT;
         bool _closeIcon;
         int _closeBag;
         float _closeOffAt;
@@ -245,6 +247,12 @@ namespace GrandSluggers.UnityClient
                 dt *= 0.12f;
             }
             _t += dt;
+            if (!string.IsNullOrEmpty(_bagStamp))
+            {
+                _bagStampT += dt;
+                if (_bagStampT > (float)PlayStamp.SafeHoldSeconds(_feel))
+                    _bagStamp = "";
+            }
             Controls.NoteInput();
             var playPause = _phase is Phase.Set or Phase.Flight or Phase.InPlay or Phase.StealThrow or Phase.Result;
             var front = _phase is Phase.Title or Phase.Select or Phase.Field or Phase.Lineup;
@@ -340,7 +348,10 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home);
-            if (!string.IsNullOrEmpty(stamp) && !mutePlay)
+            if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
+                HudView.PlayStamp(_bagStamp, _bagStampT,
+                    (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds);
+            else if (!string.IsNullOrEmpty(stamp) && !mutePlay)
                 HudView.PlayStamp(stamp, _t,
                     (float)PlayStamp.Scale(_last.Kind),
                     (float)PlayStamp.PopSeconds(_last.Kind));
