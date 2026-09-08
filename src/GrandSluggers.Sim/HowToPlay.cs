@@ -116,16 +116,12 @@ public static class HowToPlay
     [
         new("contents", "Contents", "contents",
         [
-            "This is the instruction booklet. Call time (Start) opens it. Esc too.",
-            "The list is the book. Numbers match the pages.",
-            "South next page. East back. Toggle the scheme up top.",
-            "Big type. Short sentences. You can read it from the couch.",
+            "This is the instruction booklet. Call time (Start) or Esc opens it. The list is the book.",
+            "South next. East back. Toggle Pad / Keyboard up top. Big type from the couch.",
         ],
         [
-            "This is the instruction booklet. H or Esc opens it.",
-            "The list is the book. Numbers match the pages.",
-            "Left click / Space next page. Esc / right click back. Toggle up top.",
-            "Big type. Short sentences. You can read it from the couch.",
+            "This is the instruction booklet. H or Esc opens it. The list is the book.",
+            "Left click / Space next. Esc / right click back. Toggle up top. Big type from the couch.",
         ]),
         new("controls", "Controls", "controls",
         [
