@@ -31,6 +31,22 @@ public static class ControlDiagram
     public static IReadOnlyList<Callout> Callouts(InputScheme scheme) =>
         scheme == InputScheme.Keys ? KeysCallouts : PadCallouts;
 
+    /// <summary>Two-column list. No tiny schematic.</summary>
+    public static (float X, float Y, float W, float H) CalloutCell(
+        int index, InputScheme scheme, float screenW, float screenH)
+    {
+        var b = Board(screenW, screenH);
+        var n = Callouts(scheme).Count;
+        var rows = Math.Max(1, (n + 1) / 2);
+        var col = index < rows ? 0 : 1;
+        var row = index < rows ? index : index - rows;
+        const float gap = 18f;
+        const float legend = 40f;
+        var cw = (b.W - gap) * 0.5f;
+        var rh = Math.Max(56f, (b.H - legend) / rows);
+        return (b.X + col * (cw + gap), b.Y + legend + row * rh, cw, rh);
+    }
+
     public static readonly IReadOnlyList<Part> PadParts =
     [
         new("body", 0.34f, 0.30f, 0.32f, 0.46f),

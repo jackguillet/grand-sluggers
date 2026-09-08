@@ -77,6 +77,9 @@ public class BookSchemeTests : IDisposable
         Assert.Contains(ControlDiagram.PadCallouts, c => c.Defense.Length > 0);
         Assert.Equal("Offense", BookScheme.OffenseLabel);
         Assert.Equal("Defense", BookScheme.DefenseLabel);
+        var cell = ControlDiagram.CalloutCell(0, InputScheme.Keys, 1280, 800);
+        Assert.True(cell.H >= 56, $"control row too short {cell.H}");
+        Assert.True(cell.W >= 400, $"control row too narrow {cell.W}");
     }
 
     [Fact]
