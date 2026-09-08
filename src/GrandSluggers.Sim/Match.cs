@@ -728,6 +728,8 @@ public sealed class Match
         var chase = !inZone && _rng.NextDouble() < 0.12;
         if (!inZone && !chase)
             return new SwingCommand(false, 0, 0, false);
+        if (AtBatResolver.CpuSacBuntSpot(inZone, First is not null, Outs, _rng.NextDouble()))
+            return new SwingCommand(true, 0.12, Gauss() * 2.2, false, Gauss() * 10, Bunt: true, LaunchAim: 0.35);
         var star = CanStarSwing && inZone && _rng.NextDouble() < (Batter.Captain ? 0.14 : 0.08);
         var charge = _rng.NextDouble() < 0.35 ? 0.7 + _rng.NextDouble() * 0.3 : _rng.NextDouble() * 0.4;
         var err = Gauss() * (11 - Batter.Stats.Bat) * 0.62;

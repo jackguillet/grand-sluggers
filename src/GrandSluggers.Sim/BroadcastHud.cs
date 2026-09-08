@@ -10,6 +10,18 @@ public static class BroadcastHud
     public static bool MutePlay(bool spectacleActive, double smashSeconds, double freezeSeconds = 0)
         => spectacleActive || smashSeconds > 0 || freezeSeconds > 0;
 
+    /// <summary>AB card extras. Steal names L3 until it's on.</summary>
+    public static string BatterExtra(bool star, bool stealOn, bool canSteal, bool bunt, string item)
+    {
+        var s = "";
+        if (star) s += "STAR  ";
+        if (bunt) s += "BUNT  ";
+        if (stealOn) s += "STEAL  ";
+        else if (canSteal) s += "L3 STEAL  ";
+        if (!string.IsNullOrEmpty(item)) s += item;
+        return s.Trim();
+    }
+
     /// <summary>Normalized rect. X/Y is top-left. Pixel() scales to a screen.</summary>
     public readonly record struct HudRect(double X, double Y, double W, double H)
     {

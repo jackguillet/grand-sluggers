@@ -72,6 +72,7 @@ namespace GrandSluggers.UnityClient
         int _pitchIndex;
         bool _starPitch;
         bool _starSwing;
+        bool _bunt;
         float _charge;
         float _chargePast;
         float _pitchCharge;
@@ -339,7 +340,7 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home);
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, _bunt);
             if (!string.IsNullOrEmpty(stamp) && !mutePlay)
                 HudView.PlayStamp(stamp, _t,
                     (float)PlayStamp.Scale(_last.Kind),
@@ -568,7 +569,7 @@ namespace GrandSluggers.UnityClient
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
                 var outs = PlayStamp.OutsRecorded(_stampOutsBefore, _stampInning, _stampTop, _match);
-                _banner = PlayStamp.Label(_last.Kind, outs, _last.RunsScored);
+                _banner = PlayStamp.Label(_last, outs);
             }
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
