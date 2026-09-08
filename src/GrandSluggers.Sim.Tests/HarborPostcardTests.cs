@@ -24,6 +24,8 @@ public class HarborPostcardTests
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
         Assert.True(HarborWall.WrapsTheDiamond(harbor));
+        Assert.True(HarborWall.OutfieldIsTallerThanTheHip());
+        Assert.False(HarborStands.HasRoofs, "white roof slabs are not the postcard");
         Assert.True(HarborStands.CrowdIsPeople(),
             $"crowd {HarborStands.PersonFt}ft must be people, not 12-ft giants");
         Assert.True(HarborStands.CenterFieldIsOpen());
@@ -68,7 +70,10 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.HasStairs());
         Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
         Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
-        Assert.True(HarborDugout.Z > 30);
+        Assert.True(HarborDugout.Z > 28);
+        Assert.True(HarborDugout.HalfAlong >= 14f, "dugout is a bench along the line, not a shed");
+        Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
+        Assert.True(Math.Abs(HarborDugout.YawDeg(1) + 45) < 0.1, "1B dugout follows the foul line");
         Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
         Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),
@@ -83,8 +88,8 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
         Assert.True(HarborDugout.HoleMinX > 48, "hole stays off the dirt path");
-        Assert.True(HarborDugout.FieldX(HarborDugout.X) - HarborDugout.HoleMinX >= 8,
-            "field-side hole must be wide enough to see the pit from scoop");
+        Assert.True(HarborDugout.HoleMaxX - HarborDugout.HoleMinX >= HarborDugout.HalfDeep * 2,
+            "lawn hole is the pit, not a stair runway onto the grass");
     }
 
     [Fact]

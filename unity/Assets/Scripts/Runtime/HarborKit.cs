@@ -649,19 +649,19 @@ namespace GrandSluggers.UnityClient
 
         bool DropDugout(float x, string side)
         {
-            var mesh = x > 0f ? "dugout-1b" : "dugout-3b";
-            // FBX bake_space_transform puts the open face on +X. 180 Y faces the infield.
-            var rot = Quaternion.Euler(0f, 180f, 0f);
+            var mesh = "dugout-1b";
+            var yaw = HarborDugout.YawDeg(x > 0f ? 1 : -1);
+            var rot = Quaternion.Euler(0f, yaw, 0f);
             var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), rot, Vector3.one, paint: true);
             if (go == null) return false;
-            var inward = x > 0f ? -1f : 1f;
-            var backX = x - inward * DugoutHalfDeep;
+            var along = rot * Vector3.forward * (DugoutHalfAlong * 1.2f);
+            var inward = rot * Vector3.left;
             SitRow(
                 Dugouts,
                 "Dug" + side + "Sit",
-                new Vector3(backX + inward * 1.7f, HarborDugout.PitFloorY, DugoutZ),
-                new Vector3(0f, 0f, DugoutHalfAlong * 1.2f),
-                5,
+                new Vector3(x, 0f, DugoutZ) + inward * (DugoutHalfDeep - 1.6f) + Vector3.up * HarborDugout.PitFloorY,
+                along,
+                6,
                 side == "1B" ? 11 : 71,
                 side == "1B");
             return true;
@@ -843,12 +843,13 @@ namespace GrandSluggers.UnityClient
                 var outward = new Vector3((float)o.X, 0f, (float)o.Z);
                 var rot = Quaternion.LookRotation(outward, Vector3.up);
                 var w = (float)piece.Width;
-                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
-                Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
-                if (i % 2 == 0)
-                    Box(WallDress, "Ad" + i, p - outward * (thick * 0.55f) + Vector3.up * (h * 0.62f),
+                var hh = HarborWall.Height(_park, i);
+                Box(WallDress, "Wall" + i, p + Vector3.up * (hh * 0.5f), new Vector3(w, hh, thick), rot, pad);
+                Box(WallDress, "Cap" + i, p + Vector3.up * (hh + 0.35f), new Vector3(w, 0.55f, thick + 0.5f), rot, cap);
+                if (hh > 10f && i % 2 == 0)
+                    Box(WallDress, "Ad" + i, p - outward * (thick * 0.55f) + Vector3.up * (hh * 0.62f),
                         new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
-                if (i % 3 == 0)
+                if (hh > 10f && i % 3 == 0)
                     Box(WallDress, "Ivy" + i, p - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
                 if (Mathf.Abs((float)p.x) < 8f && p.z > 300f)
                 {
@@ -982,24 +983,12 @@ namespace GrandSluggers.UnityClient
                 if (row == 0)
                     SmallFans(sign > 0 ? "RFan" : "LFan", mid + inward * 0.4f, along, inward, sign > 0 ? 400 : 200);
             }
-            var roofY = HarborStands.RowY(HarborStands.WingRows - 1) + HarborStands.RoofLift;
-            var roofZ = (z0 + z1) * 0.62f;
-            var roofX = sign * HarborStands.WingX(roofZ, HarborStands.WingRows - 1);
-            Cube(Bleachers, sign > 0 ? "RRoof" : "LRoof",
-                new Vector3(roofX + sign * 6f, roofY, roofZ + 18f),
-                new Vector3(28f, HarborStands.RoofThick, 92f), roof);
-            Cylinder(Bleachers, sign > 0 ? "RPostA" : "LPostA",
-                new Vector3(roofX, 0f, roofZ - 18f), 1.1f, roofY, post);
-            Cylinder(Bleachers, sign > 0 ? "RPostB" : "LPostB",
-                new Vector3(roofX, 0f, roofZ + 36f), 1.1f, roofY, post);
         }
 
         void DressCornerBowl(int sign, Material conc, Material crowd, Material roof, Material post)
         {
             var n = HarborStands.CornerSegs;
             var rows = HarborStands.CornerRows;
-            Vector3 roofSum = Vector3.zero;
-            var roofN = 0;
             for (var i = 0; i < n; i++)
             {
                 var t0 = i / (float)n;
@@ -1034,28 +1023,8 @@ namespace GrandSluggers.UnityClient
                     Box(Bleachers, "CCrowd" + tag,
                         mid - radial * 0.25f + Vector3.up * (0.7f + HarborStands.PersonFt * 0.42f),
                         new Vector3(0.55f, HarborStands.PersonFt * 1.5f, along.magnitude * 0.95f), rot, crowd);
-                    if (row == rows - 1)
-                    {
-                        roofSum += mid;
-                        roofN++;
-                    }
                 }
             }
-            if (roofN == 0) return;
-            var rp = roofSum / roofN;
-            rp.y = HarborStands.CornerRowY(rows - 1) + HarborStands.RoofLift;
-            var outw = new Vector3(rp.x, 0f, rp.z);
-            if (outw.sqrMagnitude < 1f) return;
-            outw.Normalize();
-            var roofRot = Quaternion.LookRotation(outw, Vector3.up);
-            Box(Bleachers, sign > 0 ? "RfRoof" : "LfRoof", rp + outw * 6f,
-                new Vector3(88f, HarborStands.RoofThick, 26f), roofRot, roof);
-            var postA = rp - outw * 4f;
-            postA.y = 0f;
-            var postB = rp + outw * 10f;
-            postB.y = 0f;
-            Cylinder(Bleachers, sign > 0 ? "RfPostA" : "LfPostA", postA, 1.15f, rp.y, post);
-            Cylinder(Bleachers, sign > 0 ? "RfPostB" : "LfPostB", postB, 1.15f, rp.y, post);
         }
 
         void SmallFans(string name, Vector3 origin, Vector3 along, Vector3 inward, int seed)

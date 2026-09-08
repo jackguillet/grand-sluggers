@@ -17,12 +17,12 @@ from mathutils import Matrix
 
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
-HALF_ALONG = 8.0
-HALF_DEEP = 5.4
-PIT = 2.6
-STAIR_COUNT = 5
-STAIR_DEPTH = 0.82
-FIELD_STAIR_RUN = 8.0
+HALF_ALONG = 16.0
+HALF_DEEP = 5.2
+PIT = 2.4
+STAIR_COUNT = 4
+STAIR_DEPTH = 0.70
+FIELD_STAIR_RUN = 1.2
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 4.0
 # Keep in sync with HarborWall / HarborPostcard / HarborDugout.
