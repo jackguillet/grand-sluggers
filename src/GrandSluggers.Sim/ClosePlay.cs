@@ -8,9 +8,14 @@ public static class ClosePlay
 {
     public const float IconDelay = 0.22f;
 
-    public static bool Offered(int throwBag, bool secondOccupied, bool thirdOccupied)
+    public static bool Offered(int throwBag, bool secondOccupied, bool thirdOccupied) =>
+        Offered(throwBag, InPlay.ForceState.Empty, secondOccupied, thirdOccupied);
+
+    /// <summary>Mash at third/home on a tag. A force is the throw, not a mash.</summary>
+    public static bool Offered(int throwBag, InPlay.ForceState force, bool secondOccupied, bool thirdOccupied)
     {
         if (throwBag is not (3 or 4)) return false;
+        if (force.At(throwBag)) return false;
         return InPlay.TagBag(secondOccupied, thirdOccupied) == throwBag;
     }
 
