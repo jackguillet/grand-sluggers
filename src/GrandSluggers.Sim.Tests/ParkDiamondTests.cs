@@ -28,8 +28,11 @@ public class ParkDiamondTests
         Assert.False(ParkDiamond.OnDirt(0, 90), "inner grass Y");
         Assert.True(ParkDiamond.OnInfieldGrass(0, 90));
         Assert.False(ParkDiamond.OnDirt(0, 220), "outfield");
-        Assert.True(ParkDiamond.LawnTileFt < ParkDiamond.PathWidth,
-            "infield tiles must be finer than the path or the lawn covers it");
+        var outer = ParkDiamond.OuterVerts();
+        Assert.True(outer.Length > 16, "rounded diamond is an offset loop, not 4 corners");
+        var v1 = ParkDiamond.InnerVerts()[1];
+        var atBag = ParkDiamond.OnDirt(v1.X + ParkDiamond.SkinWidth * 0.5, v1.Z);
+        Assert.True(atBag, "bag pad is the corner of the skin, not a separate circle");
     }
 
     [Fact]

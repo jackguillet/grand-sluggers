@@ -216,6 +216,24 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
+        public static GameObject Solid(string name, Transform parent, Vector3[] verts, int[] tris, Material mat)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var mf = go.AddComponent<MeshFilter>();
+            var mr = go.AddComponent<MeshRenderer>();
+            var mesh = new Mesh { name = name };
+            mesh.vertices = verts;
+            mesh.triangles = tris;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mf.sharedMesh = mesh;
+            mr.sharedMaterial = mat;
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            return go;
+        }
+
         /// <summary>Annulus you can stand in. A scaled cylinder is a pancake.</summary>
         public static GameObject Torus(string name, Transform parent, float major, float minor, Material mat, int seg = 28, int sides = 10)
         {
