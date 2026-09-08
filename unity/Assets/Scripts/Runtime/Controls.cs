@@ -113,6 +113,26 @@ namespace GrandSluggers.UnityClient
             public bool MenuUp =>
                 KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpad(Device?.dpad.up);
 
+            /// <summary>Menus only. Mouse aim is not a page stick.</summary>
+            public float MenuX
+            {
+                get
+                {
+                    var v = 0f;
+                    var pad = Device;
+                    if (pad != null)
+                    {
+                        v = pad.leftStick.x.ReadValue();
+                        if (Dpad(pad.dpad.left)) v -= 1f;
+                        if (Dpad(pad.dpad.right)) v += 1f;
+                    }
+                    if (Kb(Key.A) || Kb(Key.LeftArrow)) v -= 1f;
+                    if (Kb(Key.D) || Kb(Key.RightArrow)) v += 1f;
+                    if (Mathf.Abs(v) < StickDead) v = 0f;
+                    return Mathf.Clamp(v, -1f, 1f);
+                }
+            }
+
             public int ThrowBag
             {
                 get
@@ -274,6 +294,16 @@ namespace GrandSluggers.UnityClient
         public static bool ParkHeld => Kb(Key.C);
         public static float StickX => Pad1.StickX;
         public static float StickY => Pad1.StickY;
+        public static float MenuX => Pad1.MenuX;
+        public static bool PointerDown => MouseLeftDown;
+        public static float ScrollY
+        {
+            get
+            {
+                var m = Mouse.current;
+                return m == null ? 0f : m.scroll.ReadValue().y;
+            }
+        }
         public static bool MenuDown => Pad1.MenuDown;
         public static bool MenuUp => Pad1.MenuUp;
         public static int ThrowBag => Pad1.ThrowBag;
