@@ -80,8 +80,15 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.HalfAlong >= 16f && HarborDugout.HalfAlong <= 24f,
             "dugout is two-thirds the old home-to-bag shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
-        Assert.True(Math.Abs(HarborDugout.YawDeg(1) + 135) < 0.1, "1B rail faces the diamond");
+        Assert.True(HarborDugout.RailFacesTheDiamond(), "local −X points at the diamond, not the stands");
+        Assert.True(HarborDugout.YawFollowsTheFoulLine(), "dugout +Z is home→bag; a 180° yaw is the Play gap");
         Assert.True(HarborDugout.RailIsTheHipWall(), "front rail is the short wall, pit behind it");
+        var harborPark = _content.Parks[HarborPostcard.ParkId];
+        Assert.True(HarborDugout.WallMeetsTheRail(harborPark),
+            "wall loop must pin a vertex on each dugout rail end so DressWall cannot skip a 16-ft gap");
+        Assert.False(HarborDugout.KitSpansTheOpening(HarborDugout.HalfAlong),
+            "a kit shorter than the opening must not dress the hole");
+        Assert.True(HarborDugout.KitSpansTheOpening(HarborDugout.HalfAlong * 2f));
         Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
         Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),
