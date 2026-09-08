@@ -341,7 +341,9 @@ namespace GrandSluggers.UnityClient
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home);
             if (!string.IsNullOrEmpty(stamp) && !mutePlay)
-                HudView.PlayStamp(stamp, _t);
+                HudView.PlayStamp(stamp, _t,
+                    (float)PlayStamp.Scale(_last.Kind),
+                    (float)PlayStamp.PopSeconds(_last.Kind));
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
