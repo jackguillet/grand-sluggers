@@ -11,11 +11,15 @@ public static class HarborPostcard
 
     public const float WallHeightFt = 26f;
     public const float WallThickFt = 3.4f;
-    public const float WallPanelWidthFt = 22f;
+    /// <summary>Pieces along the foul-line-to-foul-line fence. Chord width, not a fixed slab.</summary>
+    public const int WallSegs = 48;
+    public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;
     public const float CrowdPersonFt = 12f;
     public const float CrowdInsideFt = 18f;
+    /// <summary>CF decks sit on the wall and flatten the postcard. Home and 1B/3B stands stay.</summary>
+    public const bool CenterFieldHasBleachers = false;
     public const float TownPastFenceFt = 48f;
     public const float TownHeightFt = 48f;
     public const float DigitHeightFt = 12f;
@@ -26,6 +30,47 @@ public static class HarborPostcard
 
     public static bool Owns(string? parkId) =>
         parkId != null && parkId.Equals(ParkId, StringComparison.OrdinalIgnoreCase);
+
+    public static (double X, double Z) WallPoint(Park park, double sprayDeg)
+    {
+        var fence = AtBatResolver.FenceAt(park, sprayDeg);
+        var rad = sprayDeg * Math.PI / 180.0;
+        return (Math.Sin(rad) * fence, Math.Cos(rad) * fence);
+    }
+
+    /// <summary>
+    /// One fence piece spanning spray i → i+1. Width is the chord plus overlap
+    /// so adjacent boxes meet on Harbor's 330–400–330 curve.
+    /// </summary>
+    public static (double X, double Z, double Width, double Spray0, double Spray1) WallPiece(Park park, int i)
+    {
+        var n = WallSegs;
+        var i0 = Math.Clamp(i, 0, n - 1);
+        var a0 = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i0 / n;
+        var a1 = -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * (i0 + 1) / n;
+        var p0 = WallPoint(park, a0);
+        var p1 = WallPoint(park, a1);
+        var dx = p1.X - p0.X;
+        var dz = p1.Z - p0.Z;
+        var chord = Math.Sqrt(dx * dx + dz * dz);
+        return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, a0, a1);
+    }
+
+    public static bool WallPiecesConnect(Park park)
+    {
+        for (var i = 0; i < WallSegs - 1; i++)
+        {
+            var a = WallPiece(park, i);
+            var b = WallPiece(park, i + 1);
+            var dx = a.X - b.X;
+            var dz = a.Z - b.Z;
+            var gap = Math.Sqrt(dx * dx + dz * dz);
+            if (gap > (a.Width + b.Width) * 0.5 - 0.2) return false;
+        }
+        var cf = WallPiece(park, WallSegs / 2);
+        var dist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
+        return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2;
+    }
 
     public static bool SegOn(int value, int bit)
     {

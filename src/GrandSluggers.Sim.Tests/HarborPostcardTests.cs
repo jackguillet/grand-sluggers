@@ -21,6 +21,16 @@ public class HarborPostcardTests
             $"field look {field.Target.Z} should sit on the CF wall/town");
         Assert.True(HarborPostcard.CrowdInsideFt < 40);
         Assert.True(HarborPostcard.TownPastFenceFt > 20);
+        Assert.False(HarborPostcard.CenterFieldHasBleachers);
+        Assert.True(HarborPostcard.WallSegs >= 36);
+        Assert.True(HarborPostcard.WallOverlapFt >= 0.6f);
+        Assert.True(HarborPostcard.WallPiecesConnect(harbor),
+            "wall pieces must overlap along the 330–400–330 fence, not sit as gapped slabs");
+        var cf = HarborPostcard.WallPiece(harbor, HarborPostcard.WallSegs / 2);
+        var cfDist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
+        Assert.InRange(cfDist, harbor.CenterFenceFt - 4, harbor.CenterFenceFt + 4);
+        var lf = HarborPostcard.WallPoint(harbor, -AtBatResolver.FoulLineDeg);
+        Assert.InRange(Math.Sqrt(lf.X * lf.X + lf.Z * lf.Z), harbor.LeftFenceFt - 1, harbor.LeftFenceFt + 1);
     }
 
     [Fact]

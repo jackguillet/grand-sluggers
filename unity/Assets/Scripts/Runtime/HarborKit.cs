@@ -757,12 +757,9 @@ namespace GrandSluggers.UnityClient
             var y = ParkDiamond.GrassY;
             var h = ParkDiamond.GrassThick;
             var stripe = ParkDiamond.StripeWidth;
+            var z0 = ParkDiamond.GrassZ0;
             var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
             var halfW = ParkDiamond.GrassHalfWidth(zEnd);
-            var dirtX = ParkDiamond.DirtMaxX;
-            var dirtZ1 = ParkDiamond.DirtMaxZ;
-            var yLo = ParkDiamond.CenterZ - ParkDiamond.InnerHalf;
-            var yHi = ParkDiamond.CenterZ + ParkDiamond.InnerHalf;
 
             var i = 0;
             for (var x = -halfW; x < halfW; x += stripe, i++)
@@ -770,16 +767,7 @@ namespace GrandSluggers.UnityClient
                 var xc = x + stripe * 0.5f;
                 var sx = stripe + 0.4f;
                 var mat = (i & 1) == 0 ? dark : light;
-                if (Mathf.Abs(xc) < ParkDiamond.InnerHalf + sx)
-                    StripeColumn("Y" + i, xc, sx, yLo, yHi, y, h, mat);
-                if (dirtZ1 < zEnd)
-                    StripeColumn("Cf" + i, xc, sx, dirtZ1, zEnd, y, h, mat);
-                if (Mathf.Abs(xc) <= dirtX) continue;
-                var zLo = ParkDiamond.GrassZ0;
-                if (Mathf.Abs(xc) > 40f)
-                    zLo = Mathf.Max(zLo, Mathf.Abs(xc) - ParkDiamond.FoulGrassFt);
-                if (zLo < dirtZ1)
-                    StripeColumn("Foul" + i, xc, sx, zLo, dirtZ1, y, h, mat);
+                StripeColumn("G" + i, xc, sx, z0, zEnd, y, h, mat);
             }
         }
 
@@ -806,9 +794,9 @@ namespace GrandSluggers.UnityClient
         void DressWall()
         {
             Wipe(WallDress);
+            if (_park == null) return;
             var h = HarborPostcard.WallHeightFt;
             var thick = HarborPostcard.WallThickFt;
-            var w = HarborPostcard.WallPanelWidthFt;
             var pad = Look.Lit(new Color(0.18f, 0.46f, 0.30f), Look.Grass, 3f, 0.08f);
             var cap = Look.Unlit(Colors.Gold);
             var ivy = Look.Lit(new Color(0.14f, 0.48f, 0.22f), Look.Grass, 2f, 0.08f);
@@ -825,38 +813,32 @@ namespace GrandSluggers.UnityClient
             };
             var mark = Look.Unlit(Colors.Gold);
             var spark = Look.Unlit(Colors.Spark);
-            for (var i = -18; i <= 18; i++)
+            var n = HarborPostcard.WallSegs;
+            for (var i = 0; i < n; i++)
             {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(_park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
-                var p = radial * fence;
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
-                if (DropMesh("wall-panel", WallDress, "Wall" + i, p, rot, Vector3.one, paint: true) == null)
-                    Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
+                var piece = HarborPostcard.WallPiece(_park, i);
+                var p0 = HarborPostcard.WallPoint(_park, piece.Spray0);
+                var p1 = HarborPostcard.WallPoint(_park, piece.Spray1);
+                var p = new Vector3((float)piece.X, 0f, (float)piece.Z);
+                var chord = new Vector3((float)(p1.X - p0.X), 0f, (float)(p1.Z - p0.Z));
+                if (chord.sqrMagnitude < 0.01f) continue;
+                var outward = Vector3.Cross(Vector3.up, chord.normalized);
+                if (Vector3.Dot(outward, p) < 0f) outward = -outward;
+                var rot = Quaternion.LookRotation(outward, Vector3.up);
+                var w = (float)piece.Width;
+                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
                 Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
                 if (i % 2 == 0)
-                    Box(WallDress, "Ad" + i, p - radial * (thick * 0.55f) + Vector3.up * (h * 0.62f),
-                        new Vector3(HarborPostcard.AdWidthFt, HarborPostcard.AdHeightFt, 0.45f), rot, ads[Mathf.Abs(i) % ads.Length]);
+                    Box(WallDress, "Ad" + i, p - outward * (thick * 0.55f) + Vector3.up * (h * 0.62f),
+                        new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
                 if (i % 3 == 0)
-                    Box(WallDress, "Ivy" + i, p - radial * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
-                if (i == 0)
+                    Box(WallDress, "Ivy" + i, p - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
+                if (i == n / 2)
                 {
-                    Box(WallDress, "MarkSpark", p - radial * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
-                    Box(WallDress, "MarkGold", p - radial * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
+                    Box(WallDress, "MarkSpark", p - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
+                    Box(WallDress, "MarkGold", p - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
                 }
             }
-            var lf = (float)_park.LeftFenceFt;
-            var rf = (float)_park.RightFenceFt;
-            var pole = Look.Unlit(Colors.Gold);
-            var flag = Look.Unlit(new Color(0.95f, 0.9f, 0.55f));
-            var poleL = new Vector3(Mathf.Sin(-0.78f) * lf, 0f, Mathf.Cos(-0.78f) * lf);
-            var poleR = new Vector3(Mathf.Sin(0.78f) * rf, 0f, Mathf.Cos(0.78f) * rf);
-            Cylinder(WallDress, "PoleL", poleL, 0.7f, 52f, pole);
-            Cylinder(WallDress, "PoleR", poleR, 0.7f, 52f, pole);
-            Box(WallDress, "ScreenL", poleL + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleL.normalized, Vector3.up), flag);
-            Box(WallDress, "ScreenR", poleR + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleR.normalized, Vector3.up), flag);
         }
 
         void DressScoreboard()
@@ -948,6 +930,7 @@ namespace GrandSluggers.UnityClient
                 CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
             }
             Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
+            if (!HarborPostcard.CenterFieldHasBleachers) return;
             var fence = (float)_park.CenterFenceFt;
             var crowdZ = fence - HarborPostcard.CrowdInsideFt;
             var crowdTex = Look.Lit(Color.white, Look.Crowd, 4f, 0.05f);
