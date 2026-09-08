@@ -1,10 +1,10 @@
-Elder Fenn. Cartoon Generic package. Fat volumes, named bones, 100% vertex groups.
+Elder Fenn. Authored turtle (shell, face, scarf, cane) with posed bones.
 
-  fenn.fbx            armature + pieces. Rest pose = idle. bind=skinned.
-  fenn-albedo.png     1024 atlas (URP Lit). UVs sit on color tiles, not the void.
+  fenn.fbx            one mesh. Vertex groups 100% per bone. Shell/head never share an arm.
+  fenn-albedo.png     original 1024 paint (URP Lit).
   fenn-idle.fbx / fenn-pose.fbx   takes on THIS armature.
-  Resources/Art/Characters/fenn/  player copies (fbx + albedo + clips)
+  Resources/Art/Characters/fenn/  player copies
 
-Do not drop the posed PBR turtle as the player mesh. Do not heat-weight it.
-Do not freeze a statue. Do not run drop_character.py --bind segmented on this.
-Author: tools/blender/hero_fenn.py. Humans pass look. Spec: docs/character-package.md
+bind=skinned. Do not heat-weight. Do not freeze a statue. Do not replace him
+with spheres. Author: tools/blender/hero_fenn.py --src the posed turtle.
+Humans pass look. Spec: docs/character-package.md
