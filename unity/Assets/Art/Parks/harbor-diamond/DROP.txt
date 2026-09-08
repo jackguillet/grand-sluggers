@@ -1,16 +1,17 @@
 Harbor kit empties: Dugouts, Bleachers, WallDress, Town, Scoreboard, Backstop.
 
-Drop `harbor-kit.fbx` here (names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit,
+Drop `harbor-kit.fbx` here (names: dugout-1b, dugout-3b, wall-panel, wall-ring, fan-stand, fan-sit,
 home-plate, bag, mound, foul-pole, warning-track, infield-dirt).
 Dugouts are sunken pits with stairs, set back off the dirt (`HarborDugout` numbers).
 The lawn is cut at those footprints so the pit shows. HarborKit instances the kit
 onto the empties. `home-plate` is the OBR 17″ pentagon (point toward the catcher).
 Batter’s boxes are 4′×6′ chalk lines, 6″ off the plate. `bag` is a
 4-ft diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
-The outfield wall is chord boxes along the park fence (connected, rounded),
-not instanced `wall-panel` slabs. Center-field bleachers are off. Stands are
-a horseshoe of small packed crowd (`HarborStands`) with LF/RF roofs.
-Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
+The padded wall is a full loop (`wall-ring` from Blender MCP / `HarborWall`):
+outfield fence, then in around the dugouts and plate dirt. No chain-link net.
+Center-field bleachers are off. Stands are a horseshoe of small packed crowd
+(`HarborStands`) with LF/RF roofs.
+Stars stay on the fascia. Do not emit a second diamond. Other parks wait.
 Diamond ground (paths, mound, striped grass, foul poles, warning track) is
 `ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
 Dirt: thin home→1B/3B paths, a mound-centered arc behind 1B–2B–3B (thicker

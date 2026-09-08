@@ -542,16 +542,16 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(WarningTrack);
             if (_park == null) return;
-            var n = ParkDiamond.TrackSegs;
+            var n = HarborWall.WrapSegs;
             var y0 = ParkDiamond.TrackY - ParkDiamond.TrackThick * 0.5f;
             var y1 = ParkDiamond.TrackY + ParkDiamond.TrackThick * 0.5f;
-            var verts = new Vector3[(n + 1) * 4];
-            var uvs = new Vector2[(n + 1) * 4];
-            for (var i = 0; i <= n; i++)
+            var verts = new Vector3[n * 4];
+            var uvs = new Vector2[n * 4];
+            for (var i = 0; i < n; i++)
             {
-                var spray = (float)ParkDiamond.TrackSpray(i);
-                var inn = ParkDiamond.TrackInner(_park, spray);
-                var outt = ParkDiamond.TrackOuter(_park, spray);
+                var spray = HarborWall.WrapSpray(i);
+                var inn = HarborWall.TrackInner(_park, spray);
+                var outt = HarborWall.TrackOuter(_park, spray);
                 var inner = new Vector3((float)inn.X, 0f, (float)inn.Z);
                 var outer = new Vector3((float)outt.X, 0f, (float)outt.Z);
                 var u = i / (float)n;
@@ -569,14 +569,10 @@ namespace GrandSluggers.UnityClient
             for (var i = 0; i < n; i++)
             {
                 var a = i * 4;
-                var b = (i + 1) * 4;
-                // top (+Y): inner-top, outer-top, next
+                var b = ((i + 1) % n) * 4;
                 t = Quad(tris, t, a + 1, a + 3, b + 3, b + 1);
-                // inner face (toward the field)
                 t = Quad(tris, t, a + 0, a + 1, b + 1, b + 0);
-                // outer face
                 t = Quad(tris, t, a + 3, a + 2, b + 2, b + 3);
-                // bottom
                 t = Quad(tris, t, a + 2, a + 0, b + 0, b + 2);
             }
             var go = Look.Solid("Track", WarningTrack, verts, tris, dirt);
@@ -622,21 +618,8 @@ namespace GrandSluggers.UnityClient
 
         void DressBackstop()
         {
-            var steel = Look.Lit(new Color(0.22f, 0.24f, 0.26f), smooth: 0.28f);
-            var pad = Look.Lit(new Color(0.14f, 0.15f, 0.16f), smooth: 0.08f);
-            Cube(Backstop, "RailTop", new Vector3(0, 16.2f, -22f), new Vector3(42, 0.32f, 0.55f), steel);
-            Cube(Backstop, "RailBot", new Vector3(0, 1.15f, -22f), new Vector3(42, 0.4f, 0.7f), pad);
-            Cylinder(Backstop, "PostL", new Vector3(-21, 0, -22), 0.38f, 16.4f, steel);
-            Cylinder(Backstop, "PostR", new Vector3(21, 0, -22), 0.38f, 16.4f, steel);
-            for (var i = -5; i <= 5; i++)
-                Cylinder(Backstop, "Pipe" + i, new Vector3(i * 3.6f, 0, -22), 0.07f, 15.6f, steel);
-            for (var r = 0; r < 8; r++)
-                Cube(Backstop, "Bar" + r, new Vector3(0, 2.5f + r * 1.65f, -22f), new Vector3(40.5f, 0.07f, 0.1f), steel);
-            for (var i = 0; i < 5; i++)
-            {
-                Cylinder(Backstop, "WingL" + i, new Vector3(-22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
-                Cylinder(Backstop, "WingR" + i, new Vector3(22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
-            }
+            Wipe(Backstop);
+            if (HarborWall.HasNet) return;
         }
 
         void DressDugouts()
@@ -847,6 +830,7 @@ namespace GrandSluggers.UnityClient
             };
             var mark = Look.Unlit(Colors.Gold);
             var spark = Look.Unlit(Colors.Spark);
+            var ring = DropMesh("wall-ring", WallDress, "Ring", Vector3.zero, Quaternion.identity, Vector3.one, paint: true);
             var n = HarborPostcard.WallSegs;
             for (var i = 0; i < n; i++)
             {
@@ -860,14 +844,17 @@ namespace GrandSluggers.UnityClient
                 if (Vector3.Dot(outward, p) < 0f) outward = -outward;
                 var rot = Quaternion.LookRotation(outward, Vector3.up);
                 var w = (float)piece.Width;
-                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
-                Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
+                if (ring == null)
+                {
+                    Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
+                    Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
+                }
                 if (i % 2 == 0)
                     Box(WallDress, "Ad" + i, p - outward * (thick * 0.55f) + Vector3.up * (h * 0.62f),
                         new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
                 if (i % 3 == 0)
                     Box(WallDress, "Ivy" + i, p - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
-                if (i == n / 2)
+                if (Mathf.Abs((float)piece.Spray0) < 3f)
                 {
                     Box(WallDress, "MarkSpark", p - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
                     Box(WallDress, "MarkGold", p - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);

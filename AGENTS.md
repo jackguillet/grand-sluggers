@@ -57,7 +57,7 @@ Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 - **Look:** oversized cartoon toys, fat silhouettes, saturated toon, personality in extras (brim, crown, goggles, snout, horns). Heads read at catcher-eye. 10-foot UI.
 - **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type and **must not** grow captain extras.
 - **Characters are DCC assets.** Mesh + armature + painted weights (or Blender-authored rigid pieces) + clips. Unity: Humanoid only for T-pose bipeds; unique anatomy is **Generic** + clips on **that** rig. A posed unrigged GLB is a source, not a player mesh. Do not heat-weight it, freeze a SMR to hide tearing, or drive it with Rio eulers / `swing.fbx`. Spec: `docs/character-package.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. The original six stay on `hero-shared` until they are packages.
-- **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay.
+- **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay. Harbor kit meshes are authored in **Blender MCP** (`tools/blender/harbor_kit.py`, server in `.grok/config.toml`). Do not invent Unity-only park art when a kit slot exists.
 - **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.
 - Gameplay cameras look at the **chest / dirt / bag**, not the brim. Ashlord’s hat in the lens is a framing bug, not a scale bug.
