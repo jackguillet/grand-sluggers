@@ -89,4 +89,30 @@ public class ParkDiamondTests
             "stripe must cover fair plus foul grass, not clip the line");
         Assert.True(ParkDiamond.GrassHalfWidth(0) >= 40);
     }
+
+    [Fact]
+    public void OutfieldLawnFillsPastTheDirtArc()
+    {
+        Assert.False(ParkDiamond.OnDirt(50, 145), "past the curved apron");
+        Assert.True(50 < ParkDiamond.DirtMaxX && 145 < ParkDiamond.DirtMaxZ,
+            "this is the AABB hole the old CF stripes left as water");
+        Assert.True(ParkDiamond.LawnCovers(50, 145, Harbor),
+            "mow must cover the gap between the dirt arc and DirtMaxZ");
+        Assert.True(ParkDiamond.LawnCovers(70, 130, Harbor));
+        Assert.True(ParkDiamond.LawnCovers(0, 220, Harbor));
+        Assert.False(ParkDiamond.LawnCovers(0, Harbor.CenterFenceFt + 20, Harbor));
+        Assert.False(ParkDiamond.LawnCovers(HarborDugout.X, HarborDugout.Z, Harbor),
+            "dugout pits stay open");
+    }
+
+    [Fact]
+    public void BagAuthoringMatchesParkDiamond()
+    {
+        var repo = Directory.GetParent(_content.Root)?.FullName
+            ?? throw new InvalidOperationException("no repo root");
+        var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
+        Assert.Contains("BAG_SIZE = 4.0", py);
+        Assert.Equal(4f, ParkDiamond.BagSize);
+        Assert.True(ParkDiamond.BagIsABag());
+    }
 }

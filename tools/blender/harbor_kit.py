@@ -24,7 +24,7 @@ STAIR_COUNT = 5
 STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
-BAG_SIZE = 1.85
+BAG_SIZE = 4.0
 # OBR 2.02: 17″ front, 8½″ shoulders, point at origin (catcher).
 PLATE_HALF_W = 17.0 / 12.0 / 2.0
 PLATE_FRONT = 17.0 / 12.0
@@ -248,17 +248,18 @@ def build_bag(chalk, navy):
     for v in bm.verts:
         v.co.x *= BAG_SIZE
         v.co.y *= BAG_SIZE
-        v.co.z *= 0.46
-        v.co.z += 0.23
+        v.co.z *= 0.52
+        v.co.z += 0.26
     bmesh.ops.rotate(
         bm, verts=bm.verts, cent=(0, 0, 0),
         matrix=Matrix.Rotation(math.radians(45), 3, "Z"),
     )
-    bmesh.ops.bevel(bm, geom=bm.edges, offset=0.22, segments=5, profile=0.7, affect="EDGES")
+    bmesh.ops.bevel(bm, geom=bm.edges, offset=BAG_SIZE * 0.12, segments=5, profile=0.7, affect="EDGES")
+    puff_r = BAG_SIZE * 0.58
     for v in bm.verts:
         if v.co.z > 0.18:
             r = math.hypot(v.co.x, v.co.y)
-            v.co.z += 0.12 * max(0.0, 1.0 - (r / 1.05) ** 2)
+            v.co.z += 0.18 * max(0.0, 1.0 - (r / puff_r) ** 2)
     bm.normal_update()
     bm.to_mesh(mesh)
     bm.free()
@@ -268,7 +269,7 @@ def build_bag(chalk, navy):
 
     curve = bpy.data.curves.new("bag-piping", "CURVE")
     curve.dimensions = "3D"
-    curve.bevel_depth = 0.032
+    curve.bevel_depth = 0.055
     curve.bevel_resolution = 2
     curve.fill_mode = "FULL"
     spline = curve.splines.new("BEZIER")
@@ -278,7 +279,7 @@ def build_bag(chalk, navy):
     spline.use_cyclic_u = True
     for i, (x, y) in enumerate(pts):
         p = spline.bezier_points[i]
-        p.co = (x, y, 0.48)
+        p.co = (x, y, 0.58)
         p.handle_left_type = "VECTOR"
         p.handle_right_type = "VECTOR"
     piping = bpy.data.objects.new("bag-piping", curve)

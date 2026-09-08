@@ -30,8 +30,11 @@ public static class ParkDiamond
     /// <summary>Packed dirt circle around each bag. Alias of <see cref="BagPadR"/>.</summary>
     public const float BagDirtR = BagPadR;
 
-    /// <summary>White bag edge. Square, diamond-aligned. Entirely in fair; foul line is the outer edge.</summary>
-    public const float BagSize = 1.85f;
+    /// <summary>
+    /// White bag. Official is 15″; Harbor is a cartoon pillow that still
+    /// reads from the overhead. Entirely in fair; foul line is the outer edge.
+    /// </summary>
+    public const float BagSize = 4f;
     public const float BagY = 0.50f;
     const float InvSqrt2 = 0.70710678f;
 
@@ -71,7 +74,8 @@ public static class ParkDiamond
     public static bool PathIsNotALake() =>
         InnerHalf > 40f && PathWidth < 14f && PathWidth * 4 < BackR;
 
-    public static bool BagIsABag() => BagSize < 2.2f && BagPadR > BagSize && BagPadR < 16f;
+    public static bool BagIsABag() =>
+        BagSize >= 3.2f && BagSize <= 5f && BagPadR > BagSize * 2f && BagPadR < 16f;
 
     public static bool HomePackedIsAPad() => HomePackedR < 34f;
 
@@ -293,6 +297,18 @@ public static class ParkDiamond
 
     public static float GrassZ1(Park park) =>
         (float)park.CenterFenceFt - TrackWidth;
+
+    /// <summary>
+    /// Lawn slab covers this XZ. Dirt, track, and dugout pits sit on or
+    /// punch through it — the mow does not stop at <see cref="DirtMaxZ"/>.
+    /// </summary>
+    public static bool LawnCovers(double x, double z, Park park)
+    {
+        if (z < GrassZ0 || z > GrassZ1(park)) return false;
+        if (Math.Abs(x) > GrassHalfWidth((float)Math.Max(z, 0))) return false;
+        if (HarborDugout.InPitHole(x, z)) return false;
+        return true;
+    }
 
     public static bool TrackIsInsideTheWall(Park park) =>
         TrackWidth > 8f && TrackWidth < 24f

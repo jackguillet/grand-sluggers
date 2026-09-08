@@ -6,7 +6,9 @@ Dugouts are sunken pits with stairs, set back off the dirt (`HarborDugout` numbe
 The lawn is cut at those footprints so the pit shows. HarborKit instances the kit
 onto the empties. `home-plate` is the OBR 17″ pentagon (point toward the catcher).
 Batter’s boxes are 4′×6′ chalk lines, 6″ off the plate. `bag` is a
-diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
+4-ft diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
+The outfield wall is chord boxes along the park fence (connected, rounded),
+not instanced `wall-panel` slabs. Center-field bleachers are off.
 Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
 Diamond ground (paths, mound, striped grass, foul poles, warning track) is
 `ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
