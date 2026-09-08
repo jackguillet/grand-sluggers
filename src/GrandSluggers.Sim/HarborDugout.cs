@@ -20,6 +20,8 @@ public static class HarborDugout
     /// <summary>Two-thirds of the first home-to-bag span.</summary>
     public const float HalfAlong = 21.3f;
     public const float HalfDeep = 3.5f;
+    public const float AlongHome = Along0 - HalfAlong;
+    public const float AlongBag = Along0 + HalfAlong;
 
     /// <summary>Floor below field grade. Half-underground like a big-league pit.</summary>
     public const float PitDepth = 3.2f;
@@ -35,8 +37,11 @@ public static class HarborDugout
     /// <summary>Steps stay in the home-end opening, not a runway onto the grass.</summary>
     public const float FieldStairRun = 1.2f;
 
-    /// <summary>Rail (local −X of the kit) faces the diamond. 180° from the stands-facing drop.</summary>
-    public static float YawDeg(int sign) => sign > 0 ? -135f : -45f;
+    /// <summary>
+    /// 1B yaw 45°: local +Z runs home→bag, local −X is the field rail.
+    /// 3B is 135°. A 180° flip puts the mesh in the stands and opens the wall gap.
+    /// </summary>
+    public static float YawDeg(int sign) => sign > 0 ? 45f : 135f;
 
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 
@@ -94,26 +99,92 @@ public static class HarborDugout
 
     /// <summary>
     /// The short wall opens here: DressWall skips the hip boxes so the
-    /// padded rail is the wall along home-to-bag.
+    /// padded rail is the wall along home-to-bag. The rail <b>ends</b> stay
+    /// closed so the loop can pin a vertex on each end and resume flush.
     /// </summary>
     public static bool WallOpensHere(double x, double z)
     {
         var ax = Math.Abs(x);
         var along = (ax + z) * Inv;
         var into = (ax - z) * Inv;
-        return along > Along0 - HalfAlong + 1f
-            && along < Along0 + HalfAlong - 1f
+        return along > AlongHome + 0.5f
+            && along < AlongBag - 0.5f
             && Math.Abs(into - HarborWall.FoulOffset) < 5f
             && z < 95;
+    }
+
+    /// <summary>
+    /// Unity Y-yaw of local −X: x′ = −cos(yaw), z′ = sin(yaw). That vector
+    /// must point at the origin from the 1B rail — not into the stands.
+    /// </summary>
+    public static bool RailFacesTheDiamond()
+    {
+        var yaw = YawDeg(1) * Math.PI / 180.0;
+        var lx = -Math.Cos(yaw);
+        var lz = Math.Sin(yaw);
+        var rail = RailAt(1, Along0);
+        return lx * (-rail.X) + lz * (-rail.Z) > 0;
+    }
+
+    /// <summary>Local +Z (Unity forward) runs home→bag along the 45° line.</summary>
+    public static bool YawFollowsTheFoulLine()
+    {
+        var yaw = YawDeg(1) * Math.PI / 180.0;
+        var fx = Math.Sin(yaw);
+        var fz = Math.Cos(yaw);
+        return Math.Abs(fx - Inv) < 0.05 && Math.Abs(fz - Inv) < 0.05
+            && Math.Abs(YawDeg(-1) - 135f) < 0.1;
     }
 
     /// <summary>Front rail sits on the hip wall, pit behind it into foul.</summary>
     public static bool RailIsTheHipWall()
     {
         var into = Math.Abs(X - Z) / 1.41421356f;
+        var expectX = Inv * (Along0 + HarborWall.FoulOffset + HalfDeep);
+        var expectZ = Inv * (Along0 - HarborWall.FoulOffset - HalfDeep);
         return Math.Abs(into - (HarborWall.FoulOffset + HalfDeep)) < 0.8f
-            && Math.Abs(FasciaY - HarborWall.HipHeight) < 0.15f;
+            && Math.Abs(FasciaY - HarborWall.HipHeight) < 0.15f
+            && Math.Abs(X - expectX) < 0.15f
+            && Math.Abs(Z - expectZ) < 0.15f
+            && RailFacesTheDiamond()
+            && YawFollowsTheFoulLine();
     }
+
+    /// <summary>
+    /// Each rail end is a wall-loop vertex, and the wall resumes on one side
+    /// of it. Skipping a 16-ft segment that merely <i>touches</i> the opening
+    /// is what left the Play gap.
+    /// </summary>
+    public static bool WallMeetsTheRail(Park park)
+    {
+        var loop = HarborWall.Loop(park);
+        foreach (var sign in new[] { 1, -1 })
+        {
+            foreach (var along in new[] { AlongHome, AlongBag })
+            {
+                var r = RailAt(sign, along);
+                var pinned = false;
+                for (var i = 0; i < loop.Length; i++)
+                {
+                    var p = loop[i];
+                    if (Diamond.Dist(p.X, p.Z, r.X, r.Z) > 1.2) continue;
+                    var prev = loop[(i - 1 + loop.Length) % loop.Length];
+                    var next = loop[(i + 1) % loop.Length];
+                    if (WallOpensHere(prev.X, prev.Z) != WallOpensHere(next.X, next.Z))
+                        pinned = true;
+                }
+                if (!pinned) return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Kit local along (the larger XZ extent) must cover the hip-wall opening.
+    /// A 12-ft shed in a 42-ft hole is the same Play gap as a skipped segment.
+    /// </summary>
+    public static bool KitSpansTheOpening(float localAlongFt) =>
+        localAlongFt >= HalfAlong * 1.6f;
 
     /// <summary>Field-side lip is the hip wall, past the 11-ft dirt path.</summary>
     public static bool IsSetBackFromTheDirt() =>
