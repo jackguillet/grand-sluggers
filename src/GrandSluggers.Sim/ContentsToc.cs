@@ -25,6 +25,8 @@ public static class ContentsToc
     public static readonly IReadOnlyList<Chapter> Chapters = Build();
 
     public const string Picture = "contents";
+    /// <summary>Two intro lines. The TOC is the page.</summary>
+    public const float IntroBandMul = 2.2f;
 
     static IReadOnlyList<Chapter> Build()
     {
@@ -51,7 +53,7 @@ public static class ContentsToc
     public static (float X, float Y, float W, float H) Still(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
+        var lineBand = HowToPlay.KidLineH * IntroBandMul;
         return (board.X, board.Y, board.W, board.H - lineBand);
     }
 
@@ -60,7 +62,7 @@ public static class ContentsToc
     {
         var still = Still(screenW, screenH);
         var rows = Math.Max(1, Chapters.Count);
-        var h = Math.Min(still.H - 24f, 20f + rows * 38f);
+        var h = Math.Min(still.H - 24f, 20f + rows * 48f);
         return (still.X + 16f, still.Y + 16f, still.W - 32f, h);
     }
 
@@ -76,7 +78,7 @@ public static class ContentsToc
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
+        var h = HowToPlay.KidLineH * IntroBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }
