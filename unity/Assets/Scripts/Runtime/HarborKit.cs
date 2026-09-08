@@ -1342,10 +1342,11 @@ namespace GrandSluggers.UnityClient
                 for (var i = 0; i < mats.Length; i++)
                 {
                     var n = mats[i] != null ? mats[i].name.ToLowerInvariant() : "";
-                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia") || n.Contains("rail"))
+                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia"))
                         next[i] = _kitGold;
+                    else if (n.Contains("mesh") || n.Contains("screen")) next[i] = _kitPost;
                     else if (n.Contains("roof")) next[i] = _kitRoof;
-                    else if (n.Contains("pad")) next[i] = _kitPad;
+                    else if (n.Contains("pad") || n.Contains("rail")) next[i] = _kitPad;
                     else if (n.Contains("post")) next[i] = _kitPost;
                     else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
                     else if (n.Contains("chalk") || n.Contains("cream")) next[i] = _kitChalk;

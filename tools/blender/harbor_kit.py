@@ -110,62 +110,80 @@ def bevel(ob, width=0.06, segs=2):
     bpy.ops.object.modifier_apply(modifier="bev")
 
 
-def stairs(name, wood, conc, y_lip, sign):
-    """Steps down from field into the pit. sign +1 walks toward +Y (into the box)."""
+def stairs(name, conc, y_lip, sign):
+    """Steps down from field into the pit at one end."""
     step_h = PIT / STAIR_COUNT
     pieces = []
     for i in range(STAIR_COUNT):
         z_c = -step_h * (i + 0.5)
-        y_c = y_lip + sign * (0.12 + i * STAIR_DEPTH)
+        y_c = y_lip + sign * (0.15 + i * STAIR_DEPTH)
         pieces.append(
             prim("cube", name + "S" + str(i), (0, y_c, z_c),
-                 (HALF_DEEP * 2 - 0.7, STAIR_DEPTH + 0.04, step_h), conc)
+                 (HALF_DEEP * 2 - 1.0, STAIR_DEPTH + 0.04, step_h), conc)
         )
     return pieces
 
 
-def build_dugout(name, wood, roof, gold, pad, post, conc, well, flip_x):
+def build_dugout(name, wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x):
+    """MLB pit: sunken bench, padded rail, mesh front, roof over the back. Open to the field on -X."""
     field_x = -HALF_DEEP
     back_x = HALF_DEEP
     y0 = -HALF_ALONG
     y1 = HALF_ALONG
     along = HALF_ALONG * 2
     deep = HALF_DEEP * 2
-    wall_h = PIT + 0.15
-    stair_cut = STAIR_COUNT * STAIR_DEPTH * 2 + 0.8
+    rail_y = 3.15
+    roof_y = 7.2
+    gate = 5.2
+    mesh_y0 = y0 + gate
+    mesh_along = along - gate - 0.4
+    mesh_mid = (mesh_y0 + y1) * 0.5
     pieces = [
-        prim("cube", name + "Floor", (0, 0, -PIT), (deep + 1.0, along + 0.6, 0.22), pad),
-        prim("cube", name + "BackWall", (back_x, 0, -PIT + wall_h * 0.5), (0.42, along - 0.4, wall_h), well),
-        prim("cube", name + "FrontWall", (field_x, 0, -PIT + wall_h * 0.42),
-             (0.38, along - stair_cut, wall_h * 0.84), well),
-        prim("cylinder", name + "PostFH", (field_x, y0 + 0.55, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostFF", (field_x, y1 - 0.55, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostBH", (back_x, y0 + 0.55, -PIT + (4.2 + PIT) * 0.5),
-             (0.52, 0.52, 4.2 + PIT), post),
-        prim("cylinder", name + "PostBF", (back_x, y1 - 0.55, -PIT + (4.2 + PIT) * 0.5),
-             (0.52, 0.52, 4.2 + PIT), post),
-        prim("cube", name + "Back", (back_x, 0, 2.05), (0.42, along - 0.5, 4.0), wood),
-        prim("cube", name + "Roof", (0, 0, 4.32), (deep + 1.8, along + 1.4, 0.28), roof),
-        prim("cube", name + "Ridge", (0, 0, 4.52), (1.1, along + 0.6, 0.22), roof),
-        prim("cube", name + "Fascia", (field_x, 0, 4.18), (0.34, along + 0.5, 0.30), gold),
-        prim("cube", name + "Rail", (field_x, 0, 1.02), (0.24, along - stair_cut + 0.4, 0.32), gold),
-        prim("cube", name + "Bench", (back_x - 1.55, 0, -PIT + 0.88), (1.5, along - 3.2, 0.24), wood),
-        prim("cylinder", name + "LegH", (back_x - 1.55, y0 + 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
-        prim("cylinder", name + "LegF", (back_x - 1.55, y1 - 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
+        prim("cube", name + "Floor", (0.2, 0, -PIT), (deep + 0.5, along + 0.5, 0.22), pad),
+        prim("cube", name + "BackWall", (back_x, 0, (-PIT + roof_y) * 0.5),
+             (0.38, along + 0.2, roof_y + PIT), well),
+        prim("cube", name + "EndH", (0, y0, (-PIT + rail_y) * 0.5),
+             (deep + 0.2, 0.34, rail_y + PIT), well),
+        prim("cube", name + "EndF", (0, y1, (-PIT + roof_y) * 0.5),
+             (deep + 0.2, 0.34, roof_y + PIT), well),
+        # Lower pad under the mesh (sill).
+        prim("cube", name + "Sill", (field_x, mesh_mid, -PIT + 0.35),
+             (0.42, mesh_along, 0.7), pad),
+        # Hip rail + ad fascia, like the photo.
+        prim("cube", name + "RailPad", (field_x, mesh_mid, rail_y),
+             (0.58, mesh_along + 0.3, 0.48), pad),
+        prim("cube", name + "Fascia", (field_x - 0.28, mesh_mid, rail_y + 0.42),
+             (0.16, mesh_along + 0.15, 0.62), gold),
+        prim("cube", name + "Roof", (0.35, 0, roof_y),
+             (deep + 1.4, along + 0.7, 0.24), roof),
+        prim("cube", name + "Bench", (back_x - 1.45, 0, -PIT + 0.82),
+             (1.55, along - 4.0, 0.22), wood),
+        prim("cylinder", name + "LegH", (back_x - 1.45, y0 + 3.0, -PIT + 0.38),
+             (0.22, 0.22, 0.72), post),
+        prim("cylinder", name + "LegF", (back_x - 1.45, y1 - 3.0, -PIT + 0.38),
+             (0.22, 0.22, 0.72), post),
     ]
-    pieces.extend(stairs(name + "H", wood, conc, y0, 1))
-    pieces.extend(stairs(name + "F", wood, conc, y1, -1))
-    step_h = PIT / STAIR_COUNT
-    step_d = FIELD_STAIR_RUN / STAIR_COUNT
-    for i in range(STAIR_COUNT):
-        t = 0 if STAIR_COUNT == 1 else i / (STAIR_COUNT - 1)
-        z_c = -step_h * (i + 0.5)
-        x_c = field_x - FIELD_STAIR_RUN * (1 - t)
+    # Mesh screen: vertical bars + two rails. Opening at the home end for stairs.
+    n_bars = 11
+    bar_h = rail_y - 0.4 + PIT - 0.5
+    bar_z = -PIT + 0.5 + bar_h * 0.5
+    for i in range(n_bars):
+        t = i / (n_bars - 1) if n_bars > 1 else 0.5
+        yy = mesh_y0 + 0.4 + t * (mesh_along - 0.8)
         pieces.append(
-            prim("cube", name + "FS" + str(i), (x_c, y0 + 2.4, z_c),
-                 (step_d + 0.12, 3.4, step_h), conc)
+            prim("cube", name + "MeshV" + str(i), (field_x - 0.02, yy, bar_z),
+                 (0.06, 0.08, bar_h), mesh_mat)
         )
-    bevel(pieces[8], 0.08, 2)
+    pieces.append(
+        prim("cube", name + "MeshH0", (field_x - 0.02, mesh_mid, -PIT + 1.15),
+             (0.05, mesh_along - 0.6, 0.06), mesh_mat)
+    )
+    pieces.append(
+        prim("cube", name + "MeshH1", (field_x - 0.02, mesh_mid, rail_y - 0.85),
+             (0.05, mesh_along - 0.6, 0.06), mesh_mat)
+    )
+    pieces.extend(stairs(name + "H", conc, y0, 1))
+    bevel(pieces[7], 0.06, 2)
     dug = join_in_place(name, pieces)
     if flip_x:
         bpy.ops.object.select_all(action="DESELECT")
@@ -574,8 +592,9 @@ def build():
     cap = mat("cap", (1.0, 0.80, 0.25))
     chalk = mat("chalk", (0.96, 0.91, 0.80))
     navy = mat("navy", (0.06, 0.18, 0.42))
-    build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
-    build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
+    mesh_mat = mat("mesh", (0.08, 0.10, 0.12))
+    build_dugout("dugout-1b", wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x=False)
+    build_dugout("dugout-3b", wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x=True)
     build_wall(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
