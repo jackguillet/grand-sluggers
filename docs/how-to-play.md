@@ -128,7 +128,7 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 - After a take or swing-and-miss the **catcher guns**. Arm **2B** (default on a steal of second) and **South**. Early throw that beats the runner is **CAUGHT STEALING**; late is **STOLEN BASE**. Dead stick: CPU catcher still guns. Take the stick and you own it.
 - **Mash South / Space** after contact — **dash**. The play stays live until every **live** runner has been **on a bag for 1 second**. An out with nobody left (throw-out at first, empty bases) ends it there. 3 outs too. Picking up the ball does not end a race. Sac fly: they leave on the catch if you sent them.
 - **West / South** near the bag — slide
-- **Close play** at third or home — the camera sits on the bag. First **South / left click** after the icon wins. Runner is safe if offense is first; out if defense is first. CPU mashes on a delay from Run / Field.
+- **Close play** at third or home — the camera sits on the bag. First **South / left click** after the icon wins. Runner is safe if offense is first; out if defense is first. CPU mashes on a delay from Run / Field. A bang-bang beat (throw to first they just make, or the mash) pops a small **SAFE**.
 - **Tag.** Have the ball and touch a runner off a bag. That's a tag. On a bag they are safe. Force still needs a throw.
 
 Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags. Mini diamond + banner match the out/safe.

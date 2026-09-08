@@ -181,14 +181,14 @@ public static class HowToPlay
             "The pictures are the diamond. LB all advance. RB all return. Both halt.",
             "D-pad 1B 2B 3B picks the highlighted selected runner. L3 steal. No steal home.",
             "Dead stick    the catcher still guns. Early throw    CAUGHT STEALING.",
-            "Fly: hold, then tag up. Close play and tag are the pictures below. First South wins. Have the ball and touch a runner off a bag to tag.",
+            "Fly: hold, then tag up. Close play and tag are the pictures below. First South wins. A bang-bang SAFE pops small. Have the ball and touch a runner off a bag to tag.",
         ],
         [
             "Hit it and you run. Live runners must settle on a bag for a second. An out with nobody left ends it. 3 outs too.",
             "The pictures are the diamond. , all advance. . all return. / halts both.",
             "1 2 3 picks the highlighted selected runner. Z steal. No steal home.",
             "Don't move: the catcher still guns. Early throw    CAUGHT STEALING.",
-            "Fly: hold, then tag up. Close play and tag are the pictures below. First Space / left click wins. Touch a runner off a bag to tag.",
+            "Fly: hold, then tag up. Close play and tag are the pictures below. First Space / left click wins. A bang-bang SAFE pops small. Touch a runner off a bag to tag.",
         ]),
         new("fielding", "Fielding", "fielding",
         [

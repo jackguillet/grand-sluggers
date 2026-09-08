@@ -60,5 +60,8 @@ public class PlayStampTests
         Assert.True(PlayStamp.Scale(PlayKind.Strikeout) > PlayStamp.Scale(PlayKind.TakeStrike));
         Assert.True(PlayStamp.PopSeconds(PlayKind.TakeBall) < PlayStamp.PopSeconds(PlayKind.FlyOut));
         Assert.InRange(PlayStamp.Scale(PlayKind.Walk), 0.6, 0.85);
+        Assert.Equal("SAFE", PlayStamp.Safe);
+        Assert.True(PlayStamp.SafeScale < PlayStamp.Scale(PlayKind.Single));
+        Assert.True(PlayStamp.SafeHoldSeconds(feel) < PlayStamp.HoldSeconds(PlayKind.Single, feel));
     }
 }

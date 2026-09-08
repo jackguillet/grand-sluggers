@@ -120,6 +120,7 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("abilities").Lines, l => l.Contains("field verb"));
         Assert.Contains(HowToPlay.Must("items").Lines, l => l.Contains("banana"));
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("Close play"));
+        Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("SAFE"));
         Assert.Contains(HowToPlay.Must("running").Lines, l => l.Contains("touch") && l.Contains("tag"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("tag") && l.Contains("throw"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("attack"));
