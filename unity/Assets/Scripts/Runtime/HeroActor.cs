@@ -924,9 +924,12 @@ namespace GrandSluggers.UnityClient
 
         Pose Locomotion(Pose pose)
         {
-            if (pose is not (Pose.Idle or Pose.Field)) return pose;
-            if (_speed > 14f) return Pose.Run;
-            if (_speed > 3.5f) return Pose.Walk;
+            if (pose is not (Pose.Idle or Pose.Field or Pose.Walk or Pose.Run))
+                return pose;
+            if (_speed > CartoonJuice.RunFtPerSec) return Pose.Run;
+            if (_speed > CartoonJuice.WalkFtPerSec) return Pose.Walk;
+            if (pose is Pose.Walk or Pose.Run)
+                return _heldGlove ? Pose.Field : Pose.Idle;
             return pose;
         }
 

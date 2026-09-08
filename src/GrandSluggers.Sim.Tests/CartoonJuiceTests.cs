@@ -20,9 +20,14 @@ public class CartoonJuiceTests
     [Fact]
     public void ChaseRunsUntilTheGloveIsClose()
     {
-        Assert.True(CartoonJuice.ChaseIsARun(caught: false, distToBall: 40));
-        Assert.False(CartoonJuice.ChaseIsARun(caught: false, distToBall: 4));
-        Assert.False(CartoonJuice.ChaseIsARun(caught: true, distToBall: 40));
+        Assert.True(CartoonJuice.ChaseIsARun(caught: false, distToPlant: 40));
+        Assert.False(CartoonJuice.ChaseIsARun(caught: false, distToPlant: 4),
+            "under the landing ring is waiting, not a run");
+        Assert.False(CartoonJuice.ChaseIsARun(caught: true, distToPlant: 40));
+        Assert.True(CartoonJuice.StandingStill(0));
+        Assert.True(CartoonJuice.StandingStill(2));
+        Assert.False(CartoonJuice.StandingStill(8));
+        Assert.False(CartoonJuice.StandingStill(CartoonJuice.RunFtPerSec));
     }
 
     [Fact]

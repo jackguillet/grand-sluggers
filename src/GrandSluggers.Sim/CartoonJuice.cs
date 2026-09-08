@@ -10,6 +10,8 @@ public static class CartoonJuice
     public const float SolidPunch = 10f;
     public const float CheapPunch = 6f;
     public const double RunFromBallFt = 12;
+    public const double WalkFtPerSec = 3.5;
+    public const double RunFtPerSec = 14;
 
     public static bool DirtPuff(ContactQuality quality) =>
         quality is ContactQuality.Cheap or ContactQuality.Solid or ContactQuality.Perfect;
@@ -22,8 +24,15 @@ public static class CartoonJuice
         _ => 0
     };
 
-    public static bool ChaseIsARun(bool caught, double distToBall) =>
-        !caught && distToBall > RunFromBallFt;
+    /// <summary>
+    /// Run cycle only while closing on the plant (landing in the air, hop on the dirt).
+    /// Dist to the live ball while a fly is up is not a chase — the glove waits on the ring.
+    /// </summary>
+    public static bool ChaseIsARun(bool caught, double distToPlant) =>
+        !caught && distToPlant > RunFromBallFt;
+
+    /// <summary>Limb stride follows feet. Waiting under a fly is standing.</summary>
+    public static bool StandingStill(double speedFtPerSec) => speedFtPerSec <= WalkFtPerSec;
 
     /// <summary>Gold/purple laser vs muddy. RGB 0–1.</summary>
     public static (double R, double G, double B) ThrowRgb(Chemistry rel) => rel switch
