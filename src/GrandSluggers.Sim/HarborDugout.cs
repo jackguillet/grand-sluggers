@@ -63,6 +63,9 @@ public static class HarborDugout
 
     public static bool HasStairs() => StairCount >= 4 && StairDepth > 0.4f;
 
+    /// <summary>MLB pit: padded rail and mesh front, not a wooden shed.</summary>
+    public static bool HasMeshFront() => FasciaY > 2.6f && FasciaY < 4.0f && PitDepth >= 2f;
+
     /// <summary>
     /// Scoop / plate cameras must not sit inside either dugout box (roof included).
     /// </summary>

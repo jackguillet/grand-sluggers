@@ -68,6 +68,7 @@ public class HarborPostcardTests
             $"field lip {HarborDugout.FieldX(HarborDugout.X)} still on the path");
         Assert.True(HarborDugout.IsSunken());
         Assert.True(HarborDugout.HasStairs());
+        Assert.True(HarborDugout.HasMeshFront(), "dugout is a padded rail + mesh pit, not a shed");
         Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
         Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
         Assert.True(HarborDugout.Z > 28);
