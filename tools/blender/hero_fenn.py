@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Elder Fenn: keep the authored turtle, skin it to posed named bones.
+"""Elder Fenn — cartoon Generic package, rebuilt from volumes.
 
-The posed GLB/FBX is the identity (shell, face, scarf, cane). Bones are
-placed *in that rest pose* and each vert gets one bone at 100% — no heat
-weight, no sphere replacement, no rigid statue.
+Why the posed turtle is gone: a fused mid-action mesh cannot take weights.
+Faces that span two bones tear. Heat-weight inverts the shell. A freeze is a
+statue. Unity Generic wants mesh + armature + weights authored in the DCC
+in the rest pose (Unity 6 Creating models for animation / Generic animations).
+
+Construction (same as hero_shared_blockout.py):
+  - Bone names from data/art/rig.json
+  - Each piece is a closed volume, 100% one vertex group
+  - Pieces overlap at joints so there is no hole
+  - Shell lives only on `head`. Arms never own a shell vert.
+  - Rest pose = idle. CharacterMotion flexes locally on that bind.
+  - FBX Generic, axis_forward=-Z, albedo sidecar (URP Lit)
 
   /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
-    --src scratchpad/fenn-src/fenn-source.fbx \
     --out unity/Assets/Art/Characters/fenn/fenn.fbx \
-    --albedo scratchpad/fenn-src/fenn-albedo.png \
+    --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
     --resources unity/Assets/Resources/Art/Characters/fenn
 """
 from __future__ import annotations
@@ -30,13 +38,76 @@ BONES = [
     "bat", "glove",
 ]
 
+TILE = {
+    "shell": (0, 3), "scute": (1, 3), "flesh": (2, 3), "cream": (3, 3),
+    "scarf": (0, 2), "wood": (1, 2), "white": (2, 2), "ink": (3, 2),
+    "cheek": (0, 1), "gold": (1, 1), "beak": (2, 1),
+}
+
+RGB = {
+    "shell": (0.42, 0.58, 0.36),
+    "scute": (0.30, 0.44, 0.26),
+    "flesh": (0.46, 0.66, 0.40),
+    "cream": (0.91, 0.86, 0.72),
+    "scarf": (0.62, 0.38, 0.24),
+    "wood": (0.46, 0.28, 0.14),
+    "white": (0.98, 0.98, 0.96),
+    "ink": (0.08, 0.07, 0.07),
+    "cheek": (0.90, 0.52, 0.40),
+    "gold": (0.92, 0.72, 0.28),
+    "beak": (0.86, 0.74, 0.42),
+}
+
 
 def nuke():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
-    for coll in (bpy.data.meshes, bpy.data.armatures, bpy.data.actions):
+    for coll in (bpy.data.meshes, bpy.data.armatures, bpy.data.materials, bpy.data.images, bpy.data.actions):
         for item in list(coll):
             coll.remove(item)
+
+
+def mat(name, color):
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    bsdf = m.node_tree.nodes.get("Principled BSDF")
+    if bsdf:
+        bsdf.inputs["Base Color"].default_value = (*color, 1.0)
+        bsdf.inputs["Roughness"].default_value = 0.62
+    return m
+
+
+def mesh_prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0), seg=28):
+    if kind == "uv_sphere":
+        bpy.ops.mesh.primitive_uv_sphere_add(
+            radius=0.5, location=loc, segments=seg, ring_count=max(14, seg // 2)
+        )
+    elif kind == "cylinder":
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc, vertices=seg)
+    else:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
+    ob = bpy.context.active_object
+    ob.name = name
+    ob.scale = scale
+    ob.rotation_euler = rot
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    for p in ob.data.polygons:
+        p.use_smooth = True
+    ob.data.materials.append(material)
+    return ob
+
+
+def uv_tile(ob, key):
+    col, row = TILE[key]
+    me = ob.data
+    if not me.uv_layers:
+        me.uv_layers.new(name="UVMap")
+    layer = me.uv_layers[0]
+    pad = 0.04
+    cu = (col + 0.5) / 4.0
+    cv = (row + 0.5) / 4.0
+    for loop in me.loops:
+        layer.data[loop.index].uv = (cu, cv)
 
 
 def add_bone(arm, name, head, tail, parent=None):
@@ -49,97 +120,143 @@ def add_bone(arm, name, head, tail, parent=None):
     return b
 
 
-def import_turtle(src: Path):
-    bpy.ops.import_scene.fbx(filepath=str(src))
-    mesh = next(o for o in bpy.data.objects if o.type == "MESH")
-    # Drop the T-pose armature that came with the statue — it does not match this pose.
-    for o in list(bpy.data.objects):
-        if o.type == "ARMATURE":
-            bpy.data.objects.remove(o, do_unlink=True)
-    mesh.parent = None
-    mesh.matrix_parent_inverse.identity()
-    mesh.name = "fenn"
-    return mesh
+def skin(ob, arm_ob, bone):
+    """Vertex-group skin, not bone-parent. Unity imports SkinnedMeshRenderer."""
+    ob.parent = arm_ob
+    ob.parent_type = "OBJECT"
+    vg = ob.vertex_groups.new(name=bone)
+    vg.add(list(range(len(ob.data.vertices))), 1.0, "REPLACE")
+    mod = ob.modifiers.new("Armature", "ARMATURE")
+    mod.object = arm_ob
+    mod.use_vertex_groups = True
+    mod.use_deform_preserve_volume = False
+
+
+def write_albedo(path: Path):
+    size = 1024
+    n = 4
+    tile = size // n
+    img = bpy.data.images.new("fenn-albedo", width=size, height=size, alpha=False)
+    px = [0.04, 0.04, 0.05, 1.0] * (size * size)
+    for key, (col, row) in TILE.items():
+        r, g, b = RGB[key]
+        x0, y0 = col * tile, row * tile
+        for y in range(y0 + 6, y0 + tile - 6):
+            for x in range(x0 + 6, x0 + tile - 6):
+                i = (y * size + x) * 4
+                px[i : i + 4] = [r, g, b, 1.0]
+        if key == "shell":
+            cr, cg, cb = RGB["scute"]
+            for cy, cx in ((0.35, 0.35), (0.65, 0.38), (0.48, 0.68)):
+                cxp = int(x0 + cx * tile)
+                cyp = int(y0 + cy * tile)
+                rad = tile // 7
+                for y in range(cyp - rad, cyp + rad):
+                    for x in range(cxp - rad, cxp + rad):
+                        if 0 <= x < size and 0 <= y < size and (x - cxp) ** 2 + (y - cyp) ** 2 <= rad * rad:
+                            i = (y * size + x) * 4
+                            px[i : i + 4] = [cr, cg, cb, 1.0]
+    img.pixels = px
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.filepath_raw = str(path)
+    img.file_format = "PNG"
+    img.save()
+    print("albedo", path, path.stat().st_size)
 
 
 def build_armature():
-    """Bones sit in the crouched turtle, not a T-pose."""
     arm_data = bpy.data.armatures.new("fenn-data")
     arm_ob = bpy.data.objects.new("fenn", arm_data)
     bpy.context.collection.objects.link(arm_ob)
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="EDIT")
 
-    add_bone(arm_data, "root", (0.0, 0.0, 0.0), (0.0, 0.0, 0.22))
-    add_bone(arm_data, "torso", (0.0, 0.08, 1.35), (0.0, 0.05, 2.45), "root")
-    add_bone(arm_data, "head", (-0.1, -0.35, 3.15), (-0.14, -0.55, 4.55), "torso")
-    add_bone(arm_data, "lUpper", (-0.85, -0.08, 2.25), (-1.50, -0.20, 1.15), "torso")
-    add_bone(arm_data, "lFore", (-1.50, -0.20, 1.15), (-1.80, -0.13, 0.38), "lUpper")
-    add_bone(arm_data, "rUpper", (0.85, 0.06, 2.28), (1.50, 0.10, 1.18), "torso")
-    add_bone(arm_data, "rFore", (1.50, 0.10, 1.18), (1.56, -0.15, 0.50), "rUpper")
-    add_bone(arm_data, "lThigh", (-0.48, 0.18, 1.00), (-0.62, 0.26, 0.42), "root")
-    add_bone(arm_data, "lShin", (-0.62, 0.26, 0.42), (-0.70, 0.30, 0.04), "lThigh")
-    add_bone(arm_data, "rThigh", (0.48, -0.18, 0.98), (0.68, -0.40, 0.40), "root")
-    add_bone(arm_data, "rShin", (0.68, -0.40, 0.40), (0.75, -0.52, 0.04), "rThigh")
-    add_bone(arm_data, "bat", (1.20, 0.90, 1.70), (1.40, 2.10, 1.40), "rFore")
-    add_bone(arm_data, "glove", (-1.80, -0.13, 0.38), (-1.95, -0.10, 0.10), "lFore")
+    # Blender Z-up, faces +Y. Standing idle. Arms hang so CharacterMotion X flexes.
+    add_bone(arm_data, "root", (0, 0, 0), (0, 0, 0.22))
+    add_bone(arm_data, "torso", (0, 0.10, 0.95), (0, 0.14, 1.85), "root")
+    add_bone(arm_data, "head", (0, 0.38, 2.15), (0, 0.50, 3.20), "torso")
+    add_bone(arm_data, "lUpper", (-0.90, 0.16, 1.70), (-1.05, 0.26, 1.12), "torso")
+    add_bone(arm_data, "lFore", (-1.05, 0.26, 1.12), (-1.10, 0.38, 0.62), "lUpper")
+    add_bone(arm_data, "rUpper", (0.90, 0.16, 1.70), (1.05, 0.26, 1.12), "torso")
+    add_bone(arm_data, "rFore", (1.05, 0.26, 1.12), (1.10, 0.38, 0.62), "rUpper")
+    add_bone(arm_data, "lThigh", (-0.48, 0.12, 0.88), (-0.52, 0.20, 0.46), "root")
+    add_bone(arm_data, "lShin", (-0.52, 0.20, 0.46), (-0.54, 0.34, 0.12), "lThigh")
+    add_bone(arm_data, "rThigh", (0.48, 0.12, 0.88), (0.52, 0.20, 0.46), "root")
+    add_bone(arm_data, "rShin", (0.52, 0.20, 0.46), (0.54, 0.34, 0.12), "rThigh")
+    add_bone(arm_data, "bat", (1.20, 0.48, 0.68), (1.20, 0.55, 0.05), "rFore")
+    add_bone(arm_data, "glove", (-1.20, 0.48, 0.68), (-1.20, 0.55, 0.22), "lFore")
 
     bpy.ops.object.mode_set(mode="OBJECT")
     return arm_ob, arm_data
 
 
-def hard_skin(mesh, arm_ob):
-    """One bone per vert. Shell/head never share an arm weight."""
-    mw = mesh.matrix_world
+def build_scene():
+    nuke()
+    mats = {k: mat(k, RGB[k]) for k in RGB}
+    arm_ob, arm_data = build_armature()
+    pieces = []
+
+    def add(kind, name, loc, scale, key, bone, rot=(0.0, 0.0, 0.0)):
+        ob = mesh_prim(kind, name, loc, scale, mats[key], rot)
+        uv_tile(ob, key)
+        pieces.append((ob, bone))
+        return ob
+
+    # Cream body. Unique package is not Silhouette-squashed — author the cut here.
+    add("uv_sphere", "Hip", (0.00, 0.10, 0.90), (1.55, 1.25, 0.95), "cream", "root")
+    add("uv_sphere", "torsoMesh", (0.00, 0.22, 1.50), (1.38, 1.12, 1.22), "cream", "torso")
+    add("uv_sphere", "Belly", (0.00, 0.62, 1.38), (1.12, 0.68, 0.95), "cream", "torso")
+    add("uv_sphere", "Scarf", (0.00, 0.40, 1.98), (1.42, 1.12, 0.36), "scarf", "torso")
+    add("uv_sphere", "Knot", (0.00, 0.98, 1.82), (0.38, 0.26, 0.22), "scarf", "torso")
+
+    # Face in front of the shell-brim. All of this is 100% head.
+    add("uv_sphere", "headMesh", (0.00, 0.62, 2.48), (1.72, 1.58, 1.58), "flesh", "head")
+    add("uv_sphere", "Snout", (0.00, 1.28, 2.32), (0.98, 0.68, 0.64), "flesh", "head")
+    add("uv_sphere", "Beak", (0.00, 1.56, 2.18), (0.48, 0.32, 0.26), "beak", "head")
+    add("uv_sphere", "CheekL", (-0.55, 1.08, 2.32), (0.48, 0.38, 0.38), "cheek", "head")
+    add("uv_sphere", "CheekR", (0.55, 1.08, 2.32), (0.48, 0.38, 0.38), "cheek", "head")
+    add("uv_sphere", "WhiteL", (-0.34, 1.28, 2.62), (0.42, 0.15, 0.48), "white", "head")
+    add("uv_sphere", "WhiteR", (0.34, 1.28, 2.62), (0.42, 0.15, 0.48), "white", "head")
+    add("uv_sphere", "EyeL", (-0.34, 1.38, 2.72), (0.20, 0.10, 0.24), "ink", "head")
+    add("uv_sphere", "EyeR", (0.34, 1.38, 2.72), (0.20, 0.10, 0.24), "ink", "head")
+    add("cube", "BrowL", (-0.36, 1.22, 2.82), (0.34, 0.08, 0.08), "ink", "head", rot=(0, 0, math.radians(8)))
+    add("cube", "BrowR", (0.36, 1.22, 2.82), (0.34, 0.08, 0.08), "ink", "head", rot=(0, 0, math.radians(-8)))
+    add("uv_sphere", "Mouth", (0.00, 1.32, 2.10), (0.48, 0.12, 0.10), "ink", "head")
+
+    add("uv_sphere", "shell", (0.00, -0.38, 2.68), (2.10, 1.65, 1.22), "shell", "head")
+    add("uv_sphere", "shellBrim", (0.00, 0.12, 2.22), (2.10, 1.48, 0.28), "shell", "head")
+    add("cylinder", "ScuteA", (0.00, -0.82, 3.10), (0.68, 0.68, 0.14), "scute", "head", rot=(math.radians(28), 0, 0))
+    add("cylinder", "ScuteB", (-0.58, -0.58, 2.88), (0.46, 0.46, 0.12), "scute", "head", rot=(math.radians(30), 0, math.radians(-22)))
+    add("cylinder", "ScuteC", (0.58, -0.58, 2.88), (0.46, 0.46, 0.12), "scute", "head", rot=(math.radians(30), 0, math.radians(22)))
+
+    add("uv_sphere", "lUpperMesh", (-0.96, 0.20, 1.42), (0.62, 0.62, 0.90), "flesh", "lUpper")
+    add("uv_sphere", "lForeMesh", (-1.08, 0.30, 0.86), (0.52, 0.52, 0.68), "flesh", "lFore")
+    add("uv_sphere", "lHand", (-1.12, 0.42, 0.52), (0.48, 0.42, 0.36), "flesh", "lFore")
+    add("uv_sphere", "rUpperMesh", (0.96, 0.20, 1.42), (0.62, 0.62, 0.90), "flesh", "rUpper")
+    add("uv_sphere", "rForeMesh", (1.08, 0.30, 0.86), (0.52, 0.52, 0.68), "flesh", "rFore")
+    add("uv_sphere", "rHand", (1.12, 0.42, 0.52), (0.48, 0.42, 0.36), "flesh", "rFore")
+
+    add("uv_sphere", "lThighMesh", (-0.50, 0.16, 0.68), (0.68, 0.68, 0.68), "flesh", "lThigh")
+    add("uv_sphere", "lShinMesh", (-0.54, 0.28, 0.30), (0.56, 0.56, 0.44), "flesh", "lShin")
+    add("uv_sphere", "lFoot", (-0.54, 0.56, 0.12), (0.68, 0.95, 0.28), "cream", "lShin")
+    add("uv_sphere", "rThighMesh", (0.50, 0.16, 0.68), (0.68, 0.68, 0.68), "flesh", "rThigh")
+    add("uv_sphere", "rShinMesh", (0.54, 0.28, 0.30), (0.56, 0.56, 0.44), "flesh", "rShin")
+    add("uv_sphere", "rFoot", (0.54, 0.56, 0.12), (0.68, 0.95, 0.28), "cream", "rShin")
+
+    add("cylinder", "Cane", (1.20, 0.50, 0.30), (0.10, 0.10, 1.15), "wood", "bat")
+    add("uv_sphere", "CaneKnob", (1.20, 0.50, 0.86), (0.18, 0.18, 0.18), "wood", "bat")
+    add("uv_sphere", "CaneTip", (1.20, 0.50, -0.24), (0.13, 0.13, 0.13), "gold", "bat")
+
     bpy.context.view_layer.objects.active = arm_ob
-    bpy.ops.object.mode_set(mode="POSE")
-    bones = {b.name: b for b in arm_ob.pose.bones}
     bpy.ops.object.mode_set(mode="OBJECT")
+    for ob, bone in pieces:
+        skin(ob, arm_ob, bone)
 
-    centers = {}
-    for name, pb in bones.items():
-        head = arm_ob.matrix_world @ pb.bone.head_local
-        tail = arm_ob.matrix_world @ pb.bone.tail_local
-        centers[name] = (head + tail) * 0.5
-
-    limb = ["lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin"]
-
-    while mesh.vertex_groups:
-        mesh.vertex_groups.remove(mesh.vertex_groups[0])
-    groups = {n: mesh.vertex_groups.new(name=n) for n in BONES}
-
-    assign = {n: [] for n in BONES}
-    for i, v in enumerate(mesh.data.vertices):
-        p = mw @ v.co
-        if p.y > 0.95 and p.x > 0.25 and p.z < 2.4:
-            name = "bat"
-        elif p.z >= 1.9:
-            # Helmet-shell + face + brim. Never an arm.
-            name = "head"
-        elif abs(p.x) < 1.4:
-            if p.z >= 0.9:
-                name = "torso"
-            else:
-                name = min(["lThigh", "lShin", "rThigh", "rShin"],
-                           key=lambda n: (p - centers[n]).length)
-        else:
-            name = min(["lUpper", "lFore", "rUpper", "rFore"],
-                       key=lambda n: (p - centers[n]).length)
-        assign[name].append(i)
-
-    for name, idxs in assign.items():
-        if idxs:
-            groups[name].add(idxs, 1.0, "REPLACE")
-        print("group", name, len(idxs))
-
-    mesh.parent = arm_ob
-    mesh.parent_type = "OBJECT"
-    for mod in list(mesh.modifiers):
-        mesh.modifiers.remove(mod)
-    arm_mod = mesh.modifiers.new("Armature", "ARMATURE")
-    arm_mod.object = arm_ob
-    arm_mod.use_vertex_groups = True
-    arm_mod.use_deform_preserve_volume = True
+    missing = [n for n in BONES if n not in arm_data.bones]
+    if missing:
+        raise RuntimeError("missing bones: " + ",".join(missing))
+    print("pieces", len(pieces))
+    return arm_ob
 
 
 def export_fbx(out: Path):
@@ -164,53 +281,35 @@ def export_fbx(out: Path):
     print("exported", out, out.stat().st_size)
 
 
-def pose_preview(arm_ob):
+def pose_limb(arm_ob, bone, euler):
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="POSE")
-    for name, euler in {
-        "rUpper": (math.radians(70), 0.0, math.radians(-10)),
-        "rFore": (math.radians(20), 0.0, 0.0),
-        "lThigh": (math.radians(30), 0.0, 0.0),
-    }.items():
-        b = arm_ob.pose.bones[name]
-        b.rotation_mode = "XYZ"
-        b.rotation_euler = euler
+    b = arm_ob.pose.bones[bone]
+    b.rotation_mode = "XYZ"
+    b.rotation_euler = euler
     bpy.context.view_layer.update()
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
-def build(src: Path, out: Path, albedo: Path, resources: Path | None = None):
-    nuke()
-    mesh = import_turtle(src)
-    arm_ob, arm_data = build_armature()
-    hard_skin(mesh, arm_ob)
-    missing = [n for n in BONES if n not in arm_data.bones]
-    if missing:
-        raise RuntimeError("missing bones: " + ",".join(missing))
+def build(out: Path, albedo: Path, resources: Path | None = None):
+    build_scene()
+    write_albedo(albedo)
     export_fbx(out)
-    if albedo.is_file():
-        dest = out.parent / "fenn-albedo.png"
-        if albedo.resolve() != dest.resolve():
-            shutil.copy2(albedo, dest)
-        print("albedo", dest, dest.stat().st_size)
     if resources is not None:
         resources.mkdir(parents=True, exist_ok=True)
         shutil.copy2(out, resources / out.name)
-        alb = out.parent / "fenn-albedo.png"
-        if alb.is_file():
-            shutil.copy2(alb, resources / alb.name)
+        shutil.copy2(albedo, resources / albedo.name)
         print("resources", resources)
 
 
 def main(argv):
     p = argparse.ArgumentParser()
-    p.add_argument("--src", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--albedo", required=True)
     p.add_argument("--resources", default="")
     args = p.parse_args(argv)
     res = Path(args.resources).resolve() if args.resources else None
-    build(Path(args.src).resolve(), Path(args.out).resolve(), Path(args.albedo).resolve(), res)
+    build(Path(args.out).resolve(), Path(args.albedo).resolve(), res)
 
 
 if __name__ == "__main__":
