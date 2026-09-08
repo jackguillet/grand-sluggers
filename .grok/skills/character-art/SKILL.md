@@ -22,8 +22,8 @@ A posed GLB is a **source**.
 
 1. Inspect **untextured clay** (holes, intersections, pose). Color hides defects.
 2. Riggable pose: **T-pose or A-pose**, or an armature with **painted** weights already in the file.
-3. If the mesh is mid-action with no skeleton: **stop**. Author a cartoon toy instead (`tools/blender/hero_fenn.py` for Fenn: fat volumes, named bones, 100% vertex groups, `bind: skinned`). Mixamo/AccuRIG are humanoid only.
-4. Rio six stay on `hero-shared` + extras (`hero_shared_blockout.py` / `hero_shared_extras.py`) until they are packages. Same cartoon language, same bone names.
+3. If the mesh is mid-action with no skeleton: **stop**. For Fenn, keep the turtle and skin it (`tools/blender/hero_fenn.py --src` the posed FBX). Bones go in that rest pose; shell/head never share an arm weight. Do not replace him with spheres. Mixamo/AccuRIG are humanoid only.
+4. Rio six stay on `hero-shared` + extras until they are packages.
 
 ## Import
 
