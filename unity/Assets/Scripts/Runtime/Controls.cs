@@ -113,6 +113,51 @@ namespace GrandSluggers.UnityClient
             public bool MenuUp =>
                 KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpad(Device?.dpad.up);
 
+            /// <summary>Pad stick only. WASD, d-pad, and mouse aim are not a menu analog.</summary>
+            public float MenuAxisX
+            {
+                get
+                {
+                    var pad = Device;
+                    var v = pad != null ? pad.leftStick.x.ReadValue() : 0f;
+                    if (Mathf.Abs(v) < StickDead) v = 0f;
+                    return Mathf.Clamp(v, -1f, 1f);
+                }
+            }
+
+            public float MenuAxisY
+            {
+                get
+                {
+                    var pad = Device;
+                    var v = pad != null ? pad.leftStick.y.ReadValue() : 0f;
+                    if (Mathf.Abs(v) < StickDead) v = 0f;
+                    return Mathf.Clamp(v, -1f, 1f);
+                }
+            }
+
+            public int MenuTapX
+            {
+                get
+                {
+                    var n = 0;
+                    if (KeyDown(Key.A) || KeyDown(Key.LeftArrow) || PressedDpad(Device?.dpad.left)) n -= 1;
+                    if (KeyDown(Key.D) || KeyDown(Key.RightArrow) || PressedDpad(Device?.dpad.right)) n += 1;
+                    return n;
+                }
+            }
+
+            public int MenuTapY
+            {
+                get
+                {
+                    var n = 0;
+                    if (KeyDown(Key.S) || KeyDown(Key.DownArrow) || PressedDpad(Device?.dpad.down)) n -= 1;
+                    if (KeyDown(Key.W) || KeyDown(Key.UpArrow) || PressedDpad(Device?.dpad.up)) n += 1;
+                    return n;
+                }
+            }
+
             public int ThrowBag
             {
                 get
@@ -274,6 +319,19 @@ namespace GrandSluggers.UnityClient
         public static bool ParkHeld => Kb(Key.C);
         public static float StickX => Pad1.StickX;
         public static float StickY => Pad1.StickY;
+        public static float MenuX => Pad1.MenuAxisX;
+        public static float MenuY => Pad1.MenuAxisY;
+        public static int MenuTapX => Pad1.MenuTapX;
+        public static int MenuTapY => Pad1.MenuTapY;
+        public static bool PointerDown => MouseLeftDown;
+        public static float ScrollY
+        {
+            get
+            {
+                var m = Mouse.current;
+                return m == null ? 0f : m.scroll.ReadValue().y;
+            }
+        }
         public static bool MenuDown => Pad1.MenuDown;
         public static bool MenuUp => Pad1.MenuUp;
         public static int ThrowBag => Pad1.ThrowBag;

@@ -22,8 +22,8 @@ public static class GettingStarted
             "South play ball.",
             "Space / left click play ball."),
         new("captains", "Captains", "how-to-start-select", "select",
-            "Stick L/R your team. South the field.",
-            "A/D your team. Space / left click the field."),
+            "LB 1 player. RB 2 players. Stick L/R your team. South the field.",
+            "Comma 1 player. Tab 2 players. A/D your team. Space / left click the field."),
         new("field", "Field", "how-to-start-field", "field",
             "Harbor is the slice. South lineup.",
             "Harbor is the slice. Space / left click lineup."),
@@ -44,7 +44,7 @@ public static class GettingStarted
             "Title West. Harbor drills.",
             "Title F. Harbor drills."),
         new("two-pads", "Two pads",
-            "Gamepad 0 is player 1. Gamepad 1 sits the other side. Unplug = CPU.",
+            "2 PLAYERS on captains. Gamepad 1 sits the other side. Unplug = CPU.",
             "Keyboard + mouse is player 1 only. A second pad is player 2."),
     ];
 
