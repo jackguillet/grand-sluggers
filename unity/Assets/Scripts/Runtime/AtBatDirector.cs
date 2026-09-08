@@ -29,6 +29,7 @@ namespace GrandSluggers.UnityClient
                 _match = _coach.MakeMatch(_content, Seed);
             }
             _phase = Phase.Set;
+            Controls.CatchPlay();
             _t = 0;
             _charge = 0;
             _pitchCharge = 0;

@@ -165,12 +165,14 @@ public static class HowToPlay
         new("the-box", "The box and the rubber", "the-box",
         [
             "Stick L/R walk the rubber (pitch) or the box (hit).",
+            "A sitting stick does not walk. Flick from rest.",
             "The sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
             "After the pitch is in the air, stick L/R curve.",
             "D-pad 1 2 3 + South pickoff. Select swap a tired pitcher.",
         ],
         [
             "A/D or mouse walk the rubber (pitch) or the box (hit).",
+            "Keys already down at SET do not walk. Right-drag is this-frame. A parked cursor is dead.",
             "The sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
             "After the pitch is in the air, A/D curve.",
             "1 2 3 + Space pickoff. R swap a tired pitcher.",
