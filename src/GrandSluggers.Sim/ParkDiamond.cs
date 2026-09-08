@@ -98,8 +98,8 @@ public static class ParkDiamond
     public static float PathTop => PathY + PathThick * 0.5f;
     public static float PathBottom => PathY - PathThick * 0.5f;
 
-    /// <summary>Chalk sits on the dirt, not in it. Cube is centered at FoulY.</summary>
-    public const float FoulWidth = 0.55f;
+    /// <summary>Chalk sits on the dirt, not in it. Cube is centered at FoulY. Width matches home chalk (4″).</summary>
+    public const float FoulWidth = 4f / 12f;
     public const float FoulThick = 0.12f;
     public const float FoulLip = 0.08f;
     public static float FoulY => PathTop + FoulThick * 0.5f;
