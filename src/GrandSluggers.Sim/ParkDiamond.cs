@@ -30,9 +30,10 @@ public static class ParkDiamond
     /// <summary>Packed dirt circle around each bag. Alias of <see cref="BagPadR"/>.</summary>
     public const float BagDirtR = BagPadR;
 
-    /// <summary>White bag edge. Square, diamond-aligned.</summary>
+    /// <summary>White bag edge. Square, diamond-aligned. Entirely in fair; foul line is the outer edge.</summary>
     public const float BagSize = 1.85f;
-    public const float BagY = 0.22f;
+    public const float BagY = 0.50f;
+    const float InvSqrt2 = 0.70710678f;
 
     /// <summary>Packed dirt around the plate. Not a 34-ft oval.</summary>
     public const float HomePackedR = 18f;
@@ -109,6 +110,38 @@ public static class ParkDiamond
 
     public static bool ChalkClearsTheDirt() =>
         FoulY + FoulThick * 0.5f >= PathTop + FoulLip && FoulY > PathTop;
+
+    /// <summary>
+    /// Pillow center. 1B/3B sit fully in fair; <see cref="Diamond.First"/> /
+    /// <see cref="Diamond.Third"/> stay the 90-ft foul-line corners.
+    /// </summary>
+    public static (double X, double Z) BagVisual(int bag)
+    {
+        var d = BagSize * 0.5;
+        return bag switch
+        {
+            1 => (Diamond.First.X - InvSqrt2 * d, Diamond.First.Z + InvSqrt2 * d),
+            3 => (Diamond.Third.X + InvSqrt2 * d, Diamond.Third.Z + InvSqrt2 * d),
+            2 => Diamond.Second,
+            _ => (0, 0)
+        };
+    }
+
+    public static bool BagIsInsideTheFoulLine(int bag)
+    {
+        var p = BagVisual(bag);
+        return Math.Abs(p.X) < p.Z - 0.05;
+    }
+
+    /// <summary>Chalk strip sits in foul, fair edge on the 90-ft line.</summary>
+    public static (float X, float Z) FoulLineCenter(int sign, float midAlong)
+    {
+        var along = InvSqrt2 * midAlong;
+        var o = FoulWidth * 0.5f * InvSqrt2;
+        if (sign > 0)
+            return (along + o, along - o);
+        return (-along - o, along - o);
+    }
 
     public static float CenterZ => (float)(Diamond.Second.Z * 0.5);
 
