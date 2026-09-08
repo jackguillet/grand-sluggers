@@ -133,6 +133,9 @@ public class BroadcastHudTests
         Assert.Equal("BALL", BroadcastHud.Headline(PlayKind.TakeBall));
         Assert.Equal("OUT", BroadcastHud.Headline(PlayKind.GroundOut));
         Assert.DoesNotContain("TAKESTRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
+        Assert.Equal("STEAL", BroadcastHud.BatterExtra(false, true, true, false, ""));
+        Assert.Contains("L3 STEAL", BroadcastHud.BatterExtra(false, false, true, false, ""));
+        Assert.Contains("BUNT", BroadcastHud.BatterExtra(false, false, false, true, ""));
     }
 
     [Fact]
