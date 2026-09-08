@@ -380,56 +380,54 @@ namespace GrandSluggers.UnityClient
                 UnityEngine.Object.DestroyImmediate(tf.GetChild(i).gameObject);
         }
 
-        static void Slab(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rot, Material mat)
-        {
-            if (parent == null) return;
-            if (parent.Find(name) != null) return;
-            var go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
-            go.transform.SetPositionAndRotation(pos, rot);
-            go.transform.localScale = scale;
-        }
-
-        void DirtPath(string name, Vector3 a, Vector3 b, float width, float inset, Material dirt)
-        {
-            var d = b - a;
-            d.y = 0f;
-            var span = d.magnitude;
-            if (span < 4f) return;
-            var dir = d / span;
-            var start = a + dir * inset;
-            var end = b - dir * inset;
-            var mid = (start + end) * 0.5f;
-            mid.y = ParkDiamond.PathY;
-            var len = Vector3.Distance(start, end);
-            if (len < 4f) return;
-            Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, len), Quaternion.LookRotation(dir, Vector3.up), dirt);
-        }
-
         /// <summary>
-        /// Dirt ring after the lawn. ParkDiamond outlines own the ring so grass holes
-        /// and slabs share one shape. The kit <c>infield-dirt</c> mesh is a catalog
-        /// name; instancing it skipped the slabs and the lawn ate the ring.
+        /// One rounded-diamond dirt skin (offset of the grass Y). Paths and bag
+        /// pads are the same shape — Minkowski offset, not slabs butted to circles.
         /// </summary>
         void DressInfieldDirt()
         {
-            var path = Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.1f);
-            var bagDirt = Look.Lit(new Color(0.78f, 0.56f, 0.34f), Look.Dirt, 10f, 0.1f);
-            var home = Vector3.zero;
-            var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
-            var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
-            var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
-            var pathW = ParkDiamond.PathWidth;
-            var inset = ParkDiamond.PathCornerR;
-            DirtPath("PathHome1", home, first, pathW, inset, path);
-            DirtPath("Path1to2", first, second, pathW, inset, path);
-            DirtPath("Path2to3", second, third, pathW, inset, path);
-            DirtPath("Path3toHome", third, home, pathW, inset, path);
-            var y = ParkDiamond.PathBottom;
-            var h = ParkDiamond.PathThick;
-            var r = ParkDiamond.PathCornerR;
-            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, y, (float)Diamond.First.Z), r, h, bagDirt);
-            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, y, (float)Diamond.Second.Z), r, h, bagDirt);
-            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, y, (float)Diamond.Third.Z), r, h, bagDirt);
+            var dirt = Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.1f);
+            var old = transform.Find("InfieldDirt");
+            if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            foreach (var n in new[] { "PathHome1", "Path1to2", "Path2to3", "Path3toHome", "BagDirt1", "BagDirt2", "BagDirt3" })
+            {
+                var tf = transform.Find(n);
+                if (tf != null) UnityEngine.Object.DestroyImmediate(tf.gameObject);
+            }
+            var outer = ParkDiamond.OuterVerts();
+            var nPts = outer.Length;
+            if (nPts < 8) return;
+            var yTop = ParkDiamond.PathTop;
+            var yBot = ParkDiamond.PathBottom;
+            var verts = new Vector3[nPts * 4];
+            for (var i = 0; i < nPts; i++)
+            {
+                var o = outer[i];
+                var inn = ParkDiamond.InnerOnRay(o.X, o.Z);
+                verts[i] = new Vector3((float)inn.X, yTop, (float)inn.Z);
+                verts[nPts + i] = new Vector3((float)o.X, yTop, (float)o.Z);
+                verts[nPts * 2 + i] = new Vector3((float)inn.X, yBot, (float)inn.Z);
+                verts[nPts * 3 + i] = new Vector3((float)o.X, yBot, (float)o.Z);
+            }
+            var tris = new int[nPts * 24];
+            var t = 0;
+            for (var i = 0; i < nPts; i++)
+            {
+                var j = (i + 1) % nPts;
+                // top, CCW from above
+                tris[t++] = i; tris[t++] = j; tris[t++] = nPts + j;
+                tris[t++] = i; tris[t++] = nPts + j; tris[t++] = nPts + i;
+                // bottom, CW from above
+                tris[t++] = nPts * 2 + i; tris[t++] = nPts * 3 + i; tris[t++] = nPts * 3 + j;
+                tris[t++] = nPts * 2 + i; tris[t++] = nPts * 3 + j; tris[t++] = nPts * 2 + j;
+                // outer wall
+                tris[t++] = nPts + i; tris[t++] = nPts + j; tris[t++] = nPts * 3 + j;
+                tris[t++] = nPts + i; tris[t++] = nPts * 3 + j; tris[t++] = nPts * 3 + i;
+                // inner wall
+                tris[t++] = i; tris[t++] = nPts * 2 + j; tris[t++] = j;
+                tris[t++] = i; tris[t++] = nPts * 2 + i; tris[t++] = nPts * 2 + j;
+            }
+            Look.Solid("InfieldDirt", transform, verts, tris, dirt);
         }
 
         Transform Folder(string name)
@@ -713,26 +711,12 @@ namespace GrandSluggers.UnityClient
             var y = ParkDiamond.GrassY;
             var h = ParkDiamond.GrassThick;
             var stripe = ParkDiamond.StripeWidth;
-            var tile = ParkDiamond.LawnTileFt;
             var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
             var halfW = ParkDiamond.GrassHalfWidth(zEnd);
-            var dirtX = ParkDiamond.DirtMaxX + tile;
-            var dirtZ1 = ParkDiamond.DirtMaxZ + tile;
-
-            var n = 0;
-            for (var x = -dirtX; x < dirtX; x += tile)
-            {
-                var cx = x + tile * 0.5f;
-                var mat = StripeMat(cx, dark, light);
-                for (var z = ParkDiamond.GrassZ0; z < dirtZ1; z += tile)
-                {
-                    var cz = z + tile * 0.5f;
-                    if (HarborDugout.InPitHole(cx, cz) || ParkDiamond.OnDirt(cx, cz))
-                        continue;
-                    LawnBand("Y" + n, cx, y, cz, tile + 0.35f, h, tile + 0.35f, mat);
-                    n++;
-                }
-            }
+            var dirtX = ParkDiamond.DirtMaxX;
+            var dirtZ1 = ParkDiamond.DirtMaxZ;
+            var yLo = ParkDiamond.CenterZ - ParkDiamond.InnerHalf;
+            var yHi = ParkDiamond.CenterZ + ParkDiamond.InnerHalf;
 
             var i = 0;
             for (var x = -halfW; x < halfW; x += stripe, i++)
@@ -740,6 +724,8 @@ namespace GrandSluggers.UnityClient
                 var xc = x + stripe * 0.5f;
                 var sx = stripe + 0.4f;
                 var mat = (i & 1) == 0 ? dark : light;
+                if (Mathf.Abs(xc) < ParkDiamond.InnerHalf + sx)
+                    StripeColumn("Y" + i, xc, sx, yLo, yHi, y, h, mat);
                 if (dirtZ1 < zEnd)
                     StripeColumn("Cf" + i, xc, sx, dirtZ1, zEnd, y, h, mat);
                 if (Mathf.Abs(xc) <= dirtX) continue;
@@ -749,12 +735,6 @@ namespace GrandSluggers.UnityClient
                 if (zLo < dirtZ1)
                     StripeColumn("Foul" + i, xc, sx, zLo, dirtZ1, y, h, mat);
             }
-        }
-
-        static Material StripeMat(float x, Material dark, Material light)
-        {
-            var i = Mathf.FloorToInt((x + 400f) / ParkDiamond.StripeWidth);
-            return (i & 1) == 0 ? dark : light;
         }
 
         void StripeColumn(string name, float xc, float sx, float zLo, float zHi, float y, float h, Material lawn)
