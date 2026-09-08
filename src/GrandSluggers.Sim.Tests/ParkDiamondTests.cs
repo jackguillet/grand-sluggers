@@ -49,6 +49,9 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(Harbor));
         Assert.True(ParkDiamond.PoleSitsOnThatParkFence(Harbor));
         Assert.True(ParkDiamond.TrackIsInsideTheWall(Harbor));
+        Assert.True(ParkDiamond.TrackSegs >= 48);
+        Assert.True(ParkDiamond.TrackFollowsTheFenceArc(Harbor),
+            "warning track inner edge must follow the fence, not sawtooth boxes");
         Assert.True(ParkDiamond.TrackMid(Harbor, 0) < Harbor.CenterFenceFt);
         Assert.True(ParkDiamond.GrassZ1(Harbor) > FieldingResolver.InfieldLipFt);
 

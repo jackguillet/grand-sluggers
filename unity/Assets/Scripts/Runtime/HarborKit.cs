@@ -543,22 +543,56 @@ namespace GrandSluggers.UnityClient
             Wipe(WarningTrack);
             if (_park == null) return;
             var n = ParkDiamond.TrackSegs;
-            var half = n * 0.5f;
+            var y0 = ParkDiamond.TrackY - ParkDiamond.TrackThick * 0.5f;
+            var y1 = ParkDiamond.TrackY + ParkDiamond.TrackThick * 0.5f;
+            var verts = new Vector3[(n + 1) * 4];
+            var uvs = new Vector2[(n + 1) * 4];
             for (var i = 0; i <= n; i++)
             {
-                var spray = (i / half - 1f) * (float)AtBatResolver.FoulLineDeg;
-                var midR = (float)ParkDiamond.TrackMid(_park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
-                var p = radial * midR;
-                p.y = ParkDiamond.TrackY;
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
-                var dTheta = (float)AtBatResolver.FoulLineDeg * 2f / n * Mathf.Deg2Rad;
-                var chord = 2f * midR * Mathf.Tan(dTheta * 0.5f) + 1.4f;
-                if (DropMesh("warning-track", WarningTrack, "Track" + i, p, rot, Vector3.one, paint: true) == null)
-                    Box(WarningTrack, "Track" + i, p,
-                        new Vector3(chord, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), rot, dirt);
+                var spray = (float)ParkDiamond.TrackSpray(i);
+                var inn = ParkDiamond.TrackInner(_park, spray);
+                var outt = ParkDiamond.TrackOuter(_park, spray);
+                var inner = new Vector3((float)inn.X, 0f, (float)inn.Z);
+                var outer = new Vector3((float)outt.X, 0f, (float)outt.Z);
+                var u = i / (float)n;
+                verts[i * 4 + 0] = inner + Vector3.up * y0;
+                verts[i * 4 + 1] = inner + Vector3.up * y1;
+                verts[i * 4 + 2] = outer + Vector3.up * y0;
+                verts[i * 4 + 3] = outer + Vector3.up * y1;
+                uvs[i * 4 + 0] = new Vector2(u * 8f, 0f);
+                uvs[i * 4 + 1] = new Vector2(u * 8f, 0.08f);
+                uvs[i * 4 + 2] = new Vector2(u * 8f, 1f);
+                uvs[i * 4 + 3] = new Vector2(u * 8f, 0.92f);
             }
+            var tris = new int[n * 24];
+            var t = 0;
+            for (var i = 0; i < n; i++)
+            {
+                var a = i * 4;
+                var b = (i + 1) * 4;
+                // top (+Y): inner-top, outer-top, next
+                t = Quad(tris, t, a + 1, a + 3, b + 3, b + 1);
+                // inner face (toward the field)
+                t = Quad(tris, t, a + 0, a + 1, b + 1, b + 0);
+                // outer face
+                t = Quad(tris, t, a + 3, a + 2, b + 2, b + 3);
+                // bottom
+                t = Quad(tris, t, a + 2, a + 0, b + 0, b + 2);
+            }
+            var go = Look.Solid("Track", WarningTrack, verts, tris, dirt);
+            var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+            mesh.uv = uvs;
+        }
+
+        static int Quad(int[] tris, int t, int a, int b, int c, int d)
+        {
+            tris[t++] = a;
+            tris[t++] = b;
+            tris[t++] = c;
+            tris[t++] = a;
+            tris[t++] = c;
+            tris[t++] = d;
+            return t;
         }
 
         void DressPoles()
