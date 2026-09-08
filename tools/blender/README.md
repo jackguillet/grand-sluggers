@@ -64,13 +64,13 @@ Generic idle + pose takes on an existing package (no remesh):
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
-Elder Fenn (wrapper):
+Elder Fenn cartoon package (fat volumes, 100% vertex groups, bind=skinned):
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
-  --src /path/to/elder-game.glb \
   --out unity/Assets/Art/Characters/fenn/fenn.fbx \
-  --portrait unity/Assets/Resources/Art/fenn-hero.jpg
+  --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
+  --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
 Harbor kit (sunken dugout + stairs, wall panel, crowd, home-plate, bag). Missing file keeps HarborKit primitives. Layout: `HarborDugout` / `HarborInfield`.
