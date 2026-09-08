@@ -64,13 +64,12 @@ Generic idle + pose takes on an existing package (no remesh):
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
-Elder Fenn: keep the posed turtle, skin it to bones placed in that pose (bind=skinned):
+Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned):
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
-  --src scratchpad/fenn-src/fenn-source.fbx \
   --out unity/Assets/Art/Characters/fenn/fenn.fbx \
-  --albedo scratchpad/fenn-src/fenn-albedo.png \
+  --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
