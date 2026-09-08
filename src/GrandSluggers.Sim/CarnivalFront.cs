@@ -15,6 +15,49 @@ public static class CarnivalFront
 
     public static string SeatHint(bool pad1Home) =>
         pad1Home ? "You pitch the top. You bat the bottom." : "You bat the top. You pitch the bottom.";
+
+    public const string OnePlayer = "1 PLAYER";
+    public const string TwoPlayers = "2 PLAYERS";
+    public const string SelectHelp =
+        "LB 1 player    RB 2 players    L/R your team    U/D the other    North HOME/AWAY    South the field    West title";
+    public const string PlugPad2 = "Plug in pad 2. Until then you play the CPU.";
+
+    public static string SeatModeLabel(bool versus) => versus ? TwoPlayers : OnePlayer;
+
+    public static string SeatModeHint(bool versus, bool pad2, bool pad1Home)
+    {
+        if (!versus) return SeatHint(pad1Home);
+        if (!pad2) return PlugPad2;
+        return pad1Home ? "Pad 1 home. Pad 2 away." : "Pad 1 away. Pad 2 home.";
+    }
+
+    /// <summary>1 PLAYER / 2 PLAYERS tabs on pick captain. Right of the HUD card.</summary>
+    public static (float X, float Y, float W, float H) SeatModeBar(float screenW, float screenH)
+    {
+        const float w = 440f;
+        const float h = 44f;
+        return (Math.Max(360f, screenW - 36f - w), 18f, w, h);
+    }
+
+    public static (float X, float Y, float W, float H) SeatModeTab(bool versus, float screenW, float screenH)
+    {
+        var bar = SeatModeBar(screenW, screenH);
+        var w = (bar.W - 8f) * 0.5f;
+        return versus
+            ? (bar.X + w + 8f, bar.Y, w, bar.H)
+            : (bar.X, bar.Y, w, bar.H);
+    }
+
+    public static bool? HitSeatMode(float mx, float my, float screenW, float screenH)
+    {
+        if (Inside(SeatModeTab(false, screenW, screenH), mx, my)) return false;
+        if (Inside(SeatModeTab(true, screenW, screenH), mx, my)) return true;
+        return null;
+    }
+
+    static bool Inside((float X, float Y, float W, float H) r, float mx, float my) =>
+        mx >= r.X && mx <= r.X + r.W && my >= r.Y && my <= r.Y + r.H;
+
     public const float TitleRowZ = 26f;
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 4f;
