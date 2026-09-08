@@ -50,6 +50,16 @@ public static class HomeSet
     /// <summary>Official chalk is 2–4″. 4″ so the line reads at couch.</summary>
     public const double ChalkW = 4 * Inch;
 
+    /// <summary>
+    /// Long foul chalk starts past the front of the batter’s box. The plate’s
+    /// 12″ edges already begin the line; drawing from the point slices the box.
+    /// </summary>
+    public static double FoulLineStartZ => BoxFrontZ + ChalkW;
+    public static double FoulLineStartAlong => FoulLineStartZ * Math.Sqrt(2);
+
+    public static bool FoulLineClearsTheBattersBox() =>
+        FoulLineStartZ >= BoxFrontZ;
+
     /// <summary>Third-base box. From behind home the batter sits left of the look.</summary>
     public const double BatterX = -BoxX;
     public const double BatterZ = 3.0;
@@ -91,5 +101,6 @@ public static class HomeSet
         && Math.Abs(BoxRearZ - (PlateCenterZ - 2)) < 1e-9
         && Math.Abs(CatcherBoxW - 8) < 1e-9
         && Math.Abs(CatcherBoxD - 43 * Inch) < 1e-9
-        && ChalkW >= 2 * Inch && ChalkW <= 4 * Inch;
+        && ChalkW >= 2 * Inch && ChalkW <= 4 * Inch
+        && FoulLineClearsTheBattersBox();
 }

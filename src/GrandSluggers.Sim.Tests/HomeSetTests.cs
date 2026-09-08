@@ -24,6 +24,19 @@ public class HomeSetTests
         Assert.True(HomeSet.BatterX < 0, "RH batter in the third-base box");
         Assert.InRange(HomeSet.BatterZ, HomeSet.BoxRearZ, HomeSet.BoxFrontZ);
         Assert.InRange(Math.Abs(HomeSet.BatterX), HomeSet.BoxInnerX, HomeSet.BoxInnerX + HomeSet.BoxW);
+        Assert.True(HomeSet.FoulLineClearsTheBattersBox());
+        Assert.True(HomeSet.FoulLineStartZ >= HomeSet.BoxFrontZ);
+        Assert.False(FoulRayHitsBox(1.5, 1.5), "line from the point through the box");
+        Assert.False(FoulRayHitsBox(3, 3));
+        Assert.True(HomeSet.FoulLineStartZ > 4, "start is past the box front (~4.7 ft)");
+    }
+
+    static bool FoulRayHitsBox(double x, double z)
+    {
+        if (Math.Abs(x - z) > 0.01) return false;
+        if (z + 1e-9 < HomeSet.FoulLineStartZ) return false;
+        return x >= HomeSet.BoxInnerX && x <= HomeSet.BoxInnerX + HomeSet.BoxW
+            && z >= HomeSet.BoxRearZ && z <= HomeSet.BoxFrontZ;
     }
 
     [Fact]

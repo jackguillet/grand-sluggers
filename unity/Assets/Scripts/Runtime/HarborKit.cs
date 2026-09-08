@@ -497,22 +497,25 @@ namespace GrandSluggers.UnityClient
 
         void DressFoulLines(Material chalk)
         {
-            var run = 186f;
+            var end = 186f;
             if (_park != null)
             {
                 var pole = ParkDiamond.FoulPole(_park, 1);
-                run = (float)Diamond.Dist(0, 0, pole.X, pole.Z) + 4f;
+                end = (float)Diamond.Dist(0, 0, pole.X, pole.Z) + 4f;
             }
-            var mid = run * 0.5f;
+            var start = (float)HomeSet.FoulLineStartAlong;
+            var len = end - start;
+            if (len < 4f) return;
+            var mid = start + len * 0.5f;
             var y = ParkDiamond.FoulY;
             var w = ParkDiamond.FoulWidth;
             var h = ParkDiamond.FoulThick;
             var r = ParkDiamond.FoulLineCenter(1, mid);
             var l = ParkDiamond.FoulLineCenter(-1, mid);
             Place(FoulR, new Vector3(r.X, y, r.Z),
-                new Vector3(w, h, run), Quaternion.Euler(0f, 45f, 0f));
+                new Vector3(w, h, len), Quaternion.Euler(0f, 45f, 0f));
             Place(FoulL, new Vector3(l.X, y, l.Z),
-                new Vector3(w, h, run), Quaternion.Euler(0f, -45f, 0f));
+                new Vector3(w, h, len), Quaternion.Euler(0f, -45f, 0f));
             Wipe(FoulL);
             Wipe(FoulR);
             Mesh(FoulL, PrimitiveType.Cube, chalk);
