@@ -12,8 +12,11 @@ public static class HarborWall
     public const int HomeSegs = 8;
     /// <summary>Outfield inclusive + RF wrap + home + LF wrap minus duplicate poles.</summary>
     public const int WrapSegs = (OutfieldSegs + 1) + FoulSegs + (HomeSegs - 1) + (FoulSegs - 1);
-    /// <summary>Foul room from the line to the hip wall. MLB prefers ~60 ft.</summary>
-    public const float FoulOffset = 64f;
+    /// <summary>
+    /// Hip wall offset from the foul line along the infield. Sits just behind
+    /// the dugout. Flares to the pole. Home backstop stays at <see cref="HomeZ"/>.
+    /// </summary>
+    public const float FoulOffset = 36f;
     /// <summary>Backstop distance behind the plate. MLB prefers ~60 ft.</summary>
     public const float HomeZ = -56f;
     public const float DugoutPad = 18f;
@@ -84,9 +87,13 @@ public static class HarborWall
     {
         var inv = 0.7071067811865476;
         var s = Math.Max(0, alongFt);
-        var u = poleFt < 1 ? 1 : 1 - s / poleFt;
-        u = Math.Clamp(u, 0, 1);
-        var off = FoulOffset * (u * u * (3 - 2 * u));
+        // Parallel to the line through the infield, then flare to the pole.
+        var flareStart = 95;
+        var u = s <= flareStart || poleFt <= flareStart
+            ? 1
+            : 1 - Math.Clamp((s - flareStart) / (poleFt - flareStart), 0, 1);
+        u = u * u * (3 - 2 * u);
+        var off = FoulOffset * u;
         return (sign * (inv * s + inv * off), inv * s - inv * off);
     }
 

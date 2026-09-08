@@ -71,8 +71,9 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.HasMeshFront(), "dugout is a padded rail + mesh pit, not a shed");
         Assert.True(HarborDugout.X < 96, "dugout must sit in front of the side bleachers (~102)");
         Assert.True(HarborDugout.X - HarborDugout.HalfDeep > 42, "old pavilion was at 42");
-        Assert.True(HarborDugout.Z > 28);
-        Assert.True(HarborDugout.HalfAlong >= 14f, "dugout is a bench along the line, not a shed");
+        Assert.True(HarborDugout.StartsAfterHome(), "starts just after home, not on the plate");
+        Assert.True(HarborDugout.EndsBeforeTheBag(), "ends before 1B/3B, not on the bag");
+        Assert.True(HarborDugout.HalfAlong >= 24f, "spans home-to-bag, not a short shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
         Assert.True(Math.Abs(HarborDugout.YawDeg(1) + 45) < 0.1, "1B dugout follows the foul line");
         Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
@@ -88,9 +89,8 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.LawnCovers(0, HarborDugout.Z), "grass between the dugouts");
         Assert.True(HarborDugout.LawnCovers(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.LawnCovers(StillPose.ScoopX, StillPose.ScoopZ));
-        Assert.True(HarborDugout.HoleMinX > 48, "hole stays off the dirt path");
-        Assert.True(HarborDugout.HoleMaxX - HarborDugout.HoleMinX >= HarborDugout.HalfDeep * 2,
-            "lawn hole is the pit, not a stair runway onto the grass");
+        Assert.True(HarborDugout.IsSetBackFromTheDirt());
+        Assert.False(HarborDugout.InPitHole(Diamond.First.X, Diamond.First.Z), "pit does not cover 1B");
     }
 
     [Fact]

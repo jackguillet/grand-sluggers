@@ -789,16 +789,15 @@ namespace GrandSluggers.UnityClient
 
         void StripeColumn(string name, float xc, float sx, float zLo, float zHi, float y, float h, Material lawn)
         {
-            var inHoleX = Mathf.Abs(xc) >= HarborDugout.HoleMinX && Mathf.Abs(xc) <= HarborDugout.HoleMaxX;
-            if (!inHoleX)
+            if (!HarborDugout.TryHoleZ(xc, out var hz0, out var hz1) || hz1 < zLo || hz0 > zHi)
             {
                 LawnBand(name, xc, y, (zLo + zHi) * 0.5f, sx, h, zHi - zLo, lawn);
                 return;
             }
-            if (zLo < HarborDugout.HoleMinZ)
-                LawnBand(name + "S", xc, y, (zLo + HarborDugout.HoleMinZ) * 0.5f, sx, h, HarborDugout.HoleMinZ - zLo, lawn);
-            if (zHi > HarborDugout.HoleMaxZ)
-                LawnBand(name + "N", xc, y, (HarborDugout.HoleMaxZ + zHi) * 0.5f, sx, h, zHi - HarborDugout.HoleMaxZ, lawn);
+            if (zLo < hz0)
+                LawnBand(name + "S", xc, y, (zLo + hz0) * 0.5f, sx, h, hz0 - zLo, lawn);
+            if (zHi > hz1)
+                LawnBand(name + "N", xc, y, (hz1 + zHi) * 0.5f, sx, h, zHi - hz1, lawn);
         }
 
         void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)
