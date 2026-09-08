@@ -37,6 +37,10 @@ public class ParkDiamondTests
         Assert.True(outer.Length > 16, "outer is a sampled loop, not 4 corners");
         var v1 = ParkDiamond.InnerVerts()[1];
         Assert.True(ParkDiamond.OnDirt(v1.X + ParkDiamond.BagPadR * 0.5, v1.Z), "1B pad");
+        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(1), "1B must sit in fair, not on the chalk");
+        Assert.True(ParkDiamond.BagIsInsideTheFoulLine(3), "3B must sit in fair, not on the chalk");
+        Assert.True(HomeSet.PlatePointFacesTheCatcher());
+        Assert.True(HomeSet.BoxesClearThePlate());
     }
 
     [Fact]

@@ -4,7 +4,7 @@ Drop `harbor-kit.fbx` here (names: dugout-1b, dugout-3b, wall-panel, fan-stand, 
 home-plate, bag, mound, foul-pole, warning-track, infield-dirt).
 Dugouts are sunken pits with stairs, set back off the dirt (`HarborDugout` numbers).
 The lawn is cut at those footprints so the pit shows. HarborKit instances the kit
-onto the empties. `home-plate` is a pentagon (point toward the pitcher). `bag` is a
+onto the empties. `home-plate` is a pentagon (point toward the catcher). `bag` is a
 diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
 Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
 Diamond ground (paths, mound, striped grass, foul poles, warning track) is

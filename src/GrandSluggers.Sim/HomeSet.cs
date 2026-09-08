@@ -10,18 +10,28 @@ public static class HomeSet
     /// <summary>Behind the batting SET camera. z=−4 sat in the look cone.</summary>
     public const double CatcherZ = -15;
 
-    public const double PlateW = 2.4;
-    public const double PlateD = 1.8;
-    public const double PlateY = 0.22;
-    public const double PlateZ = 0.2;
-    public const double PlatePointZ = 1.25;
-    public const double PlatePointW = 1.6;
+    /// <summary>Toy-fat MLB pentagon. Point at origin (catcher, −Z). Front toward the mound.</summary>
+    public const double PlateW = 2.0;
+    public const double PlateDepth = 2.0;
+    public const double PlateY = 0.44;
+    public const double PlateZ = 1.0;
+    public const double PlatePointZ = 0;
+    public const double PlateFrontZ = 2.0;
+    public const double PlateShoulderZ = 1.0;
+    public const double PlatePointW = 0.15;
 
-    public const double BoxW = 4.8;
-    public const double BoxD = 7.0;
-    public const double BoxX = 5.0;
-    public const double BoxZ = 3.4;
-    public const double BoxY = 0.20;
+    /// <summary>MLB 4×6 boxes, 6 in from the plate. Chalk on the dirt.</summary>
+    public const double BoxW = 4.0;
+    public const double BoxD = 6.0;
+    public const double BoxGap = 0.5;
+    public const double BoxX = PlateW / 2 + BoxGap + BoxW / 2;
+    public const double BoxZ = PlateDepth / 2;
+    public const double BoxY = 0.44;
+
+    public const double CatcherBoxW = 8.0;
+    public const double CatcherBoxD = 3.5;
+    public const double CatcherBoxFrontZ = -3.58;
+    public const double CatcherBoxZ = CatcherBoxFrontZ - CatcherBoxD / 2;
 
     /// <summary>Third-base box. From behind home the batter sits left of the look.</summary>
     public const double BatterX = -BoxX;
@@ -44,6 +54,12 @@ public static class HomeSet
     public static bool CatcherIsBehindCamera(double camZ) =>
         CatcherZ < camZ - 2;
 
-    public static bool BoxesClearThePlate() =>
-        BoxX - BoxW / 2 > PlateW / 2 + 0.8;
+    public static bool BoxesClearThePlate()
+    {
+        var gap = BoxX - BoxW / 2 - PlateW / 2;
+        return gap >= 0.45 && gap <= 0.7;
+    }
+
+    public static bool PlatePointFacesTheCatcher() =>
+        PlatePointZ <= 0.05 && PlateFrontZ > PlateW * 0.5;
 }

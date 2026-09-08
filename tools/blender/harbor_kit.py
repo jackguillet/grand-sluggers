@@ -25,7 +25,9 @@ STAIR_DEPTH = 0.82
 FIELD_STAIR_RUN = 8.0
 # Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
 BAG_SIZE = 1.85
-PLATE_HALF_W = 1.20
+PLATE_HALF_W = 1.00
+PLATE_FRONT = 2.00
+PLATE_SHOULDER = 1.00
 PATH_WIDTH = 8.0
 PATH_CORNER = 14.0
 PATH_Y = 0.26
@@ -192,13 +194,13 @@ def origin_world(ob):
 
 
 def build_home_plate(chalk, navy):
-    """MLB pentagon, Harbor-fat. Point +Y (pitcher after FBX Y-up)."""
+    """MLB pentagon, Harbor-fat. Point at origin (catcher). Front +Y = pitcher after FBX."""
     mesh = bpy.data.meshes.new("home-plate")
     ob = bpy.data.objects.new("home-plate", mesh)
     bpy.context.collection.objects.link(ob)
     bm = bmesh.new()
     w = PLATE_HALF_W
-    verts2d = [(-w, -0.95), (w, -0.95), (w, 0.28), (0.0, 1.38), (-w, 0.28)]
+    verts2d = [(-w, PLATE_FRONT), (w, PLATE_FRONT), (w, PLATE_SHOULDER), (0.0, 0.0), (-w, PLATE_SHOULDER)]
     bottom = [bm.verts.new((x, y, 0.0)) for x, y in verts2d]
     top = [bm.verts.new((x, y, 0.22)) for x, y in verts2d]
     bm.faces.new(bottom)
@@ -218,7 +220,7 @@ def build_home_plate(chalk, navy):
     bpy.context.collection.objects.link(rim)
     bm = bmesh.new()
     scale = 0.86
-    inner = [(x * scale, y * scale + 0.04) for x, y in verts2d]
+    inner = [(x * scale, y * scale + 0.08) for x, y in verts2d]
     outer_v = [bm.verts.new((x, y, 0.225)) for x, y in verts2d]
     inner_v = [bm.verts.new((x, y, 0.225)) for x, y in inner]
     n = len(outer_v)

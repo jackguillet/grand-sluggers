@@ -140,7 +140,7 @@ namespace GrandSluggers.UnityClient
             DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
             HomePlate = Anchor("HomePlate",
                 new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
-                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateDepth), Quaternion.identity);
             HomePoint = Anchor("HomePoint",
                 new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
                 new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
@@ -179,9 +179,12 @@ namespace GrandSluggers.UnityClient
             var bag = HarborInfield.BagSize;
             var bagY = HarborInfield.BagY;
             var diamond = Quaternion.Euler(0f, 45f, 0f);
-            Bag1 = Anchor("1B", new Vector3((float)Diamond.First.X, bagY, (float)Diamond.First.Z), new Vector3(bag, 0.28f, bag), diamond);
-            Bag2 = Anchor("2B", new Vector3((float)Diamond.Second.X, bagY, (float)Diamond.Second.Z), new Vector3(bag, 0.28f, bag), diamond);
-            Bag3 = Anchor("3B", new Vector3((float)Diamond.Third.X, bagY, (float)Diamond.Third.Z), new Vector3(bag, 0.28f, bag), diamond);
+            var b1 = ParkDiamond.BagVisual(1);
+            var b2 = ParkDiamond.BagVisual(2);
+            var b3 = ParkDiamond.BagVisual(3);
+            Bag1 = Anchor("1B", new Vector3((float)b1.X, bagY, (float)b1.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag2 = Anchor("2B", new Vector3((float)b2.X, bagY, (float)b2.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag3 = Anchor("3B", new Vector3((float)b3.X, bagY, (float)b3.Z), new Vector3(bag, 0.28f, bag), diamond);
         }
 
         public void Dress()
@@ -201,9 +204,9 @@ namespace GrandSluggers.UnityClient
 
         void DressBags()
         {
-            DressBag(Bag1, Diamond.First);
-            DressBag(Bag2, Diamond.Second);
-            DressBag(Bag3, Diamond.Third);
+            DressBag(Bag1, ParkDiamond.BagVisual(1));
+            DressBag(Bag2, ParkDiamond.BagVisual(2));
+            DressBag(Bag3, ParkDiamond.BagVisual(3));
         }
 
         void DressBag(Transform anchor, (double X, double Z) at)
@@ -232,11 +235,11 @@ namespace GrandSluggers.UnityClient
             }
             if (HomePoint != null) HomePoint.gameObject.SetActive(true);
             Place(HomePlate,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
-                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+                new Vector3(0f, (float)HomeSet.PlateY, (float)((HomeSet.PlateShoulderZ + HomeSet.PlateFrontZ) * 0.5)),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)(HomeSet.PlateFrontZ - HomeSet.PlateShoulderZ)), Quaternion.identity);
             Place(HomePoint,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
-                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
+                new Vector3(0f, (float)HomeSet.PlateY, (float)(HomeSet.PlateShoulderZ * 0.5)),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateW), Quaternion.Euler(0f, 45f, 0f));
             Mesh(HomePlate, PrimitiveType.Cube, chalk);
             Mesh(HomePoint, PrimitiveType.Cube, chalk);
         }
@@ -279,6 +282,12 @@ namespace GrandSluggers.UnityClient
             Mesh(BoxR, PrimitiveType.Cube, chalk);
             Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
             Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
+            Look.Prim(PrimitiveType.Cube, "CatcherBox", transform,
+                new Vector3(0f, (float)HomeSet.BoxY, (float)HomeSet.CatcherBoxZ),
+                new Vector3((float)HomeSet.CatcherBoxW, 0.08f, (float)HomeSet.CatcherBoxD), chalk);
+            Look.Prim(PrimitiveType.Cube, "CatcherBoxIn", transform,
+                new Vector3(0f, (float)HomeSet.BoxY + 0.02f, (float)HomeSet.CatcherBoxZ),
+                new Vector3((float)HomeSet.CatcherBoxW * 0.88f, 0.06f, (float)HomeSet.CatcherBoxD * 0.82f), boxDirt);
 
             DressMound(hill, chalk);
         }
@@ -471,9 +480,11 @@ namespace GrandSluggers.UnityClient
             var y = ParkDiamond.FoulY;
             var w = ParkDiamond.FoulWidth;
             var h = ParkDiamond.FoulThick;
-            Place(FoulR, new Vector3(mid * 0.7071f, y, mid * 0.7071f),
+            var r = ParkDiamond.FoulLineCenter(1, mid);
+            var l = ParkDiamond.FoulLineCenter(-1, mid);
+            Place(FoulR, new Vector3(r.X, y, r.Z),
                 new Vector3(w, h, run), Quaternion.Euler(0f, 45f, 0f));
-            Place(FoulL, new Vector3(-mid * 0.7071f, y, mid * 0.7071f),
+            Place(FoulL, new Vector3(l.X, y, l.Z),
                 new Vector3(w, h, run), Quaternion.Euler(0f, -45f, 0f));
             Wipe(FoulL);
             Wipe(FoulR);
