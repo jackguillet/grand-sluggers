@@ -56,7 +56,7 @@
       "portrait": "Resources/Art/fenn-hero",
       "palette": "fen",
       "mesh": "Assets/Art/Characters/fenn/fenn.fbx",
-      "bind": "rigid"
+      "bind": "skinned"
     }
   ]
 }
