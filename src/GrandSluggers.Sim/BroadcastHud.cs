@@ -171,7 +171,7 @@ public static class BroadcastHud
         PlayKind.Walk => "WALK",
         PlayKind.Strikeout => "STRIKEOUT",
         PlayKind.FlyOut => "OUT",
-        PlayKind.GroundOut => "GROUNDOUT",
+        PlayKind.GroundOut => "OUT",
         PlayKind.Foul => "FOUL",
         PlayKind.SwingMiss => "SWING AND A MISS",
         PlayKind.TakeStrike => "STRIKE",

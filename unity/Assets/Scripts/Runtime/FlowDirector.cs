@@ -30,7 +30,9 @@ namespace GrandSluggers.UnityClient
         void TickResult()
         {
             if (_gun) return;
-            var hold = _last?.Kind == PlayKind.HomeRun ? 2.4f : (float)_feel.AfterOutSeconds;
+            var hold = _last != null
+                ? (float)PlayStamp.HoldSeconds(_last.Kind, _feel)
+                : (float)_feel.AfterOutSeconds;
             if (_t <= hold) return;
             if (TrainingOn && _coach.Session.Finished)
             {

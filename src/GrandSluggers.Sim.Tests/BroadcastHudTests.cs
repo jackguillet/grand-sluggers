@@ -131,7 +131,7 @@ public class BroadcastHudTests
     {
         Assert.Equal("STRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
         Assert.Equal("BALL", BroadcastHud.Headline(PlayKind.TakeBall));
-        Assert.Equal("GROUNDOUT", BroadcastHud.Headline(PlayKind.GroundOut));
+        Assert.Equal("OUT", BroadcastHud.Headline(PlayKind.GroundOut));
         Assert.DoesNotContain("TAKESTRIKE", BroadcastHud.Headline(PlayKind.TakeStrike));
     }
 
