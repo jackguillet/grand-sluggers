@@ -21,6 +21,15 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.DirtClearsTheLawn(),
             $"path top {ParkDiamond.PathTop:0.00} grass top {ParkDiamond.GrassTop:0.00} — dirt vanishes under the lawn");
         Assert.True(ParkDiamond.LawnRespectsPits());
+        Assert.True(ParkDiamond.OnDirt(0, 0), "home packed");
+        Assert.True(ParkDiamond.OnDirt(Diamond.First.X, Diamond.First.Z), "1B pad");
+        Assert.True(ParkDiamond.OnDirt(32, 32), "home-1B path");
+        Assert.True(ParkDiamond.OnDirt(0, Diamond.Mound), "mound");
+        Assert.False(ParkDiamond.OnDirt(0, 90), "inner grass Y");
+        Assert.True(ParkDiamond.OnInfieldGrass(0, 90));
+        Assert.False(ParkDiamond.OnDirt(0, 220), "outfield");
+        Assert.True(ParkDiamond.LawnTileFt < ParkDiamond.PathWidth,
+            "infield tiles must be finer than the path or the lawn covers it");
     }
 
     [Fact]

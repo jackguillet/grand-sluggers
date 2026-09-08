@@ -51,6 +51,8 @@ public static class ParkDiamond
 
     /// <summary>Mow stripe width. Bands of constant X — home → CF, vertical in the overhead.</summary>
     public const float StripeWidth = 18f;
+    /// <summary>Infield lawn tiles. Coarse 18-ft stripes cannot cut an 8-ft path.</summary>
+    public const float LawnTileFt = 3f;
     public const float GrassY = 0.08f;
     public const float GrassThick = 0.12f;
     public const float GrassZ0 = -28f;
@@ -83,6 +85,61 @@ public static class ParkDiamond
     /// <summary>Dirt ring sits on the lawn, not in it. Grass is drawn first; dirt after.</summary>
     public static bool DirtClearsTheLawn() =>
         PathTop >= GrassTop + PathLip && PathBottom >= GrassTop - 0.02f && PathY > GrassY;
+
+    public static float DirtMaxX => (float)Diamond.First.X + PathCornerR;
+    public static float DirtMaxZ => (float)Diamond.Second.Z + PathCornerR;
+
+    /// <summary>
+    /// Packed pads, rounded path ring, and the mound. The lawn must not cover these
+    /// or the dirt vanishes under 18-ft grass slabs (SET camera, depth fight).
+    /// </summary>
+    public static bool OnDirt(double x, double z)
+    {
+        if (Dist(x, z, 0, 0) <= HomePackedR) return true;
+        if (Dist(x, z, Diamond.First.X, Diamond.First.Z) <= PathCornerR) return true;
+        if (Dist(x, z, Diamond.Second.X, Diamond.Second.Z) <= PathCornerR) return true;
+        if (Dist(x, z, Diamond.Third.X, Diamond.Third.Z) <= PathCornerR) return true;
+        if (Dist(x, z, 0, Diamond.Mound) <= MoundR) return true;
+        return NearPath(x, z, 0, 0, Diamond.First.X, Diamond.First.Z)
+            || NearPath(x, z, Diamond.First.X, Diamond.First.Z, Diamond.Second.X, Diamond.Second.Z)
+            || NearPath(x, z, Diamond.Second.X, Diamond.Second.Z, Diamond.Third.X, Diamond.Third.Z)
+            || NearPath(x, z, Diamond.Third.X, Diamond.Third.Z, 0, 0);
+    }
+
+    /// <summary>Grass Y inside the diamond, not a path and not the mound.</summary>
+    public static bool OnInfieldGrass(double x, double z) =>
+        !OnDirt(x, z) && Dist(x, z, 0, Diamond.Second.Z * 0.5) < Diamond.Baseline * 0.55;
+
+    static bool NearPath(double x, double z, double ax, double az, double bx, double bz)
+    {
+        var dx = bx - ax;
+        var dz = bz - az;
+        var len = Math.Sqrt(dx * dx + dz * dz);
+        if (len < 1) return false;
+        var ux = dx / len;
+        var uz = dz / len;
+        return DistToSegment(
+            x, z,
+            ax + ux * PathCornerR, az + uz * PathCornerR,
+            bx - ux * PathCornerR, bz - uz * PathCornerR) <= PathWidth * 0.5;
+    }
+
+    static double Dist(double x1, double z1, double x2, double z2)
+    {
+        var dx = x1 - x2;
+        var dz = z1 - z2;
+        return Math.Sqrt(dx * dx + dz * dz);
+    }
+
+    static double DistToSegment(double x, double z, double ax, double az, double bx, double bz)
+    {
+        var dx = bx - ax;
+        var dz = bz - az;
+        var len2 = dx * dx + dz * dz;
+        if (len2 < 1e-6) return Dist(x, z, ax, az);
+        var t = Math.Clamp(((x - ax) * dx + (z - az) * dz) / len2, 0, 1);
+        return Dist(x, z, ax + t * dx, az + t * dz);
+    }
 
     /// <summary>Stripes are columns along CF (X bands), not rows along 1B–3B.</summary>
     public static bool StripesRunHomeToCf() => true;
