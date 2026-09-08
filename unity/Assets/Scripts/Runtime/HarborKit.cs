@@ -912,36 +912,165 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(Bleachers);
             if (_park == null) return;
-            var conc = Look.Lit(new Color(0.74f, 0.75f, 0.76f), smooth: 0.1f);
+            var conc = Look.Lit(new Color(0.70f, 0.72f, 0.76f), smooth: 0.1f);
             var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
-            for (var row = 0; row < 6; row++)
+            var roof = Look.Unlit(new Color(0.94f, 0.94f, 0.90f));
+            var post = Look.Lit(new Color(0.80f, 0.80f, 0.78f), smooth: 0.18f);
+            var crowd = Look.Lit(Color.white, Look.Crowd, 5f, 0.06f);
+            DressHomeBowl(conc, crowd, rail);
+            DressWingBowl(1, conc, crowd, roof, post);
+            DressWingBowl(-1, conc, crowd, roof, post);
+            DressCornerBowl(1, conc, crowd, roof, post);
+            DressCornerBowl(-1, conc, crowd, roof, post);
+        }
+
+        void DressHomeBowl(Material conc, Material crowd, Material rail)
+        {
+            var rise = HarborStands.RowRun;
+            for (var row = 0; row < HarborStands.HomeRows; row++)
             {
-                var y = 3.2f + row * 2.15f;
-                var z = -44f - row * 3.6f;
-                Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 0.72f, 3.2f), conc);
-                CrowdBank(Bleachers, "CrowdH" + row, new Vector3(0, y + 0.42f, z - 1.05f), new Vector3(84 - row * 2, 0, 0), new Vector3(0, 0.12f, -0.85f), 14, 2, row * 31);
+                var y = HarborStands.RowY(row);
+                var z = HarborStands.HomeZ0 - row * rise;
+                var half = HarborStands.HomeHalf0 + row * 3.2f;
+                Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(half * 2f, 0.95f, rise + 0.35f), conc);
+                Cube(Bleachers, "HomeCrowd" + row,
+                    new Vector3(0, y + 0.55f + HarborStands.PersonFt * 0.42f, z - 0.45f),
+                    new Vector3(half * 1.88f, HarborStands.PersonFt * 1.45f, 0.55f), crowd);
+                if (row == 0)
+                    SmallFans("HomeFan", new Vector3(0, y + 0.2f, z + 0.2f), new Vector3(half * 1.6f, 0, 0), Vector3.back, 0);
             }
-            for (var row = 0; row < 5; row++)
+            Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, HarborStands.HomeZ0 + 3.2f), new Vector3(70, 1.15f, 1.15f), rail);
+        }
+
+        void DressWingBowl(int sign, Material conc, Material crowd, Material roof, Material post)
+        {
+            var z0 = HarborStands.WingZ0;
+            var z1 = HarborStands.WingZ1;
+            for (var row = 0; row < HarborStands.WingRows; row++)
             {
-                var y = 3.0f + row * 2.1f;
-                Cube(Bleachers, "LStep" + row, new Vector3(-102 - row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdBank(Bleachers, "CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(-0.75f, 0.1f, 0), 10, 1, 200 + row * 17);
-                Cube(Bleachers, "RStep" + row, new Vector3(102 + row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
+                var a = new Vector3(sign * HarborStands.WingX(z0, row), 0f, z0);
+                var b = new Vector3(sign * HarborStands.WingX(z1, row), 0f, z1);
+                var along = b - a;
+                along.y = 0f;
+                if (along.sqrMagnitude < 4f) continue;
+                var mid = (a + b) * 0.5f;
+                mid.y = HarborStands.RowY(row);
+                var rot = Quaternion.LookRotation(along.normalized, Vector3.up);
+                var inward = Vector3.Cross(Vector3.up, along.normalized) * sign;
+                Box(Bleachers, (sign > 0 ? "RStep" : "LStep") + row, mid,
+                    new Vector3(HarborStands.RowRun + 0.55f, 1.15f, along.magnitude + 1.1f), rot, conc);
+                Box(Bleachers, (sign > 0 ? "RCrowd" : "LCrowd") + row,
+                    mid + Vector3.up * (0.65f + HarborStands.PersonFt * 0.42f) + inward * 0.15f,
+                    new Vector3(0.55f, HarborStands.PersonFt * 1.45f, along.magnitude * 0.96f), rot, crowd);
+                if (row == 0)
+                    SmallFans(sign > 0 ? "RFan" : "LFan", mid + inward * 0.4f, along, inward, sign > 0 ? 400 : 200);
             }
-            Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
-            if (!HarborPostcard.CenterFieldHasBleachers) return;
-            var fence = (float)_park.CenterFenceFt;
-            var crowdZ = fence - HarborPostcard.CrowdInsideFt;
-            var crowdTex = Look.Lit(Color.white, Look.Crowd, 4f, 0.05f);
-            for (var row = 0; row < 4; row++)
+            var roofY = HarborStands.RowY(HarborStands.WingRows - 1) + HarborStands.RoofLift;
+            var roofZ = (z0 + z1) * 0.62f;
+            var roofX = sign * HarborStands.WingX(roofZ, HarborStands.WingRows - 1);
+            Cube(Bleachers, sign > 0 ? "RRoof" : "LRoof",
+                new Vector3(roofX + sign * 6f, roofY, roofZ + 18f),
+                new Vector3(28f, HarborStands.RoofThick, 92f), roof);
+            Cylinder(Bleachers, sign > 0 ? "RPostA" : "LPostA",
+                new Vector3(roofX, 0f, roofZ - 18f), 1.1f, roofY, post);
+            Cylinder(Bleachers, sign > 0 ? "RPostB" : "LPostB",
+                new Vector3(roofX, 0f, roofZ + 36f), 1.1f, roofY, post);
+        }
+
+        void DressCornerBowl(int sign, Material conc, Material crowd, Material roof, Material post)
+        {
+            var n = HarborStands.CornerSegs;
+            var rows = HarborStands.CornerRows;
+            Vector3 roofSum = Vector3.zero;
+            var roofN = 0;
+            for (var i = 0; i < n; i++)
             {
-                var y = 6.4f + row * 3.4f;
-                var z = crowdZ - row * 4.2f;
-                Cube(Bleachers, "CfDeck" + row, new Vector3(0, y - 1.4f, z + 1.6f), new Vector3(118 - row * 4, 2.2f, 3.6f), conc);
-                Cube(Bleachers, "CfCrowdTex" + row, new Vector3(0, y + 1.1f, z), new Vector3(110 - row * 4, HarborPostcard.CrowdPersonFt * 0.85f, 0.7f), crowdTex);
+                var t0 = i / (float)n;
+                var t1 = (i + 1) / (float)n;
+                var s0 = sign * Mathf.Lerp(HarborStands.CornerSpray0, HarborStands.CornerSpray1, t0);
+                var s1 = sign * Mathf.Lerp(HarborStands.CornerSpray0, HarborStands.CornerSpray1, t1);
+                var p0 = HarborPostcard.WallPoint(_park, s0);
+                var p1 = HarborPostcard.WallPoint(_park, s1);
+                var r0 = new Vector3((float)p0.X, 0f, (float)p0.Z);
+                var r1 = new Vector3((float)p1.X, 0f, (float)p1.Z);
+                if (r0.sqrMagnitude < 1f || r1.sqrMagnitude < 1f) continue;
+                var n0 = r0.normalized;
+                var n1 = r1.normalized;
+                for (var row = 0; row < rows; row++)
+                {
+                    var behind = HarborStands.CornerBehind0 + row * HarborStands.RowRun;
+                    var a = r0 + n0 * behind;
+                    var b = r1 + n1 * behind;
+                    var along = b - a;
+                    along.y = 0f;
+                    if (along.sqrMagnitude < 0.4f) continue;
+                    var mid = (a + b) * 0.5f;
+                    mid.y = HarborStands.CornerRowY(row);
+                    var radial = mid;
+                    radial.y = 0f;
+                    if (radial.sqrMagnitude < 1f) continue;
+                    radial.Normalize();
+                    var rot = Quaternion.LookRotation(along.normalized, Vector3.up);
+                    var tag = (sign > 0 ? "Rf" : "Lf") + i + "r" + row;
+                    Box(Bleachers, "CStep" + tag, mid,
+                        new Vector3(HarborStands.RowRun + 0.6f, 1.2f, along.magnitude + 1.0f), rot, conc);
+                    Box(Bleachers, "CCrowd" + tag,
+                        mid - radial * 0.25f + Vector3.up * (0.7f + HarborStands.PersonFt * 0.42f),
+                        new Vector3(0.55f, HarborStands.PersonFt * 1.5f, along.magnitude * 0.95f), rot, crowd);
+                    if (row == rows - 1)
+                    {
+                        roofSum += mid;
+                        roofN++;
+                    }
+                }
             }
-            CrowdBank(Bleachers, "CrowdCF", new Vector3(0, 5.2f, crowdZ - 1.2f), new Vector3(108, 0, 0), new Vector3(0, 2.6f, -3.8f), 18, 4, 77);
+            if (roofN == 0) return;
+            var rp = roofSum / roofN;
+            rp.y = HarborStands.CornerRowY(rows - 1) + HarborStands.RoofLift;
+            var outw = new Vector3(rp.x, 0f, rp.z);
+            if (outw.sqrMagnitude < 1f) return;
+            outw.Normalize();
+            var roofRot = Quaternion.LookRotation(outw, Vector3.up);
+            Box(Bleachers, sign > 0 ? "RfRoof" : "LfRoof", rp + outw * 6f,
+                new Vector3(88f, HarborStands.RoofThick, 26f), roofRot, roof);
+            var postA = rp - outw * 4f;
+            postA.y = 0f;
+            var postB = rp + outw * 10f;
+            postB.y = 0f;
+            Cylinder(Bleachers, sign > 0 ? "RfPostA" : "LfPostA", postA, 1.15f, rp.y, post);
+            Cylinder(Bleachers, sign > 0 ? "RfPostB" : "LfPostB", postB, 1.15f, rp.y, post);
+        }
+
+        void SmallFans(string name, Vector3 origin, Vector3 along, Vector3 inward, int seed)
+        {
+            var len = along.magnitude;
+            if (len < 4f) return;
+            var dir = along / len;
+            var n = Mathf.Max(4, Mathf.RoundToInt(len / (HarborStands.SeatFt * 2.1f)));
+            var scale = HarborStands.PersonFt / 1.8f;
+            var jersey = new[]
+            {
+                Colors.Spark, Colors.Royal, Colors.Gold, Color.white,
+                new Color(0.22f, 0.62f, 0.32f), new Color(0.82f, 0.28f, 0.18f),
+                new Color(0.72f, 0.35f, 0.78f), new Color(0.18f, 0.42f, 0.72f),
+                new Color(0.95f, 0.55f, 0.18f)
+            };
+            var flesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+            var dark = Look.Toon(new Color(0.36f, 0.24f, 0.16f));
+            var tall = HarborStands.PersonFt;
+            for (var i = 0; i < n; i++)
+            {
+                var u = n <= 1 ? 0f : i / (float)(n - 1) - 0.5f;
+                var p = origin + dir * (u * len);
+                p += inward * ((Hash01(seed + i) - 0.5f) * 0.35f);
+                var body = Look.Toon(jersey[i % jersey.Length]);
+                if (DropFan("fan-sit", Bleachers, name + i, p, body, scale))
+                    continue;
+                Capsule(Bleachers, name + "Body" + i, p + new Vector3(0f, tall * 0.42f, 0f),
+                    new Vector3(tall * 0.22f, tall * 0.42f, tall * 0.22f), body);
+                Sphere(Bleachers, name + "Head" + i, p + new Vector3(0f, tall * 0.82f, 0f),
+                    tall * 0.12f, i % 5 == 0 ? dark : flesh);
+            }
         }
 
         void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)

@@ -8,7 +8,8 @@ onto the empties. `home-plate` is the OBR 17″ pentagon (point toward the catch
 Batter’s boxes are 4′×6′ chalk lines, 6″ off the plate. `bag` is a
 4-ft diamond pillow instanced at 1B/2B/3B. Missing name keeps the primitive.
 The outfield wall is chord boxes along the park fence (connected, rounded),
-not instanced `wall-panel` slabs. Center-field bleachers are off.
+not instanced `wall-panel` slabs. Center-field bleachers are off. Stands are
+a horseshoe of small packed crowd (`HarborStands`) with LF/RF roofs.
 Stars stay on the fascia. Do not emit a second diamond. Backstop stays. Other parks wait.
 Diamond ground (paths, mound, striped grass, foul poles, warning track) is
 `ParkDiamond` — HarborKit fills it; other parks reuse the outlines.
