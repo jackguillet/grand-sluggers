@@ -217,7 +217,8 @@ public static class HarborWall
         if (home.Z < HarborStands.HomeZ0 - 8) return false;
         var dug = (HarborDugout.X, HarborDugout.Z);
         var minDug = loop.Min(p => Diamond.Dist(p.X, p.Z, dug.X, dug.Z));
-        if (minDug < HarborDugout.HalfDeep + 6) return false;
+        // Center sits HalfDeep behind the rail. The hip wall IS that rail.
+        if (Math.Abs(minDug - HarborDugout.HalfDeep) > 4) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
         return WrapStaysInFoul(park) && LoopIsSymmetric(park)

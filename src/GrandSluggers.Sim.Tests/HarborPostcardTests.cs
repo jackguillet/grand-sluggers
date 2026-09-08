@@ -77,7 +77,8 @@ public class HarborPostcardTests
         Assert.True(HarborDugout.EndsBeforeTheBag(), "ends before 1B/3B, not on the bag");
         Assert.True(HarborDugout.HalfAlong >= 24f, "spans home-to-bag, not a short shed");
         Assert.True(HarborDugout.FieldStairRun < 3f, "stairs stay in the pit, not a runway on the grass");
-        Assert.True(Math.Abs(HarborDugout.YawDeg(1) + 45) < 0.1, "1B dugout follows the foul line");
+        Assert.True(Math.Abs(HarborDugout.YawDeg(1) - 45) < 0.1, "1B dugout opens toward the diamond");
+        Assert.True(HarborDugout.RailIsTheHipWall(), "front rail is the short wall, pit behind it");
         Assert.True(HarborDugout.CameraClears(StillPose.CamX, StillPose.CamZ));
         Assert.True(HarborDugout.CameraClears(StillPose.PlateCamX, StillPose.PlateCamZ));
         Assert.False(HarborDugout.CameraClears(HarborDugout.X, HarborDugout.Z),

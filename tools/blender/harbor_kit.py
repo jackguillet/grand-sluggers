@@ -19,7 +19,7 @@ from mathutils import Matrix
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
 HALF_ALONG = 32.0
 HALF_DEEP = 5.2
-PIT = 2.4
+PIT = 3.2
 STAIR_COUNT = 4
 STAIR_DEPTH = 0.70
 FIELD_STAIR_RUN = 1.2
@@ -125,51 +125,50 @@ def stairs(name, conc, y_lip, sign):
 
 
 def build_dugout(name, wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x):
-    """MLB pit: sunken bench, padded rail, mesh front, roof over the back. Open to the field on -X."""
+    """MLB pit: rail is the hip wall (−X), pit behind toward +X, roof over the bench.
+    +Y is home after Unity yaw. Stairs and mesh gate at the home end."""
     field_x = -HALF_DEEP
     back_x = HALF_DEEP
-    y0 = -HALF_ALONG
-    y1 = HALF_ALONG
+    y_bag = -HALF_ALONG
+    y_home = HALF_ALONG
     along = HALF_ALONG * 2
     deep = HALF_DEEP * 2
-    rail_y = 3.15
-    roof_y = 7.2
+    rail_y = 4.2
+    roof_y = rail_y + 3.0
     gate = 5.2
-    mesh_y0 = y0 + gate
+    mesh_y1 = y_home - gate
     mesh_along = along - gate - 0.4
-    mesh_mid = (mesh_y0 + y1) * 0.5
+    mesh_mid = (y_bag + mesh_y1) * 0.5
     pieces = [
         prim("cube", name + "Floor", (0.2, 0, -PIT), (deep + 0.5, along + 0.5, 0.22), pad),
         prim("cube", name + "BackWall", (back_x, 0, (-PIT + roof_y) * 0.5),
              (0.38, along + 0.2, roof_y + PIT), well),
-        prim("cube", name + "EndH", (0, y0, (-PIT + rail_y) * 0.5),
-             (deep + 0.2, 0.34, rail_y + PIT), well),
-        prim("cube", name + "EndF", (0, y1, (-PIT + roof_y) * 0.5),
+        prim("cube", name + "EndBag", (0, y_bag, (-PIT + roof_y) * 0.5),
              (deep + 0.2, 0.34, roof_y + PIT), well),
-        # Lower pad under the mesh (sill).
+        prim("cube", name + "EndHome", (0, y_home, (-PIT + rail_y) * 0.5),
+             (deep + 0.2, 0.34, rail_y + PIT), well),
         prim("cube", name + "Sill", (field_x, mesh_mid, -PIT + 0.35),
              (0.42, mesh_along, 0.7), pad),
-        # Hip rail + ad fascia, like the photo.
         prim("cube", name + "RailPad", (field_x, mesh_mid, rail_y),
              (0.58, mesh_along + 0.3, 0.48), pad),
         prim("cube", name + "Fascia", (field_x - 0.28, mesh_mid, rail_y + 0.42),
              (0.16, mesh_along + 0.15, 0.62), gold),
-        prim("cube", name + "Roof", (0.35, 0, roof_y),
-             (deep + 1.4, along + 0.7, 0.24), roof),
+        # Roof over the bench only — not a slab on the warning track.
+        prim("cube", name + "Roof", (back_x - 1.4, 0, roof_y),
+             (deep * 0.55, along + 0.4, 0.24), roof),
         prim("cube", name + "Bench", (back_x - 1.45, 0, -PIT + 0.82),
              (1.55, along - 4.0, 0.22), wood),
-        prim("cylinder", name + "LegH", (back_x - 1.45, y0 + 3.0, -PIT + 0.38),
+        prim("cylinder", name + "LegH", (back_x - 1.45, y_home - 3.0, -PIT + 0.38),
              (0.22, 0.22, 0.72), post),
-        prim("cylinder", name + "LegF", (back_x - 1.45, y1 - 3.0, -PIT + 0.38),
+        prim("cylinder", name + "LegF", (back_x - 1.45, y_bag + 3.0, -PIT + 0.38),
              (0.22, 0.22, 0.72), post),
     ]
-    # Mesh screen: vertical bars + two rails. Opening at the home end for stairs.
     n_bars = 11
     bar_h = rail_y - 0.4 + PIT - 0.5
     bar_z = -PIT + 0.5 + bar_h * 0.5
     for i in range(n_bars):
         t = i / (n_bars - 1) if n_bars > 1 else 0.5
-        yy = mesh_y0 + 0.4 + t * (mesh_along - 0.8)
+        yy = y_bag + 0.4 + t * (mesh_along - 0.8)
         pieces.append(
             prim("cube", name + "MeshV" + str(i), (field_x - 0.02, yy, bar_z),
                  (0.06, 0.08, bar_h), mesh_mat)
@@ -182,7 +181,7 @@ def build_dugout(name, wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x
         prim("cube", name + "MeshH1", (field_x - 0.02, mesh_mid, rail_y - 0.85),
              (0.05, mesh_along - 0.6, 0.06), mesh_mat)
     )
-    pieces.extend(stairs(name + "H", conc, y0, 1))
+    pieces.extend(stairs(name + "H", conc, y_home, -1))
     bevel(pieces[7], 0.06, 2)
     dug = join_in_place(name, pieces)
     if flip_x:
