@@ -92,6 +92,8 @@ public class SchemeTests
         Assert.True(HowToPlay.Mentions("Space"));
         Assert.True(HowToPlay.Mentions("MAX"));
         Assert.True(HowToPlay.Mentions("oval"));
+        Assert.Contains(HowToPlay.Must("the-box").Lines, l => l.Contains("sitting") && l.Contains("stick"));
+        Assert.Contains(HowToPlay.Must("the-box").KeyLines!, l => l.Contains("SET") && l.Contains("do not walk"));
         Assert.True(HowToPlay.Mentions("changeup"));
         Assert.True(HowToPlay.Mentions("call time"));
         Assert.True(HowToPlay.Mentions("outfielder"));
