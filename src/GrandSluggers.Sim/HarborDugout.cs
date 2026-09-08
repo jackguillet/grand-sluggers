@@ -7,28 +7,31 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class HarborDugout
 {
-    /// <summary>Center X. 1B is +X, 3B is −X.</summary>
-    public const float X = 70f;
+    /// <summary>Center X. 1B is +X, 3B is −X. Between home and the bag, in foul.</summary>
+    public const float X = 62f;
 
-    /// <summary>Center Z, down the line. Aligned with the side bleacher bank.</summary>
-    public const float Z = 40f;
+    /// <summary>Center Z, down the line. Past 45 ft from the plate, short of 1B.</summary>
+    public const float Z = 32f;
 
-    public const float HalfAlong = 8f;
-    public const float HalfDeep = 5.4f;
+    public const float HalfAlong = 16f;
+    public const float HalfDeep = 5.2f;
 
     /// <summary>Floor below field grade. Cartoon-readable pit, not a shed on the grass.</summary>
-    public const float PitDepth = 2.6f;
+    public const float PitDepth = 2.4f;
 
     /// <summary>Gold fascia above field, not above the pit floor. StarMeter sits here.</summary>
-    public const float FasciaY = 4.18f;
+    public const float FasciaY = 3.15f;
 
     public const float StarSpacing = 2.55f;
 
-    public const int StairCount = 5;
-    public const float StairDepth = 0.82f;
+    public const int StairCount = 4;
+    public const float StairDepth = 0.7f;
 
-    /// <summary>How far field stairs run onto the grass. Scoop still has to see the descent.</summary>
-    public const float FieldStairRun = 8f;
+    /// <summary>Steps are in the pit lip, not a runway onto the grass.</summary>
+    public const float FieldStairRun = 1.2f;
+
+    /// <summary>1B open toward the diamond along the foul line. 3B mirrored.</summary>
+    public static float YawDeg(int sign) => sign > 0 ? -45f : -135f;
 
     public static float StarZ0 => Z - HalfAlong + 1.7f;
 

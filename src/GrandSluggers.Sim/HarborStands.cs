@@ -14,7 +14,8 @@ public static class HarborStands
     public const float RowRun = 2.55f;
 
     public const int HomeRows = 6;
-    public const float HomeZ0 = -40f;
+    public const float HomeZ0 = -64f;
+    public const bool HasRoofs = false;
     public const float HomeHalf0 = 72f;
 
     public const int WingRows = 7;

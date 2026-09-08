@@ -12,9 +12,14 @@ public static class HarborWall
     public const int HomeSegs = 8;
     /// <summary>Outfield inclusive + RF wrap + home + LF wrap minus duplicate poles.</summary>
     public const int WrapSegs = (OutfieldSegs + 1) + FoulSegs + (HomeSegs - 1) + (FoulSegs - 1);
-    public const float FoulOffset = 48f;
-    public const float HomeZ = -32f;
-    public const float DugoutPad = 14f;
+    /// <summary>Foul room from the line to the hip wall. MLB prefers ~60 ft.</summary>
+    public const float FoulOffset = 64f;
+    /// <summary>Backstop distance behind the plate. MLB prefers ~60 ft.</summary>
+    public const float HomeZ = -56f;
+    public const float DugoutPad = 18f;
+    public const float OutfieldHeight = 26f;
+    /// <summary>Hip-high rail around the infield, dugouts, and home.</summary>
+    public const float HipHeight = 4.2f;
     public const bool HasNet = false;
     /// <summary>Authored ring sat on its side in the sky. Boxes follow the loop until the FBX lies in XZ.</summary>
     public const bool DropAuthoredRing = false;
@@ -118,6 +123,30 @@ public static class HarborWall
         return (p.X - o.X * w, p.Z - o.Z * w);
     }
 
+    /// <summary>
+    /// Tall in the outfield, tapers to hip height along the foul wrap so the
+    /// side wall is a rail, not a 26-ft fence through the dugouts.
+    /// </summary>
+    public static float Height(Park park, int i)
+    {
+        var p = LoopPoint(park, i);
+        var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
+        if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 0.5)
+            return OutfieldHeight;
+        const double hipZ = 95;
+        if (p.Z <= hipZ) return HipHeight;
+        var poleZ = Math.Cos(AtBatResolver.FoulLineDeg * Math.PI / 180.0)
+            * AtBatResolver.FenceAt(park, Math.Sign(p.X) * AtBatResolver.FoulLineDeg);
+        var u = (p.Z - hipZ) / Math.Max(20, poleZ - hipZ);
+        u = Math.Clamp(u, 0, 1);
+        var s = u * u * (3 - 2 * u);
+        return HipHeight + (OutfieldHeight - HipHeight) * (float)s;
+    }
+
+    public static bool OutfieldIsTallerThanTheHip() =>
+        OutfieldHeight >= 18f && HipHeight >= 3.2f && HipHeight <= 5.5f
+        && OutfieldHeight > HipHeight * 3f;
+
     public static (double X, double Z) Outward(Park park, int i)
     {
         var a = LoopPoint(park, i);
@@ -166,6 +195,8 @@ public static class HarborWall
         if (minDug < HarborDugout.HalfDeep + 6) return false;
         var cf = FencePoint(park, 0);
         if (loop.Min(p => Diamond.Dist(p.X, p.Z, cf.X, cf.Z)) > 4) return false;
-        return WrapStaysInFoul(park) && !HasNet && !DropAuthoredRing;
+        return WrapStaysInFoul(park) && !HasNet && !DropAuthoredRing
+            && OutfieldIsTallerThanTheHip()
+            && Height(park, 0) >= OutfieldHeight - 0.1f;
     }
 }
