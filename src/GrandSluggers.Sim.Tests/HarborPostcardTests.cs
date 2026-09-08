@@ -72,7 +72,7 @@ public class HarborPostcardTests
         Assert.True(HarborInfield.HomePackedIsAPad());
         Assert.True(HarborInfield.LawnRespectsPits());
         Assert.True(HarborInfield.PathIsNotALake());
-        Assert.True(HarborInfield.BagDirtR < 11f);
+        Assert.True(HarborInfield.BagIsABag());
     }
 
     [Fact]
