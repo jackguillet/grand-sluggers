@@ -53,9 +53,12 @@ public static class ParkDiamond
 
     /// <summary>Dirt band inside the wall. Must stay past the infield lip.</summary>
     public const float TrackWidth = 15f;
-    public const int TrackSegs = 36;
+    /// <summary>Ring samples. Boxes sawtooth; the dress is an annulus along <see cref="TrackInner"/>.</summary>
+    public const int TrackSegs = 64;
     public const float TrackY = 0.14f;
     public const float TrackThick = 0.22f;
+    /// <summary>Outer ring tucks under the wall face, not past it.</summary>
+    public const float TrackWallInset = 0.5f;
 
     public const float PoleHeight = 52f;
     public const float PoleRadius = 0.85f;
@@ -291,6 +294,42 @@ public static class ParkDiamond
 
     public static double TrackMid(Park park, double sprayDeg) =>
         AtBatResolver.FenceAt(park, sprayDeg) - TrackWidth * 0.5;
+
+    public static (double X, double Z) TrackInner(Park park, double sprayDeg) =>
+        TrackAt(sprayDeg, AtBatResolver.FenceAt(park, sprayDeg) - TrackWidth);
+
+    public static (double X, double Z) TrackOuter(Park park, double sprayDeg) =>
+        TrackAt(sprayDeg, AtBatResolver.FenceAt(park, sprayDeg) - TrackWallInset);
+
+    static (double X, double Z) TrackAt(double sprayDeg, double r)
+    {
+        var rad = sprayDeg * Math.PI / 180.0;
+        return (Math.Sin(rad) * r, Math.Cos(rad) * r);
+    }
+
+    public static double TrackSpray(int i)
+    {
+        var n = TrackSegs;
+        var i0 = Math.Clamp(i, 0, n);
+        return -AtBatResolver.FoulLineDeg + 2 * AtBatResolver.FoulLineDeg * i0 / n;
+    }
+
+    /// <summary>
+    /// Inner edge is the fence offset, not the corners of equal-width slabs.
+    /// </summary>
+    public static bool TrackFollowsTheFenceArc(Park park)
+    {
+        for (var i = 0; i <= TrackSegs; i++)
+        {
+            var spray = TrackSpray(i);
+            var inner = TrackInner(park, spray);
+            var r = Dist(0, 0, inner.X, inner.Z);
+            var expect = AtBatResolver.FenceAt(park, spray) - TrackWidth;
+            if (Math.Abs(r - expect) > 0.5) return false;
+        }
+        var cf = TrackInner(park, 0);
+        return Math.Abs(Dist(0, 0, cf.X, cf.Z) - (park.CenterFenceFt - TrackWidth)) < 0.6;
+    }
 
     public static float GrassHalfWidth(float z) =>
         Math.Max(40f, Math.Abs(z) + FoulGrassFt);
