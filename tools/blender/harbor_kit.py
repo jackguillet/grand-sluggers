@@ -17,15 +17,42 @@ from mathutils import Matrix
 
 
 # Keep in sync with src/GrandSluggers.Sim/HarborDugout.cs
-HALF_ALONG = 8.0
-HALF_DEEP = 5.4
-PIT = 2.6
-STAIR_COUNT = 5
-STAIR_DEPTH = 0.82
-FIELD_STAIR_RUN = 8.0
-# Keep in sync with HarborInfield.BagSize / HomeSet.PlateW (feet).
-BAG_SIZE = 1.85
-PLATE_HALF_W = 1.20
+HALF_ALONG = 21.3
+HALF_DEEP = 3.5
+PIT = 3.2
+STAIR_COUNT = 4
+STAIR_DEPTH = 0.70
+FIELD_STAIR_RUN = 1.2
+# Keep in sync with HarborInfield.BagSize / HomeSet.PlateW / ParkDiamond (feet).
+BAG_SIZE = 4.0
+# Keep in sync with HarborWall / HarborPostcard / HarborDugout.
+LEFT_FENCE = 330.0
+CENTER_FENCE = 400.0
+RIGHT_FENCE = 330.0
+FOUL_DEG = 45.0
+HOME_RADIUS = 34.0
+WRAP_SEGS = 120
+WALL_H = 26.0
+WALL_THICK = 3.4
+DUGOUT_X = 70.0
+DUGOUT_Z = 40.0
+DUGOUT_PAD = 14.0
+DUGOUT_CLEAR_X = DUGOUT_X + HALF_DEEP + DUGOUT_PAD
+DUGOUT_CLEAR_Z = DUGOUT_Z + HALF_ALONG + 10.0
+DUGOUT_R = math.hypot(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z)
+DUGOUT_SPRAY = math.degrees(math.atan2(DUGOUT_CLEAR_X, DUGOUT_CLEAR_Z))
+# OBR 2.02: 17″ front, 8½″ shoulders, point at origin (catcher).
+PLATE_HALF_W = 17.0 / 12.0 / 2.0
+PLATE_FRONT = 17.0 / 12.0
+PLATE_SHOULDER = 8.5 / 12.0
+PATH_WIDTH = 8.0
+PATH_CORNER = 14.0
+PATH_Y = 0.26
+PATH_THICK = 0.24
+HOME_PACKED_R = 16.0
+MOUND_R = 9.2
+MOUND_H = 0.98
+MOUND_TABLE_R = 2.2
 
 
 def nuke():
@@ -83,62 +110,79 @@ def bevel(ob, width=0.06, segs=2):
     bpy.ops.object.modifier_apply(modifier="bev")
 
 
-def stairs(name, wood, conc, y_lip, sign):
-    """Steps down from field into the pit. sign +1 walks toward +Y (into the box)."""
+def stairs(name, conc, y_lip, sign):
+    """Steps down from field into the pit at one end."""
     step_h = PIT / STAIR_COUNT
     pieces = []
     for i in range(STAIR_COUNT):
         z_c = -step_h * (i + 0.5)
-        y_c = y_lip + sign * (0.12 + i * STAIR_DEPTH)
+        y_c = y_lip + sign * (0.15 + i * STAIR_DEPTH)
         pieces.append(
             prim("cube", name + "S" + str(i), (0, y_c, z_c),
-                 (HALF_DEEP * 2 - 0.7, STAIR_DEPTH + 0.04, step_h), conc)
+                 (HALF_DEEP * 2 - 1.0, STAIR_DEPTH + 0.04, step_h), conc)
         )
     return pieces
 
 
-def build_dugout(name, wood, roof, gold, pad, post, conc, well, flip_x):
+def build_dugout(name, wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x):
+    """MLB pit: rail is the hip wall (−X), pit behind toward +X, roof over the bench.
+    +Y is home after Unity yaw. Stairs and mesh gate at the home end."""
     field_x = -HALF_DEEP
     back_x = HALF_DEEP
-    y0 = -HALF_ALONG
-    y1 = HALF_ALONG
+    y_bag = -HALF_ALONG
+    y_home = HALF_ALONG
     along = HALF_ALONG * 2
     deep = HALF_DEEP * 2
-    wall_h = PIT + 0.15
-    stair_cut = STAIR_COUNT * STAIR_DEPTH * 2 + 0.8
+    rail_y = 4.2
+    roof_y = rail_y + 3.0
+    gate = 3.5
+    mesh_y1 = y_home - gate
+    mesh_along = along - gate - 0.4
+    mesh_mid = (y_bag + mesh_y1) * 0.5
     pieces = [
-        prim("cube", name + "Floor", (0, 0, -PIT), (deep + 1.0, along + 0.6, 0.22), pad),
-        prim("cube", name + "BackWall", (back_x, 0, -PIT + wall_h * 0.5), (0.42, along - 0.4, wall_h), well),
-        prim("cube", name + "FrontWall", (field_x, 0, -PIT + wall_h * 0.42),
-             (0.38, along - stair_cut, wall_h * 0.84), well),
-        prim("cylinder", name + "PostFH", (field_x, y0 + 0.55, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostFF", (field_x, y1 - 0.55, 2.02), (0.52, 0.52, 4.05), post),
-        prim("cylinder", name + "PostBH", (back_x, y0 + 0.55, -PIT + (4.2 + PIT) * 0.5),
-             (0.52, 0.52, 4.2 + PIT), post),
-        prim("cylinder", name + "PostBF", (back_x, y1 - 0.55, -PIT + (4.2 + PIT) * 0.5),
-             (0.52, 0.52, 4.2 + PIT), post),
-        prim("cube", name + "Back", (back_x, 0, 2.05), (0.42, along - 0.5, 4.0), wood),
-        prim("cube", name + "Roof", (0, 0, 4.32), (deep + 1.8, along + 1.4, 0.28), roof),
-        prim("cube", name + "Ridge", (0, 0, 4.52), (1.1, along + 0.6, 0.22), roof),
-        prim("cube", name + "Fascia", (field_x, 0, 4.18), (0.34, along + 0.5, 0.30), gold),
-        prim("cube", name + "Rail", (field_x, 0, 1.02), (0.24, along - stair_cut + 0.4, 0.32), gold),
-        prim("cube", name + "Bench", (back_x - 1.55, 0, -PIT + 0.88), (1.5, along - 3.2, 0.24), wood),
-        prim("cylinder", name + "LegH", (back_x - 1.55, y0 + 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
-        prim("cylinder", name + "LegF", (back_x - 1.55, y1 - 2.2, -PIT + 0.39), (0.28, 0.28, 0.78), post),
+        prim("cube", name + "Floor", (0.2, 0, -PIT), (deep + 0.5, along + 0.5, 0.22), pad),
+        prim("cube", name + "BackWall", (back_x, 0, (-PIT + roof_y) * 0.5),
+             (0.38, along + 0.2, roof_y + PIT), well),
+        prim("cube", name + "EndBag", (0, y_bag, (-PIT + roof_y) * 0.5),
+             (deep + 0.2, 0.34, roof_y + PIT), well),
+        prim("cube", name + "EndHome", (0, y_home, (-PIT + rail_y) * 0.5),
+             (deep + 0.2, 0.34, rail_y + PIT), well),
+        prim("cube", name + "Sill", (field_x, mesh_mid, -PIT + 0.35),
+             (0.42, mesh_along, 0.7), pad),
+        prim("cube", name + "RailPad", (field_x, mesh_mid, rail_y),
+             (0.58, mesh_along + 0.3, 0.48), pad),
+        prim("cube", name + "Fascia", (field_x - 0.28, mesh_mid, rail_y + 0.42),
+             (0.16, mesh_along + 0.15, 0.62), gold),
+        # Roof over the bench only — not a slab on the warning track.
+        prim("cube", name + "Roof", (back_x - 1.4, 0, roof_y),
+             (deep * 0.55, along + 0.4, 0.24), roof),
+        prim("cube", name + "Bench", (back_x - 1.45, 0, -PIT + 0.82),
+             (1.55, along - 4.0, 0.22), wood),
+        prim("cylinder", name + "LegH", (back_x - 1.45, y_home - 3.0, -PIT + 0.38),
+             (0.22, 0.22, 0.72), post),
+        prim("cylinder", name + "LegF", (back_x - 1.45, y_bag + 3.0, -PIT + 0.38),
+             (0.22, 0.22, 0.72), post),
     ]
-    pieces.extend(stairs(name + "H", wood, conc, y0, 1))
-    pieces.extend(stairs(name + "F", wood, conc, y1, -1))
-    step_h = PIT / STAIR_COUNT
-    step_d = FIELD_STAIR_RUN / STAIR_COUNT
-    for i in range(STAIR_COUNT):
-        t = 0 if STAIR_COUNT == 1 else i / (STAIR_COUNT - 1)
-        z_c = -step_h * (i + 0.5)
-        x_c = field_x - FIELD_STAIR_RUN * (1 - t)
+    n_bars = 11
+    bar_h = rail_y - 0.4 + PIT - 0.5
+    bar_z = -PIT + 0.5 + bar_h * 0.5
+    for i in range(n_bars):
+        t = i / (n_bars - 1) if n_bars > 1 else 0.5
+        yy = y_bag + 0.4 + t * (mesh_along - 0.8)
         pieces.append(
-            prim("cube", name + "FS" + str(i), (x_c, y0 + 2.4, z_c),
-                 (step_d + 0.12, 3.4, step_h), conc)
+            prim("cube", name + "MeshV" + str(i), (field_x - 0.02, yy, bar_z),
+                 (0.06, 0.08, bar_h), mesh_mat)
         )
-    bevel(pieces[8], 0.08, 2)
+    pieces.append(
+        prim("cube", name + "MeshH0", (field_x - 0.02, mesh_mid, -PIT + 1.15),
+             (0.05, mesh_along - 0.6, 0.06), mesh_mat)
+    )
+    pieces.append(
+        prim("cube", name + "MeshH1", (field_x - 0.02, mesh_mid, rail_y - 0.85),
+             (0.05, mesh_along - 0.6, 0.06), mesh_mat)
+    )
+    pieces.extend(stairs(name + "H", conc, y_home, -1))
+    bevel(pieces[7], 0.06, 2)
     dug = join_in_place(name, pieces)
     if flip_x:
         bpy.ops.object.select_all(action="DESELECT")
@@ -173,6 +217,123 @@ def build_wall(pad, cap):
     return wall
 
 
+def _norm_spray(s):
+    s = s % 360.0
+    if s > 180.0:
+        s -= 360.0
+    if s < -180.0:
+        s += 360.0
+    return s
+
+
+def _post(r, spray):
+    rad = math.radians(spray)
+    return r * math.sin(rad), r * math.cos(rad)
+
+
+def _fence_at(spray):
+    t = max(0.0, min(1.0, (spray + FOUL_DEG) / (FOUL_DEG * 2.0)))
+    spray = -FOUL_DEG + t * 2.0 * FOUL_DEG
+    lf, cf, rf = _post(LEFT_FENCE, -FOUL_DEG), _post(CENTER_FENCE, 0.0), _post(RIGHT_FENCE, FOUL_DEG)
+    ax, az = lf
+    bx, bz = cf
+    cx, cz = rf
+    d = 2.0 * (ax * (bz - cz) + bx * (cz - az) + cx * (az - bz))
+    if abs(d) < 1e-6:
+        return CENTER_FENCE
+    a2, b2, c2 = ax * ax + az * az, bx * bx + bz * bz, cx * cx + cz * cz
+    ux = (a2 * (bz - cz) + b2 * (cz - az) + c2 * (az - bz)) / d
+    uz = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d
+    r2 = (ux - bx) ** 2 + (uz - bz) ** 2
+    rad = math.radians(spray)
+    sx, sz = math.sin(rad), math.cos(rad)
+    b = sx * ux + sz * uz
+    disc = b * b - (ux * ux + uz * uz - r2)
+    if disc < 0:
+        return CENTER_FENCE
+    root = math.sqrt(disc)
+    return max(b + root, b - root)
+
+
+def _smoothstep(u):
+    u = max(0.0, min(1.0, u))
+    return u * u * (3.0 - 2.0 * u)
+
+
+def wall_radius(spray):
+    s = _norm_spray(spray)
+    a = abs(s)
+    if a <= FOUL_DEG:
+        return _fence_at(s)
+    pole = _fence_at(FOUL_DEG if s >= 0 else -FOUL_DEG)
+    knots = (
+        (FOUL_DEG, pole),
+        (DUGOUT_SPRAY, DUGOUT_R),
+        (95.0, DUGOUT_CLEAR_X),
+        (180.0, HOME_RADIUS),
+    )
+    if a <= knots[0][0]:
+        return knots[0][1]
+    for i in range(len(knots) - 1):
+        a0, r0 = knots[i]
+        a1, r1 = knots[i + 1]
+        if a > a1:
+            continue
+        u = 0.0 if a1 - a0 < 1e-6 else (a - a0) / (a1 - a0)
+        return r0 + (r1 - r0) * _smoothstep(u)
+    return knots[-1][1]
+
+
+def wall_point(spray):
+    r = wall_radius(spray)
+    rad = math.radians(_norm_spray(spray))
+    return r * math.sin(rad), r * math.cos(rad)
+
+
+def build_wall_ring(pad, cap):
+    """Full padded loop at home origin. Blender XY = Unity XZ. HarborKit drops at world 0."""
+    n = WRAP_SEGS
+    h, thick = WALL_H, WALL_THICK
+    half = thick * 0.5
+    mesh = bpy.data.meshes.new("wall-ring")
+    ob = bpy.data.objects.new("wall-ring", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+    inner_b, inner_t, outer_b, outer_t = [], [], [], []
+    for i in range(n):
+        spray = -180.0 + 360.0 * i / n
+        x, y = wall_point(spray)
+        r = math.hypot(x, y)
+        ux, uy = (x / r, y / r) if r > 1e-6 else (0.0, 1.0)
+        ix, iy = x - ux * half, y - uy * half
+        ox, oy = x + ux * half, y + uy * half
+        inner_b.append(bm.verts.new((ix, iy, 0.0)))
+        inner_t.append(bm.verts.new((ix, iy, h)))
+        outer_b.append(bm.verts.new((ox, oy, 0.0)))
+        outer_t.append(bm.verts.new((ox, oy, h)))
+    cap_verts = []
+    for i in range(n):
+        x, y = wall_point(-180.0 + 360.0 * i / n)
+        r = math.hypot(x, y)
+        ux, uy = (x / r, y / r) if r > 1e-6 else (0.0, 1.0)
+        cap_verts.append(bm.verts.new((x + ux * (half + 0.35), y + uy * (half + 0.35), h + 0.45)))
+    bm.verts.ensure_lookup_table()
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((inner_t[i], outer_t[i], outer_t[j], inner_t[j]))
+        bm.faces.new((inner_b[i], inner_t[i], inner_t[j], inner_b[j]))
+        bm.faces.new((outer_t[i], outer_b[i], outer_b[j], outer_t[j]))
+        bm.faces.new((outer_b[i], inner_b[i], inner_b[j], outer_b[j]))
+        bm.faces.new((outer_t[i], cap_verts[i], cap_verts[j], outer_t[j]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(pad)
+    for poly in ob.data.polygons:
+        poly.use_smooth = True
+    return origin_world(ob)
+
+
 def origin_world(ob):
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
@@ -184,13 +345,13 @@ def origin_world(ob):
 
 
 def build_home_plate(chalk, navy):
-    """MLB pentagon, Harbor-fat. Point +Y (pitcher after FBX Y-up)."""
+    """MLB pentagon, Harbor-fat. Point at origin (catcher). Front +Y = pitcher after FBX."""
     mesh = bpy.data.meshes.new("home-plate")
     ob = bpy.data.objects.new("home-plate", mesh)
     bpy.context.collection.objects.link(ob)
     bm = bmesh.new()
     w = PLATE_HALF_W
-    verts2d = [(-w, -0.95), (w, -0.95), (w, 0.28), (0.0, 1.38), (-w, 0.28)]
+    verts2d = [(-w, PLATE_FRONT), (w, PLATE_FRONT), (w, PLATE_SHOULDER), (0.0, 0.0), (-w, PLATE_SHOULDER)]
     bottom = [bm.verts.new((x, y, 0.0)) for x, y in verts2d]
     top = [bm.verts.new((x, y, 0.22)) for x, y in verts2d]
     bm.faces.new(bottom)
@@ -210,7 +371,7 @@ def build_home_plate(chalk, navy):
     bpy.context.collection.objects.link(rim)
     bm = bmesh.new()
     scale = 0.86
-    inner = [(x * scale, y * scale + 0.04) for x, y in verts2d]
+    inner = [(x * scale, y * scale + 0.08) for x, y in verts2d]
     outer_v = [bm.verts.new((x, y, 0.225)) for x, y in verts2d]
     inner_v = [bm.verts.new((x, y, 0.225)) for x, y in inner]
     n = len(outer_v)
@@ -237,17 +398,18 @@ def build_bag(chalk, navy):
     for v in bm.verts:
         v.co.x *= BAG_SIZE
         v.co.y *= BAG_SIZE
-        v.co.z *= 0.46
-        v.co.z += 0.23
+        v.co.z *= 0.52
+        v.co.z += 0.26
     bmesh.ops.rotate(
         bm, verts=bm.verts, cent=(0, 0, 0),
         matrix=Matrix.Rotation(math.radians(45), 3, "Z"),
     )
-    bmesh.ops.bevel(bm, geom=bm.edges, offset=0.22, segments=5, profile=0.7, affect="EDGES")
+    bmesh.ops.bevel(bm, geom=bm.edges, offset=BAG_SIZE * 0.12, segments=5, profile=0.7, affect="EDGES")
+    puff_r = BAG_SIZE * 0.58
     for v in bm.verts:
         if v.co.z > 0.18:
             r = math.hypot(v.co.x, v.co.y)
-            v.co.z += 0.12 * max(0.0, 1.0 - (r / 1.05) ** 2)
+            v.co.z += 0.18 * max(0.0, 1.0 - (r / puff_r) ** 2)
     bm.normal_update()
     bm.to_mesh(mesh)
     bm.free()
@@ -257,7 +419,7 @@ def build_bag(chalk, navy):
 
     curve = bpy.data.curves.new("bag-piping", "CURVE")
     curve.dimensions = "3D"
-    curve.bevel_depth = 0.032
+    curve.bevel_depth = 0.055
     curve.bevel_resolution = 2
     curve.fill_mode = "FULL"
     spline = curve.splines.new("BEZIER")
@@ -267,7 +429,7 @@ def build_bag(chalk, navy):
     spline.use_cyclic_u = True
     for i, (x, y) in enumerate(pts):
         p = spline.bezier_points[i]
-        p.co = (x, y, 0.48)
+        p.co = (x, y, 0.58)
         p.handle_left_type = "VECTOR"
         p.handle_right_type = "VECTOR"
     piping = bpy.data.objects.new("bag-piping", curve)
@@ -280,6 +442,122 @@ def build_bag(chalk, navy):
     piping = bpy.context.active_object
     bag = join_in_place("bag", [ob, piping])
     return origin_world(bag)
+
+
+def build_mound(dirt, hill):
+    """Smooth dirt hill with a flat rubber table. Not stacked cylinders.
+
+    Origin at ground center. Rubber is a Play primitive on ParkDiamond.RubberY.
+    Height matches ParkDiamond.MoundH so the crown meets the rubber.
+    """
+    segs = 32
+    table_rings = 4
+    slope_rings = 10
+    mesh = bpy.data.meshes.new("mound")
+    ob = bpy.data.objects.new("mound", mesh)
+    bpy.context.collection.objects.link(ob)
+    bm = bmesh.new()
+
+    def z_at(r):
+        if r <= MOUND_TABLE_R:
+            return MOUND_H
+        if r >= MOUND_R:
+            return 0.0
+        u = (r - MOUND_TABLE_R) / (MOUND_R - MOUND_TABLE_R)
+        s = u * u * (3.0 - 2.0 * u)
+        return MOUND_H * (1.0 - s)
+
+    radii = [MOUND_TABLE_R * (i / max(1, table_rings - 1)) for i in range(table_rings)]
+    for i in range(1, slope_rings + 1):
+        radii.append(MOUND_TABLE_R + (MOUND_R - MOUND_TABLE_R) * (i / slope_rings))
+
+    rings = []
+    for r in radii:
+        z = z_at(r)
+        row = []
+        for s in range(segs):
+            a = 2.0 * math.pi * s / segs
+            row.append(bm.verts.new((r * math.cos(a), r * math.sin(a), z)))
+        rings.append(row)
+
+    for i in range(len(rings) - 1):
+        inner, outer = rings[i], rings[i + 1]
+        for s in range(segs):
+            t = (s + 1) % segs
+            bm.faces.new((inner[s], inner[t], outer[t], outer[s]))
+
+    bot = bm.verts.new((0.0, 0.0, 0.0))
+    lip = rings[-1]
+    for s in range(segs):
+        t = (s + 1) % segs
+        bm.faces.new((bot, lip[t], lip[s]))
+
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(mesh)
+    bm.free()
+    ob.data.materials.append(hill)
+    return origin_world(ob)
+
+
+def build_foul_pole(gold, chalk):
+    """Yellow shaft + fair-facing grate. HarborKit dresses these in world; this is the kit slot."""
+    h = 72.0
+    shaft = prim("cylinder", "PoleShaft", (0, 0, h * 0.5), (1.24, 1.24, h), gold)
+    ball = prim("uv_sphere", "PoleBall", (0, 0, h), (1.6, 1.6, 1.6), gold)
+    # Thin in Y: after FBX, HarborKit LookRotation(fair) puts that axis toward the diamond.
+    screen = prim("cube", "PoleScreen", (0, 0.9, 45.0), (5.6, 0.22, 38.0), gold)
+    pole = join_in_place("foul-pole", [shaft, ball, screen])
+    return origin_world(pole)
+
+
+def build_warning_track(dirt):
+    """One radial slab. HarborKit instances around the fence. Local +Y = along wall, +X = radial."""
+    track = prim("cube", "warning-track", (0, 0, 0.11), (22.0, 15.0, 0.22), dirt)
+    return origin_world(track)
+
+
+def build_infield_dirt(dirt):
+    """Rounded diamond ring at home origin. Inner grass shows through.
+
+    Height matches ParkDiamond.PathY / PathThick so the ring sits on the lawn,
+    not in it (a 0.16-ft slab at z=0.11 z-fights the grass and vanishes).
+    """
+    home = (0.0, 0.0)
+    first = (63.64, 63.64)
+    second = (0.0, 127.28)
+    third = (-63.64, 63.64)
+    inset = PATH_CORNER
+    pieces = []
+
+    def segment(name, a, b):
+        ax, ay = a
+        bx, by = b
+        dx, dy = bx - ax, by - ay
+        span = math.hypot(dx, dy)
+        ux, uy = dx / span, dy / span
+        sx, sy = ax + ux * inset, ay + uy * inset
+        ex, ey = bx - ux * inset, by - uy * inset
+        mx, my = (sx + ex) * 0.5, (sy + ey) * 0.5
+        length = math.hypot(ex - sx, ey - sy)
+        ang = math.atan2(uy, ux)
+        return prim("cube", name, (mx, my, PATH_Y), (length, PATH_WIDTH, PATH_THICK), dirt, rot=(0, 0, ang))
+
+    pieces.append(segment("DirtH1", home, first))
+    pieces.append(segment("Dirt12", first, second))
+    pieces.append(segment("Dirt23", second, third))
+    pieces.append(segment("Dirt3H", third, home))
+    for name, pos, radius in (
+        ("Dirt1", first, PATH_CORNER),
+        ("Dirt2", second, PATH_CORNER),
+        ("Dirt3", third, PATH_CORNER),
+        ("DirtH", home, HOME_PACKED_R),
+    ):
+        d = radius * 2.0
+        pieces.append(prim("cylinder", name, (pos[0], pos[1], PATH_Y), (d, d, PATH_THICK), dirt))
+    ring = join_in_place("infield-dirt", pieces)
+    return origin_world(ring)
 
 
 def build_fan(name, sit, jersey, flesh, cap):
@@ -316,13 +594,19 @@ def build():
     cap = mat("cap", (1.0, 0.80, 0.25))
     chalk = mat("chalk", (0.96, 0.91, 0.80))
     navy = mat("navy", (0.06, 0.18, 0.42))
-    build_dugout("dugout-1b", wood, roof, gold, dirt, post, conc, well, flip_x=False)
-    build_dugout("dugout-3b", wood, roof, gold, dirt, post, conc, well, flip_x=True)
+    mesh_mat = mat("mesh", (0.08, 0.10, 0.12))
+    build_dugout("dugout-1b", wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x=False)
+    build_dugout("dugout-3b", wood, roof, gold, pad, post, conc, well, mesh_mat, flip_x=True)
     build_wall(pad, gold)
     build_fan("fan-stand", sit=False, jersey=jersey, flesh=flesh, cap=cap)
     build_fan("fan-sit", sit=True, jersey=jersey, flesh=flesh, cap=cap)
     build_home_plate(chalk, navy)
     build_bag(chalk, navy)
+    hill = mat("hill", (0.66, 0.44, 0.26))
+    build_mound(dirt, hill)
+    build_foul_pole(gold, chalk)
+    build_warning_track(dirt)
+    build_infield_dirt(dirt)
 
 
 def export_fbx(out: Path):
