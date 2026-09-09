@@ -938,8 +938,10 @@ namespace GrandSluggers.UnityClient
             {
                 if (_bobbling || _playerBobble)
                     return new FieldingResult(PlayKind.Single, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, Bobble: true);
-                var hangNow = _path != null ? BallFlight.HangTime(_path) : pre.HangTimeSec;
-                var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: _hitT < hangNow);
+                // The catch can be committed a frame after hang. Once the glove
+                // owns an aerial ball, it is still a fly out; do not reclassify
+                // the catch from carry distance (which can become a triple).
+                var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: true);
                 var knock = pre.Grounder && hit != null ? InPlay.KnockbackSec(InPlay.Energy(hit), from) : 0;
                 return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, KnockbackSec: knock);
             }
@@ -1173,7 +1175,7 @@ namespace GrandSluggers.UnityClient
             if (_cpuField != null) return _cpuField.Kind;
             if (_preview == null || _pending == null) return PlayKind.Single;
             var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-            var inAir = !_caught && !_buddy || _hitT < hang;
+            var inAir = _caught || _buddy || _hitT < hang;
             return FlyCatch.PlayerKind(_caught || _buddy, _preview, _pending, inAir);
         }
 
