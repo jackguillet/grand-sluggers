@@ -417,6 +417,49 @@ public static class InPlay
         return false;
     }
 
+    /// <summary>On this bag only. Home is 4.</summary>
+    public static bool OnThisBag(int bag, double x, double z, double radius = OccupyRadiusFt)
+    {
+        if (bag is < 1 or > 4) return false;
+        var p = Diamond.Bag(bag);
+        return Diamond.Dist(x, z, p.X, p.Z) <= radius;
+    }
+
+    /// <summary>
+    /// Force exists at first (batter), second when first is occupied, third when
+    /// first and second, home when the bases are loaded.
+    /// </summary>
+    public static bool ForceAtBag(int bag, bool firstOccupied, bool secondOccupied, bool thirdOccupied) =>
+        bag switch
+        {
+            1 => true,
+            2 => firstOccupied,
+            3 => firstOccupied && secondOccupied,
+            4 => firstOccupied && secondOccupied && thirdOccupied,
+            _ => false
+        };
+
+    /// <summary>
+    /// Glove has the ball and is on a force bag; the runner is not there yet.
+    /// Stepping on first is the out — you do not tag the batter-runner.
+    /// Tie on the bag goes to the runner.
+    /// </summary>
+    public static bool ForceOnBag(
+        bool force,
+        int bag,
+        bool hasBall,
+        bool throwing,
+        double gloveX,
+        double gloveZ,
+        double runnerX,
+        double runnerZ)
+    {
+        if (!force || !hasBall || throwing) return false;
+        if (!OnThisBag(bag, gloveX, gloveZ, OccupyRadiusFt)) return false;
+        if (OnThisBag(bag, runnerX, runnerZ, TagSafeRadiusFt)) return false;
+        return true;
+    }
+
     /// <summary>Feet along home → 1B → 2B → 3B → home. destBag 1..4. fromBag 0 is home.</summary>
     public static (double X, double Z) TowardBag(
         int fromBag, int destBag, double feet, double homeX = 0, double homeZ = 0)
