@@ -63,7 +63,7 @@ public static class StealThrow
         return Math.Clamp(mean + noise, 0.10, 0.58);
     }
 
-    /// <summary>Wrong bag is always safe. Early throw that beats the remain is out.</summary>
+    /// <summary>A throw to the steal bag is out only when it beats the runner.</summary>
     public static bool OutAtBag(int throwBag, int stealTarget, double releaseSec, double gunSec, double runnerRemain)
     {
         if (throwBag != stealTarget || stealTarget is not 2 and not 3) return false;
@@ -81,6 +81,26 @@ public static class StealThrow
         var gun = GunSec(stealTarget, thr);
         var remain = RunnerRemainSec(runner, lead01);
         return OutAtBag(throwBag, stealTarget, releaseSec, gun, remain);
+    }
+
+    /// <summary>Throwing back to the runner's occupied bag is a live pickoff attempt.</summary>
+    public static bool PickoffOut(
+        int throwBag,
+        double releaseSec,
+        ThrowResult? thr,
+        Character runner,
+        double lead01)
+    {
+        if (throwBag is not 1 and not 2) return false;
+        var c = CatcherSpot;
+        var dest = Diamond.Bag(throwBag);
+        var dist = Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
+        var mul = thr?.SpeedMul ?? 1;
+        if (thr is { Error: true }) mul *= 0.72;
+        var gun = 0.12 + dist / Math.Max(64, 96 * Math.Max(0.45, mul));
+        var returnTime = Math.Max(0.42, 0.62 + Math.Clamp(lead01, 0, 1) * 0.92
+            + (10 - runner.Stats.Run) * 0.06);
+        return releaseSec + gun < returnTime;
     }
 
     public static bool CpuOut(

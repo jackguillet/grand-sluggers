@@ -160,6 +160,7 @@ namespace GrandSluggers.UnityClient
         double _gunLead;
         PlayEvent _stealPitch;
         float _stealT;
+        float _stealTagT = -1f;
         float _cpuGunAt;
         double _stealRelease;
 
