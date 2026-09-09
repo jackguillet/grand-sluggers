@@ -7,6 +7,38 @@ public class AtBatFeelTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
+    [Theory]
+    [InlineData(0.78)]
+    [InlineData(1.0)]
+    [InlineData(1.28)]
+    public void SwingTimesTheBatContactAgainstEveryPitchSpeed(double flight)
+    {
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact, flight), 8);
+        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact - 0.05, flight), 8);
+        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact + 0.05, flight), 8);
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > AtBatResolver.BaseContactWindowFrames);
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
+        foreach (var error in new[] { -8.0, 0, 5.0 })
+            Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);
+    }
+
+    [Theory]
+    [InlineData("pitch", MoveBones.PitchRelease)]
+    [InlineData("swing", MoveBones.SwingContact)]
+    public void HeldLoadBlendsContinuouslyButNeverDelaysTheEvent(string clip, double mark)
+    {
+        Assert.True(_content.Art.TryAuthored(clip, mark, out var contact));
+        foreach (var charge in new[] { 0.0, 0.5, 1.0 })
+        {
+            var verb = clip == "pitch" ? MoveBones.Verb.ChargePitch : MoveBones.Verb.ChargeSwing;
+            var load = MoveBones.Evaluate(verb, 0, 0, charge);
+            Assert.Equal(load, AtBatMotion.FromLoad(load, contact, 0, mark));
+            Assert.Equal(contact, AtBatMotion.FromLoad(load, contact, mark, mark));
+            Assert.Equal(contact, AtBatMotion.FromLoad(load, contact, mark * 0.5, mark));
+        }
+    }
+
+
     [Fact]
     public void ReleaseIsTheHandNotTheTorsoAndPathFacesBothLooks()
     {

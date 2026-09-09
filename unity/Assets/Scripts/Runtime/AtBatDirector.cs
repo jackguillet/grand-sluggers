@@ -213,7 +213,7 @@ namespace GrandSluggers.UnityClient
             _pitch = pitch;
             var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
-            _flight = 0;
+            _flight = -(float)MoveBones.PitchRelease;
             _pitchAir = false;
             _swung = false;
             HoldPitchInHand();
@@ -223,6 +223,8 @@ namespace GrandSluggers.UnityClient
             {
                 _charge = 0;
                 _chargePast = 0;
+                _swing = _match.CpuSwing(pitch,
+                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
             }
             _phase = Phase.Flight;
             _t = 0;
@@ -252,22 +254,23 @@ namespace GrandSluggers.UnityClient
         void TickFlight(float dt)
         {
             AimSetCamera();
+            _flight += dt;
+            if (HumanBats && !_swung)
+                TickCharge(dt, _feel.SwingChargeSeconds, BatPad, ref _charge, ref _chargePast);
             if (!_pitchAir)
             {
                 HoldPitchInHand();
-                if (HumanBats)
-                    TickCharge(dt, _feel.SwingChargeSeconds, BatPad, ref _charge, ref _chargePast);
                 // Authored release even if ThrowPitch never plays. Waiting on
                 // the clip left the ball in the glove while the count ticked.
                 var due = (float)MoveBones.PitchRelease;
-                if (!PitcherReleased() && _t < due)
+                if (_flight < 0)
                     return;
+                PitcherHero()?.SampleMotion(due);
                 CaptureReleaseFromHand();
                 _park.Ball.Release();
                 _pitchAir = true;
-                _flight = 0;
+                dt = Mathf.Min(dt, _flight);
             }
-            _flight += dt;
             var u = Mathf.Clamp01(_flight / _pitchDur);
             if (HumanPitches)
                 _breakX = Mathf.Clamp(_breakX + PitchPad.StickX * dt * 2.4f, -1f, 1f);
@@ -291,18 +294,20 @@ namespace GrandSluggers.UnityClient
             {
                 var box = BatPad;
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
-                TickCharge(dt, _feel.SwingChargeSeconds, box, ref _charge, ref _chargePast);
                 if (box.WestHeld) _bunt = true;
                 if (box.SouthDown && !_swung)
                 {
                     _swung = true;
                     var nice = ChargeFeel.NiceCopy(false, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
                     if (!string.IsNullOrEmpty(nice)) _banner = nice;
-                    _swing = new SwingCommand(true, EffectiveCharge(_charge, _chargePast), (_flight - _pitchDur) * 60f,
+                    _swing = new SwingCommand(true, EffectiveCharge(_charge, _chargePast), AtBatMotion.SwingErrorFrames(_flight, _pitchDur, _bunt || box.WestHeld),
                         _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), _bunt || box.WestHeld, box.StickY,
                         _match.BatterOffsetX);
                 }
             }
+            if (!HumanBats && _swing != null && _swing.Swing && !_swung
+                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt))
+                _swung = true;
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
