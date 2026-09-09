@@ -140,7 +140,13 @@ namespace GrandSluggers.UnityClient
 
             var rest = BallFlight.RestTime(_path);
             var done = _hitT >= rest + 0.2f;
-            if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
+            // Home runs have no fielder or throw to complete. Resolve them on
+            // the authored spectacle clock even when the flight path continues
+            // to emit a rolling sample beyond the wall.
+            var homerun = (_pending != null && _pending.HomeRun)
+                || (_cpuField != null && _cpuField.Kind == PlayKind.HomeRun)
+                || (_last != null && _last.Kind == PlayKind.HomeRun);
+            if (homerun && _hitT > 2.4f) done = true;
             if (done && !_itemFlying) BeginResult();
         }
 
