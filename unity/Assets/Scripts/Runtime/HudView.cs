@@ -17,7 +17,8 @@ namespace GrandSluggers.UnityClient
             bool hideHelp = false, string highlight = null, bool replaying = false,
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
-            bool starPitch = false, bool starSwing = false, bool pad1Home = true)
+            bool starPitch = false, bool starSwing = false, bool pad1Home = true,
+            bool bunt = false)
         {
             Ensure();
             if (phase == PhaseUi.Title)
@@ -53,7 +54,7 @@ namespace GrandSluggers.UnityClient
             }
             if (mutePlay) return;
             Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub, seats,
-                humanPitches, humanBats, starPitch, starSwing);
+                humanPitches, humanBats, starPitch, starSwing, bunt);
         }
 
         static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
@@ -739,12 +740,12 @@ namespace GrandSluggers.UnityClient
 
         static void Play(Match match, string[] pitches, int pi, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, int seats,
-            bool humanPitches, bool humanBats, bool starPitch, bool starSwing)
+            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
         {
             var lay = BroadcastHud.Layout(seats);
             Scorebug(match, lay);
             Cards(match, pitches, pi, star, steal, item, charge, timing, showTiming, lay,
-                humanPitches, humanBats, starPitch, starSwing);
+                humanPitches, humanBats, starPitch, starSwing, bunt);
 
             if (!string.IsNullOrEmpty(banner))
             {
@@ -831,14 +832,14 @@ namespace GrandSluggers.UnityClient
 
         static void Cards(Match match, string[] pitches, int pi, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, BroadcastHud.PlayLayout lay,
-            bool humanPitches, bool humanBats, bool starPitch, bool starSwing)
+            bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
         {
             var bug = BroadcastHud.From(match);
             var pStar = starPitch || (star && humanPitches);
             var bStar = starSwing || (star && humanBats);
             SeatCard(Px(lay.BatterCard), "AB", bug.Batter, humanBats,
                 "NEXT  " + bug.Next,
-                (bStar ? "STAR  " : "") + (steal ? "STEAL  " : "") + (item ?? ""),
+                BroadcastHud.BatterExtra(bStar, steal, match.CanSteal, bunt, item),
                 Look.Portrait(match.Batter));
             SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
                 BroadcastHud.ArmLine(match.PitcherStamina),

@@ -14,14 +14,19 @@ public static class PlayStamp
     public static bool Shows(PlayKind kind) => IsCount(kind) || kind is
         PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Strikeout
         or PlayKind.HitByPitch
-        or PlayKind.CaughtStealing
+        or PlayKind.CaughtStealing or PlayKind.StolenBase
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
-    public static string Label(PlayKind kind, int outsThisPlay, int runs)
+    public static string Label(PlayEvent ev, int outsThisPlay) =>
+        ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt);
+
+    public static string Label(PlayKind kind, int outsThisPlay, int runs, bool bunt = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
+        if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
+            return "BUNT";
         return kind switch
         {
             PlayKind.HomeRun => "HOME RUN",
@@ -34,8 +39,9 @@ public static class PlayStamp
             PlayKind.Walk => "WALK",
             PlayKind.HitByPitch => "HIT BY PITCH",
             PlayKind.Strikeout => "STRIKE OUT",
-            PlayKind.FlyOut or PlayKind.GroundOut
-                or PlayKind.CaughtStealing => "OUT",
+            PlayKind.StolenBase => "STOLEN BASE",
+            PlayKind.CaughtStealing => "CAUGHT STEALING",
+            PlayKind.FlyOut or PlayKind.GroundOut => "OUT",
             _ => BroadcastHud.Headline(kind)
         };
     }
