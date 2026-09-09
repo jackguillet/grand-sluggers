@@ -11,11 +11,15 @@ public static class HarborPostcard
 
     public const float WallHeightFt = 26f;
     public const float WallThickFt = 3.4f;
-    public const float WallPanelWidthFt = 22f;
+    /// <summary>Full loop: outfield plus the wrap behind dugouts and home.</summary>
+    public const int WallSegs = HarborWall.WrapSegs;
+    public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;
-    public const float CrowdPersonFt = 12f;
+    public const float CrowdPersonFt = HarborStands.PersonFt;
     public const float CrowdInsideFt = 18f;
+    /// <summary>CF decks sit on the wall and flatten the postcard. Home and 1B/3B stands stay.</summary>
+    public const bool CenterFieldHasBleachers = false;
     public const float TownPastFenceFt = 48f;
     public const float TownHeightFt = 48f;
     public const float DigitHeightFt = 12f;
@@ -26,6 +30,48 @@ public static class HarborPostcard
 
     public static bool Owns(string? parkId) =>
         parkId != null && parkId.Equals(ParkId, StringComparison.OrdinalIgnoreCase);
+
+    public static (double X, double Z) WallPoint(Park park, double sprayDeg)
+    {
+        var fence = AtBatResolver.FenceAt(park, sprayDeg);
+        var rad = sprayDeg * Math.PI / 180.0;
+        return (Math.Sin(rad) * fence, Math.Cos(rad) * fence);
+    }
+
+    /// <summary>
+    /// One piece of the ground loop (outfield + foul wrap). Chord plus overlap.
+    /// </summary>
+    public static (double X, double Z, double Width, int I0, int I1) WallPiece(Park park, int i)
+    {
+        var n = HarborWall.Loop(park).Length;
+        var i0 = ((i % n) + n) % n;
+        var i1 = (i0 + 1) % n;
+        var p0 = HarborWall.LoopPoint(park, i0);
+        var p1 = HarborWall.LoopPoint(park, i1);
+        var dx = p1.X - p0.X;
+        var dz = p1.Z - p0.Z;
+        var chord = Math.Sqrt(dx * dx + dz * dz);
+        return ((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5, chord + WallOverlapFt, i0, i1);
+    }
+
+    public static bool WallPiecesConnect(Park park)
+    {
+        var n = HarborWall.Loop(park).Length;
+        if (n != HarborWall.WrapSegs) return false;
+        for (var i = 0; i < n; i++)
+        {
+            var a = WallPiece(park, i);
+            var b = WallPiece(park, i + 1);
+            var dx = a.X - b.X;
+            var dz = a.Z - b.Z;
+            var gap = Math.Sqrt(dx * dx + dz * dz);
+            if (gap > (a.Width + b.Width) * 0.5 - 0.2) return false;
+        }
+        var cf = WallPoint(park, 0);
+        var dist = Math.Sqrt(cf.X * cf.X + cf.Z * cf.Z);
+        return Math.Abs(dist - park.CenterFenceFt) < WallThickFt * 2
+            && HarborWall.WrapsTheDiamond(park);
+    }
 
     public static bool SegOn(int value, int bit)
     {
@@ -48,10 +94,8 @@ public static class HarborPostcard
     {
         if (field.Pos.Z < 20 || field.Target.Z < 250) return false;
         var wallZ = centerFenceFt;
-        var crowdZ = centerFenceFt - CrowdInsideFt;
         var boardZ = centerFenceFt + ScoreboardPastFenceFt;
         if (SubtendDeg(field.Pos.Z, wallZ, WallHeightFt) < 4) return false;
-        if (SubtendDeg(field.Pos.Z, crowdZ, CrowdPersonFt) < 2) return false;
         if (SubtendDeg(field.Pos.Z, boardZ, DigitHeightFt) < 1.5) return false;
         if (centerFenceFt + TownPastFenceFt <= wallZ) return false;
         return true;
