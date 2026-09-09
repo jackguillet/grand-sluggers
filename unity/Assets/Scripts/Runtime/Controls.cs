@@ -14,6 +14,53 @@ namespace GrandSluggers.UnityClient
     public static class Controls
     {
         const float ChargePull = 0.15f;
+        const string P1InputKey = "gs.input.p1";
+
+        public enum P1InputMode
+        {
+            Auto = 0,
+            Controller = 1,
+            KeyboardMouse = 2
+        }
+
+        static P1InputMode _p1InputMode = P1InputMode.Auto;
+
+        /// <summary>Player 1's device choice. Auto prefers a connected controller.</summary>
+        public static P1InputMode Player1InputMode => _p1InputMode;
+
+        public static string Player1InputLabel => _p1InputMode switch
+        {
+            P1InputMode.Controller => "Controller",
+            P1InputMode.KeyboardMouse => "Keyboard + mouse",
+            _ => HasController(0) ? "Controller (auto)" : "Keyboard + mouse (auto)"
+        };
+
+        static bool KeyboardMouseEnabled => _p1InputMode == P1InputMode.KeyboardMouse
+            || (_p1InputMode == P1InputMode.Auto && !HasController(0));
+
+        static bool HasController(int index) => index >= 0 && Gamepad.all.Count > index;
+
+        public static void Initialize()
+        {
+            _p1InputMode = PlayerPrefs.HasKey(P1InputKey)
+                ? (P1InputMode)Mathf.Clamp(PlayerPrefs.GetInt(P1InputKey), 0, 2)
+                : P1InputMode.Auto;
+        }
+
+        public static bool Player1InputToggleDown => RawKeyDown(Key.F6);
+
+        public static void CyclePlayer1Input()
+        {
+            _p1InputMode = _p1InputMode switch
+            {
+                P1InputMode.Auto => P1InputMode.Controller,
+                P1InputMode.Controller => P1InputMode.KeyboardMouse,
+                _ => P1InputMode.Auto
+            };
+            PlayerPrefs.SetInt(P1InputKey, (int)_p1InputMode);
+            PlayerPrefs.Save();
+            CatchPlay();
+        }
 
         static float _rumbleT;
         static float _rumbleLow;
@@ -36,15 +83,19 @@ namespace GrandSluggers.UnityClient
                 _keys = keys;
             }
 
-            public bool Present => Device != null || _keys;
+            bool KeysEnabled => _keys && KeyboardMouseEnabled;
+
+            public bool Present => (Device != null && ControllerEnabled) || KeysEnabled;
+
+            bool ControllerEnabled => _index != 0 || _p1InputMode != P1InputMode.KeyboardMouse;
 
             Gamepad Device =>
-                _index >= 0 && Gamepad.all.Count > _index ? Gamepad.all[_index] : null;
+                ControllerEnabled && _index >= 0 && Gamepad.all.Count > _index ? Gamepad.all[_index] : null;
 
             public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth)
-                || (_keys && MouseLeftDown);
-            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (_keys && MouseLeftHeld);
-            public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (_keys && MouseMiddleDown);
+                || (KeysEnabled && MouseLeftDown);
+            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (KeysEnabled && MouseLeftHeld);
+            public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (KeysEnabled && MouseMiddleDown);
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
             public bool WestDown => KeyDown(Key.F) || Pressed(Device?.buttonWest);
@@ -55,7 +106,7 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    var v = Kb(Key.LeftShift) || (_keys && MouseRightHeld) ? 1f : 0f;
+                    var v = Kb(Key.LeftShift) || (KeysEnabled && MouseRightHeld) ? 1f : 0f;
                     var pad = Device;
                     if (pad != null) v = Mathf.Max(v, pad.leftTrigger.ReadValue());
                     return Mathf.Clamp01(v);
@@ -86,7 +137,7 @@ namespace GrandSluggers.UnityClient
                     var pad = PlayPad.LiveX(RawX);
                     var key = 0f;
                     var mouse = 0f;
-                    if (_keys)
+                    if (KeysEnabled)
                     {
                         key = (_keyD.On ? 1f : 0f) - (_keyA.On ? 1f : 0f);
                         mouse = MouseStickX;
@@ -102,7 +153,7 @@ namespace GrandSluggers.UnityClient
                     var pad = PlayPad.LiveY(RawY);
                     var key = 0f;
                     var mouse = 0f;
-                    if (_keys)
+                    if (KeysEnabled)
                     {
                         key = (_keyW.On ? 1f : 0f) - (_keyS.On ? 1f : 0f);
                         mouse = MouseStickY;
@@ -202,7 +253,7 @@ namespace GrandSluggers.UnityClient
                     var y = 0f;
                     x = PlayPad.LiveX(RawX);
                     y = PlayPad.LiveY(RawY);
-                    if (_keys)
+                    if (KeysEnabled)
                     {
                         x += MouseStickX;
                         y += MouseStickY;
@@ -216,7 +267,7 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    if (!_keys) return 0;
+                    if (!KeysEnabled) return 0;
                     if (Kb(Key.RightArrow)) return 1;
                     if (Kb(Key.UpArrow)) return 2;
                     if (Kb(Key.LeftArrow)) return 3;
@@ -249,14 +300,14 @@ namespace GrandSluggers.UnityClient
 
             bool Kb(Key k)
             {
-                if (!_keys) return false;
+                if (!KeysEnabled) return false;
                 var kb = Keyboard.current;
                 return kb != null && kb[k].isPressed;
             }
 
             bool KeyDown(Key k)
             {
-                if (!_keys) return false;
+                if (!KeysEnabled) return false;
                 var kb = Keyboard.current;
                 return kb != null && kb[k].wasPressedThisFrame;
             }
@@ -448,12 +499,13 @@ namespace GrandSluggers.UnityClient
         /// <summary>How to play follows last input until the booklet toggle locks.</summary>
         public static void NoteInput()
         {
-            if (KeysSpoke()) BookScheme.Observe(InputScheme.Keys);
-            else if (PadSpoke()) BookScheme.Observe(InputScheme.Pad);
+            if (KeyboardMouseEnabled && KeysSpoke()) BookScheme.Observe(InputScheme.Keys);
+            else if (!KeyboardMouseEnabled && PadSpoke()) BookScheme.Observe(InputScheme.Pad);
         }
 
         static bool PadSpoke()
         {
+            if (_p1InputMode == P1InputMode.KeyboardMouse) return false;
             for (var i = 0; i < Gamepad.all.Count; i++)
             {
                 var g = Gamepad.all[i];
@@ -471,6 +523,7 @@ namespace GrandSluggers.UnityClient
 
         static bool KeysSpoke()
         {
+            if (!KeyboardMouseEnabled) return false;
             var mouse = Mouse.current;
             if (mouse != null && (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame
                 || mouse.middleButton.wasPressedThisFrame || Mathf.Abs(mouse.scroll.ReadValue().y) > 0.01f
@@ -501,6 +554,12 @@ namespace GrandSluggers.UnityClient
         }
 
         static bool KeyDown(Key k)
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb[k].wasPressedThisFrame;
+        }
+
+        static bool RawKeyDown(Key k)
         {
             var kb = Keyboard.current;
             return kb != null && kb[k].wasPressedThisFrame;

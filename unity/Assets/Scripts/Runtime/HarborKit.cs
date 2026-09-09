@@ -617,7 +617,6 @@ namespace GrandSluggers.UnityClient
         void DressBackstop()
         {
             Wipe(Backstop);
-            if (HarborWall.HasNet) return;
         }
 
         void DressDugouts()
