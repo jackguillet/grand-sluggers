@@ -117,16 +117,16 @@ public static class ParkDiamond
     public static float StandY(double x, double z)
     {
         var d = Diamond.Dist(x, z, 0, Diamond.Mound);
-        if (d <= MoundTopR) return RubberY;
-        if (d >= MoundPadR) return 0f;
-        var u = (MoundPadR - d) / (MoundPadR - MoundTopR);
+        if (d <= MoundTableR) return RubberY;
+        if (d >= MoundR) return 0f;
+        var u = (MoundR - d) / (MoundR - MoundTableR);
         return (float)(RubberY * u);
     }
 
     public static bool PitcherStandsOnTheHill() =>
         StandY(0, Diamond.Mound) >= RubberY - 0.05f
         && StandY(0, 0) < 0.2f
-        && StandY(MoundPadR + 1, Diamond.Mound) < 0.05f;
+        && StandY(MoundR + 1, Diamond.Mound) < 0.05f;
 
     public static bool StripeReadsAtCouch() => StripeWidth >= 12f && StripeWidth <= 28f;
 
