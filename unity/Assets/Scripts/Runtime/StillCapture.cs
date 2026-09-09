@@ -422,7 +422,7 @@ namespace GrandSluggers.UnityClient
 
         void HideBackstop()
         {
-            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindObjectOfType<HarborKit>();
+            var kit = HarborKit.Instance != null ? HarborKit.Instance : FindAnyObjectByType<HarborKit>();
             kit?.ShowBackstop(false);
         }
 
