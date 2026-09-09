@@ -38,7 +38,7 @@ public class BookSchemeTests : IDisposable
         Assert.Equal(InputScheme.Keys, BookScheme.HitToggle(bar.X + bar.W - 8, bar.Y + 8, w, h));
         Assert.Null(BookScheme.HitToggle(book.X + 20, book.Y + 120, w, h));
         Assert.Equal(0, HowToPlay.HitNav(bar.X + 8, bar.Y + 8, w, h, 4));
-        Assert.Equal("Pad", BookScheme.Label(InputScheme.Pad));
+        Assert.Equal("Controller", BookScheme.Label(InputScheme.Pad));
         Assert.Contains("Keyboard", BookScheme.Label(InputScheme.Keys), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("South", BookScheme.Footer(InputScheme.Pad));
         Assert.DoesNotContain("Space", BookScheme.Footer(InputScheme.Pad));

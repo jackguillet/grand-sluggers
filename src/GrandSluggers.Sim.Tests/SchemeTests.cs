@@ -182,7 +182,7 @@ public class SchemeTests
         Assert.Contains(two, l => l.Contains("Unplug"));
         Assert.Contains(two, l => l.Contains("plate"));
         Assert.Contains(two, l => l.Contains("CPU never"));
-        Assert.Contains(two, l => l.Contains("fielding pad") || l.Contains("Fielding pad"));
+        Assert.Contains(two, l => l.Contains("fielding controller") || l.Contains("Fielding controller"));
         Assert.True(HowToPlay.Mentions("controller 2") || HowToPlay.Mentions("Controller 2"));
         foreach (var page in HowToPlay.Pages)
         {
