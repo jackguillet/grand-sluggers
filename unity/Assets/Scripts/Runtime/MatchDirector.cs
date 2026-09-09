@@ -27,6 +27,7 @@ namespace GrandSluggers.UnityClient
         public string AwayCaptain = "ashlord";
         public bool Night;
         [System.NonSerialized] public bool Pad1Home = true;
+        bool _versusWanted;
         LineupScreens _lineup;
         bool _lineupTouched;
         MenuNav.Gate _lineupX;
@@ -166,7 +167,7 @@ namespace GrandSluggers.UnityClient
         Seats LiveSeats =>
             TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
-                : Seats.FromPads(Controls.PadCount, Pad1Home);
+                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
@@ -307,7 +308,8 @@ namespace GrandSluggers.UnityClient
         {
             if (_match == null) return;
             if (_phase == Phase.Select)
-                HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content);
+                HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
+                    _versusWanted, Controls.Pad2.Present);
             else if (_phase == Phase.Field)
                 HudView.Field(ParkId, ParkDisplayName(ParkId), Night);
             else if (_phase == Phase.Lineup && _lineup != null)
