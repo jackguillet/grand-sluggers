@@ -13,7 +13,6 @@ namespace GrandSluggers.UnityClient
     /// </summary>
     public static class Controls
     {
-        const float StickDead = 0.22f;
         const float ChargePull = 0.15f;
 
         static float _rumbleT;
@@ -22,12 +21,8 @@ namespace GrandSluggers.UnityClient
         static float _mouseX;
         static float _mouseY;
         static float _mouseLive;
-        static readonly float[] _restX = new float[2];
-        static readonly float[] _restY = new float[2];
-        static readonly float[] _lastRawX = new float[2];
-        static readonly float[] _lastRawY = new float[2];
-        static readonly float[] _still = new float[2];
-        static bool _moveA, _moveD, _moveW, _moveS;
+        static readonly StickPlay.Pad[] _pads = new StickPlay.Pad[2];
+        static StickPlay.Key _keyA, _keyD, _keyW, _keyS;
 
         /// <summary>One seated pad. Index 0 is home (keyboard too). Index 1 is away. CPU is dead.</summary>
         public readonly struct Pad
@@ -88,15 +83,15 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    var v = PadLiveX;
+                    var pad = PlayPad.LiveX(RawX);
+                    var key = 0f;
+                    var mouse = 0f;
                     if (_keys)
                     {
-                        if (_moveA) v -= 1f;
-                        if (_moveD) v += 1f;
-                        v += MouseStickX;
+                        key = (_keyD.On ? 1f : 0f) - (_keyA.On ? 1f : 0f);
+                        mouse = MouseStickX;
                     }
-                    if (Mathf.Abs(v) < StickPlay.Dead) v = 0f;
-                    return Mathf.Clamp(v, -1f, 1f);
+                    return StickPlay.Mix(pad, key, mouse);
                 }
             }
 
@@ -104,20 +99,20 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    var v = PadLiveY;
+                    var pad = PlayPad.LiveY(RawY);
+                    var key = 0f;
+                    var mouse = 0f;
                     if (_keys)
                     {
-                        if (_moveS) v -= 1f;
-                        if (_moveW) v += 1f;
-                        v += MouseStickY;
+                        key = (_keyW.On ? 1f : 0f) - (_keyS.On ? 1f : 0f);
+                        mouse = MouseStickY;
                     }
-                    if (Mathf.Abs(v) < StickPlay.Dead) v = 0f;
-                    return Mathf.Clamp(v, -1f, 1f);
+                    return StickPlay.Mix(pad, key, mouse);
                 }
             }
 
-            float PadLiveX => StickPlay.Live(RawX, RestX);
-            float PadLiveY => StickPlay.Live(RawY, RestY);
+            StickPlay.Pad PlayPad =>
+                _index >= 0 && _index < _pads.Length ? _pads[_index] : default;
 
             float RawX
             {
@@ -137,9 +132,6 @@ namespace GrandSluggers.UnityClient
                 }
             }
 
-            float RestX => _index >= 0 && _index < _restX.Length ? _restX[_index] : 0f;
-            float RestY => _index >= 0 && _index < _restY.Length ? _restY[_index] : 0f;
-
             public bool MenuDown =>
                 KeyDown(Key.S) || KeyDown(Key.DownArrow) || PressedDpad(Device?.dpad.down);
             public bool MenuUp =>
@@ -150,7 +142,7 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    var v = PadLiveX;
+                    var v = PlayPad.LiveX(RawX);
                     if (Dpad(Device?.dpad.left)) v -= 1f;
                     if (Dpad(Device?.dpad.right)) v += 1f;
                     return Mathf.Clamp(v, -1f, 1f);
@@ -161,7 +153,7 @@ namespace GrandSluggers.UnityClient
             {
                 get
                 {
-                    var v = PadLiveY;
+                    var v = PlayPad.LiveY(RawY);
                     if (Dpad(Device?.dpad.down)) v -= 1f;
                     if (Dpad(Device?.dpad.up)) v += 1f;
                     return Mathf.Clamp(v, -1f, 1f);
@@ -208,18 +200,14 @@ namespace GrandSluggers.UnityClient
                 {
                     var x = 0f;
                     var y = 0f;
-                    var pad = Device;
-                    if (pad != null)
-                    {
-                        x = PadLiveX;
-                        y = PadLiveY;
-                    }
+                    x = PlayPad.LiveX(RawX);
+                    y = PlayPad.LiveY(RawY);
                     if (_keys)
                     {
                         x += MouseStickX;
                         y += MouseStickY;
                     }
-                    if (Mathf.Abs(x) < StickDead && Mathf.Abs(y) < StickDead) return 0;
+                    if (Mathf.Abs(x) < StickPlay.Dead && Mathf.Abs(y) < StickPlay.Dead) return 0;
                     return InPlay.DiamondBag(x, y);
                 }
             }
@@ -371,50 +359,49 @@ namespace GrandSluggers.UnityClient
         public static int ArrowBag => Pad1.ArrowBag;
         public static int AimBag => Pad1.AimBag;
 
+        /// <summary>SET / new verb. Sitting analog and already-down WASD do not walk.</summary>
+        public static void CatchPlay()
+        {
+            CatchPad(0);
+            CatchPad(1);
+            _keyA.Catch(Kb(Key.A));
+            _keyD.Catch(Kb(Key.D));
+            _keyW.Catch(Kb(Key.W));
+            _keyS.Catch(Kb(Key.S));
+            _mouseX = _mouseY = _mouseLive = 0f;
+        }
+
         public static void Tick(float dt)
         {
             UpdateMouse(dt);
-            TickMoveKeys();
-            TickStickRest(0, dt);
-            TickStickRest(1, dt);
+            _keyA.Tick(KeyDown(Key.A), Kb(Key.A));
+            _keyD.Tick(KeyDown(Key.D), Kb(Key.D));
+            _keyW.Tick(KeyDown(Key.W), Kb(Key.W));
+            _keyS.Tick(KeyDown(Key.S), Kb(Key.S));
+            TickPad(0, dt);
+            TickPad(1, dt);
             if (_rumbleT <= 0f) return;
             _rumbleT -= dt;
             if (_rumbleT <= 0f) Silence();
             else ApplyRumble();
         }
 
-        static void TickMoveKeys()
+        static void CatchPad(int index)
         {
-            Latch(Key.A, ref _moveA);
-            Latch(Key.D, ref _moveD);
-            Latch(Key.W, ref _moveW);
-            Latch(Key.S, ref _moveS);
+            var s = RawStick(index);
+            _pads[index].Catch(s.x, s.y);
         }
 
-        static void Latch(Key k, ref bool on)
+        static void TickPad(int index, float dt)
         {
-            var kb = Keyboard.current;
-            if (kb == null)
-            {
-                on = false;
-                return;
-            }
-            if (kb[k].wasPressedThisFrame) on = true;
-            if (!kb[k].isPressed) on = false;
+            var s = RawStick(index);
+            _pads[index].Tick(s.x, s.y, dt);
         }
 
-        static void TickStickRest(int index, float dt)
+        static Vector2 RawStick(int index)
         {
-            if (index < 0 || index >= Gamepad.all.Count) return;
-            var s = Gamepad.all[index].leftStick.ReadValue();
-            var next = StickPlay.Recenter(
-                s.x, s.y, _lastRawX[index], _lastRawY[index],
-                _restX[index], _restY[index], _still[index], dt);
-            _restX[index] = next.RestX;
-            _restY[index] = next.RestY;
-            _still[index] = next.Still;
-            _lastRawX[index] = s.x;
-            _lastRawY[index] = s.y;
+            if (index < 0 || index >= Gamepad.all.Count) return default;
+            return Gamepad.all[index].leftStick.ReadValue();
         }
 
         static void UpdateMouse(float dt)
