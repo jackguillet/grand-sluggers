@@ -403,6 +403,37 @@ public class InPlayTests
         Assert.True(InPlay.TagSafeRadiusFt < InPlay.TagReachFt);
     }
 
+    [Fact]
+    public void SteppingOnFirstWithTheBallIsTheForceOut()
+    {
+        var first = Diamond.First;
+        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
+        Assert.True(InPlay.OnThisBag(1, first.X, first.Z));
+        Assert.False(InPlay.OnThisBag(1, halfway.X, halfway.Z));
+        Assert.True(InPlay.ForceAtBag(1, false, false, false));
+        Assert.False(InPlay.ForceAtBag(2, false, false, false));
+        Assert.True(InPlay.ForceAtBag(2, true, false, false));
+        Assert.True(InPlay.ForceAtBag(3, true, true, false));
+        Assert.True(InPlay.ForceAtBag(4, true, true, true));
+        Assert.False(InPlay.ForceAtBag(3, true, false, false));
+
+        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z),
+            "1B on the bag, batter still coming: out");
+        Assert.False(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, first.X, first.Z),
+            "batter already on first is safe");
+        Assert.False(InPlay.ForceOnBag(true, 1, true, false, halfway.X, halfway.Z, halfway.X, halfway.Z),
+            "glove off the bag is not a force");
+        Assert.False(InPlay.ForceOnBag(false, 1, true, false, first.X, first.Z, halfway.X, halfway.Z));
+        Assert.False(InPlay.ForceOnBag(true, 1, false, false, first.X, first.Z, halfway.X, halfway.Z),
+            "no ball");
+        Assert.False(InPlay.ForceOnBag(true, 1, true, true, first.X, first.Z, halfway.X, halfway.Z),
+            "throwing");
+        var second = Diamond.Second;
+        var leavingFirst = InPlay.TowardBag(1, 2, 20);
+        Assert.True(InPlay.ForceOnBag(true, 2, true, false, second.X, second.Z, leavingFirst.X, leavingFirst.Z),
+            "2B on second, runner from first still coming");
+    }
+
     static AtBatResult Hit(ContactQuality q, double exit, double launch = 22, double carry = 200) =>
         new(q, true, false, exit, launch, carry, false, false, null, null);
 }
