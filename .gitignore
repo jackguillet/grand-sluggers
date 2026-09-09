@@ -53,3 +53,6 @@ coverage/
 src/**/bin.meta
 src/**/obj.meta
 src/**/*.csproj.meta
+
+# Python delivery tooling
+__pycache__/
