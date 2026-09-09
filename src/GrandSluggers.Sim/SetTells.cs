@@ -10,6 +10,14 @@ public static class SetTells
 
     public static bool RingOn(double charge01) => charge01 >= ChargePull;
 
+    /// <summary>In-play YOU foot ring. Same gold language as charge, always on that glove.</summary>
+    public const double YouRingScale = 4.4;
+
+    public static bool YouRingOn(bool you, double charge01) => you || RingOn(charge01);
+
+    public static double LiveRingScale(bool you, double charge01) =>
+        RingOn(charge01) ? RingScale(charge01) : you ? YouRingScale : 0;
+
     /// <summary>
     /// Major radius in feet. Small values sat under the mesh as a gold pancake.
     /// Pull already clears the toy; max grows around the box.

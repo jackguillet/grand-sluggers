@@ -19,6 +19,20 @@ public static class FieldAssist
     public static bool StickTakesGlove(double stickX, double stickY, double threshold, bool swapPressed)
         => swapPressed || Math.Abs(stickX) + Math.Abs(stickY) >= threshold;
 
+    public static bool StickDead(double stickX, double stickY, double threshold) =>
+        Math.Abs(stickX) + Math.Abs(stickY) < threshold;
+
+    /// <summary>
+    /// Dead stick, no ball: that glove still chases like CPU. Stick steers.
+    /// They do not throw for you.
+    /// </summary>
+    public static bool CpuChases(bool hasBall, bool throwing, bool stickDead) =>
+        !hasBall && !throwing && stickDead;
+
+    /// <summary>YOU stays on the play glove the whole in-play, dead stick included.</summary>
+    public static bool ShowYou(bool humanDefense, string pos) =>
+        humanDefense && !string.IsNullOrWhiteSpace(pos);
+
     public static (double X, double Z) CoverSpot(string pos) => pos switch
     {
         "1B" => Diamond.First,

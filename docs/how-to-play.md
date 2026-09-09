@@ -133,7 +133,7 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 
 Fair contact always sends the batter to first. On a fly, runners hold; all-advance tags up after the catch. Mini diamond shows leads, not just occupied bags. Mini diamond + banner match the out/safe.
 
-In-play HUD (the booklet screen): **YOU** names the glove you have (gone when the stick is dead). A **yellow circle on the grass** is where the fly lands (the landing ring). It turns **red** in the jump window. **ITEM → name** plus a gold ring on that body when a chemistry item is armed. Pitcher card is **ARM**; below 25 it reads **TIRED** and sweats. When the play is **dead** (nobody still running), a stamp names it — **BALL**, **STRIKE**, **FOUL**, **WALK** (smaller and quicker), **OUT**, **DOUBLE PLAY**, **TRIPLE PLAY**, **SINGLE**, **DOUBLE**, **TRIPLE**, **HOME RUN**, **GRAND SLAM** — then the next batter. A runner still going with fewer than three outs keeps play alive.
+In-play HUD (the booklet screen): **YOU** names the glove (bag + name) and **stays up** — a gold ring sits at their feet. Dead stick they still run to the ball like CPU. Stick steers. They do **not** throw for you. A **yellow circle on the grass** is where the fly lands (the landing ring). It turns **red** in the jump window. **ITEM → name** plus a gold ring on that body when a chemistry item is armed. Pitcher card is **ARM**; below 25 it reads **TIRED** and sweats. When the play is **dead** (nobody still running), a stamp names it — **BALL**, **STRIKE**, **FOUL**, **WALK** (smaller and quicker), **OUT**, **DOUBLE PLAY**, **TRIPLE PLAY**, **SINGLE**, **DOUBLE**, **TRIPLE**, **HOME RUN**, **GRAND SLAM** — then the next batter. A runner still going with fewer than three outs keeps play alive.
 
 ### Fielding (the ball is in play)
 
@@ -141,7 +141,7 @@ Nearest glove **lights**. The ball **hangs** so you can get there. Leave the sti
 
 On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. A **fly pulls back** (same angle, more grass). The ball keeps the gold streak. It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
-- **Stick / WASD** — take the glove and run it (dead stick = CPU). After the catch, stick still **runs with the ball**. **Hold East / G** to dash.
+- **Stick / WASD** — steer the YOU glove. Dead stick they still chase and scoop like CPU. After the catch, stick **runs with the ball**. They do not throw for you. **Hold East / G** to dash.
 - **Select / R** — swap to the pulsing glove (stick points at who you want; dead stick is next-nearest to the landing / ball). HUD **R → CF**. Not while you hold the ball.
 - **South / Space** — catch (in the window) when you have the glove; after the catch, throw. On a fly, South still scoops if you are under it.
 - **East tap / G** — dive
