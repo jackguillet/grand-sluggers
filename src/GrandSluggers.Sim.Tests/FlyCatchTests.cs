@@ -86,6 +86,20 @@ public class FlyCatchTests
     }
 
     [Fact]
+    public void StandingOnTheBallScoopsWithoutSouthOrStick()
+    {
+        const double window = 14;
+        Assert.True(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: 0.4),
+            "standing on a hopper scoops it");
+        Assert.True(FlyCatch.TouchScoop(distFt: 13.9, windowFt: window, ballY: 3.1));
+        Assert.False(FlyCatch.TouchScoop(distFt: 14, windowFt: window, ballY: 0.4),
+            "outside the glove is not a pickup");
+        Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: 18),
+            "a fly still up is not a pickup");
+        Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: FlyCatch.TouchScoopY));
+    }
+
+    [Fact]
     public void SuperJumpWidensTheWindowItDoesNotSkipIt()
     {
         var nico = _content.Must("nico");
