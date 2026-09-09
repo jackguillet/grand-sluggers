@@ -137,13 +137,13 @@ In-play HUD (the booklet screen): **YOU** names the glove you have (gone when th
 
 ### Fielding (the ball is in play)
 
-Nearest glove **lights**. The ball **hangs** so you can get there. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first) and **still can catch** if they are under the ring. Then they chase the hop once it is down. They do **not** throw for you. Gloves stay **inside the wall** — each park's fence is the boundary. Push the stick to take that glove; South still scoops (the verb). Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
+Nearest glove **lights**. The ball **hangs** so you can get there. Leave the stick still: CPU runs to the **landing** on a fly (not the live ball — that would send them home first) and **still can catch** if they are under the ring. Then they chase the hop once it is down. They do **not** throw for you. Gloves stay **inside the wall** — each park's fence is the boundary. Push the stick to take that glove. **Standing on the ball scoops it** — no South, no stick. South still catches a fly in the window. Select / **R** cycles who you are. CPU covers the bags. A ball over an infielder stays their hop on the dirt; once it reaches the outfield grass the outfielder charges and the glove hands off.
 
 On contact the camera sits at **45°** on the dirt under the ball. **CF is the top of the look** — home sits under second. A **fly pulls back** (same angle, more grass). The ball keeps the gold streak. It follows that spot through the hopper, fly, and throw. No cut behind the thrower. Charge ring sits **on the dirt**. Contact is a crack, a camera punch, and a dirt puff. Fielders **run**; they do not skate. A good throw is a purple laser; a bad throw is muddy.
 
 - **Stick / WASD** — take the glove and run it (dead stick = CPU). After the catch, stick still **runs with the ball**. **Hold East / G** to dash.
 - **Select / R** — swap to the pulsing glove (stick points at who you want; dead stick is next-nearest to the landing / ball). HUD **R → CF**. Not while you hold the ball.
-- **South / Space** — catch (in the window) when you have the glove; after the catch, throw. On a fly, South still scoops if you are under it.
+- **South / Space** — catch a fly in the window; after the catch, throw. On the dirt, touching the ball scoops it.
 - **East tap / G** — dive
 - **West / F** — jump in the window / buddy jump. A would-be homer is a wall play: West (or two bodies, West) in the window robs. South does not. Super Jump / Grow / Clamber add window, not a skip. Miss = the ball drops (or a homer). Dead stick: CPU still can catch.
 - **E** while chasing a chem partner — **buddy toss** (they take the laser)

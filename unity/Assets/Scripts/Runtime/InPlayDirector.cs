@@ -229,6 +229,7 @@ namespace GrandSluggers.UnityClient
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
             if (pre.Grounder || pre.Line)
             {
+                if (FlyCatch.TouchScoop(d, window, _ball.y)) { CatchGlove(); ArmRecoil(); }
                 if (FieldPad.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
                 if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
             }
@@ -350,6 +351,14 @@ namespace GrandSluggers.UnityClient
             _gloveAt[_glovePos] = (_fx, _fz);
             var outPlay = _cpuField.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
             var reached = outPlay || _cpuField.Bobble;
+            var cpuMap = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var cpuWindow = CatchWindow(cpuMap);
+            var cpuDist = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
+            if (!_caught && FlyCatch.TouchScoop(cpuDist, cpuWindow, _ball.y))
+            {
+                CatchGlove();
+                ArmRecoil();
+            }
             if (!_caught && !grounder && _preview != null)
             {
                 var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
