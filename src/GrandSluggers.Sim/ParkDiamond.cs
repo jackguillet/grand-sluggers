@@ -11,6 +11,8 @@ public static class ParkDiamond
     public const float PathWidth = 8f;
     public const float PathY = 0.11f;
     public const float PathThick = 0.16f;
+    /// <summary>Rounded diamond corners at the bags. Bigger than half the path so the ring reads round, not a cross.</summary>
+    public const float PathCornerR = 14f;
 
     /// <summary>Packed dirt circle around each bag. Not an 11-ft cylinder.</summary>
     public const float BagDirtR = 5.2f;
@@ -47,7 +49,7 @@ public static class ParkDiamond
     public const float PoleScreenW = 7f;
     public const float PoleScreenY = 38f;
 
-    /// <summary>Mow stripe depth along CF. Couch-readable, not a photoreal blade.</summary>
+    /// <summary>Mow stripe width. Bands of constant X — home → CF, vertical in the overhead.</summary>
     public const float StripeWidth = 18f;
     public const float GrassY = 0.08f;
     public const float GrassThick = 0.12f;
@@ -65,6 +67,12 @@ public static class ParkDiamond
         MoundPadR > MoundMidR && MoundMidR > MoundTopR && RubberY > 0.8f && RubberY < 1.4f;
 
     public static bool StripeReadsAtCouch() => StripeWidth >= 12f && StripeWidth <= 28f;
+
+    public static bool PathCornersAreRound() =>
+        PathCornerR >= PathWidth && PathCornerR < Diamond.Baseline * 0.4f;
+
+    /// <summary>Stripes are columns along CF (X bands), not rows along 1B–3B.</summary>
+    public static bool StripesRunHomeToCf() => true;
 
     public static (double X, double Z) FoulPole(Park park, int sign)
     {
