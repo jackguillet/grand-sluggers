@@ -772,6 +772,8 @@ namespace GrandSluggers.UnityClient
                 step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
                 if (!string.IsNullOrEmpty(step.Value.Caption))
                     _sub = step.Value.Caption;
+                if (!ClosePlay.Offered(bag, _match.Second != null, _match.Third != null))
+                    MaybeStampCloseSafe(bag);
             }
 
             if (step != null && WaitForNextThrow(step.Value))
@@ -779,6 +781,25 @@ namespace GrandSluggers.UnityClient
             if (!_playerFielding)
                 return AdvanceRelay();
             return false;
+        }
+
+        void StampSafe()
+        {
+            _bagStamp = PlayStamp.Safe;
+            _bagStampT = 0;
+        }
+
+        void MaybeStampCloseSafe(int bag)
+        {
+            if (_match == null) return;
+            double needed;
+            if (bag == 1) needed = InPlay.HomeToFirstSec(_match.Batter, _dash01);
+            else if (bag == 2 && _match.First != null) needed = InPlay.BagToBagSec(_match.First);
+            else if (bag == 3 && _match.Second != null) needed = InPlay.BagToBagSec(_match.Second);
+            else if (bag == 4 && _match.Third != null) needed = InPlay.BagToBagSec(_match.Third);
+            else return;
+            if (InPlay.CloseSafe(_hitT, needed))
+                StampSafe();
         }
 
         bool RelayBeats(int bag)
@@ -1104,6 +1125,7 @@ namespace GrandSluggers.UnityClient
             var safe = ClosePlay.OffenseSafe(_closeOffAt, _closeDefAt);
             _match.ClosePlaySafe = safe;
             _sub = ClosePlay.Caption(_closeBag, safe);
+            if (safe) StampSafe();
             _closePlay = false;
             _closeIcon = false;
             CommitInPlay();
