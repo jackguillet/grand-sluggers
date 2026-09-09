@@ -637,9 +637,9 @@ namespace GrandSluggers.UnityClient
             return tex;
         }
 
-        public static void ControlDisplay(string pos, string name)
+        public static void ControlDisplay(string pos, string name, bool jump = false, bool dive = false)
         {
-            var label = BroadcastHud.ControlDisplay(true, pos, name);
+            var label = BroadcastHud.ControlDisplay(true, pos, name, jump, dive);
             if (string.IsNullOrEmpty(label)) return;
             Ensure();
             var r = Px(BroadcastHud.YouTell);

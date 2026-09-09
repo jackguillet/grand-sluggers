@@ -170,6 +170,8 @@ public class BroadcastHudTests
         Assert.Equal("", BroadcastHud.ControlDisplay(true, "", "Vale"));
         Assert.Equal("YOU  RF", BroadcastHud.ControlDisplay(true, "RF", ""));
         Assert.Equal("YOU  RF  ·  Vale", BroadcastHud.ControlDisplay(true, "RF", "Vale"));
+        Assert.Contains("JUMP", BroadcastHud.ControlDisplay(true, "CF", "Rio", jump: true));
+        Assert.Contains("DIVE", BroadcastHud.ControlDisplay(true, "SS", "Nico", dive: true));
         Assert.Equal("R  →  CF", BroadcastHud.SwitchTell("SS", "CF", "", false));
         Assert.Equal("R  →  CF  ·  Rio", BroadcastHud.SwitchTell("SS", "CF", "Rio", false));
         Assert.Equal("", BroadcastHud.SwitchTell("CF", "CF", "Rio", false));

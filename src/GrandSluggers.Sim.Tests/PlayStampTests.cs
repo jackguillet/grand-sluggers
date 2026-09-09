@@ -31,6 +31,10 @@ public class PlayStampTests
         Assert.Equal("DOUBLE PLAY", PlayStamp.Label(PlayKind.GroundOut, 2, 0, bunt: true));
         Assert.True(PlayStamp.Shows(PlayKind.StolenBase));
         Assert.True(PlayStamp.Shows(PlayKind.CaughtStealing));
+
+        Assert.Equal("DIVE", PlayStamp.Label(PlayKind.GroundOut, 1, 0, dive: true));
+        Assert.Equal("JUMP", PlayStamp.Label(PlayKind.FlyOut, 1, 0, jump: true));
+        Assert.Equal("DOUBLE PLAY", PlayStamp.Label(PlayKind.GroundOut, 2, 0, dive: true));
         Assert.True(PlayStamp.Shows(PlayKind.TakeBall));
         Assert.True(PlayStamp.Shows(PlayKind.TakeStrike));
         Assert.True(PlayStamp.Shows(PlayKind.SwingMiss));

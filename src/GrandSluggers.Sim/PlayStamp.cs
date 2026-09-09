@@ -20,13 +20,16 @@ public static class PlayStamp
     public static string Label(PlayEvent ev, int outsThisPlay) =>
         ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt);
 
-    public static string Label(PlayKind kind, int outsThisPlay, int runs, bool bunt = false)
+    public static string Label(PlayKind kind, int outsThisPlay, int runs,
+        bool bunt = false, bool dive = false, bool jump = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
         if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
             return "BUNT";
+        if (jump && kind == PlayKind.FlyOut) return "JUMP";
+        if (dive && kind is PlayKind.GroundOut or PlayKind.FlyOut) return "DIVE";
         return kind switch
         {
             PlayKind.HomeRun => "HOME RUN",

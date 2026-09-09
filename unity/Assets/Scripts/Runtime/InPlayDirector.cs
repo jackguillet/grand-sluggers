@@ -224,24 +224,35 @@ namespace GrandSluggers.UnityClient
             }
             if (FieldPad.WestDown)
                 _jumpT = needsJump || buddyOn ? 0.7f : 0.55f;
-            if (FieldPad.EastDown) _diveT = 0.5f;
+            if (FieldPad.EastDown)
+            {
+                var toX = pre.Grounder || pre.Line ? _ball.x : plant.X;
+                var toZ = pre.Grounder || pre.Line ? _ball.z : plant.Z;
+                var lunged = FieldDash.Lunge(_fx, _fz, toX, toZ);
+                _fx = lunged.X;
+                _fz = lunged.Z;
+                _gloveAt[_glovePos] = (_fx, _fz);
+                _diveT = 0.5f;
+            }
 
             var window = CatchWindow(map);
             var d = Diamond.Dist(_fx, _fz, _ball.x, _ball.z);
             if (pre.Grounder || pre.Line)
             {
                 if (FieldPad.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
-                if (_diveT > 0 && d < window && _ball.y < 7.5f) { CatchGlove(); ArmRecoil(); }
+                if (FlyCatch.PlayerDiveCatch(_diveT > 0, d, window, _ball.y))
+                { _catchDive = true; CatchGlove(); ArmRecoil(); }
             }
             else
             {
                 var inWin = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
                 var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
-                var jumpTry = FieldPad.WestDown && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
+                var jumpTry = _jumpT > 0 && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
                 if (stick < 0.35f && FlyCatch.AutoCatch(under, inWin, needsJump))
                 { CatchGlove(); ArmRecoil(); }
                 if (FlyCatch.PlayerCaught(jumpTry, FieldPad.SouthDown, under, inWin, needsJump))
                 {
+                    if (jumpTry) _catchJump = true;
                     if (buddyOn && inWin && Diamond.Dist(_fx, _fz, plant.X, plant.Z) < 26)
                     {
                         _buddy = true;
@@ -252,8 +263,8 @@ namespace GrandSluggers.UnityClient
                     CatchGlove();
                     ArmRecoil();
                 }
-                if (!needsJump && _diveT > 0 && d < window && _ball.y < 7.5f)
-                { CatchGlove(); ArmRecoil(); }
+                if (!needsJump && FlyCatch.PlayerDiveCatch(_diveT > 0, d, window, _ball.y))
+                { _catchDive = true; CatchGlove(); ArmRecoil(); }
             }
 
             var stickOk = InPlay.StickNamesBag(chasing, _caught || _buddy);

@@ -123,6 +123,7 @@ namespace GrandSluggers.UnityClient
         string _buddyPos = "";
         bool _buddyWindow;
         float _diveT, _jumpT, _swapLock;
+        bool _catchDive, _catchJump;
         bool _throwing;
         float _throwT, _throwDur;
         bool _closePlay;
@@ -380,7 +381,7 @@ namespace GrandSluggers.UnityClient
             {
                 var who = PlayFielder();
                 if (FieldAssist.ShowYou(true, _glovePos))
-                    HudView.ControlDisplay(_glovePos, who != null ? who.Name : "");
+                    HudView.ControlDisplay(_glovePos, who != null ? who.Name : "", _jumpT > 0, _diveT > 0);
                 if (!string.IsNullOrEmpty(_switchPos) && _switchPos != _glovePos && !(_caught || _buddy))
                 {
                     var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
@@ -595,7 +596,8 @@ namespace GrandSluggers.UnityClient
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
                 var outs = PlayStamp.OutsRecorded(_stampOutsBefore, _stampInning, _stampTop, _match);
-                _banner = PlayStamp.Label(_last, outs);
+                _banner = PlayStamp.Label(_last.Kind, outs, _last.RunsScored,
+                    _last.Swing.Bunt, _catchDive, _catchJump);
             }
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");

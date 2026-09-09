@@ -70,8 +70,8 @@ public static class FlyCatch
     }
 
     /// <summary>
-    /// One frame of stick-owned input. Jump must land in the window.
-    /// South scoops a routine fly you are under — not a rob.
+    /// Stick-owned catch. Jump is the leap while it is armed, not only the
+    /// press frame. South scoops a routine fly you are under — not a rob.
     /// </summary>
     public static bool PlayerCaught(
         bool jumpDown,
@@ -80,6 +80,9 @@ public static class FlyCatch
         bool inWindow,
         bool needsJump) =>
         (jumpDown && inWindow && under) || (southDown && under && !needsJump);
+
+    public static bool PlayerDiveCatch(bool diveArmed, double distFt, double windowFt, double ballY) =>
+        diveArmed && distFt < windowFt && ballY < 7.5;
 
     /// <summary>Dead-stick / CPU: under a routine fly in the window is a catch. Not a rob.</summary>
     public static bool AutoCatch(bool under, bool inWindow, bool needsJump) =>
