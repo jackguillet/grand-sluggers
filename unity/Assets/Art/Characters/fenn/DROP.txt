@@ -1,11 +1,10 @@
-Elder Fenn. Authored posed turtle (aa0b9c1). One mesh. Face, shell, cane.
+Elder Fenn. Cartoon Generic package. The posed PBR turtle is gone.
 
-  fenn.fbx            unsplit body. Do not run drop_character.py --bind segmented on this.
-  fenn-albedo.png     1024 base color (URP Lit). Required for paint.
-  Resources/Art/Characters/fenn/   player copies (fbx + albedo)
+  fenn.fbx            armature + closed volumes. Each piece 100% one bone.
+  fenn-albedo.png     1024 atlas (URP Lit). UVs on color tiles.
+  fenn-idle.fbx / fenn-pose.fbx
+  Resources/Art/Characters/fenn/
 
-bind=rigid. Python vertex-split shredded the face into a black interior.
-Quality path is painted weights (bind=skinned) on a T/A-pose, not another split.
-Idle/pose clip files stay for the catalog; they must not drive this statue.
+bind=skinned. Shell is head-only so a 90° arm cannot invert it.
+Author: tools/blender/hero_fenn.py. Do not drop a posed GLB.
 Humans pass look. Spec: docs/character-package.md
-

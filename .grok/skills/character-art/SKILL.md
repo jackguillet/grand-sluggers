@@ -22,7 +22,8 @@ A posed GLB is a **source**.
 
 1. Inspect **untextured clay** (holes, intersections, pose). Color hides defects.
 2. Riggable pose: **T-pose or A-pose**, or an armature with **painted** weights already in the file.
-3. If the mesh is mid-action with no skeleton: **stop**. Regenerate or rig in Blender (Rigify metarig you place; it does not auto-skin). Mixamo/AccuRIG are humanoid only.
+3. If the mesh is mid-action with no skeleton: **stop**. Rebuild as closed volumes in Blender (`tools/blender/hero_fenn.py`): one bone per piece, 100% weights, rest pose = idle. Do not heat-weight a posed GLB. Mixamo/AccuRIG are humanoid only.
+4. Rio six stay on `hero-shared` + extras until they are packages.
 
 ## Import
 
