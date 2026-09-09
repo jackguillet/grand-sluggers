@@ -60,8 +60,6 @@ public static class PlayStamp
         return Math.Max(0, after.Outs - outsBefore);
     }
 
-    public const string Safe = "SAFE";
-
     /// <summary>
     /// Body in the box during the result stamp. Null if that batter is already
     /// a runner. The next batter waits for SET.
