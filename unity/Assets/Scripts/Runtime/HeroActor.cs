@@ -25,6 +25,7 @@ namespace GrandSluggers.UnityClient
         bool _grow;
         bool _lit;
         bool _hint;
+        bool _you;
         bool _heldBat;
         bool _heldGlove;
         bool _batsLeft;
@@ -103,6 +104,8 @@ namespace GrandSluggers.UnityClient
         public void SetHighlight(bool on) => _lit = on;
 
         public void SetHint(bool on) => _hint = on;
+
+        public void SetYou(bool on) => _you = on;
 
         public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
 
@@ -192,12 +195,12 @@ namespace GrandSluggers.UnityClient
         void PlaceRing()
         {
             if (_ring == null) return;
-            var on = SetTells.RingOn(_chargeRing);
+            var on = SetTells.YouRingOn(_you, _chargeRing);
             _ring.gameObject.SetActive(on);
             if (!on) return;
             if (_ring.parent != null)
                 _ring.SetParent(null, true);
-            var s = (float)SetTells.RingScale(_chargeRing);
+            var s = (float)SetTells.LiveRingScale(_you, _chargeRing);
             var pulse = s + 0.08f * Mathf.Sin(_t * 7f);
             var feetX = _hasGround ? _ground.x : transform.position.x;
             var feetZ = _hasGround ? _ground.z : transform.position.z;

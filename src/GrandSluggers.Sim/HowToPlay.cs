@@ -194,7 +194,7 @@ public static class HowToPlay
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
             "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch, the throw, or a tag — they do not guess a force.",
-            "Move the stick to take the glove. Select swaps — the next glove pulses. Pickup does not end it.",
+            "YOU names the glove. Dead stick they still run to the ball. Stick steers. Select swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "West jump in the window (the circle turns red). East dive. North attack. A homer sits on the wall.",
             "On contact the camera sits at 45°. A fly pulls back. CF is the top. Home is under second.",
@@ -202,7 +202,7 @@ public static class HowToPlay
         [
             "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
             "The throw is yours: bag + Space. WASD still runs with the ball. Outs land on the catch, the throw, or a tag — they do not guess a force.",
-            "WASD takes the glove. R swaps — the next glove pulses. Pickup does not end it.",
+            "YOU names the glove. Don't move: they still run to the ball. WASD steers. R swaps — the next glove pulses. Pickup does not end it.",
             "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "F jump in the window (the circle turns red). G dive. B attack. A homer sits on the wall.",
             "On contact the camera sits at 45°. A fly pulls back. CF is the top. Home is under second.",
@@ -265,14 +265,14 @@ public static class HowToPlay
         [
             "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
             "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. Select swaps.",
-            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU is the glove you have.",
+            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Dead stick they still run to the ball.",
             "ITEM → name when an error item is ready.",
             "When the play is dead, a stamp names it — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Counts are smaller and quicker. Runners still going keep play alive.",
         ],
         [
             "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
             "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. R swaps.",
-            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU is the glove you have.",
+            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Don't move: they still run to the ball.",
             "ITEM → name when an error item is ready.",
             "When the play is dead, a stamp names it — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Counts are smaller and quicker. Runners still going keep play alive.",
         ]),
