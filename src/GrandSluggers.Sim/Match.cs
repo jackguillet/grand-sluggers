@@ -595,10 +595,13 @@ public sealed class Match
             aimed = aimed with { AimX = aimed.AimX + Gauss() * 0.22, AimY = aimed.AimY + Gauss() * 0.18 };
         var inZone = AtBatResolver.PitchInZone(aimed, Pitcher.Stats.Pitch);
         SpendPitch(pitch);
+        var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
 
         if (!swing.Swing)
         {
-            finished = FinishTake(pitch, swing, inZone);
+            finished = AtBatResolver.HitsBatter(box, aimed.AimX, aimed.AimY)
+                ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
+                : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
             ResetBatter();
             return false;
@@ -607,7 +610,6 @@ public sealed class Match
         SpendSwing(swing);
 
         var bat = OffenseBat;
-        var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
             pitch.Type, ChargeFeel.IsCharge(pitch.Charge01), ChargeFeel.IsCharge(swing.Charge01),
@@ -845,6 +847,16 @@ public sealed class Match
         var (runs, scorers) = Advance(Batter, walk: true);
         AddMvp(Batter.Id, 1 + runs);
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers);
+        NextBatter();
+        return ev;
+    }
+
+    PlayEvent FinishHitByPitch(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
+    {
+        ClearSteal();
+        var (runs, scorers) = Advance(Batter, walk: true);
+        AddMvp(Batter.Id, 1 + runs);
+        var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers);
         NextBatter();
         return ev;
     }

@@ -10,7 +10,8 @@ public class PlayStampTests
     {
         Assert.Equal("OUT", PlayStamp.Label(PlayKind.FlyOut, 1, 0));
         Assert.Equal("OUT", PlayStamp.Label(PlayKind.GroundOut, 1, 0));
-        Assert.Equal("OUT", PlayStamp.Label(PlayKind.Strikeout, 1, 0));
+        Assert.Equal("STRIKE OUT", PlayStamp.Label(PlayKind.Strikeout, 1, 0));
+        Assert.Equal("HIT BY PITCH", PlayStamp.Label(PlayKind.HitByPitch, 0, 0));
         Assert.Equal("DOUBLE PLAY", PlayStamp.Label(PlayKind.GroundOut, 2, 0));
         Assert.Equal("TRIPLE PLAY", PlayStamp.Label(PlayKind.GroundOut, 3, 0));
         Assert.Equal("SINGLE", PlayStamp.Label(PlayKind.Single, 0, 1));
@@ -28,9 +29,12 @@ public class PlayStampTests
         Assert.True(PlayStamp.Shows(PlayKind.SwingMiss));
         Assert.True(PlayStamp.Shows(PlayKind.Foul));
         Assert.True(PlayStamp.Shows(PlayKind.Walk));
+        Assert.True(PlayStamp.Shows(PlayKind.HitByPitch));
+        Assert.True(PlayStamp.Shows(PlayKind.Strikeout));
         Assert.True(PlayStamp.Shows(PlayKind.FlyOut));
         Assert.True(PlayStamp.Shows(PlayKind.HomeRun));
         Assert.True(PlayStamp.IsCount(PlayKind.Walk));
+        Assert.False(PlayStamp.IsCount(PlayKind.HitByPitch));
         Assert.False(PlayStamp.IsCount(PlayKind.Single));
         Assert.False(PlayStamp.IsCount(PlayKind.Strikeout));
     }

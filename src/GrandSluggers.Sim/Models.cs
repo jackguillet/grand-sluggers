@@ -167,6 +167,7 @@ public enum PlayKind
     Triple,
     HomeRun,
     Walk,
+    HitByPitch,
     Strikeout,
     StolenBase,
     CaughtStealing

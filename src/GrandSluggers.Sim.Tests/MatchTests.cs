@@ -314,6 +314,22 @@ public class MatchTests
             last = match.Play(paint, take).Kind;
         Assert.Equal(PlayKind.Strikeout, last);
         Assert.Equal(1, match.Outs);
+        Assert.Equal("STRIKE OUT", PlayStamp.Label(last, 1, 0));
+    }
+
+    [Fact]
+    public void InsideTakeIsHitByPitchAndAwardsFirst()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        var plunk = new PitchCommand("fastball", 0, 0, false, -0.85, 0);
+        var take = new SwingCommand(false, 0, 0, false);
+        var ev = match.Play(plunk, take);
+        Assert.Equal(PlayKind.HitByPitch, ev.Kind);
+        Assert.NotNull(match.First);
+        Assert.Equal(match.First!.Id, ev.Batter.Id);
+        Assert.Equal(0, match.Balls);
+        Assert.Equal(0, match.Strikes);
+        Assert.Equal("HIT BY PITCH", PlayStamp.Label(ev.Kind, 0, ev.RunsScored));
     }
 
     [Fact]
