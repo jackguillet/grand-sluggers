@@ -33,7 +33,7 @@ public class GettingStartedTests
         Assert.Contains("West", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Pad));
         Assert.Contains("F", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
         Assert.DoesNotContain("West", GettingStarted.Line(GettingStarted.Modes[1], InputScheme.Keys));
-        Assert.Contains("Gamepad", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Pad));
+        Assert.Contains("Controller", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Pad));
         Assert.Contains("player 1 only", GettingStarted.Line(GettingStarted.Modes[2], InputScheme.Keys));
         var banned = new[] { "Challenge", "Toy Field", "minigame", "Records", "save file", "Wii", "disc" };
         var copy = GettingStarted.Path.SelectMany(s => new[] { s.Title, s.PadCaption, s.KeysCaption })
