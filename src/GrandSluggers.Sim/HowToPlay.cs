@@ -267,14 +267,14 @@ public static class HowToPlay
             "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. Select swaps.",
             "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Dead stick they still run to the ball.",
             "ITEM → name when an error item is ready.",
-            "When the play is dead, a stamp names it — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Counts are smaller and quicker. Runners still going keep play alive.",
+            "When the play is dead, a stamp names it on the field — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Then the next pitch. Counts are smaller and quicker. Runners still going keep play alive.",
         ],
         [
             "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
             "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. R swaps.",
             "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Don't move: they still run to the ball.",
             "ITEM → name when an error item is ready.",
-            "When the play is dead, a stamp names it — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Counts are smaller and quicker. Runners still going keep play alive.",
+            "When the play is dead, a stamp names it on the field — BALL, STRIKE, FOUL, WALK, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Then the next pitch. Counts are smaller and quicker. Runners still going keep play alive.",
         ]),
         new("chemistry", "Chemistry", "chemistry",
         [

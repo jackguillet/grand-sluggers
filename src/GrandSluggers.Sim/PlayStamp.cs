@@ -52,6 +52,12 @@ public static class PlayStamp
 
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;
 
+    /// <summary>
+    /// Hits and outs stamp on the live field camera. Counts stay on SET.
+    /// Next pitch SET is after the hold, not at the stamp (#301).
+    /// </summary>
+    public static bool HoldsLiveCamera(PlayKind kind) => Shows(kind) && !IsCount(kind);
+
     public static double HoldSeconds(PlayKind kind, FeelTable feel)
     {
         if (IsCount(kind))
