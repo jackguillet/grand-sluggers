@@ -14,12 +14,13 @@ public readonly record struct Seats(LineupSeat Home, LineupSeat Away)
     public static Seats AwayVersus { get; } = new(LineupSeat.Pad2, LineupSeat.Pad1);
 
     /// <summary>
-    /// Zero or one pad is 1P vs CPU. Two or more pads is local 1v1.
-    /// <paramref name="pad1Home"/> false sits pad 1 away (bats the top).
+    /// One player vs CPU until <paramref name="versus"/> is on and two pads sit.
+    /// Plugging in pad 2 does not start 1v1. <paramref name="pad1Home"/> false
+    /// sits pad 1 away (bats the top).
     /// </summary>
-    public static Seats FromPads(int padCount, bool pad1Home = true)
+    public static Seats FromPads(int padCount, bool pad1Home = true, bool versus = false)
     {
-        if (padCount >= 2)
+        if (versus && padCount >= 2)
             return pad1Home ? Versus : AwayVersus;
         return pad1Home ? One : AwayOne;
     }

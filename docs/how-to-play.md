@@ -41,7 +41,7 @@ The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), 
 
 ## Exhibition (the product)
 
-Three innings at Harbor. Home bats in the bottom. One pad: you pitch the top, you hit the bottom. Two pads: pad 1 is home, pad 2 is away — they pitch and hit at the same time.
+Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): you pitch the top, you hit the bottom. **2 PLAYERS** on captains: pad 1 is home, pad 2 is away — they pitch and hit at the same time. Plugging in pad 2 does not start 1v1 until you pick 2 PLAYERS.
 
 ### Title
 
@@ -60,7 +60,9 @@ Captains and the field are two screens. The park does not follow the captain.
 
 The toys are the UI. Highlighted captain **steps forward**. Camera looks at the **toy** (face and body), not the brim and not the plate dirt. The **HUD card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
-- **Stick / WASD L/R** — your team · **U/D** — the other (pad 2 L/R their team when seated)
+- **1 PLAYER / 2 PLAYERS** at the top — one player vs CPU, or two pads. Default is one player even if pad 2 is plugged in.
+- **LB / `,`** — 1 player · **RB / Tab** — 2 players. Click the tabs. Two players needs pad 2.
+- **Stick / WASD L/R** — your team · **U/D** — the other (pad 2 L/R their team when 2 PLAYERS)
 - **North / Q** — you are **HOME** or **AWAY**. HOME bats the bottom. AWAY bats the top.
 - **South / Space** — pick the field
 - **West / F** — title

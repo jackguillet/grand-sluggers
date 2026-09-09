@@ -28,7 +28,7 @@ namespace GrandSluggers.UnityClient
             }
             if (phase == PhaseUi.Select)
             {
-                Select(homeCap, awayCap, pad1Home, null);
+                Select(homeCap, awayCap, pad1Home, null, false, false);
                 return;
             }
             if (phase == PhaseUi.Field)
@@ -76,9 +76,11 @@ namespace GrandSluggers.UnityClient
                 "South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings", _tiny);
         }
 
-        public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content)
+        public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,
+            bool versus = false, bool pad2 = false)
         {
             Ensure();
+            DrawSeatModeTabs(versus);
             var yours = pad1Home ? homeId : awayId;
             var theirs = pad1Home ? awayId : homeId;
             if (content != null && content.Characters.TryGetValue(yours, out var youWho))
@@ -87,9 +89,25 @@ namespace GrandSluggers.UnityClient
             if (content != null && content.Characters.TryGetValue(theirs, out var themWho))
                 vs += themWho.Name;
             Sticker(CarnivalFront.SeatMark(pad1Home) + "  " + vs, 36, 268, 480, 24, _gold);
-            GUI.Label(new Rect(36, 300, 520, 22), CarnivalFront.SeatHint(pad1Home), _tiny);
+            GUI.Label(new Rect(36, 300, 520, 22), CarnivalFront.SeatModeHint(versus, pad2, pad1Home), _tiny);
             GUI.Label(new Rect(44, Screen.height - 48, Screen.width - 80, 22),
-                "L/R your team    U/D the other    North HOME/AWAY    South the field    West title    Esc how to play", _tiny);
+                CarnivalFront.SelectHelp, _tiny);
+        }
+
+        static void DrawSeatModeTabs(bool versus)
+        {
+            DrawSeatModeTab(false, versus);
+            DrawSeatModeTab(true, versus);
+        }
+
+        static void DrawSeatModeTab(bool two, bool versus)
+        {
+            var t = CarnivalFront.SeatModeTab(two, Screen.width, Screen.height);
+            var r = new Rect(t.X, t.Y, t.W, t.H);
+            var on = two == versus;
+            GUI.DrawTexture(r, on ? _ink : _panel);
+            GUI.Label(new Rect(r.x + 8, r.y + 6, r.width - 12, r.height - 8),
+                CarnivalFront.SeatModeLabel(two), on ? _h1 : _body);
         }
 
         public static void Card(CharacterCard card, float x, float y)

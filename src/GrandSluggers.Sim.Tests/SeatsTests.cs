@@ -31,9 +31,31 @@ public class SeatsTests
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
-    public void GamepadOneSitsAway(int pads)
+    public void TwoPadsStayOneUntilYouAskForVersus(int pads)
     {
         var seats = Seats.FromPads(pads);
+        Assert.Equal(Seats.One, seats);
+        Assert.False(seats.BothHuman);
+        Assert.Equal(1, seats.Count);
+        var vs = Seats.FromPads(pads, versus: true);
+        Assert.Equal(Seats.Versus, vs);
+        Assert.True(vs.BothHuman);
+    }
+
+    [Fact]
+    public void VersusWantedWithoutPad2IsStillOne()
+    {
+        var seats = Seats.FromPads(1, versus: true);
+        Assert.Equal(Seats.One, seats);
+        Assert.False(seats.BothHuman);
+    }
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void GamepadOneSitsAway(int pads)
+    {
+        var seats = Seats.FromPads(pads, versus: true);
         Assert.Equal(LineupSeat.Pad1, seats.Home);
         Assert.Equal(LineupSeat.Pad2, seats.Away);
         Assert.Equal(Seats.Versus, seats);
@@ -48,7 +70,7 @@ public class SeatsTests
     [Fact]
     public void BothSeatsHumanCpuPitchAndSwingDoNotFire()
     {
-        var seats = Seats.FromPads(2);
+        var seats = Seats.FromPads(2, versus: true);
         Assert.True(seats.HumanPitches(top: true));
         Assert.True(seats.HumanBats(top: true));
         Assert.False(seats.CpuPitches(top: true));
@@ -62,8 +84,8 @@ public class SeatsTests
     [Fact]
     public void UnplugPad2BecomesCpuWithoutANewInning()
     {
-        var vs = Seats.FromPads(2);
-        var unplug = Seats.FromPads(1);
+        var vs = Seats.FromPads(2, versus: true);
+        var unplug = Seats.FromPads(1, versus: true);
         Assert.True(vs.HumanBats(top: true));
         Assert.True(unplug.CpuBats(top: true));
         Assert.True(unplug.HumanPitches(top: true));
@@ -85,7 +107,7 @@ public class SeatsTests
         Assert.True(one.HumanPitches(top: false));
         Assert.True(one.CpuBats(top: false));
 
-        var vs = Seats.FromPads(2, pad1Home: false);
+        var vs = Seats.FromPads(2, pad1Home: false, versus: true);
         Assert.Equal(Seats.AwayVersus, vs);
         Assert.Equal(LineupSeat.Pad2, vs.Home);
         Assert.Equal(LineupSeat.Pad1, vs.Away);
