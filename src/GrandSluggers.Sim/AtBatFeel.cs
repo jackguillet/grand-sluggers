@@ -65,8 +65,20 @@ public static class FieldDash
         field with { Fielder = partner, Throw = thr };
 
     public const double KickFt = 22;
+    public const double DiveLungeFt = 10;
 
     public static bool KickOffered(double distFt) => distFt < KickFt;
+
+    /// <summary>Dive carries the body toward the ball. Not a teleport.</summary>
+    public static (double X, double Z) Lunge(double x, double z, double tx, double tz, double ft = DiveLungeFt)
+    {
+        var dx = tx - x;
+        var dz = tz - z;
+        var d = Math.Sqrt(dx * dx + dz * dz);
+        if (d < 0.01) return (x, z);
+        var u = Math.Min(1, ft / d);
+        return (x + dx * u, z + dz * u);
+    }
 
     public static bool DestroysItem(bool attack, bool itemFlying, double distFt) =>
         attack && itemFlying && distFt < 24;

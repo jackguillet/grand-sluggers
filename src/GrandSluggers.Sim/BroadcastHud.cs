@@ -229,12 +229,15 @@ public static class BroadcastHud
     public static string ArmLine(int stamina) =>
         PoorArm(stamina) ? $"ARM  {stamina}  ·  TIRED" : $"ARM  {stamina}";
 
-    public static string ControlDisplay(bool hasGlove, string pos, string name)
+    public static string ControlDisplay(bool hasGlove, string pos, string name, bool jump = false, bool dive = false)
     {
         if (!hasGlove || string.IsNullOrWhiteSpace(pos)) return "";
-        return string.IsNullOrWhiteSpace(name)
+        var s = string.IsNullOrWhiteSpace(name)
             ? "YOU  " + pos
             : "YOU  " + pos + "  ·  " + name;
+        if (jump) s += "  JUMP";
+        if (dive) s += "  DIVE";
+        return s;
     }
 
     /// <summary>Smart switch tell. Empty when the hint is you, or you have the ball.</summary>
