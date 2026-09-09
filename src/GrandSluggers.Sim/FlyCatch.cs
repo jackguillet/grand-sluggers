@@ -13,6 +13,8 @@ public static class FlyCatch
     public const double WallSitSec = 1.15;
     public const double JumpBallY = 2.2;
     public const double WallBallY = 4.5;
+    /// <summary>Dirt pickup. A fly still up is not a scoop.</summary>
+    public const double TouchScoopY = 3.2;
 
     public static bool IsFly(FieldingPreview pre) => !pre.Grounder && !pre.Line;
 
@@ -87,6 +89,13 @@ public static class FlyCatch
     /// <summary>Dead-stick / CPU: under a routine fly in the window is a catch. Not a rob.</summary>
     public static bool AutoCatch(bool under, bool inWindow, bool needsJump) =>
         under && inWindow && !needsJump;
+
+    /// <summary>
+    /// Hopper on the dirt: if the glove can touch the ball, they scoop.
+    /// No South. No stick. A fly still in the air is not a pickup.
+    /// </summary>
+    public static bool TouchScoop(double distFt, double windowFt, double ballY) =>
+        distFt < windowFt && ballY < TouchScoopY;
 
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true)
     {
