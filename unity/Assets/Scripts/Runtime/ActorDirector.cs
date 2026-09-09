@@ -66,9 +66,14 @@ namespace GrandSluggers.UnityClient
             if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;
             var itemLit = ItemOffered && _itemTarget != null ? _itemTarget.Id : "";
+            var boxBatter = _phase == Phase.Result && _last != null
+                ? PlayStamp.BoxBatter(_last, _match)
+                : _match.Batter;
             foreach (var kv in defense)
             {
                 var who = kv.Value;
+                if (_phase == Phase.Result && boxBatter != null && who.Id == boxBatter.Id)
+                    continue;
                 var pos = Diamond.Positions[kv.Key];
                 double x = pos.X, z = pos.Z;
                 if (_gloveAt.TryGetValue(kv.Key, out var live))
@@ -152,39 +157,42 @@ namespace GrandSluggers.UnityClient
                 hero.Tick(Time.deltaTime);
             }
 
-            var batter = _match.Batter;
-            var bHero = Hero(batter);
-            var racing = _phase == Phase.InPlay && _pending != null;
-            var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
-            var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
-            bHero.SetPose(bPose, HumanBats ? _charge : 0);
-            bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
-            bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-            var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
-                or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
-            bHero.SetHeld(batting, false);
-            bHero.SetHighlight(false);
-            if (racing)
+            var batter = boxBatter;
+            if (batter != null)
             {
-                if (RunPad.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
-                _match.Dash01 = _dash01;
-                if (TrainingOn) _coach.OnRun(_match);
-                var kind = LiveKind();
-                var dest = InPlay.BatterDestBag(kind);
-                if (dest <= 0) dest = 1;
-                var feet = InPlay.RunFeet(_hitT, batter, _dash01);
-                var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
-                var look = dest >= 2 && feet > Diamond.Baseline
-                    ? Diamond.Bag(Math.Min(dest, 3))
-                    : Diamond.First;
-                bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
+                var bHero = Hero(batter);
+                var racing = _phase == Phase.InPlay && _pending != null;
+                var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
+                var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
+                bHero.SetPose(bPose, HumanBats ? _charge : 0);
+                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
+                bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
+                    or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
+                bHero.SetHeld(batting, false);
+                bHero.SetHighlight(false);
+                if (racing)
+                {
+                    if (RunPad.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
+                    _match.Dash01 = _dash01;
+                    if (TrainingOn) _coach.OnRun(_match);
+                    var kind = LiveKind();
+                    var dest = InPlay.BatterDestBag(kind);
+                    if (dest <= 0) dest = 1;
+                    var feet = InPlay.RunFeet(_hitT, batter, _dash01);
+                    var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                    var look = dest >= 2 && feet > Diamond.Baseline
+                        ? Diamond.Bag(Math.Min(dest, 3))
+                        : Diamond.First;
+                    bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
+                }
+                else
+                    bHero.Place(new Vector3(
+                        (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
+                        0,
+                        (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
+                bHero.Tick(Time.deltaTime);
             }
-            else
-                bHero.Place(new Vector3(
-                    (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
-                    0,
-                    (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
-            bHero.Tick(Time.deltaTime);
 
             PlaceRunner(_match.First, Diamond.First, 1);
             PlaceRunner(_match.Second, Diamond.Second, 2);
@@ -250,6 +258,8 @@ namespace GrandSluggers.UnityClient
             if (_phase == Phase.Result && _last != null)
             {
                 if (_last.Kind == PlayKind.SwingMiss) return HeroActor.Pose.Miss;
+                if (_last.Kind == PlayKind.Strikeout)
+                    return _swing != null && _swing.Swing ? HeroActor.Pose.Miss : HeroActor.Pose.Idle;
                 if (_last.Kind == PlayKind.HomeRun) return HeroActor.Pose.Cheer;
                 if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
                 if (_swing != null && _swing.Swing) return HeroActor.Pose.Swing;

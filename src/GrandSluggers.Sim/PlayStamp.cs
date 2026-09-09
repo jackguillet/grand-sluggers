@@ -48,6 +48,19 @@ public static class PlayStamp
         return Math.Max(0, after.Outs - outsBefore);
     }
 
+    /// <summary>
+    /// Body in the box during the result stamp. Null if that batter is already
+    /// a runner. The next batter waits for SET.
+    /// </summary>
+    public static Character? BoxBatter(PlayEvent? last, Match? match)
+    {
+        if (last?.Batter == null) return match?.Batter;
+        var who = last.Batter;
+        if (match != null && (match.First == who || match.Second == who || match.Third == who))
+            return null;
+        return who;
+    }
+
     public static double Scale(PlayKind kind) => IsCount(kind) ? 0.72 : 1.0;
 
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;
