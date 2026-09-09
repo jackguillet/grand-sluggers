@@ -780,11 +780,15 @@ namespace GrandSluggers.UnityClient
             InPlay.GroundThrowStep? step = null;
             if (_match != null && bag is >= 1 and <= 4)
             {
-                step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
-                if (!string.IsNullOrEmpty(step.Value.Caption))
-                    _sub = step.Value.Caption;
-                if (!ClosePlay.Offered(bag, _match.Second != null, _match.Third != null))
+                var close = ClosePlay.Offered(
+                    bag, _match.LiveForces, _match.Second != null, _match.Third != null);
+                if (!close)
+                {
+                    step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
+                    if (!string.IsNullOrEmpty(step.Value.Caption))
+                        _sub = step.Value.Caption;
                     MaybeStampCloseSafe(bag);
+                }
             }
 
             if (step != null && WaitForNextThrow(step.Value))
@@ -815,16 +819,28 @@ namespace GrandSluggers.UnityClient
 
         bool RelayBeats(int bag)
         {
+            if (_match == null) return false;
             if (_playerFielding)
             {
                 if (bag == 1)
                     return _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
                 if (bag == 2 && _match.First != null)
                     return _hitT >= InPlay.BagToBagSec(_match.First);
+                if (bag == 3 && _match.Second != null)
+                    return _hitT >= InPlay.BagToBagSec(_match.Second);
+                if (bag == 4 && _match.Third != null)
+                    return _hitT >= InPlay.BagToBagSec(_match.Third);
                 return false;
             }
-            if (bag == 1 && _pending != null && _cpuField != null)
+            if (_pending == null || _cpuField == null) return false;
+            if (bag == 1)
                 return InPlay.BatterBeatsThrow(_match.Batter, _pending, _cpuField, _dash01);
+            if (bag == 3 && _match.Second != null)
+                return InPlay.RunnerBeatsTag(_match.Second, _pending, _cpuField, 3);
+            if (bag == 4 && _match.Third != null)
+                return InPlay.RunnerBeatsTag(_match.Third, _pending, _cpuField, 4);
+            if (bag == 2 && _match.First != null)
+                return InPlay.RunnerBeatsTag(_match.First, _pending, _cpuField, 2);
             return false;
         }
 
@@ -1079,7 +1095,7 @@ namespace GrandSluggers.UnityClient
         bool TryBeginClosePlay()
         {
             if (_match == null) return false;
-            if (!ClosePlay.Offered(_throwBag, _match.Second != null, _match.Third != null))
+            if (!ClosePlay.Offered(_throwBag, _match.LiveForces, _match.Second != null, _match.Third != null))
                 return false;
             _closePlay = true;
             _closePlayT = 0;
@@ -1137,6 +1153,7 @@ namespace GrandSluggers.UnityClient
             _match.ClosePlaySafe = safe;
             _sub = ClosePlay.Caption(_closeBag, safe);
             if (safe) StampSafe();
+            _match.StepThrow(_closeBag, safe, PlayFielder());
             _closePlay = false;
             _closeIcon = false;
             CommitInPlay();

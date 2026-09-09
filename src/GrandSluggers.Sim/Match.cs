@@ -194,10 +194,13 @@ public sealed class Match
 
     bool _liveOpen;
     bool _liveForce;
+    int _liveForceBag;
     bool _liveTurnedTwo;
     bool _liveBatterOut;
     string _liveCaption = "";
     int _liveThrows;
+    int _liveOutsAtOpen;
+    InPlay.ForceState _liveForces = InPlay.ForceState.Empty;
     /// <summary>
     /// Exhibition opens this on contact. Outs record on a catch, a throw, or a tag.
     /// Headless Match.Play leaves it closed and FinishInPlay batches CPU throws.
@@ -208,6 +211,7 @@ public sealed class Match
     public bool LiveBatterOut => _liveBatterOut;
     public int LiveThrows => _liveThrows;
     public string LiveCaption => _liveCaption;
+    public InPlay.ForceState LiveForces => _liveForces;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
     public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
@@ -384,21 +388,32 @@ public sealed class Match
         if (_liveOpen) return;
         _liveOpen = true;
         _liveForce = false;
+        _liveForceBag = 0;
         _liveTurnedTwo = false;
         _liveBatterOut = false;
         _liveCaption = "";
         _liveThrows = 0;
+        _liveOutsAtOpen = Outs;
+        _liveForces = InPlay.ForceState.FromOccupancy(First is not null, Second is not null, Third is not null);
     }
 
     /// <summary>
-    /// One throw arriving at a bag. Force at second is out #1. Throw to first is out #2 when
-    /// the batter does not beat it. Returns the step so the director can wait for throw 2.
+    /// One throw arriving at a bag. Force vs tag from the contact snapshot.
+    /// Returns the step so the director can wait for throw 2.
     /// </summary>
     public InPlay.GroundThrowStep StepThrow(int bag, bool runnerBeats, Character? fielder = null)
     {
         OpenLivePlay();
+        var present = bag switch
+        {
+            1 => !_liveBatterOut,
+            2 => First is not null,
+            3 => Second is not null,
+            4 => Third is not null,
+            _ => false
+        };
         var step = InPlay.ThrowToBag(
-            bag, First is not null, _liveForce, runnerBeats, Outs,
+            bag, _liveForces, present, runnerBeats, Outs, _liveForce,
             fielder?.Name ?? "", Batter.Name);
         ApplyThrowStep(step, fielder);
         return step;
@@ -438,13 +453,19 @@ public sealed class Match
         _liveThrows++;
         if (!string.IsNullOrEmpty(step.Caption))
             _liveCaption = step.Caption;
-        if (step.Force) _liveForce = true;
+        if (step.Force)
+        {
+            _liveForce = true;
+            _liveForceBag = step.Bag;
+        }
         if (step.TurnedTwo) _liveTurnedTwo = true;
-        if (step.Out && step.Bag == 1 && !step.Force)
+        if (step.Out && step.Bag == 1)
             _liveBatterOut = true;
         if (!step.Out) return;
-        if (step.Force && step.Bag == 2)
-            SetBag(1, null);
+        _liveForces = _liveForces.AfterOutAt(step.Bag);
+        if (step.Bag == 2) SetBag(1, null);
+        else if (step.Bag == 3) SetBag(2, null);
+        else if (step.Bag == 4) SetBag(3, null);
         Outs++;
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
         AddStars(defense: true, 0.4);
@@ -454,10 +475,13 @@ public sealed class Match
     {
         _liveOpen = false;
         _liveForce = false;
+        _liveForceBag = 0;
         _liveTurnedTwo = false;
         _liveBatterOut = false;
         _liveCaption = "";
         _liveThrows = 0;
+        _liveOutsAtOpen = 0;
+        _liveForces = InPlay.ForceState.Empty;
     }
 
     /// <summary>
@@ -479,7 +503,9 @@ public sealed class Match
         else if (Outs < 3)
         {
             (runs, scorers) = AdvanceHit(Batter, 1);
-            caption = $"Force at second. {Batter.Name} in at first.";
+            caption = _liveForceBag == 2 || _liveForceBag == 0
+                ? $"Force at second. {Batter.Name} in at first."
+                : $"{(string.IsNullOrEmpty(_liveCaption) ? "Force." : _liveCaption)} {Batter.Name} in at first.";
         }
         else
         {
@@ -939,9 +965,31 @@ public sealed class Match
                     ClearLivePlay();
                     break;
                 }
+                if (kind == PlayKind.GroundOut && _liveOpen && Outs > _liveOutsAtOpen
+                    && !_liveForce && !_liveTurnedTwo && !_liveBatterOut)
+                {
+                    caption = string.IsNullOrEmpty(_liveCaption)
+                        ? $"{field.Fielder?.Name} tags the runner."
+                        : _liveCaption;
+                    if (Outs < 3)
+                    {
+                        (runs, scorers) = AdvanceHit(Batter, 1);
+                        if (!caption.Contains("first", StringComparison.OrdinalIgnoreCase))
+                            caption = $"{caption} {Batter.Name} in at first.";
+                    }
+                    NextBatter();
+                    CheckInning();
+                    ClearLivePlay();
+                    break;
+                }
+                if (kind == PlayKind.GroundOut && _liveOpen && _liveThrows > 0 && Outs == _liveOutsAtOpen)
+                {
+                    kind = PlayKind.Single;
+                    goto case PlayKind.Single;
+                }
                 if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
                 {
-                    if (_liveOpen)
+                    if (_liveOpen && _liveThrows == 0 && ClosePlaySafe is null)
                     {
                         kind = PlayKind.Single;
                         goto case PlayKind.Single;

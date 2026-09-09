@@ -167,6 +167,68 @@ public class InPlayTests
     }
 
     [Fact]
+    public void ForceStateFollowsOccupancyAndClearsAheadWhenATrailerIsOut()
+    {
+        var empty = InPlay.ForceState.FromOccupancy(false, false, false);
+        Assert.True(empty.At(1));
+        Assert.False(empty.At(2));
+        Assert.False(empty.At(3));
+        Assert.False(empty.At(4));
+
+        var first = InPlay.ForceState.FromOccupancy(true, false, false);
+        Assert.True(first.At(2));
+        Assert.False(first.At(3));
+
+        var corner = InPlay.ForceState.FromOccupancy(true, true, false);
+        Assert.True(corner.At(3));
+        Assert.False(corner.At(4));
+
+        var loaded = InPlay.ForceState.FromOccupancy(true, true, true);
+        Assert.True(loaded.At(4));
+        Assert.False(loaded.AfterOutAt(1).At(2));
+        Assert.False(loaded.AfterOutAt(1).At(4));
+        Assert.True(loaded.AfterOutAt(2).At(1));
+        Assert.False(loaded.AfterOutAt(2).At(3));
+        Assert.False(loaded.AfterOutAt(2).At(4));
+        Assert.True(loaded.AfterOutAt(4).At(2));
+        Assert.False(loaded.AfterOutAt(4).At(4));
+    }
+
+    [Fact]
+    public void ThrowToBagForcesThirdAndHomeAndTagsWhenItIsNotAForce()
+    {
+        var corner = InPlay.ForceState.FromOccupancy(true, true, false);
+        var forceThird = InPlay.ThrowToBag(3, corner, true, runnerBeats: false, 0, false, "Vale", "Rio");
+        Assert.True(forceThird.Out);
+        Assert.True(forceThird.Force);
+        Assert.Contains("third", forceThird.Caption, StringComparison.OrdinalIgnoreCase);
+
+        var late = InPlay.ThrowToBag(3, corner, true, runnerBeats: true, 0, false, "Vale", "Rio");
+        Assert.False(late.Out);
+        Assert.Contains("beats", late.Caption, StringComparison.OrdinalIgnoreCase);
+
+        var loaded = InPlay.ForceState.FromOccupancy(true, true, true);
+        var home = InPlay.ThrowToBag(4, loaded, true, runnerBeats: false, 0, false, "Vale", "Rio");
+        Assert.True(home.Out);
+        Assert.True(home.Force);
+        Assert.Contains("home", home.Caption, StringComparison.OrdinalIgnoreCase);
+
+        var tagOnly = InPlay.ForceState.FromOccupancy(false, true, false);
+        var tag = InPlay.ThrowToBag(3, tagOnly, true, runnerBeats: false, 0, false, "Vale", "Rio");
+        Assert.True(tag.Out);
+        Assert.False(tag.Force);
+        Assert.Contains("tags", tag.Caption, StringComparison.OrdinalIgnoreCase);
+
+        var nobody = InPlay.ThrowToBag(3, tagOnly, runnerPresent: false, runnerBeats: false, 0, false, "Vale", "Rio");
+        Assert.False(nobody.Out);
+
+        var afterBatter = loaded.AfterOutAt(1);
+        var noForceSecond = InPlay.ThrowToBag(2, afterBatter, true, runnerBeats: false, 1, false, "Vale", "Rio");
+        Assert.True(noForceSecond.Out);
+        Assert.False(noForceSecond.Force, "batter out at first: second is a tag");
+    }
+
+    [Fact]
     public void HopperCatchStickDeadThrowsToFirstDiamondIsDistinct()
     {
         Assert.False(InPlay.StickNamesBag(chasing: true, caught: false));

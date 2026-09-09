@@ -128,6 +128,46 @@ public static class InPlay
         firstOccupied && outs < 2;
 
     /// <summary>
+    /// Force at contact. Batter is always forced to first. Second when first is
+    /// occupied, third when first and second, home when the bases are loaded.
+    /// Putting out a trailing runner removes forces ahead.
+    /// </summary>
+    public readonly record struct ForceState(bool Batter, bool Second, bool Third, bool Home)
+    {
+        public static ForceState Empty { get; } = new(true, false, false, false);
+
+        public static ForceState FromOccupancy(bool first, bool second, bool third) =>
+            new(true, first, first && second, first && second && third);
+
+        public bool At(int bag) => bag switch
+        {
+            1 => Batter,
+            2 => Second,
+            3 => Third,
+            4 => Home,
+            _ => false
+        };
+
+        public ForceState AfterOutAt(int bag) => bag switch
+        {
+            1 => new(false, false, false, false),
+            2 => new(Batter, false, false, false),
+            3 => new(Batter, Second, false, false),
+            4 => new(Batter, Second, Third, false),
+            _ => this
+        };
+
+        /// <summary>Bag the forced runner started on. 0 is the batter.</summary>
+        public static int FromBag(int toBag) => toBag switch
+        {
+            2 => 1,
+            3 => 2,
+            4 => 3,
+            _ => 0
+        };
+    }
+
+    /// <summary>
     /// One throw of a live double-play race. The director steps this as the ball lands so
     /// outs and the mini diamond update immediately. CPU FinishAtBat applies the same table
     /// for both throws at once. Does not invent a PlayKind — GroundOut stays the contact.
@@ -144,6 +184,7 @@ public static class InPlay
 
     /// <summary>
     /// Pure baseball for one throw to a bag. Match applies it; the director decides when.
+    /// Force vs tag comes from <paramref name="force"/> at contact, not live occupancy.
     /// </summary>
     public static GroundThrowStep ThrowToBag(
         int bag,
@@ -152,52 +193,86 @@ public static class InPlay
         bool runnerBeats,
         int outs,
         string? fielderName,
+        string? batterName) =>
+        ThrowToBag(
+            bag,
+            alreadyForced
+                ? ForceState.FromOccupancy(true, false, false).AfterOutAt(2)
+                : ForceState.FromOccupancy(firstOccupied, false, false),
+            runnerPresent: true,
+            runnerBeats,
+            outs,
+            alreadyForced,
+            fielderName,
+            batterName);
+
+    public static GroundThrowStep ThrowToBag(
+        int bag,
+        ForceState force,
+        bool runnerPresent,
+        bool runnerBeats,
+        int outs,
+        bool alreadyForced,
+        string? fielderName,
         string? batterName)
     {
         fielderName ??= "";
         batterName ??= "";
         if (outs >= 3)
             return new(bag, false, alreadyForced, false, false, true, 0, "");
+        if (bag is < 1 or > 4)
+            return new(bag, false, alreadyForced, false, false, false, 0, "");
 
-        if (bag == 2 && firstOccupied && !alreadyForced)
-        {
-            if (runnerBeats)
-                return new(bag, false, false, false, true, true, 0, $"{batterName} beats the throw.");
-            var outsAfter = outs + 1;
-            var over = outsAfter >= 3;
-            return new(
-                bag,
-                Out: true,
-                Force: true,
-                TurnedTwo: false,
-                BatterSafe: false,
-                PlayOver: over,
-                NextDefaultBag: NextBagAfterForce(2, outsAfter),
-                Caption: $"{fielderName} forces the runner.");
-        }
+        var isForce = force.At(bag);
+        if (!isForce && !runnerPresent)
+            return new(bag, false, alreadyForced, false, false, false, 0, "");
 
-        if (bag == 1 && alreadyForced)
+        if (runnerBeats)
         {
-            if (runnerBeats)
+            if (bag == 1 && alreadyForced)
                 return new(
                     bag, false, true, false, true, true, 0,
                     $"Force at second. {batterName} in at first.");
+            if (bag == 2 && isForce)
+                return new(bag, false, false, false, true, true, 0, $"{batterName} beats the throw.");
+            if (bag == 1)
+                return new(bag, false, false, false, true, false, 0, "");
+            return new(bag, false, alreadyForced, false, false, false, 0, $"{batterName} beats the throw.");
+        }
+
+        if (bag == 1 && alreadyForced)
             return new(
                 bag, true, true, true, false, true, 0,
                 $"{fielderName} turns two.");
+
+        var outsAfter = outs + 1;
+        var over = outsAfter >= 3;
+        if (isForce)
+        {
+            var where = bag == 2 ? "" : bag == 3 ? " at third" : bag == 4 ? " at home" : "";
+            var caption = bag == 1
+                ? $"{fielderName} to first."
+                : $"{fielderName} forces the runner{where}.";
+            return new(
+                bag,
+                Out: true,
+                Force: bag != 1,
+                TurnedTwo: false,
+                BatterSafe: false,
+                PlayOver: over,
+                NextDefaultBag: NextBagAfterForce(bag, outsAfter),
+                Caption: caption);
         }
 
         if (bag == 1)
-        {
-            if (runnerBeats)
-                return new(bag, false, false, false, true, false, 0, "");
-            var outsAfter = outs + 1;
             return new(
-                bag, true, false, false, false, outsAfter >= 3, 0,
+                bag, true, false, false, false, over, 0,
                 $"{fielderName} to first.");
-        }
 
-        return new(bag, false, alreadyForced, false, false, false, 0, "");
+        var tagWhere = bag == 3 ? " at third" : bag == 4 ? " at home" : "";
+        return new(
+            bag, true, false, false, false, over, 0,
+            $"{fielderName} tags the runner{tagWhere}.");
     }
 
     /// <summary>
