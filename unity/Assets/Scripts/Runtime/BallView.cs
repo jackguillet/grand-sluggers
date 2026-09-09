@@ -179,7 +179,12 @@ namespace GrandSluggers.UnityClient
             _root.SetParent(glove, false);
             _root.localPosition = new Vector3(0f, 0.1f, 0.52f);
             _root.localRotation = Quaternion.identity;
-            _root.localScale = Vector3.one;
+            // Bones and grow scale the hand. World-size baseball, not a seed in the palm.
+            var ls = glove.lossyScale;
+            _root.localScale = new Vector3(
+                1f / Mathf.Max(1e-4f, ls.x),
+                1f / Mathf.Max(1e-4f, ls.y),
+                1f / Mathf.Max(1e-4f, ls.z));
             if (_trail != null)
             {
                 _trail.Clear();

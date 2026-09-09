@@ -110,6 +110,24 @@ public static class ParkDiamond
         && RubberY - MoundH < 0.08f
         && RubberY > 0.8f && RubberY < 1.4f;
 
+    /// <summary>
+    /// Feet Y on the hill. Rubber table is <see cref="RubberY"/> (MLB 10″ cartoon-tall).
+    /// Y=0 buries the pitcher in the mound.
+    /// </summary>
+    public static float StandY(double x, double z)
+    {
+        var d = Diamond.Dist(x, z, 0, Diamond.Mound);
+        if (d <= MoundTopR) return RubberY;
+        if (d >= MoundPadR) return 0f;
+        var u = (MoundPadR - d) / (MoundPadR - MoundTopR);
+        return (float)(RubberY * u);
+    }
+
+    public static bool PitcherStandsOnTheHill() =>
+        StandY(0, Diamond.Mound) >= RubberY - 0.05f
+        && StandY(0, 0) < 0.2f
+        && StandY(MoundPadR + 1, Diamond.Mound) < 0.05f;
+
     public static bool StripeReadsAtCouch() => StripeWidth >= 12f && StripeWidth <= 28f;
 
     /// <summary>1B–2B–3B apron is a mound-centered arc, thicker than the home legs.</summary>

@@ -15,6 +15,8 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.BagIsABag());
         Assert.True(ParkDiamond.HomePackedIsAPad());
         Assert.True(ParkDiamond.MoundIsAHill());
+        Assert.True(ParkDiamond.PitcherStandsOnTheHill(),
+            $"pitcher y={ParkDiamond.StandY(0, Diamond.Mound)} must be the rubber, not dirt zero");
         Assert.True(ParkDiamond.StripeReadsAtCouch());
         Assert.True(ParkDiamond.StripesRunHomeToCf());
         Assert.True(ParkDiamond.StripesAreCenteredOnTheField(),
