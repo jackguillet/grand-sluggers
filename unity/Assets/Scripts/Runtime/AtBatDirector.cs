@@ -37,6 +37,7 @@ namespace GrandSluggers.UnityClient
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
             _swung = false;
+            _bunt = false;
             _swing = null;
             _pitch = null;
             _last = null;
@@ -168,6 +169,7 @@ namespace GrandSluggers.UnityClient
             }
             if (HumanBats)
             {
+                _bunt = box.WestHeld;
                 if (box.StickY < -0.7f) _match.ResetBatter();
                 else _match.WalkBatter(box.StickX * dt * 1.6f);
             }
@@ -288,13 +290,14 @@ namespace GrandSluggers.UnityClient
                 var box = BatPad;
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
                 TickCharge(dt, _feel.SwingChargeSeconds, box, ref _charge, ref _chargePast);
+                if (box.WestHeld) _bunt = true;
                 if (box.SouthDown && !_swung)
                 {
                     _swung = true;
                     var nice = ChargeFeel.NiceCopy(false, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
                     if (!string.IsNullOrEmpty(nice)) _banner = nice;
                     _swing = new SwingCommand(true, EffectiveCharge(_charge, _chargePast), (_flight - _pitchDur) * 60f,
-                        _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), box.WestHeld, box.StickY,
+                        _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), _bunt || box.WestHeld, box.StickY,
                         _match.BatterOffsetX);
                 }
             }

@@ -166,6 +166,10 @@ public class AtBatTests
         Assert.True(bunt.ExitVeloMph < swing.ExitVeloMph, $"bunt {bunt.ExitVeloMph} vs swing {swing.ExitVeloMph}");
         Assert.False(bunt.HomeRun);
         Assert.True(bunt.CarryFt < 180, $"bunt carry {bunt.CarryFt}");
+        Assert.True(AtBatResolver.CpuSacBuntSpot(true, true, 0, 0.05));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(true, true, 2, 0.05));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(true, false, 0, 0.05));
+        Assert.False(AtBatResolver.CpuSacBuntSpot(false, true, 0, 0.05));
     }
 
     [Fact]

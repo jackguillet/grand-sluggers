@@ -265,6 +265,12 @@ public sealed class AtBatResolver
         return dx * dx + dy * dy <= BatterBodyR * BatterBodyR;
     }
 
+    /// <summary>CPU sac: runner on first, fewer than two outs, in the zone.</summary>
+    public const double CpuSacBunt = 0.12;
+
+    public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll) =>
+        inZone && runnerOnFirst && outs < 2 && roll < CpuSacBunt;
+
     public static double PitchSpeedMph(PitchCommand pitch, int pitchStat)
     {
         var changeup = pitch.Changeup || pitch.Type == "changeup";
