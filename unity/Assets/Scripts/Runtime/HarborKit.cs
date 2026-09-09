@@ -61,7 +61,7 @@ namespace GrandSluggers.UnityClient
         Transform _plateAwayTens, _plateAwayOnes, _plateHomeTens, _plateHomeOnes;
         Material _ledOn;
         Material _ledOff;
-        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy;
+        Material _kitWood, _kitRoof, _kitGold, _kitPad, _kitPost, _kitFlesh, _kitChalk, _kitNavy, _kitDirt;
         readonly Firework[] _sparks = new Firework[28];
         public bool OwnsDiamond { get; private set; }
 
@@ -140,7 +140,7 @@ namespace GrandSluggers.UnityClient
             DirtDiamond = Anchor("DirtDiamond", new Vector3(0f, 0.12f, 63.64f), new Vector3(100f, 0.24f, 100f), Quaternion.Euler(0f, 45f, 0f));
             HomePlate = Anchor("HomePlate",
                 new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
-                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateDepth), Quaternion.identity);
             HomePoint = Anchor("HomePoint",
                 new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
                 new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
@@ -150,8 +150,10 @@ namespace GrandSluggers.UnityClient
             BoxR = Anchor("BoxR",
                 new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
                 new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
-            FoulL = Anchor("FoulL", new Vector3(-63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, -45f, 0f));
-            FoulR = Anchor("FoulR", new Vector3(63.64f, 0.18f, 63.64f), new Vector3(0.48f, 0.14f, 186f), Quaternion.Euler(0f, 45f, 0f));
+            FoulL = Anchor("FoulL", new Vector3(-63.64f, ParkDiamond.FoulY, 63.64f),
+                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, ParkDiamond.FoulYaw(-1), 0f));
+            FoulR = Anchor("FoulR", new Vector3(63.64f, ParkDiamond.FoulY, 63.64f),
+                new Vector3(ParkDiamond.FoulWidth, ParkDiamond.FoulThick, 186f), Quaternion.Euler(0f, ParkDiamond.FoulYaw(1), 0f));
             Mound = Anchor("Mound", new Vector3(0f, 0f, 60.5f), Vector3.one, Quaternion.identity);
             Rubber = Anchor("Rubber", new Vector3(0f, 1.02f, 60.5f), new Vector3(1.7f, 0.07f, 0.42f), Quaternion.identity);
             ShotPlate = ShotAnchor("ShotPlate",
@@ -177,9 +179,12 @@ namespace GrandSluggers.UnityClient
             var bag = HarborInfield.BagSize;
             var bagY = HarborInfield.BagY;
             var diamond = Quaternion.Euler(0f, 45f, 0f);
-            Bag1 = Anchor("1B", new Vector3((float)Diamond.First.X, bagY, (float)Diamond.First.Z), new Vector3(bag, 0.28f, bag), diamond);
-            Bag2 = Anchor("2B", new Vector3((float)Diamond.Second.X, bagY, (float)Diamond.Second.Z), new Vector3(bag, 0.28f, bag), diamond);
-            Bag3 = Anchor("3B", new Vector3((float)Diamond.Third.X, bagY, (float)Diamond.Third.Z), new Vector3(bag, 0.28f, bag), diamond);
+            var b1 = ParkDiamond.BagVisual(1);
+            var b2 = ParkDiamond.BagVisual(2);
+            var b3 = ParkDiamond.BagVisual(3);
+            Bag1 = Anchor("1B", new Vector3((float)b1.X, bagY, (float)b1.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag2 = Anchor("2B", new Vector3((float)b2.X, bagY, (float)b2.Z), new Vector3(bag, 0.28f, bag), diamond);
+            Bag3 = Anchor("3B", new Vector3((float)b3.X, bagY, (float)b3.Z), new Vector3(bag, 0.28f, bag), diamond);
         }
 
         public void Dress()
@@ -199,9 +204,9 @@ namespace GrandSluggers.UnityClient
 
         void DressBags()
         {
-            DressBag(Bag1, Diamond.First);
-            DressBag(Bag2, Diamond.Second);
-            DressBag(Bag3, Diamond.Third);
+            DressBag(Bag1, ParkDiamond.BagVisual(1));
+            DressBag(Bag2, ParkDiamond.BagVisual(2));
+            DressBag(Bag3, ParkDiamond.BagVisual(3));
         }
 
         void DressBag(Transform anchor, (double X, double Z) at)
@@ -230,13 +235,60 @@ namespace GrandSluggers.UnityClient
             }
             if (HomePoint != null) HomePoint.gameObject.SetActive(true);
             Place(HomePlate,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlateZ),
-                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateD), Quaternion.identity);
+                new Vector3(0f, (float)HomeSet.PlateY, (float)((HomeSet.PlateShoulderZ + HomeSet.PlateFrontZ) * 0.5)),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)(HomeSet.PlateFrontZ - HomeSet.PlateShoulderZ)), Quaternion.identity);
             Place(HomePoint,
-                new Vector3(0f, (float)HomeSet.PlateY, (float)HomeSet.PlatePointZ),
-                new Vector3((float)HomeSet.PlatePointW, 0.12f, (float)HomeSet.PlatePointW), Quaternion.Euler(0f, 45f, 0f));
+                new Vector3(0f, (float)HomeSet.PlateY, (float)(HomeSet.PlateShoulderZ * 0.5)),
+                new Vector3((float)HomeSet.PlateW, 0.12f, (float)HomeSet.PlateW), Quaternion.Euler(0f, 45f, 0f));
             Mesh(HomePlate, PrimitiveType.Cube, chalk);
             Mesh(HomePoint, PrimitiveType.Cube, chalk);
+        }
+
+        /// <summary>
+        /// OBR Diagram 2 chalk: 4′×6′ batter’s boxes 6″ off the plate, catcher’s
+        /// box 8′×43″ on the rear line. Lines, not filled pads. Interior is dirt.
+        /// </summary>
+        void DressHomeChalk(Material chalk)
+        {
+            Place(BoxL,
+                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                Vector3.one, Quaternion.identity);
+            Place(BoxR,
+                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
+                Vector3.one, Quaternion.identity);
+            Wipe(BoxL);
+            Wipe(BoxR);
+            ChalkRect(BoxL, (float)HomeSet.BoxW, (float)HomeSet.BoxD, chalk);
+            ChalkRect(BoxR, (float)HomeSet.BoxW, (float)HomeSet.BoxD, chalk);
+
+            var catcher = transform.Find("CatcherBox");
+            if (catcher == null)
+            {
+                var go = new GameObject("CatcherBox");
+                catcher = go.transform;
+                catcher.SetParent(transform, false);
+            }
+            Place(catcher,
+                new Vector3(0f, (float)HomeSet.BoxY, (float)HomeSet.CatcherBoxZ),
+                Vector3.one, Quaternion.identity);
+            Wipe(catcher);
+            ChalkRect(catcher, (float)HomeSet.CatcherBoxW, (float)HomeSet.CatcherBoxD, chalk);
+            foreach (var n in new[] { "CatcherBoxIn" })
+            {
+                var old = transform.Find(n);
+                if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            }
+        }
+
+        static void ChalkRect(Transform parent, float w, float d, Material chalk)
+        {
+            if (parent == null) return;
+            var t = (float)HomeSet.ChalkW;
+            var h = (float)ParkDiamond.FoulThick;
+            Look.Prim(PrimitiveType.Cube, "N", parent, new Vector3(0f, 0f, d * 0.5f), new Vector3(w + t, h, t), chalk);
+            Look.Prim(PrimitiveType.Cube, "S", parent, new Vector3(0f, 0f, -d * 0.5f), new Vector3(w + t, h, t), chalk);
+            Look.Prim(PrimitiveType.Cube, "E", parent, new Vector3(w * 0.5f, 0f, 0f), new Vector3(t, h, d), chalk);
+            Look.Prim(PrimitiveType.Cube, "W", parent, new Vector3(-w * 0.5f, 0f, 0f), new Vector3(t, h, d), chalk);
         }
 
         /// <summary>
@@ -247,8 +299,6 @@ namespace GrandSluggers.UnityClient
         {
             var chalk = Look.Unlit(Colors.Chalk);
             var packed = Look.Lit(new Color(0.78f, 0.56f, 0.34f), Look.Dirt, 5f, 0.12f);
-            var path = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
-            var boxDirt = Look.Lit(new Color(0.62f, 0.42f, 0.24f), Look.Dirt, 4f, 0.08f);
             var hill = Look.Lit(new Color(0.66f, 0.44f, 0.26f), Look.Dirt, 3f, 0.1f);
 
             // Kill the 100-ft dirt slab that ate the infield grass.
@@ -258,39 +308,15 @@ namespace GrandSluggers.UnityClient
             if (DirtDiamond != null) DirtDiamond.gameObject.SetActive(false);
 
             var homeR = HarborInfield.HomePackedR;
-            Place(HomeDirt, new Vector3(0f, 0.10f, -1.2f), new Vector3(homeR * 2f, 0.12f, homeR * 2.2f), Quaternion.identity);
+            Place(HomeDirt, new Vector3(0f, ParkDiamond.PathY, -1.2f),
+                new Vector3(homeR * 2f, ParkDiamond.PathThick * 0.5f, homeR * 2.2f), Quaternion.identity);
             Wipe(HomeDirt);
             Mesh(HomeDirt, PrimitiveType.Cylinder, packed);
 
-            var home = Vector3.zero;
-            var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
-            var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
-            var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
-            var pathW = ParkDiamond.PathWidth;
-            var inset = ParkDiamond.PathCornerR;
-            DirtPath("PathHome1", home, first, pathW, inset, path);
-            DirtPath("Path1to2", first, second, pathW, inset, path);
-            DirtPath("Path2to3", second, third, pathW, inset, path);
-            DirtPath("Path3toHome", third, home, pathW, inset, path);
-
-            // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             DressPlate(chalk);
+            DressHomeChalk(chalk);
 
-            Place(BoxL,
-                new Vector3((float)-HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
-            Place(BoxR,
-                new Vector3((float)HomeSet.BoxX, (float)HomeSet.BoxY, (float)HomeSet.BoxZ),
-                new Vector3((float)HomeSet.BoxW, 0.12f, (float)HomeSet.BoxD), Quaternion.identity);
-            Wipe(BoxL);
-            Wipe(BoxR);
-            Mesh(BoxL, PrimitiveType.Cube, chalk);
-            Mesh(BoxR, PrimitiveType.Cube, chalk);
-            Look.Prim(PrimitiveType.Cube, "BoxLIn", BoxL, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
-            Look.Prim(PrimitiveType.Cube, "BoxRIn", BoxR, Vector3.zero, new Vector3(0.78f, 0.70f, 0.88f), boxDirt);
-
-            DressFoulLines(chalk);
-            DressMound(packed, hill, chalk);
+            DressMound(hill, chalk);
         }
 
         Transform Anchor(string name, Vector3 pos, Vector3 scale, Quaternion rot)
@@ -391,29 +417,54 @@ namespace GrandSluggers.UnityClient
                 UnityEngine.Object.DestroyImmediate(tf.GetChild(i).gameObject);
         }
 
-        static void Slab(Transform parent, string name, Vector3 pos, Vector3 scale, Quaternion rot, Material mat)
+        /// <summary>
+        /// One rounded-diamond dirt skin (offset of the grass Y). Paths and bag
+        /// pads are the same shape — Minkowski offset, not slabs butted to circles.
+        /// </summary>
+        void DressInfieldDirt()
         {
-            if (parent == null) return;
-            if (parent.Find(name) != null) return;
-            var go = Look.Prim(PrimitiveType.Cube, name, parent, Vector3.zero, Vector3.one, mat);
-            go.transform.SetPositionAndRotation(pos, rot);
-            go.transform.localScale = scale;
-        }
-
-        void DirtPath(string name, Vector3 a, Vector3 b, float width, float inset, Material dirt)
-        {
-            var d = b - a;
-            d.y = 0f;
-            var span = d.magnitude;
-            if (span < 4f) return;
-            var dir = d / span;
-            var start = a + dir * inset;
-            var end = b - dir * inset;
-            var mid = (start + end) * 0.5f;
-            mid.y = ParkDiamond.PathY;
-            var len = Vector3.Distance(start, end);
-            if (len < 4f) return;
-            Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, len), Quaternion.LookRotation(dir, Vector3.up), dirt);
+            var dirt = Look.Lit(Colors.Dirt, Look.Dirt, 8f, 0.1f);
+            var old = transform.Find("InfieldDirt");
+            if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            foreach (var n in new[] { "PathHome1", "Path1to2", "Path2to3", "Path3toHome", "BagDirt1", "BagDirt2", "BagDirt3" })
+            {
+                var tf = transform.Find(n);
+                if (tf != null) UnityEngine.Object.DestroyImmediate(tf.gameObject);
+            }
+            var outer = ParkDiamond.OuterVerts();
+            var nPts = outer.Length;
+            if (nPts < 8) return;
+            var yTop = ParkDiamond.PathTop;
+            var yBot = ParkDiamond.PathBottom;
+            var verts = new Vector3[nPts * 4];
+            for (var i = 0; i < nPts; i++)
+            {
+                var o = outer[i];
+                var inn = ParkDiamond.InnerOnRay(o.X, o.Z);
+                verts[i] = new Vector3((float)inn.X, yTop, (float)inn.Z);
+                verts[nPts + i] = new Vector3((float)o.X, yTop, (float)o.Z);
+                verts[nPts * 2 + i] = new Vector3((float)inn.X, yBot, (float)inn.Z);
+                verts[nPts * 3 + i] = new Vector3((float)o.X, yBot, (float)o.Z);
+            }
+            var tris = new int[nPts * 24];
+            var t = 0;
+            for (var i = 0; i < nPts; i++)
+            {
+                var j = (i + 1) % nPts;
+                // top, CCW from above
+                tris[t++] = i; tris[t++] = j; tris[t++] = nPts + j;
+                tris[t++] = i; tris[t++] = nPts + j; tris[t++] = nPts + i;
+                // bottom, CW from above
+                tris[t++] = nPts * 2 + i; tris[t++] = nPts * 3 + i; tris[t++] = nPts * 3 + j;
+                tris[t++] = nPts * 2 + i; tris[t++] = nPts * 3 + j; tris[t++] = nPts * 2 + j;
+                // outer wall
+                tris[t++] = nPts + i; tris[t++] = nPts + j; tris[t++] = nPts * 3 + j;
+                tris[t++] = nPts + i; tris[t++] = nPts * 3 + j; tris[t++] = nPts * 3 + i;
+                // inner wall
+                tris[t++] = i; tris[t++] = nPts * 2 + j; tris[t++] = j;
+                tris[t++] = i; tris[t++] = nPts * 2 + i; tris[t++] = nPts * 2 + j;
+            }
+            Look.Solid("InfieldDirt", transform, verts, tris, dirt);
         }
 
         Transform Folder(string name)
@@ -430,13 +481,10 @@ namespace GrandSluggers.UnityClient
         {
             if (_park == null) return;
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
-            var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            var cornerR = ParkDiamond.PathCornerR;
-            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), cornerR, ParkDiamond.PathThick, bagDirt);
-            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), cornerR, ParkDiamond.PathThick, bagDirt);
             DressTrack(dirt);
             DressGrass();
+            DressInfieldDirt();
+            DressFoulLines(Look.Unlit(Colors.Chalk));
             DressPoles();
             DressBackstop();
             DressDugouts();
@@ -449,31 +497,41 @@ namespace GrandSluggers.UnityClient
 
         void DressFoulLines(Material chalk)
         {
-            var run = 186f;
+            var end = 186f;
             if (_park != null)
             {
                 var pole = ParkDiamond.FoulPole(_park, 1);
-                run = (float)Diamond.Dist(0, 0, pole.X, pole.Z) + 4f;
+                end = (float)Diamond.Dist(0, 0, pole.X, pole.Z) + 4f;
             }
-            var mid = run * 0.5f;
-            Place(FoulR, new Vector3(mid * 0.7071f, 0.18f, mid * 0.7071f),
-                new Vector3(0.48f, 0.14f, run), Quaternion.Euler(0f, 45f, 0f));
-            Place(FoulL, new Vector3(-mid * 0.7071f, 0.18f, mid * 0.7071f),
-                new Vector3(0.48f, 0.14f, run), Quaternion.Euler(0f, -45f, 0f));
+            var start = (float)HomeSet.FoulLineStartAlong;
+            var len = end - start;
+            if (len < 4f) return;
+            var mid = start + len * 0.5f;
+            var y = ParkDiamond.FoulY;
+            var w = ParkDiamond.FoulWidth;
+            var h = ParkDiamond.FoulThick;
+            var r = ParkDiamond.FoulLineCenter(1, mid);
+            var l = ParkDiamond.FoulLineCenter(-1, mid);
+            Place(FoulR, new Vector3(r.X, y, r.Z),
+                new Vector3(w, h, len), Quaternion.Euler(0f, ParkDiamond.FoulYaw(1), 0f));
+            Place(FoulL, new Vector3(l.X, y, l.Z),
+                new Vector3(w, h, len), Quaternion.Euler(0f, ParkDiamond.FoulYaw(-1), 0f));
             Wipe(FoulL);
             Wipe(FoulR);
             Mesh(FoulL, PrimitiveType.Cube, chalk);
             Mesh(FoulR, PrimitiveType.Cube, chalk);
         }
 
-        void DressMound(Material packed, Material hill, Material chalk)
+        void DressMound(Material hill, Material chalk)
         {
             var z = (float)Diamond.Mound;
             Place(Mound, new Vector3(0f, 0f, z), Vector3.one, Quaternion.identity);
             Wipe(Mound);
-            Cylinder(Mound, "HillPad", new Vector3(0f, 0f, z), ParkDiamond.MoundPadR, ParkDiamond.MoundPadH, packed);
-            Cylinder(Mound, "HillMid", new Vector3(0f, ParkDiamond.MoundMidY, z), ParkDiamond.MoundMidR, ParkDiamond.MoundMidH, hill);
-            Cylinder(Mound, "HillTop", new Vector3(0f, ParkDiamond.MoundTopY, z), ParkDiamond.MoundTopR, ParkDiamond.MoundTopH, hill);
+            if (DropMesh("mound", Mound, "Mesh", new Vector3(0f, 0f, z), Quaternion.identity, Vector3.one, paint: true) == null)
+            {
+                Look.Prim(PrimitiveType.Sphere, "Hill", Mound, Vector3.zero,
+                    new Vector3(ParkDiamond.MoundR * 2f, ParkDiamond.MoundH * 2f, ParkDiamond.MoundR * 2f), hill);
+            }
             Place(Rubber, new Vector3(0f, ParkDiamond.RubberY, z),
                 new Vector3(ParkDiamond.RubberW, ParkDiamond.RubberH, ParkDiamond.RubberD), Quaternion.identity);
             Wipe(Rubber);
@@ -484,64 +542,82 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(WarningTrack);
             if (_park == null) return;
-            var n = ParkDiamond.TrackSegs;
-            var half = n * 0.5f;
-            for (var i = 0; i <= n; i++)
+            var n = HarborWall.Loop(_park).Length;
+            var y0 = ParkDiamond.TrackY - ParkDiamond.TrackThick * 0.5f;
+            var y1 = ParkDiamond.TrackY + ParkDiamond.TrackThick * 0.5f;
+            var verts = new Vector3[n * 4];
+            var uvs = new Vector2[n * 4];
+            for (var i = 0; i < n; i++)
             {
-                var spray = (i / half - 1f) * (float)AtBatResolver.FoulLineDeg;
-                var midR = (float)ParkDiamond.TrackMid(_park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
-                var p = radial * midR;
-                p.y = ParkDiamond.TrackY;
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
-                var dTheta = (float)AtBatResolver.FoulLineDeg * 2f / n * Mathf.Deg2Rad;
-                var chord = 2f * midR * Mathf.Tan(dTheta * 0.5f) + 1.4f;
-                Box(WarningTrack, "Track" + i, p,
-                    new Vector3(chord, ParkDiamond.TrackThick, ParkDiamond.TrackWidth), rot, dirt);
+                var inn = HarborWall.TrackInner(_park, i);
+                var outt = HarborWall.TrackOuter(_park, i);
+                var inner = new Vector3((float)inn.X, 0f, (float)inn.Z);
+                var outer = new Vector3((float)outt.X, 0f, (float)outt.Z);
+                var u = i / (float)n;
+                verts[i * 4 + 0] = inner + Vector3.up * y0;
+                verts[i * 4 + 1] = inner + Vector3.up * y1;
+                verts[i * 4 + 2] = outer + Vector3.up * y0;
+                verts[i * 4 + 3] = outer + Vector3.up * y1;
+                uvs[i * 4 + 0] = new Vector2(u * 8f, 0f);
+                uvs[i * 4 + 1] = new Vector2(u * 8f, 0.08f);
+                uvs[i * 4 + 2] = new Vector2(u * 8f, 1f);
+                uvs[i * 4 + 3] = new Vector2(u * 8f, 0.92f);
             }
+            var tris = new int[n * 24];
+            var t = 0;
+            for (var i = 0; i < n; i++)
+            {
+                var a = i * 4;
+                var b = ((i + 1) % n) * 4;
+                t = Quad(tris, t, a + 1, a + 3, b + 3, b + 1);
+                t = Quad(tris, t, a + 0, a + 1, b + 1, b + 0);
+                t = Quad(tris, t, a + 3, a + 2, b + 2, b + 3);
+                t = Quad(tris, t, a + 2, a + 0, b + 0, b + 2);
+            }
+            var go = Look.Solid("Track", WarningTrack, verts, tris, dirt);
+            var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+            mesh.uv = uvs;
+        }
+
+        static int Quad(int[] tris, int t, int a, int b, int c, int d)
+        {
+            tris[t++] = a;
+            tris[t++] = b;
+            tris[t++] = c;
+            tris[t++] = a;
+            tris[t++] = c;
+            tris[t++] = d;
+            return t;
         }
 
         void DressPoles()
         {
             Wipe(Poles);
             if (_park == null) return;
-            var pole = Look.Unlit(Colors.Gold);
-            var screen = Look.Unlit(new Color(0.92f, 0.92f, 0.78f));
+            var yellow = Look.Unlit(Colors.Gold);
             for (var sign = -1; sign <= 1; sign += 2)
             {
                 var pz = ParkDiamond.FoulPole(_park, sign);
                 var pos = new Vector3((float)pz.X, 0f, (float)pz.Z);
                 var name = sign < 0 ? "L" : "R";
-                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, pole);
-                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.35f, pole);
-                var radial = new Vector3((float)pz.X, 0f, (float)pz.Z);
-                if (radial.sqrMagnitude < 1f) continue;
-                radial.Normalize();
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
+                var fair = ParkDiamond.FairInward(sign);
+                var fairV = new Vector3((float)fair.X, 0f, (float)fair.Z);
+                // Face the grate toward fair: local Z is the thin axis, so the
+                // big face looks at the diamond. Offset the panel onto the fair side.
+                var rot = Quaternion.LookRotation(fairV, Vector3.up);
+                Cylinder(Poles, "Pole" + name, pos, ParkDiamond.PoleRadius, ParkDiamond.PoleHeight, yellow);
+                Sphere(Poles, "Ball" + name, pos + Vector3.up * ParkDiamond.PoleHeight, ParkDiamond.PoleRadius * 1.25f, yellow);
                 Box(Poles, "Screen" + name,
-                    pos + Vector3.up * ParkDiamond.PoleScreenY - radial * 0.4f,
-                    new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, 0.18f), rot, screen);
+                    pos + Vector3.up * ParkDiamond.PoleScreenY
+                        + fairV * (ParkDiamond.PoleScreenThick * 0.5f + ParkDiamond.PoleRadius),
+                    new Vector3(ParkDiamond.PoleScreenW, ParkDiamond.PoleScreenH, ParkDiamond.PoleScreenThick), rot, yellow);
             }
         }
 
         void DressBackstop()
         {
-            var steel = Look.Lit(new Color(0.22f, 0.24f, 0.26f), smooth: 0.28f);
-            var pad = Look.Lit(new Color(0.14f, 0.15f, 0.16f), smooth: 0.08f);
-            Cube(Backstop, "RailTop", new Vector3(0, 16.2f, -22f), new Vector3(42, 0.32f, 0.55f), steel);
-            Cube(Backstop, "RailBot", new Vector3(0, 1.15f, -22f), new Vector3(42, 0.4f, 0.7f), pad);
-            Cylinder(Backstop, "PostL", new Vector3(-21, 0, -22), 0.38f, 16.4f, steel);
-            Cylinder(Backstop, "PostR", new Vector3(21, 0, -22), 0.38f, 16.4f, steel);
-            for (var i = -5; i <= 5; i++)
-                Cylinder(Backstop, "Pipe" + i, new Vector3(i * 3.6f, 0, -22), 0.07f, 15.6f, steel);
-            for (var r = 0; r < 8; r++)
-                Cube(Backstop, "Bar" + r, new Vector3(0, 2.5f + r * 1.65f, -22f), new Vector3(40.5f, 0.07f, 0.1f), steel);
-            for (var i = 0; i < 5; i++)
-            {
-                Cylinder(Backstop, "WingL" + i, new Vector3(-22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
-                Cylinder(Backstop, "WingR" + i, new Vector3(22, 0, -20 + i * 3.2f), 0.07f, 14f, steel);
-            }
+            Wipe(Backstop);
+            if (HarborWall.HasNet) return;
         }
 
         void DressDugouts()
@@ -561,39 +637,50 @@ namespace GrandSluggers.UnityClient
 
         void PitWell(float xSign, Material pad)
         {
-            var cx = xSign * (HarborDugout.HoleMinX + HarborDugout.HoleMaxX) * 0.5f;
-            var cz = (HarborDugout.HoleMinZ + HarborDugout.HoleMaxZ) * 0.5f;
-            var sx = HarborDugout.HoleMaxX - HarborDugout.HoleMinX;
-            var sz = HarborDugout.HoleMaxZ - HarborDugout.HoleMinZ;
-            Cube(Dugouts, xSign > 0f ? "Well1B" : "Well3B",
-                new Vector3(cx, HarborDugout.PitFloorY, cz),
-                new Vector3(sx, 0.22f, sz), pad);
+            var yaw = HarborDugout.YawDeg(xSign > 0f ? 1 : -1);
+            var rot = Quaternion.Euler(0f, yaw, 0f);
+            Box(Dugouts, xSign > 0f ? "Well1B" : "Well3B",
+                new Vector3(xSign * DugoutX, HarborDugout.PitFloorY, DugoutZ),
+                new Vector3(DugoutHalfDeep * 2f + 1f, 0.22f, DugoutHalfAlong * 2f + 0.6f),
+                rot, pad);
         }
 
         bool DropDugout(float x, string side)
         {
-            var mesh = x > 0f ? "dugout-1b" : "dugout-3b";
-            // FBX bake_space_transform puts the open face on +X. 180 Y faces the infield.
-            var rot = Quaternion.Euler(0f, 180f, 0f);
+            var mesh = "dugout-1b";
+            var yaw = HarborDugout.YawDeg(x > 0f ? 1 : -1);
+            var rot = Quaternion.Euler(0f, yaw, 0f);
             var go = DropMesh(mesh, Dugouts, "Dug" + side, new Vector3(x, 0f, DugoutZ), rot, Vector3.one, paint: true);
             if (go == null) return false;
-            var inward = x > 0f ? -1f : 1f;
-            var backX = x - inward * DugoutHalfDeep;
+            var mf = go.GetComponentInChildren<MeshFilter>(true);
+            var alongSpan = 0f;
+            if (mf != null && mf.sharedMesh != null)
+            {
+                var size = mf.sharedMesh.bounds.size;
+                alongSpan = Mathf.Max(size.x, size.z);
+            }
+            if (!HarborDugout.KitSpansTheOpening(alongSpan))
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                return false;
+            }
+            var along = rot * Vector3.forward * (DugoutHalfAlong * 1.2f);
+            var back = rot * Vector3.right;
             SitRow(
                 Dugouts,
                 "Dug" + side + "Sit",
-                new Vector3(backX + inward * 1.7f, HarborDugout.PitFloorY, DugoutZ),
-                new Vector3(0f, 0f, DugoutHalfAlong * 1.2f),
-                5,
+                new Vector3(x, 0f, DugoutZ) + back * (DugoutHalfDeep - 1.6f) + Vector3.up * HarborDugout.PitFloorY,
+                along,
+                6,
                 side == "1B" ? 11 : 71,
                 side == "1B");
             return true;
         }
 
         /// <summary>
-        /// Sunken dugout. Floor below grade, stairs at both ends, rail at
-        /// field, roof and fascia above the dirt. People sit in the pit.
-        /// Stars live on the fascia. Missing kit FBX still looks like this.
+        /// Sunken pit on the hip wall. Local −X is the field rail, +Z toward
+        /// the bag, stairs at the home end (−Z). Roof covers the bench only.
+        /// Missing kit FBX still looks like this.
         /// </summary>
         void BuildDugout(float x, string side)
         {
@@ -604,88 +691,80 @@ namespace GrandSluggers.UnityClient
             var rail = Look.Toon(Colors.Gold);
             var post = Look.Toon(new Color(0.28f, 0.22f, 0.16f));
             var conc = Look.Lit(new Color(0.62f, 0.60f, 0.56f), smooth: 0.12f);
-            var inward = x > 0f ? -1f : 1f;
-            var fieldX = DugoutFieldX(x);
-            var backX = x - inward * DugoutHalfDeep;
-            var zMid = DugoutZ;
-            var zHome = zMid - DugoutHalfAlong;
-            var zFirst = zMid + DugoutHalfAlong;
-            var pit = HarborDugout.PitDepth;
-            var floorY = HarborDugout.PitFloorY;
-            var wallH = pit + 0.15f;
+            var meshMat = Look.Toon(new Color(0.22f, 0.20f, 0.18f));
+            var yaw = HarborDugout.YawDeg(x > 0f ? 1 : -1);
+            var rot = Quaternion.Euler(0f, yaw, 0f);
+            var origin = new Vector3(x, 0f, DugoutZ);
+            Vector3 At(float lx, float ly, float lz) => origin + rot * new Vector3(lx, ly, lz);
+
+            var field = -DugoutHalfDeep;
+            var back = DugoutHalfDeep;
             var along = DugoutHalfAlong * 2f;
             var deep = DugoutHalfDeep * 2f;
+            var pit = HarborDugout.PitDepth;
+            var floorY = HarborDugout.PitFloorY;
+            var railY = DugoutFasciaY;
+            var home = -DugoutHalfAlong;
+            var bag = DugoutHalfAlong;
+            var gate = 3.5f;
+            var meshAlong = along - gate - 0.4f;
+            var meshMid = (home + gate + bag) * 0.5f;
 
-            Cube(Dugouts, "Dug" + side + "Floor",
-                new Vector3(x, floorY, zMid), new Vector3(deep + 1.0f, 0.22f, along + 0.6f), pad);
-            Cube(Dugouts, "Dug" + side + "BackWall",
-                new Vector3(backX, floorY + wallH * 0.5f, zMid), new Vector3(0.42f, wallH, along - 0.4f), well);
-            Cube(Dugouts, "Dug" + side + "FrontWall",
-                new Vector3(fieldX, floorY + wallH * 0.42f, zMid),
-                new Vector3(0.38f, wallH * 0.84f, along - HarborDugout.StairCount * HarborDugout.StairDepth * 2f - 0.8f), well);
+            Box(Dugouts, "Dug" + side + "Floor",
+                At(0.2f, floorY, 0f), new Vector3(deep + 0.5f, 0.22f, along + 0.5f), rot, pad);
+            Box(Dugouts, "Dug" + side + "BackWall",
+                At(back, (floorY + railY + 3.2f) * 0.5f, 0f),
+                new Vector3(0.38f, railY + 3.2f + pit, along + 0.2f), rot, well);
+            Box(Dugouts, "Dug" + side + "EndHome",
+                At(0f, (floorY + railY) * 0.5f, home),
+                new Vector3(deep + 0.2f, railY + pit, 0.34f), rot, well);
+            Box(Dugouts, "Dug" + side + "EndBag",
+                At(0f, (floorY + railY + 3.2f) * 0.5f, bag),
+                new Vector3(deep + 0.2f, railY + 3.2f + pit, 0.34f), rot, well);
+            Box(Dugouts, "Dug" + side + "Sill",
+                At(field, floorY + 0.35f, meshMid),
+                new Vector3(0.42f, 0.7f, meshAlong), rot, pad);
+            Box(Dugouts, "Dug" + side + "RailPad",
+                At(field, railY, meshMid),
+                new Vector3(0.58f, 0.48f, meshAlong + 0.3f), rot, pad);
+            Box(Dugouts, "Dug" + side + "Fascia",
+                At(field - 0.28f, railY + 0.42f, meshMid),
+                new Vector3(0.16f, 0.62f, meshAlong + 0.15f), rot, rail);
+            Box(Dugouts, "Dug" + side + "Roof",
+                At(back - 1.4f, railY + 3.0f, 0f),
+                new Vector3(deep * 0.55f, 0.24f, along + 0.4f), rot, roofMat);
+            Box(Dugouts, "Dug" + side + "Bench",
+                At(back - 1.45f, floorY + 0.82f, 0f),
+                new Vector3(1.55f, 0.22f, along - 4f), rot, wood);
 
-            Stairs(side, "H", x, zHome, 1f, conc);
-            Stairs(side, "F", x, zFirst, -1f, conc);
-            FieldStairs(side, x, fieldX, inward, zHome + 2.4f, conc);
+            var barH = railY - 0.4f + pit - 0.5f;
+            var barY = floorY + 0.5f + barH * 0.5f;
+            for (var i = 0; i < 11; i++)
+            {
+                var t = i / 10f;
+                var z = home + gate + 0.4f + t * (meshAlong - 0.8f);
+                Box(Dugouts, "Dug" + side + "MeshV" + i,
+                    At(field - 0.02f, barY, z), new Vector3(0.06f, barH, 0.08f), rot, meshMat);
+            }
 
-            Cylinder(Dugouts, "Dug" + side + "PostFH", new Vector3(fieldX, 0f, zHome + 0.55f), 0.26f, 4.05f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostFF", new Vector3(fieldX, 0f, zFirst - 0.55f), 0.26f, 4.05f, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBH", new Vector3(backX, floorY, zHome + 0.55f), 0.26f, 4.2f + pit, post);
-            Cylinder(Dugouts, "Dug" + side + "PostBF", new Vector3(backX, floorY, zFirst - 0.55f), 0.26f, 4.2f + pit, post);
-            Cube(Dugouts, "Dug" + side + "Back", new Vector3(backX, 2.05f, zMid), new Vector3(0.40f, 4.0f, along - 0.5f), wood);
-            Cube(Dugouts, "Dug" + side + "Roof", new Vector3(x, 4.32f, zMid), new Vector3(deep + 1.6f, 0.26f, along + 1.3f), roofMat);
-            Cube(Dugouts, "Dug" + side + "Fascia", new Vector3(fieldX, DugoutFasciaY, zMid), new Vector3(0.32f, 0.28f, along + 0.5f), rail);
-            Cube(Dugouts, "Dug" + side + "Rail", new Vector3(fieldX, 1.02f, zMid),
-                new Vector3(0.22f, 0.30f, along - HarborDugout.StairCount * HarborDugout.StairDepth * 2f - 0.4f), rail);
-            Cube(Dugouts, "Dug" + side + "Bench",
-                new Vector3(backX + inward * 1.55f, floorY + 0.88f, zMid),
-                new Vector3(1.45f, 0.22f, along - 3.2f), wood);
-            Cylinder(Dugouts, "Dug" + side + "LegH",
-                new Vector3(backX + inward * 1.55f, floorY, zHome + 2.2f), 0.14f, 0.78f, post);
-            Cylinder(Dugouts, "Dug" + side + "LegF",
-                new Vector3(backX + inward * 1.55f, floorY, zFirst - 2.2f), 0.14f, 0.78f, post);
-            SitRow(
-                Dugouts,
-                "Dug" + side + "Sit",
-                new Vector3(backX + inward * 1.7f, floorY, zMid),
-                new Vector3(0f, 0f, along * 0.62f),
-                5,
-                side == "1B" ? 11 : 71,
-                side == "1B");
-        }
-
-        void Stairs(string side, string end, float x, float zLip, float into, Material conc)
-        {
-            var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
-            var stepD = HarborDugout.StairDepth;
-            var deep = DugoutHalfDeep * 2f - 0.7f;
+            var stepH = pit / HarborDugout.StairCount;
             for (var i = 0; i < HarborDugout.StairCount; i++)
             {
                 var y = -stepH * (i + 0.5f);
-                var z = zLip + into * (0.12f + i * stepD);
-                Cube(Dugouts, "Dug" + side + "Stair" + end + i,
-                    new Vector3(x, y, z), new Vector3(deep, stepH, stepD + 0.04f), conc);
+                var z = home + 0.15f + i * HarborDugout.StairDepth;
+                Box(Dugouts, "Dug" + side + "Stair" + i,
+                    At(0f, y, z),
+                    new Vector3(deep - 1f, stepH, HarborDugout.StairDepth + 0.04f), rot, conc);
             }
-        }
 
-        /// <summary>
-        /// Flight on the field-side grass at the home end so the scoop still
-        /// can see steps down. End stairs sit in the pit and vanish under the lawn.
-        /// </summary>
-        void FieldStairs(string side, float xMid, float fieldX, float inward, float z, Material conc)
-        {
-            var stepH = HarborDugout.PitDepth / HarborDugout.StairCount;
-            var run = HarborDugout.FieldStairRun;
-            var n = HarborDugout.StairCount;
-            var stepD = run / n;
-            for (var i = 0; i < n; i++)
-            {
-                var y = -stepH * (i + 0.5f);
-                var t = n == 1 ? 0f : i / (float)(n - 1);
-                var sx = fieldX + inward * run * (1f - t);
-                Cube(Dugouts, "Dug" + side + "FieldStair" + i,
-                    new Vector3(sx, y, z), new Vector3(stepD + 0.12f, stepH, 3.4f), conc);
-            }
+            SitRow(
+                Dugouts,
+                "Dug" + side + "Sit",
+                At(back - 1.7f, floorY, 0f),
+                rot * Vector3.forward * (along * 0.62f),
+                5,
+                side == "1B" ? 11 : 71,
+                side == "1B");
         }
 
         void DressGrass()
@@ -696,34 +775,31 @@ namespace GrandSluggers.UnityClient
             var y = ParkDiamond.GrassY;
             var h = ParkDiamond.GrassThick;
             var stripe = ParkDiamond.StripeWidth;
+            var z0 = ParkDiamond.GrassZ0;
             var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
             var halfW = ParkDiamond.GrassHalfWidth(zEnd);
-            var i = 0;
-            for (var x = -halfW; x < halfW; x += stripe, i++)
+
+            var n = Mathf.CeilToInt(halfW / stripe);
+            for (var i = -n; i <= n; i++)
             {
-                var xc = x + stripe * 0.5f;
+                var xc = ParkDiamond.StripeCenterX(i);
                 var sx = stripe + 0.4f;
-                var zLo = ParkDiamond.GrassZ0;
-                if (Mathf.Abs(xc) > 40f)
-                    zLo = Mathf.Max(zLo, Mathf.Abs(xc) - ParkDiamond.FoulGrassFt);
-                if (zLo >= zEnd) continue;
                 var mat = (i & 1) == 0 ? dark : light;
-                StripeColumn("Stripe" + i, xc, sx, zLo, zEnd, y, h, mat);
+                StripeColumn("G" + i, xc, sx, z0, zEnd, y, h, mat);
             }
         }
 
         void StripeColumn(string name, float xc, float sx, float zLo, float zHi, float y, float h, Material lawn)
         {
-            var inHoleX = Mathf.Abs(xc) >= HarborDugout.HoleMinX && Mathf.Abs(xc) <= HarborDugout.HoleMaxX;
-            if (!inHoleX)
+            if (!HarborDugout.TryHoleZ(xc, out var hz0, out var hz1) || hz1 < zLo || hz0 > zHi)
             {
                 LawnBand(name, xc, y, (zLo + zHi) * 0.5f, sx, h, zHi - zLo, lawn);
                 return;
             }
-            if (zLo < HarborDugout.HoleMinZ)
-                LawnBand(name + "S", xc, y, (zLo + HarborDugout.HoleMinZ) * 0.5f, sx, h, HarborDugout.HoleMinZ - zLo, lawn);
-            if (zHi > HarborDugout.HoleMaxZ)
-                LawnBand(name + "N", xc, y, (HarborDugout.HoleMaxZ + zHi) * 0.5f, sx, h, zHi - HarborDugout.HoleMaxZ, lawn);
+            if (zLo < hz0)
+                LawnBand(name + "S", xc, y, (zLo + hz0) * 0.5f, sx, h, hz0 - zLo, lawn);
+            if (zHi > hz1)
+                LawnBand(name + "N", xc, y, (hz1 + zHi) * 0.5f, sx, h, zHi - hz1, lawn);
         }
 
         void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)
@@ -735,9 +811,9 @@ namespace GrandSluggers.UnityClient
         void DressWall()
         {
             Wipe(WallDress);
+            if (_park == null) return;
             var h = HarborPostcard.WallHeightFt;
             var thick = HarborPostcard.WallThickFt;
-            var w = HarborPostcard.WallPanelWidthFt;
             var pad = Look.Lit(new Color(0.18f, 0.46f, 0.30f), Look.Grass, 3f, 0.08f);
             var cap = Look.Unlit(Colors.Gold);
             var ivy = Look.Lit(new Color(0.14f, 0.48f, 0.22f), Look.Grass, 2f, 0.08f);
@@ -754,37 +830,84 @@ namespace GrandSluggers.UnityClient
             };
             var mark = Look.Unlit(Colors.Gold);
             var spark = Look.Unlit(Colors.Spark);
-            for (var i = -18; i <= 18; i++)
+            var loop = HarborWall.Loop(_park);
+            var n = loop.Length;
+            var half = thick * 0.5f;
+            for (var i = 0; i < n; i++)
             {
-                var spray = i / 18f * 48f;
-                var fence = (float)AtBatResolver.FenceAt(_park, spray);
-                var rad = spray * Mathf.Deg2Rad;
-                var radial = new Vector3(Mathf.Sin(rad), 0f, Mathf.Cos(rad));
-                var p = radial * fence;
-                var rot = Quaternion.LookRotation(radial, Vector3.up);
-                Box(WallDress, "Wall" + i, p + Vector3.up * (h * 0.5f), new Vector3(w, h, thick), rot, pad);
-                Box(WallDress, "Cap" + i, p + Vector3.up * (h + 0.45f), new Vector3(w, 0.7f, thick + 0.8f), rot, cap);
-                if (i % 2 == 0)
-                    Box(WallDress, "Ad" + i, p - radial * (thick * 0.55f) + Vector3.up * (h * 0.62f),
-                        new Vector3(HarborPostcard.AdWidthFt, HarborPostcard.AdHeightFt, 0.45f), rot, ads[Mathf.Abs(i) % ads.Length]);
-                if (i % 3 == 0)
-                    Box(WallDress, "Ivy" + i, p - radial * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
-                if (i == 0)
+                var p0 = HarborWall.LoopPoint(_park, i);
+                var p1 = HarborWall.LoopPoint(_park, i + 1);
+                var mid = new Vector3((float)((p0.X + p1.X) * 0.5), 0f, (float)((p0.Z + p1.Z) * 0.5));
+                var h0 = HarborWall.Height(_park, i);
+                var h1 = HarborWall.Height(_park, i + 1);
+                // Skip the open span only. A vertex sits on each rail end, so
+                // the adjacent wall segment butts the dugout instead of a 16-ft gap.
+                var midOpen = HarborDugout.WallOpensHere((p0.X + p1.X) * 0.5, (p0.Z + p1.Z) * 0.5);
+                if (h0 <= HarborWall.HipHeight + 0.5f && h1 <= HarborWall.HipHeight + 0.5f && midOpen)
+                    continue;
+                var o = HarborWall.Outward(_park, i);
+                var outward = new Vector3((float)o.X, 0f, (float)o.Z);
+                var a = new Vector3((float)p0.X, 0f, (float)p0.Z);
+                var b = new Vector3((float)p1.X, 0f, (float)p1.Z);
+                RampPrism(WallDress, "Wall" + i, a, b, h0, h1, half, outward, pad);
+                RampCap(WallDress, "Cap" + i, a, b, h0, h1, half + 0.25f, outward, cap);
+                var hh = (h0 + h1) * 0.5f;
+                var w = Vector3.Distance(a, b);
+                var rot = Quaternion.LookRotation(outward, Vector3.up);
+                if (hh > 10f && i % 2 == 0)
+                    Box(WallDress, "Ad" + i, mid - outward * (thick * 0.55f) + Vector3.up * (hh * 0.62f),
+                        new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
+                if (hh > 10f && i % 3 == 0)
+                    Box(WallDress, "Ivy" + i, mid - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
+                if (Mathf.Abs(mid.x) < 8f && mid.z > 300f)
                 {
-                    Box(WallDress, "MarkSpark", p - radial * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
-                    Box(WallDress, "MarkGold", p - radial * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
+                    Box(WallDress, "MarkSpark", mid - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
+                    Box(WallDress, "MarkGold", mid - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
                 }
             }
-            var lf = (float)_park.LeftFenceFt;
-            var rf = (float)_park.RightFenceFt;
-            var pole = Look.Unlit(Colors.Gold);
-            var flag = Look.Unlit(new Color(0.95f, 0.9f, 0.55f));
-            var poleL = new Vector3(Mathf.Sin(-0.78f) * lf, 0f, Mathf.Cos(-0.78f) * lf);
-            var poleR = new Vector3(Mathf.Sin(0.78f) * rf, 0f, Mathf.Cos(0.78f) * rf);
-            Cylinder(WallDress, "PoleL", poleL, 0.7f, 52f, pole);
-            Cylinder(WallDress, "PoleR", poleR, 0.7f, 52f, pole);
-            Box(WallDress, "ScreenL", poleL + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleL.normalized, Vector3.up), flag);
-            Box(WallDress, "ScreenR", poleR + Vector3.up * 44f, new Vector3(0.3f, 22f, 10f), Quaternion.LookRotation(poleR.normalized, Vector3.up), flag);
+        }
+
+        /// <summary>Wall segment whose top slopes from h0 to h1 — a ramp, not a stair.</summary>
+        void RampPrism(Transform parent, string name, Vector3 a, Vector3 b, float h0, float h1, float half, Vector3 outward, Material mat)
+        {
+            var in0 = a - outward * half;
+            var out0 = a + outward * half;
+            var in1 = b - outward * half;
+            var out1 = b + outward * half;
+            var verts = new[]
+            {
+                in0, out0, in0 + Vector3.up * h0, out0 + Vector3.up * h0,
+                in1, out1, in1 + Vector3.up * h1, out1 + Vector3.up * h1
+            };
+            // 0 in-bot, 1 out-bot, 2 in-top, 3 out-top at A; 4–7 at B.
+            var tris = new int[36];
+            var t = 0;
+            t = Quad(tris, t, 0, 2, 6, 4); // inner (field) face
+            t = Quad(tris, t, 1, 5, 7, 3); // outer face
+            t = Quad(tris, t, 2, 3, 7, 6); // top ramp
+            t = Quad(tris, t, 0, 4, 5, 1); // bottom
+            t = Quad(tris, t, 0, 1, 3, 2); // A end
+            t = Quad(tris, t, 4, 6, 7, 5); // B end
+            Look.Solid(name, parent, verts, tris, mat);
+        }
+
+        void RampCap(Transform parent, string name, Vector3 a, Vector3 b, float h0, float h1, float half, Vector3 outward, Material mat)
+        {
+            var in0 = a - outward * half + Vector3.up * h0;
+            var out0 = a + outward * half + Vector3.up * h0;
+            var in1 = b - outward * half + Vector3.up * h1;
+            var out1 = b + outward * half + Vector3.up * h1;
+            var lift = Vector3.up * 0.45f;
+            var verts = new[] { in0, out0, in0 + lift, out0 + lift, in1, out1, in1 + lift, out1 + lift };
+            var tris = new int[36];
+            var t = 0;
+            t = Quad(tris, t, 0, 2, 6, 4);
+            t = Quad(tris, t, 1, 5, 7, 3);
+            t = Quad(tris, t, 2, 3, 7, 6);
+            t = Quad(tris, t, 0, 4, 5, 1);
+            t = Quad(tris, t, 0, 1, 3, 2);
+            t = Quad(tris, t, 4, 6, 7, 5);
+            Look.Solid(name, parent, verts, tris, mat);
         }
 
         void DressScoreboard()
@@ -858,35 +981,133 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(Bleachers);
             if (_park == null) return;
-            var conc = Look.Lit(new Color(0.74f, 0.75f, 0.76f), smooth: 0.1f);
+            var conc = Look.Lit(new Color(0.70f, 0.72f, 0.76f), smooth: 0.1f);
             var rail = Look.Lit(Colors.Gold, smooth: 0.4f);
-            for (var row = 0; row < 6; row++)
+            var roof = Look.Unlit(new Color(0.94f, 0.94f, 0.90f));
+            var post = Look.Lit(new Color(0.80f, 0.80f, 0.78f), smooth: 0.18f);
+            var crowd = Look.Lit(Color.white, Look.Crowd, 5f, 0.06f);
+            DressHomeBowl(conc, crowd, rail);
+            DressWingBowl(1, conc, crowd, roof, post);
+            DressWingBowl(-1, conc, crowd, roof, post);
+            DressCornerBowl(1, conc, crowd, roof, post);
+            DressCornerBowl(-1, conc, crowd, roof, post);
+        }
+
+        void DressHomeBowl(Material conc, Material crowd, Material rail)
+        {
+            var rise = HarborStands.RowRun;
+            for (var row = 0; row < HarborStands.HomeRows; row++)
             {
-                var y = 3.2f + row * 2.15f;
-                var z = -44f - row * 3.6f;
-                Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(96 - row * 2, 0.72f, 3.2f), conc);
-                CrowdBank(Bleachers, "CrowdH" + row, new Vector3(0, y + 0.42f, z - 1.05f), new Vector3(84 - row * 2, 0, 0), new Vector3(0, 0.12f, -0.85f), 14, 2, row * 31);
+                var y = HarborStands.RowY(row);
+                var z = HarborStands.HomeZ0 - row * rise;
+                var half = HarborStands.HomeHalf0 + row * 3.2f;
+                Cube(Bleachers, "HomeStep" + row, new Vector3(0, y, z), new Vector3(half * 2f, 0.95f, rise + 0.35f), conc);
+                Cube(Bleachers, "HomeCrowd" + row,
+                    new Vector3(0, y + 0.55f + HarborStands.PersonFt * 0.42f, z - 0.45f),
+                    new Vector3(half * 1.88f, HarborStands.PersonFt * 1.45f, 0.55f), crowd);
+                if (row == 0)
+                    SmallFans("HomeFan", new Vector3(0, y + 0.2f, z + 0.2f), new Vector3(half * 1.6f, 0, 0), Vector3.back, 0);
             }
-            for (var row = 0; row < 5; row++)
+            Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, HarborStands.HomeZ0 + 3.2f), new Vector3(70, 1.15f, 1.15f), rail);
+        }
+
+        void DressWingBowl(int sign, Material conc, Material crowd, Material roof, Material post)
+        {
+            var z0 = HarborStands.WingZ0;
+            var z1 = HarborStands.WingZ1;
+            for (var row = 0; row < HarborStands.WingRows; row++)
             {
-                var y = 3.0f + row * 2.1f;
-                Cube(Bleachers, "LStep" + row, new Vector3(-102 - row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdBank(Bleachers, "CrowdL" + row, new Vector3(-104 - row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(-0.75f, 0.1f, 0), 10, 1, 200 + row * 17);
-                Cube(Bleachers, "RStep" + row, new Vector3(102 + row * 2.4f, y, 40), new Vector3(3.2f, 2.0f, 88), conc);
-                CrowdBank(Bleachers, "CrowdR" + row, new Vector3(104 + row * 2.4f, y + 0.9f, 40), new Vector3(0, 0, 72), new Vector3(0.75f, 0.1f, 0), 10, 1, 400 + row * 19);
+                var a = new Vector3(sign * HarborStands.WingX(z0, row), 0f, z0);
+                var b = new Vector3(sign * HarborStands.WingX(z1, row), 0f, z1);
+                var along = b - a;
+                along.y = 0f;
+                if (along.sqrMagnitude < 4f) continue;
+                var mid = (a + b) * 0.5f;
+                mid.y = HarborStands.RowY(row);
+                var rot = Quaternion.LookRotation(along.normalized, Vector3.up);
+                var inward = Vector3.Cross(Vector3.up, along.normalized) * sign;
+                Box(Bleachers, (sign > 0 ? "RStep" : "LStep") + row, mid,
+                    new Vector3(HarborStands.RowRun + 0.55f, 1.15f, along.magnitude + 1.1f), rot, conc);
+                Box(Bleachers, (sign > 0 ? "RCrowd" : "LCrowd") + row,
+                    mid + Vector3.up * (0.65f + HarborStands.PersonFt * 0.42f) + inward * 0.15f,
+                    new Vector3(0.55f, HarborStands.PersonFt * 1.45f, along.magnitude * 0.96f), rot, crowd);
+                if (row == 0)
+                    SmallFans(sign > 0 ? "RFan" : "LFan", mid + inward * 0.4f, along, inward, sign > 0 ? 400 : 200);
             }
-            Cube(Bleachers, "RailHome", new Vector3(0, 2.0f, -36), new Vector3(70, 1.2f, 1.2f), rail);
-            var fence = (float)_park.CenterFenceFt;
-            var crowdZ = fence - HarborPostcard.CrowdInsideFt;
-            var crowdTex = Look.Lit(Color.white, Look.Crowd, 4f, 0.05f);
-            for (var row = 0; row < 4; row++)
+        }
+
+        void DressCornerBowl(int sign, Material conc, Material crowd, Material roof, Material post)
+        {
+            var n = HarborStands.CornerSegs;
+            var rows = HarborStands.CornerRows;
+            for (var i = 0; i < n; i++)
             {
-                var y = 6.4f + row * 3.4f;
-                var z = crowdZ - row * 4.2f;
-                Cube(Bleachers, "CfDeck" + row, new Vector3(0, y - 1.4f, z + 1.6f), new Vector3(118 - row * 4, 2.2f, 3.6f), conc);
-                Cube(Bleachers, "CfCrowdTex" + row, new Vector3(0, y + 1.1f, z), new Vector3(110 - row * 4, HarborPostcard.CrowdPersonFt * 0.85f, 0.7f), crowdTex);
+                var t0 = i / (float)n;
+                var t1 = (i + 1) / (float)n;
+                var s0 = sign * Mathf.Lerp(HarborStands.CornerSpray0, HarborStands.CornerSpray1, t0);
+                var s1 = sign * Mathf.Lerp(HarborStands.CornerSpray0, HarborStands.CornerSpray1, t1);
+                var p0 = HarborPostcard.WallPoint(_park, s0);
+                var p1 = HarborPostcard.WallPoint(_park, s1);
+                var r0 = new Vector3((float)p0.X, 0f, (float)p0.Z);
+                var r1 = new Vector3((float)p1.X, 0f, (float)p1.Z);
+                if (r0.sqrMagnitude < 1f || r1.sqrMagnitude < 1f) continue;
+                var n0 = r0.normalized;
+                var n1 = r1.normalized;
+                for (var row = 0; row < rows; row++)
+                {
+                    var behind = HarborStands.CornerBehind0 + row * HarborStands.RowRun;
+                    var a = r0 + n0 * behind;
+                    var b = r1 + n1 * behind;
+                    var along = b - a;
+                    along.y = 0f;
+                    if (along.sqrMagnitude < 0.4f) continue;
+                    var mid = (a + b) * 0.5f;
+                    mid.y = HarborStands.CornerRowY(row);
+                    var radial = mid;
+                    radial.y = 0f;
+                    if (radial.sqrMagnitude < 1f) continue;
+                    radial.Normalize();
+                    var rot = Quaternion.LookRotation(along.normalized, Vector3.up);
+                    var tag = (sign > 0 ? "Rf" : "Lf") + i + "r" + row;
+                    Box(Bleachers, "CStep" + tag, mid,
+                        new Vector3(HarborStands.RowRun + 0.6f, 1.2f, along.magnitude + 1.0f), rot, conc);
+                    Box(Bleachers, "CCrowd" + tag,
+                        mid - radial * 0.25f + Vector3.up * (0.7f + HarborStands.PersonFt * 0.42f),
+                        new Vector3(0.55f, HarborStands.PersonFt * 1.5f, along.magnitude * 0.95f), rot, crowd);
+                }
             }
-            CrowdBank(Bleachers, "CrowdCF", new Vector3(0, 5.2f, crowdZ - 1.2f), new Vector3(108, 0, 0), new Vector3(0, 2.6f, -3.8f), 18, 4, 77);
+        }
+
+        void SmallFans(string name, Vector3 origin, Vector3 along, Vector3 inward, int seed)
+        {
+            var len = along.magnitude;
+            if (len < 4f) return;
+            var dir = along / len;
+            var n = Mathf.Max(4, Mathf.RoundToInt(len / (HarborStands.SeatFt * 2.1f)));
+            var scale = HarborStands.PersonFt / 1.8f;
+            var jersey = new[]
+            {
+                Colors.Spark, Colors.Royal, Colors.Gold, Color.white,
+                new Color(0.22f, 0.62f, 0.32f), new Color(0.82f, 0.28f, 0.18f),
+                new Color(0.72f, 0.35f, 0.78f), new Color(0.18f, 0.42f, 0.72f),
+                new Color(0.95f, 0.55f, 0.18f)
+            };
+            var flesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
+            var dark = Look.Toon(new Color(0.36f, 0.24f, 0.16f));
+            var tall = HarborStands.PersonFt;
+            for (var i = 0; i < n; i++)
+            {
+                var u = n <= 1 ? 0f : i / (float)(n - 1) - 0.5f;
+                var p = origin + dir * (u * len);
+                p += inward * ((Hash01(seed + i) - 0.5f) * 0.35f);
+                var body = Look.Toon(jersey[i % jersey.Length]);
+                if (DropFan("fan-sit", Bleachers, name + i, p, body, scale))
+                    continue;
+                Capsule(Bleachers, name + "Body" + i, p + new Vector3(0f, tall * 0.42f, 0f),
+                    new Vector3(tall * 0.22f, tall * 0.42f, tall * 0.22f), body);
+                Sphere(Bleachers, name + "Head" + i, p + new Vector3(0f, tall * 0.82f, 0f),
+                    tall * 0.12f, i % 5 == 0 ? dark : flesh);
+            }
         }
 
         void SitRow(Transform parent, string name, Vector3 origin, Vector3 along, int n, int seed, bool home)
@@ -1154,6 +1375,7 @@ namespace GrandSluggers.UnityClient
             _kitFlesh = Look.Toon(new Color(1f, 0.80f, 0.68f));
             _kitChalk = Look.Unlit(Colors.Chalk);
             _kitNavy = Look.Toon(new Color(0.06f, 0.18f, 0.42f));
+            _kitDirt = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
         }
 
         void PaintKit(Transform t)
@@ -1171,14 +1393,16 @@ namespace GrandSluggers.UnityClient
                 for (var i = 0; i < mats.Length; i++)
                 {
                     var n = mats[i] != null ? mats[i].name.ToLowerInvariant() : "";
-                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia") || n.Contains("rail"))
+                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia"))
                         next[i] = _kitGold;
+                    else if (n.Contains("mesh") || n.Contains("screen")) next[i] = _kitPost;
                     else if (n.Contains("roof")) next[i] = _kitRoof;
-                    else if (n.Contains("pad")) next[i] = _kitPad;
+                    else if (n.Contains("pad") || n.Contains("rail")) next[i] = _kitPad;
                     else if (n.Contains("post")) next[i] = _kitPost;
                     else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
                     else if (n.Contains("chalk") || n.Contains("cream")) next[i] = _kitChalk;
                     else if (n.Contains("navy")) next[i] = _kitNavy;
+                    else if (n.Contains("dirt") || n.Contains("hill")) next[i] = _kitDirt;
                     else next[i] = _kitWood;
                 }
                 r.sharedMaterials = next;

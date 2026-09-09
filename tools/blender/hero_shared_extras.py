@@ -125,6 +125,26 @@ def build():
     er = prim("uv_sphere", "EmberR", (0.22, 0.18, 0.0), (0.28, 0.2, 0.28), ember)
     join("ember-eyes", [el, er])
 
+    wood = mat("wood", (0.45, 0.28, 0.12))
+    grip = mat("grip", (0.18, 0.12, 0.08))
+    stitch = mat("stitch", (0.86, 0.18, 0.16))
+    leather = mat("leather", (0.42, 0.24, 0.12))
+    cream = mat("cream", (0.96, 0.93, 0.86))
+    handle = prim("cylinder", "BatHandle", (0, 0, -0.55), (0.16, 0.16, 0.9), grip)
+    barrel = prim("cylinder", "BatBarrel", (0, 0, 0.55), (0.24, 0.24, 1.4), wood)
+    knob = prim("uv_sphere", "BatKnob", (0, 0, -1.05), (0.22, 0.22, 0.18), wood)
+    join("bat-wood", [handle, barrel, knob])
+    palm = prim("uv_sphere", "Palm", (0, 0, 0), (0.7, 0.55, 0.42), leather)
+    web = prim("cube", "Web", (0, 0.12, 0.22), (0.55, 0.12, 0.42), leather)
+    thumb = prim("cylinder", "Thumb", (-0.32, 0.05, 0.08), (0.18, 0.18, 0.55), leather, rot=(0, math.radians(28), 0))
+    fingers = prim("cube", "Fingers", (0.12, 0.18, 0.06), (0.48, 0.22, 0.42), leather)
+    join("glove-brown", [palm, web, thumb, fingers])
+    # Diameter 1 (uv_sphere r=0.5 × scale 1) — Unity PrimitiveType.Sphere rest.
+    # BallView localScale is Baseball.ApparentScale / ToyMesh.BaseballRestDiameter.
+    ball = prim("uv_sphere", "BallBody", (0, 0, 0), (1.0, 1.0, 1.0), cream)
+    seam = prim("cube", "Seam", (0, 0, 0), (0.12, 0.94, 0.12), stitch)
+    join("baseball", [ball, seam])
+
     for o in list(bpy.data.objects):
         if o.type != "MESH":
             continue
