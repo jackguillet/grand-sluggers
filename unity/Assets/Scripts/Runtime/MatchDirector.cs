@@ -600,8 +600,9 @@ namespace GrandSluggers.UnityClient
             _items?.Hide();
             _zone.Show(false, 0, 0);
             _ring?.Hide();
-            // Between pitches is SET, not the backstop result postcard (#301).
-            _cam.Cut(AtBatShots.SetShot(HumanPitches, false, 0, 0, 0, TrainingOn, LiveSeats.Count));
+            // Hits/outs stamp on the live field camera. Next pitch SET is BeginSet (#301).
+            if (_last == null || !PlayStamp.HoldsLiveCamera(_last.Kind))
+                _cam.Cut(AtBatShots.SetShot(HumanPitches, false, 0, 0, 0, TrainingOn, LiveSeats.Count));
         }
 
         void TickItem(float dt)
