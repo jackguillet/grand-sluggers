@@ -20,6 +20,20 @@ public class CarnivalFrontTests
         Assert.Equal("AWAY", CarnivalFront.SeatMark(false));
         Assert.Contains("bottom", CarnivalFront.SeatHint(true), StringComparison.OrdinalIgnoreCase);
         Assert.Contains("top", CarnivalFront.SeatHint(false), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("1 PLAYER", CarnivalFront.SeatModeLabel(false));
+        Assert.Equal("2 PLAYERS", CarnivalFront.SeatModeLabel(true));
+        Assert.Equal(CarnivalFront.SeatHint(true), CarnivalFront.SeatModeHint(false, true, true));
+        Assert.Contains("pad 2", CarnivalFront.SeatModeHint(true, false, true), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Pad 2", CarnivalFront.SeatModeHint(true, true, true));
+        const float w = 1280, h = 800;
+        var one = CarnivalFront.SeatModeTab(false, w, h);
+        var two = CarnivalFront.SeatModeTab(true, w, h);
+        Assert.True(two.X > one.X);
+        Assert.Equal(false, CarnivalFront.HitSeatMode(one.X + 8, one.Y + 8, w, h));
+        Assert.Equal(true, CarnivalFront.HitSeatMode(two.X + 8, two.Y + 8, w, h));
+        Assert.Null(CarnivalFront.HitSeatMode(8, 8, w, h));
+        Assert.Contains("1 player", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("2 players", CarnivalFront.SelectHelp, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

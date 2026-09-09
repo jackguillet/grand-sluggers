@@ -146,16 +146,21 @@ namespace GrandSluggers.UnityClient
         {
             var p1 = Controls.Pad1;
             var p2 = Controls.Pad2;
+            var pad2Sits = _versusWanted && p2.Present;
             if (p1.NorthDown && _t > 0.15f)
                 ApplyPick(ExhibitionPick.ToggleSeat(CurrentPick()));
+            if (p1.AllAdvanceDown && _t > 0.15f)
+                WantVersus(false);
+            if (p1.CyclePitch && _t > 0.15f)
+                WantVersus(true);
             var dt = Time.unscaledDeltaTime;
             var dx = _selectX.Tick(p1.MenuAxisX, p1.MenuTapX, dt);
             var dy = _selectY.Tick(p1.MenuAxisY, p1.MenuTapY, dt);
             if (dx != 0)
                 ApplyPick(ExhibitionPick.CycleYours(CurrentPick(), dx));
-            else if (dy != 0 && !p2.Present)
+            else if (dy != 0 && !pad2Sits)
                 ApplyPick(ExhibitionPick.CycleTheirs(CurrentPick(), dy > 0 ? -1 : 1));
-            if (p2.Present)
+            if (pad2Sits)
             {
                 var d2 = _selectX2.Tick(p2.MenuAxisX, p2.MenuTapX, dt);
                 if (d2 != 0)
@@ -167,8 +172,25 @@ namespace GrandSluggers.UnityClient
                 OpenTitle();
                 return;
             }
+            if (Controls.PointerDown && _t > 0.15f)
+            {
+                var mouse = Controls.GuiMouse;
+                if (CarnivalFront.HitSeatMode(mouse.x, mouse.y, Screen.width, Screen.height) is { } versus)
+                {
+                    WantVersus(versus);
+                    return;
+                }
+            }
             if (Controls.SouthDown && _t > 0.15f)
                 OpenField();
+        }
+
+        void WantVersus(bool versus)
+        {
+            if (_versusWanted == versus) return;
+            _versusWanted = versus;
+            if (versus)
+                _selectX2.Catch(Controls.Pad2.MenuAxisX);
         }
 
         void OpenField()
