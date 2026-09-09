@@ -196,6 +196,7 @@ namespace GrandSluggers.UnityClient
 
         void Start()
         {
+            Controls.Initialize();
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             _content = ContentCatalog.Load(data);
             ArtBinder.Bind(_content.Art);

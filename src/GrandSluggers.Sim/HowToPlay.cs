@@ -117,11 +117,11 @@ public static class HowToPlay
         new("contents", "Contents", "contents",
         [
             "This is the instruction booklet. Call time (Start) or Esc opens it. The list is the book.",
-            "South next. East back. Toggle Controller / Keyboard up top. Big type from the couch.",
+            "South next. East back. F6 cycles Player 1 input: Auto, Controller, Keyboard + mouse.",
         ],
         [
             "This is the instruction booklet. H or Esc opens it. The list is the book.",
-            "Left click / Space next. Esc / right click back. Toggle up top. Big type from the couch.",
+            "Left click / Space next. Esc / right click back. F6 cycles input. Big type from the couch.",
         ]),
         new("controls", "Controls", "controls",
         [
