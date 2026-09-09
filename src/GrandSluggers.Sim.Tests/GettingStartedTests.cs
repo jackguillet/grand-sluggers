@@ -13,7 +13,7 @@ public class GettingStartedTests
         Assert.Equal(["exhibition", "training", "two-pads"], GettingStarted.Modes.Select(m => m.Id));
         Assert.Equal("Exhibition", GettingStarted.Modes[0].Title);
         Assert.Equal("Training", GettingStarted.Modes[1].Title);
-        Assert.Equal("Two pads", GettingStarted.Modes[2].Title);
+        Assert.Equal("Two controllers", GettingStarted.Modes[2].Title);
         foreach (var step in GettingStarted.Path)
         {
             Assert.False(HowToPlay.MixesHardware(step.PadCaption), step.Id);

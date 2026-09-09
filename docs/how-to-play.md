@@ -1,8 +1,8 @@
 # How to play
 
-Living spec for couch play. **Gamepad is the couch product. Keyboard and mouse are the other scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only — that is a **scheme badge**, not a sentence on every page. F1/F2/F3 stay debug.
+Living spec for couch play. **Controller is the couch product. Keyboard and mouse are the other scheme** — every Exhibition verb has a key and a mouse bind. Keyboard + mouse are player 1 only — that is a **scheme badge**, not a sentence on every page. F1/F2/F3 stay debug.
 
-**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. How to play is an **opaque full-screen book** — HUD and field do not show through. Big white type on dark cards. Pages, captains, and the field step once per flick; hold the stick or d-pad to repeat after a beat. A sitting stick is recentered so drift does not walk the pitcher or run the roster. Right-drag aim is not a menu stick. It opens on the last input you used. A **Pad | Keyboard + mouse** toggle at the top of the book locks the scheme until you close it. Scheme- or seat-specific spreads get a pill (`BookScheme.SeatBadge` / `PageBadge`) — Two pads, Player 1 only. Each chapter has one roster captain in a circle (`BookChapter`). Every page that names a verb has pad copy and key copy (`Page.Shown`). **Contents** is a table of contents (`ContentsToc`): chapter titles and page numbers. Numbers match the book header. **Getting started** is a numbered first-time path (`GettingStarted`): title → captains → field → lineup → first pitch, then a mode table — Exhibition, Training, two pads as seating. Not Challenge, Toy Field, minigames, or records. **Controls** is a two-column list (`ControlDiagram.CalloutCell`): hardware, always, **green offense / red defense**. No tiny schematic. **In-game controls** is four role tables (`RoleTables`): batting, pitching, fielding, running — verb | what you press, one scheme at a time. **Pitch and swing** is two cards (`HowToComic`): charge chip → commit chip, one caption. **Running** is three `BagDiagrams` (bag map, all-advance, all-return) plus **Close play** and **Tag** callouts. Right is 1B, up 2B, left 3B, down home — the same map as runner leads and throw tells. **The game screen** is two labeled HUD maps (`HudCallouts`): SET (scorebug, B/S/O, on-base, cards, TIRED) and in-play (YOU, landing ring, ITEM). **Chemistry** is two cards (`ChemBook`): hearts vs scribbles. **Who you are** is the select card (PIT / BAT / FLD / RUN) plus a four-row type table (pitches / swings / running / fielding). Charge at MAX is the picture. Never print South / Space / left click on one line. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
+**In the game:** Start / H / Esc during SET or a play opens **Call time** — Resume, Restart, **How to play**, Title. How to play is an **opaque full-screen book** — HUD and field do not show through. Big white type on dark cards. Pages, captains, and the field step once per flick; hold the stick or d-pad to repeat after a beat. A sitting stick is recentered so drift does not walk the pitcher or run the roster. Right-drag aim is not a menu stick. It opens on the last input you used. A **Controller | Keyboard + mouse** toggle at the top of the book locks the scheme until you close it. Scheme- or seat-specific spreads get a pill (`BookScheme.SeatBadge` / `PageBadge`) — Two controllers, Player 1 only. Each chapter has one roster captain in a circle (`BookChapter`). Every page that names a verb has controller copy and key copy (`Page.Shown`). **Contents** is a table of contents (`ContentsToc`): chapter titles and page numbers. Numbers match the book header. **Getting started** is a numbered first-time path (`GettingStarted`): title → captains → field → lineup → first pitch, then a mode table — Exhibition, Training, two controllers as seating. Not Challenge, Toy Field, minigames, or records. **Controls** is a two-column list (`ControlDiagram.CalloutCell`): hardware, always, **green offense / red defense**. No tiny schematic. **In-game controls** is four role tables (`RoleTables`): batting, pitching, fielding, running — verb | what you press, one scheme at a time. **Pitch and swing** is two cards (`HowToComic`): charge chip → commit chip, one caption. **Running** is three `BagDiagrams` (bag map, all-advance, all-return) plus **Close play** and **Tag** callouts. Right is 1B, up 2B, left 3B, down home — the same map as runner leads and throw tells. **The game screen** is two labeled HUD maps (`HudCallouts`): SET (scorebug, B/S/O, on-base, cards, TIRED) and in-play (YOU, landing ring, ITEM). **Chemistry** is two cards (`ChemBook`): hearts vs scribbles. **Who you are** is the select card (PIT / BAT / FLD / RUN) plus a four-row type table (pitches / swings / running / fielding). Charge at MAX is the picture. Never print South / Space / left click on one line. If you change `Controls.cs`, Exhibition flow, SET cameras, or what a verb does on the body, update this file **and** `HowToPlay.cs` in the same PR.
 
 Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`. That is the game. Trailer stills (plate / scoop / star, HUD off): **[docs/screenshot-gate.md](screenshot-gate.md)**. Agents capture those from Play without grinding the top of the first (`Grand Sluggers → Capture Still Gate`).
 
@@ -10,9 +10,9 @@ Open `unity/` in Unity **6000.5.9f1**, Play `Assets/Scenes/HarborDiamond.unity`.
 
 ## Face buttons
 
-South / East / West / North are **positions**, not Nintendo vs Xbox labels. The bottom face button is South on Xbox and Nintendo pads.
+South / East / West / North are **positions**, not Nintendo vs Xbox labels. The bottom face button is South on Xbox and Nintendo controllers.
 
-| Verb | Pad | Keyboard | Mouse |
+| Verb | Controller | Keyboard | Mouse |
 | --- | --- | --- | --- |
 | Confirm / pitch / swing / catch / throw | South | Space / Enter | Left click |
 | Charge | LT analog | Shift (hold = 1.0) | Right click hold |
@@ -33,15 +33,15 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
-One player, or two pads. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Pad 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
+One player with controller 1, or two controllers. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
 
-The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Pad | Keyboard + mouse** (`BookScheme`) follows last input; the toggle locks it. Green is offense. Red is defense.
+The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows last input; the toggle locks it. Green is offense. Red is defense.
 
 ---
 
 ## Exhibition (the product)
 
-Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): you pitch the top, you hit the bottom. **2 PLAYERS** on captains: pad 1 is home, pad 2 is away — they pitch and hit at the same time. Plugging in pad 2 does not start 1v1 until you pick 2 PLAYERS.
+Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): controller 1 pitches the top and hits the bottom against CPU. **2 PLAYERS** on captains: controller 1 is home, controller 2 is away — they pitch and hit at the same time. Plugging in controller 2 does not start 1v1 until you pick 2 PLAYERS.
 
 ### Title
 
@@ -60,9 +60,9 @@ Captains and the field are two screens. The park does not follow the captain.
 
 The toys are the UI. Highlighted captain **steps forward**. Camera looks at the **toy** (face and body), not the brim and not the plate dirt. The **HUD card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
-- **1 PLAYER / 2 PLAYERS** at the top — one player vs CPU, or two pads. Default is one player even if pad 2 is plugged in.
-- **LB / `,`** — 1 player · **RB / Tab** — 2 players. Click the tabs. Two players needs pad 2.
-- **Stick / WASD L/R** — your team · **U/D** — the other (pad 2 L/R their team when 2 PLAYERS)
+- **1 PLAYER / 2 PLAYERS** at the top — one controller vs CPU, or two controllers. Default is one player even if controller 2 is plugged in.
+- **LB / `,`** — 1 player · **RB / Tab** — 2 players. Click the tabs. Two players needs controller 2.
+- **Stick / WASD L/R** — your team · **U/D** — the other (controller 2 L/R their team when 2 PLAYERS)
 - **North / Q** — you are **HOME** or **AWAY**. HOME bats the bottom. AWAY bats the top.
 - **South / Space** — pick the field
 - **West / F** — title
@@ -81,7 +81,7 @@ A **postcard**: park name, DAY / NIGHT, one-line gimmick. Harbor is the slice �
 
 Two screens. Not a 3D huddle with a name list.
 
-**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second pad sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Starting stars **jump** on the home row.
+**Team Setup.** Home nine along the **top** (captain filled, eight empty). Away nine along the **bottom** (CPU-filled until a second controller sits). Center is a grid of heads (`Look.Portrait`). Hearts / scribbles vs the captain. Starting stars **jump** on the home row.
 
 - **Stick / WASD** — pick a head (center) or a slot (home row)
 - **South / Space** — drop the head into the highlighted empty slot. When the nine are full, South goes to defense
@@ -108,7 +108,7 @@ Two screens. Not a 3D huddle with a name list.
 
 Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge is weaker than MAX. The pitch has a **gold streak** so you can see it come in.
 
-SET forks **by role in 1P**, and **stays behind home in 1v1**. **One pad, pitching:** camera stays on the **mound 3/4** (`mound`) — first-base over-the-shoulder behind the rubber, pitcher large on the right, rubber in the bottom, looking at the box — through SET and the throw. **One pad, batting:** camera stays on the **plate 3/4** (`plate`) — behind home looking at the mound, batter left of the look, pitcher in the diamond — through SET and the throw. Catcher crouches behind the camera. Pentagon and two boxes have dirt between them. It does not cut to `pitch`. **Two pads:** camera stays on the **plate 3/4** (`plate`) — behind home — through SET and the throw, whether you pitch or hit. Pad 2 does not fork the HUD. Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
+SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller, pitching:** camera stays on the **mound 3/4** (`mound`) — first-base over-the-shoulder behind the rubber, pitcher large on the right, rubber in the bottom, looking at the box — through SET and the throw. **One controller, batting:** camera stays on the **plate 3/4** (`plate`) — behind home looking at the mound, batter left of the look, pitcher in the diamond — through SET and the throw. Catcher crouches behind the camera. Pentagon and two boxes have dirt between them. It does not cut to `pitch`. **Two controllers:** camera stays on the **plate 3/4** (`plate`) — behind home — through SET and the throw, whether you pitch or hit. Controller 2 does not fork the HUD. Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
 
 - **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets.
 - **Stick L/R at contact** — spray. Past the foul line is a **foul** (strike unless you already have two). The ball flies there. Not a K at two strikes.
@@ -178,16 +178,16 @@ Title **West**, then **stick** picks Pitch / Bat / Field / Run / Special / Free 
 
 Lineup is Team Setup then Offense / Defense Setup. Chemistry still drafts as hearts and scribbles. Defense is nine gloves (P / C / 1B / 2B / 3B / SS / LF / CF / RF) on two diamonds. Home bats the bottom.
 
-### Two pads (local 1v1)
+### Two controllers (local 1v1)
 
-Gamepad **0 is player 1**. **North** on captains picks HOME or AWAY for that pad. Gamepad **1 sits the other side**. Keyboard and mouse stay player 1. A second pad does not split the screen and does not go online.
+Controller **1 is player 1**. **North** on captains picks HOME or AWAY for that controller. Controller **2 sits the other side**. Keyboard and mouse stay player 1. A second controller does not split the screen and does not go online.
 
-- **Title / captains / Team Setup / Defense Setup.** Pad 1 edits their team. Pad 2 edits the other. Each picks their captain, roster, order, gloves.
-- **First pitch.** Home pitches the top, away bats. Bottom: they swap. CPU never bats or pitches while both pads are seated.
+- **Title / captains / Team Setup / Defense Setup.** Controller 1 edits their team. Controller 2 edits the other. Each picks their captain, roster, order, gloves.
+- **First pitch.** Home pitches the top, away bats. Bottom: they swap. CPU never bats or pitches while both controllers are seated.
 - **SET.** Mound when a human is on the rubber, plate when you bat vs CPU. Same role recipe as 1P. Cards stay batter bottom-left, pitcher bottom-right. Highlight yours.
-- **Pitch / swing.** Pad-on-mound walks the rubber, charges, throws. Pad-in-the-box walks the box, charges, swings. Same four verbs as 1P.
-- **In-play.** Fielding pad takes the glove (stick to take, dead stick = CPU cover). Batting pad sends / returns / steals. Both at once.
-- **Unplug pad 2.** That team becomes CPU without restarting the inning.
+- **Pitch / swing.** Controller-on-mound walks the rubber, charges, throws. Controller-in-the-box walks the box, charges, swings. Same four verbs as 1P.
+- **In-play.** Fielding controller takes the glove (stick to take, dead stick = CPU cover). Batting controller sends / returns / steals. Both at once.
+- **Unplug controller 2.** That team becomes CPU without restarting the inning.
 
 ---
 
@@ -207,8 +207,8 @@ F2 is how you name the still (plate vs mound vs diamond-line). It does not repla
 
 ## What a stranger should feel
 
-Couch, pad, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
+Couch, controller, three innings. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race.
 
-**Now (Harbor Exhibition).** Title looks into the park. One pad: SET is over the pitcher’s shoulder looking at the box when you pitch (mound 3/4) and behind home when you hit (plate 3/4). Two pads: SET stays behind home (plate 3/4). Two chalk boxes and a pentagon on packed dirt. The infield is grass with dirt paths and a mound hill. On contact the camera sits at 45° on the dirt under the ball (CF at the top, home under second) and follows it through the throw. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. From the box the pitcher throws — windup, then the ball leaves that hand. Star specials own the ball or the field ~2 seconds HUD-off (Heatball/heat-swing core+embers on the body; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is one chain with six SMS-ladder cuts (kid / pageant / speed / brick / ape / slug) so a HUD-off plate still names the type. Captain extras stay data. Still primitives, not a sculpted hero. Swing and scoop are authored verbs on that body (Contact 0.30 / 0.22); MoveBones is the fallback. Gamepad is Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Keyboard and mouse are the same verbs (Space / left click confirm, WASD / mouse run, 1–4 bags). Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
+**Now (Harbor Exhibition).** Title looks into the park. One controller: SET is over the pitcher’s shoulder looking at the box when you pitch (mound 3/4) and behind home when you hit (plate 3/4). Two controllers: SET stays behind home (plate 3/4). Two chalk boxes and a pentagon on packed dirt. The infield is grass with dirt paths and a mound hill. On contact the camera sits at 45° on the dirt under the ball (CF at the top, home under second) and follows it through the throw. From those cameras Harbor is a place: outfield grass, a padded wall with ads, a scoreboard with numbers, a crowd of people not one card. Baseball is 0.62 ft. From the box the pitcher throws — windup, then the ball leaves that hand. Star specials own the ball or the field ~2 seconds HUD-off (Heatball/heat-swing core+embers on the body; Charm hearts; Prism ghosts; Phony grin decoy; Cask barrel; Skull; Furnace lava pool), then baseball. Scorebug mutes. Shared body is one chain with six SMS-ladder cuts (kid / pageant / speed / brick / ape / slug) so a HUD-off plate still names the type. Captain extras stay data. Still primitives, not a sculpted hero. Controller input uses the Input System: analog LT charges, South is a position on Xbox and Nintendo, rumble on contact and star. Keyboard and mouse are the same verbs (Space / left click confirm, WASD / mouse run, 1–4 bags). Bat / glove / crowd bed are original wavs, not beeps. Still not a sculpted hero.
 
 **Not yet the reason people stay.** Scoop still, star-swing still you would show a friend, captains that read at gameplay distance. Do not start Challenge island or extra parks as products before that.

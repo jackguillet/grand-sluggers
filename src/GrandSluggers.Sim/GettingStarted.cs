@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// How to play Getting started: numbered first-time path, then a mode table.
-/// SMS p.11–12. Exhibition and Training are the products. Two pads is seating.
+/// SMS p.11–12. Exhibition and Training are the products. Two controllers is seating.
 /// </summary>
 public static class GettingStarted
 {
@@ -43,9 +43,9 @@ public static class GettingStarted
         new("training", "Training",
             "Title West. Harbor drills.",
             "Title F. Harbor drills."),
-        new("two-pads", "Two pads",
-            "2 PLAYERS on captains. Gamepad 1 sits the other side. Unplug = CPU.",
-            "Keyboard + mouse is player 1 only. A second pad is player 2."),
+        new("two-pads", "Two controllers",
+            "2 PLAYERS on captains. Controller 2 sits the other side. Unplug = CPU.",
+            "Keyboard + mouse is player 1 only. A second controller is player 2."),
     ];
 
     public static string Caption(Step step, InputScheme scheme) =>

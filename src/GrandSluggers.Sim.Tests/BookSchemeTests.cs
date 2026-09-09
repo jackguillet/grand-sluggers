@@ -87,8 +87,8 @@ public class BookSchemeTests : IDisposable
     {
         Assert.Null(BookScheme.SeatBadge(InputScheme.Pad));
         Assert.Equal("Player 1 only", BookScheme.SeatBadge(InputScheme.Keys));
-        Assert.Equal("Two pads", BookScheme.PageBadge("two-pads", InputScheme.Pad));
-        Assert.Equal("Two pads", BookScheme.PageBadge("two-pads", InputScheme.Keys));
+        Assert.Equal("Two controllers", BookScheme.PageBadge("two-pads", InputScheme.Pad));
+        Assert.Equal("Two controllers", BookScheme.PageBadge("two-pads", InputScheme.Keys));
         Assert.Null(BookScheme.PageBadge("controls", InputScheme.Pad));
         var contents = HowToPlay.Must("contents");
         Assert.DoesNotContain(contents.Lines, l => l.Contains("player 1 only", StringComparison.OrdinalIgnoreCase));
