@@ -168,7 +168,8 @@ namespace GrandSluggers.UnityClient
             var stick = Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY);
             var hasBall = _caught || _buddy;
             var steering = (chasing || hasBall) && !_throwing;
-            if (chasing && _swapLock <= 0 && stick < 0.35f)
+            var dead = FieldAssist.StickDead(FieldPad.StickX, FieldPad.StickY, FieldAssist.StickTake);
+            if (_swapLock <= 0 && FieldAssist.CpuChases(hasBall, _throwing, dead))
                 ChaseGlove(dt, pre);
 
             if (steering && map.TryGetValue(_glovePos, out var glove) && stick >= 0.35f)

@@ -128,6 +128,7 @@ namespace GrandSluggers.UnityClient
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
+                hero.SetYou((_phase is Phase.InPlay or Phase.StealThrow) && who.Id == litId && HumanOwnsThrow);
                 hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = HeroActor.Pose.Charm;

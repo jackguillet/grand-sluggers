@@ -354,7 +354,7 @@ namespace GrandSluggers.UnityClient
             if (!mutePlay && _phase == Phase.InPlay && HumanOwnsThrow)
             {
                 var who = PlayFielder();
-                if (_playerFielding)
+                if (FieldAssist.ShowYou(true, _glovePos))
                     HudView.ControlDisplay(_glovePos, who != null ? who.Name : "");
                 if (!string.IsNullOrEmpty(_switchPos) && _switchPos != _glovePos && !(_caught || _buddy))
                 {

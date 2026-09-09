@@ -20,6 +20,16 @@ public class FieldAssistTests
         Assert.False(FieldAssist.StickTakesGlove(0.1, 0.1, FieldAssist.StickTake, false));
         Assert.True(FieldAssist.StickTakesGlove(0.4, 0, FieldAssist.StickTake, false));
         Assert.True(FieldAssist.StickTakesGlove(0, 0, FieldAssist.StickTake, true));
+        Assert.True(FieldAssist.StickDead(0, 0, FieldAssist.StickTake));
+        Assert.False(FieldAssist.StickDead(0.4, 0, FieldAssist.StickTake));
+        Assert.True(FieldAssist.CpuChases(hasBall: false, throwing: false, stickDead: true));
+        Assert.False(FieldAssist.CpuChases(hasBall: true, throwing: false, stickDead: true),
+            "with the ball they wait for the throw");
+        Assert.False(FieldAssist.CpuChases(hasBall: false, throwing: true, stickDead: true));
+        Assert.False(FieldAssist.CpuChases(hasBall: false, throwing: false, stickDead: false));
+        Assert.True(FieldAssist.ShowYou(true, "SS"));
+        Assert.False(FieldAssist.ShowYou(false, "SS"));
+        Assert.False(FieldAssist.ShowYou(true, ""));
     }
 
     [Fact]
