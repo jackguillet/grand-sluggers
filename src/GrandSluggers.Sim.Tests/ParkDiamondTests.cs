@@ -16,6 +16,8 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.HomePackedIsAPad());
         Assert.True(ParkDiamond.MoundIsAHill());
         Assert.True(ParkDiamond.StripeReadsAtCouch());
+        Assert.True(ParkDiamond.StripesRunHomeToCf());
+        Assert.True(ParkDiamond.PathCornersAreRound());
         Assert.True(ParkDiamond.LawnRespectsPits());
     }
 

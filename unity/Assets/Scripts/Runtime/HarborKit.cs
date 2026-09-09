@@ -266,11 +266,12 @@ namespace GrandSluggers.UnityClient
             var first = new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z);
             var second = new Vector3((float)Diamond.Second.X, 0f, (float)Diamond.Second.Z);
             var third = new Vector3((float)Diamond.Third.X, 0f, (float)Diamond.Third.Z);
-            var pathW = HarborInfield.PathWidth;
-            DirtPath("PathHome1", home, first, pathW, path);
-            DirtPath("Path1to2", first, second, pathW, path);
-            DirtPath("Path2to3", second, third, pathW, path);
-            DirtPath("Path3toHome", third, home, pathW, path);
+            var pathW = ParkDiamond.PathWidth;
+            var inset = ParkDiamond.PathCornerR;
+            DirtPath("PathHome1", home, first, pathW, inset, path);
+            DirtPath("Path1to2", first, second, pathW, inset, path);
+            DirtPath("Path2to3", second, third, pathW, inset, path);
+            DirtPath("Path3toHome", third, home, pathW, inset, path);
 
             // Pentagon + two boxes with dirt between them so a behind-home SET can read.
             DressPlate(chalk);
@@ -399,14 +400,20 @@ namespace GrandSluggers.UnityClient
             go.transform.localScale = scale;
         }
 
-        void DirtPath(string name, Vector3 a, Vector3 b, float width, Material dirt)
+        void DirtPath(string name, Vector3 a, Vector3 b, float width, float inset, Material dirt)
         {
             var d = b - a;
             d.y = 0f;
-            if (d.sqrMagnitude < 1f) return;
-            var mid = (a + b) * 0.5f;
+            var span = d.magnitude;
+            if (span < 4f) return;
+            var dir = d / span;
+            var start = a + dir * inset;
+            var end = b - dir * inset;
+            var mid = (start + end) * 0.5f;
             mid.y = ParkDiamond.PathY;
-            Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, d.magnitude + 6f), Quaternion.LookRotation(d.normalized, Vector3.up), dirt);
+            var len = Vector3.Distance(start, end);
+            if (len < 4f) return;
+            Slab(transform, name, mid, new Vector3(width, ParkDiamond.PathThick, len), Quaternion.LookRotation(dir, Vector3.up), dirt);
         }
 
         Transform Folder(string name)
@@ -424,10 +431,10 @@ namespace GrandSluggers.UnityClient
             if (_park == null) return;
             var dirt = Look.Lit(new Color(0.72f, 0.52f, 0.32f), Look.Dirt, 6f, 0.1f);
             var bagDirt = Look.Lit(Colors.Dirt, Look.Dirt, 10f, 0.1f);
-            var bagR = HarborInfield.BagDirtR;
-            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), bagR, 0.16f, bagDirt);
-            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), bagR, 0.16f, bagDirt);
-            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), bagR, 0.16f, bagDirt);
+            var cornerR = ParkDiamond.PathCornerR;
+            Cylinder(transform, "BagDirt1", new Vector3((float)Diamond.First.X, 0.08f, (float)Diamond.First.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+            Cylinder(transform, "BagDirt2", new Vector3((float)Diamond.Second.X, 0.08f, (float)Diamond.Second.Z), cornerR, ParkDiamond.PathThick, bagDirt);
+            Cylinder(transform, "BagDirt3", new Vector3((float)Diamond.Third.X, 0.08f, (float)Diamond.Third.Z), cornerR, ParkDiamond.PathThick, bagDirt);
             DressTrack(dirt);
             DressGrass();
             DressPoles();
@@ -690,33 +697,33 @@ namespace GrandSluggers.UnityClient
             var h = ParkDiamond.GrassThick;
             var stripe = ParkDiamond.StripeWidth;
             var zEnd = _park != null ? ParkDiamond.GrassZ1(_park) : 380f;
+            var halfW = ParkDiamond.GrassHalfWidth(zEnd);
             var i = 0;
-            for (var z = ParkDiamond.GrassZ0; z < zEnd; z += stripe, i++)
+            for (var x = -halfW; x < halfW; x += stripe, i++)
             {
-                var zc = z + stripe * 0.5f;
-                var sz = stripe + 0.4f;
-                var halfW = ParkDiamond.GrassHalfWidth(zc);
+                var xc = x + stripe * 0.5f;
+                var sx = stripe + 0.4f;
+                var zLo = ParkDiamond.GrassZ0;
+                if (Mathf.Abs(xc) > 40f)
+                    zLo = Mathf.Max(zLo, Mathf.Abs(xc) - ParkDiamond.FoulGrassFt);
+                if (zLo >= zEnd) continue;
                 var mat = (i & 1) == 0 ? dark : light;
-                StripeBand("Stripe" + i, zc, sz, halfW, y, h, mat);
+                StripeColumn("Stripe" + i, xc, sx, zLo, zEnd, y, h, mat);
             }
         }
 
-        void StripeBand(string name, float zc, float sz, float halfW, float y, float h, Material lawn)
+        void StripeColumn(string name, float xc, float sx, float zLo, float zHi, float y, float h, Material lawn)
         {
-            var z0 = zc - sz * 0.5f;
-            var z1 = zc + sz * 0.5f;
-            if (z1 < HarborDugout.HoleMinZ || z0 > HarborDugout.HoleMaxZ)
+            var inHoleX = Mathf.Abs(xc) >= HarborDugout.HoleMinX && Mathf.Abs(xc) <= HarborDugout.HoleMaxX;
+            if (!inHoleX)
             {
-                LawnBand(name, 0f, y, zc, halfW * 2f, h, sz, lawn);
+                LawnBand(name, xc, y, (zLo + zHi) * 0.5f, sx, h, zHi - zLo, lawn);
                 return;
             }
-            var xIn = HarborDugout.HoleMinX;
-            var xOut = HarborDugout.HoleMaxX;
-            LawnBand(name + "C", 0f, y, zc, xIn * 2f, h, sz, lawn);
-            var sideW = halfW - xOut;
-            if (sideW < 2f) return;
-            LawnBand(name + "L", -(xOut + halfW) * 0.5f, y, zc, sideW, h, sz, lawn);
-            LawnBand(name + "R", (xOut + halfW) * 0.5f, y, zc, sideW, h, sz, lawn);
+            if (zLo < HarborDugout.HoleMinZ)
+                LawnBand(name + "S", xc, y, (zLo + HarborDugout.HoleMinZ) * 0.5f, sx, h, HarborDugout.HoleMinZ - zLo, lawn);
+            if (zHi > HarborDugout.HoleMaxZ)
+                LawnBand(name + "N", xc, y, (HarborDugout.HoleMaxZ + zHi) * 0.5f, sx, h, zHi - HarborDugout.HoleMaxZ, lawn);
         }
 
         void LawnBand(string name, float x, float y, float z, float sx, float sy, float sz, Material lawn)
