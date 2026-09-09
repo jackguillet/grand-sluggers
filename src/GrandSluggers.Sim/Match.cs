@@ -1321,7 +1321,9 @@ public sealed class Match
             return ev;
         }
         thr ??= ThrowBetween(catcher, runner);
-        var caught = StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01);
+        var caught = throwBag == fromBag
+            ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, state.Lead01)
+            : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01);
         return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught);
     }
 

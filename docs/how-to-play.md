@@ -127,7 +127,7 @@ Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 - **D-pad / 1 2 3** — select a runner (right 1B, up 2B, left 3B). **Down / 4** is home — not stealable. Default highlight is the lead runner.
 - **Stick** toward the next bag — lead on the highlighted runner; back — return
 - **L3 / Z** — steal the selected runner toward their next bag. They go on the pitch. No steal home.
-- After a take or swing-and-miss the **catcher guns**. Arm **2B** (default on a steal of second) and **South**. Early throw that beats the runner is **CAUGHT STEALING**; late is **STOLEN BASE**. Dead stick: CPU catcher still guns. Take the stick and you own it.
+- After a take or swing-and-miss the **catcher guns**. Arm **2B** (default on a steal of second), or **1B** to try a pickoff, then press **South**. The ball must reach the bag and tag the runner before the result is called. Early throw that beats the runner is **CAUGHT STEALING**; late is **STOLEN BASE**. Dead stick: CPU catcher still guns. Take the stick and you own it.
 - **Mash South / Space** after contact — **dash**. The play stays live until every **live** runner has been **on a bag for 1 second**. An out with nobody left (throw-out at first, empty bases) ends it there. 3 outs too. Picking up the ball does not end a race. Sac fly: they leave on the catch if you sent them.
 - **West / South** near the bag — slide
 - **Close play** at third or home — the camera sits on the bag. First **South / left click** after the icon wins. Runner is safe if offense is first; out if defense is first. CPU mashes on a delay from Run / Field. A bang-bang beat (throw to first they just make, or the mash) pops a small **SAFE**.
