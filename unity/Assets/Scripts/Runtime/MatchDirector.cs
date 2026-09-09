@@ -285,7 +285,7 @@ namespace GrandSluggers.UnityClient
             if (_match.Paused)
             {
                 if (!openedPause) TickPause();
-                _actors.Draw();
+                _actors.Draw(0f);
                 return;
             }
             if (!_gateHold)
@@ -295,7 +295,7 @@ namespace GrandSluggers.UnityClient
                 _atBat.Tick(dt);
                 _inPlay.Tick(dt);
             }
-            _actors.Draw();
+            _actors.Draw(dt);
             _park?.Tick(_ball, dt);
             _coach?.Tick(_rig != null ? _rig.Cam : Camera.main);
             _stars?.Set(_match.HomeStars, _match.AwayStars);
@@ -772,15 +772,6 @@ namespace GrandSluggers.UnityClient
             var hero = PitcherHero();
             var hand = hero != null ? hero.ThrowHand : null;
             if (hand != null) _park.Ball.Hold(hand);
-        }
-
-        bool PitcherReleased()
-        {
-            var hero = PitcherHero();
-            if (hero == null) return true;
-            var due = (float)MoveBones.PitchRelease;
-            if (hero.Current != HeroActor.Pose.ThrowPitch) return _t >= due;
-            return hero.PoseTime >= due;
         }
 
         void CaptureReleaseFromHand()

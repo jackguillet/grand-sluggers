@@ -83,3 +83,23 @@ public static class FieldDash
     public static bool DestroysItem(bool attack, bool itemFlying, double distFt) =>
         attack && itemFlying && distFt < 24;
 }
+
+/// <summary>The button starts the swing; the contact mark is what meets the pitch.
+/// Timing errors remain in the resolver's 60 Hz frames, independent of render rate.</summary>
+public static class AtBatMotion
+{
+    // Finish blending the held load halfway to the event. Release/contact itself
+    // must sample the clip exactly, without frame-dependent recursive smoothing.
+    public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
+        double poseTime, double eventAt)
+    {
+        var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
+        return MoveBones.Mix(load, motion, u * u * (3 - 2 * u));
+    }
+
+    public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>
+        (pressAt + (bunt ? 0 : MoveBones.SwingContact) - plateAt) * 60;
+
+    public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
+        plateAt + errorFrames / 60 - (bunt ? 0 : MoveBones.SwingContact);
+}
