@@ -30,6 +30,14 @@ public static class InPlay
         return rng.NextDouble() < chance;
     }
 
+    /// <summary>Bang-bang: the throw arrived and the runner got there first by a step.</summary>
+    public const double CloseMarginSec = 0.45;
+
+    /// <param name="arrivedAt">Live play time when the throw (or mash) lands.</param>
+    /// <param name="needed">Run time to the bag.</param>
+    public static bool CloseSafe(double arrivedAt, double needed) =>
+        arrivedAt >= needed && arrivedAt - needed <= CloseMarginSec;
+
     public static double HomeToFirstSec(Character batter, double dash01 = 0)
     {
         var run = Math.Clamp(4.32 - batter.Stats.Run * 0.13, 2.9, 4.35);

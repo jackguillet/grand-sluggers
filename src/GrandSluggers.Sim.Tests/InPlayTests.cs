@@ -325,6 +325,9 @@ public class InPlayTests
         Assert.True(InPlay.OccupyingBag(first.X, first.Z, InPlay.TagSafeRadiusFt));
         Assert.False(InPlay.Touches(true, false, first.X, first.Z, first.X, first.Z),
             "standing on first is not a tag");
+        Assert.True(InPlay.CloseSafe(3.2, 3.1), "a step ahead of the throw is SAFE");
+        Assert.False(InPlay.CloseSafe(3.0, 3.1), "throw beats the runner");
+        Assert.False(InPlay.CloseSafe(4.5, 3.1), "waiting on the bag is not bang-bang");
         var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1);
         Assert.False(InPlay.OccupyingBag(off.X, off.Z, InPlay.TagSafeRadiusFt), "off home toward first");
         Assert.True(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z),

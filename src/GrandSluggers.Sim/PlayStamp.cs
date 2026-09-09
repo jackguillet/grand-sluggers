@@ -48,15 +48,26 @@ public static class PlayStamp
         return Math.Max(0, after.Outs - outsBefore);
     }
 
+    public const string Safe = "SAFE";
+
     public static double Scale(PlayKind kind) => IsCount(kind) ? 0.72 : 1.0;
 
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;
+
+    public const string Safe = "SAFE";
 
     /// <summary>
     /// Hits and outs stamp on the live field camera. Counts stay on SET.
     /// Next pitch SET is after the hold, not at the stamp (#301).
     /// </summary>
     public static bool HoldsLiveCamera(PlayKind kind) => Shows(kind) && !IsCount(kind);
+
+    public static double SafeScale => 0.72;
+
+    public static double SafePopSeconds => 0.10;
+
+    public static double SafeHoldSeconds(FeelTable feel) =>
+        feel != null ? feel.AfterCountSeconds : 0.7;
 
     public static double HoldSeconds(PlayKind kind, FeelTable feel)
     {

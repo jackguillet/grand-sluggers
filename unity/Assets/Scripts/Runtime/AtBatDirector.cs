@@ -64,6 +64,8 @@ namespace GrandSluggers.UnityClient
             _starSwing = false;
             _caught = false;
             _buddy = false;
+            _bagStamp = "";
+            _bagStampT = 0;
             _pitchPast = 0;
             _itemThrown = false;
             _itemFlying = false;
