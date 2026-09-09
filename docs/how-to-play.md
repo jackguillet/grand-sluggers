@@ -35,7 +35,7 @@ South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G
 
 One player with controller 1, or two controllers. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
 
-The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows last input; the toggle locks it. Green is offense. Red is defense.
+The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows the active Player 1 input; the toggle locks it. On launch, **Auto** chooses a connected controller before keyboard/mouse. Press **F6** on the title screen to cycle and persist **Auto → Controller → Keyboard + mouse** for controller testing. Green is offense. Red is defense.
 
 ---
 

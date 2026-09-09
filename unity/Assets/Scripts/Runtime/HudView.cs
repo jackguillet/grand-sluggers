@@ -73,7 +73,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                "South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings", _tiny);
+                $"South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,

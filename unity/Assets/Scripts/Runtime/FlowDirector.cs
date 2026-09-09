@@ -72,6 +72,8 @@ namespace GrandSluggers.UnityClient
 
         void TickTitle()
         {
+            if (Controls.Player1InputToggleDown)
+                Controls.CyclePlayer1Input();
             if (Controls.Start)
             {
                 _mode = _mode == PlayMode.Exhibition ? PlayMode.Challenge
