@@ -265,8 +265,25 @@ namespace GrandSluggers.UnityClient
             _bat = go.transform;
         }
 
+        static bool TryDropToy(string id, Transform parent)
+        {
+            if (parent == null || string.IsNullOrWhiteSpace(id)) return false;
+            var src = ArtBinder.LoadExtraMesh(id);
+            if (src == null) return false;
+            var go = UnityEngine.Object.Instantiate(src, parent);
+            go.name = id;
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            foreach (var anim in go.GetComponentsInChildren<Animator>(true))
+                anim.enabled = false;
+            return go.GetComponentInChildren<MeshRenderer>(true) != null;
+        }
+
         void FillBat(Transform root, string visual)
         {
+            if (TryDropToy(visual, root))
+                return;
             switch (visual)
             {
                 case "bat-spark":
@@ -344,6 +361,7 @@ namespace GrandSluggers.UnityClient
                 }
                 default:
                 {
+                    if (TryDropToy("bat-wood", root)) return;
                     var wood = Look.Lit(new Color(0.45f, 0.28f, 0.12f), smooth: 0.15f);
                     Look.Prim(PrimitiveType.Cylinder, "Bat", root, Vector3.zero, new Vector3(0.22f, 1.7f, 0.22f), wood);
                     break;
@@ -361,14 +379,20 @@ namespace GrandSluggers.UnityClient
             go.transform.SetParent(hand, false);
             go.transform.localPosition = new Vector3(0, -0.72f, 0.12f);
             go.transform.localRotation = Quaternion.Euler(20, 0, 0);
-            var leather = _gloveVisual == "glove-gold"
+            var gold = _gloveVisual == "glove-gold";
+            go.transform.localScale = Vector3.one * ToyMesh.GloveRootScale(gold);
+            if (TryDropToy(_gloveVisual, go.transform) || TryDropToy("glove-brown", go.transform))
+            {
+                _glove = go.transform;
+                return;
+            }
+            var leather = gold
                 ? Look.Lit(new Color(0.92f, 0.74f, 0.18f), smooth: 0.32f)
                 : Look.Lit(new Color(0.42f, 0.24f, 0.12f), smooth: 0.12f);
-            var scale = Silhouette.GloveScale * (_gloveVisual == "glove-gold" ? 1.12f : 1f);
-            Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * (0.7f * scale), leather);
-            Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f) * scale, leather);
-            Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f) * scale, leather);
-            Look.Prim(PrimitiveType.Capsule, "Fingers", go.transform, new Vector3(0.12f, 0.22f, 0.08f), new Vector3(0.42f, 0.28f, 0.22f) * scale, leather);
+            Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * 0.7f, leather);
+            Look.Prim(PrimitiveType.Cube, "Web", go.transform, new Vector3(0, 0.05f, 0.28f), new Vector3(0.55f, 0.08f, 0.42f), leather);
+            Look.Prim(PrimitiveType.Capsule, "Thumb", go.transform, new Vector3(-0.32f, 0.05f, 0.1f), new Vector3(0.22f, 0.32f, 0.22f), leather);
+            Look.Prim(PrimitiveType.Capsule, "Fingers", go.transform, new Vector3(0.12f, 0.22f, 0.08f), new Vector3(0.42f, 0.28f, 0.22f), leather);
             _glove = go.transform;
         }
 

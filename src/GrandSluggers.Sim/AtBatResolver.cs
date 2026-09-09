@@ -158,11 +158,63 @@ public sealed class AtBatResolver
 
     public static double FenceAt(Park park, double sprayDeg)
     {
-        // spray  -45 left, 0 center, +45 right. Piecewise lerp of the three fences.
+        // spray −45 left, 0 center, +45 right. The wall is the circle through
+        // the three posts so CF is round — not a chevron from two lerps.
         var t = Math.Clamp((sprayDeg + FoulLineDeg) / (FoulLineDeg * 2), 0, 1);
+        var spray = -FoulLineDeg + t * 2 * FoulLineDeg;
+        var round = RoundFence(park, spray);
+        if (round > 50) return round;
         if (t < 0.5)
             return Lerp(park.LeftFenceFt, park.CenterFenceFt, t * 2);
         return Lerp(park.CenterFenceFt, park.RightFenceFt, (t - 0.5) * 2);
+    }
+
+    /// <summary>
+    /// Left and right slopes at CF match. The old piecewise lerp kinks here
+    /// (an indent / point in the wall).
+    /// </summary>
+    public static bool FenceIsSmoothAtCenter(Park park)
+    {
+        var c = FenceAt(park, 0);
+        var sl = (c - FenceAt(park, -2)) / 2;
+        var sr = (FenceAt(park, 2) - c) / 2;
+        return Math.Abs(sl - sr) < 0.2;
+    }
+
+    static double RoundFence(Park park, double sprayDeg)
+    {
+        var lf = Post(park.LeftFenceFt, -FoulLineDeg);
+        var cf = Post(park.CenterFenceFt, 0);
+        var rf = Post(park.RightFenceFt, FoulLineDeg);
+        var ax = lf.X;
+        var az = lf.Z;
+        var bx = cf.X;
+        var bz = cf.Z;
+        var cx = rf.X;
+        var cz = rf.Z;
+        var d = 2 * (ax * (bz - cz) + bx * (cz - az) + cx * (az - bz));
+        if (Math.Abs(d) < 1e-6) return 0;
+        var a2 = ax * ax + az * az;
+        var b2 = bx * bx + bz * bz;
+        var c2 = cx * cx + cz * cz;
+        var ux = (a2 * (bz - cz) + b2 * (cz - az) + c2 * (az - bz)) / d;
+        var uz = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d;
+        var r2 = (ux - bx) * (ux - bx) + (uz - bz) * (uz - bz);
+        var rad = sprayDeg * Math.PI / 180.0;
+        var sx = Math.Sin(rad);
+        var sz = Math.Cos(rad);
+        var b = sx * ux + sz * uz;
+        var disc = b * b - (ux * ux + uz * uz - r2);
+        if (disc < 0) return 0;
+        var root = Math.Sqrt(disc);
+        var far = Math.Max(b + root, b - root);
+        return far > 50 ? far : 0;
+    }
+
+    static (double X, double Z) Post(double fenceFt, double sprayDeg)
+    {
+        var rad = sprayDeg * Math.PI / 180.0;
+        return (Math.Sin(rad) * fenceFt, Math.Cos(rad) * fenceFt);
     }
 
     static double StarLaunch(string swing, double fallback) => swing switch

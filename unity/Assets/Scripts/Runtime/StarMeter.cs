@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -20,16 +21,17 @@ namespace GrandSluggers.UnityClient
             _mesh = StarMesh();
             _root = new GameObject("StarMeter").transform;
             _root.SetParent(parent, false);
-            var homeX = HarborKit.DugoutFieldX(HarborKit.DugoutX);
-            var awayX = HarborKit.DugoutFieldX(-HarborKit.DugoutX);
             var y = HarborKit.DugoutFasciaY + 0.22f;
-            var faceHome = Quaternion.Euler(-8f, -90f, 0f);
-            var faceAway = Quaternion.Euler(-8f, 90f, 0f);
+            var faceHome = Quaternion.Euler(-8f, -135f, 0f);
+            var faceAway = Quaternion.Euler(-8f, 135f, 0f);
             for (var i = 0; i < 5; i++)
             {
-                var z = HarborKit.DugoutStarZ0 + i * HarborKit.DugoutStarSpacing;
-                _home[i] = Pip("HomeStar" + i, new Vector3(homeX - 0.22f, y, z), faceHome);
-                _away[i] = Pip("AwayStar" + i, new Vector3(awayX + 0.22f, y, z), faceAway);
+                var along = HarborDugout.Along0 - HarborDugout.HalfAlong + 1.7f
+                    + i * HarborKit.DugoutStarSpacing;
+                var home = HarborDugout.RailAt(1, along);
+                var away = HarborDugout.RailAt(-1, along);
+                _home[i] = Pip("HomeStar" + i, new Vector3(home.X - 0.15f, y, home.Z), faceHome);
+                _away[i] = Pip("AwayStar" + i, new Vector3(away.X + 0.15f, y, away.Z), faceAway);
             }
         }
 
