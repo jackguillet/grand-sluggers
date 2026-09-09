@@ -33,9 +33,9 @@ def mat(name, color):
 
 def prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
     if kind == "uv_sphere":
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.5, location=loc, segments=20, ring_count=12)
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.5, location=loc, segments=28, ring_count=16)
     elif kind == "cylinder":
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc, vertices=20)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc, vertices=28)
     else:
         bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
     ob = bpy.context.active_object
@@ -43,6 +43,8 @@ def prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
     ob.scale = scale
     ob.rotation_euler = rot
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    for p in ob.data.polygons:
+        p.use_smooth = True
     ob.data.materials.append(material)
     return ob
 

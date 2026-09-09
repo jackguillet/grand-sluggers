@@ -30,11 +30,11 @@ public class CharacterPackageTests
     }
 
     [Fact]
-    public void FennIsAnAuthoredRigidMeshUntilPaintedWeights()
+    public void FennIsASkinnedCartoonPackage()
     {
         var fenn = _content.Art.SkinOf(_content.Must("fenn"));
-        Assert.Equal(CharacterPackage.Rigid, fenn.Bind);
-        Assert.False(CharacterPackage.IsUnique(fenn.Bind));
+        Assert.Equal(CharacterPackage.Skinned, fenn.Bind);
+        Assert.True(CharacterPackage.IsUnique(fenn.Bind));
         Assert.False(string.IsNullOrWhiteSpace(fenn.Mesh));
         Assert.Contains("Characters/fenn", fenn.Mesh.Replace('\\', '/'), StringComparison.OrdinalIgnoreCase);
         Assert.Equal("fenn", fenn.BodyType, ignoreCase: true);

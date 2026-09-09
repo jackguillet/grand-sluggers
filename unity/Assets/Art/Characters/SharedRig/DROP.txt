@@ -1,4 +1,5 @@
-Shared hero chain (hero-shared). Drop: hero-shared.fbx
+Shared hero chain (hero-shared). Cartoon fat volumes, 100% vertex groups per bone.
+Drop: hero-shared.fbx. Author: tools/blender/hero_shared_blockout.py.
 
 Bone names must match data/art/rig.json:
   root torso head lUpper lFore rUpper rFore lThigh lShin rThigh rShin bat glove
