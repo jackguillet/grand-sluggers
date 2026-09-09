@@ -52,6 +52,8 @@ public class StealThrowTests
         Assert.False(StealThrow.PlayerOut(1, 2, 0.05, laser, dart, 0.25), "wrong bag is safe");
         Assert.False(StealThrow.PlayerOut(4, 2, 0.05, laser, dart, 0.25), "home is not a steal gun");
         Assert.False(StealThrow.PlayerOut(2, 2, 0.05, mud, dart, 1.0), "error + max lead is a steal");
+        Assert.True(StealThrow.PickoffOut(1, 0.05, laser, dart, 0.25), "an early throw back to first can tag");
+        Assert.False(StealThrow.PickoffOut(1, 1.35, laser, dart, 0.25), "a late throw back to first is safe");
     }
 
     [Fact]
