@@ -20,7 +20,7 @@ public static class CarnivalFront
     public const string TwoPlayers = "2 PLAYERS";
     public const string SelectHelp =
         "LB 1 player    RB 2 players    L/R your team    U/D the other    North HOME/AWAY    South the field    West title";
-    public const string PlugPad2 = "Plug in pad 2. Until then you play the CPU.";
+    public const string PlugPad2 = "Plug in controller 2. Until then you play the CPU.";
 
     public static string SeatModeLabel(bool versus) => versus ? TwoPlayers : OnePlayer;
 
@@ -28,7 +28,7 @@ public static class CarnivalFront
     {
         if (!versus) return SeatHint(pad1Home);
         if (!pad2) return PlugPad2;
-        return pad1Home ? "Pad 1 home. Pad 2 away." : "Pad 1 away. Pad 2 home.";
+        return pad1Home ? "Controller 1 home. Controller 2 away." : "Controller 1 away. Controller 2 home.";
     }
 
     /// <summary>1 PLAYER / 2 PLAYERS tabs on pick captain. Right of the HUD card.</summary>
