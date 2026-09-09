@@ -52,9 +52,9 @@ def mat(name, color):
 
 def mesh_prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
     if kind == "uv_sphere":
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.5, location=loc, segments=24, ring_count=16)
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.5, location=loc, segments=28, ring_count=16)
     elif kind == "cylinder":
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc, vertices=24)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=1.0, location=loc, vertices=28)
     else:
         bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
     ob = bpy.context.active_object
@@ -62,6 +62,8 @@ def mesh_prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
     ob.scale = scale
     ob.rotation_euler = rot
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    for p in ob.data.polygons:
+        p.use_smooth = True
     ob.data.materials.append(material)
     return ob
 
@@ -134,18 +136,18 @@ def build_scene():
     add("uv_sphere", "headMesh", (0, 0.08, 4.05), (1.72, 1.72, 1.72), flesh, "head")
     add("uv_sphere", "EyeL", (-0.32, 0.78, 4.18), (0.28, 0.12, 0.36), ink, "head")
     add("uv_sphere", "EyeR", (0.32, 0.78, 4.18), (0.28, 0.12, 0.36), ink, "head")
-    add("uv_sphere", "lUpperMesh", (-0.95, 0, 2.00), (0.52, 0.52, 1.05), jersey, "lUpper")
-    add("uv_sphere", "lForeMesh", (-0.95, 0, 1.20), (0.42, 0.42, 0.78), flesh, "lFore")
-    add("uv_sphere", "lHand", (-0.95, 0.08, 0.78), (0.38, 0.32, 0.32), flesh, "lFore")
-    add("uv_sphere", "rUpperMesh", (0.95, 0, 2.00), (0.52, 0.52, 1.05), jersey, "rUpper")
-    add("uv_sphere", "rForeMesh", (0.95, 0, 1.20), (0.42, 0.42, 0.78), flesh, "rFore")
-    add("uv_sphere", "rHand", (0.95, 0.08, 0.78), (0.38, 0.32, 0.32), flesh, "rFore")
-    add("uv_sphere", "lThighMesh", (-0.42, 0, 0.78), (0.56, 0.56, 0.85), slack, "lThigh")
-    add("uv_sphere", "lShinMesh", (-0.42, 0, 0.32), (0.46, 0.46, 0.55), slack, "lShin")
-    add("cube", "lShoe", (-0.42, 0.28, 0.12), (0.62, 0.95, 0.38), sneaker, "lShin")
-    add("uv_sphere", "rThighMesh", (0.42, 0, 0.78), (0.56, 0.56, 0.85), slack, "rThigh")
-    add("uv_sphere", "rShinMesh", (0.42, 0, 0.32), (0.46, 0.46, 0.55), slack, "rShin")
-    add("cube", "rShoe", (0.42, 0.28, 0.12), (0.62, 0.95, 0.38), sneaker, "rShin")
+    add("uv_sphere", "lUpperMesh", (-0.95, 0, 2.00), (0.64, 0.64, 1.05), jersey, "lUpper")
+    add("uv_sphere", "lForeMesh", (-0.95, 0, 1.18), (0.52, 0.52, 0.82), flesh, "lFore")
+    add("uv_sphere", "lHand", (-0.95, 0.10, 0.72), (0.48, 0.40, 0.38), flesh, "lFore")
+    add("uv_sphere", "rUpperMesh", (0.95, 0, 2.00), (0.64, 0.64, 1.05), jersey, "rUpper")
+    add("uv_sphere", "rForeMesh", (0.95, 0, 1.18), (0.52, 0.52, 0.82), flesh, "rFore")
+    add("uv_sphere", "rHand", (0.95, 0.10, 0.72), (0.48, 0.40, 0.38), flesh, "rFore")
+    add("uv_sphere", "lThighMesh", (-0.42, 0, 0.78), (0.68, 0.68, 0.88), slack, "lThigh")
+    add("uv_sphere", "lShinMesh", (-0.42, 0, 0.32), (0.54, 0.54, 0.58), slack, "lShin")
+    add("cube", "lShoe", (-0.42, 0.32, 0.12), (0.70, 1.05, 0.42), sneaker, "lShin")
+    add("uv_sphere", "rThighMesh", (0.42, 0, 0.78), (0.68, 0.68, 0.88), slack, "rThigh")
+    add("uv_sphere", "rShinMesh", (0.42, 0, 0.32), (0.54, 0.54, 0.58), slack, "rShin")
+    add("cube", "rShoe", (0.42, 0.32, 0.12), (0.70, 1.05, 0.42), sneaker, "rShin")
 
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="OBJECT")

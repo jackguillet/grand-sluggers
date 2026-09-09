@@ -55,4 +55,4 @@ This repo’s gate is [screenshot-gate.md](screenshot-gate.md). Agents do not pa
 
 ## What this means here
 
-Fenn’s source was a posed turtle GLB with no skeleton. Heat-weight + Rio eulers inverted the shell. Freeze made a statue. Segmented Python splits are a stopgap, not Unity’s ship path. Unique captains need a **Generic FBX** with an armature and weights (or Blender-authored rigid pieces), **clips on that rig**, URP Lit albedo, and **character stills**.
+Fenn’s posed GLB shredded in Play (shell inverted, faces spanning two bones). That source is gone. Unique captains are **Generic FBX** packages: closed volumes, 100% one bone each, clips on that rig, URP Lit albedo, character stills.
