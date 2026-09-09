@@ -126,7 +126,7 @@ Exhibition hoppers are RNG. Faster harness is Training drill 4 (Path B). If you 
 
 Title **West** (or Start until TRAINING, then South). Harbor drills, Rio vs Ashlord.
 
-| Drill | What | Pad | Keyboard |
+| Drill | What | Controller | Keyboard |
 |---|---|---|---|
 | 1 Paint the zone | Four pitch types in the zone + a star | Stick aim, RB cycle type, LT charge, South pitch, North star | WASD, Tab, Shift, Space, Q |
 | 2 Time it and charge | Contact with charge | LT + South on the pitch | Shift + Space |
@@ -139,7 +139,7 @@ On drill 4: scoop still = glove in the dirt, ball in the glove, runner leaving. 
 
 ## Pad ↔ keyboard
 
-| Verb | Pad | Keyboard |
+| Verb | Controller | Keyboard |
 |---|---|---|
 | South | Xbox A / Nintendo B | Space / Return |
 | East | Xbox B / Nintendo A | G |

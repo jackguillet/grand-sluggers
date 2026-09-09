@@ -1,7 +1,7 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// How to play is one book, two schemes. Pad is the couch. Keyboard + mouse is player 1.
+/// How to play is one book, two schemes. Controller is the couch. Keyboard + mouse is player 1.
 /// Last input picks the page. The toggle locks until the book closes.
 /// </summary>
 public enum InputScheme { Pad, Keys }
@@ -11,7 +11,7 @@ public static class BookScheme
     public static InputScheme Current { get; private set; } = InputScheme.Pad;
     public static bool Locked { get; private set; }
 
-    public const string PadLabel = "Pad";
+    public const string PadLabel = "Controller";
     public const string KeysLabel = "Keyboard + mouse";
     public const string OffenseLabel = "Offense";
     public const string DefenseLabel = "Defense";
@@ -61,7 +61,7 @@ public static class BookScheme
     public static string? PageBadge(string pageId, InputScheme scheme)
     {
         if (string.Equals(pageId, "two-pads", StringComparison.OrdinalIgnoreCase))
-            return "Two pads";
+            return "Two controllers";
         return null;
     }
 
