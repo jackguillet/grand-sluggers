@@ -156,6 +156,30 @@ public class MatchTests
     }
 
     [Fact]
+    public void LiveStepOnFirstWithTheBallRetiresTheBatter()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        var paint = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
+        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        match.OpenLivePlay();
+        var first = Diamond.First;
+        var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
+        Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z));
+        var step = match.StepThrow(1, runnerBeats: false, field.Fielder);
+        Assert.True(step.Out);
+        Assert.True(match.LiveBatterOut);
+        Assert.Equal(1, match.Outs);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.Equal(PlayKind.GroundOut, ev.Kind);
+        Assert.Equal(1, match.Outs);
+        Assert.Null(match.First);
+        Assert.DoesNotContain("singles", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void LiveTagOfTheLeadRunnerTheBatterTakesFirst()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();

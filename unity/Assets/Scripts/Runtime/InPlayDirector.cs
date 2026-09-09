@@ -1153,6 +1153,7 @@ namespace GrandSluggers.UnityClient
             if (!(_caught || _buddy) || _throwing) return false;
             var kind = LiveKind();
             var glove = PlayFielder();
+            if (TickLiveForce(kind, glove)) return true;
             if (InPlay.LiveBatter(kind, _match.LiveBatterOut))
             {
                 var dest = InPlay.BatterDestBag(kind);
@@ -1182,6 +1183,47 @@ namespace GrandSluggers.UnityClient
                 }
             }
             return false;
+        }
+
+        bool TickLiveForce(PlayKind kind, Character glove)
+        {
+            var first = _match.First != null;
+            var second = _match.Second != null;
+            var third = _match.Third != null;
+            if (InPlay.LiveBatter(kind, _match.LiveBatterOut)
+                && InPlay.ForceAtBag(1, first, second, third))
+            {
+                var dest = InPlay.BatterDestBag(kind);
+                var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
+                var (bx, bz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                if (InPlay.ForceOnBag(true, 1, true, false, _fx, _fz, bx, bz)
+                    && RecordForce(1, glove))
+                    return true;
+            }
+            for (var bag = 2; bag <= 4; bag++)
+            {
+                if (!InPlay.ForceAtBag(bag, first, second, third)) continue;
+                var from = bag - 1;
+                var who = _match.RunnerAt(from)?.Who;
+                if (who is null) continue;
+                var dest = InPlay.OccupiedDestBag(from, kind, _match.SendAll, _caught || _buddy);
+                var feet = InPlay.RunFeet(_hitT, who);
+                var (x, z) = InPlay.TowardBag(from, dest, feet);
+                if (InPlay.ForceOnBag(true, bag, true, false, _fx, _fz, x, z)
+                    && RecordForce(bag, glove))
+                    return true;
+            }
+            return false;
+        }
+
+        bool RecordForce(int bag, Character glove)
+        {
+            var step = _match.StepThrow(bag, runnerBeats: false, glove);
+            if (!step.Out) return false;
+            _sub = _match.LiveCaption;
+            if (_match.Outs >= 3 || PlayIsTime())
+                CommitInPlay();
+            return true;
         }
 
         bool PlayIsTime()
