@@ -76,7 +76,7 @@ public static class GettingStarted
     {
         var board = ControlDiagram.Board(screenW, screenH);
         var band = LineBand(screenW, screenH);
-        var h = HowToPlay.KidLineH * 3.4f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, band.Y - h - 8f, board.W, h);
     }
 
@@ -91,7 +91,7 @@ public static class GettingStarted
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 2.2f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }

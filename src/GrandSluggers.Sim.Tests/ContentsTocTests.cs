@@ -34,11 +34,12 @@ public class ContentsTocTests
         var card = ContentsToc.Card(w, h);
         var band = ContentsToc.LineBand(w, h);
         Assert.True(card.X >= still.X);
-        Assert.True(card.X + card.W < still.X + still.W * 0.55f, "card sits on the left, like SMS");
+        Assert.True(card.W > still.W * 0.7f, "card is the page, not a stamp on a photo");
         Assert.True(card.Y + card.H <= still.Y + still.H + 1f);
         Assert.True(band.Y >= still.Y + still.H - 1f);
         var first = ContentsToc.Row(0, w, h);
         var last = ContentsToc.Row(ContentsToc.Chapters.Count - 1, w, h);
+        Assert.True(first.H >= 36, $"contents row too short {first.H}");
         Assert.True(last.Y > first.Y);
         Assert.True(first.X >= card.X);
         Assert.True(first.X + first.W <= card.X + card.W + 1f);

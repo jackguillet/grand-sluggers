@@ -47,7 +47,7 @@ public static class ChemBook
     {
         var board = ControlDiagram.Board(screenW, screenH);
         const float gap = 12f;
-        var lineBand = HowToPlay.KidLineH * 2.2f;
+        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         var w = (board.W - gap) * 0.5f;
         return (board.X + index * (w + gap), board.Y, w, board.H - lineBand);
     }
@@ -55,7 +55,7 @@ public static class ChemBook
     public static (float X, float Y, float W, float H) AbilityStill(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var lineBand = HowToPlay.KidLineH * 2.2f;
+        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         var h = board.H - lineBand;
         return (board.X, board.Y, board.W * 0.48f, h);
     }
@@ -64,14 +64,14 @@ public static class ChemBook
     {
         var board = ControlDiagram.Board(screenW, screenH);
         var still = AbilityStill(screenW, screenH);
-        var lineBand = HowToPlay.KidLineH * 2.2f;
+        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (still.X + still.W + 12f, board.Y, board.W - still.W - 12f, board.H - lineBand);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * 2.2f;
+        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }

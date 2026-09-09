@@ -79,6 +79,14 @@ public class SchemeTests
                 Assert.InRange(page.KeyLines.Count, 1, HowToPlay.KidLineMax);
         }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
+        Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("Big type") || l.Contains("couch"));
+        Assert.False(HowToPlay.ShowsSplash("fielding"));
+        Assert.False(HowToPlay.ShowsSplash("stars"));
+        Assert.False(HowToPlay.ShowsSplash("the-box"));
+        Assert.True(HowToPlay.KidLineH >= 48);
+        Assert.True(HowToPlay.BookLinePt >= 32);
+        var text = HowToPlay.TextRect(1280, 800);
+        Assert.True(text.W > 1000, "type uses the page, not a strip beside a photo");
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Exhibition"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Training"));
         Assert.Contains(HowToPlay.Must("getting-started").Lines, l => l.Contains("Esc"));

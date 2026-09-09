@@ -16,6 +16,12 @@ namespace GrandSluggers.UnityClient
         bool _pauseFromHowTo;
         int _pausePage;
         float _pauseStick;
+        MenuNav.Gate _menuX;
+        MenuNav.Gate _pauseY;
+        bool _wheelSpin;
+        MenuNav.Gate _selectX;
+        MenuNav.Gate _selectY;
+        MenuNav.Gate _selectX2;
         public string ParkId = "harbor-diamond";
         public string HomeCaptain = "rio";
         public string AwayCaptain = "ashlord";
@@ -23,11 +29,10 @@ namespace GrandSluggers.UnityClient
         [System.NonSerialized] public bool Pad1Home = true;
         LineupScreens _lineup;
         bool _lineupTouched;
-        float _lineupStick;
-        float _lineupStick2;
-        float _selectStick;
-        float _selectStick2;
-
+        MenuNav.Gate _lineupX;
+        MenuNav.Gate _lineupX2;
+        MenuNav.Gate _lineupY;
+        MenuNav.Gate _lineupY2;
         enum PlayMode { Exhibition, Challenge, Training }
         PlayMode _mode;
         Challenge _campaign;
@@ -259,6 +264,9 @@ namespace GrandSluggers.UnityClient
                 _pauseFromHowTo = openedHowTo;
                 _pausePage = 0;
                 _pauseStick = 0;
+                _menuX.Catch(Controls.MenuX);
+                _pauseY.Catch(Controls.MenuY);
+                _wheelSpin = true;
                 _t = 0;
                 if (openedHowTo) BookScheme.Open();
             }
@@ -333,6 +341,11 @@ namespace GrandSluggers.UnityClient
             var mutePlay = BroadcastHud.MutePlay(
                 _spec != null && _spec.Active, _smash, _freeze)
                 || _forceMuteHud || StillCapture.ForceMute;
+            if (_match.Paused && _pauseHowTo)
+            {
+                HudView.Pause(_pauseItem, true, _pausePage);
+                return;
+            }
             HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
@@ -408,17 +421,13 @@ namespace GrandSluggers.UnityClient
             {
                 var n = HowToPlay.Pages.Count;
                 var page = HowToPlay.Pages[(_pausePage % n + n) % n];
-                if (_pauseStick <= 0 && Mathf.Abs(Controls.StickX) >= 0.45f)
-                {
-                    _pausePage = (_pausePage + (Controls.StickX > 0 ? 1 : n - 1)) % n;
-                    _pauseStick = 0.22f;
-                }
-                if (Controls.Wheel != 0 && _pauseStick <= 0)
-                {
-                    _pausePage = (_pausePage + (Controls.Wheel > 0 ? 1 : n - 1)) % n;
-                    _pauseStick = 0.16f;
-                }
-                if (Controls.SouthDown)
+                var axis = _menuX.Tick(Controls.MenuX, Controls.MenuTapX, dt);
+                if (axis != 0)
+                    _pausePage = (_pausePage + (axis > 0 ? 1 : n - 1)) % n;
+                var wheel = MenuNav.WheelStep(Controls.ScrollY, ref _wheelSpin);
+                if (wheel != 0)
+                    _pausePage = (_pausePage + (wheel > 0 ? 1 : n - 1)) % n;
+                if (Controls.PointerDown)
                 {
                     var tab = BookScheme.HitToggle(mouse.x, mouse.y, Screen.width, Screen.height);
                     if (tab is { } kind)
@@ -426,9 +435,12 @@ namespace GrandSluggers.UnityClient
                     else
                     {
                         var nav = HowToPlay.HitNav(mouse.x, mouse.y, Screen.width, Screen.height, page.Lines.Count);
-                        _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
+                        if (nav != 0)
+                            _pausePage = (_pausePage + (nav < 0 ? n - 1 : 1)) % n;
                     }
                 }
+                else if (Controls.SouthDown)
+                    _pausePage = (_pausePage + 1) % n;
                 if (PauseMenu.Dismiss(Controls.EastDown || Controls.CallTime || Controls.MouseBack || Controls.HowTo, _t))
                 {
                     _pauseHowTo = false;
@@ -454,10 +466,11 @@ namespace GrandSluggers.UnityClient
                 _pauseItem = PauseMenu.Wrap(_pauseItem, -1);
                 _pauseStick = 0.22f;
             }
-            else if (_pauseStick <= 0 && Mathf.Abs(Controls.StickY) >= 0.45f)
+            else
             {
-                _pauseItem = PauseMenu.Wrap(_pauseItem, Controls.StickY > 0 ? -1 : 1);
-                _pauseStick = 0.22f;
+                var dy = _pauseY.Tick(Controls.MenuY, Controls.MenuTapY, dt);
+                if (dy != 0)
+                    _pauseItem = PauseMenu.Wrap(_pauseItem, dy > 0 ? -1 : 1);
             }
             if (Controls.SouthDown)
             {
@@ -472,6 +485,8 @@ namespace GrandSluggers.UnityClient
                     case PauseMenu.Item.HowToPlay:
                         _pauseHowTo = true;
                         _pausePage = 0;
+                        _menuX.Catch(Controls.MenuX);
+                        _wheelSpin = true;
                         BookScheme.Open();
                         break;
                     case PauseMenu.Item.Title:
