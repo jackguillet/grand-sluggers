@@ -23,8 +23,8 @@ public class CarnivalFrontTests
         Assert.Equal("1 PLAYER", CarnivalFront.SeatModeLabel(false));
         Assert.Equal("2 PLAYERS", CarnivalFront.SeatModeLabel(true));
         Assert.Equal(CarnivalFront.SeatHint(true), CarnivalFront.SeatModeHint(false, true, true));
-        Assert.Contains("pad 2", CarnivalFront.SeatModeHint(true, false, true), StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Pad 2", CarnivalFront.SeatModeHint(true, true, true));
+        Assert.Contains("controller 2", CarnivalFront.SeatModeHint(true, false, true), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Controller 2", CarnivalFront.SeatModeHint(true, true, true));
         const float w = 1280, h = 800;
         var one = CarnivalFront.SeatModeTab(false, w, h);
         var two = CarnivalFront.SeatModeTab(true, w, h);

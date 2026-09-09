@@ -6,8 +6,8 @@ using UnityEngine.InputSystem.Controls;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Pad 1 is gamepad 0 + keyboard + mouse. Pad 2 is gamepad 1. Not Gamepad.current —
-    /// two pads must not steer the same pitcher. Menus and 1P read Pad1.
+    /// Controller 1 is gamepad 0 + keyboard + mouse. Controller 2 is gamepad 1. Not Gamepad.current —
+    /// two controllers must not steer the same pitcher. Menus and 1P read Pad1.
     /// South / East / West / North are positions (Xbox A/B/X/Y, Nintendo B/A/Y/X).
     /// F1/F2/F3 stay debug. Update how-to-play in the same PR.
     /// </summary>
