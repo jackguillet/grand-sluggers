@@ -54,7 +54,7 @@ Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mes
 | *(empty)* / `shared` | hero-shared + extras | Rio six and role players |
 | `skinned` | SkinnedMeshRenderer, **painted** weights, Generic Avatar | Quality path for unique captains. Clips on **this** armature. |
 | `segmented` | Rigid pieces **authored in Blender** parented to sockets | Stopgap only. A Python split of a posed GLB shredded Fenn's face. Do not do that again. |
-| `rigid` | Whole mesh frozen | Fenn today (authored posed turtle) until painted weights. Statue — limbs do not move. |
+| `rigid` | Whole mesh frozen | Statue / debug. Do not ship: MoveBones still runs and stick limbs poke out under the mesh. |
 
 Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
 
@@ -66,7 +66,7 @@ Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `
 
 ## The original six
 
-Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they are authored as packages. Role players reuse the captain body type and must not grow captain extras.
+Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they are authored as packages. `hero-shared` is the same cartoon fat-volume language as Fenn (named bones, 100% vertex groups). Role players reuse the captain body type and must not grow captain extras.
 
 ## Tools
 
