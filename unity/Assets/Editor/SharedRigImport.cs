@@ -186,6 +186,10 @@ namespace GrandSluggers.EditorTools
             {
                 clip.name = verb.Clip;
                 clip.legacy = false;
+                clip.wrapMode = verb.Loop ? WrapMode.Loop : WrapMode.ClampForever;
+                var settings = AnimationUtility.GetAnimationClipSettings(clip);
+                settings.loopTime = verb.Loop;
+                AnimationUtility.SetAnimationClipSettings(clip, settings);
                 var events = new AnimationEvent[verb.Markers.Count];
                 for (var i = 0; i < verb.Markers.Count; i++)
                 {
