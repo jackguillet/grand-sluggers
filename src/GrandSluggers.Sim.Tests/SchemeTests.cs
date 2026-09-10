@@ -181,9 +181,9 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Select") && l.Contains("pulses"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("runs with the ball"));
         var two = HowToPlay.Must("two-pads").Lines;
-        Assert.Contains(two, l => l.Contains("Gamepad 0") && l.Contains("player 1"));
+        Assert.Contains(two, l => l.Contains("first controller") && l.Contains("player 1"));
         Assert.Contains(two, l => l.Contains("North") && l.Contains("HOME"));
-        Assert.Contains(two, l => l.Contains("Gamepad 1"));
+        Assert.Contains(two, l => l.Contains("second controller"));
         Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("mouse") && l.Contains("player 1"));
         Assert.Contains(two, l => l.Contains("drops") && l.Contains("play stops"));
         Assert.Contains(two, l => l.Contains("unseated controller") && l.Contains("South"));
@@ -207,5 +207,21 @@ public class SchemeTests
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad), l => l.Contains("Space"));
         Assert.Contains(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("Space"));
         Assert.DoesNotContain(HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys), l => l.Contains("South"));
+
+        var padPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Pad);
+        Assert.Contains(padPitch, l => l.Contains("hold West", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("South") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase));
+        var keyPitch = HowToPlay.Must("pitch-swing").Shown(InputScheme.Keys);
+        Assert.Contains(keyPitch, l => l.Contains("hold V/Ctrl", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("Space/left click") && l.Contains("changeup", StringComparison.OrdinalIgnoreCase)
+            && l.Contains("bunt", StringComparison.OrdinalIgnoreCase));
+
+        var allCouchCopy = HowToPlay.Pages.SelectMany(page => page.Lines.Concat(page.KeyLines ?? []))
+            .Concat(GettingStarted.Modes.SelectMany(mode => new[] { mode.PadLine, mode.KeysLine }))
+            .ToArray();
+        Assert.DoesNotContain(allCouchCopy, line => line.Contains("Gamepad 0") || line.Contains("Gamepad 1"));
+        Assert.DoesNotContain(allCouchCopy, line => line.Contains("Unplug = CPU"));
+        Assert.Contains(HowToPlay.Must("two-pads").KeyLines!, line => line.Contains("Player 1: Q"));
     }
 }

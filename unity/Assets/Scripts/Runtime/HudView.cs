@@ -8,7 +8,7 @@ namespace GrandSluggers.UnityClient
     public static class HudView
     {
         static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine,
-            _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected,
+            _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookTabSelected, _bookBadge,
             _bookChip, _bookFooter, _bookLineCompact, _stamp;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white, _bookBack, _bookCard;
         static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
@@ -314,14 +314,16 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(seat)) labels.Add(seat);
             var pageBadge = BookScheme.PageBadge(page.Id, scheme);
             if (!string.IsNullOrEmpty(pageBadge)) labels.Add(pageBadge);
-            var widths = labels.Select(label => MeasureWidth(_gold, label)).ToArray();
+            var widths = labels.Select(label => MeasureWidth(_bookBadge, label)).ToArray();
             var boxes = BookletLayout.Badges(
                 Screen.width, Screen.height, MeasureWidth(_gold, "HOW TO PLAY"), widths);
             for (var i = 0; i < labels.Count; i++)
             {
                 var r = ToRect(boxes[i]);
+                if (MeasureHeight(_bookBadge, labels[i], r.width - 16f) > r.height)
+                    ReportBookOverflow("header/badge/" + labels[i]);
                 GUI.DrawTexture(r, _ink);
-                GUI.Label(new Rect(r.x + 8, r.y + 2, r.width - 16, r.height - 2), labels[i], _gold);
+                GUI.Label(new Rect(r.x + 8, r.y, r.width - 16, r.height), labels[i], _bookBadge);
             }
         }
 
@@ -349,34 +351,53 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(b.X + 250, b.Y - 4, 180, 32), BookScheme.DefenseLabel, _h1);
 
             var calls = ControlDiagram.PageCallouts(scheme, pageId);
+            var stackBand = new BookletLayout.Box(b.X, b.Y + 40f, b.W, b.H - 40f);
+            var actionStyle = _bookLine;
+            var heights = calls.Select(call => 44f + HardwareActionsHeight(call, actionStyle, b.W - 24f)).ToArray();
+            var cells = BookletLayout.MeasuredStack(stackBand, heights);
+            if (!BookletLayout.Fits(cells, stackBand))
+            {
+                actionStyle = _bookLineCompact;
+                heights = calls.Select(call => 44f + HardwareActionsHeight(call, actionStyle, b.W - 24f)).ToArray();
+                cells = BookletLayout.MeasuredStack(stackBand, heights);
+            }
+            if (!BookletLayout.Fits(cells, stackBand))
+                ReportBookOverflow(pageId + "/hardware-stack");
             for (var i = 0; i < calls.Count; i++)
             {
                 var c = calls[i];
-                var cell = ControlDiagram.CalloutCell(i, calls.Count, Screen.width, Screen.height);
+                var cell = cells[i];
                 var r = new Rect(cell.X, cell.Y + 4, cell.W, cell.H - 8);
                 GUI.DrawTexture(r, _bookCard);
                 GUI.Label(new Rect(r.x + 12, r.y + 3, r.width - 24, 30), c.Hardware, _h1);
-                DrawHardwareActions(c, new Rect(r.x + 12, r.y + 32, r.width - 24, r.height - 36));
+                DrawHardwareActions(c, new Rect(r.x + 12, r.y + 32, r.width - 24, r.height - 36), actionStyle);
             }
         }
 
-        static void DrawHardwareActions(ControlDiagram.Callout callout, Rect band)
+        static System.Collections.Generic.List<(string Text, Color Color)> HardwareActionLines(
+            ControlDiagram.Callout callout)
         {
             var lines = new System.Collections.Generic.List<(string Text, Color Color)>();
             if (callout.Always.Length > 0) lines.Add((callout.Always, Color.white));
             if (callout.Offense.Length > 0) lines.Add((callout.Offense, new Color(0.45f, 0.95f, 0.55f, 1f)));
             if (callout.Defense.Length > 0) lines.Add((callout.Defense, new Color(1f, 0.55f, 0.45f, 1f)));
+            return lines;
+        }
+
+        static float HardwareActionsHeight(ControlDiagram.Callout callout, GUIStyle style, float width)
+        {
+            var lines = HardwareActionLines(callout);
+            return lines.Sum(line => MeasureHeight(style, line.Text, width)) +
+                Mathf.Max(0, lines.Count - 1) * BookletLayout.BlockGap;
+        }
+
+        static void DrawHardwareActions(ControlDiagram.Callout callout, Rect band, GUIStyle style)
+        {
+            var lines = HardwareActionLines(callout);
             var texts = lines.Select(line => line.Text).ToArray();
             var box = new BookletLayout.Box(band.x, band.y, band.width, band.height);
-            var style = _bookLine;
             var blocks = BookletLayout.Flow(texts, box,
                 (text, width) => MeasureHeight(style, text, width), 0f, 0f);
-            if (!BookletLayout.Fits(blocks, box))
-            {
-                style = _bookLineCompact;
-                blocks = BookletLayout.Flow(texts, box,
-                    (text, width) => MeasureHeight(style, text, width), 0f, 0f);
-            }
             if (!BookletLayout.Fits(blocks, box))
                 ReportBookOverflow("controls/" + callout.Id);
             for (var i = 0; i < blocks.Count; i++)
@@ -1070,6 +1091,10 @@ namespace GrandSluggers.UnityClient
             _bookTabSelected.wordWrap = false;
             _bookTabSelected.clipping = TextClipping.Clip;
             _bookTabSelected.alignment = TextAnchor.MiddleCenter;
+            _bookBadge = Sty(HowToPlay.BookBadgePt, new Color(0.08f, 0.07f, 0.04f), FontStyle.Bold);
+            _bookBadge.wordWrap = false;
+            _bookBadge.clipping = TextClipping.Clip;
+            _bookBadge.alignment = TextAnchor.MiddleCenter;
             _bookChip = new GUIStyle(_bookTabSelected);
             _bookChip.wordWrap = true;
             _bookFooter = Sty(HowToPlay.BookFooterPt, Color.white, FontStyle.Bold);

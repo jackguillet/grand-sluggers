@@ -23,6 +23,7 @@ public static class BookletLayout
     public const float TocColumnGap = 12f;
     public const float BadgePadX = 8f;
     public const float BadgeGap = 6f;
+    public const float BadgeH = 22f;
 
     public static IReadOnlyList<TextBlock> Flow(
         IReadOnlyList<string> paragraphs,
@@ -96,6 +97,35 @@ public static class BookletLayout
         return true;
     }
 
+    /// <summary>
+    /// Gives each row its measured minimum height, then shares spare height evenly.
+    /// If the measurements exceed the band, the returned bottom exposes that overflow
+    /// so the caller can retry with its readable fallback style.
+    /// </summary>
+    public static IReadOnlyList<Box> MeasuredStack(
+        Box band,
+        IReadOnlyList<float> measuredHeights,
+        float gap = BlockGap)
+    {
+        if (measuredHeights == null) throw new ArgumentNullException(nameof(measuredHeights));
+        if (measuredHeights.Count == 0) return [];
+        var required = measuredHeights.Sum(height => Math.Max(0f, height)) + gap * (measuredHeights.Count - 1);
+        var sparePerRow = Math.Max(0f, band.H - required) / measuredHeights.Count;
+        var y = band.Y;
+        var boxes = new List<Box>(measuredHeights.Count);
+        foreach (var measured in measuredHeights)
+        {
+            var height = Math.Max(0f, measured) + sparePerRow;
+            boxes.Add(new Box(band.X, y, band.W, height));
+            y += height + gap;
+        }
+        return boxes;
+    }
+
+    public static bool Fits(IReadOnlyList<Box> boxes, Box band) =>
+        boxes.All(box => box.X >= band.X - 0.01f && box.Right <= band.Right + 0.01f &&
+            box.Y >= band.Y - 0.01f && box.Bottom <= band.Bottom + 0.01f);
+
     static bool Intersects(Box a, Box b) =>
         a.X < b.Right && a.Right > b.X && a.Y < b.Bottom && a.Bottom > b.Y;
 
@@ -135,7 +165,7 @@ public static class BookletLayout
                 x = wrapX;
                 y = book.Y + 34f;
             }
-            boxes.Add(new Box(x, y, width, 22f));
+            boxes.Add(new Box(x, y, width, BadgeH));
             x += width + BadgeGap;
         }
         return boxes;
