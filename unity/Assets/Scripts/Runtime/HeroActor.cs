@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             Field, Spin, Charm, Clamber, Crouch, Scoop
         }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
+        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         float _chargeRing;
@@ -72,6 +72,22 @@ namespace GrandSluggers.UnityClient
         public float PoseTime => _poseT;
         public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
         public Transform ThrowHand => _throwsLeft ? _lFore : _rFore;
+
+        internal bool TrySwingGeometry(
+            out Vector3 leftHand, out Vector3 rightHand,
+            out Vector3 grip, out Vector3 barrel)
+        {
+            leftHand = rightHand = grip = barrel = Vector3.zero;
+            if (_lFore == null || _rFore == null || _batSocket == null || _batModel == null)
+                return false;
+            // hero-shared forearm bones are 0.70 ft head-to-palm.
+            leftHand = _lFore.TransformPoint(Vector3.up * 0.70f);
+            rightHand = _rFore.TransformPoint(Vector3.up * 0.70f);
+            grip = _batSocket.position;
+            barrel = _batModel.TransformPoint(
+                Vector3.up * (float)SwingPresentation.BarrelFromModelCenter);
+            return true;
+        }
 
         public void Bind(Character who)
         {
@@ -267,6 +283,7 @@ namespace GrandSluggers.UnityClient
             _lFore = chain.LFore;
             _rArm = chain.RUpper;
             _rFore = chain.RFore;
+            _batSocket = chain.Bat;
             _lThigh = chain.LThigh;
             _lShin = chain.LShin;
             _rThigh = chain.RThigh;
@@ -290,6 +307,11 @@ namespace GrandSluggers.UnityClient
                 }
                 CapturePackageBindPose();
             }
+            else if (_batsLeft)
+            {
+                _batSocket = MirroredBatSocket(_batSocket, _lFore);
+                _bind.Bat = _batSocket.localRotation;
+            }
             _meshStaff = false;
             for (var i = 0; i < extras.Count; i++)
             {
@@ -306,15 +328,41 @@ namespace GrandSluggers.UnityClient
         {
             _batVisual = visual ?? "bat-wood";
             if (_bat != null) Destroy(_bat.gameObject);
-            var hand = _batsLeft ? _lFore : _rFore;
-            if (hand == null) return;
+            _batModel = null;
+            if (_batSocket == null) return;
             var go = new GameObject("Bat");
-            go.transform.SetParent(hand, false);
-            go.transform.localPosition = new Vector3(0, -1.4f, 0.1f);
-            go.transform.localRotation = Quaternion.Euler(0, 0, 20);
-            go.transform.localScale = Vector3.one * Silhouette.BatScale;
-            FillBat(go.transform, _batVisual);
+            go.transform.SetParent(_batSocket, false);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            var model = new GameObject("Model").transform;
+            model.SetParent(go.transform, false);
+            // Authored bat socket points grip -> knob. Gear meshes point handle ->
+            // barrel on +Y, so turn the model around and put its handle on the grip.
+            model.localPosition = Vector3.down
+                * (float)(SwingPresentation.ModelCenterFromGrip * Silhouette.BatScale);
+            model.localRotation = Quaternion.Euler(0, 0, 180);
+            model.localScale = Vector3.one * Silhouette.BatScale;
+            FillBat(model, _batVisual);
+            _batModel = model;
             _bat = go.transform;
+        }
+
+        static Transform MirroredBatSocket(Transform source, Transform hittingForearm)
+        {
+            if (hittingForearm == null) return source;
+            var socket = new GameObject("bat-left").transform;
+            socket.SetParent(hittingForearm, false);
+            if (source == null)
+            {
+                socket.localPosition = new Vector3(0, -0.68f, 0.12f);
+                socket.localRotation = Quaternion.identity;
+                return socket;
+            }
+            socket.localPosition = new Vector3(-source.localPosition.x, source.localPosition.y, source.localPosition.z);
+            var e = source.localRotation.eulerAngles;
+            socket.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
+            socket.localScale = source.localScale;
+            return socket;
         }
 
         static bool TryDropToy(string id, Transform parent)
@@ -492,7 +540,7 @@ namespace GrandSluggers.UnityClient
                         pose == Pose.Swing ? MoveBones.SwingContact : MoveBones.PitchRelease);
                 _lastMotion = sample;
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
-                    sample = MoveBones.MirrorArms(sample);
+                    sample = MoveBones.MirrorSwing(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 var clipT = _poseT;
@@ -521,12 +569,18 @@ namespace GrandSluggers.UnityClient
                             _snap || timed ? 1f : boneSnap ? 0.48f : 0.34f);
                     _packageSampledLastTick = false;
                 }
-                else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
+                else if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
+                    MirrorBoundSwing();
+                else if ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     MirrorBoundArms();
+                // A ready Generic package owns its authored socket. Shared-rig
+                // swings own it through swing.json / MoveBones. Aim only the
+                // explicit package-local fallback when that package has no take.
+                if (_packageBody && !playedPackage && pose is (Pose.ChargeSwing or Pose.Swing))
+                    AimBatSocket(pose == Pose.Swing ? _poseT : 0f);
                 if (_bat != null)
                 {
                     _bat.gameObject.SetActive(batOn);
-                    if (batOn) _bat.localRotation = Q(sample.Bat);
                 }
                 if (_glove != null) _glove.gameObject.SetActive(gloveOn && !batOn);
                 return;
@@ -915,6 +969,7 @@ namespace GrandSluggers.UnityClient
             EaseLocal(ref _lShin, s.LShin, kLeg, _bind.LShin);
             EaseLocal(ref _rThigh, s.RThigh, kLeg, _bind.RThigh);
             EaseLocal(ref _rShin, s.RShin, kLeg, _bind.RShin);
+            EaseLocal(ref _batSocket, s.Bat, kArm, _bind.Bat);
         }
 
         static void EaseLocal(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
@@ -942,6 +997,21 @@ namespace GrandSluggers.UnityClient
             Ease(ref _lShin, s.LShin, kLeg, scoop ? id : _bind.LShin);
             Ease(ref _rThigh, s.RThigh, kLeg, scoop ? id : _bind.RThigh);
             Ease(ref _rShin, s.RShin, kLeg, scoop ? id : _bind.RShin);
+            Ease(ref _batSocket, s.Bat, kArm, scoop ? id : _bind.Bat);
+        }
+
+        void AimBatSocket(float poseT)
+        {
+            if (_batSocket == null || _root == null) return;
+            var key = SwingPresentation.At(poseT, _batsLeft ? Hand.L : Hand.R);
+            var local = new Vector3(
+                (float)key.BarrelDirection.X,
+                (float)key.BarrelDirection.Y,
+                (float)key.BarrelDirection.Z);
+            var world = _root.TransformVector(local).normalized;
+            if (world.sqrMagnitude < 0.01f) return;
+            // The named socket's -Y axis runs from the grip toward the barrel.
+            _batSocket.rotation = Quaternion.FromToRotation(Vector3.down, world);
         }
 
         static void Ease(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
@@ -1033,6 +1103,24 @@ namespace GrandSluggers.UnityClient
         {
             MirrorLocal(ref _lArm, ref _rArm);
             MirrorLocal(ref _lFore, ref _rFore);
+        }
+
+        void MirrorBoundSwing()
+        {
+            MirrorOne(_torso);
+            MirrorOne(_head);
+            MirrorLocal(ref _lArm, ref _rArm);
+            MirrorLocal(ref _lFore, ref _rFore);
+            MirrorLocal(ref _lThigh, ref _rThigh);
+            MirrorLocal(ref _lShin, ref _rShin);
+            MirrorOne(_batSocket);
+        }
+
+        static void MirrorOne(Transform tf)
+        {
+            if (tf == null) return;
+            var e = tf.localRotation.eulerAngles;
+            tf.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
         }
 
         static void MirrorLocal(ref Transform a, ref Transform b)
