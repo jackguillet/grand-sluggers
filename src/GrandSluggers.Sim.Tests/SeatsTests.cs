@@ -204,6 +204,37 @@ public class SeatsTests
     }
 
     [Fact]
+    public void ConfirmedSeatsSurviveSetupAndCallTimeRecoveryUntilBackToSelect()
+    {
+        var lifecycle = new MatchSeatLifecycle();
+        Assert.Equal(Seats.One, lifecycle.Current(Seats.FromPads(1, versus: true)));
+
+        var confirmed = lifecycle.Bind(Seats.FromPads(2, versus: true));
+        var devices = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: false, versus: confirmed.BothHuman);
+
+        Assert.Equal(Seats.Versus, confirmed);
+        Assert.True(lifecycle.Bound);
+        Assert.Equal(Seats.Versus, lifecycle.Bind(Seats.AwayOne));
+        foreach (var moment in new[] { "Team Setup", "Defense Setup", "Call time" })
+        {
+            // Player 1 disappearing must not make the surviving Player 2 become
+            // the one-player seat while setup or Call time is on screen.
+            Assert.Equal(Seats.Versus, lifecycle.Current(Seats.FromPads(1, versus: true)));
+            var recovery = new DeviceSeatRecovery();
+            recovery.WaitFor(devices.Missing(lifecycle.Seats, [202]), matchWasPaused: moment == "Call time");
+            Assert.Equal(LineupSeat.Pad1, recovery.MissingSeat);
+            Assert.Equal(moment != "Call time", recovery.ResumeWhenReady);
+            Assert.Equal(LineupSeat.Cpu, devices.Missing(lifecycle.Seats, [101, 202]));
+            recovery.Complete();
+        }
+
+        lifecycle.Release();
+        Assert.False(lifecycle.Bound);
+        Assert.Equal(Seats.AwayOne, lifecycle.Current(Seats.FromPads(1, pad1Home: false, versus: true)));
+        Assert.Equal(Seats.AwayOne, lifecycle.Bind(Seats.FromPads(1, pad1Home: false, versus: false)));
+    }
+
+    [Fact]
     public void Pad1CanSitAwayVsCpuAndInVersus()
     {
         var one = Seats.FromPads(1, pad1Home: false);
