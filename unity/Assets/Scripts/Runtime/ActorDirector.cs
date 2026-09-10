@@ -133,8 +133,8 @@ namespace GrandSluggers.UnityClient
                     pose = HeroActor.Pose.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = HeroActor.Pose.Catch;
-                if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
-                if (_gun && kv.Key == "P" && _gunPickoff) pose = HeroActor.Pose.Throw;
+                if (_gun && kv.Key == "C" && !_gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
+                if (_gun && kv.Key == "P" && _gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
@@ -156,7 +156,7 @@ namespace GrandSluggers.UnityClient
                         : new Vector3((float)-x, 0, (float)-z + 8f);
                 if (_throwing && (highlighted || kv.Key == _throwFromPos))
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
-                if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
+                if (_gun && ((kv.Key == "C" && !_gunThrowFromPitcher) || (kv.Key == "P" && _gunThrowFromPitcher)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
                 if (pose == HeroActor.Pose.ThrowPitch && _phase == Phase.Flight)
@@ -458,11 +458,15 @@ namespace GrandSluggers.UnityClient
             _gunFromBag = fromBag;
             _gunLead = lead;
             _gunSafe = ev.Kind == PlayKind.StolenBase;
-            _gunPickoff = ev.Caption != null && ev.Caption.IndexOf("picked off", System.StringComparison.OrdinalIgnoreCase) >= 0;
-            _gunToBag = _gunPickoff ? fromBag : Baserunning.StealTarget(fromBag);
+            var outcome = ev.Outcome;
+            _gunPickoff = outcome?.RunnerResult == RunnerPlayResult.PickedOff;
+            _gunToBag = outcome?.RunnerToBag ?? Baserunning.StealTarget(fromBag);
             if (_gunToBag <= 0) _gunToBag = fromBag;
-            var origin = _gunPickoff ? Diamond.Rubber : Diamond.Positions["C"];
-            var dest = Diamond.Bag(_gunToBag);
+            _gunThrowFromPitcher = outcome?.ThrowEndpoint?.Origin == ThrowOrigin.PitcherRubber;
+            _gunThrowToBag = outcome?.ThrowEndpoint?.DestinationBag ?? _gunToBag;
+            if (_gunThrowToBag <= 0) _gunThrowToBag = _gunToBag;
+            var origin = _gunThrowFromPitcher ? Diamond.Rubber : Diamond.Positions["C"];
+            var dest = Diamond.Bag(_gunThrowToBag);
             _gunFrom = new Vector3((float)origin.X, 3.4f, (float)origin.Z);
             _gunTo = new Vector3((float)dest.X, 1.2f, (float)dest.Z);
             var thr = ev.Throw;
