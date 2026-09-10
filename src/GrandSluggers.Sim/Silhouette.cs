@@ -47,6 +47,15 @@ public static class Silhouette
         _ => new(0.90f, 1.00f, 1.38f, 1.02f, 0.94f)
     };
 
+    /// <summary>
+    /// Shared-rig axes keep stature on Y while X/Z blend girth with height.
+    /// Swing reach and Unity presentation consume this same scale relationship.
+    /// </summary>
+    public static Vec3 SharedRootScale(Spec spec) => new(
+        (spec.Height * 0.45 + spec.Width * 0.55) * ToyScale,
+        spec.Height * ToyScale,
+        (spec.Height * 0.55 + spec.Width * 0.45) * ToyScale);
+
     /// <summary>Toy read: face must be at least as big as the body is tall.</summary>
     public static float HeadToHeight(Spec spec) => spec.Head / Math.Max(0.01f, spec.Height);
 }

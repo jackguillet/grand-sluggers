@@ -70,7 +70,7 @@ public class ArtCatalogTests
     }
 
     [Fact]
-    public void AuthoredSwingClipIsNotRawMoveBones()
+    public void AuthoredSwingAndFallbackShareTheExactCutKeys()
     {
         Assert.True(_content.Art.TryClip("swing", out var clip) && clip.Authored);
         Assert.False(clip.Loop);
@@ -78,15 +78,17 @@ public class ArtCatalogTests
         Assert.Contains("Contact", clip.Events, StringComparer.OrdinalIgnoreCase);
         Assert.True(_content.Art.TryAuthored("swing", 0, out var load));
         var bonesLoad = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0);
-        Assert.NotEqual(bonesLoad.Torso.Y, load.Torso.Y);
-        Assert.True(Math.Abs(load.Torso.Y) > Math.Abs(bonesLoad.Torso.Y),
-            $"authored load {load.Torso.Y} vs bones {bonesLoad.Torso.Y}");
+        Assert.Equal(bonesLoad.Torso, load.Torso);
+        Assert.Equal(bonesLoad.LUpper, load.LUpper);
+        Assert.Equal(bonesLoad.RUpper, load.RUpper);
+        Assert.Equal(bonesLoad.Bat, load.Bat);
 
         Assert.True(_content.Art.TryAuthored("swing", clip.ContactAt, out var contact));
         var bonesHit = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, clip.ContactAt);
-        Assert.NotEqual(bonesHit.Torso.Y, contact.Torso.Y);
-        Assert.True(Math.Abs(contact.Torso.Y) > Math.Abs(bonesHit.Torso.Y),
-            $"authored contact yaw {contact.Torso.Y} vs bones {bonesHit.Torso.Y}");
+        Assert.Equal(bonesHit.Torso, contact.Torso);
+        Assert.Equal(bonesHit.LUpper, contact.LUpper);
+        Assert.Equal(bonesHit.RUpper, contact.RUpper);
+        Assert.Equal(bonesHit.Bat, contact.Bat);
         Assert.True(_content.Art.TryAuthored("swing", 10, out var held));
         Assert.True(_content.Art.TryAuthored("swing", 0.50, out var wrap));
         Assert.Equal(wrap.Torso.Y, held.Torso.Y);

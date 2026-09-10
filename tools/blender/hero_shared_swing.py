@@ -18,39 +18,49 @@ FPS = 60
 DURATION = 0.50
 CONTACT = 0.30
 
-# data/art/pose-clips/swing.json — Unity parent-space euler offsets (degrees).
+# data/art/pose-clips/swing.json — parent-space Euler offsets (degrees).
+# The hand solve holds the palms 0.21–0.28 ft apart around one grip. The
+# socket-to-barrel vector travels upward about 10 degrees from approach to contact.
 KEYS = [
     (0.00, {
-        "torso": (8, -32, 4), "head": (6, -18, 0),
-        "lUpper": (-22, 30, 38), "lFore": (24, 0, 0),
-        "rUpper": (-118, -54, -64), "rFore": (32, 0, 0),
-        "lThigh": (14, 0, 0), "lShin": (18, 0, 0),
-        "rThigh": (-10, 12, 0), "rShin": (14, 0, 0),
-        "bat": (132, 16, 20),
+        "torso": (8, -28, 4), "head": (4, -12, 0),
+        "lUpper": (-154.70, -1.03, 80), "lFore": (-56.41, 0, 0),
+        "rUpper": (61.05, 50.21, 95.48), "rFore": (-143.30, 0, 0),
+        "lThigh": (12, 0, 0), "lShin": (16, 0, 0),
+        "rThigh": (-8, 10, 0), "rShin": (12, 0, 0),
+        "bat": (7.35, -7.27, -158.19),
     }),
     (0.15, {
-        "torso": (12, 6, -6), "head": (6, 4, 0),
-        "lUpper": (-8, 16, 28), "lFore": (28, 0, 0),
-        "rUpper": (-62, -28, -36), "rFore": (26, 0, 0),
+        "torso": (10, 8, -5), "head": (5, 2, 0),
+        "lUpper": (-91.41, -112.21, 45.66), "lFore": (-84.28, 0, 0),
+        "rUpper": (28.76, 114.82, 53.66), "rFore": (-121.03, 0, 0),
+        "lThigh": (18, 0, 0), "lShin": (18, 0, 0),
+        "rThigh": (-14, 16, 0), "rShin": (16, 0, 0),
+        "bat": (166.52, 26.27, 34.63),
+    }),
+    (0.24, {
+        "torso": (14, 52, -8), "head": (7, 18, 0),
+        "lUpper": (11.86, -52.93, -76.80), "lFore": (-1.28, 0, 0),
+        "rUpper": (36.53, 158.11, 45.80), "rFore": (-110.01, 0, 0),
         "lThigh": (20, 0, 0), "lShin": (20, 0, 0),
-        "rThigh": (-16, 18, 0), "rShin": (18, 0, 0),
-        "bat": (64, 52, 14),
+        "rThigh": (-22, 22, 0), "rShin": (24, 0, 0),
+        "bat": (103.04, 46.96, 36.09),
     }),
     (0.30, {
-        "torso": (18, 88, -12), "head": (10, 32, 0),
-        "lUpper": (38, -62, 12), "lFore": (40, 0, 0),
-        "rUpper": (22, 92, 34), "rFore": (8, 0, 0),
+        "torso": (16, 72, -10), "head": (8, 26, 0),
+        "lUpper": (10.77, -49.04, -76.15), "lFore": (-18.87, 0, 0),
+        "rUpper": (35.32, 176.10, 49.25), "rFore": (-119.92, 0, 0),
         "lThigh": (20, 0, 0), "lShin": (20, 0, 0),
         "rThigh": (-24, 24, 0), "rShin": (26, 0, 0),
-        "bat": (-12, 96, 6),
+        "bat": (71.06, 34.68, 32.35),
     }),
     (0.50, {
-        "torso": (12, 108, -18), "head": (14, 40, 0),
-        "lUpper": (56, -90, -14), "lFore": (22, 0, 0),
-        "rUpper": (8, 112, 44), "rFore": (6, 0, 0),
+        "torso": (10, 96, -14), "head": (12, 34, 0),
+        "lUpper": (24.60, -42.75, -93.93), "lFore": (-1.22, 0, 0),
+        "rUpper": (21.38, 187.18, 60.09), "rFore": (-123.96, 0, 0),
         "lThigh": (12, 0, 0), "lShin": (16, 0, 0),
         "rThigh": (-14, 20, 0), "rShin": (22, 0, 0),
-        "bat": (-82, 186, 24),
+        "bat": (140.33, 12.53, 10.86),
     }),
 ]
 

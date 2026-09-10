@@ -256,7 +256,8 @@ public sealed class LivePlaySystem
         {
             var dest = InPlay.BatterDestBag(PlayKind);
             var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01);
-            var (x, z) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+            var (x, z) = InPlay.AlongBases(feet, dest,
+                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
             if (InPlay.ForceOnBag(true, 1, true, false, command.GloveX, command.GloveZ, x, z))
                 return ApplyThrow(1, runnerBeats: false, command.Fielder);
         }
@@ -282,7 +283,8 @@ public sealed class LivePlaySystem
         {
             var dest = InPlay.BatterDestBag(PlayKind);
             var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01);
-            var (x, z) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+            var (x, z) = InPlay.AlongBases(feet, dest,
+                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
             if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z)
                 && ApplyTag(0, command.Fielder))
                 return new LivePlayCommandResult(Snapshot, TaggedFromBag: 0);
@@ -386,9 +388,10 @@ public sealed class LivePlaySystem
     {
         var dest = InPlay.BatterDestBag(PlayKind);
         var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, dash01);
+        var startX = HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX);
         var (bx, bz) = dest > 0
-            ? InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ)
-            : (HomeSet.BatterX, HomeSet.BatterZ);
+            ? InPlay.AlongBases(feet, dest, startX, HomeSet.BatterZ)
+            : (startX, HomeSet.BatterZ);
         _batter = InPlay.TickOccupy(dest > 0 && InPlay.OnThisBag(dest, bx, bz), _batter.Sec, dt);
         _first = TickRunner(1, _match.First, _first, dt);
         _second = TickRunner(2, _match.Second, _second, dt);
