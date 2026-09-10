@@ -93,6 +93,8 @@ public static class AtBatMotion
     public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
         double poseTime, double eventAt)
     {
+        if (poseTime <= 0) return load;
+        if (poseTime >= eventAt * 0.5) return motion;
         var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
         return MoveBones.Mix(load, motion, u * u * (3 - 2 * u));
     }
