@@ -36,11 +36,20 @@ public static class StealThrow
 
     /// <summary>Catcher pop, release to tag. Faster than a hopper relay.</summary>
     public static double GunSec(int bag, ThrowResult? thr)
+        => CatcherThrowSec(bag is 2 or 3 ? bag : 2, thr);
+
+    /// <summary>Flight from the catcher to a named occupied or steal bag.</summary>
+    public static double CatcherThrowSec(int bag, ThrowResult? thr)
     {
+        if (bag is < 1 or > 3)
+            throw new ArgumentOutOfRangeException(nameof(bag), "Catcher throws need an occupied or steal bag.");
         var mul = thr?.SpeedMul ?? 1;
         if (thr is { Error: true }) mul *= 0.72;
         var fps = 96 * Math.Max(0.45, mul);
-        return 0.12 + GunDistFt(bag) / Math.Max(64, fps);
+        var c = CatcherSpot;
+        var dest = Diamond.Bag(bag);
+        var dist = Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
+        return 0.12 + dist / Math.Max(64, fps);
     }
 
     /// <summary>
@@ -92,16 +101,18 @@ public static class StealThrow
         double lead01)
     {
         if (throwBag is not 1 and not 2) return false;
-        var c = CatcherSpot;
-        var dest = Diamond.Bag(throwBag);
-        var dist = Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
-        var mul = thr?.SpeedMul ?? 1;
-        if (thr is { Error: true }) mul *= 0.72;
-        var gun = 0.12 + dist / Math.Max(64, 96 * Math.Max(0.45, mul));
-        var returnTime = Math.Max(0.42, 0.62 + Math.Clamp(lead01, 0, 1) * 0.92
-            + (10 - runner.Stats.Run) * 0.06);
+        var gun = CatcherThrowSec(throwBag, thr);
+        var returnTime = RunnerReturnSec(runner, lead01);
         return releaseSec + gun < returnTime;
     }
+
+    /// <summary>
+    /// Time from the catch until a runner reaches the occupied bag. A larger lead and lower
+    /// Run rating both take longer to recover; this is the other side of the pickoff race.
+    /// </summary>
+    public static double RunnerReturnSec(Character runner, double lead01) =>
+        Math.Max(0.42, 0.62 + Math.Clamp(lead01, 0, 1) * 0.92
+            + (10 - runner.Stats.Run) * 0.06);
 
     public static bool CpuOut(
         Character runner,

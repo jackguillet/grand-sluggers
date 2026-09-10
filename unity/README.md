@@ -19,4 +19,6 @@ Gamepad is the couch product. Keyboard and mouse are the same scheme (player 1).
 
 If the scene is missing, menu **Grand Sluggers → Bootstrap Scene**.
 
+Validation is split by what it proves. Portable tests need no Unity install; the narrow compiler check needs explicit package assemblies; a configured Unity runner imports the project and opens Harbor; standalone launch smoke and human play remain separate. See **[docs/validation.md](../docs/validation.md)**.
+
 The sim lives in `src/GrandSluggers.Sim` (local package `com.grandsluggers.sim`). Do not commit `Library/`, `Temp/`, or `Logs/`.
