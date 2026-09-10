@@ -256,6 +256,17 @@ namespace GrandSluggers.UnityClient
             _packageBody = ArtBinder.Art != null
                 && CharacterPackage.IsUnique(ArtBinder.SkinOf(who).Bind)
                 && ArtBinder.LoadBodyPrefab(who.Id) != null;
+            if (_packageBody)
+            {
+                var controller = ArtBinder.LoadPackageController(who.Id);
+                var animator = _root.GetComponentInChildren<Animator>(true);
+                if (animator == null && controller != null) animator = _root.gameObject.AddComponent<Animator>();
+                if (animator != null)
+                {
+                    animator.runtimeAnimatorController = controller;
+                    animator.enabled = false;
+                }
+            }
             _meshStaff = false;
             for (var i = 0; i < extras.Count; i++)
             {
@@ -423,7 +434,9 @@ namespace GrandSluggers.UnityClient
 
             var batOn = _heldBat;
             var gloveOn = _heldGlove;
-            if (ToVerb(pose) is MoveBones.Verb verb)
+            var motionVerb = ToVerb(pose);
+            if (_packageBody && pose == Pose.Idle) motionVerb = MoveBones.Verb.Idle;
+            if (motionVerb is MoveBones.Verb verb)
             {
                 batOn = pose is Pose.ChargeSwing or Pose.Swing or Pose.CheckSwing or Pose.Bunt or Pose.Miss;
                 gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw
@@ -465,9 +478,9 @@ namespace GrandSluggers.UnityClient
                     clipT = _t;
                 // Authored eulers are offsets on the bind pose (Q(e)*bind).
                 // SampleAnimation replaces bind and laid the scoop mesh on its side.
-                var packageClip = PackageClipId(pose);
-                var playedPackage = _packageBody && !string.IsNullOrEmpty(packageClip)
-                    && TrySamplePackage(packageClip, pose == Pose.Idle ? clipT : clipT);
+                var playedPackage = _packageBody && ArtBinder.Art != null
+                    && ArtBinder.Art.TryPackageVerb(_id, verb, out var packageVerb)
+                    && TrySamplePackage(packageVerb);
                 var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
                 if (!playedPackage && !playedDrop)
                 {
@@ -911,21 +924,19 @@ namespace GrandSluggers.UnityClient
             tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e) * bind, k);
         }
 
-        static string PackageClipId(Pose pose) => pose switch
+        bool TrySamplePackage(PackageVerbSlot verb)
         {
-            Pose.Idle => "idle",
-            Pose.Swing or Pose.ChargeSwing => "pose",
-            _ => null
-        };
-
-        bool TrySamplePackage(string clipId, float t)
-        {
-            var clip = ArtBinder.LoadPackageClip(_id, clipId);
+            var clip = ArtBinder.LoadPackageClip(_id, verb);
             if (clip == null || _root == null) return false;
+            var t = verb.Clock.Equals(CharacterPackage.WorldClock, System.StringComparison.OrdinalIgnoreCase)
+                ? _t
+                : verb.Clock.Equals(CharacterPackage.ChargeClock, System.StringComparison.OrdinalIgnoreCase)
+                    ? _charge * clip.length
+                    : _poseT;
             if (t < 0f) t = 0f;
             if (clip.length > 1e-4f)
             {
-                if (_pose == Pose.Idle) t %= clip.length;
+                if (verb.Loop) t %= clip.length;
                 else t = Mathf.Min(t, clip.length);
             }
             var scale = _root.localScale;
