@@ -10,8 +10,10 @@ public static class InPlay
     /// </summary>
     public static bool DeadBallResultReady(PlayKind kind, double elapsed, double hangSeconds,
         bool caught, bool throwing, bool effectInFlight) =>
-        kind == PlayKind.HomeRun && !caught && !throwing && !effectInFlight
+        HasDeadBallResult(kind) && !caught && !throwing && !effectInFlight
         && elapsed >= Math.Max(2.4, hangSeconds + 0.35);
+
+    public static bool HasDeadBallResult(PlayKind kind) => kind == PlayKind.HomeRun;
 
     public static double Energy(AtBatResult hit)
     {
