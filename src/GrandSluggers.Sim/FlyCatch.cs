@@ -100,9 +100,14 @@ public static class FlyCatch
     /// <summary>A dirt pickup cannot reach through the wall or replace an aerial catch.</summary>
     public static bool TouchScoop(FieldingPreview pre, Park park, double ballX, double ballZ,
         double ballY, double hitT, double hangSec, double distFt, double windowFt) =>
-        (pre.Grounder || pre.Line || hitT >= hangSec)
-        && FieldBounds.DistHome(ballX, ballZ) <= AtBatResolver.FenceAt(park, FieldBounds.SprayDeg(ballX, ballZ))
+        PickupInPlay(pre, park, ballX, ballZ, hitT, hangSec)
         && TouchScoop(distFt, windowFt, ballY);
+
+    /// <summary>Shared eligibility for automatic, button and diving dirt pickups.</summary>
+    public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
+        double hitT, double hangSec) =>
+        (pre.Grounder || pre.Line || hitT >= hangSec)
+        && FieldBounds.DistHome(ballX, ballZ) <= AtBatResolver.FenceAt(park, FieldBounds.SprayDeg(ballX, ballZ));
 
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true)
     {

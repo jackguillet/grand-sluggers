@@ -21,6 +21,10 @@ public class FlyCatchTests
             {
                 var wall = AtBatResolver.FenceAt(park, spray);
                 var outside = BallFlight.GroundPoint(wall + 1, spray);
+                Assert.False(FlyCatch.PickupInPlay(pre with { Grounder = true }, park,
+                    outside.X, outside.Z, 1, pre.HangTimeSec));
+                Assert.False(FlyCatch.PickupInPlay(pre with { Line = true }, park,
+                    outside.X, outside.Z, 1, pre.HangTimeSec));
                 Assert.False(FlyCatch.TouchScoop(pre, park, outside.X, outside.Z, 0,
                     pre.HangTimeSec + 1, pre.HangTimeSec, 9, 20));
                 var inside = BallFlight.GroundPoint(wall - 1, spray);
