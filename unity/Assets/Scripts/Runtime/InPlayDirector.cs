@@ -1268,11 +1268,10 @@ namespace GrandSluggers.UnityClient
 
         bool TickLiveForce(PlayKind kind, Character glove)
         {
-            var first = _match.First != null;
-            var second = _match.Second != null;
-            var third = _match.Third != null;
+            // Contact occupancy cannot restore a force removed by a live tag.
+            var forces = _match.LiveForces;
             if (InPlay.LiveBatter(kind, _match.LiveBatterOut)
-                && InPlay.ForceAtBag(1, first, second, third))
+                && forces.At(1))
             {
                 var dest = InPlay.BatterDestBag(kind);
                 var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
@@ -1283,7 +1282,7 @@ namespace GrandSluggers.UnityClient
             }
             for (var bag = 2; bag <= 4; bag++)
             {
-                if (!InPlay.ForceAtBag(bag, first, second, third)) continue;
+                if (!forces.At(bag)) continue;
                 var from = bag - 1;
                 var who = _match.RunnerAt(from)?.Who;
                 if (who is null) continue;
