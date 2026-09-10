@@ -57,6 +57,12 @@ namespace GrandSluggers.EditorTools
                 if (artErrors.Count > 0)
                     throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));
 
+                var packageErrors = CharacterPackageImportValidation.Validate(content);
+                evidence.packageErrors = packageErrors.ToArray();
+                if (packageErrors.Count > 0)
+                    throw new BuildFailedException("Character package import validation failed:\n"
+                        + string.Join("\n", packageErrors));
+
                 evidence.ok = true;
                 WriteEvidence(evidencePath, evidence);
                 Debug.Log("Grand Sluggers Unity validation OK for " + revision + " at " + ScenePath);
@@ -125,6 +131,7 @@ namespace GrandSluggers.EditorTools
             public string utc = "";
             public string[] assemblies = Array.Empty<string>();
             public string[] artErrors = Array.Empty<string>();
+            public string[] packageErrors = Array.Empty<string>();
             public string error = "";
         }
     }

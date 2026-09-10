@@ -37,9 +37,10 @@ unity/Assets/Art/Characters/{id}/
   {id}.fbx                          Generic armature + mesh, rest pose = idle
   {id}-albedo.png                   1024 base color (URP Lit)
   {id}.mat / {id}.prefab            editor import
-  {id}.controller                   Animator Controller (when clips exist)
+  {id}.controller                   manifest-built Animator Controller
 unity/Assets/Resources/Art/Characters/{id}/   player copies of fbx + albedo
 unity/Assets/Resources/Art/{id}-hero.jpg      portrait
+data/art/character-packages.json    verb sources, clocks, markers, readiness
 ```
 
 **Add:** character JSON + skins.json row + a **rigged** FBX (Blender, or a generator only after T/A-pose + auto-rig that you then inspect in clay).
@@ -58,10 +59,24 @@ Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mes
 
 Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
 
+## Verb manifest
+
+`data/art/character-packages.json` is the runtime contract. Every package declares every `MoveBones.Verb`; adding an authored run, pitch, scoop, or throw means filling that verb's `source`, `playerSource`, and imported `clip`, then changing `readiness` from `fallback` to `ready`. Runtime selection does not need a new character or verb switch.
+
+- `loop` is true for idle/walk/run and false for one-shot plays.
+- `clock` is `world` for locomotion, `pose` for timed plays, and `charge` for held pitch/swing loads.
+- `markers` carry `Contact`, `Release`, and `FootPlant` at the same seconds used by the play event.
+- `fallback` is explicit even on a ready slot. A missing runtime resource falls back to `character-motion`; validation rejects the missing ready import before a player build.
+
+The authoring and `Resources` FBX copies are separate declared sources so the validation gate proves what ships. Each package also has tracked authoring and player `.controller` assets. `Grand Sluggers → Sync Character Package Controllers` derives their states from the ready rows and assigns the authoring controller to the package prefab.
+
+`pose` is a deformation/still-gate take. It is not a gameplay verb and must not be marked as a complete swing.
+
 ## Runtime
 
 - SharedRig primitives and `hero-shared` extras still use **MoveBones**.
 - Unique packages must not play Rio authored pose-clips or `swing.fbx`.
+- Unique packages select ready takes from their package manifest. The imported controller stays attached as the package contract; `HeroActor` samples the selected Generic take on the play clock so contact and release remain synchronized with the ball.
 - Albedo is a sidecar PNG assigned as URP Lit on import.
 
 ## The original six
@@ -82,4 +97,6 @@ Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they
 
 ## Acceptance
 
-Idle is not the test. A unique package is not done until [screenshot-gate](screenshot-gate.md) **character stills** exist: rest (painted, not inverted) and a ~90° limb pose (shell intact). Agents do not pass that gate.
+Idle is not the test. The Unity validation gate rejects missing or duplicate sockets, an invalid Generic Avatar, unusable skin/bind data, unresolved animation bindings, missing ready clips, marker or loop mismatches, a controller without every ready take, and package assets that cannot load through `Resources`. The player build runs the same imported-package check.
+
+A unique package is still not done until [screenshot-gate](screenshot-gate.md) **character stills** exist: rest (painted, not inverted) and a ~90° limb pose (shell intact). Imported weights and bindings cannot prove deformation or silhouette quality. Agents do not pass that gate.
