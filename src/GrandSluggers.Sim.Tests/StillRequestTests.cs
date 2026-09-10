@@ -62,6 +62,17 @@ public class StillRequestTests
     }
 
     [Fact]
+    public void SwingMatrixIsOptInAndWritesLabeledRosterPaths()
+    {
+        var req = StillRequest.Parse("""{"shots":["swing-matrix"]}""");
+        Assert.Equal(new[] { "swing-matrix" }, req.ResolvedShots());
+        Assert.DoesNotContain("swing-matrix", StillRequest.DefaultShots);
+        Assert.True(StillRequest.IsSwingMatrixShot("swing-matrix"));
+        Assert.Equal("/tmp/gs/swing-ashlord-max-contact.png",
+            StillRequest.SwingPngPath("/tmp/gs", "ashlord", "max", "contact"));
+    }
+
+    [Fact]
     public void AwayWillNotMatchHome()
     {
         var req = StillRequest.Parse("""{"home":"rio","away":"rio"}""");

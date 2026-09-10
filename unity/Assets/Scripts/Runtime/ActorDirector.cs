@@ -171,7 +171,12 @@ namespace GrandSluggers.UnityClient
                 var racing = _phase == Phase.InPlay && _pending != null;
                 var stillSwing = racing && LiveTime < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
                 var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
-                bHero.SetPose(bPose, HumanBats ? _charge : 0);
+                // Release clears the live button fill. Keep the committed load
+                // for the whole swing (and for CPU swings) after that handoff.
+                var swingCharge = bPose == HeroActor.Pose.Swing && _swing != null
+                    ? (float)_swing.Charge01
+                    : HumanBats ? _charge : 0f;
+                bHero.SetPose(bPose, swingCharge);
                 bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
@@ -187,7 +192,9 @@ namespace GrandSluggers.UnityClient
                     var dest = InPlay.BatterDestBag(kind);
                     if (dest <= 0) dest = 1;
                     var feet = InPlay.RunFeet(LiveTime, batter, _dash01);
-                    var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                    var startX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
+                    var (hx, hz) = InPlay.AlongBases(feet, dest,
+                        startX, HomeSet.BatterZ);
                     var look = dest >= 2 && feet > Diamond.Baseline
                         ? Diamond.Bag(Math.Min(dest, 3))
                         : Diamond.First;
@@ -195,7 +202,7 @@ namespace GrandSluggers.UnityClient
                 }
                 else
                     bHero.Place(new Vector3(
-                        (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
+                        (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
                 if (bPose == HeroActor.Pose.Swing && _phase == Phase.Flight && _swing != null)

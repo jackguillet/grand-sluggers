@@ -19,7 +19,7 @@ public sealed class StillRequest
         "title", "select", "field", "lineup", "plate", "pitch", "mound",
         "diamond", "diamond-grounder", "diamond-line", "diamond-homer", "diamond-pull",
         "throw", "tag", "smash", "replay", "scoop",
-        "char-rest", "char-pose"
+        "char-rest", "char-pose", "swing-matrix"
     };
 
     public string[]? Shots { get; init; }
@@ -77,6 +77,14 @@ public sealed class StillRequest
     public static bool IsCharShot(string shot) =>
         shot.Equals("char-rest", StringComparison.OrdinalIgnoreCase)
         || shot.Equals("char-pose", StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsSwingMatrixShot(string shot) =>
+        shot.Equals("swing-matrix", StringComparison.OrdinalIgnoreCase);
+
+    public static string SwingPngPath(string outDir, string captain, string power, string beat) =>
+        Path.Combine(outDir, "swing-" + captain.Trim().ToLowerInvariant()
+            + "-" + power.Trim().ToLowerInvariant()
+            + "-" + beat.Trim().ToLowerInvariant() + ".png");
 
     public static string PngPath(string outDir, string shot, string? who = null)
     {

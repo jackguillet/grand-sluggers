@@ -66,6 +66,16 @@ public static class HomeSet
     public const double BatterWalk = 2.4;
     public const double BatterChestY = 3.2;
 
+    /// <summary>
+    /// A right-handed hitter stands in the third-base box (negative world X);
+    /// a left-handed hitter mirrors into the first-base box. The player's box
+    /// offset remains a world-X value for either hand.
+    /// </summary>
+    public static double BatterXFor(Hand hand) => hand == Hand.L ? BoxX : BatterX;
+
+    public static double BatterBodyX(Hand hand, double worldOffsetX = 0) =>
+        BatterXFor(hand) + worldOffsetX * BatterWalk;
+
     /// <summary>Behind home, slight first-base so the RH batter is left, looking at the mound.</summary>
     public const double CamX = 1.2;
     public const double CamY = 6.0;

@@ -68,27 +68,32 @@ public static class CharacterMotion
         var c = charge;
         return new(
             E(-6 * c, 8 * c), E(0, 6 * c),
-            E(10), E(8),
-            E(-28 * c), E(-42 * c),
+            E(-12 - 18 * c, 18, 24), E(22 + 18 * c),
+            E(-18 - 24 * c, -28, -32), E(32 + 20 * c),
             E(4), E(6), E(4), E(6),
-            E(0, 0, 20), 0);
+            E(7.35, -7.27, -158.19), 0);
     }
 
     static MoveBones.Sample Swing(double poseT)
     {
         var beat = MoveBones.SwingAt(poseT);
-        var (ux, fx) = beat switch
+        var (lux, lfx, rux, rfx) = beat switch
         {
-            MoveBones.SwingBeat.Load => (-22.0, -36.0),
-            MoveBones.SwingBeat.Contact => (48.0, 18.0),
-            _ => (22.0, 8.0)
+            MoveBones.SwingBeat.Load => (-30.0, 40.0, -42.0, 52.0),
+            MoveBones.SwingBeat.Contact => (38.0, 58.0, 34.0, 48.0),
+            _ => (28.0, 34.0, 18.0, 30.0)
         };
         return new(
             E(-4, beat == MoveBones.SwingBeat.Contact ? 10 : 4), E(0, 4),
-            E(8), E(6),
-            E(ux), E(fx),
+            E(lux, -18, 20), E(lfx),
+            E(rux, 24, -22), E(rfx),
             E(6), E(8), E(6), E(8),
-            E(0, 0, 24), 0);
+            beat switch
+            {
+                MoveBones.SwingBeat.Load => E(7.35, -7.27, -158.19),
+                MoveBones.SwingBeat.Contact => E(71.06, 34.68, 32.35),
+                _ => E(140.33, 12.53, 10.86)
+            }, 0);
     }
 
     static MoveBones.Sample ChargePitch(double charge)
