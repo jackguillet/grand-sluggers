@@ -50,7 +50,7 @@ public static class BookScheme
 
     public static string Footer(InputScheme kind) =>
         kind == InputScheme.Keys
-            ? "Left click / Space next     wheel     Esc / right click back"
+            ? "Space/click next     Esc/right-click back"
             : "South next     stick     East back";
 
     /// <summary>Seat pill. Not a sentence on every page.</summary>

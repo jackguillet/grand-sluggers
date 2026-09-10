@@ -112,6 +112,7 @@ public static class HowToPlay
     public const int BookLineMinPt = 32;
     public const int BookHeaderPt = 38;
     public const int BookTabPt = 22;
+    public const int BookFooterPt = 36;
     /// <summary>Bottom copy band. Must fit KidLineMax at KidLineH.</summary>
     public const float LineBandMul = 4.6f;
 
@@ -137,6 +138,12 @@ public static class HowToPlay
             "WASD runs. 1 2 3 4 name a bag. Right-drag aims.",
             "H calls time. Esc this book.",
         ]),
+        new("controls-2", "Controls · Field", "controls",
+        ["Hardware controls continue. Green is offense; red is defense."],
+        ["Hardware controls continue. Green is offense; red is defense."]),
+        new("controls-3", "Controls · Game", "controls",
+        ["Hardware controls continue. Green is offense; red is defense."],
+        ["Hardware controls continue. Green is offense; red is defense."]),
         new("roles", "In-game controls", "roles",
         [
             "Four tables: batting, pitching, fielding, running.",
@@ -148,6 +155,15 @@ public static class HowToPlay
             "Verb on the left. What you press on the right.",
             "One scheme at a time.",
         ]),
+        new("roles-pitching", "Controls · Pitching", "roles",
+        ["Pitching verbs and what you press."],
+        ["Pitching verbs and what you press."]),
+        new("roles-fielding", "Controls · Fielding", "roles",
+        ["Fielding verbs and what you press."],
+        ["Fielding verbs and what you press."]),
+        new("roles-running", "Controls · Running", "roles",
+        ["Running verbs and what you press."],
+        ["Running verbs and what you press."]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
             "Tap before the gold streak reaches home. Charge to MAX for power.",
@@ -262,6 +278,15 @@ public static class HowToPlay
             "The pictures are the path. Exhibition is the game; Training is practice.",
             "Space / left click play ball. Esc this book. 2 PLAYERS seats controller 2; a seat drop pauses. Home bats bottom. Harbor.",
         ]),
+        new("getting-started-modes", "Getting started · Modes", "getting-started",
+        [
+            "Exhibition is the game; Training is practice.",
+            "2 PLAYERS seats controller 2. A seat drop pauses. Home bats bottom. Harbor.",
+        ],
+        [
+            "Exhibition is the game; Training is practice.",
+            "Keyboard + mouse is player 1. 2 PLAYERS seats controller 2. A seat drop pauses.",
+        ]),
         new("screen", "The game screen", "exhibition",
         [
             "Scorebug: inning, runs, stars; B / S / O.",
@@ -309,6 +334,13 @@ public static class HowToPlay
             "Each toy has one field verb. Super Jump / Grow / Lick Catch add range.",
             "The card shows P / B / F / R, the star pitch, the star swing, and the field verb.",
             "Pitchers sweat. R swaps when they are TIRED.",
+        ]),
+        new("abilities-types", "Who you are · Skills", "abilities",
+        [
+            "The four ability types and what each one changes.",
+        ],
+        [
+            "The four ability types and what each one changes.",
         ]),
         new("items", "Error items", "items",
         [

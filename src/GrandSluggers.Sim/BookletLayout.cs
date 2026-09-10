@@ -21,12 +21,15 @@ public static class BookletLayout
     public const float PageNumberPadX = 14f;
     public const float TocNumberPadX = 12f;
     public const float TocColumnGap = 12f;
+    public const float BadgePadX = 8f;
+    public const float BadgeGap = 6f;
 
     public static IReadOnlyList<TextBlock> Flow(
         IReadOnlyList<string> paragraphs,
         Box band,
         Func<string, float, float> measureHeight,
-        float minimumBlockHeight = HowToPlay.KidLineH)
+        float minimumBlockHeight = HowToPlay.KidLineH,
+        float verticalPad = BlockPadY)
     {
         if (paragraphs == null) throw new ArgumentNullException(nameof(paragraphs));
         if (measureHeight == null) throw new ArgumentNullException(nameof(measureHeight));
@@ -36,7 +39,7 @@ public static class BookletLayout
         foreach (var paragraph in paragraphs)
         {
             var measured = Math.Max(0f, measureHeight(paragraph, band.W));
-            var height = Math.Max(minimumBlockHeight, measured + BlockPadY);
+            var height = Math.Max(minimumBlockHeight, measured + verticalPad);
             blocks.Add(new TextBlock(paragraph, new Box(band.X, y, band.W, height)));
             y += height + BlockGap;
         }
@@ -109,6 +112,35 @@ public static class BookletLayout
         return (title, page);
     }
 
+    /// <summary>Measured pills between the booklet label and tabs, wrapping onto row two.</summary>
+    public static IReadOnlyList<Box> Badges(
+        float screenW,
+        float screenH,
+        float howToWidth,
+        IReadOnlyList<float> measuredLabelWidths)
+    {
+        var book = HowToPlay.BookPanel(screenW, screenH);
+        var tabs = BookScheme.ToggleBar(screenW, screenH);
+        var firstX = book.X + 88f + howToWidth + 16f;
+        var wrapX = book.X + 88f;
+        var right = tabs.X - 12f;
+        var x = firstX;
+        var y = book.Y + 10f;
+        var boxes = new List<Box>(measuredLabelWidths.Count);
+        foreach (var measured in measuredLabelWidths)
+        {
+            var width = Math.Max(88f, measured + BadgePadX * 2f);
+            if (x + width > right && boxes.Count > 0)
+            {
+                x = wrapX;
+                y = book.Y + 34f;
+            }
+            boxes.Add(new Box(x, y, width, 22f));
+            x += width + BadgeGap;
+        }
+        return boxes;
+    }
+
     public static (Box Title, Box Number) TocColumns(
         (float X, float Y, float W, float H) row,
         float widestMeasuredNumber)
@@ -118,5 +150,33 @@ public static class BookletLayout
         var number = new Box(row.X + row.W - numberW, row.Y, numberW, row.H);
         var title = new Box(row.X, row.Y, Math.Max(0f, number.X - TocColumnGap - row.X), row.H);
         return (title, number);
+    }
+
+    /// <summary>A measured label rail followed by a wrapping copy rail.</summary>
+    public static (Box Label, Box Body) LabeledRow(
+        (float X, float Y, float W, float H) row,
+        float measuredLabelWidth,
+        float minimumLabelWidth = 168f)
+    {
+        const float gap = 12f;
+        var labelW = Math.Min(row.W * 0.36f, Math.Max(minimumLabelWidth, measuredLabelWidth + 20f));
+        var label = new Box(row.X, row.Y + 2f, labelW, row.H - 4f);
+        var body = new Box(label.Right + gap, row.Y + 4f,
+            Math.Max(0f, row.X + row.W - label.Right - gap - 8f), row.H - 8f);
+        return (label, body);
+    }
+
+    /// <summary>Atomic step number, measured heading, then the wrapping instruction.</summary>
+    public static (Box Number, Box Title, Box Body) NumberedRow(
+        (float X, float Y, float W, float H) row,
+        float measuredTitleWidth)
+    {
+        var number = new Box(row.X + 8f, row.Y + 8f, 36f, row.H - 16f);
+        var titleX = row.X + 52f;
+        var titleW = Math.Min(row.W * 0.32f, Math.Max(180f, measuredTitleWidth + 12f));
+        var title = new Box(titleX, row.Y + 8f, titleW, row.H - 16f);
+        var bodyX = title.Right + 12f;
+        var body = new Box(bodyX, row.Y + 8f, Math.Max(0f, row.X + row.W - bodyX - 12f), row.H - 16f);
+        return (number, title, body);
     }
 }
