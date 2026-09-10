@@ -10,14 +10,14 @@ namespace GrandSluggers.UnityClient
     {
         readonly MatchDirector _play;
         public ActorDirector(MatchDirector play) { _play = play; }
-        public void Draw() { _play.DrawBodies(); }
+        public void Draw(float dt) { _play.DrawBodies(dt); }
     }
 
     public sealed partial class MatchDirector
     {
-        internal void DrawBodies() => DrawActors();
+        internal void DrawBodies(float dt) => DrawActors(dt);
 
-        void DrawActors()
+        void DrawActors(float dt)
         {
             if (_turntable) return;
             _used.Clear();
@@ -159,7 +159,9 @@ namespace GrandSluggers.UnityClient
                 if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
-                hero.Tick(Time.deltaTime);
+                if (pose == HeroActor.Pose.ThrowPitch && _phase == Phase.Flight)
+                    hero.SampleMotion((float)MoveBones.PitchRelease + _flight);
+                else hero.Tick(dt);
             }
 
             var batter = boxBatter;
@@ -196,7 +198,9 @@ namespace GrandSluggers.UnityClient
                         (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
-                bHero.Tick(Time.deltaTime);
+                if (bPose == HeroActor.Pose.Swing && _phase == Phase.Flight && _swing != null)
+                    bHero.SampleMotion((float)(_flight - AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames)));
+                else bHero.Tick(dt);
             }
 
             PlaceRunner(_match.First, Diamond.First, 1);
@@ -244,7 +248,7 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(starSwing) && _match?.Batter != null
                 && _heroes.TryGetValue(_match.Batter.Id, out var bat) && bat != null)
                 swingAt = bat.transform.position + Vector3.up * 3.2f;
-            _spec.Tick(Time.deltaTime, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
+            _spec.Tick(dt, _ball, _phase == Phase.Flight, _phase == Phase.InPlay,
                 _pitch != null && _pitch.Star, starPitch, starSwing ?? "", from, _ball, lick, laser, burn, frags, swingAt);
             var flash = _phase == Phase.InPlay && BuddySet && !_buddy && !_throwing;
             var flashAt = Vector3.zero;
@@ -255,7 +259,7 @@ namespace GrandSluggers.UnityClient
             var showThrow = _itemFlying || (_itemThrown && _phase == Phase.InPlay);
             var flyU = !_itemFlying && _itemThrown ? 1f
                 : _itemFlying ? Mathf.Clamp01(_itemFly / ItemView.FlySeconds) : 0f;
-            _items?.Present(Time.deltaTime, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
+            _items?.Present(dt, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
         }
 
         HeroActor.Pose BatterPose()
@@ -272,10 +276,9 @@ namespace GrandSluggers.UnityClient
             }
             if (_phase == Phase.GameOver)
                 return _match.HomeScore >= _match.AwayScore ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle;
-            if (_phase == Phase.Flight && (_swung || (_swing != null && _swing.Swing)))
+            if (_phase == Phase.Flight && _swung)
             {
                 if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
-                if (_charge < 0.2f && _flight > _pitchDur * 0.88f) return HeroActor.Pose.CheckSwing;
                 return HeroActor.Pose.Swing;
             }
             if (_phase is Phase.Set or Phase.Flight) return HeroActor.Pose.ChargeSwing;

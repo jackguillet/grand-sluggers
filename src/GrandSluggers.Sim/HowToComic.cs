@@ -37,8 +37,8 @@ public static class HowToComic
         new("how-to-swing-2", "smash", "Swing through the ball"),
         new("LT", "South"),
         new("Shift / right click", "Space / left click"),
-        "Hold LT. Tap South to swing. Commit at MAX.",
-        "Hold Shift / right click. Tap Space / left click to swing. Commit at MAX.");
+        "LT to MAX for power. Tap South before the ball reaches home.",
+        "Shift to MAX for power. Tap Space / left click before the ball reaches home.");
 
     public static readonly IReadOnlyList<Strip> OnPitchSwingPage = [Pitch, Swing];
 

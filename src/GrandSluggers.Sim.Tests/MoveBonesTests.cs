@@ -6,6 +6,17 @@ namespace GrandSluggers.Sim.Tests;
 public class MoveBonesTests
 {
     [Fact]
+    public void FallbackEventMarksAreTheReleaseAndCutKeysNotTheFollowThrough()
+    {
+        var pitch = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchRelease);
+        var swing = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingContact);
+        Assert.Equal(82, pitch.RUpper.X, 8);
+        Assert.Equal(112, swing.Bat.Y, 8);
+        Assert.True(MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchDur).RUpper.X > pitch.RUpper.X);
+        Assert.True(MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingDur).Bat.Y > swing.Bat.Y);
+    }
+
+    [Fact]
     public void RunPlantHasForwardPlantLegAndOppositeArm()
     {
         var tPlant = 0.0;
