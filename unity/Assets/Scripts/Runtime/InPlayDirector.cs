@@ -486,6 +486,10 @@ namespace GrandSluggers.UnityClient
             var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
             if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z))
                 return;
+            // Once a grounded ball reaches the grass, ChaseGlove owns the handoff.
+            // Do not advance the same outfielder here and again after the switch.
+            if (!inAir && FieldingResolver.OutfieldGrass(live.X, live.Z))
+                return;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var of = FieldingPursuit.Choose(
                 map,
