@@ -124,6 +124,15 @@ namespace GrandSluggers.UnityClient
                 return;
             }
 
+            // A dead ball does not wait for a fielder to possess it. Keep this before
+            // ownership dispatch so CPU, assisted defense and two-pad play agree.
+            if (_pending != null && InPlay.DeadBallResultReady(LiveKind(), LiveTime,
+                BallFlight.HangTime(_path), _caught || _buddy, _throwing, _itemFlying))
+            {
+                CommitInPlay();
+                return;
+            }
+
             if (_playerFielding && _preview != null && _pending != null)
             {
                 TickPlayerField(dt);
@@ -140,13 +149,6 @@ namespace GrandSluggers.UnityClient
 
             var rest = BallFlight.RestTime(_path);
             var done = LiveTime >= rest + 0.2f;
-            // Home runs have no fielder or throw to complete. Resolve them on
-            // the authored spectacle clock even when the flight path continues
-            // to emit a rolling sample beyond the wall.
-            var homerun = (_pending != null && _pending.HomeRun)
-                || (_cpuField != null && _cpuField.Kind == PlayKind.HomeRun)
-                || (_last != null && _last.Kind == PlayKind.HomeRun);
-            if (homerun && LiveTime > 2.4f) done = true;
             if (done && !_itemFlying) BeginResult();
         }
 
@@ -431,7 +433,6 @@ namespace GrandSluggers.UnityClient
                 BeginThrow(_cpuField.Throw, _cpuField.Cutoff, 0);
                 return;
             }
-            if (_cpuField.Kind == PlayKind.HomeRun && LiveTime < 2.4f) return;
             if (!grounder && LiveTime < hang + 0.35f) return;
             if (_itemFlying) return;
             if (_match.LivePlay.Snapshot.IsTime)

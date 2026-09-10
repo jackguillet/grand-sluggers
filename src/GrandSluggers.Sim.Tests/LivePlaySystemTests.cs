@@ -168,6 +168,62 @@ public sealed class LivePlaySystemTests
         Assert.Equal(batter, match.Batter.Id);
     }
 
+    [Theory]
+    [InlineData(LivePlayCommandSource.Cpu, false)]
+    [InlineData(LivePlayCommandSource.Human, false)]
+    [InlineData(LivePlayCommandSource.Cpu, true)]
+    [InlineData(LivePlayCommandSource.Human, true)]
+    public void UncaughtHomerCompletesWithoutPossessionAndScoresExactlyOnce(
+        LivePlayCommandSource source, bool loaded)
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        if (loaded)
+            for (var bag = 1; bag <= 3; bag++)
+                Assert.True(match.StationRunner(bag, match.AwayOrder[bag]));
+        Assert.True(match.BeginAtBat(Paint, Swing, out var hit, out _));
+        hit = hit with { HomeRun = true, CarryFt = 420, LaunchDeg = 35 };
+        var field = new FieldingResult(PlayKind.HomeRun, null, null, 4, 0, 420, false, false);
+        var batter = match.Batter.Id;
+        match.LivePlay.Apply(LivePlayCommand.Begin(field.Kind, source));
+        match.LivePlay.Apply(LivePlayCommand.Advance(4.2, field.Kind, false, false, false, 0, source));
+        Assert.False(InPlay.DeadBallResultReady(field.Kind, match.LivePlay.ElapsedSeconds,
+            field.HangTimeSec, false, false, false)); // Wall-catch window is still open.
+        match.SetPaused(true);
+        match.LivePlay.Apply(LivePlayCommand.Advance(10, field.Kind, false, false, false, 0, source));
+        Assert.Equal(4.2, match.LivePlay.ElapsedSeconds);
+        match.SetPaused(false);
+        var atEnd = match.LivePlay.Apply(LivePlayCommand.Advance(
+            0.2, field.Kind, false, false, false, 0, source)).Snapshot;
+        Assert.False(atEnd.IsTime); // Ordinary live-ball Time correctly requires possession.
+        Assert.True(InPlay.DeadBallResultReady(field.Kind, atEnd.ElapsedSeconds,
+            field.HangTimeSec, false, false, false));
+        var command = LivePlayCommand.Complete(Paint, Swing, hit, field, source);
+        var result = match.LivePlay.Apply(command).CompletedPlay;
+        Assert.Equal(PlayKind.HomeRun, result!.Kind);
+        Assert.Equal(loaded ? 4 : 1, match.AwayScore);
+        Assert.NotEqual(batter, match.Batter.Id);
+        Assert.Null(match.First);
+        Assert.Null(match.Second);
+        Assert.Null(match.Third);
+        Assert.Null(match.LivePlay.Apply(command).CompletedPlay);
+        Assert.Equal(loaded ? 4 : 1, match.AwayScore);
+        match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.Single, source));
+        Assert.Equal(0, match.LivePlay.ElapsedSeconds);
+    }
+
+    [Theory]
+    [InlineData(PlayKind.HomeRun, true, false, false)]
+    [InlineData(PlayKind.HomeRun, false, true, false)]
+    [InlineData(PlayKind.HomeRun, false, false, true)]
+    [InlineData(PlayKind.FlyOut, false, false, false)]
+    [InlineData(PlayKind.Single, false, false, false)]
+    [InlineData(PlayKind.Foul, false, false, false)]
+    public void DeadBallCompletionCannotResolveACatchThrowEffectOrOrdinaryLiveBall(
+        PlayKind kind, bool caught, bool throwing, bool effectInFlight)
+    {
+        Assert.False(InPlay.DeadBallResultReady(kind, 100, 4, caught, throwing, effectInFlight));
+    }
+
     (Match Match, AtBatResult Hit, FieldingResult Field) GrounderOnFirst()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
