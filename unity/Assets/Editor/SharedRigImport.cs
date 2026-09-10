@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using GrandSluggers.Sim;
 using GrandSluggers.UnityClient;
@@ -168,11 +169,20 @@ namespace GrandSluggers.EditorTools
             var importer = (ModelImporter)assetImporter;
             var clips = importer.defaultClipAnimations;
             for (var i = 0; i < clips.Length; i++)
-            {
-                clips[i].name = verb.Clip;
-                clips[i].loopTime = verb.Loop;
-            }
+                Configure(clips[i], verb);
             if (clips.Length > 0) importer.clipAnimations = clips;
+        }
+
+        internal static void Configure(ModelImporterClipAnimation clip, PackageVerbSlot verb)
+        {
+            clip.name = verb.Clip;
+            clip.loopTime = verb.Loop;
+            clip.events = verb.Markers.Select(marker => new AnimationEvent
+            {
+                time = (float)marker.At,
+                functionName = marker.Event,
+                stringParameter = marker.Event
+            }).ToArray();
         }
 
         void OnPostprocessAnimation(GameObject go, AnimationClip clip)
@@ -224,26 +234,21 @@ namespace GrandSluggers.EditorTools
         static bool TryPackageVerb(string path, out PackageVerbSlot verb)
         {
             verb = default;
-            try
+            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
+            var art = ArtCatalog.Load(data);
+            if (art.PackageErrors.Count > 0)
+                throw new InvalidDataException(string.Join("; ", art.PackageErrors));
+            foreach (var package in art.Packages.Values)
             {
-                var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
-                var art = ArtCatalog.Load(data);
-                foreach (var package in art.Packages.Values)
+                foreach (var candidate in package.Verbs)
                 {
-                    foreach (var candidate in package.Verbs)
+                    if (path.Equals(candidate.Source, StringComparison.OrdinalIgnoreCase)
+                        || path.Equals(candidate.PlayerSource, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (path.Equals(candidate.Source, StringComparison.OrdinalIgnoreCase)
-                            || path.Equals(candidate.PlayerSource, StringComparison.OrdinalIgnoreCase))
-                        {
-                            verb = candidate;
-                            return true;
-                        }
+                        verb = candidate;
+                        return true;
                     }
                 }
-            }
-            catch
-            {
-                // The catalog validator reports malformed or missing package data.
             }
             return false;
         }
