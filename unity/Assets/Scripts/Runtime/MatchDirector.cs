@@ -148,9 +148,6 @@ namespace GrandSluggers.UnityClient
         Character _armedCut;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
-        int _stampOutsBefore;
-        int _stampInning;
-        bool _stampTop;
         bool _gun;
         float _gunT, _gunDur;
         Vector3 _gunFrom, _gunTo;
@@ -578,14 +575,6 @@ namespace GrandSluggers.UnityClient
             _coach.OnSwing(_swing, _last.AtBat);
         }
 
-        void RememberStamp()
-        {
-            if (_match == null) return;
-            _stampOutsBefore = _match.Outs;
-            _stampInning = _match.Inning;
-            _stampTop = _match.Top;
-        }
-
         void Banner()
         {
             if (TrainingOn && _phase != Phase.Result && _last == null)
@@ -599,8 +588,7 @@ namespace GrandSluggers.UnityClient
                 _banner = "BUDDY JUMP";
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
-                var outs = PlayStamp.OutsRecorded(_stampOutsBefore, _stampInning, _stampTop, _match);
-                _banner = PlayStamp.Label(_last.Kind, outs, _last.RunsScored,
+                _banner = PlayStamp.Label(_last.Kind, _last.OutsOnPlay, _last.RunsScored,
                     _last.Swing.Bunt, _catchDive, _catchJump);
             }
             else
