@@ -967,8 +967,6 @@ namespace GrandSluggers.UnityClient
             var scale = _root.localScale;
             var pos = _root.localPosition;
             clip.SampleAnimation(_root.gameObject, t);
-            var arm = _root.Find("hero-shared");
-            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
             _root.localScale = scale;
             _root.localPosition = pos;
             _packageSampledLastTick = true;
@@ -1007,6 +1005,8 @@ namespace GrandSluggers.UnityClient
                 _root.localPosition = rootPosition;
                 _root.localScale = rootScale;
             }
+            // The HeroActor transform owns world facing. This local rotation is the
+            // imported DCC basis and must return to bind before another verb.
             _packageSampledLastTick = false;
         }
 
