@@ -5,6 +5,25 @@ namespace GrandSluggers.Sim.Tests;
 
 public class PlayCameraTests
 {
+    [Theory]
+    [InlineData(AtBatShots.Mound, -1)]
+    [InlineData(AtBatShots.Plate, 1)]
+    public void PitchingHorizontalIntentAlwaysProjectsToTheSameScreenSide(string shotId, double expectedWorldSign)
+    {
+        var content = ContentCatalog.Load();
+        var shot = content.Shots.Must(shotId);
+        var world = AtBatControl.WorldHorizontal(1, shot);
+        Assert.Equal(expectedWorldSign, world);
+
+        var centerRubber = PitchFlight.Release(0);
+        var movedRubber = PitchFlight.Release(world);
+        AssertProjectsRight(shot, centerRubber, movedRubber);
+
+        var centerCurve = PitchFlight.Point("fastball", 0.82, breakX: 0);
+        var movedCurve = PitchFlight.Point("fastball", 0.82, breakX: world);
+        AssertProjectsRight(shot, centerCurve, movedCurve);
+    }
+
     [Fact]
     public void SetIsMoundWhen1PPitchesPlateWhenBattingOr1v1()
     {
@@ -22,6 +41,18 @@ public class PlayCameraTests
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(false, false, 0, 0, 0, seats: 2));
         Assert.Equal(AtBatShots.Plate, AtBatShots.SetShot(true, true, 0, 0, 0, seats: 2));
+    }
+
+    static void AssertProjectsRight(CameraShot shot,
+        (double X, double Y, double Z) center,
+        (double X, double Y, double Z) moved)
+    {
+        var centerView = PlayCamera.Project(shot, new Vec3(center.X, center.Y, center.Z));
+        var movedView = PlayCamera.Project(shot, new Vec3(moved.X, moved.Y, moved.Z));
+        Assert.NotNull(centerView);
+        Assert.NotNull(movedView);
+        Assert.True(movedView.Value.X > centerView.Value.X,
+            $"{shot.Id}: mapped right projected {movedView.Value.X} vs center {centerView.Value.X}");
     }
 
     [Fact]
