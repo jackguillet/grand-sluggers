@@ -553,11 +553,25 @@ namespace GrandSluggers.UnityClient
 
         static void DrawGettingStartedModes(InputScheme scheme, HowToPlay.Page page)
         {
+            var table = GettingStarted.ModeTable(Screen.width, Screen.height);
+            var tableBox = new BookletLayout.Box(table.X, table.Y, table.W, table.H);
+            var bodyStyle = _bookLine;
+            var heights = ModeHeights(scheme, table, bodyStyle);
+            var rows = BookletLayout.MeasuredStack(tableBox, heights);
+            if (!BookletLayout.Fits(rows, tableBox))
+            {
+                bodyStyle = _bookLineCompact;
+                heights = ModeHeights(scheme, table, bodyStyle);
+                rows = BookletLayout.MeasuredStack(tableBox, heights);
+            }
+            if (!BookletLayout.Fits(rows, tableBox))
+                ReportBookOverflow("getting-started-modes/table");
             for (var i = 0; i < GettingStarted.Modes.Count; i++)
             {
                 var mode = GettingStarted.Modes[i];
-                var row = GettingStarted.ModeRow(i, Screen.width, Screen.height);
-                var columns = BookletLayout.LabeledRow(row, MeasureWidth(_h1, mode.Title));
+                var row = rows[i];
+                var columns = BookletLayout.LabeledRow(
+                    (row.X, row.Y, row.W, row.H), MeasureWidth(_h1, mode.Title));
                 var head = ToRect(columns.Label);
                 var prev = GUI.color;
                 GUI.color = new Color(0.22f, 0.62f, 0.32f, 1f);
@@ -569,6 +583,18 @@ namespace GrandSluggers.UnityClient
                     line, "getting-started-modes/" + mode.Id);
             }
             DrawBookLines(page, GettingStarted.LineBand(Screen.width, Screen.height));
+        }
+
+        static float[] ModeHeights(InputScheme scheme,
+            (float X, float Y, float W, float H) table, GUIStyle bodyStyle)
+        {
+            return GettingStarted.Modes.Select(mode =>
+            {
+                var columns = BookletLayout.LabeledRow(table, MeasureWidth(_h1, mode.Title));
+                var labelH = MeasureHeight(_h1, mode.Title, columns.Label.W - 12f) + 12f;
+                var bodyH = MeasureHeight(bodyStyle, GettingStarted.Line(mode, scheme), columns.Body.W) + 8f;
+                return Mathf.Max(labelH, bodyH);
+            }).ToArray();
         }
 
         static void DrawContentsToc(HowToPlay.Page page)
@@ -1095,6 +1121,7 @@ namespace GrandSluggers.UnityClient
             _bookBadge.wordWrap = false;
             _bookBadge.clipping = TextClipping.Clip;
             _bookBadge.alignment = TextAnchor.MiddleCenter;
+            _bookBadge.padding = new RectOffset(0, 0, 0, 0);
             _bookChip = new GUIStyle(_bookTabSelected);
             _bookChip.wordWrap = true;
             _bookFooter = Sty(HowToPlay.BookFooterPt, Color.white, FontStyle.Bold);
