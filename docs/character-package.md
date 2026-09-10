@@ -57,7 +57,7 @@ Bone **names** stay the contract so bat, glove, and cameras work. Rest pose, mes
 | `segmented` | Rigid pieces **authored in Blender** parented to sockets | Stopgap only. A Python split of a posed GLB shredded Fenn's face. Do not do that again. |
 | `rigid` | Whole mesh frozen | Statue / debug. Do not ship: MoveBones still runs and stick limbs poke out under the mesh. |
 
-Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
+Quality fill: Blender actions named `idle` `pose` `walk` `run` `swing` `pitch` `scoop` `throw` `slide` on **this** armature (`tools/blender/package_clips.py` for idle/pose). Body and takes must use the same FBX axis, scale, and baked-space settings. Prefer exporting them from one DCC scene; an FBX import/re-export with different settings can resolve every bone name while writing an incompatible bind basis. Unity plays those Generic takes. Until a verb has a take, `CharacterMotion` local flexion is a stand-in, not the ship pipeline.
 
 ## Verb manifest
 
@@ -76,7 +76,7 @@ The authoring and `Resources` FBX copies are separate declared sources so the va
 
 - SharedRig primitives and `hero-shared` extras still use **MoveBones**.
 - Unique packages must not play Rio authored pose-clips or `swing.fbx`.
-- Unique packages select ready takes from their package manifest. The imported controller stays attached as the package contract; `HeroActor` samples the selected Generic take on the play clock so contact and release remain synchronized with the ball.
+- Unique packages select ready takes from their package manifest. The imported controller stays attached as the package contract; `HeroActor` restores the package's canonical local bind transforms before sampling a take and when returning to fallback, then samples on the play clock so contact and release remain synchronized with the ball.
 - Albedo is a sidecar PNG assigned as URP Lit on import.
 
 ## The original six
@@ -97,6 +97,6 @@ Rio, Vale, Zig, Brondo, Konga, Ashlord stay on `hero-shared` + extras until they
 
 ## Acceptance
 
-Idle is not the test. The Unity validation gate rejects missing or duplicate sockets, an invalid Generic Avatar, unusable skin/bind data, unresolved animation bindings, missing ready clips, marker or loop mismatches, a controller without every ready take, and package assets that cannot load through `Resources`. The player build runs the same imported-package check.
+Idle alone is not the human test. The Unity validation gate rejects missing or duplicate sockets, an invalid Generic Avatar, unusable or mismatched skin/bind matrices, unresolved animation bindings, ready clips whose sampled skinned bounds collapse or leave the rest body, marker or loop mismatches, a controller without every ready take, and package assets that cannot load through `Resources`. The player build runs the same imported-package check.
 
 A unique package is still not done until [screenshot-gate](screenshot-gate.md) **character stills** exist: rest (painted, not inverted) and a ~90° limb pose (shell intact). Imported weights and bindings cannot prove deformation or silhouette quality. Agents do not pass that gate.

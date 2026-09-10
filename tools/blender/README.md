@@ -55,7 +55,9 @@ Unique character package. Spec: `docs/character-package.md`. A posed unrigged GL
 
 Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` requires `--keep-weights`. Default `--bind rigid`. `--bind segmented` is Blender-authored pieces only — a Python split shredded Fenn. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
 
-Generic idle + pose takes on an existing package (no remesh):
+Generic idle + pose takes on an existing package (no remesh). The exporter keeps
+the source FBX space settings and trims each take to its keyed range; a different
+axis/scale export basis can resolve by bone name in Unity while collapsing skin:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/package_clips.py -- \
@@ -64,7 +66,9 @@ Generic idle + pose takes on an existing package (no remesh):
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
-Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned):
+Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned). This
+single command authors the body, idle, and pose from one Blender scene so their
+bind basis cannot drift through an FBX import/re-export round trip:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
