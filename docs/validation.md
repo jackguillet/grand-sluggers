@@ -63,3 +63,9 @@ The gate takes 24 deliveries through the actual launch and flight endpoint code:
 Launch the pinned GUI editor from a dedicated worktree with `-executeMethod GrandSluggers.EditorTools.FieldingPursuitGate.Run` (or **Grand Sluggers → Verify Fielding Pursuit**). Set `GS_VALIDATION_REVISION` and optionally `GS_FIELDING_PURSUIT_EVIDENCE`; default output is `unity/Temp/fielding-pursuit.json`. No batch or quit flag.
 
 Eight actual `TickLive` cases cover low/high grounders to three directions, a routine fly and an uncaught wall ball. The gate records routes at 10 Hz and checks every synthetic frame for rated running speed, legal pickup, bounded completion and the home-run deadline. Startup is capped at 180 seconds and case simulation at trajectory duration plus eight seconds. This injects contact and drives time; rendered route quality and physical input remain separate checks.
+
+## Opt-in at-bat input gate
+
+Launch the pinned GUI editor with `-executeMethod GrandSluggers.EditorTools.AtBatInputGate.Run` (menu **Grand Sluggers → Verify At-Bat Input**), from a dedicated worktree. Set `GS_VALIDATION_REVISION` and optionally `GS_AT_BAT_INPUT_EVIDENCE`; no batch or quit flag. The gate creates temporary InputSystem gamepads and a keyboard, drives actual Controls and director SET/Flight methods, then removes the devices and restores input state.
+
+Cases cover normal tap, charged release, early release during the pitcher's windup, keyboard-release isolation from seat two, camera-relative horizontal pitching, and the batter cursor remaining independent of pitch curve. This verifies routed synthetic input, not physical controllers, perceived feel, or a full human half.
