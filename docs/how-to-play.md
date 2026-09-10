@@ -37,7 +37,7 @@ South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G
 
 One player with controller 1, or two controllers. Analog **LT / ZL** charges (light pull starts the clock). Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
 
-The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows the active Player 1 input; the toggle locks it. On launch, **Auto** chooses a connected controller before keyboard/mouse. Press **F6** on the title screen to cycle and persist **Auto → Controller → Keyboard + mouse** for controller testing. Green is offense. Red is defense.
+The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows the active Player 1 input; the toggle locks it. On launch, **Auto** chooses a connected controller before keyboard/mouse. Press **F6** on the title screen to cycle and persist **Auto → Controller → Keyboard + mouse** for controller testing. If Controller is selected with no connected controller, keyboard and mouse still navigate and become Player 1 at first pitch. Green is offense. Red is defense.
 
 ---
 
@@ -189,7 +189,7 @@ Controller **1 is player 1**. **North** on captains picks HOME or AWAY for that 
 - **SET.** Mound when a human is on the rubber, plate when you bat vs CPU. Same role recipe as 1P. Cards stay batter bottom-left, pitcher bottom-right. Highlight yours.
 - **Pitch / swing.** Controller-on-mound walks the rubber, charges, throws. Controller-in-the-box walks the box, charges, swings. Same four verbs as 1P.
 - **In-play.** Fielding controller takes the glove (stick to take, dead stick = CPU cover). Batting controller sends / returns / steals. Both at once.
-- **Unplug controller 2.** That team becomes CPU without restarting the inning.
+- **Disconnect recovery.** A seated controller is remembered by physical device identity for the whole match. If it drops during SET, pitch flight, a live ball, or a throw, play pauses before baseball advances and the other controller keeps its team. Reconnect the same controller to resume automatically, or press South on an unseated controller to deliberately take the missing seat. Player 1 can also press Space, Enter, or left click to take that seat on keyboard and mouse for the rest of the match. If the game was already at Call time, reconnecting returns to Call time rather than resuming play.
 
 ---
 
