@@ -213,6 +213,46 @@ public class MatchTests
     }
 
     [Fact]
+    public void LiveTagOfTheBatterRemovesEveryForceAhead()
+    {
+        var match = LivePlayWithLoadedBases();
+        match.OpenLivePlay();
+        Assert.True(match.LiveForces.At(4));
+
+        Assert.True(match.StepTag(0, match.Pitcher));
+
+        Assert.True(match.LiveBatterOut);
+        Assert.All(new[] { 1, 2, 3 }, bag => Assert.NotNull(match.RunnerAt(bag)));
+        Assert.All(new[] { 1, 2, 3, 4 }, bag => Assert.False(match.LiveForces.At(bag)));
+        var later = match.StepThrow(2, runnerBeats: false, match.Pitcher);
+        Assert.True(later.Out, "the occupied runner can still be tagged at second");
+        Assert.False(later.Force, "retiring the batter removes every dependent force");
+    }
+
+    [Theory]
+    [InlineData(1, 3)]
+    [InlineData(2, 4)]
+    [InlineData(3, 4)]
+    public void LiveTagOfATrailingRunnerRemovesForcesAhead(int fromBag, int laterBag)
+    {
+        var match = LivePlayWithLoadedBases();
+        match.OpenLivePlay();
+        Assert.True(match.LiveForces.At(4));
+
+        Assert.True(match.StepTag(fromBag, match.Pitcher));
+
+        Assert.Null(match.RunnerAt(fromBag));
+        for (var bag = 1; bag <= 3; bag++)
+            if (bag != fromBag) Assert.NotNull(match.RunnerAt(bag));
+        for (var bag = fromBag + 1; bag <= 4; bag++)
+            Assert.False(match.LiveForces.At(bag));
+        for (var bag = 1; bag <= fromBag; bag++)
+            Assert.True(match.LiveForces.At(bag));
+        var later = match.StepThrow(laterBag, runnerBeats: false, match.Pitcher);
+        Assert.False(later.Force, "a later throw cannot restore a force removed by the tag");
+    }
+
+    [Fact]
     public void StepTagWithNobodyOnThatBagIsANoOp()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
@@ -232,6 +272,15 @@ public class MatchTests
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         return (match, paint, swing, hit, field);
+    }
+
+    Match LivePlayWithLoadedBases()
+    {
+        var match = Match.Slice(_content, innings: 3, seed: 1);
+        Assert.True(match.StationRunner(1, match.AwayOrder[1]));
+        Assert.True(match.StationRunner(2, match.AwayOrder[2]));
+        Assert.True(match.StationRunner(3, match.AwayOrder[3]));
+        return match;
     }
 
     [Fact]
