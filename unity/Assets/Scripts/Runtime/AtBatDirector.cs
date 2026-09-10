@@ -471,7 +471,7 @@ namespace GrandSluggers.UnityClient
                 return b.transform.position + Vector3.up * 3.2f;
             return _ball.sqrMagnitude > 0.4f
                 ? _ball
-                : new Vector3((float)HomeSet.BatterX, (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
+                : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
         void AimDiamond(AtBatResult hit)
