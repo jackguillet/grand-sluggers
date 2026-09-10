@@ -407,11 +407,9 @@ namespace GrandSluggers.UnityClient
                 _fz = Diamond.Rubber.Z;
                 return;
             }
-            (Character who, string pos) pick;
-            if (_playerFielding && !FieldingResolver.BuddyJumpOffered(_preview))
-                pick = FieldingResolver.NearestGlove(map, _preview.LandingX, _preview.LandingZ, _gloveAt);
-            else
-                pick = ( _preview.Fielder, _preview.Position );
+            // Preview owns the trajectory-planned first glove for CPU and dead-stick
+            // defense alike. Player swap remains available once the ball is live.
+            var pick = (who: _preview.Fielder, pos: _preview.Position);
             _glovePos = pick.pos;
             var at = _gloveAt[_glovePos];
             _fx = at.X;
