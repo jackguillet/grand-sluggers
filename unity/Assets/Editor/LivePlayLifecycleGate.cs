@@ -24,13 +24,22 @@ namespace GrandSluggers.EditorTools
             if (EditorApplication.isPlaying)
                 throw new InvalidOperationException("Run this gate from Edit mode in a dedicated validation worktree.");
             EditorSceneManager.OpenScene("Assets/Scenes/HarborDiamond.unity");
+            SessionState.SetFloat(Pending + ".deadline", (float)EditorApplication.timeSinceStartup + 180f);
             SessionState.SetBool(Pending, true);
             EditorApplication.isPlaying = true;
         }
 
         static void Update()
         {
-            if (!SessionState.GetBool(Pending, false) || !EditorApplication.isPlaying) return;
+            if (!SessionState.GetBool(Pending, false)) return;
+            if (EditorApplication.timeSinceStartup > SessionState.GetFloat(Pending + ".deadline", 0))
+            {
+                SessionState.SetBool(Pending, false);
+                Write(new Evidence { error = "Harbor Play mode did not initialize within 180 seconds." });
+                Debug.LogError("Grand Sluggers lifecycle gate: Harbor startup timed out.");
+                return;
+            }
+            if (!EditorApplication.isPlaying) return;
             var play = UnityEngine.Object.FindFirstObjectByType<MatchDirector>();
             if (play == null || Get<Match>(play, "_match") == null) return;
             SessionState.SetBool(Pending, false);
@@ -41,24 +50,32 @@ namespace GrandSluggers.EditorTools
                 var cases = new List<Case>();
                 foreach (var human in new[] { false, true })
                 {
-                    cases.Add(Verify(play, human, false, false));
-                    cases.Add(Verify(play, human, true, false));
-                    cases.Add(Verify(play, human, false, true));
-                    cases.Add(Verify(play, human, true, false, walkoff: true));
+                    cases.Add(Verify(evidence, play, human, false, false));
+                    cases.Add(Verify(evidence, play, human, true, false));
+                    cases.Add(Verify(evidence, play, human, false, true));
+                    cases.Add(Verify(evidence, play, human, true, false, walkoff: true));
                 }
                 evidence.cases = cases.ToArray();
                 evidence.ok = true;
                 Debug.Log("Grand Sluggers live play lifecycle OK: " + cases.Count + " real TickLive cases.");
             }
             catch (Exception ex) { evidence.error = ex.ToString(); Debug.LogException(ex); }
+            Write(evidence);
+        }
+
+        static void Write(Evidence evidence)
+        {
             var output = Environment.GetEnvironmentVariable("GS_LIVE_PLAY_EVIDENCE") ??
                 Path.Combine(Path.GetDirectoryName(Application.dataPath)!, "Temp", "live-play-lifecycle.json");
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
             File.WriteAllText(output, JsonUtility.ToJson(evidence, true));
         }
 
-        static Case Verify(MatchDirector play, bool human, bool loaded, bool robbed, bool walkoff = false)
+        static Case Verify(Evidence evidence, MatchDirector play, bool human, bool loaded, bool robbed, bool walkoff = false)
         {
+            var entry = new Case { human = human, loaded = loaded, robbed = robbed, walkoff = walkoff,
+                phase = "initializing" };
+            evidence.activeCase = entry;
             var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: walkoff ? 1 : 3, seed: 1);
             if (walkoff) match.SkipToHomeCaptainAtBat();
             Set(play, "_match", match);
@@ -100,6 +117,9 @@ namespace GrandSluggers.EditorTools
                 }
                 Invoke(play, "TickLive", 1f / 60f);
                 elapsed += 1f / 60f;
+                entry.elapsed = elapsed;
+                entry.phase = Phase(play);
+                entry.score = walkoff ? match.HomeScore : match.AwayScore;
             }
             Require(Phase(play) == "Result", "Live ball did not reach Result: " + Phase(play));
             var result = Get<PlayEvent>(play, "_last");
@@ -123,7 +143,7 @@ namespace GrandSluggers.EditorTools
         static void Set(MatchDirector p, string name, object value) => typeof(MatchDirector).GetField(name, Hidden)!.SetValue(p, value);
         static void Invoke(MatchDirector p, string name, params object[] args) => typeof(MatchDirector).GetMethod(name, Hidden)!.Invoke(p, args);
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
-        [Serializable] sealed class Evidence { public string revision; public string unityVersion; public bool ok; public string error; public Case[] cases; }
+        [Serializable] sealed class Evidence { public string revision; public string unityVersion; public bool ok; public string error; public Case activeCase; public Case[] cases; }
         [Serializable] sealed class Case { public bool human; public bool loaded; public bool robbed; public bool walkoff; public float elapsed; public string kind; public int score; public string phase; public string nextBatter; }
     }
 }
