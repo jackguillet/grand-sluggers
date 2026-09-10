@@ -153,7 +153,7 @@ namespace GrandSluggers.UnityClient
             if (HumanPitches)
             {
                 if (mound.StickY < -0.7f) _match.ResetPitcher();
-                else _match.WalkPitcher(mound.StickX * dt * 1.6f);
+                else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
                 _zone.Show(true, _aimX, _aimY);
@@ -276,7 +276,7 @@ namespace GrandSluggers.UnityClient
             }
             var u = Mathf.Clamp01(_flight / _pitchDur);
             if (HumanPitches)
-                _breakX = Mathf.Clamp(_breakX + PitchPad.StickX * dt * 2.4f, -1f, 1f);
+                _breakX = Mathf.Clamp(_breakX + PitchWorldX(PitchPad.StickX) * dt * 2.4f, -1f, 1f);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
             var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX, from);
             var x = (float)p.X;
@@ -316,6 +316,13 @@ namespace GrandSluggers.UnityClient
                 ? new SwingCommand(false, _charge, 12, false)
                 : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
             Resolve();
+        }
+
+        float PitchWorldX(float screenX)
+        {
+            var shotId = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight,
+                HumanPitches ? _pitchCharge : _charge, _aimX, _aimY, TrainingOn, LiveSeats.Count);
+            return (float)AtBatControl.WorldHorizontal(screenX, _content.Shots.Must(shotId));
         }
 
         void Resolve()
