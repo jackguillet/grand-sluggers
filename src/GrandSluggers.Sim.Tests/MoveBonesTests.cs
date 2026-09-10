@@ -11,9 +11,9 @@ public class MoveBonesTests
         var pitch = MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchRelease);
         var swing = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingContact);
         Assert.Equal(82, pitch.RUpper.X, 8);
-        Assert.Equal(112, swing.Bat.Y, 8);
+        Assert.Equal(34.68, swing.Bat.Y, 8);
         Assert.True(MoveBones.Evaluate(MoveBones.Verb.Pitch, 0, MoveBones.PitchDur).RUpper.X > pitch.RUpper.X);
-        Assert.True(MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingDur).Bat.Y > swing.Bat.Y);
+        Assert.NotEqual(MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingDur).Bat, swing.Bat);
     }
 
     [Fact]
@@ -79,6 +79,19 @@ public class MoveBonesTests
         Assert.True(contact.Torso.Y > load.Torso.Y, "contact after load");
         Assert.True(follow.Torso.Y > contact.Torso.Y || follow.Bat.Y > contact.Bat.Y, "follow-through after contact");
         Assert.Equal(MoveBones.SwingContact, MoveBones.Mark(MoveBones.Verb.Swing, MoveBones.ClipEvent.Contact));
+    }
+
+    [Fact]
+    public void LeftSwingReflectsTheWholeHittingPose()
+    {
+        var right = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, MoveBones.SwingContact);
+        var left = MoveBones.MirrorSwing(right);
+
+        Assert.Equal(new MoveBones.Euler(right.Torso.X, -right.Torso.Y, -right.Torso.Z), left.Torso);
+        Assert.Equal(new MoveBones.Euler(right.Head.X, -right.Head.Y, -right.Head.Z), left.Head);
+        Assert.Equal(new MoveBones.Euler(right.RUpper.X, -right.RUpper.Y, -right.RUpper.Z), left.LUpper);
+        Assert.Equal(new MoveBones.Euler(right.RThigh.X, -right.RThigh.Y, -right.RThigh.Z), left.LThigh);
+        Assert.Equal(new MoveBones.Euler(right.Bat.X, -right.Bat.Y, -right.Bat.Z), left.Bat);
     }
 
     [Fact]

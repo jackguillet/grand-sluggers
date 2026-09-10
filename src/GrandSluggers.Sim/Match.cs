@@ -200,6 +200,8 @@ public sealed class Match
     int _outsOnCurrentPlay;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
+    /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
+    public double BatterContactOffsetX { get; private set; }
     public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
     public bool Paused { get; private set; }
     /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
@@ -544,6 +546,7 @@ public sealed class Match
         var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
         SpendPitch(pitch);
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
+        BatterContactOffsetX = box;
 
         if (!swing.Swing)
         {
