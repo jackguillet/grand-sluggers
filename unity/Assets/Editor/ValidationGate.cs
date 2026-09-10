@@ -41,6 +41,7 @@ namespace GrandSluggers.EditorTools
                         + " does not match the tracked project editor version " + expectedVersion + ".");
 
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                CharacterPackageControllerImport.SyncRequired();
                 RequireCompiledSources(evidence);
 
                 var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath);

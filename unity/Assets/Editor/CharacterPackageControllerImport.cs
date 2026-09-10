@@ -36,11 +36,7 @@ namespace GrandSluggers.EditorTools
             _busy = true;
             try
             {
-                var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
-                var art = ArtCatalog.Load(data);
-                foreach (var package in art.Packages.Values)
-                    Sync(package);
-                AssetDatabase.SaveAssets();
+                SyncRequired();
             }
             catch (Exception ex)
             {
@@ -52,8 +48,24 @@ namespace GrandSluggers.EditorTools
             }
         }
 
+        public static void SyncRequired()
+        {
+            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
+            var art = ArtCatalog.Load(data);
+            if (art.PackageErrors.Count > 0)
+                throw new InvalidDataException(string.Join("; ", art.PackageErrors));
+            foreach (var package in art.Packages.Values)
+                Sync(package);
+            AssetDatabase.SaveAssets();
+        }
+
         static void Sync(CharacterPackageSpec package)
         {
+            foreach (var verb in package.Verbs.Where(CharacterPackage.IsReady))
+            {
+                EnsureImportSettings(package.Id, verb.Source, verb);
+                EnsureImportSettings(package.Id, verb.PlayerSource, verb);
+            }
             var controller = EnsureController(package.Controller, package, player: false);
             EnsureController(package.PlayerController, package, player: true);
             if (controller == null) return;
@@ -73,6 +85,40 @@ namespace GrandSluggers.EditorTools
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        static void EnsureImportSettings(string id, string path, PackageVerbSlot verb)
+        {
+            if (AssetImporter.GetAtPath(path) is not ModelImporter importer)
+                throw new InvalidDataException("package " + id + " ready verb " + verb.Verb
+                    + " has no ModelImporter at " + path);
+            var clips = importer.clipAnimations;
+            if (clips == null || clips.Length == 0) clips = importer.defaultClipAnimations;
+            if (clips == null || clips.Length == 0)
+                throw new InvalidDataException("package " + id + " ready verb " + verb.Verb
+                    + " has no imported takes at " + path);
+            var changed = clips.Any(clip =>
+                !string.Equals(clip.name, verb.Clip, StringComparison.OrdinalIgnoreCase)
+                || clip.loopTime != verb.Loop
+                || !EventsMatch(clip.events, verb));
+            if (!changed) return;
+            for (var i = 0; i < clips.Length; i++)
+                SharedRigImport.Configure(clips[i], verb);
+            importer.clipAnimations = clips;
+            importer.SaveAndReimport();
+        }
+
+        static bool EventsMatch(AnimationEvent[] actual, PackageVerbSlot verb)
+        {
+            actual ??= Array.Empty<AnimationEvent>();
+            if (actual.Length != verb.Markers.Count) return false;
+            foreach (var marker in verb.Markers)
+            {
+                if (!actual.Any(ev => string.Equals(ev.functionName, marker.Event, StringComparison.OrdinalIgnoreCase)
+                    && Math.Abs(ev.time - marker.At) <= 0.001))
+                    return false;
+            }
+            return true;
         }
 
         static AnimatorController EnsureController(string path, CharacterPackageSpec package, bool player)
