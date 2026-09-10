@@ -191,6 +191,24 @@ namespace GrandSluggers.UnityClient
             GUI.matrix = matrix;
         }
 
+        public static void DeviceRecovery(LineupSeat missingSeat)
+        {
+            Ensure();
+            var old = GUI.color;
+            GUI.color = new Color(0.025f, 0.018f, 0.04f, 1f);
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _white);
+            GUI.color = old;
+            var w = Mathf.Min(760f, Screen.width - 72f);
+            var h = missingSeat == LineupSeat.Pad1 ? 260f : 224f;
+            var x = (Screen.width - w) * 0.5f;
+            var y = (Screen.height - h) * 0.5f;
+            GUI.DrawTexture(new Rect(x, y, w, h), _panel);
+            GUI.Label(new Rect(x + 28, y + 22, w - 56, 42), SeatRecoveryCopy.Title(missingSeat), _h1);
+            var lines = SeatRecoveryCopy.Lines(missingSeat);
+            for (var i = 0; i < lines.Length; i++)
+                GUI.Label(new Rect(x + 28, y + 82 + i * 36, w - 56, 32), lines[i], i == 0 ? _gold : _body);
+        }
+
         public static void Pause(int item, bool howTo, int page)
         {
             Ensure();
