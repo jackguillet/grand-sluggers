@@ -68,8 +68,10 @@ public static class BookScheme
     public static (float X, float Y, float W, float H) ToggleBar(float screenW, float screenH)
     {
         var book = HowToPlay.BookPanel(screenW, screenH);
-        const float w = 340f;
-        const float h = 36f;
+        // Both labels use one non-wrapping style. This size keeps the longer keyboard label
+        // atomic at the supported couch type size instead of relying on overflow clipping.
+        const float w = 440f;
+        const float h = 48f;
         return (book.X + book.W - 16f - w, book.Y + 10f, w, h);
     }
 
