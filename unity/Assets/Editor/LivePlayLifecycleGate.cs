@@ -107,7 +107,7 @@ namespace GrandSluggers.EditorTools
             {
                 // Supply the catch observation at the real wall window; the production
                 // fielding/Time/commit path must preserve it, never award a homer.
-                if (robbed && !caught && elapsed >= hang - 0.12)
+                if (robbed && !caught && elapsed >= hang + 0.10)
                 {
                     Require(match.AwayScore == 0, "Homer committed before wall-catch opportunity.");
                     Set(play, "_caught", true);
@@ -134,6 +134,7 @@ namespace GrandSluggers.EditorTools
                 entry.closePlay = Get<bool>(play, "_closePlay");
             }
             Require(Phase(play) == "Result", "Live ball did not reach Result: " + Phase(play));
+            if (!robbed) Require(elapsed >= Math.Max(2.4, hang + 0.35), "Ownership bypassed dead-ball deadline.");
             var result = Get<PlayEvent>(play, "_last");
             Require(result != null && result.Kind == (robbed ? PlayKind.FlyOut : PlayKind.HomeRun), "Wrong result.");
             var expected = robbed ? 0 : loaded ? 4 : 1;

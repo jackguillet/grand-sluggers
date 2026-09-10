@@ -661,6 +661,9 @@ namespace GrandSluggers.UnityClient
             _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, FieldPad.Cutoff, def);
             if (!(_caught || _buddy))
             {
+                // Dead balls finish through the shared deadline before ownership dispatch.
+                // A failed pickup must not truncate the remaining wall-catch opportunity.
+                if (InPlay.HasDeadBallResult(LiveKind())) return;
                 CommitInPlay();
                 return;
             }
