@@ -27,8 +27,9 @@ namespace GrandSluggers.UnityClient
 
         void TickInPlay(float dt)
         {
-            _hitT += dt;
             if (_path == null || _path.Length == 0) { BeginResult(); return; }
+            _match.LivePlay.Apply(LivePlayCommand.Advance(
+                dt, LiveKind(), _caught || _buddy, _throwing, _caught || _buddy, _dash01, LiveCommandSource));
             var spray = _pending != null ? _pending.SprayDeg : _last.AtBat.SprayDeg;
             if (_bobbling)
             {
@@ -43,7 +44,7 @@ namespace GrandSluggers.UnityClient
                 _ball = new Vector3((float)_fx, _buddy ? 6.4f : 2.2f, (float)_fz);
             else if (!_throwing)
             {
-                var p = BallFlight.PointAt(_path, spray, _hitT);
+                var p = BallFlight.PointAt(_path, spray, LiveTime);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             }
             if (_smash > 0) _smash -= dt;
@@ -52,12 +53,12 @@ namespace GrandSluggers.UnityClient
             if (_ring != null && _preview != null)
             {
                 var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-                if (LandingMark.On(_preview, _ball.y, _hitT, _caught, _buddy, hang))
+                if (LandingMark.On(_preview, _ball.y, LiveTime, _caught, _buddy, hang))
                 {
                     var plant = LandingMark.At(_preview, _match.Park);
                     var who = PlayFielder();
                     _ring.Show(plant.X, plant.Z, (float)LandingMark.RadiusFt(_preview),
-                        LandingMark.Hot(_hitT, hang, who, _match.Park));
+                        LandingMark.Hot(LiveTime, hang, who, _match.Park));
                 }
                 else
                     _ring.Hide();
@@ -100,7 +101,7 @@ namespace GrandSluggers.UnityClient
                     CommitInPlay();
                     return;
                 }
-                if (!_bobbling && (_caught || _buddy) && TickLiveTag())
+                if (!_bobbling && (_caught || _buddy) && TickLiveContact())
                     return;
                 if (_recoilT > 0) return;
             }
@@ -117,8 +118,7 @@ namespace GrandSluggers.UnityClient
                 {
                     if (OnThrowArrived()) return;
                     if (TryBeginClosePlay()) return;
-                    TickOccupy(0);
-                    if (PlayIsTime())
+                    if (_match.LivePlay.Snapshot.IsTime)
                         CommitInPlay();
                 }
                 return;
@@ -139,30 +139,29 @@ namespace GrandSluggers.UnityClient
             }
 
             var rest = BallFlight.RestTime(_path);
-            var done = _hitT >= rest + 0.2f;
+            var done = LiveTime >= rest + 0.2f;
             // Home runs have no fielder or throw to complete. Resolve them on
             // the authored spectacle clock even when the flight path continues
             // to emit a rolling sample beyond the wall.
             var homerun = (_pending != null && _pending.HomeRun)
                 || (_cpuField != null && _cpuField.Kind == PlayKind.HomeRun)
                 || (_last != null && _last.Kind == PlayKind.HomeRun);
-            if (homerun && _hitT > 2.4f) done = true;
+            if (homerun && LiveTime > 2.4f) done = true;
             if (done && !_itemFlying) BeginResult();
         }
 
         void TickPlayerField(float dt)
         {
-            TickOccupy(dt);
             var pre = _preview;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
-            var chasing = !_caught && !_buddy && (pre.Grounder || pre.Line ? _hitT < rest : _hitT < hang);
+            var chasing = !_caught && !_buddy && (pre.Grounder || pre.Line ? LiveTime < rest : LiveTime < hang);
             var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
             var needsJump = FlyCatch.NeedsJump(pre);
             var plant = FlyCatch.ChaseTarget(pre, _match.Park);
             var who = map.TryGetValue(_glovePos, out var gloveNow) ? gloveNow : pre.Fielder;
-            _buddyWindow = buddyOn && FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
+            _buddyWindow = buddyOn && FlyCatch.JumpWindow(LiveTime, hang, who, _match.Park);
 
             NoteSwitchHint(map, pre);
             if (FieldPad.SwapPitcher && !buddyOn && !(_caught || _buddy))
@@ -252,7 +251,7 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                var inWin = FlyCatch.JumpWindow(_hitT, hang, who, _match.Park);
+                var inWin = FlyCatch.JumpWindow(LiveTime, hang, who, _match.Park);
                 var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
                 var jumpTry = _jumpT > 0 && FlyCatch.HighEnough(_ball.y, needsJump || buddyOn);
                 if (stick < 0.35f && FlyCatch.AutoCatch(under, inWin, needsJump))
@@ -283,7 +282,7 @@ namespace GrandSluggers.UnityClient
             if (_awaitingRelay)
             {
                 if (_throwBag <= 0) _throwBag = 1;
-                var batterIn = _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
+                var batterIn = LiveTime >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
                 if (!FieldPad.SouthDown && !batterIn)
                     return;
                 _awaitingRelay = false;
@@ -296,23 +295,23 @@ namespace GrandSluggers.UnityClient
                 return;
             }
 
-            if (buddyOn && !_buddy && _hitT < hang + 0.18f) return;
+            if (buddyOn && !_buddy && LiveTime < hang + 0.18f) return;
             if (pre.Grounder || pre.Line)
             {
-                if (!_caught && _hitT < rest) return;
+                if (!_caught && LiveTime < rest) return;
             }
-            else if (!(_caught || _buddy) && _hitT < hang) return;
+            else if (!(_caught || _buddy) && LiveTime < hang) return;
             if (_caught || _buddy)
             {
                 _switchPos = "";
-                if (TickLiveTag())
+                if (TickLiveContact())
                     return;
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
                 {
                     BeginPlayerThrowOrCommit(map);
                     return;
                 }
-                if (PlayIsTime())
+                if (_match.LivePlay.Snapshot.IsTime)
                     CommitInPlay();
                 return;
             }
@@ -354,7 +353,6 @@ namespace GrandSluggers.UnityClient
 
         void TickCpuField(float dt)
         {
-            TickOccupy(dt);
             var hang = BallFlight.HangTime(_path);
             var rest = BallFlight.RestTime(_path);
             var grounder = _preview.Grounder;
@@ -383,7 +381,7 @@ namespace GrandSluggers.UnityClient
                 var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
                 var window = CatchWindow(map);
                 var needsJump = FlyCatch.NeedsJump(_preview);
-                var inWin = FlyCatch.JumpWindow(_hitT, hang, PlayFielder(), _match.Park);
+                var inWin = FlyCatch.JumpWindow(LiveTime, hang, PlayFielder(), _match.Park);
                 var under = FlyCatch.Under(_fx, _fz, _ball.x, _ball.z, plant.X, plant.Z, window, needsJump);
                 if (FlyCatch.AutoCatch(under, inWin, needsJump))
                 {
@@ -393,22 +391,22 @@ namespace GrandSluggers.UnityClient
                     ArmRecoil();
                 }
             }
-            if (!_caught && reached && (grounder ? _hitT >= hang && _ball.y < 3.2f
-                : line ? _hitT >= hang - 0.12f && _ball.y < 8f
-                : _hitT >= hang - 0.18f))
+            if (!_caught && reached && (grounder ? LiveTime >= hang && _ball.y < 3.2f
+                : line ? LiveTime >= hang - 0.12f && _ball.y < 8f
+                : LiveTime >= hang - 0.18f))
             {
                 CatchGlove();
                 ArmRecoil();
             }
-            if (!grounder && !line && !_caught && !_buddy && _hitT < hang) return;
-            if ((grounder || line) && !_caught && _hitT < rest) return;
+            if (!grounder && !line && !_caught && !_buddy && LiveTime < hang) return;
+            if ((grounder || line) && !_caught && LiveTime < rest) return;
             if (_cpuField.Bobble && _caught)
                 return;
             if (HumanOwnsThrow && (_caught || _buddy))
             {
                 _playerFielding = true;
                 var owned = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-                if (TickLiveTag())
+                if (TickLiveContact())
                     return;
                 ReadThrowBag(InPlay.StickNamesBag(false, true));
                 if (FieldPad.SouthDown || FieldPad.Cutoff)
@@ -416,11 +414,11 @@ namespace GrandSluggers.UnityClient
                     BeginPlayerThrowOrCommit(owned);
                     return;
                 }
-                if (PlayIsTime())
+                if (_match.LivePlay.Snapshot.IsTime)
                     CommitInPlay();
                 return;
             }
-            if ((_caught || _buddy) && !_throwing && TickLiveTag())
+            if ((_caught || _buddy) && !_throwing && TickLiveContact())
                 return;
             if (outPlay && grounder)
             {
@@ -433,10 +431,10 @@ namespace GrandSluggers.UnityClient
                 BeginThrow(_cpuField.Throw, _cpuField.Cutoff, 0);
                 return;
             }
-            if (_cpuField.Kind == PlayKind.HomeRun && _hitT < 2.4f) return;
-            if (!grounder && _hitT < hang + 0.35f) return;
+            if (_cpuField.Kind == PlayKind.HomeRun && LiveTime < 2.4f) return;
+            if (!grounder && LiveTime < hang + 0.35f) return;
             if (_itemFlying) return;
-            if (PlayIsTime())
+            if (_match.LivePlay.Snapshot.IsTime)
                 CommitInPlay();
         }
 
@@ -446,18 +444,18 @@ namespace GrandSluggers.UnityClient
         {
             if (_path == null) return;
             var spray = _pending != null ? _pending.SprayDeg : 0;
-            var live = BallFlight.PointAt(_path, spray, _hitT);
+            var live = BallFlight.PointAt(_path, spray, LiveTime);
             var hang = BallFlight.HangTime(_path);
             var target = FieldingResolver.GloveChaseTarget(
-                pre, _match.Park, live.X, live.Z, live.Y, _hitT, hang);
+                pre, _match.Park, live.X, live.Z, live.Y, LiveTime, hang);
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
             TryHandoffOutfield(map, target.X, target.Z);
             var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
             var speed = run;
-            if (FieldingResolver.InAir(pre, live.Y, _hitT, hang))
+            if (FieldingResolver.InAir(pre, live.Y, LiveTime, hang))
                 speed = FieldingResolver.CatchUpSpeedFt(
-                    Diamond.Dist(_fx, _fz, target.X, target.Z), hang - _hitT, run, pre.Frozen);
+                    Diamond.Dist(_fx, _fz, target.X, target.Z), hang - LiveTime, run, pre.Frozen);
             var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt, _match.Park);
             _fx = next.X;
             _fz = next.Z;
@@ -481,9 +479,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_preview == null || _pending == null || _path == null) return;
             if (_caught || _buddy || _throwing) return;
-            var live = BallFlight.PointAt(_path, _pending.SprayDeg, _hitT);
+            var live = BallFlight.PointAt(_path, _pending.SprayDeg, LiveTime);
             var hang = BallFlight.HangTime(_path);
-            var inAir = FieldingResolver.InAir(_preview, live.Y, _hitT, hang);
+            var inAir = FieldingResolver.InAir(_preview, live.Y, LiveTime, hang);
             var plant = FlyCatch.ChaseTarget(_preview, _match.Park);
             if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z))
                 return;
@@ -524,7 +522,7 @@ namespace GrandSluggers.UnityClient
             {
                 var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
                 var t = FieldingResolver.GloveChaseTarget(
-                    _preview, _match.Park, _ball.x, _ball.z, _ball.y, _hitT, hang);
+                    _preview, _match.Park, _ball.x, _ball.z, _ball.y, LiveTime, hang);
                 x = t.X;
                 z = t.Z;
             }
@@ -552,7 +550,7 @@ namespace GrandSluggers.UnityClient
             if (pre != null && FlyCatch.IsFly(pre) && _path != null)
             {
                 var hang = BallFlight.HangTime(_path);
-                if (_hitT < hang)
+                if (LiveTime < hang)
                     return FlyCatch.ChaseTarget(pre, _match.Park);
             }
             return (_ball.x, _ball.z);
@@ -638,11 +636,11 @@ namespace GrandSluggers.UnityClient
             if (string.IsNullOrEmpty(_buddyPos)) return;
             var hang = BallFlight.HangTime(_path);
             var plant = FlyCatch.WallPlant(_preview, _match.Park);
-            var u = Mathf.Clamp01(_hitT / Mathf.Max(0.25f, (float)hang - 0.4f));
+            var u = Mathf.Clamp01(LiveTime / Mathf.Max(0.25f, (float)hang - 0.4f));
             var start = Diamond.Positions[_buddyPos];
             _gloveAt[_buddyPos] = (start.X + (plant.X - start.X) * u, start.Z + (plant.Z - start.Z) * u);
             if (!_playerFielding)
-                _buddyWindow = FlyCatch.JumpWindow(_hitT, hang, _preview.Fielder, _match.Park);
+                _buddyWindow = FlyCatch.JumpWindow(LiveTime, hang, _preview.Fielder, _match.Park);
         }
 
         void ReadThrowBag(bool stickOk)
@@ -655,7 +653,7 @@ namespace GrandSluggers.UnityClient
         void BeginPlayerThrowOrCommit(Dictionary<string, Character> map)
         {
             var hopperCaught = _preview != null && _preview.Grounder && (_caught || _buddy);
-            var def = _match.LiveForce
+            var def = _match.LivePlay.ForceRecorded
                 ? 1
                 : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
             _throwBag = InPlay.CommitBag(_throwBag, hopperCaught, FieldPad.Cutoff, def);
@@ -796,10 +794,13 @@ namespace GrandSluggers.UnityClient
             if (_match != null && bag is >= 1 and <= 4)
             {
                 var close = ClosePlay.Offered(
-                    bag, _match.LiveForces, _match.Second != null, _match.Third != null);
+                    bag, _match.LivePlay.Forces, _match.Second != null, _match.Third != null);
                 if (!close)
                 {
-                    step = _match.StepThrow(bag, RelayBeats(bag), PlayFielder());
+                    var command = LivePlayCommand.ThrowArrived(
+                        bag, RelayBeats(bag), PlayFielder(), LiveCommandSource);
+                    var result = _match.LivePlay.Apply(command);
+                    step = result.Throw;
                     if (!string.IsNullOrEmpty(step.Value.Caption))
                         _sub = step.Value.Caption;
                     MaybeStampCloseSafe(bag);
@@ -828,7 +829,7 @@ namespace GrandSluggers.UnityClient
             else if (bag == 3 && _match.Second != null) needed = InPlay.BagToBagSec(_match.Second);
             else if (bag == 4 && _match.Third != null) needed = InPlay.BagToBagSec(_match.Third);
             else return;
-            if (InPlay.CloseSafe(_hitT, needed))
+            if (InPlay.CloseSafe(LiveTime, needed))
                 StampSafe();
         }
 
@@ -838,13 +839,13 @@ namespace GrandSluggers.UnityClient
             if (_playerFielding)
             {
                 if (bag == 1)
-                    return _hitT >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
+                    return LiveTime >= InPlay.HomeToFirstSec(_match.Batter, _dash01);
                 if (bag == 2 && _match.First != null)
-                    return _hitT >= InPlay.BagToBagSec(_match.First);
+                    return LiveTime >= InPlay.BagToBagSec(_match.First);
                 if (bag == 3 && _match.Second != null)
-                    return _hitT >= InPlay.BagToBagSec(_match.Second);
+                    return LiveTime >= InPlay.BagToBagSec(_match.Second);
                 if (bag == 4 && _match.Third != null)
-                    return _hitT >= InPlay.BagToBagSec(_match.Third);
+                    return LiveTime >= InPlay.BagToBagSec(_match.Third);
                 return false;
             }
             if (_pending == null || _cpuField == null) return false;
@@ -895,12 +896,14 @@ namespace GrandSluggers.UnityClient
                 var result = BuildPlayerResult();
                 // Player already resolved catch/throw. CPU bananas must play visibly
                 // during InPlay (TickItem) — never a silent 40% roll after the glove.
-                _last = _match.FinishAtBat(_pitch, _swing, _pending, result);
+                _last = _match.LivePlay.Apply(LivePlayCommand.Complete(
+                    _pitch, _swing, _pending, result, LiveCommandSource)).CompletedPlay;
                 _coach?.OnField(result, _match);
             }
             else if (_cpuField != null && _pending != null)
             {
-                _last = _match.FinishAtBat(_pitch, _swing, _pending, _cpuField);
+                _last = _match.LivePlay.Apply(LivePlayCommand.Complete(
+                    _pitch, _swing, _pending, _cpuField, LiveCommandSource)).CompletedPlay;
                 _coach?.OnField(_cpuField, _match);
             }
             Banner();
@@ -909,7 +912,6 @@ namespace GrandSluggers.UnityClient
             _playerFielding = false;
             _pending = null;
             _cpuField = null;
-            _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _throwing = false;
             _closePlay = false;
             _closeIcon = false;
@@ -1129,7 +1131,7 @@ namespace GrandSluggers.UnityClient
         bool TryBeginClosePlay()
         {
             if (_match == null) return false;
-            if (!ClosePlay.Offered(_throwBag, _match.LiveForces, _match.Second != null, _match.Third != null))
+            if (!ClosePlay.Offered(_throwBag, _match.LivePlay.Forces, _match.Second != null, _match.Third != null))
                 return false;
             _closePlay = true;
             _closePlayT = 0;
@@ -1187,7 +1189,8 @@ namespace GrandSluggers.UnityClient
             _match.ClosePlaySafe = safe;
             _sub = ClosePlay.Caption(_closeBag, safe);
             if (safe) StampSafe();
-            _match.StepThrow(_closeBag, safe, PlayFielder());
+            _match.LivePlay.Apply(LivePlayCommand.ThrowArrived(
+                _closeBag, safe, PlayFielder(), LiveCommandSource));
             _closePlay = false;
             _closeIcon = false;
             CommitInPlay();
@@ -1198,133 +1201,23 @@ namespace GrandSluggers.UnityClient
             if (_cpuField != null) return _cpuField.Kind;
             if (_preview == null || _pending == null) return PlayKind.Single;
             var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-            var inAir = _caught || _buddy || _hitT < hang;
+            var inAir = _caught || _buddy || LiveTime < hang;
             return FlyCatch.PlayerKind(_caught || _buddy, _preview, _pending, inAir);
         }
 
-        void TickOccupy(float dt)
-        {
-            if (_match == null || _pending == null) return;
-            var kind = LiveKind();
-            var dest = InPlay.BatterDestBag(kind);
-            var batter = _match.Batter;
-            var feet = InPlay.RunFeet(_hitT, batter, _dash01);
-            var (bx, bz) = dest > 0
-                ? InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ)
-                : (HomeSet.BatterX, HomeSet.BatterZ);
-            var batterOn = dest > 0 && InPlay.OccupyingBag(bx, bz);
-            var bat = InPlay.TickOccupy(batterOn, _occupyBatter, dt);
-            _occupyBatter = (float)bat.Sec;
-
-            TickOccupied(1, _match.First, kind, dt, ref _occupy1);
-            TickOccupied(2, _match.Second, kind, dt, ref _occupy2);
-            TickOccupied(3, _match.Third, kind, dt, ref _occupy3);
-        }
-
-        void TickOccupied(int fromBag, Character who, PlayKind kind, float dt, ref float sec)
-        {
-            if (who == null) { sec = 0; return; }
-            var dest = InPlay.OccupiedDestBag(fromBag, kind, _match.SendAll, _caught || _buddy);
-            var feet = InPlay.RunFeet(_hitT, who);
-            var (x, z) = InPlay.TowardBag(fromBag, dest, feet);
-            var on = InPlay.OccupyingBag(x, z);
-            var o = InPlay.TickOccupy(on, sec, dt);
-            sec = (float)o.Sec;
-        }
-
-        bool TickLiveTag()
+        bool TickLiveContact()
         {
             if (_match == null || _pending == null) return false;
             if (!(_caught || _buddy) || _throwing) return false;
-            var kind = LiveKind();
-            var glove = PlayFielder();
-            if (TickLiveForce(kind, glove)) return true;
-            if (InPlay.LiveBatter(kind, _match.LiveBatterOut))
-            {
-                var dest = InPlay.BatterDestBag(kind);
-                var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
-                var (bx, bz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
-                if (InPlay.Touches(true, false, _fx, _fz, bx, bz) && _match.StepTag(0, glove))
-                {
-                    _sub = _match.LiveCaption;
-                    if (_match.Outs >= 3 || PlayIsTime())
-                        CommitInPlay();
-                    return true;
-                }
-            }
-            for (var bag = 1; bag <= 3; bag++)
-            {
-                var who = _match.RunnerAt(bag)?.Who;
-                if (who is null) continue;
-                var dest = InPlay.OccupiedDestBag(bag, kind, _match.SendAll, _caught || _buddy);
-                var feet = InPlay.RunFeet(_hitT, who);
-                var (x, z) = InPlay.TowardBag(bag, dest, feet);
-                if (InPlay.Touches(true, false, _fx, _fz, x, z) && _match.StepTag(bag, glove))
-                {
-                    _sub = _match.LiveCaption;
-                    if (_match.Outs >= 3 || PlayIsTime())
-                        CommitInPlay();
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        bool TickLiveForce(PlayKind kind, Character glove)
-        {
-            // Contact occupancy cannot restore a force removed by a live tag.
-            var forces = _match.LiveForces;
-            if (InPlay.LiveBatter(kind, _match.LiveBatterOut)
-                && forces.At(1))
-            {
-                var dest = InPlay.BatterDestBag(kind);
-                var feet = InPlay.RunFeet(_hitT, _match.Batter, _dash01);
-                var (bx, bz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
-                if (InPlay.ForceOnBag(true, 1, true, false, _fx, _fz, bx, bz)
-                    && RecordForce(1, glove))
-                    return true;
-            }
-            for (var bag = 2; bag <= 4; bag++)
-            {
-                if (!forces.At(bag)) continue;
-                var from = bag - 1;
-                var who = _match.RunnerAt(from)?.Who;
-                if (who is null) continue;
-                var dest = InPlay.OccupiedDestBag(from, kind, _match.SendAll, _caught || _buddy);
-                var feet = InPlay.RunFeet(_hitT, who);
-                var (x, z) = InPlay.TowardBag(from, dest, feet);
-                if (InPlay.ForceOnBag(true, bag, true, false, _fx, _fz, x, z)
-                    && RecordForce(bag, glove))
-                    return true;
-            }
-            return false;
-        }
-
-        bool RecordForce(int bag, Character glove)
-        {
-            var step = _match.StepThrow(bag, runnerBeats: false, glove);
-            if (!step.Out) return false;
-            _sub = _match.LiveCaption;
-            if (_match.Outs >= 3 || PlayIsTime())
+            var command = LivePlayCommand.Contact(
+                LiveKind(), true, false, _caught || _buddy, _fx, _fz, _dash01,
+                PlayFielder(), LiveCommandSource);
+            var result = _match.LivePlay.Apply(command);
+            if (result.Throw is null && result.TaggedFromBag is null) return false;
+            _sub = result.Snapshot.Caption;
+            if (_match.Outs >= 3 || result.Snapshot.IsTime)
                 CommitInPlay();
             return true;
-        }
-
-        bool PlayIsTime()
-        {
-            if (_match == null) return false;
-            var kind = LiveKind();
-            var batterOut = !InPlay.LiveBatter(kind, _match.LiveBatterOut);
-            var batter = new InPlay.Occupy(_occupyBatter > 0, _occupyBatter);
-            return InPlay.Time(
-                _caught || _buddy,
-                _throwing,
-                _match.Outs,
-                batter,
-                _match.First != null ? new InPlay.Occupy(_occupy1 > 0, _occupy1) : null,
-                _match.Second != null ? new InPlay.Occupy(_occupy2 > 0, _occupy2) : null,
-                _match.Third != null ? new InPlay.Occupy(_occupy3 > 0, _occupy3) : null,
-                batterOut);
         }
     }
 }

@@ -101,7 +101,7 @@ namespace GrandSluggers.UnityClient
                     else if (_preview != null)
                     {
                         var plant = FieldingResolver.GloveChaseTarget(
-                            _preview, _match.Park, _ball.x, _ball.z, _ball.y, _hitT);
+                            _preview, _match.Park, _ball.x, _ball.z, _ball.y, LiveTime);
                         if (CartoonJuice.ChaseIsARun(_caught || _buddy, Diamond.Dist(x, z, plant.X, plant.Z)))
                             pose = HeroActor.Pose.Run;
                         else
@@ -169,7 +169,7 @@ namespace GrandSluggers.UnityClient
             {
                 var bHero = Hero(batter);
                 var racing = _phase == Phase.InPlay && _pending != null;
-                var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
+                var stillSwing = racing && LiveTime < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
                 var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
                 bHero.SetPose(bPose, HumanBats ? _charge : 0);
                 bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
@@ -186,7 +186,7 @@ namespace GrandSluggers.UnityClient
                     var kind = LiveKind();
                     var dest = InPlay.BatterDestBag(kind);
                     if (dest <= 0) dest = 1;
-                    var feet = InPlay.RunFeet(_hitT, batter, _dash01);
+                    var feet = InPlay.RunFeet(LiveTime, batter, _dash01);
                     var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
                     var look = dest >= 2 && feet > Diamond.Baseline
                         ? Diamond.Bag(Math.Min(dest, 3))
@@ -312,7 +312,7 @@ namespace GrandSluggers.UnityClient
             {
                 var kind = LiveKind();
                 var dest = InPlay.OccupiedDestBag(bagNum, kind, _match.SendAll, _caught || _buddy);
-                var feet = InPlay.RunFeet(_hitT, who);
+                var feet = InPlay.RunFeet(LiveTime, who);
                 var at = InPlay.TowardBag(bagNum, dest, feet);
                 spot = (at.X, at.Z);
                 var tagBag = dest > bagNum ? dest : bagNum + 1;
