@@ -52,6 +52,7 @@ namespace GrandSluggers.UnityClient
             _ran = true;
             var files = new List<string>();
             var swingMetrics = new List<string>();
+            var swingErrors = new List<string>();
             string error = null;
             IReadOnlyList<string> shots;
             try { shots = _req.ResolvedShots(); }
@@ -84,9 +85,11 @@ namespace GrandSluggers.UnityClient
                             var matrixPng = StillRequest.SwingPngPath(outDir, captain, power.Id, beat);
                             try
                             {
-                                swingMetrics.Add(_play.GateMeasureSwing(hero, beat, captain, power.Id));
                                 Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
                                 files.Add(matrixPng);
+                                swingMetrics.Add(_play.GateMeasureSwing(
+                                    hero, beat, captain, power.Id, out var metricError));
+                                if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
                             }
                             catch (Exception ex)
                             {
@@ -115,7 +118,9 @@ namespace GrandSluggers.UnityClient
                 }
             }
 
-            WriteDone(_temp, error == null, files, swingMetrics, error ?? "");
+            var doneError = error ?? string.Join("; ", swingErrors);
+            WriteDone(_temp, error == null && swingErrors.Count == 0,
+                files, swingMetrics, doneError);
             try { File.Delete(StillRequest.RequestPath(_temp)); }
             catch { /* leftover request is ok */ }
             enabled = false;
@@ -319,18 +324,25 @@ namespace GrandSluggers.UnityClient
             return hero;
         }
 
-        internal string GateMeasureSwing(HeroActor hero, string beat, string captain, string power)
+        internal string GateMeasureSwing(
+            HeroActor hero, string beat, string captain, string power, out string gateError)
         {
+            gateError = "";
             if (hero == null || !hero.TrySwingGeometry(
                     out var left, out var right, out var grip, out var barrel))
-                throw new InvalidOperationException($"{captain} {power} {beat}: missing swing geometry");
+            {
+                gateError = $"{captain} {power} {beat}: missing swing geometry";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            var failures = new List<string>();
             if (beat != "rest")
             {
                 var gap = Vector3.Distance(left, right);
                 var lead = Vector3.Distance(left, grip);
                 var rear = Vector3.Distance(right, grip);
                 if (gap > 0.70f || lead > 1.0f || rear > 1.0f)
-                    throw new InvalidOperationException(
+                    failures.Add(
                         $"{captain} {power} {beat}: hands left the grip "
                         + $"(gap {gap:0.00}, left {lead:0.00}, right {rear:0.00})");
             }
@@ -338,7 +350,7 @@ namespace GrandSluggers.UnityClient
                 && (barrel.x < -HomeSet.PlateW / 2 - 0.03 || barrel.x > HomeSet.PlateW / 2 + 0.03
                     || barrel.z < HomeSet.PlatePointZ - 0.03 || barrel.z > HomeSet.PlateFrontZ + 0.03
                     || barrel.y < PitchFlight.PlateY - 1.2 || barrel.y > PitchFlight.PlateY + 1.2))
-                throw new InvalidOperationException(
+                failures.Add(
                     $"{captain} {power} contact: barrel missed plate at "
                     + $"({barrel.x:0.00}, {barrel.y:0.00}, {barrel.z:0.00})");
 
@@ -347,7 +359,10 @@ namespace GrandSluggers.UnityClient
             var axisSq = axis.sqrMagnitude;
             var u = axisSq < 0.0001f ? 0f : Mathf.Clamp01(Vector3.Dot(plate - grip, axis) / axisSq);
             var nearest = grip + axis * u;
+            gateError = string.Join("; ", failures);
             return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\""
+                + ",\"pass\":" + (failures.Count == 0 ? "true" : "false")
+                + ",\"error\":\"" + gateError.Replace("\"", "'") + "\""
                 + ",\"handGap\":" + SwingNumber(Vector3.Distance(left, right))
                 + ",\"leftToGrip\":" + SwingNumber(Vector3.Distance(left, grip))
                 + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
