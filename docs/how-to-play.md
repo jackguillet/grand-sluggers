@@ -112,9 +112,9 @@ Throw / swing when the rings line up → **Nice!** / **Nice Hit!**. Late charge 
 
 SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller, pitching:** camera stays on the **mound 3/4** (`mound`) — first-base over-the-shoulder behind the rubber, pitcher large on the right, rubber in the bottom, looking at the box — through SET and the throw. **One controller, batting:** camera stays on the **plate 3/4** (`plate`) — behind home looking at the mound, batter left of the look, pitcher in the diamond — through SET and the throw. Catcher crouches behind the camera. Pentagon and two boxes have dirt between them. It does not cut to `pitch`. **Two controllers:** camera stays on the **plate 3/4** (`plate`) — behind home — through SET and the throw, whether you pitch or hit. Controller 2 does not fork the HUD. Pink/gold charge ring **around the box** on the packed dirt (not a pancake under the feet). ~1s to the plate (Sluggers pace, not MLB 90). Home bats the bottom. Scorebug sits top-right; batter card bottom-left; pitcher card bottom-right. Highlight “your” card. Those anchors do not move.
 
-- **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets.
+- **Stick L/R / WASD** — walk the rubber (pitch) or the box (hit). **Down** resets. Pitching L/R is screen-relative from both the mound and plate cameras.
 - **Stick L/R at contact** — spray. Past the foul line is a **foul** (strike unless you already have two). The ball flies there. Not a K at two strikes.
-- **Stick L/R after release** — curve / late bite. Not a pitch-type cycle.
+- **Stick L/R after release** — curve / late bite toward that side of the screen from either pitching camera. Not a pitch-type cycle.
 - **Sweet-spot oval** on the dirt is smaller than the zone. Walk so it eats the ball.
 - **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
 - **Select / R** — swap pitcher (when they sweat, they are tired).
