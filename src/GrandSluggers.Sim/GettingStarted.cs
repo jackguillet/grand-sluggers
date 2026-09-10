@@ -44,7 +44,7 @@ public static class GettingStarted
             "Title West. Harbor drills.",
             "Title F. Harbor drills."),
         new("two-pads", "Two controllers",
-            "2 PLAYERS on captains. Controller 2 sits the other side. Unplug = CPU.",
+            "2 PLAYERS: Controller 2 takes the other side. Seat drop pauses; reconnect.",
             "Keyboard + mouse is player 1 only. A second controller is player 2."),
     ];
 

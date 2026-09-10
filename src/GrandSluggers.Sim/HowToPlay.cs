@@ -112,6 +112,7 @@ public static class HowToPlay
     public const int BookLineMinPt = 32;
     public const int BookHeaderPt = 38;
     public const int BookTabPt = 22;
+    public const int BookBadgePt = 18;
     public const int BookFooterPt = 36;
     /// <summary>Bottom copy band. Must fit KidLineMax at KidLineH.</summary>
     public const float LineBandMul = 4.6f;
@@ -175,13 +176,13 @@ public static class HowToPlay
             "Tap before the gold streak reaches home. Charge to MAX for power.",
             "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "Tap West changeup; hold West to bunt. North + South star. Stick L/R spray. Past the line is foul; Strike unless two.",
+            "Changeup: hold West, then South. Bunt: hold West. Star: North + South. Spray: stick L/R. Past line: foul; Strike unless two.",
         ],
         [
             "Tap before the gold streak reaches home. Charge to MAX for power.",
             "Pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "Tap V / Ctrl changeup; hold V / Ctrl to bunt. Q + Space star. A/D spray. Past the line is foul; Strike unless two.",
+            "Changeup: hold V/Ctrl, then Space/left click. Bunt: hold V/Ctrl. Star: Q+Space. Spray: A/D. Past line foul; Strike unless two.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
         [
@@ -260,7 +261,7 @@ public static class HowToPlay
         ]),
         new("two-pads", "Two controllers", "exhibition",
         [
-            "Pick 2 PLAYERS on captains. Gamepad 0 is player 1. North picks HOME or AWAY. Gamepad 1 sits the other side.",
+            "Pick 2 PLAYERS on captains. The first controller is player 1. North picks HOME or AWAY. The second controller sits the other side.",
             "Keyboard and mouse are player 1 only.",
             "If a seated controller drops, play stops. The other controller keeps its team.",
             "Reconnect it, or press South on an unseated controller to take that seat.",
@@ -269,7 +270,7 @@ public static class HowToPlay
         ],
         [
             "Pick 2 PLAYERS on captains. Keyboard and mouse are player 1 only. A second controller is player 2.",
-            "Q on controller 1 picks HOME or AWAY.",
+            "Player 1: Q picks HOME or AWAY.",
             "If Player 1's controller drops, play stops. Space / left click takes that seat on keyboard + mouse.",
             "Player 2 reconnects the same controller, or takes the seat on an unseated controller.",
             "CPU never bats or pitches while both seats are connected.",
