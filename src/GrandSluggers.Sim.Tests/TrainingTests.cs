@@ -132,8 +132,15 @@ public class TrainingTests
         var match = run.MakeMatch(_content, seed: 2);
         Assert.True(run.SetupTurnTwo(match));
         Assert.NotNull(match.First);
-        Assert.False(run.RecordTurnTwo("Force at second. Rio Sparks in at first."));
-        Assert.True(run.RecordTurnTwo("Vale Glass turns two."));
+        var fielder = match.Pitcher;
+        var hit = new AtBatResult(ContactQuality.Solid, true, false, 82, 5, 55, false, false, null, null);
+        var field = new FieldingResult(PlayKind.GroundOut, fielder, match.Batter, 0.8, 10, 40, false, false,
+            new ThrowResult(Chemistry.Good, 1.35, false));
+        var play = match.FinishAtBat(
+            new PitchCommand("fastball", 0, 0, false), new SwingCommand(true, 0, 0, false), hit, field);
+        Assert.Equal(2, play.OutsOnPlay);
+        Assert.False(run.RecordTurnTwo(play with { OutsOnPlay = 1, Caption = "Vale Glass turns two." }));
+        Assert.True(run.RecordTurnTwo(play with { Caption = "Doble matanza completada." }));
         Assert.True(run.TurnedTwo);
         Assert.Equal(PracticeLesson.Running, run.Lesson);
     }

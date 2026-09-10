@@ -341,8 +341,13 @@ public class GameplayTests
             var wild = new PitchCommand("fastball", 0, 40, false);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
-            if (ev.Kind == PlayKind.CaughtStealing && ev.Caption.Contains("picked off"))
+            if (ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff)
+            {
+                Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev.Outcome.ThrowEndpoint);
+                Assert.Equal(ev.Outcome.ThrowEndpoint,
+                    (ev with { Caption = "Le coureur est retiré." }).Outcome?.ThrowEndpoint);
                 picks++;
+            }
             else
                 stays++;
         }
@@ -362,7 +367,7 @@ public class GameplayTests
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
             Assert.NotEqual(PlayKind.CaughtStealing, ev.Kind);
-            Assert.DoesNotContain("picked off", ev.Caption);
+            Assert.NotEqual(RunnerPlayResult.PickedOff, ev.Outcome?.RunnerResult);
         }
     }
 
@@ -495,7 +500,7 @@ public class GameplayTests
             var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 280, false, false);
             var deep = hit with { InPlay = true, Foul = false, CarryFt = 280, LaunchDeg = 32 };
             var ev = match.FinishAtBat(paint, swing, deep, field);
-            var scored = ev.RunsScored > 0 || ev.Caption.Contains("Sac fly");
+            var scored = ev.RunsScored > 0;
             if (!sendAll)
                 Assert.True(match.Third is null || match.Third.Id == thirdId || match.Outs >= 3);
             return (scored, ev.Kind);

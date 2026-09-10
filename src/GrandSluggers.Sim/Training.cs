@@ -174,11 +174,10 @@ public sealed class Training
     }
 
     /// <summary>Fielding part 2: hopper with a runner on first, two throws, two outs.</summary>
-    public bool RecordTurnTwo(string? caption)
+    public bool RecordTurnTwo(PlayEvent? play)
     {
         if (Finished || Lesson != PracticeLesson.Fielding) return false;
-        if (string.IsNullOrEmpty(caption)
-            || caption.IndexOf("turns two", StringComparison.OrdinalIgnoreCase) < 0)
+        if (play is not { Kind: PlayKind.GroundOut, OutsOnPlay: 2 })
             return false;
         _turnedTwo = true;
         CurrentDrill = 4;
