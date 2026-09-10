@@ -1,0 +1,30 @@
+{
+    "revision": "8fbcc8e4f35dedb3802f6ecc7b378ef706799b2e",
+    "unityVersion": "6000.5.9f1",
+    "ok": false,
+    "error": "System.InvalidOperationException: Live ball did not reach Result: InPlay\n  at GrandSluggers.EditorTools.LivePlayLifecycleGate.Verify (GrandSluggers.EditorTools.LivePlayLifecycleGate+Evidence evidence, GrandSluggers.UnityClient.MatchDirector play, System.Boolean human, System.Boolean loaded, System.Boolean robbed, System.Boolean walkoff) [0x005eb] in /private/tmp/wt-gs-531/unity/Assets/Editor/LivePlayLifecycleGate.cs:149 \n  at GrandSluggers.EditorTools.LivePlayLifecycleGate.Update () [0x000c6] in /private/tmp/wt-gs-531/unity/Assets/Editor/LivePlayLifecycleGate.cs:53 ",
+    "activeCase": {
+        "human": false,
+        "loaded": false,
+        "robbed": false,
+        "walkoff": false,
+        "elapsed": 12.833309173583985,
+        "kind": "",
+        "score": 0,
+        "phase": "InPlay",
+        "nextBatter": "",
+        "liveTime": 12.833334002643824,
+        "liveKind": "HomeRun",
+        "caught": true,
+        "buddy": false,
+        "paused": false,
+        "active": true,
+        "playerFielding": true,
+        "pending": true,
+        "throwing": false,
+        "effect": false,
+        "recoil": 0.0,
+        "closePlay": false
+    },
+    "cases": []
+}
