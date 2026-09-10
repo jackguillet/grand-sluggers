@@ -150,6 +150,8 @@ public static class AtBatMotion
         double poseTime, double eventAt)
     {
         var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
+        if (u <= 0) return load;
+        if (u >= 1) return motion;
         return MoveBones.Mix(load, motion, u * u * (3 - 2 * u));
     }
 
