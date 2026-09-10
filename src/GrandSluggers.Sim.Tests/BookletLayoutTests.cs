@@ -48,12 +48,14 @@ public class BookletLayoutTests
             var howWidth = ApproxWidth("HOW TO PLAY", 20f);
             var badgeLabels = new[] { "Player 1 only", "Two controllers" };
             var badges = BookletLayout.Badges(w, h, howWidth,
-                badgeLabels.Select(label => ApproxWidth(label, 20f)).ToArray());
+                badgeLabels.Select(label => ApproxWidth(label, HowToPlay.BookBadgePt)).ToArray());
             var howRight = book.X + 88f + howWidth;
             Assert.True(badges[0].X > howRight, $"{w}×{h} first badge covers HOW TO PLAY");
             Assert.True(badges.All(badge => badge.Right <= bar.X - 12f));
             Assert.True(BookletLayout.HasNoOverlap(badgeLabels.Select((label, i) =>
                 new BookletLayout.TextBlock(label, badges[i])).ToArray()));
+            Assert.True(ApproxLineHeight(HowToPlay.BookBadgePt) <= BookletLayout.BadgeH,
+                $"{w}×{h} badge text clips vertically");
 
             var footer = BookScheme.Footer(InputScheme.Keys);
             Assert.True(ApproxWidth(footer, HowToPlay.BookFooterPt) <= book.W - 56f,
@@ -104,13 +106,25 @@ public class BookletLayoutTests
             foreach (var pageId in ControlDiagram.PageIds)
             {
                 var calls = ControlDiagram.PageCallouts(scheme, pageId);
+                var board = ControlDiagram.Board(w, h);
+                var stackBand = new BookletLayout.Box(board.X, board.Y + 40f, board.W, board.H - 40f);
+                var point = (float)HowToPlay.BookLinePt;
+                var heights = calls.Select(call => 44f + HardwareActionsHeight(call, board.W - 24f, point)).ToArray();
+                var cells = BookletLayout.MeasuredStack(stackBand, heights);
+                if (!BookletLayout.Fits(cells, stackBand))
+                {
+                    point = HowToPlay.BookLineMinPt;
+                    heights = calls.Select(call => 44f + HardwareActionsHeight(call, board.W - 24f, point)).ToArray();
+                    cells = BookletLayout.MeasuredStack(stackBand, heights);
+                }
+                Assert.True(BookletLayout.Fits(cells, stackBand), $"{w}×{h} {pageId} hardware stack");
                 foreach (var (call, index) in calls.Select((call, index) => (call, index)))
                 {
-                    var cell = ControlDiagram.CalloutCell(index, calls.Count, w, h);
+                    var cell = cells[index];
                     var actions = new[] { call.Always, call.Offense, call.Defense }.Where(s => s.Length > 0).ToArray();
                     var band = new BookletLayout.Box(cell.X + 12, cell.Y + 36, cell.W - 24, cell.H - 44);
                     var blocks = BookletLayout.Flow(actions, band,
-                        (text, width) => ApproxBodyHeight(text, width, HowToPlay.BookLineMinPt), 0f, 0f);
+                        (text, width) => ApproxBodyHeight(text, width, point), 0f, 0f);
                     Assert.True(BookletLayout.Fits(blocks, band), $"{w}×{h} {pageId} {call.Id}");
                 }
             }
@@ -285,6 +299,14 @@ public class BookletLayoutTests
         var lines = text.Split('\n').Sum(line =>
             Math.Max(1, (int)Math.Ceiling(ApproxWidth(line, pointSize) / width)));
         return lines * ApproxLineHeight(pointSize);
+    }
+
+    static float HardwareActionsHeight(ControlDiagram.Callout callout, float width, float pointSize)
+    {
+        var actions = new[] { callout.Always, callout.Offense, callout.Defense }
+            .Where(text => text.Length > 0).ToArray();
+        return actions.Sum(text => ApproxBodyHeight(text, width, pointSize)) +
+            Math.Max(0, actions.Length - 1) * BookletLayout.BlockGap;
     }
 
     // Deliberately conservative portable stand-in. Unity supplies GUIStyle.CalcSize/CalcHeight
