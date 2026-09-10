@@ -52,8 +52,38 @@ public class StealThrowTests
         Assert.False(StealThrow.PlayerOut(1, 2, 0.05, laser, dart, 0.25), "wrong bag is safe");
         Assert.False(StealThrow.PlayerOut(4, 2, 0.05, laser, dart, 0.25), "home is not a steal gun");
         Assert.False(StealThrow.PlayerOut(2, 2, 0.05, mud, dart, 1.0), "error + max lead is a steal");
-        Assert.True(StealThrow.PickoffOut(1, 0.05, laser, dart, 0.25), "an early throw back to first can tag");
-        Assert.False(StealThrow.PickoffOut(1, 1.35, laser, dart, 0.25), "a late throw back to first is safe");
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void PickoffIsDecidedByTheMeasuredThrowAndReturnRace(int occupiedBag)
+    {
+        var dart = _content.Must("dart");
+        var laser = new ThrowResult(Chemistry.Good, 1.35, false);
+        const double lead = 0.75;
+        var flight = StealThrow.CatcherThrowSec(occupiedBag, laser);
+        var returnTime = StealThrow.RunnerReturnSec(dart, lead);
+        var lastWinningRelease = returnTime - flight;
+
+        Assert.True(lastWinningRelease > 0.05,
+            $"three-quarter lead must leave a playable pickoff window: return {returnTime:F6}, flight {flight:F6}");
+        Assert.True(StealThrow.PickoffOut(occupiedBag, lastWinningRelease - 0.001, laser, dart, lead));
+        Assert.False(StealThrow.PickoffOut(occupiedBag, lastWinningRelease + 0.001, laser, dart, lead));
+    }
+
+    [Fact]
+    public void PickoffWindowFollowsLeadRunnerAndThrowRelationships()
+    {
+        var fast = _content.Must("dart");
+        var slow = _content.Must("konga");
+        var laser = new ThrowResult(Chemistry.Good, 1.35, false);
+        var mud = new ThrowResult(Chemistry.Bad, 0.7, true);
+
+        Assert.True(StealThrow.RunnerReturnSec(fast, 0.75) > StealThrow.RunnerReturnSec(fast, 0.25));
+        Assert.True(StealThrow.RunnerReturnSec(slow, 0.25) > StealThrow.RunnerReturnSec(fast, 0.25));
+        Assert.True(StealThrow.CatcherThrowSec(1, laser) < StealThrow.CatcherThrowSec(1, mud));
+        Assert.False(StealThrow.PickoffOut(3, 0, laser, slow, 1), "catcher pickoff targets are first or second");
     }
 
     [Fact]

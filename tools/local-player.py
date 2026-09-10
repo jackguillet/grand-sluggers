@@ -20,6 +20,16 @@ def log(message):
     print(message, flush=True)
 
 
+def validate_build_evidence(result, revision):
+    if not result.get('ok'):
+        raise RuntimeError('Build failed; existing game is unchanged: ' + result.get('error', 'unknown error'))
+    if result.get('revision') != revision:
+        raise RuntimeError('Build evidence revision does not match source revision: '
+                           + str(result.get('revision')) + ' != ' + revision)
+    if result.get('scene') != 'Assets/Scenes/HarborDiamond.unity':
+        raise RuntimeError('Build evidence does not name the Harbor standalone scene.')
+
+
 def sync_main(main):
     if run('git', 'branch', '--show-current', cwd=main) != 'main':
         raise RuntimeError('The primary checkout is not on main; leave its branch untouched.')
@@ -77,10 +87,12 @@ def deliver(args):
         # Unity clears Temp at startup: write the request through executeMethod after load.
         build_log = state / 'build.log'
         log('Building ' + label + ' ' + revision[:10] + ' in an isolated worktree…')
+        build_env = os.environ.copy()
+        build_env['GS_BUILD_REVISION'] = revision
         process = subprocess.Popen([str(editor), '-projectPath', str(project),
                                     '-executeMethod', 'GrandSluggers.EditorTools.PlayerBuildGate.MenuBuildMac',
                                     '-logFile', str(build_log)],
-                                   stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, env=build_env)
         try:
             deadline = time.monotonic() + args.timeout
             next_status = time.monotonic() + 30
@@ -94,8 +106,7 @@ def deliver(args):
                     next_status += 30
                 time.sleep(1)
             result = json.loads(done.read_text())
-            if not result.get('ok'):
-                raise RuntimeError('Build failed; existing game is unchanged: ' + result.get('error', str(build_log)))
+            validate_build_evidence(result, revision)
             built = Path(result['exe'])
             if built != project / 'Builds/osx/GrandSluggers.app' or not (built / 'Contents/MacOS/Grand Sluggers').is_file():
                 raise RuntimeError('Build result does not contain the expected Mac player.')
@@ -114,6 +125,7 @@ def deliver(args):
         # Application.dataPath is <app>/Contents; the game loads ../../data.
         shutil.copytree(source / 'data', release / 'data')
         (release / 'revision.json').write_text(json.dumps(dict(revision=revision, kind=label, source=str(source)), indent=2))
+        (release / 'build-evidence.json').write_text(json.dumps(result, indent=2))
         # Quit only this project's old standalone player, after the new build/data exist.
         old_main = main / 'unity/Builds/osx/GrandSluggers.app/Contents/MacOS/Grand Sluggers'
         for line in run('ps', '-ax', '-o', 'pid=,command=').splitlines():
@@ -142,7 +154,13 @@ def deliver(args):
         time.sleep(3)
         if child.poll() is not None:
             raise RuntimeError('New player exited. Previous builds are retained. See ' + str(player_log))
-        (state / 'current.json').write_text(json.dumps(dict(revision=revision, kind=label, app=str(app), pid=child.pid, log=str(player_log)), indent=2))
+        launch = dict(ok=True, kind='launch-only', revision=revision, scene=result['scene'], app=str(app), pid=child.pid,
+                     observedSeconds=3, playerLog=str(player_log), utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+        launch_path = release / 'launch-evidence.json'
+        launch_path.write_text(json.dumps(launch, indent=2))
+        (state / 'current.json').write_text(json.dumps(dict(revision=revision, kind=label, app=str(app), pid=child.pid,
+                                                            log=str(player_log), buildEvidence=str(release / 'build-evidence.json'),
+                                                            launchEvidence=str(launch_path)), indent=2))
         log('Running ' + label + ' ' + revision[:10] + ' in its own window: ' + str(app))
         log('Build worktree retained for diagnostics: ' + str(source))
 
