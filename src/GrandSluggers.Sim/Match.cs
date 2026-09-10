@@ -201,6 +201,9 @@ public sealed class Match
     int _liveThrows;
     int _liveOutsAtOpen;
     InPlay.ForceState _liveForces = InPlay.ForceState.Empty;
+    sealed record PlayOrigin(PlayContext Context, Character Batter, Character Pitcher);
+    PlayOrigin? _pendingPlay;
+    int _outsOnCurrentPlay;
     /// <summary>
     /// Exhibition opens this on contact. Outs record on a catch, a throw, or a tag.
     /// Headless Match.Play leaves it closed and FinishInPlay batches CPU throws.
@@ -386,6 +389,7 @@ public sealed class Match
     public void OpenLivePlay()
     {
         if (_liveOpen) return;
+        CurrentPlay();
         _liveOpen = true;
         _liveForce = false;
         _liveForceBag = 0;
@@ -468,6 +472,7 @@ public sealed class Match
         else return false;
         _liveForces = _liveForces.AfterOutAt(fromBag + 1);
         Outs++;
+        _outsOnCurrentPlay++;
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
         AddStars(defense: true, 0.4);
         return true;
@@ -574,6 +579,7 @@ public sealed class Match
         var runner = bag == 1 ? First : bag == 2 ? Second : Third;
         var state = RunnerAt(bag);
         if (runner is null || state is null) return null;
+        BeginPlay();
         if (!StealOn && state.Lead01 < 0.05)
         {
             state.ReturnToBag(1);
@@ -617,6 +623,7 @@ public sealed class Match
         hit = EmptyHit(true);
         finished = null;
         if (Over) throw new InvalidOperationException("game over");
+        BeginPlay();
 
         var aimed = pitch with { AimX = pitch.AimX + PitcherOffsetX * 0.35 };
         if (PitcherTired)
@@ -631,6 +638,7 @@ public sealed class Match
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
+            finished = FinishEvent(finished);
             ResetBatter();
             return false;
         }
@@ -663,9 +671,10 @@ public sealed class Match
 
     public PlayEvent FinishAtBat(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
+        CurrentPlay();
         var played = FinishInPlay(pitch, swing, hit, field);
         EndIfWalkOff();
-        return played;
+        return FinishEvent(played);
     }
 
     public FieldingPreview PreviewHit(AtBatResult hit) =>
@@ -864,11 +873,12 @@ public sealed class Match
         AddMvp(Pitcher.Id, 2);
         AddStars(defense: true, 0.8);
         Outs++;
+        _outsOnCurrentPlay++;
         var how = swinging ? "goes down swinging." : "is caught looking.";
         var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, $"{Batter.Name} {how}", 0, []);
         NextBatter();
         CheckInning();
-        return ev with { OutsAfter = Outs };
+        return FinishEvent(ev);
     }
 
     PlayEvent FinishWalk(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
@@ -1005,6 +1015,7 @@ public sealed class Match
                     {
                         SetBag(fromBag, null);
                         Outs++;
+                        _outsOnCurrentPlay++;
                         AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                         AddStars(defense: true, 0.4);
                         caption = $"{field.Fielder?.Name} tags {runner.Name}.";
@@ -1047,6 +1058,7 @@ public sealed class Match
                 if (Outs < 3)
                 {
                     Outs++;
+                    _outsOnCurrentPlay++;
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                     AddStars(defense: true, 0.35);
                 }
@@ -1115,11 +1127,49 @@ public sealed class Match
         double hang = 0, double lx = 0, double lz = 0,
         bool heat = false, bool furnace = false)
     {
+        var origin = CurrentPlay();
+        var next = CaptureMatchState();
         var ev = new PlayEvent(
-            kind, hit, pitch, swing, Batter, Pitcher, fielder, throwRes, runs, scorers, caption,
-            heat, furnace, hang, lx, lz, Outs, AwayScore, HomeScore);
+            kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, caption,
+            heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
+            _outsOnCurrentPlay, origin.Context, next);
         _log.Add(ev);
+        _pendingPlay = null;
         return ev;
+    }
+
+    PlayOrigin BeginPlay()
+    {
+        var batter = Batter;
+        var pitcher = Pitcher;
+        var context = new PlayContext(
+            batter.Id, pitcher.Id, Inning, Top, Outs, Balls, Strikes, AwayScore, HomeScore,
+            First?.Id, Second?.Id, Third?.Id);
+        _pendingPlay = new PlayOrigin(context, batter, pitcher);
+        _outsOnCurrentPlay = 0;
+        return _pendingPlay;
+    }
+
+    PlayOrigin CurrentPlay() => _pendingPlay ?? BeginPlay();
+
+    MatchState CaptureMatchState() => new(
+        Batter.Id, Pitcher.Id, Inning, Top, Outs, Balls, Strikes, AwayScore, HomeScore, Over,
+        First?.Id, Second?.Id, Third?.Id);
+
+    PlayEvent FinishEvent(PlayEvent ev)
+    {
+        var next = CaptureMatchState();
+        var result = ev with
+        {
+            OutsOnPlay = _outsOnCurrentPlay,
+            OutsAfter = next.Outs,
+            AwayScoreAfter = next.AwayScore,
+            HomeScoreAfter = next.HomeScore,
+            NextState = next
+        };
+        if (_log.Count > 0)
+            _log[^1] = result;
+        return result;
     }
 
     void NextBatter()
@@ -1373,6 +1423,7 @@ public sealed class Match
         {
             SetBag(fromBag, null);
             Outs++;
+            _outsOnCurrentPlay++;
             AddMvp(catcher.Id, 2);
             AddStars(defense: true, 0.4);
             result = ev with
@@ -1380,17 +1431,13 @@ public sealed class Match
                 Kind = PlayKind.CaughtStealing,
                 Caption = $"{runner.Name} caught stealing.",
                 Fielder = catcher,
-                Throw = thr,
-                OutsAfter = Outs
+                Throw = thr
             };
             CheckInning();
-            result = result with { OutsAfter = Outs };
         }
 
         ClearSteal();
-        if (_log.Count > 0)
-            _log[^1] = result;
-        return result;
+        return FinishEvent(result);
     }
 
     PlayEvent ResolvePickoff(PlayEvent ev)
@@ -1435,6 +1482,7 @@ public sealed class Match
         var thr = ThrowBetween(Pitcher, catcher);
         SetBag(bag, null);
         Outs++;
+        _outsOnCurrentPlay++;
         AddMvp(catcher.Id, 2);
         AddStars(defense: true, 0.4);
         var result = ev with
@@ -1442,14 +1490,10 @@ public sealed class Match
             Kind = PlayKind.CaughtStealing,
             Caption = $"{runner.Name} picked off.",
             Fielder = Pitcher,
-            Throw = thr,
-            OutsAfter = Outs
+            Throw = thr
         };
         CheckInning();
-        result = result with { OutsAfter = Outs };
-        if (_log.Count > 0)
-            _log[^1] = result;
-        return result;
+        return FinishEvent(result);
     }
 
     void AddStars(bool defense, double amount)
