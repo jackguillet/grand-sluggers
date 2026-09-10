@@ -224,6 +224,10 @@ public class MatchTests
         Assert.True(match.LiveBatterOut);
         Assert.All(new[] { 1, 2, 3 }, bag => Assert.NotNull(match.RunnerAt(bag)));
         Assert.All(new[] { 1, 2, 3, 4 }, bag => Assert.False(match.LiveForces.At(bag)));
+        var second = Diamond.Second;
+        var runner = InPlay.TowardBag(1, 2, Diamond.Baseline * 0.5);
+        Assert.False(InPlay.ForceOnBag(match.LiveForces.At(2), 2, true, false,
+            second.X, second.Z, runner.X, runner.Z), "touching second cannot retire the distant runner after a batter tag");
         var later = match.StepThrow(2, runnerBeats: false, match.Pitcher);
         Assert.True(later.Out, "the occupied runner can still be tagged at second");
         Assert.False(later.Force, "retiring the batter removes every dependent force");
