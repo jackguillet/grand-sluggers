@@ -6,5 +6,7 @@ Elder Fenn. Cartoon Generic package. The posed PBR turtle is gone.
   Resources/Art/Characters/fenn/
 
 bind=skinned. Shell is head-only so a 90° arm cannot invert it.
-Author: tools/blender/hero_fenn.py. Do not drop a posed GLB.
+Author: tools/blender/hero_fenn.py. Body and takes export from its one DCC scene.
+Do not regenerate Fenn's takes by round-tripping this FBX with different space settings.
+Do not drop a posed GLB.
 Humans pass look. Spec: docs/character-package.md

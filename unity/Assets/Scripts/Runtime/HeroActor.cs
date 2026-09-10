@@ -33,6 +33,8 @@ namespace GrandSluggers.UnityClient
         bool _captain;
         bool _meshStaff;
         bool _packageBody;
+        PackageTransformBind[] _packageBindPose = System.Array.Empty<PackageTransformBind>();
+        bool _packageSampledLastTick;
         string _id = "";
         string _body = "rio";
         string _batVisual = "";
@@ -48,6 +50,22 @@ namespace GrandSluggers.UnityClient
         bool _snap;
         MoveBones.Sample _lastMotion, _loadedMotion;
         bool _blendLoad;
+
+        readonly struct PackageTransformBind
+        {
+            public readonly Transform Transform;
+            public readonly Vector3 Position;
+            public readonly Quaternion Rotation;
+            public readonly Vector3 Scale;
+
+            public PackageTransformBind(Transform transform)
+            {
+                Transform = transform;
+                Position = transform.localPosition;
+                Rotation = transform.localRotation;
+                Scale = transform.localScale;
+            }
+        }
 
         public string Id => _id;
         public Pose Current => _pose;
@@ -80,6 +98,8 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
         {
+            if (_packageBody && (pose != _pose || _packageSampledLastTick))
+                RestorePackageBindPose(preserveRootPresentation: false);
             if (pose != _pose)
             {
                 _blendLoad = (pose == Pose.Swing && _pose == Pose.ChargeSwing)
@@ -266,6 +286,7 @@ namespace GrandSluggers.UnityClient
                     animator.runtimeAnimatorController = controller;
                     animator.enabled = false;
                 }
+                CapturePackageBindPose();
             }
             _meshStaff = false;
             for (var i = 0; i < extras.Count; i++)
@@ -484,6 +505,8 @@ namespace GrandSluggers.UnityClient
                 var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
                 if (!playedPackage && !playedDrop)
                 {
+                    if (_packageBody && _packageSampledLastTick)
+                        RestorePackageBindPose(preserveRootPresentation: true);
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
                     var timed = pose is Pose.Swing or Pose.ThrowPitch;
                     if (_packageBody)
@@ -494,6 +517,7 @@ namespace GrandSluggers.UnityClient
                         Apply(sample,
                             _snap || timed ? 1f : boneSnap ? 0.55f : 0.32f,
                             _snap || timed ? 1f : boneSnap ? 0.48f : 0.34f);
+                    _packageSampledLastTick = false;
                 }
                 else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
                     MirrorBoundArms();
@@ -928,6 +952,7 @@ namespace GrandSluggers.UnityClient
         {
             var clip = ArtBinder.LoadPackageClip(_id, verb);
             if (clip == null || _root == null) return false;
+            RestorePackageBindPose(preserveRootPresentation: true);
             var t = verb.Clock.Equals(CharacterPackage.WorldClock, System.StringComparison.OrdinalIgnoreCase)
                 ? _t
                 : verb.Clock.Equals(CharacterPackage.ChargeClock, System.StringComparison.OrdinalIgnoreCase)
@@ -946,7 +971,43 @@ namespace GrandSluggers.UnityClient
             if (arm != null) clip.SampleAnimation(arm.gameObject, t);
             _root.localScale = scale;
             _root.localPosition = pos;
+            _packageSampledLastTick = true;
             return true;
+        }
+
+        void CapturePackageBindPose()
+        {
+            if (_root == null)
+            {
+                _packageBindPose = System.Array.Empty<PackageTransformBind>();
+                return;
+            }
+            var transforms = _root.GetComponentsInChildren<Transform>(true);
+            _packageBindPose = new PackageTransformBind[transforms.Length];
+            for (var i = 0; i < transforms.Length; i++)
+                _packageBindPose[i] = new PackageTransformBind(transforms[i]);
+            _packageSampledLastTick = false;
+        }
+
+        void RestorePackageBindPose(bool preserveRootPresentation)
+        {
+            if (_packageBindPose == null || _packageBindPose.Length == 0) return;
+            var rootPosition = _root != null ? _root.localPosition : Vector3.zero;
+            var rootScale = _root != null ? _root.localScale : Vector3.one;
+            for (var i = 0; i < _packageBindPose.Length; i++)
+            {
+                var bind = _packageBindPose[i];
+                if (bind.Transform == null) continue;
+                bind.Transform.localPosition = bind.Position;
+                bind.Transform.localRotation = bind.Rotation;
+                bind.Transform.localScale = bind.Scale;
+            }
+            if (preserveRootPresentation && _root != null)
+            {
+                _root.localPosition = rootPosition;
+                _root.localScale = rootScale;
+            }
+            _packageSampledLastTick = false;
         }
 
         bool TrySampleDrop(string clipId, float t)
