@@ -227,27 +227,11 @@ public sealed class AtBatResolver
 
     static double Lerp(double a, double b, double t) => a + (b - a) * t;
 
-    public static bool PitchInZone(PitchCommand pitch, int pitchStat)
+    public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null)
     {
-        if (Math.Abs(pitch.AimX) > 0.001 || Math.Abs(pitch.AimY) > 0.001)
-        {
-            var xLim = 0.58;
-            var yLo = -0.42;
-            var yHi = 0.58;
-            if (pitch.Charge01 > 0.6)
-            {
-                xLim *= 0.9;
-                yLo += 0.05;
-                yHi -= 0.05;
-            }
-            if (pitch.Star) xLim *= 0.92;
-            return Math.Abs(pitch.AimX) <= xLim && pitch.AimY >= yLo && pitch.AimY <= yHi;
-        }
-
-        var window = 5.5 + pitchStat * 0.35;
-        if (pitch.Charge01 > 0.6) window *= 0.85;
-        if (pitch.Star) window *= 0.9;
-        return Math.Abs(pitch.TimingErrorFrames) <= window;
+        // Skill/charge affect the delivery, never an invisible resizing of the zone.
+        _ = pitchStat;
+        return StrikeZoneGeometry.Contains(pitch, starPitchId);
     }
 
     /// <summary>
@@ -257,9 +241,9 @@ public sealed class AtBatResolver
     public const double BatterBodyInside = 0.75;
     public const double BatterBodyR = 0.32;
 
-    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY)
+    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY, Hand bats = Hand.R)
     {
-        var bodyX = boxOffsetX - BatterBodyInside;
+        var bodyX = boxOffsetX + (bats == Hand.L ? BatterBodyInside : -BatterBodyInside);
         var dx = pitchAimX - bodyX;
         var dy = pitchAimY;
         return dx * dx + dy * dy <= BatterBodyR * BatterBodyR;
