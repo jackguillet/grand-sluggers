@@ -120,6 +120,18 @@ namespace GrandSluggers.EditorTools
                 entry.elapsed = elapsed;
                 entry.phase = Phase(play);
                 entry.score = walkoff ? match.HomeScore : match.AwayScore;
+                entry.liveTime = match.LivePlay.ElapsedSeconds;
+                entry.liveKind = ((PlayKind)typeof(MatchDirector).GetMethod("LiveKind", Hidden)!.Invoke(play, null)).ToString();
+                entry.caught = Get<bool>(play, "_caught");
+                entry.buddy = Get<bool>(play, "_buddy");
+                entry.paused = match.Paused;
+                entry.active = match.LivePlay.Active;
+                entry.playerFielding = Get<bool>(play, "_playerFielding");
+                entry.pending = Get<AtBatResult>(play, "_pending") != null;
+                entry.throwing = Get<bool>(play, "_throwing");
+                entry.effect = Get<bool>(play, "_itemFlying");
+                entry.recoil = Get<float>(play, "_recoilT");
+                entry.closePlay = Get<bool>(play, "_closePlay");
             }
             Require(Phase(play) == "Result", "Live ball did not reach Result: " + Phase(play));
             var result = Get<PlayEvent>(play, "_last");
@@ -144,6 +156,9 @@ namespace GrandSluggers.EditorTools
         static void Invoke(MatchDirector p, string name, params object[] args) => typeof(MatchDirector).GetMethod(name, Hidden)!.Invoke(p, args);
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
         [Serializable] sealed class Evidence { public string revision; public string unityVersion; public bool ok; public string error; public Case activeCase; public Case[] cases; }
-        [Serializable] sealed class Case { public bool human; public bool loaded; public bool robbed; public bool walkoff; public float elapsed; public string kind; public int score; public string phase; public string nextBatter; }
+        [Serializable] sealed class Case { public bool human; public bool loaded; public bool robbed; public bool walkoff; public float elapsed; public string kind; public int score; public string phase; public string nextBatter;
+            public double liveTime; public string liveKind; public bool caught; public bool buddy; public bool paused;
+            public bool active; public bool playerFielding; public bool pending; public bool throwing; public bool effect;
+            public float recoil; public bool closePlay; }
     }
 }
