@@ -28,8 +28,7 @@ namespace GrandSluggers.UnityClient
         public bool Night;
         [System.NonSerialized] public bool Pad1Home = true;
         bool _versusWanted;
-        Seats _matchSeats;
-        bool _matchSeatsBound;
+        readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
         readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
         bool _lineupTouched;
@@ -165,12 +164,11 @@ namespace GrandSluggers.UnityClient
         double _stealRelease;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
-        Seats LiveSeats =>
+        Seats SelectedSeats =>
             TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
-                : _matchSeatsBound
-                    ? _matchSeats
-                    : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
+                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
+        Seats LiveSeats => _matchSeats.Current(SelectedSeats);
         bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
@@ -557,18 +555,15 @@ namespace GrandSluggers.UnityClient
 
         void BindMatchSeats()
         {
-            if (_matchSeatsBound) return;
-            _matchSeats = TrainingOn || _mode != PlayMode.Exhibition
-                ? Seats.One
-                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
-            Controls.BeginMatch(_matchSeats.BothHuman);
-            _matchSeatsBound = true;
+            if (_matchSeats.Bound) return;
+            var seats = _matchSeats.Bind(SelectedSeats);
+            Controls.BeginMatch(seats.BothHuman);
         }
 
         void ReleaseMatchSeats()
         {
             Controls.EndMatch();
-            _matchSeatsBound = false;
+            _matchSeats.Release();
             _deviceRecovery.Complete();
         }
 
@@ -578,8 +573,8 @@ namespace GrandSluggers.UnityClient
         /// </summary>
         bool TickDeviceRecovery()
         {
-            if (!_matchSeatsBound) return false;
-            var missing = Controls.MissingMatchSeat(_matchSeats);
+            if (!_matchSeats.Bound) return false;
+            var missing = Controls.MissingMatchSeat(_matchSeats.Seats);
             if (missing != LineupSeat.Cpu)
             {
                 _deviceRecovery.WaitFor(missing, _match.Paused);
