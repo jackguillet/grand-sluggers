@@ -195,14 +195,31 @@ public class BookletLayoutTests
                     $"{w}×{h} running callout body {callout.Title}");
             }
 
+            var modeTable = GettingStarted.ModeTable(w, h);
+            var modeBand = new BookletLayout.Box(modeTable.X, modeTable.Y, modeTable.W, modeTable.H);
+            var modePoint = (float)HowToPlay.BookLinePt;
+            float[] ModeHeights(float point) => GettingStarted.Modes.Select(mode =>
+            {
+                var columns = BookletLayout.LabeledRow(modeTable, ApproxWidth(mode.Title, 26f));
+                return Math.Max(ApproxBodyHeight(mode.Title, columns.Label.W - 12f, 26f) + 12f,
+                    ApproxBodyHeight(GettingStarted.Line(mode, scheme), columns.Body.W, point) + 8f);
+            }).ToArray();
+            var modeRows = BookletLayout.MeasuredStack(modeBand, ModeHeights(modePoint));
+            if (!BookletLayout.Fits(modeRows, modeBand))
+            {
+                modePoint = HowToPlay.BookLineMinPt;
+                modeRows = BookletLayout.MeasuredStack(modeBand, ModeHeights(modePoint));
+            }
+            Assert.True(BookletLayout.Fits(modeRows, modeBand), $"{w}×{h} mode table");
             foreach (var (mode, index) in GettingStarted.Modes.Select((item, index) => (item, index)))
             {
-                var row = GettingStarted.ModeRow(index, w, h);
-                var columns = BookletLayout.LabeledRow(row, ApproxWidth(mode.Title, 26f));
+                var row = modeRows[index];
+                var columns = BookletLayout.LabeledRow(
+                    (row.X, row.Y, row.W, row.H), ApproxWidth(mode.Title, 26f));
                 Assert.True(ApproxWidth(mode.Title, 26f) <= columns.Label.W - 12f,
                     $"{w}×{h} mode heading {mode.Title}");
                 Assert.True(ApproxBodyHeight(GettingStarted.Line(mode, scheme), columns.Body.W,
-                    HowToPlay.BookLineMinPt) <= columns.Body.H, $"{w}×{h} mode body {mode.Id}");
+                    modePoint) <= columns.Body.H, $"{w}×{h} mode body {mode.Id}");
             }
 
             foreach (var (spread, spreadIndex) in HudCallouts.OnScreenPage.Select((item, index) => (item, index)))
