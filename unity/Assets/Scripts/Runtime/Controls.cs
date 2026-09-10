@@ -96,7 +96,8 @@ namespace GrandSluggers.UnityClient
 
             public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth)
                 || (KeysEnabled && MouseLeftDown);
-            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (KeysEnabled && MouseLeftHeld);
+            public bool SouthHeld => Kb(Key.Space) || Kb(Key.Enter) || Held(Device?.buttonSouth)
+                || (KeysEnabled && MouseLeftHeld);
             public bool SouthUp => KeyUp(Key.Space) || KeyUp(Key.Enter) || Released(Device?.buttonSouth)
                 || (KeysEnabled && MouseLeftUp);
             public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (KeysEnabled && MouseMiddleDown);
@@ -314,6 +315,12 @@ namespace GrandSluggers.UnityClient
                 if (!KeysEnabled) return false;
                 var kb = Keyboard.current;
                 return kb != null && kb[k].wasPressedThisFrame;
+            }
+
+            bool KeyUp(Key k)
+            {
+                if (!KeysEnabled) return false;
+                return Controls.KeyUp(k);
             }
 
             static bool Pressed(ButtonControl b) => b != null && b.wasPressedThisFrame;

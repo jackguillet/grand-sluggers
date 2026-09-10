@@ -17,7 +17,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 | Verb | Controller | Keyboard | Mouse |
 | --- | --- | --- | --- |
 | Confirm / pitch / swing / catch / throw | South | Space / Enter | Left click |
-| Charge | Hold/release South | Hold/release Space | Hold/release left click |
+| Charge | Hold/release South | Hold/release Space / Enter | Hold/release left click |
 | Star | North | Q | Middle click |
 | Aim / run | Left stick | WASD | Mouse move |
 | Bags | D-pad diamond | 1 2 3 4 (arrows when not running) | Mouse quadrant / click bag |
@@ -35,7 +35,7 @@ South / East / West / North are **positions**, not Nintendo vs Xbox labels. The 
 
 South / East / West / North: Xbox A/B/X/Y, Nintendo B/A/Y/X. Keyboard: Space / G / F·V / Q.
 
-One player with controller 1, or two controllers. Hold **South** to charge and release it to pitch or swing. Space / left click is the same one-button load for keyboard and mouse. Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
+One player with controller 1, or two controllers. Hold **South** to charge and release it to pitch or swing. Space / Enter / left click is the same one-button load for keyboard and mouse. Rumble on bat contact and on a star. **Keyboard and mouse are player 1 only.** Controller 2 is a second gamepad. Mouse analog is **right-click hold and drag this frame** — a parked cursor is dead, including while you charge, so the pitcher stays on the rubber. WASD still walks; a key already down when SET starts does not. A sitting stick is dead until it passes through rest. Left click is confirm.
 
 The in-game booklet **Controls** page is a hardware diagram (`ControlDiagram`), not this table. **Controller | Keyboard + mouse** (`BookScheme`) follows the active Player 1 input; the toggle locks it. On launch, **Auto** chooses a connected controller before keyboard/mouse. Press **F6** on the title screen to cycle and persist **Auto → Controller → Keyboard + mouse** for controller testing. If Controller is selected with no connected controller, keyboard and mouse still navigate and become Player 1 at first pitch. Green is offense. Red is defense.
 
