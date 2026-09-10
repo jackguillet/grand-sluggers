@@ -51,3 +51,9 @@ In a dedicated validation worktree, open Harbor in the pinned GUI Unity editor a
 The default output is `unity/Temp/live-play-lifecycle.json`. Startup is bounded to 180 seconds; each scenario is bounded by its flight duration. Failure evidence records the active scenario, phase, elapsed/live clocks, score, ownership, possession, pause and effect state. On success, eight CPU/human cases verify solo and loaded homers, a wall robbery, and a loaded walk-off through actual `TickLive` → Result → `TickFlow` → SET/GameOver, including exactly-once scoring and next-batter progression. Inspect `ok`, `cases`, the exact revision and editor version; a file existing is not a pass. Close the dedicated validation editor afterward.
 
 Contact and the robbery catch observation are injected deterministically. The gate does not operate physical controllers, test the player's wall-jump timing, play a full half, or pass a human gameplay/look gate. Retained failing and passing #531 evidence lives in `scratchpad/validation/531-home-run/`.
+
+## Opt-in pitch judgment gate
+
+In a dedicated worktree, launch the pinned GUI Unity editor with `-projectPath /absolute/worktree/unity -executeMethod GrandSluggers.EditorTools.PitchJudgmentGate.Run`, or choose **Grand Sluggers → Verify Pitch Judgment**. Set `GS_VALIDATION_REVISION` to the tested commit and optionally `GS_PITCH_EVIDENCE` to the output JSON path. Do not use batch mode or quit flags: this enters Play asynchronously.
+
+The gate takes 24 deliveries through the actual launch and flight endpoint code: four pitch types, three curve inputs, and ordinary/star deliveries. Each starts with two strikes and takes the pitch, checking the rendered crossing, the simulated zone judgment, and whether strike three is called. Inspect `ok`, every case, revision and editor version. Inputs and endpoint time are injected; this is not a controller, animation, full-half, or human acceptance check.

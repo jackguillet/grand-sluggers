@@ -294,6 +294,7 @@ public sealed class Game : IDisposable
 
     void LaunchPitch(PitchCommand pitch)
     {
+        pitch = _match.PreparePitch(pitch);
         _pitch = pitch;
         var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
         _pitchDur = (float)PitchFlight.AirSeconds(mph);
@@ -310,24 +311,10 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var p = PitchFlight.Point(_pitch!.Type, u, _pitch.AimX, _pitch.AimY);
+        var p = PitchFlight.Point(_pitch!, u, _match.Pitcher.StarPitch);
         var x = (float)p.X;
         var y = (float)p.Y;
         var z = (float)p.Z;
-        if (_pitch.Star)
-        {
-            x += _match.Pitcher.StarPitch switch
-            {
-                "heatball" => MathF.Sin(u * 18) * 0.4f,
-                "prismball" => MathF.Sin(u * 24) * 1.8f,
-                "charmball" => MathF.Sin(u * 9) * 0.7f,
-                "phonyball" => u > 0.55f ? 2.4f : -0.5f,
-                "skullball" => MathF.Sin(u * 6) * 0.3f,
-                _ => 0
-            };
-            if (_match.Pitcher.StarPitch == "caskball")
-                y += 0.55f * u;
-        }
         _ball = new Vector3(x, y, z);
         _trail.Add(_ball);
         if (_trail.Count > 24) _trail.RemoveAt(0);
@@ -354,7 +341,7 @@ public sealed class Game : IDisposable
         if (_playerSwung && _swing is not null) return _swing;
         if (HumanBats)
             return new SwingCommand(false, _charge, 12, false);
-        var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch);
+        var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch);
         return _match.CpuSwing(_pitch!, inZone, vsHumanPitcher: HumanPitches);
     }
 

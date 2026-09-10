@@ -513,11 +513,23 @@ public sealed class Match
 
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
     {
+        pitch = PreparePitch(pitch);
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return StealThrowPending ? GunSteal(finished!) : finished!;
         var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night);
         field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
+    }
+
+    /// <summary>Sample delivery error once, before flight, so the visible pitch is the judged pitch.</summary>
+    public PitchCommand PreparePitch(PitchCommand pitch)
+    {
+        if (pitch.DeliveryPrepared) return pitch;
+        var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
+            DeliveryPrepared = true };
+        if (PitcherTired)
+            ready = ready with { AimX = ready.AimX + Gauss() * 0.22, AimY = ready.AimY + Gauss() * 0.18 };
+        return ready;
     }
 
     public bool BeginAtBat(PitchCommand pitch, SwingCommand swing, out AtBatResult hit, out PlayEvent? finished)
@@ -527,16 +539,15 @@ public sealed class Match
         if (Over) throw new InvalidOperationException("game over");
         BeginPlay();
 
-        var aimed = pitch with { AimX = pitch.AimX + PitcherOffsetX * 0.35 };
-        if (PitcherTired)
-            aimed = aimed with { AimX = aimed.AimX + Gauss() * 0.22, AimY = aimed.AimY + Gauss() * 0.18 };
-        var inZone = AtBatResolver.PitchInZone(aimed, Pitcher.Stats.Pitch);
+        pitch = PreparePitch(pitch);
+        var contactAim = PitchFlight.ContactAim(pitch, Pitcher.StarPitch);
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
         SpendPitch(pitch);
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
 
         if (!swing.Swing)
         {
-            finished = AtBatResolver.HitsBatter(box, aimed.AimX, aimed.AimY)
+            finished = AtBatResolver.HitsBatter(box, contactAim.X, contactAim.Y, Batter.Bats)
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
@@ -554,7 +565,7 @@ public sealed class Match
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             Top ? HomeStamina : AwayStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
-            swing.Charge01, box, aimed.AimX, aimed.AimY);
+            swing.Charge01, box, contactAim.X, contactAim.Y);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
         ResetBatter();
@@ -712,8 +723,8 @@ public sealed class Match
 
     public PlayEvent AutoPlay()
     {
-        var pitch = CpuPitch();
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch);
+        var pitch = PreparePitch(CpuPitch());
+        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
         var swing = CpuSwing(pitch, inZone);
         return Play(pitch, swing);
     }
