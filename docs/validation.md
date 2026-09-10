@@ -41,3 +41,5 @@ It writes `unity/Temp/validation/unity-evidence.json` and a Unity log. The evide
 - `player.log`: runtime output for that launch.
 
 Launch-only evidence proves that the Harbor player process started and stayed alive for the observation window. It does not prove that a frame rendered, the title-to-half route worked, controller ownership worked, presentation quality passed, or a screenshot gate passed. Those remain named human checks and must be reported separately.
+
+The configured Unity gate requires the exact editor version pinned in `unity/ProjectSettings/ProjectVersion.txt`. It captures that version before launching Unity and rejects mismatched runtime or output evidence. An import from another compatible editor is not a passing validation of the pinned project.
