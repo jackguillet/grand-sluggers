@@ -173,6 +173,37 @@ public enum PlayKind
     CaughtStealing
 }
 
+/// <summary>The actors and match state at the start of one pitch or pickoff play.</summary>
+public sealed record PlayContext(
+    string BatterId,
+    string PitcherId,
+    int Inning,
+    bool Top,
+    int OutsBefore,
+    int BallsBefore,
+    int StrikesBefore,
+    int AwayScoreBefore,
+    int HomeScoreBefore,
+    string? FirstRunnerId,
+    string? SecondRunnerId,
+    string? ThirdRunnerId);
+
+/// <summary>The match state after the completed event and any lineup, half, or game transition.</summary>
+public sealed record MatchState(
+    string BatterId,
+    string PitcherId,
+    int Inning,
+    bool Top,
+    int Outs,
+    int Balls,
+    int Strikes,
+    int AwayScore,
+    int HomeScore,
+    bool Over,
+    string? FirstRunnerId,
+    string? SecondRunnerId,
+    string? ThirdRunnerId);
+
 public sealed record PlayEvent(
     PlayKind Kind,
     AtBatResult AtBat,
@@ -192,7 +223,10 @@ public sealed record PlayEvent(
     double LandingZ,
     int OutsAfter,
     int AwayScoreAfter,
-    int HomeScoreAfter);
+    int HomeScoreAfter,
+    int OutsOnPlay = 0,
+    PlayContext? Context = null,
+    MatchState? NextState = null);
 
 public readonly record struct Sample(double T, double Dist, double Height);
 
