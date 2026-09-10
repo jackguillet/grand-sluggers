@@ -26,20 +26,20 @@ public static class HowToComic
         "How to pitch",
         new("how-to-pitch-1", "mound", "Charge at MAX"),
         new("how-to-pitch-2", "pitch", "The ball leaves the hand"),
-        new("LT", "South"),
-        new("Shift / right click", "Space / left click"),
-        "Hold LT. Tap South to throw. Commit at MAX.",
-        "Hold Shift / right click. Tap Space / left click to throw. Commit at MAX.");
+        new("Hold South", "Release South"),
+        new("Hold Space / left click", "Release"),
+        "Tap South for a normal pitch. Hold, then release at MAX for power.",
+        "Tap Space / left click for a normal pitch. Hold, then release at MAX for power.");
 
     public static readonly Strip Swing = new(
         "how-to-swing",
         "How to swing",
         new("how-to-swing-1", "plate", "Charge at MAX"),
         new("how-to-swing-2", "smash", "Swing through the ball"),
-        new("LT", "South"),
-        new("Shift / right click", "Space / left click"),
-        "LT to MAX for power. Tap South before the ball reaches home.",
-        "Shift to MAX for power. Tap Space / left click before the ball reaches home.");
+        new("Hold South", "Release South"),
+        new("Hold Space / left click", "Release"),
+        "Tap South for a slap. Hold, then release so the bat meets the ball at MAX.",
+        "Tap Space / left click for a slap. Hold, then release so the bat meets the ball at MAX.");
 
     public static readonly IReadOnlyList<Strip> OnPitchSwingPage = [Pitch, Swing];
 

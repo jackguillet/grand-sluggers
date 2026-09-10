@@ -14,7 +14,7 @@ Three stills. HUD off means **F2 off** and the scorebug not covering the subject
 
 | # | Still | Must show | Fail if |
 |---|---|---|---|
-| 1 | **Batting SET** (`plate`) | **Behind home** looking at the pitcher. Full batter in the box (feet to hat) **left of the look**. Pentagon + two chalk rectangles with dirt between them. **Pink/gold charge ring around the box** (LT / `charge01: 1`). Pitcher **in the look**, in a windup. You can **name the captain**. Catcher is behind the camera. | First-base foul-line crop, hat/brim as the picture, catcher-spine, boxes kissing the plate, pitcher a corner speck, cage grid in the dirt, camera through the backstop, pitcher idle with both arms hanging, gold pancake under the feet, no ring |
+| 1 | **Batting SET** (`plate`) | **Behind home** looking at the pitcher. Full batter in the box (feet to hat) **left of the look**. Pentagon + two chalk rectangles with dirt between them. **Pink/gold charge ring around the box** (hold South / `charge01: 1`). Pitcher **in the look**, in a windup. You can **name the captain**. Catcher is behind the camera. | First-base foul-line crop, hat/brim as the picture, catcher-spine, boxes kissing the plate, pitcher a corner speck, cage grid in the dirt, camera through the backstop, pitcher idle with both arms hanging, gold pancake under the feet, no ring |
 | 2 | **Scoop** | Glove on the dirt, ball in the glove, runner leaving the box, grass. Camera is a 3/4 in the park (`diamond-grounder` / hopper), not high-home. | Cubes chasing a marble, auto-glove with no scoop verb, broadcast high-home |
 | 3 | **Star swing** | Body owns ~2 seconds (Heatball core+embers on Rio, etc.). Scorebug gone. Then baseball. Side 3/4 on the torso. | Full-screen white/black blind, a smear with no body, HUD still talking, cage owns the frame, fire pancake on the dirt, loose sky blobs |
 
@@ -60,7 +60,7 @@ Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not 
 1. Unity **6000.5.9f1**. Project folder `grand-sluggers/unity`. Scene `Assets/Scenes/HarborDiamond.unity`.
 2. Click the **Game** tab. Not Scene. The editor Scene/Game view looking **through the backstop cage** is not Exhibition.
 3. Hover the Game panel, **Shift+Space** to maximize it. Scale **1x** if the Game view scale slider is below 1.
-4. Plug in a pad. Xbox A / Nintendo B is **South**. Analog **LT / ZL** charges.
+4. Plug in a pad. Xbox A / Nintendo B is **South**. Hold South to charge; release to pitch or swing.
 5. Day. Harbor. Home **Rio** (short, round) vs away **Ashlord** or **Konga** (so the height ladder is obvious). Stick L/R your team, U/D the other. North HOME/AWAY. Default is HOME.
 6. F1 (timing bar) **off**. F2 **off** for trailer stills. F3 mutes the scorebug when you need HUD-off without a star.
 7. Put Dolphin on the other display if you want a live compare. Screenshot it with macOS **Cmd+Shift+5 → window**, not a phone pic of the editor chrome.
@@ -91,7 +91,7 @@ Title → South (pick captain) → South (lineup) → South (first pitch). Do no
 
 You pitch the top. Camera is the **mound 3/4** — over the pitcher’s shoulder, pitcher large on the right, rubber in the bottom, looking at the box. You can name pitcher and batter without the HUD.
 
-- Hold **LT** to charge. Ring / pull-back should read. Stick aims the zone locator.
+- Hold **South** to charge. Ring / pull-back should read. Release to pitch; stick then curves it.
 - F2 once: the overlay must say `SHOT MOUND`. F2 again (off). F3 if you want HUD off.
 - HUD: score top-right, batter card bottom-left, pitcher card bottom-right. Same corners after a second pad.
 - Capture.
@@ -103,14 +103,14 @@ Take three outs however you like (South to pitch, meatballs are fine). Bottom of
 Camera sits **behind home** looking at the mound for the whole pitch. Batter is a full body on the left. Catcher is behind the lens. Pentagon and both boxes read with dirt between them.
 
 - You in the box, feet to hat — not a brim close-up. Pitcher in the look.
-- Hold **LT**. Charge ring on the dirt around the box.
+- Hold **South**. Charge ring on the dirt around the box.
 - F2: `SHOT PLATE`. Off. F3: HUD off.
 - Capture **before** you swing.
 - Fail the still if you are looking down the foul line, at a hat, through the cage, or at the catcher’s spine.
 
 ### Star swing — **still 3**
 
-You need a star (chemistry from the lineup). **North / Y / Q** arms the star (gold tell). Hold LT, South to swing.
+You need a star (chemistry from the lineup). **North / Y / Q** arms the star (gold tell). Hold South, then release to swing.
 
 Capture at the peak (~1 second in) while the scorebug is gone. Then one still a second later that is baseball again (scorebug can return).
 
@@ -128,8 +128,8 @@ Title **West** (or Start until TRAINING, then South). Harbor drills, Rio vs Ashl
 
 | Drill | What | Controller | Keyboard |
 |---|---|---|---|
-| 1 Paint the zone | Four pitch types in the zone + a star | Stick aim, RB cycle type, LT charge, South pitch, North star | WASD, Tab, Shift, Space, Q |
-| 2 Time it and charge | Contact with charge | LT + South on the pitch | Shift + Space |
+| 1 Paint the zone | Four pitch types in the zone + a star | Stick aim, RB cycle type, hold/release South, North star | WASD, Tab, hold/release Space, Q |
+| 2 Time it and charge | Contact with charge | Hold/release South on the pitch | Hold/release Space |
 | 3 Catch it, throw a bag | Catch + throw | South catch, D-pad / stick flick bag | Space, 1/2/3/4 |
 | 4 **Grab a grounder** | **This is still 2** | Stick to the hop, South scoop, 1 to first | WASD, Space, 1 |
 
@@ -145,7 +145,7 @@ On drill 4: scoop still = glove in the dirt, ball in the glove, runner leaving. 
 | East | Xbox B / Nintendo A | G |
 | West | Xbox X / Nintendo Y | F tap · V hold |
 | North (star) | Xbox Y / Nintendo X | Q |
-| LT charge | analog LT / ZL | Shift (full) |
+| Pitch / swing charge | South hold/release | Space hold/release |
 | RB cycle pitch | RB / R | Tab |
 | Start (mode) | Menu / + | H |
 | Night | R3 | N |
@@ -212,7 +212,7 @@ Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf
 
 **What this can judge without a pad:** SET cameras, diamond kit, charge ring, toy body at gameplay distance, Harbor postcard, scoop pose with ball in the glove, pitcher throwing at you, star-swing camera with HUD muted.
 
-**What it still is not:** analog LT feel, pad rumble, or a 3-inning Exhibition you played by hand. Those stay optional Path A/B.
+**What it still is not:** hold/release timing feel, pad rumble, or a 3-inning Exhibition you played by hand. Those stay optional Path A/B.
 
 Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers session.
 
