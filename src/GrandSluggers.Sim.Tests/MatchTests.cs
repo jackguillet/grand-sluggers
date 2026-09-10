@@ -36,17 +36,17 @@ public class MatchTests
     public void PlayerHopperWithFirstOccupiedDoesNotTurnTwoUntilThrowTwoLands()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
-        match.OpenLivePlay();
+        BeginLive(match);
         var before = BroadcastHud.From(match);
         Assert.True(before.RunnerFirst);
         Assert.Equal(0, before.Outs);
 
-        var force = match.StepThrow(2, runnerBeats: false, field.Fielder);
+        var force = StepThrow(match, 2, runnerBeats: false, field.Fielder);
         Assert.True(force.Out);
         Assert.True(force.Force);
         Assert.False(force.TurnedTwo);
         Assert.Equal(1, match.Outs);
-        Assert.Equal(1, match.LiveThrows);
+        Assert.Equal(1, match.LivePlay.Throws);
         Assert.Null(match.First);
         Assert.DoesNotContain("turns two", force.Caption, StringComparison.OrdinalIgnoreCase);
         var mid = BroadcastHud.From(match);
@@ -69,10 +69,10 @@ public class MatchTests
     public void PlayerThrowTwoOnTimeTurnsTwo()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
-        match.OpenLivePlay();
-        match.StepThrow(2, runnerBeats: false, field.Fielder);
+        BeginLive(match);
+        StepThrow(match, 2, runnerBeats: false, field.Fielder);
         Assert.Equal(1, match.Outs);
-        var two = match.StepThrow(1, runnerBeats: false, field.Fielder);
+        var two = StepThrow(match, 1, runnerBeats: false, field.Fielder);
         Assert.True(two.TurnedTwo);
         Assert.Equal(2, match.Outs);
         var pip = BroadcastHud.From(match);
@@ -89,9 +89,9 @@ public class MatchTests
     public void PlayerThrowTwoLateIsForceOnly()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
-        match.OpenLivePlay();
-        match.StepThrow(2, runnerBeats: false, field.Fielder);
-        var late = match.StepThrow(1, runnerBeats: true, field.Fielder);
+        BeginLive(match);
+        StepThrow(match, 2, runnerBeats: false, field.Fielder);
+        var late = StepThrow(match, 1, runnerBeats: true, field.Fielder);
         Assert.False(late.Out);
         Assert.True(late.BatterSafe);
         Assert.Equal(1, match.Outs);
@@ -107,7 +107,7 @@ public class MatchTests
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
         Assert.False(InPlay.BatterBeatsThrow(match.Batter, hit, field));
-        Assert.False(match.LivePlay);
+        Assert.False(match.LivePlay.Active);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Contains("turns two", ev.Caption);
         Assert.Equal(2, match.Outs);
@@ -121,7 +121,7 @@ public class MatchTests
     public void LivePlayWithoutAThrowDoesNotGuessAForce()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
-        match.OpenLivePlay();
+        BeginLive(match);
         Assert.Equal(0, match.Outs);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(PlayKind.Single, ev.Kind);
@@ -141,12 +141,12 @@ public class MatchTests
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
-        match.OpenLivePlay();
-        Assert.True(match.StepTag(0, field.Fielder));
+        BeginLive(match);
+        Assert.True(StepTag(match, 0, field.Fielder));
         Assert.Equal(1, match.Outs);
-        Assert.True(match.LiveBatterOut);
-        Assert.Contains("tags", match.LiveCaption, StringComparison.OrdinalIgnoreCase);
-        Assert.False(match.StepTag(0, field.Fielder), "already out");
+        Assert.True(match.LivePlay.BatterOut);
+        Assert.Contains("tags", match.LivePlay.Caption, StringComparison.OrdinalIgnoreCase);
+        Assert.False(StepTag(match, 0, field.Fielder), "already out");
         Assert.Equal(1, match.Outs);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(1, match.Outs);
@@ -164,13 +164,13 @@ public class MatchTests
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
-        match.OpenLivePlay();
+        BeginLive(match);
         var first = Diamond.First;
         var halfway = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
         Assert.True(InPlay.ForceOnBag(true, 1, true, false, first.X, first.Z, halfway.X, halfway.Z));
-        var step = match.StepThrow(1, runnerBeats: false, field.Fielder);
+        var step = StepThrow(match, 1, runnerBeats: false, field.Fielder);
         Assert.True(step.Out);
-        Assert.True(match.LiveBatterOut);
+        Assert.True(match.LivePlay.BatterOut);
         Assert.Equal(1, match.Outs);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(PlayKind.GroundOut, ev.Kind);
@@ -184,8 +184,8 @@ public class MatchTests
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
         var lead = match.First!;
-        match.OpenLivePlay();
-        Assert.True(match.StepTag(1, field.Fielder));
+        BeginLive(match);
+        Assert.True(StepTag(match, 1, field.Fielder));
         Assert.Equal(1, match.Outs);
         Assert.Null(match.First);
         var ev = match.FinishAtBat(paint, swing, hit, field);
@@ -202,8 +202,8 @@ public class MatchTests
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
         var lead = match.First!;
-        match.OpenLivePlay();
-        Assert.True(match.StepTag(0, field.Fielder));
+        BeginLive(match);
+        Assert.True(StepTag(match, 0, field.Fielder));
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(1, match.Outs);
         Assert.NotNull(match.First);
@@ -216,19 +216,19 @@ public class MatchTests
     public void LiveTagOfTheBatterRemovesEveryForceAhead()
     {
         var match = LivePlayWithLoadedBases();
-        match.OpenLivePlay();
-        Assert.True(match.LiveForces.At(4));
+        BeginLive(match);
+        Assert.True(match.LivePlay.Forces.At(4));
 
-        Assert.True(match.StepTag(0, match.Pitcher));
+        Assert.True(StepTag(match, 0, match.Pitcher));
 
-        Assert.True(match.LiveBatterOut);
+        Assert.True(match.LivePlay.BatterOut);
         Assert.All(new[] { 1, 2, 3 }, bag => Assert.NotNull(match.RunnerAt(bag)));
-        Assert.All(new[] { 1, 2, 3, 4 }, bag => Assert.False(match.LiveForces.At(bag)));
+        Assert.All(new[] { 1, 2, 3, 4 }, bag => Assert.False(match.LivePlay.Forces.At(bag)));
         var second = Diamond.Second;
         var runner = InPlay.TowardBag(1, 2, Diamond.Baseline * 0.5);
-        Assert.False(InPlay.ForceOnBag(match.LiveForces.At(2), 2, true, false,
+        Assert.False(InPlay.ForceOnBag(match.LivePlay.Forces.At(2), 2, true, false,
             second.X, second.Z, runner.X, runner.Z), "touching second cannot retire the distant runner after a batter tag");
-        var later = match.StepThrow(2, runnerBeats: false, match.Pitcher);
+        var later = StepThrow(match, 2, runnerBeats: false, match.Pitcher);
         Assert.True(later.Out, "the occupied runner can still be tagged at second");
         Assert.False(later.Force, "retiring the batter removes every dependent force");
     }
@@ -240,19 +240,19 @@ public class MatchTests
     public void LiveTagOfATrailingRunnerRemovesForcesAhead(int fromBag, int laterBag)
     {
         var match = LivePlayWithLoadedBases();
-        match.OpenLivePlay();
-        Assert.True(match.LiveForces.At(4));
+        BeginLive(match);
+        Assert.True(match.LivePlay.Forces.At(4));
 
-        Assert.True(match.StepTag(fromBag, match.Pitcher));
+        Assert.True(StepTag(match, fromBag, match.Pitcher));
 
         Assert.Null(match.RunnerAt(fromBag));
         for (var bag = 1; bag <= 3; bag++)
             if (bag != fromBag) Assert.NotNull(match.RunnerAt(bag));
         for (var bag = fromBag + 1; bag <= 4; bag++)
-            Assert.False(match.LiveForces.At(bag));
+            Assert.False(match.LivePlay.Forces.At(bag));
         for (var bag = 1; bag <= fromBag; bag++)
-            Assert.True(match.LiveForces.At(bag));
-        var later = match.StepThrow(laterBag, runnerBeats: false, match.Pitcher);
+            Assert.True(match.LivePlay.Forces.At(bag));
+        var later = StepThrow(match, laterBag, runnerBeats: false, match.Pitcher);
         Assert.False(later.Force, "a later throw cannot restore a force removed by the tag");
     }
 
@@ -260,8 +260,8 @@ public class MatchTests
     public void StepTagWithNobodyOnThatBagIsANoOp()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        match.OpenLivePlay();
-        Assert.False(match.StepTag(2, match.Pitcher));
+        BeginLive(match);
+        Assert.False(StepTag(match, 2, match.Pitcher));
         Assert.Equal(0, match.Outs);
     }
 
@@ -299,9 +299,9 @@ public class MatchTests
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         var lead = match.Second!;
-        match.OpenLivePlay();
-        Assert.True(match.LiveForces.At(3));
-        var step = match.StepThrow(3, runnerBeats: false, field.Fielder);
+        BeginLive(match);
+        Assert.True(match.LivePlay.Forces.At(3));
+        var step = StepThrow(match, 3, runnerBeats: false, field.Fielder);
         Assert.True(step.Out);
         Assert.True(step.Force);
         Assert.Equal(1, match.Outs);
@@ -323,9 +323,9 @@ public class MatchTests
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
-        match.OpenLivePlay();
-        Assert.False(match.LiveForces.At(3));
-        var step = match.StepThrow(3, runnerBeats: false, field.Fielder);
+        BeginLive(match);
+        Assert.False(match.LivePlay.Forces.At(3));
+        var step = StepThrow(match, 3, runnerBeats: false, field.Fielder);
         Assert.True(step.Out);
         Assert.False(step.Force);
         Assert.Equal(1, match.Outs);
@@ -347,8 +347,8 @@ public class MatchTests
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
-        match.OpenLivePlay();
-        var step = match.StepThrow(3, runnerBeats: true, field.Fielder);
+        BeginLive(match);
+        var step = StepThrow(match, 3, runnerBeats: true, field.Fielder);
         Assert.False(step.Out);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(PlayKind.Single, ev.Kind);
@@ -650,4 +650,14 @@ public class MatchTests
             Assert.True(match.Over, id);
         }
     }
+
+    static void BeginLive(Match match) =>
+        match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.GroundOut));
+
+    static InPlay.GroundThrowStep StepThrow(Match match, int bag, bool runnerBeats, Character? fielder) =>
+        Assert.IsType<InPlay.GroundThrowStep>(
+            match.LivePlay.Apply(LivePlayCommand.ThrowArrived(bag, runnerBeats, fielder)).Throw);
+
+    static bool StepTag(Match match, int fromBag, Character? fielder) =>
+        match.LivePlay.Apply(LivePlayCommand.TagRunner(fromBag, fielder)).TaggedFromBag is not null;
 }

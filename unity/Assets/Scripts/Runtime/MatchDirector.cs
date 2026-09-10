@@ -101,8 +101,9 @@ namespace GrandSluggers.UnityClient
         float _pitchDur = 0.5f;
         bool _pitchAir;
         Vector3 _relFrom;
-        float _hitT;
-        float _occupyBatter, _occupy1, _occupy2, _occupy3;
+        float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
+        LivePlayCommandSource LiveCommandSource =>
+            _playerFielding || HumanOwnsThrow ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
         float _freeze;
         float _smash;
         bool _showTiming;
@@ -412,7 +413,7 @@ namespace GrandSluggers.UnityClient
                 var hopper = _preview != null && _preview.Grounder;
                 var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
                 var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, false);
-                var def = _match.LiveForce
+                var def = _match.LivePlay.ForceRecorded
                     ? 1
                     : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
                 HudView.BagTell(InPlay.CommitBag(armed, hopper, FieldPad.Cutoff, def));
@@ -761,9 +762,6 @@ namespace GrandSluggers.UnityClient
             _caught = true;
             _gloved = true;
             HoldBallInGlove();
-            if (_playerFielding && _preview != null && _preview.Grounder
-                && _match != null && _match.First != null)
-                _match.OpenLivePlay();
         }
 
         void ArmRecoil()
@@ -782,7 +780,7 @@ namespace GrandSluggers.UnityClient
                 var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
                 var who = map.TryGetValue(_glovePos, out var g) ? g : _preview.Fielder;
                 var energy = InPlay.Energy(_pending);
-                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(_hitT * 40));
+                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(LiveTime * 40));
                 bobble = InPlay.Bobbles(energy, who, rng, _match.DefenseGlove);
                 knock = InPlay.KnockbackSec(energy, who);
                 _playerBobble = bobble;
