@@ -133,7 +133,8 @@ namespace GrandSluggers.EditorTools
                     {
                         if (skin.bones[i] == null) continue;
                         var expected = skin.bones[i].worldToLocalMatrix * skin.transform.localToWorldMatrix;
-                        if (!Finite(mesh.bindposes[i]) || !Approximately(mesh.bindposes[i], expected, 0.02f))
+                        if (!Finite(mesh.bindposes[i]) || !Finite(expected)
+                            || !Approximately(mesh.bindposes[i], expected, 0.02f))
                         {
                             errors.Add("import package " + id + " " + label + " skin " + skin.name
                                 + " bind pose " + i + " does not match bone " + skin.bones[i].name);
