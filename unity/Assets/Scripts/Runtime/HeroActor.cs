@@ -46,6 +46,8 @@ namespace GrandSluggers.UnityClient
         bool _hasGround;
         float _speed;
         bool _snap;
+        MoveBones.Sample _lastMotion, _loadedMotion;
+        bool _blendLoad;
 
         public string Id => _id;
         public Pose Current => _pose;
@@ -78,7 +80,13 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
         {
-            if (pose != _pose) _poseT = 0f;
+            if (pose != _pose)
+            {
+                _blendLoad = (pose == Pose.Swing && _pose == Pose.ChargeSwing)
+                    || (pose == Pose.ThrowPitch && _pose == Pose.ChargePitch);
+                _loadedMotion = _lastMotion;
+                _poseT = 0f;
+            }
             _pose = pose;
             _charge = Mathf.Clamp01(charge);
             if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
@@ -117,6 +125,13 @@ namespace GrandSluggers.UnityClient
             _snap = true;
             Tick(0f);
             _snap = false;
+        }
+
+        /// <summary>Sample a timed verb on the same clock as its ball event.</summary>
+        public void SampleMotion(float poseTime)
+        {
+            _poseT = Mathf.Max(0, poseTime);
+            Tick(0f);
         }
 
         public void Place(Vector3 pos, Vector3 look)
@@ -422,9 +437,13 @@ namespace GrandSluggers.UnityClient
                 var authoredPose = false;
                 if (!_packageBody)
                 {
-                    authoredPose = pose == Pose.ChargePitch
-                        ? TryAuthoredAt("pitch", (1f - _charge) * 0.12f, out authored)
-                        : TryAuthored(clipId, out authored);
+                    if (pose is Pose.ChargePitch or Pose.ChargeSwing)
+                    {
+                        authoredPose = TryAuthoredAt(pose == Pose.ChargePitch ? "pitch" : "swing", 0, out authored);
+                        if (authoredPose)
+                            authored = MoveBones.Mix(MoveBones.Evaluate(verb, _t, 0, 0, _pitchType), authored, _charge);
+                    }
+                    else authoredPose = TryAuthored(clipId, out authored);
                 }
                 if (_packageBody)
                     sample = CharacterMotion.Evaluate(verb, _t, _poseT, _charge);
@@ -432,6 +451,10 @@ namespace GrandSluggers.UnityClient
                     sample = authored;
                 else
                     sample = MoveBones.Evaluate(verb, _t, _poseT, _charge, _pitchType);
+                if (_blendLoad)
+                    sample = AtBatMotion.FromLoad(_loadedMotion, sample, _poseT,
+                        pose == Pose.Swing ? MoveBones.SwingContact : MoveBones.PitchRelease);
+                _lastMotion = sample;
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
@@ -449,14 +472,15 @@ namespace GrandSluggers.UnityClient
                 if (!playedPackage && !playedDrop)
                 {
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
+                    var timed = pose is Pose.Swing or Pose.ThrowPitch;
                     if (_packageBody)
                         ApplyPackage(sample,
-                            _snap ? 1f : boneSnap ? 0.55f : 0.32f,
-                            _snap ? 1f : boneSnap ? 0.48f : 0.34f);
+                            _snap || timed ? 1f : boneSnap ? 0.55f : 0.32f,
+                            _snap || timed ? 1f : boneSnap ? 0.48f : 0.34f);
                     else
                         Apply(sample,
-                            _snap ? 1f : pose == Pose.ThrowPitch ? 0.82f : boneSnap ? 0.55f : 0.32f,
-                            _snap ? 1f : pose == Pose.ThrowPitch ? 0.72f : boneSnap ? 0.48f : 0.34f);
+                            _snap || timed ? 1f : boneSnap ? 0.55f : 0.32f,
+                            _snap || timed ? 1f : boneSnap ? 0.48f : 0.34f);
                 }
                 else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
                     MirrorBoundArms();

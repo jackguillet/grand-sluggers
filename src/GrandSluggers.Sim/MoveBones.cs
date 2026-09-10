@@ -209,11 +209,13 @@ public static class MoveBones
 
     static Sample Pitch(double poseT, string? type)
     {
-        var u = Math.Clamp(poseT / PitchDur, 0, 1);
+        var u = poseT <= PitchRelease
+            ? Math.Clamp(poseT / PitchRelease, 0, 1) * 0.58
+            : 0.58 + Math.Clamp((poseT - PitchRelease) / (PitchDur - PitchRelease), 0, 1) * 0.42;
         var wind = Smooth(Math.Clamp(u / 0.22, 0, 1));
-        var stride = Smooth(Math.Clamp((u - 0.18) / 0.22, 0, 1));
-        var rel = Smooth(Math.Clamp((u - 0.38) / 0.18, 0, 1));
-        var fol = Smooth(Math.Clamp((u - 0.56) / 0.28, 0, 1));
+        var stride = Smooth(Math.Clamp((u - 0.22) / 0.18, 0, 1));
+        var rel = Smooth(Math.Clamp((u - 0.40) / 0.18, 0, 1));
+        var fol = Smooth(Math.Clamp((u - 0.58) / 0.42, 0, 1));
         var back = Slot(-108, 18, -38, type);
         var slot = Slot(8, 6, -18, type);
         var outA = Slot(82, -12, -8, type);
@@ -252,7 +254,9 @@ public static class MoveBones
 
     static Sample Swing(double poseT)
     {
-        var u = Math.Clamp(poseT / SwingDur, 0, 1);
+        var u = poseT <= SwingContact
+            ? Math.Clamp(poseT / SwingContact, 0, 1) * 0.48
+            : 0.48 + Math.Clamp((poseT - SwingContact) / (SwingDur - SwingContact), 0, 1) * 0.52;
         var load = Key(
             torso: E(2, -12, 0),
             lUpper: E(-12, 18, 28), rUpper: E(-82, -42, -52),
@@ -284,7 +288,7 @@ public static class MoveBones
             head: E(10, 20, 0));
         if (u < 0.22) return Mix(load, hips, Smooth(u / 0.22));
         if (u < 0.48) return Mix(hips, cut, Smooth((u - 0.22) / 0.26));
-        return Mix(cut, wrap, Smooth(Math.Clamp((u - 0.48) / 0.36, 0, 1)));
+        return Mix(cut, wrap, Smooth(Math.Clamp((u - 0.48) / 0.52, 0, 1)));
     }
 
     static Sample Scoop(double poseT)
@@ -366,7 +370,7 @@ public static class MoveBones
         Euler lThigh, Euler rThigh, Euler lShin, Euler rShin, Euler bat, Euler? head = null) =>
         new(torso, head ?? default, lUpper, lFore, rUpper, rFore, lThigh, lShin, rThigh, rShin, bat, 0);
 
-    static Sample Mix(Sample a, Sample b, double u) =>
+    public static Sample Mix(Sample a, Sample b, double u) =>
         new(
             Le(a.Torso, b.Torso, u), Le(a.Head, b.Head, u),
             Le(a.LUpper, b.LUpper, u), Le(a.LFore, b.LFore, u),

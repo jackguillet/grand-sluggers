@@ -149,14 +149,14 @@ public static class HowToPlay
         ]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
-            "Charge ring sits on the dirt. The pitch has a gold streak. Commit at MAX. Late charge is weaker.",
+            "Tap for a full slap swing. Start before the gold streak reaches home; let the bat come around. Charge to MAX for power.",
             "One controller: you pitch over the pitcher's shoulder looking at the box. You hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
             "West changeup (pitch). Hold West bunt (hit). North + South star. Stick L/R spray.",
             "A ball past the foul line is a foul. Strike unless you already have two.",
         ],
         [
-            "Charge ring sits on the dirt. The pitch has a gold streak. Commit at MAX. Late charge is weaker.",
+            "Tap for a full slap swing. Start before the gold streak reaches home; let the bat come around. Charge to MAX for power.",
             "You pitch over the pitcher's shoulder looking at the box. You hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
             "V / Ctrl changeup (pitch). Hold V / Ctrl bunt (hit). Q + Space star.",
