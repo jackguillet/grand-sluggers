@@ -49,11 +49,13 @@ public class GettingStartedTests
         var path = GettingStarted.PathRow(w, h);
         var table = GettingStarted.ModeTable(w, h);
         var band = GettingStarted.LineBand(w, h);
-        Assert.True(table.Y > path.Y + path.H - 1f);
+        Assert.Equal(ControlDiagram.Board(w, h).H, path.H);
         Assert.True(band.Y > table.Y + table.H - 1f);
         var first = GettingStarted.StepCell(0, w, h);
         var last = GettingStarted.StepCell(GettingStarted.Path.Count - 1, w, h);
-        Assert.True(last.X > first.X);
-        Assert.True(first.X + first.W <= last.X + 1f);
+        Assert.Equal(first.X, last.X);
+        Assert.True(last.Y > first.Y);
+        Assert.True(first.Y + first.H <= last.Y + 1f);
+        Assert.Equal("getting-started-modes", HowToPlay.Must("getting-started-modes").Id);
     }
 }

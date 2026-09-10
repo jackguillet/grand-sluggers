@@ -6,6 +6,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class ControlDiagram
 {
+    public static readonly IReadOnlyList<string> PageIds = ["controls", "controls-2", "controls-3"];
     public sealed record Part(string Id, float U, float V, float W, float H);
 
     public sealed record Callout(
@@ -31,6 +32,15 @@ public static class ControlDiagram
     public static IReadOnlyList<Callout> Callouts(InputScheme scheme) =>
         scheme == InputScheme.Keys ? KeysCallouts : PadCallouts;
 
+    public static IReadOnlyList<Callout> PageCallouts(InputScheme scheme, string pageId)
+    {
+        var all = Callouts(scheme);
+        var page = Math.Max(0, PageIds.ToList().FindIndex(id => id.Equals(pageId, StringComparison.OrdinalIgnoreCase)));
+        var start = all.Count * page / PageIds.Count;
+        var end = all.Count * (page + 1) / PageIds.Count;
+        return all.Skip(start).Take(end - start).ToArray();
+    }
+
     /// <summary>Two-column list. No tiny schematic.</summary>
     public static (float X, float Y, float W, float H) CalloutCell(
         int index, InputScheme scheme, float screenW, float screenH)
@@ -45,6 +55,16 @@ public static class ControlDiagram
         var cw = (b.W - gap) * 0.5f;
         var rh = Math.Max(56f, (b.H - legend) / rows);
         return (b.X + col * (cw + gap), b.Y + legend + row * rh, cw, rh);
+    }
+
+    public static (float X, float Y, float W, float H) CalloutCell(
+        int index, int count, float screenW, float screenH)
+    {
+        var b = Board(screenW, screenH);
+        const float legend = 40f;
+        var rows = Math.Max(1, count);
+        var rh = (b.H - legend) / rows;
+        return (b.X, b.Y + legend + index * rh, b.W, rh);
     }
 
     public static readonly IReadOnlyList<Part> PadParts =

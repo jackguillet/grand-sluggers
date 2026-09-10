@@ -1,7 +1,7 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// How to play chemistry + abilities: labeled stills and a four-row type table.
+/// How to play chemistry + abilities: labeled stills and a measured four-row type table.
 /// SMS p.14. Our toys. P / B / F / R is the card we draw on select.
 /// </summary>
 public static class ChemBook
@@ -17,14 +17,14 @@ public static class ChemBook
 
     public static readonly Pair Good = new(
         "chem-good",
-        "When chemistry is good",
+        "Good chemistry",
         "how-to-chem-good",
         "Hearts. Buddy throws. Buddy jump. Items.",
         Chemistry.Good);
 
     public static readonly Pair Bad = new(
         "chem-bad",
-        "When chemistry is bad",
+        "Bad chemistry",
         "how-to-chem-bad",
         "Scribbles. Throws sail. Rivals miss.",
         Chemistry.Bad);
@@ -37,10 +37,10 @@ public static class ChemBook
 
     public static readonly IReadOnlyList<TypeRow> Types =
     [
-        new("pitches", "Pitches", "Star pitch on the mound. Owns the ball about two seconds."),
-        new("swings", "Swings", "Star swing at the plate. Then baseball."),
-        new("running", "Running", "Close play at third or home. First button wins."),
-        new("fielding", "Fielding", "One field verb. Super Jump, Grow, Lick Catch add range."),
+        new("pitches", "Pitches", "Star pitch on the mound owns the ball about two seconds."),
+        new("swings", "Swings", "Star swing at the plate, then baseball."),
+        new("running", "Running", "Close play: first button wins."),
+        new("fielding", "Fielding", "One field verb: Jump, Grow, Lick Catch add range."),
     ];
 
     public static (float X, float Y, float W, float H) ChemCell(int index, float screenW, float screenH)
@@ -56,16 +56,21 @@ public static class ChemBook
     {
         var board = ControlDiagram.Board(screenW, screenH);
         var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
-        var h = board.H - lineBand;
-        return (board.X, board.Y, board.W * 0.48f, h);
+        return (board.X, board.Y, board.W, board.H - lineBand - 8f);
     }
 
     public static (float X, float Y, float W, float H) TypeTable(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var still = AbilityStill(screenW, screenH);
-        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
-        return (still.X + still.W + 12f, board.Y, board.W - still.W - 12f, board.H - lineBand);
+        return (board.X, board.Y, board.W, board.H);
+    }
+
+    public static (float X, float Y, float W, float H) TypeCell(int index, float screenW, float screenH)
+    {
+        var table = TypeTable(screenW, screenH);
+        const float gap = 10f;
+        var h = (table.H - gap * (Types.Count - 1)) / Types.Count;
+        return (table.X, table.Y + index * (h + gap), table.W, h);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
