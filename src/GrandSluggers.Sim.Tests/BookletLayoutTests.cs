@@ -246,6 +246,9 @@ public class BookletLayoutTests
                 Assert.True(columns.Title.Right + BookletLayout.TocColumnGap <= columns.Number.X);
                 Assert.True(columns.Number.W >= widest + BookletLayout.TocNumberPadX * 2f,
                     $"{w}×{h} contents page number wraps");
+                Assert.True(row.H >= ApproxLineHeight(44f), $"{w}×{h} contents number clips vertically");
+                Assert.True(row.H >= ApproxLineHeight(HowToPlay.BookLinePt),
+                    $"{w}×{h} contents title clips vertically");
                 Assert.True(columns.Number.Right <= row.X + row.W + 0.01f);
             }
 
