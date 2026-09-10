@@ -247,8 +247,9 @@ namespace GrandSluggers.UnityClient
             if (pre.Grounder || pre.Line)
             {
                 if (FlyCatch.TouchScoop(pre, _match.Park, _ball.x, _ball.z, _ball.y, LiveTime, hang, d, window)) { CatchGlove(); ArmRecoil(); }
-                if (FieldPad.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
-                if (FlyCatch.PlayerDiveCatch(_diveT > 0, d, window, _ball.y))
+                var pickupInPlay = FlyCatch.PickupInPlay(pre, _match.Park, _ball.x, _ball.z, LiveTime, hang);
+                if (pickupInPlay && FieldPad.SouthDown && d < window) { CatchGlove(); ArmRecoil(); }
+                if (pickupInPlay && FlyCatch.PlayerDiveCatch(_diveT > 0, d, window, _ball.y))
                 { _catchDive = true; CatchGlove(); ArmRecoil(); }
             }
             else
