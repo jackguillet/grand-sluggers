@@ -33,11 +33,13 @@ public class PitchTests
     [Fact]
     public void InsideTakeCanPlunkTheBatter()
     {
+        var body = AtBatResolver.BatterBodyPlateX(0, Hand.R);
+        var walked = AtBatResolver.BatterBodyPlateX(0.5, Hand.R);
         Assert.False(AtBatResolver.HitsBatter(0, 0, 0));
         Assert.False(AtBatResolver.HitsBatter(0, 0.9, 0));
         Assert.False(AtBatResolver.HitsBatter(0, 0, -0.9));
-        Assert.True(AtBatResolver.HitsBatter(0, -0.85, 0));
-        Assert.True(AtBatResolver.HitsBatter(0.5, -0.2, 0.05));
+        Assert.True(AtBatResolver.HitsBatter(0, body, 0));
+        Assert.True(AtBatResolver.HitsBatter(0.5, walked, 0.05));
     }
 
     [Fact]
