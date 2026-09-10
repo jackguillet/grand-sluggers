@@ -140,7 +140,13 @@ namespace GrandSluggers.UnityClient
 
             var rest = BallFlight.RestTime(_path);
             var done = _hitT >= rest + 0.2f;
-            if (_last?.Kind == PlayKind.HomeRun && _hitT > 2.4f) done = true;
+            // Home runs have no fielder or throw to complete. Resolve them on
+            // the authored spectacle clock even when the flight path continues
+            // to emit a rolling sample beyond the wall.
+            var homerun = (_pending != null && _pending.HomeRun)
+                || (_cpuField != null && _cpuField.Kind == PlayKind.HomeRun)
+                || (_last != null && _last.Kind == PlayKind.HomeRun);
+            if (homerun && _hitT > 2.4f) done = true;
             if (done && !_itemFlying) BeginResult();
         }
 
@@ -954,6 +960,7 @@ namespace GrandSluggers.UnityClient
             _stealPitch = pitch;
             _last = pitch;
             _stealT = 0;
+            _stealTagT = -1f;
             _stealRelease = 0;
             _phase = Phase.StealThrow;
             _t = 0;
@@ -1000,6 +1007,17 @@ namespace GrandSluggers.UnityClient
             _stealT += dt;
             TickCoverBags(dt);
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+
+            if (_stealTagT >= 0)
+            {
+                _stealTagT += dt;
+                _ball = _throwTo;
+                _cam.HoldInPlay(_ball);
+                if (_stealTagT >= 0.38f)
+                    CommitStealThrow();
+                return;
+            }
+
             var fromBag = _match.ArmedStealBag;
             var state = _match.RunnerAt(fromBag);
             var remain = state != null
@@ -1016,7 +1034,11 @@ namespace GrandSluggers.UnityClient
                 _ball.y += Mathf.Sin(u * Mathf.PI) * arc;
                 _cam.HoldInPlay(_ball);
                 if (_throwT >= _throwDur)
-                    CommitStealThrow();
+                {
+                    _throwing = false;
+                    _stealTagT = 0;
+                    _ball = _throwTo;
+                }
                 return;
             }
 

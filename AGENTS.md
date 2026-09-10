@@ -76,3 +76,12 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
 - Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: still-gate PNG in the PR. Personal Unity cannot `-batchmode`.
 - After a feel or look merge: a skeptic pass plays the named path. A still that only works because of a one-off is not done.
+
+## Local standalone delivery (Jack's default)
+
+- Jack tests the Mac standalone game in its own window. Do not send him to Unity Play as the default test handoff.
+- After your approved changes merge, run `python3 tools/local-player.py`. It fetches origin, fast-forwards the primary checkout's `main`, builds in a dedicated worktree with the installed GUI Unity editor, packages the matching data, and restarts the standalone window after a successful build.
+- This update/build/restart is authorized as the normal post-merge delivery step. Never force/reset/stash local main or merge a human-gated change just to deliver it. Report conflicts or build failures; keep the existing game intact.
+- For an unmerged change Jack needs to try, commit it in its worktree and run `python3 tools/local-player.py --preview /absolute/path/to/worktree`. Say clearly that the window is a preview; local main stays on merged code.
+- Confirm the new standalone window renders, state the running revision, and report remaining human gates. Building or launching alone does not pass a gameplay/look gate.
+- Details and diagnostics: `docs/local-player.md`. No background polling/restarts while Jack is playing; the working agent runs delivery after a merge or requested preview.
