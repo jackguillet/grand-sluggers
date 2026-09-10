@@ -29,6 +29,56 @@ public static class ChargeFeel
             : "";
 }
 
+public readonly record struct ChargeButtonState(
+    bool Armed,
+    double Fill01,
+    double SecondsPastFull);
+
+public readonly record struct ChargeButtonStep(
+    ChargeButtonState Next,
+    bool Committed,
+    double CommitFill01,
+    double CommitSecondsPastFull);
+
+/// <summary>
+/// Super Sluggers' button load: press starts the windup, holding fills it,
+/// and releasing commits either a quick normal action or the stored charge.
+/// </summary>
+public static class ChargeButton
+{
+    public static ChargeButtonStep Advance(
+        ChargeButtonState state,
+        bool pressed,
+        bool held,
+        bool released,
+        double deltaSeconds,
+        double secondsToFull,
+        bool accepting = true)
+    {
+        if (!accepting)
+            return default;
+
+        var armed = state.Armed || pressed;
+        var fill = Math.Clamp(state.Fill01, 0, 1);
+        var past = Math.Max(0, state.SecondsPastFull);
+        if (armed && held)
+        {
+            var next = Math.Min(1, fill + Math.Max(0, deltaSeconds) / Math.Max(0.01, secondsToFull));
+            if (next >= 1 && fill >= 1) past += Math.Max(0, deltaSeconds);
+            else if (next >= 1) past = 0;
+            fill = next;
+        }
+
+        if (armed && released)
+            return new ChargeButtonStep(default, true, fill, past);
+
+        var nextState = armed
+            ? new ChargeButtonState(true, fill, past)
+            : default;
+        return new ChargeButtonStep(nextState, false, 0, 0);
+    }
+}
+
 /// <summary>
 /// Sweet-spot oval at the plate, smaller than the zone. Center follows the batter.
 /// </summary>
@@ -36,6 +86,12 @@ public static class SweetSpot
 {
     public const double HalfWidth = 0.32;
     public const double HalfHeight = 0.28;
+
+    public const double WorldHalfWidth = HalfWidth * PitchFlight.PlateScaleX;
+    public const double WorldHalfHeight = HalfHeight * PitchFlight.PlateScaleY;
+
+    public static (double X, double Y) WorldCenter(double boxOffsetX) =>
+        PitchFlight.PlateTarget(boxOffsetX, 0);
 
     public static double Overlap(double boxOffsetX, double pitchAimX, double pitchAimY)
     {

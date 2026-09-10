@@ -22,7 +22,7 @@ public class SchemeTests
             Assert.False(Scheme.IsDebug(v.Keys));
         }
         Assert.Equal("Space / Enter", Scheme.Keys("confirm"));
-        Assert.Equal("Shift", Scheme.Keys("charge"));
+        Assert.Equal("Space hold", Scheme.Keys("charge"));
         Assert.Equal("Q", Scheme.Keys("star"));
         Assert.Equal("WASD", Scheme.Keys("aim-run"));
         Assert.Equal("1 2 3 4", Scheme.Keys("bags"));
@@ -36,9 +36,10 @@ public class SchemeTests
         Assert.Equal("Esc", Scheme.Keys("how-to"));
         Assert.Equal("Esc", Scheme.Mouse("how-to"));
         Assert.Equal("Left click", Scheme.Mouse("confirm"));
-        Assert.Equal("Right click hold", Scheme.Mouse("charge"));
+        Assert.Equal("Left click hold", Scheme.Mouse("charge"));
         Assert.Equal("Right-drag", Scheme.Mouse("aim-run"));
         Assert.Equal("South", Scheme.Pad("confirm"));
+        Assert.Equal("South hold", Scheme.Pad("charge"));
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
         Assert.Equal("L3", Scheme.Pad("steal"));

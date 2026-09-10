@@ -52,8 +52,8 @@ public static class RoleTables
         new("batting", "Batting",
         [
             new("Move batter", "Stick L/R. Down resets."),
-            new("Normal swing", "South"),
-            new("Charge swing", "Hold LT; South at MAX"),
+            new("Normal swing", "Tap South"),
+            new("Charge swing", "Hold South; release at MAX"),
             new("Star swing", "North + South"),
             new("Bunt", "Hold West"),
             new("Spray", "Stick L/R at contact"),
@@ -61,8 +61,8 @@ public static class RoleTables
         new("pitching", "Pitching",
         [
             new("Move pitcher", "Stick L/R. Down resets."),
-            new("Normal pitch", "South"),
-            new("Charge pitch", "Hold LT; South at MAX"),
+            new("Normal pitch", "Tap South"),
+            new("Charge pitch", "Hold South; release at MAX"),
             new("Changeup", "Hold West"),
             new("Star pitch", "North + South"),
             new("Curve", "Stick L/R after release"),
@@ -97,8 +97,8 @@ public static class RoleTables
         new("batting", "Batting",
         [
             new("Move batter", "A/D or mouse. S resets."),
-            new("Normal swing", "Space / left click"),
-            new("Charge swing", "Hold Shift/right-click; Space/left click at MAX"),
+            new("Normal swing", "Tap Space / left click"),
+            new("Charge swing", "Hold Space / left click; release at MAX"),
             new("Star swing", "Q + Space"),
             new("Bunt", "Hold V / Ctrl"),
             new("Spray", "A/D at contact"),
@@ -106,8 +106,8 @@ public static class RoleTables
         new("pitching", "Pitching",
         [
             new("Move pitcher", "A/D or mouse. S resets."),
-            new("Normal pitch", "Space / left click"),
-            new("Charge pitch", "Hold Shift/right-click; Space/left click at MAX"),
+            new("Normal pitch", "Tap Space / left click"),
+            new("Charge pitch", "Hold Space / left click; release at MAX"),
             new("Changeup", "Hold V / Ctrl"),
             new("Star pitch", "Q + Space"),
             new("Curve", "A/D after release"),

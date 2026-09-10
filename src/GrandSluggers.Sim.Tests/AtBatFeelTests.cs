@@ -7,6 +7,83 @@ public class AtBatFeelTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
 
+    [Fact]
+    public void OneButtonTapAndHoldBothCommitOnRelease()
+    {
+        var tapDown = ChargeButton.Advance(default, pressed: true, held: true, released: false,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        Assert.False(tapDown.Committed);
+        Assert.True(tapDown.Next.Armed);
+        var tapUp = ChargeButton.Advance(tapDown.Next, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        Assert.True(tapUp.Committed);
+        Assert.True(ChargeFeel.IsSlap(tapUp.CommitFill01), $"tap fill {tapUp.CommitFill01}");
+        Assert.Equal(default, tapUp.Next);
+
+        var held = default(ChargeButtonState);
+        for (var frame = 0; frame < 27; frame++)
+        {
+            var step = ChargeButton.Advance(held, pressed: frame == 0, held: true, released: false,
+                deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+            Assert.False(step.Committed);
+            held = step.Next;
+        }
+        Assert.Equal(1, held.Fill01, 8);
+        var maxUp = ChargeButton.Advance(held, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        Assert.True(maxUp.Committed);
+        Assert.Equal(1, ChargeFeel.Effective01(maxUp.CommitFill01, maxUp.CommitSecondsPastFull,
+            maxHold: 0.5, decayPerSec: 0.8), 8);
+    }
+
+    [Fact]
+    public void HoldingPastTheMaxBandKeepsTheReleaseButLosesPower()
+    {
+        var full = new ChargeButtonState(true, 1, 0);
+        var late = ChargeButton.Advance(full, pressed: false, held: true, released: false,
+            deltaSeconds: 0.8, secondsToFull: 0.45).Next;
+        var released = ChargeButton.Advance(late, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        Assert.True(released.Committed);
+        var effective = ChargeFeel.Effective01(released.CommitFill01, released.CommitSecondsPastFull,
+            maxHold: 0.5, decayPerSec: 0.8);
+        Assert.InRange(effective, ChargeFeel.SlapBelow, 0.99);
+    }
+
+    [Fact]
+    public void PitchButtonDoesNotArmUntilThePitcherIsReady()
+    {
+        var earlyDown = ChargeButton.Advance(default, pressed: true, held: true, released: false,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.55, accepting: false);
+        var earlyUp = ChargeButton.Advance(earlyDown.Next, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.55, accepting: false);
+        Assert.False(earlyDown.Next.Armed);
+        Assert.False(earlyUp.Committed);
+
+        var readyDown = ChargeButton.Advance(earlyUp.Next, pressed: true, held: true, released: false,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.55, accepting: true);
+        var readyUp = ChargeButton.Advance(readyDown.Next, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.55, accepting: true);
+        Assert.True(readyDown.Next.Armed);
+        Assert.True(readyUp.Committed);
+    }
+
+    [Fact]
+    public void SwingReleaseDuringPitcherWindupIsAnEarlySwingInsteadOfDisappearing()
+    {
+        var held = ChargeButton.Advance(default, pressed: true, held: true, released: false,
+            deltaSeconds: 0.1, secondsToFull: 0.45);
+        var released = ChargeButton.Advance(held.Next, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        const double releaseDuringWindup = -0.2;
+        const double plateAt = 1.0;
+        var error = AtBatMotion.SwingErrorFrames(releaseDuringWindup, plateAt);
+
+        Assert.True(released.Committed);
+        Assert.True(error < 0, $"windup release should be early, got {error} frames");
+        Assert.Equal(releaseDuringWindup, AtBatMotion.SwingStart(plateAt, error), 8);
+    }
+
     [Theory]
     [InlineData(0.78)]
     [InlineData(1.0)]
@@ -132,6 +209,13 @@ public class AtBatFeelTests
         Assert.True(SweetSpot.WalkedOffMissesHeart());
         Assert.Equal(1, SweetSpot.Overlap(0, 0, 0));
         Assert.Equal(0, SweetSpot.Overlap(0.85, 0, 0));
+        var left = SweetSpot.WorldCenter(-0.4);
+        var right = SweetSpot.WorldCenter(0.4);
+        Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
+        Assert.Equal(PitchFlight.PlateY, left.Y);
+        Assert.True(SweetSpot.WorldHalfWidth < 0.92, "cursor is narrower than the visible strike frame");
+        Assert.True(SweetSpot.WorldHalfHeight < (3.65 - 1.45) * 0.5,
+            "cursor is shorter than the visible strike frame");
         var park = _content.Parks["harbor-diamond"];
         var resolver = new AtBatResolver(_content.Chemistry);
         var vale = _content.Must("vale");
@@ -142,6 +226,15 @@ public class AtBatFeelTests
         Assert.True(square.InPlay || square.Quality != ContactQuality.Miss, square.Quality.ToString());
         Assert.Equal(ContactQuality.Miss, miss.Quality);
         Assert.False(miss.InPlay);
+    }
+
+    [Fact]
+    public void BookletSaysOutsideTakesAndMissesAreDifferent()
+    {
+        var pad = HowToPlay.Must("the-box").Lines;
+        var keys = HowToPlay.Must("the-box").KeyLines!;
+        Assert.Contains(pad, line => line.Contains("outside") && line.Contains("ball") && line.Contains("strike"));
+        Assert.Contains(keys, line => line.Contains("outside") && line.Contains("ball") && line.Contains("strike"));
     }
 
     [Fact]

@@ -41,17 +41,17 @@ public class RoleTablesTests
         Assert.Contains(padField, v => v.Contains("Jump"));
         Assert.Contains(padField, v => v.Contains("Dive"));
         Assert.Contains(padField, v => v.Contains("Attack"));
-        Assert.Contains(RoleTables.Pad.SelectMany(b => b.Rows), r => r.Press.Contains("LT") || r.Verb.Contains("Charge"));
+        Assert.Contains(RoleTables.Pad.SelectMany(b => b.Rows), r => r.Verb.Contains("Charge"));
         Assert.Contains(RoleTables.Pad.First(b => b.Id == "batting").Rows, r => r.Verb.Contains("Bunt"));
         foreach (var row in RoleTables.Pad.SelectMany(block => block.Rows).Where(row => row.Verb.Contains("Charge")))
         {
-            Assert.Contains("Hold LT", row.Press);
-            Assert.Contains("South", row.Press);
+            Assert.Contains("Hold South", row.Press);
+            Assert.Contains("release", row.Press, StringComparison.OrdinalIgnoreCase);
         }
         foreach (var row in RoleTables.Keys.SelectMany(block => block.Rows).Where(row => row.Verb.Contains("Charge")))
         {
-            Assert.Contains("Hold Shift/right-click", row.Press);
-            Assert.Contains("Space/left click", row.Press);
+            Assert.Contains("Hold Space / left click", row.Press);
+            Assert.Contains("release", row.Press, StringComparison.OrdinalIgnoreCase);
         }
 
         var page = HowToPlay.Must("roles");
