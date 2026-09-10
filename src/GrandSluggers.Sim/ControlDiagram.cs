@@ -20,7 +20,7 @@ public static class ControlDiagram
     public static (float X, float Y, float W, float H) Board(float screenW, float screenH)
     {
         var book = HowToPlay.BookPanel(screenW, screenH);
-        var top = 88f;
+        var top = 108f;
         var foot = 44f;
         return (book.X + 16f, book.Y + top, book.W - 32f, book.H - top - foot - 8f);
     }

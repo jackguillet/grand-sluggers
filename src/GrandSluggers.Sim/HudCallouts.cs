@@ -6,6 +6,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class HudCallouts
 {
+    public const float CopyBandMul = 6.6f;
     public sealed record Mark(
         string Id,
         string Label,
@@ -49,15 +50,15 @@ public static class HudCallouts
     {
         var board = ControlDiagram.Board(screenW, screenH);
         const float gap = 10f;
-        var lineBand = HowToPlay.KidLineH * HowToPlay.LineBandMul;
-        var h = (board.H - lineBand - gap) * 0.5f;
-        return (board.X, board.Y + index * (h + gap), board.W, h);
+        var lineBand = HowToPlay.KidLineH * CopyBandMul;
+        var w = (board.W - gap) * 0.5f;
+        return (board.X + index * (w + gap), board.Y, w, board.H - lineBand);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
+        var h = HowToPlay.KidLineH * CopyBandMul;
         return (board.X, board.Y + board.H - h, board.W, h);
     }
 }
