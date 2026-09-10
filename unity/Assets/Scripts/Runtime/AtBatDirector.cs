@@ -38,6 +38,7 @@ namespace GrandSluggers.UnityClient
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
+            _match?.LivePlay.Apply(LivePlayCommand.Reset());
             _swung = false;
             _bunt = false;
             _swing = null;
@@ -415,11 +416,9 @@ namespace GrandSluggers.UnityClient
             var list = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, _match.Park.WindMph);
             _path = new Sample[list.Count];
             for (var i = 0; i < list.Count; i++) _path[i] = list[i];
-            _hitT = 0;
-            _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _phase = Phase.InPlay;
             _t = 0;
-            _match.OpenLivePlay();
+            _match.LivePlay.Apply(LivePlayCommand.Begin(LiveKind(), LiveCommandSource));
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
             _gloved = false;

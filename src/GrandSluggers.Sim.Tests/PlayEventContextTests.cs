@@ -67,9 +67,9 @@ public class PlayEventContextTests
         var pitcher = match.Pitcher;
         Assert.True(match.BeginAtBat(Paint, Swing, out var hit, out _));
         var field = new FieldingResult(PlayKind.GroundOut, pitcher, null, 1, 40, 70, false, false);
-        match.OpenLivePlay();
-        Assert.True(match.StepThrow(2, runnerBeats: false, pitcher).Out);
-        Assert.True(match.StepThrow(1, runnerBeats: false, pitcher).Out);
+        BeginLive(match);
+        Assert.True(StepThrow(match, 2, runnerBeats: false, pitcher).Out);
+        Assert.True(StepThrow(match, 1, runnerBeats: false, pitcher).Out);
 
         var ev = match.FinishAtBat(Paint, Swing, hit, field);
 
@@ -257,4 +257,11 @@ public class PlayEventContextTests
         var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 1, 0, 200, false, false);
         return match.FinishAtBat(Paint, Swing, hit, field);
     }
+
+    static void BeginLive(Match match) =>
+        match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.GroundOut));
+
+    static InPlay.GroundThrowStep StepThrow(Match match, int bag, bool runnerBeats, Character? fielder) =>
+        Assert.IsType<InPlay.GroundThrowStep>(
+            match.LivePlay.Apply(LivePlayCommand.ThrowArrived(bag, runnerBeats, fielder)).Throw);
 }
