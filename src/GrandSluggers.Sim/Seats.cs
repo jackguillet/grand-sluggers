@@ -42,6 +42,30 @@ public readonly record struct Seats(LineupSeat Home, LineupSeat Away)
 }
 
 /// <summary>
+/// Locks a confirmed seat choice for the match setup and play lifecycle. Selection
+/// remains live until Bind; returning to Select or Title releases the choice.
+/// </summary>
+public sealed class MatchSeatLifecycle
+{
+    public bool Bound { get; private set; }
+    public Seats Seats { get; private set; } = Seats.One;
+
+    public Seats Current(Seats selected) => Bound ? Seats : selected;
+
+    public Seats Bind(Seats selected)
+    {
+        if (!Bound)
+        {
+            Seats = selected;
+            Bound = true;
+        }
+        return Seats;
+    }
+
+    public void Release() => Bound = false;
+}
+
+/// <summary>
 /// Match-lifetime ownership of the physical devices behind logical Pad1 and Pad2.
 /// Unity supplies InputDevice.deviceId values; this portable class owns the seating
 /// rule and recovery transitions without depending on an input toolkit.
