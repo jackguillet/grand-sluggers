@@ -3,6 +3,16 @@ namespace GrandSluggers.Sim;
 /// <summary>Live ball: energy, bobble, and the race from home to first.</summary>
 public static class InPlay
 {
+    /// <summary>
+    /// An uncaught ball leaving the park ends without glove possession or a bag dwell.
+    /// Preserve the existing flight/spectacle beat, including the wall-catch window;
+    /// a caught ball must instead finish through the ordinary live-play rules.
+    /// </summary>
+    public static bool DeadBallResultReady(PlayKind kind, double elapsed, double hangSeconds,
+        bool caught, bool throwing, bool effectInFlight) =>
+        kind == PlayKind.HomeRun && !caught && !throwing && !effectInFlight
+        && elapsed >= Math.Max(2.4, hangSeconds + 0.35);
+
     public static double Energy(AtBatResult hit)
     {
         var q = hit.Quality switch
