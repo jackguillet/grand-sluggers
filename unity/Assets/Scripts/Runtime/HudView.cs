@@ -5,7 +5,8 @@ namespace GrandSluggers.UnityClient
 {
     public static class HudView
     {
-        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine, _bookHead, _stamp;
+        static GUIStyle _title, _h1, _body, _gold, _tiny, _stat, _score, _team, _bookTitle, _bookLine,
+            _bookHead, _bookHeader, _bookHeaderNumber, _bookNumber, _bookTab, _bookLineCompact, _stamp;
         static Texture2D _panel, _ink, _starOn, _starOff, _dotOn, _dotOff, _outOn, _outOff, _bar, _white, _bookBack, _bookCard;
         static Texture2D _spark, _royal, _carnival, _goldrush, _canopy, _ember;
 
@@ -246,8 +247,11 @@ namespace GrandSluggers.UnityClient
             GUI.DrawTexture(new Rect(book.X, book.Y, book.W, book.H), _bookBack);
             DrawChapterMascot(p.Id);
             GUI.Label(new Rect(book.X + 88, book.Y + 10, 280, 28), "HOW TO PLAY", _gold);
-            GUI.Label(new Rect(book.X + 88, book.Y + 38, book.W - 440, 44),
-                p.Title.ToUpperInvariant() + "   " + (page + 1) + " / " + n, _bookHead);
+            var pageLabel = (page + 1) + " / " + n;
+            var header = BookletLayout.Header(
+                Screen.width, Screen.height, MeasureWidth(_bookHeader, pageLabel));
+            GUI.Label(ToRect(header.Title), p.Title.ToUpperInvariant(), _bookHeader);
+            GUI.Label(ToRect(header.Page), pageLabel, _bookHeaderNumber);
             DrawSchemeToggle(scheme);
             DrawSchemeBadges(p, scheme);
             if (p.Id == "contents")
@@ -270,11 +274,7 @@ namespace GrandSluggers.UnityClient
                 DrawAbilityBook(scheme, p);
             else
             {
-                var text = HowToPlay.TextRect(Screen.width, Screen.height);
-                var lines = p.Shown(scheme);
-                var lineH = HowToPlay.KidLineH;
-                for (var i = 0; i < lines.Count; i++)
-                    Sticker(lines[i], text.X, text.Y + i * lineH, text.W, lineH + 10f, _bookLine);
+                DrawBookLines(p, HowToPlay.TextRect(Screen.width, Screen.height));
             }
             GUI.Label(new Rect(book.X + 28, book.Y + book.H - 44, book.W - 56, 40),
                 BookScheme.Footer(scheme), _bookLine);
@@ -321,7 +321,7 @@ namespace GrandSluggers.UnityClient
             var r = new Rect(t.X, t.Y, t.W, t.H);
             var on = kind == current;
             GUI.DrawTexture(r, on ? _ink : _bookCard);
-            GUI.Label(new Rect(r.x + 8, r.y + 6, r.width - 12, r.height - 8), BookScheme.Label(kind), on ? _h1 : _bookLine);
+            GUI.Label(new Rect(r.x + 8, r.y + 4, r.width - 16, r.height - 8), BookScheme.Label(kind), _bookTab);
         }
 
         static void DrawHardware(InputScheme scheme)
@@ -521,12 +521,16 @@ namespace GrandSluggers.UnityClient
         {
             var card = ContentsToc.Card(Screen.width, Screen.height);
             GUI.DrawTexture(new Rect(card.X, card.Y, card.W, card.H), _bookCard);
+            var widestNumber = 0f;
+            foreach (var chapter in ContentsToc.Chapters)
+                widestNumber = Mathf.Max(widestNumber, MeasureWidth(_bookHead, chapter.Number.ToString()));
             for (var i = 0; i < ContentsToc.Chapters.Count; i++)
             {
                 var chapter = ContentsToc.Chapters[i];
                 var row = ContentsToc.Row(i, Screen.width, Screen.height);
-                GUI.Label(new Rect(row.X, row.Y, row.W - 56, row.H), chapter.Title, _bookLine);
-                GUI.Label(new Rect(row.X + row.W - 56, row.Y, 52, row.H), chapter.Number.ToString(), _bookHead);
+                var columns = BookletLayout.TocColumns(row, widestNumber);
+                GUI.Label(ToRect(columns.Title), chapter.Title, _bookLine);
+                GUI.Label(ToRect(columns.Number), chapter.Number.ToString(), _bookNumber);
             }
             DrawBookLines(page, ContentsToc.LineBand(Screen.width, Screen.height));
         }
@@ -581,10 +585,33 @@ namespace GrandSluggers.UnityClient
         static void DrawBookLines(HowToPlay.Page page, (float X, float Y, float W, float H) band)
         {
             var lines = page.Shown(BookScheme.Current);
-            var lineH = HowToPlay.KidLineH;
-            for (var i = 0; i < lines.Count; i++)
-                Sticker(lines[i], band.X, band.Y + i * lineH, band.W, lineH, _bookLine);
+            var box = new BookletLayout.Box(band.X, band.Y, band.W, band.H);
+            var style = _bookLine;
+            var blocks = BookletLayout.BestFlow(lines, box,
+                (text, width) => MeasureHeight(style, text, width));
+            if (!BookletLayout.Fits(blocks, box))
+            {
+                style = _bookLineCompact;
+                blocks = BookletLayout.BestFlow(lines, box,
+                    (text, width) => MeasureHeight(style, text, width));
+            }
+            if (!BookletLayout.Fits(blocks, box))
+            {
+                var warning = page.Id + " / " + BookScheme.Current + " / " + Screen.width + "x" + Screen.height;
+                if (_bookOverflowWarnings.Add(warning))
+                    Debug.LogError("Booklet copy does not fit its band: " + warning);
+            }
+            foreach (var block in blocks)
+                Sticker(block.Text, block.Box.X, block.Box.Y, block.Box.W, block.Box.H, style);
         }
+
+        static float MeasureWidth(GUIStyle style, string text) =>
+            Mathf.Ceil(style.CalcSize(new GUIContent(text)).x);
+
+        static float MeasureHeight(GUIStyle style, string text, float width) =>
+            Mathf.Ceil(style.CalcHeight(new GUIContent(text), width));
+
+        static Rect ToRect(BookletLayout.Box box) => new(box.X, box.Y, box.W, box.H);
 
         static void DrawHudCallouts(HowToPlay.Page page)
         {
@@ -595,11 +622,11 @@ namespace GrandSluggers.UnityClient
                 var row = HudCallouts.Row(i, Screen.width, Screen.height);
                 var r = new Rect(row.X, row.Y, row.W, row.H);
                 GUI.DrawTexture(r, _bookCard);
-                GUI.Label(new Rect(r.x + 12, r.y + 8, 280, 32), spread.Title.ToUpperInvariant(), _bookHead);
+                GUI.Label(new Rect(r.x + 12, r.y + 6, r.width - 24, 38), spread.Title.ToUpperInvariant(), _bookHeader);
                 for (var m = 0; m < spread.Marks.Count; m++)
                 {
                     var mark = spread.Marks[m];
-                    Sticker("•  " + mark.Label, r.x + 16, r.y + 48 + m * 36, r.width - 32, 34, _bookLine);
+                    Sticker("•  " + mark.Label, r.x + 16, r.y + 46 + m * 30, r.width - 32, 29, _h1);
                 }
             }
             DrawBookLines(page, HudCallouts.LineBand(Screen.width, Screen.height));
@@ -614,7 +641,7 @@ namespace GrandSluggers.UnityClient
                 var row = HowToComic.Row(i, Screen.width, Screen.height);
                 var r = new Rect(row.X, row.Y, row.W, row.H);
                 GUI.DrawTexture(r, _bookCard);
-                GUI.Label(new Rect(r.x + 16, r.y + 10, r.width - 32, 40), strip.Title.ToUpperInvariant(), _bookHead);
+                GUI.Label(new Rect(r.x + 16, r.y + 8, r.width - 32, 40), strip.Title.ToUpperInvariant(), _bookHeader);
                 var motion = HowToComic.MotionOf(strip, scheme);
                 var chipH = 56f;
                 var chipW = r.width * 0.38f;
@@ -622,8 +649,8 @@ namespace GrandSluggers.UnityClient
                 DrawMotionChip(new Rect(r.x + 16, y, chipW, chipH), motion.Charge);
                 GUI.Label(new Rect(r.x + 16 + chipW, y, 48, chipH), "→", _bookHead);
                 DrawMotionChip(new Rect(r.x + r.width - 16 - chipW, y, chipW, chipH), motion.Commit);
-                GUI.Label(new Rect(r.x + 16, y + chipH + 12, r.width - 32, r.height - chipH - 80),
-                    HowToComic.Caption(strip, scheme), _bookLine);
+                GUI.Label(new Rect(r.x + 16, y + chipH + 10, r.width - 32, r.height - chipH - 76),
+                    HowToComic.Caption(strip, scheme), _h1);
             }
             DrawBookLines(page, HowToComic.LineBand(Screen.width, Screen.height));
         }
@@ -631,7 +658,7 @@ namespace GrandSluggers.UnityClient
         static void DrawMotionChip(Rect r, string label)
         {
             GUI.DrawTexture(r, _ink);
-            GUI.Label(new Rect(r.x + 10, r.y + 8, r.width - 20, r.height - 12), label, _bookHead);
+            GUI.Label(new Rect(r.x + 10, r.y + 6, r.width - 20, r.height - 10), label, _h1);
         }
 
         static void DrawRoleTables(InputScheme scheme)
@@ -663,6 +690,7 @@ namespace GrandSluggers.UnityClient
         }
 
         static readonly System.Collections.Generic.Dictionary<string, Texture2D> _bookPics = new();
+        static readonly System.Collections.Generic.HashSet<string> _bookOverflowWarnings = new();
 
         static Texture2D BookPic(string id)
         {
@@ -974,10 +1002,27 @@ namespace GrandSluggers.UnityClient
             _stamp.wordWrap = false;
             _bookHead = Sty(44, new Color(1f, 0.92f, 0.28f), FontStyle.Bold);
             _bookHead.clipping = TextClipping.Overflow;
+            _bookHead.wordWrap = false;
+            _bookHeader = Sty(HowToPlay.BookHeaderPt, new Color(1f, 0.92f, 0.28f), FontStyle.Bold);
+            _bookHeader.wordWrap = false;
+            _bookHeader.clipping = TextClipping.Clip;
             _bookTitle = Sty(48, new Color(1f, 0.92f, 0.28f), FontStyle.Bold);
             _bookLine = Sty(HowToPlay.BookLinePt, Color.white, FontStyle.Bold);
             _bookLine.wordWrap = true;
             _bookLine.clipping = TextClipping.Overflow;
+            _bookLineCompact = Sty(HowToPlay.BookLineMinPt, Color.white, FontStyle.Bold);
+            _bookLineCompact.wordWrap = true;
+            _bookLineCompact.clipping = TextClipping.Overflow;
+            _bookNumber = new GUIStyle(_bookHead);
+            _bookNumber.wordWrap = false;
+            _bookNumber.clipping = TextClipping.Clip;
+            _bookNumber.alignment = TextAnchor.MiddleRight;
+            _bookHeaderNumber = new GUIStyle(_bookHeader);
+            _bookHeaderNumber.alignment = TextAnchor.MiddleRight;
+            _bookTab = Sty(HowToPlay.BookTabPt, Color.white, FontStyle.Bold);
+            _bookTab.wordWrap = false;
+            _bookTab.clipping = TextClipping.Clip;
+            _bookTab.alignment = TextAnchor.MiddleCenter;
             _body = Sty(18, new Color(0.95f, 0.96f, 0.97f), FontStyle.Normal);
             _gold = Sty(20, new Color(1f, 0.82f, 0.25f), FontStyle.Bold);
             _tiny = Sty(15, new Color(0.85f, 0.88f, 0.9f), FontStyle.Normal);

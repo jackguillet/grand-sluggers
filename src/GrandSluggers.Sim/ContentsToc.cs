@@ -25,7 +25,7 @@ public static class ContentsToc
     public static readonly IReadOnlyList<Chapter> Chapters = Build();
 
     public const string Picture = "contents";
-    /// <summary>Two intro lines. The TOC is the page.</summary>
+    /// <summary>One measured intro paragraph. The TOC and shared footer carry navigation.</summary>
     public const float IntroBandMul = 2.2f;
 
     static IReadOnlyList<Chapter> Build()
