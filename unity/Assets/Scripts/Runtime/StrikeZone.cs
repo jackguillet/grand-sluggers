@@ -47,9 +47,9 @@ namespace GrandSluggers.UnityClient
                     Mathf.Sin(a) * (float)SweetSpot.WorldHalfHeight,
                     0));
             }
-            var center = Look.Prim(PrimitiveType.Sphere, "SweetSpot", cursor.transform,
+            var centerMarker = Look.Prim(PrimitiveType.Sphere, "SweetSpot", cursor.transform,
                 Vector3.zero, Vector3.one * 0.13f, gold);
-            Object.Destroy(center.GetComponent<Collider>());
+            Object.Destroy(centerMarker.GetComponent<Collider>());
             _target = cursor.transform;
             _root.gameObject.SetActive(false);
         }
