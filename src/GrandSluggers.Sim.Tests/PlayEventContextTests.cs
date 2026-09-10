@@ -222,7 +222,9 @@ public class PlayEventContextTests
         var hitByPitch = Match.Slice(_content, innings: 3, seed: 1);
         var plunked = hitByPitch.Batter;
         var plunkPitcher = hitByPitch.Pitcher;
-        var plunk = new PitchCommand("fastball", 0, 0, false, -0.85, 0);
+        var bodyX = AtBatResolver.BatterBodyPlateX(0, plunked.Bats);
+        var plunk = PitchFlight.AimForCrossing(
+            new PitchCommand("fastball", 0, 0, false), bodyX, 0);
         var plunkEvent = hitByPitch.Play(plunk, take);
         Assert.Equal(PlayKind.HitByPitch, plunkEvent.Kind);
         Assert.Equal(plunked.Id, plunkEvent.Batter.Id);

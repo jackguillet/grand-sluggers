@@ -235,15 +235,21 @@ public sealed class AtBatResolver
     }
 
     /// <summary>
-    /// Body sits in the third-base box (negative X). An inside take that
-    /// reaches the torso is hit-by-pitch, not a ball.
+    /// Radius is expressed in normalized plate-aim units. The center comes from
+    /// the authored batter's box and converts the actor's world-space walk.
     /// </summary>
-    public const double BatterBodyInside = 0.75;
     public const double BatterBodyR = 0.32;
+
+    public static double BatterBodyPlateX(double boxOffsetX, Hand bats = Hand.R)
+    {
+        var boxWorldX = bats == Hand.L ? HomeSet.BoxX : -HomeSet.BoxX;
+        var walkWorldX = boxOffsetX * HomeSet.BatterWalk;
+        return (boxWorldX + walkWorldX) / PitchFlight.PlateScaleX;
+    }
 
     public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY, Hand bats = Hand.R)
     {
-        var bodyX = boxOffsetX + (bats == Hand.L ? BatterBodyInside : -BatterBodyInside);
+        var bodyX = BatterBodyPlateX(boxOffsetX, bats);
         var dx = pitchAimX - bodyX;
         var dy = pitchAimY;
         return dx * dx + dy * dy <= BatterBodyR * BatterBodyR;
