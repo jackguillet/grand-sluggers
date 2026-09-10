@@ -82,6 +82,20 @@ public static class PitchFlight
         };
     }
 
+    /// <summary>
+    /// Aim a delivery at an intended normalized plate crossing while preserving
+    /// its pitch type, curve, rubber position and star movement. Endpoint aim is
+    /// affine, so compensating the observed offset gives an exact target.
+    /// Call before PreparePitch adds execution error.
+    /// </summary>
+    public static PitchCommand AimForCrossing(PitchCommand pitch, double targetX, double targetY,
+        string? starPitchId = null)
+    {
+        var actual = ContactAim(pitch, starPitchId);
+        return pitch with { AimX = pitch.AimX + targetX - actual.X,
+            AimY = pitch.AimY + targetY - actual.Y };
+    }
+
     public static (double X, double Y) ContactAim(PitchCommand pitch, string? starPitchId = null)
     {
         var p = Point(pitch, 1, starPitchId);

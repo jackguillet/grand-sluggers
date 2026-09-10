@@ -659,8 +659,9 @@ public sealed class Match
         }
         var changeup = type == "changeup";
         var breakX = type == "slider" ? 0.85 : type == "curve" ? 0.7 : 0;
-        return new PitchCommand(changeup ? "fastball" : type, charge, err, star, aimX, aimY,
+        var delivery = new PitchCommand(changeup ? "fastball" : type, charge, err, star, aimX, aimY,
             breakX, changeup, PitcherOffsetX);
+        return PitchFlight.AimForCrossing(delivery, aimX + PitcherOffsetX * 0.35, aimY, Pitcher.StarPitch);
     }
 
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, bool vsHumanPitcher = false)
