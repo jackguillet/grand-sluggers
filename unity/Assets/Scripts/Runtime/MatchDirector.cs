@@ -152,8 +152,8 @@ namespace GrandSluggers.UnityClient
         float _gunT, _gunDur;
         Vector3 _gunFrom, _gunTo;
         Character _gunRunner;
-        int _gunFromBag, _gunToBag;
-        bool _gunSafe, _gunPickoff;
+        int _gunFromBag, _gunToBag, _gunThrowToBag;
+        bool _gunSafe, _gunPickoff, _gunThrowFromPitcher;
         double _gunLead;
         PlayEvent _stealPitch;
         float _stealT;
@@ -584,7 +584,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (_last != null && _last.Kind == PlayKind.FlyOut &&
-                _last.Caption != null && _last.Caption.IndexOf("BUDDY", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                _last.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump)
                 _banner = "BUDDY JUMP";
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
@@ -788,7 +788,7 @@ namespace GrandSluggers.UnityClient
             if (_last == null || _match == null) return;
             var pick = Highlight.Pick(_match.Log);
             if (pick == null) return;
-            if (_last.Kind != pick.Play.Kind || _last.Caption != pick.Play.Caption) return;
+            if (_match.Log.Count == 0 || !ReferenceEquals(_match.Log[_match.Log.Count - 1], pick.Play)) return;
             _clip = pick;
             _hlAt = _ball;
             var fly = _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double
