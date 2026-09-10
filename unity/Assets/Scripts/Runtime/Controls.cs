@@ -97,6 +97,8 @@ namespace GrandSluggers.UnityClient
             public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth)
                 || (KeysEnabled && MouseLeftDown);
             public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (KeysEnabled && MouseLeftHeld);
+            public bool SouthUp => KeyUp(Key.Space) || KeyUp(Key.Enter) || Released(Device?.buttonSouth)
+                || (KeysEnabled && MouseLeftUp);
             public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (KeysEnabled && MouseMiddleDown);
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
@@ -379,6 +381,7 @@ namespace GrandSluggers.UnityClient
 
         public static bool SouthDown => Pad1.SouthDown;
         public static bool SouthHeld => Pad1.SouthHeld;
+        public static bool SouthUp => Pad1.SouthUp;
         public static bool NorthDown => Pad1.NorthDown;
         public static bool EastDown => Pad1.EastDown;
         public static bool EastHeld => Pad1.EastHeld;
@@ -544,6 +547,7 @@ namespace GrandSluggers.UnityClient
 
         static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         static bool MouseLeftHeld => Mouse.current != null && Mouse.current.leftButton.isPressed;
+        static bool MouseLeftUp => Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame;
         static bool MouseRightHeld => Mouse.current != null && Mouse.current.rightButton.isPressed;
         static bool MouseRightDown => Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
         static bool MouseMiddleDown => Mouse.current != null && Mouse.current.middleButton.wasPressedThisFrame;
@@ -628,6 +632,14 @@ namespace GrandSluggers.UnityClient
             var kb = Keyboard.current;
             return kb != null && kb[k].wasPressedThisFrame;
         }
+
+        static bool KeyUp(Key k)
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb[k].wasReleasedThisFrame;
+        }
+
+        static bool Released(ButtonControl button) => button != null && button.wasReleasedThisFrame;
 
         static bool RawKeyDown(Key k)
         {
