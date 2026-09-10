@@ -97,6 +97,8 @@ namespace GrandSluggers.EditorTools
             if (width < 640) width = 1280;
             if (height < 360) height = 800;
 
+            CharacterPackageControllerImport.SyncRequired();
+
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             var content = ContentCatalog.Load(data);
             var artErrors = content.Art.Validate(content);
