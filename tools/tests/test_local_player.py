@@ -69,6 +69,27 @@ class MainDeliveryTests(unittest.TestCase):
             player.sync_main(self.main)
         self.assertEqual(local, self.git(self.main, "rev-parse", "HEAD"))
 
+    def test_build_evidence_must_match_revision_and_harbor_scene(self):
+        revision = "a" * 40
+        player.validate_build_evidence({
+            "ok": True,
+            "revision": revision,
+            "scene": "Assets/Scenes/HarborDiamond.unity"
+        }, revision)
+
+        with self.assertRaises(RuntimeError):
+            player.validate_build_evidence({
+                "ok": True,
+                "revision": "b" * 40,
+                "scene": "Assets/Scenes/HarborDiamond.unity"
+            }, revision)
+        with self.assertRaises(RuntimeError):
+            player.validate_build_evidence({
+                "ok": True,
+                "revision": revision,
+                "scene": "Assets/Scenes/Other.unity"
+            }, revision)
+
 
 if __name__ == "__main__":
     unittest.main()
