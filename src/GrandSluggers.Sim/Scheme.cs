@@ -11,7 +11,7 @@ public static class Scheme
     public static readonly IReadOnlyList<Verb> Product =
     [
         new("confirm", "South", "Space / Enter", "Left click"),
-        new("charge", "LT", "Shift", "Right click hold"),
+        new("charge", "South hold", "Space hold", "Left click hold"),
         new("star", "North", "Q", "Middle click"),
         new("aim-run", "Left stick", "WASD", "Right-drag"),
         new("bags", "D-pad", "1 2 3 4", "Click bag / mouse quadrant"),

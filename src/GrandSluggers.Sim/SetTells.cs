@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// SET dirt tells as product state. Charge ring, zone locator, and ball trail
-/// are queryable without F2. Analog pull threshold matches the pad (0.15).
+/// are queryable without F2. The ring appears after 0.15 of the button load.
 /// </summary>
 public static class SetTells
 {
