@@ -57,3 +57,9 @@ Contact and the robbery catch observation are injected deterministically. The ga
 In a dedicated worktree, launch the pinned GUI Unity editor with `-projectPath /absolute/worktree/unity -executeMethod GrandSluggers.EditorTools.PitchJudgmentGate.Run`, or choose **Grand Sluggers → Verify Pitch Judgment**. Set `GS_VALIDATION_REVISION` to the tested commit and optionally `GS_PITCH_EVIDENCE` to the output JSON path. Do not use batch mode or quit flags: this enters Play asynchronously.
 
 The gate takes 24 deliveries through the actual launch and flight endpoint code: four pitch types, three curve inputs, and ordinary/star deliveries. Each starts with two strikes and takes the pitch, checking the rendered crossing, the simulated zone judgment, and whether strike three is called. Inspect `ok`, every case, revision and editor version. Inputs and endpoint time are injected; this is not a controller, animation, full-half, or human acceptance check.
+
+## Opt-in fielding pursuit gate
+
+Launch the pinned GUI editor from a dedicated worktree with `-executeMethod GrandSluggers.EditorTools.FieldingPursuitGate.Run` (or **Grand Sluggers → Verify Fielding Pursuit**). Set `GS_VALIDATION_REVISION` and optionally `GS_FIELDING_PURSUIT_EVIDENCE`; default output is `unity/Temp/fielding-pursuit.json`. No batch or quit flag.
+
+Eight actual `TickLive` cases cover low/high grounders to three directions, a routine fly and an uncaught wall ball. The gate records routes at 10 Hz and checks every synthetic frame for rated running speed, legal pickup, bounded completion and the home-run deadline. Startup is capped at 180 seconds and case simulation at trajectory duration plus eight seconds. This injects contact and drives time; rendered route quality and physical input remain separate checks.
