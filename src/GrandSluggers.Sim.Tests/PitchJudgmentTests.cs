@@ -114,4 +114,44 @@ public class PitchJudgmentTests
         Assert.Equal(StrikeZoneGeometry.Contains(crossing.X, crossing.Y), result.AtBat.InZone);
     }
 
+    [Fact]
+    public void IntendedCrossingSurvivesEveryDeliveryShape()
+    {
+        foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+        foreach (var star in new[] { "", "heatball", "prismball", "charmball", "phonyball", "caskball" })
+        foreach (var offset in new[] { -1.0, 0, 1.0 })
+        {
+            var raw = new PitchCommand(type, 1, 0, star != "", BreakX: offset, RubberX: offset);
+            var aimed = PitchFlight.AimForCrossing(raw, 0.2, -0.1, star);
+            var contact = PitchFlight.ContactAim(aimed, star);
+            Assert.Equal(0.2, contact.X, 10);
+            Assert.Equal(-0.1, contact.Y, 10);
+            Assert.Equal(raw.BreakX, aimed.BreakX);
+            Assert.Equal(raw.RubberX, aimed.RubberX);
+            Assert.Equal(raw.Type, aimed.Type);
+            Assert.False(aimed.DeliveryPrepared);
+        }
+    }
+
+    [Fact]
+    public void CpuBreakingBallsCanReachTheIntendedZone()
+    {
+        var match = Match.Slice(content, seed: 535);
+        var seen = new Dictionary<string, int>();
+        var strikes = new Dictionary<string, int>();
+        for (var i = 0; i < 5000; i++)
+        {
+            var pitch = match.CpuPitch();
+            var type = pitch.Changeup ? "changeup" : pitch.Type;
+            seen[type] = seen.GetValueOrDefault(type) + 1;
+            if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch))
+                strikes[type] = strikes.GetValueOrDefault(type) + 1;
+        }
+        foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+        {
+            Assert.True(seen[type] > 100);
+            Assert.InRange((double)strikes.GetValueOrDefault(type) / seen[type], 0.65, 1.0);
+        }
+    }
+
 }
