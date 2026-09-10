@@ -46,5 +46,20 @@ namespace GrandSluggers.EditorTools
                 "{\"shots\":[\"char-rest\",\"char-pose\"],\"home\":\"fenn\",\"away\":\"rio\",\"hudOff\":true,\"width\":1920,\"height\":1080}");
             Capture();
         }
+
+        [MenuItem("Grand Sluggers/Capture Swing Matrix")]
+        public static void CaptureSwings()
+        {
+            var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp");
+            Directory.CreateDirectory(temp);
+            var outDir = System.Environment.GetEnvironmentVariable("GS_SWING_STILLS");
+            var outJson = string.IsNullOrWhiteSpace(outDir)
+                ? ""
+                : ",\"outDir\":\"" + outDir.Replace("\\", "/").Replace("\"", "'") + "\"";
+            File.WriteAllText(StillRequest.RequestPath(temp),
+                "{\"shots\":[\"swing-matrix\"],\"hudOff\":true,\"width\":1920,\"height\":1080"
+                + outJson + "}");
+            Capture();
+        }
     }
 }
