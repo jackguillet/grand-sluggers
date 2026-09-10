@@ -1,0 +1,132 @@
+{
+  "packages": [
+    {
+      "id": "fenn",
+      "controller": "Assets/Art/Characters/fenn/fenn.controller",
+      "playerController": "Assets/Resources/Art/Characters/fenn/fenn.controller",
+      "verbs": [
+        {
+          "verb": "idle",
+          "source": "Assets/Art/Characters/fenn/fenn-idle.fbx",
+          "playerSource": "Assets/Resources/Art/Characters/fenn/fenn-idle.fbx",
+          "clip": "idle",
+          "loop": true,
+          "clock": "world",
+          "markers": [],
+          "readiness": "ready",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "walk",
+          "source": "",
+          "playerSource": "",
+          "clip": "walk",
+          "loop": true,
+          "clock": "world",
+          "markers": [{ "event": "FootPlant", "at": 0.0 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "run",
+          "source": "",
+          "playerSource": "",
+          "clip": "run",
+          "loop": true,
+          "clock": "world",
+          "markers": [{ "event": "FootPlant", "at": 0.0 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "jump",
+          "source": "",
+          "playerSource": "",
+          "clip": "jump",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "FootPlant", "at": 0.55 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "chargePitch",
+          "source": "",
+          "playerSource": "",
+          "clip": "chargePitch",
+          "loop": false,
+          "clock": "charge",
+          "markers": [],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "pitch",
+          "source": "",
+          "playerSource": "",
+          "clip": "pitch",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "Release", "at": 0.42 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "chargeSwing",
+          "source": "",
+          "playerSource": "",
+          "clip": "chargeSwing",
+          "loop": false,
+          "clock": "charge",
+          "markers": [],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "swing",
+          "source": "",
+          "playerSource": "",
+          "clip": "swing",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "Contact", "at": 0.30 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "throw",
+          "source": "",
+          "playerSource": "",
+          "clip": "throw",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "Release", "at": 0.18 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "scoop",
+          "source": "",
+          "playerSource": "",
+          "clip": "scoop",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "Contact", "at": 0.22 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        },
+        {
+          "verb": "slide",
+          "source": "",
+          "playerSource": "",
+          "clip": "slide",
+          "loop": false,
+          "clock": "pose",
+          "markers": [{ "event": "FootPlant", "at": 0.18 }],
+          "readiness": "fallback",
+          "fallback": "character-motion"
+        }
+      ]
+    }
+  ]
+}

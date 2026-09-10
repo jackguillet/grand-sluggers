@@ -24,7 +24,8 @@ public class CharacterPackageTests
     {
         foreach (var skin in _content.Art.Skins.Values)
         {
-            var errors = CharacterPackage.ValidateFiles(_content.Root, skin);
+            _content.Art.Packages.TryGetValue(skin.Id, out var package);
+            var errors = CharacterPackage.ValidateFiles(_content.Root, skin, package);
             Assert.True(errors.Count == 0, string.Join("; ", errors));
         }
     }
@@ -40,10 +41,102 @@ public class CharacterPackageTests
         Assert.Equal("fenn", fenn.BodyType, ignoreCase: true);
         foreach (var bone in CharacterPackage.Sockets)
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
-        foreach (var clip in CharacterPackage.PackageClips)
-            Assert.True(File.Exists(Path.Combine(Directory.GetParent(_content.Root)!.FullName, "unity",
-                CharacterPackage.ClipSlot("fenn", clip).Replace('/', Path.DirectorySeparatorChar))),
-                "missing package clip " + clip);
+        Assert.True(_content.Art.TryPackage("fenn", out var package));
+        Assert.Equal(CharacterPackage.ControllerSlot("fenn"), package.Controller);
+        Assert.Equal(CharacterPackage.PlayerControllerSlot("fenn"), package.PlayerController);
+    }
+
+    [Fact]
+    public void FennIdleIsReadyAndEveryOtherRuntimeVerbHasAnExplicitFallback()
+    {
+        Assert.True(_content.Art.TryPackage("fenn", out var package));
+        foreach (var verb in CharacterPackage.RuntimeVerbs)
+        {
+            Assert.True(CharacterPackage.TryVerb(package, verb, out var slot), CharacterPackage.VerbId(verb));
+            Assert.Equal(CharacterPackage.CharacterMotionFallback, slot.Fallback);
+        }
+
+        Assert.True(CharacterPackage.TryVerb(package, MoveBones.Verb.Idle, out var idle));
+        Assert.True(CharacterPackage.IsReady(idle));
+        Assert.True(idle.Loop);
+        Assert.Equal(CharacterPackage.WorldClock, idle.Clock);
+        Assert.Equal(CharacterPackage.ClipSlot("fenn", "idle"), idle.Source);
+
+        foreach (var verb in new[] { MoveBones.Verb.Run, MoveBones.Verb.Pitch, MoveBones.Verb.Scoop, MoveBones.Verb.Throw })
+        {
+            Assert.True(CharacterPackage.TryVerb(package, verb, out var slot));
+            Assert.Equal(CharacterPackage.Fallback, slot.Readiness);
+        }
+
+        Assert.DoesNotContain(package.Verbs, slot =>
+            slot.Verb.Equals("swing", StringComparison.OrdinalIgnoreCase)
+            && slot.Source.EndsWith("fenn-pose.fbx", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void RuntimeVerbSelectionUsesTheManifestInsteadOfAPackageSwitch()
+    {
+        var run = new PackageVerbSlot(
+            "run", "custom-run.fbx", "player-run.fbx", "stride", true,
+            CharacterPackage.WorldClock, [new PackageTimingMarker("FootPlant", 0.12)],
+            CharacterPackage.Ready, CharacterPackage.CharacterMotionFallback);
+        var package = new CharacterPackageSpec("next", "next.controller", "player.controller", [run]);
+
+        Assert.True(CharacterPackage.TryVerb(package, MoveBones.Verb.Run, out var selected));
+        Assert.Equal("custom-run.fbx", selected.Source);
+        Assert.Equal("stride", selected.Clip);
+        Assert.True(CharacterPackage.TryMarker(selected, MoveBones.ClipEvent.FootPlant, out var plant));
+        Assert.Equal(0.12, plant);
+    }
+
+    [Fact]
+    public void ReadyVerbMarkerMustMatchTheGameplayBallEvent()
+    {
+        Assert.True(_content.Art.TryPackage("fenn", out var package));
+        var verbs = package.Verbs.Select(slot =>
+            slot.Verb.Equals("pitch", StringComparison.OrdinalIgnoreCase)
+                ? slot with
+                {
+                    Source = CharacterPackage.ClipSlot("fenn", "pitch"),
+                    PlayerSource = CharacterPackage.PlayerClipSlot("fenn", "pitch"),
+                    Readiness = CharacterPackage.Ready,
+                    Markers = [new PackageTimingMarker("Release", 0.70)]
+                }
+                : slot).ToArray();
+        var mismatched = package with { Verbs = verbs };
+        var skin = _content.Art.SkinOf(_content.Must("fenn"));
+
+        var errors = CharacterPackage.ValidateFiles(_content.Root, skin, mismatched);
+
+        Assert.Contains(errors, error => error.Contains("Release marker 0.7 must match gameplay 0.42"));
+    }
+
+    [Fact]
+    public void PackageManifestReportsDuplicateEmptyAndNullRowsWithoutCrashing()
+    {
+        var manifest = """
+            {
+              "packages": [
+                null,
+                { "id": "", "verbs": [] },
+                {
+                  "id": "fenn",
+                  "controller": "fenn.controller",
+                  "playerController": "player.controller",
+                  "verbs": [null, { "verb": "idle", "markers": [null] }]
+                },
+                { "id": "FENN", "verbs": [] }
+              ]
+            }
+            """;
+
+        var art = LoadArtWithManifest(manifest);
+
+        Assert.Contains(art.PackageErrors, error => error.Contains("packages[0] must be an object"));
+        Assert.Contains(art.PackageErrors, error => error.Contains("packages[1] id is required"));
+        Assert.Contains(art.PackageErrors, error => error.Contains("verbs[0] must be an object"));
+        Assert.Contains(art.PackageErrors, error => error.Contains("markers[0] must be an object"));
+        Assert.Contains(art.PackageErrors, error => error.Contains("duplicates package id FENN"));
     }
 
     [Fact]
@@ -65,5 +158,29 @@ public class CharacterPackageTests
         var errors = CharacterPackage.ValidateFiles(_content.Root, fake);
         Assert.Contains(errors, e => e.Contains("albedo", StringComparison.OrdinalIgnoreCase)
             || e.Contains("FBX", StringComparison.OrdinalIgnoreCase));
+    }
+
+    string LoadManifestSource() => Path.Combine(_content.Root, "art");
+
+    ArtCatalog LoadArtWithManifest(string manifest)
+    {
+        var temp = Path.Combine(Path.GetTempPath(), "gs-package-manifest-" + Guid.NewGuid().ToString("N"));
+        var art = Path.Combine(temp, "art");
+        Directory.CreateDirectory(art);
+        try
+        {
+            foreach (var source in Directory.GetFiles(LoadManifestSource(), "*.json"))
+            {
+                if (Path.GetFileName(source).Equals("character-packages.json", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                File.Copy(source, Path.Combine(art, Path.GetFileName(source)));
+            }
+            File.WriteAllText(Path.Combine(art, "character-packages.json"), manifest);
+            return ArtCatalog.Load(temp);
+        }
+        finally
+        {
+            if (Directory.Exists(temp)) Directory.Delete(temp, recursive: true);
+        }
     }
 }

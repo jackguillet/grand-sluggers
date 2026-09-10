@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using GrandSluggers.Sim;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -95,6 +96,16 @@ namespace GrandSluggers.EditorTools
             var development = JsonBool(json, "development", !mac);
             if (width < 640) width = 1280;
             if (height < 360) height = 800;
+
+            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
+            var content = ContentCatalog.Load(data);
+            var artErrors = content.Art.Validate(content);
+            if (artErrors.Count > 0)
+                throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));
+            var packageErrors = CharacterPackageImportValidation.Validate(content);
+            if (packageErrors.Count > 0)
+                throw new BuildFailedException("Character package import validation failed:\n"
+                    + string.Join("\n", packageErrors));
 
             var unityRoot = Directory.GetParent(Application.dataPath)!.FullName;
             var exe = Path.Combine(unityRoot, mac ? RelOutMac : RelOutLinux);

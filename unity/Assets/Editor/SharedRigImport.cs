@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using GrandSluggers.Sim;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +26,8 @@ namespace GrandSluggers.EditorTools
                 AssetDatabase.LoadAssetAtPath<GameObject>(
                     string.IsNullOrWhiteSpace(path) ? DefaultSlot : path);
             ArtBinder.EditorLoadClip = LoadClip;
+            ArtBinder.EditorLoadPackageClip = LoadExactClip;
+            ArtBinder.EditorLoadController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>;
             ArtBinder.EditorLoadNamedMesh = LoadNamedMesh;
         }
 
@@ -119,6 +122,21 @@ namespace GrandSluggers.EditorTools
             return null;
         }
 
+        static AnimationClip LoadExactClip(string slot, string clipName)
+        {
+            foreach (var path in ClipCandidates(slot))
+            {
+                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (asset is AnimationClip clip
+                        && !clip.name.StartsWith("__preview", StringComparison.Ordinal)
+                        && clip.name.Equals(clipName, StringComparison.OrdinalIgnoreCase))
+                        return clip;
+                }
+            }
+            return null;
+        }
+
         static string[] ClipCandidates(string slot)
         {
             if (string.IsNullOrWhiteSpace(slot)) return Array.Empty<string>();
@@ -144,6 +162,19 @@ namespace GrandSluggers.EditorTools
             imp.optimizeGameObjects = false;
         }
 
+        void OnPreprocessAnimation()
+        {
+            if (!TryPackageVerb(assetPath, out var verb)) return;
+            var importer = (ModelImporter)assetImporter;
+            var clips = importer.defaultClipAnimations;
+            for (var i = 0; i < clips.Length; i++)
+            {
+                clips[i].name = verb.Clip;
+                clips[i].loopTime = verb.Loop;
+            }
+            if (clips.Length > 0) importer.clipAnimations = clips;
+        }
+
         void OnPostprocessAnimation(GameObject go, AnimationClip clip)
         {
             var packageTake = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0
@@ -151,6 +182,24 @@ namespace GrandSluggers.EditorTools
             if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0 && !packageTake)
                 return;
             var id = Path.GetFileNameWithoutExtension(assetPath);
+            if (packageTake && TryPackageVerb(assetPath, out var verb))
+            {
+                clip.name = verb.Clip;
+                clip.legacy = false;
+                var events = new AnimationEvent[verb.Markers.Count];
+                for (var i = 0; i < verb.Markers.Count; i++)
+                {
+                    var marker = verb.Markers[i];
+                    events[i] = new AnimationEvent
+                    {
+                        time = (float)marker.At,
+                        functionName = marker.Event,
+                        stringParameter = marker.Event
+                    };
+                }
+                AnimationUtility.SetAnimationEvents(clip, events);
+                return;
+            }
             if (packageTake && id.IndexOf('-') >= 0)
                 id = id.Substring(id.LastIndexOf('-') + 1);
             clip.name = id;
@@ -166,6 +215,33 @@ namespace GrandSluggers.EditorTools
                 stringParameter = "Contact"
             };
             AnimationUtility.SetAnimationEvents(clip, new[] { ev });
+        }
+
+        static bool TryPackageVerb(string path, out PackageVerbSlot verb)
+        {
+            verb = default;
+            try
+            {
+                var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
+                var art = ArtCatalog.Load(data);
+                foreach (var package in art.Packages.Values)
+                {
+                    foreach (var candidate in package.Verbs)
+                    {
+                        if (path.Equals(candidate.Source, StringComparison.OrdinalIgnoreCase)
+                            || path.Equals(candidate.PlayerSource, StringComparison.OrdinalIgnoreCase))
+                        {
+                            verb = candidate;
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // The catalog validator reports malformed or missing package data.
+            }
+            return false;
         }
     }
 }
