@@ -20,6 +20,12 @@ namespace GrandSluggers.UnityClient
         /// <summary>Editor Play fills this so clip FBX/anim loads without a Resources copy.</summary>
         public static Func<string, AnimationClip> EditorLoadClip;
 
+        /// <summary>Editor Play loads an exact named subclip from a package source.</summary>
+        public static Func<string, string, AnimationClip> EditorLoadPackageClip;
+
+        /// <summary>Editor Play loads the package controller from its authoring slot.</summary>
+        public static Func<string, RuntimeAnimatorController> EditorLoadController;
+
         /// <summary>Editor Play: named mesh inside a kit FBX (dugout-1b, wall-panel, …).</summary>
         public static Func<string, string, GameObject> EditorLoadNamedMesh;
 
@@ -76,17 +82,24 @@ namespace GrandSluggers.UnityClient
             return null;
         }
 
-        /// <summary>Per-package Generic clip (idle, pose, …). Null keeps CharacterMotion.</summary>
-        public static AnimationClip LoadPackageClip(string id, string clipId)
+        /// <summary>Ready per-package Generic clip. Null follows the declared CharacterMotion fallback.</summary>
+        public static AnimationClip LoadPackageClip(string id, PackageVerbSlot verb)
         {
-            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(clipId)) return null;
-            var key = "Art/Characters/" + id + "/" + id + "-" + clipId;
-            var loaded = Resources.Load<AnimationClip>(key);
-            if (loaded == null)
-                loaded = Resources.Load<AnimationClip>(key + "/" + clipId);
+            if (string.IsNullOrWhiteSpace(id) || !CharacterPackage.IsReady(verb)
+                || string.IsNullOrWhiteSpace(verb.Clip)) return null;
+            var key = ResourceKey(verb.PlayerSource);
+            var loaded = LoadExactResourceClip(key, verb.Clip);
             if (loaded != null) return loaded;
-            if (EditorLoadClip == null) return null;
-            return EditorLoadClip("Assets/Art/Characters/" + id + "/" + id + "-" + clipId + ".fbx");
+            if (EditorLoadPackageClip == null) return null;
+            return EditorLoadPackageClip(verb.Source, verb.Clip);
+        }
+
+        public static RuntimeAnimatorController LoadPackageController(string id)
+        {
+            if (_art == null || !_art.TryPackage(id, out var package)) return null;
+            var loaded = Resources.Load<RuntimeAnimatorController>(ResourceKey(package.PlayerController));
+            if (loaded != null) return loaded;
+            return EditorLoadController != null ? EditorLoadController(package.Controller) : null;
         }
 
         /// <summary>{id}-albedo in Resources/Art/Characters/{id}/ or Resources/Art/.</summary>
@@ -374,12 +387,36 @@ namespace GrandSluggers.UnityClient
 
         static string SlotToResources(string slot)
         {
+            const string assetResources = "Assets/Resources/";
+            if (slot.StartsWith(assetResources, System.StringComparison.OrdinalIgnoreCase))
+                return slot.Substring(assetResources.Length);
             const string prefix = "Resources/";
             if (slot.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase))
                 return slot.Substring(prefix.Length);
             if (slot.StartsWith("Assets/", System.StringComparison.OrdinalIgnoreCase))
                 return slot.Substring("Assets/".Length);
             return slot;
+        }
+
+        static string ResourceKey(string slot)
+        {
+            var key = SlotToResources(slot ?? "");
+            var dot = key.LastIndexOf('.');
+            if (dot > key.LastIndexOf('/')) key = key.Substring(0, dot);
+            return key;
+        }
+
+        static AnimationClip LoadExactResourceClip(string key, string clipName)
+        {
+            if (string.IsNullOrWhiteSpace(key)) return null;
+            var clips = Resources.LoadAll<AnimationClip>(key);
+            for (var i = 0; i < clips.Length; i++)
+            {
+                var clip = clips[i];
+                if (clip == null || clip.name.StartsWith("__preview", StringComparison.Ordinal)) continue;
+                if (clip.name.Equals(clipName, StringComparison.OrdinalIgnoreCase)) return clip;
+            }
+            return null;
         }
     }
 }

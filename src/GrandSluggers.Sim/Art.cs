@@ -25,6 +25,8 @@ public sealed class ArtCatalog
         IReadOnlyList<NamedSlot> materials,
         IReadOnlyList<ParkKitSlot> parks,
         IReadOnlyList<string> folders,
+        IReadOnlyDictionary<string, CharacterPackageSpec> packages,
+        IReadOnlyList<string> packageErrors,
         PoseClips poses)
     {
         Rig = rig;
@@ -35,6 +37,8 @@ public sealed class ArtCatalog
         Materials = materials;
         Parks = parks;
         Folders = folders;
+        Packages = packages;
+        PackageErrors = packageErrors;
         Poses = poses;
     }
 
@@ -46,6 +50,8 @@ public sealed class ArtCatalog
     public IReadOnlyList<NamedSlot> Materials { get; }
     public IReadOnlyList<ParkKitSlot> Parks { get; }
     public IReadOnlyList<string> Folders { get; }
+    public IReadOnlyDictionary<string, CharacterPackageSpec> Packages { get; }
+    public IReadOnlyList<string> PackageErrors { get; }
     public PoseClips Poses { get; }
 
     public bool TryAuthored(string id, double t, out MoveBones.Sample sample)
@@ -85,9 +91,19 @@ public sealed class ArtCatalog
         return !string.IsNullOrEmpty(kit.Id);
     }
 
+    public bool TryPackage(string id, out CharacterPackageSpec package) =>
+        Packages.TryGetValue(id, out package!);
+
+    public bool TryPackageVerb(string id, MoveBones.Verb verb, out PackageVerbSlot slot)
+    {
+        slot = default;
+        return TryPackage(id, out var package)
+            && CharacterPackage.TryVerb(package, verb, out slot);
+    }
+
     public IReadOnlyList<string> Validate(ContentCatalog content)
     {
-        var errors = new List<string>();
+        var errors = new List<string>(PackageErrors);
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
         {
             if (!Rig.Bones.Any(b => b.Equals(bone, StringComparison.OrdinalIgnoreCase)))
@@ -201,7 +217,15 @@ public sealed class ArtCatalog
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
         foreach (var skin in Skins.Values)
-            errors.AddRange(CharacterPackage.ValidateFiles(content.Root, skin));
+        {
+            Packages.TryGetValue(skin.Id, out var package);
+            errors.AddRange(CharacterPackage.ValidateFiles(content.Root, skin, package));
+        }
+        foreach (var id in Packages.Keys)
+        {
+            if (!Skins.TryGetValue(id, out var skin) || string.IsNullOrWhiteSpace(skin.Mesh))
+                errors.Add("package manifest " + id + " has no packaged skin");
+        }
         return errors;
     }
 
@@ -241,9 +265,74 @@ public sealed class ArtCatalog
         var parks = (Read<ParksFile>(Path.Combine(art, "parks.json"), json).Kits ?? [])
             .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed)).ToList();
         var folders = Read<FoldersFile>(Path.Combine(art, "folders.json"), json).Folders ?? [];
+        var packages = new Dictionary<string, CharacterPackageSpec>(StringComparer.OrdinalIgnoreCase);
+        var packageErrors = new List<string>();
+        var packageFile = Read<PackagesFile>(Path.Combine(art, "character-packages.json"), json);
+        if (packageFile.Packages == null)
+            packageErrors.Add("character-packages.json packages must be an array");
+        for (var packageIndex = 0; packageIndex < (packageFile.Packages?.Count ?? 0); packageIndex++)
+        {
+            var package = packageFile.Packages![packageIndex];
+            var row = "character-packages.json packages[" + packageIndex + "]";
+            if (package == null)
+            {
+                packageErrors.Add(row + " must be an object");
+                continue;
+            }
+            var id = (package.Id ?? "").Trim();
+            if (id.Length == 0)
+            {
+                packageErrors.Add(row + " id is required");
+                continue;
+            }
+            if (packages.ContainsKey(id))
+            {
+                packageErrors.Add(row + " duplicates package id " + id);
+                continue;
+            }
+            var verbs = new List<PackageVerbSlot>();
+            if (package.Verbs == null)
+                packageErrors.Add(row + " verbs must be an array");
+            for (var verbIndex = 0; verbIndex < (package.Verbs?.Count ?? 0); verbIndex++)
+            {
+                var verb = package.Verbs![verbIndex];
+                var verbRow = row + ".verbs[" + verbIndex + "]";
+                if (verb == null)
+                {
+                    packageErrors.Add(verbRow + " must be an object");
+                    continue;
+                }
+                var markers = new List<PackageTimingMarker>();
+                if (verb.Markers == null)
+                    packageErrors.Add(verbRow + ".markers must be an array");
+                for (var markerIndex = 0; markerIndex < (verb.Markers?.Count ?? 0); markerIndex++)
+                {
+                    var marker = verb.Markers![markerIndex];
+                    if (marker == null)
+                    {
+                        packageErrors.Add(verbRow + ".markers[" + markerIndex + "] must be an object");
+                        continue;
+                    }
+                    markers.Add(new PackageTimingMarker(marker.Event ?? "", marker.At));
+                }
+                verbs.Add(new PackageVerbSlot(
+                    verb.Verb ?? "",
+                    verb.Source ?? "",
+                    verb.PlayerSource ?? "",
+                    verb.Clip ?? "",
+                    verb.Loop,
+                    verb.Clock ?? "",
+                    markers,
+                    verb.Readiness ?? "",
+                    verb.Fallback ?? ""));
+            }
+            packages.Add(id, new CharacterPackageSpec(
+                id, package.Controller ?? "", package.PlayerController ?? "", verbs));
+        }
         var poses = PoseClips.Load(dataRoot);
 
-        return new ArtCatalog(rig, clips, skins, vfx, audio, mats, parks, folders, poses);
+        return new ArtCatalog(rig, clips, skins, vfx, audio, mats, parks, folders,
+            packages, packageErrors, poses);
     }
 
     static T Read<T>(string path, JsonSerializerOptions json)
@@ -308,4 +397,29 @@ public sealed class ArtCatalog
     }
 
     sealed class FoldersFile { public List<string>? Folders { get; set; } }
+    sealed class PackagesFile { public List<PackageDto?>? Packages { get; set; } }
+    sealed class PackageDto
+    {
+        public string? Id { get; set; }
+        public string? Controller { get; set; }
+        public string? PlayerController { get; set; }
+        public List<PackageVerbDto?>? Verbs { get; set; }
+    }
+    sealed class PackageVerbDto
+    {
+        public string? Verb { get; set; }
+        public string? Source { get; set; }
+        public string? PlayerSource { get; set; }
+        public string? Clip { get; set; }
+        public bool Loop { get; set; }
+        public string? Clock { get; set; }
+        public List<PackageMarkerDto?>? Markers { get; set; }
+        public string? Readiness { get; set; }
+        public string? Fallback { get; set; }
+    }
+    sealed class PackageMarkerDto
+    {
+        public string? Event { get; set; }
+        public double At { get; set; }
+    }
 }
