@@ -131,10 +131,54 @@ public class StealThrowTests
         var safe = late.Match.ResolveStealThrow(late.Ev, 2, 1.4, laser);
         Assert.Equal(PlayKind.CaughtStealing, outPlay.Kind);
         Assert.Equal(PlayKind.StolenBase, safe.Kind);
+        Assert.Equal(RunnerPlayResult.CaughtStealing, outPlay.Outcome?.RunnerResult);
+        Assert.Equal(RunnerPlayResult.StolenBase, safe.Outcome?.RunnerResult);
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 2), outPlay.Outcome?.ThrowEndpoint);
+        Assert.Equal(outPlay.Outcome?.ThrowEndpoint,
+            (outPlay with { Caption = "El corredor fue retirado." }).Outcome?.ThrowEndpoint);
         Assert.Null(early.Match.First);
         Assert.NotNull(late.Match.Second);
         Assert.False(early.Match.StealThrowPending);
         Assert.False(late.Match.StealThrowPending);
+    }
+
+    [Fact]
+    public void LiveWrongBagPreservesTheActualThrowEndpoint()
+    {
+        var armed = ArmedTake(seed: 3);
+        var laser = new ThrowResult(Chemistry.Good, 1.4, false);
+        var ev = armed.Match.ResolveStealThrow(armed.Ev, 1, 1.4, laser);
+
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 1), ev.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(ev.Outcome?.ThrowEndpoint,
+            (ev with { Caption = "送球先はコピーに依存しない。" }).Outcome?.ThrowEndpoint);
+    }
+
+    [Fact]
+    public void CpuGunPublishesCatcherAndTargetBag()
+    {
+        var armed = ArmedTake(seed: 3);
+        var ev = armed.Match.GunSteal(armed.Ev);
+
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 2), ev.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(2, ev.Outcome?.RunnerToBag);
+    }
+
+    [Fact]
+    public void NamedPickoffPublishesPitcherAndOriginalBag()
+    {
+        var match = Match.Slice(_content, seed: 3);
+        WalkOn(match);
+        match.TakeLead(1);
+        var ev = match.Pickoff(1);
+
+        Assert.NotNull(ev);
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev!.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(ev.Outcome?.ThrowEndpoint,
+            (ev with { Caption = "Texto reemplazado." }).Outcome?.ThrowEndpoint);
     }
 
     (Match Match, PlayEvent Ev) ArmedTake(int seed)

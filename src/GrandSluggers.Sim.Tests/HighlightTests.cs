@@ -49,7 +49,7 @@ public class HighlightTests
     public void BuddyJumpPreferredOverHomeRun()
     {
         var hr = Ev(PlayKind.HomeRun, "goes deep.");
-        var buddy = Ev(PlayKind.FlyOut, "Nico + Gull BUDDY JUMP!");
+        var buddy = Ev(PlayKind.FlyOut, "La atrapada del partido.", feat: DefensiveFeat.BuddyJump);
         var pick = Highlight.Pick([hr, buddy]);
         Assert.NotNull(pick);
         Assert.Equal(HighlightBeat.BuddyJump, pick.Beat);
@@ -61,18 +61,36 @@ public class HighlightTests
     public void RobbedHomerBeatsHomeRun()
     {
         var hr = Ev(PlayKind.HomeRun, "goes deep.");
-        var jump = Ev(PlayKind.FlyOut, "Nico SUPER JUMP!");
+        var jump = Ev(PlayKind.FlyOut, "Una atrapada imposible.", feat: DefensiveFeat.SuperJump);
         Assert.Equal(HighlightBeat.RobbedHomer, Highlight.Pick([hr, jump])!.Beat);
-        var climb = Ev(PlayKind.FlyOut, "Konga CLAMBERS the wall!");
+        var climb = Ev(PlayKind.FlyOut, "Se queda con la pelota.", feat: DefensiveFeat.Clamber);
         Assert.Equal(HighlightBeat.RobbedHomer, Highlight.Pick([hr, climb])!.Beat);
     }
 
     [Fact]
     public void BuddyJumpPreferredOverRobbedHomer()
     {
-        var rob = Ev(PlayKind.FlyOut, "Nico SUPER JUMP!");
-        var buddy = Ev(PlayKind.FlyOut, "Nico + Gull BUDDY JUMP!");
+        var rob = Ev(PlayKind.FlyOut, "defensive play", feat: DefensiveFeat.SuperJump);
+        var buddy = Ev(PlayKind.FlyOut, "two gloves", feat: DefensiveFeat.BuddyJump);
         Assert.Equal(HighlightBeat.BuddyJump, Highlight.Pick([rob, buddy])!.Beat);
+    }
+
+    [Theory]
+    [InlineData(DefensiveFeat.BuddyJump, HighlightBeat.BuddyJump)]
+    [InlineData(DefensiveFeat.SuperJump, HighlightBeat.RobbedHomer)]
+    [InlineData(DefensiveFeat.Clamber, HighlightBeat.RobbedHomer)]
+    public void ReplacingCaptionDoesNotChangeDefensiveHighlight(DefensiveFeat feat, HighlightBeat expected)
+    {
+        var original = Ev(PlayKind.FlyOut, "original", feat: feat);
+        var localized = original with { Caption = "任意のローカライズ済みテキスト" };
+        Assert.Equal(expected, Highlight.BeatOf(original));
+        Assert.Equal(expected, Highlight.BeatOf(localized));
+    }
+
+    [Fact]
+    public void CaptionTokensWithoutTypedFeatDoNotDriveHighlight()
+    {
+        Assert.Equal(HighlightBeat.None, Highlight.BeatOf(Ev(PlayKind.FlyOut, "BUDDY SUPER JUMP CLAMBERS")));
     }
 
     [Fact]
@@ -109,7 +127,7 @@ public class HighlightTests
         Assert.Equal("second.", Highlight.Pick([a, b])!.Play.Caption);
     }
 
-    PlayEvent Ev(PlayKind kind, string caption, bool starPitch = false)
+    PlayEvent Ev(PlayKind kind, string caption, bool starPitch = false, DefensiveFeat feat = DefensiveFeat.None)
     {
         var rio = _content.Must("rio");
         var ash = _content.Must("ashlord");
@@ -131,6 +149,7 @@ public class HighlightTests
         var swing = new SwingCommand(kind != PlayKind.TakeBall && kind != PlayKind.TakeStrike, 0, 0, false);
         return new PlayEvent(
             kind, hit, pitch, swing, rio, ash, null, null, 0, [], caption,
-            false, false, 0, 0, 0, 0, 0, 0);
+            false, false, 0, 0, 0, 0, 0, 0,
+            Outcome: new PlayOutcome(DefensiveFeat: feat));
     }
 }

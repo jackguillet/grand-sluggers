@@ -595,7 +595,7 @@ public sealed class Match
         var target = Baserunning.StealTarget(bag);
         state.StartSteal(target);
         var ev = Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []);
-        return GunSteal(ev);
+        return GunSteal(ev, pickoff: true);
     }
 
     public bool ToggleSteal()
@@ -1072,13 +1072,12 @@ public sealed class Match
                     caption = $"{field.Fielder?.Name} reels it in. Sac fly.";
                 }
                 else
-                    caption = kind == PlayKind.FlyOut && field.Buddy is not null && FieldingResolver.HomeRunLikely(hit, Park)
+                    caption = kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
                         ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
-                        : kind == PlayKind.FlyOut && field.Fielder is { } wall
-                          && ParkHazards.CanClamber(Park, wall) && hit.CarryFt > 260
-                            ? $"{wall.Name} CLAMBERS the wall!"
-                        : kind == PlayKind.FlyOut && field.Fielder?.FieldAbility == "super-jump" && hit.CarryFt > 250
-                            ? $"{field.Fielder.Name} SUPER JUMP!"
+                        : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber
+                            ? $"{field.Fielder?.Name} CLAMBERS the wall!"
+                        : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump
+                            ? $"{field.Fielder?.Name} SUPER JUMP!"
                         : field.Chomped
                             ? "A chomper ate it!"
                         : kind == PlayKind.FlyOut
@@ -1117,7 +1116,8 @@ public sealed class Match
         ClearLivePlay();
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
-            field.Heatball, field.Furnace);
+            field.Heatball, field.Furnace,
+            new PlayOutcome(DefensiveFeat: field.Feat));
     }
 
     PlayEvent Emit(
@@ -1125,14 +1125,15 @@ public sealed class Match
         int runs, IReadOnlyList<string> scorers,
         Character? fielder = null, ThrowResult? throwRes = null,
         double hang = 0, double lx = 0, double lz = 0,
-        bool heat = false, bool furnace = false)
+        bool heat = false, bool furnace = false,
+        PlayOutcome? outcome = null)
     {
         var origin = CurrentPlay();
         var next = CaptureMatchState();
         var ev = new PlayEvent(
             kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, caption,
             heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
-            _outsOnCurrentPlay, origin.Context, next);
+            _outsOnCurrentPlay, origin.Context, next, outcome);
         _log.Add(ev);
         _pendingPlay = null;
         return ev;
@@ -1346,7 +1347,7 @@ public sealed class Match
     PlayEvent AfterPitch(PlayEvent ev) => StealOn ? ev : ResolvePickoff(ev);
 
     /// <summary>Dead-stick CPU catcher still guns. 1P vs CPU does not require the throw.</summary>
-    public PlayEvent GunSteal(PlayEvent ev)
+    public PlayEvent GunSteal(PlayEvent ev, bool pickoff = false)
     {
         if (!StealThrowPending) return ev;
         if (!TryStealActors(out var fromBag, out var target, out var state, out var runner, out var catcher))
@@ -1354,10 +1355,13 @@ public sealed class Match
             ClearSteal();
             return ev;
         }
-        var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(target));
-        var thr = cover != null ? ThrowBetween(catcher, cover) : ThrowBetween(catcher, runner);
+        var throwBag = pickoff ? fromBag : target;
+        var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
+        var defender = pickoff ? Pitcher : catcher;
+        var thr = cover != null ? ThrowBetween(defender, cover) : ThrowBetween(defender, runner);
         var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng);
-        return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught);
+        return ApplySteal(ev, fromBag, target, runner, defender, thr, caught,
+            pickoff ? ThrowOrigin.PitcherRubber : ThrowOrigin.Catcher, throwBag, pickoff);
     }
 
     /// <summary>
@@ -1376,7 +1380,9 @@ public sealed class Match
         var caught = throwBag == fromBag
             ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, state.Lead01)
             : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01);
-        return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught);
+        var destination = throwBag is >= 1 and <= 4 ? throwBag : target;
+        return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught,
+            ThrowOrigin.Catcher, destination, pickoff: false);
     }
 
     bool TryStealActors(
@@ -1401,7 +1407,8 @@ public sealed class Match
     }
 
     PlayEvent ApplySteal(
-        PlayEvent ev, int fromBag, int target, Character runner, Character catcher, ThrowResult thr, bool caught)
+        PlayEvent ev, int fromBag, int target, Character runner, Character defender, ThrowResult thr, bool caught,
+        ThrowOrigin throwOrigin, int throwBag, bool pickoff)
     {
         StealOn = false;
         PlayEvent result;
@@ -1415,8 +1422,13 @@ public sealed class Match
             {
                 Kind = PlayKind.StolenBase,
                 Caption = ev.Caption + $"  {runner.Name} steals {(target == 3 ? "third" : "second")}.",
-                Fielder = catcher,
-                Throw = thr
+                Fielder = defender,
+                Throw = thr,
+                Outcome = new PlayOutcome(
+                    RunnerResult: RunnerPlayResult.StolenBase,
+                    RunnerFromBag: fromBag,
+                    RunnerToBag: target,
+                    ThrowEndpoint: new ThrowEndpoint(throwOrigin, throwBag))
             };
         }
         else
@@ -1424,14 +1436,19 @@ public sealed class Match
             SetBag(fromBag, null);
             Outs++;
             _outsOnCurrentPlay++;
-            AddMvp(catcher.Id, 2);
+            AddMvp(defender.Id, 2);
             AddStars(defense: true, 0.4);
             result = ev with
             {
                 Kind = PlayKind.CaughtStealing,
-                Caption = $"{runner.Name} caught stealing.",
-                Fielder = catcher,
-                Throw = thr
+                Caption = pickoff ? $"{runner.Name} picked off." : $"{runner.Name} caught stealing.",
+                Fielder = defender,
+                Throw = thr,
+                Outcome = new PlayOutcome(
+                    RunnerResult: pickoff ? RunnerPlayResult.PickedOff : RunnerPlayResult.CaughtStealing,
+                    RunnerFromBag: fromBag,
+                    RunnerToBag: pickoff ? fromBag : throwBag,
+                    ThrowEndpoint: new ThrowEndpoint(throwOrigin, throwBag))
             };
             CheckInning();
         }
@@ -1479,7 +1496,8 @@ public sealed class Match
         if (_rng.NextDouble() >= risk)
             return ev;
 
-        var thr = ThrowBetween(Pitcher, catcher);
+        var cover = map.GetValueOrDefault(StealThrow.CoverPos(bag));
+        var thr = cover is not null ? ThrowBetween(Pitcher, cover) : ThrowBetween(Pitcher, runner);
         SetBag(bag, null);
         Outs++;
         _outsOnCurrentPlay++;
@@ -1490,7 +1508,12 @@ public sealed class Match
             Kind = PlayKind.CaughtStealing,
             Caption = $"{runner.Name} picked off.",
             Fielder = Pitcher,
-            Throw = thr
+            Throw = thr,
+            Outcome = new PlayOutcome(
+                RunnerResult: RunnerPlayResult.PickedOff,
+                RunnerFromBag: bag,
+                RunnerToBag: bag,
+                ThrowEndpoint: new ThrowEndpoint(ThrowOrigin.PitcherRubber, bag))
         };
         CheckInning();
         return FinishEvent(result);

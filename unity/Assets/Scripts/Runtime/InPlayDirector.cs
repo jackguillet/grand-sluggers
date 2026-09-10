@@ -947,7 +947,11 @@ namespace GrandSluggers.UnityClient
                 // the catch from carry distance (which can become a triple).
                 var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: true);
                 var knock = pre.Grounder && hit != null ? InPlay.KnockbackSec(InPlay.Energy(hit), from) : 0;
-                return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, KnockbackSec: knock);
+                var feat = kind == PlayKind.FlyOut && hit != null
+                    ? FieldingResolver.PlayerCatchFeat(pre, _match.Park, _buddy, _catchJump)
+                    : DefensiveFeat.None;
+                return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy,
+                    KnockbackSec: knock, Feat: feat);
             }
             var miss = FlyCatch.PlayerKind(false, pre, hit);
             return new FieldingResult(miss, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
