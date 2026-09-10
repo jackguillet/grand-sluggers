@@ -185,7 +185,10 @@ public class SchemeTests
         Assert.Contains(two, l => l.Contains("North") && l.Contains("HOME"));
         Assert.Contains(two, l => l.Contains("Gamepad 1"));
         Assert.Contains(two, l => l.Contains("Keyboard") && l.Contains("mouse") && l.Contains("player 1"));
-        Assert.Contains(two, l => l.Contains("Unplug"));
+        Assert.Contains(two, l => l.Contains("drops") && l.Contains("play stops"));
+        Assert.Contains(two, l => l.Contains("unseated controller") && l.Contains("South"));
+        Assert.Contains(HowToPlay.Must("two-pads").KeyLines!,
+            l => l.Contains("Space") && l.Contains("keyboard + mouse"));
         Assert.Contains(two, l => l.Contains("plate"));
         Assert.Contains(two, l => l.Contains("CPU never"));
         Assert.Contains(two, l => l.Contains("fielding controller") || l.Contains("Fielding controller"));

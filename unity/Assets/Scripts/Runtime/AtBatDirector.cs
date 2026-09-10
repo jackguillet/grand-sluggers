@@ -23,6 +23,7 @@ namespace GrandSluggers.UnityClient
 
         void BeginSet()
         {
+            BindMatchSeats();
             if (TrainingOn && (_match == null || _match.Over))
             {
                 Seed++;

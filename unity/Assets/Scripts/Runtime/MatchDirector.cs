@@ -28,6 +28,9 @@ namespace GrandSluggers.UnityClient
         public bool Night;
         [System.NonSerialized] public bool Pad1Home = true;
         bool _versusWanted;
+        Seats _matchSeats;
+        bool _matchSeatsBound;
+        readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
         bool _lineupTouched;
         MenuNav.Gate _lineupX;
@@ -168,7 +171,9 @@ namespace GrandSluggers.UnityClient
         Seats LiveSeats =>
             TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
-                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
+                : _matchSeatsBound
+                    ? _matchSeats
+                    : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
@@ -243,6 +248,11 @@ namespace GrandSluggers.UnityClient
         {
             Controls.Tick(Time.unscaledDeltaTime);
             if (_match == null) return;
+            if (TickDeviceRecovery())
+            {
+                _actors.Draw(0f);
+                return;
+            }
             var dt = Time.deltaTime;
             if (Controls.TimingAid) _showTiming = !_showTiming;
             if (Controls.FeelDebug) _feelDebug = !_feelDebug;
@@ -309,6 +319,11 @@ namespace GrandSluggers.UnityClient
         void OnGUI()
         {
             if (_match == null) return;
+            if (_deviceRecovery.Active)
+            {
+                HudView.DeviceRecovery(_deviceRecovery.MissingSeat);
+                return;
+            }
             if (_phase == Phase.Select)
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
@@ -534,12 +549,53 @@ namespace GrandSluggers.UnityClient
         {
             _match.SetPaused(false);
             if (TrainingOn) _coach.Stop();
+            ReleaseMatchSeats();
             _phase = Phase.Title;
             _t = 0;
             _banner = _sub = "";
             _replaying = false;
             _audio?.CrowdBed(false);
             _cam.Play("title");
+        }
+
+        void BindMatchSeats()
+        {
+            if (_matchSeatsBound) return;
+            _matchSeats = TrainingOn || _mode != PlayMode.Exhibition
+                ? Seats.One
+                : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
+            Controls.BeginMatch(_matchSeats.BothHuman);
+            _matchSeatsBound = true;
+        }
+
+        void ReleaseMatchSeats()
+        {
+            Controls.EndMatch();
+            _matchSeatsBound = false;
+            _deviceRecovery.Complete();
+        }
+
+        /// <summary>
+        /// Runs before every play-phase director. A missing physical device therefore
+        /// freezes SET, pitch flight, live balls, and throws at the same boundary.
+        /// </summary>
+        bool TickDeviceRecovery()
+        {
+            if (!_matchSeatsBound) return false;
+            var missing = Controls.MissingMatchSeat(_matchSeats);
+            if (missing != LineupSeat.Cpu)
+            {
+                _deviceRecovery.WaitFor(missing, _match.Paused);
+                _match.SetPaused(true);
+                Controls.TryRecoverMatchSeat(missing);
+                return true;
+            }
+            if (!_deviceRecovery.Active) return false;
+            var resume = _deviceRecovery.ResumeWhenReady;
+            _deviceRecovery.Complete();
+            if (resume) _match.SetPaused(false);
+            Controls.CatchPlay();
+            return true;
         }
 
         Match NewMatch()
