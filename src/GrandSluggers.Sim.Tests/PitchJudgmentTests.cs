@@ -94,4 +94,24 @@ public class PitchJudgmentTests
         Assert.Equal(ready, result.Pitch);
         Assert.Equal(StrikeZoneGeometry.Contains(ready), result.AtBat.InZone);
     }
+    [Fact]
+    public void FatigueDriftIsSampledOnceBeforeVisibleFlight()
+    {
+        var match = Match.Slice(content, innings: 99, seed: 17);
+        // Repeated taken outside pitches spend stamina without retiring the side.
+        var outside = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        for (var i = 0; i < 150 && !match.PitcherTired; i++) match.Play(outside, Take);
+        Assert.True(match.PitcherTired);
+        var raw = new PitchCommand("fastball", 0, 0, false);
+        var ready = match.PreparePitch(raw);
+        Assert.True(ready.DeliveryPrepared);
+        Assert.True(ready.AimX != raw.AimX || ready.AimY != raw.AimY);
+        var crossing = PitchFlight.Point(ready, 1);
+        for (var i = 0; i < 5; i++) Assert.Same(ready, match.PreparePitch(ready));
+        var result = match.Play(ready, Take);
+        Assert.Equal(ready, result.Pitch);
+        Assert.Equal(crossing, PitchFlight.Point(result.Pitch, 1));
+        Assert.Equal(StrikeZoneGeometry.Contains(crossing.X, crossing.Y), result.AtBat.InZone);
+    }
+
 }
