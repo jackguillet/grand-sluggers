@@ -468,7 +468,9 @@ public class MatchTests
     public void InsideTakeIsHitByPitchAndAwardsFirst()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var plunk = new PitchCommand("fastball", 0, 0, false, -0.85, 0);
+        var bodyX = AtBatResolver.BatterBodyPlateX(0, match.Batter.Bats);
+        var plunk = PitchFlight.AimForCrossing(
+            new PitchCommand("fastball", 0, 0, false), bodyX, 0);
         var take = new SwingCommand(false, 0, 0, false);
         var ev = match.Play(plunk, take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);

@@ -72,13 +72,42 @@ public class PitchJudgmentTests
         Assert.False(StrikeZoneGeometry.Contains(double.NaN, 2));
     }
 
-    [Fact]
-    public void HitByPitchUsesTheBattersHand()
+    [Theory]
+    [InlineData(Hand.R, -1)]
+    [InlineData(Hand.L, 1)]
+    public void HitByPitchBodyUsesTheHandedAuthoredBoxAndWorldWalk(Hand bats, double side)
     {
-        Assert.True(AtBatResolver.HitsBatter(0, -0.75, 0, Hand.R));
-        Assert.False(AtBatResolver.HitsBatter(0, -0.75, 0, Hand.L));
-        Assert.True(AtBatResolver.HitsBatter(0, 0.75, 0, Hand.L));
-        Assert.False(AtBatResolver.HitsBatter(0, 0.75, 0, Hand.R));
+        var body = AtBatResolver.BatterBodyPlateX(0, bats);
+        Assert.Equal(side * HomeSet.BoxX / PitchFlight.PlateScaleX, body, 10);
+        Assert.True(AtBatResolver.HitsBatter(0, body, 0, bats));
+        Assert.False(AtBatResolver.HitsBatter(0, -body, 0, bats));
+
+        const double offset = 0.5;
+        var walked = AtBatResolver.BatterBodyPlateX(offset, bats);
+        Assert.Equal(body + offset * HomeSet.BatterWalk / PitchFlight.PlateScaleX, walked, 10);
+        Assert.True(AtBatResolver.HitsBatter(offset, walked, 0, bats));
+    }
+
+    [Fact]
+    public void NearZoneOutsideTakeStaysBallAndTrueBodyTakeIsHitByPitch()
+    {
+        var nearWorldX = StrikeZoneGeometry.HalfWidth + 0.05;
+        var nearAimX = nearWorldX / PitchFlight.PlateScaleX;
+        var near = PitchFlight.AimForCrossing(
+            new PitchCommand("fastball", 0, 0, false), nearAimX, 0);
+        Assert.False(StrikeZoneGeometry.Contains(near));
+        Assert.False(AtBatResolver.HitsBatter(0, nearAimX, 0, Hand.R));
+        var ballMatch = Match.Slice(content, innings: 3, seed: 1);
+        var ball = ballMatch.Play(near, Take);
+        Assert.Equal(PlayKind.TakeBall, ball.Kind);
+
+        var bodyMatch = Match.Slice(content, innings: 3, seed: 1);
+        var bodyAimX = AtBatResolver.BatterBodyPlateX(0, bodyMatch.Batter.Bats);
+        var bodyPitch = PitchFlight.AimForCrossing(
+            new PitchCommand("fastball", 0, 0, false), bodyAimX, 0);
+        var plunk = bodyMatch.Play(bodyPitch, Take);
+        Assert.Equal(PlayKind.HitByPitch, plunk.Kind);
+        Assert.False(plunk.AtBat.InZone);
     }
 
     [Fact]
