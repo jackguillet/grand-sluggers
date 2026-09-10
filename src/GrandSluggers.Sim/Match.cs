@@ -428,23 +428,9 @@ public sealed class Match
         OpenLivePlay();
         if (Outs >= 3) return false;
         var glove = fielder?.Name ?? Pitcher.Name;
-        if (fromBag <= 0)
-        {
-            if (_liveBatterOut) return false;
-            _liveBatterOut = true;
-            _liveCaption = $"{glove} tags {Batter.Name}.";
-            Outs++;
-            AddMvp(fielder?.Id ?? Pitcher.Id, 2);
-            AddStars(defense: true, 0.4);
-            return true;
-        }
-        var who = RunnerAt(fromBag)?.Who;
-        if (who is null) return false;
-        SetBag(fromBag, null);
+        var who = fromBag == 0 ? Batter : RunnerAt(fromBag)?.Who;
+        if (who is null || !RetireLiveRunner(fromBag, fielder)) return false;
         _liveCaption = $"{glove} tags {who.Name}.";
-        Outs++;
-        AddMvp(fielder?.Id ?? Pitcher.Id, 2);
-        AddStars(defense: true, 0.4);
         return true;
     }
 
@@ -459,16 +445,32 @@ public sealed class Match
             _liveForceBag = step.Bag;
         }
         if (step.TurnedTwo) _liveTurnedTwo = true;
-        if (step.Out && step.Bag == 1)
-            _liveBatterOut = true;
         if (!step.Out) return;
-        _liveForces = _liveForces.AfterOutAt(step.Bag);
-        if (step.Bag == 2) SetBag(1, null);
-        else if (step.Bag == 3) SetBag(2, null);
-        else if (step.Bag == 4) SetBag(3, null);
+        RetireLiveRunner(InPlay.ForceState.FromBag(step.Bag), fielder);
+    }
+
+    /// <summary>
+    /// Retire the batter (bag 0) or a runner by their bag at contact. Every live out
+    /// passes through here so occupancy and the contact-time force chain cannot diverge.
+    /// </summary>
+    bool RetireLiveRunner(int fromBag, Character? fielder)
+    {
+        if (fromBag == 0)
+        {
+            if (_liveBatterOut) return false;
+            _liveBatterOut = true;
+        }
+        else if (fromBag is >= 1 and <= 3)
+        {
+            if (RunnerAt(fromBag) is null) return false;
+            SetBag(fromBag, null);
+        }
+        else return false;
+        _liveForces = _liveForces.AfterOutAt(fromBag + 1);
         Outs++;
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
         AddStars(defense: true, 0.4);
+        return true;
     }
 
     void ClearLivePlay()
