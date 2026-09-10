@@ -34,6 +34,12 @@ namespace GrandSluggers.EditorTools
                 if (revision.Length != 40 || revision.Any(c => !Uri.IsHexDigit(c)))
                     throw new BuildFailedException("GS_VALIDATION_REVISION must be the validated 40-character Git revision.");
 
+                var expectedVersion = Environment.GetEnvironmentVariable("GS_VALIDATION_UNITY_VERSION") ?? "";
+                if (string.IsNullOrWhiteSpace(expectedVersion)
+                    || !Application.unityVersion.Equals(expectedVersion, StringComparison.Ordinal))
+                    throw new BuildFailedException("Unity " + Application.unityVersion
+                        + " does not match the tracked project editor version " + expectedVersion + ".");
+
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
                 RequireCompiledSources(evidence);
 
