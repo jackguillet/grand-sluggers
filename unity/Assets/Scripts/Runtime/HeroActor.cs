@@ -98,8 +98,10 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
         {
-            if (_packageBody && (pose != _pose || _packageSampledLastTick))
+            if (_packageBody && pose != _pose)
                 RestorePackageBindPose(preserveRootPresentation: false);
+            else if (_packageBody && _packageSampledLastTick)
+                RestorePackageBindPose(preserveRootPresentation: true);
             if (pose != _pose)
             {
                 _blendLoad = (pose == Pose.Swing && _pose == Pose.ChargeSwing)
