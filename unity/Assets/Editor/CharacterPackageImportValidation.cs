@@ -127,6 +127,20 @@ namespace GrandSluggers.EditorTools
                 else if (mesh.bindposes.Length != skin.bones.Length)
                     errors.Add("import package " + id + " " + label + " skin " + skin.name
                         + " bind pose count " + mesh.bindposes.Length + " does not match bones " + skin.bones.Length);
+                else
+                {
+                    for (var i = 0; i < mesh.bindposes.Length; i++)
+                    {
+                        if (skin.bones[i] == null) continue;
+                        var expected = skin.bones[i].worldToLocalMatrix * skin.transform.localToWorldMatrix;
+                        if (!Finite(mesh.bindposes[i]) || !Approximately(mesh.bindposes[i], expected, 0.02f))
+                        {
+                            errors.Add("import package " + id + " " + label + " skin " + skin.name
+                                + " bind pose " + i + " does not match bone " + skin.bones[i].name);
+                            break;
+                        }
+                    }
+                }
                 var weights = mesh.boneWeights;
                 if (weights == null || weights.Length != mesh.vertexCount)
                 {
@@ -182,6 +196,7 @@ namespace GrandSluggers.EditorTools
                     + " does not match manifest " + verb.Loop);
             ValidateEvents(id, verb, clip, errors);
             ValidateBindings(id, label, body, clip, errors);
+            ValidateDeformation(id, label, body, clip, verb, errors);
             RequireControllerClip(id, label, controller, verb.Source, verb.Clip, errors);
             RequireControllerClip(id, "player " + label, playerController, verb.PlayerSource, verb.Clip, errors);
         }
@@ -263,9 +278,132 @@ namespace GrandSluggers.EditorTools
                             + " does not match manifest " + verb.Loop);
                     ValidateEvents(id, verb, clip, errors);
                     ValidateBindings(id, "player verb " + verb.Verb, body, clip, errors);
+                    ValidateDeformation(id, "player verb " + verb.Verb, body, clip, verb, errors);
                 }
             }
         }
+
+        static void ValidateDeformation(
+            string id,
+            string label,
+            GameObject body,
+            AnimationClip clip,
+            PackageVerbSlot verb,
+            List<string> errors)
+        {
+            if (!TryBakedBounds(body, null, 0f, out var rest))
+            {
+                errors.Add("import package " + id + " " + label + " cannot bake its rest skin");
+                return;
+            }
+            var end = Math.Max(0f, clip.length - (1f / Math.Max(clip.frameRate, 1f)));
+            var times = new[] { 0f, clip.length * 0.5f, end }.Distinct().ToArray();
+            foreach (var time in times)
+            {
+                if (!TryBakedBounds(body, clip, time, out var sampled))
+                {
+                    errors.Add("import package " + id + " " + label + " cannot bake skin at "
+                        + time.ToString("0.###") + "s");
+                    return;
+                }
+                var restSpan = Math.Max(rest.size.magnitude, 0.001f);
+                var sampleSpan = sampled.size.magnitude;
+                if (sampleSpan < restSpan * 0.45f || sampleSpan > restSpan * 2.2f
+                    || Vector3.Distance(rest.center, sampled.center) > restSpan)
+                {
+                    errors.Add("import package " + id + " " + label + " deforms outside its body bounds at "
+                        + time.ToString("0.###") + "s (rest " + BoundsText(rest)
+                        + ", sampled " + BoundsText(sampled) + ")");
+                    return;
+                }
+                if (verb.Verb.Equals("idle", StringComparison.OrdinalIgnoreCase)
+                    && (sampled.size.y < rest.size.y * 0.70f
+                        || sampled.size.y > rest.size.y * 1.35f
+                        || Math.Abs(sampled.center.y - rest.center.y) > rest.size.y * 0.30f))
+                {
+                    errors.Add("import package " + id + " " + label + " idle collapses or displaces the body at "
+                        + time.ToString("0.###") + "s (rest " + BoundsText(rest)
+                        + ", sampled " + BoundsText(sampled) + ")");
+                    return;
+                }
+            }
+        }
+
+        static bool TryBakedBounds(GameObject body, AnimationClip clip, float time, out Bounds bounds)
+        {
+            bounds = default;
+            var instance = UnityEngine.Object.Instantiate(body);
+            instance.hideFlags = HideFlags.HideAndDontSave;
+            try
+            {
+                instance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+                instance.transform.localScale = Vector3.one;
+                foreach (var animator in instance.GetComponentsInChildren<Animator>(true))
+                    animator.enabled = false;
+                instance.SetActive(true);
+                clip?.SampleAnimation(instance, time);
+
+                var any = false;
+                foreach (var skin in instance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    var baked = new Mesh();
+                    try
+                    {
+                        skin.BakeMesh(baked);
+                        foreach (var vertex in baked.vertices)
+                        {
+                            var point = skin.transform.TransformPoint(vertex);
+                            if (!Finite(point)) return false;
+                            if (!any)
+                            {
+                                bounds = new Bounds(point, Vector3.zero);
+                                any = true;
+                            }
+                            else bounds.Encapsulate(point);
+                        }
+                    }
+                    finally
+                    {
+                        UnityEngine.Object.DestroyImmediate(baked);
+                    }
+                }
+                return any && Finite(bounds.center) && Finite(bounds.size);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
+        }
+
+        static bool Finite(Vector3 value) =>
+            Finite(value.x) && Finite(value.y) && Finite(value.z);
+
+        static bool Finite(Matrix4x4 value)
+        {
+            for (var row = 0; row < 4; row++)
+                for (var column = 0; column < 4; column++)
+                    if (!Finite(value[row, column])) return false;
+            return true;
+        }
+
+        static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+
+        static bool Approximately(Matrix4x4 actual, Matrix4x4 expected, float tolerance)
+        {
+            for (var row = 0; row < 4; row++)
+            {
+                for (var column = 0; column < 4; column++)
+                {
+                    var scale = Math.Max(1f, Math.Abs(expected[row, column]));
+                    if (Math.Abs(actual[row, column] - expected[row, column]) > tolerance * scale)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        static string BoundsText(Bounds bounds) =>
+            "center=" + bounds.center.ToString("F2") + " size=" + bounds.size.ToString("F2");
 
         static AnimationClip LoadExactClip(string path, string clipName) =>
             AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>().FirstOrDefault(clip =>
