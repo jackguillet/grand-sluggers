@@ -43,3 +43,11 @@ It writes `unity/Temp/validation/unity-evidence.json` and a Unity log. The evide
 Launch-only evidence proves that the Harbor player process started and stayed alive for the observation window. It does not prove that a frame rendered, the title-to-half route worked, controller ownership worked, presentation quality passed, or a screenshot gate passed. Those remain named human checks and must be reported separately.
 
 The configured Unity gate requires the exact editor version pinned in `unity/ProjectSettings/ProjectVersion.txt`. It captures that version before launching Unity and rejects mismatched runtime or output evidence. An import from another compatible editor is not a passing validation of the pinned project.
+
+## Opt-in live-play lifecycle gate
+
+In a dedicated validation worktree, open Harbor in the pinned GUI Unity editor and choose **Grand Sluggers → Verify Live Play Lifecycle** from Edit mode. This is an Editor-only, opt-in regression harness. For command-line GUI launch, set `GS_VALIDATION_REVISION` to the clean checkout's full Git revision and optionally set `GS_LIVE_PLAY_EVIDENCE` to an absolute output path, then pass `-projectPath /absolute/worktree/unity -executeMethod GrandSluggers.EditorTools.LivePlayLifecycleGate.Run` to the pinned Unity executable. Do not use `-batchmode` for Personal Unity, or `-quit`: the gate enters Play mode asynchronously.
+
+The default output is `unity/Temp/live-play-lifecycle.json`. Startup is bounded to 180 seconds; each scenario is bounded by its flight duration. Failure evidence records the active scenario, phase, elapsed/live clocks, score, ownership, possession, pause and effect state. On success, eight CPU/human cases verify solo and loaded homers, a wall robbery, and a loaded walk-off through actual `TickLive` → Result → `TickFlow` → SET/GameOver, including exactly-once scoring and next-batter progression. Inspect `ok`, `cases`, the exact revision and editor version; a file existing is not a pass. Close the dedicated validation editor afterward.
+
+Contact and the robbery catch observation are injected deterministically. The gate does not operate physical controllers, test the player's wall-jump timing, play a full half, or pass a human gameplay/look gate. Retained failing and passing #531 evidence lives in `scratchpad/validation/531-home-run/`.
