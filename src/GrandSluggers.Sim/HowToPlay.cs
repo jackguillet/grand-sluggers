@@ -117,7 +117,7 @@ public static class HowToPlay
         new("contents", "Contents", "contents",
         [
             "This is the instruction booklet. Call time (Start) or Esc opens it. The list is the book.",
-            "South next. East back. F6 cycles Player 1 input: Auto, Controller, Keyboard + mouse.",
+            "South next. East back.",
         ],
         [
             "This is the instruction booklet. H or Esc opens it. The list is the book.",
