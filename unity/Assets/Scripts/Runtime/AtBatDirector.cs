@@ -82,6 +82,7 @@ namespace GrandSluggers.UnityClient
             _gunRunner = null;
             _stealPitch = null;
             _stealT = 0;
+            _stealTagT = -1f;
             _cpuGunAt = 0;
             _stealRelease = 0;
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
