@@ -213,6 +213,7 @@ namespace GrandSluggers.UnityClient
 
         void Launch(PitchCommand pitch)
         {
+            pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
             var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
@@ -227,7 +228,7 @@ namespace GrandSluggers.UnityClient
                 _charge = 0;
                 _chargePast = 0;
                 _swing = _match.CpuSwing(pitch,
-                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
+                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
             }
             _phase = Phase.Flight;
             _t = 0;
@@ -235,7 +236,7 @@ namespace GrandSluggers.UnityClient
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
-            _breakX = 0;
+            _breakX = (float)pitch.BreakX;
             _zone.Show(true, _aimX, _aimY);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
@@ -278,20 +279,9 @@ namespace GrandSluggers.UnityClient
             if (HumanPitches)
                 _breakX = Mathf.Clamp(_breakX + PitchWorldX(PitchPad.StickX) * dt * 2.4f, -1f, 1f);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
-            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX, from);
-            var x = (float)p.X;
-            var y = (float)p.Y;
-            var z = (float)p.Z;
-            if (_pitch.Star)
-            {
-                var id = _match.Pitcher.StarPitch;
-                if (id == "heatball") x += Mathf.Sin(u * 18f) * 0.4f;
-                else if (id == "prismball") x += Mathf.Sin(u * 24f) * 1.8f;
-                else if (id == "charmball") x += Mathf.Sin(u * 9f) * 0.7f;
-                else if (id == "phonyball") x += u > 0.55f ? 2.4f : -0.5f;
-                else if (id == "caskball") y += 0.55f * u;
-            }
-            _ball = new Vector3(x, y, z);
+            _pitch = _pitch with { BreakX = _breakX };
+            var p = PitchFlight.Point(_pitch, u, _match.Pitcher.StarPitch, from);
+            _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             TickBaserunning(dt);
             if (HumanBats)
             {
@@ -314,7 +304,7 @@ namespace GrandSluggers.UnityClient
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
+                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
             Resolve();
         }
 

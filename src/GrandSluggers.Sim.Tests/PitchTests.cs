@@ -27,7 +27,7 @@ public class PitchTests
     [Fact]
     public void HighAimIsABall()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0, 0.9), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0, 1.3), 7));
     }
 
     [Fact]

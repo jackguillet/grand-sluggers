@@ -63,6 +63,31 @@ public static class PitchFlight
         return (x, y, zz);
     }
 
+    /// <summary>The same delivered ball is used by rendering, contact and the umpire.</summary>
+    public static (double X, double Y, double Z) Point(PitchCommand pitch, double u,
+        string? starPitchId = null, (double X, double Y, double Z)? from = null)
+    {
+        u = Math.Clamp(u, 0, 1);
+        var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX,
+            pitch.Changeup, pitch.RubberX, from);
+        if (!pitch.Star) return p;
+        return starPitchId switch
+        {
+            "heatball" => (p.X + Math.Sin(u * 18) * 0.4, p.Y, p.Z),
+            "prismball" => (p.X + Math.Sin(u * 24) * 1.8, p.Y, p.Z),
+            "charmball" => (p.X + Math.Sin(u * 9) * 0.7, p.Y, p.Z),
+            "phonyball" => (p.X + (u > 0.55 ? 2.4 : -0.5), p.Y, p.Z),
+            "caskball" => (p.X, p.Y + 0.55 * u, p.Z),
+            _ => p
+        };
+    }
+
+    public static (double X, double Y) ContactAim(PitchCommand pitch, string? starPitchId = null)
+    {
+        var p = Point(pitch, 1, starPitchId);
+        return (p.X / PlateScaleX, (p.Y - PlateY) / PlateScaleY);
+    }
+
     public static bool InFrontOfLook(double x, double y, double z, CameraShot shot)
     {
         var dx = x - shot.Pos.X;

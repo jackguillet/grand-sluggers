@@ -23,7 +23,7 @@ public class MatchTests
     public void FourBallsIsAWalk()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         PlayKind last = PlayKind.TakeBall;
         for (var i = 0; i < 4; i++)
@@ -361,7 +361,7 @@ public class MatchTests
     public void GrounderWithRunnerOnFirstForcesTheLead()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);

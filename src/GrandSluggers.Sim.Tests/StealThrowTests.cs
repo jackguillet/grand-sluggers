@@ -197,7 +197,7 @@ public class StealThrowTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);

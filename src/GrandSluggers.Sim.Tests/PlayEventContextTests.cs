@@ -205,7 +205,7 @@ public class PlayEventContextTests
         Assert.Equal(1, strikeEvent.OutsOnPlay);
 
         var walk = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         walk.Play(wild, take);
         walk.Play(wild, take);
         walk.Play(wild, take);

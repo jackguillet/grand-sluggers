@@ -142,7 +142,8 @@ public sealed record PitchCommand(
     double AimY = 0,
     double BreakX = 0,
     bool Changeup = false,
-    double RubberX = 0);
+    double RubberX = 0,
+    bool DeliveryPrepared = false);
 
 public sealed record SwingCommand(
     bool Swing,
