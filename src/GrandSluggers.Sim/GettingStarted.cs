@@ -22,8 +22,8 @@ public static class GettingStarted
             "South play ball.",
             "Space / left click play ball."),
         new("captains", "Captains", "how-to-start-select", "select",
-            "LB 1 player. RB 2 players. Stick L/R your team. South the field.",
-            "Comma 1 player. Tab 2 players. A/D your team. Space / left click the field."),
+            "LB 1 PLAYER. RB 2 PLAYERS. Stick L/R team. South field.",
+            "Comma 1 PLAYER. Tab 2 PLAYERS. A/D team. Space / click field."),
         new("field", "Field", "how-to-start-field", "field",
             "Harbor is the slice. South lineup.",
             "Harbor is the slice. Space / left click lineup."),
@@ -57,27 +57,23 @@ public static class GettingStarted
     public static (float X, float Y, float W, float H) PathRow(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
-        var table = ModeTable(screenW, screenH);
-        var band = LineBand(screenW, screenH);
-        var h = table.Y - board.Y - 10f;
-        return (board.X, board.Y, board.W, Math.Max(80f, h));
+        return (board.X, board.Y, board.W, board.H);
     }
 
     public static (float X, float Y, float W, float H) StepCell(int index, float screenW, float screenH)
     {
-        var row = PathRow(screenW, screenH);
+        var board = PathRow(screenW, screenH);
         var n = Math.Max(1, Path.Count);
         const float gap = 8f;
-        var w = (row.W - gap * (n - 1)) / n;
-        return (row.X + index * (w + gap), row.Y, w, row.H);
+        var h = (board.H - gap * (n - 1)) / n;
+        return (board.X, board.Y + index * (h + gap), board.W, h);
     }
 
     public static (float X, float Y, float W, float H) ModeTable(float screenW, float screenH)
     {
         var board = ControlDiagram.Board(screenW, screenH);
         var band = LineBand(screenW, screenH);
-        var h = HowToPlay.KidLineH * HowToPlay.LineBandMul;
-        return (board.X, band.Y - h - 8f, board.W, h);
+        return (board.X, board.Y, board.W, band.Y - board.Y - 8f);
     }
 
     public static (float X, float Y, float W, float H) ModeRow(int index, float screenW, float screenH)

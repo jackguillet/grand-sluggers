@@ -47,10 +47,12 @@ public class RoleTablesTests
         var page = HowToPlay.Must("roles");
         Assert.Contains(page.Lines, l => l.Contains("batting") && l.Contains("running"));
         Assert.False(HowToPlay.MixesHardware(string.Join(' ', page.Lines)));
-        var cell = RoleTables.Cell(0, 1280, 800);
-        Assert.True(cell.W > 400);
-        Assert.True(cell.H > 200);
-        var next = RoleTables.Cell(1, 1280, 800);
-        Assert.True(next.X > cell.X);
+        Assert.Equal(RoleTables.Pad[0], RoleTables.OnPage(InputScheme.Pad, "roles"));
+        Assert.Equal(RoleTables.Pad[3], RoleTables.OnPage(InputScheme.Pad, "roles-running"));
+        var cell = RoleTables.RowCard(0, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        Assert.True(cell.W > 1000);
+        Assert.True(cell.H > 40);
+        var next = RoleTables.RowCard(1, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        Assert.True(next.Y > cell.Y);
     }
 }
