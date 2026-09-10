@@ -133,6 +133,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenSelect()
         {
+            ReleaseMatchSeats();
             _phase = Phase.Select;
             _t = 0;
             _selectX.Catch(Controls.Pad1.MenuAxisX);
@@ -197,6 +198,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenField()
         {
+            BindMatchSeats();
             _phase = Phase.Field;
             _t = 0;
             _selectX.Catch(Controls.MenuX);
