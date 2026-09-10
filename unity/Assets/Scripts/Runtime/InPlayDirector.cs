@@ -447,18 +447,17 @@ namespace GrandSluggers.UnityClient
             if (_path == null) return;
             var spray = _pending != null ? _pending.SprayDeg : 0;
             var live = BallFlight.PointAt(_path, spray, LiveTime);
-            var hang = BallFlight.HangTime(_path);
-            var target = FieldingResolver.GloveChaseTarget(
-                pre, _match.Park, live.X, live.Z, live.Y, LiveTime, hang);
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            TryHandoffOutfield(map, target.X, target.Z);
+            var hang = BallFlight.HangTime(_path);
+            var airborne = FieldingResolver.InAir(pre, live.Y, LiveTime, hang);
+            var airTarget = FlyCatch.ChaseTarget(pre, _match.Park);
+            TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z);
             var who = map.TryGetValue(_glovePos, out var c) ? c : pre.Fielder;
             var run = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
-            var speed = run;
-            if (FieldingResolver.InAir(pre, live.Y, LiveTime, hang))
-                speed = FieldingResolver.CatchUpSpeedFt(
-                    Diamond.Dist(_fx, _fz, target.X, target.Z), hang - LiveTime, run, pre.Frozen);
-            var next = FieldingResolver.StepToward(_fx, _fz, target.X, target.Z, speed, dt, _match.Park);
+            var route = FieldingPursuit.Plan(
+                pre, _match.Park, _path, spray, LiveTime, _fx, _fz, run);
+            var next = FieldingResolver.StepToward(
+                _fx, _fz, route.X, route.Z, run, dt, _match.Park);
             _fx = next.X;
             _fz = next.Z;
             _gloveAt[_glovePos] = (_fx, _fz);
@@ -488,13 +487,20 @@ namespace GrandSluggers.UnityClient
             if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z))
                 return;
             var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            var aim = inAir ? plant : (live.X, live.Z);
-            var of = FieldingResolver.NearestOutfielder(map, aim.X, aim.Z, _gloveAt);
-            if (of.Pos == _glovePos) return;
-            if (!_gloveAt.TryGetValue(of.Pos, out var at)) return;
-            var target = FieldingResolver.OutfieldChaseTarget(live.X, live.Z, plant.X, plant.Z, inAir);
+            var of = FieldingPursuit.Choose(
+                map,
+                FieldingResolver.OutfieldPursuitPositions,
+                _preview,
+                _match.Park,
+                _path,
+                _pending.SprayDeg,
+                _gloveAt,
+                LiveTime);
+            if (of.Position == _glovePos) return;
+            if (!_gloveAt.TryGetValue(of.Position, out var at)) return;
             var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, _preview.Frozen);
-            _gloveAt[of.Pos] = FieldingResolver.StepToward(at.X, at.Z, target.X, target.Z, speed, dt, _match.Park);
+            _gloveAt[of.Position] = FieldingResolver.StepToward(
+                at.X, at.Z, of.Route.X, of.Route.Z, speed, dt, _match.Park);
         }
 
         void ClampField()
@@ -518,17 +524,24 @@ namespace GrandSluggers.UnityClient
 
         void AutoGlove(Dictionary<string, Character> map)
         {
-            var x = (double)_ball.x;
-            var z = (double)_ball.z;
-            if (_preview != null)
+            (Character Fielder, string Pos) pick;
+            if (_preview != null && _path != null)
             {
-                var hang = _path != null ? BallFlight.HangTime(_path) : _preview.HangTimeSec;
-                var t = FieldingResolver.GloveChaseTarget(
-                    _preview, _match.Park, _ball.x, _ball.z, _ball.y, LiveTime, hang);
-                x = t.X;
-                z = t.Z;
+                var live = BallFlight.PointAt(_path, _pending != null ? _pending.SprayDeg : 0, LiveTime);
+                var hang = BallFlight.HangTime(_path);
+                var airborne = FieldingResolver.InAir(_preview, live.Y, LiveTime, hang);
+                var positions = airborne
+                    ? FieldingResolver.AirPursuitPositions
+                    : FieldingResolver.OutfieldGrass(live.X, live.Z)
+                        ? FieldingResolver.OutfieldPursuitPositions
+                        : FieldingResolver.InfieldPursuitPositions;
+                var choice = FieldingPursuit.Choose(
+                    map, positions, _preview, _match.Park, _path,
+                    _pending != null ? _pending.SprayDeg : 0, _gloveAt, LiveTime);
+                pick = (choice.Fielder, choice.Position);
             }
-            var pick = FieldingResolver.PlayGlove(map, x, z, _gloveAt);
+            else
+                pick = FieldingResolver.PlayGlove(map, _ball.x, _ball.z, _gloveAt);
             if (pick.Pos == _glovePos) return;
             _gloveAt[_glovePos] = (_fx, _fz);
             _glovePos = pick.Pos;
@@ -549,11 +562,15 @@ namespace GrandSluggers.UnityClient
 
         (double X, double Z) SwitchAim(FieldingPreview pre)
         {
-            if (pre != null && FlyCatch.IsFly(pre) && _path != null)
+            if (pre != null && _path != null)
             {
-                var hang = BallFlight.HangTime(_path);
-                if (LiveTime < hang)
-                    return FlyCatch.ChaseTarget(pre, _match.Park);
+                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                var who = map.TryGetValue(_glovePos, out var fielder) ? fielder : pre.Fielder;
+                var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen);
+                var route = FieldingPursuit.Plan(
+                    pre, _match.Park, _path, _pending != null ? _pending.SprayDeg : 0,
+                    LiveTime, _fx, _fz, speed);
+                return (route.X, route.Z);
             }
             return (_ball.x, _ball.z);
         }

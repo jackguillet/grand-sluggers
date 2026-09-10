@@ -126,12 +126,10 @@ public class FlyCatchTests
         const double dt = 1.0 / 30;
         for (var t = 0.0; t < hang - 0.18; t += dt)
         {
-            var speed = FieldingResolver.CatchUpSpeedFt(
-                Diamond.Dist(at.X, at.Z, plant.X, plant.Z), hang - t, run);
-            at = FieldingResolver.StepToward(at.X, at.Z, plant.X, plant.Z, speed, dt, match.Park);
+            at = FieldingResolver.StepToward(at.X, at.Z, plant.X, plant.Z, run, dt, match.Park);
         }
         Assert.True(Diamond.Dist(at.X, at.Z, plant.X, plant.Z) < 18,
-            "catch-up speed must be under the ring by hang");
+            "the selected routine glove reaches the ring at rated speed by hang");
     }
 
     [Fact]
