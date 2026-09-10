@@ -79,7 +79,11 @@ public class SchemeTests
                 Assert.InRange(page.KeyLines.Count, 1, HowToPlay.KidLineMax);
         }
         Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("instruction booklet") || l.Contains("Call time"));
-        Assert.Contains(HowToPlay.Must("contents").Lines, l => l.Contains("Big type") || l.Contains("couch"));
+        var contents = HowToPlay.Must("contents");
+        var introBand = ContentsToc.LineBand(1280, 800);
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+            Assert.True(contents.Shown(scheme).Count * HowToPlay.KidLineH <= introBand.H,
+                $"{scheme} contents copy must fit the readable intro band");
         Assert.False(HowToPlay.ShowsSplash("fielding"));
         Assert.False(HowToPlay.ShowsSplash("stars"));
         Assert.False(HowToPlay.ShowsSplash("the-box"));
@@ -106,7 +110,9 @@ public class SchemeTests
         Assert.True(HowToPlay.Mentions("changeup"));
         Assert.True(HowToPlay.Mentions("call time"));
         Assert.True(HowToPlay.Mentions("outfielder"));
-        Assert.True(HowToPlay.Mentions("Charge ring"));
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+            Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme),
+                line => line.Contains("charge", StringComparison.OrdinalIgnoreCase) && line.Contains("MAX"));
         Assert.True(HowToPlay.Mentions("puffs dirt"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
