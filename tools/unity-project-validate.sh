@@ -16,17 +16,19 @@ die() { echo "unity-project-validate: $*" >&2; exit 1; }
 [[ -z "$(git -C "$root" status --porcelain --untracked-files=no)" ]] ||
   die "tracked changes make revision evidence ambiguous; commit them first"
 revision="$(git -C "$root" rev-parse HEAD)"
+expected_version="$(python3 -c 'import pathlib,sys; lines=pathlib.Path(sys.argv[1]).read_text().splitlines(); print(next(line.split(":",1)[1].strip() for line in lines if line.startswith("m_EditorVersion:")))' "$root/unity/ProjectSettings/ProjectVersion.txt")"
+[[ -n "$expected_version" ]] || die "ProjectVersion.txt does not pin an editor version"
 mkdir -p "$(dirname "$evidence")" "$(dirname "$log")"
 rm -f "$evidence"
 
-GS_VALIDATION_REVISION="$revision" GS_VALIDATION_EVIDENCE="$evidence" \
+GS_VALIDATION_REVISION="$revision" GS_VALIDATION_EVIDENCE="$evidence" GS_VALIDATION_UNITY_VERSION="$expected_version" \
   "$editor" -batchmode -nographics -quit -projectPath "$root/unity" \
   -executeMethod GrandSluggers.EditorTools.ValidationGate.Run -logFile "$log"
 
 [[ -f "$evidence" ]] || die "Unity exited without evidence; see $log"
 [[ -z "$(git -C "$root" status --porcelain --untracked-files=no)" ]] ||
   die "Unity import changed tracked files; evidence no longer represents a clean $revision checkout"
-python3 -c 'import json,sys; p,rev=sys.argv[1:]; d=json.load(open(p)); assert d.get("ok") is True, d; assert d.get("revision")==rev, d' \
-  "$evidence" "$revision" || die "evidence does not pass or match $revision; see $evidence"
+python3 -c 'import json,sys; p,rev,version=sys.argv[1:]; d=json.load(open(p)); assert d.get("ok") is True, d; assert d.get("revision")==rev, d; assert d.get("unityVersion")==version, d' \
+  "$evidence" "$revision" "$expected_version" || die "evidence does not pass or match $revision / Unity $expected_version; see $evidence"
 echo "OK     Unity import + assemblies + art + Harbor scene at $revision"
 echo "evidence $evidence"
