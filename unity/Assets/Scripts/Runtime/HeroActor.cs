@@ -97,6 +97,63 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
+        internal bool TryRenderedSwingHands(
+            out Vector3 left, out Vector3 right,
+            out float leftExtent, out float rightExtent)
+        {
+            left = right = Vector3.zero;
+            leftExtent = rightExtent = 0f;
+            if (_root == null) return false;
+            var foundLeft = false;
+            var foundRight = false;
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer.name.Equals("lHand", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    left = renderer.bounds.center;
+                    leftExtent = MaxExtent(renderer.bounds);
+                    foundLeft = true;
+                }
+                else if (renderer.name.Equals("rHand", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    right = renderer.bounds.center;
+                    rightExtent = MaxExtent(renderer.bounds);
+                    foundRight = true;
+                }
+            }
+            return foundLeft && foundRight;
+        }
+
+        internal bool TrySwingHandleEvidence(
+            out Vector3 modelGrip, out Vector3 handleEnd,
+            out float handleRadius, out Vector3 expectedDirection)
+        {
+            modelGrip = handleEnd = expectedDirection = Vector3.zero;
+            handleRadius = 0f;
+            if (_batModel == null || _root == null) return false;
+            var grip = SwingPresentation.ModelGrip;
+            modelGrip = _batModel.TransformPoint(new Vector3(
+                (float)grip.X, (float)grip.Y, (float)grip.Z));
+            handleEnd = _batModel.TransformPoint(Vector3.zero);
+            const float authoredHandleRadius = 0.08f;
+            handleRadius = Mathf.Max(
+                _batModel.TransformVector(Vector3.right * authoredHandleRadius).magnitude,
+                _batModel.TransformVector(Vector3.forward * authoredHandleRadius).magnitude);
+            var sampleT = _pose == Pose.ChargeSwing
+                ? SwingPresentation.LoadSampleAt(_charge)
+                : System.Math.Clamp(_poseT, 0f, (float)MoveBones.SwingDur);
+            var key = SwingPresentation.At(sampleT, _batsLeft ? Hand.L : Hand.R);
+            var local = new Vector3(
+                (float)key.BarrelDirection.X,
+                (float)key.BarrelDirection.Y,
+                (float)key.BarrelDirection.Z);
+            expectedDirection = _root.TransformVector(local).normalized;
+            return expectedDirection.sqrMagnitude > 0.99f;
+        }
+
+        static float MaxExtent(Bounds bounds) =>
+            Mathf.Max(bounds.extents.x, Mathf.Max(bounds.extents.y, bounds.extents.z));
+
         internal bool TryBatVisual(
             out string visual, out bool visible,
             out Vector3 socketGrip, out Vector3 modelGrip)
@@ -1158,8 +1215,11 @@ namespace GrandSluggers.UnityClient
             MirrorLocal(ref _lShin, ref _rShin);
             if (_sourceBatSocket != null && _sourceBatSocket != _batSocket)
             {
+                var p = _sourceBatSocket.localPosition;
+                _batSocket.localPosition = new Vector3(-p.x, p.y, p.z);
                 var e = _sourceBatSocket.localRotation.eulerAngles;
                 _batSocket.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
+                _batSocket.localScale = _sourceBatSocket.localScale;
             }
             else MirrorOne(_batSocket);
         }
