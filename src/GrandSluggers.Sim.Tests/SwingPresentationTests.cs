@@ -12,9 +12,12 @@ public class SwingPresentationTests
             SwingPresentation.ModelGrip);
         Assert.Equal(new Vec3(0, SwingPresentation.BarrelStartFromModelCenter, 0),
             SwingPresentation.ModelBarrelStart);
+        Assert.Equal(new Vec3(0, SwingPresentation.HandleEndFromModelCenter, 0),
+            SwingPresentation.ModelHandleEnd);
         Assert.Equal(new Vec3(0, SwingPresentation.BarrelFromModelCenter, 0),
             SwingPresentation.ModelBarrelEnd);
         Assert.True(SwingPresentation.ModelBarrelStart.Y > SwingPresentation.ModelGrip.Y);
+        Assert.True(SwingPresentation.ModelHandleEnd.Y > SwingPresentation.ModelGrip.Y);
         Assert.True(SwingPresentation.ModelBarrelEnd.Y > SwingPresentation.ModelGrip.Y);
         Assert.Equal(
             (SwingPresentation.ModelBarrelEnd.Y - SwingPresentation.ModelGrip.Y) * Silhouette.BatScale,

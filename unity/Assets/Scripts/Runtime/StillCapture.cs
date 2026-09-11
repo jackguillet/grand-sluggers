@@ -408,11 +408,11 @@ namespace GrandSluggers.UnityClient
                 failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
             var leftToHandle = renderedHands
                 ? PointSegmentDistance(
-                    renderedLeft.RootCenter, physicalBat.RootGrip, physicalBat.RootBarrelStart)
+                    renderedLeft.RootCenter, physicalBat.RootGrip, physicalBat.RootHandleEnd)
                 : float.PositiveInfinity;
             var rightToHandle = renderedHands
                 ? PointSegmentDistance(
-                    renderedRight.RootCenter, physicalBat.RootGrip, physicalBat.RootBarrelStart)
+                    renderedRight.RootCenter, physicalBat.RootGrip, physicalBat.RootHandleEnd)
                 : float.PositiveInfinity;
             var leftExtent = renderedHands ? MaxComponent(renderedLeft.RootExtents) : 0f;
             var rightExtent = renderedHands ? MaxComponent(renderedRight.RootExtents) : 0f;
@@ -488,9 +488,11 @@ namespace GrandSluggers.UnityClient
                 + ",\"leftHandRoot\":[" + SwingVector(renderedLeft.RootCenter) + "]"
                 + ",\"rightHandRoot\":[" + SwingVector(renderedRight.RootCenter) + "]"
                 + ",\"physicalGrip\":[" + SwingVector(physicalBat.Grip) + "]"
+                + ",\"handleEnd\":[" + SwingVector(physicalBat.HandleEnd) + "]"
                 + ",\"barrelStart\":[" + SwingVector(physicalBat.BarrelStart) + "]"
                 + ",\"physicalBarrelEnd\":[" + SwingVector(physicalBat.BarrelEnd) + "]"
                 + ",\"physicalGripRoot\":[" + SwingVector(physicalBat.RootGrip) + "]"
+                + ",\"handleEndRoot\":[" + SwingVector(physicalBat.RootHandleEnd) + "]"
                 + ",\"barrelStartRoot\":[" + SwingVector(physicalBat.RootBarrelStart) + "]"
                 + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
                 + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
