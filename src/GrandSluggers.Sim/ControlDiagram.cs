@@ -88,9 +88,9 @@ public static class ControlDiagram
     [
         new("stick", "Left stick", "L3 steal", "", "Move / run", 0.02f, 0.38f),
         new("dpad", "D-pad", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.56f),
-        new("lt", "LT", "", "", "Charge", 0.02f, 0.20f),
+        new("lt", "LT", "Item modifier", "", "", 0.02f, 0.20f),
         new("lb", "LB / RB", "All advance / return", "Cutoff", "", 0.02f, 0.28f),
-        new("south", "South", "Pitch / swing / dash", "Catch / throw", "", 0.70f, 0.50f),
+        new("south", "South", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.70f, 0.50f),
         new("east", "East", "", "Dive", "Back", 0.70f, 0.40f),
         new("west", "West", "Bunt (hold)", "Changeup / jump", "", 0.70f, 0.30f),
         new("north", "North", "Star swing", "Star pitch / attack", "", 0.70f, 0.20f),
@@ -117,8 +117,8 @@ public static class ControlDiagram
     [
         new("wasd", "WASD", "", "", "Move / run", 0.02f, 0.38f),
         new("bags", "1 2 3 4", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.22f),
-        new("space", "Space / left click", "Pitch / swing / dash", "Catch / throw", "", 0.02f, 0.62f),
-        new("charge", "Shift / right click", "", "", "Charge", 0.02f, 0.50f),
+        new("space", "Space / left click", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.02f, 0.62f),
+        new("charge", "Shift / right click", "Item modifier", "", "", 0.02f, 0.50f),
         new("star", "Q / middle click", "Star swing", "Star pitch / attack", "", 0.72f, 0.20f),
         new("west", "V / Ctrl", "Bunt (hold)", "Changeup", "", 0.72f, 0.32f),
         new("jump", "F / G", "", "Jump / dive", "Back", 0.72f, 0.44f),
