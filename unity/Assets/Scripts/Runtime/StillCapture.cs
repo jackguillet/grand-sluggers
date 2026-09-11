@@ -371,6 +371,22 @@ namespace GrandSluggers.UnityClient
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
+            var renderedHands = hero.TryRenderedSwingHands(
+                out var renderedLeft, out var renderedRight,
+                out var leftExtent, out var rightExtent);
+            if (renderedHands)
+            {
+                left = renderedLeft;
+                right = renderedRight;
+            }
+            if (!hero.TrySwingHandleEvidence(
+                    out var physicalGrip, out var handleEnd,
+                    out var handleRadius, out var expectedDirection))
+            {
+                gateError = $"{captain} {power} {beat}: missing handle direction evidence";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
             var failures = new List<string>();
             var expectedPose = beat is "ready" or "rest" or "load"
                 ? HeroActor.Pose.ChargeSwing
@@ -393,15 +409,31 @@ namespace GrandSluggers.UnityClient
                     $"{captain} {power} {beat}: model grip missed socket by {gripError:0.###}");
             if (Vector3.Distance(grip, barrel) <= SwingPresentation.BarrelRadius)
                 failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
-            if (sharedRigMetrics && beat != "ready" && beat != "rest")
+            var leftToHandle = PointSegmentDistance(left, physicalGrip, handleEnd);
+            var rightToHandle = PointSegmentDistance(right, physicalGrip, handleEnd);
+            var leftContact = leftExtent + handleRadius;
+            var rightContact = rightExtent + handleRadius;
+            if (sharedRigMetrics && !renderedHands)
+                failures.Add($"{captain} {power} {beat}: rendered hand meshes are missing");
+            if (sharedRigMetrics && (leftToHandle > leftContact || rightToHandle > rightContact))
+                failures.Add(
+                    $"{captain} {power} {beat}: rendered hands missed physical handle "
+                    + $"(left {leftToHandle:0.00}/{leftContact:0.00}, "
+                    + $"right {rightToHandle:0.00}/{rightContact:0.00})");
+            var actualDirection = (barrel - physicalGrip).normalized;
+            var directionDot = Vector3.Dot(actualDirection, expectedDirection);
+            if (sharedRigMetrics && directionDot < 0.97f)
+                failures.Add(
+                    $"{captain} {power} {beat}: barrel reversed from authored path "
+                    + $"(dot {directionDot:0.000})");
+            if (sharedRigMetrics)
             {
                 var gap = Vector3.Distance(left, right);
-                var lead = Vector3.Distance(left, grip);
-                var rear = Vector3.Distance(right, grip);
-                if (gap > 0.70f || lead > 1.0f || rear > 1.0f)
+                var maxGap = leftExtent + rightExtent + handleRadius * 2f;
+                if (gap > maxGap)
                     failures.Add(
-                        $"{captain} {power} {beat}: hands left the grip "
-                        + $"(gap {gap:0.00}, left {lead:0.00}, right {rear:0.00})");
+                        $"{captain} {power} {beat}: hands separated along the handle "
+                        + $"(gap {gap:0.00}, authored max {maxGap:0.00})");
             }
             if (sharedRigMetrics && beat == "contact"
                 && (barrel.x < -HomeSet.PlateW / 2 - SwingPresentation.BarrelRadius
@@ -431,6 +463,19 @@ namespace GrandSluggers.UnityClient
                 + ",\"socketGrip\":[" + SwingVector(socketGrip) + "]"
                 + ",\"modelGrip\":[" + SwingVector(modelGrip) + "]"
                 + ",\"gripError\":" + SwingNumber(gripError)
+                + ",\"renderedHands\":" + (renderedHands ? "true" : "false")
+                + ",\"physicalGrip\":[" + SwingVector(physicalGrip) + "]"
+                + ",\"handleEnd\":[" + SwingVector(handleEnd) + "]"
+                + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
+                + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
+                + ",\"leftHandExtent\":" + SwingNumber(leftExtent)
+                + ",\"rightHandExtent\":" + SwingNumber(rightExtent)
+                + ",\"handleRadius\":" + SwingNumber(handleRadius)
+                + ",\"leftHandleContact\":" + SwingNumber(leftContact)
+                + ",\"rightHandleContact\":" + SwingNumber(rightContact)
+                + ",\"expectedDirection\":[" + SwingVector(expectedDirection) + "]"
+                + ",\"actualDirection\":[" + SwingVector(actualDirection) + "]"
+                + ",\"directionDot\":" + SwingNumber(directionDot)
                 + ",\"handGap\":" + SwingNumber(Vector3.Distance(left, right))
                 + ",\"leftToGrip\":" + SwingNumber(Vector3.Distance(left, grip))
                 + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
@@ -448,6 +493,15 @@ namespace GrandSluggers.UnityClient
 
         static string SwingNumber(float value) =>
             value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+
+        static float PointSegmentDistance(Vector3 point, Vector3 start, Vector3 end)
+        {
+            var axis = end - start;
+            var u = axis.sqrMagnitude < 0.0001f
+                ? 0f
+                : Mathf.Clamp01(Vector3.Dot(point - start, axis) / axis.sqrMagnitude);
+            return Vector3.Distance(point, start + axis * u);
+        }
 
         internal void GatePose(string shot, StillRequest req)
         {
