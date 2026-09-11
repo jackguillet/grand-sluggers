@@ -41,6 +41,48 @@ public readonly record struct ChargeButtonStep(
     double CommitSecondsPastFull);
 
 /// <summary>
+/// One release-edge swing, captured before a presentation phase can change.
+/// SET and Flight both resolve this same immutable intent exactly once.
+/// </summary>
+public readonly record struct SwingInputIntent(
+    bool Committed,
+    double Fill01,
+    double SecondsPastFull,
+    double SprayAimDeg,
+    bool Bunt,
+    double LaunchAim,
+    double BoxOffsetX)
+{
+    public static SwingInputIntent Capture(
+        ChargeButtonStep button,
+        double stickX,
+        double stickY,
+        bool bunt,
+        double boxOffsetX) =>
+        button.Committed
+            ? new SwingInputIntent(
+                true,
+                button.CommitFill01,
+                button.CommitSecondsPastFull,
+                AtBatResolver.SprayAimDeg(stickX),
+                bunt,
+                stickY,
+                boxOffsetX)
+            : default;
+
+    public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star) =>
+        new(
+            true,
+            effectiveCharge,
+            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, Bunt),
+            star,
+            SprayAimDeg,
+            Bunt,
+            LaunchAim,
+            BoxOffsetX);
+}
+
+/// <summary>
 /// Super Sluggers' button load: press starts the windup, holding fills it,
 /// and releasing commits either a quick normal action or the stored charge.
 /// </summary>

@@ -17,6 +17,7 @@ namespace GrandSluggers.UnityClient
     {
         ChargeButtonState _pitchButton;
         ChargeButtonState _swingButton;
+        SwingInputIntent _setSwingIntent;
 
         internal void TickAtBat(float dt)
         {
@@ -40,6 +41,7 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _pitchButton = default;
             _swingButton = default;
+            _setSwingIntent = default;
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
@@ -145,6 +147,7 @@ namespace GrandSluggers.UnityClient
             var mound = PitchPad;
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
+            var swingButton = default(ChargeButtonStep);
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
@@ -152,13 +155,23 @@ namespace GrandSluggers.UnityClient
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanBats)
-                TickChargeButton(dt, _feel.SwingChargeSeconds, box,
+            {
+                swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, box,
                     ref _swingButton, ref _charge, ref _chargePast);
+            }
             _pip += dt * 1.35f;
             if (mound.SwapPitcher) _match.SwapPitcher();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
+            if (HumanBats)
+            {
+                _bunt = box.WestHeld;
+                if (box.StickY < -0.7f) _match.ResetBatter();
+                else _match.WalkBatter(box.StickX * dt * 1.6f);
+                _setSwingIntent = SwingInputIntent.Capture(
+                    swingButton, box.StickX, box.StickY, _bunt, _match.BatterOffsetX);
+            }
             if (HumanPitches)
             {
                 if (mound.StickY < -0.7f) _match.ResetPitcher();
@@ -181,15 +194,10 @@ namespace GrandSluggers.UnityClient
                     }
                 }
             }
-            if (HumanBats)
-            {
-                _bunt = box.WestHeld;
-                if (box.StickY < -0.7f) _match.ResetBatter();
-                else _match.WalkBatter(box.StickX * dt * 1.6f);
-            }
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
                 Launch(_match.CpuPitch());
+            _setSwingIntent = default;
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
@@ -238,6 +246,9 @@ namespace GrandSluggers.UnityClient
             }
             _phase = Phase.Flight;
             _t = 0;
+            if (HumanBats)
+                CommitSwing(_setSwingIntent);
+            _setSwingIntent = default;
             var rel = PitchFlight.Release(pitch.RubberX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
@@ -277,20 +288,9 @@ namespace GrandSluggers.UnityClient
                 else _match.WalkBatter(box.StickX * dt * 1.6f);
                 _zone.Show(true, BatterCursorX, 0);
                 if (swingButton.Committed)
-                {
-                    _swung = true;
-                    var effective = EffectiveCharge((float)swingButton.CommitFill01,
-                        (float)swingButton.CommitSecondsPastFull);
-                    _charge = effective;
-                    var nice = ChargeFeel.NiceCopy(false, swingButton.CommitFill01,
-                        swingButton.CommitSecondsPastFull, _feel.ChargeMaxHoldSeconds);
-                    if (!string.IsNullOrEmpty(nice)) _banner = nice;
-                    _swing = new SwingCommand(true,
-                        effective,
-                        AtBatMotion.SwingErrorFrames(_flight, _pitchDur, _bunt || box.WestHeld),
-                        _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), _bunt || box.WestHeld, box.StickY,
-                        _match.BatterOffsetX);
-                }
+                    CommitSwing(SwingInputIntent.Capture(
+                        swingButton, box.StickX, box.StickY,
+                        _bunt || box.WestHeld, _match.BatterOffsetX));
             }
             if (!_pitchAir)
             {
@@ -322,6 +322,19 @@ namespace GrandSluggers.UnityClient
                 ? new SwingCommand(false, _charge, 12, false)
                 : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
             Resolve();
+        }
+
+        void CommitSwing(SwingInputIntent intent)
+        {
+            if (!intent.Committed || _swung) return;
+            _swung = true;
+            var effective = EffectiveCharge((float)intent.Fill01, (float)intent.SecondsPastFull);
+            _charge = effective;
+            var nice = ChargeFeel.NiceCopy(false, intent.Fill01,
+                intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
+            if (!string.IsNullOrEmpty(nice)) _banner = nice;
+            _swing = intent.Resolve(
+                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing);
         }
 
         float PitchWorldX(float screenX)
