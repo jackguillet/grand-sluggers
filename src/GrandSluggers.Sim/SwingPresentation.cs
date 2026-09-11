@@ -21,12 +21,15 @@ public static class SwingPresentation
     public const double ModelCenterFromGrip = 0.85;
     /// <summary>Authored bat-wood barrel begins below its model origin.</summary>
     public const double BarrelStartFromModelCenter = -0.15;
+    /// <summary>Authored bat-wood handle ends just below its model origin.</summary>
+    public const double HandleEndFromModelCenter = -0.10;
     /// <summary>Authored bat-wood barrel end from its model origin.</summary>
     public const double BarrelFromModelCenter = 1.25;
 
     // Authored model-local endpoints before HeroActor applies the shared-socket
     // bind conversion: handle/grip at -Y, barrel along +Y.
     public static readonly Vec3 ModelGrip = new(0, -ModelCenterFromGrip, 0);
+    public static readonly Vec3 ModelHandleEnd = new(0, HandleEndFromModelCenter, 0);
     public static readonly Vec3 ModelBarrelStart = new(0, BarrelStartFromModelCenter, 0);
     public static readonly Vec3 ModelBarrelEnd = new(0, BarrelFromModelCenter, 0);
     /// <summary>
