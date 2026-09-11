@@ -6,6 +6,30 @@ namespace GrandSluggers.Sim.Tests;
 public class StillRequestTests
 {
     [Fact]
+    public void ExternalRequestMustExistAndPassTheSameParserBeforeStaging()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "gs-still-request-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var path = Path.Combine(root, "fenn-plate.json");
+            const string json = """{"shots":["plate","pitch","char-pose"],"home":"fenn","away":"rio"}""";
+            File.WriteAllText(path, json);
+
+            Assert.Equal(json, StillRequest.ReadValidatedJsonFile(path));
+
+            File.WriteAllText(path, """{"shots":["not-a-shot"]}""");
+            Assert.Throws<InvalidDataException>(() => StillRequest.ReadValidatedJsonFile(path));
+            Assert.Throws<FileNotFoundException>(() =>
+                StillRequest.ReadValidatedJsonFile(Path.Combine(root, "missing.json")));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void DefaultRequestIsTitlePlateMoundHudOffRio()
     {
         var req = StillRequest.Parse("{}");
