@@ -1,0 +1,7 @@
+{
+    "revision": "7982b822cb81e03210d1b99e28928649631df954",
+    "unityVersion": "6000.5.9f1",
+    "ok": false,
+    "error": "System.InvalidOperationException: CPU-boundary release lost the release-frame spray intent.\n  at GrandSluggers.EditorTools.AtBatInputGate.VerifyCpuLaunchBoundaryRelease (GrandSluggers.UnityClient.MatchDirector play) [0x00183] in /private/tmp/wt-gs-508/unity/Assets/Editor/AtBatInputGate.cs:181 \n  at GrandSluggers.EditorTools.AtBatInputGate.Update () [0x000ec] in /private/tmp/wt-gs-508/unity/Assets/Editor/AtBatInputGate.cs:72 ",
+    "cases": []
+}
