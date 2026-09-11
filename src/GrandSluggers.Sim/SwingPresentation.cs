@@ -21,6 +21,12 @@ public static class SwingPresentation
     public const double ModelCenterFromGrip = 0.85;
     /// <summary>Authored bat-wood barrel end from its model origin.</summary>
     public const double BarrelFromModelCenter = 1.25;
+
+    // Authored model-local endpoints before HeroActor turns the model 180°
+    // onto the shared socket: handle/grip at -Y, barrel along +Y.
+    public static readonly Vec3 ModelGrip = new(0, -ModelCenterFromGrip, 0);
+    public static readonly Vec3 ModelBarrelEnd = new(0, BarrelFromModelCenter, 0);
+
     public static double BarrelReach =>
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
 
