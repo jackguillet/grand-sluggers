@@ -73,24 +73,24 @@
         },
         {
           "verb": "chargeSwing",
-          "source": "",
-          "playerSource": "",
+          "source": "Assets/Art/Characters/fenn/fenn-chargeSwing.fbx",
+          "playerSource": "Assets/Resources/Art/Characters/fenn/fenn-chargeSwing.fbx",
           "clip": "chargeSwing",
           "loop": false,
           "clock": "charge",
           "markers": [],
-          "readiness": "fallback",
+          "readiness": "ready",
           "fallback": "character-motion"
         },
         {
           "verb": "swing",
-          "source": "",
-          "playerSource": "",
+          "source": "Assets/Art/Characters/fenn/fenn-swing.fbx",
+          "playerSource": "Assets/Resources/Art/Characters/fenn/fenn-swing.fbx",
           "clip": "swing",
           "loop": false,
           "clock": "pose",
           "markers": [{ "event": "Contact", "at": 0.30 }],
-          "readiness": "fallback",
+          "readiness": "ready",
           "fallback": "character-motion"
         },
         {
