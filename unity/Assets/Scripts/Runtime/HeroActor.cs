@@ -312,6 +312,7 @@ namespace GrandSluggers.UnityClient
             {
                 var mesh = filter.sharedMesh;
                 if (mesh == null || mesh.vertexCount == 0) continue;
+                if (!mesh.isReadable) return false;
                 found = true;
                 var intoModel = _batModel.worldToLocalMatrix * filter.transform.localToWorldMatrix;
                 var vertices = mesh.vertices;
@@ -504,7 +505,10 @@ namespace GrandSluggers.UnityClient
                     bounce = 0.07f * Mathf.Abs(Mathf.Sin(_t * 5.4f));
                 var squash = Vector3.one;
                 if (_pose == Pose.Swing && _poseT >= 0.12f && _poseT < 0.32f)
-                    squash = new Vector3(1.14f, 0.84f, 1.14f);
+                    squash = new Vector3(
+                        (float)SwingPresentation.ContactStretchXZ,
+                        (float)SwingPresentation.ContactSquashY,
+                        (float)SwingPresentation.ContactStretchXZ);
                 else if (_pose == Pose.Dive)
                     squash = new Vector3(1.22f, 0.76f, 1.18f);
                 else if (_pose == Pose.Jump || _pose == Pose.Clamber)

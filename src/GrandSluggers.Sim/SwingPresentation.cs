@@ -16,6 +16,8 @@ public static class SwingPresentation
     public const double ApproachAt = 0.24;
     public const double ContactAt = MoveBones.SwingContact;
     public const double FollowThroughAt = MoveBones.SwingDur;
+    public const double ContactStretchXZ = 1.14;
+    public const double ContactSquashY = 0.84;
 
     /// <summary>Canonical bat-wood center sits this far above the grip socket.</summary>
     public const double ModelCenterFromGrip = 0.85;
@@ -41,6 +43,8 @@ public static class SwingPresentation
     public const double ModelHandleRadius = 0.08;
     public const double ModelBarrelRadius = 0.12;
     public static double BarrelRadius => ModelBarrelRadius * Silhouette.BatScale;
+    public static double HandleLength =>
+        (HandleEndFromModelCenter + ModelCenterFromGrip) * Silhouette.BatScale;
 
     public static double BarrelReach =>
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
@@ -53,6 +57,12 @@ public static class SwingPresentation
     public static double LoadSampleAt(double charge01) =>
         NormalLoadAt * (1 - Math.Clamp(charge01, 0, 1));
 
+    /// <summary>Shared root squash while the barrel accelerates through contact.</summary>
+    public static Vec3 RootSquash(double poseT) =>
+        poseT >= 0.12 && poseT < 0.32
+            ? new Vec3(ContactStretchXZ, ContactSquashY, ContactStretchXZ)
+            : new Vec3(1, 1, 1);
+
     public readonly record struct Key(
         double T,
         Vec3 LeftHand,
@@ -60,25 +70,26 @@ public static class SwingPresentation
         Vec3 Grip,
         Vec3 BarrelDirection);
 
-    // Measured from the authored hero-shared armature after solving each hand
-    // to the grip. DCC +Y maps to Unity -Z; DCC +Z maps to Unity +Y.
+    // Evaluated rendered-hand centers and socket positions in shared-root space.
+    // The DCC authoring check and Unity swing matrix measure these same points;
+    // DCC X is reflected during FBX import.
     public static readonly IReadOnlyList<Key> Keys =
     [
         new(LoadAt,
-            new(0.171, 2.692, 0.417), new(0.222, 2.443, 0.300),
-            new(0.055, 2.250, 0.300), Unit(-0.18, 0.89, 0.42)),
+            new(0.300, 2.727, 0.512), new(0.080, 2.522, 0.326),
+            new(0.273, 2.215, 0.226), Unit(-0.18, 0.89, 0.42)),
         new(LaunchAt,
-            new(0.264, 2.349, -0.175), new(0.292, 2.176, 0.043),
-            new(0.164, 2.098, 0.250), Unit(-0.10, 0.62, -0.78)),
+            new(0.416, 2.356, -0.235), new(0.143, 2.240, 0.016),
+            new(0.326, 2.013, 0.249), Unit(-0.10, 0.62, -0.78)),
         new(ApproachAt,
-            new(0.407, 1.823, -0.419), new(0.288, 1.819, -0.172),
-            new(0.288, 1.799, 0.082), Unit(0.4315, 0.005, -0.9022)),
+            new(0.366, 1.729, -0.547), new(0.129, 1.798, -0.140),
+            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
         new(ContactAt,
-            new(0.505, 1.924, -0.480), new(0.287, 1.917, -0.305),
-            new(0.303, 1.944, -0.052), Unit(0.7790, 0.0275, -0.6264)),
+            new(0.458, 1.856, -0.622), new(0.124, 1.914, -0.257),
+            new(-0.069, 1.872, -0.149), Unit(0.7790, 0.0275, -0.6264)),
         new(FollowThroughAt,
-            new(-0.101, 2.233, -0.503), new(0.015, 2.143, -0.356),
-            new(0.069, 2.227, -0.122), Unit(-0.54, 0.31, -0.78))
+            new(-0.242, 2.195, -0.576), new(-0.134, 2.155, -0.290),
+            new(0.060, 2.032, -0.073), Unit(-0.54, 0.31, -0.78))
     ];
 
     public static Key At(double poseT, Hand hand = Hand.R)
@@ -90,7 +101,9 @@ public static class SwingPresentation
     public static Vec3 BarrelWorld(string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
     {
         var key = At(poseT, hand);
-        var scale = Silhouette.SharedRootScale(Silhouette.Proportions(bodyType));
+        var scale = Mul(
+            Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
+            RootSquash(poseT));
         var local = Add(key.Grip, Mul(key.BarrelDirection, BarrelReach));
         return new Vec3(
             HomeSet.BatterBodyX(hand, worldOffsetX) + local.X * scale.X,
@@ -98,7 +111,54 @@ public static class SwingPresentation
             HomeSet.BatterZ + local.Z * scale.Z);
     }
 
+    public static (Vec3 Start, Vec3 End, double Radius) BarrelSegmentWorld(
+        string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
+    {
+        var key = At(poseT, hand);
+        var scale = Mul(
+            Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
+            RootSquash(poseT));
+        var startReach = (BarrelStartFromModelCenter + ModelCenterFromGrip) * Silhouette.BatScale;
+        var start = Add(key.Grip, Mul(key.BarrelDirection, startReach));
+        var end = Add(key.Grip, Mul(key.BarrelDirection, BarrelReach));
+        Vec3 World(Vec3 local) => new(
+            HomeSet.BatterBodyX(hand, worldOffsetX) + local.X * scale.X,
+            local.Y * scale.Y,
+            HomeSet.BatterZ + local.Z * scale.Z);
+        var largest = Math.Max(scale.X, Math.Max(scale.Y, scale.Z));
+        return (World(start), World(end), ModelBarrelRadius * Silhouette.BatScale * largest);
+    }
+
+    public static bool BarrelCrossesPlate(
+        string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
+    {
+        var barrel = BarrelSegmentWorld(bodyType, hand, poseT, worldOffsetX);
+        var min = new Vec3(
+            -HomeSet.PlateW / 2 - barrel.Radius,
+            PitchFlight.PlateY - 1.2 - barrel.Radius,
+            HomeSet.PlatePointZ - barrel.Radius);
+        var max = new Vec3(
+            HomeSet.PlateW / 2 + barrel.Radius,
+            PitchFlight.PlateY + 1.2 + barrel.Radius,
+            HomeSet.PlateFrontZ + barrel.Radius);
+        return SegmentIntersectsBox(barrel.Start, barrel.End, min, max);
+    }
+
     public static double HandGap(Key key) => Distance(key.LeftHand, key.RightHand);
+
+    public static double HandToHandle(Key key, Hand hand)
+    {
+        var point = hand == Hand.L ? key.LeftHand : key.RightHand;
+        var end = Add(key.Grip, Mul(key.BarrelDirection, HandleLength));
+        var axis = new Vec3(end.X - key.Grip.X, end.Y - key.Grip.Y, end.Z - key.Grip.Z);
+        var lengthSq = axis.X * axis.X + axis.Y * axis.Y + axis.Z * axis.Z;
+        var fromGrip = new Vec3(point.X - key.Grip.X, point.Y - key.Grip.Y, point.Z - key.Grip.Z);
+        var u = lengthSq <= 1e-9 ? 0 : Math.Clamp(
+            (fromGrip.X * axis.X + fromGrip.Y * axis.Y + fromGrip.Z * axis.Z) / lengthSq,
+            0,
+            1);
+        return Distance(point, Add(key.Grip, Mul(axis, u)));
+    }
 
     public static double ContactAttackAngleDeg(Hand hand = Hand.R)
     {
@@ -150,7 +210,35 @@ public static class SwingPresentation
     static Vec3 MirrorX(Vec3 value) => new(-value.X, value.Y, value.Z);
     static Vec3 Add(Vec3 a, Vec3 b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
     static Vec3 Mul(Vec3 a, double k) => new(a.X * k, a.Y * k, a.Z * k);
+    static Vec3 Mul(Vec3 a, Vec3 b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
     static Vec3 Lerp(Vec3 a, Vec3 b, double u) => Add(a, Mul(new Vec3(b.X - a.X, b.Y - a.Y, b.Z - a.Z), u));
     static double Distance(Vec3 a, Vec3 b) =>
         Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y) + (a.Z - b.Z) * (a.Z - b.Z));
+
+    static bool SegmentIntersectsBox(Vec3 start, Vec3 end, Vec3 min, Vec3 max)
+    {
+        var direction = new Vec3(end.X - start.X, end.Y - start.Y, end.Z - start.Z);
+        var enter = 0.0;
+        var exit = 1.0;
+        foreach (var axis in new[]
+        {
+            (Start: start.X, Direction: direction.X, Min: min.X, Max: max.X),
+            (Start: start.Y, Direction: direction.Y, Min: min.Y, Max: max.Y),
+            (Start: start.Z, Direction: direction.Z, Min: min.Z, Max: max.Z)
+        })
+        {
+            if (Math.Abs(axis.Direction) < 1e-9)
+            {
+                if (axis.Start < axis.Min || axis.Start > axis.Max) return false;
+                continue;
+            }
+            var a = (axis.Min - axis.Start) / axis.Direction;
+            var b = (axis.Max - axis.Start) / axis.Direction;
+            if (a > b) (a, b) = (b, a);
+            enter = Math.Max(enter, a);
+            exit = Math.Min(exit, b);
+            if (enter > exit) return false;
+        }
+        return true;
+    }
 }
