@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             Field, Spin, Charm, Clamber, Crouch, Scoop
         }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _sourceBatSocket, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
+        Transform _root, _stanceRoot, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _sourceBatSocket, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         float _chargeRing;
@@ -41,6 +41,8 @@ namespace GrandSluggers.UnityClient
         string _gloveVisual = "";
         Vector3 _look = Vector3.forward;
         Vector3 _baseScale = Vector3.one;
+        Vector3 _stanceRootRest;
+        Quaternion _stanceRootBind = Quaternion.identity;
         Vector3 _torsoRest = new Vector3(0, 2.28f, 0);
         float _hunchDeg;
         SharedRig.BoneBind _bind;
@@ -586,6 +588,12 @@ namespace GrandSluggers.UnityClient
                 : System.Array.Empty<string>();
             var chain = SharedRig.Spawn(transform, who, extras);
             _root = chain.Root;
+            _stanceRoot = chain.StanceRoot;
+            if (_stanceRoot != null)
+            {
+                _stanceRootRest = _stanceRoot.localPosition;
+                _stanceRootBind = _stanceRoot.localRotation;
+            }
             _baseScale = chain.BaseScale;
             _torso = chain.Torso;
             _head = chain.Head;
@@ -812,6 +820,8 @@ namespace GrandSluggers.UnityClient
         void Animate()
         {
             var pose = Locomotion(_pose);
+            if (pose is not (Pose.ChargeSwing or Pose.Swing))
+                RestoreStanceRoot();
             var bob = 0.04f * Mathf.Sin(_t * 2.4f);
             if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
             if (_torso != null) _torso.localPosition = _torsoRest + new Vector3(0, bob, 0);
@@ -1436,6 +1446,7 @@ namespace GrandSluggers.UnityClient
 
         void MirrorBoundSwing()
         {
+            MirrorOne(_stanceRoot);
             MirrorOne(_torso);
             MirrorOne(_head);
             MirrorLocal(ref _lArm, ref _rArm);
@@ -1451,6 +1462,13 @@ namespace GrandSluggers.UnityClient
                 _batSocket.localScale = _sourceBatSocket.localScale;
             }
             else MirrorOne(_batSocket);
+        }
+
+        void RestoreStanceRoot()
+        {
+            if (_stanceRoot == null) return;
+            _stanceRoot.localPosition = _stanceRootRest;
+            _stanceRoot.localRotation = _stanceRootBind;
         }
 
         static void MirrorOne(Transform tf)

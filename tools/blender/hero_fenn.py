@@ -34,6 +34,9 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import batting_stance
+
 
 BONES = [
     "root", "torso", "head",
@@ -390,7 +393,7 @@ def _key_target(ob, frame: float, value):
 def make_batting_action(arm_ob, name: str, poses):
     """Drive Fenn's own rig to a two-hand grip and authored bat socket path.
 
-    Each pose is (frame, grip, handle_to_barrel, torso_z_degrees). IK exists
+    Each pose is (frame, stance_time, grip, handle_to_barrel, torso_z_degrees). IK exists
     only in this DCC scene; export_take bakes the evaluated Generic bone curves.
     The shipped runtime receives no constraint or shared-rig Euler dependency.
     """
@@ -408,7 +411,13 @@ def make_batting_action(arm_ob, name: str, poses):
     right_pole = _target(name + "-right-elbow")
     helpers = [grip_target, barrel_target, left_target, right_target, left_pole, right_pole]
 
-    for frame, grip_value, direction_value, torso_z in poses:
+    for frame, stance_time, grip_value, direction_value, torso_z in poses:
+        bpy.context.scene.frame_set(frame)
+        for bone_name in ("root", "torso", "head"):
+            bone = arm_ob.pose.bones[bone_name]
+            bone.rotation_mode = "XYZ"
+            bone.rotation_euler = (0.0, 0.0, 0.0)
+            bone.location = (0.0, 0.0, 0.0)
         grip = Vector(grip_value)
         direction = Vector(direction_value).normalized()
         # Hands stack up the handle from its authored grip origin. Their IK
@@ -423,11 +432,20 @@ def make_batting_action(arm_ob, name: str, poses):
         torso = arm_ob.pose.bones["torso"]
         torso.rotation_mode = "XYZ"
         torso.rotation_euler = (0.0, 0.0, math.radians(torso_z))
-        torso.keyframe_insert(data_path="rotation_euler", frame=frame)
         head = arm_ob.pose.bones["head"]
         head.rotation_mode = "XYZ"
         head.rotation_euler = (0.0, 0.0, math.radians(-torso_z * 0.35))
-        head.keyframe_insert(data_path="rotation_euler", frame=frame)
+        bpy.context.view_layer.update()
+        batting_stance.author_visible_stance(
+            arm_ob, stance_time,
+            chest_front="Belly", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lFoot", foot_right="rFoot",
+        )
+        for bone_name in ("root", "torso", "head"):
+            bone = arm_ob.pose.bones[bone_name]
+            bone.rotation_mode = "QUATERNION"
+            bone.keyframe_insert(data_path="rotation_quaternion", frame=frame)
 
     constraints = []
     for bone_name, target, pole in (
@@ -462,6 +480,15 @@ def make_batting_action(arm_ob, name: str, poses):
 def export_batting_take(path: Path, arm_ob, name: str, poses, first_frame: int, last_frame: int):
     action, helpers, constraints = make_batting_action(arm_ob, name, poses)
     try:
+        for frame, stance_time, *_ in poses:
+            bpy.context.scene.frame_set(frame)
+            bpy.context.view_layer.update()
+            batting_stance.validate_visible_stance(
+                stance_time,
+                chest_front="Belly", chest_center="torsoMesh",
+                eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+                foot_left="lFoot", foot_right="rFoot",
+            )
         export_take(path, arm_ob, action, first_frame, last_frame)
     finally:
         for bone, constraint in constraints:
@@ -491,15 +518,15 @@ def build(out: Path, albedo: Path, resources: Path | None = None):
     # also reflects X, so these DCC directions pre-reflect the desired Unity
     # path. The socket still moves only through Fenn's own authored rig.
     export_batting_take(charge_swing_path, arm_ob, "chargeSwing", [
-        (1, (0.02, 0.55, 1.42), (0.18, -0.42, 0.89), 0),
-        (101, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
+        (1, 0.00, (0.02, 0.55, 1.42), (0.18, -0.42, 0.89), 0),
+        (101, 0.00, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
     ], 1, 101)
     export_batting_take(swing_path, arm_ob, "swing", [
-        (1, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
-        (16, (0.13, 0.50, 1.50), (0.10, 0.78, 0.62), -3),
-        (25, (0.08, 0.65, 1.42), (-0.4315, 0.9022, 0.005), 3),
-        (31, (0.06, 0.68, 1.40), (-0.7790, 0.6264, 0.0275), 7),
-        (51, (-0.05, 0.55, 1.52), (0.54, 0.78, 0.31), 2),
+        (1, 0.00, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
+        (16, 0.15, (0.13, 0.50, 1.50), (0.10, 0.78, 0.62), -3),
+        (25, 0.24, (0.08, 0.65, 1.42), (-0.4315, 0.9022, 0.005), 3),
+        (31, 0.30, (0.06, 0.68, 1.40), (-0.7790, 0.6264, 0.0275), 7),
+        (51, 0.50, (-0.05, 0.55, 1.52), (0.54, 0.78, 0.31), 2),
     ], 1, 51)
     scene.render.fps, scene.render.fps_base = old_fps, old_fps_base
     if resources is not None:

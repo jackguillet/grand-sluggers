@@ -14,6 +14,9 @@ from pathlib import Path
 import bpy
 from mathutils import Matrix, Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import batting_stance
+
 
 FPS = 60
 DURATION = 0.50
@@ -75,6 +78,24 @@ BARREL_DIRECTIONS = {
     0.24: (0.4315, 0.005, -0.9022),
     0.30: (0.7790, 0.0275, -0.6264),
     0.50: (-0.54, 0.31, -0.78),
+}
+
+# Evaluated rendered-hand centers and socket grip in Unity shared-root space.
+# The same numbers drive SwingPresentation; conversion here is position-safe
+# (it changes basis without normalizing the authored distance).
+HAND_TARGETS = {
+    0.00: {"lFore": (0.300, 2.727, 0.512), "rFore": (0.080, 2.522, 0.326)},
+    0.15: {"lFore": (0.416, 2.356, -0.235), "rFore": (0.143, 2.240, 0.016)},
+    0.24: {"lFore": (0.366, 1.729, -0.547), "rFore": (0.129, 1.798, -0.140)},
+    0.30: {"lFore": (0.458, 1.856, -0.622), "rFore": (0.124, 1.914, -0.257)},
+    0.50: {"lFore": (-0.242, 2.195, -0.576), "rFore": (-0.134, 2.155, -0.290)},
+}
+GRIP_TARGETS = {
+    0.00: (0.273, 2.215, 0.226),
+    0.15: (0.326, 2.013, 0.249),
+    0.24: (0.049, 1.761, 0.071),
+    0.30: (-0.069, 1.872, -0.149),
+    0.50: (0.060, 2.032, -0.073),
 }
 
 HAND_MESH = {"lFore": "lHand", "rFore": "rHand"}
@@ -208,27 +229,21 @@ def key_swing(arm_ob):
                 pb.keyframe_insert(data_path="rotation_euler", frame=frame)
         bpy.context.view_layer.update()
 
-        targets = {name: rendered_center(mesh) for name, mesh in HAND_MESH.items()}
-        for target in targets.values():
-            target.x *= -1
-        torso_matrix = reflect_centerline(arm_ob.pose.bones["torso"].matrix)
-        head_matrix = reflect_centerline(arm_ob.pose.bones["head"].matrix)
-        torso = arm_ob.pose.bones["torso"]
-        torso.rotation_mode = "QUATERNION"
-        torso.matrix = torso_matrix
-        bpy.context.view_layer.update()
-        head = arm_ob.pose.bones["head"]
-        head.rotation_mode = "QUATERNION"
-        head.matrix = head_matrix
+        batting_stance.author_visible_stance(
+            arm_ob, t,
+            chest_front="Stripe", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lShoe", foot_right="rShoe",
+        )
+        targets = {
+            name: batting_stance.unity_to_dcc(value, normalize=False)
+            for name, value in HAND_TARGETS[t].items()
+        }
         solve_rendered_hands(arm_ob, targets)
-        for name in ("torso", "head", "lUpper", "lFore", "rUpper", "rFore"):
+        for name in ("root", "torso", "head", "lUpper", "lFore", "rUpper", "rFore"):
             arm_ob.pose.bones[name].keyframe_insert(data_path="rotation_quaternion", frame=frame)
 
-        left = rendered_center("lHand")
-        right = rendered_center("rHand")
-        unity = Vector(BARREL_DIRECTIONS[t]).normalized()
-        barrel_direction = Vector((-unity.x, -unity.z, unity.y)).normalized()
-        grip = (left + right) * 0.5 - barrel_direction * HANDLE_HOLD_FROM_GRIP
+        grip = batting_stance.unity_to_dcc(GRIP_TARGETS[t], normalize=False)
         key_bat_direction(arm_ob, BARREL_DIRECTIONS[t], grip, frame)
 
     for layer in action.layers:
@@ -256,6 +271,12 @@ def key_swing(arm_ob):
             distance = point_segment_distance(hand, grip, handle_end)
             if distance > 0.30:
                 raise RuntimeError(f"rendered hand missed handle at {t:.2f}: {distance:.3f}")
+        batting_stance.validate_visible_stance(
+            t,
+            chest_front="Stripe", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lShoe", foot_right="rShoe",
+        )
 
 
 def main(argv):

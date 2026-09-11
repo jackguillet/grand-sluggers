@@ -242,3 +242,82 @@ public static class SwingPresentation
         return true;
     }
 }
+
+/// <summary>
+/// Camera-neutral body directions for the authored batting take. World +Z is
+/// the pitcher and the handed plate direction is inward from the batter box.
+/// These directions turn the body without moving the shared hand, bat, or
+/// plate-intercept keys above.
+/// </summary>
+public static class BattingStance
+{
+    public const double AlignmentToleranceDeg = 15;
+    public const double AlignmentDot = 0.9659258262890683;
+
+    public readonly record struct Key(
+        double T,
+        Vec3 ChestForward,
+        Vec3 EyesForward,
+        Vec3 FeetAxis);
+
+    // Grand Sluggers authored tuning. Ready and launch stay closed to the
+    // pitcher; approach, contact, and follow then turn through the ball.
+    public static readonly IReadOnlyList<Key> Keys =
+    [
+        new(SwingPresentation.LoadAt,
+            Unit(1, 0, 0), Unit(0, 0, 1), Unit(0, 0, 1)),
+        new(SwingPresentation.LaunchAt,
+            Unit(1, 0, 0), Unit(0, 0, 1), Unit(0, 0, 1)),
+        new(SwingPresentation.ApproachAt,
+            Unit(0.70710678, 0, 0.70710678), Unit(0, 0, 1), Unit(0, 0, 1)),
+        new(SwingPresentation.ContactAt,
+            Unit(0.25881905, 0, 0.96592583), Unit(0, 0, 1), Unit(0, 0, 1)),
+        new(SwingPresentation.FollowThroughAt,
+            Unit(-0.70710678, 0, 0.70710678), Unit(0, 0, 1), Unit(0, 0, 1))
+    ];
+
+    public static Vec3 PlateDirection(Hand hand) =>
+        hand == Hand.L ? new Vec3(-1, 0, 0) : new Vec3(1, 0, 0);
+
+    public static Key At(double poseT, Hand hand = Hand.R)
+    {
+        var right = Interpolate(poseT);
+        return hand == Hand.L ? right with
+        {
+            ChestForward = MirrorX(right.ChestForward),
+            EyesForward = MirrorX(right.EyesForward),
+            FeetAxis = MirrorX(right.FeetAxis)
+        } : right;
+    }
+
+    static Key Interpolate(double poseT)
+    {
+        var t = Math.Clamp(poseT, Keys[0].T, Keys[^1].T);
+        for (var i = 0; i < Keys.Count - 1; i++)
+        {
+            var a = Keys[i];
+            var b = Keys[i + 1];
+            if (t > b.T && i < Keys.Count - 2) continue;
+            var u = b.T - a.T <= 1e-9 ? 1 : (t - a.T) / (b.T - a.T);
+            return new Key(t,
+                Unit(Lerp(a.ChestForward, b.ChestForward, u)),
+                Unit(Lerp(a.EyesForward, b.EyesForward, u)),
+                Unit(Lerp(a.FeetAxis, b.FeetAxis, u)));
+        }
+        return Keys[^1];
+    }
+
+    static Vec3 Unit(double x, double y, double z) => Unit(new Vec3(x, y, z));
+    static Vec3 Unit(Vec3 value)
+    {
+        var length = Math.Sqrt(value.X * value.X + value.Y * value.Y + value.Z * value.Z);
+        return length <= 1e-9
+            ? new Vec3(0, 0, 1)
+            : new Vec3(value.X / length, value.Y / length, value.Z / length);
+    }
+    static Vec3 Lerp(Vec3 a, Vec3 b, double u) => new(
+        a.X + (b.X - a.X) * u,
+        a.Y + (b.Y - a.Y) * u,
+        a.Z + (b.Z - a.Z) * u);
+    static Vec3 MirrorX(Vec3 value) => new(-value.X, value.Y, value.Z);
+}

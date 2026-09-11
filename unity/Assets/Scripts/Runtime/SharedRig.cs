@@ -20,7 +20,7 @@ namespace GrandSluggers.UnityClient
 
         public sealed class Chain
         {
-            public Transform Root, Torso, Head, Cap;
+            public Transform Root, StanceRoot, Torso, Head, Cap;
             public Transform LUpper, LFore, RUpper, RFore;
             public Transform LThigh, LShin, RThigh, RShin;
             public Transform Bat, Glove;
@@ -278,6 +278,7 @@ namespace GrandSluggers.UnityClient
             var chain = new Chain();
             chain.Root = go.transform;
             chain.Torso = FindBone(go.transform, "torso") ?? EnsureBone(go.transform, "torso", new Vector3(0, 2.28f, 0));
+            chain.StanceRoot = FindStanceRoot(go.transform, chain.Torso);
             chain.Head = FindBone(go.transform, "head") ?? EnsureBone(chain.Torso, "head", new Vector3(0, 1.6f, 0));
             chain.LUpper = FindBone(go.transform, "lUpper") ?? EnsureBone(chain.Torso, "lUpper", new Vector3(-0.95f, 0.1f, 0));
             chain.LFore = FindBone(go.transform, "lFore") ?? EnsureBone(chain.LUpper, "lFore", new Vector3(0, -0.9f, 0));
@@ -509,6 +510,7 @@ namespace GrandSluggers.UnityClient
                 UnityEngine.Object.Destroy(go);
                 return null;
             }
+            chain.StanceRoot = FindStanceRoot(go.transform, chain.Torso);
             chain.Bat = FindDeep(go.transform, "bat") ?? EnsureBone(chain.RFore, "bat", new Vector3(0, -0.68f, 0.12f));
             chain.Glove = FindDeep(go.transform, "glove") ?? EnsureBone(chain.LFore, "glove", new Vector3(0, -0.68f, 0.12f));
 
@@ -778,6 +780,16 @@ namespace GrandSluggers.UnityClient
                 var f = FindDeep(t.GetChild(i), name);
                 if (f != null) return f;
             }
+            return null;
+        }
+
+        static Transform FindStanceRoot(Transform modelRoot, Transform torso)
+        {
+            for (var current = torso != null ? torso.parent : null;
+                 current != null && current != modelRoot;
+                 current = current.parent)
+                if (current.name.Equals("root", StringComparison.OrdinalIgnoreCase))
+                    return current;
             return null;
         }
 
