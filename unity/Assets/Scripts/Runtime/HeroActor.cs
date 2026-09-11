@@ -176,6 +176,39 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        // Measure the visible body, not bone-local axes whose bind conventions
+        // differ between the shared armature and Generic packages.
+        internal bool TryRenderedBattingStance(
+            out Vector3 chestForward, out Vector3 eyeForward, out Vector3 feetLine)
+        {
+            chestForward = eyeForward = feetLine = Vector3.zero;
+            if (_root == null) return false;
+            var centers = new System.Collections.Generic.Dictionary<string, Vector3>(
+                System.StringComparer.OrdinalIgnoreCase);
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+            {
+                var name = renderer.name;
+                if (name is not ("Stripe" or "Belly" or "torsoMesh" or "headMesh"
+                    or "EyeL" or "EyeR" or "lShoe" or "rShoe" or "lFoot" or "rFoot")) continue;
+                if (TryPosedBounds(renderer, out var posed)) centers[name] = posed.Center;
+            }
+            if (!centers.TryGetValue("torsoMesh", out var torso)
+                || !centers.TryGetValue("headMesh", out var head)
+                || !centers.TryGetValue("EyeL", out var eyeL)
+                || !centers.TryGetValue("EyeR", out var eyeR)) return false;
+            if (!centers.TryGetValue("Stripe", out var chest)
+                && !centers.TryGetValue("Belly", out chest)) return false;
+            if (!centers.TryGetValue("lShoe", out var footL)
+                && !centers.TryGetValue("lFoot", out footL)) return false;
+            if (!centers.TryGetValue("rShoe", out var footR)
+                && !centers.TryGetValue("rFoot", out footR)) return false;
+            chestForward = Vector3.ProjectOnPlane(chest - torso, Vector3.up).normalized;
+            eyeForward = Vector3.ProjectOnPlane((eyeL + eyeR) * 0.5f - head, Vector3.up).normalized;
+            feetLine = Vector3.ProjectOnPlane(footR - footL, Vector3.up).normalized;
+            return chestForward.sqrMagnitude > 0.9f && eyeForward.sqrMagnitude > 0.9f
+                && feetLine.sqrMagnitude > 0.9f;
+        }
+
         internal bool TryRenderedSwingHands(
             out SwingHandEvidence left, out SwingHandEvidence right)
         {
