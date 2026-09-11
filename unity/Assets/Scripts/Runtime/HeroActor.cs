@@ -117,9 +117,11 @@ namespace GrandSluggers.UnityClient
         internal readonly struct SwingBatEvidence
         {
             internal readonly Vector3 Grip;
+            internal readonly Vector3 HandleEnd;
             internal readonly Vector3 BarrelStart;
             internal readonly Vector3 BarrelEnd;
             internal readonly Vector3 RootGrip;
+            internal readonly Vector3 RootHandleEnd;
             internal readonly Vector3 RootBarrelStart;
             internal readonly Vector3 RootBarrelEnd;
             internal readonly float HandleRadius;
@@ -129,16 +131,19 @@ namespace GrandSluggers.UnityClient
             internal readonly Vector3 ExpectedDirection;
 
             internal SwingBatEvidence(
-                Vector3 grip, Vector3 barrelStart, Vector3 barrelEnd,
-                Vector3 rootGrip, Vector3 rootBarrelStart, Vector3 rootBarrelEnd,
+                Vector3 grip, Vector3 handleEnd, Vector3 barrelStart, Vector3 barrelEnd,
+                Vector3 rootGrip, Vector3 rootHandleEnd,
+                Vector3 rootBarrelStart, Vector3 rootBarrelEnd,
                 float handleRadius, float barrelRadius,
                 float rootHandleRadius, float rootBarrelRadius,
                 Vector3 expectedDirection)
             {
                 Grip = grip;
+                HandleEnd = handleEnd;
                 BarrelStart = barrelStart;
                 BarrelEnd = barrelEnd;
                 RootGrip = rootGrip;
+                RootHandleEnd = rootHandleEnd;
                 RootBarrelStart = rootBarrelStart;
                 RootBarrelEnd = rootBarrelEnd;
                 HandleRadius = handleRadius;
@@ -224,6 +229,9 @@ namespace GrandSluggers.UnityClient
             var grip = SwingPresentation.ModelGrip;
             var modelGrip = _batModel.TransformPoint(new Vector3(
                 (float)grip.X, (float)grip.Y, (float)grip.Z));
+            var handleEnd = SwingPresentation.ModelHandleEnd;
+            var modelHandleEnd = _batModel.TransformPoint(new Vector3(
+                (float)handleEnd.X, (float)handleEnd.Y, (float)handleEnd.Z));
             var barrelStart = SwingPresentation.ModelBarrelStart;
             var modelBarrelStart = _batModel.TransformPoint(new Vector3(
                 (float)barrelStart.X, (float)barrelStart.Y, (float)barrelStart.Z));
@@ -244,8 +252,9 @@ namespace GrandSluggers.UnityClient
                 (float)key.BarrelDirection.Z);
             var expectedDirection = _root.TransformVector(local).normalized;
             evidence = new SwingBatEvidence(
-                modelGrip, modelBarrelStart, modelBarrelEnd,
+                modelGrip, modelHandleEnd, modelBarrelStart, modelBarrelEnd,
                 _root.InverseTransformPoint(modelGrip),
+                _root.InverseTransformPoint(modelHandleEnd),
                 _root.InverseTransformPoint(modelBarrelStart),
                 _root.InverseTransformPoint(modelBarrelEnd),
                 handleRadius, barrelRadius, rootHandleRadius, rootBarrelRadius,
