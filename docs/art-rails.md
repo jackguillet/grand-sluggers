@@ -30,6 +30,7 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | `SharedRig` primitives |
 | Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx, scoop.fbx dropped) |
 | Skins | `data/art/skins.json` | `Assets/Art/Characters/SharedRig/extras.fbx` | primitive extras on the shared chain |
+| Common hitting bat | `GearMesh.HittingBatVisual()` (`bat-wood`) | named `bat-wood` model in `Assets/Art/Characters/SharedRig/extras.fbx` | procedural wood bat |
 | Body mesh | skin `mesh` + `bind` | `Assets/Art/Characters/{id}/{id}.fbx` and `Resources/Art/Characters/{id}/{id}.fbx` | SharedRig primitives |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
@@ -49,6 +50,12 @@ Role players inherit the faction body type and **must not** grow captain extras 
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** The binder keeps MoveBones / generated audio / code VFX until the slot is filled.
 7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character mesh drops also need [character stills](screenshot-gate.md).
+
+The common hitting bat is authored handle-to-barrel along model-local +Y. Its
+grip is Y −0.85 and barrel end is Y +1.25 before the runtime's 180° socket
+alignment. Every shared or packaged batter consumes the same selection. A
+package can supply the named `bat` socket; otherwise the shared forearm socket
+fallback supplies it. Neither path selects a character-specific hitting prop.
 
 ## Import (Unity)
 
