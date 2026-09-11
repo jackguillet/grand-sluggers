@@ -191,8 +191,12 @@ namespace GrandSluggers.UnityClient
                 return null;
             }
 
-            var key = SlotToResources(slot);
-            var loaded = Resources.Load<AnimationClip>(key);
+            _art.TryClip(clipId, out var clip);
+            var playerSlot = string.IsNullOrWhiteSpace(clip.PlayerSlot) ? slot : clip.PlayerSlot;
+            var key = ResourceKey(playerSlot);
+            var loaded = LoadExactResourceClip(key, clipId);
+            if (loaded == null)
+                loaded = Resources.Load<AnimationClip>(key);
             if (loaded == null)
                 loaded = Resources.Load<AnimationClip>(key + "/" + clipId);
             if (loaded == null && EditorLoadClip != null)

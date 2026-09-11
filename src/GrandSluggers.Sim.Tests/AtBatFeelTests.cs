@@ -38,6 +38,26 @@ public class AtBatFeelTests
         }
     }
 
+    [Fact]
+    public void SharedSwingStartsOnAuthoredLoadsAndStillReachesExactContact()
+    {
+        Assert.Equal(SwingPresentation.NormalLoadAt, SwingPresentation.LoadSampleAt(0), 8);
+        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.LoadSampleAt(1), 8);
+        foreach (var charge in new[] { 0.0, 0.5, 1.0 })
+        {
+            var previous = AtBatMotion.SwingClipTime(0, charge);
+            Assert.Equal(SwingPresentation.LoadSampleAt(charge), previous, 8);
+            for (var poseT = 0.01; poseT <= MoveBones.SwingContact; poseT += 0.01)
+            {
+                var sampleT = AtBatMotion.SwingClipTime(poseT, charge);
+                Assert.True(sampleT >= previous, $"charge {charge} went backward at {poseT}: {sampleT} < {previous}");
+                previous = sampleT;
+            }
+            Assert.Equal(MoveBones.SwingContact,
+                AtBatMotion.SwingClipTime(MoveBones.SwingContact, charge), 8);
+        }
+    }
+
 
     [Fact]
     public void ReleaseIsTheHandNotTheTorsoAndPathFacesBothLooks()

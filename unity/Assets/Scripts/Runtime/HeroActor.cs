@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             Field, Spin, Charm, Clamber, Crouch, Scoop
         }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
+        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _sourceBatSocket, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         float _chargeRing;
@@ -35,6 +35,7 @@ namespace GrandSluggers.UnityClient
         bool _packageBody;
         PackageTransformBind[] _packageBindPose = System.Array.Empty<PackageTransformBind>();
         bool _packageSampledLastTick;
+        bool _sharedSwingMissingReported;
         string _id = "";
         string _body = "rio";
         string _batVisual = "";
@@ -283,7 +284,7 @@ namespace GrandSluggers.UnityClient
             _lFore = chain.LFore;
             _rArm = chain.RUpper;
             _rFore = chain.RFore;
-            _batSocket = chain.Bat;
+            _sourceBatSocket = _batSocket = chain.Bat;
             _lThigh = chain.LThigh;
             _lShin = chain.LShin;
             _rThigh = chain.RThigh;
@@ -519,7 +520,7 @@ namespace GrandSluggers.UnityClient
                 // CharacterMotion flexes THIS rest pose in bone-local space.
                 MoveBones.Sample authored = default;
                 var authoredPose = false;
-                if (!_packageBody)
+                if (!_packageBody && pose is not (Pose.ChargeSwing or Pose.Swing))
                 {
                     if (pose is Pose.ChargePitch or Pose.ChargeSwing)
                     {
@@ -552,7 +553,19 @@ namespace GrandSluggers.UnityClient
                 var playedPackage = _packageBody && ArtBinder.Art != null
                     && ArtBinder.Art.TryPackageVerb(_id, verb, out var packageVerb)
                     && TrySamplePackage(packageVerb);
-                var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
+                var sharedSwingTake = !_packageBody && pose is (Pose.ChargeSwing or Pose.Swing);
+                var playedDrop = sharedSwingTake
+                    ? TrySampleDrop("swing", pose == Pose.Swing
+                        ? (float)AtBatMotion.SwingClipTime(_poseT, _charge)
+                        : (float)SwingPresentation.LoadSampleAt(_charge))
+                    : !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
+                if (sharedSwingTake && !playedDrop && !_sharedSwingMissingReported)
+                {
+                    Debug.LogError("Shared swing FBX is missing; using the visible MoveBones placeholder for " + _id);
+                    _sharedSwingMissingReported = true;
+                }
+                else if (sharedSwingTake && playedDrop)
+                    _sharedSwingMissingReported = false;
                 if (!playedPackage && !playedDrop)
                 {
                     if (_packageBody && _packageSampledLastTick)
@@ -1113,7 +1126,12 @@ namespace GrandSluggers.UnityClient
             MirrorLocal(ref _lFore, ref _rFore);
             MirrorLocal(ref _lThigh, ref _rThigh);
             MirrorLocal(ref _lShin, ref _rShin);
-            MirrorOne(_batSocket);
+            if (_sourceBatSocket != null && _sourceBatSocket != _batSocket)
+            {
+                var e = _sourceBatSocket.localRotation.eulerAngles;
+                _batSocket.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
+            }
+            else MirrorOne(_batSocket);
         }
 
         static void MirrorOne(Transform tf)
