@@ -97,6 +97,21 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
+        internal bool TryBatVisual(
+            out string visual, out bool visible,
+            out Vector3 socketGrip, out Vector3 modelGrip)
+        {
+            visual = _batVisual;
+            visible = _bat != null && _bat.gameObject.activeInHierarchy;
+            socketGrip = modelGrip = Vector3.zero;
+            if (_batSocket == null || _batModel == null) return false;
+            socketGrip = _batSocket.position;
+            var grip = SwingPresentation.ModelGrip;
+            modelGrip = _batModel.TransformPoint(new Vector3(
+                (float)grip.X, (float)grip.Y, (float)grip.Z));
+            return true;
+        }
+
         public void Bind(Character who)
         {
             if (who.Id == _id && _root != null) return;
