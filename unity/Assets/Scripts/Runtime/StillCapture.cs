@@ -373,7 +373,7 @@ namespace GrandSluggers.UnityClient
             }
             var renderedHands = hero.TryRenderedSwingHands(
                 out var renderedLeft, out var renderedRight,
-                out var leftExtent, out var rightExtent);
+                out var leftExtents, out var rightExtents);
             if (renderedHands)
             {
                 left = renderedLeft;
@@ -411,6 +411,8 @@ namespace GrandSluggers.UnityClient
                 failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
             var leftToHandle = PointSegmentDistance(left, physicalGrip, handleEnd);
             var rightToHandle = PointSegmentDistance(right, physicalGrip, handleEnd);
+            var leftExtent = MaxComponent(leftExtents);
+            var rightExtent = MaxComponent(rightExtents);
             var leftContact = leftExtent + handleRadius;
             var rightContact = rightExtent + handleRadius;
             if (sharedRigMetrics && !renderedHands)
@@ -468,8 +470,8 @@ namespace GrandSluggers.UnityClient
                 + ",\"handleEnd\":[" + SwingVector(handleEnd) + "]"
                 + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
                 + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
-                + ",\"leftHandExtent\":" + SwingNumber(leftExtent)
-                + ",\"rightHandExtent\":" + SwingNumber(rightExtent)
+                + ",\"leftHandExtents\":[" + SwingVector(leftExtents) + "]"
+                + ",\"rightHandExtents\":[" + SwingVector(rightExtents) + "]"
                 + ",\"handleRadius\":" + SwingNumber(handleRadius)
                 + ",\"leftHandleContact\":" + SwingNumber(leftContact)
                 + ",\"rightHandleContact\":" + SwingNumber(rightContact)
@@ -502,6 +504,9 @@ namespace GrandSluggers.UnityClient
                 : Mathf.Clamp01(Vector3.Dot(point - start, axis) / axis.sqrMagnitude);
             return Vector3.Distance(point, start + axis * u);
         }
+
+        static float MaxComponent(Vector3 value) =>
+            Mathf.Max(value.x, Mathf.Max(value.y, value.z));
 
         internal void GatePose(string shot, StillRequest req)
         {
