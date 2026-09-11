@@ -151,6 +151,8 @@ namespace GrandSluggers.EditorTools
             var body = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0;
             var clip = assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) >= 0;
             var park = assetPath.IndexOf(ParkFolder, StringComparison.OrdinalIgnoreCase) >= 0;
+            var sharedExtras = assetPath.EndsWith(
+                "Art/Characters/SharedRig/extras.fbx", StringComparison.OrdinalIgnoreCase);
             if (!rig && !body && !clip && !park) return;
             var imp = (ModelImporter)assetImporter;
             imp.animationType = ModelImporterAnimationType.Generic;
@@ -159,7 +161,10 @@ namespace GrandSluggers.EditorTools
             imp.importAnimation = clip || packageTake;
             imp.addCollider = false;
             imp.importBlendShapes = false;
-            imp.isReadable = false;
+            // The common-prop validator measures the imported bat submeshes,
+            // including the Resources player copy. Keep this small kit readable
+            // so a future FBX origin recenter cannot evade build validation.
+            imp.isReadable = sharedExtras;
             imp.optimizeGameObjects = false;
         }
 
