@@ -4,7 +4,8 @@ public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones,
 
 public readonly record struct ClipSlot(
     string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot,
-    double ContactAt, double ReleaseAt, double FootPlantAt, bool Authored);
+    double ContactAt, double ReleaseAt, double FootPlantAt, bool Authored,
+    string PlayerSlot = "");
 
 public readonly record struct SkinSlot(
     string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette,
@@ -244,7 +245,8 @@ public sealed class ArtCatalog
 
         var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
-            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.Authored)).ToList();
+            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.Authored,
+                c.PlayerSlot)).ToList();
 
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
@@ -357,6 +359,7 @@ public sealed class ArtCatalog
         public bool Loop { get; set; }
         public List<string>? Events { get; set; }
         public string Slot { get; set; } = "";
+        public string PlayerSlot { get; set; } = "";
         public double ContactAt { get; set; }
         public double ReleaseAt { get; set; }
         public double FootPlantAt { get; set; }

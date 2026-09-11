@@ -54,16 +54,16 @@ namespace GrandSluggers.UnityClient
             var swingMetrics = new List<string>();
             var swingErrors = new List<string>();
             string error = null;
+            var outDir = _req.ResolvedOutDir(_temp);
             IReadOnlyList<string> shots;
             try { shots = _req.ResolvedShots(); }
             catch (Exception ex)
             {
-                WriteDone(_temp, false, files, swingMetrics, ex.Message);
+                WriteDone(_temp, outDir, false, files, swingMetrics, ex.Message);
                 enabled = false;
                 yield break;
             }
 
-            var outDir = _req.ResolvedOutDir(_temp);
             Directory.CreateDirectory(outDir);
             var cam = _play.GateCam;
             var w = _req.ResolvedWidth();
@@ -119,7 +119,7 @@ namespace GrandSluggers.UnityClient
             }
 
             var doneError = error ?? string.Join("; ", swingErrors);
-            WriteDone(_temp, error == null && swingErrors.Count == 0,
+            WriteDone(_temp, outDir, error == null && swingErrors.Count == 0,
                 files, swingMetrics, doneError);
             try { File.Delete(StillRequest.RequestPath(_temp)); }
             catch { /* leftover request is ok */ }
@@ -145,13 +145,18 @@ namespace GrandSluggers.UnityClient
             Destroy(rt);
         }
 
-        static void WriteDone(string temp, bool ok, List<string> files, List<string> swingMetrics, string error)
+        static void WriteDone(string temp, string outDir, bool ok, List<string> files, List<string> swingMetrics, string error)
         {
             var json = "{\"ok\":" + (ok ? "true" : "false")
                 + ",\"files\":[" + string.Join(",", files.ConvertAll(f => "\"" + f.Replace("\\", "/") + "\""))
                 + "],\"swing\":[" + string.Join(",", swingMetrics)
                 + "],\"error\":\"" + (error ?? "").Replace("\"", "'") + "\"}";
             File.WriteAllText(StillRequest.DonePath(temp), json);
+            // A Unity restart clears Temp. Preserve opt-in captures and their raw
+            // Transform evidence together when the request names another folder.
+            var defaultOut = Path.GetFullPath(Path.Combine(temp, StillRequest.DefaultOutFolder));
+            if (!Path.GetFullPath(outDir).Equals(defaultOut, StringComparison.OrdinalIgnoreCase))
+                File.WriteAllText(Path.Combine(outDir, "gs-still-done.json"), json);
         }
 
         static string TempDir()

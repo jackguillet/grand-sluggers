@@ -149,10 +149,27 @@ public static class AtBatMotion
     public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
         double poseTime, double eventAt)
     {
-        var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
+        var u = LoadBlend01(poseTime, eventAt);
         if (u <= 0) return load;
         if (u >= 1) return motion;
-        return MoveBones.Mix(load, motion, u * u * (3 - 2 * u));
+        return MoveBones.Mix(load, motion, u);
+    }
+
+    public static double LoadBlend01(double poseTime, double eventAt)
+    {
+        var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
+        return u * u * (3 - 2 * u);
+    }
+
+    /// <summary>
+    /// Continue forward from the held authored load and meet the canonical take
+    /// by halfway to contact. This stays monotonic for the 0.075-second normal
+    /// load offset and preserves the exact 0.30-second contact sample.
+    /// </summary>
+    public static double SwingClipTime(double poseTime, double charge01)
+    {
+        var loadAt = SwingPresentation.LoadSampleAt(charge01);
+        return poseTime + loadAt * (1 - LoadBlend01(poseTime, MoveBones.SwingContact));
     }
 
     public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>

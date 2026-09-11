@@ -12,6 +12,7 @@ public static class SwingPresentation
 
     public const double LoadAt = 0.00;
     public const double LaunchAt = 0.15;
+    public const double NormalLoadAt = LaunchAt * 0.5;
     public const double ApproachAt = 0.24;
     public const double ContactAt = MoveBones.SwingContact;
     public const double FollowThroughAt = MoveBones.SwingDur;
@@ -22,6 +23,14 @@ public static class SwingPresentation
     public const double BarrelFromModelCenter = 1.25;
     public static double BarrelReach =>
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
+
+    /// <summary>
+    /// A tap starts from the authored half-load; MAX starts from the full coil.
+    /// Both are frames of the same DCC take, so the hands never blend toward a
+    /// separate runtime pose.
+    /// </summary>
+    public static double LoadSampleAt(double charge01) =>
+        NormalLoadAt * (1 - Math.Clamp(charge01, 0, 1));
 
     public readonly record struct Key(
         double T,
