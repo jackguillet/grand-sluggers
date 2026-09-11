@@ -26,6 +26,14 @@ public static class SwingPresentation
     // onto the shared socket: handle/grip at -Y, barrel along +Y.
     public static readonly Vec3 ModelGrip = new(0, -ModelCenterFromGrip, 0);
     public static readonly Vec3 ModelBarrelEnd = new(0, BarrelFromModelCenter, 0);
+    /// <summary>
+    /// Imported shared-socket direction for the bat-wood +Y mesh axis. Solved
+    /// from Unity's actual socket X/Y/Z endpoints, then held constant while the
+    /// authored FBX rotates the socket through load, contact, and follow-through.
+    /// </summary>
+    public static readonly Vec3 ModelBarrelAxisAtSocket = Unit(0.136, 0.345, -0.929);
+    public const double ModelBarrelRadius = 0.24;
+    public static double BarrelRadius => ModelBarrelRadius * Silhouette.BatScale;
 
     public static double BarrelReach =>
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
