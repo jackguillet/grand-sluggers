@@ -337,7 +337,8 @@ namespace GrandSluggers.UnityClient
         {
             gateError = "";
             if (hero == null || !hero.TrySwingGeometry(
-                    out var left, out var right, out var grip, out var barrel))
+                    out var left, out var right, out var grip, out var barrel,
+                    out var socketX, out var socketY, out var socketZ))
             {
                 gateError = $"{captain} {power} {beat}: missing swing geometry";
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
@@ -376,6 +377,9 @@ namespace GrandSluggers.UnityClient
                 + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
                 + ",\"grip\":[" + SwingVector(grip) + "]"
                 + ",\"tip\":[" + SwingVector(barrel) + "]"
+                + ",\"socketX\":[" + SwingVector(socketX) + "]"
+                + ",\"socketY\":[" + SwingVector(socketY) + "]"
+                + ",\"socketZ\":[" + SwingVector(socketZ) + "]"
                 + ",\"nearestPlate\":[" + SwingVector(nearest) + "]"
                 + ",\"plateCenterDistance\":" + SwingNumber(Vector3.Distance(nearest, plate)) + "}";
         }

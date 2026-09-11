@@ -75,9 +75,10 @@ namespace GrandSluggers.UnityClient
 
         internal bool TrySwingGeometry(
             out Vector3 leftHand, out Vector3 rightHand,
-            out Vector3 grip, out Vector3 barrel)
+            out Vector3 grip, out Vector3 barrel,
+            out Vector3 socketX, out Vector3 socketY, out Vector3 socketZ)
         {
-            leftHand = rightHand = grip = barrel = Vector3.zero;
+            leftHand = rightHand = grip = barrel = socketX = socketY = socketZ = Vector3.zero;
             if (_lFore == null || _rFore == null || _batSocket == null || _batModel == null)
                 return false;
             // hero-shared forearm bones are 0.70 ft head-to-palm.
@@ -89,6 +90,10 @@ namespace GrandSluggers.UnityClient
                     (float)SwingPresentation.ModelBarrelEnd.X,
                     (float)SwingPresentation.ModelBarrelEnd.Y,
                     (float)SwingPresentation.ModelBarrelEnd.Z));
+            var reach = (float)SwingPresentation.BarrelReach;
+            socketX = _batSocket.TransformPoint(Vector3.right * reach);
+            socketY = _batSocket.TransformPoint(Vector3.up * reach);
+            socketZ = _batSocket.TransformPoint(Vector3.forward * reach);
             return true;
         }
 
