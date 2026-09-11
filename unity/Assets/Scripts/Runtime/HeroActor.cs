@@ -99,10 +99,10 @@ namespace GrandSluggers.UnityClient
 
         internal bool TryRenderedSwingHands(
             out Vector3 left, out Vector3 right,
-            out float leftExtent, out float rightExtent)
+            out Vector3 leftExtents, out Vector3 rightExtents)
         {
             left = right = Vector3.zero;
-            leftExtent = rightExtent = 0f;
+            leftExtents = rightExtents = Vector3.zero;
             if (_root == null) return false;
             var foundLeft = false;
             var foundRight = false;
@@ -110,18 +110,53 @@ namespace GrandSluggers.UnityClient
             {
                 if (renderer.name.Equals("lHand", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    left = renderer.bounds.center;
-                    leftExtent = MaxExtent(renderer.bounds);
-                    foundLeft = true;
+                    foundLeft = TryPosedBounds(renderer, out left, out leftExtents);
                 }
                 else if (renderer.name.Equals("rHand", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    right = renderer.bounds.center;
-                    rightExtent = MaxExtent(renderer.bounds);
-                    foundRight = true;
+                    foundRight = TryPosedBounds(renderer, out right, out rightExtents);
                 }
             }
             return foundLeft && foundRight;
+        }
+
+        static bool TryPosedBounds(Renderer renderer, out Vector3 center, out Vector3 extents)
+        {
+            center = extents = Vector3.zero;
+            Bounds local;
+            if (renderer is SkinnedMeshRenderer skinned)
+            {
+                var baked = new Mesh { name = "swing-hand-measure" };
+                skinned.BakeMesh(baked);
+                if (baked.vertexCount == 0)
+                {
+                    UnityEngine.Object.Destroy(baked);
+                    return false;
+                }
+                baked.RecalculateBounds();
+                local = baked.bounds;
+                UnityEngine.Object.Destroy(baked);
+            }
+            else
+            {
+                var filter = renderer.GetComponent<MeshFilter>();
+                if (filter == null || filter.sharedMesh == null) return false;
+                local = filter.sharedMesh.bounds;
+            }
+
+            center = renderer.transform.TransformPoint(local.center);
+            for (var ix = -1; ix <= 1; ix += 2)
+            for (var iy = -1; iy <= 1; iy += 2)
+            for (var iz = -1; iz <= 1; iz += 2)
+            {
+                var corner = renderer.transform.TransformPoint(
+                    local.center + Vector3.Scale(local.extents, new Vector3(ix, iy, iz)));
+                var delta = corner - center;
+                extents.x = Mathf.Max(extents.x, Mathf.Abs(delta.x));
+                extents.y = Mathf.Max(extents.y, Mathf.Abs(delta.y));
+                extents.z = Mathf.Max(extents.z, Mathf.Abs(delta.z));
+            }
+            return true;
         }
 
         internal bool TrySwingHandleEvidence(
@@ -150,9 +185,6 @@ namespace GrandSluggers.UnityClient
             expectedDirection = _root.TransformVector(local).normalized;
             return expectedDirection.sqrMagnitude > 0.99f;
         }
-
-        static float MaxExtent(Bounds bounds) =>
-            Mathf.Max(bounds.extents.x, Mathf.Max(bounds.extents.y, bounds.extents.z));
 
         internal bool TryBatVisual(
             out string visual, out bool visible,
