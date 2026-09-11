@@ -22,16 +22,16 @@ public static class SwingPresentation
     /// <summary>Authored bat-wood barrel end from its model origin.</summary>
     public const double BarrelFromModelCenter = 1.25;
 
-    // Authored model-local endpoints before HeroActor turns the model 180°
-    // onto the shared socket: handle/grip at -Y, barrel along +Y.
+    // Authored model-local endpoints before HeroActor applies the shared-socket
+    // bind conversion: handle/grip at -Y, barrel along +Y.
     public static readonly Vec3 ModelGrip = new(0, -ModelCenterFromGrip, 0);
     public static readonly Vec3 ModelBarrelEnd = new(0, BarrelFromModelCenter, 0);
     /// <summary>
-    /// Imported shared-socket direction for the bat-wood +Y mesh axis. Solved
-    /// from Unity's actual socket X/Y/Z endpoints, then held constant while the
-    /// authored FBX rotates the socket through load, contact, and follow-through.
+    /// The authored bat bone points from grip to barrel on local -Y. Blender's
+    /// FBX handedness conversion is baked into the DCC socket curves; Unity
+    /// applies only this fixed model-to-socket bind.
     /// </summary>
-    public static readonly Vec3 ModelBarrelAxisAtSocket = Unit(0.136, 0.345, -0.929);
+    public static readonly Vec3 ModelBarrelAxisAtSocket = new(0, -1, 0);
     public const double ModelBarrelRadius = 0.24;
     public static double BarrelRadius => ModelBarrelRadius * Silhouette.BatScale;
 
