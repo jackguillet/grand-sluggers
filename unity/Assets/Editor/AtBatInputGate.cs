@@ -74,6 +74,8 @@ namespace GrandSluggers.EditorTools
                     VerifyNormalTap(play),
                     VerifyHeldRelease(play),
                     VerifyWindupRelease(play),
+                    VerifyCpuLaunchBoundaryRelease(play),
+                    VerifyTwoSeatLaunchBoundaryRelease(play),
                     VerifyKeyboardCannotReleasePadTwo(play),
                     VerifyScreenDirections(play),
                     VerifyCursorIgnoresCurve(play)
@@ -155,6 +157,68 @@ namespace GrandSluggers.EditorTools
             Require(Get<SwingCommand>(play, "_swing") == null,
                 "Player 1 keyboard release created Player 2's swing.");
             return new GateCase { name = "keyboard-seat-isolation", phase = Phase(play) };
+        }
+
+        static GateCase VerifyCpuLaunchBoundaryRelease(MatchDirector play)
+        {
+            var match = Setup(play, Seats.One, homeAtBat: true);
+            Tick(play, "TickSet", State(south: true, west: true, stickX: 0.6f, stickY: 0.25f), State());
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            Tick(play, "TickSet", State(west: true, stickX: 0.6f, stickY: 0.25f), State());
+
+            var swing = Get<SwingCommand>(play, "_swing");
+            Require(Phase(play) == "Flight", "CPU pitch did not launch on the batter release frame.");
+            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
+                "Batter release was discarded on the CPU SET-to-Flight frame.");
+            Require(swing.TimingErrorFrames < 0,
+                "CPU-boundary release was not recorded inside the pitcher windup.");
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(0.6)) < 0.001,
+                "CPU-boundary release lost the release-frame spray intent.");
+            Require(swing.Bunt && Math.Abs(swing.LaunchAim - 0.25) < 0.001,
+                "CPU-boundary release lost the release-frame bunt or launch intent.");
+            Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
+                "CPU-boundary release captured the prior frame's batter box position.");
+            return new GateCase
+            {
+                name = "cpu-launch-boundary-release",
+                phase = Phase(play),
+                charge = swing.Charge01,
+                timingFrames = swing.TimingErrorFrames,
+                sprayAim = swing.SprayAimDeg,
+                launchAim = swing.LaunchAim,
+                boxOffset = swing.BoxOffsetX,
+                bunt = swing.Bunt
+            };
+        }
+
+        static GateCase VerifyTwoSeatLaunchBoundaryRelease(MatchDirector play)
+        {
+            Setup(play, Seats.Versus);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            Tick(play, "TickSet", State(south: true), State(south: true, stickX: -0.5f));
+            Tick(play, "TickSet", State(), State(stickX: -0.5f));
+
+            var swing = Get<SwingCommand>(play, "_swing");
+            Require(Phase(play) == "Flight", "Player 1 pitch did not launch on the simultaneous release frame.");
+            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
+                "Player 2 batter release was discarded on the shared SET-to-Flight frame.");
+            Require(swing.TimingErrorFrames < 0,
+                "Two-seat boundary release was not recorded inside the pitcher windup.");
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(-0.5)) < 0.001,
+                "Two-seat boundary release lost Player 2's release-frame spray intent.");
+            Require(Math.Abs(swing.BoxOffsetX - Get<Match>(play, "_match").BatterOffsetX) < 0.001,
+                "Two-seat boundary release captured the prior frame's batter box position.");
+            return new GateCase
+            {
+                name = "two-seat-launch-boundary-release",
+                phase = Phase(play),
+                charge = swing.Charge01,
+                timingFrames = swing.TimingErrorFrames,
+                sprayAim = swing.SprayAimDeg,
+                launchAim = swing.LaunchAim,
+                boxOffset = swing.BoxOffsetX,
+                bunt = swing.Bunt
+            };
         }
 
         static GateCase VerifyScreenDirections(MatchDirector play)
@@ -256,10 +320,11 @@ namespace GrandSluggers.EditorTools
             Controls.Tick(Step);
         }
 
-        static GamepadState State(bool south = false, float stickX = 0, float stickY = 0)
+        static GamepadState State(bool south = false, bool west = false, float stickX = 0, float stickY = 0)
         {
             var state = new GamepadState { leftStick = new Vector2(stickX, stickY) };
-            return south ? state.WithButton(GamepadButton.South) : state;
+            if (south) state = state.WithButton(GamepadButton.South);
+            return west ? state.WithButton(GamepadButton.West) : state;
         }
 
         static KeyboardState Keys(params Key[] pressed) => new(pressed);
@@ -303,6 +368,10 @@ namespace GrandSluggers.EditorTools
             public string phase;
             public double charge;
             public double timingFrames;
+            public double sprayAim;
+            public double launchAim;
+            public double boxOffset;
+            public bool bunt;
             public double moundLeft;
             public double moundRight;
             public double plateLeft;
