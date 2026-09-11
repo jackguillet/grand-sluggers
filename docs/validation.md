@@ -87,3 +87,9 @@ captures start, contact, and follow-through, requires one continuous monotonic
 action clock and exactly one transition to Miss, then checks that Result cannot
 restart the take. Synthetic timing and camera renders do not pass controller
 feel, a played half, or the human look gate.
+
+Passing #548 evidence from Unity 6000.5.9f1 is retained in
+`scratchpad/validation/548-missed-swing/`: the complete 21-case JSON report and
+representative original start/contact/follow-through renders for normal and MAX,
+right- and left-handed shared rigs, and the Generic package. The combined stance
+recheck and standalone human play remain separate gates.
