@@ -217,3 +217,14 @@ Play **skips the top**. You do not have to get three outs. `Match.SkipToHomeHalf
 Dolphin stays compare-only. Agents do not send keys into a live Super Sluggers session.
 
 Shell: `tools/still-gate.sh` writes the request and clicks **Grand Sluggers → Capture Still Gate** (not Cmd+P). PNGs: `unity/Temp/gs-stills/`.
+
+For a request that must survive Unity startup, keep the JSON outside
+`unity/Temp`, set `GS_STILL_REQUEST_FILE` to its absolute path before launching
+the editor, then choose **Grand Sluggers → Capture Request File**. The menu reads
+and validates the external JSON with `StillRequest.Parse`, stages it in
+`unity/Temp`, and enters the same capture path. Any allowed shot and home/away
+pair works, for example `{"shots":["plate"],"home":"fenn","away":"rio"}`.
+For the four-beat bat/socket gate on a Generic captain, request
+`{"shots":["swing-matrix"],"swingCaptains":["fenn"]}`. The default matrix
+remains the six shared-rig captains; explicit Generic captains use rendered bat
+and socket checks without inheriting shared-rig hand or plate thresholds.
