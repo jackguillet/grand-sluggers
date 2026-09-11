@@ -51,11 +51,14 @@ Role players inherit the faction body type and **must not** grow captain extras 
 6. **Missing files are placeholders, not crashes.** The binder keeps MoveBones / generated audio / code VFX until the slot is filled.
 7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character mesh drops also need [character stills](screenshot-gate.md).
 
-The common hitting bat is authored handle-to-barrel along model-local +Y. Its
-grip is Y −0.85 and barrel end is Y +1.25 before the measured shared-socket
-bind conversion. Every shared or packaged batter consumes the same selection. A
-package can supply the named `bat` socket; otherwise the shared forearm socket
-fallback supplies it. Neither path selects a character-specific hitting prop.
+The common hitting bat is authored handle-to-barrel along model-local +Y and
+keeps that authored origin when its pieces are joined. The handle spans Y −1.00
+to −0.10 with the grip at −0.85; the full-width barrel spans Y −0.15 to +1.25
+at radius 0.12 before the measured shared-socket bind conversion. Unity art and
+player validation read the imported grip/wood submeshes and reject a recentered
+FBX. Every shared or packaged batter consumes the same selection. A package can
+supply the named `bat` socket; otherwise the shared forearm socket fallback
+supplies it. Neither path selects a character-specific hitting prop.
 
 ## Import (Unity)
 

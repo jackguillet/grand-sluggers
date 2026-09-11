@@ -82,6 +82,12 @@ Fenn's batting constraints bake into his own armature. Both hands surround the
 named grip, socket local -Y points toward the barrel, charge maps from ready to
 MAX, and swing contact remains 0.30 s.
 
+`hero_shared_extras.py` keeps `bat-wood` at its authored model origin when the
+handle, barrel, and knob are joined. In model-local +Y the handle is
+`[-1.00, -0.10]`, the grip is `-0.85`, and the radius-0.12 barrel is
+`[-0.15, 1.25]`. `ArtRailsValidate` checks those coordinates after Unity import,
+so do not recenter that named mesh during cleanup.
+
 Harbor kit (sunken dugout + stairs, wall panel, crowd, home-plate, bag). Missing file keeps HarborKit primitives. Layout: `HarborDugout` / `HarborInfield`.
 
 ```bash
