@@ -463,9 +463,9 @@ namespace GrandSluggers.UnityClient
             var rightExtent = renderedHands ? MaxComponent(renderedRight.RootExtents) : 0f;
             var leftContact = leftExtent + physicalBat.RootHandleRadius;
             var rightContact = rightExtent + physicalBat.RootHandleRadius;
-            if (sharedRigMetrics && !renderedHands)
+            if (!renderedHands)
                 failures.Add($"{captain} {power} {beat}: rendered hand meshes are missing");
-            if (sharedRigMetrics && (leftToHandle > leftContact || rightToHandle > rightContact))
+            if (leftToHandle > leftContact || rightToHandle > rightContact)
                 failures.Add(
                     $"{captain} {power} {beat}: rendered hands missed physical handle "
                     + $"(left {leftToHandle:0.00}/{leftContact:0.00}, "
@@ -499,7 +499,7 @@ namespace GrandSluggers.UnityClient
                 (float)(HomeSet.PlateW / 2 + physicalBat.BarrelRadius),
                 (float)(PitchFlight.PlateY + 1.2 + physicalBat.BarrelRadius),
                 (float)(HomeSet.PlateFrontZ + physicalBat.BarrelRadius));
-            if (sharedRigMetrics && beat == "contact"
+            if (beat == "contact"
                 && !SegmentIntersectsBox(
                     physicalBat.BarrelStart, physicalBat.BarrelEnd, plateMin, plateMax))
                 failures.Add(
