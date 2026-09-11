@@ -391,6 +391,30 @@ namespace GrandSluggers.UnityClient
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
             var failures = new List<string>();
+            var stanceMeasured = hero.TryRenderedBattingStance(
+                out var chestForward, out var eyeForward, out var feetLine);
+            var towardPlate = _match.Batter.Bats == Hand.L ? Vector3.left : Vector3.right;
+            var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
+            var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
+            var feetAlongPitch = Mathf.Abs(Vector3.Dot(feetLine, Vector3.forward));
+            if (beat is "ready" or "rest" or "load")
+            {
+                if (!stanceMeasured)
+                    failures.Add($"{captain} {power} {beat}: visible stance landmarks missing");
+                else
+                {
+                    // User's square sideways stance: chest toward the plate,
+                    // feet along the mound/home line, head watching the pitcher.
+                    // Fifteen degrees allows an authored coil, not a front-facing body.
+                    const float alignment = 0.9659258f;
+                    if (chestTowardPlate < alignment)
+                        failures.Add($"{captain} {power} {beat}: chest is not sideways toward plate ({chestTowardPlate:0.000})");
+                    if (feetAlongPitch < alignment)
+                        failures.Add($"{captain} {power} {beat}: feet do not align along pitch ({feetAlongPitch:0.000})");
+                    if (eyesTowardPitcher < alignment)
+                        failures.Add($"{captain} {power} {beat}: eyes do not face pitcher ({eyesTowardPitcher:0.000})");
+                }
+            }
             var expectedPose = beat is "ready" or "rest" or "load"
                 ? HeroActor.Pose.ChargeSwing
                 : HeroActor.Pose.Swing;
@@ -498,6 +522,12 @@ namespace GrandSluggers.UnityClient
                 + ",\"sharedRigMetrics\":" + (sharedRigMetrics ? "true" : "false")
                 + ",\"pose\":\"" + hero.Current + "\""
                 + ",\"poseT\":" + SwingNumber(hero.PoseTime)
+                + ",\"chestForward\":[" + SwingVector(chestForward) + "]"
+                + ",\"eyeForward\":[" + SwingVector(eyeForward) + "]"
+                + ",\"feetLine\":[" + SwingVector(feetLine) + "]"
+                + ",\"chestTowardPlate\":" + SwingNumber(chestTowardPlate)
+                + ",\"eyesTowardPitcher\":" + SwingNumber(eyesTowardPitcher)
+                + ",\"feetAlongPitch\":" + SwingNumber(feetAlongPitch)
                 + ",\"batVisual\":\"" + batVisual.Replace("\"", "'") + "\""
                 + ",\"batVisible\":" + (batVisible ? "true" : "false")
                 + ",\"socketGrip\":[" + SwingVector(socketGrip) + "]"
