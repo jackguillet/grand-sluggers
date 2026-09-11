@@ -186,6 +186,9 @@ public static class FieldDash
 /// Timing errors remain in the resolver's 60 Hz frames, independent of render rate.</summary>
 public static class AtBatMotion
 {
+    /// <summary>Sentinel before a committed swing has entered presentation.</summary>
+    public const double SwingNotStarted = -1;
+
     // Finish blending the held load halfway to the event. Release/contact itself
     // must sample the clip exactly, without frame-dependent recursive smoothing.
     public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
@@ -219,4 +222,28 @@ public static class AtBatMotion
 
     public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
         plateAt + errorFrames / 60 - (bunt ? 0 : MoveBones.SwingContact);
+
+    /// <summary>
+    /// Advance one committed action clock. The flight-derived target keeps the
+    /// authored contact mark tied to pitch timing; after the pitch resolves,
+    /// frame time carries the same action through its follow-through. Landing
+    /// exactly on SwingDur presents the final key once before the clock retires.
+    /// </summary>
+    public static double AdvanceCommittedSwing(
+        double current, double flightTime, double swingStart, double dt)
+    {
+        var target = Math.Max(0, flightTime - swingStart);
+        if (current < 0)
+            return Math.Min(target, MoveBones.SwingDur);
+        if (current >= MoveBones.SwingDur)
+            return current + Math.Max(0, dt);
+        return Math.Min(MoveBones.SwingDur,
+            Math.Max(target, current + Math.Max(0, dt)));
+    }
+
+    public static bool PresentsCommittedSwing(double actionTime) =>
+        actionTime >= 0 && actionTime <= MoveBones.SwingDur;
+
+    public static double CommittedSwingSample(double actionTime) =>
+        Math.Clamp(actionTime, 0, MoveBones.SwingDur);
 }

@@ -1,0 +1,863 @@
+{
+    "revision": "826b678dba4235b8a3b73a94cbb950f8856b5ac0",
+    "unityVersion": "6000.5.9f1",
+    "ok": true,
+    "error": "",
+    "cases": [
+        {
+            "name": "rio-normal-late-whiff",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "late-whiff",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-normal-swinging-strikeout",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "swinging-strikeout",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-normal-early-whiff",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "early-whiff",
+            "charge": 0.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-normal-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-max-late-whiff",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "late-whiff",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-max-swinging-strikeout",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "swinging-strikeout",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-max-early-whiff",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "early-whiff",
+            "charge": 1.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-max-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-normal-late-whiff",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "late-whiff",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-normal-swinging-strikeout",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "swinging-strikeout",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-normal-early-whiff",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "normal",
+            "scenario": "early-whiff",
+            "charge": 0.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-normal-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-max-late-whiff",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "late-whiff",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-max-swinging-strikeout",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "swinging-strikeout",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-max-early-whiff",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "max",
+            "scenario": "early-whiff",
+            "charge": 1.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-max-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-normal-late-whiff",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "normal",
+            "scenario": "late-whiff",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-normal-swinging-strikeout",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "normal",
+            "scenario": "swinging-strikeout",
+            "charge": 0.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-normal-early-whiff",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "normal",
+            "scenario": "early-whiff",
+            "charge": 0.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-normal-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-max-late-whiff",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "max",
+            "scenario": "late-whiff",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-late-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-late-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-late-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-max-swinging-strikeout",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "max",
+            "scenario": "swinging-strikeout",
+            "charge": 1.0,
+            "timingFrames": 12.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "Result",
+            "followPhase": "Result",
+            "contactT": 0.30000004172325137,
+            "followT": 0.5,
+            "finalActionT": 0.6166665554046631,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.0,
+                    "actionT": 0.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-swinging-strikeout-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.30000004172325137,
+                    "actionT": 0.30000004172325137,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-swinging-strikeout-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Result",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-swinging-strikeout-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-max-early-whiff",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "max",
+            "scenario": "early-whiff",
+            "charge": 1.0,
+            "timingFrames": -36.0,
+            "eventKind": "SwingMiss",
+            "contactPhase": "Flight",
+            "followPhase": "Flight",
+            "contactT": 0.30000007152557375,
+            "followT": 0.5,
+            "finalActionT": 1.0166661739349366,
+            "resultPose": "Miss",
+            "frames": [
+                {
+                    "beat": "start",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 1.4901160305669237e-9,
+                    "actionT": 1.4901160305669237e-9,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-early-whiff-start.png"
+                },
+                {
+                    "beat": "contact",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.30000007152557375,
+                    "actionT": 0.30000007152557375,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-early-whiff-contact.png"
+                },
+                {
+                    "beat": "follow",
+                    "phase": "Flight",
+                    "pose": "Swing",
+                    "poseT": 0.5,
+                    "actionT": 0.5,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-max-early-whiff-follow.png"
+                }
+            ]
+        },
+        {
+            "name": "rio-called-strikeout",
+            "captain": "rio",
+            "hand": "R",
+            "rig": "shared",
+            "power": "none",
+            "scenario": "called-strikeout",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "",
+            "followPhase": "",
+            "contactT": 0.0,
+            "followT": 0.0,
+            "finalActionT": -1.0,
+            "resultPose": "Idle",
+            "frames": [
+                {
+                    "beat": "result",
+                    "phase": "Result",
+                    "pose": "Idle",
+                    "poseT": 0.01666666753590107,
+                    "actionT": -1.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/rio-called-strikeout-result.png"
+                }
+            ]
+        },
+        {
+            "name": "zig-called-strikeout",
+            "captain": "zig",
+            "hand": "L",
+            "rig": "shared",
+            "power": "none",
+            "scenario": "called-strikeout",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "",
+            "followPhase": "",
+            "contactT": 0.0,
+            "followT": 0.0,
+            "finalActionT": -1.0,
+            "resultPose": "Idle",
+            "frames": [
+                {
+                    "beat": "result",
+                    "phase": "Result",
+                    "pose": "Idle",
+                    "poseT": 0.01666666753590107,
+                    "actionT": -1.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/zig-called-strikeout-result.png"
+                }
+            ]
+        },
+        {
+            "name": "fenn-called-strikeout",
+            "captain": "fenn",
+            "hand": "R",
+            "rig": "generic",
+            "power": "none",
+            "scenario": "called-strikeout",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "eventKind": "Strikeout",
+            "contactPhase": "",
+            "followPhase": "",
+            "contactT": 0.0,
+            "followT": 0.0,
+            "finalActionT": -1.0,
+            "resultPose": "Idle",
+            "frames": [
+                {
+                    "beat": "result",
+                    "phase": "Result",
+                    "pose": "Idle",
+                    "poseT": 0.01666666753590107,
+                    "actionT": -1.0,
+                    "png": "/private/tmp/gs-548-swing-outcome-frames/fenn-called-strikeout-result.png"
+                }
+            ]
+        }
+    ]
+}

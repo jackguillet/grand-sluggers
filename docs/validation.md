@@ -69,3 +69,27 @@ Eight actual `TickLive` cases cover low/high grounders to three directions, a ro
 Launch the pinned GUI editor with `-executeMethod GrandSluggers.EditorTools.AtBatInputGate.Run` (menu **Grand Sluggers → Verify At-Bat Input**), from a dedicated worktree. Set `GS_VALIDATION_REVISION` and optionally `GS_AT_BAT_INPUT_EVIDENCE`; no batch or quit flag. The gate creates temporary InputSystem gamepads and a keyboard, drives actual Controls and director SET/Flight methods, then removes the devices and restores input state.
 
 Cases cover normal tap, charged release, early release during the pitcher's windup, keyboard-release isolation from seat two, camera-relative horizontal pitching, and the batter cursor remaining independent of pitch curve. This verifies routed synthetic input, not physical controllers, perceived feel, or a full human half.
+
+## Opt-in swing outcome gate
+
+Launch the pinned GUI editor with `-executeMethod GrandSluggers.EditorTools.SwingOutcomeGate.Run`
+(menu **Grand Sluggers → Verify Swing Outcomes**) from a dedicated worktree. Set
+`GS_VALIDATION_REVISION` and optionally `GS_SWING_OUTCOME_EVIDENCE`; the default
+JSON is `unity/Temp/swing-outcome-gate.json`, with rendered frames in the sibling
+`swing-outcome-gate-frames` folder. Do not use batch mode or quit flags.
+
+The gate drives the actual `TickFlight` → `Resolve` → Result and `DrawActors`
+path. Rio covers a right-handed shared rig, Zig a left-handed shared rig, and
+Fenn the Generic package. Normal and MAX swings each cover a late ordinary
+whiff, a late swinging strikeout, and an early whiff that finishes before the
+pitch resolves; called strikeouts must never enter Swing. Every committed case
+captures start, contact, and follow-through, requires one continuous monotonic
+action clock and exactly one transition to Miss, then checks that Result cannot
+restart the take. Synthetic timing and camera renders do not pass controller
+feel, a played half, or the human look gate.
+
+Passing #548 evidence from Unity 6000.5.9f1 is retained in
+`scratchpad/validation/548-missed-swing/`: the complete 21-case JSON report and
+representative original start/contact/follow-through renders for normal and MAX,
+right- and left-handed shared rigs, and the Generic package. The combined stance
+recheck and standalone human play remain separate gates.
