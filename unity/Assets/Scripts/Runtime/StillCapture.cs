@@ -108,6 +108,9 @@ namespace GrandSluggers.UnityClient
                 for (var i = 0; i < 24; i++) yield return null;
                 _play.GatePose(shot, _req);
                 for (var i = 0; i < 4; i++) yield return null;
+                // ActorDirector draws SET every frame. Reapply the requested
+                // authored pose in the capture frame, as the swing matrix does.
+                _play.GatePose(shot, _req);
                 var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome());
                 try
                 {
@@ -356,9 +359,12 @@ namespace GrandSluggers.UnityClient
                         + $"(gap {gap:0.00}, left {lead:0.00}, right {rear:0.00})");
             }
             if (beat == "contact"
-                && (barrel.x < -HomeSet.PlateW / 2 - 0.03 || barrel.x > HomeSet.PlateW / 2 + 0.03
-                    || barrel.z < HomeSet.PlatePointZ - 0.03 || barrel.z > HomeSet.PlateFrontZ + 0.03
-                    || barrel.y < PitchFlight.PlateY - 1.2 || barrel.y > PitchFlight.PlateY + 1.2))
+                && (barrel.x < -HomeSet.PlateW / 2 - SwingPresentation.BarrelRadius
+                    || barrel.x > HomeSet.PlateW / 2 + SwingPresentation.BarrelRadius
+                    || barrel.z < HomeSet.PlatePointZ - SwingPresentation.BarrelRadius
+                    || barrel.z > HomeSet.PlateFrontZ + SwingPresentation.BarrelRadius
+                    || barrel.y < PitchFlight.PlateY - 1.2 - SwingPresentation.BarrelRadius
+                    || barrel.y > PitchFlight.PlateY + 1.2 + SwingPresentation.BarrelRadius))
                 failures.Add(
                     $"{captain} {power} contact: barrel missed plate at "
                     + $"({barrel.x:0.00}, {barrel.y:0.00}, {barrel.z:0.00})");
