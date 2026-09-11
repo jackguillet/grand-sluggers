@@ -58,9 +58,10 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 
 Every character holds the same original `bat-wood` model while batting. It stays
 on the shared bat socket from ready and load through swing and follow-through;
-the model-local grip is at Y −0.85 and the barrel end is at Y +1.25 before the
-measured shared-socket bind conversion. Left-handed batters mirror the shared
-socket. Fenn's Generic package resolves the same named `bat` socket contract;
+the authored model origin stays fixed, its handle runs from Y −1.00 to −0.10,
+the grip sits at Y −0.85, and its radius-0.12 barrel runs from Y −0.15 to +1.25
+before the measured shared-socket bind conversion. Left-handed batters mirror
+the shared socket. Fenn's Generic package resolves the same named `bat` socket contract;
 the runtime creates the standard forearm fallback when the FBX omits that
 socket. Its walking cane remains a character extra rather than the hitting prop.
 
