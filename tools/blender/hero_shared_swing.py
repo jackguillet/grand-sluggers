@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import bpy
+from mathutils import Matrix, Vector
 
 
 FPS = 60
@@ -64,6 +65,18 @@ KEYS = [
     }),
 ]
 
+# Batter-local Unity directions. Blender's FBX export changes handedness, so
+# the DCC target is (-X, -Z, +Y). The common bat's +Y model axis binds to the
+# socket's -Y bone axis; the authored socket rotation remains the sole owner of
+# the barrel direction through the take.
+BARREL_DIRECTIONS = {
+    0.00: (-0.18, 0.89, 0.42),
+    0.15: (-0.10, 0.62, -0.78),
+    0.24: (0.4315, 0.005, -0.9022),
+    0.30: (0.7790, 0.0275, -0.6264),
+    0.50: (-0.54, 0.31, -0.78),
+}
+
 
 def load_blockout():
     path = Path(__file__).resolve().parent / "hero_shared_blockout.py"
@@ -75,6 +88,26 @@ def load_blockout():
 
 def deg(v):
     return tuple(math.radians(x) for x in v)
+
+
+def key_bat_direction(arm_ob, direction, frame):
+    """Aim the authored bat bone; never patch its world rotation in Unity."""
+    bat = arm_ob.pose.bones["bat"]
+    # Preserve the keyed Euler as the roll seed, then rotate only enough to put
+    # socket -Y on the imported handle-to-barrel direction.
+    bpy.context.view_layer.update()
+    current = -(bat.matrix.to_3x3() @ Vector((0, 1, 0))).normalized()
+    unity = Vector(direction).normalized()
+    target = Vector((-unity.x, -unity.z, unity.y)).normalized()
+    correction = current.rotation_difference(target)
+    matrix = bat.matrix.copy()
+    bat.rotation_mode = "QUATERNION"
+    bat.matrix = Matrix.LocRotScale(
+        matrix.translation,
+        correction @ matrix.to_quaternion(),
+        matrix.to_scale(),
+    )
+    bat.keyframe_insert(data_path="rotation_quaternion", frame=frame)
 
 
 def key_swing(arm_ob):
@@ -103,7 +136,9 @@ def key_swing(arm_ob):
             pb = arm_ob.pose.bones[name]
             pb.rotation_mode = "XYZ"
             pb.rotation_euler = deg(euler)
-            pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+            if name != "bat":
+                pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+        key_bat_direction(arm_ob, BARREL_DIRECTIONS[t], frame)
 
     for layer in action.layers:
         for strip in layer.strips:
