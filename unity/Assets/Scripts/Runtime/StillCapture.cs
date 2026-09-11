@@ -80,8 +80,11 @@ namespace GrandSluggers.UnityClient
                         foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
                         foreach (var beat in new[] { "rest", "load", "contact", "follow" })
                         {
-                            var hero = _play.GatePoseSwing(beat, power.Charge);
+                            _play.GatePoseSwing(beat, power.Charge);
                             for (var i = 0; i < 4; i++) yield return null;
+                            // ActorDirector continues drawing SET while simulation is held.
+                            // Reapply the exact pose on the capture frame, after those draws.
+                            var hero = _play.GatePoseSwing(beat, power.Charge);
                             var matrixPng = StillRequest.SwingPngPath(outDir, captain, power.Id, beat);
                             try
                             {
