@@ -56,7 +56,12 @@ namespace GrandSluggers.UnityClient
             string error = null;
             var outDir = _req.ResolvedOutDir(_temp);
             IReadOnlyList<string> shots;
-            try { shots = _req.ResolvedShots(); }
+            IReadOnlyList<string> swingCaptains;
+            try
+            {
+                shots = _req.ResolvedShots();
+                swingCaptains = _req.ResolvedSwingCaptains();
+            }
             catch (Exception ex)
             {
                 WriteDone(_temp, outDir, false, files, swingMetrics, ex.Message);
@@ -73,12 +78,12 @@ namespace GrandSluggers.UnityClient
                 _play.GateStage(shot, _req);
                 if (StillRequest.IsSwingMatrixShot(shot))
                 {
-                    foreach (var captain in SwingPresentation.SharedCaptains)
+                    foreach (var captain in swingCaptains)
                     {
                         _play.GateStageSwingCaptain(captain);
                         for (var i = 0; i < 24; i++) yield return null;
                         foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
-                        foreach (var beat in new[] { "rest", "load", "contact", "follow" })
+                        foreach (var beat in new[] { "ready", "load", "contact", "follow" })
                         {
                             _play.GatePoseSwing(beat, power.Charge);
                             for (var i = 0; i < 4; i++) yield return null;
@@ -198,7 +203,7 @@ namespace GrandSluggers.UnityClient
 
             if (StillRequest.IsSwingMatrixShot(shot))
             {
-                GateStageSwingCaptain(SwingPresentation.SharedCaptains[0]);
+                GateStageSwingCaptain(req.ResolvedSwingCaptains()[0]);
                 return;
             }
 
@@ -309,9 +314,11 @@ namespace GrandSluggers.UnityClient
                     (float)HomeSet.BatterZ),
                 Vector3.forward);
 
-            if (beat == "rest")
+            if (beat == "ready" || beat == "rest")
             {
-                hero.SetPose(HeroActor.Pose.Idle, 0);
+                // Live SET uses ChargeSwing before the button is armed. Unlike
+                // Idle, this is the batting-ready pose and keeps the bat shown.
+                hero.SetPose(HeroActor.Pose.ChargeSwing, 0);
                 hero.SnapTick(0);
             }
             else if (beat == "load")
@@ -339,7 +346,16 @@ namespace GrandSluggers.UnityClient
             HeroActor hero, string beat, string captain, string power, out string gateError)
         {
             gateError = "";
-            if (hero == null || !hero.TrySwingGeometry(
+            var sharedRigMetrics = Array.Exists(
+                SwingPresentation.SharedCaptains,
+                id => id.Equals(captain, StringComparison.OrdinalIgnoreCase));
+            if (hero == null)
+            {
+                gateError = $"{captain} {power} {beat}: missing batter";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            if (!hero.TrySwingGeometry(
                     out var left, out var right, out var grip, out var barrel,
                     out var socketX, out var socketY, out var socketZ))
             {
@@ -347,8 +363,37 @@ namespace GrandSluggers.UnityClient
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
+            if (!hero.TryBatVisual(
+                    out var batVisual, out var batVisible,
+                    out var socketGrip, out var modelGrip))
+            {
+                gateError = $"{captain} {power} {beat}: missing rendered bat evidence";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
             var failures = new List<string>();
-            if (beat != "rest")
+            var expectedPose = beat is "ready" or "rest" or "load"
+                ? HeroActor.Pose.ChargeSwing
+                : HeroActor.Pose.Swing;
+            var expectedPoseTime = beat == "contact" ? (float)MoveBones.SwingContact
+                : beat == "follow" ? (float)MoveBones.SwingDur
+                : 0f;
+            if (hero.Current != expectedPose || Mathf.Abs(hero.PoseTime - expectedPoseTime) > 0.0001f)
+                failures.Add(
+                    $"{captain} {power} {beat}: capture frame is {hero.Current} "
+                    + $"at {hero.PoseTime:0.###}, expected {expectedPose} at {expectedPoseTime:0.###}");
+            if (!batVisual.Equals(GearMesh.HittingBatVisual(), StringComparison.OrdinalIgnoreCase))
+                failures.Add(
+                    $"{captain} {power} {beat}: rendered {batVisual}, expected {GearMesh.HittingBatVisual()}");
+            if (!batVisible)
+                failures.Add($"{captain} {power} {beat}: common bat is hidden");
+            var gripError = Vector3.Distance(socketGrip, modelGrip);
+            if (gripError > 0.01f)
+                failures.Add(
+                    $"{captain} {power} {beat}: model grip missed socket by {gripError:0.###}");
+            if (Vector3.Distance(grip, barrel) <= SwingPresentation.BarrelRadius)
+                failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
+            if (sharedRigMetrics && beat != "ready" && beat != "rest")
             {
                 var gap = Vector3.Distance(left, right);
                 var lead = Vector3.Distance(left, grip);
@@ -358,7 +403,7 @@ namespace GrandSluggers.UnityClient
                         $"{captain} {power} {beat}: hands left the grip "
                         + $"(gap {gap:0.00}, left {lead:0.00}, right {rear:0.00})");
             }
-            if (beat == "contact"
+            if (sharedRigMetrics && beat == "contact"
                 && (barrel.x < -HomeSet.PlateW / 2 - SwingPresentation.BarrelRadius
                     || barrel.x > HomeSet.PlateW / 2 + SwingPresentation.BarrelRadius
                     || barrel.z < HomeSet.PlatePointZ - SwingPresentation.BarrelRadius
@@ -378,6 +423,14 @@ namespace GrandSluggers.UnityClient
             return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\""
                 + ",\"pass\":" + (failures.Count == 0 ? "true" : "false")
                 + ",\"error\":\"" + gateError.Replace("\"", "'") + "\""
+                + ",\"sharedRigMetrics\":" + (sharedRigMetrics ? "true" : "false")
+                + ",\"pose\":\"" + hero.Current + "\""
+                + ",\"poseT\":" + SwingNumber(hero.PoseTime)
+                + ",\"batVisual\":\"" + batVisual.Replace("\"", "'") + "\""
+                + ",\"batVisible\":" + (batVisible ? "true" : "false")
+                + ",\"socketGrip\":[" + SwingVector(socketGrip) + "]"
+                + ",\"modelGrip\":[" + SwingVector(modelGrip) + "]"
+                + ",\"gripError\":" + SwingNumber(gripError)
                 + ",\"handGap\":" + SwingNumber(Vector3.Distance(left, right))
                 + ",\"leftToGrip\":" + SwingNumber(Vector3.Distance(left, grip))
                 + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
