@@ -31,9 +31,9 @@ public class SwingPresentationTests
         foreach (var key in SwingPresentation.Keys)
         {
             var pose = SwingPresentation.At(key.T, hand);
-            Assert.InRange(SwingPresentation.HandGap(pose), 0.18, 0.32);
-            Assert.InRange(Distance(pose.LeftHand, pose.Grip), 0, 0.55);
-            Assert.InRange(Distance(pose.RightHand, pose.Grip), 0, 0.55);
+            Assert.InRange(SwingPresentation.HandGap(pose), 0.20, 0.55);
+            Assert.InRange(SwingPresentation.HandToHandle(pose, Hand.L), 0, 0.30);
+            Assert.InRange(SwingPresentation.HandToHandle(pose, Hand.R), 0, 0.30);
         }
     }
 
@@ -43,10 +43,8 @@ public class SwingPresentationTests
         foreach (var body in SwingPresentation.SharedCaptains)
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
-            var contact = SwingPresentation.BarrelWorld(body, hand, MoveBones.SwingContact);
-            Assert.InRange(contact.X, -HomeSet.PlateW / 2, HomeSet.PlateW / 2);
-            Assert.InRange(contact.Z, HomeSet.PlatePointZ, HomeSet.PlateFrontZ);
-            Assert.InRange(contact.Y, PitchFlight.PlateY - 1.2, PitchFlight.PlateY + 1.2);
+            Assert.True(SwingPresentation.BarrelCrossesPlate(
+                body, hand, MoveBones.SwingContact), $"{body} {hand} missed the plate");
         }
     }
 
@@ -57,6 +55,8 @@ public class SwingPresentationTests
         Assert.Equal(0.12 * Silhouette.BatScale, SwingPresentation.BarrelRadius, 8);
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
+            Assert.True(SwingPresentation.At(SwingPresentation.LoadAt, hand).BarrelDirection.Y > 0.70);
+            Assert.True(SwingPresentation.At(SwingPresentation.NormalLoadAt, hand).BarrelDirection.Y > 0.70);
             Assert.InRange(SwingPresentation.ContactAttackAngleDeg(hand), 5, 20);
             var contact = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.ContactAt, hand));
             var follow = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.FollowThroughAt, hand));

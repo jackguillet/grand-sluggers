@@ -228,3 +228,12 @@ For the four-beat bat/socket gate on a Generic captain, request
 `{"shots":["swing-matrix"],"swingCaptains":["fenn"]}`. The default matrix
 remains the six shared-rig captains; explicit Generic captains use rendered bat
 and socket checks without inheriting shared-rig hand or plate thresholds.
+
+Each matrix row captures `ready`, `load`, `contact`, and `follow` before it
+measures the pose, so a failure still leaves a PNG. The JSON records posed hand
+mesh centers/extents, physical grip/handle/barrel endpoints, imported bat mesh
+bounds, and the authored-direction dot product. Shared-rig rows pass only when
+both rendered hands meet the physical handle in shared-root space, MAX load and
+the two swing keys preserve their authored direction, the loaded barrel rises,
+and the physical barrel segment crosses the plate volume. Normal and MAX each
+run for every selected captain in one editor launch.

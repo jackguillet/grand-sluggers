@@ -386,7 +386,7 @@ namespace GrandSluggers.UnityClient
             }
             if (!hero.TryBatMeshEvidence(out var batMesh))
             {
-                gateError = $"{captain} {power} {beat}: missing imported bat mesh evidence";
+                gateError = $"{captain} {power} {beat}: imported bat mesh is missing or unreadable";
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
