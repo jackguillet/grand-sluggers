@@ -46,12 +46,18 @@ public class ArtCatalogTests
         Assert.Contains("Release", pitch.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(MoveBones.PitchRelease, pitch.ReleaseAt);
         Assert.StartsWith("Assets/Art/Animation/Clips/", swing.Slot, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("Assets/Resources/Art/Animation/Clips/", swing.PlayerSlot, StringComparison.OrdinalIgnoreCase);
         var repo = Directory.GetParent(_content.Root)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
             (swing.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fbx), fbx);
         Assert.True(new FileInfo(fbx).Length > 10_000, "swing.fbx is empty");
+        var playerFbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (swing.PlayerSlot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(playerFbx), playerFbx);
+        Assert.True(new FileInfo(playerFbx).Length > 10_000, "player swing.fbx is empty");
+        Assert.Equal(File.ReadAllBytes(fbx), File.ReadAllBytes(playerFbx));
         var pitchFbx = Path.GetFullPath(Path.Combine(repo, "unity",
             (pitch.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(pitchFbx), pitchFbx);
