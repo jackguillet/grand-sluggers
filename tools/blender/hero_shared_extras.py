@@ -49,14 +49,20 @@ def prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
     return ob
 
 
-def join(name, pieces):
+def join(name, pieces, authored_origin=None):
     bpy.ops.object.select_all(action="DESELECT")
     for ob in pieces:
         ob.select_set(True)
     bpy.context.view_layer.objects.active = pieces[0]
     bpy.ops.object.join()
     pieces[0].name = name
-    bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
+    if authored_origin is None:
+        bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
+    else:
+        # Measured props keep the model coordinates used to author their
+        # sockets. Geometry recentering would silently move every endpoint.
+        bpy.context.scene.cursor.location = authored_origin
+        bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     pieces[0].location = (0.0, 0.0, 0.0)
     bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
     return pieces[0]
@@ -135,7 +141,7 @@ def build():
     handle = prim("cylinder", "BatHandle", (0, 0, -0.55), (0.16, 0.16, 0.9), grip)
     barrel = prim("cylinder", "BatBarrel", (0, 0, 0.55), (0.24, 0.24, 1.4), wood)
     knob = prim("uv_sphere", "BatKnob", (0, 0, -1.05), (0.22, 0.22, 0.18), wood)
-    join("bat-wood", [handle, barrel, knob])
+    join("bat-wood", [handle, barrel, knob], authored_origin=(0.0, 0.0, 0.0))
     palm = prim("uv_sphere", "Palm", (0, 0, 0), (0.7, 0.55, 0.42), leather)
     web = prim("cube", "Web", (0, 0.12, 0.22), (0.55, 0.12, 0.42), leather)
     thumb = prim("cylinder", "Thumb", (-0.32, 0.05, 0.08), (0.18, 0.18, 0.55), leather, rot=(0, math.radians(28), 0))
@@ -153,7 +159,8 @@ def build():
         bpy.ops.object.select_all(action="DESELECT")
         o.select_set(True)
         bpy.context.view_layer.objects.active = o
-        bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
+        if o.name != "bat-wood":
+            bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
         o.location = (0.0, 0.0, 0.0)
         bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
 

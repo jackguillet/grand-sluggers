@@ -212,6 +212,8 @@ public class ArtCatalogTests
         Assert.True(File.Exists(extrasPy), extrasPy);
         var extrasSrc = File.ReadAllText(extrasPy);
         Assert.Contains($"join(\"{GearMesh.HittingBatVisual()}\"", extrasSrc);
+        Assert.Contains("authored_origin=(0.0, 0.0, 0.0)", extrasSrc);
+        Assert.Contains("if o.name != \"bat-wood\"", extrasSrc);
         Assert.Contains("Diameter 1", extrasSrc);
         Assert.Contains("(1.0, 1.0, 1.0), cream)", extrasSrc);
         var extrasRes = Path.GetFullPath(Path.Combine(repo, "unity",
