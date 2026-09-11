@@ -31,7 +31,6 @@ namespace GrandSluggers.UnityClient
         bool _batsLeft;
         bool _throwsLeft;
         bool _captain;
-        bool _meshStaff;
         bool _packageBody;
         PackageTransformBind[] _packageBindPose = System.Array.Empty<PackageTransformBind>();
         bool _packageSampledLastTick;
@@ -86,7 +85,10 @@ namespace GrandSluggers.UnityClient
             rightHand = _rFore.TransformPoint(Vector3.up * 0.70f);
             grip = _batSocket.position;
             barrel = _batModel.TransformPoint(
-                Vector3.up * (float)SwingPresentation.BarrelFromModelCenter);
+                new Vector3(
+                    (float)SwingPresentation.ModelBarrelEnd.X,
+                    (float)SwingPresentation.ModelBarrelEnd.Y,
+                    (float)SwingPresentation.ModelBarrelEnd.Z));
             return true;
         }
 
@@ -140,9 +142,9 @@ namespace GrandSluggers.UnityClient
         public void SetGear(BatItem bat, GloveItem glove)
         {
             if (_root == null) return;
-            var batVis = GearMesh.BatVisual(bat);
+            var batVis = GearMesh.HittingBatVisual();
             var gloveVis = GearMesh.GloveVisual(glove);
-            if (!_meshStaff && batVis != _batVisual) BuildBat(batVis);
+            if (batVis != _batVisual) BuildBat(batVis);
             if (gloveVis != _gloveVisual) BuildGlove(gloveVis);
         }
 
@@ -239,7 +241,9 @@ namespace GrandSluggers.UnityClient
                 else if (_pose == Pose.Jump || _pose == Pose.Clamber)
                     squash = new Vector3(0.86f, 1.18f, 0.86f);
                 var want = Vector3.Scale(_baseScale * g, squash);
-                _root.localScale = Vector3.Lerp(_root.localScale, want, 0.22f);
+                _root.localScale = _snap
+                    ? want
+                    : Vector3.Lerp(_root.localScale, want, 0.22f);
                 _root.localPosition = new Vector3(0f, bounce, 0f);
             }
             PlaceRing();
@@ -313,14 +317,7 @@ namespace GrandSluggers.UnityClient
                 _batSocket = MirroredBatSocket(_batSocket, _lFore);
                 _bind.Bat = _batSocket.localRotation;
             }
-            _meshStaff = false;
-            for (var i = 0; i < extras.Count; i++)
-            {
-                if (extras[i].Equals("staff", System.StringComparison.OrdinalIgnoreCase)
-                    && ArtBinder.LoadBodyPrefab(who.Id) != null)
-                    _meshStaff = true;
-            }
-            if (!_meshStaff) BuildBat("bat-wood");
+            BuildBat(GearMesh.HittingBatVisual());
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
         }
@@ -1104,8 +1101,6 @@ namespace GrandSluggers.UnityClient
             var scale = _root.localScale;
             var pos = _root.localPosition;
             clip.SampleAnimation(_root.gameObject, t);
-            var arm = _root.Find("hero-shared");
-            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
             _root.localScale = scale;
             _root.localPosition = pos;
             if (_torso != null) _torso.localPosition = _torsoRest;
