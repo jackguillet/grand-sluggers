@@ -23,6 +23,7 @@ public sealed class StillRequest
     };
 
     public string[]? Shots { get; init; }
+    public string[]? SwingCaptains { get; init; }
     public string? Home { get; init; }
     public string? Away { get; init; }
     public bool HudOff { get; init; } = true;
@@ -58,6 +59,32 @@ public sealed class StillRequest
         var away = string.IsNullOrWhiteSpace(Away) ? "ashlord" : Away.Trim().ToLowerInvariant();
         var home = ResolvedHome();
         return away == home ? "brondo" : away;
+    }
+
+    /// <summary>
+    /// Captain subset for the opt-in swing matrix. The default remains the six
+    /// shared-rig captains; Generic packages opt in explicitly because their
+    /// anatomy cannot use shared-rig hand and plate thresholds.
+    /// </summary>
+    public IReadOnlyList<string> ResolvedSwingCaptains()
+    {
+        var src = SwingCaptains is { Length: > 0 }
+            ? SwingCaptains
+            : SwingPresentation.SharedCaptains;
+        var resolved = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var raw in src)
+        {
+            var id = (raw ?? "").Trim().ToLowerInvariant();
+            if (id.Length == 0)
+                throw new InvalidDataException("swing matrix captain id is empty");
+            if (!PresetTeams.CaptainIds.Contains(id, StringComparer.OrdinalIgnoreCase))
+                throw new InvalidDataException("swing matrix captain not playable: " + id);
+            if (!seen.Add(id))
+                throw new InvalidDataException("swing matrix captain is duplicated: " + id);
+            resolved.Add(id);
+        }
+        return resolved;
     }
 
     public int ResolvedWidth() => Width < 320 ? 1920 : Width;
@@ -105,6 +132,7 @@ public sealed class StillRequest
         var req = JsonSerializer.Deserialize<StillRequest>(json, opts)
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
+        _ = req.ResolvedSwingCaptains();
         return req;
     }
 

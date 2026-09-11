@@ -66,10 +66,30 @@ public class StillRequestTests
     {
         var req = StillRequest.Parse("""{"shots":["swing-matrix"]}""");
         Assert.Equal(new[] { "swing-matrix" }, req.ResolvedShots());
+        Assert.Equal(SwingPresentation.SharedCaptains, req.ResolvedSwingCaptains());
         Assert.DoesNotContain("swing-matrix", StillRequest.DefaultShots);
         Assert.True(StillRequest.IsSwingMatrixShot("swing-matrix"));
         Assert.Equal("/tmp/gs/swing-ashlord-max-contact.png",
             StillRequest.SwingPngPath("/tmp/gs", "ashlord", "max", "contact"));
+    }
+
+    [Fact]
+    public void SwingMatrixCanSelectFennWithoutAddingItToSharedRigMetrics()
+    {
+        var req = StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["FENN","rio"]}
+            """);
+
+        Assert.Equal(new[] { "fenn", "rio" }, req.ResolvedSwingCaptains());
+        Assert.DoesNotContain("fenn", SwingPresentation.SharedCaptains);
+        var unknown = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["not-a-player"]}
+            """));
+        Assert.Contains("not playable", unknown.Message);
+        var duplicate = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["fenn","FENN"]}
+            """));
+        Assert.Contains("duplicated", duplicate.Message);
     }
 
     [Fact]
