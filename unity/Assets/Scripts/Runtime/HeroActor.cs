@@ -204,7 +204,10 @@ namespace GrandSluggers.UnityClient
             if (renderer is SkinnedMeshRenderer skinned)
             {
                 var baked = new Mesh { name = "swing-hand-measure" };
-                skinned.BakeMesh(baked);
+                // Unity's scale-compensating overload returns the original
+                // mesh size. Apply renderer.transform exactly once below;
+                // default BakeMesh bakes ancestor scale into this snapshot.
+                skinned.BakeMesh(baked, true);
                 if (baked.vertexCount == 0)
                 {
                     UnityEngine.Object.Destroy(baked);
