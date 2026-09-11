@@ -47,6 +47,8 @@ public class SwingPresentationTests
     [Fact]
     public void BarrelApproachesContactUpwardThenWrapsToThePullSide()
     {
+        Assert.InRange(Length(SwingPresentation.ModelBarrelAxisAtSocket), 0.999, 1.001);
+        Assert.Equal(0.24 * Silhouette.BatScale, SwingPresentation.BarrelRadius, 8);
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             Assert.InRange(SwingPresentation.ContactAttackAngleDeg(hand), 5, 20);
@@ -88,4 +90,6 @@ public class SwingPresentationTests
         Math.Sqrt((a.X - b.X) * (a.X - b.X) +
                   (a.Y - b.Y) * (a.Y - b.Y) +
                   (a.Z - b.Z) * (a.Z - b.Z));
+
+    static double Length(Vec3 v) => Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
 }
