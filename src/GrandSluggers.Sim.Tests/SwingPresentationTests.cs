@@ -10,8 +10,11 @@ public class SwingPresentationTests
     {
         Assert.Equal(new Vec3(0, -SwingPresentation.ModelCenterFromGrip, 0),
             SwingPresentation.ModelGrip);
+        Assert.Equal(new Vec3(0, SwingPresentation.BarrelStartFromModelCenter, 0),
+            SwingPresentation.ModelBarrelStart);
         Assert.Equal(new Vec3(0, SwingPresentation.BarrelFromModelCenter, 0),
             SwingPresentation.ModelBarrelEnd);
+        Assert.True(SwingPresentation.ModelBarrelStart.Y > SwingPresentation.ModelGrip.Y);
         Assert.True(SwingPresentation.ModelBarrelEnd.Y > SwingPresentation.ModelGrip.Y);
         Assert.Equal(
             (SwingPresentation.ModelBarrelEnd.Y - SwingPresentation.ModelGrip.Y) * Silhouette.BatScale,
@@ -48,7 +51,7 @@ public class SwingPresentationTests
     public void BarrelApproachesContactUpwardThenWrapsToThePullSide()
     {
         Assert.InRange(Length(SwingPresentation.ModelBarrelAxisAtSocket), 0.999, 1.001);
-        Assert.Equal(0.24 * Silhouette.BatScale, SwingPresentation.BarrelRadius, 8);
+        Assert.Equal(0.12 * Silhouette.BatScale, SwingPresentation.BarrelRadius, 8);
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             Assert.InRange(SwingPresentation.ContactAttackAngleDeg(hand), 5, 20);

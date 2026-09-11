@@ -97,12 +97,62 @@ namespace GrandSluggers.UnityClient
             return true;
         }
 
-        internal bool TryRenderedSwingHands(
-            out Vector3 left, out Vector3 right,
-            out Vector3 leftExtents, out Vector3 rightExtents)
+        internal readonly struct SwingHandEvidence
         {
-            left = right = Vector3.zero;
-            leftExtents = rightExtents = Vector3.zero;
+            internal readonly Vector3 Center;
+            internal readonly Vector3 Extents;
+            internal readonly Vector3 RootCenter;
+            internal readonly Vector3 RootExtents;
+
+            internal SwingHandEvidence(
+                Vector3 center, Vector3 extents, Vector3 rootCenter, Vector3 rootExtents)
+            {
+                Center = center;
+                Extents = extents;
+                RootCenter = rootCenter;
+                RootExtents = rootExtents;
+            }
+        }
+
+        internal readonly struct SwingBatEvidence
+        {
+            internal readonly Vector3 Grip;
+            internal readonly Vector3 BarrelStart;
+            internal readonly Vector3 BarrelEnd;
+            internal readonly Vector3 RootGrip;
+            internal readonly Vector3 RootBarrelStart;
+            internal readonly Vector3 RootBarrelEnd;
+            internal readonly float HandleRadius;
+            internal readonly float BarrelRadius;
+            internal readonly float RootHandleRadius;
+            internal readonly float RootBarrelRadius;
+            internal readonly Vector3 ExpectedDirection;
+
+            internal SwingBatEvidence(
+                Vector3 grip, Vector3 barrelStart, Vector3 barrelEnd,
+                Vector3 rootGrip, Vector3 rootBarrelStart, Vector3 rootBarrelEnd,
+                float handleRadius, float barrelRadius,
+                float rootHandleRadius, float rootBarrelRadius,
+                Vector3 expectedDirection)
+            {
+                Grip = grip;
+                BarrelStart = barrelStart;
+                BarrelEnd = barrelEnd;
+                RootGrip = rootGrip;
+                RootBarrelStart = rootBarrelStart;
+                RootBarrelEnd = rootBarrelEnd;
+                HandleRadius = handleRadius;
+                BarrelRadius = barrelRadius;
+                RootHandleRadius = rootHandleRadius;
+                RootBarrelRadius = rootBarrelRadius;
+                ExpectedDirection = expectedDirection;
+            }
+        }
+
+        internal bool TryRenderedSwingHands(
+            out SwingHandEvidence left, out SwingHandEvidence right)
+        {
+            left = right = default;
             if (_root == null) return false;
             var foundLeft = false;
             var foundRight = false;
@@ -110,19 +160,19 @@ namespace GrandSluggers.UnityClient
             {
                 if (renderer.name.Equals("lHand", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    foundLeft = TryPosedBounds(renderer, out left, out leftExtents);
+                    foundLeft = TryPosedBounds(renderer, out left);
                 }
                 else if (renderer.name.Equals("rHand", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    foundRight = TryPosedBounds(renderer, out right, out rightExtents);
+                    foundRight = TryPosedBounds(renderer, out right);
                 }
             }
             return foundLeft && foundRight;
         }
 
-        static bool TryPosedBounds(Renderer renderer, out Vector3 center, out Vector3 extents)
+        bool TryPosedBounds(Renderer renderer, out SwingHandEvidence evidence)
         {
-            center = extents = Vector3.zero;
+            evidence = default;
             Bounds local;
             if (renderer is SkinnedMeshRenderer skinned)
             {
@@ -144,7 +194,10 @@ namespace GrandSluggers.UnityClient
                 local = filter.sharedMesh.bounds;
             }
 
-            center = renderer.transform.TransformPoint(local.center);
+            var center = renderer.transform.TransformPoint(local.center);
+            var rootCenter = _root.InverseTransformPoint(center);
+            var extents = Vector3.zero;
+            var rootExtents = Vector3.zero;
             for (var ix = -1; ix <= 1; ix += 2)
             for (var iy = -1; iy <= 1; iy += 2)
             for (var iz = -1; iz <= 1; iz += 2)
@@ -155,25 +208,32 @@ namespace GrandSluggers.UnityClient
                 extents.x = Mathf.Max(extents.x, Mathf.Abs(delta.x));
                 extents.y = Mathf.Max(extents.y, Mathf.Abs(delta.y));
                 extents.z = Mathf.Max(extents.z, Mathf.Abs(delta.z));
+                var rootDelta = _root.InverseTransformPoint(corner) - rootCenter;
+                rootExtents.x = Mathf.Max(rootExtents.x, Mathf.Abs(rootDelta.x));
+                rootExtents.y = Mathf.Max(rootExtents.y, Mathf.Abs(rootDelta.y));
+                rootExtents.z = Mathf.Max(rootExtents.z, Mathf.Abs(rootDelta.z));
             }
+            evidence = new SwingHandEvidence(center, extents, rootCenter, rootExtents);
             return true;
         }
 
-        internal bool TrySwingHandleEvidence(
-            out Vector3 modelGrip, out Vector3 handleEnd,
-            out float handleRadius, out Vector3 expectedDirection)
+        internal bool TrySwingBatEvidence(out SwingBatEvidence evidence)
         {
-            modelGrip = handleEnd = expectedDirection = Vector3.zero;
-            handleRadius = 0f;
+            evidence = default;
             if (_batModel == null || _root == null) return false;
             var grip = SwingPresentation.ModelGrip;
-            modelGrip = _batModel.TransformPoint(new Vector3(
+            var modelGrip = _batModel.TransformPoint(new Vector3(
                 (float)grip.X, (float)grip.Y, (float)grip.Z));
-            handleEnd = _batModel.TransformPoint(Vector3.zero);
-            const float authoredHandleRadius = 0.08f;
-            handleRadius = Mathf.Max(
-                _batModel.TransformVector(Vector3.right * authoredHandleRadius).magnitude,
-                _batModel.TransformVector(Vector3.forward * authoredHandleRadius).magnitude);
+            var barrelStart = SwingPresentation.ModelBarrelStart;
+            var modelBarrelStart = _batModel.TransformPoint(new Vector3(
+                (float)barrelStart.X, (float)barrelStart.Y, (float)barrelStart.Z));
+            var barrelEnd = SwingPresentation.ModelBarrelEnd;
+            var modelBarrelEnd = _batModel.TransformPoint(new Vector3(
+                (float)barrelEnd.X, (float)barrelEnd.Y, (float)barrelEnd.Z));
+            var handleRadius = ModelRadiusInWorld((float)SwingPresentation.ModelHandleRadius);
+            var barrelRadius = ModelRadiusInWorld((float)SwingPresentation.ModelBarrelRadius);
+            var rootHandleRadius = ModelRadiusInRoot((float)SwingPresentation.ModelHandleRadius);
+            var rootBarrelRadius = ModelRadiusInRoot((float)SwingPresentation.ModelBarrelRadius);
             var sampleT = _pose == Pose.ChargeSwing
                 ? SwingPresentation.LoadSampleAt(_charge)
                 : System.Math.Clamp(_poseT, 0f, (float)MoveBones.SwingDur);
@@ -182,9 +242,26 @@ namespace GrandSluggers.UnityClient
                 (float)key.BarrelDirection.X,
                 (float)key.BarrelDirection.Y,
                 (float)key.BarrelDirection.Z);
-            expectedDirection = _root.TransformVector(local).normalized;
+            var expectedDirection = _root.TransformVector(local).normalized;
+            evidence = new SwingBatEvidence(
+                modelGrip, modelBarrelStart, modelBarrelEnd,
+                _root.InverseTransformPoint(modelGrip),
+                _root.InverseTransformPoint(modelBarrelStart),
+                _root.InverseTransformPoint(modelBarrelEnd),
+                handleRadius, barrelRadius, rootHandleRadius, rootBarrelRadius,
+                expectedDirection);
             return expectedDirection.sqrMagnitude > 0.99f;
         }
+
+        float ModelRadiusInWorld(float radius) => Mathf.Max(
+            _batModel.TransformVector(Vector3.right * radius).magnitude,
+            _batModel.TransformVector(Vector3.forward * radius).magnitude);
+
+        float ModelRadiusInRoot(float radius) => Mathf.Max(
+            _root.InverseTransformVector(
+                _batModel.TransformVector(Vector3.right * radius)).magnitude,
+            _root.InverseTransformVector(
+                _batModel.TransformVector(Vector3.forward * radius)).magnitude);
 
         internal bool TryBatVisual(
             out string visual, out bool visible,
