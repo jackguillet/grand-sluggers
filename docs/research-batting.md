@@ -34,4 +34,3 @@ and extents against the physical handle from Y -0.85 to Y -0.10, and records the
 same points in shared-root space. Using root space makes the check invariant
 across the six body proportions and exposes any socket, import-axis, or mesh
 origin error.
-
