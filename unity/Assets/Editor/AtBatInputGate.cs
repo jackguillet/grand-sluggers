@@ -162,9 +162,9 @@ namespace GrandSluggers.EditorTools
         static GateCase VerifyCpuLaunchBoundaryRelease(MatchDirector play)
         {
             var match = Setup(play, Seats.One, homeAtBat: true);
-            Tick(play, "TickSet", State(south: true, west: true, stickX: 0.6f, stickY: 0.25f), State());
+            Tick(play, "TickSet", State(south: true, west: true, stickX: 0.6f, stickY: 0.6f), State());
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
-            Tick(play, "TickSet", State(west: true, stickX: 0.6f, stickY: 0.25f), State());
+            var input = Tick(play, "TickSet", State(west: true, stickX: 0.6f, stickY: 0.6f), State());
 
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Phase(play) == "Flight", "CPU pitch did not launch on the batter release frame.");
@@ -172,9 +172,11 @@ namespace GrandSluggers.EditorTools
                 "Batter release was discarded on the CPU SET-to-Flight frame.");
             Require(swing.TimingErrorFrames < 0,
                 "CPU-boundary release was not recorded inside the pitcher windup.");
-            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(0.6)) < 0.001,
+            Require(Math.Abs(input.Pad1X) > StickPlay.Dead && Math.Abs(input.Pad1Y) > StickPlay.Dead,
+                "CPU-boundary fixture did not produce live release-frame stick input.");
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad1X)) < 0.001,
                 "CPU-boundary release lost the release-frame spray intent.");
-            Require(swing.Bunt && Math.Abs(swing.LaunchAim - 0.25) < 0.001,
+            Require(input.Pad1Bunt && swing.Bunt && Math.Abs(swing.LaunchAim - input.Pad1Y) < 0.001,
                 "CPU-boundary release lost the release-frame bunt or launch intent.");
             Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
                 "CPU-boundary release captured the prior frame's batter box position.");
@@ -195,8 +197,8 @@ namespace GrandSluggers.EditorTools
         {
             Setup(play, Seats.Versus);
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
-            Tick(play, "TickSet", State(south: true), State(south: true, stickX: -0.5f));
-            Tick(play, "TickSet", State(), State(stickX: -0.5f));
+            Tick(play, "TickSet", State(south: true), State(south: true, stickX: -0.8f));
+            var input = Tick(play, "TickSet", State(), State(stickX: -0.8f));
 
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Phase(play) == "Flight", "Player 1 pitch did not launch on the simultaneous release frame.");
@@ -204,7 +206,9 @@ namespace GrandSluggers.EditorTools
                 "Player 2 batter release was discarded on the shared SET-to-Flight frame.");
             Require(swing.TimingErrorFrames < 0,
                 "Two-seat boundary release was not recorded inside the pitcher windup.");
-            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(-0.5)) < 0.001,
+            Require(Math.Abs(input.Pad2X) > StickPlay.Dead,
+                "Two-seat fixture did not produce live Player 2 release-frame stick input.");
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
                 "Two-seat boundary release lost Player 2's release-frame spray intent.");
             Require(Math.Abs(swing.BoxOffsetX - Get<Match>(play, "_match").BatterOffsetX) < 0.001,
                 "Two-seat boundary release captured the prior frame's batter box position.");
@@ -294,12 +298,12 @@ namespace GrandSluggers.EditorTools
             return match;
         }
 
-        static void Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2)
+        static InputFrame Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2)
         {
-            Tick(play, method, pad1, pad2, Keys());
+            return Tick(play, method, pad1, pad2, Keys());
         }
 
-        static void Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2,
+        static InputFrame Tick(MatchDirector play, string method, GamepadState pad1, GamepadState pad2,
             KeyboardState keyboard)
         {
             InputSystem.QueueStateEvent(_pad1, pad1);
@@ -307,7 +311,11 @@ namespace GrandSluggers.EditorTools
             InputSystem.QueueStateEvent(_keyboard, keyboard);
             InputSystem.Update();
             Controls.Tick(Step);
+            var input = new InputFrame(
+                Controls.Pad1.StickX, Controls.Pad1.StickY, Controls.Pad1.WestHeld,
+                Controls.Pad2.StickX, Controls.Pad2.StickY, Controls.Pad2.WestHeld);
             Invoke(play, method, Step);
+            return input;
         }
 
         static void Neutral()
@@ -381,5 +389,13 @@ namespace GrandSluggers.EditorTools
             public double breakX;
             public double batterOffset;
         }
+
+        readonly record struct InputFrame(
+            float Pad1X,
+            float Pad1Y,
+            bool Pad1Bunt,
+            float Pad2X,
+            float Pad2Y,
+            bool Pad2Bunt);
     }
 }
