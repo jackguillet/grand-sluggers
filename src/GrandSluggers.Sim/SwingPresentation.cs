@@ -19,12 +19,15 @@ public static class SwingPresentation
 
     /// <summary>Canonical bat-wood center sits this far above the grip socket.</summary>
     public const double ModelCenterFromGrip = 0.85;
+    /// <summary>Authored bat-wood barrel begins below its model origin.</summary>
+    public const double BarrelStartFromModelCenter = -0.15;
     /// <summary>Authored bat-wood barrel end from its model origin.</summary>
     public const double BarrelFromModelCenter = 1.25;
 
     // Authored model-local endpoints before HeroActor applies the shared-socket
     // bind conversion: handle/grip at -Y, barrel along +Y.
     public static readonly Vec3 ModelGrip = new(0, -ModelCenterFromGrip, 0);
+    public static readonly Vec3 ModelBarrelStart = new(0, BarrelStartFromModelCenter, 0);
     public static readonly Vec3 ModelBarrelEnd = new(0, BarrelFromModelCenter, 0);
     /// <summary>
     /// The authored bat bone points from grip to barrel on local -Y. Blender's
@@ -32,7 +35,8 @@ public static class SwingPresentation
     /// applies only this fixed model-to-socket bind.
     /// </summary>
     public static readonly Vec3 ModelBarrelAxisAtSocket = new(0, -1, 0);
-    public const double ModelBarrelRadius = 0.24;
+    public const double ModelHandleRadius = 0.08;
+    public const double ModelBarrelRadius = 0.12;
     public static double BarrelRadius => ModelBarrelRadius * Silhouette.BatScale;
 
     public static double BarrelReach =>

@@ -372,16 +372,13 @@ namespace GrandSluggers.UnityClient
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
             var renderedHands = hero.TryRenderedSwingHands(
-                out var renderedLeft, out var renderedRight,
-                out var leftExtents, out var rightExtents);
+                out var renderedLeft, out var renderedRight);
             if (renderedHands)
             {
-                left = renderedLeft;
-                right = renderedRight;
+                left = renderedLeft.Center;
+                right = renderedRight.Center;
             }
-            if (!hero.TrySwingHandleEvidence(
-                    out var physicalGrip, out var handleEnd,
-                    out var handleRadius, out var expectedDirection))
+            if (!hero.TrySwingBatEvidence(out var physicalBat))
             {
                 gateError = $"{captain} {power} {beat}: missing handle direction evidence";
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
@@ -409,12 +406,18 @@ namespace GrandSluggers.UnityClient
                     $"{captain} {power} {beat}: model grip missed socket by {gripError:0.###}");
             if (Vector3.Distance(grip, barrel) <= SwingPresentation.BarrelRadius)
                 failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
-            var leftToHandle = PointSegmentDistance(left, physicalGrip, handleEnd);
-            var rightToHandle = PointSegmentDistance(right, physicalGrip, handleEnd);
-            var leftExtent = MaxComponent(leftExtents);
-            var rightExtent = MaxComponent(rightExtents);
-            var leftContact = leftExtent + handleRadius;
-            var rightContact = rightExtent + handleRadius;
+            var leftToHandle = renderedHands
+                ? PointSegmentDistance(
+                    renderedLeft.RootCenter, physicalBat.RootGrip, physicalBat.RootBarrelStart)
+                : float.PositiveInfinity;
+            var rightToHandle = renderedHands
+                ? PointSegmentDistance(
+                    renderedRight.RootCenter, physicalBat.RootGrip, physicalBat.RootBarrelStart)
+                : float.PositiveInfinity;
+            var leftExtent = renderedHands ? MaxComponent(renderedLeft.RootExtents) : 0f;
+            var rightExtent = renderedHands ? MaxComponent(renderedRight.RootExtents) : 0f;
+            var leftContact = leftExtent + physicalBat.RootHandleRadius;
+            var rightContact = rightExtent + physicalBat.RootHandleRadius;
             if (sharedRigMetrics && !renderedHands)
                 failures.Add($"{captain} {power} {beat}: rendered hand meshes are missing");
             if (sharedRigMetrics && (leftToHandle > leftContact || rightToHandle > rightContact))
@@ -422,37 +425,51 @@ namespace GrandSluggers.UnityClient
                     $"{captain} {power} {beat}: rendered hands missed physical handle "
                     + $"(left {leftToHandle:0.00}/{leftContact:0.00}, "
                     + $"right {rightToHandle:0.00}/{rightContact:0.00})");
-            var actualDirection = (barrel - physicalGrip).normalized;
-            var directionDot = Vector3.Dot(actualDirection, expectedDirection);
-            if (sharedRigMetrics && directionDot < 0.97f)
+            var actualDirection = (physicalBat.BarrelEnd - physicalBat.Grip).normalized;
+            var directionDot = Vector3.Dot(actualDirection, physicalBat.ExpectedDirection);
+            var exactDirection = beat is "contact" or "follow"
+                || (beat == "load" && power == "max");
+            if (sharedRigMetrics && exactDirection && directionDot < 0.97f)
                 failures.Add(
-                    $"{captain} {power} {beat}: barrel reversed from authored path "
+                    $"{captain} {power} {beat}: barrel left the authored key "
                     + $"(dot {directionDot:0.000})");
+            if (sharedRigMetrics && beat is "ready" or "load" && actualDirection.y < 0.70f)
+                failures.Add(
+                    $"{captain} {power} {beat}: loaded barrel did not rise above the hands "
+                    + $"(world Y {actualDirection.y:0.000})");
             if (sharedRigMetrics)
             {
-                var gap = Vector3.Distance(left, right);
-                var maxGap = leftExtent + rightExtent + handleRadius * 2f;
+                var gap = Vector3.Distance(renderedLeft.RootCenter, renderedRight.RootCenter);
+                var maxGap = leftExtent + rightExtent + physicalBat.RootHandleRadius * 2f;
                 if (gap > maxGap)
                     failures.Add(
                         $"{captain} {power} {beat}: hands separated along the handle "
                         + $"(gap {gap:0.00}, authored max {maxGap:0.00})");
             }
+            var plateMin = new Vector3(
+                (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
+                (float)(PitchFlight.PlateY - 1.2 - physicalBat.BarrelRadius),
+                (float)(HomeSet.PlatePointZ - physicalBat.BarrelRadius));
+            var plateMax = new Vector3(
+                (float)(HomeSet.PlateW / 2 + physicalBat.BarrelRadius),
+                (float)(PitchFlight.PlateY + 1.2 + physicalBat.BarrelRadius),
+                (float)(HomeSet.PlateFrontZ + physicalBat.BarrelRadius));
             if (sharedRigMetrics && beat == "contact"
-                && (barrel.x < -HomeSet.PlateW / 2 - SwingPresentation.BarrelRadius
-                    || barrel.x > HomeSet.PlateW / 2 + SwingPresentation.BarrelRadius
-                    || barrel.z < HomeSet.PlatePointZ - SwingPresentation.BarrelRadius
-                    || barrel.z > HomeSet.PlateFrontZ + SwingPresentation.BarrelRadius
-                    || barrel.y < PitchFlight.PlateY - 1.2 - SwingPresentation.BarrelRadius
-                    || barrel.y > PitchFlight.PlateY + 1.2 + SwingPresentation.BarrelRadius))
+                && !SegmentIntersectsBox(
+                    physicalBat.BarrelStart, physicalBat.BarrelEnd, plateMin, plateMax))
                 failures.Add(
-                    $"{captain} {power} contact: barrel missed plate at "
-                    + $"({barrel.x:0.00}, {barrel.y:0.00}, {barrel.z:0.00})");
+                    $"{captain} {power} contact: physical barrel missed plate from "
+                    + $"({physicalBat.BarrelStart.x:0.00}, {physicalBat.BarrelStart.y:0.00}, "
+                    + $"{physicalBat.BarrelStart.z:0.00}) to "
+                    + $"({physicalBat.BarrelEnd.x:0.00}, {physicalBat.BarrelEnd.y:0.00}, "
+                    + $"{physicalBat.BarrelEnd.z:0.00})");
 
             var plate = new Vector3(0f, (float)PitchFlight.PlateY, (float)HomeSet.PlateCenterZ);
-            var axis = barrel - grip;
+            var axis = physicalBat.BarrelEnd - physicalBat.BarrelStart;
             var axisSq = axis.sqrMagnitude;
-            var u = axisSq < 0.0001f ? 0f : Mathf.Clamp01(Vector3.Dot(plate - grip, axis) / axisSq);
-            var nearest = grip + axis * u;
+            var u = axisSq < 0.0001f ? 0f : Mathf.Clamp01(
+                Vector3.Dot(plate - physicalBat.BarrelStart, axis) / axisSq);
+            var nearest = physicalBat.BarrelStart + axis * u;
             gateError = string.Join("; ", failures);
             return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\""
                 + ",\"pass\":" + (failures.Count == 0 ? "true" : "false")
@@ -466,19 +483,34 @@ namespace GrandSluggers.UnityClient
                 + ",\"modelGrip\":[" + SwingVector(modelGrip) + "]"
                 + ",\"gripError\":" + SwingNumber(gripError)
                 + ",\"renderedHands\":" + (renderedHands ? "true" : "false")
-                + ",\"physicalGrip\":[" + SwingVector(physicalGrip) + "]"
-                + ",\"handleEnd\":[" + SwingVector(handleEnd) + "]"
+                + ",\"leftHand\":[" + SwingVector(renderedLeft.Center) + "]"
+                + ",\"rightHand\":[" + SwingVector(renderedRight.Center) + "]"
+                + ",\"leftHandRoot\":[" + SwingVector(renderedLeft.RootCenter) + "]"
+                + ",\"rightHandRoot\":[" + SwingVector(renderedRight.RootCenter) + "]"
+                + ",\"physicalGrip\":[" + SwingVector(physicalBat.Grip) + "]"
+                + ",\"barrelStart\":[" + SwingVector(physicalBat.BarrelStart) + "]"
+                + ",\"physicalBarrelEnd\":[" + SwingVector(physicalBat.BarrelEnd) + "]"
+                + ",\"physicalGripRoot\":[" + SwingVector(physicalBat.RootGrip) + "]"
+                + ",\"barrelStartRoot\":[" + SwingVector(physicalBat.RootBarrelStart) + "]"
                 + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
                 + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
-                + ",\"leftHandExtents\":[" + SwingVector(leftExtents) + "]"
-                + ",\"rightHandExtents\":[" + SwingVector(rightExtents) + "]"
-                + ",\"handleRadius\":" + SwingNumber(handleRadius)
+                + ",\"leftHandExtents\":[" + SwingVector(renderedLeft.Extents) + "]"
+                + ",\"rightHandExtents\":[" + SwingVector(renderedRight.Extents) + "]"
+                + ",\"leftHandRootExtents\":[" + SwingVector(renderedLeft.RootExtents) + "]"
+                + ",\"rightHandRootExtents\":[" + SwingVector(renderedRight.RootExtents) + "]"
+                + ",\"handleRadius\":" + SwingNumber(physicalBat.HandleRadius)
+                + ",\"barrelRadius\":" + SwingNumber(physicalBat.BarrelRadius)
+                + ",\"rootHandleRadius\":" + SwingNumber(physicalBat.RootHandleRadius)
+                + ",\"rootBarrelRadius\":" + SwingNumber(physicalBat.RootBarrelRadius)
                 + ",\"leftHandleContact\":" + SwingNumber(leftContact)
                 + ",\"rightHandleContact\":" + SwingNumber(rightContact)
-                + ",\"expectedDirection\":[" + SwingVector(expectedDirection) + "]"
+                + ",\"expectedDirection\":[" + SwingVector(physicalBat.ExpectedDirection) + "]"
                 + ",\"actualDirection\":[" + SwingVector(actualDirection) + "]"
                 + ",\"directionDot\":" + SwingNumber(directionDot)
+                + ",\"exactDirectionKey\":" + (exactDirection ? "true" : "false")
                 + ",\"handGap\":" + SwingNumber(Vector3.Distance(left, right))
+                + ",\"rootHandGap\":" + SwingNumber(Vector3.Distance(
+                    renderedLeft.RootCenter, renderedRight.RootCenter))
                 + ",\"leftToGrip\":" + SwingNumber(Vector3.Distance(left, grip))
                 + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
                 + ",\"grip\":[" + SwingVector(grip) + "]"
@@ -507,6 +539,28 @@ namespace GrandSluggers.UnityClient
 
         static float MaxComponent(Vector3 value) =>
             Mathf.Max(value.x, Mathf.Max(value.y, value.z));
+
+        static bool SegmentIntersectsBox(Vector3 start, Vector3 end, Vector3 min, Vector3 max)
+        {
+            var direction = end - start;
+            var enter = 0f;
+            var exit = 1f;
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (Mathf.Abs(direction[axis]) < 0.00001f)
+                {
+                    if (start[axis] < min[axis] || start[axis] > max[axis]) return false;
+                    continue;
+                }
+                var a = (min[axis] - start[axis]) / direction[axis];
+                var b = (max[axis] - start[axis]) / direction[axis];
+                if (a > b) (a, b) = (b, a);
+                enter = Mathf.Max(enter, a);
+                exit = Mathf.Min(exit, b);
+                if (enter > exit) return false;
+            }
+            return true;
+        }
 
         internal void GatePose(string shot, StillRequest req)
         {
