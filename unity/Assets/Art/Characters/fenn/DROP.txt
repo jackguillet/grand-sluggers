@@ -3,10 +3,13 @@ Elder Fenn. Cartoon Generic package. The posed PBR turtle is gone.
   fenn.fbx            armature + closed volumes. Each piece 100% one bone.
   fenn-albedo.png     1024 atlas (URP Lit). UVs on color tiles.
   fenn-idle.fbx / fenn-pose.fbx
+  fenn-chargeSwing.fbx / fenn-swing.fbx
   Resources/Art/Characters/fenn/
 
 bind=skinned. Shell is head-only so a 90° arm cannot invert it.
 Author: tools/blender/hero_fenn.py. Body and takes export from its one DCC scene.
+Batting solves both hands around the named `bat` socket; socket local -Y points
+from handle to barrel. Contact is authored at 0.30 s.
 Do not regenerate Fenn's takes by round-tripping this FBX with different space settings.
 Do not drop a posed GLB.
 Humans pass look. Spec: docs/character-package.md

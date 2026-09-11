@@ -487,18 +487,19 @@ def build(out: Path, albedo: Path, resources: Path | None = None):
     old_fps, old_fps_base = scene.render.fps, scene.render.fps_base
     scene.render.fps = 100
     scene.render.fps_base = 1.0
-    # Blender faces +Y; its +Z becomes Unity +Y and +Y becomes Unity -Z.
-    # The socket directions trace the same baseball beats in Fenn's own rig.
+    # Blender faces +Y; its +Z becomes Unity +Y and +Y becomes Unity -Z. FBX
+    # also reflects X, so these DCC directions pre-reflect the desired Unity
+    # path. The socket still moves only through Fenn's own authored rig.
     export_batting_take(charge_swing_path, arm_ob, "chargeSwing", [
-        (1, (0.02, 0.55, 1.42), (-0.18, -0.42, 0.89), 0),
-        (101, (0.20, 0.30, 1.62), (-0.18, -0.42, 0.89), -8),
+        (1, (0.02, 0.55, 1.42), (0.18, -0.42, 0.89), 0),
+        (101, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
     ], 1, 101)
     export_batting_take(swing_path, arm_ob, "swing", [
-        (1, (0.20, 0.30, 1.62), (-0.18, -0.42, 0.89), -8),
-        (16, (0.13, 0.50, 1.50), (-0.10, 0.78, 0.62), -3),
-        (25, (0.08, 0.65, 1.42), (0.4315, 0.9022, 0.005), 3),
-        (31, (0.06, 0.68, 1.40), (0.7790, 0.6264, 0.0275), 7),
-        (51, (-0.05, 0.55, 1.52), (-0.54, 0.78, 0.31), 2),
+        (1, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
+        (16, (0.13, 0.50, 1.50), (0.10, 0.78, 0.62), -3),
+        (25, (0.08, 0.65, 1.42), (-0.4315, 0.9022, 0.005), 3),
+        (31, (0.06, 0.68, 1.40), (-0.7790, 0.6264, 0.0275), 7),
+        (51, (-0.05, 0.55, 1.52), (0.54, 0.78, 0.31), 2),
     ], 1, 51)
     scene.render.fps, scene.render.fps_base = old_fps, old_fps_base
     if resources is not None:

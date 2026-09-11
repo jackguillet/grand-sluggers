@@ -67,8 +67,9 @@ axis/scale export basis can resolve by bone name in Unity while collapsing skin:
 ```
 
 Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned). This
-single command authors the body, idle, and pose from one Blender scene so their
-bind basis cannot drift through an FBX import/re-export round trip:
+single command authors the body, idle, pose, chargeSwing, and swing from one
+Blender scene so their bind basis cannot drift through an FBX import/re-export
+round trip:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
@@ -76,6 +77,10 @@ bind basis cannot drift through an FBX import/re-export round trip:
   --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
+
+Fenn's batting constraints bake into his own armature. Both hands surround the
+named grip, socket local -Y points toward the barrel, charge maps from ready to
+MAX, and swing contact remains 0.30 s.
 
 Harbor kit (sunken dugout + stairs, wall panel, crowd, home-plate, bag). Missing file keeps HarborKit primitives. Layout: `HarborDugout` / `HarborInfield`.
 
