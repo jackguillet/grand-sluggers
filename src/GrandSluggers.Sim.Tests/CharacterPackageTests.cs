@@ -47,7 +47,7 @@ public class CharacterPackageTests
     }
 
     [Fact]
-    public void FennIdleIsReadyAndEveryOtherRuntimeVerbHasAnExplicitFallback()
+    public void FennAuthoredBattingTakesUseTheGenericPackageRail()
     {
         Assert.True(_content.Art.TryPackage("fenn", out var package));
         foreach (var verb in CharacterPackage.RuntimeVerbs)
@@ -62,15 +62,37 @@ public class CharacterPackageTests
         Assert.Equal(CharacterPackage.WorldClock, idle.Clock);
         Assert.Equal(CharacterPackage.ClipSlot("fenn", "idle"), idle.Source);
 
+        Assert.True(CharacterPackage.TryVerb(package, MoveBones.Verb.ChargeSwing, out var charge));
+        Assert.True(CharacterPackage.IsReady(charge));
+        Assert.Equal(CharacterPackage.ChargeClock, charge.Clock);
+        Assert.Equal(CharacterPackage.ClipSlot("fenn", "chargeSwing"), charge.Source);
+        Assert.Equal(CharacterPackage.PlayerClipSlot("fenn", "chargeSwing"), charge.PlayerSource);
+
+        Assert.True(CharacterPackage.TryVerb(package, MoveBones.Verb.Swing, out var swing));
+        Assert.True(CharacterPackage.IsReady(swing));
+        Assert.Equal(CharacterPackage.PoseClock, swing.Clock);
+        Assert.Equal(CharacterPackage.ClipSlot("fenn", "swing"), swing.Source);
+        Assert.Equal(CharacterPackage.PlayerClipSlot("fenn", "swing"), swing.PlayerSource);
+        Assert.True(CharacterPackage.TryMarker(swing, MoveBones.ClipEvent.Contact, out var contact));
+        Assert.Equal(MoveBones.SwingContact, contact, 6);
+
         foreach (var verb in new[] { MoveBones.Verb.Run, MoveBones.Verb.Pitch, MoveBones.Verb.Scoop, MoveBones.Verb.Throw })
         {
             Assert.True(CharacterPackage.TryVerb(package, verb, out var slot));
             Assert.Equal(CharacterPackage.Fallback, slot.Readiness);
         }
 
-        Assert.DoesNotContain(package.Verbs, slot =>
-            slot.Verb.Equals("swing", StringComparison.OrdinalIgnoreCase)
-            && slot.Source.EndsWith("fenn-pose.fbx", StringComparison.OrdinalIgnoreCase));
+        var repo = Directory.GetParent(_content.Root)!.FullName;
+        foreach (var clip in new[] { "chargeSwing", "swing" })
+        {
+            var author = Path.Combine(repo, "unity", CharacterPackage.ClipSlot("fenn", clip));
+            var player = Path.Combine(repo, "unity", CharacterPackage.PlayerClipSlot("fenn", clip));
+            Assert.Equal(File.ReadAllBytes(author), File.ReadAllBytes(player));
+        }
+
+        var dcc = File.ReadAllText(Path.Combine(repo, "tools", "blender", "hero_fenn.py"));
+        Assert.Contains("make_batting_action", dcc, StringComparison.Ordinal);
+        Assert.Contains("TRACK_NEGATIVE_Y", dcc, StringComparison.Ordinal);
     }
 
     [Fact]
