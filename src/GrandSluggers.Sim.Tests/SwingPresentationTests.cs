@@ -6,6 +6,19 @@ namespace GrandSluggers.Sim.Tests;
 public class SwingPresentationTests
 {
     [Fact]
+    public void CommonBatIsAuthoredFromTheSharedGripTowardPositiveModelY()
+    {
+        Assert.Equal(new Vec3(0, -SwingPresentation.ModelCenterFromGrip, 0),
+            SwingPresentation.ModelGrip);
+        Assert.Equal(new Vec3(0, SwingPresentation.BarrelFromModelCenter, 0),
+            SwingPresentation.ModelBarrelEnd);
+        Assert.True(SwingPresentation.ModelBarrelEnd.Y > SwingPresentation.ModelGrip.Y);
+        Assert.Equal(
+            (SwingPresentation.ModelBarrelEnd.Y - SwingPresentation.ModelGrip.Y) * Silhouette.BatScale,
+            SwingPresentation.BarrelReach);
+    }
+
+    [Fact]
     public void BothHandsStayOnOneGripFromLoadThroughFollowThrough()
     {
         foreach (var hand in new[] { Hand.R, Hand.L })
