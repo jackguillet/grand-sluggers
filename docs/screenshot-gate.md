@@ -224,3 +224,7 @@ the editor, then choose **Grand Sluggers → Capture Request File**. The menu re
 and validates the external JSON with `StillRequest.Parse`, stages it in
 `unity/Temp`, and enters the same capture path. Any allowed shot and home/away
 pair works, for example `{"shots":["plate"],"home":"fenn","away":"rio"}`.
+For the four-beat bat/socket gate on a Generic captain, request
+`{"shots":["swing-matrix"],"swingCaptains":["fenn"]}`. The default matrix
+remains the six shared-rig captains; explicit Generic captains use rendered bat
+and socket checks without inheriting shared-rig hand or plate thresholds.
