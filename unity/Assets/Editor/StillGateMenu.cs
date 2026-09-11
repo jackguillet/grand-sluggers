@@ -9,6 +9,27 @@ namespace GrandSluggers.EditorTools
     public static class StillGateMenu
     {
         const string ScenePath = "Assets/Scenes/HarborDiamond.unity";
+        const string RequestFileEnvironment = "GS_STILL_REQUEST_FILE";
+
+        [MenuItem("Grand Sluggers/Capture Request File")]
+        public static void CaptureRequestFile()
+        {
+            var source = System.Environment.GetEnvironmentVariable(RequestFileEnvironment);
+            try
+            {
+                var json = StillRequest.ReadValidatedJsonFile(source);
+                var temp = Path.Combine(Directory.GetParent(Application.dataPath)!.FullName, "Temp");
+                Directory.CreateDirectory(temp);
+                var staged = StillRequest.RequestPath(temp);
+                File.WriteAllText(staged, json);
+                Debug.Log("Grand Sluggers still gate: validated " + source + " → " + staged);
+                Capture();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("Grand Sluggers still gate: " + RequestFileEnvironment + " is invalid: " + ex.Message);
+            }
+        }
 
         [MenuItem("Grand Sluggers/Capture Still Gate")]
         public static void Capture()

@@ -108,6 +108,21 @@ public sealed class StillRequest
         return req;
     }
 
+    /// <summary>
+    /// Reads a durable request outside Unity's startup-cleaned Temp folder and
+    /// validates it before an editor tool stages the JSON for Play mode.
+    /// </summary>
+    public static string ReadValidatedJsonFile(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            throw new InvalidDataException("still request file path is empty");
+        if (!File.Exists(path))
+            throw new FileNotFoundException("still request file not found", path);
+        var json = File.ReadAllText(path);
+        _ = Parse(json);
+        return json;
+    }
+
     public static bool TryLoad(string unityTemp, out StillRequest request, out string error)
     {
         request = null!;
