@@ -384,6 +384,12 @@ namespace GrandSluggers.UnityClient
                 return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
                     + $"\"pass\":false,\"error\":\"{gateError}\"}}";
             }
+            if (!hero.TryBatMeshEvidence(out var batMesh))
+            {
+                gateError = $"{captain} {power} {beat}: missing imported bat mesh evidence";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
             var failures = new List<string>();
             var expectedPose = beat is "ready" or "rest" or "load"
                 ? HeroActor.Pose.ChargeSwing
@@ -406,6 +412,21 @@ namespace GrandSluggers.UnityClient
                     $"{captain} {power} {beat}: model grip missed socket by {gripError:0.###}");
             if (Vector3.Distance(grip, barrel) <= SwingPresentation.BarrelRadius)
                 failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
+            const float meshTolerance = 0.025f;
+            if (Mathf.Abs(batMesh.MinY + 1.14f) > meshTolerance
+                || Mathf.Abs(batMesh.MaxY - 1.25f) > meshTolerance
+                || Mathf.Abs(batMesh.MaxRadius - (float)SwingPresentation.ModelBarrelRadius) > meshTolerance)
+                failures.Add(
+                    $"{captain} {power} {beat}: imported bat geometry lost its authored origin "
+                    + $"(Y {batMesh.MinY:0.000}..{batMesh.MaxY:0.000}, radius {batMesh.MaxRadius:0.000})");
+            if (!batMesh.HasGripMaterial
+                || Mathf.Abs(batMesh.GripMinY + 1.00f) > meshTolerance
+                || Mathf.Abs(batMesh.GripMaxY + 0.10f) > meshTolerance)
+                failures.Add(
+                    $"{captain} {power} {beat}: imported grip submesh lost the physical handle "
+                    + (batMesh.HasGripMaterial
+                        ? $"(Y {batMesh.GripMinY:0.000}..{batMesh.GripMaxY:0.000})"
+                        : "(grip material missing)"));
             var leftToHandle = renderedHands
                 ? PointSegmentDistance(
                     renderedLeft.RootCenter, physicalBat.RootGrip, physicalBat.RootHandleEnd)
@@ -506,6 +527,12 @@ namespace GrandSluggers.UnityClient
                 + ",\"rootBarrelRadius\":" + SwingNumber(physicalBat.RootBarrelRadius)
                 + ",\"leftHandleContact\":" + SwingNumber(leftContact)
                 + ",\"rightHandleContact\":" + SwingNumber(rightContact)
+                + ",\"meshMinY\":" + SwingNumber(batMesh.MinY)
+                + ",\"meshMaxY\":" + SwingNumber(batMesh.MaxY)
+                + ",\"meshMaxRadius\":" + SwingNumber(batMesh.MaxRadius)
+                + ",\"meshHasGripMaterial\":" + (batMesh.HasGripMaterial ? "true" : "false")
+                + ",\"meshGripMinY\":" + SwingNumber(batMesh.GripMinY)
+                + ",\"meshGripMaxY\":" + SwingNumber(batMesh.GripMaxY)
                 + ",\"expectedDirection\":[" + SwingVector(physicalBat.ExpectedDirection) + "]"
                 + ",\"actualDirection\":[" + SwingVector(actualDirection) + "]"
                 + ",\"directionDot\":" + SwingNumber(directionDot)

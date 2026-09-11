@@ -154,6 +154,28 @@ namespace GrandSluggers.UnityClient
             }
         }
 
+        internal readonly struct BatMeshEvidence
+        {
+            internal readonly float MinY;
+            internal readonly float MaxY;
+            internal readonly float MaxRadius;
+            internal readonly float GripMinY;
+            internal readonly float GripMaxY;
+            internal readonly bool HasGripMaterial;
+
+            internal BatMeshEvidence(
+                float minY, float maxY, float maxRadius,
+                float gripMinY, float gripMaxY, bool hasGripMaterial)
+            {
+                MinY = minY;
+                MaxY = maxY;
+                MaxRadius = maxRadius;
+                GripMinY = gripMinY;
+                GripMaxY = gripMaxY;
+                HasGripMaterial = hasGripMaterial;
+            }
+        }
+
         internal bool TryRenderedSwingHands(
             out SwingHandEvidence left, out SwingHandEvidence right)
         {
@@ -271,6 +293,55 @@ namespace GrandSluggers.UnityClient
                 _batModel.TransformVector(Vector3.right * radius)).magnitude,
             _root.InverseTransformVector(
                 _batModel.TransformVector(Vector3.forward * radius)).magnitude);
+
+        internal bool TryBatMeshEvidence(out BatMeshEvidence evidence)
+        {
+            evidence = default;
+            if (_batModel == null) return false;
+            var minY = float.PositiveInfinity;
+            var maxY = float.NegativeInfinity;
+            var maxRadius = 0f;
+            var gripMinY = float.PositiveInfinity;
+            var gripMaxY = float.NegativeInfinity;
+            var hasGrip = false;
+            var found = false;
+            foreach (var filter in _batModel.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var mesh = filter.sharedMesh;
+                if (mesh == null || mesh.vertexCount == 0) continue;
+                found = true;
+                var intoModel = _batModel.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+                var vertices = mesh.vertices;
+                foreach (var vertex in vertices)
+                {
+                    var p = intoModel.MultiplyPoint3x4(vertex);
+                    minY = Mathf.Min(minY, p.y);
+                    maxY = Mathf.Max(maxY, p.y);
+                    maxRadius = Mathf.Max(maxRadius, Mathf.Sqrt(p.x * p.x + p.z * p.z));
+                }
+
+                var renderer = filter.GetComponent<MeshRenderer>();
+                var materials = renderer != null ? renderer.sharedMaterials : System.Array.Empty<Material>();
+                for (var sub = 0; sub < mesh.subMeshCount && sub < materials.Length; sub++)
+                {
+                    var material = materials[sub];
+                    if (material == null || material.name.IndexOf(
+                            "grip", System.StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+                    hasGrip = true;
+                    foreach (var index in mesh.GetIndices(sub))
+                    {
+                        var p = intoModel.MultiplyPoint3x4(vertices[index]);
+                        gripMinY = Mathf.Min(gripMinY, p.y);
+                        gripMaxY = Mathf.Max(gripMaxY, p.y);
+                    }
+                }
+            }
+            if (!found) return false;
+            evidence = new BatMeshEvidence(
+                minY, maxY, maxRadius, gripMinY, gripMaxY, hasGrip);
+            return true;
+        }
 
         internal bool TryBatVisual(
             out string visual, out bool visible,
