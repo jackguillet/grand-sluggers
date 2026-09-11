@@ -339,12 +339,21 @@ namespace GrandSluggers.UnityClient
             go.transform.localRotation = Quaternion.identity;
             var model = new GameObject("Model").transform;
             model.SetParent(go.transform, false);
-            // Authored bat socket points grip -> knob. Gear meshes point handle ->
-            // barrel on +Y, so turn the model around and put its handle on the grip.
-            model.localPosition = Vector3.down
-                * (float)(SwingPresentation.ModelCenterFromGrip * Silhouette.BatScale);
-            model.localRotation = Quaternion.Euler(0, 0, 180);
+            // The DCC socket owns the swing. This one bind conversion maps the
+            // bat-wood +Y mesh axis into that socket and rotates its authored
+            // grip offset by the same quaternion so the handle stays at origin.
+            var axis = new Vector3(
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.X,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Y,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Z);
+            model.localRotation = Quaternion.FromToRotation(Vector3.up, axis);
+            var modelGrip = new Vector3(
+                (float)SwingPresentation.ModelGrip.X,
+                (float)SwingPresentation.ModelGrip.Y,
+                (float)SwingPresentation.ModelGrip.Z);
             model.localScale = Vector3.one * Silhouette.BatScale;
+            model.localPosition = -(model.localRotation
+                * (modelGrip * Silhouette.BatScale));
             FillBat(model, _batVisual);
             _batModel = model;
             _bat = go.transform;
@@ -556,6 +565,8 @@ namespace GrandSluggers.UnityClient
                     && ArtBinder.Art.TryPackageVerb(_id, verb, out var packageVerb)
                     && TrySamplePackage(packageVerb);
                 var sharedSwingTake = !_packageBody && pose is (Pose.ChargeSwing or Pose.Swing);
+                if (sharedSwingTake && _bat != null)
+                    _bat.localRotation = Quaternion.identity;
                 var playedDrop = sharedSwingTake
                     ? TrySampleDrop("swing", pose == Pose.Swing
                         ? (float)AtBatMotion.SwingClipTime(_poseT, _charge)
@@ -1025,8 +1036,12 @@ namespace GrandSluggers.UnityClient
                 (float)key.BarrelDirection.Z);
             var world = _root.TransformVector(local).normalized;
             if (world.sqrMagnitude < 0.01f) return;
-            // The named socket's -Y axis runs from the grip toward the barrel.
-            _batSocket.rotation = Quaternion.FromToRotation(Vector3.down, world);
+            if (_bat != null) _bat.localRotation = Quaternion.identity;
+            var modelAxis = new Vector3(
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.X,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Y,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Z);
+            _batSocket.rotation = Quaternion.FromToRotation(modelAxis, world);
         }
 
         static void Ease(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
