@@ -84,6 +84,33 @@ public class AtBatFeelTests
         Assert.Equal(releaseDuringWindup, AtBatMotion.SwingStart(plateAt, error), 8);
     }
 
+    [Fact]
+    public void SwingIntentCarriesTheReleaseInputsAcrossAPhaseBoundary()
+    {
+        var held = ChargeButton.Advance(default, pressed: true, held: true, released: false,
+            deltaSeconds: 0.2, secondsToFull: 0.45);
+        var released = ChargeButton.Advance(held.Next, pressed: false, held: false, released: true,
+            deltaSeconds: 1.0 / 60, secondsToFull: 0.45);
+        var intent = SwingInputIntent.Capture(
+            released, stickX: 0.6, stickY: 0.25, bunt: false, boxOffsetX: -0.35);
+
+        Assert.True(intent.Committed);
+        Assert.Equal(released.CommitFill01, intent.Fill01);
+        Assert.Equal(AtBatResolver.SprayAimDeg(0.6), intent.SprayAimDeg);
+        Assert.Equal(0.25, intent.LaunchAim);
+        Assert.Equal(-0.35, intent.BoxOffsetX);
+
+        const double releaseAt = -MoveBones.PitchRelease;
+        const double plateAt = 1.0;
+        var swing = intent.Resolve(releaseAt, plateAt, effectiveCharge: 0.4, star: true);
+        Assert.True(swing.Swing);
+        Assert.Equal(0.4, swing.Charge01);
+        Assert.True(swing.Star);
+        Assert.Equal(releaseAt, AtBatMotion.SwingStart(plateAt, swing.TimingErrorFrames), 8);
+        Assert.Equal(intent.SprayAimDeg, swing.SprayAimDeg);
+        Assert.Equal(intent.BoxOffsetX, swing.BoxOffsetX);
+    }
+
     [Theory]
     [InlineData(0.78)]
     [InlineData(1.0)]
