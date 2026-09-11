@@ -1,10 +1,66 @@
 using Xunit;
 using GrandSluggers.Sim;
+using System.Text.Json.Nodes;
 
 namespace GrandSluggers.Sim.Tests;
 
 public class SwingPresentationTests
 {
+    [Fact]
+    public void ReadyAndLoadAreSidewaysToThePlateWithEyesOnThePitcher()
+    {
+        foreach (var hand in new[] { Hand.R, Hand.L })
+        foreach (var t in new[] { SwingPresentation.LoadAt, SwingPresentation.NormalLoadAt,
+                                  SwingPresentation.LaunchAt })
+        {
+            var stance = BattingStance.At(t, hand);
+            Assert.True(Dot(stance.ChestForward, BattingStance.PlateDirection(hand))
+                        >= BattingStance.AlignmentDot);
+            Assert.True(Dot(stance.EyesForward, new Vec3(0, 0, 1))
+                        >= BattingStance.AlignmentDot);
+            Assert.True(Math.Abs(Dot(stance.FeetAxis, new Vec3(0, 0, 1)))
+                        >= BattingStance.AlignmentDot);
+        }
+    }
+
+    [Fact]
+    public void AuthoredBodyTurnsThroughContactAndMirrorsOnlyAcrossThePlate()
+    {
+        var load = BattingStance.At(SwingPresentation.LoadAt);
+        var approach = BattingStance.At(SwingPresentation.ApproachAt);
+        var contact = BattingStance.At(SwingPresentation.ContactAt);
+        var follow = BattingStance.At(SwingPresentation.FollowThroughAt);
+        Assert.True(load.ChestForward.X > approach.ChestForward.X);
+        Assert.True(approach.ChestForward.X > contact.ChestForward.X);
+        Assert.True(contact.ChestForward.X > follow.ChestForward.X);
+        Assert.True(load.ChestForward.Z < approach.ChestForward.Z);
+        Assert.True(approach.ChestForward.Z < contact.ChestForward.Z);
+
+        foreach (var key in BattingStance.Keys)
+        {
+            var left = BattingStance.At(key.T, Hand.L);
+            Assert.Equal(-key.ChestForward.X, left.ChestForward.X, 7);
+            Assert.Equal(key.ChestForward.Z, left.ChestForward.Z, 7);
+            Assert.Equal(key.EyesForward, left.EyesForward);
+        }
+    }
+
+    [Fact]
+    public void DccCatalogCarriesThePortableStanceDirections()
+    {
+        var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
+        var path = Path.Combine(repo, "data", "art", "pose-clips", "swing.json");
+        var keys = JsonNode.Parse(File.ReadAllText(path))!["keys"]!.AsArray();
+        Assert.Equal(BattingStance.Keys.Count, keys.Count);
+        for (var i = 0; i < keys.Count; i++)
+        {
+            var stance = BattingStance.Keys[i];
+            AssertVector(stance.ChestForward, keys[i]!["chestForward"]!.AsArray());
+            AssertVector(stance.EyesForward, keys[i]!["eyesForward"]!.AsArray());
+            AssertVector(stance.FeetAxis, keys[i]!["feetAxis"]!.AsArray());
+        }
+    }
+
     [Fact]
     public void CommonBatIsAuthoredFromTheSharedGripTowardPositiveModelY()
     {
@@ -98,4 +154,11 @@ public class SwingPresentationTests
                   (a.Z - b.Z) * (a.Z - b.Z));
 
     static double Length(Vec3 v) => Math.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
+    static double Dot(Vec3 a, Vec3 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    static void AssertVector(Vec3 expected, JsonArray actual)
+    {
+        Assert.Equal(expected.X, actual[0]!.GetValue<double>(), 7);
+        Assert.Equal(expected.Y, actual[1]!.GetValue<double>(), 7);
+        Assert.Equal(expected.Z, actual[2]!.GetValue<double>(), 7);
+    }
 }
