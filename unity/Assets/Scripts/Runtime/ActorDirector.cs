@@ -15,6 +15,8 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
+        float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+
         internal void DrawBodies(float dt) => DrawActors(dt);
 
         void DrawActors(float dt)
@@ -181,8 +183,22 @@ namespace GrandSluggers.UnityClient
             {
                 var bHero = Hero(batter);
                 var racing = _phase == Phase.InPlay && _pending != null;
-                var stillSwing = racing && LiveTime < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
-                var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
+                var committedSwing = _swung && _swing != null && _swing.Swing && !_swing.Bunt;
+                if (committedSwing)
+                {
+                    _committedSwingT = (float)AtBatMotion.AdvanceCommittedSwing(
+                        _committedSwingT,
+                        _flight,
+                        AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames),
+                        dt);
+                }
+                else
+                    _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+                var presentingSwing = committedSwing
+                    && AtBatMotion.PresentsCommittedSwing(_committedSwingT);
+                var bPose = presentingSwing
+                    ? HeroActor.Pose.Swing
+                    : racing ? HeroActor.Pose.Run : BatterPose();
                 // Use the committed charge after release, including CPU swings.
                 var swingCharge = bPose == HeroActor.Pose.Swing && _swing != null
                     ? (float)_swing.Charge01
@@ -207,7 +223,9 @@ namespace GrandSluggers.UnityClient
                     var startX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
                     var (hx, hz) = InPlay.AlongBases(feet, dest,
                         startX, HomeSet.BatterZ);
-                    var look = dest >= 2 && feet > Diamond.Baseline
+                    var look = presentingSwing
+                        ? (X: 0.0, Z: 1.0)
+                        : dest >= 2 && feet > Diamond.Baseline
                         ? Diamond.Bag(Math.Min(dest, 3))
                         : Diamond.First;
                     bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
@@ -217,8 +235,8 @@ namespace GrandSluggers.UnityClient
                         (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
-                if (bPose == HeroActor.Pose.Swing && _phase == Phase.Flight && _swing != null)
-                    bHero.SampleMotion((float)(_flight - AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames)));
+                if (bPose == HeroActor.Pose.Swing && presentingSwing)
+                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT));
                 else bHero.Tick(dt);
             }
 
@@ -290,7 +308,6 @@ namespace GrandSluggers.UnityClient
                     return _swing != null && _swing.Swing ? HeroActor.Pose.Miss : HeroActor.Pose.Idle;
                 if (_last.Kind == PlayKind.HomeRun) return HeroActor.Pose.Cheer;
                 if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
-                if (_swing != null && _swing.Swing) return HeroActor.Pose.Swing;
                 return HeroActor.Pose.Idle;
             }
             if (_phase == Phase.GameOver)
