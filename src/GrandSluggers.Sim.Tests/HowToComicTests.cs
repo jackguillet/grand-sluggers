@@ -37,10 +37,10 @@ public class HowToComicTests
         Assert.False(HowToPlay.MixesHardware(padSwing));
         Assert.False(HowToPlay.MixesHardware(keySwing));
 
-        Assert.Equal("LT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
-        Assert.Equal("South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
-        Assert.Contains("Shift", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
-        Assert.Contains("Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
+        Assert.Equal("Hold South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
+        Assert.Equal("Release South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
+        Assert.Contains("Hold Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
+        Assert.Equal("Release", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
 
         var row = HowToComic.Row(0, 1280, 800);
         Assert.True(row.W > 500);

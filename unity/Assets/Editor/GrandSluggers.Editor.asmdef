@@ -4,6 +4,7 @@
   "references": [
     "GrandSluggers.Runtime",
     "GrandSluggers.Sim",
+    "Unity.InputSystem",
     "Unity.RenderPipelines.Universal.Runtime",
     "Unity.RenderPipelines.Core.Runtime"
   ],

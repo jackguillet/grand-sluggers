@@ -172,7 +172,8 @@ namespace GrandSluggers.UnityClient
                 var stillSwing = racing && LiveTime < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
                 var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
                 bHero.SetPose(bPose, HumanBats ? _charge : 0);
-                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
+                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _swingButton.Armed
+                    ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
                     or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
@@ -229,7 +230,7 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.Hide();
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
-            _zone.Show(SetTells.ZoneOn(setOrFlight), _aimX, _aimY);
+            _zone.Show(SetTells.ZoneOn(setOrFlight), BatterCursorX, 0);
             _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
 
             Character fielder = null;
