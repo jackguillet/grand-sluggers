@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Swing take on the hero-shared armature. Contact at 0.30s (MoveBones.SwingContact).
 
-Keys match data/art/pose-clips/swing.json so the FBX is the same cut, not a T-pose.
+Targets match data/art/pose-clips/swing.json after FBX handedness conversion.
 """
 from __future__ import annotations
 
@@ -77,6 +77,11 @@ BARREL_DIRECTIONS = {
     0.50: (-0.54, 0.31, -0.78),
 }
 
+HAND_MESH = {"lFore": "lHand", "rFore": "rHand"}
+ARM_PARENT = {"lFore": "lUpper", "rFore": "rUpper"}
+HANDLE_HOLD_FROM_GRIP = 0.46
+HANDLE_LENGTH = 0.85 * 1.28
+
 
 def load_blockout():
     path = Path(__file__).resolve().parent / "hero_shared_blockout.py"
@@ -90,7 +95,59 @@ def deg(v):
     return tuple(math.radians(x) for x in v)
 
 
-def key_bat_direction(arm_ob, direction, frame):
+def rendered_center(name):
+    deps = bpy.context.evaluated_depsgraph_get()
+    ob = bpy.data.objects[name].evaluated_get(deps)
+    mesh = ob.to_mesh()
+    points = [ob.matrix_world @ v.co for v in mesh.vertices]
+    ob.to_mesh_clear()
+    lo = Vector((min(v.x for v in points), min(v.y for v in points), min(v.z for v in points)))
+    hi = Vector((max(v.x for v in points), max(v.y for v in points), max(v.z for v in points)))
+    return (lo + hi) * 0.5
+
+
+def reflect_centerline(matrix):
+    reflect = Matrix.Diagonal((-1, 1, 1, 1))
+    return reflect @ matrix @ reflect
+
+
+def solve_rendered_hands(arm_ob, targets):
+    controls = []
+    for fore_name, target in targets.items():
+        control = bpy.data.objects.new("ik-" + fore_name, None)
+        bpy.context.collection.objects.link(control)
+        control.location = target
+        constraint = arm_ob.pose.bones[fore_name].constraints.new("IK")
+        constraint.target = control
+        constraint.chain_count = 2
+        constraint.iterations = 128
+        controls.append((fore_name, control, constraint))
+
+    # The rigid hand center sits beyond the forearm tail and off its centerline.
+    # Feed that evaluated offset back into the IK target until the mesh, rather
+    # than an abstract bone tip, reaches the authored point.
+    for _ in range(16):
+        bpy.context.view_layer.update()
+        for fore_name, control, _ in controls:
+            actual = rendered_center(HAND_MESH[fore_name])
+            control.location += targets[fore_name] - actual
+
+    bpy.context.view_layer.update()
+    solved = {}
+    for fore_name, _, _ in controls:
+        solved[ARM_PARENT[fore_name]] = arm_ob.pose.bones[ARM_PARENT[fore_name]].matrix.copy()
+        solved[fore_name] = arm_ob.pose.bones[fore_name].matrix.copy()
+    for fore_name, control, constraint in controls:
+        arm_ob.pose.bones[fore_name].constraints.remove(constraint)
+        bpy.data.objects.remove(control, do_unlink=True)
+    for name in ("lUpper", "rUpper", "lFore", "rFore"):
+        bone = arm_ob.pose.bones[name]
+        bone.rotation_mode = "QUATERNION"
+        bone.matrix = solved[name]
+    bpy.context.view_layer.update()
+
+
+def key_bat_direction(arm_ob, direction, grip, frame):
     """Aim the authored bat bone; never patch its world rotation in Unity."""
     bat = arm_ob.pose.bones["bat"]
     # Preserve the keyed Euler as the roll seed, then rotate only enough to put
@@ -103,11 +160,18 @@ def key_bat_direction(arm_ob, direction, frame):
     matrix = bat.matrix.copy()
     bat.rotation_mode = "QUATERNION"
     bat.matrix = Matrix.LocRotScale(
-        matrix.translation,
+        grip,
         correction @ matrix.to_quaternion(),
         matrix.to_scale(),
     )
     bat.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+    bat.keyframe_insert(data_path="location", frame=frame)
+
+
+def point_segment_distance(point, start, end):
+    axis = end - start
+    u = 0 if axis.length_squared < 1e-8 else max(0, min(1, (point - start).dot(axis) / axis.length_squared))
+    return (point - (start + axis * u)).length
 
 
 def key_swing(arm_ob):
@@ -130,15 +194,42 @@ def key_swing(arm_ob):
     for t, pose in KEYS:
         frame = 1 + int(round(t * FPS))
         scene.frame_set(frame)
+        for pb in arm_ob.pose.bones:
+            pb.rotation_mode = "XYZ"
+            pb.rotation_euler = (0, 0, 0)
+            pb.location = (0, 0, 0)
         for name, euler in pose.items():
             if name not in arm_ob.pose.bones:
                 continue
             pb = arm_ob.pose.bones[name]
             pb.rotation_mode = "XYZ"
             pb.rotation_euler = deg(euler)
-            if name != "bat":
+            if name not in {"torso", "head", "lUpper", "lFore", "rUpper", "rFore", "bat"}:
                 pb.keyframe_insert(data_path="rotation_euler", frame=frame)
-        key_bat_direction(arm_ob, BARREL_DIRECTIONS[t], frame)
+        bpy.context.view_layer.update()
+
+        targets = {name: rendered_center(mesh) for name, mesh in HAND_MESH.items()}
+        for target in targets.values():
+            target.x *= -1
+        torso_matrix = reflect_centerline(arm_ob.pose.bones["torso"].matrix)
+        head_matrix = reflect_centerline(arm_ob.pose.bones["head"].matrix)
+        torso = arm_ob.pose.bones["torso"]
+        torso.rotation_mode = "QUATERNION"
+        torso.matrix = torso_matrix
+        bpy.context.view_layer.update()
+        head = arm_ob.pose.bones["head"]
+        head.rotation_mode = "QUATERNION"
+        head.matrix = head_matrix
+        solve_rendered_hands(arm_ob, targets)
+        for name in ("torso", "head", "lUpper", "lFore", "rUpper", "rFore"):
+            arm_ob.pose.bones[name].keyframe_insert(data_path="rotation_quaternion", frame=frame)
+
+        left = rendered_center("lHand")
+        right = rendered_center("rHand")
+        unity = Vector(BARREL_DIRECTIONS[t]).normalized()
+        barrel_direction = Vector((-unity.x, -unity.z, unity.y)).normalized()
+        grip = (left + right) * 0.5 - barrel_direction * HANDLE_HOLD_FROM_GRIP
+        key_bat_direction(arm_ob, BARREL_DIRECTIONS[t], grip, frame)
 
     for layer in action.layers:
         for strip in layer.strips:
@@ -149,6 +240,22 @@ def key_swing(arm_ob):
 
     scene.frame_set(1 + int(round(CONTACT * FPS)))
     bpy.ops.object.mode_set(mode="OBJECT")
+
+    for t, direction in BARREL_DIRECTIONS.items():
+        scene.frame_set(1 + int(round(t * FPS)))
+        bpy.context.view_layer.update()
+        bat = arm_ob.pose.bones["bat"]
+        actual = -(bat.matrix.to_3x3() @ Vector((0, 1, 0))).normalized()
+        unity = Vector(direction).normalized()
+        expected = Vector((-unity.x, -unity.z, unity.y)).normalized()
+        if actual.dot(expected) < 0.999:
+            raise RuntimeError(f"bat direction missed at {t:.2f}: {actual} vs {expected}")
+        grip = bat.head
+        handle_end = grip + actual * HANDLE_LENGTH
+        for hand in (rendered_center("lHand"), rendered_center("rHand")):
+            distance = point_segment_distance(hand, grip, handle_end)
+            if distance > 0.30:
+                raise RuntimeError(f"rendered hand missed handle at {t:.2f}: {distance:.3f}")
 
 
 def main(argv):
