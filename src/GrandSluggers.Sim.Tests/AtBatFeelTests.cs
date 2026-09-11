@@ -162,6 +162,53 @@ public class AtBatFeelTests
         }
     }
 
+    [Fact]
+    public void LateCommittedSwingContinuesFromPlateResolutionThroughFollowThroughOnce()
+    {
+        const double plateAt = 0.50;
+        const double lateFrames = 12;
+        var start = AtBatMotion.SwingStart(plateAt, lateFrames);
+        var clock = AtBatMotion.SwingNotStarted;
+
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
+        Assert.Equal(0, clock, 8);
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.10);
+        Assert.Equal(0.10, clock, 8);
+
+        var sawContact = false;
+        while (clock < MoveBones.SwingDur)
+        {
+            clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
+            sawContact |= Math.Abs(clock - MoveBones.SwingContact) < 1e-8;
+            Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
+        }
+        Assert.True(sawContact);
+        Assert.Equal(MoveBones.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
+        Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
+        Assert.Equal(MoveBones.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+    }
+
+    [Fact]
+    public void EarlyCommittedSwingFinishedBeforeResolutionDoesNotRestart()
+    {
+        const double plateAt = 0.50;
+        const double earlyFrames = -30;
+        var start = AtBatMotion.SwingStart(plateAt, earlyFrames);
+        var clock = AtBatMotion.SwingNotStarted;
+
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
+        clock = AtBatMotion.AdvanceCommittedSwing(
+            clock, start + MoveBones.SwingDur, start, MoveBones.SwingDur);
+        Assert.Equal(MoveBones.SwingDur, clock, 8);
+        Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
+
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 1.0 / 60);
+        Assert.True(clock > MoveBones.SwingDur);
+        Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
+    }
+
 
     [Fact]
     public void ReleaseIsTheHandNotTheTorsoAndPathFacesBothLooks()
