@@ -216,6 +216,10 @@ public class ArtCatalogTests
         Assert.Contains("if o.name != \"bat-wood\"", extrasSrc);
         Assert.Contains("Diameter 1", extrasSrc);
         Assert.Contains("(1.0, 1.0, 1.0), cream)", extrasSrc);
+        var importer = File.ReadAllText(Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Editor/SharedRigImport.cs".Replace('/', Path.DirectorySeparatorChar))));
+        Assert.Contains("imp.isReadable = sharedExtras", importer);
+        Assert.Contains("Art/Characters/SharedRig/extras.fbx", importer);
         var extrasRes = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Resources/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(extrasRes), extrasRes + " — toys must bind in the Linux player");
