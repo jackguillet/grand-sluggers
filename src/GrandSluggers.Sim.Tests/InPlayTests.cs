@@ -334,7 +334,7 @@ public class InPlayTests
     [Fact]
     public void TimeWaitsUntilEveryRunnerHasBeenOnABagASecond()
     {
-        Assert.Equal(1.0, InPlay.TimeOnBagSec);
+        Assert.Equal(1.0, Rules.Default.Running.Bags.TimeOnBagSec);
         var between = new InPlay.Occupy(false, 0);
         var justOn = new InPlay.Occupy(true, 0.4);
         var settled = new InPlay.Occupy(true, 1.0);
@@ -369,7 +369,7 @@ public class InPlayTests
         Assert.Equal(Diamond.Second.X, atTwo.X, 1);
         var tick = InPlay.TickOccupy(true, 0.4, 0.7);
         Assert.True(tick.OnBag);
-        Assert.True(tick.Sec >= InPlay.TimeOnBagSec);
+        Assert.True(tick.Sec >= Rules.Default.Running.Bags.TimeOnBagSec);
         Assert.Equal(0, InPlay.TickOccupy(false, 1.5, 0.1).Sec);
     }
 
@@ -377,30 +377,30 @@ public class InPlayTests
     public void TouchesIsATagOffTheBag()
     {
         var midPath = InPlay.AlongBases(Diamond.Baseline * 0.5, 1);
-        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z, InPlay.TagSafeRadiusFt));
+        Assert.False(InPlay.OccupyingBag(midPath.X, midPath.Z, Rules.Default.Running.Bags.TagSafeRadiusFt));
         Assert.True(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z));
         Assert.False(InPlay.Touches(true, false, midPath.X, midPath.Z, midPath.X, midPath.Z, runnerOnBag: true),
             "on a bag they are safe");
         Assert.False(InPlay.Touches(false, false, midPath.X, midPath.Z, midPath.X, midPath.Z), "no ball");
         Assert.False(InPlay.Touches(true, true, midPath.X, midPath.Z, midPath.X, midPath.Z), "throwing");
         var first = Diamond.First;
-        Assert.True(InPlay.OccupyingBag(first.X, first.Z, InPlay.TagSafeRadiusFt));
+        Assert.True(InPlay.OccupyingBag(first.X, first.Z, Rules.Default.Running.Bags.TagSafeRadiusFt));
         Assert.False(InPlay.Touches(true, false, first.X, first.Z, first.X, first.Z),
             "standing on first is not a tag");
         Assert.True(InPlay.CloseSafe(3.2, 3.1), "a step ahead of the throw is SAFE");
         Assert.False(InPlay.CloseSafe(3.0, 3.1), "throw beats the runner");
         Assert.False(InPlay.CloseSafe(4.5, 3.1), "waiting on the bag is not bang-bang");
         var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1);
-        Assert.False(InPlay.OccupyingBag(off.X, off.Z, InPlay.TagSafeRadiusFt), "off home toward first");
+        Assert.False(InPlay.OccupyingBag(off.X, off.Z, Rules.Default.Running.Bags.TagSafeRadiusFt), "off home toward first");
         Assert.True(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z),
             "toy bodies overlap from the diamond camera");
         var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1);
-        Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, InPlay.TagSafeRadiusFt),
+        Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, Rules.Default.Running.Bags.TagSafeRadiusFt),
             "a step off first is a tag");
         Assert.True(InPlay.Touches(true, false, stepOffFirst.X, stepOffFirst.Z, stepOffFirst.X, stepOffFirst.Z));
         Assert.False(InPlay.Touches(true, false, 0, 0, midPath.X, midPath.Z), "too far");
-        Assert.True(InPlay.TagSafeRadiusFt < InPlay.OccupyRadiusFt);
-        Assert.True(InPlay.TagSafeRadiusFt < InPlay.TagReachFt);
+        Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < Rules.Default.Running.Bags.OccupyRadiusFt);
+        Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < Rules.Default.Running.Bags.TagReachFt);
     }
 
     [Fact]

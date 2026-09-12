@@ -211,7 +211,7 @@ namespace GrandSluggers.UnityClient
             if (shot == "char-rest" || shot == "char-pose")
             {
                 if (_match == null) _match = NewMatch();
-                _park.Build(_match.Park, _match.Night);
+                _park.Build(_match.Park, _match.Night, _content.Rules);
                 _phase = Phase.Field;
                 _gateHold = true;
                 _turntable = true;
@@ -223,7 +223,7 @@ namespace GrandSluggers.UnityClient
             if (shot == "title" || shot == "select" || shot == "field" || shot == "lineup")
             {
                 if (_match == null) _match = NewMatch();
-                _park.Build(_match.Park, _match.Night);
+                _park.Build(_match.Park, _match.Night, _content.Rules);
                 if (shot == "lineup")
                     OpenLineup();
                 else
@@ -234,7 +234,7 @@ namespace GrandSluggers.UnityClient
             }
 
             _match = NewMatch();
-            _park.Build(_match.Park, _match.Night);
+            _park.Build(_match.Park, _match.Night, _content.Rules);
 
             if (shot == "mound")
             {
@@ -287,7 +287,7 @@ namespace GrandSluggers.UnityClient
                 ? "brondo"
                 : "ashlord";
             _match = NewMatch();
-            _park.Build(_match.Park, _match.Night);
+            _park.Build(_match.Park, _match.Night, _content.Rules);
             _match.SkipToHomeCaptainAtBat();
             BeginSet();
             _phase = Phase.Set;

@@ -8,7 +8,7 @@ namespace GrandSluggers.UnityClient
         Transform _root;
         Transform _target;
 
-        public void Build(Transform parent)
+        public void Build(Transform parent, RulesTable rules)
         {
             if (_root != null) Destroy(_root.gameObject);
             _root = new GameObject("StrikeZone").transform;
@@ -43,8 +43,8 @@ namespace GrandSluggers.UnityClient
             {
                 var a = i * Mathf.PI * 2f / oval.positionCount;
                 oval.SetPosition(i, new Vector3(
-                    Mathf.Cos(a) * (float)SweetSpot.WorldHalfWidth,
-                    Mathf.Sin(a) * (float)SweetSpot.WorldHalfHeight,
+                    Mathf.Cos(a) * (float)SweetSpot.WorldHalfWidth(rules),
+                    Mathf.Sin(a) * (float)SweetSpot.WorldHalfHeight(rules),
                     0));
             }
             var centerMarker = Look.Prim(PrimitiveType.Sphere, "SweetSpot", cursor.transform,

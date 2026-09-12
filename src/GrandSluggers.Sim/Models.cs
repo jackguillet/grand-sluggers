@@ -302,13 +302,15 @@ public sealed class RunnerState
         if (Lead01 <= 0) Returning = false;
     }
 
-    public void StartSteal(int targetBag = 0)
+    /// <param name="armedLeadMin">running.steal.armedLeadMin: an armed runner has at least this lead.</param>
+    public void StartSteal(int targetBag = 0, double? armedLeadMin = null)
     {
         StealAttempt = true;
         StealTarget = targetBag is 2 or 3 ? targetBag : 0;
         Returning = false;
         Sliding = false;
-        if (Lead01 < 0.2) Lead01 = 0.2;
+        var min = armedLeadMin ?? Rules.Default.Running.Steal.ArmedLeadMin;
+        if (Lead01 < min) Lead01 = min;
     }
 
     public void CancelSteal()

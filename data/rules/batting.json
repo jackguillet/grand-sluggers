@@ -1,0 +1,125 @@
+{
+  "window": {
+    "baseFrames": 7.0,
+    "framesPerContact": 0.55,
+    "chargeMul": 0.78,
+    "perfectFrames": 1.0,
+    "solidFraction": 0.55
+  },
+  "charge": {
+    "powerPerCharge": 0.12,
+    "chargeBatMul": 1.10,
+    "loftDeg": 2.5
+  },
+  "quality": {
+    "perfectExitMul": 1.10,
+    "solidExitMul": 1.0,
+    "cheapExitMul": 0.58,
+    "perfectEnergyMul": 1.25,
+    "solidEnergyMul": 1.0,
+    "cheapEnergyMul": 0.55
+  },
+  "exit": {
+    "baseMph": 52,
+    "mphPerPower": 3.35,
+    "tiredPitcherMul": 1.05
+  },
+  "launch": {
+    "loftBaseDeg": 16,
+    "loftPerPower": 1.0,
+    "degPerFrame": 1.35,
+    "stickDeg": 12,
+    "noiseDeg": 14,
+    "cheapLateMinDeg": 4,
+    "cheapLateSpanDeg": 10,
+    "cheapEarlyMinDeg": 40,
+    "cheapEarlySpanDeg": 12,
+    "minDeg": 3,
+    "maxDeg": 52
+  },
+  "bunt": {
+    "exitMul": 0.42,
+    "launchMinDeg": 5,
+    "launchSpanDeg": 7,
+    "spraySpanDeg": 28
+  },
+  "spray": {
+    "perfectSpreadDeg": 8,
+    "solidSpreadDeg": 18,
+    "cheapSpreadDeg": 52,
+    "stickMaxDeg": 42,
+    "outOfZoneSpanDeg": 18
+  },
+  "foul": {
+    "cheapPullMinDeg": 20,
+    "cheapPullChance": 0.4,
+    "cheapPullPastDeg": 6,
+    "cheapPullSpanDeg": 14
+  },
+  "homer": {
+    "launchMinDeg": 18,
+    "launchMaxDeg": 38
+  },
+  "oval": {
+    "halfWidth": 0.32,
+    "halfHeight": 0.28,
+    "edgeD2": 2.25,
+    "edgeOverlap": 0.35
+  },
+  "hbp": {
+    "bodyRadius": 0.32
+  },
+  "star": {
+    "phonyballWhiff": 0.4,
+    "prismballSpraySpanDeg": 22,
+    "groundLaunchDeg": 8,
+    "flyLaunchDeg": 38,
+    "lineLaunchDeg": 18
+  },
+  "buddiesOnBase": {
+    "oneMul": 1.10,
+    "twoMul": 1.25,
+    "threeMul": 1.50
+  },
+  "items": {
+    "cpuThrowChance": 0.4,
+    "rocketDazeChance": 0.55
+  },
+  "cpu": {
+    "sacBuntChance": 0.12,
+    "sacBuntCharge": 0.12,
+    "sacBuntErrorSigma": 2.2,
+    "sacBuntSpraySigma": 10,
+    "sacBuntLaunchAim": 0.35,
+    "chaseChance": 0.12,
+    "starChanceCaptain": 0.14,
+    "starChance": 0.08,
+    "chargeChance": 0.35,
+    "chargeMin": 0.7,
+    "chargeSpan": 0.3,
+    "tapSpan": 0.4,
+    "errorFramesPerBatStat": 0.62,
+    "outOfZoneErrorFrames": 4,
+    "spraySigmaDeg": 12,
+    "launchAimSigma": 0.45,
+    "vsHuman": {
+      "meatballChargeBelow": 0.55,
+      "chaseChance": 0.10,
+      "chaseErrorPerBatStat": 1.4,
+      "chaseErrorBias": 6,
+      "chaseSpraySigmaDeg": 22,
+      "chaseLaunchAim": 0.6,
+      "missErrorMin": 9,
+      "missErrorSpan": 6,
+      "missSpraySigmaDeg": 24,
+      "missLaunchAim": 0.7,
+      "errorMean": 4.5,
+      "errorSigma": 2.2,
+      "errorFloor": 3.2,
+      "spraySigmaDeg": 20,
+      "chargeSpan": 0.35,
+      "launchAimMin": 0.55,
+      "launchAimSpan": 0.35
+    }
+  }
+}

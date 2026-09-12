@@ -126,29 +126,31 @@ public static class ChargeButton
 /// </summary>
 public static class SweetSpot
 {
-    public const double HalfWidth = 0.32;
-    public const double HalfHeight = 0.28;
+    /// <summary>Oval half sizes in plate-aim units (batting.oval).</summary>
+    public static double HalfWidth(RulesTable? rules = null) => Rules.Or(rules).Batting.Oval.HalfWidth;
+    public static double HalfHeight(RulesTable? rules = null) => Rules.Or(rules).Batting.Oval.HalfHeight;
 
-    public const double WorldHalfWidth = HalfWidth * PitchFlight.PlateScaleX;
-    public const double WorldHalfHeight = HalfHeight * PitchFlight.PlateScaleY;
+    public static double WorldHalfWidth(RulesTable? rules = null) => HalfWidth(rules) * PitchFlight.PlateScaleX;
+    public static double WorldHalfHeight(RulesTable? rules = null) => HalfHeight(rules) * PitchFlight.PlateScaleY;
 
     public static (double X, double Y) WorldCenter(double boxOffsetX) =>
         PitchFlight.PlateTarget(boxOffsetX, 0);
 
-    public static double Overlap(double boxOffsetX, double pitchAimX, double pitchAimY)
+    public static double Overlap(double boxOffsetX, double pitchAimX, double pitchAimY, RulesTable? rules = null)
     {
-        var dx = (pitchAimX - boxOffsetX) / HalfWidth;
-        var dy = pitchAimY / HalfHeight;
+        var oval = Rules.Or(rules).Batting.Oval;
+        var dx = (pitchAimX - boxOffsetX) / oval.HalfWidth;
+        var dy = pitchAimY / oval.HalfHeight;
         var d2 = dx * dx + dy * dy;
         if (d2 <= 1) return 1;
-        if (d2 <= 2.25) return 0.35;
+        if (d2 <= oval.EdgeD2) return oval.EdgeOverlap;
         return 0;
     }
 
-    public static bool CenterEatsHeart() => Overlap(0, 0, 0) >= 1;
+    public static bool CenterEatsHeart(RulesTable? rules = null) => Overlap(0, 0, 0, rules) >= 1;
 
-    public static bool WalkedOffMissesHeart(double walk = 0.85) =>
-        Overlap(walk, 0, 0) <= 0;
+    public static bool WalkedOffMissesHeart(double walk = 0.85, RulesTable? rules = null) =>
+        Overlap(walk, 0, 0, rules) <= 0;
 }
 
 /// <summary>Fielding dash and buddy-toss before the glove.</summary>

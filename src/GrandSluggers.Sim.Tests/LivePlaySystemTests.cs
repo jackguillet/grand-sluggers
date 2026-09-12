@@ -138,7 +138,7 @@ public sealed class LivePlaySystemTests
         } while (!snapshot.Batter.OnBag);
 
         Assert.False(snapshot.IsTime);
-        var almostSettled = InPlay.TimeOnBagSec - snapshot.Batter.Sec - 0.01;
+        var almostSettled = Rules.Default.Running.Bags.TimeOnBagSec - snapshot.Batter.Sec - 0.01;
         snapshot = match.LivePlay.Apply(LivePlayCommand.Advance(
             almostSettled, PlayKind.Single, true, false, true, 0, source)).Snapshot;
         Assert.False(snapshot.IsTime);

@@ -35,41 +35,45 @@ public static class StealThrow
     }
 
     /// <summary>Catcher pop, release to tag. Faster than a hopper relay.</summary>
-    public static double GunSec(int bag, ThrowResult? thr)
-        => CatcherThrowSec(bag is 2 or 3 ? bag : 2, thr);
+    public static double GunSec(int bag, ThrowResult? thr, RulesTable? rules = null)
+        => CatcherThrowSec(bag is 2 or 3 ? bag : 2, thr, rules);
 
-    /// <summary>Flight from the catcher to a named occupied or steal bag.</summary>
-    public static double CatcherThrowSec(int bag, ThrowResult? thr)
+    /// <summary>Flight from the catcher to a named occupied or steal bag (fielding.catcher).</summary>
+    public static double CatcherThrowSec(int bag, ThrowResult? thr, RulesTable? rules = null)
     {
         if (bag is < 1 or > 3)
             throw new ArgumentOutOfRangeException(nameof(bag), "Catcher throws need an occupied or steal bag.");
+        var k = Rules.Or(rules).Fielding.Catcher;
         var mul = thr?.SpeedMul ?? 1;
-        if (thr is { Error: true }) mul *= 0.72;
-        var fps = 96 * Math.Max(0.45, mul);
+        if (thr is { Error: true }) mul *= k.ErrorMul;
+        var fps = k.BaseFtPerSec * Math.Max(k.MinMul, mul);
         var c = CatcherSpot;
         var dest = Diamond.Bag(bag);
         var dist = Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
-        return 0.12 + dist / Math.Max(64, fps);
+        return k.ReleaseSec + dist / Math.Max(k.MinFtPerSec, fps);
     }
 
     /// <summary>
-    /// Time from the catch until the runner reaches the steal bag.
+    /// Time from the catch until the runner reaches the steal bag (running.steal).
     /// Lead is a jump; they have been going since first move.
     /// </summary>
-    public static double RunnerRemainSec(Character runner, double lead01)
+    public static double RunnerRemainSec(Character runner, double lead01, RulesTable? rules = null)
     {
-        var bag = InPlay.BagToBagSec(runner);
-        var jump = 0.62 + Math.Clamp(lead01, 0, 1) * 1.08;
-        return Math.Max(0.58, bag - jump);
+        var r = Rules.Or(rules);
+        var bag = InPlay.BagToBagSec(runner, r);
+        var jump = r.Running.Steal.JumpBaseSec + Math.Clamp(lead01, 0, 1) * r.Running.Steal.JumpPerLeadSec;
+        return Math.Max(r.Running.Steal.RemainMinSec, bag - jump);
     }
 
-    /// <summary>CPU catcher release. Dead stick still guns.</summary>
-    public static double CpuReleaseSec(Character catcher, Random rng)
+    /// <summary>CPU catcher release (fielding.catcher.cpuRelease*, × cpu reactionMul). Dead stick still guns.</summary>
+    public static double CpuReleaseSec(Character catcher, Random rng, RulesTable? rules = null)
     {
+        var r = Rules.Or(rules);
+        var k = r.Fielding.Catcher;
         var hands = Math.Clamp(catcher.Stats.Field, 1, 10);
-        var mean = 0.42 - hands * 0.014;
-        var noise = (rng.NextDouble() - 0.5) * 0.20;
-        return Math.Clamp(mean + noise, 0.10, 0.58);
+        var mean = k.CpuReleaseBaseSec - hands * k.CpuReleasePerField;
+        var noise = (rng.NextDouble() - 0.5) * k.CpuReleaseNoiseSec;
+        return Math.Clamp(mean + noise, k.CpuReleaseMinSec, k.CpuReleaseMaxSec) * r.Cpu.Active.ReactionMul;
     }
 
     /// <summary>A throw to the steal bag is out only when it beats the runner.</summary>
@@ -85,10 +89,11 @@ public static class StealThrow
         double releaseSec,
         ThrowResult? thr,
         Character runner,
-        double lead01)
+        double lead01,
+        RulesTable? rules = null)
     {
-        var gun = GunSec(stealTarget, thr);
-        var remain = RunnerRemainSec(runner, lead01);
+        var gun = GunSec(stealTarget, thr, rules);
+        var remain = RunnerRemainSec(runner, lead01, rules);
         return OutAtBag(throwBag, stealTarget, releaseSec, gun, remain);
     }
 
@@ -98,11 +103,12 @@ public static class StealThrow
         double releaseSec,
         ThrowResult? thr,
         Character runner,
-        double lead01)
+        double lead01,
+        RulesTable? rules = null)
     {
         if (throwBag is not 1 and not 2) return false;
-        var gun = CatcherThrowSec(throwBag, thr);
-        var returnTime = RunnerReturnSec(runner, lead01);
+        var gun = CatcherThrowSec(throwBag, thr, rules);
+        var returnTime = RunnerReturnSec(runner, lead01, rules);
         return releaseSec + gun < returnTime;
     }
 
@@ -110,9 +116,12 @@ public static class StealThrow
     /// Time from the catch until a runner reaches the occupied bag. A larger lead and lower
     /// Run rating both take longer to recover; this is the other side of the pickoff race.
     /// </summary>
-    public static double RunnerReturnSec(Character runner, double lead01) =>
-        Math.Max(0.42, 0.62 + Math.Clamp(lead01, 0, 1) * 0.92
-            + (10 - runner.Stats.Run) * 0.06);
+    public static double RunnerReturnSec(Character runner, double lead01, RulesTable? rules = null)
+    {
+        var s = Rules.Or(rules).Running.Steal;
+        return Math.Max(s.ReturnMinSec, s.ReturnBaseSec + Math.Clamp(lead01, 0, 1) * s.ReturnPerLeadSec
+            + (10 - runner.Stats.Run) * s.ReturnPerRunDeficitSec);
+    }
 
     public static bool CpuOut(
         Character runner,
@@ -120,11 +129,13 @@ public static class StealThrow
         double lead01,
         int stealTarget,
         ThrowResult? thr,
-        Random rng)
+        Random rng,
+        RulesTable? rules = null)
     {
-        var release = CpuReleaseSec(catcher, rng);
-        var gun = GunSec(stealTarget, thr);
-        var remain = RunnerRemainSec(runner, lead01) + (rng.NextDouble() - 0.5) * 0.28;
+        var release = CpuReleaseSec(catcher, rng, rules);
+        var gun = GunSec(stealTarget, thr, rules);
+        var remain = RunnerRemainSec(runner, lead01, rules)
+            + (rng.NextDouble() - 0.5) * Rules.Or(rules).Fielding.Catcher.CpuRemainNoiseSec;
         return OutAtBag(stealTarget, stealTarget, release, gun, remain);
     }
 }

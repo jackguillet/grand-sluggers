@@ -12,6 +12,8 @@ public sealed class ContentCatalog
     public ChemistryTable Chemistry { get; }
     public CameraShots Shots { get; }
     public FeelTable Feel { get; }
+    /// <summary>The rule numbers of play (data/rules/*.json, spec §16).</summary>
+    public RulesTable Rules { get; }
     public ArtCatalog Art { get; }
     public string Root { get; }
 
@@ -24,6 +26,7 @@ public sealed class ContentCatalog
         ChemistryTable chemistry,
         CameraShots shots,
         FeelTable feel,
+        RulesTable rules,
         ArtCatalog art)
     {
         Root = root;
@@ -34,6 +37,7 @@ public sealed class ContentCatalog
         Chemistry = chemistry;
         Shots = shots;
         Feel = feel;
+        Rules = rules;
         Art = art;
     }
 
@@ -75,11 +79,12 @@ public sealed class ContentCatalog
                 string.IsNullOrWhiteSpace(dto.Visual) ? "glove-brown" : dto.Visual);
         }
 
-        var chemistry = new ChemistryTable(characters.Values, data.Chemistry);
+        var rules = data.Rules ?? RulesTable.Defaults;
+        var chemistry = new ChemistryTable(characters.Values, data.Chemistry, rules);
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
-        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, art);
+        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, rules, art);
     }
 
     public Character Must(string id) =>
@@ -98,7 +103,12 @@ public sealed class ContentCatalog
         return new Team(name, captain, roster);
     }
 
-    static string FindDataRoot()
+    static string FindDataRoot() =>
+        TryFindDataRoot()
+        ?? throw new DirectoryNotFoundException("Could not find data/characters from " + AppContext.BaseDirectory);
+
+    /// <summary>The data root above the running binary, or null when the binary sits elsewhere (Unity passes its own).</summary>
+    public static string? TryFindDataRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
@@ -108,7 +118,7 @@ public sealed class ContentCatalog
                 return candidate;
             dir = dir.Parent;
         }
-        throw new DirectoryNotFoundException("Could not find data/characters from " + AppContext.BaseDirectory);
+        return null;
     }
 
 }

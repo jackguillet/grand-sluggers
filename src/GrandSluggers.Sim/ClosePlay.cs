@@ -6,7 +6,8 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class ClosePlay
 {
-    public const float IconDelay = 0.22f;
+    /// <summary>Seconds after the throw lands until the mash icon appears (running.close.iconDelaySec).</summary>
+    public static double IconDelaySec(RulesTable? rules = null) => Rules.Or(rules).Running.Close.IconDelaySec;
 
     public static bool Offered(int throwBag, bool secondOccupied, bool thirdOccupied) =>
         Offered(throwBag, InPlay.ForceState.Empty, secondOccupied, thirdOccupied);
@@ -21,11 +22,12 @@ public static class ClosePlay
 
     public static bool IsCloseBag(int bag) => bag is 3 or 4;
 
-    /// <summary>Seconds after the icon until a CPU side mashes. Better Field (defense) or Run (offense) is faster.</summary>
-    public static double CpuReactionSec(int stat)
+    /// <summary>Seconds after the icon until a CPU side mashes (running.close, × cpu reactionMul). Better Field (defense) or Run (offense) is faster.</summary>
+    public static double CpuReactionSec(int stat, RulesTable? rules = null)
     {
+        var r = Rules.Or(rules);
         var n = Math.Clamp(stat, 1, 10);
-        return 0.20 + (10 - n) * 0.032;
+        return (r.Running.Close.CpuReactionBaseSec + (10 - n) * r.Running.Close.CpuReactionPerStat) * r.Cpu.Active.ReactionMul;
     }
 
     /// <summary>First press after the icon wins. A missing press is never. Tie goes to the runner.</summary>
