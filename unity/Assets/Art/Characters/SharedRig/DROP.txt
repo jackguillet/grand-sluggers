@@ -1,15 +1,18 @@
-Shared hero chain (hero-shared). Cartoon fat volumes, 100% vertex groups per bone.
-Drop: hero-shared.fbx. Author: tools/blender/hero_shared_blockout.py.
+The one body: hero-shared.fbx. Author: tools/blender/hero_shared_blockout.py.
+Faces Unity +Z, left hand at -X, face and toes authored. No cap.
 
 Bone names must match data/art/rig.json:
   root torso head lUpper lFore rUpper rFore lThigh lShin rThigh rShin bat glove
 
-Play binds this Generic FBX when present. Missing file keeps SharedRig primitives.
-Captains are extras on this chain, not new armatures.
-extras.fbx: accessory meshes named like skins.json (brim, crown, goggles, …)
-plus bat-wood, glove-brown, baseball. Play parents extras to Head/Torso/Shin
-and toys to bat/glove sockets. Missing kit keeps primitive extras.
+Material names are palette roles (jersey trim flesh slack leather gold ink white);
+SharedRig paints them from the faction. Missing FBX draws a placeholder capsule and logs.
+
+extras.fbx: accessory meshes named like data/art/extras.json, authored on the body in
+rig space (Unity drops them at the rig root, then reparents to the socket bone), plus
+bat-wood, glove-brown, baseball.
+Author: tools/blender/hero_shared_extras.py. No caps yet; hats return as accessories.
 bat-wood keeps its authored origin: handle Y -1.00..-0.10, grip -0.85,
 barrel Y -0.15..1.25 at radius 0.12. Do not recenter this joined mesh.
 baseball rest diameter is 1 (Unity sphere). BallView applies ApparentScale.
-ToyScale 1.18 is applied in Play — do not scale the FBX again.
+Silhouette root scale is applied in Play — do not scale the FBX again.
+Contract: docs/character-motion.md

@@ -1,0 +1,95 @@
+{
+  "notes": "Camera-neutral batting stance directions in Unity batter-local axes (+Z pitcher, +X across the plate for a right-handed batter). Mirrors BattingStance.Keys in Sim; the DCC takes aim rendered landmarks at these.",
+  "keys": [
+    {
+      "t": 0.0,
+      "chestForward": [
+        1,
+        0,
+        0
+      ],
+      "eyesForward": [
+        0,
+        0,
+        1
+      ],
+      "feetAxis": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "t": 0.15,
+      "chestForward": [
+        1,
+        0,
+        0
+      ],
+      "eyesForward": [
+        0,
+        0,
+        1
+      ],
+      "feetAxis": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "t": 0.24,
+      "chestForward": [
+        0.70710678,
+        0,
+        0.70710678
+      ],
+      "eyesForward": [
+        0,
+        0,
+        1
+      ],
+      "feetAxis": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "t": 0.3,
+      "chestForward": [
+        0.25881905,
+        0,
+        0.96592583
+      ],
+      "eyesForward": [
+        0,
+        0,
+        1
+      ],
+      "feetAxis": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "t": 0.5,
+      "chestForward": [
+        -0.70710678,
+        0,
+        0.70710678
+      ],
+      "eyesForward": [
+        0,
+        0,
+        1
+      ],
+      "feetAxis": [
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}

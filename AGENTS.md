@@ -2,7 +2,7 @@
 
 Grand Sluggers is a **complete, polished party baseball game** we will still want in five years. The bar is Nintendo-level Exhibition (then local 1v1): Super Sluggers *systems* — cameras, HUD, plays, lineup, juice — with **original toys**. Not a prototype that lucks into a still. Not a Mario clone.
 
-Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. Sequence: `docs/roadmap.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters: `docs/character-package.md`.
+Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. Sequence: `docs/roadmap.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
 
 ## The stack (do this, in order)
 
@@ -13,7 +13,7 @@ Agents start here. Do not pick a lower row because it is easier.
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
 
-**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit. Unique *captains* are DCC Generic packages (`docs/character-package.md`) — not Mixamo, not a posed GLB, not a second Humanoid.
+**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system. Every captain is the one rig plus extras; unique packages are deferred (`docs/character-package.md`).
 
 ## Done means you played it
 
@@ -25,7 +25,7 @@ Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a 
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
 - A menu still is not a half. HID Space is confirm, not baseball.
 - Human gates (#346 and screenshot gates) stay human. Note what stuck. File children. Do not declare pass because CI is green.
-- Look / character work is a human gate. A still in `docs/screenshot-gate.md` (character rest + posed limb) is the falsifier. `dotnet test`, `unity-compile.sh`, and a rebuilt `.app` are not a still. Agents do not pass look.
+- Look / character work is a human gate. A still in `docs/screenshot-gate.md` (character rest + swing contact) is the falsifier. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
 - Fail if a stranger would need Slack, F2, or `docs/how-to-play.md` on disk to finish the path you touched.
 - Ask before coding: *will this still be right with two pads, a pop fly instead of a hopper, Ashlord as well as Rio, and a friend on the couch?* If not, put the system in the right place.
 
@@ -59,7 +59,7 @@ Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 
 - **Look:** oversized cartoon toys, fat silhouettes, saturated toon, personality in extras (brim, crown, goggles, snout, horns). Heads read at catcher-eye. 10-foot UI.
 - **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type and **must not** grow captain extras.
-- **Characters are DCC assets.** Mesh + armature + painted weights (or Blender-authored rigid pieces) + clips. Unity: Humanoid only for T-pose bipeds; unique anatomy is **Generic** + clips on **that** rig. A posed unrigged GLB is a source, not a player mesh. Do not heat-weight it, freeze a SMR to hide tearing, or drive it with Rio eulers / `swing.fbx`. Spec: `docs/character-package.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. The original six stay on `hero-shared` until they are packages.
+- **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette + extras in data. Contract: `docs/character-motion.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
 - **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay. Harbor kit meshes are authored in **Blender MCP** (`tools/blender/harbor_kit.py`, server in `.grok/config.toml`). Do not invent Unity-only park art when a kit slot exists.
 - **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.

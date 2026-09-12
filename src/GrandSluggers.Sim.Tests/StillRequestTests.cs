@@ -105,7 +105,7 @@ public class StillRequestTests
             """);
 
         Assert.Equal(new[] { "fenn", "rio" }, req.ResolvedSwingCaptains());
-        Assert.DoesNotContain("fenn", SwingPresentation.SharedCaptains);
+        Assert.Contains("fenn", SwingPresentation.SharedCaptains);
         var unknown = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
             {"shots":["swing-matrix"],"swingCaptains":["not-a-player"]}
             """));

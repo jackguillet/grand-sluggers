@@ -33,14 +33,14 @@ Bonus stills that save a later sitting (same rules):
 
 ## Character stills (look gate)
 
-Any change under `Art/Characters/`, `drop_character.py`, or a unique `skins.json` bind needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
+Any change under `Art/Characters/`, `Art/Animation/Clips/`, or `tools/blender/` needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
 
-Capture: `tools/still-gate-character.sh fenn` (or menu **Grand Sluggers → Capture Character Stills**). PNGs land in `unity/Temp/gs-stills/`. Copy into `scratchpad/stills/` for the PR. Do not rebuild the Mac player as proof.
+Capture: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Capture Character Stills**). PNGs land in `unity/Temp/gs-stills/`. Copy into `scratchpad/stills/` for the PR. Do not rebuild the Mac player as proof.
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
-| **Rest** | Painted albedo (not white clay). Feet on dirt. Silhouette reads. Not a primitive fallback. | Inside-out / black interior, shredded cloth, gold brim on a unique package, missing albedo |
-| **Pose** | Same body, one limb flexed ~90° (arm or leg). Torso/shell stays a solid volume. | No limb delta (statue), mesh tears at the joint, interior showing, Rio T-pose through a turtle |
+| **Rest** | Idle take at 0. Painted by faction. Feet on dirt. Silhouette reads; the captain's extras are on the right bones. | Import-white material, a placeholder capsule, an extra floating off its socket |
+| **Pose** | Swing take at contact. Both hands on the handle, bat through the plate line, hips to the plate. | Bat behind the head, one hand off the handle, a bind-pose statue |
 
 Name files:
 
@@ -49,7 +49,7 @@ char-{id}-rest.png
 char-{id}-pose.png
 ```
 
-Spec: `docs/character-package.md`.
+Contract: `docs/character-motion.md`.
 
 Dolphin Super Sluggers is **compare only**. Do not dump Nintendo assets. Do not mash A into a live session unless you are okay with skipping a prompt.
 
@@ -224,10 +224,10 @@ the editor, then choose **Grand Sluggers → Capture Request File**. The menu re
 and validates the external JSON with `StillRequest.Parse`, stages it in
 `unity/Temp`, and enters the same capture path. Any allowed shot and home/away
 pair works, for example `{"shots":["plate"],"home":"fenn","away":"rio"}`.
-For the four-beat bat/socket gate on a Generic captain, request
-`{"shots":["swing-matrix"],"swingCaptains":["fenn"]}`. The default matrix
-remains the six shared-rig captains; explicit Generic captains use rendered bat
-and socket checks without inheriting shared-rig hand or plate thresholds.
+For the four-beat bat/socket gate on any captain, request
+`{"shots":["swing-matrix"],"swingCaptains":["fenn"]}`. The default matrix is
+the six original captains; every captain is measured with the same shared-rig
+hand, stance, and plate thresholds.
 
 Each matrix row captures `ready`, `load`, `contact`, and `follow` before it
 measures the pose, so a failure still leaves a PNG. The JSON records posed hand

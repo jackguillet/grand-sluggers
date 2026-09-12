@@ -1,0 +1,83 @@
+{
+  "notes": "Accessory meshes in Assets/Art/Characters/SharedRig/extras.fbx, authored in the socket bone's space by tools/blender/hero_shared_extras.py. Unity parents each piece at identity. hides names body meshes the piece replaces. No caps yet; hats return as accessories.",
+  "extras": [
+    {
+      "id": "cheeks",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "sneakers",
+      "bone": "lShin",
+      "hides": [
+        "lShoe",
+        "rShoe"
+      ]
+    },
+    {
+      "id": "sash",
+      "bone": "torso",
+      "hides": []
+    },
+    {
+      "id": "crown",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "neck",
+      "bone": "torso",
+      "hides": []
+    },
+    {
+      "id": "goggles",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "cube-chest",
+      "bone": "torso",
+      "hides": []
+    },
+    {
+      "id": "brick-jaw",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "snout",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "belly",
+      "bone": "torso",
+      "hides": []
+    },
+    {
+      "id": "horns",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "cape",
+      "bone": "torso",
+      "hides": []
+    },
+    {
+      "id": "ember-eyes",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "shell",
+      "bone": "head",
+      "hides": []
+    },
+    {
+      "id": "staff",
+      "bone": "torso",
+      "hides": []
+    }
+  ]
+}

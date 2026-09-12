@@ -101,7 +101,7 @@ public class SwingPresentationTests
     public void DccCatalogCarriesThePortableStanceDirections()
     {
         var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
-        var path = Path.Combine(repo, "data", "art", "pose-clips", "swing.json");
+        var path = Path.Combine(repo, "data", "art", "batting-stance.json");
         var keys = JsonNode.Parse(File.ReadAllText(path))!["keys"]!.AsArray();
         Assert.Equal(BattingStance.Keys.Count, keys.Count);
         for (var i = 0; i < keys.Count; i++)
@@ -152,7 +152,7 @@ public class SwingPresentationTests
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             Assert.True(SwingPresentation.BarrelCrossesPlate(
-                body, hand, MoveBones.SwingContact), $"{body} {hand} missed the plate");
+                body, hand, Motion.SwingContact), $"{body} {hand} missed the plate");
         }
     }
 

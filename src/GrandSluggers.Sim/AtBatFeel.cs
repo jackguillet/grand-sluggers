@@ -189,17 +189,11 @@ public static class AtBatMotion
     /// <summary>Sentinel before a committed swing has entered presentation.</summary>
     public const double SwingNotStarted = -1;
 
-    // Finish blending the held load halfway to the event. Release/contact itself
-    // must sample the clip exactly, without frame-dependent recursive smoothing.
-    public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
-        double poseTime, double eventAt)
-    {
-        var u = LoadBlend01(poseTime, eventAt);
-        if (u <= 0) return load;
-        if (u >= 1) return motion;
-        return MoveBones.Mix(load, motion, u);
-    }
-
+    /// <summary>
+    /// Blend a held load into its committed take: finished halfway to the
+    /// event so release and contact sample the take exactly, with no
+    /// frame-dependent smoothing.
+    /// </summary>
     public static double LoadBlend01(double poseTime, double eventAt)
     {
         var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
@@ -207,21 +201,24 @@ public static class AtBatMotion
     }
 
     /// <summary>
-    /// Continue forward from the held authored load and meet the canonical take
-    /// by halfway to contact. This stays monotonic for the 0.075-second normal
-    /// load offset and preserves the exact 0.30-second contact sample.
+    /// Continue forward from the held load sample and meet the take's own
+    /// clock by halfway to the event. Monotonic for every load offset and
+    /// exact at <paramref name="eventAt"/>. One rule for pitch and swing.
     /// </summary>
-    public static double SwingClipTime(double poseTime, double charge01)
-    {
-        var loadAt = SwingPresentation.LoadSampleAt(charge01);
-        return poseTime + loadAt * (1 - LoadBlend01(poseTime, MoveBones.SwingContact));
-    }
+    public static double LoadedClipTime(double poseTime, double loadAt, double eventAt) =>
+        poseTime + loadAt * (1 - LoadBlend01(poseTime, eventAt));
+
+    public static double SwingClipTime(double poseTime, double charge01) =>
+        LoadedClipTime(poseTime, SwingPresentation.LoadSampleAt(charge01), Motion.SwingContact);
+
+    public static double PitchClipTime(double poseTime, double charge01) =>
+        LoadedClipTime(poseTime, Motion.PitchLoadSampleAt(charge01), Motion.PitchRelease);
 
     public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>
-        (pressAt + (bunt ? 0 : MoveBones.SwingContact) - plateAt) * 60;
+        (pressAt + (bunt ? 0 : Motion.SwingContact) - plateAt) * 60;
 
     public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
-        plateAt + errorFrames / 60 - (bunt ? 0 : MoveBones.SwingContact);
+        plateAt + errorFrames / 60 - (bunt ? 0 : Motion.SwingContact);
 
     /// <summary>
     /// Advance one committed action clock. The flight-derived target keeps the
@@ -234,16 +231,16 @@ public static class AtBatMotion
     {
         var target = Math.Max(0, flightTime - swingStart);
         if (current < 0)
-            return Math.Min(target, MoveBones.SwingDur);
-        if (current >= MoveBones.SwingDur)
+            return Math.Min(target, Motion.SwingDur);
+        if (current >= Motion.SwingDur)
             return current + Math.Max(0, dt);
-        return Math.Min(MoveBones.SwingDur,
+        return Math.Min(Motion.SwingDur,
             Math.Max(target, current + Math.Max(0, dt)));
     }
 
     public static bool PresentsCommittedSwing(double actionTime) =>
-        actionTime >= 0 && actionTime <= MoveBones.SwingDur;
+        actionTime >= 0 && actionTime <= Motion.SwingDur;
 
     public static double CommittedSwingSample(double actionTime) =>
-        Math.Clamp(actionTime, 0, MoveBones.SwingDur);
+        Math.Clamp(actionTime, 0, Motion.SwingDur);
 }

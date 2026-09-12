@@ -4,7 +4,10 @@
       "id": "rio",
       "bodyType": "rio",
       "captain": true,
-      "extras": ["brim", "cheeks", "sneakers"],
+      "extras": [
+        "cheeks",
+        "sneakers"
+      ],
       "portrait": "Resources/Art/rio-hero",
       "palette": "spark"
     },
@@ -12,7 +15,11 @@
       "id": "vale",
       "bodyType": "vale",
       "captain": true,
-      "extras": ["sash", "crown", "neck"],
+      "extras": [
+        "sash",
+        "crown",
+        "neck"
+      ],
       "portrait": "Resources/Art/vale-hero",
       "palette": "royal"
     },
@@ -20,7 +27,9 @@
       "id": "zig",
       "bodyType": "zig",
       "captain": true,
-      "extras": ["goggles"],
+      "extras": [
+        "goggles"
+      ],
       "portrait": "Resources/Art/zig-hero",
       "palette": "carnival"
     },
@@ -28,7 +37,10 @@
       "id": "brondo",
       "bodyType": "brondo",
       "captain": true,
-      "extras": ["cube-chest", "brick-jaw"],
+      "extras": [
+        "cube-chest",
+        "brick-jaw"
+      ],
       "portrait": "Resources/Art/brondo-hero",
       "palette": "goldrush"
     },
@@ -36,7 +48,10 @@
       "id": "konga",
       "bodyType": "konga",
       "captain": true,
-      "extras": ["snout", "belly"],
+      "extras": [
+        "snout",
+        "belly"
+      ],
       "portrait": "Resources/Art/konga-hero",
       "palette": "canopy"
     },
@@ -44,7 +59,11 @@
       "id": "ashlord",
       "bodyType": "ashlord",
       "captain": true,
-      "extras": ["horns", "cape", "ember-eyes"],
+      "extras": [
+        "horns",
+        "cape",
+        "ember-eyes"
+      ],
       "portrait": "Resources/Art/ashlord-hero",
       "palette": "ember"
     },
@@ -52,11 +71,12 @@
       "id": "fenn",
       "bodyType": "fenn",
       "captain": true,
-      "extras": ["shell", "staff"],
+      "extras": [
+        "shell",
+        "staff"
+      ],
       "portrait": "Resources/Art/fenn-hero",
-      "palette": "fen",
-      "mesh": "Assets/Art/Characters/fenn/fenn.fbx",
-      "bind": "skinned"
+      "palette": "fen"
     }
   ]
 }
