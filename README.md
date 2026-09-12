@@ -45,13 +45,16 @@ unity/    Unity 6 URP client — this is how you play
 
 Controls, Exhibition flow, Training drills, and F1/F2/F3 debug: **[docs/how-to-play.md](docs/how-to-play.md)**. Update that file in the same PR when verbs or cameras change.
 
-Sim tests and a headless match (no window, no presentation):
+Portable simulation/content checks and a headless match (no window, no presentation):
 
 ```bash
 PATH=/opt/homebrew/bin:$PATH dotnet test
+PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- art
+python3 -m unittest discover -s tools/tests -p 'test_*.py'
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
-PATH=/opt/homebrew/bin:$PATH ./tools/unity-compile.sh
 ```
+
+Unity compiler, real-project import, build, smoke, and human-play evidence are separate lanes: **[docs/validation.md](docs/validation.md)**.
 
 ### Debug sandbox (not the game)
 
@@ -73,6 +76,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [docs/screenshot-gate.md](docs/screenshot-gate.md) | Plate / scoop / star stills; agent capture without -batchmode |
 | [unity/README.md](unity/README.md) | Unity editor, scene, license |
 | [docs/engine-decision.md](docs/engine-decision.md) | Unity vs Godot vs Unreal — why Unity |
+| [docs/validation.md](docs/validation.md) | Portable, Unity import, build, smoke, and human validation lanes |
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
 | [docs/silhouette-bible.md](docs/silhouette-bible.md) | Locked camera, six body types, signature bats |

@@ -106,6 +106,18 @@ public static class MoveBones
         LFore = Flip(s.RFore), RFore = Flip(s.LFore)
     };
 
+    /// <summary>Reflect the complete hitting pose through the batter's centerline.</summary>
+    public static Sample MirrorSwing(Sample s) => s with
+    {
+        Torso = Flip(s.Torso),
+        Head = Flip(s.Head),
+        LUpper = Flip(s.RUpper), RUpper = Flip(s.LUpper),
+        LFore = Flip(s.RFore), RFore = Flip(s.LFore),
+        LThigh = Flip(s.RThigh), RThigh = Flip(s.LThigh),
+        LShin = Flip(s.RShin), RShin = Flip(s.LShin),
+        Bat = Flip(s.Bat)
+    };
+
     public static Sample Evaluate(Verb verb, double t, double poseT, double charge = 0, string? pitchType = null)
     {
         charge = Math.Clamp(charge, 0, 1);
@@ -244,51 +256,63 @@ public static class MoveBones
 
     static Sample ChargeSwing(double charge) =>
         Pose(
-            torso: E(2, -10 - 8 * charge, 0),
-            lUpper: E(-12, 18, 28),
-            rUpper: E(-38 - 48 * charge, -42, -52),
-            lFore: E(16, 0, 0), rFore: E(22, 0, 0),
-            lThigh: E(10, 0, 0), rThigh: E(-6, 8, 0),
+            torso: E(8, Lerp(-18, -28, charge), 4),
+            head: E(4, -12, 0),
+            lUpper: Le(E(-110, 0, 62), E(-154.70, -1.03, 80.00), charge),
+            rUpper: Le(E(42, 38, 72), E(61.05, 50.21, 95.48), charge),
+            lFore: E(Lerp(-28, -56.41, charge), 0, 0),
+            rFore: E(Lerp(-98, -143.30, charge), 0, 0),
+            lThigh: E(12, 0, 0), rThigh: E(-8, 10, 0),
             lShin: E(16, 0, 0), rShin: E(12, 0, 0),
-            bat: E(78 + 30 * charge, 4, 8));
+            bat: E(7.35, -7.27, -158.19));
 
     static Sample Swing(double poseT)
     {
-        var u = poseT <= SwingContact
-            ? Math.Clamp(poseT / SwingContact, 0, 1) * 0.48
-            : 0.48 + Math.Clamp((poseT - SwingContact) / (SwingDur - SwingContact), 0, 1) * 0.52;
         var load = Key(
-            torso: E(2, -12, 0),
-            lUpper: E(-12, 18, 28), rUpper: E(-82, -42, -52),
-            lFore: E(14, 0, 0), rFore: E(18, 0, 0),
-            lThigh: E(8, 0, 0), rThigh: E(-4, 6, 0),
-            lShin: E(14, 0, 0), rShin: E(10, 0, 0),
-            bat: E(100, 6, 8));
-        var hips = Key(
-            torso: E(8, 22, -4),
-            lUpper: E(-4, 8, 22), rUpper: E(-48, -18, -28),
-            lFore: E(20, 0, 0), rFore: E(24, 0, 0),
-            lThigh: E(16, 0, 0), rThigh: E(-12, 14, 0),
+            torso: E(8, -28, 4), head: E(4, -12, 0),
+            lUpper: E(-154.70, -1.03, 80.00), rUpper: E(61.05, 50.21, 95.48),
+            lFore: E(-56.41, 0, 0), rFore: E(-143.30, 0, 0),
+            lThigh: E(12, 0, 0), rThigh: E(-8, 10, 0),
+            lShin: E(16, 0, 0), rShin: E(12, 0, 0),
+            bat: E(7.35, -7.27, -158.19));
+        var launch = Key(
+            torso: E(10, 8, -5), head: E(5, 2, 0),
+            lUpper: E(-91.41, -112.21, 45.66), rUpper: E(28.76, 114.82, 53.66),
+            lFore: E(-84.28, 0, 0), rFore: E(-121.03, 0, 0),
+            lThigh: E(18, 0, 0), rThigh: E(-14, 16, 0),
             lShin: E(18, 0, 0), rShin: E(16, 0, 0),
-            bat: E(48, 36, 10));
-        var cut = Key(
-            torso: E(12, 58, -8),
-            lUpper: E(26, -46, 8), rUpper: E(24, 74, 26),
-            lFore: E(28, 0, 0), rFore: E(12, 0, 0),
-            lThigh: E(14, 0, 0), rThigh: E(-16, 18, 0),
-            lShin: E(16, 0, 0), rShin: E(20, 0, 0),
-            bat: E(-52, 112, 12));
+            bat: E(166.52, 26.27, 34.63));
+        var approach = Key(
+            torso: E(14, 52, -8), head: E(7, 18, 0),
+            lUpper: E(11.86, -52.93, -76.80), rUpper: E(36.53, 158.11, 45.80),
+            lFore: E(-1.28, 0, 0), rFore: E(-110.01, 0, 0),
+            lThigh: E(20, 0, 0), rThigh: E(-22, 22, 0),
+            lShin: E(20, 0, 0), rShin: E(24, 0, 0),
+            bat: E(103.04, 46.96, 36.09));
+        var contact = Key(
+            torso: E(16, 72, -10), head: E(8, 26, 0),
+            lUpper: E(10.77, -49.04, -76.15), rUpper: E(35.32, 176.10, 49.25),
+            lFore: E(-18.87, 0, 0), rFore: E(-119.92, 0, 0),
+            lThigh: E(20, 0, 0), rThigh: E(-24, 24, 0),
+            lShin: E(20, 0, 0), rShin: E(26, 0, 0),
+            bat: E(71.06, 34.68, 32.35));
         var wrap = Key(
-            torso: E(8, 82, -12),
-            lUpper: E(42, -72, -8), rUpper: E(10, 98, 38),
-            lFore: E(18, 0, 0), rFore: E(8, 0, 0),
-            lThigh: E(10, 0, 0), rThigh: E(-10, 16, 0),
-            lShin: E(14, 0, 0), rShin: E(18, 0, 0),
-            bat: E(-68, 158, 18),
-            head: E(10, 20, 0));
-        if (u < 0.22) return Mix(load, hips, Smooth(u / 0.22));
-        if (u < 0.48) return Mix(hips, cut, Smooth((u - 0.22) / 0.26));
-        return Mix(cut, wrap, Smooth(Math.Clamp((u - 0.48) / 0.52, 0, 1)));
+            torso: E(10, 96, -14), head: E(12, 34, 0),
+            lUpper: E(24.60, -42.75, -93.93), rUpper: E(21.38, 187.18, 60.09),
+            lFore: E(-1.22, 0, 0), rFore: E(-123.96, 0, 0),
+            lThigh: E(12, 0, 0), rThigh: E(-14, 20, 0),
+            lShin: E(16, 0, 0), rShin: E(22, 0, 0),
+            bat: E(140.33, 12.53, 10.86));
+        if (poseT < SwingPresentation.LaunchAt)
+            return Mix(load, launch, Smooth(poseT / SwingPresentation.LaunchAt));
+        if (poseT < SwingPresentation.ApproachAt)
+            return Mix(launch, approach, Smooth((poseT - SwingPresentation.LaunchAt) /
+                (SwingPresentation.ApproachAt - SwingPresentation.LaunchAt)));
+        if (poseT < SwingContact)
+            return Mix(approach, contact, Smooth((poseT - SwingPresentation.ApproachAt) /
+                (SwingContact - SwingPresentation.ApproachAt)));
+        return Mix(contact, wrap, Smooth(Math.Clamp((poseT - SwingContact) /
+            (SwingDur - SwingContact), 0, 1)));
     }
 
     static Sample Scoop(double poseT)

@@ -14,7 +14,7 @@ namespace GrandSluggers.UnityClient
             Field, Spin, Charm, Clamber, Crouch, Scoop
         }
 
-        Transform _root, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _bat, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
+        Transform _root, _stanceRoot, _torso, _head, _cap, _lArm, _rArm, _lFore, _rFore, _sourceBatSocket, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
         Pose _pose = Pose.Idle;
         float _charge;
         float _chargeRing;
@@ -31,14 +31,18 @@ namespace GrandSluggers.UnityClient
         bool _batsLeft;
         bool _throwsLeft;
         bool _captain;
-        bool _meshStaff;
         bool _packageBody;
+        PackageTransformBind[] _packageBindPose = System.Array.Empty<PackageTransformBind>();
+        bool _packageSampledLastTick;
+        bool _sharedSwingMissingReported;
         string _id = "";
         string _body = "rio";
         string _batVisual = "";
         string _gloveVisual = "";
         Vector3 _look = Vector3.forward;
         Vector3 _baseScale = Vector3.one;
+        Vector3 _stanceRootRest;
+        Quaternion _stanceRootBind = Quaternion.identity;
         Vector3 _torsoRest = new Vector3(0, 2.28f, 0);
         float _hunchDeg;
         SharedRig.BoneBind _bind;
@@ -49,11 +53,352 @@ namespace GrandSluggers.UnityClient
         MoveBones.Sample _lastMotion, _loadedMotion;
         bool _blendLoad;
 
+        readonly struct PackageTransformBind
+        {
+            public readonly Transform Transform;
+            public readonly Vector3 Position;
+            public readonly Quaternion Rotation;
+            public readonly Vector3 Scale;
+
+            public PackageTransformBind(Transform transform)
+            {
+                Transform = transform;
+                Position = transform.localPosition;
+                Rotation = transform.localRotation;
+                Scale = transform.localScale;
+            }
+        }
+
         public string Id => _id;
         public Pose Current => _pose;
         public float PoseTime => _poseT;
         public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
         public Transform ThrowHand => _throwsLeft ? _lFore : _rFore;
+
+        internal bool TrySwingGeometry(
+            out Vector3 leftHand, out Vector3 rightHand,
+            out Vector3 grip, out Vector3 barrel,
+            out Vector3 socketX, out Vector3 socketY, out Vector3 socketZ)
+        {
+            leftHand = rightHand = grip = barrel = socketX = socketY = socketZ = Vector3.zero;
+            if (_lFore == null || _rFore == null || _batSocket == null || _batModel == null)
+                return false;
+            // hero-shared forearm bones are 0.70 ft head-to-palm.
+            leftHand = _lFore.TransformPoint(Vector3.up * 0.70f);
+            rightHand = _rFore.TransformPoint(Vector3.up * 0.70f);
+            grip = _batSocket.position;
+            barrel = _batModel.TransformPoint(
+                new Vector3(
+                    (float)SwingPresentation.ModelBarrelEnd.X,
+                    (float)SwingPresentation.ModelBarrelEnd.Y,
+                    (float)SwingPresentation.ModelBarrelEnd.Z));
+            var reach = (float)SwingPresentation.BarrelReach;
+            socketX = _batSocket.TransformPoint(Vector3.right * reach);
+            socketY = _batSocket.TransformPoint(Vector3.up * reach);
+            socketZ = _batSocket.TransformPoint(Vector3.forward * reach);
+            return true;
+        }
+
+        internal readonly struct SwingHandEvidence
+        {
+            internal readonly Vector3 Center;
+            internal readonly Vector3 Extents;
+            internal readonly Vector3 RootCenter;
+            internal readonly Vector3 RootExtents;
+
+            internal SwingHandEvidence(
+                Vector3 center, Vector3 extents, Vector3 rootCenter, Vector3 rootExtents)
+            {
+                Center = center;
+                Extents = extents;
+                RootCenter = rootCenter;
+                RootExtents = rootExtents;
+            }
+        }
+
+        internal readonly struct SwingBatEvidence
+        {
+            internal readonly Vector3 Grip;
+            internal readonly Vector3 HandleEnd;
+            internal readonly Vector3 BarrelStart;
+            internal readonly Vector3 BarrelEnd;
+            internal readonly Vector3 RootGrip;
+            internal readonly Vector3 RootHandleEnd;
+            internal readonly Vector3 RootBarrelStart;
+            internal readonly Vector3 RootBarrelEnd;
+            internal readonly float HandleRadius;
+            internal readonly float BarrelRadius;
+            internal readonly float RootHandleRadius;
+            internal readonly float RootBarrelRadius;
+            internal readonly Vector3 ExpectedDirection;
+
+            internal SwingBatEvidence(
+                Vector3 grip, Vector3 handleEnd, Vector3 barrelStart, Vector3 barrelEnd,
+                Vector3 rootGrip, Vector3 rootHandleEnd,
+                Vector3 rootBarrelStart, Vector3 rootBarrelEnd,
+                float handleRadius, float barrelRadius,
+                float rootHandleRadius, float rootBarrelRadius,
+                Vector3 expectedDirection)
+            {
+                Grip = grip;
+                HandleEnd = handleEnd;
+                BarrelStart = barrelStart;
+                BarrelEnd = barrelEnd;
+                RootGrip = rootGrip;
+                RootHandleEnd = rootHandleEnd;
+                RootBarrelStart = rootBarrelStart;
+                RootBarrelEnd = rootBarrelEnd;
+                HandleRadius = handleRadius;
+                BarrelRadius = barrelRadius;
+                RootHandleRadius = rootHandleRadius;
+                RootBarrelRadius = rootBarrelRadius;
+                ExpectedDirection = expectedDirection;
+            }
+        }
+
+        internal readonly struct BatMeshEvidence
+        {
+            internal readonly float MinY;
+            internal readonly float MaxY;
+            internal readonly float MaxRadius;
+            internal readonly float GripMinY;
+            internal readonly float GripMaxY;
+            internal readonly bool HasGripMaterial;
+
+            internal BatMeshEvidence(
+                float minY, float maxY, float maxRadius,
+                float gripMinY, float gripMaxY, bool hasGripMaterial)
+            {
+                MinY = minY;
+                MaxY = maxY;
+                MaxRadius = maxRadius;
+                GripMinY = gripMinY;
+                GripMaxY = gripMaxY;
+                HasGripMaterial = hasGripMaterial;
+            }
+        }
+
+        // Measure the visible body, not bone-local axes whose bind conventions
+        // differ between the shared armature and Generic packages. SharedRig
+        // hides the drop rig's authored eyes and rebuilds the face it draws, so
+        // skip anything switched off: a hidden landmark is not the stance.
+        internal bool TryRenderedBattingStance(
+            out Vector3 chestForward, out Vector3 eyeForward, out Vector3 feetLine)
+        {
+            chestForward = eyeForward = feetLine = Vector3.zero;
+            if (_root == null) return false;
+            var centers = new System.Collections.Generic.Dictionary<string, Vector3>(
+                System.StringComparer.OrdinalIgnoreCase);
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+            {
+                var name = renderer.name;
+                if (name is not ("Stripe" or "Belly" or "torsoMesh" or "headMesh"
+                    or "EyeL" or "EyeR" or "lShoe" or "rShoe" or "lFoot" or "rFoot")) continue;
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+                if (TryPosedBounds(renderer, out var posed)) centers[name] = posed.Center;
+            }
+            if (!centers.TryGetValue("torsoMesh", out var torso)
+                || !centers.TryGetValue("headMesh", out var head)
+                || !centers.TryGetValue("EyeL", out var eyeL)
+                || !centers.TryGetValue("EyeR", out var eyeR)) return false;
+            if (!centers.TryGetValue("Stripe", out var chest)
+                && !centers.TryGetValue("Belly", out chest)) return false;
+            if (!centers.TryGetValue("lShoe", out var footL)
+                && !centers.TryGetValue("lFoot", out footL)) return false;
+            if (!centers.TryGetValue("rShoe", out var footR)
+                && !centers.TryGetValue("rFoot", out footR)) return false;
+            chestForward = Vector3.ProjectOnPlane(chest - torso, Vector3.up).normalized;
+            eyeForward = Vector3.ProjectOnPlane((eyeL + eyeR) * 0.5f - head, Vector3.up).normalized;
+            feetLine = Vector3.ProjectOnPlane(footR - footL, Vector3.up).normalized;
+            return chestForward.sqrMagnitude > 0.9f && eyeForward.sqrMagnitude > 0.9f
+                && feetLine.sqrMagnitude > 0.9f;
+        }
+
+        internal bool TryRenderedSwingHands(
+            out SwingHandEvidence left, out SwingHandEvidence right)
+        {
+            left = right = default;
+            if (_root == null) return false;
+            var foundLeft = false;
+            var foundRight = false;
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (renderer.name.Equals("lHand", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    foundLeft = TryPosedBounds(renderer, out left);
+                }
+                else if (renderer.name.Equals("rHand", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    foundRight = TryPosedBounds(renderer, out right);
+                }
+            }
+            return foundLeft && foundRight;
+        }
+
+        bool TryPosedBounds(Renderer renderer, out SwingHandEvidence evidence)
+        {
+            evidence = default;
+            Bounds local;
+            if (renderer is SkinnedMeshRenderer skinned)
+            {
+                var baked = new Mesh { name = "swing-hand-measure" };
+                // Unity's scale-compensating overload returns the original
+                // mesh size. Apply renderer.transform exactly once below;
+                // default BakeMesh bakes ancestor scale into this snapshot.
+                skinned.BakeMesh(baked, true);
+                if (baked.vertexCount == 0)
+                {
+                    UnityEngine.Object.Destroy(baked);
+                    return false;
+                }
+                baked.RecalculateBounds();
+                local = baked.bounds;
+                UnityEngine.Object.Destroy(baked);
+            }
+            else
+            {
+                var filter = renderer.GetComponent<MeshFilter>();
+                if (filter == null || filter.sharedMesh == null) return false;
+                local = filter.sharedMesh.bounds;
+            }
+
+            var center = renderer.transform.TransformPoint(local.center);
+            var rootCenter = _root.InverseTransformPoint(center);
+            var extents = Vector3.zero;
+            var rootExtents = Vector3.zero;
+            for (var ix = -1; ix <= 1; ix += 2)
+            for (var iy = -1; iy <= 1; iy += 2)
+            for (var iz = -1; iz <= 1; iz += 2)
+            {
+                var corner = renderer.transform.TransformPoint(
+                    local.center + Vector3.Scale(local.extents, new Vector3(ix, iy, iz)));
+                var delta = corner - center;
+                extents.x = Mathf.Max(extents.x, Mathf.Abs(delta.x));
+                extents.y = Mathf.Max(extents.y, Mathf.Abs(delta.y));
+                extents.z = Mathf.Max(extents.z, Mathf.Abs(delta.z));
+                var rootDelta = _root.InverseTransformPoint(corner) - rootCenter;
+                rootExtents.x = Mathf.Max(rootExtents.x, Mathf.Abs(rootDelta.x));
+                rootExtents.y = Mathf.Max(rootExtents.y, Mathf.Abs(rootDelta.y));
+                rootExtents.z = Mathf.Max(rootExtents.z, Mathf.Abs(rootDelta.z));
+            }
+            evidence = new SwingHandEvidence(center, extents, rootCenter, rootExtents);
+            return true;
+        }
+
+        internal bool TrySwingBatEvidence(out SwingBatEvidence evidence)
+        {
+            evidence = default;
+            if (_batModel == null || _root == null) return false;
+            var grip = SwingPresentation.ModelGrip;
+            var modelGrip = _batModel.TransformPoint(new Vector3(
+                (float)grip.X, (float)grip.Y, (float)grip.Z));
+            var handleEnd = SwingPresentation.ModelHandleEnd;
+            var modelHandleEnd = _batModel.TransformPoint(new Vector3(
+                (float)handleEnd.X, (float)handleEnd.Y, (float)handleEnd.Z));
+            var barrelStart = SwingPresentation.ModelBarrelStart;
+            var modelBarrelStart = _batModel.TransformPoint(new Vector3(
+                (float)barrelStart.X, (float)barrelStart.Y, (float)barrelStart.Z));
+            var barrelEnd = SwingPresentation.ModelBarrelEnd;
+            var modelBarrelEnd = _batModel.TransformPoint(new Vector3(
+                (float)barrelEnd.X, (float)barrelEnd.Y, (float)barrelEnd.Z));
+            var handleRadius = ModelRadiusInWorld((float)SwingPresentation.ModelHandleRadius);
+            var barrelRadius = ModelRadiusInWorld((float)SwingPresentation.ModelBarrelRadius);
+            var rootHandleRadius = ModelRadiusInRoot((float)SwingPresentation.ModelHandleRadius);
+            var rootBarrelRadius = ModelRadiusInRoot((float)SwingPresentation.ModelBarrelRadius);
+            var sampleT = _pose == Pose.ChargeSwing
+                ? SwingPresentation.LoadSampleAt(_charge)
+                : System.Math.Clamp(_poseT, 0f, (float)MoveBones.SwingDur);
+            var key = SwingPresentation.At(sampleT, _batsLeft ? Hand.L : Hand.R);
+            var local = new Vector3(
+                (float)key.BarrelDirection.X,
+                (float)key.BarrelDirection.Y,
+                (float)key.BarrelDirection.Z);
+            var expectedDirection = _root.TransformVector(local).normalized;
+            evidence = new SwingBatEvidence(
+                modelGrip, modelHandleEnd, modelBarrelStart, modelBarrelEnd,
+                _root.InverseTransformPoint(modelGrip),
+                _root.InverseTransformPoint(modelHandleEnd),
+                _root.InverseTransformPoint(modelBarrelStart),
+                _root.InverseTransformPoint(modelBarrelEnd),
+                handleRadius, barrelRadius, rootHandleRadius, rootBarrelRadius,
+                expectedDirection);
+            return expectedDirection.sqrMagnitude > 0.99f;
+        }
+
+        float ModelRadiusInWorld(float radius) => Mathf.Max(
+            _batModel.TransformVector(Vector3.right * radius).magnitude,
+            _batModel.TransformVector(Vector3.forward * radius).magnitude);
+
+        float ModelRadiusInRoot(float radius) => Mathf.Max(
+            _root.InverseTransformVector(
+                _batModel.TransformVector(Vector3.right * radius)).magnitude,
+            _root.InverseTransformVector(
+                _batModel.TransformVector(Vector3.forward * radius)).magnitude);
+
+        internal bool TryBatMeshEvidence(out BatMeshEvidence evidence)
+        {
+            evidence = default;
+            if (_batModel == null) return false;
+            var minY = float.PositiveInfinity;
+            var maxY = float.NegativeInfinity;
+            var maxRadius = 0f;
+            var gripMinY = float.PositiveInfinity;
+            var gripMaxY = float.NegativeInfinity;
+            var hasGrip = false;
+            var found = false;
+            foreach (var filter in _batModel.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var mesh = filter.sharedMesh;
+                if (mesh == null || mesh.vertexCount == 0) continue;
+                if (!mesh.isReadable) return false;
+                found = true;
+                var intoModel = _batModel.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+                var vertices = mesh.vertices;
+                foreach (var vertex in vertices)
+                {
+                    var p = intoModel.MultiplyPoint3x4(vertex);
+                    minY = Mathf.Min(minY, p.y);
+                    maxY = Mathf.Max(maxY, p.y);
+                    maxRadius = Mathf.Max(maxRadius, Mathf.Sqrt(p.x * p.x + p.z * p.z));
+                }
+
+                var renderer = filter.GetComponent<MeshRenderer>();
+                var materials = renderer != null ? renderer.sharedMaterials : System.Array.Empty<Material>();
+                for (var sub = 0; sub < mesh.subMeshCount && sub < materials.Length; sub++)
+                {
+                    var material = materials[sub];
+                    if (material == null || material.name.IndexOf(
+                            "grip", System.StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+                    hasGrip = true;
+                    foreach (var index in mesh.GetIndices(sub))
+                    {
+                        var p = intoModel.MultiplyPoint3x4(vertices[index]);
+                        gripMinY = Mathf.Min(gripMinY, p.y);
+                        gripMaxY = Mathf.Max(gripMaxY, p.y);
+                    }
+                }
+            }
+            if (!found) return false;
+            evidence = new BatMeshEvidence(
+                minY, maxY, maxRadius, gripMinY, gripMaxY, hasGrip);
+            return true;
+        }
+
+        internal bool TryBatVisual(
+            out string visual, out bool visible,
+            out Vector3 socketGrip, out Vector3 modelGrip)
+        {
+            visual = _batVisual;
+            visible = _bat != null && _bat.gameObject.activeInHierarchy;
+            socketGrip = modelGrip = Vector3.zero;
+            if (_batSocket == null || _batModel == null) return false;
+            socketGrip = _batSocket.position;
+            var grip = SwingPresentation.ModelGrip;
+            modelGrip = _batModel.TransformPoint(new Vector3(
+                (float)grip.X, (float)grip.Y, (float)grip.Z));
+            return true;
+        }
 
         public void Bind(Character who)
         {
@@ -80,6 +425,10 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Pose pose, float charge = 0f, string pitchType = null)
         {
+            if (_packageBody && pose != _pose)
+                RestorePackageBindPose(preserveRootPresentation: false);
+            else if (_packageBody && _packageSampledLastTick)
+                RestorePackageBindPose(preserveRootPresentation: true);
             if (pose != _pose)
             {
                 _blendLoad = (pose == Pose.Swing && _pose == Pose.ChargeSwing)
@@ -101,9 +450,9 @@ namespace GrandSluggers.UnityClient
         public void SetGear(BatItem bat, GloveItem glove)
         {
             if (_root == null) return;
-            var batVis = GearMesh.BatVisual(bat);
+            var batVis = GearMesh.HittingBatVisual();
             var gloveVis = GearMesh.GloveVisual(glove);
-            if (!_meshStaff && batVis != _batVisual) BuildBat(batVis);
+            if (batVis != _batVisual) BuildBat(batVis);
             if (gloveVis != _gloveVisual) BuildGlove(gloveVis);
         }
 
@@ -194,13 +543,18 @@ namespace GrandSluggers.UnityClient
                     bounce = 0.07f * Mathf.Abs(Mathf.Sin(_t * 5.4f));
                 var squash = Vector3.one;
                 if (_pose == Pose.Swing && _poseT >= 0.12f && _poseT < 0.32f)
-                    squash = new Vector3(1.14f, 0.84f, 1.14f);
+                    squash = new Vector3(
+                        (float)SwingPresentation.ContactStretchXZ,
+                        (float)SwingPresentation.ContactSquashY,
+                        (float)SwingPresentation.ContactStretchXZ);
                 else if (_pose == Pose.Dive)
                     squash = new Vector3(1.22f, 0.76f, 1.18f);
                 else if (_pose == Pose.Jump || _pose == Pose.Clamber)
                     squash = new Vector3(0.86f, 1.18f, 0.86f);
                 var want = Vector3.Scale(_baseScale * g, squash);
-                _root.localScale = Vector3.Lerp(_root.localScale, want, 0.22f);
+                _root.localScale = _snap
+                    ? want
+                    : Vector3.Lerp(_root.localScale, want, 0.22f);
                 _root.localPosition = new Vector3(0f, bounce, 0f);
             }
             PlaceRing();
@@ -237,6 +591,12 @@ namespace GrandSluggers.UnityClient
                 : System.Array.Empty<string>();
             var chain = SharedRig.Spawn(transform, who, extras);
             _root = chain.Root;
+            _stanceRoot = chain.StanceRoot;
+            if (_stanceRoot != null)
+            {
+                _stanceRootRest = _stanceRoot.localPosition;
+                _stanceRootBind = _stanceRoot.localRotation;
+            }
             _baseScale = chain.BaseScale;
             _torso = chain.Torso;
             _head = chain.Head;
@@ -245,6 +605,7 @@ namespace GrandSluggers.UnityClient
             _lFore = chain.LFore;
             _rArm = chain.RUpper;
             _rFore = chain.RFore;
+            _sourceBatSocket = _batSocket = chain.Bat;
             _lThigh = chain.LThigh;
             _lShin = chain.LShin;
             _rThigh = chain.RThigh;
@@ -256,14 +617,24 @@ namespace GrandSluggers.UnityClient
             _packageBody = ArtBinder.Art != null
                 && CharacterPackage.IsUnique(ArtBinder.SkinOf(who).Bind)
                 && ArtBinder.LoadBodyPrefab(who.Id) != null;
-            _meshStaff = false;
-            for (var i = 0; i < extras.Count; i++)
+            if (_packageBody)
             {
-                if (extras[i].Equals("staff", System.StringComparison.OrdinalIgnoreCase)
-                    && ArtBinder.LoadBodyPrefab(who.Id) != null)
-                    _meshStaff = true;
+                var controller = ArtBinder.LoadPackageController(who.Id);
+                var animator = _root.GetComponentInChildren<Animator>(true);
+                if (animator == null && controller != null) animator = _root.gameObject.AddComponent<Animator>();
+                if (animator != null)
+                {
+                    animator.runtimeAnimatorController = controller;
+                    animator.enabled = false;
+                }
+                CapturePackageBindPose();
             }
-            if (!_meshStaff) BuildBat("bat-wood");
+            else if (_batsLeft)
+            {
+                _batSocket = MirroredBatSocket(_batSocket, _lFore);
+                _bind.Bat = _batSocket.localRotation;
+            }
+            BuildBat(GearMesh.HittingBatVisual());
             BuildGlove("glove-brown");
             if (_bat != null) _bat.gameObject.SetActive(false);
         }
@@ -272,15 +643,50 @@ namespace GrandSluggers.UnityClient
         {
             _batVisual = visual ?? "bat-wood";
             if (_bat != null) Destroy(_bat.gameObject);
-            var hand = _batsLeft ? _lFore : _rFore;
-            if (hand == null) return;
+            _batModel = null;
+            if (_batSocket == null) return;
             var go = new GameObject("Bat");
-            go.transform.SetParent(hand, false);
-            go.transform.localPosition = new Vector3(0, -1.4f, 0.1f);
-            go.transform.localRotation = Quaternion.Euler(0, 0, 20);
-            go.transform.localScale = Vector3.one * Silhouette.BatScale;
-            FillBat(go.transform, _batVisual);
+            go.transform.SetParent(_batSocket, false);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            var model = new GameObject("Model").transform;
+            model.SetParent(go.transform, false);
+            // The DCC socket owns the swing. This one bind conversion maps the
+            // bat-wood +Y mesh axis into that socket and rotates its authored
+            // grip offset by the same quaternion so the handle stays at origin.
+            var axis = new Vector3(
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.X,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Y,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Z);
+            model.localRotation = Quaternion.FromToRotation(Vector3.up, axis);
+            var modelGrip = new Vector3(
+                (float)SwingPresentation.ModelGrip.X,
+                (float)SwingPresentation.ModelGrip.Y,
+                (float)SwingPresentation.ModelGrip.Z);
+            model.localScale = Vector3.one * Silhouette.BatScale;
+            model.localPosition = -(model.localRotation
+                * (modelGrip * Silhouette.BatScale));
+            FillBat(model, _batVisual);
+            _batModel = model;
             _bat = go.transform;
+        }
+
+        static Transform MirroredBatSocket(Transform source, Transform hittingForearm)
+        {
+            if (hittingForearm == null) return source;
+            var socket = new GameObject("bat-left").transform;
+            socket.SetParent(hittingForearm, false);
+            if (source == null)
+            {
+                socket.localPosition = new Vector3(0, -0.68f, 0.12f);
+                socket.localRotation = Quaternion.identity;
+                return socket;
+            }
+            socket.localPosition = new Vector3(-source.localPosition.x, source.localPosition.y, source.localPosition.z);
+            var e = source.localRotation.eulerAngles;
+            socket.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
+            socket.localScale = source.localScale;
+            return socket;
         }
 
         static bool TryDropToy(string id, Transform parent)
@@ -417,13 +823,17 @@ namespace GrandSluggers.UnityClient
         void Animate()
         {
             var pose = Locomotion(_pose);
+            if (pose is not (Pose.ChargeSwing or Pose.Swing))
+                RestoreStanceRoot();
             var bob = 0.04f * Mathf.Sin(_t * 2.4f);
             if (pose == Pose.Cheer) bob = Mathf.Abs(Mathf.Sin(_t * 6f)) * 0.12f;
             if (_torso != null) _torso.localPosition = _torsoRest + new Vector3(0, bob, 0);
 
             var batOn = _heldBat;
             var gloveOn = _heldGlove;
-            if (ToVerb(pose) is MoveBones.Verb verb)
+            var motionVerb = ToVerb(pose);
+            if (_packageBody && pose == Pose.Idle) motionVerb = MoveBones.Verb.Idle;
+            if (motionVerb is MoveBones.Verb verb)
             {
                 batOn = pose is Pose.ChargeSwing or Pose.Swing or Pose.CheckSwing or Pose.Bunt or Pose.Miss;
                 gloveOn = pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw
@@ -435,7 +845,7 @@ namespace GrandSluggers.UnityClient
                 // CharacterMotion flexes THIS rest pose in bone-local space.
                 MoveBones.Sample authored = default;
                 var authoredPose = false;
-                if (!_packageBody)
+                if (!_packageBody && pose is not (Pose.ChargeSwing or Pose.Swing))
                 {
                     if (pose is Pose.ChargePitch or Pose.ChargeSwing)
                     {
@@ -456,7 +866,7 @@ namespace GrandSluggers.UnityClient
                         pose == Pose.Swing ? MoveBones.SwingContact : MoveBones.PitchRelease);
                 _lastMotion = sample;
                 if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
-                    sample = MoveBones.MirrorArms(sample);
+                    sample = MoveBones.MirrorSwing(sample);
                 if ((pose is Pose.ChargePitch or Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     sample = MoveBones.MirrorArms(sample);
                 var clipT = _poseT;
@@ -465,12 +875,28 @@ namespace GrandSluggers.UnityClient
                     clipT = _t;
                 // Authored eulers are offsets on the bind pose (Q(e)*bind).
                 // SampleAnimation replaces bind and laid the scoop mesh on its side.
-                var packageClip = PackageClipId(pose);
-                var playedPackage = _packageBody && !string.IsNullOrEmpty(packageClip)
-                    && TrySamplePackage(packageClip, pose == Pose.Idle ? clipT : clipT);
-                var playedDrop = !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
+                var playedPackage = _packageBody && ArtBinder.Art != null
+                    && ArtBinder.Art.TryPackageVerb(_id, verb, out var packageVerb)
+                    && TrySamplePackage(packageVerb);
+                var sharedSwingTake = !_packageBody && pose is (Pose.ChargeSwing or Pose.Swing);
+                if (sharedSwingTake && _bat != null)
+                    _bat.localRotation = Quaternion.identity;
+                var playedDrop = sharedSwingTake
+                    ? TrySampleDrop("swing", pose == Pose.Swing
+                        ? (float)AtBatMotion.SwingClipTime(_poseT, _charge)
+                        : (float)SwingPresentation.LoadSampleAt(_charge))
+                    : !_packageBody && !authoredPose && TrySampleDrop(clipId, clipT);
+                if (sharedSwingTake && !playedDrop && !_sharedSwingMissingReported)
+                {
+                    Debug.LogError("Shared swing FBX is missing; using the visible MoveBones placeholder for " + _id);
+                    _sharedSwingMissingReported = true;
+                }
+                else if (sharedSwingTake && playedDrop)
+                    _sharedSwingMissingReported = false;
                 if (!playedPackage && !playedDrop)
                 {
+                    if (_packageBody && _packageSampledLastTick)
+                        RestorePackageBindPose(preserveRootPresentation: true);
                     var boneSnap = pose is Pose.Swing or Pose.ThrowPitch or Pose.Throw or Pose.Jump or Pose.Scoop or Pose.Slide;
                     var timed = pose is Pose.Swing or Pose.ThrowPitch;
                     if (_packageBody)
@@ -481,13 +907,20 @@ namespace GrandSluggers.UnityClient
                         Apply(sample,
                             _snap || timed ? 1f : boneSnap ? 0.55f : 0.32f,
                             _snap || timed ? 1f : boneSnap ? 0.48f : 0.34f);
+                    _packageSampledLastTick = false;
                 }
-                else if ((pose is Pose.Swing && _batsLeft) || ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft))
+                else if ((pose is Pose.ChargeSwing or Pose.Swing) && _batsLeft)
+                    MirrorBoundSwing();
+                else if ((pose is Pose.ThrowPitch or Pose.Throw) && _throwsLeft)
                     MirrorBoundArms();
+                // A ready Generic package owns its authored socket. Shared-rig
+                // swings own it through swing.json / MoveBones. Aim only the
+                // explicit package-local fallback when that package has no take.
+                if (_packageBody && !playedPackage && pose is (Pose.ChargeSwing or Pose.Swing))
+                    AimBatSocket(pose == Pose.Swing ? _poseT : 0f);
                 if (_bat != null)
                 {
                     _bat.gameObject.SetActive(batOn);
-                    if (batOn) _bat.localRotation = Q(sample.Bat);
                 }
                 if (_glove != null) _glove.gameObject.SetActive(gloveOn && !batOn);
                 return;
@@ -876,6 +1309,7 @@ namespace GrandSluggers.UnityClient
             EaseLocal(ref _lShin, s.LShin, kLeg, _bind.LShin);
             EaseLocal(ref _rThigh, s.RThigh, kLeg, _bind.RThigh);
             EaseLocal(ref _rShin, s.RShin, kLeg, _bind.RShin);
+            EaseLocal(ref _batSocket, s.Bat, kArm, _bind.Bat);
         }
 
         static void EaseLocal(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
@@ -903,6 +1337,25 @@ namespace GrandSluggers.UnityClient
             Ease(ref _lShin, s.LShin, kLeg, scoop ? id : _bind.LShin);
             Ease(ref _rThigh, s.RThigh, kLeg, scoop ? id : _bind.RThigh);
             Ease(ref _rShin, s.RShin, kLeg, scoop ? id : _bind.RShin);
+            Ease(ref _batSocket, s.Bat, kArm, scoop ? id : _bind.Bat);
+        }
+
+        void AimBatSocket(float poseT)
+        {
+            if (_batSocket == null || _root == null) return;
+            var key = SwingPresentation.At(poseT, _batsLeft ? Hand.L : Hand.R);
+            var local = new Vector3(
+                (float)key.BarrelDirection.X,
+                (float)key.BarrelDirection.Y,
+                (float)key.BarrelDirection.Z);
+            var world = _root.TransformVector(local).normalized;
+            if (world.sqrMagnitude < 0.01f) return;
+            if (_bat != null) _bat.localRotation = Quaternion.identity;
+            var modelAxis = new Vector3(
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.X,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Y,
+                (float)SwingPresentation.ModelBarrelAxisAtSocket.Z);
+            _batSocket.rotation = Quaternion.FromToRotation(modelAxis, world);
         }
 
         static void Ease(ref Transform tf, MoveBones.Euler e, float k, Quaternion bind)
@@ -911,31 +1364,66 @@ namespace GrandSluggers.UnityClient
             tf.localRotation = Quaternion.Slerp(tf.localRotation, Q(e) * bind, k);
         }
 
-        static string PackageClipId(Pose pose) => pose switch
+        bool TrySamplePackage(PackageVerbSlot verb)
         {
-            Pose.Idle => "idle",
-            Pose.Swing or Pose.ChargeSwing => "pose",
-            _ => null
-        };
-
-        bool TrySamplePackage(string clipId, float t)
-        {
-            var clip = ArtBinder.LoadPackageClip(_id, clipId);
+            var clip = ArtBinder.LoadPackageClip(_id, verb);
             if (clip == null || _root == null) return false;
+            RestorePackageBindPose(preserveRootPresentation: true);
+            var t = verb.Clock.Equals(CharacterPackage.WorldClock, System.StringComparison.OrdinalIgnoreCase)
+                ? _t
+                : verb.Clock.Equals(CharacterPackage.ChargeClock, System.StringComparison.OrdinalIgnoreCase)
+                    ? _charge * clip.length
+                    : _poseT;
             if (t < 0f) t = 0f;
             if (clip.length > 1e-4f)
             {
-                if (_pose == Pose.Idle) t %= clip.length;
+                if (verb.Loop) t %= clip.length;
                 else t = Mathf.Min(t, clip.length);
             }
             var scale = _root.localScale;
             var pos = _root.localPosition;
             clip.SampleAnimation(_root.gameObject, t);
-            var arm = _root.Find("hero-shared");
-            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
             _root.localScale = scale;
             _root.localPosition = pos;
+            _packageSampledLastTick = true;
             return true;
+        }
+
+        void CapturePackageBindPose()
+        {
+            if (_root == null)
+            {
+                _packageBindPose = System.Array.Empty<PackageTransformBind>();
+                return;
+            }
+            var transforms = _root.GetComponentsInChildren<Transform>(true);
+            _packageBindPose = new PackageTransformBind[transforms.Length];
+            for (var i = 0; i < transforms.Length; i++)
+                _packageBindPose[i] = new PackageTransformBind(transforms[i]);
+            _packageSampledLastTick = false;
+        }
+
+        void RestorePackageBindPose(bool preserveRootPresentation)
+        {
+            if (_packageBindPose == null || _packageBindPose.Length == 0) return;
+            var rootPosition = _root != null ? _root.localPosition : Vector3.zero;
+            var rootScale = _root != null ? _root.localScale : Vector3.one;
+            for (var i = 0; i < _packageBindPose.Length; i++)
+            {
+                var bind = _packageBindPose[i];
+                if (bind.Transform == null) continue;
+                bind.Transform.localPosition = bind.Position;
+                bind.Transform.localRotation = bind.Rotation;
+                bind.Transform.localScale = bind.Scale;
+            }
+            if (preserveRootPresentation && _root != null)
+            {
+                _root.localPosition = rootPosition;
+                _root.localScale = rootScale;
+            }
+            // The HeroActor transform owns world facing. This local rotation is the
+            // imported DCC basis and must return to bind before another verb.
+            _packageSampledLastTick = false;
         }
 
         bool TrySampleDrop(string clipId, float t)
@@ -947,8 +1435,6 @@ namespace GrandSluggers.UnityClient
             var scale = _root.localScale;
             var pos = _root.localPosition;
             clip.SampleAnimation(_root.gameObject, t);
-            var arm = _root.Find("hero-shared");
-            if (arm != null) clip.SampleAnimation(arm.gameObject, t);
             _root.localScale = scale;
             _root.localPosition = pos;
             if (_torso != null) _torso.localPosition = _torsoRest;
@@ -959,6 +1445,40 @@ namespace GrandSluggers.UnityClient
         {
             MirrorLocal(ref _lArm, ref _rArm);
             MirrorLocal(ref _lFore, ref _rFore);
+        }
+
+        void MirrorBoundSwing()
+        {
+            MirrorOne(_stanceRoot);
+            MirrorOne(_torso);
+            MirrorOne(_head);
+            MirrorLocal(ref _lArm, ref _rArm);
+            MirrorLocal(ref _lFore, ref _rFore);
+            MirrorLocal(ref _lThigh, ref _rThigh);
+            MirrorLocal(ref _lShin, ref _rShin);
+            if (_sourceBatSocket != null && _sourceBatSocket != _batSocket)
+            {
+                var p = _sourceBatSocket.localPosition;
+                _batSocket.localPosition = new Vector3(-p.x, p.y, p.z);
+                var e = _sourceBatSocket.localRotation.eulerAngles;
+                _batSocket.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
+                _batSocket.localScale = _sourceBatSocket.localScale;
+            }
+            else MirrorOne(_batSocket);
+        }
+
+        void RestoreStanceRoot()
+        {
+            if (_stanceRoot == null) return;
+            _stanceRoot.localPosition = _stanceRootRest;
+            _stanceRoot.localRotation = _stanceRootBind;
+        }
+
+        static void MirrorOne(Transform tf)
+        {
+            if (tf == null) return;
+            var e = tf.localRotation.eulerAngles;
+            tf.localRotation = Quaternion.Euler(e.x, -e.y, -e.z);
         }
 
         static void MirrorLocal(ref Transform a, ref Transform b)

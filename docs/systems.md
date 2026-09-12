@@ -130,7 +130,7 @@ Aim with the stick, confirm with E / LT+RB / South+LT. Cycle banana / rocket / P
 
 Loadout slots: **Bat**, **Glove**, optional **Shoes**.
 
-Each item is JSON: stat mods, a tag that changes a system (`always_full_charge`, `chem_all`, `item_speed`), and a visual id. Signature bats are characters’ defaults and can be swapped.
+Each item is JSON: stat mods, a tag that changes a system (`always_full_charge`, `chem_all`, `item_speed`), and a visual id. Signature bats are characters’ default stat loadouts and can be swapped. During batting, every character uses the shared `bat-wood` prop; changing the loadout changes its rules without replacing that prop.
 
 ## Parks
 

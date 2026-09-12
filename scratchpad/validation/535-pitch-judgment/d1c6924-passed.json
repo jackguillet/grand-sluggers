@@ -1,0 +1,224 @@
+{
+    "ok": true,
+    "revision": "d1c6924652a8ede94e8c2ef84fc6e2cec1b0616a",
+    "unityVersion": "6000.5.9f1",
+    "error": "",
+    "cases": [
+        {
+            "type": "fastball",
+            "curve": -1.0,
+            "star": false,
+            "x": -1.6057499647140504,
+            "y": 2.049999952316284,
+            "inside": false,
+            "result": "HitByPitch"
+        },
+        {
+            "type": "fastball",
+            "curve": -1.0,
+            "star": true,
+            "x": -1.9061448574066163,
+            "y": 2.049999952316284,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "fastball",
+            "curve": 0.0,
+            "star": false,
+            "x": 0.19425000250339509,
+            "y": 2.049999952316284,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "fastball",
+            "curve": 0.0,
+            "star": true,
+            "x": -0.10614489763975144,
+            "y": 2.049999952316284,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "fastball",
+            "curve": 1.0,
+            "star": false,
+            "x": 1.9942500591278077,
+            "y": 2.049999952316284,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "fastball",
+            "curve": 1.0,
+            "star": true,
+            "x": 1.6938550472259522,
+            "y": 2.049999952316284,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "changeup",
+            "curve": -1.0,
+            "star": false,
+            "x": -1.6057499647140504,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "HitByPitch"
+        },
+        {
+            "type": "changeup",
+            "curve": -1.0,
+            "star": true,
+            "x": -1.9061448574066163,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "HitByPitch"
+        },
+        {
+            "type": "changeup",
+            "curve": 0.0,
+            "star": false,
+            "x": 0.19425000250339509,
+            "y": 2.4000000953674318,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "changeup",
+            "curve": 0.0,
+            "star": true,
+            "x": -0.10614489763975144,
+            "y": 2.4000000953674318,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "changeup",
+            "curve": 1.0,
+            "star": false,
+            "x": 1.9942500591278077,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "changeup",
+            "curve": 1.0,
+            "star": true,
+            "x": 1.6938550472259522,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "curve",
+            "curve": -1.0,
+            "star": false,
+            "x": -1.6057499647140504,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "HitByPitch"
+        },
+        {
+            "type": "curve",
+            "curve": -1.0,
+            "star": true,
+            "x": -1.9061448574066163,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "HitByPitch"
+        },
+        {
+            "type": "curve",
+            "curve": 0.0,
+            "star": false,
+            "x": 0.19425000250339509,
+            "y": 2.4000000953674318,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "curve",
+            "curve": 0.0,
+            "star": true,
+            "x": -0.10614489763975144,
+            "y": 2.4000000953674318,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "curve",
+            "curve": 1.0,
+            "star": false,
+            "x": 1.9942500591278077,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "curve",
+            "curve": 1.0,
+            "star": true,
+            "x": 1.6938550472259522,
+            "y": 2.4000000953674318,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "slider",
+            "curve": -1.0,
+            "star": false,
+            "x": 0.7942500114440918,
+            "y": 1.850000023841858,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "slider",
+            "curve": -1.0,
+            "star": true,
+            "x": 0.4938550889492035,
+            "y": 1.850000023841858,
+            "inside": true,
+            "result": "Strikeout"
+        },
+        {
+            "type": "slider",
+            "curve": 0.0,
+            "star": false,
+            "x": 2.594249963760376,
+            "y": 1.850000023841858,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "slider",
+            "curve": 0.0,
+            "star": true,
+            "x": 2.2938551902770998,
+            "y": 1.850000023841858,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "slider",
+            "curve": 1.0,
+            "star": false,
+            "x": 4.39424991607666,
+            "y": 1.850000023841858,
+            "inside": false,
+            "result": "TakeBall"
+        },
+        {
+            "type": "slider",
+            "curve": 1.0,
+            "star": true,
+            "x": 4.093854904174805,
+            "y": 1.850000023841858,
+            "inside": false,
+            "result": "TakeBall"
+        }
+    ]
+}

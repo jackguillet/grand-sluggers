@@ -10,7 +10,15 @@ public static class BookChapter
         {
             ["contents"] = "rio",
             ["controls"] = "vale",
+            ["controls-2"] = "vale",
+            ["controls-3"] = "vale",
             ["roles"] = "zig",
+            ["roles-batting-2"] = "zig",
+            ["roles-pitching"] = "zig",
+            ["roles-pitching-2"] = "zig",
+            ["roles-fielding"] = "zig",
+            ["roles-running"] = "zig",
+            ["getting-started-modes"] = "rio",
             ["pitch-swing"] = "rio",
             ["the-box"] = "brondo",
             ["running"] = "konga",
@@ -23,6 +31,7 @@ public static class BookChapter
             ["chemistry"] = "konga",
             ["stars"] = "ashlord",
             ["abilities"] = "vale",
+            ["abilities-types"] = "vale",
             ["items"] = "zig",
             ["pause-practice"] = "rio",
         };

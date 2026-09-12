@@ -2,8 +2,8 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Mouse analog is hold-to-aim, never cursor-vs-center (#349). This-frame
-/// drag, not an integrator — a parked cursor is dead, including while
-/// right-click charges. Noise below DragNeed is not a throw.
+/// drag, not an integrator — a parked cursor is dead while right-click
+/// enables aim. Noise below DragNeed is not a throw.
 /// </summary>
 public static class MouseStick
 {

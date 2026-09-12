@@ -1,0 +1,92 @@
+{
+    "revision": "2aea26c70ea9af32b78dcc5973c3554b624d2b67",
+    "unityVersion": "6000.5.9f1",
+    "ok": true,
+    "error": "",
+    "cases": [
+        {
+            "name": "normal-tap-release",
+            "phase": "Flight",
+            "charge": 0.03030303120613098,
+            "timingFrames": 0.0,
+            "moundLeft": 0.0,
+            "moundRight": 0.0,
+            "plateLeft": 0.0,
+            "plateRight": 0.0,
+            "cursorBefore": 0.0,
+            "cursorAfter": 0.0,
+            "breakX": 0.0,
+            "batterOffset": 0.0
+        },
+        {
+            "name": "held-charge-release",
+            "phase": "Flight",
+            "charge": 1.0,
+            "timingFrames": 0.0,
+            "moundLeft": 0.0,
+            "moundRight": 0.0,
+            "plateLeft": 0.0,
+            "plateRight": 0.0,
+            "cursorBefore": 0.0,
+            "cursorAfter": 0.0,
+            "breakX": 0.0,
+            "batterOffset": 0.0
+        },
+        {
+            "name": "windup-release",
+            "phase": "Flight",
+            "charge": 0.0,
+            "timingFrames": -71.57330703735352,
+            "moundLeft": 0.0,
+            "moundRight": 0.0,
+            "plateLeft": 0.0,
+            "plateRight": 0.0,
+            "cursorBefore": 0.0,
+            "cursorAfter": 0.0,
+            "breakX": 0.0,
+            "batterOffset": 0.0
+        },
+        {
+            "name": "keyboard-seat-isolation",
+            "phase": "Set",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "moundLeft": 0.0,
+            "moundRight": 0.0,
+            "plateLeft": 0.0,
+            "plateRight": 0.0,
+            "cursorBefore": 0.0,
+            "cursorAfter": 0.0,
+            "breakX": 0.0,
+            "batterOffset": 0.0
+        },
+        {
+            "name": "screen-directions",
+            "phase": "",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "moundLeft": 0.02666666845480603,
+            "moundRight": -0.02666666845480603,
+            "plateLeft": -0.02666666845480603,
+            "plateRight": 0.02666666845480603,
+            "cursorBefore": 0.0,
+            "cursorAfter": 0.0,
+            "breakX": 0.0,
+            "batterOffset": 0.0
+        },
+        {
+            "name": "cursor-follows-batter",
+            "phase": "",
+            "charge": 0.0,
+            "timingFrames": 0.0,
+            "moundLeft": 0.0,
+            "moundRight": 0.0,
+            "plateLeft": 0.0,
+            "plateRight": 0.0,
+            "cursorBefore": 0.04933333769440651,
+            "cursorAfter": 0.04933333769440651,
+            "breakX": 0.04000000283122063,
+            "batterOffset": 0.02666666845480603
+        }
+    ]
+}

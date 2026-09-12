@@ -41,16 +41,31 @@ public class RoleTablesTests
         Assert.Contains(padField, v => v.Contains("Jump"));
         Assert.Contains(padField, v => v.Contains("Dive"));
         Assert.Contains(padField, v => v.Contains("Attack"));
-        Assert.Contains(RoleTables.Pad.SelectMany(b => b.Rows), r => r.Press.Contains("LT") || r.Verb.Contains("Charge"));
+        Assert.Contains(RoleTables.Pad.SelectMany(b => b.Rows), r => r.Verb.Contains("Charge"));
         Assert.Contains(RoleTables.Pad.First(b => b.Id == "batting").Rows, r => r.Verb.Contains("Bunt"));
+        foreach (var row in RoleTables.Pad.SelectMany(block => block.Rows).Where(row => row.Verb.Contains("Charge")))
+        {
+            Assert.Contains("Hold South", row.Press);
+            Assert.Contains("release", row.Press, StringComparison.OrdinalIgnoreCase);
+        }
+        foreach (var row in RoleTables.Keys.SelectMany(block => block.Rows).Where(row => row.Verb.Contains("Charge")))
+        {
+            Assert.Contains("Hold Space / left click", row.Press);
+            Assert.Contains("release", row.Press, StringComparison.OrdinalIgnoreCase);
+        }
 
         var page = HowToPlay.Must("roles");
         Assert.Contains(page.Lines, l => l.Contains("batting") && l.Contains("running"));
         Assert.False(HowToPlay.MixesHardware(string.Join(' ', page.Lines)));
-        var cell = RoleTables.Cell(0, 1280, 800);
-        Assert.True(cell.W > 400);
-        Assert.True(cell.H > 200);
-        var next = RoleTables.Cell(1, 1280, 800);
-        Assert.True(next.X > cell.X);
+        Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles").Rows.Count);
+        Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles-batting-2").Rows.Count);
+        Assert.Equal(3, RoleTables.OnPage(InputScheme.Keys, "roles-pitching").Rows.Count);
+        Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching-2").Rows.Count);
+        Assert.Equal(RoleTables.Pad[3], RoleTables.OnPage(InputScheme.Pad, "roles-running"));
+        var cell = RoleTables.RowCard(0, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        Assert.True(cell.W > 1000);
+        Assert.True(cell.H > 40);
+        var next = RoleTables.RowCard(1, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        Assert.True(next.Y > cell.Y);
     }
 }

@@ -54,9 +54,18 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 - **Ashlord** — horns, short cape, unlit ember eyes
 - **Fenn** — shell-as-brim, walking cane, cream plastron. Unique Generic package (`docs/character-package.md`).
 
-## Bats (shape, not a string)
+## Bats
 
-Loadout mesh follows `BatItem.Visual`. Defaults:
+Every character holds the same original `bat-wood` model while batting. It stays
+on the shared bat socket from ready and load through swing and follow-through;
+the authored model origin stays fixed, its handle runs from Y −1.00 to −0.10,
+the grip sits at Y −0.85, and its radius-0.12 barrel runs from Y −0.15 to +1.25
+before the measured shared-socket bind conversion. Left-handed batters mirror
+the shared socket. Fenn's Generic package resolves the same named `bat` socket contract;
+the runtime creates the standard forearm fallback when the FBX omits that
+socket. Its walking cane remains a character extra rather than the hitting prop.
+
+Signature items still own gameplay stats and an inventory visual id. Defaults:
 
 | Captain | Item | Visual |
 | --- | --- | --- |
@@ -68,7 +77,10 @@ Loadout mesh follows `BatItem.Visual`. Defaults:
 | Ashlord | Furnace Club | `bat-furnace` |
 | Fenn | Fen Cane | `bat-staff` |
 
-`Match.CycleBat` swaps the sim item **and** the mesh. Charge Bat (`bat-gold`) is the shop stick.
+`Match.CycleBat` swaps the sim item and its contact, power, and charge effects.
+It does not replace the active hitting prop. `GearMesh.HittingBatVisual()` owns
+that single choice; `GearMesh.BatVisual(BatItem)` retains loadout identity for
+inventory and later non-hitting presentation.
 
 Gloves sit on the fielding hand (non-throwing) whenever the body is on defense — not only during Catch.
 

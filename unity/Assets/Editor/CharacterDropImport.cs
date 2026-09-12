@@ -19,7 +19,7 @@ namespace GrandSluggers.EditorTools
             {
                 var path = imported[i].Replace('\\', '/');
                 if (path.EndsWith("-albedo.png", StringComparison.OrdinalIgnoreCase)
-                    && path.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0)
+                    && path.StartsWith("Assets/Art/Characters/", StringComparison.OrdinalIgnoreCase))
                 {
                     var fbx = path.Substring(0, path.Length - "-albedo.png".Length) + ".fbx";
                     EditorApplication.delayCall += () => FinishDrop(fbx);
@@ -33,11 +33,14 @@ namespace GrandSluggers.EditorTools
 
         static bool IsDropFbx(string path)
         {
-            if (path.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) < 0)
+            if (!path.StartsWith("Assets/Art/Characters/", StringComparison.OrdinalIgnoreCase))
                 return false;
             if (path.IndexOf("SharedRig", StringComparison.OrdinalIgnoreCase) >= 0)
                 return false;
-            return path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase);
+            if (!path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase)) return false;
+            var folder = Path.GetFileName(Path.GetDirectoryName(path));
+            var id = Path.GetFileNameWithoutExtension(path);
+            return id.Equals(folder, StringComparison.OrdinalIgnoreCase);
         }
 
         static void FinishDrop(string fbxPath)
@@ -80,6 +83,7 @@ namespace GrandSluggers.EditorTools
             PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
             UnityEngine.Object.DestroyImmediate(instance);
             AssetDatabase.SaveAssets();
+            CharacterPackageControllerImport.Schedule();
         }
     }
 }

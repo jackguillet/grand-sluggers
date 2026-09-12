@@ -72,9 +72,20 @@ def make_action(arm, name, keys):
     return act
 
 
+def action_range(action):
+    frames = [point.co.x for curve in action.fcurves for point in curve.keyframe_points]
+    if not frames:
+        raise RuntimeError("action has no keys: " + action.name)
+    return math.floor(min(frames)), math.ceil(max(frames))
+
+
 def export_take(path: Path, arm, action):
     path.parent.mkdir(parents=True, exist_ok=True)
     arm.animation_data.action = action
+    scene = bpy.context.scene
+    old_start, old_end, old_frame = scene.frame_start, scene.frame_end, scene.frame_current
+    scene.frame_start, scene.frame_end = action_range(action)
+    scene.frame_set(scene.frame_start)
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.fbx(
         filepath=str(path),
@@ -85,14 +96,20 @@ def export_take(path: Path, arm, action):
         bake_anim_use_all_actions=False,
         bake_anim_use_nla_strips=False,
         bake_anim_force_startend_keying=True,
+        bake_anim_step=1.0,
+        bake_anim_simplify_factor=0.0,
         armature_nodetype="NULL",
         primary_bone_axis="Y",
         secondary_bone_axis="X",
         axis_forward="-Z",
         axis_up="Y",
+        apply_scale_options="FBX_SCALE_ALL",
+        bake_space_transform=True,
         path_mode="COPY",
         embed_textures=False,
     )
+    scene.frame_start, scene.frame_end = old_start, old_end
+    scene.frame_set(old_frame)
     print("WROTE", path)
 
 

@@ -51,17 +51,24 @@ namespace GrandSluggers.UnityClient
             if (_ran) yield break;
             _ran = true;
             var files = new List<string>();
+            var swingMetrics = new List<string>();
+            var swingErrors = new List<string>();
             string error = null;
+            var outDir = _req.ResolvedOutDir(_temp);
             IReadOnlyList<string> shots;
-            try { shots = _req.ResolvedShots(); }
+            IReadOnlyList<string> swingCaptains;
+            try
+            {
+                shots = _req.ResolvedShots();
+                swingCaptains = _req.ResolvedSwingCaptains();
+            }
             catch (Exception ex)
             {
-                WriteDone(_temp, false, files, ex.Message);
+                WriteDone(_temp, outDir, false, files, swingMetrics, ex.Message);
                 enabled = false;
                 yield break;
             }
 
-            var outDir = _req.ResolvedOutDir(_temp);
             Directory.CreateDirectory(outDir);
             var cam = _play.GateCam;
             var w = _req.ResolvedWidth();
@@ -69,9 +76,46 @@ namespace GrandSluggers.UnityClient
             foreach (var shot in shots)
             {
                 _play.GateStage(shot, _req);
+                if (StillRequest.IsSwingMatrixShot(shot))
+                {
+                    foreach (var captain in swingCaptains)
+                    {
+                        _play.GateStageSwingCaptain(captain);
+                        for (var i = 0; i < 24; i++) yield return null;
+                        foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
+                        foreach (var beat in new[] { "ready", "load", "contact", "follow" })
+                        {
+                            _play.GatePoseSwing(beat, power.Charge);
+                            for (var i = 0; i < 4; i++) yield return null;
+                            // ActorDirector continues drawing SET while simulation is held.
+                            // Reapply the exact pose on the capture frame, after those draws.
+                            var hero = _play.GatePoseSwing(beat, power.Charge);
+                            var matrixPng = StillRequest.SwingPngPath(outDir, captain, power.Id, beat);
+                            try
+                            {
+                                Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
+                                files.Add(matrixPng);
+                                swingMetrics.Add(_play.GateMeasureSwing(
+                                    hero, beat, captain, power.Id, out var metricError));
+                                if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
+                            }
+                            catch (Exception ex)
+                            {
+                                error = ex.Message;
+                                break;
+                            }
+                        }
+                        if (error != null) break;
+                    }
+                    if (error != null) break;
+                    continue;
+                }
                 for (var i = 0; i < 24; i++) yield return null;
                 _play.GatePose(shot, _req);
                 for (var i = 0; i < 4; i++) yield return null;
+                // ActorDirector draws SET every frame. Reapply the requested
+                // authored pose in the capture frame, as the swing matrix does.
+                _play.GatePose(shot, _req);
                 var png = StillRequest.PngPath(outDir, shot, _req.ResolvedHome());
                 try
                 {
@@ -85,7 +129,9 @@ namespace GrandSluggers.UnityClient
                 }
             }
 
-            WriteDone(_temp, error == null, files, error ?? "");
+            var doneError = error ?? string.Join("; ", swingErrors);
+            WriteDone(_temp, outDir, error == null && swingErrors.Count == 0,
+                files, swingMetrics, doneError);
             try { File.Delete(StillRequest.RequestPath(_temp)); }
             catch { /* leftover request is ok */ }
             enabled = false;
@@ -110,12 +156,18 @@ namespace GrandSluggers.UnityClient
             Destroy(rt);
         }
 
-        static void WriteDone(string temp, bool ok, List<string> files, string error)
+        static void WriteDone(string temp, string outDir, bool ok, List<string> files, List<string> swingMetrics, string error)
         {
             var json = "{\"ok\":" + (ok ? "true" : "false")
                 + ",\"files\":[" + string.Join(",", files.ConvertAll(f => "\"" + f.Replace("\\", "/") + "\""))
+                + "],\"swing\":[" + string.Join(",", swingMetrics)
                 + "],\"error\":\"" + (error ?? "").Replace("\"", "'") + "\"}";
             File.WriteAllText(StillRequest.DonePath(temp), json);
+            // A Unity restart clears Temp. Preserve opt-in captures and their raw
+            // Transform evidence together when the request names another folder.
+            var defaultOut = Path.GetFullPath(Path.Combine(temp, StillRequest.DefaultOutFolder));
+            if (!Path.GetFullPath(outDir).Equals(defaultOut, StringComparison.OrdinalIgnoreCase))
+                File.WriteAllText(Path.Combine(outDir, "gs-still-done.json"), json);
         }
 
         static string TempDir()
@@ -148,6 +200,12 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _freeze = 0;
             _turntable = false;
+
+            if (StillRequest.IsSwingMatrixShot(shot))
+            {
+                GateStageSwingCaptain(req.ResolvedSwingCaptains()[0]);
+                return;
+            }
 
             if (shot == "char-rest" || shot == "char-pose")
             {
@@ -219,6 +277,349 @@ namespace GrandSluggers.UnityClient
             }
 
             _cam.Cut(shot);
+        }
+
+        internal void GateStageSwingCaptain(string captain)
+        {
+            HomeCaptain = captain;
+            AwayCaptain = captain.Equals("ashlord", StringComparison.OrdinalIgnoreCase)
+                ? "brondo"
+                : "ashlord";
+            _match = NewMatch();
+            _park.Build(_match.Park, _match.Night);
+            _match.SkipToHomeCaptainAtBat();
+            BeginSet();
+            _phase = Phase.Set;
+            _gateHold = true;
+            _freezeCam = true;
+            _logo?.Hide();
+            _card?.Hide();
+            HideCatcher();
+            HideBackstop();
+        }
+
+        internal HeroActor GatePoseSwing(string beat, float charge)
+        {
+            if (_match?.Batter == null) return null;
+            foreach (var kv in _heroes)
+                if (kv.Value != null) kv.Value.gameObject.SetActive(false);
+            var hero = EnsureHero(_match.Batter);
+            if (hero == null) return null;
+            hero.gameObject.SetActive(true);
+            hero.SetChargeRing(0);
+            hero.SetHeld(true, false);
+            hero.Place(new Vector3(
+                    (float)HomeSet.BatterBodyX(_match.Batter.Bats),
+                    0f,
+                    (float)HomeSet.BatterZ),
+                Vector3.forward);
+
+            if (beat == "ready" || beat == "rest")
+            {
+                // Live SET uses ChargeSwing before the button is armed. Unlike
+                // Idle, this is the batting-ready pose and keeps the bat shown.
+                hero.SetPose(HeroActor.Pose.ChargeSwing, 0);
+                hero.SnapTick(0);
+            }
+            else if (beat == "load")
+            {
+                hero.SetPose(HeroActor.Pose.ChargeSwing, charge);
+                hero.SnapTick(0);
+            }
+            else
+            {
+                // Reproduce the held-load -> committed-swing handoff so normal
+                // and MAX exercise the same path as live play.
+                hero.SetPose(HeroActor.Pose.ChargeSwing, charge);
+                hero.SnapTick(0);
+                hero.SetPose(HeroActor.Pose.Swing, charge);
+                hero.SnapTick(beat == "contact"
+                    ? (float)MoveBones.SwingContact
+                    : (float)MoveBones.SwingDur);
+            }
+
+            _cam.SmashCut(hero.transform.position + Vector3.up * (float)HomeSet.BatterChestY);
+            return hero;
+        }
+
+        internal string GateMeasureSwing(
+            HeroActor hero, string beat, string captain, string power, out string gateError)
+        {
+            gateError = "";
+            var sharedRigMetrics = Array.Exists(
+                SwingPresentation.SharedCaptains,
+                id => id.Equals(captain, StringComparison.OrdinalIgnoreCase));
+            if (hero == null)
+            {
+                gateError = $"{captain} {power} {beat}: missing batter";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            if (!hero.TrySwingGeometry(
+                    out var left, out var right, out var grip, out var barrel,
+                    out var socketX, out var socketY, out var socketZ))
+            {
+                gateError = $"{captain} {power} {beat}: missing swing geometry";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            if (!hero.TryBatVisual(
+                    out var batVisual, out var batVisible,
+                    out var socketGrip, out var modelGrip))
+            {
+                gateError = $"{captain} {power} {beat}: missing rendered bat evidence";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            var renderedHands = hero.TryRenderedSwingHands(
+                out var renderedLeft, out var renderedRight);
+            if (renderedHands)
+            {
+                left = renderedLeft.Center;
+                right = renderedRight.Center;
+            }
+            if (!hero.TrySwingBatEvidence(out var physicalBat))
+            {
+                gateError = $"{captain} {power} {beat}: missing handle direction evidence";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            if (!hero.TryBatMeshEvidence(out var batMesh))
+            {
+                gateError = $"{captain} {power} {beat}: imported bat mesh is missing or unreadable";
+                return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\","
+                    + $"\"pass\":false,\"error\":\"{gateError}\"}}";
+            }
+            var failures = new List<string>();
+            var stanceMeasured = hero.TryRenderedBattingStance(
+                out var chestForward, out var eyeForward, out var feetLine);
+            var towardPlate = _match.Batter.Bats == Hand.L ? Vector3.left : Vector3.right;
+            var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
+            var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
+            var feetAlongPitch = Mathf.Abs(Vector3.Dot(feetLine, Vector3.forward));
+            if (beat is "ready" or "rest" or "load")
+            {
+                if (!stanceMeasured)
+                    failures.Add($"{captain} {power} {beat}: visible stance landmarks missing");
+                else
+                {
+                    // User's square sideways stance: chest toward the plate,
+                    // feet along the mound/home line, head watching the pitcher.
+                    // Fifteen degrees allows an authored coil, not a front-facing body.
+                    var alignment = (float)BattingStance.AlignmentDot;
+                    if (chestTowardPlate < alignment)
+                        failures.Add($"{captain} {power} {beat}: chest is not sideways toward plate ({chestTowardPlate:0.000})");
+                    if (feetAlongPitch < alignment)
+                        failures.Add($"{captain} {power} {beat}: feet do not align along pitch ({feetAlongPitch:0.000})");
+                    if (eyesTowardPitcher < alignment)
+                        failures.Add($"{captain} {power} {beat}: eyes do not face pitcher ({eyesTowardPitcher:0.000})");
+                }
+            }
+            var expectedPose = beat is "ready" or "rest" or "load"
+                ? HeroActor.Pose.ChargeSwing
+                : HeroActor.Pose.Swing;
+            var expectedPoseTime = beat == "contact" ? (float)MoveBones.SwingContact
+                : beat == "follow" ? (float)MoveBones.SwingDur
+                : 0f;
+            if (hero.Current != expectedPose || Mathf.Abs(hero.PoseTime - expectedPoseTime) > 0.0001f)
+                failures.Add(
+                    $"{captain} {power} {beat}: capture frame is {hero.Current} "
+                    + $"at {hero.PoseTime:0.###}, expected {expectedPose} at {expectedPoseTime:0.###}");
+            if (!batVisual.Equals(GearMesh.HittingBatVisual(), StringComparison.OrdinalIgnoreCase))
+                failures.Add(
+                    $"{captain} {power} {beat}: rendered {batVisual}, expected {GearMesh.HittingBatVisual()}");
+            if (!batVisible)
+                failures.Add($"{captain} {power} {beat}: common bat is hidden");
+            var gripError = Vector3.Distance(socketGrip, modelGrip);
+            if (gripError > 0.01f)
+                failures.Add(
+                    $"{captain} {power} {beat}: model grip missed socket by {gripError:0.###}");
+            if (Vector3.Distance(grip, barrel) <= SwingPresentation.BarrelRadius)
+                failures.Add($"{captain} {power} {beat}: rendered bat collapsed at its socket");
+            const float meshTolerance = 0.025f;
+            if (Mathf.Abs(batMesh.MinY + 1.14f) > meshTolerance
+                || Mathf.Abs(batMesh.MaxY - 1.25f) > meshTolerance
+                || Mathf.Abs(batMesh.MaxRadius - (float)SwingPresentation.ModelBarrelRadius) > meshTolerance)
+                failures.Add(
+                    $"{captain} {power} {beat}: imported bat geometry lost its authored origin "
+                    + $"(Y {batMesh.MinY:0.000}..{batMesh.MaxY:0.000}, radius {batMesh.MaxRadius:0.000})");
+            if (!batMesh.HasGripMaterial
+                || Mathf.Abs(batMesh.GripMinY + 1.00f) > meshTolerance
+                || Mathf.Abs(batMesh.GripMaxY + 0.10f) > meshTolerance)
+                failures.Add(
+                    $"{captain} {power} {beat}: imported grip submesh lost the physical handle "
+                    + (batMesh.HasGripMaterial
+                        ? $"(Y {batMesh.GripMinY:0.000}..{batMesh.GripMaxY:0.000})"
+                        : "(grip material missing)"));
+            var leftToHandle = renderedHands
+                ? PointSegmentDistance(
+                    renderedLeft.RootCenter, physicalBat.RootGrip, physicalBat.RootHandleEnd)
+                : float.PositiveInfinity;
+            var rightToHandle = renderedHands
+                ? PointSegmentDistance(
+                    renderedRight.RootCenter, physicalBat.RootGrip, physicalBat.RootHandleEnd)
+                : float.PositiveInfinity;
+            var leftExtent = renderedHands ? MaxComponent(renderedLeft.RootExtents) : 0f;
+            var rightExtent = renderedHands ? MaxComponent(renderedRight.RootExtents) : 0f;
+            var leftContact = leftExtent + physicalBat.RootHandleRadius;
+            var rightContact = rightExtent + physicalBat.RootHandleRadius;
+            if (!renderedHands)
+                failures.Add($"{captain} {power} {beat}: rendered hand meshes are missing");
+            if (leftToHandle > leftContact || rightToHandle > rightContact)
+                failures.Add(
+                    $"{captain} {power} {beat}: rendered hands missed physical handle "
+                    + $"(left {leftToHandle:0.00}/{leftContact:0.00}, "
+                    + $"right {rightToHandle:0.00}/{rightContact:0.00})");
+            var actualDirection = (physicalBat.BarrelEnd - physicalBat.Grip).normalized;
+            var directionDot = Vector3.Dot(actualDirection, physicalBat.ExpectedDirection);
+            var exactDirection = beat is "contact" or "follow"
+                || (beat == "load" && power == "max");
+            if (sharedRigMetrics && exactDirection && directionDot < 0.97f)
+                failures.Add(
+                    $"{captain} {power} {beat}: barrel left the authored key "
+                    + $"(dot {directionDot:0.000})");
+            if (sharedRigMetrics && beat is "ready" or "load"
+                && actualDirection.y < (float)SwingPresentation.LoadedBarrelRise)
+                failures.Add(
+                    $"{captain} {power} {beat}: loaded barrel did not rise above the hands "
+                    + $"(world Y {actualDirection.y:0.000})");
+            if (sharedRigMetrics)
+            {
+                var gap = Vector3.Distance(renderedLeft.RootCenter, renderedRight.RootCenter);
+                var maxGap = leftExtent + rightExtent + physicalBat.RootHandleRadius * 2f;
+                if (gap > maxGap)
+                    failures.Add(
+                        $"{captain} {power} {beat}: hands separated along the handle "
+                        + $"(gap {gap:0.00}, authored max {maxGap:0.00})");
+            }
+            var plateMin = new Vector3(
+                (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
+                (float)(PitchFlight.PlateY - 1.2 - physicalBat.BarrelRadius),
+                (float)(HomeSet.PlatePointZ - physicalBat.BarrelRadius));
+            var plateMax = new Vector3(
+                (float)(HomeSet.PlateW / 2 + physicalBat.BarrelRadius),
+                (float)(PitchFlight.PlateY + 1.2 + physicalBat.BarrelRadius),
+                (float)(HomeSet.PlateFrontZ + physicalBat.BarrelRadius));
+            if (beat == "contact"
+                && !SegmentIntersectsBox(
+                    physicalBat.BarrelStart, physicalBat.BarrelEnd, plateMin, plateMax))
+                failures.Add(
+                    $"{captain} {power} contact: physical barrel missed plate from "
+                    + $"({physicalBat.BarrelStart.x:0.00}, {physicalBat.BarrelStart.y:0.00}, "
+                    + $"{physicalBat.BarrelStart.z:0.00}) to "
+                    + $"({physicalBat.BarrelEnd.x:0.00}, {physicalBat.BarrelEnd.y:0.00}, "
+                    + $"{physicalBat.BarrelEnd.z:0.00})");
+
+            var plate = new Vector3(0f, (float)PitchFlight.PlateY, (float)HomeSet.PlateCenterZ);
+            var axis = physicalBat.BarrelEnd - physicalBat.BarrelStart;
+            var axisSq = axis.sqrMagnitude;
+            var u = axisSq < 0.0001f ? 0f : Mathf.Clamp01(
+                Vector3.Dot(plate - physicalBat.BarrelStart, axis) / axisSq);
+            var nearest = physicalBat.BarrelStart + axis * u;
+            gateError = string.Join("; ", failures);
+            return $"{{\"captain\":\"{captain}\",\"power\":\"{power}\",\"beat\":\"{beat}\""
+                + ",\"pass\":" + (failures.Count == 0 ? "true" : "false")
+                + ",\"error\":\"" + gateError.Replace("\"", "'") + "\""
+                + ",\"sharedRigMetrics\":" + (sharedRigMetrics ? "true" : "false")
+                + ",\"pose\":\"" + hero.Current + "\""
+                + ",\"poseT\":" + SwingNumber(hero.PoseTime)
+                + ",\"chestForward\":[" + SwingVector(chestForward) + "]"
+                + ",\"eyeForward\":[" + SwingVector(eyeForward) + "]"
+                + ",\"feetLine\":[" + SwingVector(feetLine) + "]"
+                + ",\"chestTowardPlate\":" + SwingNumber(chestTowardPlate)
+                + ",\"eyesTowardPitcher\":" + SwingNumber(eyesTowardPitcher)
+                + ",\"feetAlongPitch\":" + SwingNumber(feetAlongPitch)
+                + ",\"batVisual\":\"" + batVisual.Replace("\"", "'") + "\""
+                + ",\"batVisible\":" + (batVisible ? "true" : "false")
+                + ",\"socketGrip\":[" + SwingVector(socketGrip) + "]"
+                + ",\"modelGrip\":[" + SwingVector(modelGrip) + "]"
+                + ",\"gripError\":" + SwingNumber(gripError)
+                + ",\"renderedHands\":" + (renderedHands ? "true" : "false")
+                + ",\"leftHand\":[" + SwingVector(renderedLeft.Center) + "]"
+                + ",\"rightHand\":[" + SwingVector(renderedRight.Center) + "]"
+                + ",\"leftHandRoot\":[" + SwingVector(renderedLeft.RootCenter) + "]"
+                + ",\"rightHandRoot\":[" + SwingVector(renderedRight.RootCenter) + "]"
+                + ",\"physicalGrip\":[" + SwingVector(physicalBat.Grip) + "]"
+                + ",\"handleEnd\":[" + SwingVector(physicalBat.HandleEnd) + "]"
+                + ",\"barrelStart\":[" + SwingVector(physicalBat.BarrelStart) + "]"
+                + ",\"physicalBarrelEnd\":[" + SwingVector(physicalBat.BarrelEnd) + "]"
+                + ",\"physicalGripRoot\":[" + SwingVector(physicalBat.RootGrip) + "]"
+                + ",\"handleEndRoot\":[" + SwingVector(physicalBat.RootHandleEnd) + "]"
+                + ",\"barrelStartRoot\":[" + SwingVector(physicalBat.RootBarrelStart) + "]"
+                + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
+                + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
+                + ",\"leftHandExtents\":[" + SwingVector(renderedLeft.Extents) + "]"
+                + ",\"rightHandExtents\":[" + SwingVector(renderedRight.Extents) + "]"
+                + ",\"leftHandRootExtents\":[" + SwingVector(renderedLeft.RootExtents) + "]"
+                + ",\"rightHandRootExtents\":[" + SwingVector(renderedRight.RootExtents) + "]"
+                + ",\"handleRadius\":" + SwingNumber(physicalBat.HandleRadius)
+                + ",\"barrelRadius\":" + SwingNumber(physicalBat.BarrelRadius)
+                + ",\"rootHandleRadius\":" + SwingNumber(physicalBat.RootHandleRadius)
+                + ",\"rootBarrelRadius\":" + SwingNumber(physicalBat.RootBarrelRadius)
+                + ",\"leftHandleContact\":" + SwingNumber(leftContact)
+                + ",\"rightHandleContact\":" + SwingNumber(rightContact)
+                + ",\"meshMinY\":" + SwingNumber(batMesh.MinY)
+                + ",\"meshMaxY\":" + SwingNumber(batMesh.MaxY)
+                + ",\"meshMaxRadius\":" + SwingNumber(batMesh.MaxRadius)
+                + ",\"meshHasGripMaterial\":" + (batMesh.HasGripMaterial ? "true" : "false")
+                + ",\"meshGripMinY\":" + SwingNumber(batMesh.GripMinY)
+                + ",\"meshGripMaxY\":" + SwingNumber(batMesh.GripMaxY)
+                + ",\"expectedDirection\":[" + SwingVector(physicalBat.ExpectedDirection) + "]"
+                + ",\"actualDirection\":[" + SwingVector(actualDirection) + "]"
+                + ",\"directionDot\":" + SwingNumber(directionDot)
+                + ",\"exactDirectionKey\":" + (exactDirection ? "true" : "false")
+                + ",\"handGap\":" + SwingNumber(Vector3.Distance(left, right))
+                + ",\"rootHandGap\":" + SwingNumber(Vector3.Distance(
+                    renderedLeft.RootCenter, renderedRight.RootCenter))
+                + ",\"leftToGrip\":" + SwingNumber(Vector3.Distance(left, grip))
+                + ",\"rightToGrip\":" + SwingNumber(Vector3.Distance(right, grip))
+                + ",\"grip\":[" + SwingVector(grip) + "]"
+                + ",\"tip\":[" + SwingVector(barrel) + "]"
+                + ",\"socketX\":[" + SwingVector(socketX) + "]"
+                + ",\"socketY\":[" + SwingVector(socketY) + "]"
+                + ",\"socketZ\":[" + SwingVector(socketZ) + "]"
+                + ",\"nearestPlate\":[" + SwingVector(nearest) + "]"
+                + ",\"plateCenterDistance\":" + SwingNumber(Vector3.Distance(nearest, plate)) + "}";
+        }
+
+        static string SwingVector(Vector3 p) =>
+            SwingNumber(p.x) + "," + SwingNumber(p.y) + "," + SwingNumber(p.z);
+
+        static string SwingNumber(float value) =>
+            value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+
+        static float PointSegmentDistance(Vector3 point, Vector3 start, Vector3 end)
+        {
+            var axis = end - start;
+            var u = axis.sqrMagnitude < 0.0001f
+                ? 0f
+                : Mathf.Clamp01(Vector3.Dot(point - start, axis) / axis.sqrMagnitude);
+            return Vector3.Distance(point, start + axis * u);
+        }
+
+        static float MaxComponent(Vector3 value) =>
+            Mathf.Max(value.x, Mathf.Max(value.y, value.z));
+
+        static bool SegmentIntersectsBox(Vector3 start, Vector3 end, Vector3 min, Vector3 max)
+        {
+            var direction = end - start;
+            var enter = 0f;
+            var exit = 1f;
+            for (var axis = 0; axis < 3; axis++)
+            {
+                if (Mathf.Abs(direction[axis]) < 0.00001f)
+                {
+                    if (start[axis] < min[axis] || start[axis] > max[axis]) return false;
+                    continue;
+                }
+                var a = (min[axis] - start[axis]) / direction[axis];
+                var b = (max[axis] - start[axis]) / direction[axis];
+                if (a > b) (a, b) = (b, a);
+                enter = Mathf.Max(enter, a);
+                exit = Mathf.Min(exit, b);
+                if (enter > exit) return false;
+            }
+            return true;
         }
 
         internal void GatePose(string shot, StillRequest req)
@@ -361,7 +762,10 @@ namespace GrandSluggers.UnityClient
                 foreach (var kv in _heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
                 PoseBatter(HeroActor.Pose.Swing, 1, false);
-                var chest = new Vector3((float)HomeSet.BatterX, (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
+                var chest = new Vector3(
+                    (float)HomeSet.BatterXFor(_match.Batter.Bats),
+                    (float)HomeSet.BatterChestY,
+                    (float)HomeSet.BatterZ);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
                 {
                     sw.gameObject.SetActive(true);
@@ -447,7 +851,10 @@ namespace GrandSluggers.UnityClient
             b.SetPose(pose, charge);
             b.SetChargeRing(ring ? charge : 0);
             b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
-            b.Place(new Vector3((float)HomeSet.BatterX, 0f, (float)HomeSet.BatterZ), new Vector3(0f, 0f, 1f));
+            b.Place(new Vector3(
+                (float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX),
+                0f,
+                (float)HomeSet.BatterZ), new Vector3(0f, 0f, 1f));
             b.SnapTick(0.08f);
         }
 

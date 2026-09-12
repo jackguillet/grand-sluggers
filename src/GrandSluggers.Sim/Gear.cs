@@ -1,10 +1,14 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Loadout mesh ids. CycleBat/CycleGlove still swap the sim item; Unity reads Visual.
+/// Equipment visual ids. Loadout identity and the active hitting prop are
+/// separate: cycling a bat keeps changing its sim item while every batter
+/// takes the same authored bat to the plate.
 /// </summary>
 public static class GearMesh
 {
+    public const string CommonHittingBatVisual = "bat-wood";
+
     public static string SignatureBatId(string captainId) => captainId.ToLowerInvariant() switch
     {
         "vale" => "pageant-wand",
@@ -17,7 +21,13 @@ public static class GearMesh
     };
 
     public static string BatVisual(BatItem? bat) =>
-        !string.IsNullOrEmpty(bat?.Visual) ? bat.Visual : "bat-wood";
+        !string.IsNullOrEmpty(bat?.Visual) ? bat.Visual : CommonHittingBatVisual;
+
+    /// <summary>
+    /// The active batting prop. This deliberately takes no character, hand,
+    /// or loadout argument so signature gear cannot replace it.
+    /// </summary>
+    public static string HittingBatVisual() => CommonHittingBatVisual;
 
     public static string GloveVisual(GloveItem? glove) =>
         !string.IsNullOrEmpty(glove?.Visual) ? glove.Visual : "glove-brown";

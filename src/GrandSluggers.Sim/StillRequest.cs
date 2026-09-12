@@ -19,10 +19,11 @@ public sealed class StillRequest
         "title", "select", "field", "lineup", "plate", "pitch", "mound",
         "diamond", "diamond-grounder", "diamond-line", "diamond-homer", "diamond-pull",
         "throw", "tag", "smash", "replay", "scoop",
-        "char-rest", "char-pose"
+        "char-rest", "char-pose", "swing-matrix"
     };
 
     public string[]? Shots { get; init; }
+    public string[]? SwingCaptains { get; init; }
     public string? Home { get; init; }
     public string? Away { get; init; }
     public bool HudOff { get; init; } = true;
@@ -60,6 +61,32 @@ public sealed class StillRequest
         return away == home ? "brondo" : away;
     }
 
+    /// <summary>
+    /// Captain subset for the opt-in swing matrix. The default remains the six
+    /// shared-rig captains; Generic packages opt in explicitly because their
+    /// anatomy cannot use shared-rig hand and plate thresholds.
+    /// </summary>
+    public IReadOnlyList<string> ResolvedSwingCaptains()
+    {
+        var src = SwingCaptains is { Length: > 0 }
+            ? SwingCaptains
+            : SwingPresentation.SharedCaptains;
+        var resolved = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var raw in src)
+        {
+            var id = (raw ?? "").Trim().ToLowerInvariant();
+            if (id.Length == 0)
+                throw new InvalidDataException("swing matrix captain id is empty");
+            if (!PresetTeams.CaptainIds.Contains(id, StringComparer.OrdinalIgnoreCase))
+                throw new InvalidDataException("swing matrix captain not playable: " + id);
+            if (!seen.Add(id))
+                throw new InvalidDataException("swing matrix captain is duplicated: " + id);
+            resolved.Add(id);
+        }
+        return resolved;
+    }
+
     public int ResolvedWidth() => Width < 320 ? 1920 : Width;
 
     public int ResolvedHeight() => Height < 180 ? 1080 : Height;
@@ -77,6 +104,14 @@ public sealed class StillRequest
     public static bool IsCharShot(string shot) =>
         shot.Equals("char-rest", StringComparison.OrdinalIgnoreCase)
         || shot.Equals("char-pose", StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsSwingMatrixShot(string shot) =>
+        shot.Equals("swing-matrix", StringComparison.OrdinalIgnoreCase);
+
+    public static string SwingPngPath(string outDir, string captain, string power, string beat) =>
+        Path.Combine(outDir, "swing-" + captain.Trim().ToLowerInvariant()
+            + "-" + power.Trim().ToLowerInvariant()
+            + "-" + beat.Trim().ToLowerInvariant() + ".png");
 
     public static string PngPath(string outDir, string shot, string? who = null)
     {
@@ -97,7 +132,23 @@ public sealed class StillRequest
         var req = JsonSerializer.Deserialize<StillRequest>(json, opts)
             ?? throw new InvalidDataException("still request is empty");
         _ = req.ResolvedShots();
+        _ = req.ResolvedSwingCaptains();
         return req;
+    }
+
+    /// <summary>
+    /// Reads a durable request outside Unity's startup-cleaned Temp folder and
+    /// validates it before an editor tool stages the JSON for Play mode.
+    /// </summary>
+    public static string ReadValidatedJsonFile(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            throw new InvalidDataException("still request file path is empty");
+        if (!File.Exists(path))
+            throw new FileNotFoundException("still request file not found", path);
+        var json = File.ReadAllText(path);
+        _ = Parse(json);
+        return json;
     }
 
     public static bool TryLoad(string unityTemp, out StillRequest request, out string error)

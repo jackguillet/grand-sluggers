@@ -6,8 +6,9 @@ using UnityEngine.InputSystem.Controls;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Controller 1 is gamepad 0 + keyboard + mouse. Controller 2 is gamepad 1. Not Gamepad.current —
-    /// two controllers must not steer the same pitcher. Menus and 1P read Pad1.
+    /// The front end offers gamepad 0 + keyboard/mouse to Player 1 and gamepad 1 to Player 2.
+    /// BeginMatch locks InputDevice.deviceId per logical seat so Gamepad.all reordering cannot
+    /// move a surviving controller to the other team. Menus and 1P read Pad1.
     /// South / East / West / North are positions (Xbox A/B/X/Y, Nintendo B/A/Y/X).
     /// F1/F2/F3 stay debug. Update how-to-play in the same PR.
     /// </summary>
@@ -24,6 +25,8 @@ namespace GrandSluggers.UnityClient
         }
 
         static P1InputMode _p1InputMode = P1InputMode.Auto;
+        static DeviceSeats _matchDevices;
+        static bool _matchDevicesBound;
 
         /// <summary>Player 1's device choice. Auto prefers a connected controller.</summary>
         public static P1InputMode Player1InputMode => _p1InputMode;
@@ -35,13 +38,15 @@ namespace GrandSluggers.UnityClient
             _ => HasController(0) ? "Controller (auto)" : "Keyboard + mouse (auto)"
         };
 
-        static bool KeyboardMouseEnabled => _p1InputMode == P1InputMode.KeyboardMouse
-            || (_p1InputMode == P1InputMode.Auto && !HasController(0));
+        static bool KeyboardMouseEnabled => _matchDevicesBound
+            ? _matchDevices != null && _matchDevices.Pad1UsesKeyboardMouse
+            : _p1InputMode == P1InputMode.KeyboardMouse || !HasController(0);
 
         static bool HasController(int index) => index >= 0 && Gamepad.all.Count > index;
 
         public static void Initialize()
         {
+            EndMatch();
             _p1InputMode = PlayerPrefs.HasKey(P1InputKey)
                 ? (P1InputMode)Mathf.Clamp(PlayerPrefs.GetInt(P1InputKey), 0, 2)
                 : P1InputMode.Auto;
@@ -71,7 +76,7 @@ namespace GrandSluggers.UnityClient
         static readonly StickPlay.Pad[] _pads = new StickPlay.Pad[2];
         static StickPlay.Key _keyA, _keyD, _keyW, _keyS;
 
-        /// <summary>One seated pad. Index 0 is home (keyboard too). Index 1 is away. CPU is dead.</summary>
+        /// <summary>One logical seat. Device identity is fixed while a match is active. CPU is dead.</summary>
         public readonly struct Pad
         {
             readonly int _index;
@@ -85,16 +90,16 @@ namespace GrandSluggers.UnityClient
 
             bool KeysEnabled => _keys && KeyboardMouseEnabled;
 
-            public bool Present => (Device != null && ControllerEnabled) || KeysEnabled;
+            public bool Present => Device != null || KeysEnabled;
 
-            bool ControllerEnabled => _index != 0 || _p1InputMode != P1InputMode.KeyboardMouse;
-
-            Gamepad Device =>
-                ControllerEnabled && _index >= 0 && Gamepad.all.Count > _index ? Gamepad.all[_index] : null;
+            Gamepad Device => DeviceForIndex(_index);
 
             public bool SouthDown => KeyDown(Key.Space) || KeyDown(Key.Enter) || Pressed(Device?.buttonSouth)
                 || (KeysEnabled && MouseLeftDown);
-            public bool SouthHeld => Kb(Key.Space) || Held(Device?.buttonSouth) || (KeysEnabled && MouseLeftHeld);
+            public bool SouthHeld => Kb(Key.Space) || Kb(Key.Enter) || Held(Device?.buttonSouth)
+                || (KeysEnabled && MouseLeftHeld);
+            public bool SouthUp => KeyUp(Key.Space) || KeyUp(Key.Enter) || Released(Device?.buttonSouth)
+                || (KeysEnabled && MouseLeftUp);
             public bool NorthDown => KeyDown(Key.Q) || Pressed(Device?.buttonNorth) || (KeysEnabled && MouseMiddleDown);
             public bool EastDown => KeyDown(Key.G) || Pressed(Device?.buttonEast);
             public bool EastHeld => Kb(Key.G) || Held(Device?.buttonEast);
@@ -312,6 +317,12 @@ namespace GrandSluggers.UnityClient
                 return kb != null && kb[k].wasPressedThisFrame;
             }
 
+            bool KeyUp(Key k)
+            {
+                if (!KeysEnabled) return false;
+                return Controls.KeyUp(k);
+            }
+
             static bool Pressed(ButtonControl b) => b != null && b.wasPressedThisFrame;
             static bool Held(ButtonControl b) => b != null && b.isPressed;
             static bool Dpad(ButtonControl b) => b != null && b.isPressed;
@@ -324,6 +335,50 @@ namespace GrandSluggers.UnityClient
 
         public static int PadCount => Gamepad.all.Count;
 
+        public static void BeginMatch(bool versus)
+        {
+            var ids = ConnectedDeviceIds();
+            _matchDevices = DeviceSeats.BeginMatch(
+                ids,
+                _p1InputMode == P1InputMode.KeyboardMouse,
+                versus);
+            _matchDevicesBound = true;
+            CatchPlay();
+        }
+
+        public static void EndMatch()
+        {
+            _matchDevices = null;
+            _matchDevicesBound = false;
+        }
+
+        public static LineupSeat MissingMatchSeat(Seats seats) =>
+            !_matchDevicesBound || _matchDevices == null
+                ? LineupSeat.Cpu
+                : _matchDevices.Missing(seats, ConnectedDeviceIds());
+
+        /// <summary>
+        /// South on an unowned controller deliberately takes a missing seat. Player 1 may
+        /// instead press Space/Enter/left-click to use keyboard and mouse for this match.
+        /// </summary>
+        public static bool TryRecoverMatchSeat(LineupSeat seat)
+        {
+            if (!_matchDevicesBound || _matchDevices == null || seat == LineupSeat.Cpu) return false;
+            foreach (var gamepad in Gamepad.all)
+            {
+                if (_matchDevices.OwnsDevice(gamepad.deviceId)) continue;
+                if (gamepad.buttonSouth.wasPressedThisFrame)
+                    return _matchDevices.Reassign(seat, gamepad.deviceId);
+            }
+            if (seat == LineupSeat.Pad1
+                && (RawKeyDown(Key.Space) || RawKeyDown(Key.Enter) || MouseLeftDown))
+            {
+                BookScheme.Observe(InputScheme.Keys);
+                return _matchDevices.UseKeyboardMouse(seat);
+            }
+            return false;
+        }
+
         public static Pad Of(LineupSeat seat) => seat switch
         {
             LineupSeat.Pad2 => Pad2,
@@ -333,6 +388,7 @@ namespace GrandSluggers.UnityClient
 
         public static bool SouthDown => Pad1.SouthDown;
         public static bool SouthHeld => Pad1.SouthHeld;
+        public static bool SouthUp => Pad1.SouthUp;
         public static bool NorthDown => Pad1.NorthDown;
         public static bool EastDown => Pad1.EastDown;
         public static bool EastHeld => Pad1.EastHeld;
@@ -451,8 +507,32 @@ namespace GrandSluggers.UnityClient
 
         static Vector2 RawStick(int index)
         {
-            if (index < 0 || index >= Gamepad.all.Count) return default;
-            return Gamepad.all[index].leftStick.ReadValue();
+            var gamepad = DeviceForIndex(index);
+            return gamepad == null ? default : gamepad.leftStick.ReadValue();
+        }
+
+        static Gamepad DeviceForIndex(int index)
+        {
+            if (index < 0) return null;
+            if (!_matchDevicesBound)
+            {
+                if (index == 0 && _p1InputMode == P1InputMode.KeyboardMouse) return null;
+                return index < Gamepad.all.Count ? Gamepad.all[index] : null;
+            }
+            if (_matchDevices == null) return null;
+            var seat = index == 1 ? LineupSeat.Pad2 : LineupSeat.Pad1;
+            var deviceId = _matchDevices.DeviceId(seat);
+            if (!deviceId.HasValue) return null;
+            foreach (var gamepad in Gamepad.all)
+                if (gamepad.deviceId == deviceId.Value) return gamepad;
+            return null;
+        }
+
+        static int[] ConnectedDeviceIds()
+        {
+            var ids = new int[Gamepad.all.Count];
+            for (var i = 0; i < ids.Length; i++) ids[i] = Gamepad.all[i].deviceId;
+            return ids;
         }
 
         static void UpdateMouse(float dt)
@@ -474,6 +554,7 @@ namespace GrandSluggers.UnityClient
 
         static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         static bool MouseLeftHeld => Mouse.current != null && Mouse.current.leftButton.isPressed;
+        static bool MouseLeftUp => Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame;
         static bool MouseRightHeld => Mouse.current != null && Mouse.current.rightButton.isPressed;
         static bool MouseRightDown => Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
         static bool MouseMiddleDown => Mouse.current != null && Mouse.current.middleButton.wasPressedThisFrame;
@@ -558,6 +639,14 @@ namespace GrandSluggers.UnityClient
             var kb = Keyboard.current;
             return kb != null && kb[k].wasPressedThisFrame;
         }
+
+        static bool KeyUp(Key k)
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb[k].wasReleasedThisFrame;
+        }
+
+        static bool Released(ButtonControl button) => button != null && button.wasReleasedThisFrame;
 
         static bool RawKeyDown(Key k)
         {

@@ -15,6 +15,10 @@ namespace GrandSluggers.UnityClient
 
     public sealed partial class MatchDirector
     {
+        ChargeButtonState _pitchButton;
+        ChargeButtonState _swingButton;
+        SwingInputIntent _setSwingIntent;
+
         internal void TickAtBat(float dt)
         {
             if (_phase == Phase.Set) TickSet(dt);
@@ -23,6 +27,7 @@ namespace GrandSluggers.UnityClient
 
         void BeginSet()
         {
+            BindMatchSeats();
             if (TrainingOn && (_match == null || _match.Over))
             {
                 Seed++;
@@ -34,9 +39,13 @@ namespace GrandSluggers.UnityClient
             _charge = 0;
             _pitchCharge = 0;
             _chargePast = 0;
+            _pitchButton = default;
+            _swingButton = default;
+            _setSwingIntent = default;
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
+            _match?.LivePlay.Apply(LivePlayCommand.Reset());
             _swung = false;
             _bunt = false;
             _swing = null;
@@ -96,7 +105,7 @@ namespace GrandSluggers.UnityClient
             _audio?.CrowdBed(true);
             AimSetCamera();
             LogSetCam("begin");
-            _zone.Show(true, 0, 0);
+            _zone.Show(true, BatterCursorX, 0);
             if (TrainingOn && _coach != null && _coach.Session != null && _match != null
                 && _coach.Session.Lesson == PracticeLesson.Fielding && _coach.Session.LessonPart >= 2)
                 _coach.Session.SetupTurnTwo(_match);
@@ -137,80 +146,86 @@ namespace GrandSluggers.UnityClient
             HoldPitchInHand();
             var mound = PitchPad;
             var box = BatPad;
+            var pitchButton = default(ChargeButtonStep);
+            var swingButton = default(ChargeButtonStep);
             if (HumanPitches)
-                TickCharge(dt, _feel.PitchChargeSeconds, mound, ref _pitchCharge, ref _pitchPast);
+                pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
+                    ref _pitchButton, ref _pitchCharge, ref _pitchPast,
+                    _t >= (float)_feel.PitcherReadySeconds);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanBats)
-                TickCharge(dt, _feel.SwingChargeSeconds, box, ref _charge, ref _chargePast);
+            {
+                swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, box,
+                    ref _swingButton, ref _charge, ref _chargePast);
+            }
             _pip += dt * 1.35f;
             if (mound.SwapPitcher) _match.SwapPitcher();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
-            if (HumanPitches)
-            {
-                if (mound.StickY < -0.7f) _match.ResetPitcher();
-                else _match.WalkPitcher(mound.StickX * dt * 1.6f);
-                _aimX = (float)_match.PitcherOffsetX;
-                _aimY = 0;
-                _zone.Show(true, _aimX, _aimY);
-                if (_t >= (float)_feel.PitcherReadySeconds)
-                {
-                    if (mound.ThrowBag > 0 && mound.SouthDown)
-                    {
-                        var po = _match.Pickoff(mound.ThrowBag);
-                        if (po != null) { RememberStamp(); _last = po; Banner(); BeginResult(); }
-                        return;
-                    }
-                    if (mound.SouthDown)
-                    {
-                        Launch(PlayerPitch());
-                        return;
-                    }
-                }
-            }
             if (HumanBats)
             {
                 _bunt = box.WestHeld;
                 if (box.StickY < -0.7f) _match.ResetBatter();
                 else _match.WalkBatter(box.StickX * dt * 1.6f);
+                _setSwingIntent = SwingInputIntent.Capture(
+                    swingButton, box.StickX, box.StickY, _bunt, _match.BatterOffsetX);
+            }
+            if (HumanPitches)
+            {
+                if (mound.StickY < -0.7f) _match.ResetPitcher();
+                else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
+                _aimX = (float)_match.PitcherOffsetX;
+                _aimY = 0;
+                _zone.Show(true, BatterCursorX, 0);
+                if (_t >= (float)_feel.PitcherReadySeconds)
+                {
+                    if (mound.ThrowBag > 0 && mound.SouthDown)
+                    {
+                        var po = _match.Pickoff(mound.ThrowBag);
+                        if (po != null) { _last = po; Banner(); BeginResult(); }
+                        return;
+                    }
+                    if (pitchButton.Committed)
+                    {
+                        Launch(PlayerPitch(pitchButton.CommitFill01, pitchButton.CommitSecondsPastFull));
+                        return;
+                    }
+                }
             }
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
                 Launch(_match.CpuPitch());
+            _setSwingIntent = default;
         }
 
-        void TickCharge(float dt, double seconds, Controls.Pad pad, ref float charge, ref float past)
+        static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
+            ref ChargeButtonState state, ref float charge, ref float past, bool accepting = true)
         {
-            if (pad.Charge)
-            {
-                var next = Mathf.Min(1, charge + dt / (float)seconds);
-                if (next >= 1 && charge >= 1) past += dt;
-                else if (next >= 1) past = 0;
-                charge = next;
-            }
-            else
-            {
-                charge = Mathf.Max(0, charge - dt * (float)_feel.ChargeDecay);
-                past = 0;
-            }
+            var step = ChargeButton.Advance(state, pad.SouthDown, pad.SouthHeld, pad.SouthUp, dt, seconds,
+                accepting);
+            state = step.Next;
+            charge = (float)state.Fill01;
+            past = (float)state.SecondsPastFull;
+            return step;
         }
 
         float EffectiveCharge(float charge, float past) =>
             (float)ChargeFeel.Effective01(charge, past, _feel.ChargeMaxHoldSeconds, _feel.ChargeOverchargeDecay);
 
-        PitchCommand PlayerPitch()
+        PitchCommand PlayerPitch(double fill01, double secondsPastFull)
         {
-            var nice = ChargeFeel.NiceCopy(true, _pitchCharge, _pitchPast, _feel.ChargeMaxHoldSeconds);
+            var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
-            return new PitchCommand("fastball", EffectiveCharge(_pitchCharge, _pitchPast), 0,
+            return new PitchCommand("fastball", EffectiveCharge((float)fill01, (float)secondsPastFull), 0,
                 _starPitch && _match.CanStarPitch,
                 _match.PitcherOffsetX, 0, 0, PitchPad.Changeup, _match.PitcherOffsetX);
         }
 
         void Launch(PitchCommand pitch)
         {
+            pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
             var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
@@ -220,21 +235,26 @@ namespace GrandSluggers.UnityClient
             HoldPitchInHand();
             _pitchCharge = 0;
             _pitchPast = 0;
+            _pitchButton = default;
             if (!HumanBats)
             {
                 _charge = 0;
                 _chargePast = 0;
+                _swingButton = default;
                 _swing = _match.CpuSwing(pitch,
-                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
+                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
             }
             _phase = Phase.Flight;
             _t = 0;
+            if (HumanBats)
+                CommitSwing(_setSwingIntent);
+            _setSwingIntent = default;
             var rel = PitchFlight.Release(pitch.RubberX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
-            _breakX = 0;
-            _zone.Show(true, _aimX, _aimY);
+            _breakX = (float)pitch.BreakX;
+            _zone.Show(true, BatterCursorX, 0);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
             _hideHelp = true;
@@ -256,8 +276,22 @@ namespace GrandSluggers.UnityClient
         {
             AimSetCamera();
             _flight += dt;
+            var swingButton = default(ChargeButtonStep);
             if (HumanBats && !_swung)
-                TickCharge(dt, _feel.SwingChargeSeconds, BatPad, ref _charge, ref _chargePast);
+            {
+                var box = BatPad;
+                swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, BatPad,
+                    ref _swingButton, ref _charge, ref _chargePast);
+                if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
+                if (box.WestHeld) _bunt = true;
+                if (box.StickY < -0.7f) _match.ResetBatter();
+                else _match.WalkBatter(box.StickX * dt * 1.6f);
+                _zone.Show(true, BatterCursorX, 0);
+                if (swingButton.Committed)
+                    CommitSwing(SwingInputIntent.Capture(
+                        swingButton, box.StickX, box.StickY,
+                        _bunt || box.WestHeld, _match.BatterOffsetX));
+            }
             if (!_pitchAir)
             {
                 HoldPitchInHand();
@@ -274,47 +308,43 @@ namespace GrandSluggers.UnityClient
             }
             var u = Mathf.Clamp01(_flight / _pitchDur);
             if (HumanPitches)
-                _breakX = Mathf.Clamp(_breakX + PitchPad.StickX * dt * 2.4f, -1f, 1f);
+                _breakX = Mathf.Clamp(_breakX + PitchWorldX(PitchPad.StickX) * dt * 2.4f, -1f, 1f);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
-            var p = PitchFlight.Point(_pitch.Type, u, _pitch.AimX, _pitch.AimY, _breakX, _pitch.Changeup, _pitch.RubberX, from);
-            var x = (float)p.X;
-            var y = (float)p.Y;
-            var z = (float)p.Z;
-            if (_pitch.Star)
-            {
-                var id = _match.Pitcher.StarPitch;
-                if (id == "heatball") x += Mathf.Sin(u * 18f) * 0.4f;
-                else if (id == "prismball") x += Mathf.Sin(u * 24f) * 1.8f;
-                else if (id == "charmball") x += Mathf.Sin(u * 9f) * 0.7f;
-                else if (id == "phonyball") x += u > 0.55f ? 2.4f : -0.5f;
-                else if (id == "caskball") y += 0.55f * u;
-            }
-            _ball = new Vector3(x, y, z);
+            _pitch = _pitch with { BreakX = _breakX };
+            var p = PitchFlight.Point(_pitch, u, _match.Pitcher.StarPitch, from);
+            _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
             TickBaserunning(dt);
-            if (HumanBats)
-            {
-                var box = BatPad;
-                if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
-                if (box.WestHeld) _bunt = true;
-                if (box.SouthDown && !_swung)
-                {
-                    _swung = true;
-                    var nice = ChargeFeel.NiceCopy(false, _charge, _chargePast, _feel.ChargeMaxHoldSeconds);
-                    if (!string.IsNullOrEmpty(nice)) _banner = nice;
-                    _swing = new SwingCommand(true, EffectiveCharge(_charge, _chargePast), AtBatMotion.SwingErrorFrames(_flight, _pitchDur, _bunt || box.WestHeld),
-                        _starSwing && _match.CanStarSwing, AtBatResolver.SprayAimDeg(box.StickX), _bunt || box.WestHeld, box.StickY,
-                        _match.BatterOffsetX);
-                }
-            }
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt))
                 _swung = true;
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch), vsHumanPitcher: HumanPitches);
+                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
             Resolve();
         }
+
+        void CommitSwing(SwingInputIntent intent)
+        {
+            if (!intent.Committed || _swung) return;
+            _swung = true;
+            var effective = EffectiveCharge((float)intent.Fill01, (float)intent.SecondsPastFull);
+            _charge = effective;
+            var nice = ChargeFeel.NiceCopy(false, intent.Fill01,
+                intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
+            if (!string.IsNullOrEmpty(nice)) _banner = nice;
+            _swing = intent.Resolve(
+                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing);
+        }
+
+        float PitchWorldX(float screenX)
+        {
+            var shotId = AtBatShots.SetShot(HumanPitches, _phase == Phase.Flight,
+                HumanPitches ? _pitchCharge : _charge, _aimX, _aimY, TrainingOn, LiveSeats.Count);
+            return (float)AtBatControl.WorldHorizontal(screenX, _content.Shots.Must(shotId));
+        }
+
+        float BatterCursorX => _match != null ? (float)_match.BatterOffsetX : 0f;
 
         void Resolve()
         {
@@ -322,7 +352,6 @@ namespace GrandSluggers.UnityClient
             var stealState = _match.RunnerAt(stealBag);
             var stealRunner = stealState?.Who;
             var stealLead = stealState?.Lead01 ?? 0;
-            RememberStamp();
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;
@@ -399,11 +428,9 @@ namespace GrandSluggers.UnityClient
                 _fz = Diamond.Rubber.Z;
                 return;
             }
-            (Character who, string pos) pick;
-            if (_playerFielding && !FieldingResolver.BuddyJumpOffered(_preview))
-                pick = FieldingResolver.NearestGlove(map, _preview.LandingX, _preview.LandingZ, _gloveAt);
-            else
-                pick = ( _preview.Fielder, _preview.Position );
+            // Preview owns the trajectory-planned first glove for CPU and dead-stick
+            // defense alike. Player swap remains available once the ball is live.
+            var pick = (who: _preview.Fielder, pos: _preview.Position);
             _glovePos = pick.pos;
             var at = _gloveAt[_glovePos];
             _fx = at.X;
@@ -415,11 +442,9 @@ namespace GrandSluggers.UnityClient
             var list = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, _match.Park.WindMph);
             _path = new Sample[list.Count];
             for (var i = 0; i < list.Count; i++) _path[i] = list[i];
-            _hitT = 0;
-            _occupyBatter = _occupy1 = _occupy2 = _occupy3 = 0;
             _phase = Phase.InPlay;
             _t = 0;
-            _match.OpenLivePlay();
+            _match.LivePlay.Apply(LivePlayCommand.Begin(LiveKind(), LiveCommandSource));
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
             _gloved = false;
@@ -459,7 +484,7 @@ namespace GrandSluggers.UnityClient
                 return b.transform.position + Vector3.up * 3.2f;
             return _ball.sqrMagnitude > 0.4f
                 ? _ball
-                : new Vector3((float)HomeSet.BatterX, (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
+                : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
         }
 
         void AimDiamond(AtBatResult hit)

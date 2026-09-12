@@ -156,7 +156,7 @@ public class GameplayTests
         match.Play(paint, take);
         Assert.Equal(PlayKind.Strikeout, match.Log[^1].Kind);
 
-        var walk = new PitchCommand("fastball", 0, 40, false);
+        var walk = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         for (var i = 0; i < 4; i++)
             match.Play(walk, take);
         Assert.NotNull(match.First);
@@ -175,7 +175,7 @@ public class GameplayTests
         var match = Match.Slice(_content, seed: 9);
         var dart = _content.Must("dart");
         // Walk dart on: put a fast runner on first via four balls, then steal with a take.
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
@@ -295,7 +295,7 @@ public class GameplayTests
     {
         var walkMatch = Match.Slice(_content, seed: 1);
         WalkOn(walkMatch);
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (walkMatch.Balls < 3 && !walkMatch.Over)
             walkMatch.Play(wild, take);
@@ -338,11 +338,16 @@ public class GameplayTests
             var match = Match.Slice(_content, seed: seed);
             WalkOn(match);
             match.TakeLead(1);
-            var wild = new PitchCommand("fastball", 0, 40, false);
+            var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
-            if (ev.Kind == PlayKind.CaughtStealing && ev.Caption.Contains("picked off"))
+            if (ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff)
+            {
+                Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev.Outcome.ThrowEndpoint);
+                Assert.Equal(ev.Outcome.ThrowEndpoint,
+                    (ev with { Caption = "Le coureur est retiré." }).Outcome?.ThrowEndpoint);
                 picks++;
+            }
             else
                 stays++;
         }
@@ -358,11 +363,11 @@ public class GameplayTests
             var match = Match.Slice(_content, seed: seed);
             WalkOn(match);
             Assert.Equal(0, match.Lead01);
-            var wild = new PitchCommand("fastball", 0, 40, false);
+            var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
             Assert.NotEqual(PlayKind.CaughtStealing, ev.Kind);
-            Assert.DoesNotContain("picked off", ev.Caption);
+            Assert.NotEqual(RunnerPlayResult.PickedOff, ev.Outcome?.RunnerResult);
         }
     }
 
@@ -406,7 +411,7 @@ public class GameplayTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
@@ -415,7 +420,7 @@ public class GameplayTests
 
     static void WalkOnSecond(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.Second is null && !match.Over)
             match.Play(wild, take);
@@ -495,7 +500,7 @@ public class GameplayTests
             var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 280, false, false);
             var deep = hit with { InPlay = true, Foul = false, CarryFt = 280, LaunchDeg = 32 };
             var ev = match.FinishAtBat(paint, swing, deep, field);
-            var scored = ev.RunsScored > 0 || ev.Caption.Contains("Sac fly");
+            var scored = ev.RunsScored > 0;
             if (!sendAll)
                 Assert.True(match.Third is null || match.Third.Id == thirdId || match.Outs >= 3);
             return (scored, ev.Kind);
@@ -505,7 +510,7 @@ public class GameplayTests
 
     static void WalkOnThird(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.Third is null && !match.Over)
             match.Play(wild, take);
