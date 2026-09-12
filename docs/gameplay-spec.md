@@ -175,15 +175,15 @@ Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick ver
 
 ### 4.7 Stamina and the pitcher swap
 
-- Stamina is **per pitcher** (each character carries their own pool for the match), pool = 60 + Pitch×6.
-- Costs (`data/rules/pitching.json`): normal 4, charge +3, changeup 3, break +1, star = the skill's `staminaCost` (`data/abilities/star-skills.json`, 8–22), homer allowed +6, each run allowed +2.
-- Below 25 = **TIRED**: −6 mph, −40% break, crossing wobble σ 0.25 ft, sweat and card tell. Below 0: −10 mph, wobble σ 0.45 ft. ⚠️ Team pool, flat costs, `staminaCost` JSON never read (`Match.cs:38-39, 1289`).
-- **Swap** (Select / R during SET): pick any fielder as the new pitcher; the old pitcher takes that glove. Each character's pool is their own, so a fresh arm is fresh. The swap costs no time-out. Once per half-inning. ⚠️ Adds +35 to a team pool and auto-picks (`Match.cs:602-622`).
-- CPU swaps at TIRED with a lead ≥ 3 or at 0 always.
+- Stamina is **per pitcher** (each character carries their own pool for the match, `Match.StaminaOf`), pool = `poolBase` 60 + Pitch × `poolPerPitch` 6. ✅ P1 (S-25)
+- Costs (`data/rules/pitching.json` `stamina`): normal 4, charge +3, changeup 3, break +1, star = the skill's `staminaCost` (`data/abilities/star-skills.json`, 8–22, read at runtime), homer allowed +6, each run allowed +2. ✅ P1 (S-25)
+- Below `tiredBelow` 25 = **TIRED**: −`tiredMph` 6, break × `tiredBreakMul` 0.6, crossing wobble σ `tiredWobbleFt` 0.25 (sampled once per pitch in `PreparePitch`), sweat and card tell (`BroadcastHud.ArmLine(stamina, rules)`). Below 0: −`exhaustedMph` 10, wobble σ `exhaustedWobbleFt` 0.45. The pool is allowed below zero. ✅ P1 (S-25)
+- **Swap** (Select / R during SET): pick any fielder as the new pitcher (`SwapPitcher(who)`; the best Pitch stat when nobody is named); the old pitcher takes that glove (the defense order is the match's, `Match.DefenseRoster`, and the swap trades the two slots). Each character's pool is their own, so a fresh arm is fresh. The swap costs no time-out. Once per half-inning (`CanSwapPitcher`). ✅ P1 (S-26); the pad's visible pick is P1 part d (#582)
+- CPU swaps at TIRED with a lead ≥ `cpuSwapLead` 3 or at exhaustion always (`CpuConsidersSwap`). ✅ P1
 
 ### 4.8 CPU pitcher
 
-A decision table, not nested rolls. Evaluated once per SET from (count, outs, runners, batter Bat, own stamina, stars).
+A decision table, not nested rolls (`pitching.json` `cpu`, `Match.CpuPitch`). Evaluated once per SET from (count, outs, runners, batter hand, own stamina, stars). ✅ P1 (S-27)
 
 | Situation | Location target | Pitch mix (normal / charge / changeup / break) | Star |
 | --- | --- | --- | --- |
@@ -192,9 +192,9 @@ A decision table, not nested rolls. Evaluated once per SET from (count, outs, ru
 | Behind 2-0, 3-0, 3-1 | Middle-in, safe | 60 / 30 / 5 / 5 | 0% |
 | Runner on with 2 outs | Middle, fast | 50 / 40 / 0 / 10 (pitch-out never) | 0% |
 | TIRED | Whatever the table says, then §4.7 noise | | |
-| Pickoff | Before the pitch: 3% / 6% / 10% by difficulty when a runner is on; lead runner, or 1B on first-and-third (66%) | | |
+| Pickoff | Before the pitch: 3% / 6% / 10% by difficulty when a runner is on; lead runner, or 1B on first-and-third (66%) | | P6 |
 
-Aim scatter σ = (11 − Pitch) × 0.055 ft around the *target*, not the center. ⚠️ CPU always targets dead center; type via three nested rolls (`Match.cs:648-668`). The `TimingErrorFrames` on `PitchCommand` is dead and is removed.
+Row choice: a runner on with two outs first; then two strikes with at most one ball is *ahead*; two or more balls with at most one strike is *behind*; every other count (0-0, 1-0, 1-1, 0-1, 2-1, 2-2, 3-2) reads the *even* row. Locations are feet from the frame (`cpu.locations`): *edge* = `edgeInsetFt` inside a corner, the away corner (by batter hand) `edgeAwayChance` of the time; *waste* = `wasteOutFt` outside on the away side; *middle-in* = `middleInFt` toward the batter at mid-height; *middle* = center ± `middleYSpreadFt`. A charge is MAX with a Nice! release `niceChance` of the time; a break is the stick held one way. The CPU walks the rubber before `rubberWalkChance` of its pitches (up to `rubberWalkMax`) — a real verb the batter may mistrack (§5.9). Aim scatter σ = (11 − Pitch) × `scatterFtPerPitchStat` (0.055 ft) around the *target*, never the center; × `tiredScatterMul` when TIRED. ✅ P1. The `TimingErrorFrames` on `PitchCommand` was dead and is removed. ✅ P1
 
 ---
 
@@ -274,7 +274,7 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 
 ### 5.9 CPU batter
 
-A table, evaluated when the ball crosses the plate plane (same instant a human's swing would be judged), from the **final** trajectory.
+A table (`batting.json` `cpu`, `Match.CpuSwing`), evaluated when the ball crosses the plate plane (same instant a human's swing would be judged), from the **final** trajectory. `CpuSwing` has no side effects: the box and the swing are the returned command. ✅ P1 (S-28)
 
 | Pitch | Count | Action |
 | --- | --- | --- |
@@ -287,11 +287,11 @@ A table, evaluated when the ball crosses the plate plane (same instant a human's
 | Runner on 1st, 0 outs, Bat ≤ 5, trailing by ≤ 2 | | Sac bunt 35% |
 | Star | ≥ 1 star, captain, runner on or 2 strikes | 20% |
 
-**Tracking** (the reference model): during the windup the CPU batter *guesses* the crossing (50–80% "same as last pitch") and walks the box toward it; after release it re-reads the ball with a chance to track perfectly or with a fixed offset (0.11–0.41 ft, worse on easy). **If the pitcher moved on the rubber since the last pitch, the mistrack chance rises sharply** (reference: 30–95%). That is why walking the rubber is a real verb against the CPU. Timing error σ = (11 − Bat) × 0.62 frames; fooled by a changeup / charge it swings 4–9 frames early / late.
+**Tracking** (the reference model): the CPU batter's guess is the last crossing this offense saw; after release it re-reads the ball and centers the cursor on it `trackPerfectChance` (0.55) of the time, else the box stays at the guess plus a fixed offset (`mistrackMinFt` 0.11 – 0.41 ft, × the rung's `mistrackMul`, worse on easy). **If the pitcher moved on the rubber since the last pitch, the mistrack chance rises sharply** (`mistrackMovedChance` 0.7 vs `mistrackChance` 0.3). That is why walking the rubber is a real verb against the CPU. Timing error σ = (11 − Bat) × `errorFramesPerBatStat` 0.62 frames × the rung's `timingSigmaMul`; when it did not track, a changeup pulls it `fooledMinFrames` 4–9 frames late and a charged pitch that many early. Zone classes: *middle* is the inner `middleFraction` of the frame; *near* is outside by at most `nearFt`. ✅ P1 (S-28)
 
 **No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ✅ P1 part a: `CpuSwingVsHuman`, its `batting.cpu.vsHuman` numbers, and the `cpuVsHumanTake` / `cpuVsHumanMiss` feel rolls are deleted; one table whoever pitches. ⚠️ `CpuSwing` must not arm steals (side effect, `Match.cs` `CpuSwing`) — that is the runner AI (§11.6, P6).
 
-Charge vs slap by archetype (reference): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's Bat/Run split.
+Charge vs slap by archetype (reference, `cpu.archetype`): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's Bat/Run split (Bat − Run ≥ `splitStat` = power, Run − Bat ≥ `splitStat` = speed, both ≥ `techniqueMin` = technique). ✅ P1
 
 ---
 
@@ -705,7 +705,7 @@ Mechanics are in systems.md. The play contract:
 
 ## 13. Star skills — the two-second rule
 
-A skill bends one rule for ≤ 2 s and then baseball resumes. The bend is one of: the ball's path (element / break / decoy), the batter's window (status), the fielder's body (status / payload), or the terrain (area). Values live in `data/abilities/star-skills.json` and are **read at runtime**, not re-typed. ⚠️ JSON is dead data; `FieldAbilities.cs:117-152` and `AtBatResolver.cs:220-226` hold copies (`staff-swing` already disagrees: 1.08 vs 1.10).
+A skill bends one rule for ≤ 2 s and then baseball resumes. The bend is one of: the ball's path (element / break / decoy), the batter's window (status), the fielder's body (status / payload), or the terrain (area). Values live in `data/abilities/star-skills.json` and are **read at runtime** (`StarSkillTable`, `ContentCatalog.StarSkills`; `speedMul`, `staminaCost`, `batterWindowMul`, `exitVeloMul`, `launchDeg`, validated by `ContentDataValidator`), not re-typed. ✅ P1: the C# copies are deleted; `staff-swing` is 1.08 as the JSON says.
 
 | Skill | Bend | Then |
 | --- | --- | --- |
@@ -763,7 +763,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
 | `running.json` | `homeToFirst`, `bagToBag`, `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (lead-as-time-credit race as shipped until P6), `tagUp` (sac-fly carry), `stick`, `dash` (mash per press), `cpu` (the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
-| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (live: CPU batter σ, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6). Normal is ×1 everywhere so the tables read as written. |
+| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction ×, mistrack × (live: CPU batter σ and tracking, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6). Normal is ×1 everywhere so the tables read as written. |
 
 Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
 
@@ -794,12 +794,12 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 15 | `Match.cs:773-779` | Foul bunt with 2 strikes not a K — ✅ P1a (S-18); `FinishFoul` skips `AfterPitch` — stays until P6 retires the pickoff roll | §5.8, §5.6 |
 | 16 | `AtBatDirector.cs:171, 173-174, 235, 288` | Stick-down both aims launch and resets the box; SET press dropped / −65-frame miss — ✅ P1a (S-14, S-15; Down resets in SET only) | §5.4, §3 |
 | 17 | `Match.cs:558, 574` | Box walk reset every pitch — ✅ P1a (persists across the at-bat, S-16) | §3 |
-| 18 | `Match.cs:38-39, 87, 205, 602-622, 654, 658, 1289` | Team stamina, flat costs, threshold ×4, swap +35 | §4.7 |
-| 19 | `Match.cs:648-668` | CPU pitcher aims center, nested type rolls, dead `TimingErrorFrames` | §4.8 |
-| 20 | `Match.cs:672-676, 698-726` | `CpuSwing` arms steals; forced \|err\| ≥ 3.2 vs a human — clamp ✅ P1a (`CpuSwingVsHuman` deleted); the steal arm moves to the runner AI in P6 | §5.9, §11.6 |
-| 21 | `AtBatResolver.cs:232, 264-281`; `Models.cs:105, 123, 139` | Discarded `pitchStat`; 1.12 divide-out; dead `ChargePitch`, `Strike`, `TimingErrorFrames` | cleanup |
+| 18 | `Match.cs:38-39, 87, 205, 602-622, 654, 658, 1289` | Team stamina, flat costs, threshold ×4, swap +35 — ✅ P1c (per-pitcher pools, table costs, JSON star cost, swap trades gloves, S-25, S-26) | §4.7 |
+| 19 | `Match.cs:648-668` | CPU pitcher aims center, nested type rolls, dead `TimingErrorFrames` — ✅ P1c (location-by-count table, S-27; the field is removed) | §4.8 |
+| 20 | `Match.cs:672-676, 698-726` | `CpuSwing` arms steals; forced \|err\| ≥ 3.2 vs a human — ✅ P1 (`CpuSwing` is pure, S-28; the steal roll is `CpuArmSteal`, a SET verb, until P6 #568 moves it into the runner AI) | §5.9, §11.6 |
+| 21 | `AtBatResolver.cs:232, 264-281`; `Models.cs:105, 123, 139` | Discarded `pitchStat`; 1.12 divide-out; dead `ChargePitch`, `Strike`, `TimingErrorFrames` — ✅ P1c (the divide-out and the pitch's timing field are gone; `AtBatInput.ChargePitch` is live in the pitch factor) | cleanup |
 | 22 | `Fielding.cs:472-476` | Park id string special-cased for the window | §14 |
-| 23 | `star-skills.json` vs `FieldAbilities.cs:117-152`, `AtBatResolver.cs:220-226`, `Match.cs:1289` | JSON dead; `staff-swing` 1.08 vs 1.10; `staminaCost` ignored | §13 |
+| 23 | `star-skills.json` vs `FieldAbilities.cs:117-152`, `AtBatResolver.cs:220-226`, `Match.cs:1289` | JSON dead; `staff-swing` 1.08 vs 1.10; `staminaCost` ignored — ✅ P1c (`StarSkillTable`, copies deleted) | §13 |
 
 ### A.2 Flight and field (P2)
 
@@ -918,7 +918,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-26 | Swap pitcher | | New pitcher's own pool; old pitcher on the vacated glove |
 | S-27 | CPU pitcher, 0-2 | 100 pitches | ≥ 30% cross outside the zone |
 | S-28 | CPU batter vs human middle-middle normal pitch | 100 pitches | Perfect rate > 0; no forced-miss clamp |
-| S-29 | 3-inning CPU-vs-CPU, 50 seeds | `cli match` | Mean runs per side 2–5; doubles < singles; HR ≤ 2 per game mean |
+| S-29 | 3-inning CPU-vs-CPU, 50 seeds across the captain pairs (a single pair can be a mismatch by design: Pitch 9 vs Bat 4) | `cli match` / `AutoPlayGame` | Mean runs per side 2–5; doubles < singles; HR ≤ 2 per game mean |
 | S-30 | Charge Bat vs manual MAX | | Charge Bat ≥ manual MAX power, no window penalty |
 
 ### B.2 Grounders and fielding

@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 public sealed class LivePlaySystemTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
-    static readonly PitchCommand Paint = new("fastball", 0, 0, false);
+    static readonly PitchCommand Paint = new("fastball", 0, false);
     static readonly SwingCommand Swing = new(true, 0, 0, false);
 
     [Fact]

@@ -4,8 +4,7 @@
     "changeupMph": 72,
     "mphPerPitchStat": 0.9,
     "chargeMph": 8,
-    "changeupChargeMph": 3,
-    "starSpeedMul": 1.12
+    "changeupChargeMph": 3
   },
   "release": {
     "niceBandSec": 0.25,
@@ -47,29 +46,69 @@
     "caskballRise": 0.55
   },
   "stamina": {
-    "pitchCost": 6,
-    "chargeCost": 4,
-    "starCost": 12,
+    "poolBase": 60,
+    "poolPerPitch": 6,
+    "pitchCost": 4,
+    "chargeCost": 3,
+    "changeupCost": 3,
+    "breakCost": 1,
+    "homerCost": 6,
+    "runCost": 2,
     "tiredBelow": 25,
-    "swapRestore": 35,
-    "tiredAimX": 0.22,
-    "tiredAimY": 0.18
+    "tiredMph": 6,
+    "tiredBreakMul": 0.6,
+    "tiredWobbleFt": 0.25,
+    "exhaustedMph": 10,
+    "exhaustedWobbleFt": 0.45,
+    "cpuSwapLead": 3
   },
   "cpu": {
-    "starChanceCaptain": 0.14,
-    "starChance": 0.08,
-    "changeupChance": 0.22,
-    "breakChance": 0.4,
-    "chargeChance": 0.3,
-    "chargeMin": 0.75,
-    "chargeSpan": 0.25,
+    "even": {
+      "location": "edge",
+      "normal": 45,
+      "charge": 20,
+      "changeup": 15,
+      "break": 20,
+      "starChance": 0.05
+    },
+    "ahead": {
+      "location": "waste",
+      "normal": 20,
+      "charge": 15,
+      "changeup": 35,
+      "break": 30,
+      "starChance": 0.15
+    },
+    "behind": {
+      "location": "middleIn",
+      "normal": 60,
+      "charge": 30,
+      "changeup": 5,
+      "break": 5,
+      "starChance": 0
+    },
+    "runnerTwoOuts": {
+      "location": "middle",
+      "normal": 50,
+      "charge": 40,
+      "changeup": 0,
+      "break": 10,
+      "starChance": 0
+    },
+    "locations": {
+      "edgeInsetFt": 0.2,
+      "edgeAwayChance": 0.7,
+      "wasteOutFt": 0.3,
+      "middleInFt": 0.35,
+      "middleYSpreadFt": 0.5
+    },
+    "scatterFtPerPitchStat": 0.055,
+    "tiredScatterMul": 1.6,
+    "niceChance": 0.3,
     "tapMin": 0.1,
     "tapSpan": 0.35,
-    "errorFramesPerPitchStat": 0.42,
-    "tiredErrorMul": 1.6,
-    "scatterPerPitchStat": 0.055,
-    "scatterYMul": 0.85,
-    "tiredScatterMul": 1.6,
+    "rubberWalkChance": 0.35,
+    "rubberWalkMax": 0.4,
     "pickoff": {
       "leadMin": 0.2,
       "riskPerLead": 0.42,

@@ -257,7 +257,7 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "pitch")
             {
-                _pitch = new PitchCommand("fastball", 1, 0, false);
+                _pitch = new PitchCommand("fastball", 1, false);
                 _phase = Phase.Flight;
                 _cam.Cut("pitch");
                 return;
@@ -716,7 +716,7 @@ namespace GrandSluggers.UnityClient
                 PosePitcher(Motion.Verb.ThrowPitch, 1, false);
                 if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var ph) && ph != null)
                     ph.SnapTick((float)Motion.PitchRelease);
-                _pitch ??= new PitchCommand("fastball", 1, 0, false);
+                _pitch ??= new PitchCommand("fastball", 1, false);
                 CaptureReleaseFromHand();
                 if (!StillPose.PitchReleaseIsOnTheMound(_relFrom.z))
                 {
@@ -749,7 +749,7 @@ namespace GrandSluggers.UnityClient
                         new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ),
                         new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
                 }
-                var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
                 Character scoopWho = null;
                 if (!defense.TryGetValue(StillPose.ScoopGlove, out scoopWho) || scoopWho == null)
                 {
@@ -841,7 +841,7 @@ namespace GrandSluggers.UnityClient
         void HideCatcher()
         {
             if (_match == null) return;
-            var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
             if (defense.TryGetValue("C", out var catcher) && catcher != null
                 && _heroes.TryGetValue(catcher.Id, out var ch) && ch != null)
                 ch.gameObject.SetActive(false);

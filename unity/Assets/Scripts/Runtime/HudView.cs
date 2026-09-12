@@ -996,13 +996,13 @@ namespace GrandSluggers.UnityClient
                 BroadcastHud.BatterExtra(bStar, steal, match.CanSteal, bunt, item),
                 Look.Portrait(match.Batter));
             SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
-                BroadcastHud.ArmLine(match.PitcherStamina),
+                BroadcastHud.ArmLine(match.PitcherStamina, match.Rules),
                 (pitches != null && pi >= 0 && pi < pitches.Length ? pitches[pi].ToUpperInvariant() : "")
                     + (pStar ? "  STAR" : "")
-                    + (BroadcastHud.PoorArm(match.PitcherStamina) ? "  SWEAT" : ""),
+                    + (BroadcastHud.PoorArm(match.PitcherStamina, match.Rules) ? "  SWEAT" : ""),
                 Look.Portrait(match.Pitcher));
             Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
-                Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
+                Px(lay.PitcherCard).width - 32, Mathf.Clamp01(match.PitcherStamina / (float)match.PitcherStaminaMax));
             if (!showTiming) return;
             var box = humanPitches ? Px(lay.PitcherCard) : Px(lay.BatterCard);
             GUI.DrawTexture(new Rect(box.x + 16, box.y + box.height - 12, 160, 6), _dotOff);

@@ -14,6 +14,8 @@ public sealed class ContentCatalog
     public FeelTable Feel { get; }
     /// <summary>The rule numbers of play (data/rules/*.json, spec §16).</summary>
     public RulesTable Rules { get; }
+    /// <summary>The star skills as data (data/abilities/star-skills.json, spec §13).</summary>
+    public StarSkillTable StarSkills { get; }
     public ArtCatalog Art { get; }
     public string Root { get; }
 
@@ -27,9 +29,11 @@ public sealed class ContentCatalog
         CameraShots shots,
         FeelTable feel,
         RulesTable rules,
+        StarSkillTable starSkills,
         ArtCatalog art)
     {
         Root = root;
+        StarSkills = starSkills;
         Characters = characters;
         Parks = parks;
         Bats = bats;
@@ -84,7 +88,14 @@ public sealed class ContentCatalog
         var shots = CameraShots.Load(root);
         var feel = FeelTable.Load(root);
         var art = ArtCatalog.Load(root);
-        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, rules, art);
+        var starPitches = new Dictionary<string, StarPitchSkill>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (id, dto) in data.StarSkills.Pitches ?? [])
+            if (dto is not null) starPitches[id] = dto.ToPitch();
+        var starSwings = new Dictionary<string, StarSwingSkill>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (id, dto) in data.StarSkills.Swings ?? [])
+            if (dto is not null) starSwings[id] = dto.ToSwing();
+        var starSkills = new StarSkillTable(starPitches, starSwings);
+        return new ContentCatalog(root, characters, parks, bats, gloves, chemistry, shots, feel, rules, starSkills, art);
     }
 
     public Character Must(string id) =>

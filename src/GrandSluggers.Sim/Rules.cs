@@ -154,6 +154,7 @@ public static class RulesValidation
         table.Running.Validate(Path.Combine(dir, "running.json"), errors);
         table.Fielding.Validate(Path.Combine(dir, "fielding.json"), errors);
         table.Batting.Validate(Path.Combine(dir, "batting.json"), errors);
+        table.Pitching.Cpu.Validate(Path.Combine(dir, "pitching.json"), errors);
     }
 
     /// <summary>Every numeric leaf is finite and inside its attribute range.</summary>
@@ -247,7 +248,6 @@ public sealed class PitchSpeedRules
     public double MphPerPitchStat { get; init; } = 0.9;
     public double ChargeMph { get; init; } = 8;
     public double ChangeupChargeMph { get; init; } = 3;
-    [Positive] public double StarSpeedMul { get; init; } = 1.12;
 }
 
 /// <summary>The charge release (spec §4.1): inside the first <see cref="NiceBandSec"/> of MAX is a Nice! release, +<see cref="NiceMul"/> mph.</summary>
@@ -308,37 +308,94 @@ public sealed class StarPitchShapeRules
     public double CaskballRise { get; init; } = 0.55;
 }
 
-/// <summary>Team stamina pool costs and the TIRED tell (<see cref="Match"/>).</summary>
+/// <summary>
+/// Per-pitcher stamina (spec §4.7): pool = poolBase + Pitch × poolPerPitch; costs per verb; a
+/// star's cost is its <c>staminaCost</c> in star-skills.json. Below tiredBelow = TIRED (−mph,
+/// −break, a crossing wobble); below 0 = exhausted (worse). The CPU swaps at TIRED with a lead.
+/// </summary>
 public sealed class StaminaRules
 {
-    public int PitchCost { get; init; } = 6;
-    public int ChargeCost { get; init; } = 4;
-    public int StarCost { get; init; } = 12;
+    public int PoolBase { get; init; } = 60;
+    public int PoolPerPitch { get; init; } = 6;
+    public int PitchCost { get; init; } = 4;
+    public int ChargeCost { get; init; } = 3;
+    public int ChangeupCost { get; init; } = 3;
+    public int BreakCost { get; init; } = 1;
+    public int HomerCost { get; init; } = 6;
+    public int RunCost { get; init; } = 2;
     public int TiredBelow { get; init; } = 25;
-    public int SwapRestore { get; init; } = 35;
-    public double TiredAimX { get; init; } = 0.22;
-    public double TiredAimY { get; init; } = 0.18;
+    public double TiredMph { get; init; } = 6;
+    [Chance] public double TiredBreakMul { get; init; } = 0.6;
+    public double TiredWobbleFt { get; init; } = 0.25;
+    public double ExhaustedMph { get; init; } = 10;
+    public double ExhaustedWobbleFt { get; init; } = 0.45;
+    public int CpuSwapLead { get; init; } = 3;
 }
 
-/// <summary>The CPU pitcher's rolls as shipped. §4.8 replaces them with a table (P1 part c); the numbers live here until then.</summary>
+/// <summary>
+/// The CPU pitcher (spec §4.8): a decision table, evaluated once per SET from the count, the
+/// outs, the runners, and its stamina. Each row names a location and a pitch mix; scatter is
+/// σ = (11 − Pitch) × scatterFtPerPitchStat around the target, never a dead-center default.
+/// </summary>
 public sealed class CpuPitcherRules
 {
-    [Chance] public double StarChanceCaptain { get; init; } = 0.14;
-    [Chance] public double StarChance { get; init; } = 0.08;
-    [Chance] public double ChangeupChance { get; init; } = 0.22;
-    /// <summary>A break pitch: the stick held to one side for the whole flight.</summary>
-    [Chance] public double BreakChance { get; init; } = 0.4;
-    [Chance] public double ChargeChance { get; init; } = 0.3;
-    [Chance] public double ChargeMin { get; init; } = 0.75;
-    [Chance] public double ChargeSpan { get; init; } = 0.25;
+    /// <summary>0-0, 1-0, 1-1 and every count no other row claims.</summary>
+    public CpuPitchRow Even { get; init; } = new() { Location = "edge", Normal = 45, Charge = 20, Changeup = 15, Break = 20, StarChance = 0.05 };
+    /// <summary>Ahead 0-2, 1-2: waste, then edge.</summary>
+    public CpuPitchRow Ahead { get; init; } = new() { Location = "waste", Normal = 20, Charge = 15, Changeup = 35, Break = 30, StarChance = 0.15 };
+    /// <summary>Behind 2-0, 3-0, 3-1: middle-in, safe.</summary>
+    public CpuPitchRow Behind { get; init; } = new() { Location = "middleIn", Normal = 60, Charge = 30, Changeup = 5, Break = 5, StarChance = 0 };
+    /// <summary>A runner on with two outs: middle, fast; never a pitch-out.</summary>
+    public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0 };
+    public CpuPitchLocations Locations { get; init; } = new();
+    /// <summary>Aim scatter in feet per Pitch-stat point below 11 (spec §4.8).</summary>
+    public double ScatterFtPerPitchStat { get; init; } = 0.055;
+    [Positive] public double TiredScatterMul { get; init; } = 1.6;
+    /// <summary>A charged CPU pitch releases inside the Nice! band this often.</summary>
+    [Chance] public double NiceChance { get; init; } = 0.3;
     [Chance] public double TapMin { get; init; } = 0.1;
     [Chance] public double TapSpan { get; init; } = 0.35;
-    public double ErrorFramesPerPitchStat { get; init; } = 0.42;
-    public double TiredErrorMul { get; init; } = 1.6;
-    public double ScatterPerPitchStat { get; init; } = 0.055;
-    public double ScatterYMul { get; init; } = 0.85;
-    public double TiredScatterMul { get; init; } = 1.6;
+    /// <summary>The CPU walks the rubber before this share of pitches (a real verb: the batter may mistrack, §5.9).</summary>
+    [Chance] public double RubberWalkChance { get; init; } = 0.35;
+    [Chance] public double RubberWalkMax { get; init; } = 0.4;
     public CpuPickoffRules Pickoff { get; init; } = new();
+
+    internal void Validate(string source, List<string> errors)
+    {
+        foreach (var (name, row) in new[] { ("even", Even), ("ahead", Ahead), ("behind", Behind), ("runnerTwoOuts", RunnerTwoOuts) })
+        {
+            if (row.Location is not ("edge" or "waste" or "middleIn" or "middle"))
+                errors.Add($"{source}: pitching.cpu.{name}.location must be one of [edge, waste, middleIn, middle]; got '{row.Location}'");
+            if (row.Normal + row.Charge + row.Changeup + row.Break <= 0)
+                errors.Add($"{source}: pitching.cpu.{name} pitch mix must have a positive total");
+        }
+    }
+}
+
+/// <summary>One row of the CPU pitcher's table: where, and the mix of the four verbs (weights).</summary>
+public sealed class CpuPitchRow
+{
+    public string Location { get; init; } = "edge";
+    public double Normal { get; init; } = 45;
+    public double Charge { get; init; } = 20;
+    public double Changeup { get; init; } = 15;
+    public double Break { get; init; } = 20;
+    [Chance] public double StarChance { get; init; } = 0.05;
+}
+
+/// <summary>Where the named locations sit, in feet from the zone's edges and center.</summary>
+public sealed class CpuPitchLocations
+{
+    /// <summary>An edge target sits this far inside the frame.</summary>
+    public double EdgeInsetFt { get; init; } = 0.2;
+    /// <summary>The corner picked is the away side (by batter hand) this often.</summary>
+    [Chance] public double EdgeAwayChance { get; init; } = 0.7;
+    /// <summary>A waste pitch sits this far outside the frame.</summary>
+    public double WasteOutFt { get; init; } = 0.3;
+    /// <summary>Middle-in sits this far toward the batter from center.</summary>
+    public double MiddleInFt { get; init; } = 0.35;
+    /// <summary>A middle target varies its height by ± this.</summary>
+    public double MiddleYSpreadFt { get; init; } = 0.5;
 }
 
 /// <summary>Random pickoff on a walking lead. Retired by D1 / D3 (P6); the numbers live here until then.</summary>
@@ -524,13 +581,11 @@ public sealed class HbpRules
     [Positive] public double BodyRadiusFt { get; init; } = 0.45;
 }
 
+/// <summary>Star-swing rules that are not the skill's own numbers (those are star-skills.json, spec §13).</summary>
 public sealed class StarSwingRules
 {
     [Chance] public double PhonyballWhiff { get; init; } = 0.4;
     public double PrismballSpraySpanDeg { get; init; } = 22;
-    public double GroundLaunchDeg { get; init; } = 8;
-    public double FlyLaunchDeg { get; init; } = 38;
-    public double LineLaunchDeg { get; init; } = 18;
 }
 
 /// <summary>Good-chemistry runners on base (spec §5.2, §5.5): power on a charged swing, width on a slap.</summary>
@@ -562,30 +617,72 @@ public sealed class OffenseItemRules
     [Chance] public double RocketDazeChance { get; init; } = 0.55;
 }
 
-/// <summary>The CPU batter's rolls as shipped. §5.9 replaces them with a table (P1).</summary>
+/// <summary>
+/// The CPU batter (spec §5.9): a table evaluated when the ball reaches the plate plane, from the
+/// final trajectory. Zone class by the crossing (middle third / edge / near / far), the swing by
+/// count, the box by tracking (perfect, or the last pitch's crossing plus a fixed offset; worse
+/// after the pitcher moved on the rubber), timing σ by Bat and the difficulty rung.
+/// </summary>
 public sealed class CpuBatterRules
 {
-    [Chance] public double SacBuntChance { get; init; } = 0.12;
-    [Chance] public double SacBuntCharge { get; init; } = 0.12;
+    /// <summary>The middle third of the frame, as a fraction of its half-width and half-height.</summary>
+    [Chance] public double MiddleFraction { get; init; } = 0.34;
+    /// <summary>Outside the frame by at most this is "near" (chaseable); further is a take.</summary>
+    public double NearFt { get; init; } = 0.4;
+    [Chance] public double EdgeSwingChance { get; init; } = 0.65;
+    /// <summary>Chase % = chaseBase − Bat, with fewer than two strikes …</summary>
+    public double ChaseBase { get; init; } = 18;
+    /// <summary>… and with two strikes.</summary>
+    public double ChaseTwoStrikesBase { get; init; } = 30;
+    /// <summary>Charge on 2-0 / 3-0 / 3-1 from this Bat …</summary>
+    public int ChargeBatMin { get; init; } = 6;
+    /// <summary>… and with a runner in scoring position and fewer than two outs from this Bat.</summary>
+    public int RispChargeBatMin { get; init; } = 7;
+    [Chance] public double SacBuntChance { get; init; } = 0.35;
+    public int SacBuntBatMax { get; init; } = 5;
+    public int SacBuntTrailMax { get; init; } = 2;
     public double SacBuntErrorSigma { get; init; } = 2.2;
     public double SacBuntSpraySigma { get; init; } = 10;
     public double SacBuntLaunchAim { get; init; } = 0.35;
-    [Chance] public double ChaseChance { get; init; } = 0.12;
-    [Chance] public double StarChanceCaptain { get; init; } = 0.14;
-    [Chance] public double StarChance { get; init; } = 0.08;
-    [Chance] public double ChargeChance { get; init; } = 0.35;
-    [Chance] public double ChargeMin { get; init; } = 0.7;
-    [Chance] public double ChargeSpan { get; init; } = 0.3;
-    [Chance] public double TapSpan { get; init; } = 0.4;
+    /// <summary>A captain with a star, a runner on or two strikes.</summary>
+    [Chance] public double StarChance { get; init; } = 0.2;
+    /// <summary>Timing σ = (11 − Bat) × this, frames.</summary>
     public double ErrorFramesPerBatStat { get; init; } = 0.62;
-    public double OutOfZoneErrorFrames { get; init; } = 4;
+    /// <summary>Fooled by a changeup (late) or a charged pitch (early) when not tracked: this many frames …</summary>
+    public double FooledMinFrames { get; init; } = 4;
+    /// <summary>… plus up to this many more.</summary>
+    public double FooledSpanFrames { get; init; } = 5;
+    /// <summary>After release the batter re-reads the ball and centers the cursor on it this often.</summary>
+    [Chance] public double TrackPerfectChance { get; init; } = 0.55;
+    /// <summary>Otherwise the box stays at the guess (the last pitch's crossing) plus a fixed offset of this …</summary>
+    public double MistrackMinFt { get; init; } = 0.11;
+    /// <summary>… plus up to this.</summary>
+    public double MistrackSpanFt { get; init; } = 0.30;
+    /// <summary>The re-read fails this often when the pitcher moved on the rubber since the last pitch …</summary>
+    [Chance] public double MistrackMovedChance { get; init; } = 0.7;
+    /// <summary>… and this often when they did not (both × the rung's mistrackMul).</summary>
+    [Chance] public double MistrackChance { get; init; } = 0.3;
     public double SpraySigmaDeg { get; init; } = 12;
     public double LaunchAimSigma { get; init; } = 0.45;
+    public CpuArchetypeRules Archetype { get; init; } = new();
     /// <summary>
     /// The CPU batter commits this long before the latest square press (plate − 0.30 s), from the
     /// trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
     /// </summary>
     [Positive] public double DecideLeadSec { get; init; } = 0.12;
+}
+
+/// <summary>Charge vs slap by archetype (spec §5.9), derived from the Bat / Run split.</summary>
+public sealed class CpuArchetypeRules
+{
+    [Chance] public double Balanced { get; init; } = 0.5;
+    [Chance] public double Power { get; init; } = 0.8;
+    [Chance] public double Speed { get; init; } = 0.3;
+    [Chance] public double Technique { get; init; } = 0.1;
+    /// <summary>Bat − Run at least this = power; Run − Bat at least this = speed.</summary>
+    public int SplitStat { get; init; } = 2;
+    /// <summary>Both Bat and Run at least this = technique.</summary>
+    public int TechniqueMin { get; init; } = 7;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1060,12 +1157,12 @@ public sealed class CpuRules
     public string Level { get; init; } = "normal";
     public CpuLevelRules Easy { get; init; } = new()
     {
-        TimingSigmaMul = 1.3, ReactionMul = 1.4, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03
+        TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03
     };
     public CpuLevelRules Normal { get; init; } = new();
     public CpuLevelRules Hard { get; init; } = new()
     {
-        TimingSigmaMul = 0.8, ReactionMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10
+        TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10
     };
 
     public CpuLevelRules Active => Level.ToLowerInvariant() switch
@@ -1088,6 +1185,8 @@ public sealed class CpuLevelRules
     [Positive] public double TimingSigmaMul { get; init; } = 1.0;
     /// <summary>Multiplies CPU reaction and release delays (§8.8, §9.6, §11.3).</summary>
     [Positive] public double ReactionMul { get; init; } = 1.0;
+    /// <summary>Multiplies the CPU batter's mistrack chances (§5.9).</summary>
+    [Positive] public double MistrackMul { get; init; } = 1.0;
     /// <summary>Margin a CPU fielder needs to call a play makeable (§8.8). Read by P4.</summary>
     public double MakeableMarginSec { get; init; } = 0.15;
     /// <summary>Perfect-steal chance (§11.6). Read by P6.</summary>

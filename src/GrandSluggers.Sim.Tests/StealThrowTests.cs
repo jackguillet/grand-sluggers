@@ -109,7 +109,7 @@ public class StealThrowTests
         WalkOn(match);
         Assert.True(match.StartSteal());
         var take = new SwingCommand(false, 0, 0, false);
-        var wild = new PitchCommand("fastball", 0, 8, false);
+        var wild = new PitchCommand("fastball", 0, false);
         Assert.False(match.BeginAtBat(wild, take, out _, out var finished));
         Assert.NotNull(finished);
         Assert.True(match.StealThrowPending);
@@ -188,7 +188,7 @@ public class StealThrowTests
         match.TakeLead(0.35);
         match.StartSteal();
         var take = new SwingCommand(false, 0, 0, false);
-        var wild = new PitchCommand("fastball", 0, 8, false);
+        var wild = new PitchCommand("fastball", 0, false);
         Assert.False(match.BeginAtBat(wild, take, out _, out var finished));
         Assert.NotNull(finished);
         Assert.True(match.StealThrowPending);
@@ -197,7 +197,7 @@ public class StealThrowTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);

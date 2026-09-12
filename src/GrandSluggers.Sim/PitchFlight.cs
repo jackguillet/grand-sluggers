@@ -71,7 +71,7 @@ public static class PitchFlight
     {
         var r = Rules.Or(rules);
         u = Math.Clamp(u, 0, 1);
-        var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX,
+        var p = Point(pitch.Type, u, pitch.AimX, pitch.AimY, pitch.BreakX * pitch.BreakMul,
             pitch.Changeup, pitch.RubberX, from, r, ChargeFeel.IsCharge(pitch.Charge01));
         if (!pitch.Star) return p;
         var st = r.Pitching.StarShapes;
