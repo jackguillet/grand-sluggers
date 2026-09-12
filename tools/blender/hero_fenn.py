@@ -424,8 +424,10 @@ def make_batting_action(arm_ob, name: str, poses):
         # targets are Fenn-local measurements, independent of Rio's arm axes.
         _key_target(grip_target, frame, grip)
         _key_target(barrel_target, frame, grip + direction * 3.0)
-        _key_target(right_target, frame, grip + direction * 0.04)
-        _key_target(left_target, frame, grip + direction * 0.20)
+        # Fenn bats right, so the lead (left) hand holds the knob end and the
+        # right hand stacks above it.
+        _key_target(left_target, frame, grip + direction * 0.04)
+        _key_target(right_target, frame, grip + direction * 0.20)
         _key_target(left_pole, frame, (-1.75, 0.02, 1.30))
         _key_target(right_pole, frame, (1.75, 0.02, 1.30))
 
@@ -441,6 +443,7 @@ def make_batting_action(arm_ob, name: str, poses):
             chest_front="Belly", chest_center="torsoMesh",
             eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
             foot_left="lFoot", foot_right="rFoot",
+            bats=batting_stance.BATS_RIGHT,
         )
         for bone_name in ("root", "torso", "head"):
             bone = arm_ob.pose.bones[bone_name]
@@ -488,6 +491,8 @@ def export_batting_take(path: Path, arm_ob, name: str, poses, first_frame: int, 
                 chest_front="Belly", chest_center="torsoMesh",
                 eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
                 foot_left="lFoot", foot_right="rFoot",
+                bats=batting_stance.BATS_RIGHT,
+                arm_ob=arm_ob,
             )
         export_take(path, arm_ob, action, first_frame, last_frame)
     finally:

@@ -18,7 +18,9 @@ public class SwingPresentationTests
                         >= BattingStance.AlignmentDot);
             Assert.True(Dot(stance.EyesForward, new Vec3(0, 0, 1))
                         >= BattingStance.AlignmentDot);
-            Assert.True(Math.Abs(Dot(stance.FeetAxis, new Vec3(0, 0, 1)))
+            // Signed: the back-to-lead foot line points at the pitcher. An
+            // unsigned check scored hips turned out of the box as correct.
+            Assert.True(Dot(stance.FeetAxis, new Vec3(0, 0, 1))
                         >= BattingStance.AlignmentDot);
         }
     }
