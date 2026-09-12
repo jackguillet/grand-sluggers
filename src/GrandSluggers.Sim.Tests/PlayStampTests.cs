@@ -54,7 +54,7 @@ public class PlayStampTests
     public void StrikeoutKeepsThatBatterInTheBox()
     {
         var match = Match.Slice(ContentCatalog.Load(), innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         PlayEvent? ev = null;
         for (var i = 0; i < 8 && (ev == null || ev.Kind != PlayKind.Strikeout); i++)

@@ -15,7 +15,7 @@ namespace GrandSluggers.UnityClient
 
         public static void Draw(
             Match match, PhaseUi phase, string parkName, string homeCap, string awayCap,
-            bool challenge, string[] pitches, int pitchIndex, bool star, bool steal, string item,
+            bool challenge, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, Texture2D portrait,
             bool training = false, string drillProgress = null, bool night = false,
             bool hideHelp = false, string highlight = null, bool replaying = false,
@@ -57,7 +57,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (mutePlay) return;
-            Play(match, pitches, pitchIndex, star, steal, item, charge, timing, showTiming, banner, sub, seats,
+            Play(match, pitcherExtra, star, steal, item, charge, timing, showTiming, banner, sub, seats,
                 humanPitches, humanBats, starPitch, starSwing, bunt);
         }
 
@@ -892,13 +892,13 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(68, 330, 600, 22), "SPACE  continue", _tiny);
         }
 
-        static void Play(Match match, string[] pitches, int pi, bool star, bool steal, string item,
+        static void Play(Match match, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, string banner, string sub, int seats,
             bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
         {
             var lay = BroadcastHud.Layout(seats);
             Scorebug(match, lay);
-            Cards(match, pitches, pi, star, steal, item, charge, timing, showTiming, lay,
+            Cards(match, pitcherExtra, star, steal, item, charge, timing, showTiming, lay,
                 humanPitches, humanBats, starPitch, starSwing, bunt);
 
             if (!string.IsNullOrEmpty(banner))
@@ -984,25 +984,23 @@ namespace GrandSluggers.UnityClient
             Stars(starR.x, starR.y, stars);
         }
 
-        static void Cards(Match match, string[] pitches, int pi, bool star, bool steal, string item,
+        static void Cards(Match match, string pitcherExtra, bool star, bool steal, string item,
             float charge, float timing, bool showTiming, BroadcastHud.PlayLayout lay,
             bool humanPitches, bool humanBats, bool starPitch, bool starSwing, bool bunt)
         {
             var bug = BroadcastHud.From(match);
-            var pStar = starPitch || (star && humanPitches);
             var bStar = starSwing || (star && humanBats);
             SeatCard(Px(lay.BatterCard), "AB", bug.Batter, humanBats,
                 "NEXT  " + bug.Next,
                 BroadcastHud.BatterExtra(bStar, steal, match.CanSteal, bunt, item),
                 Look.Portrait(match.Batter));
             SeatCard(Px(lay.PitcherCard), "P", bug.Pitcher, humanPitches,
-                BroadcastHud.ArmLine(match.PitcherStamina),
-                (pitches != null && pi >= 0 && pi < pitches.Length ? pitches[pi].ToUpperInvariant() : "")
-                    + (pStar ? "  STAR" : "")
-                    + (BroadcastHud.PoorArm(match.PitcherStamina) ? "  SWEAT" : ""),
+                BroadcastHud.ArmLine(match.PitcherStamina, match.Rules),
+                (pitcherExtra ?? "")
+                    + (BroadcastHud.PoorArm(match.PitcherStamina, match.Rules) ? "  SWEAT" : ""),
                 Look.Portrait(match.Pitcher));
             Bar(Px(lay.PitcherCard).x + 16, Px(lay.PitcherCard).y + Px(lay.PitcherCard).height - 22,
-                Px(lay.PitcherCard).width - 32, match.PitcherStamina / 100f);
+                Px(lay.PitcherCard).width - 32, Mathf.Clamp01(match.PitcherStamina / (float)match.PitcherStaminaMax));
             if (!showTiming) return;
             var box = humanPitches ? Px(lay.PitcherCard) : Px(lay.BatterCard);
             GUI.DrawTexture(new Rect(box.x + 16, box.y + box.height - 12, 160, 6), _dotOff);

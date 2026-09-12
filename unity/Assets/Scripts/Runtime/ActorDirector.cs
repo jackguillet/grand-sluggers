@@ -64,7 +64,7 @@ namespace GrandSluggers.UnityClient
             }
             TeamSheet.HideBoard();
             _chem?.Hide();
-            var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
             var litId = "";
             if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;
@@ -156,13 +156,13 @@ namespace GrandSluggers.UnityClient
                 hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = Motion.Verb.Charm;
-                var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
+                var pType = ShownPitchType;
                 hero.SetPose(pose, kv.Key == "P" ? _pitchCharge : 0, kv.Key == "P" ? pType : null);
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    x += _match.PitcherOffsetX * 2.2;
+                    x += _match.PitcherOffsetX * HomeSet.PitcherWalk;
                 var look = kv.Key == "P" && _phase is not Phase.InPlay and not Phase.StealThrow
                     ? new Vector3(0, 0, -1)
                     : _phase is Phase.InPlay or Phase.StealThrow

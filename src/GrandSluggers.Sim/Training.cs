@@ -17,7 +17,8 @@ public sealed class Training
 {
     public const string ParkId = "harbor-diamond";
     public const int DrillCount = 5;
-    public static readonly string[] CorePitches = ["fastball", "changeup", "curve", "slider"];
+    /// <summary>The two shapes (spec §4.3); charge and break are verbs on them, not types.</summary>
+    public static readonly string[] CorePitches = ["fastball", "changeup"];
     public static readonly PracticeLesson[] Lessons =
     [
         PracticeLesson.Pitching, PracticeLesson.Batting, PracticeLesson.Fielding,
@@ -77,7 +78,7 @@ public sealed class Training
 
     static void SeedFirst(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         var n = 0;
         while (match.First is null && !match.Over && n++ < 16)

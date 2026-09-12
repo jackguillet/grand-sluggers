@@ -68,14 +68,15 @@ namespace GrandSluggers.UnityClient
 
         enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         Phase _phase = Phase.Title;
-        readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
+        /// <summary>The SET swap pick while open (spec §4.7, #582); null otherwise.</summary>
+        PitcherSwapPick _swapPick;
+        float _swapArmed, _swapHold;
         int _itemPick;
         Character _itemTarget;
         bool _itemThrown;
         bool _itemFlying;
         float _itemFly;
         string _itemId = "";
-        int _pitchIndex;
         bool _starPitch;
         bool _starSwing;
         bool _bunt;
@@ -358,7 +359,7 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, true, _pausePage);
                 return;
             }
-            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
+            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
@@ -386,7 +387,7 @@ namespace GrandSluggers.UnityClient
                     HudView.ControlDisplay(_glovePos, who != null ? who.Name : "", _jumpT > 0, _diveT > 0);
                 if (!string.IsNullOrEmpty(_switchPos) && _switchPos != _glovePos && !(_caught || _buddy))
                 {
-                    var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                    var map = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
                     map.TryGetValue(_switchPos, out var hint);
                     HudView.SwitchTell(_glovePos, _switchPos, hint != null ? hint.Name : "", false);
                 }
@@ -679,7 +680,7 @@ namespace GrandSluggers.UnityClient
 
         void AimItem()
         {
-            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var map = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
             var play = _cpuField != null && _cpuField.Fielder != null ? _cpuField.Fielder
                 : _preview != null ? _preview.Fielder : null;
             var stick = Mathf.Abs(RunPad.StickX) + Mathf.Abs(RunPad.StickY);
@@ -723,7 +724,7 @@ namespace GrandSluggers.UnityClient
         void HoldBallInGlove()
         {
             if (_throwing) return;
-            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var map = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
             if (!map.TryGetValue(_glovePos, out var who) || who == null) return;
             if (!_heroes.TryGetValue(who.Id, out var hero) || hero == null) return;
             var hand = hero.CatchHand;

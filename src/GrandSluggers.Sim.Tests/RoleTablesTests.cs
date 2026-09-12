@@ -59,7 +59,7 @@ public class RoleTablesTests
         Assert.False(HowToPlay.MixesHardware(string.Join(' ', page.Lines)));
         Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles").Rows.Count);
         Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles-batting-2").Rows.Count);
-        Assert.Equal(3, RoleTables.OnPage(InputScheme.Keys, "roles-pitching").Rows.Count);
+        Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching").Rows.Count);
         Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching-2").Rows.Count);
         Assert.Equal(RoleTables.Pad[3], RoleTables.OnPage(InputScheme.Pad, "roles-running"));
         var cell = RoleTables.RowCard(0, RoleTables.Pad[3].Rows.Count, 1280, 800);

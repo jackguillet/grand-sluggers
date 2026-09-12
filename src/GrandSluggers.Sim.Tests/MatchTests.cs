@@ -23,7 +23,7 @@ public class MatchTests
     public void FourBallsIsAWalk()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         PlayKind last = PlayKind.TakeBall;
         for (var i = 0; i < 4; i++)
@@ -136,7 +136,7 @@ public class MatchTests
     public void LiveTagOfTheBatterIsAnOut()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -159,7 +159,7 @@ public class MatchTests
     public void LiveStepOnFirstWithTheBallRetiresTheBatter()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -270,7 +270,7 @@ public class MatchTests
         var match = Match.Slice(_content, innings: 3, seed: 1);
         Assert.True(match.StationRunner(1, match.OnDeck!));
         Assert.NotNull(match.First);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -293,7 +293,7 @@ public class MatchTests
         var match = Match.Slice(_content, innings: 3, seed: 1);
         Assert.True(match.StationRunner(1, match.OnDeck!));
         Assert.True(match.StationRunner(2, match.AwayOrder[2]));
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -318,7 +318,7 @@ public class MatchTests
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
         Assert.True(match.StationRunner(2, match.OnDeck!));
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -342,7 +342,7 @@ public class MatchTests
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
         Assert.True(match.StationRunner(2, match.OnDeck!));
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -361,13 +361,13 @@ public class MatchTests
     public void GrounderWithRunnerOnFirstForcesTheLead()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
         Assert.NotNull(match.First);
         var leadId = match.First.Id;
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.55, false);
@@ -384,7 +384,7 @@ public class MatchTests
         Assert.NotNull(match.Second);
         Assert.Null(match.First);
         var runnerId = match.Second.Id;
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
@@ -401,7 +401,7 @@ public class MatchTests
     {
         var match = Occupy(PlayKind.Double);
         var runnerId = match.Second!.Id;
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var looper = new ThrowResult(Chemistry.Bad, 0.4, false);
@@ -421,7 +421,7 @@ public class MatchTests
         Assert.NotNull(match.Third);
         Assert.Null(match.First);
         var runnerId = match.Third.Id;
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
         var laser = new ThrowResult(Chemistry.Good, 1.8, false);
@@ -435,7 +435,7 @@ public class MatchTests
     Match Occupy(PlayKind extra)
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         for (var i = 0; i < 24 && !match.Over; i++)
         {
@@ -454,7 +454,7 @@ public class MatchTests
     public void ThreeLookingStrikesIsAStrikeout()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         PlayKind last = PlayKind.TakeStrike;
         for (var i = 0; i < 3; i++)
@@ -470,7 +470,7 @@ public class MatchTests
         var match = Match.Slice(_content, innings: 3, seed: 1);
         var bodyX = AtBatResolver.BatterBodyX(0, match.Batter.Bats) / PitchFlight.PlateScaleX;
         var plunk = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, 0, false), bodyX, 0);
+            new PitchCommand("fastball", 0, false), bodyX, 0);
         var take = new SwingCommand(false, 0, 0, false);
         var ev = match.Play(plunk, take);
         Assert.Equal(PlayKind.HitByPitch, ev.Kind);
@@ -536,7 +536,7 @@ public class MatchTests
         var first = match.Pitcher.Id;
         Assert.True(match.SwapPitcher());
         Assert.NotEqual(first, match.Pitcher.Id);
-        Assert.True(match.PitcherStamina >= 35);
+        Assert.Equal(match.StaminaPool(match.Pitcher), match.PitcherStamina);
     }
 
     [Fact]

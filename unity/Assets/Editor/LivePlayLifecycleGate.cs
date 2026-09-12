@@ -84,7 +84,7 @@ namespace GrandSluggers.EditorTools
             if (loaded)
                 for (var bag = 1; bag <= 3; bag++)
                     Require(match.StationRunner(bag, match.Offense.Roster[bag]), "Could not load bases.");
-            var pitch = new PitchCommand("fastball", 0, 0, false);
+            var pitch = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             Require(match.BeginAtBat(pitch, swing, out var hit, out _), "Fixture did not enter contact.");
             hit = hit with { HomeRun = true, CarryFt = BallFlight.CarryFeet(110, 35, match.Park.WindMph), ExitVeloMph = 110, LaunchDeg = 35, SprayDeg = 0 };

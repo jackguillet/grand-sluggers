@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 public class PlayEventContextTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
-    static readonly PitchCommand Paint = new("fastball", 0, 0, false);
+    static readonly PitchCommand Paint = new("fastball", 0, false);
     static readonly SwingCommand Swing = new(true, 0, 0, false);
 
     [Fact]
@@ -121,7 +121,7 @@ public class PlayEventContextTests
         var batter = match.Batter;
         var pitcher = match.Pitcher;
         var take = new SwingCommand(false, 0, 0, false);
-        var wild = new PitchCommand("fastball", 0, 8, false);
+        var wild = new PitchCommand("fastball", 0, false);
         Assert.False(match.BeginAtBat(wild, take, out _, out var pitchEvent));
         Assert.NotNull(pitchEvent);
 
@@ -148,7 +148,7 @@ public class PlayEventContextTests
         Assert.True(match.StationRunner(1, runner));
         Assert.True(match.StartSteal());
         var take = new SwingCommand(false, 0, 0, false);
-        var wild = new PitchCommand("fastball", 0, 8, false);
+        var wild = new PitchCommand("fastball", 0, false);
         Assert.False(match.BeginAtBat(wild, take, out _, out var pitchEvent));
         Assert.NotNull(pitchEvent);
 
@@ -205,7 +205,7 @@ public class PlayEventContextTests
         Assert.Equal(1, strikeEvent.OutsOnPlay);
 
         var walk = Match.Slice(_content, innings: 3, seed: 1);
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         walk.Play(wild, take);
         walk.Play(wild, take);
         walk.Play(wild, take);
@@ -224,7 +224,7 @@ public class PlayEventContextTests
         var plunkPitcher = hitByPitch.Pitcher;
         var bodyX = AtBatResolver.BatterBodyX(0, plunked.Bats) / PitchFlight.PlateScaleX;
         var plunk = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, 0, false), bodyX, 0);
+            new PitchCommand("fastball", 0, false), bodyX, 0);
         var plunkEvent = hitByPitch.Play(plunk, take);
         Assert.Equal(PlayKind.HitByPitch, plunkEvent.Kind);
         Assert.Equal(plunked.Id, plunkEvent.Batter.Id);
