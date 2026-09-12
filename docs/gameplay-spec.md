@@ -111,7 +111,7 @@ SET ──(pitch commit)──▶ WINDUP ──(release @0.42)──▶ FLIGHT �
 
 Rules:
 
-- **The judged pitch is the shown pitch.** The strike/ball/contact verdict is computed from the same trajectory the batter sees, including in-flight break. ⚠️ CPU batter decides at launch before the human steers (`AtBatDirector.cs:245-246, 311-314`). Fix: CPU batter decides at the same plate-plane instant as a human would, from the final trajectory (S-05).
+- **The judged pitch is the shown pitch.** The strike/ball/contact verdict is computed from the same trajectory the batter sees, including in-flight break. The CPU batter commits at the decision instant (plate − 0.30 s − `batting.cpu.decideLeadSec`) from the trajectory as it stands then, exactly like a human who has pressed; the judgment reads the final crossing (`AtBatMotion.CpuDecisionTime`, `CommitCpuSwing`). ✅ P1 (S-04)
 - **A swing before release is a swing.** It resolves as an early miss (strike) with the bat arriving 0.30 s after the press. A press during SET is ignored (it is not a swing yet): the hold still builds a charge, the release does not commit (`ChargeButton.Advance(commits: false)`). ✅ P1 (S-14, S-15)
 - **Box and rubber positions persist** across pitches of the same at-bat; Down resets (SET only). The next hitter starts centered. ✅ P1 (S-16)
 - **Nothing advances baseball while a seat is disconnected** (how-to-play.md, two controllers). ✅
@@ -127,21 +127,21 @@ Same shape as the swing: tap / charge / modifier / star. Booklet-confirmed contr
 | Verb | Input | Ball |
 | --- | --- | --- |
 | Normal | Tap and release South | Pitcher's base fastball, easiest control |
-| Charge | Hold South to MAX (`pitchChargeSeconds` 0.55), release inside the MAX band (`chargeMaxHoldSeconds` 0.5) | +mph. Released inside the first 0.25 s of MAX = **Nice!** (+5% on top). Past the band the charge decays (`chargeOverchargeDecay`) toward a normal pitch. A charged pitch takes only 10% of the break (reference: charge and changeup are "essentially straight") |
-| Changeup | West held through release | −20% mph, hangs then dumps late (§4.3). 10% of the break |
-| Break | Stick L/R **after release** | Ball bends toward that side of the screen. Direction only (magnitude ignored); how fast the bend reaches full is the Pitch stat. Capped at half a zone |
+| Charge | Hold South to MAX (`pitchChargeSeconds` 0.55), release inside the MAX band (`chargeMaxHoldSeconds` 0.5) | +mph. Released inside the first 0.25 s of MAX (`pitching.release.niceBandSec`) = **Nice!** (+5%, `niceMul`; `PitchCommand.Nice`). Past the band the charge decays (`chargeOverchargeDecay`) toward a normal pitch. A charged pitch takes only 10% of the break (`flight.breakDampedMul`; reference: charge and changeup are "essentially straight") ✅ P1 |
+| Changeup | West held through release | −20% mph, hangs then dumps late (§4.3). 10% of the break ✅ P1 |
+| Break | Stick L/R **after release** | Ball bends toward that side of the screen. Direction only (magnitude ignored); how fast the bend reaches full is the Pitch stat (`flight.breakRatePerSec` × per-stat, `PitchFlight.BreakStep`). Capped at half a zone (`breakMaxFt` 0.46) ✅ P1 |
 | Star | North armed + South | Captain star pitch (§13). Costs a star even if hit |
 
 ### 4.2 Location
 
-- Walk the rubber with stick L/R during SET/WINDUP (`WalkPitcher`, ±1). The release point moves with the body; the ball's crossing moves by the **same world distance** as the body, once. ⚠️ Human crossing moves 1.35× offset, CPU 0.35× (`AtBatDirector.cs:224`, `Match.cs:667`, `PitchFlight.cs:45`).
-- **Vertical location** is a pitch property, not a stick: normal/charge cross mid-zone; changeup crosses low; break pitches cross mid and drift; the human moves height by pitch choice and by letting a changeup dump. Stick U/D is *not* an aim axis during SET. ⚠️ `AimY` hard-coded 0 (`AtBatDirector.cs:224`) — acceptable for the human because height is a pitch property, but the CPU must use the same rule (§4.8).
-- Post-release break moves the crossing by at most **half the zone width** (0.46 ft of 0.92). ⚠️ Full break moves it 1.8 ft, twice the zone half-width (`PitchFlight.cs:58-63`).
+- Walk the rubber with stick L/R during SET/WINDUP (`WalkPitcher`, ±1). The release point moves with the body; the ball's crossing moves by the **same world distance** as the body, once: `HomeSet.PitcherWalk` (2.4 ft per unit) for the body, the hand, and the crossing, on every seat. The human's `AimX` is 0; the CPU's aim is compensated for its walk (`AimForCrossing`). ✅ P1 (S-16)
+- **Vertical location** is a pitch property, not a stick: normal/charge cross mid-zone (`PitchFlight.PlateY` = the zone center); the changeup crosses `shapes.changeupDropFt` (0.9) lower; break pitches cross mid and drift; the human moves height by pitch choice and by letting a changeup dump. Stick U/D is *not* an aim axis during SET. Every shape crosses exactly at its aim (the fastball's hump is mid-flight). ✅ P1
+- Post-release break moves the crossing by at most **half the zone width** (`flight.breakMaxFt` 0.46 of 0.92); the drift grows late (`breakLateFrom` 0.55), a small early bend (`breakEarly`) is only for the eye and is gone at the plate. ✅ P1
 - Tired pitcher (§4.7): a random wobble of the crossing on every pitch, visible as a shaky streak.
 
 ### 4.3 Pitch shapes
 
-All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Point(u)`; the strike zone reads the u=1 sample. Time to plate `AirSeconds(mph)` ≈ 0.85 (charged) – 1.10 (changeup), Sluggers pace.
+All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Point(u)`; the strike zone, the aim tell, the cursor, and the CPU batter read the u=1 sample (`PitchFlight.Crossing`, `SetTells.Locator`). Time to plate `AirSeconds(mph)` ≈ 0.85 (charged) – 1.10 (changeup), Sluggers pace.
 
 | Shape | Speed | Path |
 | --- | --- | --- |
@@ -150,7 +150,7 @@ All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Poin
 | Break (stick) | fastball | Adds lateral drift that grows late (u>0.55), signed by stick |
 | Star pitches | per skill | Fastball + skill shape (§13); the *shape* is data, the effect on the batter is the skill rule |
 
-Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick verb, not a type. ⚠️ Types exist in code, unreachable from the mound seat (`AtBatResolver.cs:264-281`, `AtBatDirector.cs:222`).
+Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick verb, not a type. ✅ P1 (`PitchFlight` has two shapes; an unknown type flies as a fastball; `Training.CorePitches` is fastball / changeup).
 
 ### 4.4 Strike zone and judgment
 
@@ -171,7 +171,7 @@ Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick ver
 
 - If the pitch's plate-plane point lies inside the batter's body circle (`batting.hbp.bodyRadiusFt` 0.45, world feet, centered where the batter body actually is, including box walk, at the natural crossing height) **and the batter did not swing**, the batter is hit: first base, forced runners advance, ball dead, stamp HIT BY PITCH. Balls/strikes unchanged. ✅ P1 (S-16, S-17)
 - The batter body and the cursor move by the **same** world distance per box unit (`HomeSet.BatterWalk`). ✅ P1
-- A human pitcher can reach the body by walking the rubber fully toward the batter's side plus break. CPU pitchers reach it only through scatter (rare, ≈1 per game at Pitch ≤ 4). ⚠️ unreachable (`AtBatResolver.cs:250-256`).
+- A human pitcher can reach the body by walking the rubber fully toward the batter's side plus full break, with the box centered. CPU pitchers reach it only through scatter (rare, ≈1 per game at Pitch ≤ 4). ✅ P1 (S-16)
 
 ### 4.7 Stamina and the pitcher swap
 
@@ -757,7 +757,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 
 | File | Sections |
 | --- | --- |
-| `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `flight` (release hand, rubber walk, `AirSeconds` scale and clamps, break ramp), `shapes` (fastball / changeup / curve / slider curves), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1) |
+| `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `release` (Nice! band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `shapes` (fastball hump, changeup hang / dump / drop), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1 part c). The rubber walk distance is geometry (`HomeSet.PitcherWalk`) |
 | `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
 | `flight.json` | gravity, drag, `timeScale`, plate height, wind, sample rate; `bounce`, `skid`, `roll`, `landing`, `classes` (grounder / line / homer-likely bands, infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
 | `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
@@ -778,10 +778,10 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | # | Where | What | Spec |
 | --- | --- | --- | --- |
 | 1 | `AtBatFeel.cs:127-152`, `AtBatDirector.cs:109` | Sweet-spot oval has a fixed Y covering only [1.83, 2.97] of a [1.45, 3.65] zone; 3-step overlap — ✅ P1a (`SweetSpot` in world feet, five zones, S-05 … S-12) | §5.2 |
-| 2 | `AtBatDirector.cs:222-224` | Human pitch type hard-coded fastball, `AimY` 0; `curve`/`slider` unreachable | §4.1, §4.3 |
-| 3 | `AtBatDirector.cs:224`, `Match.cs:667`, `PitchFlight.cs:45` | Rubber walk moves the crossing 1.35× for a human, 0.35× for CPU | §4.2 |
-| 4 | `PitchFlight.cs:58-63` | Full break moves the crossing 1.8 ft (zone half-width 0.92) | §4.2 |
-| 5 | `AtBatDirector.cs:245-246, 311-314` | CPU batter judges at launch, before in-flight steering | §3 |
+| 2 | `AtBatDirector.cs:222-224` | Human pitch type hard-coded fastball, `AimY` 0; `curve`/`slider` unreachable — ✅ P1b (normal / charge / changeup / break / Nice! from the pad; types retired) | §4.1, §4.3 |
+| 3 | `AtBatDirector.cs:224`, `Match.cs:667`, `PitchFlight.cs:45` | Rubber walk moves the crossing 1.35× for a human, 0.35× for CPU — ✅ P1b (`HomeSet.PitcherWalk` once, both seats) | §4.2 |
+| 4 | `PitchFlight.cs:58-63` | Full break moves the crossing 1.8 ft (zone half-width 0.92) — ✅ P1b (`breakMaxFt` 0.46, `BreakStep`) | §4.2 |
+| 5 | `AtBatDirector.cs:245-246, 311-314` | CPU batter judges at launch, before in-flight steering — ✅ P1b (decides at `CpuDecisionTime` from the live trajectory, S-04) | §3 |
 | 6 | `AtBatResolver.cs:9-11, 48-51` | Perfect band 1.0 frame, no window floor — ✅ P1a (`ContactWindowFrames`, S-08 … S-10) | §5.3 |
 | 7 | `AtBatResolver.cs:54-55` | Off-center Perfect demotes to Cheap — ✅ P1a (one tier at the rim, never two) | §5.3 |
 | 8 | `AtBatResolver.cs:73-75` | Charge ×1.12 max; Charge Bat pinned to ×1.10 — ✅ P1a (`quality.charge` column, S-11, S-30) | §5.1, §5.5 |

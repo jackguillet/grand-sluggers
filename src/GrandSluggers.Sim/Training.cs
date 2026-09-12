@@ -17,7 +17,8 @@ public sealed class Training
 {
     public const string ParkId = "harbor-diamond";
     public const int DrillCount = 5;
-    public static readonly string[] CorePitches = ["fastball", "changeup", "curve", "slider"];
+    /// <summary>The two shapes (spec §4.3); charge and break are verbs on them, not types.</summary>
+    public static readonly string[] CorePitches = ["fastball", "changeup"];
     public static readonly PracticeLesson[] Lessons =
     [
         PracticeLesson.Pitching, PracticeLesson.Batting, PracticeLesson.Fielding,
