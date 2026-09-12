@@ -90,7 +90,7 @@ public class PlayCameraTests
     [Fact]
     public void FromHitMatchesTheaterShot()
     {
-        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         var pull = hopper with { SprayDeg = -20 };
         var fly = hopper with { LaunchDeg = 32, CarryFt = 280 };
         var homer = hopper with { LaunchDeg = 32, CarryFt = 420, HomeRun = true };

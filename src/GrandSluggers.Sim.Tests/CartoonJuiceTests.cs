@@ -9,11 +9,11 @@ public class CartoonJuiceTests
     public void ContactPuffsDirtAndPunches()
     {
         Assert.True(CartoonJuice.DirtPuff(ContactQuality.Perfect));
-        Assert.True(CartoonJuice.DirtPuff(ContactQuality.Solid));
-        Assert.True(CartoonJuice.DirtPuff(ContactQuality.Cheap));
+        Assert.True(CartoonJuice.DirtPuff(ContactQuality.Nice));
+        Assert.True(CartoonJuice.DirtPuff(ContactQuality.Sour));
         Assert.False(CartoonJuice.DirtPuff(ContactQuality.Miss));
-        Assert.True(CartoonJuice.Punch(ContactQuality.Perfect) > CartoonJuice.Punch(ContactQuality.Solid));
-        Assert.True(CartoonJuice.Punch(ContactQuality.Solid) > CartoonJuice.Punch(ContactQuality.Cheap));
+        Assert.True(CartoonJuice.Punch(ContactQuality.Perfect) > CartoonJuice.Punch(ContactQuality.Nice));
+        Assert.True(CartoonJuice.Punch(ContactQuality.Nice) > CartoonJuice.Punch(ContactQuality.Sour));
         Assert.Equal(0, CartoonJuice.Punch(ContactQuality.Miss));
     }
 

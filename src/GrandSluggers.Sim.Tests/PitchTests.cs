@@ -33,13 +33,15 @@ public class PitchTests
     [Fact]
     public void InsideTakeCanPlunkTheBatter()
     {
-        var body = AtBatResolver.BatterBodyPlateX(0, Hand.R);
-        var walked = AtBatResolver.BatterBodyPlateX(0.5, Hand.R);
-        Assert.False(AtBatResolver.HitsBatter(0, 0, 0));
-        Assert.False(AtBatResolver.HitsBatter(0, 0.9, 0));
-        Assert.False(AtBatResolver.HitsBatter(0, 0, -0.9));
-        Assert.True(AtBatResolver.HitsBatter(0, body, 0));
-        Assert.True(AtBatResolver.HitsBatter(0.5, walked, 0.05));
+        const double y = PitchFlight.PlateY;
+        var body = AtBatResolver.BatterBodyX(0, Hand.R);
+        var walked = AtBatResolver.BatterBodyX(0.5, Hand.R);
+        Assert.False(AtBatResolver.HitsBatter(0, 0, y));
+        Assert.False(AtBatResolver.HitsBatter(0, 1.7, y));
+        Assert.False(AtBatResolver.HitsBatter(0, 0, y - 1.2));
+        Assert.True(AtBatResolver.HitsBatter(0, body, y));
+        Assert.True(AtBatResolver.HitsBatter(0.5, walked, y + 0.1));
+        Assert.False(AtBatResolver.HitsBatter(0, body, y + 0.5), "the body circle is 0.45 ft (spec §4.6)");
     }
 
     [Fact]

@@ -564,8 +564,8 @@ namespace GrandSluggers.UnityClient
         public static void RumbleContact(ContactQuality quality)
         {
             if (quality == ContactQuality.Perfect) Pulse(0.22f, 0.45f, 0.85f);
-            else if (quality == ContactQuality.Solid) Pulse(0.16f, 0.32f, 0.55f);
-            else if (quality == ContactQuality.Cheap) Pulse(0.10f, 0.18f, 0.28f);
+            else if (quality == ContactQuality.Nice) Pulse(0.16f, 0.32f, 0.55f);
+            else if (quality == ContactQuality.Sour) Pulse(0.10f, 0.18f, 0.28f);
         }
 
         public static void RumbleStar() => Pulse(0.38f, 0.55f, 0.95f);

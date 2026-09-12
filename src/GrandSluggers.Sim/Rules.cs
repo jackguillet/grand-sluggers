@@ -361,10 +361,11 @@ public sealed class BattingRules
     public SprayRules Spray { get; init; } = new();
     public FoulRules Foul { get; init; } = new();
     public HomerRules Homer { get; init; } = new();
-    public OvalRules Oval { get; init; } = new();
+    public CursorRules Cursor { get; init; } = new();
     public HbpRules Hbp { get; init; } = new();
     public StarSwingRules Star { get; init; } = new();
     public BuddiesOnBaseRules BuddiesOnBase { get; init; } = new();
+    public PitchFactorRules PitchFactor { get; init; } = new();
     public OffenseItemRules Items { get; init; } = new();
     public CpuBatterRules Cpu { get; init; } = new();
 
@@ -372,75 +373,114 @@ public sealed class BattingRules
     {
         RulesValidation.Order(source, "batting.launch.minDeg", Launch.MinDeg, Launch.MaxDeg, errors);
         RulesValidation.Order(source, "batting.homer.launchMinDeg", Homer.LaunchMinDeg, Homer.LaunchMaxDeg, errors);
+        RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.ChargeFrames, errors);
+        RulesValidation.Order(source, "batting.window.chargeFrames", Window.ChargeFrames, Window.SlapFrames, errors);
+        RulesValidation.Order(source, "batting.cursor.perfectFraction", Cursor.PerfectFraction, 1, errors);
     }
 }
 
+/// <summary>
+/// The timing window (spec §5.3, D4): slap 9 frames, charge 7, ± (contact − 5) × framesPerContact,
+/// × skill and park multipliers, floored. Inside the window timing decides direction only; the
+/// outermost (1 − squareFraction) of each half demotes the cursor zone by one tier, never two.
+/// </summary>
 public sealed class ContactWindowRules
 {
-    [Positive] public double BaseFrames { get; init; } = 7.0;
-    public double FramesPerContact { get; init; } = 0.55;
-    [Positive] public double ChargeMul { get; init; } = 0.78;
-    [Positive] public double PerfectFrames { get; init; } = 1.0;
-    [Chance] public double SolidFraction { get; init; } = 0.55;
+    [Positive] public double SlapFrames { get; init; } = 9.0;
+    [Positive] public double ChargeFrames { get; init; } = 7.0;
+    public double FramesPerContact { get; init; } = 0.4;
+    [Positive] public double FloorFrames { get; init; } = 5.0;
+    [Chance] public double SquareFraction { get; init; } = 0.9;
 }
 
+/// <summary>Charge adds loft; its power is the charge column of <see cref="QualityRules"/> (spec §5.5).</summary>
 public sealed class SwingChargeRules
 {
-    public double PowerPerCharge { get; init; } = 0.12;
-    [Positive] public double ChargeBatMul { get; init; } = 1.10;
     public double LoftDeg { get; init; } = 2.5;
 }
 
+/// <summary>
+/// Exit velocity by cursor zone (spec §5.2 table): the slap column at no charge, the charge column
+/// at MAX, interpolated by the effective charge. Perfect charge is the ×1.25 of §5.5. Energy is
+/// what the ball carries into a glove (<see cref="InPlay.Energy"/>).
+/// </summary>
 public sealed class QualityRules
 {
-    [Positive] public double PerfectExitMul { get; init; } = 1.10;
-    [Positive] public double SolidExitMul { get; init; } = 1.0;
-    [Positive] public double CheapExitMul { get; init; } = 0.58;
+    public ZoneExitRules Slap { get; init; } = new() { Perfect = 1.00, Nice = 0.95, Sour = 0.75 };
+    public ZoneExitRules Charge { get; init; } = new() { Perfect = 1.25, Nice = 1.12, Sour = 0.95 };
     [Positive] public double PerfectEnergyMul { get; init; } = 1.25;
-    [Positive] public double SolidEnergyMul { get; init; } = 1.0;
-    [Positive] public double CheapEnergyMul { get; init; } = 0.55;
+    [Positive] public double NiceEnergyMul { get; init; } = 1.0;
+    [Positive] public double SourEnergyMul { get; init; } = 0.55;
+}
+
+public sealed class ZoneExitRules
+{
+    [Positive] public double Perfect { get; init; } = 1.0;
+    [Positive] public double Nice { get; init; } = 1.0;
+    [Positive] public double Sour { get; init; } = 1.0;
+
+    public double For(ContactQuality quality) => quality switch
+    {
+        ContactQuality.Perfect => Perfect,
+        ContactQuality.Nice => Nice,
+        _ => Sour
+    };
 }
 
 public sealed class ExitRules
 {
-    [Positive] public double BaseMph { get; init; } = 52;
-    public double MphPerPower { get; init; } = 3.35;
+    [Positive] public double BaseMph { get; init; } = 57;
+    public double MphPerPower { get; init; } = 3.7;
     [Positive] public double TiredPitcherMul { get; init; } = 1.05;
 }
 
+/// <summary>
+/// Launch (spec §5.4): base by power and charge, plus the pitch height (a low crossing launches
+/// lower), plus the stick (up = over the top = grounder). Sour contact is forced to the topper
+/// band (early) or the pop band (late, or a slap on a changeup / charged pitch).
+/// </summary>
 public sealed class LaunchRules
 {
     public double LoftBaseDeg { get; init; } = 16;
     public double LoftPerPower { get; init; } = 1.0;
-    public double DegPerFrame { get; init; } = 1.35;
+    /// <summary>Degrees of launch per foot the crossing sits above the zone center.</summary>
+    public double PerFtOfHeight { get; init; } = 6;
     public double StickDeg { get; init; } = 12;
     public double NoiseDeg { get; init; } = 14;
-    public double CheapLateMinDeg { get; init; } = 4;
-    public double CheapLateSpanDeg { get; init; } = 10;
-    public double CheapEarlyMinDeg { get; init; } = 40;
-    public double CheapEarlySpanDeg { get; init; } = 12;
+    public double TopperMinDeg { get; init; } = 3;
+    public double TopperSpanDeg { get; init; } = 9;
+    public double PopMinDeg { get; init; } = 44;
+    public double PopSpanDeg { get; init; } = 8;
     public double MinDeg { get; init; } = 3;
     public double MaxDeg { get; init; } = 52;
 }
 
+/// <summary>Bunt (spec §5.8): judged on the bat plane through the cursor; a high crossing or a sour bunt pops.</summary>
 public sealed class BuntRules
 {
     [Positive] public double ExitMul { get; init; } = 0.42;
-    public double LaunchMinDeg { get; init; } = 5;
-    public double LaunchSpanDeg { get; init; } = 7;
+    public double LaunchMinDeg { get; init; } = 3;
+    public double LaunchSpanDeg { get; init; } = 9;
     public double SpraySpanDeg { get; init; } = 28;
+    /// <summary>A crossing this far above the zone center is bunted into a pop.</summary>
+    public double PopAboveCenterFt { get; init; } = 0.8;
 }
 
+/// <summary>
+/// Direction (spec §5.3): early pulls, late pushes, linear across the window to ±timingDeg;
+/// stick L/R shifts the range by ±stickDeg; the zone adds its spread.
+/// </summary>
 public sealed class SprayRules
 {
     public double PerfectSpreadDeg { get; init; } = 8;
-    public double SolidSpreadDeg { get; init; } = 18;
-    public double CheapSpreadDeg { get; init; } = 52;
-    public double StickMaxDeg { get; init; } = 42;
+    public double NiceSpreadDeg { get; init; } = 18;
+    public double SourSpreadDeg { get; init; } = 52;
+    public double StickDeg { get; init; } = 12;
+    public double TimingDeg { get; init; } = 55;
     public double OutOfZoneSpanDeg { get; init; } = 18;
 }
 
-/// <summary>Cheap contact pulled past the chalk (the chalk itself is <see cref="AtBatResolver.FoulLineDeg"/>, diamond geometry).</summary>
+/// <summary>Sour contact pulled past the chalk (the chalk itself is <see cref="AtBatResolver.FoulLineDeg"/>, diamond geometry).</summary>
 public sealed class FoulRules
 {
     public double CheapPullMinDeg { get; init; } = 20;
@@ -455,19 +495,28 @@ public sealed class HomerRules
     public double LaunchMaxDeg { get; init; } = 38;
 }
 
-/// <summary>Sweet-spot oval in plate-aim units (<see cref="SweetSpot"/>).</summary>
-public sealed class OvalRules
+/// <summary>
+/// The cursor (spec §5.2, D4): the bat drawn on the plate plane in world feet, centered where the
+/// batter's box walk puts it, tall as the zone. Along the barrel the nice half-axis is
+/// <see cref="NiceTipFt"/> toward the tip and <see cref="NiceHandleFt"/> toward the hands; the
+/// perfect heart is <see cref="PerfectFraction"/> of that; the sour rim reaches
+/// <see cref="RimFraction"/> beyond it. Bat (contact) scales the barrel; a charge narrows it;
+/// buddies on base widen a slap (<see cref="BuddiesOnBaseRules"/>).
+/// </summary>
+public sealed class CursorRules
 {
-    [Positive] public double HalfWidth { get; init; } = 0.32;
-    [Positive] public double HalfHeight { get; init; } = 0.28;
-    /// <summary>Squared normalized distance that still counts as an edge touch.</summary>
-    [Positive] public double EdgeD2 { get; init; } = 2.25;
-    [Chance] public double EdgeOverlap { get; init; } = 0.35;
+    [Positive] public double NiceTipFt { get; init; } = 1.05;
+    [Positive] public double NiceHandleFt { get; init; } = 0.75;
+    [Chance] public double PerfectFraction { get; init; } = 0.42;
+    [Positive] public double RimFraction { get; init; } = 0.33;
+    public double ScalePerContact { get; init; } = 0.04;
+    [Positive] public double ChargeMul { get; init; } = 0.8;
 }
 
+/// <summary>Hit by pitch (spec §4.6): the body circle at the plate plane, in world feet.</summary>
 public sealed class HbpRules
 {
-    [Positive] public double BodyRadius { get; init; } = 0.32;
+    [Positive] public double BodyRadiusFt { get; init; } = 0.45;
 }
 
 public sealed class StarSwingRules
@@ -479,11 +528,27 @@ public sealed class StarSwingRules
     public double LineLaunchDeg { get; init; } = 18;
 }
 
+/// <summary>Good-chemistry runners on base (spec §5.2, §5.5): power on a charged swing, width on a slap.</summary>
 public sealed class BuddiesOnBaseRules
 {
     [Positive] public double OneMul { get; init; } = 1.10;
     [Positive] public double TwoMul { get; init; } = 1.25;
     [Positive] public double ThreeMul { get; init; } = 1.50;
+    [Positive] public double WidenOne { get; init; } = 1.05;
+    [Positive] public double WidenTwo { get; init; } = 1.10;
+    [Positive] public double WidenThree { get; init; } = 1.20;
+}
+
+/// <summary>
+/// The pitch's say in the exit (spec §5.5): a charged pitch met sour, a charged pitch met by a
+/// perfect charge, and a high-Pitch arm dampening non-perfect contact per stat point above 5.
+/// </summary>
+public sealed class PitchFactorRules
+{
+    [Positive] public double ChargedVsSour { get; init; } = 0.6;
+    [Positive] public double ChargedVsPerfectCharge { get; init; } = 1.1;
+    [Chance] public double NiceDampPerPitch { get; init; } = 0.02;
+    [Chance] public double SourDampPerPitch { get; init; } = 0.05;
 }
 
 public sealed class OffenseItemRules
@@ -511,29 +576,6 @@ public sealed class CpuBatterRules
     public double OutOfZoneErrorFrames { get; init; } = 4;
     public double SpraySigmaDeg { get; init; } = 12;
     public double LaunchAimSigma { get; init; } = 0.45;
-    public CpuBatterVsHumanRules VsHuman { get; init; } = new();
-}
-
-/// <summary>Meatball handling against a human pitcher. Removed by §5.9 (P1); numbers live here until then.</summary>
-public sealed class CpuBatterVsHumanRules
-{
-    [Chance] public double MeatballChargeBelow { get; init; } = 0.55;
-    [Chance] public double ChaseChance { get; init; } = 0.10;
-    public double ChaseErrorPerBatStat { get; init; } = 1.4;
-    public double ChaseErrorBias { get; init; } = 6;
-    public double ChaseSpraySigmaDeg { get; init; } = 22;
-    public double ChaseLaunchAim { get; init; } = 0.6;
-    public double MissErrorMin { get; init; } = 9;
-    public double MissErrorSpan { get; init; } = 6;
-    public double MissSpraySigmaDeg { get; init; } = 24;
-    public double MissLaunchAim { get; init; } = 0.7;
-    public double ErrorMean { get; init; } = 4.5;
-    public double ErrorSigma { get; init; } = 2.2;
-    public double ErrorFloor { get; init; } = 3.2;
-    public double SpraySigmaDeg { get; init; } = 20;
-    [Chance] public double ChargeSpan { get; init; } = 0.35;
-    public double LaunchAimMin { get; init; } = 0.55;
-    public double LaunchAimSpan { get; init; } = 0.35;
 }
 
 // ---------------------------------------------------------------------------------------
