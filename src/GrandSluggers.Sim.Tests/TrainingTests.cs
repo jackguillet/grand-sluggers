@@ -109,8 +109,7 @@ public class TrainingTests
         Assert.Equal(1, match.SelectedBag);
         Assert.False(run.RecordRun(match));
         Assert.True(match.SelectRunner(1));
-        Assert.True(match.TakeLead(0.5));
-        Assert.False(run.RecordRun(match), "lead alone does not finish the drill");
+        Assert.False(run.RecordRun(match), "picking a runner alone does not finish the drill");
         Assert.True(match.StartSteal());
         Assert.Equal(2, match.StealTargetBag);
         Assert.True(run.RecordRun(match));

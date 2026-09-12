@@ -8,18 +8,16 @@ public class ClosePlayTests
     [Fact]
     public void OnlyThirdAndHomeWhenARunnerIsRacingThere()
     {
-        Assert.False(ClosePlay.Offered(1, true, true));
-        Assert.False(ClosePlay.Offered(2, true, false));
-        Assert.True(ClosePlay.Offered(3, secondOccupied: true, thirdOccupied: false));
-        Assert.True(ClosePlay.Offered(4, secondOccupied: true, thirdOccupied: true));
-        Assert.False(ClosePlay.Offered(3, secondOccupied: true, thirdOccupied: true));
-        Assert.False(ClosePlay.Offered(4, false, false));
-        var loaded = InPlay.ForceState.FromOccupancy(true, true, true);
-        Assert.False(ClosePlay.Offered(4, loaded, true, true), "force at home is the throw, not a mash");
-        var corner = InPlay.ForceState.FromOccupancy(true, true, false);
-        Assert.False(ClosePlay.Offered(3, corner, true, false), "force at third is the throw, not a mash");
         var tag = InPlay.ForceState.FromOccupancy(false, true, false);
-        Assert.True(ClosePlay.Offered(3, tag, true, false));
+        Assert.False(ClosePlay.Offered(1, tag, true));
+        Assert.False(ClosePlay.Offered(2, tag, true));
+        Assert.True(ClosePlay.Offered(3, tag, runnerHeadingThere: true));
+        Assert.False(ClosePlay.Offered(3, tag, runnerHeadingThere: false), "nobody coming is no play");
+        Assert.True(ClosePlay.Offered(4, InPlay.ForceState.FromOccupancy(false, false, true), true));
+        var loaded = InPlay.ForceState.FromOccupancy(true, true, true);
+        Assert.False(ClosePlay.Offered(4, loaded, true), "force at home is the throw, not a mash");
+        var corner = InPlay.ForceState.FromOccupancy(true, true, false);
+        Assert.False(ClosePlay.Offered(3, corner, true), "force at third is the throw, not a mash");
     }
 
     [Fact]
@@ -48,8 +46,9 @@ public class ClosePlayTests
     }
 
     [Fact]
-    public void HaltFreezesOneRunnerWithoutWalkingThemBack()
+    public void HaltBeforeThePitchCancelsThatRunnersSteal()
     {
+        // D1: there is no lead to keep; before the pitch a halt on a runner is the steal coming off.
         var match = Match.Slice(ContentCatalog.Load(), seed: 1);
         Assert.False(match.HaltAt(1));
         var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
@@ -57,11 +56,11 @@ public class ClosePlayTests
         while (match.First is null && !match.Over)
             match.Play(wild, take);
         Assert.NotNull(match.First);
-        Assert.True(match.TakeLead(0.5));
-        Assert.InRange(match.Lead01, 0.49, 0.51);
+        Assert.True(match.SelectRunner(1));
+        Assert.True(match.StartSteal());
+        Assert.True(match.StealOn);
         Assert.True(match.HaltAt(1));
-        Assert.InRange(match.Lead01, 0.49, 0.51);
-        Assert.False(match.Returning);
+        Assert.False(match.StealAttempt);
         Assert.False(match.StealOn);
     }
 

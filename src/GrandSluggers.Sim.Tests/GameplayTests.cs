@@ -201,31 +201,24 @@ public class GameplayTests
     }
 
     [Fact]
-    public void LeadReturnStealSlideOnTheLeadRunner()
+    public void StealArmReturnAndSlideOnTheLeadRunner()
     {
         var match = Match.Slice(_content, seed: 1);
-        Assert.False(match.TakeLead());
         Assert.False(match.ReturnToBag());
         Assert.False(match.StartSteal());
         Assert.False(match.Slide());
         WalkOn(match);
         Assert.NotNull(match.LeadRunner);
         Assert.Equal(1, match.LeadBag);
-        Assert.Equal(0, match.Lead01);
-        Assert.True(match.TakeLead(0.4));
-        Assert.InRange(match.Lead01, 0.39, 0.41);
-        Assert.False(match.Returning);
-        Assert.True(match.ReturnToBag(0.15));
-        Assert.True(match.Returning);
-        Assert.InRange(match.Lead01, 0.24, 0.26);
         Assert.False(match.StealAttempt);
         Assert.True(match.StartSteal());
         Assert.True(match.StealAttempt);
         Assert.True(match.StealOn);
-        Assert.False(match.Returning);
-        Assert.True(match.Lead01 >= 0.2);
+        // D1: no lead to walk back; stick back on the runner is the steal coming off.
+        Assert.True(match.ReturnToBag());
+        Assert.False(match.StealAttempt);
+        Assert.False(match.StealOn);
         Assert.True(match.Slide());
-        Assert.True(match.Sliding);
     }
 
     [Fact]
@@ -239,9 +232,9 @@ public class GameplayTests
         Assert.Equal(2, match.LeadBag);
         Assert.Equal(match.Second!.Id, match.LeadRunner!.Id);
         Assert.Equal(2, match.SelectedBag);
-        Assert.True(match.TakeLead(0.5));
-        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.49, 0.51);
-        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
+        Assert.True(match.StartSteal());
+        Assert.True(match.RunnerAt(2)!.StealArmed);
+        Assert.False(match.RunnerAt(1)!.StealArmed);
     }
 
     [Fact]
@@ -257,13 +250,8 @@ public class GameplayTests
         Assert.True(match.SelectRunner(1));
         Assert.Equal(1, match.SelectedBag);
         Assert.Equal(match.First!.Id, match.SelectedRunner!.Id);
-        Assert.True(match.TakeLead(0.5));
-        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.49, 0.51);
-        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
         Assert.True(match.SelectRunner(2));
-        Assert.True(match.TakeLead(0.4));
-        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.39, 0.41);
-        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.49, 0.51);
+        Assert.Equal(match.Second!.Id, match.SelectedRunner!.Id);
         Assert.True(match.SelectRunner(1));
         Assert.False(match.CanSteal, "second occupied, runner on first cannot steal");
         Assert.False(match.StartSteal());
@@ -272,8 +260,8 @@ public class GameplayTests
         Assert.True(match.StartSteal());
         Assert.Equal(2, match.ArmedStealBag);
         Assert.Equal(3, match.StealTargetBag);
-        Assert.True(match.RunnerAt(2)!.StealAttempt);
-        Assert.False(match.RunnerAt(1)!.StealAttempt);
+        Assert.True(match.RunnerAt(2)!.StealArmed);
+        Assert.False(match.RunnerAt(1)!.StealArmed);
     }
 
     [Fact]
@@ -325,92 +313,25 @@ public class GameplayTests
     }
 
     [Fact]
-    public void BiggerLeadStealsMoreOften()
+    public void ARunnerOnTheBagIsNeverPickedOff()
     {
-        var walked = StealWins(1.0);
-        var glued = StealWins(0);
-        Assert.True(walked > glued, $"more lead should steal more: max {walked} vs glued {glued}");
-    }
-
-    [Fact]
-    public void BigLeadCanBePickedOff()
-    {
-        var picks = 0;
-        var stays = 0;
-        for (var seed = 1; seed <= 40; seed++)
-        {
-            var match = Match.Slice(_content, seed: seed);
-            WalkOn(match);
-            match.TakeLead(1);
-            var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
-            var take = new SwingCommand(false, 0, 0, false);
-            var ev = match.Play(wild, take);
-            if (ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff)
-            {
-                Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev.Outcome.ThrowEndpoint);
-                Assert.Equal(ev.Outcome.ThrowEndpoint,
-                    (ev with { Caption = "Le coureur est retiré." }).Outcome?.ThrowEndpoint);
-                picks++;
-            }
-            else
-                stays++;
-        }
-        Assert.True(picks > 0, "max lead should risk a pickoff");
-        Assert.True(stays > 0, "pickoff is a risk, not a sure out");
-    }
-
-    [Fact]
-    public void NoLeadIsNeverPickedOff()
-    {
+        // D1 / D3: no leads, no random pickoffs. A pitch with a runner standing on the bag never retires them.
         for (var seed = 1; seed <= 20; seed++)
         {
             var match = Match.Slice(_content, seed: seed);
             WalkOn(match);
-            Assert.Equal(0, match.Lead01);
+            Assert.False(match.StealAttempt);
             var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
             Assert.NotEqual(PlayKind.CaughtStealing, ev.Kind);
             Assert.NotEqual(RunnerPlayResult.PickedOff, ev.Outcome?.RunnerResult);
+            Assert.NotNull(match.First);
+            var back = match.Pickoff(1);
+            Assert.NotNull(back);
+            Assert.NotEqual(PlayKind.CaughtStealing, back!.Kind);
+            Assert.NotNull(match.First);
         }
-    }
-
-    [Fact]
-    public void LeadSpotSitsOffTheBag()
-    {
-        var glued = Diamond.LeadSpot(1, 0);
-        var walked = Diamond.LeadSpot(1, 1);
-        Assert.Equal(Diamond.First.X, glued.X, 3);
-        Assert.Equal(Diamond.First.Z, glued.Z, 3);
-        Assert.True(Diamond.Dist(glued.X, glued.Z, walked.X, walked.Z) > 20);
-        Assert.True(Diamond.Dist(walked.X, walked.Z, Diamond.Second.X, Diamond.Second.Z) <
-                    Diamond.Dist(glued.X, glued.Z, Diamond.Second.X, Diamond.Second.Z));
-    }
-
-    int StealWins(double lead)
-    {
-        var n = 0;
-        for (var seed = 1; seed <= 36; seed++)
-        {
-            var match = Match.Slice(_content, seed: seed);
-            WalkOn(match);
-            if (lead > 0) match.TakeLead(lead);
-            match.StartSteal();
-            var wild = new PitchCommand("fastball", 0, false);
-            var take = new SwingCommand(false, 0, 0, false);
-            for (var i = 0; i < 6 && !match.Over; i++)
-            {
-                var ev = match.Play(wild, take);
-                if (ev.Kind == PlayKind.StolenBase)
-                {
-                    n++;
-                    break;
-                }
-                if (ev.Kind == PlayKind.CaughtStealing) break;
-                if (match.CanSteal && !match.StealOn) match.StartSteal();
-            }
-        }
-        return n;
     }
 
     static void WalkOn(Match match)
@@ -438,13 +359,16 @@ public class GameplayTests
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         var who = match.Batter;
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(paint, swing, out _, out _));
+        // A clean single to right: the batter-runner is a body that reaches first (§9.1) and is seated there at Complete (§10.6).
+        var hit = FlightFixtures.Landing(match.Park, 220, 6, -40);
         Assert.True(InPlay.FairContactSendsBatter(hit));
-        var field = new FieldingResult(PlayKind.Single, match.Pitcher, null, 0.8, 20, 40, false, false);
-        var ev = match.FinishAtBat(paint, swing, hit with { InPlay = true, Foul = false }, field);
-        Assert.Equal(PlayKind.Single, ev.Kind);
-        Assert.NotNull(match.First);
-        Assert.Equal(who.Id, match.First.Id);
+        var preview = match.PreviewHit(hit);
+        var field = new FieldingResult(PlayKind.Single, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
+        var ev = match.FinishAtBat(paint, swing, hit, field);
+        Assert.True(ev.Kind is PlayKind.Single or PlayKind.Double, ev.Kind.ToString());
+        Assert.Contains(match.Runners, r => r.Who.Id == who.Id && r.Bag >= 1);
+        Assert.Equal(ev.Kind == PlayKind.Single ? 1 : 2, ev.Outcome!.BatterToBag);
     }
 
     [Fact]
@@ -458,21 +382,16 @@ public class GameplayTests
         WalkOnSecond(match);
         Assert.NotNull(match.First);
         Assert.NotNull(match.Second);
-        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
-        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
-        Assert.True(match.AdvanceAll(0.4));
+        // Before the pitch (D1): LB arms tag-and-go, RB and both shoulders take it off; nobody moves.
+        Assert.True(match.AdvanceAll());
         Assert.True(match.SendAll);
-        Assert.InRange(match.RunnerAt(1)!.Lead01, 0.39, 0.41);
-        Assert.InRange(match.RunnerAt(2)!.Lead01, 0.39, 0.41);
-        Assert.True(match.ReturnAll(0.4));
+        Assert.All(match.Runners, r => Assert.True(r.OnBag));
+        Assert.True(match.ReturnAll());
         Assert.False(match.SendAll);
-        Assert.Equal(0, match.RunnerAt(1)!.Lead01);
-        Assert.Equal(0, match.RunnerAt(2)!.Lead01);
-        Assert.True(match.AdvanceAll(0.3));
+        Assert.True(match.AdvanceAll());
         Assert.True(match.FreezeRunners());
         Assert.False(match.SendAll);
         Assert.False(match.StealOn);
-        Assert.True(match.TakeLead(0.2));
         Assert.True(match.ToggleSteal());
         Assert.True(match.StealOn);
     }
@@ -494,14 +413,17 @@ public class GameplayTests
         match.StationRunner(1, runner);
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(pitch, swing, out _, out _));
+        var hit = FlightFixtures.Landing(match.Park, 180, 34, 0);
+        var preview = match.PreviewHit(hit);
+        var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
+        var ev = match.FinishAtBat(pitch, swing, hit, field);
 
-        var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 180, false, false);
-        var ev = match.FinishAtBat(pitch, swing, hit with { InPlay = true, Foul = false, CarryFt = 180 }, field);
-
+        // A catchable fly holds every runner on the bag (§9.5); the catch is the out.
         Assert.Equal(PlayKind.FlyOut, ev.Kind);
         Assert.Equal(runner.Id, match.First!.Id);
         Assert.Null(match.Second);
+        Assert.Equal(1, match.Outs);
     }
 
     [Fact]
@@ -513,15 +435,19 @@ public class GameplayTests
         Assert.True(match.AdvanceAll());
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(pitch, swing, out _, out _));
+        var hit = FlightFixtures.Landing(match.Park, 180, 34, 0);
+        var preview = match.PreviewHit(hit);
+        var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
+        var ev = match.FinishAtBat(pitch, swing, hit, field);
 
-        var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 180, false, false);
-        var ev = match.FinishAtBat(pitch, swing, hit with { InPlay = true, Foul = false, CarryFt = 180 }, field);
-
+        // All-advance before the catch is tag and go (§9.5): the runner leaves first at the catch; the
+        // throw to second decides whether they make it. Either way they are not on first any more.
         Assert.Equal(PlayKind.FlyOut, ev.Kind);
         Assert.Null(match.First);
-        Assert.Equal(runner.Id, match.Second!.Id);
-        Assert.Equal(1, match.Outs);
+        var tagged = ev.Outcome!.OutsMade.Any(o => o.Type == OutType.Tag && o.FromBag == 1 && o.Runner.Id == runner.Id);
+        Assert.True(tagged || match.Second?.Id == runner.Id, "tagged up and went: safe at second or thrown out there");
+        Assert.True(ev.Outcome.OutsMade.Any(o => o.Type == OutType.Catch && o.FromBag == 0), "the catch is the out");
         Assert.DoesNotContain("triple", ev.Caption, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -535,14 +461,17 @@ public class GameplayTests
             WalkOnThird(match);
             if (match.Third is null) continue;
             var thirdId = match.Third.Id;
-            if (sendAll) match.AdvanceAll(0.3);
+            if (sendAll) match.AdvanceAll();
             var paint = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
-            if (!match.BeginAtBat(paint, swing, out var hit, out _))
+            if (!match.BeginAtBat(paint, swing, out _, out _))
                 continue;
-            var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 280, false, false);
-            var deep = hit with { InPlay = true, Foul = false, CarryFt = 280, LaunchDeg = 32 };
-            var ev = match.FinishAtBat(paint, swing, deep, field);
+            var deep = FlightFixtures.Landing(match.Park, 280, 32, 0);
+            var preview = match.PreviewHit(deep);
+            var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
+            // The offense is a human seat with nothing pressed: the default is the hold (§9.5); LB before the pitch is tag and go.
+            var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
+            var ev = match.RunLive(paint, swing, deep, preview, field, seats, LivePlayCommandSource.Human);
             var scored = ev.RunsScored > 0;
             if (!sendAll)
                 Assert.True(match.Third is null || match.Third.Id == thirdId || match.Outs >= 3);
