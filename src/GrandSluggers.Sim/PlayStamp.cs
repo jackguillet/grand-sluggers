@@ -76,6 +76,18 @@ public static class PlayStamp
         return who;
     }
 
+    /// <summary>
+    /// The contact word (spec §5.2, #578): only on contact, only from the typed zone. A miss
+    /// shows STRIKE through the stamp; the release tell (MAX) never claims a hit.
+    /// </summary>
+    public static string ContactTell(ContactQuality quality) => quality switch
+    {
+        ContactQuality.Perfect => "PERFECT",
+        ContactQuality.Nice => "NICE",
+        ContactQuality.Sour => "SOUR",
+        _ => ""
+    };
+
     public static double Scale(PlayKind kind) => IsCount(kind) ? 0.72 : 1.0;
 
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;

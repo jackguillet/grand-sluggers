@@ -23,9 +23,14 @@ public static class ChargeFeel
 
     public static bool IsCharge(double effective01) => effective01 >= ChargeAt;
 
+    /// <summary>
+    /// The release tell (spec §4.1, §5.1; #578): MAX inside the band says the charge landed and
+    /// nothing else. "Nice!" is the booklet's word for the pitch release; the swing shows MAX.
+    /// Words about the contact come only from the typed zone (<see cref="PlayStamp.ContactTell"/>).
+    /// </summary>
     public static string NiceCopy(bool pitching, double fill01, double secondsPastFull, double maxHold) =>
         AtMax(fill01, secondsPastFull, maxHold)
-            ? (pitching ? "Nice!" : "Nice Hit!")
+            ? (pitching ? "Nice!" : "MAX")
             : "";
 }
 
@@ -95,7 +100,8 @@ public static class ChargeButton
         bool released,
         double deltaSeconds,
         double secondsToFull,
-        bool accepting = true)
+        bool accepting = true,
+        bool commits = true)
     {
         if (!accepting)
             return default;
@@ -111,8 +117,9 @@ public static class ChargeButton
             fill = next;
         }
 
+        // A release that cannot commit (a press during SET, spec §3) disarms and is not a swing.
         if (armed && released)
-            return new ChargeButtonStep(default, true, fill, past);
+            return commits ? new ChargeButtonStep(default, true, fill, past) : default;
 
         var nextState = armed
             ? new ChargeButtonState(true, fill, past)
@@ -122,35 +129,126 @@ public static class ChargeButton
 }
 
 /// <summary>
-/// Sweet-spot oval at the plate, smaller than the zone. Center follows the batter.
+/// The cursor (spec §5.2, D4): the bat drawn on the plate plane in world feet. It follows the
+/// batter (box walk moves it the same distance as the body, <see cref="HomeSet.BatterWalk"/>),
+/// never the pitch; it is as tall as the zone so any strike is hittable; along the barrel it is
+/// asymmetric (tip side long, handle side short). Five zones: sour / nice / perfect / nice / sour.
+/// The drawn oval is the nice boundary; the perfect heart and the sour rim are fractions of it.
 /// </summary>
 public static class SweetSpot
 {
-    /// <summary>Oval half sizes in plate-aim units (batting.oval).</summary>
-    public static double HalfWidth(RulesTable? rules = null) => Rules.Or(rules).Batting.Oval.HalfWidth;
-    public static double HalfHeight(RulesTable? rules = null) => Rules.Or(rules).Batting.Oval.HalfHeight;
+    /// <summary>World X direction of the bat tip: away from the body (batting.cursor).</summary>
+    public static double TipSign(Hand bats) => bats == Hand.L ? -1 : 1;
 
-    public static double WorldHalfWidth(RulesTable? rules = null) => HalfWidth(rules) * PitchFlight.PlateScaleX;
-    public static double WorldHalfHeight(RulesTable? rules = null) => HalfHeight(rules) * PitchFlight.PlateScaleY;
-
+    /// <summary>Center of the cursor in world feet: the box walk in X, the zone center in Y.</summary>
     public static (double X, double Y) WorldCenter(double boxOffsetX) =>
-        PitchFlight.PlateTarget(boxOffsetX, 0);
+        (boxOffsetX * HomeSet.BatterWalk, StrikeZoneGeometry.CenterY);
 
-    public static double Overlap(double boxOffsetX, double pitchAimX, double pitchAimY, RulesTable? rules = null)
+    /// <summary>Half the zone height: the nice half-axis up and down. Never scaled, so every strike stays hittable.</summary>
+    public static double HalfHeightFt => StrikeZoneGeometry.Height / 2;
+
+    /// <summary>Bat (contact) scales the barrel around 5.</summary>
+    public static double ContactScale(int contact, RulesTable? rules = null) =>
+        Math.Max(0.5, 1 + (Math.Clamp(contact, 1, 10) - 5) * Rules.Or(rules).Batting.Cursor.ScalePerContact);
+
+    /// <summary>Good-chemistry runners widen a slap's zones (batting.buddiesOnBase.widen*).</summary>
+    public static double BuddyWiden(int buddies, RulesTable? rules = null)
     {
-        var oval = Rules.Or(rules).Batting.Oval;
-        var dx = (pitchAimX - boxOffsetX) / oval.HalfWidth;
-        var dy = pitchAimY / oval.HalfHeight;
-        var d2 = dx * dx + dy * dy;
-        if (d2 <= 1) return 1;
-        if (d2 <= oval.EdgeD2) return oval.EdgeOverlap;
-        return 0;
+        var b = Rules.Or(rules).Batting.BuddiesOnBase;
+        return buddies switch
+        {
+            >= 3 => b.WidenThree,
+            2 => b.WidenTwo,
+            1 => b.WidenOne,
+            _ => 1.0
+        };
     }
 
-    public static bool CenterEatsHeart(RulesTable? rules = null) => Overlap(0, 0, 0, rules) >= 1;
+    /// <summary>
+    /// The barrel scale for one swing: contact × (charge narrows | buddies widen a slap).
+    /// The Charge Bat is a MAX charge with the narrowing off (spec §5.5).
+    /// </summary>
+    public static double BarrelScale(int contact, bool charged, bool chargeBat, int buddies, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Batting.Cursor;
+        var scale = ContactScale(contact, rules);
+        if (charged) return chargeBat ? scale : scale * c.ChargeMul;
+        return scale * BuddyWiden(buddies, rules);
+    }
 
-    public static bool WalkedOffMissesHeart(double walk = 0.85, RulesTable? rules = null) =>
-        Overlap(walk, 0, 0, rules) <= 0;
+    /// <summary>Nice half-axis along the barrel on the side of <paramref name="dx"/> (world feet from the center).</summary>
+    public static double NiceHalfWidthFt(Hand bats, double dx, double barrelScale, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Batting.Cursor;
+        var towardTip = dx * TipSign(bats) >= 0;
+        return (towardTip ? c.NiceTipFt : c.NiceHandleFt) * barrelScale;
+    }
+
+    /// <summary>
+    /// Normalized distance of a crossing from the cursor center: 1 on the drawn (nice) boundary.
+    /// </summary>
+    public static double Distance(double boxOffsetX, Hand bats, double crossingX, double crossingY,
+        double barrelScale = 1, RulesTable? rules = null)
+    {
+        var (cx, cy) = WorldCenter(boxOffsetX);
+        var dx = crossingX - cx;
+        var dy = crossingY - cy;
+        var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
+        var ny = HalfHeightFt;
+        return Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
+    }
+
+    /// <summary>
+    /// Where the crossing meets the bat. Cursor decides quality (D4): the perfect heart and the
+    /// nice oval are the drawn ellipse (batting.cursor.perfectFraction); the sour rim is the
+    /// barrel's rectangle <see cref="CursorRules.RimFraction"/> beyond it, so the corners of the
+    /// zone are on the bat with the box centered.
+    /// </summary>
+    public static ContactQuality Zone(double boxOffsetX, Hand bats, double crossingX, double crossingY,
+        double barrelScale = 1, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Batting.Cursor;
+        var (cx, cy) = WorldCenter(boxOffsetX);
+        var dx = crossingX - cx;
+        var dy = crossingY - cy;
+        if (!double.IsFinite(dx) || !double.IsFinite(dy)) return ContactQuality.Miss;
+        var nx = NiceHalfWidthFt(bats, dx, barrelScale, rules);
+        var ny = HalfHeightFt;
+        var d = Math.Sqrt(dx * dx / (nx * nx) + dy * dy / (ny * ny));
+        if (d <= c.PerfectFraction) return ContactQuality.Perfect;
+        if (d <= 1) return ContactQuality.Nice;
+        if (Math.Abs(dx) <= nx * (1 + c.RimFraction) && Math.Abs(dy) <= ny * (1 + c.RimFraction))
+            return ContactQuality.Sour;
+        return ContactQuality.Miss;
+    }
+
+    /// <summary>
+    /// The drawn oval: the nice boundary, local to the cursor center, in world feet. The client
+    /// draws exactly the hitbox the sim judges; the tip half is longer than the handle half.
+    /// </summary>
+    public static IReadOnlyList<(double X, double Y)> Outline(Hand bats, double barrelScale = 1,
+        int segments = 40, RulesTable? rules = null)
+    {
+        var pts = new List<(double X, double Y)>(segments);
+        for (var i = 0; i < segments; i++)
+        {
+            var a = i * Math.PI * 2 / segments;
+            var ux = Math.Cos(a);
+            var nx = NiceHalfWidthFt(bats, ux, barrelScale, rules);
+            pts.Add((ux * nx, Math.Sin(a) * HalfHeightFt));
+        }
+        return pts;
+    }
+
+    /// <summary>Every strike is hittable with the box centered: no zone corner is off the bat (spec §5.2).</summary>
+    public static bool CoversTheZone(Hand bats, double barrelScale = 1, RulesTable? rules = null)
+    {
+        foreach (var x in new[] { -StrikeZoneGeometry.HalfWidth, 0, StrikeZoneGeometry.HalfWidth })
+        foreach (var y in new[] { StrikeZoneGeometry.Bottom, StrikeZoneGeometry.CenterY, StrikeZoneGeometry.Top })
+            if (Zone(0, bats, x, y, barrelScale, rules) == ContactQuality.Miss)
+                return false;
+        return true;
+    }
 }
 
 /// <summary>Fielding dash and buddy-toss before the glove (fielding.dash).</summary>

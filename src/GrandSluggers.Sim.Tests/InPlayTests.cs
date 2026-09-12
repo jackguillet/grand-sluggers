@@ -10,7 +10,7 @@ public class InPlayTests
     [Fact]
     public void EnergyScalesWithExitAndQuality()
     {
-        var soft = Hit(ContactQuality.Cheap, 60);
+        var soft = Hit(ContactQuality.Sour, 60);
         var hard = Hit(ContactQuality.Perfect, 100);
         Assert.True(InPlay.Energy(hard) > InPlay.Energy(soft),
             $"hard {InPlay.Energy(hard)} vs soft {InPlay.Energy(soft)}");
@@ -21,7 +21,7 @@ public class InPlayTests
     {
         var rio = _content.Must("rio");
         var hard = Hit(ContactQuality.Perfect, 110);
-        var dying = Hit(ContactQuality.Cheap, 40);
+        var dying = Hit(ContactQuality.Sour, 40);
         var hardN = 0;
         var dyingN = 0;
         const int n = 80;
@@ -42,7 +42,7 @@ public class InPlayTests
         Assert.True(InPlay.HomeToFirstSec(dart) < InPlay.HomeToFirstSec(brick),
             $"dart {InPlay.HomeToFirstSec(dart)} vs brondo {InPlay.HomeToFirstSec(brick)}");
 
-        var hit = Hit(ContactQuality.Solid, 72, launch: 8, carry: 45);
+        var hit = Hit(ContactQuality.Nice, 72, launch: 8, carry: 45);
         var slow = new ThrowResult(Chemistry.Bad, 0.55, false);
         var field = new FieldingResult(PlayKind.GroundOut, _content.Must("vale"), _content.Must("nico"),
             0.4, -40, 90, false, false, slow);
@@ -59,7 +59,7 @@ public class InPlayTests
         var dart = _content.Must("dart");
         var vale = _content.Must("vale");
         var nico = _content.Must("nico");
-        var hit = Hit(ContactQuality.Solid, 72, launch: 8, carry: 45);
+        var hit = Hit(ContactQuality.Nice, 72, launch: 8, carry: 45);
         var found = false;
         FieldingResult? play = null;
         for (var hang = 0.2; hang <= 2.4 && !found; hang += 0.05)
@@ -86,7 +86,7 @@ public class InPlayTests
         var match = Match.Slice(_content, seed: 4);
         var fielding = new FieldingResolver(_content.Chemistry);
         // Deep hopper: landing is past the infield so the nearest glove cannot scoop it.
-        var hit = new AtBatResult(ContactQuality.Solid, true, false, 72, 8, 360, false, false, null, null, SprayDeg: 2);
+        var hit = new AtBatResult(ContactQuality.Nice, true, false, 72, 8, 360, false, false, null, null, SprayDeg: 2);
         var rng = new Random(4);
         var pre = fielding.Preview(hit, match.Park, match.Defense.Roster, match.Pitcher, rng);
         Assert.True(pre.Grounder, "launch 8 must be a hopper");
@@ -256,7 +256,7 @@ public class InPlayTests
     public void HopperWithoutPlayerThrowIsAPlayEvent()
     {
         var match = Match.Slice(_content, seed: 1);
-        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         Assert.True(InPlay.FairContactSendsBatter(hopper));
         var field = match.ResolveFielding(hopper);
         Assert.True(field.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut, field.Kind.ToString());
@@ -302,7 +302,7 @@ public class InPlayTests
     {
         var match = Match.Slice(_content, seed: 2);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var hit = new AtBatResult(ContactQuality.Cheap, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
+        var hit = new AtBatResult(ContactQuality.Sour, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
         for (var i = 0; i < 40; i++)
         {
             var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, new Random(i));
@@ -314,7 +314,7 @@ public class InPlayTests
     [Fact]
     public void TheaterShotIsOneHighDiamond()
     {
-        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         var pull = hopper with { SprayDeg = -20 };
         var fly = hopper with { LaunchDeg = 32, CarryFt = 280 };
         var homer = hopper with { LaunchDeg = 32, CarryFt = 420, HomeRun = true };

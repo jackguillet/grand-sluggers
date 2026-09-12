@@ -17,9 +17,14 @@ public class GameplayTests
         var resolver = new AtBatResolver(_content.Chemistry);
         var hits = 0;
         var charmed = 0;
+        // A frame inside the plain window and outside the charmball window (star-skills batterWindowMul).
+        var plain = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, false);
+        var charm = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, vale.StarPitch, park, false);
+        Assert.True(charm < plain, $"charm {charm} vs plain {plain}");
+        var edge = (plain + charm) / 4;
         for (var seed = 0; seed < 40; seed++)
         {
-            var input = new AtBatInput(vale, rio, _content.Must("nico"), [], "fastball", false, false, 7.0, false, false, bat, 80, PitchInZone: true);
+            var input = new AtBatInput(vale, rio, _content.Must("nico"), [], false, false, edge, false, false, bat, 80, PitchInZone: true);
             var star = input with { UseStarPitch = true };
             if (resolver.Resolve(input, park, new Random(seed)).InPlay) hits++;
             if (resolver.Resolve(star, park, new Random(seed)).InPlay) charmed++;
@@ -33,8 +38,8 @@ public class GameplayTests
         var park = _content.Parks["harbor-diamond"];
         var input = new AtBatInput(
             _content.Must("vale"), _content.Must("dart"), _content.Must("zig"), [],
-            "fastball", false, true, 0, false, true,
-            _content.Bats["harbor-lumber"], 80, PitchInZone: true);
+            false, false, 0, false, true,
+            _content.Bats["harbor-lumber"], 80, PitchInZone: true, Charge01: 1);
         var r = new AtBatResolver(_content.Chemistry).Resolve(input, park, new Random(1));
         Assert.Equal("ground", r.StarSwingUsed);
         Assert.True(r.LaunchDeg < 14, $"launch {r.LaunchDeg}");

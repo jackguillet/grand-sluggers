@@ -104,8 +104,8 @@ namespace GrandSluggers.UnityClient
         public void Bat(ContactQuality quality)
         {
             if (quality == ContactQuality.Perfect) Play("bat-perfect", 1f);
-            else if (quality == ContactQuality.Solid) Play("bat-solid", 0.85f);
-            else if (quality == ContactQuality.Cheap) Play("bat-cheap", 0.7f);
+            else if (quality == ContactQuality.Nice) Play("bat-solid", 0.85f);
+            else if (quality == ContactQuality.Sour) Play("bat-cheap", 0.7f);
         }
 
         public void Glove() => Play("glove", 0.8f);

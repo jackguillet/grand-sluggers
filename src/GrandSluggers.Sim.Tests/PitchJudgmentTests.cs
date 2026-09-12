@@ -77,15 +77,18 @@ public class PitchJudgmentTests
     [InlineData(Hand.L, 1)]
     public void HitByPitchBodyUsesTheHandedAuthoredBoxAndWorldWalk(Hand bats, double side)
     {
-        var body = AtBatResolver.BatterBodyPlateX(0, bats);
-        Assert.Equal(side * HomeSet.BoxX / PitchFlight.PlateScaleX, body, 10);
-        Assert.True(AtBatResolver.HitsBatter(0, body, 0, bats));
-        Assert.False(AtBatResolver.HitsBatter(0, -body, 0, bats));
+        const double y = PitchFlight.PlateY;
+        var body = AtBatResolver.BatterBodyX(0, bats);
+        Assert.Equal(side * HomeSet.BoxX, body, 10);
+        Assert.True(AtBatResolver.HitsBatter(0, body, y, bats));
+        Assert.False(AtBatResolver.HitsBatter(0, -body, y, bats));
 
         const double offset = 0.5;
-        var walked = AtBatResolver.BatterBodyPlateX(offset, bats);
-        Assert.Equal(body + offset * HomeSet.BatterWalk / PitchFlight.PlateScaleX, walked, 10);
-        Assert.True(AtBatResolver.HitsBatter(offset, walked, 0, bats));
+        var walked = AtBatResolver.BatterBodyX(offset, bats);
+        Assert.Equal(body + offset * HomeSet.BatterWalk, walked, 10);
+        Assert.True(AtBatResolver.HitsBatter(offset, walked, y, bats));
+        // Body and cursor move the same world distance per box unit (spec §4.6).
+        Assert.Equal(walked - body, SweetSpot.WorldCenter(offset).X - SweetSpot.WorldCenter(0).X, 10);
     }
 
     [Fact]
@@ -96,13 +99,13 @@ public class PitchJudgmentTests
         var near = PitchFlight.AimForCrossing(
             new PitchCommand("fastball", 0, 0, false), nearAimX, 0);
         Assert.False(StrikeZoneGeometry.Contains(near));
-        Assert.False(AtBatResolver.HitsBatter(0, nearAimX, 0, Hand.R));
+        Assert.False(AtBatResolver.HitsBatter(0, nearWorldX, PitchFlight.PlateY, Hand.R));
         var ballMatch = Match.Slice(content, innings: 3, seed: 1);
         var ball = ballMatch.Play(near, Take);
         Assert.Equal(PlayKind.TakeBall, ball.Kind);
 
         var bodyMatch = Match.Slice(content, innings: 3, seed: 1);
-        var bodyAimX = AtBatResolver.BatterBodyPlateX(0, bodyMatch.Batter.Bats);
+        var bodyAimX = AtBatResolver.BatterBodyX(0, bodyMatch.Batter.Bats) / PitchFlight.PlateScaleX;
         var bodyPitch = PitchFlight.AimForCrossing(
             new PitchCommand("fastball", 0, 0, false), bodyAimX, 0);
         var plunk = bodyMatch.Play(bodyPitch, Take);

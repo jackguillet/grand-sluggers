@@ -120,7 +120,7 @@ public class AtBatFeelTests
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact, flight), 8);
         Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact - 0.05, flight), 8);
         Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact + 0.05, flight), 8);
-        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.BaseFrames);
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.SlapFrames);
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
             Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);
@@ -277,7 +277,7 @@ public class AtBatFeelTests
         Assert.True(ChargeFeel.AtMax(1, 0, feel.ChargeMaxHoldSeconds));
         Assert.False(ChargeFeel.AtMax(1, 0.8, feel.ChargeMaxHoldSeconds));
         Assert.Equal("Nice!", ChargeFeel.NiceCopy(true, 1, 0, feel.ChargeMaxHoldSeconds));
-        Assert.Equal("Nice Hit!", ChargeFeel.NiceCopy(false, 1, 0, feel.ChargeMaxHoldSeconds));
+        Assert.Equal("MAX", ChargeFeel.NiceCopy(false, 1, 0, feel.ChargeMaxHoldSeconds));
         Assert.Equal("", ChargeFeel.NiceCopy(true, 1, 0.9, feel.ChargeMaxHoldSeconds));
 
         var park = _content.Parks["harbor-diamond"];
@@ -289,10 +289,14 @@ public class AtBatFeelTests
         var chargeHits = 0;
         var maxCarry = 0.0;
         var lateCarry = 0.0;
+        // A frame inside the slap window and outside the charge window (spec §5.3: 9 vs 7 frames).
+        var contact = rio.Stats.Bat;
+        var edge = (AtBatResolver.ContactWindowFrames(contact, true, null, park, false)
+                    + AtBatResolver.ContactWindowFrames(contact, false, null, park, false)) / 4;
         for (var seed = 0; seed < 36; seed++)
         {
-            if (resolver.Resolve(Input(vale, rio, bat, 0, 7.2), park, new Random(seed)).InPlay) slapHits++;
-            if (resolver.Resolve(Input(vale, rio, bat, 1, 7.2), park, new Random(seed)).InPlay) chargeHits++;
+            if (resolver.Resolve(Input(vale, rio, bat, 0, edge), park, new Random(seed)).Quality != ContactQuality.Miss) slapHits++;
+            if (resolver.Resolve(Input(vale, rio, bat, 1, edge), park, new Random(seed)).Quality != ContactQuality.Miss) chargeHits++;
             maxCarry += resolver.Resolve(Input(vale, rio, bat, 1, 0), park, new Random(seed)).CarryFt;
             lateCarry += resolver.Resolve(Input(vale, rio, bat, late, 0), park, new Random(seed)).CarryFt;
         }
@@ -304,19 +308,18 @@ public class AtBatFeelTests
     }
 
     [Fact]
-    public void OvalEatsHeartAndWalkedOffMisses()
+    public void CursorEatsHeartAndWalkedOffMisses()
     {
-        Assert.True(SweetSpot.CenterEatsHeart());
-        Assert.True(SweetSpot.WalkedOffMissesHeart());
-        Assert.Equal(1, SweetSpot.Overlap(0, 0, 0));
-        Assert.Equal(0, SweetSpot.Overlap(0.85, 0, 0));
+        Assert.Equal(ContactQuality.Perfect, SweetSpot.Zone(0, Hand.R, 0, StrikeZoneGeometry.CenterY));
+        Assert.Equal(ContactQuality.Miss, SweetSpot.Zone(0.9, Hand.R, 0, StrikeZoneGeometry.CenterY));
         var left = SweetSpot.WorldCenter(-0.4);
         var right = SweetSpot.WorldCenter(0.4);
         Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
-        Assert.Equal(PitchFlight.PlateY, left.Y);
-        Assert.True(SweetSpot.WorldHalfWidth() < 0.92, "cursor is narrower than the visible strike frame");
-        Assert.True(SweetSpot.WorldHalfHeight() < (3.65 - 1.45) * 0.5,
-            "cursor is shorter than the visible strike frame");
+        Assert.Equal(0.8 * HomeSet.BatterWalk, right.X - left.X, 8);
+        Assert.Equal(StrikeZoneGeometry.CenterY, left.Y);
+        Assert.Equal(StrikeZoneGeometry.Height / 2, SweetSpot.HalfHeightFt);
+        Assert.True(SweetSpot.CoversTheZone(Hand.R), "every strike is on the bat with the box centered");
+        Assert.True(SweetSpot.CoversTheZone(Hand.L), "every strike is on the bat with the box centered");
         var park = _content.Parks["harbor-diamond"];
         var resolver = new AtBatResolver(_content.Chemistry);
         var vale = _content.Must("vale");
@@ -427,8 +430,8 @@ public class AtBatFeelTests
 
     static AtBatInput Input(Character pitcher, Character batter, BatItem bat, double charge, double timing,
         double box = 0, double aimX = 0) =>
-        new(pitcher, batter, null, [], "fastball", ChargeFeel.IsCharge(charge), ChargeFeel.IsCharge(charge),
-            timing, false, false, bat, 80, 0, true, false, 0, charge, box, aimX, 0);
+        new(pitcher, batter, null, [], false, false,
+            timing, false, false, bat, 80, 0, true, false, 0, charge, box, aimX * PitchFlight.PlateScaleX, PitchFlight.PlateY);
 
     static void WalkOn(Match match)
     {

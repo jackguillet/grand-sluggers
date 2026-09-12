@@ -135,7 +135,7 @@ public class HighlightTests
             or PlayKind.HomeRun or PlayKind.FlyOut or PlayKind.GroundOut;
         var hr = kind == PlayKind.HomeRun;
         var hit = new AtBatResult(
-            hr ? ContactQuality.Perfect : ContactQuality.Solid,
+            hr ? ContactQuality.Perfect : ContactQuality.Nice,
             inPlay,
             kind == PlayKind.Strikeout,
             hr ? 105 : 88,

@@ -13,11 +13,15 @@ public enum Chemistry
     Good = 2
 }
 
+/// <summary>
+/// Where the ball met the bat (spec §5.2, D4): the cursor zone decides quality. Sour is the
+/// rim of the bat, Nice the oval, Perfect its heart. Miss is off the bat or outside the window.
+/// </summary>
 public enum ContactQuality
 {
     Miss,
-    Cheap,
-    Solid,
+    Sour,
+    Nice,
     Perfect
 }
 
@@ -96,14 +100,18 @@ public sealed record Team(
     }
 }
 
+/// <summary>
+/// One swing at one crossing. <paramref name="CrossingX"/> / <paramref name="CrossingY"/> are the
+/// pitch at the plate plane in world feet (the same point the umpire and the aim tell read);
+/// <paramref name="TimingErrorFrames"/> is bat-plane time minus ball-plate time at 60 Hz.
+/// </summary>
 public sealed record AtBatInput(
     Character Pitcher,
     Character Batter,
     Character? OnDeck,
     IReadOnlyList<Character> RunnersOn,
-    string PitchType,
     bool ChargePitch,
-    bool ChargeSwing,
+    bool ChangeupPitch,
     double TimingErrorFrames,
     bool UseStarPitch,
     bool UseStarSwing,
@@ -115,8 +123,8 @@ public sealed record AtBatInput(
     double LaunchAim = 0,
     double Charge01 = 0,
     double BoxOffsetX = 0,
-    double PitchAimX = 0,
-    double PitchAimY = 0);
+    double CrossingX = 0,
+    double CrossingY = PitchFlight.PlateY);
 
 public sealed record AtBatResult(
     ContactQuality Quality,

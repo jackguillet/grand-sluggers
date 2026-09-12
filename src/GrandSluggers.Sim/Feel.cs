@@ -89,8 +89,6 @@ public sealed class FeelTable
         double pitcherReadySeconds,
         double afterOutSeconds,
         double afterCountSeconds,
-        double cpuVsHumanTake,
-        double cpuVsHumanMiss,
         double chargeMaxHoldSeconds,
         double chargeOverchargeDecay)
     {
@@ -104,8 +102,6 @@ public sealed class FeelTable
         PitcherReadySeconds = pitcherReadySeconds;
         AfterOutSeconds = afterOutSeconds;
         AfterCountSeconds = afterCountSeconds;
-        CpuVsHumanTake = cpuVsHumanTake;
-        CpuVsHumanMiss = cpuVsHumanMiss;
         ChargeMaxHoldSeconds = chargeMaxHoldSeconds;
         ChargeOverchargeDecay = chargeOverchargeDecay;
     }
@@ -121,8 +117,6 @@ public sealed class FeelTable
     public double PitcherReadySeconds { get; }
     public double AfterOutSeconds { get; }
     public double AfterCountSeconds { get; }
-    public double CpuVsHumanTake { get; }
-    public double CpuVsHumanMiss { get; }
     public double ChargeMaxHoldSeconds { get; }
     public double ChargeOverchargeDecay { get; }
 
@@ -143,8 +137,6 @@ public sealed class FeelTable
         var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
         var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
         var count = dto.AfterCountSeconds > 0 ? dto.AfterCountSeconds : 0.7;
-        var take = dto.CpuVsHumanTake > 0 ? dto.CpuVsHumanTake : 0.32;
-        var miss = dto.CpuVsHumanMiss > 0 ? dto.CpuVsHumanMiss : 0.22;
         var maxHold = dto.ChargeMaxHoldSeconds > 0 ? dto.ChargeMaxHoldSeconds : 0.5;
         var over = dto.ChargeOverchargeDecay > 0 ? dto.ChargeOverchargeDecay : 0.8;
         return new FeelTable(
@@ -158,8 +150,6 @@ public sealed class FeelTable
             ready,
             after,
             count,
-            take,
-            miss,
             maxHold,
             over);
     }
@@ -176,8 +166,6 @@ public sealed class FeelTable
         public double PitcherReadySeconds { get; set; } = 0.55;
         public double AfterOutSeconds { get; set; } = 1.35;
         public double AfterCountSeconds { get; set; } = 0.7;
-        public double CpuVsHumanTake { get; set; } = 0.32;
-        public double CpuVsHumanMiss { get; set; } = 0.22;
         public double ChargeMaxHoldSeconds { get; set; } = 0.5;
         public double ChargeOverchargeDecay { get; set; } = 0.8;
     }

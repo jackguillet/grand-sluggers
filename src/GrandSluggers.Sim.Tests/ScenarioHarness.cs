@@ -17,6 +17,20 @@ public sealed class Scenario
     public static readonly SwingCommand Swing = new(true, 0, 0, false);
     public static readonly SwingCommand Take = new(false, 0, 0, false);
 
+    /// <summary>
+    /// A normal fastball whose plate crossing is exactly (<paramref name="worldX"/>, <paramref name="worldY"/>)
+    /// in world feet — the point the umpire, the body, and the cursor read (spec §3, §4.4).
+    /// </summary>
+    public static PitchCommand PitchAt(double worldX, double worldY, double charge = 0, bool changeup = false) =>
+        PitchFlight.AimForCrossing(
+            new PitchCommand("fastball", charge, 0, false, Changeup: changeup),
+            worldX / PitchFlight.PlateScaleX,
+            (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY);
+
+    /// <summary>A swing whose bat reaches the plane <paramref name="errFrames"/> after the ball (negative = early).</summary>
+    public static SwingCommand SwingAt(double errFrames, double charge = 0, bool bunt = false, double stickX = 0, double launchAim = 0) =>
+        new(true, charge, errFrames, false, AtBatResolver.SprayAimDeg(stickX), bunt, launchAim);
+
     public Scenario(ContentCatalog content, int seed = 1)
     {
         Content = content;

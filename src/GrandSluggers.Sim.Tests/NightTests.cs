@@ -50,9 +50,13 @@ public class NightTests
         Assert.Equal(Rules.Default.Fielding.Park.CrystalNightWindowMul, ParkHazards.ContactWindowMul(park, true));
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(_content.Parks["harbor-diamond"], true));
 
+        var rio = _content.Must("rio");
+        var dayWindow = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, false);
+        var nightWindow = AtBatResolver.ContactWindowFrames(rio.Stats.Bat, false, null, park, true);
+        Assert.True(nightWindow < dayWindow);
         var input = new AtBatInput(
-            _content.Must("ashlord"), _content.Must("rio"), _content.Must("nico"), [],
-            "fastball", false, false, 7.0, false, false,
+            _content.Must("ashlord"), rio, _content.Must("nico"), [],
+            false, false, (dayWindow + nightWindow) / 4, false, false,
             _content.Bats["harbor-lumber"], 80, PitchInZone: true);
         var resolver = new AtBatResolver(_content.Chemistry);
         var day = resolver.Resolve(input, park, new Random(1));
@@ -73,7 +77,7 @@ public class NightTests
         Assert.False(ParkHazards.ChompFly(park, true, 0, 228, grounder: true));
         Assert.False(ParkHazards.ChompFly(_content.Parks["harbor-diamond"], true, 0, 228));
 
-        var hit = new AtBatResult(ContactQuality.Solid, true, false, 88, 22, 228, false, false, null, null, SprayDeg: 0);
+        var hit = new AtBatResult(ContactQuality.Nice, true, false, 88, 22, 228, false, false, null, null, SprayDeg: 0);
         var spark = PresetTeams.SparkAllStars(_content);
         var fielding = new FieldingResolver(_content.Chemistry);
         var day = fielding.Resolve(hit, park, spark.Roster, spark.Captain, new Random(1));
