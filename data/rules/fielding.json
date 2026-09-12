@@ -81,6 +81,7 @@
   },
   "abilities": {
     "bigCatchBonusFt": 6,
+    "tagReachBonusFt": 2,
     "superJumpCatchBonusFt": 3,
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
@@ -96,6 +97,7 @@
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
     "onTheFlyFt": 200,
+    "unassistedFt": 8,
     "handHeightFt": 3.2,
     "bagHeightFt": 1.2
   },

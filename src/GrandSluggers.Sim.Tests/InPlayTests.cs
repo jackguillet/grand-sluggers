@@ -366,6 +366,18 @@ public class InPlayTests
         var expected = Rules.Default.Running.BagSec.BatterStartSec + batter.SegmentFt / RunnerSystem.SpeedFtPerSec(rio);
         Assert.InRange(t, expected - 0.05, expected + 0.05);
         Assert.False(InPlay.Time(true, false, 0, true, runners), "batter just arrived");
+        // The batter runs through first (§9.4): the bag is theirs on the way out and straight back, and Time waits for the return.
+        Assert.True(batter.Overrunning && batter.OverrunProtected, "through the bag, protected");
+        var farthest = 0.0;
+        while (batter.Overrunning)
+        {
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
+            farthest = Math.Max(farthest, batter.OverrunFt);
+            Assert.True(batter.IsOn(1), "holds first through the run-through");
+            Assert.False(InPlay.Time(true, false, 0, true, runners), "not settled while through the bag");
+            Assert.True(t < 10);
+        }
+        Assert.InRange(farthest, Rules.Default.Running.Bags.OverrunFt - 0.7, Rules.Default.Running.Bags.OverrunFt + 0.01);
         for (var i = 0; i < 63; i++)
             RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
         Assert.True(InPlay.Time(true, false, 0, true, runners));
@@ -408,8 +420,17 @@ public class InPlayTests
         Assert.False(InPlay.CloseSafe(4.5, 3.1), "waiting on the bag is not bang-bang");
         var off = InPlay.AlongBases(Diamond.Baseline * 0.2, 1);
         Assert.False(InPlay.OccupyingBag(off.X, off.Z, Rules.Default.Running.Bags.TagSafeRadiusFt), "off home toward first");
-        Assert.True(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z),
-            "toy bodies overlap from the diamond camera");
+        // The reach is 4 ft (§10.3): a glove three feet away tags, ten feet away does not; Lick / Grow add two.
+        Assert.Equal(4, Rules.Default.Running.Bags.TagReachFt);
+        Assert.True(InPlay.Touches(true, false, off.X + 3, off.Z, off.X, off.Z), "inside the reach");
+        Assert.False(InPlay.Touches(true, false, off.X + 10, off.Z, off.X, off.Z), "ten feet is no tag");
+        var grow = _content.Must("rio");
+        Assert.Equal("grow", grow.FieldAbility);
+        Assert.Equal(6, InPlay.TagReachFt(grow));
+        Assert.True(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z, fielder: grow), "Grow reaches five feet");
+        Assert.False(InPlay.Touches(true, false, off.X + 5, off.Z, off.X, off.Z), "an ordinary glove does not");
+        // A slide narrows the window but never closes it: the safe radius stays inside the slid reach.
+        Assert.True(Rules.Default.Running.Bags.TagSafeRadiusFt < InPlay.TagReachFt(null, sliding: true));
         var stepOffFirst = InPlay.AlongBases(Diamond.Baseline - 8, 1);
         Assert.False(InPlay.OccupyingBag(stepOffFirst.X, stepOffFirst.Z, Rules.Default.Running.Bags.TagSafeRadiusFt),
             "a step off first is a tag");

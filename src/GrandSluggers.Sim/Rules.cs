@@ -966,6 +966,8 @@ public sealed class WallPlantRules
 public sealed class FieldAbilityRules
 {
     public double BigCatchBonusFt { get; init; } = 6;
+    /// <summary>Lick Catch / Grow reach further on the tag too (§10.3): added to running.bags.tagReachFt.</summary>
+    public double TagReachBonusFt { get; init; } = 2;
     public double SuperJumpCatchBonusFt { get; init; } = 3;
     public double SuperJumpFlyRangeFt { get; init; } = 22;
     public double DiveGroundRangeFt { get; init; } = 16;
@@ -990,6 +992,8 @@ public sealed class ThrowRules
     [Positive] public double LobMaxSec { get; init; } = 1.5;
     /// <summary>A throw longer than this goes through the cutoff on the line (§8.7); the relay continues with the cutoff's arm.</summary>
     [Positive] public double OnTheFlyFt { get; init; } = 200;
+    /// <summary>A fielder holding the ball this close to a force bag steps on it instead of throwing (§10.4, S-41).</summary>
+    [Positive] public double UnassistedFt { get; init; } = 8;
     public double HandHeightFt { get; init; } = 3.2;
     public double BagHeightFt { get; init; } = 1.2;
 }
@@ -1066,6 +1070,7 @@ public sealed class RunningRules
     public StealRules Steal { get; init; } = new();
     public RunStickRules Stick { get; init; } = new();
     public DashRules Dash { get; init; } = new();
+    public RundownRules Rundown { get; init; } = new();
     public CpuRunnerRules Cpu { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
@@ -1073,6 +1078,9 @@ public sealed class RunningRules
         RulesValidation.Order(source, "running.bagSec.minSec", BagSec.MinSec, BagSec.MaxSec, errors);
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.OccupyRadiusFt, errors);
         RulesValidation.Order(source, "running.bags.slideReachCutFt", Bags.SlideReachCutFt, Bags.TagReachFt, errors);
+        // A slide narrows the tag window but never closes it: the safe radius stays inside the slid reach (§10.3).
+        RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.TagReachFt - Bags.SlideReachCutFt, errors);
+        RulesValidation.Order(source, "running.rundown.throwWithinFt", Rundown.ThrowWithinFt, Rundown.RangeFt, errors);
     }
 }
 
@@ -1097,8 +1105,10 @@ public sealed class BagSecRules
 public sealed class BagRules
 {
     [Positive] public double OccupyRadiusFt { get; init; } = 6;
-    [Positive] public double TagReachFt { get; init; } = 14;
-    [Positive] public double TagSafeRadiusFt { get; init; } = 3.5;
+    /// <summary>A glove with the ball inside this of a runner's body is the tag (§10.3); Lick / Grow add fielding.abilities.tagReachBonusFt.</summary>
+    [Positive] public double TagReachFt { get; init; } = 4;
+    /// <summary>A runner inside this of a bag is touching it: safe from the tag. Inside the slid reach so a slide never closes the window.</summary>
+    [Positive] public double TagSafeRadiusFt { get; init; } = 1.5;
     [Positive] public double TimeOnBagSec { get; init; } = 1.0;
     /// <summary>Inside this of the end of a segment the runner is placed on the bag.</summary>
     public double SnapFt { get; init; } = 0.5;
@@ -1108,12 +1118,18 @@ public sealed class BagRules
     [Positive] public double SlideThreatFt { get; init; } = 20;
     /// <summary>A slide shrinks the tag reach by this much; it does not change the arrival (§9.4).</summary>
     public double SlideReachCutFt { get; init; } = 2;
+    /// <summary>The batter-runner runs through first by this much and comes straight back, safe from the tag on the way (§9.4).</summary>
+    [Positive] public double OverrunFt { get; init; } = 12;
 }
 
 public sealed class ClosePlayRules
 {
-    /// <summary>Throw landed and the runner got there first by no more than this: the SAFE stamp.</summary>
-    public double MarginSec { get; init; } = 0.45;
+    /// <summary>
+    /// The close play is geometric (§9.6, D5): the ball at a tag bag ahead of the runner by no more than
+    /// this runs the mash; the runner in ahead of the ball by no more than this pops the small SAFE.
+    /// Outside it the geometry decides silently.
+    /// </summary>
+    [Positive] public double MarginSec { get; init; } = 0.25;
     public double IconDelaySec { get; init; } = 0.22;
     public double CpuReactionBaseSec { get; init; } = 0.20;
     public double CpuReactionPerStat { get; init; } = 0.032;
@@ -1129,6 +1145,20 @@ public sealed class StealRules
     [Positive] public double ReturnMinSec { get; init; } = 0.42;
     /// <summary>The steal phase gives up and commits when nobody has thrown by this long past the runner's arrival.</summary>
     public double NoThrowRemainSec { get; init; } = 1.6;
+}
+
+/// <summary>
+/// The rundown (§9.7): a runner off the bags with a glove holding the ball inside <see cref="RangeFt"/>.
+/// CPU fielders throw once the runner is inside <see cref="ThrowWithinFt"/> of a covered bag and run at
+/// them otherwise; when every live runner is at least <see cref="LazyLobFraction"/> of the way to a bag
+/// the throw is a lazy lob at <see cref="LazyLobSpeedMul"/> of the arm.
+/// </summary>
+public sealed class RundownRules
+{
+    [Positive] public double RangeFt { get; init; } = 20;
+    [Positive] public double ThrowWithinFt { get; init; } = 8;
+    [Chance] public double LazyLobFraction { get; init; } = 0.8;
+    [Positive] public double LazyLobSpeedMul { get; init; } = 0.5;
 }
 
 /// <summary>Mash South to dash (§9.4): each press adds this, to the cap.</summary>
