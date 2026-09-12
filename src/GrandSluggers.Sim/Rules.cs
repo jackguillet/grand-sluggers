@@ -14,7 +14,9 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["pitching", "batting", "flight", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "fielding", "running", "stars", "cpu"];
+
+    public MatchRules Match { get; init; } = new();
 
     public PitchingRules Pitching { get; init; } = new();
     public BattingRules Batting { get; init; } = new();
@@ -49,6 +51,7 @@ public sealed class RulesTable
         var dir = Path.Combine(dataRoot, Directory);
         var table = new RulesTable
         {
+            Match = Read<MatchRules>(dir, "match", json, errors),
             Pitching = Read<PitchingRules>(dir, "pitching", json, errors),
             Batting = Read<BattingRules>(dir, "batting", json, errors),
             Flight = Read<FlightRules>(dir, "flight", json, errors),
@@ -142,6 +145,7 @@ public static class RulesValidation
 {
     public static void Validate(RulesTable table, string dir, List<string> errors)
     {
+        Walk(table.Match, Path.Combine(dir, "match.json"), "match", errors);
         Walk(table.Pitching, Path.Combine(dir, "pitching.json"), "pitching", errors);
         Walk(table.Batting, Path.Combine(dir, "batting.json"), "batting", errors);
         Walk(table.Flight, Path.Combine(dir, "flight.json"), "flight", errors);
@@ -223,6 +227,25 @@ public static class RulesValidation
         if (low > high)
             errors.Add($"{source}: {field} must not exceed its upper bound; got {low} > {high}");
     }
+}
+
+// ---------------------------------------------------------------------------------------
+// match.json — §1 (innings, extras, mercy)
+// ---------------------------------------------------------------------------------------
+
+public sealed class MatchRules
+{
+    /// <summary>A tie after the last scheduled inning plays on, at most this many extra innings; a tie at the cap is a tie (D8).</summary>
+    public int ExtraInningsCap { get; init; } = 3;
+    public MercyRules Mercy { get; init; } = new();
+}
+
+/// <summary>Mercy (§1): on by default; a lead of <see cref="Runs"/> at the end of an inning from <see cref="FromInning"/> ends the game; off below <see cref="MinScheduledInnings"/> innings.</summary>
+public sealed class MercyRules
+{
+    public int Runs { get; init; } = 10;
+    public int FromInning { get; init; } = 3;
+    public int MinScheduledInnings { get; init; } = 6;
 }
 
 // ---------------------------------------------------------------------------------------
