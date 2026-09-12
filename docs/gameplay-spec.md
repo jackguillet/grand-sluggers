@@ -56,9 +56,9 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | Sides | 9 v 9. Positions P, C, 1B, 2B, 3B, SS, LF, CF, RF. | ✅ |
 | Innings | 3 (party default), 6, 9. Selected on the title (Tab). | ✅ |
 | Home / away | Away bats the top. Home bats the bottom. 1P: controller 1 picks HOME or AWAY. | ✅ |
-| Walk-off | Bottom of the last inning (or later) ends the moment the home team leads. Bottom is skipped if home leads after the top of the last. | ✅ walk-off; ⚠️ only the take path calls `EndIfWalkOff` (`Match.cs:556-559` vs `:575-584`) |
-| Extra innings | Tied after the last scheduled inning → play full innings until a lead after a complete inning (or a walk-off). Cap at scheduled + 3; a tie at the cap is a tie. | ❌ |
-| Mercy | Optional (default **on** in Exhibition). 10-run lead after the trailing side has batted in inning 3 (or later) ends the game. Off for 3-inning games. | ❌ (documented in systems.md, not in sim) |
+| Walk-off | Bottom of the last inning (or later) ends the moment the home team leads. Bottom is skipped if home leads after the top of the last. | ✅ P3: the take path and the swing path both call `EndIfWalkOff` (S-80) |
+| Extra innings | Tied after the last scheduled inning → play full innings until a lead after a complete inning (or a walk-off). Cap at scheduled + 3; a tie at the cap is a tie. | ✅ P3 (`match.extraInningsCap`, S-81) |
+| Mercy | Optional (default **on** in Exhibition). 10-run lead after the trailing side has batted in inning 3 (or later) ends the game. Off for 3-inning games. | ✅ P3 (`match.mercy`: `runs` 10, `fromInning` 3, `minScheduledInnings` 6; `Match(mercy:)`; S-82) |
 | Designated hitter | None. The pitcher bats. | ✅ |
 | Lineup | Nine, set in Offense / Defense Setup. No substitutions except the pitcher swap (§4.7). | ✅ |
 | Count | 4 balls = walk. 3 strikes = strikeout. Foul with 2 strikes stays 2 strikes **except a bunt**, which is strike three (§5.8). | ✅ P1 (S-18) |
@@ -765,6 +765,7 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
 | `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction ×, mistrack × (live: CPU batter σ and tracking, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
+| `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1 |
 
 Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
 

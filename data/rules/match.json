@@ -1,0 +1,8 @@
+{
+  "extraInningsCap": 3,
+  "mercy": {
+    "runs": 10,
+    "fromInning": 3,
+    "minScheduledInnings": 6
+  }
+}
