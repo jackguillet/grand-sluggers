@@ -1,5 +1,13 @@
 Authored hits live in data/art/audio-clips/{id}.wav until a Unity .wav/.ogg drops here.
 
 AudioBus plays the catalog wav when authored; otherwise generated tones.
-bat-perfect, bat-solid, bat-cheap, glove, and crowd-bed are authored.
+bat-perfect, bat-solid, bat-cheap, glove, throw, and crowd-bed are authored.
+
+The wavs are baked, not recorded: data/art/audio-clips/bake.py is the source.
+Noise-excited body modes in a room, never sine + decay -- that was #223.
+  python3 bake.py                  re-bake the slots
+  python3 bake.py --candidates DIR bake every barrel voice to audition
+  python3 bake.py --check          every voice keeps the contact ladder
+Human picks the bat crack: audition, set BAT_VOICE, re-bake, re-run --check.
+
 Never Nintendo samples. Never licensed music.
