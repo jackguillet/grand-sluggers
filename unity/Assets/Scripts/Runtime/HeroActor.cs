@@ -183,7 +183,7 @@ namespace GrandSluggers.UnityClient
         // hides the drop rig's authored eyes and rebuilds the face it draws, so
         // skip anything switched off: a hidden landmark is not the stance.
         // Where an extras kit hides an authored landmark and draws its own, the
-        // bone carrying the replacement stands in — see TryVisibleFoot.
+        // joint carrying the replacement stands in — see TryVisibleFoot.
         internal bool TryRenderedBattingStance(
             out Vector3 chestForward, out Vector3 eyeForward, out Vector3 feetLine)
         {
@@ -226,28 +226,32 @@ namespace GrandSluggers.UnityClient
         {
             if (centers.TryGetValue(authored, out center)) return true;
             if (centers.TryGetValue(alternate, out center)) return true;
-            return TryVisibleCenterUnder(shin, out center);
+            return TryPlantedFootUnder(shin, out center);
         }
 
-        bool TryVisibleCenterUnder(Transform bone, out Vector3 center)
+        /// <summary>
+        /// Where the replacement foot is planted: the joint, not the centroid of
+        /// the pieces hanging off it. A dropped extra carries its own local
+        /// offset — rio's sneakers sit 0.22 forward of the shin — and the two
+        /// shins hold different world rotations in a stance, so that offset turns
+        /// into a lateral error on the line between the two feet. Measured off
+        /// the drawn sneakers rio reads feetAlongPitch 0.877 against a 0.966
+        /// threshold; off the joint it reads 0.996, beside vale's 1.000 on the
+        /// same shared clip. The replacement is still what proves the foot is
+        /// drawn — it just does not get to move where the batter stands.
+        /// </summary>
+        bool TryPlantedFootUnder(Transform bone, out Vector3 center)
         {
             center = Vector3.zero;
             if (bone == null) return false;
-            var found = false;
-            var bounds = new Bounds();
             foreach (var renderer in bone.GetComponentsInChildren<Renderer>(true))
             {
                 if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
-                if (!TryPosedBounds(renderer, out var posed)) continue;
-                if (found) bounds.Encapsulate(posed.Center);
-                else
-                {
-                    bounds = new Bounds(posed.Center, Vector3.zero);
-                    found = true;
-                }
+                if (!TryPosedBounds(renderer, out _)) continue;
+                center = bone.position;
+                return true;
             }
-            center = bounds.center;
-            return found;
+            return false;
         }
 
         internal bool TryRenderedSwingHands(
