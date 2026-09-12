@@ -557,7 +557,7 @@ public sealed class Match
         pitch = PreparePitch(pitch);
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return StealThrowPending ? GunSteal(finished!) : finished!;
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night);
+        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night, gloves: Defense.Gloves);
         field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
     }
@@ -633,10 +633,10 @@ public sealed class Match
     }
 
     public FieldingPreview PreviewHit(AtBatResult hit) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night);
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night, Defense.Gloves);
 
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
-        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night);
+        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night, Defense.Gloves);
 
     public bool SwapPitcher()
     {
@@ -1414,7 +1414,7 @@ public sealed class Match
             return ev;
         }
         var throwBag = pickoff ? fromBag : target;
-        var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
+        var cover = FieldingResolver.Assign(Defense, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
         var defender = pickoff ? Pitcher : catcher;
         var thr = cover != null ? ThrowBetween(defender, cover) : ThrowBetween(defender, runner);
         var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng, Rules);
@@ -1450,7 +1450,7 @@ public sealed class Match
         target = 0;
         state = null!;
         runner = null!;
-        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var map = FieldingResolver.Assign(Defense, Pitcher);
         catcher = map.GetValueOrDefault("C") ?? Pitcher;
         var live = RunnerAt(fromBag);
         if (live?.Who is null || fromBag is not 1 and not 2)
@@ -1549,7 +1549,7 @@ public sealed class Match
 
         var risk = state.Lead01 * pk.RiskPerLead;
         if (state.Returning) risk *= pk.ReturningMul;
-        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var map = FieldingResolver.Assign(Defense, Pitcher);
         var catcher = map.GetValueOrDefault("C") ?? Pitcher;
         risk += (catcher.Stats.Field - runner.Stats.Run) * pk.RiskPerStatDiff;
         risk = Math.Clamp(risk, 0, pk.MaxRisk);
