@@ -42,16 +42,17 @@ namespace GrandSluggers.EditorTools
             try
             {
                 var cases = new List<Case>();
-                foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+                foreach (var type in new[] { "fastball", "changeup" })
+                foreach (var charge in new[] { 0f, 1f })
                 foreach (var curve in new[] { -1f, 0f, 1f })
                 foreach (var star in new[] { false, true })
                 {
                     var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: 3, seed: 1);
                     Set(play, "_match", match); Invoke(play, "BeginSet"); Set(play, "_gateHold", true);
-                    match.Play(new PitchCommand("fastball", 0, 0, false), new SwingCommand(false, 0, 0, false));
-                    match.Play(new PitchCommand("fastball", 0, 0, false), new SwingCommand(false, 0, 0, false));
+                    match.Play(new PitchCommand("fastball", 0, false), new SwingCommand(false, 0, 0, false));
+                    match.Play(new PitchCommand("fastball", 0, false), new SwingCommand(false, 0, 0, false));
                     Require(match.Strikes == 2, "Could not establish two-strike fixture.");
-                    var command = new PitchCommand(type, 1, 0, star, BreakX: curve, RubberX: 0.3);
+                    var command = new PitchCommand(type, charge, star, BreakX: curve, RubberX: 0.3);
                     Invoke(play, "Launch", command);
                     Set(play, "_swing", new SwingCommand(false, 0, 0, false));
                     Set(play, "_flight", Get<float>(play, "_pitchDur"));
@@ -68,8 +69,17 @@ namespace GrandSluggers.EditorTools
                     var inside = StrikeZoneGeometry.Contains(ball.x, ball.y);
                     Require(result.AtBat.InZone == inside, "Umpire differs from visible zone.");
                     Require(inside == (result.Kind == PlayKind.Strikeout), "Wrong taken third-strike result.");
-                    cases.Add(new Case { type = type, curve = curve, star = star, x = ball.x, y = ball.y,
-                        inside = inside, result = result.Kind.ToString() });
+                    // The aim tell is the same crossing (#577): drawn on the pitching seat from PitchFlight.Crossing.
+                    var zone = Get<StrikeZone>(play, "_zone");
+                    var tell = (Transform)typeof(StrikeZone).GetField("_aim", Hidden).GetValue(zone);
+                    var tellOn = tell != null && tell.gameObject.activeSelf;
+                    var humanPitches = (bool)typeof(MatchDirector).GetProperty("HumanPitches", Hidden).GetValue(play);
+                    Require(!tellOn || humanPitches, "Aim tell shown to the batting seat.");
+                    if (tellOn)
+                        Require(Math.Abs(tell.localPosition.x - actual.X) < 0.0001 && Math.Abs(tell.localPosition.y - actual.Y) < 0.0001,
+                            "Aim tell differs from the delivered crossing.");
+                    cases.Add(new Case { type = type, charge = charge, curve = curve, star = star, x = ball.x, y = ball.y,
+                        inside = inside, result = result.Kind.ToString(), tell = tellOn });
                 }
                 evidence.cases = cases.ToArray(); evidence.ok = true;
             }
@@ -89,6 +99,6 @@ namespace GrandSluggers.EditorTools
         static void Invoke(MatchDirector p, string method, params object[] args) => typeof(MatchDirector).GetMethod(method, Hidden).Invoke(p, args);
         static void Require(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
         [Serializable] sealed class Evidence { public bool ok; public string revision; public string unityVersion; public string error; public Case[] cases; }
-        [Serializable] sealed class Case { public string type; public float curve; public bool star; public float x; public float y; public bool inside; public string result; }
+        [Serializable] sealed class Case { public string type; public float charge; public float curve; public bool star; public float x; public float y; public bool inside; public string result; public bool tell; }
     }
 }

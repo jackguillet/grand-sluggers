@@ -45,7 +45,41 @@ namespace GrandSluggers.UnityClient
                 Vector3.zero, Vector3.one * 0.13f, gold);
             Object.Destroy(centerMarker.GetComponent<Collider>());
             _target = cursor.transform;
+
+            // The pitcher's aim tell: the crossing of the pitch as it stands (spec §4.4, #577).
+            var tell = new GameObject("AimTell");
+            tell.transform.SetParent(_root, false);
+            var ice = Look.Unlit(new Color(0.55f, 0.85f, 1f, 0.95f));
+            var ring = tell.AddComponent<LineRenderer>();
+            ring.useWorldSpace = false;
+            ring.loop = true;
+            ring.positionCount = 24;
+            ring.startWidth = ring.endWidth = 0.06f;
+            ring.sharedMaterial = ice;
+            ring.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            ring.receiveShadows = false;
+            for (var i = 0; i < ring.positionCount; i++)
+            {
+                var a = i * Mathf.PI * 2f / ring.positionCount;
+                ring.SetPosition(i, new Vector3(Mathf.Cos(a) * AimTellRadius, Mathf.Sin(a) * AimTellRadius, 0));
+            }
+            var dot = Look.Prim(PrimitiveType.Sphere, "AimDot", tell.transform, Vector3.zero, Vector3.one * 0.09f, ice);
+            Object.Destroy(dot.GetComponent<Collider>());
+            _aim = tell.transform;
+            _aim.gameObject.SetActive(false);
             _root.gameObject.SetActive(false);
+        }
+
+        const float AimTellRadius = 0.2f;
+        Transform _aim;
+
+        /// <summary>Place the aim tell at a world crossing on the plate plane, or hide it.</summary>
+        public void AimTell(bool on, float x, float y)
+        {
+            if (_aim == null) return;
+            _aim.gameObject.SetActive(on);
+            if (!on) return;
+            _aim.localPosition = new Vector3(x, y, (float)StrikeZoneGeometry.PlateZ);
         }
 
         const int Segments = 40;

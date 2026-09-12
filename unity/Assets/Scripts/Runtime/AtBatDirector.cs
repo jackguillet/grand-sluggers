@@ -41,6 +41,7 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _pitchButton = default;
             _swingButton = default;
+            _swapPick = null;
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
@@ -134,10 +135,11 @@ namespace GrandSluggers.UnityClient
             var mound = PitchPad;
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
+            if (HumanPitches) TickSwapPick(dt, mound);
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
-                    _t >= (float)_feel.PitcherReadySeconds);
+                    _t >= (float)_feel.PitcherReadySeconds && _swapPick == null);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanBats)
@@ -147,7 +149,10 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast, commits: false);
             }
             _pip += dt * 1.35f;
-            if (mound.SwapPitcher) _match.SwapPitcher();
+            // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI arms a steal.
+            // TODO(P6 #568): the steal arm belongs to the runner AI, not the at-bat.
+            if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
+            if (!HumanBats && _t < dt) _match.CpuArmSteal();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
@@ -160,7 +165,8 @@ namespace GrandSluggers.UnityClient
             }
             if (HumanPitches)
             {
-                if (mound.StickY < -0.7f) _match.ResetPitcher();
+                if (_swapPick != null) { }
+                else if (mound.StickY < -0.7f) _match.ResetPitcher();
                 else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
@@ -180,9 +186,76 @@ namespace GrandSluggers.UnityClient
                 }
             }
             ShowCursor();
+            ShowAimTell(HumanPitches ? PreviewPitch() : null);
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
                 Launch(_match.CpuPitch());
+        }
+
+        /// <summary>The pitcher card's verb tells: STAR, CHANGE while West is held, the swap pick (spec §4.1, §4.7).</summary>
+        string PitcherExtra()
+        {
+            if (_match == null) return "";
+            var set = _phase == Phase.Set && HumanPitches;
+            return BroadcastHud.PitcherExtra(
+                _starPitch && HumanPitches,
+                set && PitchPad.Changeup,
+                set ? _swapPick?.Tell : null,
+                set && _swapPick == null && PitcherSwapPick.CanOpen(_match));
+        }
+
+        /// <summary>The pitcher's shape for the pose and the ball: the changeup hold in SET, the pitch once thrown.</summary>
+        string ShownPitchType => _pitch != null ? _pitch.Type : HumanPitches && PitchPad.Changeup ? "changeup" : "fastball";
+
+        /// <summary>
+        /// Select opens the swap pick, the stick or d-pad steps it, Select confirms, East closes
+        /// (spec §4.7, #582). While it is open the stick does not walk and South does not throw.
+        /// </summary>
+        void TickSwapPick(float dt, Controls.Pad mound)
+        {
+            if (_swapPick == null)
+            {
+                if (mound.SwapPitcher && PitcherSwapPick.CanOpen(_match))
+                {
+                    _swapPick = new PitcherSwapPick(_match);
+                    _swapArmed = MenuNav.Arm(mound.MenuAxisX);
+                    _swapHold = 0f;
+                }
+                return;
+            }
+            if (mound.SwapPitcher)
+            {
+                _swapPick.Confirm(_match);
+                _swapPick = null;
+                return;
+            }
+            if (mound.EastDown)
+            {
+                _swapPick = null;
+                return;
+            }
+            var step = MenuNav.Step(mound.MenuAxisX, mound.MenuTapX, dt, ref _swapArmed, ref _swapHold);
+            if (step != 0) _swapPick.Step(step);
+        }
+
+        /// <summary>The pitch as it stands in SET: the rubber, the changeup hold, the charge so far. Not committed.</summary>
+        PitchCommand PreviewPitch() =>
+            new(PitchPad.Changeup ? "changeup" : "fastball", EffectiveCharge(_pitchCharge, _pitchPast),
+                _starPitch && _match.CanStarPitch, Changeup: PitchPad.Changeup, RubberX: _match.PitcherOffsetX);
+
+        /// <summary>
+        /// The aim tell is the crossing of the pitch as it stands, from the one flight function the
+        /// umpire and the ball read (spec §4.4, #577). Pitching seat only.
+        /// </summary>
+        void ShowAimTell(PitchCommand pitch)
+        {
+            if (pitch == null || _match == null)
+            {
+                _zone.AimTell(false, 0, 0);
+                return;
+            }
+            var (x, y) = SetTells.Locator(pitch, _match.Pitcher.StarPitch, _match.Rules);
+            _zone.AimTell(true, (float)x, (float)y);
         }
 
         /// <summary>The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies).</summary>
@@ -212,20 +285,28 @@ namespace GrandSluggers.UnityClient
         float EffectiveCharge(float charge, float past) =>
             (float)ChargeFeel.Effective01(charge, past, _feel.ChargeMaxHoldSeconds, _feel.ChargeOverchargeDecay);
 
+        /// <summary>
+        /// The human's pitch (spec §4.1 – §4.2): shape from the changeup hold, charge from the
+        /// release, location from the rubber walk alone (the crossing moves with the body, once),
+        /// height from the shape (AimY is not a stick), Nice! from the release band.
+        /// </summary>
         PitchCommand PlayerPitch(double fill01, double secondsPastFull)
         {
             var nice = ChargeFeel.NiceCopy(true, fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
-            return new PitchCommand("fastball", EffectiveCharge((float)fill01, (float)secondsPastFull), 0,
+            var changeup = PitchPad.Changeup;
+            return new PitchCommand(changeup ? "changeup" : "fastball",
+                EffectiveCharge((float)fill01, (float)secondsPastFull),
                 _starPitch && _match.CanStarPitch,
-                _match.PitcherOffsetX, 0, 0, PitchPad.Changeup, _match.PitcherOffsetX);
+                Changeup: changeup, RubberX: _match.PitcherOffsetX,
+                Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
         }
 
         void Launch(PitchCommand pitch)
         {
             pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
-            var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
+            var mph = _match.PitchSpeedMph(pitch);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
             _flight = -(float)Motion.PitchRelease;
             _pitchAir = false;
@@ -239,8 +320,8 @@ namespace GrandSluggers.UnityClient
                 _charge = 0;
                 _chargePast = 0;
                 _swingButton = default;
-                _swing = _match.CpuSwing(pitch,
-                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch));
+                // The CPU batter decides at the plate plane from the final trajectory (spec §3, S-04): see TickFlight.
+                _swing = null;
             }
             _phase = Phase.Flight;
             _t = 0;
@@ -250,6 +331,7 @@ namespace GrandSluggers.UnityClient
             _aimY = (float)pitch.AimY;
             _breakX = (float)pitch.BreakX;
             ShowCursor();
+            ShowAimTell(HumanPitches ? pitch : null);
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
             _hideHelp = true;
@@ -302,13 +384,21 @@ namespace GrandSluggers.UnityClient
                 dt = Mathf.Min(dt, _flight);
             }
             var u = Mathf.Clamp01(_flight / _pitchDur);
+            // Break is a stick direction after release (spec §4.1): screen-relative from either camera.
             if (HumanPitches)
-                _breakX = Mathf.Clamp(_breakX + PitchWorldX(PitchPad.StickX) * dt * 2.4f, -1f, 1f);
+                _breakX = (float)PitchFlight.BreakStep(_breakX, PitchWorldX(PitchPad.StickX), dt,
+                    _match.Pitcher.Stats.Pitch, _match.Rules);
             var from = ((double)_relFrom.x, (double)_relFrom.y, (double)_relFrom.z);
             _pitch = _pitch with { BreakX = _breakX };
             var p = PitchFlight.Point(_pitch, u, _match.Pitcher.StarPitch, from);
             _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
+            ShowAimTell(HumanPitches ? _pitch : null);
             TickBaserunning(dt);
+            // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
+            if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
+                _swing = AtBatMotion.CommitCpuSwing(
+                    _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)),
+                    _pitchDur, _match.Rules);
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt))
                 _swung = true;

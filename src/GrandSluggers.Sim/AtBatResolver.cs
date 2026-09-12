@@ -23,11 +23,13 @@ public sealed class AtBatResolver
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
+    readonly StarSkillTable _skills;
 
-    public AtBatResolver(ChemistryTable chem, RulesTable? rules = null)
+    public AtBatResolver(ChemistryTable chem, RulesTable? rules = null, StarSkillTable? skills = null)
     {
         _chem = chem;
         _rules = Rules.Or(rules);
+        _skills = StarSkillTable.Or(skills);
     }
 
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
@@ -45,7 +47,7 @@ public sealed class AtBatResolver
 
         // Timing (§5.3): outside the window the bat is not on the plane.
         var window = ContactWindowFrames(contact, charged && !chargeBat,
-            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules);
+            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);
         var half = window / 2;
         var err = input.TimingErrorFrames;
         var onPlane = Math.Abs(err) <= half;
@@ -77,7 +79,7 @@ public sealed class AtBatResolver
 
         // Exit (§5.5): base(power) × zone (slap → charge column by the charge) × star × buddies × pitch.
         var zoneMul = Lerp(b.Quality.Slap.For(quality), b.Quality.Charge.For(quality), effective);
-        var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing) : 1.0;
+        var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing, _skills) : 1.0;
         var onBaseMul = charged ? _chem.ChargePowerMul(input.Batter, input.RunnersOn) : 1.0;
         var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Pitch, b.PitchFactor);
 
@@ -112,7 +114,7 @@ public sealed class AtBatResolver
         launch = Math.Clamp(launch, b.Launch.MinDeg, b.Launch.MaxDeg);
 
         if (input.UseStarSwing && !input.Bunt)
-            launch = StarLaunch(input.Batter.StarSwing, launch, b.Star);
+            launch = StarSkills.SwingLaunchDeg(input.Batter.StarSwing, _skills) ?? launch;
 
         // Direction (§5.3): early pulls, late pushes; the stick shifts; the zone spreads.
         var spray = (input.Bunt ? 0 : TimingSprayDeg(err, window, bats, _rules))
@@ -155,13 +157,13 @@ public sealed class AtBatResolver
     /// × the star pitch's window multiplier × the park's, floored. Inside is ± half of this.
     /// </summary>
     public static double ContactWindowFrames(int contact, bool charged, string? starPitch, Park? park, bool night,
-        RulesTable? rules = null)
+        RulesTable? rules = null, StarSkillTable? skills = null)
     {
         var r = Rules.Or(rules);
         var w = r.Batting.Window;
         var frames = (charged ? w.ChargeFrames : w.SlapFrames) + (Math.Clamp(contact, 1, 10) - 5) * w.FramesPerContact;
         if (starPitch is not null)
-            frames *= StarSkills.BatterWindowMul(starPitch);
+            frames *= StarSkills.BatterWindowMul(starPitch, skills);
         if (park is not null)
             frames *= ParkHazards.ContactWindowMul(park, night, r);
         return Math.Max(w.FloorFrames, frames);
@@ -275,14 +277,6 @@ public sealed class AtBatResolver
         return (Math.Sin(rad) * fenceFt, Math.Cos(rad) * fenceFt);
     }
 
-    static double StarLaunch(string swing, double fallback, StarSwingRules star) => swing switch
-    {
-        "ground" => star.GroundLaunchDeg,
-        "fly" => star.FlyLaunchDeg,
-        "line" => star.LineLaunchDeg,
-        _ => fallback
-    };
-
     static double Lerp(double a, double b, double t) => a + (b - a) * t;
 
     public static bool PitchInZone(PitchCommand pitch, int pitchStat, string? starPitchId = null)
@@ -313,23 +307,25 @@ public sealed class AtBatResolver
     public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll, RulesTable? rules = null) =>
         inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
-    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null)
+    /// <summary>
+    /// Speed by shape, Pitch stat and charge (pitching.speed); a Nice! release adds
+    /// pitching.release.niceMul (spec §4.1); a star pitch multiplies by its skill's speedMul
+    /// (star-skills.json). <paramref name="mphPenalty"/> is the tired / exhausted arm (spec §4.7).
+    /// </summary>
+    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null,
+        string? starPitchId = null, StarSkillTable? skills = null, double mphPenalty = 0)
     {
-        var sp = Rules.Or(rules).Pitching.Speed;
-        var changeup = pitch.Changeup || pitch.Type == "changeup";
-        var baseSpeed = changeup ? sp.ChangeupMph
-            : pitch.Type == "curve" ? sp.CurveMph
-            : pitch.Type == "slider" ? sp.SliderMph
-            : sp.FastballMph;
+        var r = Rules.Or(rules);
+        var sp = r.Pitching.Speed;
+        var changeup = pitch.IsChangeup;
+        var baseSpeed = changeup ? sp.ChangeupMph : sp.FastballMph;
         var speed = baseSpeed + pitchStat * sp.MphPerPitchStat + (changeup ? pitch.Charge01 * sp.ChangeupChargeMph : pitch.Charge01 * sp.ChargeMph);
-        if (pitch.Star) speed *= sp.StarSpeedMul;
-        return speed;
+        if (pitch.Nice) speed *= r.Pitching.Release.NiceMul;
+        if (pitch.Star) speed *= StarSkills.PitchSpeedMul(starPitchId, skills);
+        return Math.Max(r.Pitching.Flight.MinMph, speed - mphPenalty);
     }
 
-    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null)
-    {
-        var speed = PitchSpeedMph(pitch, pitcher.Stats.Pitch, rules);
-        if (!pitch.Star) return speed;
-        return speed / Rules.Or(rules).Pitching.Speed.StarSpeedMul * StarSkills.PitchSpeedMul(pitcher.StarPitch);
-    }
+    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null,
+        StarSkillTable? skills = null, double mphPenalty = 0) =>
+        PitchSpeedMph(pitch, pitcher.Stats.Pitch, rules, pitcher.StarPitch, skills, mphPenalty);
 }

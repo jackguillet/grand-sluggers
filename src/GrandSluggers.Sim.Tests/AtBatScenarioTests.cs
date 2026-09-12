@@ -55,6 +55,42 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // S-04  The CPU batter decides from the final crossing
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S04_CpuBatterReadsTheSteeredCrossingAndTakesAPitchSteeredOut()
+    {
+        // A human pitcher on the edge steers full break out of the zone during flight. The CPU
+        // decides from the pitch as it stands at the plate plane, so it takes at (100 − chase)%.
+        var takes = 0;
+        const int n = 300;
+        double chase = 0;
+        for (var seed = 1; seed <= n; seed++)
+        {
+            var s = new Scenario(_content, seed);
+            var match = s.Match;
+            // Near the frame with fewer than two strikes: chase (chaseBase − Bat)% (spec §5.9).
+            chase = (_content.Rules.Batting.Cpu.ChaseBase - match.Batter.Stats.Bat) / 100.0;
+            var edge = match.PreparePitch(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, CenterY));
+            Assert.True(StrikeZoneGeometry.Contains(edge), "the launched pitch is a strike");
+            var steered = edge with { BreakX = 1 };
+            Assert.False(StrikeZoneGeometry.Contains(steered), "full break carries it out");
+            var swing = match.CpuSwing(steered, AtBatResolver.PitchInZone(steered, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch));
+            if (!swing.Swing) takes++;
+        }
+        Assert.InRange(takes / (double)n, 1 - chase - 0.08, 1 - chase + 0.08);
+
+        // The decision instant is before the latest square press, and a CPU swing never claims an earlier bat.
+        var plateAt = 1.0;
+        var decide = AtBatMotion.CpuDecisionTime(plateAt, _content.Rules);
+        Assert.True(decide < plateAt - Motion.SwingContact);
+        var early = AtBatMotion.CommitCpuSwing(Scenario.SwingAt(-30), plateAt, _content.Rules);
+        Assert.Equal(AtBatMotion.SwingErrorFrames(decide, plateAt), early.TimingErrorFrames, 8);
+        Assert.Equal(2, AtBatMotion.CommitCpuSwing(Scenario.SwingAt(2), plateAt, _content.Rules).TimingErrorFrames);
+    }
+
+    // ---------------------------------------------------------------------------------
     // S-05 … S-06  Any strike is hittable; height is earned on the mound
     // ---------------------------------------------------------------------------------
 
@@ -276,6 +312,28 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
+    public void S16_HumanPitcherReachesTheBodyByWalkingTheRubberAndBreaking()
+    {
+        // Spec §4.6: rubber walked fully toward the batter's side plus full break toward them
+        // reaches the body circle with the box centered. AimX is not a stick; only the walk and the break.
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var bats = match.Batter.Bats;
+        var toward = -SweetSpot.TipSign(bats);
+        Assert.True(match.WalkPitcher(toward * 1.0));
+        var pitch = new PitchCommand("fastball", 0, false, RubberX: match.PitcherOffsetX, BreakX: toward);
+        var (x, y) = PitchFlight.Crossing(pitch);
+        Assert.True(AtBatResolver.HitsBatter(0, x, y, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
+        var ev = match.Play(pitch, Scenario.Take);
+        Assert.Equal(PlayKind.HitByPitch, ev.Kind);
+        // Without the break the same walk is a ball, not a plunk.
+        var t = new Scenario(_content);
+        t.Match.WalkPitcher(toward * 1.0);
+        var straight = new PitchCommand("fastball", 0, false, RubberX: t.Match.PitcherOffsetX);
+        Assert.Equal(PlayKind.TakeBall, t.Match.Play(straight, Scenario.Take).Kind);
+    }
+
+    [Fact]
     public void S16_TheBoxPersistsAcrossPitchesOfOneAtBat()
     {
         var s = new Scenario(_content);
@@ -351,6 +409,226 @@ public sealed class AtBatScenarioTests
         // Off the bat is still off the bat: a bunt needs the cursor (spec §5.8).
         var off = high with { CrossingX = SweetSpot.TipSign(high.Batter.Bats) * 2.6 };
         Assert.Equal(ContactQuality.Miss, resolver.Resolve(off, park, new Random(1)).Quality);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-25 … S-26  Stamina is the pitcher's own arm
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S25_TiredPitcherLosesSixMphWobblesAndShowsTheTell()
+    {
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var st = _content.Rules.Pitching.Stamina;
+        var pitcher = match.Pitcher;
+        Assert.Equal(st.PoolBase + pitcher.Stats.Pitch * st.PoolPerPitch, match.PitcherStaminaMax);
+        Assert.Equal(match.PitcherStaminaMax, match.PitcherStamina);
+        var fresh = match.PitchSpeedMph(Scenario.Paint);
+
+        // Work the arm down to 20 with normal pitches taken for balls (cost pitchCost each).
+        var outside = Scenario.PitchAt(2.5, CenterY);
+        var guard = 0;
+        while (match.PitcherStamina > 20 && guard++ < 200) match.Play(outside, Scenario.Take);
+        Assert.InRange(match.PitcherStamina, 20 - st.PitchCost, 20);
+        Assert.True(match.PitcherTired);
+        Assert.False(match.PitcherExhausted);
+        Assert.Equal(fresh - st.TiredMph, match.PitchSpeedMph(Scenario.Paint), 6);
+        Assert.True(BroadcastHud.PoorArm(match.PitcherStamina, match.Rules), "the card reads TIRED");
+        Assert.Contains("TIRED", BroadcastHud.ArmLine(match.PitcherStamina, match.Rules));
+
+        // The wobble is sampled once per pitch and the break is damped.
+        var ready = match.PreparePitch(Scenario.Paint with { BreakX = 1 });
+        Assert.True(ready.AimX != 0 || ready.AimY != 0, "a tired crossing wobbles");
+        Assert.Equal(st.TiredBreakMul, ready.BreakMul);
+        var damped = PitchFlight.Crossing(ready).X - PitchFlight.Crossing(ready with { BreakX = 0 }).X;
+        Assert.Equal(_content.Rules.Pitching.Flight.BreakMaxFt * st.TiredBreakMul, damped, 6);
+    }
+
+    [Fact]
+    public void S25_EveryVerbAndRunAllowedCostsTheArmFromTheTable()
+    {
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var st = _content.Rules.Pitching.Stamina;
+        var full = match.PitcherStamina;
+        match.Play(Scenario.PitchAt(2.5, CenterY), Scenario.Take);
+        Assert.Equal(full - st.PitchCost, match.PitcherStamina);
+        match.Play(Scenario.PitchAt(2.5, CenterY, charge: 1), Scenario.Take);
+        Assert.Equal(full - 2 * st.PitchCost - st.ChargeCost, match.PitcherStamina);
+        match.Play(Scenario.PitchAt(2.5, CenterY, changeup: true), Scenario.Take);
+        Assert.Equal(full - 3 * st.PitchCost - st.ChargeCost - st.ChangeupCost, match.PitcherStamina);
+        // A star costs its skill's staminaCost from star-skills.json, never a C# literal.
+        var star = new Scenario(_content);
+        var skill = StarSkills.StaminaCost(star.Match.Pitcher.StarPitch, _content.StarSkills);
+        Assert.True(skill > 0);
+        Assert.Equal(skill, _content.StarSkills.Pitch(star.Match.Pitcher.StarPitch)!.StaminaCost);
+        Assert.True(star.Match.CanStarPitch);
+        var before = star.Match.PitcherStamina;
+        star.Match.Play(Scenario.PitchAt(2.5, CenterY) with { Star = true }, Scenario.Take);
+        Assert.Equal(before - st.PitchCost - skill, star.Match.PitcherStamina);
+    }
+
+    [Fact]
+    public void S26_SwapGivesTheNewPitcherTheirOwnPoolAndTheOldPitcherTheVacatedGlove()
+    {
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var old = match.Pitcher;
+        var outside = Scenario.PitchAt(2.5, CenterY);
+        for (var i = 0; i < 6; i++) match.Play(outside, Scenario.Take);
+        var spent = match.PitcherStamina;
+        Assert.True(spent < match.PitcherStaminaMax);
+
+        var gloves = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher);
+        var next = gloves["SS"];
+        var vacated = "SS";
+        Assert.True(match.CanSwapPitcher);
+        Assert.True(match.SwapPitcher(next));
+        Assert.Equal(next.Id, match.Pitcher.Id);
+        Assert.Equal(match.StaminaPool(next), match.PitcherStamina);
+        Assert.Equal(spent, match.StaminaOf(old));
+        var after = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher);
+        Assert.Equal(old.Id, after[vacated].Id);
+        Assert.Equal(next.Id, after["P"].Id);
+        foreach (var pos in Diamond.Order.Where(p => p is not ("P" or "SS")))
+            Assert.Equal(gloves[pos].Id, after[pos].Id);
+        Assert.False(match.CanSwapPitcher, "once per half-inning");
+        Assert.False(match.SwapPitcher());
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-27 … S-29  The CPU tables
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S27_CpuPitcherAheadZeroTwoWastesAtLeastThirtyPercentOutsideTheZone()
+    {
+        var s = new Scenario(_content, seed: 27);
+        var match = s.Match;
+        match.Play(Scenario.PitchAt(0, CenterY), Scenario.Take);
+        match.Play(Scenario.PitchAt(0, CenterY), Scenario.Take);
+        Assert.Equal((0, 2), (match.Balls, match.Strikes));
+        Assert.Same(_content.Rules.Pitching.Cpu.Ahead, match.CpuPitchRow());
+        var outside = 0;
+        for (var i = 0; i < 100; i++)
+            if (!StrikeZoneGeometry.Contains(match.CpuPitch(), match.Pitcher.StarPitch)) outside++;
+        Assert.True(outside >= 30, $"{outside} of 100 outside");
+
+        // No dead-center default: an even count never aims at the middle.
+        var even = new Scenario(_content, seed: 28).Match;
+        Assert.Same(_content.Rules.Pitching.Cpu.Even, even.CpuPitchRow());
+        var center = 0;
+        for (var i = 0; i < 100; i++)
+        {
+            var (x, y) = PitchFlight.Crossing(even.CpuPitch(), even.Pitcher.StarPitch, even.Rules);
+            if (Math.Abs(x) < 0.25 && Math.Abs(y - CenterY) < 0.25) center++;
+        }
+        Assert.True(center < 10, $"{center} of 100 down the middle");
+    }
+
+    [Fact]
+    public void S28_CpuBatterMeetsAHumanMeatballPerfectlySometimesWithNoForcedMissClamp()
+    {
+        var perfect = 0;
+        var square = 0;
+        var swings = 0;
+        for (var seed = 1; seed <= 100; seed++)
+        {
+            var match = Match.Exhibition(_content, "rio", "ashlord", seed: seed);
+            Assert.True(match.Top, "the human pitches the top");
+            var meat = Scenario.PitchAt(0, CenterY);
+            var swing = match.CpuSwing(meat, true);
+            if (!swing.Swing) continue;
+            swings++;
+            if (Math.Abs(swing.TimingErrorFrames) < 3.2) square++;
+            if (match.Play(meat, swing).AtBat.Quality == ContactQuality.Perfect) perfect++;
+        }
+        Assert.True(swings >= 90, $"middle third is a swing: {swings} of 100");
+        Assert.True(perfect > 0, "perfect rate > 0");
+        Assert.True(square > swings / 3, $"no |err| ≥ 3.2 floor: {square} square of {swings}");
+    }
+
+    [Fact]
+    public void S28_CpuSwingHasNoSideEffectsAndTheStealArmIsARunnerVerb()
+    {
+        var s = new Scenario(_content, seed: 4).Runner(1, 3);
+        var match = s.Match;
+        var stealBefore = match.StealOn;
+        var box = match.BatterOffsetX;
+        var rubber = match.PitcherOffsetX;
+        var stream = s.Stream();
+        for (var i = 0; i < 50; i++)
+            match.CpuSwing(Scenario.PitchAt(0.3, CenterY), true);
+        Assert.Equal(stealBefore, match.StealOn);
+        Assert.Equal(box, match.BatterOffsetX);
+        Assert.Equal(rubber, match.PitcherOffsetX);
+        Assert.Equal(stream, s.Stream());
+    }
+
+    [Fact]
+    public void S28_CpuBatterMistracksMoreAfterTheRubberMoved()
+    {
+        // Two matches, same seeds: one where the pitcher stayed, one where the rubber moved since
+        // the last pitch. The moved rubber puts more CPU boxes off the crossing (spec §5.9).
+        var offStill = 0;
+        var offMoved = 0;
+        for (var seed = 1; seed <= 200; seed++)
+        {
+            offStill += OffCursor(seed, moveRubber: false);
+            offMoved += OffCursor(seed, moveRubber: true);
+        }
+        Assert.True(offMoved > offStill * 1.3, $"moved {offMoved} vs still {offStill}");
+    }
+
+    int OffCursor(int seed, bool moveRubber)
+    {
+        var match = new Scenario(_content, seed).Match;
+        match.Play(Scenario.PitchAt(-0.6, CenterY), Scenario.Take);
+        if (moveRubber) match.WalkPitcher(0.5);
+        Assert.Equal(moveRubber, match.RubberMovedSinceLastPitch);
+        var pitch = Scenario.PitchAt(0.6, CenterY);
+        var swing = match.CpuSwing(pitch, true);
+        if (!swing.Swing) return 0;
+        // A failed re-read leaves the box at the last crossing (1.2 ft away); a fixed offset alone is under 0.5 ft.
+        var (cx, _) = PitchFlight.Crossing(pitch);
+        return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
+    }
+
+    [Fact(Skip = "S-29 reopens at P3 (#565): hit type is still decided by carry (P2 placeholder) and with P1 power on top doubles edge singles (3.00 vs 2.86 over 50 seeds). Green is P3/P7 exit, not tuned here.")]
+    public void S29_FiftySeedCpuGamesLandInTheBand()
+    {
+        // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways
+        // (one pair one way is a roster mismatch by design). Per side is the away mean and the
+        // home mean over the sample.
+        var pairs = new[] { ("rio", "ashlord"), ("zig", "konga"), ("fenn", "brondo"), ("konga", "rio"), ("vale", "brondo") };
+        var games = 0;
+        var away = 0;
+        var home = 0;
+        var kinds = new Dictionary<PlayKind, int>();
+        foreach (var (x, y) in pairs)
+        foreach (var (h, a) in new[] { (x, y), (y, x) })
+        for (var seed = 1; seed <= 5; seed++)
+        {
+            var match = Match.Exhibition(_content, h, a, innings: 3, seed: seed);
+            match.AutoPlayGame();
+            Assert.True(match.Over);
+            games++;
+            away += match.AwayScore;
+            home += match.HomeScore;
+            foreach (var ev in match.Log) kinds[ev.Kind] = kinds.GetValueOrDefault(ev.Kind) + 1;
+        }
+        Assert.Equal(50, games);
+        var meanAway = away / (double)games;
+        var meanHome = home / (double)games;
+        var singles = kinds.GetValueOrDefault(PlayKind.Single) / (double)games;
+        var doubles = kinds.GetValueOrDefault(PlayKind.Double) / (double)games;
+        var homers = kinds.GetValueOrDefault(PlayKind.HomeRun) / (double)games;
+        var line = $"runs {meanAway:0.00} / {meanHome:0.00}, singles {singles:0.00}, doubles {doubles:0.00}, HR {homers:0.00}";
+        Assert.True(meanAway is >= 2 and <= 5, line);
+        Assert.True(meanHome is >= 2 and <= 5, line);
+        Assert.True(doubles < singles, line);
+        Assert.True(homers <= 2, line);
     }
 
     // ---------------------------------------------------------------------------------

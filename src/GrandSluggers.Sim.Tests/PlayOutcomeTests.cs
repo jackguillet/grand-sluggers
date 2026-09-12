@@ -77,6 +77,6 @@ public class PlayOutcomeTests
         FlightFixtures.Preview(fielder, "CF", homeRunLikely ? BattedBallClass.Homer : line ? BattedBallClass.Liner : BattedBallClass.Fly,
             4, x, z, buddy, 20);
 
-    static PitchCommand Pitch() => new("fastball", 0, 0, false);
+    static PitchCommand Pitch() => new("fastball", 0, false);
     static SwingCommand Swing() => new(true, 0, 0, false);
 }

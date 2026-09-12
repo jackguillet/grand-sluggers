@@ -78,7 +78,11 @@ namespace GrandSluggers.EditorTools
                     VerifyTwoSeatLaunchBoundaryRelease(play),
                     VerifyKeyboardCannotReleasePadTwo(play),
                     VerifyScreenDirections(play),
-                    VerifyCursorIgnoresCurve(play)
+                    VerifyCursorIgnoresCurve(play),
+                    VerifyWestHoldChangeup(play, padTwo: false),
+                    VerifyWestHoldChangeup(play, padTwo: true),
+                    VerifySelectSwapPick(play, padTwo: false),
+                    VerifySelectSwapPick(play, padTwo: true)
                 };
                 evidence.ok = true;
                 Debug.Log("Grand Sluggers at-bat input OK: " + evidence.cases.Length
@@ -250,7 +254,7 @@ namespace GrandSluggers.EditorTools
             var match = Setup(play, Seats.Versus);
             Tick(play, "TickSet", State(), State(stickX: 1));
             Require(match.BatterOffsetX > 0, "Virtual batting stick did not move the batter.");
-            Invoke(play, "Launch", new PitchCommand("fastball", 0, 0, false));
+            Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
             var zone = Get<StrikeZone>(play, "_zone");
             var target = Get<Transform>(zone, "_target");
             var before = target.localPosition.x;
@@ -271,6 +275,51 @@ namespace GrandSluggers.EditorTools
                 breakX = breakX,
                 batterOffset = match.BatterOffsetX
             };
+        }
+
+        /// <summary>#582: West held through the release throws a changeup, on controller 1 (1P) and controller 2 (1v1, bottom half).</summary>
+        static GateCase VerifyWestHoldChangeup(MatchDirector play, bool padTwo)
+        {
+            var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
+            Require(padTwo == !match.Top, "Fixture half does not put the expected controller on the mound.");
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            var hold = State(south: true, west: true);
+            var release = State(west: true);
+            for (var frame = 0; frame < 6; frame++)
+                Tick(play, "TickSet", padTwo ? State() : hold, padTwo ? hold : State());
+            Require(Phase(play) == "Set", "Held South launched before release.");
+            Require(Get<string>(play, "ShownPitchType") == "changeup" || Get<object>(play, "_swapPick") == null,
+                "West hold did not read CHANGE on the card.");
+            Tick(play, "TickSet", padTwo ? State() : release, padTwo ? release : State());
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            Require(Phase(play) == "Flight" && pitch != null, "Release with West held did not launch.");
+            Require(pitch.IsChangeup, "West held through the release was not a changeup.");
+            return new GateCase { name = padTwo ? "west-hold-changeup-pad2" : "west-hold-changeup-pad1", phase = Phase(play), charge = pitch.Charge01 };
+        }
+
+        /// <summary>#582: Select opens the swap pick, the d-pad steps it, Select confirms; the mound changes and SET stays.</summary>
+        static GateCase VerifySelectSwapPick(MatchDirector play, bool padTwo)
+        {
+            var match = padTwo ? Setup(play, Seats.Versus, homeAtBat: true) : Setup(play, Seats.One);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            var before = match.Pitcher.Id;
+            var select = State().WithButton(GamepadButton.Select);
+            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            var pick = Get<PitcherSwapPick>(play, "_swapPick");
+            Require(pick != null, "Select did not open the swap pick.");
+            var start = pick.Index;
+            Tick(play, "TickSet", State(), State());
+            var right = State().WithButton(GamepadButton.DpadRight);
+            Tick(play, "TickSet", padTwo ? State() : right, padTwo ? right : State());
+            Require(pick.Index != start, "D-pad did not step the pick.");
+            Require(Phase(play) == "Set" && match.Pitcher.Id == before, "The pick changed the mound before confirm.");
+            Tick(play, "TickSet", State(), State());
+            var chosen = pick.Current.Who.Id;
+            Tick(play, "TickSet", padTwo ? State() : select, padTwo ? select : State());
+            Require(Get<object>(play, "_swapPick") == null, "Select again did not close the pick.");
+            Require(match.Pitcher.Id == chosen && match.Pitcher.Id != before, "Select again did not put the pick on the mound.");
+            Require(Phase(play) == "Set", "The swap left SET.");
+            return new GateCase { name = padTwo ? "select-swap-pick-pad2" : "select-swap-pick-pad1", phase = Phase(play) };
         }
 
         static double PitchMove(MatchDirector play, Seats seats, float stickX)

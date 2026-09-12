@@ -50,7 +50,7 @@ public class TrainingTests
     public void PitchingLessonTwoCompletesOnMaxChargesNotFourEnums()
     {
         var run = Training.Start(_content);
-        var max = new PitchCommand("fastball", 1, 0, false);
+        var max = new PitchCommand("fastball", 1, false);
         Assert.True(ChargeFeel.AtMax(1, 0, 0.5));
         Assert.False(run.RecordPitch(max, 10, canStar: false));
         Assert.Equal(PracticeLesson.Pitching, run.Lesson);
@@ -65,7 +65,7 @@ public class TrainingTests
     public void OutOfZonePitchDoesNotCount()
     {
         var run = Training.Start(_content);
-        var ball = new PitchCommand("fastball", 1, 0, false, 0.95, 0);
+        var ball = new PitchCommand("fastball", 1, false, 0.95, 0);
         Assert.False(AtBatResolver.PitchInZone(ball, 10));
         Assert.False(run.RecordPitch(ball, 10, canStar: false));
         Assert.Equal(PracticeLesson.Pitching, run.Lesson);
@@ -137,7 +137,7 @@ public class TrainingTests
         var field = new FieldingResult(PlayKind.GroundOut, fielder, match.Batter, 0.8, 10, 40, false, false,
             new ThrowResult(Chemistry.Good, 1.35, false));
         var play = match.FinishAtBat(
-            new PitchCommand("fastball", 0, 0, false), new SwingCommand(true, 0, 0, false), hit, field);
+            new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), hit, field);
         Assert.Equal(2, play.OutsOnPlay);
         Assert.False(run.RecordTurnTwo(play with { OutsOnPlay = 1, Caption = "Vale Glass turns two." }));
         Assert.True(run.RecordTurnTwo(play with { Caption = "Doble matanza completada." }));

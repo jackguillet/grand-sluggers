@@ -261,9 +261,7 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                col = type == "curve" ? new Color(0.45f, 0.75f, 1f)
-                    : type == "slider" ? new Color(0.85f, 0.55f, 1f)
-                    : type == "changeup" ? new Color(1f, 0.92f, 0.45f)
+                col = type == "changeup" ? new Color(1f, 0.92f, 0.45f)
                     : new Color(1f, 0.86f, 0.28f);
                 glow = (float)Baseball.FlightGlow;
                 glowCol = col;

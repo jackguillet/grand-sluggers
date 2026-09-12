@@ -312,13 +312,14 @@ public class FeelInfraTests
         Assert.True(SetTells.TrailOn(true));
         Assert.False(SetTells.TrailOn(false));
         Assert.True(SetTells.TrailStartFt(Baseball.FlightDiameterFt) > SetTells.TrailEndFt(Baseball.FlightDiameterFt));
-        var mid = SetTells.Locator(0, 0);
-        var inRight = SetTells.Locator(0.4, 0);
+        var mid = SetTells.Locator(new PitchCommand("fastball", 0, false));
+        var inRight = SetTells.Locator(new PitchCommand("fastball", 0, false, RubberX: 0.4));
         Assert.True(inRight.X > mid.X);
-        Assert.Equal(PitchFlight.PlateTarget(0.4, -0.2), SetTells.Locator(0.4, -0.2));
-        Assert.True(SetTells.InZone(0, 0));
-        Assert.True(SetTells.InZone(0.4, 0.2));
-        Assert.False(SetTells.InZone(1, 1));
+        Assert.Equal(PitchFlight.Crossing(new PitchCommand("fastball", 0, false, 0.4, -0.2)),
+            SetTells.Locator(new PitchCommand("fastball", 0, false, 0.4, -0.2)));
+        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false)));
+        Assert.True(SetTells.InZone(new PitchCommand("fastball", 0, false, 0.4, 0.2)));
+        Assert.False(SetTells.InZone(new PitchCommand("fastball", 0, false, 1, 1)));
     }
 
     [Fact]
