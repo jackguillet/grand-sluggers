@@ -78,25 +78,31 @@ public class GameplayTests
     }
 
     [Fact]
-    public void BananaTurnsAnOutIntoASingle()
+    public void BananaLandsOnTheGloveAsASlipNotAKindConversion()
     {
-        var field = new FieldingResult(PlayKind.FlyOut, _content.Must("frost"), null, 2, 0, 80, false, false);
+        // §12: an item is a field effect with seconds; it never turns an out into a caption.
+        var field = new FieldingResult(PlayKind.InPlay, _content.Must("frost"), null, 2, 0, 80, false, false);
         var after = ErrorItems.Apply(field, "banana", new Random(1));
-        Assert.Equal(PlayKind.Single, after.Kind);
+        Assert.Equal(PlayKind.InPlay, after.Kind);
         Assert.Equal("banana", after.Item);
+        Assert.True(after.ItemHit);
+        Assert.Equal("frost", after.ItemTarget?.Id);
+        Assert.Equal(Rules.Default.Batting.Items.SlipSec, ErrorItems.EffectSec("banana"));
+        Assert.False(ErrorItems.AffectsEveryGlove("banana"));
     }
 
     [Fact]
-    public void ThrowItemBananaOnAnOutBecomesASingle()
+    public void ThrowItemBananaHitsTheBodyItWasAimedAt()
     {
         var match = Match.Slice(_content, seed: 1);
         var fielder = _content.Must("frost");
-        var field = new FieldingResult(PlayKind.FlyOut, fielder, null, 2, 0, 80, false, false);
+        var field = new FieldingResult(PlayKind.InPlay, fielder, null, 2, 0, 80, false, false);
         var after = match.ThrowItem(field, "banana", fielder);
-        Assert.Equal(PlayKind.Single, after.Kind);
+        Assert.True(after.ItemHit);
         Assert.Equal("banana", after.Item);
         var miss = match.ThrowItem(field, "banana", _content.Must("rio"));
-        Assert.Equal(PlayKind.FlyOut, miss.Kind);
+        Assert.False(miss.ItemHit, "a peel under another body does not slip the glove");
+        Assert.Equal("banana", miss.Item);
     }
 
     [Fact]
@@ -104,9 +110,9 @@ public class GameplayTests
     {
         var body = _content.Must("frost");
         var other = _content.Must("rio");
-        var field = new FieldingResult(PlayKind.FlyOut, body, null, 2, 0, 80, false, false);
+        var field = new FieldingResult(PlayKind.InPlay, body, null, 2, 0, 80, false, false);
         var miss = Match.Slice(_content, seed: 1).ThrowItem(field, "rocket", other);
-        Assert.Equal(PlayKind.FlyOut, miss.Kind);
+        Assert.False(miss.ItemHit);
         Assert.Equal("rocket", miss.Item);
 
         var hits = 0;
@@ -114,23 +120,25 @@ public class GameplayTests
         {
             var after = Match.Slice(_content, seed: seed).ThrowItem(field, "rocket", body);
             Assert.Equal("rocket", after.Item);
-            if (after.Kind == PlayKind.Single) hits++;
+            Assert.Equal(PlayKind.InPlay, after.Kind);
+            if (after.ItemHit) hits++;
         }
         Assert.True(hits is > 0 and < 40, $"rocket body hits {hits}");
+        Assert.Equal(Rules.Default.Batting.Items.DazeSec, ErrorItems.EffectSec("rocket"));
     }
 
     [Fact]
-    public void ThrowItemPowOnAGrounderBecomesASingle()
+    public void ThrowItemPowHopsEveryBallOnTheDirt()
     {
         var match = Match.Slice(_content, seed: 1);
         var infielder = _content.Must("frost");
-        var ground = new FieldingResult(PlayKind.GroundOut, infielder, null, 1, 10, 40, false, false);
+        var ground = new FieldingResult(PlayKind.InPlay, infielder, null, 1, 10, 40, false, false);
         var after = match.ThrowItem(ground, "pow", infielder);
-        Assert.Equal(PlayKind.Single, after.Kind);
+        Assert.True(after.ItemHit);
         Assert.Equal("pow", after.Item);
-        var fly = new FieldingResult(PlayKind.FlyOut, infielder, null, 2, 0, 80, false, false);
-        var no = match.ThrowItem(fly, "pow", infielder);
-        Assert.Equal(PlayKind.FlyOut, no.Kind);
+        Assert.True(ErrorItems.AffectsEveryGlove("pow"));
+        Assert.Equal(Rules.Default.Batting.Items.PowHopSec, ErrorItems.EffectSec("pow"));
+        Assert.Equal(PlayKind.InPlay, after.Kind);
     }
 
     [Fact]

@@ -453,7 +453,7 @@ public sealed class Game : IDisposable
 
                 FieldingResult result;
                 var caught = _buddyJump || _caught;
-                var kind = FlyCatch.PlayerKind(caught, pre, hit);
+                var kind = FlyCatch.PlayerKind(caught, pre);
                 var feat = kind == PlayKind.FlyOut
                     ? FieldingResolver.PlayerCatchFeat(pre, _match.Park, _buddyJump, _catchJump)
                     : DefensiveFeat.None;

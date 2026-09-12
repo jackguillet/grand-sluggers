@@ -268,9 +268,11 @@ public sealed class LivePlaySystemTests
 
     static void FinishFlyOut(Match match)
     {
-        Assert.True(match.BeginAtBat(Paint, Swing, out var hit, out _));
-        var field = new FieldingResult(
-            PlayKind.FlyOut, match.Pitcher, null, 1, 0, 200, false, false);
-        match.FinishAtBat(Paint, Swing, hit, field);
+        // A routine fly to center: the live glove catches it by geometry (§8.3); the kind handed in decides nothing.
+        Assert.True(match.BeginAtBat(Paint, Swing, out _, out _));
+        var hit = FlightFixtures.Landing(match.Park, 250, 34, 0);
+        var field = match.ResolveFielding(hit, match.PreviewHit(hit));
+        var play = match.FinishAtBat(Paint, Swing, hit, field);
+        Assert.Equal(PlayKind.FlyOut, play.Kind);
     }
 }

@@ -40,12 +40,6 @@
     "linerMinExitMph": 78,
     "infieldLipFt": 155
   },
-  "carry": {
-    "tripleFt": 330,
-    "doubleFt": 250,
-    "lineDoubleFt": 180,
-    "groundDoubleFt": 90
-  },
   "deadBall": {
     "minSec": 2.4,
     "afterHangSec": 0.35,

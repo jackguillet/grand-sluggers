@@ -87,13 +87,14 @@ public sealed class ScenarioTests
                 continue;
             var preview = match.PreviewHit(hit);
             var field = match.ResolveFielding(hit, preview);
-            match.LivePlay.Apply(LivePlayCommand.Begin(field.Kind, LivePlayCommandSource.Cpu));
-            match.LivePlay.Apply(LivePlayCommand.Advance(
-                4, field.Kind, true, false, true, 0, LivePlayCommandSource.Cpu));
-            var done = match.LivePlay.Apply(LivePlayCommand.Complete(
-                Scenario.Paint, Scenario.Swing, hit, field, LivePlayCommandSource.Cpu));
-            Assert.NotNull(done.CompletedPlay);
-            Assert.NotNull(done.CompletedPlay!.Outcome);
+            // The ball is live from BeginLive to Complete: gloves, throws and bodies decide it through ticks (§8.3, §10.6).
+            Assert.True(match.LivePlay.Apply(LivePlayCommand.BeginLive(
+                Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+            LivePlayCommandResult? done = null;
+            for (var i = 0; i < 60 * 45 && done?.CompletedPlay is null; i++)
+                done = match.LivePlay.Apply(LivePlayCommand.Tick(Match.HeadlessTickSec, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu));
+            Assert.NotNull(done?.CompletedPlay);
+            Assert.NotNull(done!.CompletedPlay!.Outcome);
         }
         Assert.False(match.Top, "three outs were made through commands alone");
         Assert.All(match.Log, ev => Assert.NotNull(ev.Outcome));
@@ -259,20 +260,15 @@ public sealed class ScenarioTests
     }
 
     [Fact]
-    public void ABobbledHitIsAnErrorNotACaption()
+    public void TheErrorStampIsTheSailedThrowNeverTheBobble()
     {
-        var scenario = new Scenario(_content, seed: 1);
-        var match = scenario.Match;
-        scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
-        var field = new FieldingResult(
-            PlayKind.Single, match.Pitcher, match.Batter, 1.5, 48, 72, false, false,
-            new ThrowResult(Chemistry.Good, 1.7, false), Bobble: true);
-        var play = match.FinishAtBat(Scenario.Paint, Scenario.Swing, hit, field);
-
-        Assert.Equal(PlayKind.Single, play.Kind);
-        Assert.True(play.Outcome!.Error);
-        Assert.Equal(1, play.Outcome.BatterToBag);
+        // §8.5, §8.6: a throw that skipped past its cover stamps ERROR on the hit it allowed; a bobble is only time.
+        Assert.Equal(PlayStamp.Error, PlayStamp.Label(PlayKind.Single, 0, 0, error: true));
+        Assert.Equal(PlayStamp.Error, PlayStamp.Label(PlayKind.Double, 0, 1, error: true));
+        Assert.Equal("OUT", PlayStamp.Label(PlayKind.GroundOut, 1, 0, error: true));
+        Assert.Equal("DOUBLE PLAY", PlayStamp.Label(PlayKind.GroundOut, 2, 0, error: true));
+        Assert.Equal("SINGLE", PlayStamp.Label(PlayKind.Single, 0, 0, error: false));
+        Assert.False(PlayStamp.Shows(PlayKind.InPlay), "a live ball is never stamped");
     }
 
     [Fact]

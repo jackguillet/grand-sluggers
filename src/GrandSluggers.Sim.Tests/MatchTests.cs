@@ -273,10 +273,9 @@ public class MatchTests
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(paint, swing, out _, out _));
-        // A real hopper to the left side: the live ball plays this flight, the throw is the resolver's.
-        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
-        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
-        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
+        // A hard grounder right at the shortstop: the live ball plays this flight and the CPU turns two by geometry (§8.8).
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var field = match.ResolveFielding(hit, match.PreviewHit(hit));
         return (match, paint, swing, hit, field);
     }
 

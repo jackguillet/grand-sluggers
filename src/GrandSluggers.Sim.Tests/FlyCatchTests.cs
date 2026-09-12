@@ -70,13 +70,14 @@ public class FlyCatchTests
         Assert.True(FlyCatch.IsFly(pre));
         Assert.True(FlyCatch.JumpWindow(pre.HangTimeSec - 0.2, pre.HangTimeSec, rio, Harbor));
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false));
-        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, pre, pop));
+        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, pre));
 
         Assert.False(FlyCatch.JumpWindow(pre.HangTimeSec + 0.4, pre.HangTimeSec, rio, Harbor), "jump late");
         Assert.False(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: false, needsJump: false));
-        Assert.Equal(PlayKind.Single, FlyCatch.PlayerKind(false, pre, pop));
-        var gap = pop with { CarryFt = 260 };
-        Assert.Equal(PlayKind.Double, FlyCatch.PlayerKind(true, pre, gap, inAir: false));
+        // A ball that falls in is live: the bodies name the hit at Complete, never the carry (§10.6).
+        Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(false, pre));
+        Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(true, pre, inAir: false));
+        _ = pop;
         Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
             "South still scoops a routine fly you are under");
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false),
@@ -96,10 +97,11 @@ public class FlyCatchTests
         Assert.False(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: true, needsJump: true),
             "South does not scoop a would-be homer");
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: true));
-        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, pre, hr));
+        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, pre));
         Assert.False(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: false, needsJump: true),
             "jump late is a homer");
-        Assert.Equal(PlayKind.HomeRun, FlyCatch.PlayerKind(false, pre, hr));
+        Assert.Equal(PlayKind.HomeRun, FlyCatch.PlayerKind(false, pre));
+        _ = hr;
     }
 
     [Fact]
@@ -112,8 +114,9 @@ public class FlyCatchTests
         var pre = fielding.Preview(pop, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.HomeRunLikely);
         Assert.False(FlyCatch.NeedsJump(pre));
+        // The resolver no longer predicts the catch (§8.3): the ball is in play until the glove takes it.
         var field = fielding.Resolve(pop, match.Park, match.Defense.Roster, match.Pitcher, new Random(1), pre: pre);
-        Assert.Equal(PlayKind.FlyOut, field.Kind);
+        Assert.Equal(PlayKind.InPlay, field.Kind);
         Assert.NotNull(field.Fielder);
 
         var plant = FlyCatch.ChaseTarget(pre, match.Park);
@@ -121,6 +124,8 @@ public class FlyCatchTests
             "standing in the landing ring is under — live XZ still short is not a drop");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: false));
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true), "dead-stick does not rob");
+        Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: false), "the CPU leap needs the rob height");
+        Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: true), "the CPU leap at the wall is geometric (§8.3)");
 
         var start = Diamond.Positions[pre.Position];
         var hang = Math.Max(0.8, pre.HangTimeSec);

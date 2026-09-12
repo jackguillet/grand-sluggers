@@ -91,17 +91,34 @@ public sealed class ChemistryTable
     /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
     public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);
 
-    /// <summary>Throw pair chemistry → speed, error roll, lateral miss (fielding.chem). Spec §8.5 reworks the roll into accuracy (P4).</summary>
-    public ThrowResult FieldingThrow(Character from, Character to, Random rng, double? errorChanceWhenBad = null)
+    /// <summary>
+    /// Throw pair chemistry → the throw's input (§8.5, fielding.chem, fielding.throw): good is
+    /// faster; bad is slanted with slantChance (slower, a lateral miss of slantLateral ft to one
+    /// side) and ordinary otherwise. Every throw carries the thrower's lateral error, σ =
+    /// (11 − Field) × lateralSigmaPerFieldDeficitFt. The roll is on the input; the receiver's
+    /// radius decides the catch where the ball lands.
+    /// </summary>
+    public ThrowResult FieldingThrow(Character from, Character to, Random rng)
     {
         var chem = _rules.Fielding.Chem;
+        var thr = _rules.Fielding.Throw;
         var rel = ThrowChemistry(from, to);
-        return rel switch
+        var sigma = Math.Max(0, 11 - from.Stats.Field) * thr.LateralSigmaPerFieldDeficitFt;
+        var lateral = Gauss(rng) * sigma;
+        if (rel == Chemistry.Bad && rng.NextDouble() < chem.SlantChance)
         {
-            Chemistry.Good => new ThrowResult(rel, chem.GoodSpeedMul, false, 0),
-            Chemistry.Bad => new ThrowResult(rel, chem.BadSpeedMul, rng.NextDouble() < (errorChanceWhenBad ?? chem.BadErrorChance), chem.BadLateralFt),
-            _ => new ThrowResult(rel, 1.0, false, chem.NeutralLateralFt)
-        };
+            var miss = chem.SlantLateralMinFt + rng.NextDouble() * (chem.SlantLateralMaxFt - chem.SlantLateralMinFt);
+            var side = rng.NextDouble() < 0.5 ? -1 : 1;
+            return new ThrowResult(rel, chem.SlantSpeedMul, true, side * miss);
+        }
+        return new ThrowResult(rel, rel == Chemistry.Good ? chem.GoodSpeedMul : 1.0, false, lateral);
+    }
+
+    static double Gauss(Random rng)
+    {
+        var u1 = 1.0 - rng.NextDouble();
+        var u2 = rng.NextDouble();
+        return Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Cos(2.0 * Math.PI * u2);
     }
 
     /// <summary>Good-chemistry runners on base for this batter (spec §5.2, §5.5).</summary>

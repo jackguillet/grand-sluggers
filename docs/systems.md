@@ -52,7 +52,7 @@ Exhibition lineup is two screens (`LineupScreens`): **Team Setup** (home nine al
 ### In play
 
 - **Good throw:** 1.35× throw speed, accurate, “buddy” VFX. Enables Buddy Jump if both are outfielders near a would-be homer.
-- **Bad throw:** 0.7× speed, extra lateral error. 25% chance to become a true error (ball away).
+- **Bad throw:** 20% of throws are slanted — 0.7× speed and a 10–14 ft lateral miss the cover cannot reach (the ball skips past, live, ERROR); the rest are ordinary.
 - **Chemistry at-bat:** if batter and on-deck are good, roll an **error item** the batter can throw at a fielder after contact.
 - **Buddies on base:** +10% / +25% / +50% to charge power with 1/2/3 good-chem runners on.
 
@@ -92,7 +92,7 @@ Stamina 0 → extra break noise and “fat” fastballs. Swap or eat runs.
 
 ## Fielding
 
-CPU fielders run a simple utility: while the ball is in the air they run to the landing (or wall plant), not the live XZ — chasing the ball itself is the home-first path as it flies over them. Once it is a hopper or already down they chase the live hop. Gloves stay inside that park's fence (`FieldBounds` from the JSON L/C/R distances) — they plant on the warning track, they do not run through the wall. A yellow circle on the grass (`LandingMark`) is that landing; it turns red in the jump window. Catch window from Field stat, throw to the lead base with chemistry applied. Infield dirt is the infielder's hop; once the ball is on the grass the nearest outfielder charges and takes the glove (`PlayGlove`).
+CPU fielders run a simple utility: while the ball is in the air they run to the landing (or wall plant), not the live XZ — chasing the ball itself is the home-first path as it flies over them. Once it is a hopper or already down they chase the live hop. Every body waits out its reaction lockout after contact (spec §8.2) before it moves. Gloves stay inside that park's fence (`FieldBounds` from the JSON L/C/R distances) — they plant on the warning track, they do not run through the wall. A yellow circle on the grass (`LandingMark`) is that landing; it turns red in the jump window. The catch is geometry: the glove under the landing inside its radius in the window takes it, nothing is force-fed and nothing is rolled (a drop is a star effect only). With the ball, the CPU runs the decision table (spec §8.8): the lead force, home, third, first, else hold, each only when the throw beats the runner's body by the difficulty's margin; outfielders throw home, third, second, or in to the cutoff. One throw model flies the ball and judges the bag (spec §8.5), with the thrower's arm, the pair's chemistry, and a lateral miss the receiver's reach must cover; a throw that skips past is live (ERROR), a throw to an uncovered bag hangs until the cover arrives. Cover, cutoff and backup bodies move by geometry (spec §8.7); the thrower stays put and the YOU ring hands to the receiver. Infield dirt is the infielder's hop; once the ball is on the grass the nearest outfielder charges and takes the glove (`PlayGlove`).
 
 Player fielding: move the highlighted fielder, catch button, throw-to-base buttons. Dead stick may still run and catch; the throw is a verb (bag + South) when a human is on defense. Stick still runs after the catch. Select / R smart-switches to the hinted glove (next-nearest to the landing / ball; stick aims). Buddy Jump is a timed prompt when two good-chem outfielders are under a homer. Exhibition opens live play on contact: outs record on a catch, when a throw lands, or when a glove with the ball touches a runner off a bag (`InPlay.Touches` / `StepTag`, toy-body `TagReachFt`). FinishAtBat does not caption a force that nobody threw. On the bag (`TagSafeRadiusFt`) they are safe from the tag. On contact the camera is one 45° diamond (CF at the top, home under second) that follows the dirt under the ball; a fly uses a farther `diamond-fly`.
 
@@ -116,7 +116,7 @@ Control a **named runner**. Default highlight is the lead runner (furthest along
 
 ## Error items (chemistry batting)
 
-If batter and on-deck are good chemistry, the offense throws a physical item **after contact**, during the fly, aimed at a fielder you can see. CPU still rolls banana / rocket / POW about 40% of the time.
+If batter and on-deck are good chemistry, the offense throws a physical item **after contact**, during the fly, aimed at a fielder you can see. An item is a field effect with seconds (spec §12): a peel or a rocket keeps the body it lands on off the ball for 0.8 s, a POW keeps every ball on the dirt hopping for 0.8 s; the geometry then decides the play — no item converts an out into a hit. CPU still rolls banana / rocket / POW about 40% of the time.
 
 | Item | Effect (this pass) |
 | --- | --- |

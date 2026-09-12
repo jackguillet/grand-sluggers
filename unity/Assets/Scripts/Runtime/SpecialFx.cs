@@ -248,12 +248,11 @@ namespace GrandSluggers.UnityClient
         {
             _throwFrom = from + Vector3.up * 2.4f;
             _throwTo = to + Vector3.up * 1.2f;
-            if (thr.Relation == Chemistry.Bad || thr.Error)
-                _throwTo += new Vector3((float)thr.LateralFt, 0, (float)(-Mathf.Abs((float)thr.LateralFt) * 0.3f));
+            // The sim already lands the ball where the lateral miss says (InPlay.ThrowLanding); the trail follows it.
             _throwDur = Mathf.Clamp(1.12f / Mathf.Max(0.45f, (float)thr.SpeedMul), 0.55f, 1.55f);
             _throwLinger = _throwDur;
             _throwArc = thr.Relation == Chemistry.Good ? 5.2f : thr.Relation == Chemistry.Bad ? 1.6f : 3.2f;
-            _throwWobble = thr.Relation == Chemistry.Bad || thr.Error ? 3.4f : 0f;
+            _throwWobble = thr.Relation == Chemistry.Bad || thr.Slanted ? 3.4f : 0f;
             _throwGood = thr.Relation == Chemistry.Good;
             var lr = _throwGood ? _throw : _throwBad;
             if (lr == null) lr = _throw;
