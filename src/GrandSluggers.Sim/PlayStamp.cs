@@ -20,6 +20,9 @@ public static class PlayStamp
     public static string Label(PlayEvent ev, int outsThisPlay) =>
         ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt);
 
+    public static string Label(PlayEvent ev) =>
+        ev == null ? "" : Label(ev.Kind, ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt);
+
     public static string Label(PlayKind kind, int outsThisPlay, int runs,
         bool bunt = false, bool dive = false, bool jump = false)
     {

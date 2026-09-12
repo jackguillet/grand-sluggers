@@ -8,6 +8,55 @@ public class FlyCatchTests
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
+    public void NearWallHomerCannotBeScoopedThroughTheFence()
+    {
+        var content = ContentCatalog.Load();
+        foreach (var park in content.Parks.Values)
+        {
+            var match = Match.Slice(content, parkId: park.Id);
+            var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 35,
+                BallFlight.CarryFeet(110, 35, park.WindMph), true, false, null, null);
+            var pre = match.PreviewHit(hit);
+            foreach (var spray in new[] { -35d, 0d, 35d })
+            {
+                var wall = AtBatResolver.FenceAt(park, spray);
+                var outside = BallFlight.GroundPoint(wall + 1, spray);
+                Assert.False(FlyCatch.PickupInPlay(pre with { Grounder = true }, park,
+                    outside.X, outside.Z, 1, pre.HangTimeSec));
+                Assert.False(FlyCatch.PickupInPlay(pre with { Line = true }, park,
+                    outside.X, outside.Z, 1, pre.HangTimeSec));
+                Assert.False(FlyCatch.TouchScoop(pre, park, outside.X, outside.Z, 0,
+                    pre.HangTimeSec + 1, pre.HangTimeSec, 9, 20));
+                var inside = BallFlight.GroundPoint(wall - 1, spray);
+                Assert.True(FlyCatch.TouchScoop(pre, park, inside.X, inside.Z, 0,
+                    pre.HangTimeSec + 1, pre.HangTimeSec, 7, 20));
+                Assert.False(FlyCatch.TouchScoop(pre, park, inside.X, inside.Z, 2,
+                    pre.HangTimeSec - 0.1, pre.HangTimeSec, 7, 20));
+            }
+        }
+    }
+
+    [Fact]
+    public void HarborNearWallFlightNeverBecomesAPickupAfterCrossing()
+    {
+        var content = ContentCatalog.Load();
+        var match = Match.Slice(content);
+        var park = match.Park;
+        var path = BallFlight.Trajectory(110, 35, park.WindMph);
+        var hang = BallFlight.HangTime(path);
+        var carry = BallFlight.CarryFeet(110, 35, park.WindMph);
+        Assert.InRange(carry, 404, 405); // Four feet past Harbor's center fence.
+        var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 35, carry, true, false, null, null);
+        var pre = match.PreviewHit(hit);
+        var plant = FlyCatch.WallPlant(pre, park);
+        var outside = path.Where(sample => sample.Dist > park.CenterFenceFt).ToArray();
+        Assert.NotEmpty(outside);
+        Assert.Contains(outside, sample => FlyCatch.TouchScoop(Math.Abs(sample.Dist - plant.Z), 20, sample.Height));
+        Assert.All(outside, sample => Assert.False(FlyCatch.TouchScoop(pre, park, 0, sample.Dist,
+            sample.Height, sample.T, hang, Math.Abs(sample.Dist - plant.Z), 20)));
+    }
+
+    [Fact]
     public void PlayerJumpInWindowTakesAFlySouthLateDoesNot()
     {
         var rio = _content.Must("rio");
@@ -77,12 +126,10 @@ public class FlyCatchTests
         const double dt = 1.0 / 30;
         for (var t = 0.0; t < hang - 0.18; t += dt)
         {
-            var speed = FieldingResolver.CatchUpSpeedFt(
-                Diamond.Dist(at.X, at.Z, plant.X, plant.Z), hang - t, run);
-            at = FieldingResolver.StepToward(at.X, at.Z, plant.X, plant.Z, speed, dt, match.Park);
+            at = FieldingResolver.StepToward(at.X, at.Z, plant.X, plant.Z, run, dt, match.Park);
         }
         Assert.True(Diamond.Dist(at.X, at.Z, plant.X, plant.Z) < 18,
-            "catch-up speed must be under the ring by hang");
+            "the selected routine glove reaches the ring at rated speed by hang");
     }
 
     [Fact]

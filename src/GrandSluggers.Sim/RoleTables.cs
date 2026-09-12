@@ -6,19 +6,54 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class RoleTables
 {
+    public static readonly IReadOnlyList<string> PageIds =
+        ["roles", "roles-batting-2", "roles-pitching", "roles-pitching-2", "roles-fielding", "roles-running"];
     public sealed record Row(string Verb, string Press);
     public sealed record Block(string Id, string Title, IReadOnlyList<Row> Rows);
 
     public static IReadOnlyList<Block> Of(InputScheme scheme) =>
         scheme == InputScheme.Keys ? Keys : Pad;
 
+    public static Block OnPage(InputScheme scheme, string pageId)
+    {
+        var blocks = Of(scheme);
+        return pageId.ToLowerInvariant() switch
+        {
+            "roles" => Half(blocks[0], 0),
+            "roles-batting-2" => Half(blocks[0], 1),
+            "roles-pitching" => Half(blocks[1], 0),
+            "roles-pitching-2" => Half(blocks[1], 1),
+            "roles-fielding" => blocks[2],
+            "roles-running" => blocks[3],
+            _ => Half(blocks[0], 0),
+        };
+    }
+
+    static Block Half(Block block, int part)
+    {
+        var start = block.Rows.Count * part / 2;
+        var end = block.Rows.Count * (part + 1) / 2;
+        return new Block(block.Id, block.Title, block.Rows.Skip(start).Take(end - start).ToArray());
+    }
+
+    public static (float X, float Y, float W, float H) RowCard(
+        int index, int count, float screenW, float screenH)
+    {
+        var board = ControlDiagram.Board(screenW, screenH);
+        const float head = 52f;
+        const float gap = 6f;
+        var rows = Math.Max(1, count);
+        var h = (board.H - head - gap * (rows - 1)) / rows;
+        return (board.X, board.Y + head + index * (h + gap), board.W, h);
+    }
+
     public static readonly IReadOnlyList<Block> Pad =
     [
         new("batting", "Batting",
         [
             new("Move batter", "Stick L/R. Down resets."),
-            new("Normal swing", "South"),
-            new("Charge swing", "Hold LT. Commit at MAX."),
+            new("Normal swing", "Tap South"),
+            new("Charge swing", "Hold South; release at MAX"),
             new("Star swing", "North + South"),
             new("Bunt", "Hold West"),
             new("Spray", "Stick L/R at contact"),
@@ -26,8 +61,8 @@ public static class RoleTables
         new("pitching", "Pitching",
         [
             new("Move pitcher", "Stick L/R. Down resets."),
-            new("Normal pitch", "South"),
-            new("Charge pitch", "Hold LT. Commit at MAX."),
+            new("Normal pitch", "Tap South"),
+            new("Charge pitch", "Hold South; release at MAX"),
             new("Changeup", "Hold West"),
             new("Star pitch", "North + South"),
             new("Curve", "Stick L/R after release"),
@@ -62,8 +97,8 @@ public static class RoleTables
         new("batting", "Batting",
         [
             new("Move batter", "A/D or mouse. S resets."),
-            new("Normal swing", "Space / left click"),
-            new("Charge swing", "Hold Shift / right click. Commit at MAX."),
+            new("Normal swing", "Tap Space / left click"),
+            new("Charge swing", "Hold Space / left click; release at MAX"),
             new("Star swing", "Q + Space"),
             new("Bunt", "Hold V / Ctrl"),
             new("Spray", "A/D at contact"),
@@ -71,8 +106,8 @@ public static class RoleTables
         new("pitching", "Pitching",
         [
             new("Move pitcher", "A/D or mouse. S resets."),
-            new("Normal pitch", "Space / left click"),
-            new("Charge pitch", "Hold Shift / right click. Commit at MAX."),
+            new("Normal pitch", "Tap Space / left click"),
+            new("Charge pitch", "Hold Space / left click; release at MAX"),
             new("Changeup", "Hold V / Ctrl"),
             new("Star pitch", "Q + Space"),
             new("Curve", "A/D after release"),

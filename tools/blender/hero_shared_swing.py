@@ -1,58 +1,157 @@
 #!/usr/bin/env python3
 """Swing take on the hero-shared armature. Contact at 0.30s (MoveBones.SwingContact).
 
-Keys match data/art/pose-clips/swing.json so the FBX is the same cut, not a T-pose.
+Targets match data/art/pose-clips/swing.json after FBX handedness conversion.
 """
 from __future__ import annotations
 
 import argparse
 import importlib.util
 import math
+import shutil
 import sys
 from pathlib import Path
 
 import bpy
+from mathutils import Matrix, Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import batting_stance
 
 
 FPS = 60
 DURATION = 0.50
 CONTACT = 0.30
 
-# data/art/pose-clips/swing.json — Unity parent-space euler offsets (degrees).
+# data/art/pose-clips/swing.json — parent-space Euler offsets (degrees).
+# The hand solve holds the palms 0.21–0.28 ft apart around one grip. The
+# socket-to-barrel vector travels upward about 10 degrees from approach to contact.
 KEYS = [
     (0.00, {
-        "torso": (8, -32, 4), "head": (6, -18, 0),
-        "lUpper": (-22, 30, 38), "lFore": (24, 0, 0),
-        "rUpper": (-118, -54, -64), "rFore": (32, 0, 0),
-        "lThigh": (14, 0, 0), "lShin": (18, 0, 0),
-        "rThigh": (-10, 12, 0), "rShin": (14, 0, 0),
-        "bat": (132, 16, 20),
+        "torso": (8, -28, 4), "head": (4, -12, 0),
+        "lUpper": (-154.70, -1.03, 80), "lFore": (-56.41, 0, 0),
+        "rUpper": (61.05, 50.21, 95.48), "rFore": (-143.30, 0, 0),
+        "lThigh": (12, 0, 0), "lShin": (16, 0, 0),
+        "rThigh": (-8, 10, 0), "rShin": (12, 0, 0),
+        "bat": (7.35, -7.27, -158.19),
     }),
     (0.15, {
-        "torso": (12, 6, -6), "head": (6, 4, 0),
-        "lUpper": (-8, 16, 28), "lFore": (28, 0, 0),
-        "rUpper": (-62, -28, -36), "rFore": (26, 0, 0),
+        "torso": (10, 8, -5), "head": (5, 2, 0),
+        "lUpper": (-91.41, -112.21, 45.66), "lFore": (-84.28, 0, 0),
+        "rUpper": (28.76, 114.82, 53.66), "rFore": (-121.03, 0, 0),
+        "lThigh": (18, 0, 0), "lShin": (18, 0, 0),
+        "rThigh": (-14, 16, 0), "rShin": (16, 0, 0),
+        "bat": (166.52, 26.27, 34.63),
+    }),
+    (0.24, {
+        "torso": (14, 52, -8), "head": (7, 18, 0),
+        "lUpper": (11.86, -52.93, -76.80), "lFore": (-1.28, 0, 0),
+        "rUpper": (36.53, 158.11, 45.80), "rFore": (-110.01, 0, 0),
         "lThigh": (20, 0, 0), "lShin": (20, 0, 0),
-        "rThigh": (-16, 18, 0), "rShin": (18, 0, 0),
-        "bat": (64, 52, 14),
+        "rThigh": (-22, 22, 0), "rShin": (24, 0, 0),
+        "bat": (103.04, 46.96, 36.09),
     }),
     (0.30, {
-        "torso": (18, 88, -12), "head": (10, 32, 0),
-        "lUpper": (38, -62, 12), "lFore": (40, 0, 0),
-        "rUpper": (22, 92, 34), "rFore": (8, 0, 0),
+        "torso": (16, 72, -10), "head": (8, 26, 0),
+        "lUpper": (10.77, -49.04, -76.15), "lFore": (-18.87, 0, 0),
+        "rUpper": (35.32, 176.10, 49.25), "rFore": (-119.92, 0, 0),
         "lThigh": (20, 0, 0), "lShin": (20, 0, 0),
         "rThigh": (-24, 24, 0), "rShin": (26, 0, 0),
-        "bat": (-12, 96, 6),
+        "bat": (71.06, 34.68, 32.35),
     }),
     (0.50, {
-        "torso": (12, 108, -18), "head": (14, 40, 0),
-        "lUpper": (56, -90, -14), "lFore": (22, 0, 0),
-        "rUpper": (8, 112, 44), "rFore": (6, 0, 0),
+        "torso": (10, 96, -14), "head": (12, 34, 0),
+        "lUpper": (24.60, -42.75, -93.93), "lFore": (-1.22, 0, 0),
+        "rUpper": (21.38, 187.18, 60.09), "rFore": (-123.96, 0, 0),
         "lThigh": (12, 0, 0), "lShin": (16, 0, 0),
         "rThigh": (-14, 20, 0), "rShin": (22, 0, 0),
-        "bat": (-82, 186, 24),
+        "bat": (140.33, 12.53, 10.86),
     }),
 ]
+
+# Batter-local Unity directions. Blender's FBX export changes handedness, so
+# the DCC target is (-X, -Z, +Y). The common bat's +Y model axis binds to the
+# socket's -Y bone axis; the authored socket rotation remains the sole owner of
+# the barrel direction through the take.
+BARREL_DIRECTIONS = {
+    0.00: (-0.18, 0.89, 0.42),
+    0.15: (-0.10, 0.62, -0.78),
+    0.24: (0.4315, 0.005, -0.9022),
+    0.30: (0.7790, 0.0275, -0.6264),
+    0.50: (-0.54, 0.31, -0.78),
+}
+
+# Evaluated rendered-hand centers and socket grip in Unity shared-root space.
+# The same numbers drive SwingPresentation; conversion here is position-safe
+# (it changes basis without normalizing the authored distance).
+HAND_TARGETS = {
+    0.00: {"lFore": (0.300, 2.727, 0.512), "rFore": (0.080, 2.522, 0.326)},
+    0.15: {"lFore": (0.416, 2.356, -0.235), "rFore": (0.143, 2.240, 0.016)},
+    0.24: {"lFore": (0.366, 1.729, -0.547), "rFore": (0.129, 1.798, -0.140)},
+    0.30: {"lFore": (0.458, 1.856, -0.622), "rFore": (0.124, 1.914, -0.257)},
+    0.50: {"lFore": (-0.242, 2.195, -0.576), "rFore": (-0.134, 2.155, -0.290)},
+}
+GRIP_TARGETS = {
+    0.00: (0.273, 2.215, 0.226),
+    0.15: (0.326, 2.013, 0.249),
+    0.24: (0.049, 1.761, 0.071),
+    0.30: (-0.069, 1.872, -0.149),
+    0.50: (0.060, 2.032, -0.073),
+}
+
+HAND_MESH = {"lFore": "lHand", "rFore": "rHand"}
+ARM_PARENT = {"lFore": "lUpper", "rFore": "rUpper"}
+HANDLE_LENGTH = 0.85 * 1.28
+# SharedRig rebuilds the drop rig's face on the head bone's Unity +Z, which is
+# the reverse of the eye meshes this scene authors. Aim the landmark Unity draws.
+EYES_BASIS = batting_stance.EYES_REVERSED_BY_IMPORT
+# Two-bone IK folds hard at follow-through and has no elbow to prefer without a
+# pole. Hang both elbows below the grip line so the solve stays deterministic as
+# the stance turns the shoulders through the take.
+ELBOW_POLE_DROP = 2.5
+# The rendered hand must land on its authored key, not merely near the handle.
+HAND_SOLVE_TOLERANCE = 0.01
+
+
+KEY_TIMES = sorted(t for t, _ in KEYS)
+POSES = {t: pose for t, pose in KEYS}
+
+
+def _lerp(low, high, u):
+    return tuple(a + (b - a) * u for a, b in zip(low, high))
+
+
+def _span(t):
+    """The authored span holding t, matching SwingPresentation.Interpolate."""
+    return batting_stance.span_at(t, KEY_TIMES)
+
+
+def pose_at(t):
+    """Euler seed between authored keys; the hand solve owns the arms after it."""
+    index, u = _span(t)
+    low, high = POSES[KEY_TIMES[index]], POSES[KEY_TIMES[min(index + 1, len(KEY_TIMES) - 1)]]
+    return {name: _lerp(low[name], high[name], u) for name in low}
+
+
+def hand_targets_at(t):
+    index, u = _span(t)
+    low, high = HAND_TARGETS[KEY_TIMES[index]], HAND_TARGETS[KEY_TIMES[min(index + 1, len(KEY_TIMES) - 1)]]
+    return {name: _lerp(low[name], high[name], u) for name in low}
+
+
+def grip_at(t):
+    index, u = _span(t)
+    return _lerp(
+        GRIP_TARGETS[KEY_TIMES[index]],
+        GRIP_TARGETS[KEY_TIMES[min(index + 1, len(KEY_TIMES) - 1)]],
+        u)
+
+
+def barrel_direction_at(t):
+    index, u = _span(t)
+    low = BARREL_DIRECTIONS[KEY_TIMES[index]]
+    high = BARREL_DIRECTIONS[KEY_TIMES[min(index + 1, len(KEY_TIMES) - 1)]]
+    return tuple(Vector(_lerp(low, high, u)).normalized())
 
 
 def load_blockout():
@@ -65,6 +164,96 @@ def load_blockout():
 
 def deg(v):
     return tuple(math.radians(x) for x in v)
+
+
+def rendered_center(name):
+    deps = bpy.context.evaluated_depsgraph_get()
+    ob = bpy.data.objects[name].evaluated_get(deps)
+    mesh = ob.to_mesh()
+    points = [ob.matrix_world @ v.co for v in mesh.vertices]
+    ob.to_mesh_clear()
+    lo = Vector((min(v.x for v in points), min(v.y for v in points), min(v.z for v in points)))
+    hi = Vector((max(v.x for v in points), max(v.y for v in points), max(v.z for v in points)))
+    return (lo + hi) * 0.5
+
+
+def solve_rendered_hands(arm_ob, targets):
+    controls = []
+    helpers = []
+    for fore_name, target in targets.items():
+        control = bpy.data.objects.new("ik-" + fore_name, None)
+        bpy.context.collection.objects.link(control)
+        control.location = target
+        # Without a pole the folded follow-through elbow has no preferred
+        # solution and the feedback below oscillates instead of landing.
+        pole = bpy.data.objects.new("pole-" + fore_name, None)
+        bpy.context.collection.objects.link(pole)
+        pole.location = (arm_ob.pose.bones[ARM_PARENT[fore_name]].head
+                         + Vector((0.0, 0.0, -ELBOW_POLE_DROP)))
+        constraint = arm_ob.pose.bones[fore_name].constraints.new("IK")
+        constraint.target = control
+        constraint.pole_target = pole
+        constraint.pole_angle = 0.0
+        constraint.chain_count = 2
+        constraint.iterations = 128
+        controls.append((fore_name, control, constraint))
+        helpers.extend((control, pole))
+
+    # The rigid hand center sits beyond the forearm tail and off its centerline.
+    # Feed that evaluated offset back into the IK target until the mesh, rather
+    # than an abstract bone tip, reaches the authored point.
+    for _ in range(16):
+        bpy.context.view_layer.update()
+        for fore_name, control, _ in controls:
+            actual = rendered_center(HAND_MESH[fore_name])
+            control.location += targets[fore_name] - actual
+
+    bpy.context.view_layer.update()
+    missed = {
+        fore_name: (rendered_center(HAND_MESH[fore_name]) - targets[fore_name]).length
+        for fore_name, _, _ in controls
+    }
+    solved = {}
+    for fore_name, _, _ in controls:
+        solved[ARM_PARENT[fore_name]] = arm_ob.pose.bones[ARM_PARENT[fore_name]].matrix.copy()
+        solved[fore_name] = arm_ob.pose.bones[fore_name].matrix.copy()
+    for fore_name, control, constraint in controls:
+        arm_ob.pose.bones[fore_name].constraints.remove(constraint)
+    for helper in helpers:
+        bpy.data.objects.remove(helper, do_unlink=True)
+    for name in ("lUpper", "rUpper", "lFore", "rFore"):
+        bone = arm_ob.pose.bones[name]
+        bone.rotation_mode = "QUATERNION"
+        bone.matrix = solved[name]
+    bpy.context.view_layer.update()
+    return missed
+
+
+def key_bat_direction(arm_ob, direction, grip, frame):
+    """Aim the authored bat bone; never patch its world rotation in Unity."""
+    bat = arm_ob.pose.bones["bat"]
+    # Preserve the keyed Euler as the roll seed, then rotate only enough to put
+    # socket -Y on the imported handle-to-barrel direction.
+    bpy.context.view_layer.update()
+    current = -(bat.matrix.to_3x3() @ Vector((0, 1, 0))).normalized()
+    unity = Vector(direction).normalized()
+    target = Vector((-unity.x, -unity.z, unity.y)).normalized()
+    correction = current.rotation_difference(target)
+    matrix = bat.matrix.copy()
+    bat.rotation_mode = "QUATERNION"
+    bat.matrix = Matrix.LocRotScale(
+        grip,
+        correction @ matrix.to_quaternion(),
+        matrix.to_scale(),
+    )
+    bat.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+    bat.keyframe_insert(data_path="location", frame=frame)
+
+
+def point_segment_distance(point, start, end):
+    axis = end - start
+    u = 0 if axis.length_squared < 1e-8 else max(0, min(1, (point - start).dot(axis) / axis.length_squared))
+    return (point - (start + axis * u)).length
 
 
 def key_swing(arm_ob):
@@ -84,16 +273,50 @@ def key_swing(arm_ob):
     for pb in arm_ob.pose.bones:
         pb.rotation_mode = "XYZ"
 
-    for t, pose in KEYS:
-        frame = 1 + int(round(t * FPS))
+    # Author every frame, not only the five authored keys. The gate and live
+    # play sample this take at charge-dependent times between keys; a rig that
+    # only meets the contract on the keys drifts off the handle and drops the
+    # loaded barrel in between. Baking the interpolated contract per frame keeps
+    # the rendered hands, socket, and stance on the contract at any sample time.
+    for frame in range(scene.frame_start, scene.frame_end + 1):
+        t = (frame - 1) / FPS
         scene.frame_set(frame)
-        for name, euler in pose.items():
+        for pb in arm_ob.pose.bones:
+            pb.rotation_mode = "XYZ"
+            pb.rotation_euler = (0, 0, 0)
+            pb.location = (0, 0, 0)
+        for name, euler in pose_at(t).items():
             if name not in arm_ob.pose.bones:
                 continue
             pb = arm_ob.pose.bones[name]
             pb.rotation_mode = "XYZ"
             pb.rotation_euler = deg(euler)
-            pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+            if name not in {"torso", "head", "lUpper", "lFore", "rUpper", "rFore", "bat"}:
+                pb.keyframe_insert(data_path="rotation_euler", frame=frame)
+        bpy.context.view_layer.update()
+
+        batting_stance.author_visible_stance(
+            arm_ob, t,
+            chest_front="Stripe", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lShoe", foot_right="rShoe",
+            eyes_basis=EYES_BASIS,
+        )
+        targets = {
+            name: batting_stance.unity_to_dcc(value, normalize=False)
+            for name, value in hand_targets_at(t).items()
+        }
+        missed = solve_rendered_hands(arm_ob, targets)
+        for name, distance in missed.items():
+            if distance > HAND_SOLVE_TOLERANCE:
+                raise RuntimeError(
+                    f"{name} hand solve missed its authored key at {t:.4f}: "
+                    f"{distance:.4f} > {HAND_SOLVE_TOLERANCE:.4f}")
+        for name in ("root", "torso", "head", "lUpper", "lFore", "rUpper", "rFore"):
+            arm_ob.pose.bones[name].keyframe_insert(data_path="rotation_quaternion", frame=frame)
+
+        grip = batting_stance.unity_to_dcc(grip_at(t), normalize=False)
+        key_bat_direction(arm_ob, barrel_direction_at(t), grip, frame)
 
     for layer in action.layers:
         for strip in layer.strips:
@@ -105,15 +328,52 @@ def key_swing(arm_ob):
     scene.frame_set(1 + int(round(CONTACT * FPS)))
     bpy.ops.object.mode_set(mode="OBJECT")
 
+    # Falsify every baked frame, not only the authored keys: a take that only
+    # holds the contract on the keys is what put the hands off the handle at the
+    # gate's ready sample and dropped the loaded barrel below the hands.
+    for frame in range(scene.frame_start, scene.frame_end + 1):
+        t = (frame - 1) / FPS
+        scene.frame_set(frame)
+        bpy.context.view_layer.update()
+        bat = arm_ob.pose.bones["bat"]
+        actual = -(bat.matrix.to_3x3() @ Vector((0, 1, 0))).normalized()
+        unity = Vector(barrel_direction_at(t)).normalized()
+        expected = Vector((-unity.x, -unity.z, unity.y)).normalized()
+        if actual.dot(expected) < 0.999:
+            raise RuntimeError(f"bat direction missed at {t:.4f}: {actual} vs {expected}")
+        grip = bat.head
+        handle_end = grip + actual * HANDLE_LENGTH
+        for hand in (rendered_center("lHand"), rendered_center("rHand")):
+            distance = point_segment_distance(hand, grip, handle_end)
+            if distance > 0.30:
+                raise RuntimeError(f"rendered hand missed handle at {t:.4f}: {distance:.3f}")
+        batting_stance.validate_visible_stance(
+            t,
+            chest_front="Stripe", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lShoe", foot_right="rShoe",
+            eyes_basis=EYES_BASIS,
+        )
+
 
 def main(argv):
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
+    p.add_argument(
+        "--resources",
+        default="",
+        help="Player Resources folder; the standalone copy must stay byte-identical.")
     args = p.parse_args(argv)
     hero = load_blockout()
     arm = hero.build_scene()
     key_swing(arm)
-    hero.export_fbx(Path(args.out).resolve(), anim=True)
+    out = Path(args.out).resolve()
+    hero.export_fbx(out, anim=True)
+    if args.resources:
+        resources = Path(args.resources).resolve()
+        resources.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(out, resources / out.name)
+        print("resources", resources / out.name)
     print("swing contact frame", 1 + int(round(CONTACT * FPS)), "fps", FPS)
 
 

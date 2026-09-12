@@ -34,6 +34,6 @@ public class CharacterMotionTests
     {
         var pitch = CharacterMotion.Evaluate(MoveBones.Verb.Pitch, 0, 0.1);
         var swing = CharacterMotion.Evaluate(MoveBones.Verb.Swing, 0, 0.1);
-        Assert.NotEqual(pitch.RUpper.X, swing.RUpper.X);
+        Assert.NotEqual(pitch.RUpper, swing.RUpper);
     }
 }

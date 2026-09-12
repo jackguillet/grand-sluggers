@@ -11,7 +11,11 @@ Construction (same as hero_shared_blockout.py):
   - Each piece is a closed volume, 100% one vertex group
   - Pieces overlap at joints so there is no hole
   - Shell lives only on `head`. Arms never own a shell vert.
-  - Rest pose = idle. CharacterMotion flexes locally on that bind.
+  - Rest pose = idle. CharacterMotion flexes locally on that bind until an
+    authored verb take is ready.
+  - Batting takes solve both hands to Fenn's own `bat` socket. Socket local -Y
+    is the shared handle-to-barrel convention; no shared-rig Euler drives him.
+  - Body and takes export from this one scene with the same FBX space settings.
   - FBX Generic, axis_forward=-Z, albedo sidecar (URP Lit)
 
   /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
@@ -29,6 +33,9 @@ from pathlib import Path
 
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import batting_stance
 
 
 BONES = [
@@ -281,24 +288,255 @@ def export_fbx(out: Path):
     print("exported", out, out.stat().st_size)
 
 
-def pose_limb(arm_ob, bone, euler):
+def clear_pose(arm_ob):
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="POSE")
-    b = arm_ob.pose.bones[bone]
-    b.rotation_mode = "XYZ"
-    b.rotation_euler = euler
+    for bone in arm_ob.pose.bones:
+        bone.rotation_mode = "XYZ"
+        bone.rotation_euler = (0.0, 0.0, 0.0)
+        bone.location = (0.0, 0.0, 0.0)
+        bone.scale = (1.0, 1.0, 1.0)
     bpy.context.view_layer.update()
     bpy.ops.object.mode_set(mode="OBJECT")
 
 
+def make_action(arm_ob, name, keys):
+    """Author one take on the same armature and rest basis as fenn.fbx."""
+    action = bpy.data.actions.new(name)
+    if arm_ob.animation_data is None:
+        arm_ob.animation_data_create()
+    arm_ob.animation_data.action = action
+    clear_pose(arm_ob)
+    bpy.context.view_layer.objects.active = arm_ob
+    bpy.ops.object.mode_set(mode="POSE")
+    for frame, bone_name, degrees in keys:
+        bone = arm_ob.pose.bones.get(bone_name)
+        if bone is None:
+            raise RuntimeError("missing action bone: " + bone_name)
+        bone.rotation_mode = "XYZ"
+        bone.rotation_euler = tuple(math.radians(value) for value in degrees)
+        bone.keyframe_insert(data_path="rotation_euler", frame=frame)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return action
+
+
+def build_actions(arm_ob):
+    idle = make_action(arm_ob, "idle", [
+        (1, "torso", (0, 0, 0)),
+        (1, "head", (0, 0, 0)),
+        (13, "torso", (4, 0, 0)),
+        (13, "head", (0, 6, 0)),
+        (25, "torso", (0, 0, 0)),
+        (25, "head", (0, 0, 0)),
+    ])
+    pose = make_action(arm_ob, "pose", [
+        (1, "rUpper", (0, 0, 0)),
+        (1, "rFore", (0, 0, 0)),
+        (1, "torso", (0, 0, 0)),
+        (10, "rUpper", (90, 0, -8)),
+        (10, "rFore", (24, 0, 0)),
+        (10, "torso", (-6, 8, 0)),
+    ])
+    return idle, pose
+
+
+def export_take(path: Path, arm_ob, action, first_frame: int, last_frame: int):
+    """Export a take without an FBX import/re-export round trip."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    arm_ob.animation_data.action = action
+    scene = bpy.context.scene
+    old_start, old_end, old_frame = scene.frame_start, scene.frame_end, scene.frame_current
+    scene.frame_start = first_frame
+    scene.frame_end = last_frame
+    scene.frame_set(first_frame)
+    bpy.ops.object.select_all(action="SELECT")
+    bpy.ops.export_scene.fbx(
+        filepath=str(path),
+        use_selection=False,
+        object_types={"ARMATURE", "MESH"},
+        use_mesh_modifiers=True,
+        add_leaf_bones=False,
+        bake_anim=True,
+        bake_anim_use_all_bones=True,
+        bake_anim_use_all_actions=False,
+        bake_anim_use_nla_strips=False,
+        bake_anim_force_startend_keying=True,
+        bake_anim_step=1.0,
+        bake_anim_simplify_factor=0.0,
+        armature_nodetype="NULL",
+        primary_bone_axis="Y",
+        secondary_bone_axis="X",
+        axis_forward="-Z",
+        axis_up="Y",
+        apply_scale_options="FBX_SCALE_ALL",
+        bake_space_transform=True,
+        path_mode="AUTO",
+    )
+    scene.frame_start, scene.frame_end = old_start, old_end
+    scene.frame_set(old_frame)
+    print("exported take", action.name, path, path.stat().st_size)
+
+
+def _target(name: str):
+    ob = bpy.data.objects.new(name, None)
+    bpy.context.collection.objects.link(ob)
+    ob.empty_display_type = "PLAIN_AXES"
+    ob.empty_display_size = 0.14
+    return ob
+
+
+def _key_target(ob, frame: float, value):
+    ob.location = value
+    ob.keyframe_insert(data_path="location", frame=frame)
+
+
+def make_batting_action(arm_ob, name: str, poses):
+    """Drive Fenn's own rig to a two-hand grip and authored bat socket path.
+
+    Each pose is (frame, stance_time, grip, handle_to_barrel, torso_z_degrees). IK exists
+    only in this DCC scene; export_take bakes the evaluated Generic bone curves.
+    The shipped runtime receives no constraint or shared-rig Euler dependency.
+    """
+    action = bpy.data.actions.new(name)
+    if arm_ob.animation_data is None:
+        arm_ob.animation_data_create()
+    arm_ob.animation_data.action = action
+    clear_pose(arm_ob)
+
+    grip_target = _target(name + "-grip")
+    barrel_target = _target(name + "-barrel")
+    left_target = _target(name + "-left-hand")
+    right_target = _target(name + "-right-hand")
+    left_pole = _target(name + "-left-elbow")
+    right_pole = _target(name + "-right-elbow")
+    helpers = [grip_target, barrel_target, left_target, right_target, left_pole, right_pole]
+
+    for frame, stance_time, grip_value, direction_value, torso_z in poses:
+        bpy.context.scene.frame_set(frame)
+        for bone_name in ("root", "torso", "head"):
+            bone = arm_ob.pose.bones[bone_name]
+            bone.rotation_mode = "XYZ"
+            bone.rotation_euler = (0.0, 0.0, 0.0)
+            bone.location = (0.0, 0.0, 0.0)
+        grip = Vector(grip_value)
+        direction = Vector(direction_value).normalized()
+        # Hands stack up the handle from its authored grip origin. Their IK
+        # targets are Fenn-local measurements, independent of Rio's arm axes.
+        _key_target(grip_target, frame, grip)
+        _key_target(barrel_target, frame, grip + direction * 3.0)
+        _key_target(right_target, frame, grip + direction * 0.04)
+        _key_target(left_target, frame, grip + direction * 0.20)
+        _key_target(left_pole, frame, (-1.75, 0.02, 1.30))
+        _key_target(right_pole, frame, (1.75, 0.02, 1.30))
+
+        torso = arm_ob.pose.bones["torso"]
+        torso.rotation_mode = "XYZ"
+        torso.rotation_euler = (0.0, 0.0, math.radians(torso_z))
+        head = arm_ob.pose.bones["head"]
+        head.rotation_mode = "XYZ"
+        head.rotation_euler = (0.0, 0.0, math.radians(-torso_z * 0.35))
+        bpy.context.view_layer.update()
+        batting_stance.author_visible_stance(
+            arm_ob, stance_time,
+            chest_front="Belly", chest_center="torsoMesh",
+            eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+            foot_left="lFoot", foot_right="rFoot",
+        )
+        for bone_name in ("root", "torso", "head"):
+            bone = arm_ob.pose.bones[bone_name]
+            bone.rotation_mode = "QUATERNION"
+            bone.keyframe_insert(data_path="rotation_quaternion", frame=frame)
+
+    constraints = []
+    for bone_name, target, pole in (
+        ("lFore", left_target, left_pole),
+        ("rFore", right_target, right_pole),
+    ):
+        ik = arm_ob.pose.bones[bone_name].constraints.new("IK")
+        ik.name = name + "-two-hand-grip"
+        ik.target = target
+        ik.pole_target = pole
+        ik.chain_count = 2
+        ik.iterations = 64
+        ik.use_tail = True
+        constraints.append((arm_ob.pose.bones[bone_name], ik))
+
+    bat = arm_ob.pose.bones["bat"]
+    copy = bat.constraints.new("COPY_LOCATION")
+    copy.name = name + "-grip-origin"
+    copy.target = grip_target
+    copy.target_space = "WORLD"
+    copy.owner_space = "WORLD"
+    constraints.append((bat, copy))
+    track = bat.constraints.new("DAMPED_TRACK")
+    track.name = name + "-barrel-axis"
+    track.target = barrel_target
+    # Package socket contract: local -Y runs from the grip toward the barrel.
+    track.track_axis = "TRACK_NEGATIVE_Y"
+    constraints.append((bat, track))
+    return action, helpers, constraints
+
+
+def export_batting_take(path: Path, arm_ob, name: str, poses, first_frame: int, last_frame: int):
+    action, helpers, constraints = make_batting_action(arm_ob, name, poses)
+    try:
+        for frame, stance_time, *_ in poses:
+            bpy.context.scene.frame_set(frame)
+            bpy.context.view_layer.update()
+            batting_stance.validate_visible_stance(
+                stance_time,
+                chest_front="Belly", chest_center="torsoMesh",
+                eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
+                foot_left="lFoot", foot_right="rFoot",
+            )
+        export_take(path, arm_ob, action, first_frame, last_frame)
+    finally:
+        for bone, constraint in constraints:
+            bone.constraints.remove(constraint)
+        for helper in helpers:
+            bpy.data.objects.remove(helper, do_unlink=True)
+        arm_ob.animation_data.action = None
+        clear_pose(arm_ob)
+
+
 def build(out: Path, albedo: Path, resources: Path | None = None):
-    build_scene()
+    arm_ob = build_scene()
     write_albedo(albedo)
     export_fbx(out)
+    idle, pose = build_actions(arm_ob)
+    idle_path = out.with_name(out.stem + "-idle.fbx")
+    pose_path = out.with_name(out.stem + "-pose.fbx")
+    export_take(idle_path, arm_ob, idle, 1, 25)
+    export_take(pose_path, arm_ob, pose, 1, 10)
+    charge_swing_path = out.with_name(out.stem + "-chargeSwing.fbx")
+    swing_path = out.with_name(out.stem + "-swing.fbx")
+    scene = bpy.context.scene
+    old_fps, old_fps_base = scene.render.fps, scene.render.fps_base
+    scene.render.fps = 100
+    scene.render.fps_base = 1.0
+    # Blender faces +Y; its +Z becomes Unity +Y and +Y becomes Unity -Z. FBX
+    # also reflects X, so these DCC directions pre-reflect the desired Unity
+    # path. The socket still moves only through Fenn's own authored rig.
+    export_batting_take(charge_swing_path, arm_ob, "chargeSwing", [
+        (1, 0.00, (0.02, 0.55, 1.42), (0.18, -0.42, 0.89), 0),
+        (101, 0.00, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
+    ], 1, 101)
+    export_batting_take(swing_path, arm_ob, "swing", [
+        (1, 0.00, (0.20, 0.30, 1.62), (0.18, -0.42, 0.89), -8),
+        (16, 0.15, (0.13, 0.50, 1.50), (0.10, 0.78, 0.62), -3),
+        (25, 0.24, (0.08, 0.65, 1.42), (-0.4315, 0.9022, 0.005), 3),
+        (31, 0.30, (0.06, 0.68, 1.40), (-0.7790, 0.6264, 0.0275), 7),
+        (51, 0.50, (-0.05, 0.55, 1.52), (0.54, 0.78, 0.31), 2),
+    ], 1, 51)
+    scene.render.fps, scene.render.fps_base = old_fps, old_fps_base
     if resources is not None:
         resources.mkdir(parents=True, exist_ok=True)
         shutil.copy2(out, resources / out.name)
         shutil.copy2(albedo, resources / albedo.name)
+        shutil.copy2(idle_path, resources / idle_path.name)
+        shutil.copy2(pose_path, resources / pose_path.name)
+        shutil.copy2(charge_swing_path, resources / charge_swing_path.name)
+        shutil.copy2(swing_path, resources / swing_path.name)
         print("resources", resources)
 
 

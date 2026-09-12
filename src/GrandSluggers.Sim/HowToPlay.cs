@@ -109,6 +109,11 @@ public static class HowToPlay
     public const float KidLineH = 52f;
     /// <summary>IMGUI point size. 24pt vanished at 10 feet.</summary>
     public const int BookLinePt = 36;
+    public const int BookLineMinPt = 32;
+    public const int BookHeaderPt = 38;
+    public const int BookTabPt = 22;
+    public const int BookBadgePt = 18;
+    public const int BookFooterPt = 36;
     /// <summary>Bottom copy band. Must fit KidLineMax at KidLineH.</summary>
     public const float LineBandMul = 4.6f;
 
@@ -116,26 +121,30 @@ public static class HowToPlay
     [
         new("contents", "Contents", "contents",
         [
-            "This is the instruction booklet. Call time (Start) or Esc opens it. The list is the book.",
-            "South next. East back. F6 cycles Player 1 input: Auto, Controller, Keyboard + mouse.",
+            "Call time or Esc opens this instruction booklet.",
         ],
         [
-            "This is the instruction booklet. H or Esc opens it. The list is the book.",
-            "Left click / Space next. Esc / right click back. F6 cycles input. Big type from the couch.",
+            "H or Esc opens this instruction booklet. F6 cycles input.",
         ]),
         new("controls", "Controls", "controls",
         [
             "Green is offense. Red is defense.",
-            "South pitches, swings, catches, throws. Hold LT to charge.",
+            "South pitches, swings, catches, throws. Hold, then release to charge.",
             "Stick runs. D-pad names a bag.",
             "Start calls time. East back.",
         ],
         [
             "Green is offense. Red is defense.",
-            "Space / left click pitches, swings, catches, throws. Hold Shift to charge.",
+            "Space / left click pitches, swings, catches, throws. Hold, then release to charge.",
             "WASD runs. 1 2 3 4 name a bag. Right-drag aims.",
             "H calls time. Esc this book.",
         ]),
+        new("controls-2", "Controls · Field", "controls",
+        ["Hardware controls continue. Green is offense; red is defense."],
+        ["Hardware controls continue. Green is offense; red is defense."]),
+        new("controls-3", "Controls · Game", "controls",
+        ["Hardware controls continue. Green is offense; red is defense."],
+        ["Hardware controls continue. Green is offense; red is defense."]),
         new("roles", "In-game controls", "roles",
         [
             "Four tables: batting, pitching, fielding, running.",
@@ -147,34 +156,49 @@ public static class HowToPlay
             "Verb on the left. What you press on the right.",
             "One scheme at a time.",
         ]),
+        new("roles-batting-2", "Controls · Batting II", "roles",
+        ["Batting verbs and what you press, continued."],
+        ["Batting verbs and what you press, continued."]),
+        new("roles-pitching", "Controls · Pitching", "roles",
+        ["Pitching verbs and what you press."],
+        ["Pitching verbs and what you press."]),
+        new("roles-pitching-2", "Controls · Pitching II", "roles",
+        ["Pitching verbs and what you press, continued."],
+        ["Pitching verbs and what you press, continued."]),
+        new("roles-fielding", "Controls · Fielding", "roles",
+        ["Fielding verbs and what you press."],
+        ["Fielding verbs and what you press."]),
+        new("roles-running", "Controls · Running", "roles",
+        ["Running verbs and what you press."],
+        ["Running verbs and what you press."]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
-            "Tap for a full slap swing. Start before the gold streak reaches home; let the bat come around. Charge to MAX for power.",
-            "One controller: you pitch over the pitcher's shoulder looking at the box. You hit from behind home. The throw does not cut.",
+            "Tap for normal before the gold streak reaches home. Hold/release at MAX for a charge.",
+            "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "West changeup (pitch). Hold West bunt (hit). North + South star. Stick L/R spray.",
-            "A ball past the foul line is a foul. Strike unless you already have two.",
+            "Changeup: hold West, then South. Bunt: hold West. Star: North + South. Spray: stick L/R. Past line: foul; Strike unless two.",
         ],
         [
-            "Tap for a full slap swing. Start before the gold streak reaches home; let the bat come around. Charge to MAX for power.",
-            "You pitch over the pitcher's shoulder looking at the box. You hit from behind home. The throw does not cut.",
+            "Tap for normal before the gold streak reaches home. Hold/release at MAX for a charge.",
+            "Pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
-            "V / Ctrl changeup (pitch). Hold V / Ctrl bunt (hit). Q + Space star.",
-            "A ball past the foul line is a foul. Strike unless you already have two.",
+            "Changeup: hold V/Ctrl, then Space/left click. Bunt: hold V/Ctrl. Star: Q+Space. Spray: A/D. Past line foul; Strike unless two.",
         ]),
         new("the-box", "The box and the rubber", "the-box",
         [
             "Stick L/R walk the rubber (pitch) or the box (hit).",
             "A sitting stick does not walk. Flick from rest.",
-            "The sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
+            "The sweet-spot oval follows the batter, never the pitch. Walk so its center eats the ball.",
             "After the pitch is in the air, stick L/R curve.",
+            "Take outside the white frame: ball. Swing and miss outside: strike.",
             "D-pad 1 2 3 + South pickoff. Select swap a tired pitcher.",
         ],
         [
             "A/D or mouse walk the rubber (pitch) or the box (hit).",
             "Keys already down at SET do not walk. Right-drag is this-frame. A parked cursor is dead.",
-            "The sweet-spot oval on the dirt is smaller than the zone. Walk so it eats the ball.",
+            "The sweet-spot oval follows the batter, never the pitch. Walk so its center eats the ball.",
             "After the pitch is in the air, A/D curve.",
+            "Take outside the white frame: ball. Swing and miss outside: strike.",
             "1 2 3 + Space pickoff. R swap a tired pitcher.",
         ]),
         new("running", "Running", "running",
@@ -194,20 +218,20 @@ public static class HowToPlay
         ]),
         new("fielding", "Fielding", "fielding",
         [
-            "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
-            "The throw is yours: bag + South. Stick still runs with the ball. Outs land on the catch, the throw, a tag, or stepping on a force bag. Force: second when first is on, third when first and second, home when loaded.",
-            "YOU names the glove. Dead stick they still run to the ball. Stick steers. Standing on the ball scoops it. Select swaps — the next glove pulses. Pickup does not end it.",
-            "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
-            "West jump in the window (the circle turns red) — the leap stays up. East dive, the body flies to the ball. North attack. A homer sits on the wall.",
-            "On contact the camera sits at 45°. A fly pulls back. CF is the top. Home is under second.",
+            "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
+            "The throw is yours. Bag + South; stick runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
+            "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
+            "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
+            "West jumps in window; the circle turns red. East dives. North attack. A homer sits on wall.",
+            "Camera is 45°; a fly pulls back. CF is the top. Home is under second.",
         ],
         [
-            "Don't move: the outfielder runs to the landing on a fly and still can catch. The ball hangs. Contact puffs dirt.",
-            "The throw is yours: bag + Space. WASD still runs with the ball. Outs land on the catch, the throw, a tag, or stepping on a force bag. Force: second when first is on, third when first and second, home when loaded.",
-            "YOU names the glove. Don't move: they still run to the ball. WASD steers. Standing on the ball scoops it. R swaps — the next glove pulses. Pickup does not end it.",
-            "After you throw, you are the glove at that bag. Runner on first: throw both to turn two.",
-            "F jump in the window (the circle turns red) — the leap stays up. G dive, the body flies to the ball. B attack. A homer sits on the wall.",
-            "On contact the camera sits at 45°. A fly pulls back. CF is the top. Home is under second.",
+            "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
+            "The throw is yours. Bag + Space; WASD runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
+            "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
+            "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
+            "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
+            "Camera is 45°; a fly pulls back. CF is the top. Home is under second.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
@@ -239,46 +263,55 @@ public static class HowToPlay
         ]),
         new("two-pads", "Two controllers", "exhibition",
         [
-            "Pick 2 PLAYERS on captains. Gamepad 0 is player 1. North picks HOME or AWAY. Gamepad 1 sits the other side.",
+            "Pick 2 PLAYERS on captains. The first controller is player 1. North picks HOME or AWAY. The second controller sits the other side.",
             "Keyboard and mouse are player 1 only.",
-            "Unplug controller 2 and that team is CPU.",
-            "You pitch the top. Friend bats. CPU never bats when both controllers sit.",
+            "If a seated controller drops, play stops. The other controller keeps its team.",
+            "Reconnect it, or press South on an unseated controller to take that seat.",
+            "CPU never bats or pitches while both controllers are seated.",
             "Two controllers: camera stays on the plate, behind home. The fielding controller takes the glove.",
         ],
         [
             "Pick 2 PLAYERS on captains. Keyboard and mouse are player 1 only. A second controller is player 2.",
-            "Q on controller 1 picks HOME or AWAY.",
-            "Unplug controller 2 and that team is CPU.",
-            "You pitch the top. Friend bats. CPU never bats when both controllers sit.",
+            "Player 1: Q picks HOME or AWAY.",
+            "If Player 1's controller drops, play stops. Space / left click takes that seat on keyboard + mouse.",
+            "Player 2 reconnects the same controller, or takes the seat on an unseated controller.",
+            "CPU never bats or pitches while both seats are connected.",
             "Two controllers: camera stays on the plate, behind home. The fielding controller takes the glove.",
         ]),
         new("getting-started", "Getting started", "getting-started",
         [
-            "The pictures are the path. Exhibition is the game. Training is practice.",
-            "South play ball. Esc this book.",
-            "2 PLAYERS on captains sits a friend on controller 2. Unplug and that team is CPU.",
-            "Home bats the bottom. Harbor is the slice.",
+            "The pictures are the path. Exhibition is the game; Training is practice.",
+            "South play ball. Esc this book. 2 PLAYERS seats controller 2; a seat drop pauses. Home bats bottom. Harbor.",
         ],
         [
-            "The pictures are the path. Exhibition is the game. Training is practice.",
-            "Space / left click play ball. Esc this book.",
-            "2 PLAYERS on captains sits a friend on controller 2. Unplug and that team is CPU.",
-            "Home bats the bottom. Harbor is the slice.",
+            "The pictures are the path. Exhibition is the game; Training is practice.",
+            "Space / left click play ball. Esc this book. 2 PLAYERS seats controller 2; a seat drop pauses. Home bats bottom. Harbor.",
+        ]),
+        new("getting-started-modes", "Getting started · Modes", "getting-started",
+        [
+            "Exhibition is the game; Training is practice.",
+            "2 PLAYERS seats controller 2. A seat drop pauses. Home bats bottom. Harbor.",
+        ],
+        [
+            "Exhibition is the game; Training is practice.",
+            "Keyboard + mouse is player 1. 2 PLAYERS seats controller 2. A seat drop pauses.",
         ]),
         new("screen", "The game screen", "exhibition",
         [
-            "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
-            "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. Select swaps.",
-            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Dead stick they still run to the ball.",
-            "ITEM → name when an error item is ready.",
-            "When the play is dead, a stamp names it on the field — BALL, STRIKE, FOUL, WALK, HIT BY PITCH, STRIKE OUT, BUNT, STOLEN BASE, CAUGHT STEALING, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Then SET for the next pitch. Counts are smaller and quicker. Runners still going keep play alive.",
+            "Scorebug: inning, runs, stars; B / S / O.",
+            "Cards: batter AB, pitcher ARM and TIRED. Select swaps.",
+            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "ITEM names an error item.",
+            "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, and homers; then SET starts the next pitch.",
+            "Runners still going keep play alive.",
         ],
         [
-            "Scorebug    inning, runs, stars. B / S / O is balls, strikes, outs.",
-            "Batter card    AB. Pitcher card    ARM. Sweat    TIRED. R swaps.",
-            "The landing ring is a yellow circle on the grass the ball wants. Red in the jump window. YOU names the glove — it stays up. Don't move: they still run to the ball.",
-            "ITEM → name when an error item is ready.",
-            "When the play is dead, a stamp names it on the field — BALL, STRIKE, FOUL, WALK, HIT BY PITCH, STRIKE OUT, BUNT, STOLEN BASE, CAUGHT STEALING, OUT, DOUBLE PLAY, SINGLE, HOME RUN. Then SET for the next pitch. Counts are smaller and quicker. Runners still going keep play alive.",
+            "Scorebug: inning, runs, stars; B / S / O.",
+            "Cards: batter AB, pitcher ARM and TIRED. R swaps.",
+            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "ITEM names an error item.",
+            "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, and homers; then SET starts the next pitch.",
+            "Runners still going keep play alive.",
         ]),
         new("chemistry", "Chemistry", "chemistry",
         [
@@ -310,6 +343,13 @@ public static class HowToPlay
             "Each toy has one field verb. Super Jump / Grow / Lick Catch add range.",
             "The card shows P / B / F / R, the star pitch, the star swing, and the field verb.",
             "Pitchers sweat. R swaps when they are TIRED.",
+        ]),
+        new("abilities-types", "Who you are · Skills", "abilities",
+        [
+            "The four ability types and what each one changes.",
+        ],
+        [
+            "The four ability types and what each one changes.",
         ]),
         new("items", "Error items", "items",
         [
@@ -398,14 +438,14 @@ public static class HowToPlay
     public static (float X, float Y, float W, float H) PictureRect(float screenW, float screenH)
     {
         var p = BookPanel(screenW, screenH);
-        var top = 96f;
+        var top = 108f;
         return (p.X + 16f, p.Y + top, p.W - 32f, 0f);
     }
 
     public static (float X, float Y, float W, float H) TextRect(float screenW, float screenH)
     {
         var p = BookPanel(screenW, screenH);
-        var top = 96f;
+        var top = 108f;
         var foot = 48f;
         return (p.X + 28f, p.Y + top, p.W - 56f, p.H - top - foot);
     }

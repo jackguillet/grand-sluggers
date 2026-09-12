@@ -39,7 +39,7 @@ public class RosterIdentityTests
     }
 
     [Fact]
-    public void SignatureBatIdsAndVisualsAreUnique()
+    public void SignatureLoadoutBatIdsAndVisualsAreUnique()
     {
         var ids = Silhouette.Captains.Select(GearMesh.SignatureBatId).ToList();
         Assert.Equal(Silhouette.Captains.Length, ids.Distinct(StringComparer.OrdinalIgnoreCase).Count());
@@ -52,6 +52,22 @@ public class RosterIdentityTests
         Assert.Equal("bat-brick", GearMesh.BatVisual(_content.Bats["gold-brick"]));
         Assert.Equal("bat-barrel", GearMesh.BatVisual(_content.Bats["barrel-bat"]));
         Assert.Equal("bat-furnace", GearMesh.BatVisual(_content.Bats["furnace-club"]));
+    }
+
+    [Fact]
+    public void EveryPlayableBatterUsesTheCommonHittingBat()
+    {
+        Assert.Equal("bat-wood", GearMesh.CommonHittingBatVisual);
+        Assert.Equal(GearMesh.CommonHittingBatVisual, GearMesh.HittingBatVisual());
+        Assert.Contains(_content.Characters.Values, who => who.Id == "fenn");
+        Assert.Contains(_content.Characters.Values, who => who.Bats == Hand.L);
+        Assert.Contains(_content.Characters.Values, who => who.Bats == Hand.R);
+
+        var selected = _content.Characters.Values
+            .SelectMany(_ => _content.Bats.Values)
+            .Select(_ => GearMesh.HittingBatVisual())
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        Assert.Equal([GearMesh.CommonHittingBatVisual], selected);
     }
 
     [Fact]
@@ -90,5 +106,23 @@ public class RosterIdentityTests
         match.CycleGlove(true);
         Assert.NotEqual(g, match.HomeGlove.Visual);
         Assert.Equal(match.HomeGlove.Visual, GearMesh.GloveVisual(match.HomeGlove));
+    }
+
+    [Fact]
+    public void CyclingLoadoutPreservesItsRulesWithoutChangingTheHittingProp()
+    {
+        var match = Match.Exhibition(_content, "fenn", "rio", seed: 541);
+        Assert.Equal("fen-cane", match.HomeBat.Id);
+        Assert.Equal(1, match.HomeBat.ContactMod);
+        Assert.Equal(-1, match.HomeBat.PowerMod);
+        Assert.False(match.HomeBat.ChargeAlwaysFull);
+        var hittingVisual = GearMesh.HittingBatVisual();
+
+        do match.CycleBat(home: true);
+        while (match.HomeBat.Id != "charge-bat");
+
+        Assert.True(match.HomeBat.ChargeAlwaysFull);
+        Assert.Equal(hittingVisual, GearMesh.HittingBatVisual());
+        Assert.NotEqual(hittingVisual, GearMesh.BatVisual(match.HomeBat));
     }
 }

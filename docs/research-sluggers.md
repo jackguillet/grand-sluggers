@@ -139,7 +139,10 @@ Sluggers mixed three things:
 2. **Shop stat items** that last one game: Nice Bat (+contact), Power Bat, Charge Bat (always full charge), Lucky Glove (fewer errors, stronger arm), Dr. K (throw speed), Dash Spikes, Buddy Badge (chemistry with everyone), Error Booster.
 3. **Error items** used mid-play from chemistry (shells, bananas, POW).
 
-**Steal this, but merge 1 and 2.** Signature bats and gloves are loadout *and* look. Buddy Badge is too strong as a default — keep it as a rare challenge reward, not a draft crutch.
+Grand Sluggers keeps signature bat stats as the loadout, while active batting
+uses one common authored bat for a consistent grip and swing silhouette. Gloves
+remain loadout and look. Buddy Badge is too strong as a default — keep it as a
+rare challenge reward, not a draft crutch.
 
 ## Modes worth copying later
 

@@ -6,6 +6,7 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class ControlDiagram
 {
+    public static readonly IReadOnlyList<string> PageIds = ["controls", "controls-2", "controls-3"];
     public sealed record Part(string Id, float U, float V, float W, float H);
 
     public sealed record Callout(
@@ -20,7 +21,7 @@ public static class ControlDiagram
     public static (float X, float Y, float W, float H) Board(float screenW, float screenH)
     {
         var book = HowToPlay.BookPanel(screenW, screenH);
-        var top = 88f;
+        var top = 108f;
         var foot = 44f;
         return (book.X + 16f, book.Y + top, book.W - 32f, book.H - top - foot - 8f);
     }
@@ -30,6 +31,15 @@ public static class ControlDiagram
 
     public static IReadOnlyList<Callout> Callouts(InputScheme scheme) =>
         scheme == InputScheme.Keys ? KeysCallouts : PadCallouts;
+
+    public static IReadOnlyList<Callout> PageCallouts(InputScheme scheme, string pageId)
+    {
+        var all = Callouts(scheme);
+        var page = Math.Max(0, PageIds.ToList().FindIndex(id => id.Equals(pageId, StringComparison.OrdinalIgnoreCase)));
+        var start = all.Count * page / PageIds.Count;
+        var end = all.Count * (page + 1) / PageIds.Count;
+        return all.Skip(start).Take(end - start).ToArray();
+    }
 
     /// <summary>Two-column list. No tiny schematic.</summary>
     public static (float X, float Y, float W, float H) CalloutCell(
@@ -45,6 +55,16 @@ public static class ControlDiagram
         var cw = (b.W - gap) * 0.5f;
         var rh = Math.Max(56f, (b.H - legend) / rows);
         return (b.X + col * (cw + gap), b.Y + legend + row * rh, cw, rh);
+    }
+
+    public static (float X, float Y, float W, float H) CalloutCell(
+        int index, int count, float screenW, float screenH)
+    {
+        var b = Board(screenW, screenH);
+        const float legend = 40f;
+        var rows = Math.Max(1, count);
+        var rh = (b.H - legend) / rows;
+        return (b.X, b.Y + legend + index * rh, b.W, rh);
     }
 
     public static readonly IReadOnlyList<Part> PadParts =
@@ -68,9 +88,9 @@ public static class ControlDiagram
     [
         new("stick", "Left stick", "L3 steal", "", "Move / run", 0.02f, 0.38f),
         new("dpad", "D-pad", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.56f),
-        new("lt", "LT", "", "", "Charge", 0.02f, 0.20f),
+        new("lt", "LT", "Item modifier", "", "", 0.02f, 0.20f),
         new("lb", "LB / RB", "All advance / return", "Cutoff", "", 0.02f, 0.28f),
-        new("south", "South", "Pitch / swing / dash", "Catch / throw", "", 0.70f, 0.50f),
+        new("south", "South", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.70f, 0.50f),
         new("east", "East", "", "Dive", "Back", 0.70f, 0.40f),
         new("west", "West", "Bunt (hold)", "Changeup / jump", "", 0.70f, 0.30f),
         new("north", "North", "Star swing", "Star pitch / attack", "", 0.70f, 0.20f),
@@ -97,8 +117,8 @@ public static class ControlDiagram
     [
         new("wasd", "WASD", "", "", "Move / run", 0.02f, 0.38f),
         new("bags", "1 2 3 4", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.22f),
-        new("space", "Space / left click", "Pitch / swing / dash", "Catch / throw", "", 0.02f, 0.62f),
-        new("charge", "Shift / right click", "", "", "Charge", 0.02f, 0.50f),
+        new("space", "Space / left click", "Hold/release pitch / swing; dash", "Catch / throw", "", 0.02f, 0.62f),
+        new("charge", "Shift / right click", "Item modifier", "", "", 0.02f, 0.50f),
         new("star", "Q / middle click", "Star swing", "Star pitch / attack", "", 0.72f, 0.20f),
         new("west", "V / Ctrl", "Bunt (hold)", "Changeup", "", 0.72f, 0.32f),
         new("jump", "F / G", "", "Jump / dive", "Back", 0.72f, 0.44f),

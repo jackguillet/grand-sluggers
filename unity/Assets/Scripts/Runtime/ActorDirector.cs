@@ -98,11 +98,23 @@ namespace GrandSluggers.UnityClient
                     else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Scoop;
                     else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
                     else if (_diveT > 0) pose = HeroActor.Pose.Dive;
-                    else if (_preview != null)
+                    else if (_preview != null && _path != null)
                     {
-                        var plant = FieldingResolver.GloveChaseTarget(
-                            _preview, _match.Park, _ball.x, _ball.z, _ball.y, _hitT);
-                        if (CartoonJuice.ChaseIsARun(_caught || _buddy, Diamond.Dist(x, z, plant.X, plant.Z)))
+                        var fromX = x;
+                        var fromZ = z;
+                        if (_heroes.TryGetValue(who.Id, out var moving) && moving != null)
+                        {
+                            fromX = moving.transform.position.x;
+                            fromZ = moving.transform.position.z;
+                        }
+                        var speed = FieldingResolver.ChaseSpeedFt(who, _preview.Frozen);
+                        var route = FieldingPursuit.Plan(
+                            _preview, _match.Park, _path,
+                            _pending != null ? _pending.SprayDeg : 0,
+                            LiveTime, fromX, fromZ, speed);
+                        if (CartoonJuice.ChaseIsARun(
+                                _caught || _buddy,
+                                Diamond.Dist(fromX, fromZ, route.X, route.Z)))
                             pose = HeroActor.Pose.Run;
                         else
                             pose = FieldPose(who, _preview, false);
@@ -133,8 +145,8 @@ namespace GrandSluggers.UnityClient
                     pose = HeroActor.Pose.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = HeroActor.Pose.Catch;
-                if (_gun && kv.Key == "C" && !_gunPickoff) pose = HeroActor.Pose.Throw;
-                if (_gun && kv.Key == "P" && _gunPickoff) pose = HeroActor.Pose.Throw;
+                if (_gun && kv.Key == "C" && !_gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
+                if (_gun && kv.Key == "P" && _gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
@@ -156,7 +168,7 @@ namespace GrandSluggers.UnityClient
                         : new Vector3((float)-x, 0, (float)-z + 8f);
                 if (_throwing && (highlighted || kv.Key == _throwFromPos))
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
-                if (_gun && ((kv.Key == "C" && !_gunPickoff) || (kv.Key == "P" && _gunPickoff)))
+                if (_gun && ((kv.Key == "C" && !_gunThrowFromPitcher) || (kv.Key == "P" && _gunThrowFromPitcher)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
                 if (pose == HeroActor.Pose.ThrowPitch && _phase == Phase.Flight)
@@ -169,10 +181,15 @@ namespace GrandSluggers.UnityClient
             {
                 var bHero = Hero(batter);
                 var racing = _phase == Phase.InPlay && _pending != null;
-                var stillSwing = racing && _hitT < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
+                var stillSwing = racing && LiveTime < 0.40f && _swing != null && _swing.Swing && !_swing.Bunt;
                 var bPose = racing ? (stillSwing ? HeroActor.Pose.Swing : HeroActor.Pose.Run) : BatterPose();
-                bHero.SetPose(bPose, HumanBats ? _charge : 0);
-                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats ? _charge : 0f);
+                // Use the committed charge after release, including CPU swings.
+                var swingCharge = bPose == HeroActor.Pose.Swing && _swing != null
+                    ? (float)_swing.Charge01
+                    : HumanBats ? _charge : 0f;
+                bHero.SetPose(bPose, swingCharge);
+                bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _swingButton.Armed
+                    ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
                     or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
@@ -186,8 +203,10 @@ namespace GrandSluggers.UnityClient
                     var kind = LiveKind();
                     var dest = InPlay.BatterDestBag(kind);
                     if (dest <= 0) dest = 1;
-                    var feet = InPlay.RunFeet(_hitT, batter, _dash01);
-                    var (hx, hz) = InPlay.AlongBases(feet, dest, HomeSet.BatterX, HomeSet.BatterZ);
+                    var feet = InPlay.RunFeet(LiveTime, batter, _dash01);
+                    var startX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
+                    var (hx, hz) = InPlay.AlongBases(feet, dest,
+                        startX, HomeSet.BatterZ);
                     var look = dest >= 2 && feet > Diamond.Baseline
                         ? Diamond.Bag(Math.Min(dest, 3))
                         : Diamond.First;
@@ -195,7 +214,7 @@ namespace GrandSluggers.UnityClient
                 }
                 else
                     bHero.Place(new Vector3(
-                        (float)(HomeSet.BatterX + _match.BatterOffsetX * HomeSet.BatterWalk),
+                        (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
                 if (bPose == HeroActor.Pose.Swing && _phase == Phase.Flight && _swing != null)
@@ -229,7 +248,7 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.Hide();
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
-            _zone.Show(SetTells.ZoneOn(setOrFlight), _aimX, _aimY);
+            _zone.Show(SetTells.ZoneOn(setOrFlight), BatterCursorX, 0);
             _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
 
             Character fielder = null;
@@ -312,7 +331,7 @@ namespace GrandSluggers.UnityClient
             {
                 var kind = LiveKind();
                 var dest = InPlay.OccupiedDestBag(bagNum, kind, _match.SendAll, _caught || _buddy);
-                var feet = InPlay.RunFeet(_hitT, who);
+                var feet = InPlay.RunFeet(LiveTime, who);
                 var at = InPlay.TowardBag(bagNum, dest, feet);
                 spot = (at.X, at.Z);
                 var tagBag = dest > bagNum ? dest : bagNum + 1;
@@ -458,11 +477,15 @@ namespace GrandSluggers.UnityClient
             _gunFromBag = fromBag;
             _gunLead = lead;
             _gunSafe = ev.Kind == PlayKind.StolenBase;
-            _gunPickoff = ev.Caption != null && ev.Caption.IndexOf("picked off", System.StringComparison.OrdinalIgnoreCase) >= 0;
-            _gunToBag = _gunPickoff ? fromBag : Baserunning.StealTarget(fromBag);
+            var outcome = ev.Outcome;
+            _gunPickoff = outcome?.RunnerResult == RunnerPlayResult.PickedOff;
+            _gunToBag = outcome?.RunnerToBag ?? Baserunning.StealTarget(fromBag);
             if (_gunToBag <= 0) _gunToBag = fromBag;
-            var origin = _gunPickoff ? Diamond.Rubber : Diamond.Positions["C"];
-            var dest = Diamond.Bag(_gunToBag);
+            _gunThrowFromPitcher = outcome?.ThrowEndpoint?.Origin == ThrowOrigin.PitcherRubber;
+            _gunThrowToBag = outcome?.ThrowEndpoint?.DestinationBag ?? _gunToBag;
+            if (_gunThrowToBag <= 0) _gunThrowToBag = _gunToBag;
+            var origin = _gunThrowFromPitcher ? Diamond.Rubber : Diamond.Positions["C"];
+            var dest = Diamond.Bag(_gunThrowToBag);
             _gunFrom = new Vector3((float)origin.X, 3.4f, (float)origin.Z);
             _gunTo = new Vector3((float)dest.X, 1.2f, (float)dest.Z);
             var thr = ev.Throw;

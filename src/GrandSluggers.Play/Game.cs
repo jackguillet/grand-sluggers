@@ -48,6 +48,7 @@ public sealed class Game : IDisposable
     bool _playerFielding;
     bool _caught;
     bool _buddyJump;
+    bool _catchJump;
     bool _frozenSlow;
     bool _itemArmed;
 
@@ -242,6 +243,7 @@ public sealed class Game : IDisposable
         _playerFielding = false;
         _caught = false;
         _buddyJump = false;
+        _catchJump = false;
         _trail.Clear();
         _starArmed = false;
         _banner = "";
@@ -292,6 +294,7 @@ public sealed class Game : IDisposable
 
     void LaunchPitch(PitchCommand pitch)
     {
+        pitch = _match.PreparePitch(pitch);
         _pitch = pitch;
         var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
         _pitchDur = (float)PitchFlight.AirSeconds(mph);
@@ -308,24 +311,10 @@ public sealed class Game : IDisposable
     {
         _flightAge += dt;
         var u = Math.Clamp(_flightAge / _pitchDur, 0, 1);
-        var p = PitchFlight.Point(_pitch!.Type, u, _pitch.AimX, _pitch.AimY);
+        var p = PitchFlight.Point(_pitch!, u, _match.Pitcher.StarPitch);
         var x = (float)p.X;
         var y = (float)p.Y;
         var z = (float)p.Z;
-        if (_pitch.Star)
-        {
-            x += _match.Pitcher.StarPitch switch
-            {
-                "heatball" => MathF.Sin(u * 18) * 0.4f,
-                "prismball" => MathF.Sin(u * 24) * 1.8f,
-                "charmball" => MathF.Sin(u * 9) * 0.7f,
-                "phonyball" => u > 0.55f ? 2.4f : -0.5f,
-                "skullball" => MathF.Sin(u * 6) * 0.3f,
-                _ => 0
-            };
-            if (_match.Pitcher.StarPitch == "caskball")
-                y += 0.55f * u;
-        }
         _ball = new Vector3(x, y, z);
         _trail.Add(_ball);
         if (_trail.Count > 24) _trail.RemoveAt(0);
@@ -352,7 +341,7 @@ public sealed class Game : IDisposable
         if (_playerSwung && _swing is not null) return _swing;
         if (HumanBats)
             return new SwingCommand(false, _charge, 12, false);
-        var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch);
+        var inZone = AtBatResolver.PitchInZone(_pitch!, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch);
         return _match.CpuSwing(_pitch!, inZone, vsHumanPitcher: HumanPitches);
     }
 
@@ -382,6 +371,7 @@ public sealed class Game : IDisposable
             _playerFielding = true;
             _caught = false;
             _buddyJump = false;
+            _catchJump = false;
             StartFly(hit, playerField: true);
             return;
         }
@@ -439,6 +429,7 @@ public sealed class Game : IDisposable
             if (FlyCatch.PlayerCaught(jumpTry, field.ConfirmPressed, under, inWin, needsJump))
             {
                 _caught = true;
+                if (jumpTry) _catchJump = true;
                 if (FieldingResolver.BuddyJumpOffered(pre) && inWin)
                     _buddyJump = true;
             }
@@ -464,8 +455,11 @@ public sealed class Game : IDisposable
                 FieldingResult result;
                 var caught = _buddyJump || _caught;
                 var kind = FlyCatch.PlayerKind(caught, pre, hit);
+                var feat = kind == PlayKind.FlyOut
+                    ? FieldingResolver.PlayerCatchFeat(pre, _match.Park, _buddyJump, _catchJump)
+                    : DefensiveFeat.None;
                 result = new FieldingResult(kind, pre.Fielder, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ,
-                    pre.Heatball, pre.Furnace, caught ? thr : null, pre.Buddy, pre.Warped);
+                    pre.Heatball, pre.Furnace, caught ? thr : null, pre.Buddy, pre.Warped, Feat: feat);
 
                 result = _match.ApplyOffenseItem(hit, result, null);
                 _last = _match.FinishAtBat(_pitch!, _swing!, hit, result);
@@ -510,7 +504,7 @@ public sealed class Game : IDisposable
         PlayKind.Walk => "WALK",
         PlayKind.HitByPitch => "HIT BY PITCH",
         PlayKind.Strikeout => "STRIKE OUT",
-        PlayKind.FlyOut when ev.Caption.Contains("BUDDY") => "BUDDY JUMP",
+        PlayKind.FlyOut when ev.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump => "BUDDY JUMP",
         PlayKind.FlyOut => "OUT",
         PlayKind.GroundOut => "OUT",
         PlayKind.Foul => "FOUL",

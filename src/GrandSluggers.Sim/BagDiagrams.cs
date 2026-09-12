@@ -21,7 +21,7 @@ public static class BagDiagrams
         Kind.BagMap,
         "Name a bag",
         "D-PAD",
-        "1  2  3  4  ·  CLICK A QUADRANT",
+        "1  2  3  4\nCLICK A QUADRANT",
         []);
 
     public static readonly Diagram Advance = new(
@@ -52,7 +52,7 @@ public static class BagDiagrams
         "Tag",
         "TOUCH OFF THE BAG",
         "TOUCH OFF THE BAG",
-        "Have the ball and touch a runner off a bag. On a bag they are safe. Force still needs a throw.");
+        "Glove: touch a runner off a bag to tag. On bag: safe. Force: throw.");
 
     public static readonly IReadOnlyList<Callout> Callouts = [ClosePlay, Tag];
 
