@@ -358,7 +358,6 @@ public sealed class CpuPitcherRules
     /// <summary>The CPU walks the rubber before this share of pitches (a real verb: the batter may mistrack, §5.9).</summary>
     [Chance] public double RubberWalkChance { get; init; } = 0.35;
     [Chance] public double RubberWalkMax { get; init; } = 0.4;
-    public CpuPickoffRules Pickoff { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
     {
@@ -396,16 +395,6 @@ public sealed class CpuPitchLocations
     public double MiddleInFt { get; init; } = 0.35;
     /// <summary>A middle target varies its height by ± this.</summary>
     public double MiddleYSpreadFt { get; init; } = 0.5;
-}
-
-/// <summary>Random pickoff on a walking lead. Retired by D1 / D3 (P6); the numbers live here until then.</summary>
-public sealed class CpuPickoffRules
-{
-    [Chance] public double LeadMin { get; init; } = 0.2;
-    public double RiskPerLead { get; init; } = 0.42;
-    public double ReturningMul { get; init; } = 0.18;
-    public double RiskPerStatDiff { get; init; } = 0.02;
-    [Chance] public double MaxRisk { get; init; } = 0.72;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -811,7 +800,6 @@ public sealed class FieldingRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
-        RulesValidation.Order(source, "fielding.throw.flightMinSec", Throw.FlightMinSec, Throw.FlightMaxSec, errors);
     }
 }
 
@@ -946,10 +934,6 @@ public sealed class ThrowRules
     public double ReleaseSec { get; init; } = 0.22;
     [Positive] public double BaseFtPerSec { get; init; } = 56;
     [Positive] public double MinFtPerSec { get; init; } = 32;
-    [Positive] public double FlightBaseSec { get; init; } = 1.12;
-    [Positive] public double FlightMinMul { get; init; } = 0.45;
-    [Positive] public double FlightMinSec { get; init; } = 0.55;
-    [Positive] public double FlightMaxSec { get; init; } = 1.55;
     public double HandHeightFt { get; init; } = 3.2;
     public double BagHeightFt { get; init; } = 1.2;
 }
@@ -1018,42 +1002,39 @@ public sealed class ParkHazardRules
 
 public sealed class RunningRules
 {
-    public HomeToFirstRules HomeToFirst { get; init; } = new();
-    public BagToBagRules BagToBag { get; init; } = new();
+    /// <summary>The one speed formula for every runner and every segment (spec §9.1).</summary>
+    public BagSecRules BagSec { get; init; } = new();
     public BagRules Bags { get; init; } = new();
     public ClosePlayRules Close { get; init; } = new();
     public StealRules Steal { get; init; } = new();
-    public TagUpRules TagUp { get; init; } = new();
     public RunStickRules Stick { get; init; } = new();
     public DashRules Dash { get; init; } = new();
     public CpuRunnerRules Cpu { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
     {
-        RulesValidation.Order(source, "running.homeToFirst.minSec", HomeToFirst.MinSec, HomeToFirst.MaxSec, errors);
-        RulesValidation.Order(source, "running.bagToBag.minSec", BagToBag.MinSec, BagToBag.MaxSec, errors);
+        RulesValidation.Order(source, "running.bagSec.minSec", BagSec.MinSec, BagSec.MaxSec, errors);
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.OccupyRadiusFt, errors);
+        RulesValidation.Order(source, "running.bags.slideReachCutFt", Bags.SlideReachCutFt, Bags.TagReachFt, errors);
     }
 }
 
-public sealed class HomeToFirstRules
-{
-    [Positive] public double BaseSec { get; init; } = 4.32;
-    public double SecPerRun { get; init; } = 0.13;
-    [Positive] public double MinSec { get; init; } = 2.9;
-    [Positive] public double MaxSec { get; init; } = 4.35;
-    [Chance] public double DashMul { get; init; } = 0.12;
-    [Positive] public double FloorSec { get; init; } = 2.45;
-    /// <summary>Guard against a zero run time when positioning a runner along the path.</summary>
-    [Positive] public double RunFeetMinSec { get; init; } = 0.4;
-}
-
-public sealed class BagToBagRules
+/// <summary>
+/// Seconds per 90 ft bag-to-bag: <c>baseSec − Run × secPerRun</c>, clamped (spec §9.1). Every runner,
+/// including the batter-runner, runs every segment on it; the batter starts <see cref="BatterStartSec"/>
+/// after contact from the box. Dash ×(1 + dashMul) at full mash (§9.4).
+/// </summary>
+public sealed class BagSecRules
 {
     [Positive] public double BaseSec { get; init; } = 3.55;
     public double SecPerRun { get; init; } = 0.12;
     [Positive] public double MinSec { get; init; } = 2.45;
     [Positive] public double MaxSec { get; init; } = 3.65;
+    [Chance] public double DashMul { get; init; } = 0.12;
+    /// <summary>The batter-runner leaves the box this long after contact (reference: 31 frames).</summary>
+    public double BatterStartSec { get; init; } = 0.5;
+    /// <summary>A trailing runner stops this far behind the runner ahead; runners never pass (§9.1).</summary>
+    [Positive] public double NoPassFt { get; init; } = 27;
 }
 
 public sealed class BagRules
@@ -1064,6 +1045,12 @@ public sealed class BagRules
     [Positive] public double TimeOnBagSec { get; init; } = 1.0;
     /// <summary>Inside this of the end of a segment the runner is placed on the bag.</summary>
     public double SnapFt { get; init; } = 0.5;
+    /// <summary>A runner stopping at the next bag slides over its last feet when a tag is threatened (§9.4).</summary>
+    [Positive] public double SlideFt { get; init; } = 12;
+    /// <summary>A tag is threatened when a glove with the ball is inside this of the bag, or a throw is armed there.</summary>
+    [Positive] public double SlideThreatFt { get; init; } = 20;
+    /// <summary>A slide shrinks the tag reach by this much; it does not change the arrival (§9.4).</summary>
+    public double SlideReachCutFt { get; init; } = 2;
 }
 
 public sealed class ClosePlayRules
@@ -1075,24 +1062,16 @@ public sealed class ClosePlayRules
     public double CpuReactionPerStat { get; init; } = 0.032;
 }
 
-/// <summary>Lead-as-time-credit steal race as shipped (spec A.6 #61). D2 replaces it with a break at release (P6).</summary>
+/// <summary>The steal race as shipped, from the bag (D1: no lead credit). D2 replaces it with a break at release (P6).</summary>
 public sealed class StealRules
 {
     public double JumpBaseSec { get; init; } = 0.62;
-    public double JumpPerLeadSec { get; init; } = 1.08;
     [Positive] public double RemainMinSec { get; init; } = 0.58;
     public double ReturnBaseSec { get; init; } = 0.62;
-    public double ReturnPerLeadSec { get; init; } = 0.92;
     public double ReturnPerRunDeficitSec { get; init; } = 0.06;
     [Positive] public double ReturnMinSec { get; init; } = 0.42;
-    [Chance] public double ArmedLeadMin { get; init; } = 0.2;
     /// <summary>The steal phase gives up and commits when nobody has thrown by this long past the runner's arrival.</summary>
     public double NoThrowRemainSec { get; init; } = 1.6;
-}
-
-public sealed class TagUpRules
-{
-    public double SacFlyCarryFt { get; init; } = 230;
 }
 
 /// <summary>Mash South to dash (§9.4): each press adds this, to the cap.</summary>
@@ -1108,13 +1087,41 @@ public sealed class RunStickRules
     [Chance] public double DiamondDeadMag2 { get; init; } = 0.55;
 }
 
-/// <summary>The CPU steal roll as shipped inside the swing (spec A.1 #20). §11.6 moves it to a runner table (P6).</summary>
+/// <summary>
+/// The CPU baserunner (spec §9.9): decisions at contact, at every fielder touch, at every throw
+/// release and at every bag, from <c>margin(next) = throwArrival(next) − runnerArrival(next)</c>.
+/// The steal roll is still the SET roll as shipped; §11.6 moves it to the runner AI (P6).
+/// </summary>
 public sealed class CpuRunnerRules
 {
+    /// <summary>The defense's reaction before a throw in the runner's estimate.</summary>
+    public double ReactionSec { get; init; } = 0.35;
+    /// <summary>Unforced on a grounder to the infield: go if margin(next) is at least this and the ball is not in front.</summary>
+    public double GroundGoMarginSec { get; init; } = 0.4;
+    /// <summary>Runner on third, grounder, fewer than two outs: go if the fielder is this far from home (infield back) …</summary>
+    public double InfieldBackFt { get; init; } = 110;
+    /// <summary>… or margin(home) is at least this.</summary>
+    public double ThirdHomeMarginSec { get; init; } = 0.3;
+    /// <summary>Hit to the outfield: go if margin(next) is at least outfieldGoSec − Run × outfieldGoPerRunSec.</summary>
+    public double OutfieldGoSec { get; init; } = 0.5;
+    public double OutfieldGoPerRunSec { get; init; } = 0.03;
+    /// <summary>With two outs the outfield threshold drops by this (go more).</summary>
+    public double TwoOutsGoBonusSec { get; init; } = 0.3;
+    /// <summary>The batter-runner rounds first for second if margin(2B) is at least roundFirstSec − Run × roundFirstPerRunSec.</summary>
+    public double RoundFirstSec { get; init; } = 0.6;
+    public double RoundFirstPerRunSec { get; init; } = 0.03;
+    /// <summary>Trailing by at least this in the last inning: every threshold drops by desperateSec.</summary>
+    public int DesperateTrailRuns { get; init; } = 3;
+    public double DesperateSec { get; init; } = 0.2;
+    /// <summary>A runner already this far along a segment keeps going rather than turning back.</summary>
+    [Chance] public double CommitFraction { get; init; } = 0.4;
+    /// <summary>Runner on third tags on a caught fly this deep with fewer than two outs.</summary>
+    public double TagThirdMinCarryFt { get; init; } = 200;
+    /// <summary>Runner on second tags for third on a caught fly to right this deep.</summary>
+    public double TagSecondMinCarryFt { get; init; } = 250;
+    /// <summary>The SET steal roll as shipped (spec A.1 #20). §11.6 moves it to a runner table (P6).</summary>
     public int StealMinRun { get; init; } = 7;
     [Chance] public double StealChance { get; init; } = 0.16;
-    [Chance] public double StealLeadMin { get; init; } = 0.45;
-    [Chance] public double StealLeadSpan { get; init; } = 0.35;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1172,12 +1179,12 @@ public sealed class CpuRules
     public string Level { get; init; } = "normal";
     public CpuLevelRules Easy { get; init; } = new()
     {
-        TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03
+        TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03, RunnerMarginSec = 0.15
     };
     public CpuLevelRules Normal { get; init; } = new();
     public CpuLevelRules Hard { get; init; } = new()
     {
-        TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10
+        TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10, RunnerMarginSec = -0.15
     };
 
     public CpuLevelRules Active => Level.ToLowerInvariant() switch
@@ -1208,4 +1215,6 @@ public sealed class CpuLevelRules
     [Chance] public double PerfectStealChance { get; init; } = 0.2;
     /// <summary>Pickoff attempt chance per SET with a runner on (§4.8). Read by P6.</summary>
     [Chance] public double PickoffChance { get; init; } = 0.06;
+    /// <summary>Added to every CPU baserunner threshold (§9.9): easy hesitates, hard goes.</summary>
+    [Signed] public double RunnerMarginSec { get; init; } = 0;
 }

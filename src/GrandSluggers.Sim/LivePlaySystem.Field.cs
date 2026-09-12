@@ -14,7 +14,13 @@ public sealed record LivePadInput(
     bool Attack = false,
     int KeysBag = 0,
     int StickBag = 0,
-    int ArrowBag = 0)
+    int ArrowBag = 0,
+    /// <summary>LB held on the offense pad: every runner goes (§9.3); before the catch, tag and go (§9.5).</summary>
+    bool AllAdvance = false,
+    /// <summary>RB held on the offense pad: every runner comes back. A tap while they run halts them.</summary>
+    bool AllReturn = false,
+    /// <summary>Both shoulders: halt every runner; with the stick toward a bag, only that runner.</summary>
+    bool Freeze = false)
 {
     public static LivePadInput Dead { get; } = new();
 
@@ -271,10 +277,14 @@ public sealed partial class LivePlaySystem
         _wallCued = false;
         _relayBags = null;
         _relayI = 0;
+        _relayFired = false;
+        _heldThrowBag = 0;
+        _heldThrowFrom = "";
         AwaitingRelay = false;
         InClosePlay = false;
         CloseIcon = false;
         CloseBag = 0;
+        _closeRunner = null;
         _closePlayT = 0;
         _closeOffAt = _closeDefAt = -1;
         Dash01 = 0;
@@ -315,8 +325,10 @@ public sealed partial class LivePlaySystem
         // Dash: mash South on the offense pad (running.dash).
         if (run.SouthDown) Dash01 = Math.Min(R.Running.Dash.MaxDash, Dash01 + R.Running.Dash.PerPress);
         _match.Dash01 = Dash01;
+        // The offense pad's runner verbs (§9.3): the seat that owns the runners is the only one that reaches them.
+        if (Seats.HumanRuns) ApplyRunPad(run);
 
-        Advance(LivePlayCommand.Advance(dt, LiveKind(), HoldsBall, Throwing, HoldsBall, Dash01, command.Source));
+        Advance(LivePlayCommand.Advance(dt, LiveKind(), HoldsBall, Throwing, HoldsBall, Dash01, command.Source, PlayFielder()));
 
         var bobble = R.Fielding.Bobble;
         if (Bobbling)
@@ -438,7 +450,9 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         var hang = Hang;
         var rest = Rest;
-        var chasing = !HoldsBall && (pre.Grounder || pre.Line ? ElapsedSeconds < rest : ElapsedSeconds < hang);
+        // A ball not yet in a glove is chased, on the grass after a drop or a carom as much as before the landing (§7.6, §7.8).
+        var chasing = !HoldsBall;
+        var onTheGround = !pre.Grounder && !pre.Line && ElapsedSeconds >= hang;
         var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
         var needsJump = FlyCatch.NeedsJump(pre);
         var plant = FlyCatch.ChaseTarget(pre, Park, R);
@@ -530,7 +544,7 @@ public sealed partial class LivePlaySystem
 
         var window = CatchWindow(map);
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
-        if (pre.Grounder || pre.Line)
+        if (pre.Grounder || pre.Line || onTheGround)
         {
             if (FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, window, R))
             {
@@ -597,7 +611,7 @@ public sealed partial class LivePlaySystem
         if (AwaitingRelay)
         {
             if (ThrowBag <= 0) ThrowBag = 1;
-            var batterIn = ElapsedSeconds >= InPlay.HomeToFirstSec(_match.Batter, Dash01, R);
+            var batterIn = _match.BatterRunner is not { Live: true, Bag: 0 };
             if (!pad.SouthDown && !batterIn)
                 return null;
             AwaitingRelay = false;
@@ -607,11 +621,6 @@ public sealed partial class LivePlaySystem
         }
 
         if (buddyOn && !Buddy && ElapsedSeconds < hang + catchRules.BuddyJumpHoldSec) return null;
-        if (pre.Grounder || pre.Line)
-        {
-            if (!Caught && ElapsedSeconds < rest) return null;
-        }
-        else if (!HoldsBall && ElapsedSeconds < hang) return null;
         if (HoldsBall)
         {
             SwitchPos = "";
@@ -626,7 +635,10 @@ public sealed partial class LivePlaySystem
                 return Commit();
             return null;
         }
-        return BeginPlayerThrowOrCommit(map, pad);
+        // Loose: a drop, a miss, or a carom is live (§7.6, §7.8, §7.9); the runners run and the glove chases until Time.
+        if (InPlay.HasDeadBallResult(LiveKind())) return null;
+        if (IsTime()) return Commit();
+        return null;
     }
 
     void TryTakeGlove(LivePadInput pad)
@@ -726,8 +738,9 @@ public sealed partial class LivePlaySystem
         {
             if (StartGroundRelays()) return null;
         }
-        else if (outPlay && cpu.Throw is not null)
+        else if (outPlay && cpu.Throw is not null && !_relayFired)
         {
+            _relayFired = true;
             ArmedThrow = cpu.Throw;
             ArmedCut = cpu.Cutoff;
             BeginThrow(cpu.Throw, cpu.Cutoff, 0);
@@ -737,7 +750,119 @@ public sealed partial class LivePlaySystem
         if (effectInFlight) return null;
         if (IsTime())
             return Commit();
+        // Holding a live ball with a runner going, or on the grass (§8.8 rule 5, §10.6): throw ahead of the lead runner.
+        if (HoldsBall && !Throwing && RecoilT <= 0 && CpuHoldThrow()) return null;
         return null;
+    }
+
+    bool _relayFired;
+
+    /// <summary>
+    /// The CPU glove holding a ball nobody is out on (§8.8 rule 5): throw to the bag ahead of the
+    /// lead runner who is going; with everyone standing, an outfielder throws in to the bag ahead
+    /// of the lead runner so an infielder holds it for Time (§10.6). An infielder with nobody
+    /// running holds. P4 replaces this with the full decision table by makeable margins.
+    /// </summary>
+    bool CpuHoldThrow()
+    {
+        var going = Runners.Where(r => r.Live && r.Advancing).OrderByDescending(r => r.Progress).FirstOrDefault();
+        int bag;
+        if (going is not null) bag = going.DestBag;
+        else if (!InPlay.HeldInInfield(GloveX, GloveZ, R))
+        {
+            var lead = Runners.Where(r => r.Live).OrderByDescending(r => r.Progress).FirstOrDefault();
+            bag = lead is null ? 2 : Math.Min(4, lead.Bag + 1);
+            if (bag == 4 && lead is { Bag: 3 }) bag = 3;
+        }
+        else return false;
+        if (bag is < 1 or > 4) return false;
+        if (_heldThrowBag == bag && _heldThrowFrom == GlovePos) return false; // one throw per possession to a bag
+        var map = Assigned();
+        map.TryGetValue(FieldAssist.CoverKey(bag), out var cut);
+        var from = map.TryGetValue(GlovePos, out var glove) ? glove : PlayFielder();
+        if (cut is null || cut.Id == from.Id) return false;
+        var thr = _match.ThrowBetween(from, cut);
+        ArmedThrow = thr;
+        ArmedCut = cut;
+        _heldThrowBag = bag;
+        _heldThrowFrom = GlovePos;
+        BeginThrow(thr, cut, bag);
+        return true;
+    }
+
+    int _heldThrowBag;
+    string _heldThrowFrom = "";
+
+    /// <summary>The runner AI's read of the ball this frame (§9.9): who has it or will, and when.</summary>
+    RunnerAiContext AiContext(double dash01)
+    {
+        BallSituation ball;
+        var carry = Hit?.CarryFt ?? 0;
+        if (Throwing)
+        {
+            var to = Diamond.Bag(ThrowBag);
+            ball = new BallSituation(false, true, ThrowBag, ElapsedSeconds + Math.Max(0, ThrowDur - ThrowT), to.X, to.Z,
+                ElapsedSeconds, FieldingResolver.OutfieldGrass(GloveX, GloveZ, R), BallX, BallZ, carry);
+        }
+        else if (HoldsBall || Path is null || Preview is null)
+        {
+            var onGrass = Path is null ? PlayKind is PlayKind.Double or PlayKind.Triple : FieldingResolver.OutfieldGrass(GloveX, GloveZ, R);
+            ball = new BallSituation(HasBall, false, 0, 0, GloveX, GloveZ, ElapsedSeconds, onGrass, GloveX, GloveZ, carry);
+        }
+        else
+        {
+            var map = Assigned();
+            var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
+            var speed = FieldingResolver.ChaseSpeedFt(who, Preview.Frozen, R);
+            var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R);
+            var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(Rest, ElapsedSeconds + route.TravelTimeSec);
+            ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
+                FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
+        }
+        var trailing = _match.Inning >= _match.Innings
+            ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
+            : int.MinValue;
+        // The outs the runner reads are the count at contact: the two-out contact play does not begin when the batter is retired mid-play.
+        return new RunnerAiContext(ElapsedSeconds, OutsAtOpen, trailing, Fly, ball, dash01);
+    }
+
+    /// <summary>
+    /// The offense pad on the bodies (§9.3): D-pad selects, LB / RB / both send, return, halt every
+    /// runner, the stick sends or returns the selected one, a tap of the opposite shoulder halts.
+    /// </summary>
+    void ApplyRunPad(LivePadInput run)
+    {
+        var m = _match;
+        if (run.KeysBag is >= 1 and <= 4) m.SelectRunner(run.KeysBag);
+        var advDown = run.AllAdvance && !_prevRun.AllAdvance;
+        var retDown = run.AllReturn && !_prevRun.AllReturn;
+        if (run.Freeze)
+        {
+            var named = run.StickBag > 0 ? Runners.FirstOrDefault(r => r.Live && (r.NextBag == run.StickBag || r.Bag == run.StickBag)) : null;
+            if (named is not null) m.HaltAt(named.FromBag);
+            else m.FreezeRunners();
+        }
+        else if (run.AllAdvance)
+        {
+            if (advDown && Runners.Any(r => r.Live && r.Phase == RunnerPhase.Returning))
+                foreach (var r in Runners.Where(r => r.Live && r.Phase == RunnerPhase.Returning)) r.Halt();
+            else m.AdvanceAll();
+        }
+        else if (run.AllReturn)
+        {
+            if (retDown && Runners.Any(r => r.Live && r.Advancing && r.Feet > 0))
+                foreach (var r in Runners.Where(r => r.Live && r.Advancing)) r.Halt();
+            else m.ReturnAll();
+        }
+        var sel = m.SelectedState;
+        if (sel is not null && run.StickBag > 0 && !run.Freeze)
+        {
+            if (run.StickBag == sel.NextBag && sel.Bag < 4) m.SendRunnerAt(sel.FromBag);
+            else if (run.StickBag == sel.Bag || run.StickBag == Baserunning.PrevBag(Math.Max(1, sel.Bag))) m.ReturnToBagAt(sel.FromBag);
+        }
+        if ((run.WestDown || run.SouthDown) && sel is not null && sel.FeetTo(sel.NextBag) <= R.Running.Bags.SlideFt)
+            sel.RequestSlide();
+        _prevRun = run;
     }
 
     void ChaseGlove(double dt, FieldingPreview pre)
@@ -962,7 +1087,7 @@ public sealed partial class LivePlaySystem
     }
 
     int DefaultBag() =>
-        ForceRecorded ? 1 : InPlay.DefaultGroundBag(_match.First is not null, _match.Second is not null, _match.Third is not null);
+        ForceRecorded ? 1 : InPlay.DefaultGroundBag(_match.First is not null, _match.RunnerAt(2)?.Advancing == true, _match.RunnerAt(3)?.Advancing == true);
 
     LivePlayCommandResult? BeginPlayerThrowOrCommit(Dictionary<string, Character> map, LivePadInput pad)
     {
@@ -1017,7 +1142,11 @@ public sealed partial class LivePlaySystem
             ? (at.X, at.Z)
             : BagXZ(bag);
         ThrowTo = (to.X, throwRules.BagHeightFt, to.Z);
-        ThrowDur = InPlay.ThrowFlightSec(thr, R);
+        // One clock (§8.5): the ball flies on the same seconds the bag is judged on. The catcher's gun keeps its own arm (§11.3).
+        var dist = Diamond.Dist(ThrowFrom.X, ThrowFrom.Z, ThrowTo.X, ThrowTo.Z);
+        ThrowDur = StealPhase && bag is >= 1 and <= 3
+            ? StealThrow.CatcherThrowSec(bag, thr, R)
+            : InPlay.ThrowSec(dist, thr, R);
         _events.Add(LiveEvent.ThrowPop);
     }
 
@@ -1047,9 +1176,14 @@ public sealed partial class LivePlaySystem
     {
         if (_relayBags is not null) return false;
         if (Hit is null || Field is null) return false;
-        var beats = InPlay.BatterBeatsThrow(_match.Batter, Hit, Field, Dash01, R);
+        // The batter beats a throw to first if their body gets there before the ball would (§9.1, §10.2).
+        var batter = _match.BatterRunner;
+        var knock = Field.KnockbackSec;
+        var beats = batter is null || !batter.Live
+            || RunnerSystem.ArrivalSec(batter, 1, ElapsedSeconds, Dash01, R)
+               < InPlay.ThrowArrivalSec(GloveX, GloveZ, 1, Field.Throw, R) + knock;
         _relayBags = InPlay.GroundThrowBags(
-            _match.First is not null, _match.Second is not null, _match.Third is not null, beats);
+            _match.First is not null, _match.RunnerAt(2)?.Advancing == true, _match.RunnerAt(3)?.Advancing == true, beats);
         _relayI = 0;
         if (_relayBags.Length == 0) return false;
         return FireRelay();
@@ -1089,16 +1223,25 @@ public sealed partial class LivePlaySystem
         CatchGlove();
 
         InPlay.GroundThrowStep? step = null;
+        var stillComing = false;
         if (bag is >= 1 and <= 4)
         {
-            var close = ClosePlay.Offered(bag, Forces, _match.Second is not null, _match.Third is not null);
-            if (!close)
+            var heading = RunnerSystem.HeadingTo(Runners, bag);
+            var close = ClosePlay.Offered(bag, Forces, heading is not null && !heading.IsOn(bag));
+            if (close) stillComing = true;
+            else
             {
-                var landed = ApplyThrow(bag, RelayBeats(bag), PlayFielder());
-                step = landed.Throw;
-                if (step is { } s && !string.IsNullOrEmpty(s.Caption))
-                    Sub = s.Caption;
-                MaybeStampCloseSafe(bag);
+                var verdict = ArrivalVerdict(bag);
+                if (verdict.Decided)
+                {
+                    var landed = ApplyThrow(bag, verdict.RunnerBeats, PlayFielder());
+                    step = landed.Throw;
+                    if (step is { } s && !string.IsNullOrEmpty(s.Caption))
+                        Sub = s.Caption;
+                    MaybeStampCloseSafe(bag);
+                }
+                else
+                    stillComing = heading is not null;
             }
         }
 
@@ -1107,7 +1250,8 @@ public sealed partial class LivePlaySystem
             result = new LivePlayCommandResult(Snapshot, step);
             return true;
         }
-        if (!PlayerFielding && AdvanceRelay())
+        // A runner still coming at the bag the ball is on: hold it there and let the tag decide (§10.2).
+        if (!PlayerFielding && !stillComing && AdvanceRelay())
         {
             result = new LivePlayCommandResult(Snapshot, step);
             return true;
@@ -1116,46 +1260,34 @@ public sealed partial class LivePlaySystem
         return false;
     }
 
-    void MaybeStampCloseSafe(int bag)
+    /// <summary>
+    /// The ball is on <paramref name="bag"/>: judged from the runner's body (§10.2). A forced runner
+    /// short of the bag is out; a runner on it beat the throw; an unforced runner inside the tag
+    /// reach is tagged; one further out is not decided yet — the glove holds and the tag rule runs.
+    /// </summary>
+    (bool Decided, bool RunnerBeats) ArrivalVerdict(int bag)
     {
-        double needed;
-        if (bag == 1) needed = InPlay.HomeToFirstSec(_match.Batter, Dash01, R);
-        else if (bag == 2 && _match.First is not null) needed = InPlay.BagToBagSec(_match.First, R);
-        else if (bag == 3 && _match.Second is not null) needed = InPlay.BagToBagSec(_match.Second, R);
-        else if (bag == 4 && _match.Third is not null) needed = InPlay.BagToBagSec(_match.Third, R);
-        else return;
-        if (InPlay.CloseSafe(ElapsedSeconds, needed, R))
-            _events.Add(LiveEvent.StampSafe);
+        var target = RunnerForBag(bag);
+        if (target is null)
+            return (Runners.Any(r => r.Live && r.IsOn(bag)), true);
+        if (target.Bag >= bag) return (true, true);
+        var forced = Forces.At(bag) && target.FromBag == bag - 1;
+        if (forced) return (true, false);
+        var at = Diamond.Bag(bag);
+        var (x, z) = target.Position;
+        var bags = R.Running.Bags;
+        if (Diamond.Dist(x, z, at.X, at.Z) <= bags.TagSafeRadiusFt) return (true, true);
+        var reach = bags.TagReachFt - (target.Sliding ? bags.SlideReachCutFt : 0);
+        if (Diamond.Dist(x, z, at.X, at.Z) < reach) return (true, false);
+        return (false, false);
     }
 
-    /// <summary>
-    /// Whether the runner beat this throw. Spec A.5 #52 / §9.1: the human seat reads the live clock,
-    /// the CPU seat the resolver's closed form. P3/P5 replace both with runner positions.
-    /// </summary>
-    bool RelayBeats(int bag)
+    void MaybeStampCloseSafe(int bag)
     {
-        if (PlayerFielding)
-        {
-            if (bag == 1)
-                return ElapsedSeconds >= InPlay.HomeToFirstSec(_match.Batter, Dash01, R);
-            if (bag == 2 && _match.First is not null)
-                return ElapsedSeconds >= InPlay.BagToBagSec(_match.First, R);
-            if (bag == 3 && _match.Second is not null)
-                return ElapsedSeconds >= InPlay.BagToBagSec(_match.Second, R);
-            if (bag == 4 && _match.Third is not null)
-                return ElapsedSeconds >= InPlay.BagToBagSec(_match.Third, R);
-            return false;
-        }
-        if (Hit is null || Field is null) return false;
-        if (bag == 1)
-            return InPlay.BatterBeatsThrow(_match.Batter, Hit, Field, Dash01, R);
-        if (bag == 3 && _match.Second is not null)
-            return InPlay.RunnerBeatsTag(_match.Second, Hit, Field, 3, R);
-        if (bag == 4 && _match.Third is not null)
-            return InPlay.RunnerBeatsTag(_match.Third, Hit, Field, 4, R);
-        if (bag == 2 && _match.First is not null)
-            return InPlay.RunnerBeatsTag(_match.First, Hit, Field, 2, R);
-        return false;
+        var runner = Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
+        if (runner is null || double.IsNaN(runner.LastTouchAt)) return;
+        if (InPlay.CloseSafe(ElapsedSeconds, runner.LastTouchAt, R))
+            _events.Add(LiveEvent.StampSafe);
     }
 
     Character PlayFielder()
@@ -1338,10 +1470,16 @@ public sealed partial class LivePlaySystem
     // Close play (spec §9.6 as shipped: the mash runs on every unforced 3B/home throw; P5 adds the margin)
     // ---------------------------------------------------------------------------------
 
+    Runner? _closeRunner;
+
     bool TryBeginClosePlay()
     {
-        if (!ClosePlay.Offered(ThrowBag, Forces, _match.Second is not null, _match.Third is not null))
+        var heading = RunnerSystem.HeadingTo(Runners, ThrowBag);
+        if (heading is null || heading.IsOn(ThrowBag) || !ClosePlay.Offered(ThrowBag, Forces, true))
             return false;
+        // The body in the play waits for the verdict (the mash is the slide): safe puts them on the bag, out retires them.
+        _closeRunner = heading;
+        heading.Halt();
         InClosePlay = true;
         _closePlayT = 0;
         CloseIcon = false;
@@ -1362,7 +1500,7 @@ public sealed partial class LivePlaySystem
             return new LivePlayCommandResult(Snapshot);
         }
 
-        var runner = CloseBag == 4 ? _match.Third : _match.Second;
+        var runner = _closeRunner?.Who;
         var fielder = PlayFielder();
         var offenseHuman = Seats.Versus ? Seats.HumanBats : Seats.HumanBats && !Seats.PlayerMustField && !PlayerFielding;
         var defenseHuman = PlayerFielding || Seats.HumanPitches || Seats.PlayerMustField;
@@ -1394,13 +1532,23 @@ public sealed partial class LivePlaySystem
 
         if (_closeOffAt < 0 || _closeDefAt < 0) return new LivePlayCommandResult(Snapshot);
         var safe = ClosePlay.OffenseSafe(_closeOffAt, _closeDefAt);
-        _match.ClosePlaySafe = safe;
         Sub = ClosePlay.Caption(CloseBag, safe);
         if (safe) _events.Add(LiveEvent.StampSafe);
-        ApplyThrow(CloseBag, safe, PlayFielder());
+        if (_closeRunner is { Live: true } body)
+        {
+            if (safe) body.Arrive(CloseBag, ElapsedSeconds);
+            else Retire(body.FromBag, CloseBag, OutType.Tag, PlayFielder());
+            if (!safe) LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagOut, CloseBag, PlayFielder(), body.Who);
+            Throws++;
+        }
+        else
+            ApplyThrow(CloseBag, safe, PlayFielder());
+        _closeRunner = null;
         InClosePlay = false;
         CloseIcon = false;
-        return Commit();
+        // The play goes on from the bag: the other bodies settle and Time ends it (§10.6).
+        if (_match.Outs >= 3 || IsTime()) return Commit();
+        return new LivePlayCommandResult(Snapshot);
     }
 
     // ---------------------------------------------------------------------------------
@@ -1497,7 +1645,7 @@ public sealed partial class LivePlaySystem
         var fromBag = _match.ArmedStealBag;
         var state = _match.RunnerAt(fromBag);
         var remain = state is not null
-            ? StealThrow.RunnerRemainSec(state.Who, state.Lead01, R)
+            ? StealThrow.RunnerRemainSec(state.Who, R)
             : R.Running.Steal.NoThrowRemainSec;
 
         if (Throwing)

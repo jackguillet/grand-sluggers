@@ -22,10 +22,7 @@ namespace GrandSluggers.UnityClient
         internal void TickLive(float dt)
         {
             if (_phase == Phase.InPlay)
-            {
-                TickBaserunning(dt);
                 TickInPlay(dt);
-            }
             else if (_phase == Phase.StealThrow) TickStealThrow(dt);
         }
 
@@ -44,10 +41,13 @@ namespace GrandSluggers.UnityClient
                 pad.ThrowBag, pad.StickBag, pad.ArrowBag);
         }
 
+        /// <summary>The offense pad as the sim's runner verbs see it (spec §9.3): the bodies are moved in the sim, never here.</summary>
         LivePadInput RunInput()
         {
             var pad = RunPad;
-            return new LivePadInput(pad.StickX, pad.StickY, pad.SouthDown);
+            return new LivePadInput(pad.StickX, pad.StickY, pad.SouthDown, pad.WestDown,
+                KeysBag: pad.ThrowBag, StickBag: pad.StickBag,
+                AllAdvance: pad.AllAdvance, AllReturn: pad.AllReturn, Freeze: pad.FreezeRunners);
         }
 
         void TickInPlay(float dt)

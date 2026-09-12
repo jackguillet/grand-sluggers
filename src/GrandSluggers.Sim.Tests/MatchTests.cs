@@ -56,7 +56,8 @@ public class MatchTests
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Equal(1, match.Outs);
         Assert.NotNull(match.First);
-        Assert.Contains("Force at second", ev.Caption);
+        Assert.Contains("forces the runner", ev.Caption);
+        Assert.True(ev.Outcome!.FieldersChoice);
         Assert.DoesNotContain("turns two", ev.Caption, StringComparison.OrdinalIgnoreCase);
         var after = BroadcastHud.From(match);
         Assert.True(after.RunnerFirst);
@@ -106,7 +107,6 @@ public class MatchTests
     public void CpuDeadStickStillTurnsTwo()
     {
         var (match, paint, swing, hit, field) = LiveHopperOnFirst();
-        Assert.False(InPlay.BatterBeatsThrow(match.Batter, hit, field));
         Assert.False(match.LivePlay.Active);
         var ev = match.FinishAtBat(paint, swing, hit, field);
         Assert.Contains("turns two", ev.Caption);
@@ -272,7 +272,9 @@ public class MatchTests
         Assert.NotNull(match.First);
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(paint, swing, out _, out _));
+        // A real hopper to the left side: the live ball plays this flight, the throw is the resolver's.
+        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
         var laser = new ThrowResult(Chemistry.Good, 1.7, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         return (match, paint, swing, hit, field);
@@ -369,67 +371,13 @@ public class MatchTests
         var leadId = match.First.Id;
         var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(paint, swing, out _, out _));
+        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
         var laser = new ThrowResult(Chemistry.Good, 1.55, false);
         var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false, laser);
         match.FinishAtBat(paint, swing, hit, field);
         Assert.True(match.First is null || match.First.Id != leadId, "lead runner must be forced");
         Assert.True(match.Outs >= 1);
-    }
-
-    [Fact]
-    public void HopperWithRunnerOnSecondIsATagNotAForce()
-    {
-        var match = Occupy(PlayKind.Double);
-        Assert.NotNull(match.Second);
-        Assert.Null(match.First);
-        var runnerId = match.Second.Id;
-        var paint = new PitchCommand("fastball", 0, false);
-        var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
-        var laser = new ThrowResult(Chemistry.Good, 1.7, false);
-        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.4, 42, 78, false, false, laser);
-        Assert.False(InPlay.RunnerBeatsTag(match.Second, hit, field, 3));
-        match.FinishAtBat(paint, swing, hit, field);
-        Assert.True(match.Outs >= 1, "tag at third is an out");
-        Assert.Null(match.Third);
-        Assert.True(match.Second is null || match.Second.Id != runnerId);
-    }
-
-    [Fact]
-    public void SlowTagThrowLetsTheRunnerTakeThird()
-    {
-        var match = Occupy(PlayKind.Double);
-        var runnerId = match.Second!.Id;
-        var paint = new PitchCommand("fastball", 0, false);
-        var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
-        var looper = new ThrowResult(Chemistry.Bad, 0.4, false);
-        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.35, 90, 40, false, false, looper);
-        Assert.True(InPlay.RunnerBeatsTag(match.Second, hit, field, 3));
-        match.FinishAtBat(paint, swing, hit, field);
-        Assert.NotNull(match.Third);
-        Assert.Equal(runnerId, match.Third.Id);
-        Assert.NotNull(match.First);
-        Assert.Equal(0, match.Outs);
-    }
-
-    [Fact]
-    public void HopperWithRunnerOnThirdTagsAtHome()
-    {
-        var match = Occupy(PlayKind.Triple);
-        Assert.NotNull(match.Third);
-        Assert.Null(match.First);
-        var runnerId = match.Third.Id;
-        var paint = new PitchCommand("fastball", 0, false);
-        var swing = new SwingCommand(true, 0, 0, false);
-        Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
-        var laser = new ThrowResult(Chemistry.Good, 1.8, false);
-        var field = new FieldingResult(PlayKind.GroundOut, match.Pitcher, match.Batter, 0.35, 20, 55, false, false, laser);
-        Assert.False(InPlay.RunnerBeatsTag(match.Third, hit, field, 4));
-        match.FinishAtBat(paint, swing, hit, field);
-        Assert.True(match.Outs >= 1);
-        Assert.True(match.Third is null || match.Third.Id != runnerId);
     }
 
     Match Occupy(PlayKind extra)

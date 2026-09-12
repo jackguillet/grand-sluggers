@@ -26,10 +26,17 @@ public sealed class Match
     public int Strikes { get; private set; }
     public int AwayScore { get; private set; }
     public int HomeScore { get; private set; }
-    public Character? First { get; private set; }
-    public Character? Second { get; private set; }
-    public Character? Third { get; private set; }
-    RunnerState? _firstRun, _secondRun, _thirdRun;
+    /// <summary>
+    /// The bodies on the basepath (spec §9.1): the seated runners between plays, plus the
+    /// batter-runner from contact to Complete. <see cref="RunnerAt"/> finds one by the bag it
+    /// started the play on; the same objects are re-seated at Complete, never rebuilt.
+    /// </summary>
+    readonly List<Runner> _runners = [];
+    public IReadOnlyList<Runner> Runners => _runners;
+    /// <summary>The runner who started this play on first / second / third (between plays: who stands there).</summary>
+    public Character? First => RunnerAt(1)?.Who;
+    public Character? Second => RunnerAt(2)?.Who;
+    public Character? Third => RunnerAt(3)?.Who;
     int _selectedBag;
     bool _pickedRunner;
     public int AwayBatter { get; private set; }
@@ -48,8 +55,6 @@ public sealed class Match
     Character _homePitcher;
     Character _awayPitcher;
     public bool Over { get; private set; }
-    /// <summary>Set by the close-play button race at third or home. Null means use the sim tag race.</summary>
-    public bool? ClosePlaySafe { get; set; }
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
     /// <summary>The rule numbers this match plays by (data/rules).</summary>
@@ -226,27 +231,26 @@ public sealed class Match
     public double BatterContactOffsetX { get; private set; }
     public bool PitcherTired => PitcherStamina < Rules.Pitching.Stamina.TiredBelow;
     public bool Paused { get; private set; }
-    /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
+    /// <summary>
+    /// All-advance armed before the pitch or before the catch: every runner tags and goes at the
+    /// catch (spec §9.5). During a live ball the same press sends every runner now.
+    /// </summary>
     public bool SendAll { get; private set; }
     /// <summary>Furthest occupied bag. Default selection until the pad names a runner.</summary>
     public Character? LeadRunner => Third ?? Second ?? First;
     public int LeadBag => Third is not null ? 3 : Second is not null ? 2 : First is not null ? 1 : 0;
-    public RunnerState? LeadState => RunnerAt(LeadBag);
-    /// <summary>Pad-named bag (1/2/3). Defaults to the lead runner. Never 4.</summary>
+    /// <summary>Pad-named runner by the bag they started on (1/2/3; 0 the batter-runner during a live ball). Defaults to the lead runner.</summary>
     public int SelectedBag => _selectedBag;
     public Character? SelectedRunner => SelectedState?.Who;
-    public RunnerState? SelectedState => RunnerAt(SelectedBag);
-    public double Lead01 => SelectedState?.Lead01 ?? 0;
-    public bool StealAttempt => SelectedState?.StealAttempt ?? false;
-    public bool Returning => SelectedState?.Returning ?? false;
-    public bool Sliding => SelectedState?.Sliding ?? false;
+    public Runner? SelectedState => RunnerAt(SelectedBag);
+    public bool StealAttempt => SelectedState?.StealArmed ?? false;
     /// <summary>Occupied bag whose steal is armed, else 0.</summary>
     public int ArmedStealBag
     {
         get
         {
             for (var bag = 1; bag <= 2; bag++)
-                if (RunnerAt(bag)?.StealAttempt == true) return bag;
+                if (RunnerAt(bag)?.StealArmed == true) return bag;
             return 0;
         }
     }
@@ -269,16 +273,35 @@ public sealed class Match
     public bool StealThrowPending =>
         StealOn && !Over && Outs < 3 && ArmedStealBag is 1 or 2;
 
-    public RunnerState? RunnerAt(int bag) => bag switch
+    /// <summary>The live runner who started the play on <paramref name="fromBag"/> (0 the batter-runner), or null.</summary>
+    public Runner? RunnerAt(int fromBag)
     {
-        1 => _firstRun,
-        2 => _secondRun,
-        3 => _thirdRun,
-        _ => null
-    };
+        foreach (var r in _runners)
+            if (r.FromBag == fromBag && r.Live) return r;
+        return null;
+    }
 
+    /// <summary>The batter as a body, from contact until Complete seats or retires them.</summary>
+    public Runner? BatterRunner => RunnerAt(0);
+
+    /// <summary>A live runner's last touched bag is this one: the mini diamond's pip (between plays: seated there).</summary>
+    public bool Occupied(int bag)
+    {
+        foreach (var r in _runners)
+            if (r.Live && r.Bag == bag) return true;
+        return false;
+    }
+
+    /// <summary>D-pad: right 1B, up 2B, left 3B; down (4) is the batter-runner while the ball is live (§9.3).</summary>
     public bool SelectRunner(int bag)
     {
+        if (bag == 4)
+        {
+            if (BatterRunner is null) return false;
+            _selectedBag = 0;
+            _pickedRunner = true;
+            return true;
+        }
         if (!Baserunning.CanSelect(bag, First is not null, Second is not null, Third is not null))
             return false;
         _selectedBag = bag;
@@ -286,74 +309,84 @@ public sealed class Match
         return true;
     }
 
-    public bool TakeLead(double delta = 0.25) => TakeLeadAt(SelectedBag, delta);
+    /// <summary>Stick back on the selected runner: before the pitch it cancels their steal; live, it brings them back (§9.3).</summary>
+    public bool ReturnToBag() => ReturnToBagAt(SelectedBag);
 
-    public bool TakeLeadAt(int bag, double delta)
+    public bool ReturnToBagAt(int fromBag)
     {
-        var state = RunnerAt(bag);
-        if (state is null || Over || Outs >= 3) return false;
-        state.TakeLead(delta);
-        return true;
-    }
-
-    public bool ReturnToBag(double delta = 0.25) => ReturnToBagAt(SelectedBag, delta);
-
-    public bool ReturnToBagAt(int bag, double delta)
-    {
-        var state = RunnerAt(bag);
+        var state = RunnerAt(fromBag);
         if (state is null) return false;
-        state.ReturnToBag(delta);
+        state.CancelSteal();
+        if (LivePlay.Active) state.Return(human: true);
         if (ArmedStealBag == 0) StealOn = false;
         return true;
     }
 
-    public bool AdvanceAll(double delta = 0.25)
+    /// <summary>Stick toward the next bag on the selected runner during a live ball: send them (§9.3). Forced runners are already going.</summary>
+    public bool SendRunner() => SendRunnerAt(SelectedBag);
+
+    public bool SendRunnerAt(int fromBag)
+    {
+        var state = RunnerAt(fromBag);
+        if (state is null || !LivePlay.Active) return false;
+        state.Send(state.NextBag, human: true);
+        return true;
+    }
+
+    /// <summary>LB: before the pitch, arm tag-and-go; live, send every runner (§9.3, §9.5).</summary>
+    public bool AdvanceAll()
     {
         if (Over || Outs >= 3) return false;
         var any = false;
-        foreach (var bag in new[] { 1, 2, 3 })
+        foreach (var r in _runners)
         {
-            var state = RunnerAt(bag);
-            if (state is null) continue;
-            state.TakeLead(delta);
+            if (!r.Live) continue;
             any = true;
+            if (LivePlay.Active)
+            {
+                if (LivePlay.Fly == FlyState.InAir && !r.IsBatter) r.SetTagAndGo(true);
+                else r.Send(r.NextBag, human: true);
+            }
         }
         if (any) SendAll = true;
         return any;
     }
 
-    public bool ReturnAll(double delta = 0.25)
+    /// <summary>RB: before the pitch, cancel every steal and the tag-and-go; live, every runner comes back (§9.3).</summary>
+    public bool ReturnAll()
     {
         var any = false;
-        foreach (var bag in new[] { 1, 2, 3 })
+        foreach (var r in _runners)
         {
-            var state = RunnerAt(bag);
-            if (state is null) continue;
-            state.ReturnToBag(delta);
+            if (!r.Live) continue;
             any = true;
+            r.SetTagAndGo(false);
+            if (LivePlay.Active) r.Return(human: true);
         }
         SendAll = false;
         ClearSteal();
         return any;
     }
 
+    /// <summary>Both shoulders: hold every runner where they stand (§9.3). Forced runners keep going.</summary>
     public bool FreezeRunners()
     {
-        if (First is null && Second is null && Third is null) return false;
+        if (_runners.All(r => !r.Live)) return false;
         SendAll = false;
         ClearSteal();
-        foreach (var bag in new[] { 1, 2, 3 })
-            RunnerAt(bag)?.Halt();
+        foreach (var r in _runners)
+            if (r.Live && LivePlay.Active) r.Halt();
         return true;
     }
 
-    /// <summary>Stick toward a bag + halt: freeze that runner only. SMS individual halt.</summary>
-    public bool HaltAt(int bag)
+    /// <summary>Stick toward a bag + halt: freeze that runner only.</summary>
+    public bool HaltAt(int fromBag)
     {
-        var state = RunnerAt(bag);
+        var state = RunnerAt(fromBag);
         if (state is null) return false;
-        state.Halt();
-        if (ArmedStealBag == bag) ClearSteal();
+        state.CancelSteal();
+        if (LivePlay.Active) state.Halt();
+        if (ArmedStealBag == 0) StealOn = false;
         return true;
     }
 
@@ -364,28 +397,31 @@ public sealed class Match
         if (state is null) return false;
         var target = Baserunning.StealTarget(SelectedBag);
         if (target is not 2 and not 3) return false;
-        for (var bag = 1; bag <= 3; bag++)
-            if (bag != SelectedBag) RunnerAt(bag)?.CancelSteal();
-        state.StartSteal(target, Rules.Running.Steal.ArmedLeadMin);
+        foreach (var r in _runners)
+            if (r != state) r.CancelSteal();
+        state.ArmSteal();
         StealOn = true;
         return true;
     }
 
+    /// <summary>West / South near the bag: slide in even without a tag threatened (§9.4).</summary>
     public bool Slide() => SlideAt(SelectedBag);
 
-    public bool SlideAt(int bag)
+    public bool SlideAt(int fromBag)
     {
-        var state = RunnerAt(bag);
+        var state = RunnerAt(fromBag);
         if (state is null) return false;
-        state.Slide();
+        state.RequestSlide();
         return true;
     }
 
-    /// <summary>Station a runner for a drill or a live setup. Does not arm a steal or a lead.</summary>
+    /// <summary>Station a runner for a drill or a live setup. Does not arm a steal.</summary>
     public bool StationRunner(int bag, Character who)
     {
-        if (Over || who is null || bag is < 1 or > 3) return false;
-        SetBag(bag, who);
+        if (Over || who is null || bag is < 1 or > 3 || LivePlay.Active) return false;
+        _runners.RemoveAll(r => r.Bag == bag || r.Who.Id == who.Id);
+        _runners.Add(new Runner(who, bag));
+        SyncSelection();
         return true;
     }
 
@@ -403,26 +439,58 @@ public sealed class Match
     /// </summary>
     internal bool RetireLiveRunner(int fromBag, int atBag, OutType type, Character? fielder)
     {
-        Character? who;
-        if (fromBag is >= 1 and <= 3)
-        {
-            who = RunnerAt(fromBag)?.Who;
-            if (who is null) return false;
-            SetBag(fromBag, null);
-        }
-        else if (fromBag == 0) who = Batter;
-        else return false;
-        RecordOut(type, atBag, fromBag, who, fielder);
+        var runner = RunnerAt(fromBag);
+        if (runner is null || fromBag is < 0 or > 3) return false;
+        var batterShortOfFirst = runner.IsBatter && runner.Bag < 1;
+        runner.Retire();
+        RecordOut(type, atBag, fromBag, runner.Who, fielder, batterShortOfFirst);
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
         AddStars(defense: true, Rules.Stars.Gains.LiveOut);
+        SyncSelection();
         return true;
     }
 
+    /// <summary>Play seconds of the third out of a live ball, and whether it wipes the runs that crossed before it (spec §1).</summary>
+    double _thirdOutAt = double.PositiveInfinity;
+    bool _thirdOutKillsRuns;
+
     /// <summary>The one place an out is counted: the tally and the typed record move together.</summary>
-    void RecordOut(OutType type, int atBag, int fromBag, Character runner, Character? fielder)
+    void RecordOut(OutType type, int atBag, int fromBag, Character runner, Character? fielder, bool batterShortOfFirst = false)
     {
         Outs++;
         _outsThisPlay.Add(new OutRecord(type, atBag, fromBag, runner, fielder));
+        if (Outs >= 3 && LivePlay.Active && double.IsPositiveInfinity(_thirdOutAt))
+        {
+            _thirdOutAt = LivePlay.ElapsedSeconds;
+            // A run does not count when the third out is a force, or the batter-runner is retired before first (§1).
+            _thirdOutKillsRuns = type is OutType.Force or OutType.ThrowOutAtFirst || batterShortOfFirst;
+        }
+    }
+
+    /// <summary>
+    /// Contact: the batter becomes a body in the box, every seated runner snapshots its force
+    /// (spec §9.1) and the all-advance intent (tag and go, §9.5). Called by the live ball's Begin.
+    /// </summary>
+    internal void BeginRunners(double startX, double startZ)
+    {
+        _runners.RemoveAll(r => r.IsBatter || !r.Live);
+        var forces = InPlay.ForceState.FromOccupancy(First is not null, Second is not null, Third is not null);
+        foreach (var r in _runners)
+            r.BeginPlay(forces.At(r.Bag + 1), SendAll);
+        _runners.Add(Runner.BatterRunner(Batter, startX, startZ));
+        _thirdOutAt = double.PositiveInfinity;
+        _thirdOutKillsRuns = false;
+    }
+
+    /// <summary>Runs that crossed before the third out (spec §1): with fewer than three outs every crossing counts.</summary>
+    bool RunCounts(Runner runner) =>
+        runner.Scored && (Outs < 3 || (runner.ScoredAt < _thirdOutAt && !_thirdOutKillsRuns));
+
+    /// <summary>The runner's bag on the last pitch, before this play's placement: the walk / steal / Complete tables read it by object.</summary>
+    void PruneRunners()
+    {
+        _runners.RemoveAll(r => !r.Live);
+        SyncSelection();
     }
 
     void RecordMove(Character runner, int fromBag, int toBag)
@@ -439,43 +507,6 @@ public sealed class Match
     /// <summary>The CPU catcher's release on a steal, from the one seeded stream (S-92).</summary>
     internal double RollCatcherRelease(Character catcher) =>
         StealThrow.CpuReleaseSec(catcher, _rng, Rules);
-
-    /// <summary>
-    /// Close a live (or CPU-stepped) double-play race. Null means no force was recorded —
-    /// FinishInPlay falls through to a one-out / infield single without auto-turning two.
-    /// </summary>
-    string? CloseLiveGround(FieldingResult field, ref int runs, ref IReadOnlyList<string> scorers, ref int batterToBag)
-    {
-        if (!LivePlay.ForceRecorded && !LivePlay.TurnedTwo)
-            return null;
-
-        string caption;
-        var live = LivePlay.LastMoment;
-        if (LivePlay.TurnedTwo)
-        {
-            caption = live is null
-                ? $"{field.Fielder?.Name} turns two."
-                : LivePlay.Caption;
-        }
-        else if (Outs < 3)
-        {
-            (runs, scorers) = AdvanceHit(Batter, 1);
-            batterToBag = 1;
-            caption = LivePlay.ForceBag == 2 || LivePlay.ForceBag == 0
-                ? $"Force at second. {Batter.Name} in at first."
-                : $"{(live is null ? "Force." : LivePlay.Caption)} {Batter.Name} in at first.";
-        }
-        else
-        {
-            caption = live is null
-                ? $"{field.Fielder?.Name} forces the runner."
-                : LivePlay.Caption;
-        }
-
-        NextBatter();
-        CheckInning();
-        return caption;
-    }
 
     public int StarCost(Character who, Character teamCaptain) =>
         who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase)
@@ -539,9 +570,10 @@ public sealed class Match
         var state = RunnerAt(bag);
         if (runner is null || state is null) return null;
         BeginPlay();
-        if (!StealOn && state.Lead01 < 0.05)
+        // D1 / D3: a runner on the bag is always safe; only an armed runner is caught (P6 lands the real break).
+        if (!StealOn || !state.StealArmed)
         {
-            state.ReturnToBag(1);
+            state.CancelSteal();
             StealOn = false;
             var stay = Emit(PlayKind.TakeBall, new PitchCommand("fastball", 0, false),
                 new SwingCommand(false, 0, 0, false), EmptyHit(true),
@@ -551,8 +583,7 @@ public sealed class Match
         var fake = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         StealOn = true;
-        var target = Baserunning.StealTarget(bag);
-        state.StartSteal(target, Rules.Running.Steal.ArmedLeadMin);
+        state.ArmSteal();
         var ev = Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []);
         return GunSteal(ev, pickoff: true);
     }
@@ -573,9 +604,38 @@ public sealed class Match
         pitch = PreparePitch(pitch);
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return StealThrowPending ? GunSteal(finished!) : finished!;
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night, gloves: Defense.Gloves);
+        var preview = PreviewHit(hit);
+        var field = ResolveFielding(hit, preview);
         field = ApplyOffenseItem(hit, field, item);
-        return FinishAtBat(pitch, swing, hit, field);
+        return RunLive(pitch, swing, hit, preview, field, LiveSeats.CpuOnly);
+    }
+
+    /// <summary>The headless frame: the live ball ticks at 60 Hz whoever drives it (S-90 needs one clock).</summary>
+    public const double HeadlessTickSec = 1.0 / 60.0;
+    /// <summary>A live ball that has not reached Time by this long is committed where it stands: the play never hangs.</summary>
+    public const double HeadlessMaxSec = 45;
+
+    /// <summary>
+    /// Every batted ball is one live ball (spec §0.1): bodies, gloves, throws, and Time, run here
+    /// with dead pads for the seats nobody holds. The CPU-vs-CPU game, the CLI, and a direct
+    /// <see cref="FinishAtBat"/> all go through it, so a runner is placed by where they stand and
+    /// never by a table.
+    /// </summary>
+    public PlayEvent RunLive(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingPreview preview,
+        FieldingResult? field, LiveSeats seats, LivePlayCommandSource source = LivePlayCommandSource.Cpu)
+    {
+        LivePlay.Apply(LivePlayCommand.BeginLive(pitch, swing, hit, preview, field, seats, Dash01, source));
+        var ticks = (int)Math.Ceiling(HeadlessMaxSec / HeadlessTickSec);
+        for (var i = 0; i < ticks; i++)
+        {
+            var result = LivePlay.Apply(LivePlayCommand.Tick(HeadlessTickSec, LivePadInput.Dead, LivePadInput.Dead, false, source));
+            if (result.CompletedPlay is not null) return result.CompletedPlay;
+            if (!LivePlay.Active) break;
+        }
+        // Nothing decided it (a glove that never throws, a body that never settles): commit where things stand.
+        var forced = LivePlay.Apply(LivePlayCommand.Complete(pitch, swing, hit, field ?? LivePlay.Field ?? LivePlay.LastFieldResult
+            ?? new FieldingResult(PlayKind.Single, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, preview.Heatball, preview.Furnace), source));
+        return forced.CompletedPlay ?? throw new InvalidOperationException("the live ball did not complete");
     }
 
     /// <summary>Sample delivery error once, before flight, so the visible pitch is the judged pitch.</summary>
@@ -670,8 +730,15 @@ public sealed class Match
         return true;
     }
 
+    /// <summary>
+    /// Complete the batted ball. With the live ball running this is Complete (spec §10.6); called
+    /// cold with a fielding result it runs the ball headlessly first so the runners are bodies
+    /// either way.
+    /// </summary>
     public PlayEvent FinishAtBat(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
+        if (!LivePlay.Active)
+            return RunLive(pitch, swing, hit, PreviewHit(hit), field, LiveSeats.CpuOnly);
         CurrentPlay();
         var played = FinishInPlay(pitch, swing, hit, field);
         EndIfWalkOff();
@@ -924,9 +991,7 @@ public sealed class Match
     {
         var run = Rules.Running.Cpu;
         if (!CanSteal || Batter.Stats.Run < run.StealMinRun || _rng.NextDouble() >= run.StealChance) return false;
-        StartSteal();
-        TakeLead(run.StealLeadMin + _rng.NextDouble() * run.StealLeadSpan);
-        return true;
+        return StartSteal();
     }
 
     public PlayEvent AutoPlay()
@@ -998,7 +1063,7 @@ public sealed class Match
     PlayEvent FinishWalk(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
         ClearSteal();
-        var (runs, scorers) = Advance(Batter, walk: true);
+        var (runs, scorers) = PlaceByWalk(Batter);
         AddMvp(Batter.Id, 1 + runs);
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
@@ -1009,7 +1074,7 @@ public sealed class Match
     PlayEvent FinishHitByPitch(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
         ClearSteal();
-        var (runs, scorers) = Advance(Batter, walk: true);
+        var (runs, scorers) = PlaceByWalk(Batter);
         AddMvp(Batter.Id, 1 + runs);
         var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
@@ -1017,10 +1082,15 @@ public sealed class Match
         return ev;
     }
 
+    /// <summary>
+    /// Complete (spec §10.6): runs are the runners who crossed home before the third out (§1),
+    /// outs are already recorded, and every runner is seated where they stand. The kind is read
+    /// off the batter's body: out, or the bag they hold. The only placements by rule are the dead
+    /// balls: a homer, a ground-rule double, a foul.
+    /// </summary>
     PlayEvent FinishInPlay(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
         ClearSteal();
-        var tagUp = SendAll;
         SendAll = false;
         var kind = field.Kind;
         var caption = "";
@@ -1030,6 +1100,7 @@ public sealed class Match
         // True once a branch built its caption from the live ball's own narration; otherwise
         // an open live moment is prefixed at the end. Typed, so no branch inspects caption text.
         var liveNarrated = false;
+        var moment = LivePlay.LastMoment;
 
         switch (kind)
         {
@@ -1037,6 +1108,7 @@ public sealed class Match
                 // A foul bunt with two strikes is strike three (spec §1, §5.8).
                 if (swing.Bunt && Strikes >= 2)
                 {
+                    ResetRunnersToBags();
                     LivePlay.Reset();
                     return FinishStrike(pitch, swing, hit, swinging: true, how: "bunts foul for strike three.");
                 }
@@ -1044,11 +1116,13 @@ public sealed class Match
                 // Fewer than two strikes adds one; runners return; the at-bat continues.
                 if (Strikes < 2) Strikes++;
                 AddMvp(Batter.Id, 0);
+                ResetRunnersToBags();
                 caption = "Foul.";
                 break;
             case PlayKind.HomeRun:
+                // Dead at the crossing (§7.10): everyone circles; the trot is presentation.
                 ChargeArm(Pitcher, Rules.Pitching.Stamina.HomerCost);
-                (runs, scorers) = ClearTheBases(Batter);
+                (runs, scorers) = ScoreEveryone();
                 batterToBag = 4;
                 AddMvp(Batter.Id, 5 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.HomeRun);
@@ -1057,188 +1131,82 @@ public sealed class Match
                     : $"{Batter.Name} goes deep.";
                 NextBatter();
                 break;
-            case PlayKind.Triple:
-                (runs, scorers) = AdvanceHit(Batter, 3);
-                batterToBag = 3;
-                AddMvp(Batter.Id, 3 + runs);
-                AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                caption = $"{Batter.Name} triples.";
-                NextBatter();
-                break;
-            case PlayKind.Double:
-                // A ground-rule double (§1) is the same placement: batter and every runner exactly two bases.
-                (runs, scorers) = AdvanceHit(Batter, 2);
-                batterToBag = 2;
-                AddMvp(Batter.Id, 2 + runs);
-                AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                caption = field.GroundRule
-                    ? $"{Batter.Name} - over the fence on a hop. Ground-rule double."
-                    : $"{Batter.Name} doubles.";
-                NextBatter();
-                break;
-            case PlayKind.Single:
-                (runs, scorers) = AdvanceHit(Batter, 1);
-                batterToBag = 1;
-                AddMvp(Batter.Id, 2 + runs);
-                AddStars(defense: false, Rules.Stars.Gains.Single);
-                caption = LivePlay.LastMoment is not null
-                    ? $"{LivePlay.Caption} {Batter.Name} in at first."
-                    : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
-                    : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
-                    : $"{Batter.Name} singles.";
-                liveNarrated = true;
-                NextBatter();
-                break;
-            case PlayKind.FlyOut:
-            case PlayKind.GroundOut:
-                if (kind == PlayKind.GroundOut && (First is not null || LivePlay.ForceRecorded || LivePlay.TurnedTwo))
+            default:
+                if (field.GroundRule)
                 {
-                    if (!LivePlay.Active)
+                    // Bounced then over (§1): the batter and every runner exactly two bases, by rule.
+                    (runs, scorers) = AwardBases(2);
+                    batterToBag = 2;
+                    kind = PlayKind.Double;
+                    AddMvp(Batter.Id, 2 + runs);
+                    AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
+                    caption = $"{Batter.Name} - over the fence on a hop. Ground-rule double.";
+                    NextBatter();
+                    break;
+                }
+                var batter = _runners.FirstOrDefault(r => r.IsBatter);
+                var batterOut = batter is null || batter.Out;
+                var catchOut = _outsThisPlay.Any(o => o.Type == OutType.Catch);
+                (runs, scorers) = SettleRunners(out batterToBag);
+                // An out on the play stamps OUT whoever made it; the batter safe at first behind it is a
+                // fielder's choice (§10.4). No out: the batter's bag names the hit.
+                kind = batterOut || _outsThisPlay.Count > 0
+                    ? catchOut ? PlayKind.FlyOut : PlayKind.GroundOut
+                    : batterToBag switch
                     {
-                        // Spec A.5 #48: a CPU hopper with a force on is still stepped as two throws here. P5 owns it.
-                        LivePlay.Apply(LivePlayCommand.Begin(kind));
-                        LivePlay.Apply(LivePlayCommand.ThrowArrived(2, runnerBeats: false, field.Fielder));
-                        if (Outs < 3)
-                            LivePlay.Apply(LivePlayCommand.ThrowArrived(
-                                1, InPlay.BatterBeatsThrow(Batter, hit, field, Dash01, Rules), field.Fielder));
-                    }
-                    var closed = CloseLiveGround(field, ref runs, ref scorers, ref batterToBag);
-                    if (closed is not null)
-                    {
-                        caption = closed;
+                        4 => PlayKind.HomeRun,
+                        3 => PlayKind.Triple,
+                        2 => PlayKind.Double,
+                        1 => PlayKind.Single,
+                        _ => LivePlay.CatchMade ? PlayKind.FlyOut : PlayKind.GroundOut
+                    };
+                switch (kind)
+                {
+                    case PlayKind.HomeRun:
+                        AddMvp(Batter.Id, 5 + runs);
+                        AddStars(defense: false, Rules.Stars.Gains.HomeRun);
+                        caption = $"{Batter.Name} - all the way around!";
+                        break;
+                    case PlayKind.Triple:
+                        AddMvp(Batter.Id, 3 + runs);
+                        AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
+                        caption = $"{Batter.Name} triples.";
+                        break;
+                    case PlayKind.Double:
+                        AddMvp(Batter.Id, 2 + runs);
+                        AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
+                        caption = $"{Batter.Name} doubles.";
+                        break;
+                    case PlayKind.Single:
+                        AddMvp(Batter.Id, 2 + runs);
+                        AddStars(defense: false, Rules.Stars.Gains.Single);
+                        caption = moment is not null
+                            ? moment.NarratesBatterAtFirst ? LivePlay.Caption : $"{LivePlay.Caption} {Batter.Name} in at first."
+                            : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
+                            : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
+                            : $"{Batter.Name} singles.";
                         liveNarrated = true;
                         break;
-                    }
-                    // Live play, no throw landed. Do not caption a force.
-                    // A live tag of the batter is handled below — do not place them.
-                }
-                if (LivePlay.BatterOut)
-                {
-                    caption = LivePlay.LastMoment is null
-                        ? $"{field.Fielder?.Name} tags {Batter.Name}."
-                        : LivePlay.Caption;
-                    liveNarrated = true;
-                    NextBatter();
-                    CheckInning();
-                    break;
-                }
-                if (kind == PlayKind.GroundOut && LivePlay.Active && Outs > LivePlay.OutsAtOpen
-                    && !LivePlay.ForceRecorded && !LivePlay.TurnedTwo && !LivePlay.BatterOut)
-                {
-                    var live = LivePlay.LastMoment;
-                    caption = live is null
-                        ? $"{field.Fielder?.Name} tags the runner."
-                        : LivePlay.Caption;
-                    liveNarrated = true;
-                    if (Outs < 3)
-                    {
-                        (runs, scorers) = AdvanceHit(Batter, 1);
-                        batterToBag = 1;
-                        if (!(live?.NarratesBatterAtFirst ?? false))
+                    default:
+                        caption = moment is not null ? LivePlay.Caption
+                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
+                                ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
+                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber
+                                ? $"{field.Fielder?.Name} CLAMBERS the wall!"
+                            : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump
+                                ? $"{field.Fielder?.Name} SUPER JUMP!"
+                            : field.Chomped
+                                ? "A chomper ate it!"
+                            : kind == PlayKind.FlyOut
+                                ? $"{field.Fielder?.Name} puts it away."
+                                : $"{field.Fielder?.Name} to first.";
+                        if (kind == PlayKind.FlyOut && runs > 0)
+                            caption = $"{caption} Sac fly.";
+                        if (batterToBag == 1 && !(moment?.NarratesBatterAtFirst ?? false))
                             caption = $"{caption} {Batter.Name} in at first.";
-                    }
-                    NextBatter();
-                    CheckInning();
-                    break;
+                        liveNarrated = true;
+                        break;
                 }
-                if (kind == PlayKind.GroundOut && LivePlay.Active && LivePlay.Throws > 0 && Outs == LivePlay.OutsAtOpen)
-                {
-                    kind = PlayKind.Single;
-                    goto case PlayKind.Single;
-                }
-                if (kind == PlayKind.GroundOut && First is null && (Second is not null || Third is not null))
-                {
-                    if (LivePlay.Active && LivePlay.Throws == 0 && ClosePlaySafe is null)
-                    {
-                        kind = PlayKind.Single;
-                        goto case PlayKind.Single;
-                    }
-                    var tagBag = InPlay.TagBag(Second is not null, Third is not null);
-                    var fromBag = tagBag == 4 ? 3 : 2;
-                    var runner = tagBag == 4 ? Third! : Second!;
-                    var beats = ClosePlaySafe ?? InPlay.RunnerBeatsTag(runner, hit, field, tagBag, Rules);
-                    ClosePlaySafe = null;
-                    if (!beats)
-                    {
-                        SetBag(fromBag, null);
-                        RecordOut(OutType.Tag, tagBag, fromBag, runner, field.Fielder);
-                        AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                        AddStars(defense: true, Rules.Stars.Gains.LiveOut);
-                        caption = $"{field.Fielder?.Name} tags {runner.Name}.";
-                        if (Outs < 3)
-                        {
-                            SetBag(1, Batter);
-                            RecordMove(Batter, 0, 1);
-                            batterToBag = 1;
-                        }
-                        NextBatter();
-                    }
-                    else
-                    {
-                        if (tagBag == 4)
-                        {
-                            Score(runner);
-                            SetBag(3, null);
-                            RecordMove(runner, 3, 4);
-                            runs = 1;
-                            scorers = [runner.Name];
-                            caption = $"{runner.Name} beats the tag. {Batter.Name} in at first.";
-                        }
-                        else
-                        {
-                            SetBag(3, runner);
-                            SetBag(2, null);
-                            RecordMove(runner, 2, 3);
-                            caption = $"{runner.Name} in at third. {Batter.Name} in at first.";
-                        }
-                        SetBag(1, Batter);
-                        RecordMove(Batter, 0, 1);
-                        batterToBag = 1;
-                        NextBatter();
-                    }
-                    CheckInning();
-                    break;
-                }
-                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field, Dash01, Rules))
-                {
-                    kind = PlayKind.Single;
-                    goto case PlayKind.Single;
-                }
-                if (kind == PlayKind.GroundOut && LivePlay.Active)
-                {
-                    kind = PlayKind.Single;
-                    goto case PlayKind.Single;
-                }
-                if (Outs < 3)
-                {
-                    RecordOut(kind == PlayKind.FlyOut ? OutType.Catch : OutType.ThrowOutAtFirst,
-                        kind == PlayKind.FlyOut ? 0 : 1, 0, Batter, field.Fielder);
-                    AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                    AddStars(defense: true, Rules.Stars.Gains.Out);
-                }
-                if (kind == PlayKind.FlyOut && Outs < 3 && tagUp)
-                {
-                    (runs, scorers) = AdvanceTagUp(hit.CarryFt > Rules.Running.TagUp.SacFlyCarryFt);
-                    caption = runs > 0
-                        ? $"{field.Fielder?.Name} reels it in. Sac fly."
-                        : $"{field.Fielder?.Name} puts it away. Runners tag up.";
-                }
-                else
-                    caption = kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
-                        ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
-                        : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber
-                            ? $"{field.Fielder?.Name} CLAMBERS the wall!"
-                        : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.SuperJump
-                            ? $"{field.Fielder?.Name} SUPER JUMP!"
-                        : field.Chomped
-                            ? "A chomper ate it!"
-                        : kind == PlayKind.FlyOut
-                            ? $"{field.Fielder?.Name} puts it away."
-                            : field.Warped
-                                ? $"{ParkHazards.WarpName(Park)}! {field.Fielder?.Name} is looking the wrong way."
-                                : field.Throw is { SpeedMul: > 1.2 }
-                                    ? $"{field.Fielder?.Name} lasers it to {field.Cutoff?.Name ?? "the bag"}."
-                                    : $"{field.Fielder?.Name} to {field.Cutoff?.Name ?? "first"}.";
                 NextBatter();
                 CheckInning();
                 break;
@@ -1263,19 +1231,69 @@ public sealed class Match
         }
 
         // A live decision nobody narrated above leads the caption. Typed: no branch reads caption text.
-        if (LivePlay.LastMoment is not null && !liveNarrated)
+        if (moment is not null && !liveNarrated)
             caption = $"{LivePlay.Caption} {caption}";
 
         var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
                     && (field.Bobble || field.Throw is { Error: true });
         LivePlay.Reset();
-        var ev = Emit(kind, pitch, swing, hit, caption, runs, scorers,
+        return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
             new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
                 GroundRuleDouble: kind == PlayKind.Double && field.GroundRule));
-        // A foul is a pitch that ended dead, like a take or a miss: the same after-pitch resolution.
-        return kind == PlayKind.Foul ? AfterPitch(ev) : ev;
+    }
+
+    /// <summary>
+    /// Seat every live runner where they stand and score the ones who crossed before the third
+    /// out (§1, §10.6). The batter-runner's bag is the play's kind; 0 means they never reached one.
+    /// </summary>
+    (int Runs, IReadOnlyList<string> Scorers) SettleRunners(out int batterToBag)
+    {
+        var scorers = new List<string>();
+        batterToBag = 0;
+        var elapsed = LivePlay.ElapsedSeconds;
+        // A batter nobody retired is safe at first (fair contact always sends them, §7); with the
+        // inning over where they stood is moot. A forced runner still on a bag the batter now takes
+        // moves up the chain, by the force, never by a table (scripted plays without a tick).
+        if (BatterRunner is { Live: true, Bag: 0 } batter && Outs < 3)
+        {
+            for (var bag = 3; bag >= 1; bag--)
+            {
+                var forced = RunnerAt(bag);
+                if (forced is null || !forced.Live || !forced.Forced || forced.Bag != bag || forced.Feet > 0) continue;
+                if (!_runners.Any(o => o != forced && o.Live && o.IsOn(bag) && o.FromBag < bag) && bag != 1) continue;
+                forced.Arrive(bag + 1, elapsed);
+            }
+            batter.Arrive(1, elapsed);
+        }
+        foreach (var r in _runners.OrderByDescending(x => x.FromBag).ToList())
+        {
+            if (r.Scored)
+            {
+                if (RunCounts(r))
+                {
+                    Score(r.Who);
+                    scorers.Add(r.Who.Name);
+                    RecordMove(r.Who, r.FromBag, 4);
+                }
+                if (r.IsBatter) batterToBag = RunCounts(r) ? 4 : 0;
+                continue;
+            }
+            if (!r.Live) continue;
+            var bag = r.Bag;
+            if (r.IsBatter) batterToBag = bag;
+            if (bag < 1)
+            {
+                // The batter short of first when the third out fell elsewhere: nobody to seat.
+                r.Retire();
+                continue;
+            }
+            RecordMove(r.Who, r.FromBag, bag);
+            r.Seat(bag);
+        }
+        PruneRunners();
+        return (scorers.Count, scorers);
     }
 
     PlayEvent Emit(
@@ -1393,154 +1411,96 @@ public sealed class Match
             Over = true;
     }
 
-    (int Runs, IReadOnlyList<string> Scorers) Advance(Character batter, bool walk)
+    /// <summary>A walk or a hit by pitch (§7.12): the batter to first and only the forced runners one bag, by rule.</summary>
+    (int Runs, IReadOnlyList<string> Scorers) PlaceByWalk(Character batter)
     {
         var scorers = new List<string>();
-        if (walk)
+        var f = RunnerAt(1);
+        var second = RunnerAt(2);
+        var third = RunnerAt(3);
+        if (f is not null && second is not null && third is not null)
         {
-            var f = First;
-            var s = Second;
-            var t = Third;
-            if (f is not null && s is not null && t is not null)
-            {
-                Score(t); scorers.Add(t.Name); RecordMove(t, 3, 4);
-                SetBag(3, s); RecordMove(s, 2, 3);
-                SetBag(2, f); RecordMove(f, 1, 2);
-                SetBag(1, batter); RecordMove(batter, 0, 1);
-            }
-            else if (f is not null && s is not null)
-            {
-                SetBag(3, s); RecordMove(s, 2, 3);
-                SetBag(2, f); RecordMove(f, 1, 2);
-                SetBag(1, batter); RecordMove(batter, 0, 1);
-            }
-            else if (f is not null)
-            {
-                SetBag(2, f); RecordMove(f, 1, 2);
-                SetBag(1, batter); RecordMove(batter, 0, 1);
-            }
-            else
-            {
-                SetBag(1, batter); RecordMove(batter, 0, 1);
-            }
-            return (scorers.Count, scorers);
+            Score(third.Who);
+            scorers.Add(third.Who.Name);
+            RecordMove(third.Who, 3, 4);
+            third.Score(0);
         }
-        return AdvanceHit(batter, 1);
-    }
-
-    (int Runs, IReadOnlyList<string> Scorers) AdvanceHit(Character batter, int bases)
-    {
-        var scorers = new List<string>();
-        Character? n1 = null, n2 = null, n3 = null;
-        void Place(Character c, int from, int fromPlus)
+        if (f is not null && second is not null)
         {
-            var dest = Math.Min(4, fromPlus);
-            RecordMove(c, from, dest);
-            if (dest >= 4) { Score(c); scorers.Add(c.Name); }
-            else if (dest == 3) n3 = c;
-            else if (dest == 2) n2 = c;
-            else n1 = c;
+            second.Seat(3);
+            RecordMove(second.Who, 2, 3);
         }
-        if (Third is not null) Place(Third, 3, 3 + bases);
-        if (Second is not null) Place(Second, 2, 2 + bases);
-        if (First is not null) Place(First, 1, 1 + bases);
-        Place(batter, 0, bases);
-        SetBag(1, n1); SetBag(2, n2); SetBag(3, n3);
+        if (f is not null)
+        {
+            f.Seat(2);
+            RecordMove(f.Who, 1, 2);
+        }
+        _runners.RemoveAll(r => r.IsBatter);
+        _runners.Add(new Runner(batter, 1));
+        RecordMove(batter, 0, 1);
+        PruneRunners();
         return (scorers.Count, scorers);
     }
 
-    /// <summary>
-    /// Advance runners one base after a caught fly when the offense sent them.
-    /// Runners are resolved from third back to first so a full base path moves
-    /// together. A runner on third only scores on a deep enough fly; otherwise
-    /// the occupied bag blocks the runners behind them.
-    /// </summary>
-    (int Runs, IReadOnlyList<string> Scorers) AdvanceTagUp(bool deepEnough)
+    /// <summary>A ground-rule double (§1): the batter and every runner exactly <paramref name="bases"/> bases, by rule.</summary>
+    (int Runs, IReadOnlyList<string> Scorers) AwardBases(int bases)
     {
         var scorers = new List<string>();
-        Character? n1 = null, n2 = null, n3 = null;
-
-        if (Third is not null)
+        if (BatterRunner is null) _runners.Add(Runner.BatterRunner(Batter, HomeSet.BatterBodyX(Batter.Bats, BatterContactOffsetX), HomeSet.BatterZ));
+        foreach (var r in _runners.OrderByDescending(x => x.FromBag).ToList())
         {
-            if (deepEnough)
+            if (!r.Live) continue;
+            var dest = Math.Min(4, r.FromBag + bases);
+            RecordMove(r.Who, r.FromBag, dest);
+            if (dest >= 4)
             {
-                Score(Third);
-                scorers.Add(Third.Name);
-                RecordMove(Third, 3, 4);
+                Score(r.Who);
+                scorers.Add(r.Who.Name);
+                r.Score(LivePlay.ElapsedSeconds);
             }
             else
-                n3 = Third;
+                r.Seat(dest);
         }
-
-        if (Second is not null)
-        {
-            if (n3 is null)
-            {
-                n3 = Second;
-                RecordMove(Second, 2, 3);
-            }
-            else
-                n2 = Second;
-        }
-
-        if (First is not null)
-        {
-            if (n2 is null)
-            {
-                n2 = First;
-                RecordMove(First, 1, 2);
-            }
-            else
-                n1 = First;
-        }
-
-        SetBag(1, n1);
-        SetBag(2, n2);
-        SetBag(3, n3);
+        PruneRunners();
         return (scorers.Count, scorers);
     }
 
-    (int Runs, IReadOnlyList<string> Scorers) ClearTheBases(Character batter)
+    /// <summary>A home run (§7.10): everyone scores, the batter last.</summary>
+    (int Runs, IReadOnlyList<string> Scorers) ScoreEveryone()
     {
         var scorers = new List<string>();
-        if (Third is not null) { Score(Third); scorers.Add(Third.Name); RecordMove(Third, 3, 4); }
-        if (Second is not null) { Score(Second); scorers.Add(Second.Name); RecordMove(Second, 2, 4); }
-        if (First is not null) { Score(First); scorers.Add(First.Name); RecordMove(First, 1, 4); }
-        Score(batter); scorers.Add(batter.Name); RecordMove(batter, 0, 4);
+        foreach (var r in _runners.OrderByDescending(x => x.FromBag))
+        {
+            if (r.Out || r.IsBatter) continue;
+            Score(r.Who);
+            scorers.Add(r.Who.Name);
+            RecordMove(r.Who, r.FromBag, 4);
+        }
+        Score(Batter);
+        scorers.Add(Batter.Name);
+        RecordMove(Batter, 0, 4);
         ClearBags();
         return (scorers.Count, scorers);
     }
 
-    void SetBag(int bag, Character? who)
+    /// <summary>A dead foul (§5.6): the batter goes back to the box, every runner back to their bag.</summary>
+    void ResetRunnersToBags()
     {
-        switch (bag)
-        {
-            case 1:
-                First = who;
-                _firstRun = who is null ? null : new RunnerState(who);
-                break;
-            case 2:
-                Second = who;
-                _secondRun = who is null ? null : new RunnerState(who);
-                break;
-            case 3:
-                Third = who;
-                _thirdRun = who is null ? null : new RunnerState(who);
-                break;
-        }
+        _runners.RemoveAll(r => r.IsBatter || !r.Live);
+        foreach (var r in _runners) r.Seat(r.FromBag);
         SyncSelection();
     }
 
     void ClearBags()
     {
-        First = Second = Third = null;
-        _firstRun = _secondRun = _thirdRun = null;
+        _runners.Clear();
         _selectedBag = 0;
         _pickedRunner = false;
     }
 
     void SyncSelection()
     {
+        if (_pickedRunner && _selectedBag == 0 && BatterRunner is not null) return;
         var next = Baserunning.SyncSelected(
             _selectedBag, _pickedRunner, First is not null, Second is not null, Third is not null, LeadBag);
         if (next != _selectedBag || next == 0)
@@ -1551,8 +1511,7 @@ public sealed class Match
     void ClearSteal()
     {
         StealOn = false;
-        foreach (var bag in new[] { 1, 2, 3 })
-            RunnerAt(bag)?.CancelSteal();
+        foreach (var r in _runners) r.CancelSteal();
     }
 
     void Score(Character who)
@@ -1590,7 +1549,8 @@ public sealed class Match
         else HomeStars = Math.Max(0, HomeStars - cost);
     }
 
-    PlayEvent AfterPitch(PlayEvent ev) => StealOn ? ev : ResolvePickoff(ev);
+    /// <summary>A dead pitch. The random pickoff that used to ride here is gone with the leads (D1, D3).</summary>
+    PlayEvent AfterPitch(PlayEvent ev) => ev;
 
     /// <summary>Dead-stick CPU catcher still guns. 1P vs CPU does not require the throw.</summary>
     public PlayEvent GunSteal(PlayEvent ev, bool pickoff = false)
@@ -1605,7 +1565,7 @@ public sealed class Match
         var cover = FieldingResolver.Assign(Defense, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
         var defender = pickoff ? Pitcher : catcher;
         var thr = cover != null ? ThrowBetween(defender, cover) : ThrowBetween(defender, runner);
-        var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng, Rules);
+        var caught = StealThrow.CpuOut(runner, catcher, target, thr, _rng, Rules);
         return ApplySteal(ev, fromBag, target, runner, defender, thr, caught,
             pickoff ? ThrowOrigin.PitcherRubber : ThrowOrigin.Catcher, throwBag, pickoff);
     }
@@ -1624,15 +1584,15 @@ public sealed class Match
         }
         thr ??= ThrowBetween(catcher, runner);
         var caught = throwBag == fromBag
-            ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, state.Lead01, Rules)
-            : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01, Rules);
+            ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, Rules)
+            : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, Rules);
         var destination = throwBag is >= 1 and <= 4 ? throwBag : target;
         return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught,
             ThrowOrigin.Catcher, destination, pickoff: false);
     }
 
     bool TryStealActors(
-        out int fromBag, out int target, out RunnerState state, out Character runner, out Character catcher)
+        out int fromBag, out int target, out Runner state, out Character runner, out Character catcher)
     {
         fromBag = ArmedStealBag;
         target = 0;
@@ -1658,10 +1618,11 @@ public sealed class Match
     {
         StealOn = false;
         PlayEvent result;
+        var body = RunnerAt(fromBag);
         if (!caught)
         {
-            if (target == 3) { SetBag(3, runner); SetBag(2, null); }
-            else { SetBag(2, runner); SetBag(1, null); }
+            body?.Seat(target);
+            SyncSelection();
             RecordMove(runner, fromBag, target);
             AddMvp(runner.Id, 2);
             AddStars(defense: false, Rules.Stars.Gains.StolenBase);
@@ -1680,7 +1641,8 @@ public sealed class Match
         }
         else
         {
-            SetBag(fromBag, null);
+            body?.Retire();
+            PruneRunners();
             RecordOut(OutType.Tag, pickoff ? fromBag : throwBag, fromBag, runner, defender);
             AddMvp(defender.Id, 2);
             AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
@@ -1700,69 +1662,6 @@ public sealed class Match
         }
 
         ClearSteal();
-        return FinishEvent(result);
-    }
-
-    /// <summary>Random pickoff on a walking lead (pitching.cpu.pickoff). Spec A.6 #63 / D3: retired by P6.</summary>
-    PlayEvent ResolvePickoff(PlayEvent ev)
-    {
-        if (Over || Outs >= 3)
-            return ev;
-        var pk = Rules.Pitching.Cpu.Pickoff;
-        var bag = 0;
-        RunnerState? state = null;
-        Character? runner = null;
-        if (SelectedState is { } sel && sel.Lead01 >= pk.LeadMin)
-        {
-            bag = SelectedBag;
-            state = sel;
-            runner = sel.Who;
-        }
-        else
-        {
-            for (var b = 3; b >= 1; b--)
-            {
-                var s = RunnerAt(b);
-                if (s is not null && s.Lead01 >= pk.LeadMin)
-                {
-                    bag = b;
-                    state = s;
-                    runner = s.Who;
-                    break;
-                }
-            }
-        }
-        if (bag == 0 || state is null || runner is null)
-            return ev;
-
-        var risk = state.Lead01 * pk.RiskPerLead;
-        if (state.Returning) risk *= pk.ReturningMul;
-        var map = FieldingResolver.Assign(Defense, Pitcher);
-        var catcher = map.GetValueOrDefault("C") ?? Pitcher;
-        risk += (catcher.Stats.Field - runner.Stats.Run) * pk.RiskPerStatDiff;
-        risk = Math.Clamp(risk, 0, pk.MaxRisk);
-        if (_rng.NextDouble() >= risk)
-            return ev;
-
-        var cover = map.GetValueOrDefault(StealThrow.CoverPos(bag));
-        var thr = cover is not null ? ThrowBetween(Pitcher, cover) : ThrowBetween(Pitcher, runner);
-        SetBag(bag, null);
-        RecordOut(OutType.Tag, bag, bag, runner, Pitcher);
-        AddMvp(catcher.Id, 2);
-        AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
-        var result = ev with
-        {
-            Kind = PlayKind.CaughtStealing,
-            Caption = $"{runner.Name} picked off.",
-            Fielder = Pitcher,
-            Throw = thr,
-            Outcome = new PlayOutcome(
-                RunnerResult: RunnerPlayResult.PickedOff,
-                RunnerFromBag: bag,
-                RunnerToBag: bag,
-                ThrowEndpoint: new ThrowEndpoint(ThrowOrigin.PitcherRubber, bag))
-        };
-        CheckInning();
         return FinishEvent(result);
     }
 

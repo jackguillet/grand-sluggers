@@ -606,7 +606,7 @@ public sealed class AtBatScenarioTests
         return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
     }
 
-    [Fact(Skip = "S-29 reopens at P3 (#565): hit type is still decided by carry (P2 placeholder) and with P1 power on top doubles edge singles (3.00 vs 2.86 over 50 seeds). Green is P3/P7 exit, not tuned here.")]
+    [Fact(Skip = "S-29 reopens at P4 (#566). P3 (#565) plays every CPU ball through the live glove, and the CPU glove catches by a full-speed chase to the landing over the stretched hang with no reaction lockout (spec A.4 #38, §8.2): 50 seeds give runs 0.40 / 0.58 per side, fly outs 16 per game, singles 1.2, doubles 0.3. The catch model is P4's to make geometric; nothing here is tuned to pass.")]
     public void S29_FiftySeedCpuGamesLandInTheBand()
     {
         // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways

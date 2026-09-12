@@ -957,14 +957,15 @@ namespace GrandSluggers.UnityClient
             var size = Mathf.Min(r.width, r.height) * 0.72f;
             var x = r.x + (r.width - size) * 0.5f;
             var y = r.y + (r.height - size) * 0.15f;
-            BagPip(x, y, size, 1, bug.RunnerFirst, bug.LeadFirst, bug.SelectedBag);
-            BagPip(x, y, size, 2, bug.RunnerSecond, bug.LeadSecond, bug.SelectedBag);
-            BagPip(x, y, size, 3, bug.RunnerThird, bug.LeadThird, bug.SelectedBag);
+            BagPip(x, y, size, 1, bug.RunnerFirst, bug.SelectedBag);
+            BagPip(x, y, size, 2, bug.RunnerSecond, bug.SelectedBag);
+            BagPip(x, y, size, 3, bug.RunnerThird, bug.SelectedBag);
         }
 
-        static void BagPip(float x, float y, float size, int bag, bool on, double lead, int selected)
+        /// <summary>Occupied bags only (D1): there are no leads to show.</summary>
+        static void BagPip(float x, float y, float size, int bag, bool on, int selected)
         {
-            var uv = Baserunning.MiniLead(bag, on ? lead : 0);
+            var uv = Baserunning.DiamondPip(bag);
             var px = x + (float)(uv.U * size);
             var py = y + size - (float)(uv.V * size);
             var pip = on && bag == selected ? 16f : 14f;

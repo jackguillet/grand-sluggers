@@ -1,6 +1,6 @@
 namespace GrandSluggers.Sim;
 
-/// <summary>Live ball: energy, bobble, and the race from home to first.</summary>
+/// <summary>Live ball: energy, bobble, throws to bags, forces, tags, and Time. Runners are bodies (<see cref="Runner"/>).</summary>
 public static class InPlay
 {
     /// <summary>
@@ -53,22 +53,18 @@ public static class InPlay
 
     /// <summary>Bang-bang: the throw arrived and the runner got there first by a step (running.close.marginSec).</summary>
     /// <param name="arrivedAt">Live play time when the throw (or mash) lands.</param>
-    /// <param name="needed">Run time to the bag.</param>
-    public static bool CloseSafe(double arrivedAt, double needed, RulesTable? rules = null) =>
-        arrivedAt >= needed && arrivedAt - needed <= Rules.Or(rules).Running.Close.MarginSec;
-
-    public static double HomeToFirstSec(Character batter, double dash01 = 0, RulesTable? rules = null)
-    {
-        var h = Rules.Or(rules).Running.HomeToFirst;
-        var run = Math.Clamp(h.BaseSec - batter.Stats.Run * h.SecPerRun, h.MinSec, h.MaxSec);
-        var dash = Math.Clamp(dash01, 0, 1);
-        return Math.Max(h.FloorSec, run * (1 - h.DashMul * dash));
-    }
+    /// <param name="runnerAt">Live play time the runner touched the bag.</param>
+    public static bool CloseSafe(double arrivedAt, double runnerAt, RulesTable? rules = null) =>
+        arrivedAt >= runnerAt && arrivedAt - runnerAt <= Rules.Or(rules).Running.Close.MarginSec;
 
     /// <summary>Named camera for the contact type. One table: <see cref="PlayCamera"/>.</summary>
     public static string TheaterShot(AtBatResult hit) => PlayCamera.FromHit(hit);
 
-    /// <summary>The verdict clock of a fielder's throw (fielding.throw). §8.5 makes it the only throw clock (P4).</summary>
+    /// <summary>
+    /// The one throw clock (spec §8.5, fielding.throw): release plus distance over the arm. It flies
+    /// the live ball and judges the bag; the runner bodies race it (§9.1). The flat flight clock the
+    /// client used to play is gone (A.4 #40).
+    /// </summary>
     public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable? rules = null)
     {
         var t = Rules.Or(rules).Fielding.Throw;
@@ -76,79 +72,34 @@ public static class InPlay
         return t.ReleaseSec + distFt / Math.Max(t.MinFtPerSec, fps);
     }
 
-    /// <summary>
-    /// The live flight clock the client plays for a thrown ball, as shipped (fielding.throw.flight*).
-    /// A second formula next to <see cref="ThrowSec"/>; P4 collapses them (spec A.4 #40).
-    /// </summary>
-    public static double ThrowFlightSec(ThrowResult? thr, RulesTable? rules = null)
+    /// <summary>Seconds until a throw released now from (x, z) lands at <paramref name="bag"/>: <see cref="ThrowSec"/> over that distance.</summary>
+    public static double ThrowArrivalSec(double fromX, double fromZ, int bag, ThrowResult? thr, RulesTable? rules = null)
     {
-        var t = Rules.Or(rules).Fielding.Throw;
-        var mul = Math.Max(t.FlightMinMul, thr?.SpeedMul ?? 1);
-        return Math.Clamp(t.FlightBaseSec / mul, t.FlightMinSec, t.FlightMaxSec);
-    }
-
-    /// <summary>True if the batter reaches first before the throw after a scoop at the landing.</summary>
-    public static bool BatterBeatsThrow(Character batter, AtBatResult hit, FieldingResult field, double dash01 = 0, RulesTable? rules = null)
-    {
-        if (field.Kind != PlayKind.GroundOut || field.Fielder is null) return false;
-        var run = HomeToFirstSec(batter, dash01, rules);
-        var already = field.HangTimeSec;
-        var left = run - already;
-        if (left <= 0) return true;
-        var dist = Diamond.Dist(field.LandingX, field.LandingZ, Diamond.First.X, Diamond.First.Z);
-        var tThrow = ThrowSec(dist, field.Throw, rules) + KnockbackSec(Energy(hit, rules), field.Fielder, rules);
-        return left < tThrow;
-    }
-
-    public static double BagToBagSec(Character runner, RulesTable? rules = null)
-    {
-        var b = Rules.Or(rules).Running.BagToBag;
-        return Math.Clamp(b.BaseSec - runner.Stats.Run * b.SecPerRun, b.MinSec, b.MaxSec);
-    }
-
-    /// <summary>Lead non-force runner's next bag: home if third is on, else third if second is on.</summary>
-    public static int TagBag(bool secondOccupied, bool thirdOccupied)
-    {
-        if (thirdOccupied) return 4;
-        if (secondOccupied) return 3;
-        return 0;
-    }
-
-    /// <summary>True if the runner reaches <paramref name="toBag"/> before the throw from the scoop.</summary>
-    public static bool RunnerBeatsTag(Character runner, AtBatResult hit, FieldingResult field, int toBag, RulesTable? rules = null)
-    {
-        if (field.Kind != PlayKind.GroundOut || field.Fielder is null || toBag <= 0) return false;
-        var run = BagToBagSec(runner, rules);
-        var already = field.HangTimeSec;
-        var left = run - already;
-        if (left <= 0) return true;
-        var dest = Diamond.Bag(toBag);
-        var dist = Diamond.Dist(field.LandingX, field.LandingZ, dest.X, dest.Z);
-        var tThrow = ThrowSec(dist, field.Throw, rules) + KnockbackSec(Energy(hit, rules), field.Fielder, rules);
-        return left < tThrow;
+        var to = Diamond.Bag(bag);
+        return ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), thr, rules);
     }
 
     /// <summary>
     /// Bags to throw in order on a hopper. Force at second, then first when the batter is out.
-    /// With first empty, throw to the tag bag (home or third). Empty when the batter already beat
-    /// the play and nobody is in scoring position.
+    /// With first empty, the tag bag (home or third) only when that runner is going (§8.8 rules
+    /// 2–3, S-36); otherwise first. Empty when the batter already beat the play and nobody is running.
     /// </summary>
     public static int[] GroundThrowBags(bool firstOccupied, bool batterBeatsThrow) =>
         GroundThrowBags(firstOccupied, false, false, batterBeatsThrow);
 
-    public static int[] GroundThrowBags(bool firstOccupied, bool secondOccupied, bool thirdOccupied, bool batterBeatsThrow)
+    public static int[] GroundThrowBags(bool firstOccupied, bool secondGoing, bool thirdGoing, bool batterBeatsThrow)
     {
         if (firstOccupied)
             return batterBeatsThrow ? [2] : [2, 1];
-        if (thirdOccupied) return [4];
-        if (secondOccupied) return [3];
+        if (thirdGoing) return batterBeatsThrow ? [4] : [4, 1];
+        if (secondGoing) return batterBeatsThrow ? [3] : [3, 1];
         return batterBeatsThrow ? [] : [1];
     }
 
-    /// <summary>Default hopper throw: second when first is occupied, else first / the tag bag.</summary>
-    public static int DefaultGroundBag(bool firstOccupied, bool secondOccupied = false, bool thirdOccupied = false)
+    /// <summary>Default hopper throw: second when first is occupied, else the bag a runner is going for, else first.</summary>
+    public static int DefaultGroundBag(bool firstOccupied, bool secondGoing = false, bool thirdGoing = false)
     {
-        var bags = GroundThrowBags(firstOccupied, secondOccupied, thirdOccupied, batterBeatsThrow: false);
+        var bags = GroundThrowBags(firstOccupied, secondGoing, thirdGoing, batterBeatsThrow: false);
         return bags.Length > 0 ? bags[0] : 0;
     }
 
@@ -224,7 +175,9 @@ public static class InPlay
         /// <summary>An unforced runner tagged at a bag.</summary>
         TagOut,
         /// <summary>A live body tag away from a bag (named runner).</summary>
-        TagRunner
+        TagRunner,
+        /// <summary>A runner off the bag at the catch, forced back at their start bag (§10.5).</summary>
+        DoubledOff
     }
 
     /// <summary>
@@ -249,7 +202,7 @@ public static class InPlay
 
     public static OutType OutTypeOf(ThrowVerdict verdict) => verdict switch
     {
-        ThrowVerdict.ForceOut => OutType.Force,
+        ThrowVerdict.ForceOut or ThrowVerdict.DoubledOff => OutType.Force,
         ThrowVerdict.TagOut or ThrowVerdict.TagRunner => OutType.Tag,
         _ => OutType.ThrowOutAtFirst
     };
@@ -272,6 +225,7 @@ public static class InPlay
             ThrowVerdict.ForceOut => $"{fielderName} forces the runner{where}.",
             ThrowVerdict.TagOut => $"{fielderName} tags the runner{where}.",
             ThrowVerdict.TagRunner => $"{fielderName} tags {runnerName ?? "the runner"}.",
+            ThrowVerdict.DoubledOff => $"{fielderName} doubles {runnerName ?? "the runner"} off{(bag == 1 ? " first" : bag == 2 ? " second" : where)}.",
             _ => ""
         };
     }
@@ -399,66 +353,33 @@ public static class InPlay
         hit.InPlay && !hit.Foul;
 
     /// <summary>
-    /// Time. The glove has the ball, nobody is throwing.
-    /// Three outs end it now. A putout with no remaining live runners ends it now.
-    /// Otherwise every live runner has occupied a bag for running.bags.timeOnBagSec.
-    /// Picking up the ball is not Time — the batter is still live until the out.
+    /// Time (spec §10.6): three outs; or the ball held unthrown by a fielder on the infield (inside
+    /// the dirt / grass lip, flight.classes.infieldLipFt) while every live runner has stood on a bag
+    /// for running.bags.timeOnBagSec. A runner still moving keeps the play alive; an out or a run
+    /// is not a live runner. Picking up the ball is not Time.
     /// </summary>
-    public readonly record struct Occupy(bool OnBag, double Sec);
-
     public static bool Time(
         bool hasBall,
         bool throwing,
         int outs,
-        Occupy batter,
-        Occupy? first = null,
-        Occupy? second = null,
-        Occupy? third = null,
-        bool batterOut = false,
+        bool heldInInfield,
+        IEnumerable<Runner> runners,
         RulesTable? rules = null)
     {
         if (outs >= 3) return true;
-        if (!hasBall || throwing) return false;
+        if (!hasBall || throwing || !heldInInfield) return false;
         var onBagSec = Rules.Or(rules).Running.Bags.TimeOnBagSec;
-        if (!batterOut && !Settled(batter, onBagSec)) return false;
-        if (first is { } a && !Settled(a, onBagSec)) return false;
-        if (second is { } b && !Settled(b, onBagSec)) return false;
-        if (third is { } c && !Settled(c, onBagSec)) return false;
+        foreach (var r in runners)
+        {
+            if (!r.Live) continue;
+            if (!r.OnBag || r.OnBagSec + 1e-9 < onBagSec) return false;
+        }
         return true;
     }
 
-    /// <summary>Still racing or awarded a bag. An out is not a live runner.</summary>
-    public static bool LiveBatter(PlayKind kind, bool putOut) =>
-        BatterDestBag(kind) > 0 && !putOut;
-
-    static bool Settled(Occupy o, double onBagSec) => o.OnBag && o.Sec + 1e-9 >= onBagSec;
-
-    public static Occupy TickOccupy(bool onBag, double sec, double dt) =>
-        onBag ? new Occupy(true, sec + dt) : new Occupy(false, 0);
-
-    /// <summary>Bags the batter is awarded. 0 = out (not running as a runner).</summary>
-    public static int BatterDestBag(PlayKind kind) => kind switch
-    {
-        PlayKind.HomeRun => 4,
-        PlayKind.Triple => 3,
-        PlayKind.Double => 2,
-        PlayKind.Single => 1,
-        PlayKind.Walk => 1,
-        PlayKind.HitByPitch => 1,
-        PlayKind.GroundOut => 1,
-        _ => 0
-    };
-
-    /// <summary>Occupied runner's dest on that contact. 4 = scores. Tag-up leaves on the catch.</summary>
-    public static int OccupiedDestBag(int fromBag, PlayKind kind, bool tagUp = false, bool caught = false)
-    {
-        if (kind == PlayKind.FlyOut && tagUp && caught && fromBag is >= 1 and <= 3)
-            return fromBag >= 3 ? 4 : fromBag + 1;
-        var extra = BatterDestBag(kind);
-        if (extra <= 0) return fromBag;
-        var dest = fromBag + extra;
-        return dest > 4 ? 4 : dest;
-    }
+    /// <summary>The ball is held on the infield: inside the dirt / grass lip (flight.classes.infieldLipFt), where 2B and SS stand.</summary>
+    public static bool HeldInInfield(double gloveX, double gloveZ, RulesTable? rules = null) =>
+        !FieldingResolver.OutfieldGrass(gloveX, gloveZ, rules);
 
     /// <summary>
     /// Glove with the ball touches a runner (running.bags.tagReachFt). Toy bodies read big from
@@ -473,13 +394,16 @@ public static class InPlay
         double runnerX,
         double runnerZ,
         bool? runnerOnBag = null,
-        RulesTable? rules = null)
+        RulesTable? rules = null,
+        bool sliding = false)
     {
         if (!hasBall || throwing) return false;
         var bags = Rules.Or(rules).Running.Bags;
         var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, bags.TagSafeRadiusFt);
         if (onBag) return false;
-        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < bags.TagReachFt;
+        // A slide shrinks the tag reach; it does not change the arrival (§9.4).
+        var reach = bags.TagReachFt - (sliding ? bags.SlideReachCutFt : 0);
+        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < reach;
     }
 
     /// <summary>Inside a bag's occupy radius (running.bags.occupyRadiusFt) of home or any bag.</summary>
@@ -563,10 +487,4 @@ public static class InPlay
 
     public static (double X, double Z) AlongBases(double feet, int destBag, double startX = 0, double startZ = 0, RulesTable? rules = null) =>
         TowardBag(0, destBag, feet, startX, startZ, rules);
-
-    public static double RunFeet(double elapsed, Character who, double dash01 = 0, RulesTable? rules = null)
-    {
-        var r = Rules.Or(rules);
-        return elapsed * Diamond.Baseline / Math.Max(r.Running.HomeToFirst.RunFeetMinSec, HomeToFirstSec(who, dash01, r));
-    }
 }

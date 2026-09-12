@@ -436,7 +436,6 @@ namespace GrandSluggers.UnityClient
             var stealBag = _match.ArmedStealBag > 0 ? _match.ArmedStealBag : _match.SelectedBag;
             var stealState = _match.RunnerAt(stealBag);
             var stealRunner = stealState?.Who;
-            var stealLead = stealState?.Lead01 ?? 0;
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;
@@ -451,7 +450,7 @@ namespace GrandSluggers.UnityClient
                 if (finished != null && stealRunner != null &&
                     (finished.Kind == PlayKind.StolenBase || finished.Kind == PlayKind.CaughtStealing))
                 {
-                    StartStealGun(stealRunner, stealBag, stealLead, finished);
+                    StartStealGun(stealRunner, stealBag, finished);
                     return;
                 }
                 BeginResult();

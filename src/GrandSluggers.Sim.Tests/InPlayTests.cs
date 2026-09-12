@@ -35,49 +35,39 @@ public class InPlayTests
     }
 
     [Fact]
-    public void FastBatterBeatsASlowThrow()
+    public void OneSpeedFormulaForEveryRunnerAndTheBatterStartsLate()
     {
+        // Spec §9.1: bagSec = 3.55 − Run × 0.12 clamped, one formula for every segment; the batter
+        // leaves the box 0.5 s after contact; a left-handed batter's box is closer to first.
         var dart = _content.Must("dart");
         var brick = _content.Must("brondo");
-        Assert.True(InPlay.HomeToFirstSec(dart) < InPlay.HomeToFirstSec(brick),
-            $"dart {InPlay.HomeToFirstSec(dart)} vs brondo {InPlay.HomeToFirstSec(brick)}");
-
-        var hit = Hit(ContactQuality.Nice, 72, launch: 8, carry: 45);
-        var slow = new ThrowResult(Chemistry.Bad, 0.55, false);
-        var field = new FieldingResult(PlayKind.GroundOut, _content.Must("vale"), _content.Must("nico"),
-            0.4, -40, 90, false, false, slow);
-        Assert.True(InPlay.BatterBeatsThrow(dart, hit, field));
-
-        var laser = new ThrowResult(Chemistry.Good, 1.6, false);
-        var outPlay = field with { HangTimeSec = 1.6, LandingX = 50, LandingZ = 70, Throw = laser };
-        Assert.False(InPlay.BatterBeatsThrow(brick, hit, outPlay));
+        Assert.True(RunnerSystem.BagSec(dart) < RunnerSystem.BagSec(brick), $"dart {RunnerSystem.BagSec(dart)} vs brondo {RunnerSystem.BagSec(brick)}");
+        var s = Rules.Default.Running.BagSec;
+        Assert.Equal(Math.Clamp(s.BaseSec - dart.Stats.Run * s.SecPerRun, s.MinSec, s.MaxSec), RunnerSystem.BagSec(dart), 6);
+        var righty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
+        var lefty = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.L), HomeSet.BatterZ);
+        var toFirstR = RunnerSystem.ArrivalSec(righty, 1, 0);
+        var toFirstL = RunnerSystem.ArrivalSec(lefty, 1, 0);
+        Assert.True(toFirstL < toFirstR, $"lefty {toFirstL} vs righty {toFirstR}");
+        Assert.InRange(toFirstR - s.BatterStartSec, RunnerSystem.BagSec(dart) * 0.9, RunnerSystem.BagSec(dart) * 1.1);
+        var seated = new Runner(dart, 1);
+        Assert.Equal(RunnerSystem.BagSec(dart), RunnerSystem.ArrivalSec(seated, 2, 0), 6);
+        Assert.Equal(2 * RunnerSystem.BagSec(dart), RunnerSystem.ArrivalSec(seated, 3, 0), 6);
+        Assert.Equal(0, RunnerSystem.ArrivalSec(seated, 1, 0));
     }
 
     [Fact]
-    public void DashTurnsACloseHopperFromOutToIn()
+    public void DashShortensTheRaceToFirstWithoutTeleporting()
     {
         var dart = _content.Must("dart");
-        var vale = _content.Must("vale");
-        var nico = _content.Must("nico");
-        var hit = Hit(ContactQuality.Nice, 72, launch: 8, carry: 45);
-        var found = false;
-        FieldingResult? play = null;
-        for (var hang = 0.2; hang <= 2.4 && !found; hang += 0.05)
-        for (var mul = 0.45; mul <= 1.8 && !found; mul += 0.05)
-        {
-            play = new FieldingResult(PlayKind.GroundOut, vale, nico, hang, 48, 72, false, false,
-                new ThrowResult(Chemistry.Neutral, mul, false));
-            var still = InPlay.BatterBeatsThrow(dart, hit, play, 0);
-            var dash = InPlay.BatterBeatsThrow(dart, hit, play, 1);
-            if (!still && dash) found = true;
-        }
-        Assert.True(found, "need a hopper that is out at dash 0 and in at dash 1");
-        Assert.NotNull(play);
-        var match = Match.Slice(_content, seed: 1);
-        match.Dash01 = 0;
-        Assert.False(InPlay.BatterBeatsThrow(dart, hit, play, match.Dash01));
-        match.Dash01 = 1;
-        Assert.True(InPlay.BatterBeatsThrow(dart, hit, play, match.Dash01));
+        var body = Runner.BatterRunner(dart, HomeSet.BatterBodyX(Hand.R), HomeSet.BatterZ);
+        var still = RunnerSystem.ArrivalSec(body, 1, 0, 0);
+        var dash = RunnerSystem.ArrivalSec(body, 1, 0, 1);
+        Assert.True(dash < still, $"dash {dash} vs {still}");
+        Assert.True(still - dash < 0.6, "dash is not a teleport");
+        // A throw that lands between the two: out standing still, in on the mash.
+        var throwSec = (still + dash) / 2;
+        Assert.True(throwSec < still && throwSec > dash);
     }
 
     [Fact]
@@ -93,7 +83,6 @@ public class InPlayTests
         var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, rng, pre: pre);
         Assert.Equal(PlayKind.Single, field.Kind);
         Assert.NotEqual(PlayKind.GroundOut, field.Kind);
-        Assert.False(InPlay.BatterBeatsThrow(match.Batter, hit, field));
     }
 
     [Fact]
@@ -103,11 +92,11 @@ public class InPlayTests
         Assert.Equal(new[] { 2 }, InPlay.GroundThrowBags(true, true));
         Assert.Equal(new[] { 1 }, InPlay.GroundThrowBags(false, false));
         Assert.Empty(InPlay.GroundThrowBags(false, true));
-        Assert.Equal(new[] { 3 }, InPlay.GroundThrowBags(false, true, false, false));
-        Assert.Equal(new[] { 4 }, InPlay.GroundThrowBags(false, true, true, false));
-        Assert.Equal(4, InPlay.TagBag(true, true));
-        Assert.Equal(3, InPlay.TagBag(true, false));
-        Assert.Equal(0, InPlay.TagBag(false, false));
+        // First empty: the tag bag only when that runner is going (S-36); the batter at first is the second throw.
+        Assert.Equal(new[] { 3, 1 }, InPlay.GroundThrowBags(false, secondGoing: true, thirdGoing: false, batterBeatsThrow: false));
+        Assert.Equal(new[] { 4, 1 }, InPlay.GroundThrowBags(false, secondGoing: true, thirdGoing: true, batterBeatsThrow: false));
+        Assert.Equal(new[] { 1 }, InPlay.GroundThrowBags(false, secondGoing: false, thirdGoing: false, batterBeatsThrow: false));
+        Assert.Equal(new[] { 3 }, InPlay.GroundThrowBags(false, secondGoing: true, thirdGoing: false, batterBeatsThrow: true));
         Assert.Equal(2, InPlay.DefaultGroundBag(true));
         Assert.Equal(1, InPlay.DefaultGroundBag(false));
         Assert.Equal(3, InPlay.DefaultGroundBag(false, true, false));
@@ -334,43 +323,48 @@ public class InPlayTests
     [Fact]
     public void TimeWaitsUntilEveryRunnerHasBeenOnABagASecond()
     {
+        // Spec §10.6: three outs; or an infielder holds the ball unthrown while every live runner has
+        // stood on a bag for timeOnBagSec. The bodies are what Time reads.
         Assert.Equal(1.0, Rules.Default.Running.Bags.TimeOnBagSec);
-        var between = new InPlay.Occupy(false, 0);
-        var justOn = new InPlay.Occupy(true, 0.4);
-        var settled = new InPlay.Occupy(true, 1.0);
-        Assert.True(InPlay.Time(true, false, 3, between), "three outs is Time");
-        Assert.False(InPlay.Time(false, false, 0, settled), "no ball is not Time");
-        Assert.False(InPlay.Time(true, true, 0, settled), "a throw is not Time");
-        Assert.False(InPlay.Time(true, false, 0, between), "batter between bags");
-        Assert.False(InPlay.Time(true, false, 0, justOn), "batter just arrived");
-        Assert.True(InPlay.Time(true, false, 0, settled));
-        Assert.False(InPlay.Time(true, false, 0, settled, first: between), "runner between");
-        Assert.True(InPlay.Time(true, false, 0, settled, first: settled));
-        Assert.True(InPlay.Time(true, false, 0, between, batterOut: true),
-            "out at first, nobody else on: Time now");
-        Assert.False(InPlay.Time(true, false, 0, between, first: between, batterOut: true),
-            "out at first but another runner is still live");
-        Assert.True(InPlay.Time(true, false, 0, between, first: settled, batterOut: true),
-            "putout, remaining runner settled");
-        Assert.False(InPlay.LiveBatter(PlayKind.GroundOut, putOut: true));
-        Assert.True(InPlay.LiveBatter(PlayKind.GroundOut, putOut: false));
-        Assert.False(InPlay.LiveBatter(PlayKind.FlyOut, putOut: false));
-        Assert.Equal(2, InPlay.BatterDestBag(PlayKind.Double));
-        Assert.Equal(3, InPlay.OccupiedDestBag(1, PlayKind.Double));
-        Assert.Equal(1, InPlay.BatterDestBag(PlayKind.GroundOut));
-        Assert.Equal(0, InPlay.BatterDestBag(PlayKind.FlyOut));
-        Assert.Equal(3, InPlay.OccupiedDestBag(3, PlayKind.FlyOut));
-        Assert.Equal(3, InPlay.OccupiedDestBag(3, PlayKind.FlyOut, tagUp: true, caught: false));
-        Assert.Equal(4, InPlay.OccupiedDestBag(3, PlayKind.FlyOut, tagUp: true, caught: true));
+        var rio = _content.Must("rio");
+        var batter = Runner.BatterRunner(rio, HomeSet.BatterX, HomeSet.BatterZ);
+        var runners = new[] { batter };
+        Assert.True(InPlay.Time(true, false, 3, true, runners), "three outs is Time");
+        Assert.False(InPlay.Time(false, false, 0, true, runners), "no ball is not Time");
+        Assert.False(InPlay.Time(true, true, 0, true, runners), "a throw is not Time");
+        Assert.False(InPlay.Time(true, false, 0, true, runners), "batter between bags");
+        var t = 0.0;
+        const double dt = 1.0 / 60;
+        while (!batter.IsOn(1))
+        {
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t, 0, FlyState.None, 0, _ => false, _ => false));
+            t += dt;
+            Assert.True(t < 10, "the batter reaches first");
+        }
+        var expected = Rules.Default.Running.BagSec.BatterStartSec + batter.SegmentFt / RunnerSystem.SpeedFtPerSec(rio);
+        Assert.InRange(t, expected - 0.05, expected + 0.05);
+        Assert.False(InPlay.Time(true, false, 0, true, runners), "batter just arrived");
+        for (var i = 0; i < 63; i++)
+            RunnerSystem.Tick(runners, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
+        Assert.True(InPlay.Time(true, false, 0, true, runners));
+        Assert.False(InPlay.Time(true, false, 0, false, runners), "an outfielder holding it on the grass is not Time (§10.6)");
+
+        var third = new Runner(_content.Must("vale"), 3);
+        var two = new[] { batter, third };
+        Assert.False(InPlay.Time(true, false, 0, true, two), "a runner just seated has not settled");
+        for (var i = 0; i < 63; i++)
+            RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 0, _ => false, _ => false));
+        Assert.True(InPlay.Time(true, false, 0, true, two));
+        batter.Retire();
+        Assert.True(InPlay.Time(true, false, 1, true, two), "an out is not a live runner");
+        third.Send(4);
+        RunnerSystem.Tick(two, dt, new RunnerTickContext(t += dt, 0, FlyState.None, 1, _ => false, _ => false));
+        Assert.False(InPlay.Time(true, false, 1, true, two), "a runner going home keeps the play alive");
         var mid = InPlay.AlongBases(Diamond.Baseline * 0.5, 2);
         Assert.False(InPlay.OccupyingBag(mid.X, mid.Z), "halfway to first is not a bag");
         var atTwo = InPlay.TowardBag(0, 2, Diamond.Baseline * 2);
         Assert.True(InPlay.OccupyingBag(atTwo.X, atTwo.Z), "double dest is second");
         Assert.Equal(Diamond.Second.X, atTwo.X, 1);
-        var tick = InPlay.TickOccupy(true, 0.4, 0.7);
-        Assert.True(tick.OnBag);
-        Assert.True(tick.Sec >= Rules.Default.Running.Bags.TimeOnBagSec);
-        Assert.Equal(0, InPlay.TickOccupy(false, 1.5, 0.1).Sec);
     }
 
     [Fact]

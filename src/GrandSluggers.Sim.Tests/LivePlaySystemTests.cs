@@ -82,8 +82,8 @@ public sealed class LivePlaySystemTests
         match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.GroundOut, source));
         var advanced = match.LivePlay.Apply(LivePlayCommand.Advance(
             1, PlayKind.GroundOut, true, false, true, 0, source));
-        var feet = InPlay.RunFeet(advanced.Snapshot.ElapsedSeconds, match.Batter);
-        var batter = InPlay.AlongBases(feet, 1, HomeSet.BatterX, HomeSet.BatterZ);
+        var body = advanced.Snapshot.Runners.First(r => r.FromBag == 0);
+        var batter = (X: body.X, Z: body.Z);
 
         var tag = match.LivePlay.Apply(LivePlayCommand.Contact(
             PlayKind.GroundOut, true, false, true, batter.X, batter.Z, 0, match.Pitcher, source));
@@ -131,14 +131,15 @@ public sealed class LivePlaySystemTests
         match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.Single, source));
 
         LivePlaySnapshot snapshot;
+        RunnerView Body(LivePlaySnapshot s) => s.Runners.First(r => r.FromBag == 0);
         do
         {
             snapshot = match.LivePlay.Apply(LivePlayCommand.Advance(
                 0.05, PlayKind.Single, true, false, true, 0, source)).Snapshot;
-        } while (!snapshot.Batter.OnBag);
+        } while (!(Body(snapshot).Phase == RunnerPhase.OnBag && Body(snapshot).Bag >= 1));
 
         Assert.False(snapshot.IsTime);
-        var almostSettled = Rules.Default.Running.Bags.TimeOnBagSec - snapshot.Batter.Sec - 0.01;
+        var almostSettled = Rules.Default.Running.Bags.TimeOnBagSec - Body(snapshot).OnBagSec - 0.01;
         snapshot = match.LivePlay.Apply(LivePlayCommand.Advance(
             almostSettled, PlayKind.Single, true, false, true, 0, source)).Snapshot;
         Assert.False(snapshot.IsTime);

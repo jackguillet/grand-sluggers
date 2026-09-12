@@ -213,21 +213,17 @@ namespace GrandSluggers.UnityClient
                 bHero.SetHighlight(false);
                 if (racing)
                 {
-                    if (RunPad.SouthDown) _dash01 = Mathf.Min(1f, _dash01 + 0.28f);
-                    _match.Dash01 = _dash01;
                     if (TrainingOn) _coach.OnRun(_match);
-                    var kind = LiveKind();
-                    var dest = InPlay.BatterDestBag(kind);
-                    if (dest <= 0) dest = 1;
-                    var feet = InPlay.RunFeet(LiveTime, batter, _dash01);
-                    var startX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
-                    var (hx, hz) = InPlay.AlongBases(feet, dest,
-                        startX, HomeSet.BatterZ);
+                    // The batter-runner is a body in the sim (spec §9.1): drawn where it stands.
+                    var body = _match.BatterRunner;
+                    var (hx, hz) = body != null ? body.Position : (HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
+                    var next = body != null ? Diamond.Bag(Math.Min(body.NextBag, 3)) : Diamond.First;
                     var look = presentingSwing
                         ? (X: 0.0, Z: 1.0)
-                        : dest >= 2 && feet > Diamond.Baseline
-                        ? Diamond.Bag(Math.Min(dest, 3))
-                        : Diamond.First;
+                        : (X: next.X - hx, Z: next.Z - hz);
+                    if (body != null && body.Sliding) bPose = Motion.Verb.Slide;
+                    else if (body != null && (body.Held || body.OnBag) && !presentingSwing) bPose = Motion.Verb.Idle;
+                    bHero.SetPose(bPose, swingCharge);
                     bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
                 }
                 else
@@ -340,33 +336,27 @@ namespace GrandSluggers.UnityClient
             if (_phase == Phase.StealThrow && _match.ArmedStealBag == bagNum) return;
             if (_gun && _gunRunner != null && who.Id == _gunRunner.Id) return;
             var state = _match.RunnerAt(bagNum);
-            var spot = Diamond.LeadSpot(bagNum, state != null ? state.Lead01 : 0);
+            // No leads (D1): a runner stands on the bag until contact, a steal break, or a send. Live, the body is the sim's.
+            var spot = state != null && _phase == Phase.InPlay ? state.Position : bag;
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = Motion.Verb.Idle;
-            var racing = _phase == Phase.InPlay && _pending != null;
-            if (racing)
+            if (state != null && _phase == Phase.InPlay && _pending != null)
             {
-                var kind = LiveKind();
-                var dest = InPlay.OccupiedDestBag(bagNum, kind, _match.SendAll, _caught || _buddy);
-                var feet = InPlay.RunFeet(LiveTime, who);
-                var at = InPlay.TowardBag(bagNum, dest, feet);
-                spot = (at.X, at.Z);
-                var tagBag = dest > bagNum ? dest : bagNum + 1;
-                var threatened = _throwing && _throwBag == tagBag;
-                var going = dest > bagNum && !InPlay.OccupyingBag(at.X, at.Z);
-                pose = going ? (threatened ? Motion.Verb.Slide : Motion.Verb.Run) : pose;
+                next = Diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
+                if (state.Phase == RunnerPhase.Returning) next = Diamond.Bag(state.Bag);
+                pose = state.Sliding ? Motion.Verb.Slide
+                    : state.Moving && !state.Held ? Motion.Verb.Run
+                    : Motion.Verb.Idle;
             }
-            else if (state != null && state.Sliding) pose = Motion.Verb.Slide;
-            else if (state != null && state.StealAttempt) pose = Motion.Verb.Run;
-            else if (state != null && state.Lead01 > 0.08) pose = Motion.Verb.StealLead;
+            else if (state != null && state.StealArmed) pose = Motion.Verb.StealLead;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
             var selected = _match.SelectedRunner ?? _match.LeadRunner;
             h.SetHighlight(HumanBats && selected != null && who.Id == selected.Id && _phase is Phase.Set or Phase.Flight);
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
-                new Vector3((float)(next.X - bag.X), 0, (float)(next.Z - bag.Z)));
+                new Vector3((float)(next.X - spot.X), 0, (float)(next.Z - spot.Z)));
             h.Tick(Time.deltaTime);
         }
 
@@ -382,8 +372,11 @@ namespace GrandSluggers.UnityClient
             double x, z;
             if (_gunPickoff)
             {
-                var from = Diamond.LeadSpot(_gunFromBag, _gunLead > 0.15 ? _gunLead : 1);
+                // An armed runner who broke (D3) is caught coming back: a short way off the bag, back to it.
                 var to = Diamond.Bag(_gunFromBag);
+                var ahead = Diamond.Bag(Baserunning.NextBag(_gunFromBag));
+                var lean = 0.25;
+                var from = (X: to.X + (ahead.X - to.X) * lean, Z: to.Z + (ahead.Z - to.Z) * lean);
                 x = from.X + (to.X - from.X) * u;
                 z = from.Z + (to.Z - from.Z) * u;
             }
@@ -408,49 +401,28 @@ namespace GrandSluggers.UnityClient
             h.Tick(Time.deltaTime);
         }
 
+        /// <summary>
+        /// The offense pad before the pitch (spec §9.2, §11.1): D-pad selects, stick toward the next
+        /// bag or L3 arms the steal, stick back cancels it, LB arms tag-and-go, RB / both cancel.
+        /// Once the ball is live the same pad reaches the bodies through the sim's Tick (RunInput).
+        /// </summary>
         void TickBaserunning(float dt)
         {
             if (_match == null || _match.LeadBag == 0) return;
-            if (HumanBats && _phase is Phase.Set or Phase.Flight or Phase.InPlay)
-            {
-                var run = RunPad;
-                if (run.ThrowBag > 0)
-                    _match.SelectRunner(run.ThrowBag);
-                if (run.FreezeRunners)
-                {
-                    var haltBag = InPlay.DiamondBag(run.StickX, run.StickY);
-                    if (haltBag is >= 1 and <= 3) _match.HaltAt(haltBag);
-                    else _match.FreezeRunners();
-                }
-                else if (run.AllAdvance)
-                    _match.AdvanceAll(dt * 1.7f);
-                else if (run.AllReturn)
-                    _match.ReturnAll(dt * 2.0f);
-                var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
-                var stick = InPlay.DiamondBag(run.StickX, run.StickY);
-                var verb = Baserunning.StickVerb(stick, bag);
-                var armPhase = _phase is Phase.Set or Phase.Flight;
-                // Spec §9.2 / §11.1: the stick toward the next bag arms the steal, same as L3. No lead stick.
-                if (verb == RunStick.Steal && armPhase && !_match.StealAttempt) _match.StartSteal();
-                else if (verb == RunStick.Return) _match.ReturnToBag(dt * 2.0f);
-                if (armPhase && run.Steal) _match.ToggleSteal();
-                var near = _match.Lead01 <= 0.24 || (_match.StealAttempt && _match.Lead01 >= 0.7);
-                if (near && (run.WestDown || run.SouthDown))
-                    _match.Slide();
-                if (TrainingOn) _coach.OnRun(_match);
-            }
-            if (_phase == Phase.Flight && _match.StealOn)
-            {
-                var stealBag = _match.ArmedStealBag;
-                if (stealBag > 0) _match.TakeLeadAt(stealBag, dt * 2.4f);
-                else _match.TakeLead(dt * 2.4f);
-            }
-            else
-            {
-                for (var bag = 1; bag <= 3; bag++)
-                    if (_match.RunnerAt(bag)?.Returning == true)
-                        _match.ReturnToBagAt(bag, dt * 2.2f);
-            }
+            if (!HumanBats || _phase is not (Phase.Set or Phase.Flight)) return;
+            var run = RunPad;
+            if (run.ThrowBag is >= 1 and <= 3)
+                _match.SelectRunner(run.ThrowBag);
+            if (run.FreezeRunners) _match.FreezeRunners();
+            else if (run.AllAdvanceDown) _match.AdvanceAll();
+            else if (run.AllReturn) _match.ReturnAll();
+            var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
+            var stick = InPlay.DiamondBag(run.StickX, run.StickY);
+            var verb = Baserunning.StickVerb(stick, bag);
+            if (verb == RunStick.Steal && !_match.StealAttempt) _match.StartSteal();
+            else if (verb == RunStick.Return) _match.ReturnToBag();
+            if (run.Steal) _match.ToggleSteal();
+            if (TrainingOn) _coach.OnRun(_match);
         }
 
         void PlaceLiveStealRunner()
@@ -461,9 +433,9 @@ namespace GrandSluggers.UnityClient
             if (runner == null || fromBag is not 1 and not 2) return;
             var target = state.StealTarget is 2 or 3 ? state.StealTarget : Baserunning.StealTarget(fromBag);
             if (target is not 2 and not 3) return;
-            var remain = (float)StealThrow.RunnerRemainSec(runner, state.Lead01);
+            var remain = (float)StealThrow.RunnerRemainSec(runner, _content.Rules);
             var u = Mathf.Clamp01(_stealT / Mathf.Max(0.2f, remain));
-            var from = Diamond.LeadSpot(fromBag, state.Lead01);
+            var from = Diamond.Bag(fromBag);
             var to = Diamond.Bag(target);
             var x = from.X + (to.X - from.X) * u;
             var z = from.Z + (to.Z - from.Z) * u;
@@ -488,13 +460,12 @@ namespace GrandSluggers.UnityClient
             if (_gunT >= _gunDur) _gun = false;
         }
 
-        void StartStealGun(Character runner, int fromBag, double lead, PlayEvent ev)
+        void StartStealGun(Character runner, int fromBag, PlayEvent ev)
         {
             _gun = true;
             _gunT = 0;
             _gunRunner = runner;
             _gunFromBag = fromBag;
-            _gunLead = lead;
             _gunSafe = ev.Kind == PlayKind.StolenBase;
             var outcome = ev.Outcome;
             _gunPickoff = outcome?.RunnerResult == RunnerPlayResult.PickedOff;

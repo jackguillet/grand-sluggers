@@ -145,7 +145,6 @@ namespace GrandSluggers.UnityClient
         Character _gunRunner;
         int _gunFromBag, _gunToBag, _gunThrowToBag;
         bool _gunSafe, _gunPickoff, _gunThrowFromPitcher;
-        double _gunLead;
         float _stealT;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
