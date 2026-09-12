@@ -573,7 +573,7 @@ public sealed class Match
         pitch = PreparePitch(pitch);
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return StealThrowPending ? GunSteal(finished!) : finished!;
-        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night);
+        var field = _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, night: Night, gloves: Defense.Gloves);
         field = ApplyOffenseItem(hit, field, item);
         return FinishAtBat(pitch, swing, hit, field);
     }
@@ -659,16 +659,14 @@ public sealed class Match
             swing.Charge01, box, crossing.X, crossing.Y);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
-        if (hit.Foul)
-        {
-            finished = FinishFoul(pitch, swing, hit);
-            return false;
-        }
-        if (!hit.InPlay)
+        if (hit.Quality == ContactQuality.Miss)
         {
             finished = FinishStrike(pitch, swing, hit, swinging: true);
             return false;
         }
+        // Every batted ball is live from here, foul territory included (§7.11): the flight is
+        // fielded, a caught foul fly is an out, and the call is made where the ball lands or is
+        // first touched. FinishInPlay stamps FOUL when it is dead.
         return true;
     }
 
@@ -681,10 +679,10 @@ public sealed class Match
     }
 
     public FieldingPreview PreviewHit(AtBatResult hit) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night);
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night, Defense.Gloves);
 
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
-        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night);
+        _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night, Defense.Gloves);
 
     /// <summary>
     /// Pitcher swap (spec §4.7): any fielder takes the mound (the best Pitch stat when nobody is
@@ -727,6 +725,8 @@ public sealed class Match
     public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem, Character? target = null)
     {
         if (!hit.ChemistryItemOffered) return field;
+        // A foul flight cannot become a hit (§7.11): a dropped foul is still foul, so no item plays on it.
+        if (hit.Foul) return field;
         if (playerItem == "") return field;
         var who = target ?? field.Fielder;
         if (!string.IsNullOrEmpty(playerItem))
@@ -976,17 +976,6 @@ public sealed class Match
         return AfterPitch(Emit(PlayKind.TakeBall, pitch, swing, empty, $"Ball {Balls}.", 0, []));
     }
 
-    PlayEvent FinishFoul(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
-    {
-        // A foul bunt with two strikes is strike three (spec §1, §5.8).
-        if (swing.Bunt && Strikes >= 2)
-            return FinishStrike(pitch, swing, hit, swinging: true, how: "bunts foul for strike three.");
-        if (Strikes < 2) Strikes++;
-        AddMvp(Batter.Id, 0);
-        ClearSteal();
-        return Emit(PlayKind.Foul, pitch, swing, hit, "Foul.", 0, [], furnace: hit.StarSwingUsed is "furnace" or "heat-swing", heat: hit.StarPitchUsed == "heatball");
-    }
-
     PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging, string? how = null)
     {
         Strikes++;
@@ -1044,6 +1033,19 @@ public sealed class Match
 
         switch (kind)
         {
+            case PlayKind.Foul:
+                // A foul bunt with two strikes is strike three (spec §1, §5.8).
+                if (swing.Bunt && Strikes >= 2)
+                {
+                    LivePlay.Reset();
+                    return FinishStrike(pitch, swing, hit, swinging: true, how: "bunts foul for strike three.");
+                }
+                // Dead where it landed, rolled foul, or left the field, or was first touched foul (§5.6).
+                // Fewer than two strikes adds one; runners return; the at-bat continues.
+                if (Strikes < 2) Strikes++;
+                AddMvp(Batter.Id, 0);
+                caption = "Foul.";
+                break;
             case PlayKind.HomeRun:
                 ChargeArm(Pitcher, Rules.Pitching.Stamina.HomerCost);
                 (runs, scorers) = ClearTheBases(Batter);
@@ -1267,11 +1269,13 @@ public sealed class Match
         var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
                     && (field.Bobble || field.Throw is { Error: true });
         LivePlay.Reset();
-        return Emit(kind, pitch, swing, hit, caption, runs, scorers,
+        var ev = Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
             new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
                 GroundRuleDouble: kind == PlayKind.Double && field.GroundRule));
+        // A foul is a pitch that ended dead, like a take or a miss: the same after-pitch resolution.
+        return kind == PlayKind.Foul ? AfterPitch(ev) : ev;
     }
 
     PlayEvent Emit(
@@ -1598,7 +1602,7 @@ public sealed class Match
             return ev;
         }
         var throwBag = pickoff ? fromBag : target;
-        var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
+        var cover = FieldingResolver.Assign(Defense, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
         var defender = pickoff ? Pitcher : catcher;
         var thr = cover != null ? ThrowBetween(defender, cover) : ThrowBetween(defender, runner);
         var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng, Rules);
@@ -1634,7 +1638,7 @@ public sealed class Match
         target = 0;
         state = null!;
         runner = null!;
-        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var map = FieldingResolver.Assign(Defense, Pitcher);
         catcher = map.GetValueOrDefault("C") ?? Pitcher;
         var live = RunnerAt(fromBag);
         if (live?.Who is null || fromBag is not 1 and not 2)
@@ -1733,7 +1737,7 @@ public sealed class Match
 
         var risk = state.Lead01 * pk.RiskPerLead;
         if (state.Returning) risk *= pk.ReturningMul;
-        var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
+        var map = FieldingResolver.Assign(Defense, Pitcher);
         var catcher = map.GetValueOrDefault("C") ?? Pitcher;
         risk += (catcher.Stats.Field - runner.Stats.Run) * pk.RiskPerStatDiff;
         risk = Math.Clamp(risk, 0, pk.MaxRisk);

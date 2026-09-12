@@ -17,7 +17,7 @@ public static class FlightFixtures
     {
         var ball = BattedBall.Of(exitMph, launchDeg, sprayDeg, bunt, park, rules);
         return new AtBatResult(quality, !ball.Foul, false, exitMph, launchDeg, Math.Round(ball.LandingDist, 1),
-            ball.HomeRun, false, null, null, SprayDeg: sprayDeg, Foul: ball.Foul, Class: ball.Class);
+            ball.HomeRun, false, null, null, SprayDeg: sprayDeg, Foul: ball.Foul, Class: ball.Shape);
     }
 
     /// <summary>The exit velocity whose open-field carry at this launch is <paramref name="carryFt"/> (bisected on the flight).</summary>
