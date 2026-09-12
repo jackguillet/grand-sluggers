@@ -69,14 +69,15 @@ namespace GrandSluggers.UnityClient
 
         enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         Phase _phase = Phase.Title;
-        readonly string[] _pitches = { "fastball", "changeup" };
+        /// <summary>The SET swap pick while open (spec §4.7, #582); null otherwise.</summary>
+        PitcherSwapPick _swapPick;
+        float _swapArmed, _swapHold;
         int _itemPick;
         Character _itemTarget;
         bool _itemThrown;
         bool _itemFlying;
         float _itemFly;
         string _itemId = "";
-        int _pitchIndex;
         bool _starPitch;
         bool _starSwing;
         bool _bunt;
@@ -359,7 +360,7 @@ namespace GrandSluggers.UnityClient
                 HudView.Pause(_pauseItem, true, _pausePage);
                 return;
             }
-            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, _pitches, _pitchIndex,
+            HudView.Draw(_match, ui, parkName, home.Name, away.Name, _mode == PlayMode.Challenge, PitcherExtra(),
                 _starPitch || _starSwing, _match.StealOn, ItemHud(), _charge, timing,
                 _showTiming && _phase is Phase.Set or Phase.Flight && !TrainingOn, banner, sub, Look.Portrait(HomeCaptain),
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,

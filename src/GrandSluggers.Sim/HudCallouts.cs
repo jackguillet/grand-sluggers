@@ -29,7 +29,7 @@ public static class HudCallouts
             new("count", "B / S / O", BroadcastHud.Standard.Count),
             new("diamond", "On-base", BroadcastHud.Standard.MiniDiamond),
             new("batter", "Batter card · AB", BroadcastHud.Standard.BatterCard),
-            new("pitcher", "Pitcher card · ARM · TIRED", BroadcastHud.Standard.PitcherCard),
+            new("pitcher", "Pitcher · TIRED · SWAP", BroadcastHud.Standard.PitcherCard),
         ]);
 
     public static readonly Spread InPlay = new(
