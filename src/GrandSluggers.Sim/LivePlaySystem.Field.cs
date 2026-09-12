@@ -88,7 +88,9 @@ public enum LiveEvent
     /// <summary>A throw missed its cover and skipped past (§8.5): the ERROR tell on the thrower.</summary>
     ThrowSailed,
     /// <summary>The glove fumbled the ball (§8.6): it is loose on the ground.</summary>
-    Bobble
+    Bobble,
+    /// <summary>A runner is caught between bags with the ball in range (§9.7): the rundown began.</summary>
+    Rundown
 }
 
 /// <summary>
@@ -200,6 +202,13 @@ public sealed partial class LivePlaySystem
     public bool InClosePlay { get; private set; }
     public int CloseBag { get; private set; }
     public bool CloseIcon { get; private set; }
+    /// <summary>A runner is caught between bags with a glove holding the ball in range (§9.7).</summary>
+    public bool InRundown => RundownRunner is not null;
+    /// <summary>The body in the rundown this frame, or null.</summary>
+    public Runner? RundownRunner { get; private set; }
+    /// <summary>The CPU glove is walking to this force bag to step on it (§10.4, S-41); 0 when throwing instead.</summary>
+    int _cpuWalkBag;
+    bool _rundownCued;
     public bool AwaitingRelay { get; private set; }
     public double Dash01 { get; private set; }
     public double StealT { get; private set; }
@@ -354,6 +363,9 @@ public sealed partial class LivePlaySystem
         InClosePlay = false;
         CloseIcon = false;
         CloseBag = 0;
+        RundownRunner = null;
+        _cpuWalkBag = 0;
+        _rundownCued = false;
         _closeRunner = null;
         _closePlayT = 0;
         _closeOffAt = _closeDefAt = -1;
@@ -397,6 +409,8 @@ public sealed partial class LivePlaySystem
         _match.Dash01 = Dash01;
         // The offense pad's runner verbs (§9.3): the seat that owns the runners is the only one that reaches them.
         if (Seats.HumanRuns) ApplyRunPad(run);
+        // The rundown (§9.7) is read off last frame's bodies so the runner AI sees it as it decides.
+        ReadRundown();
 
         Advance(LivePlayCommand.Advance(dt, LiveKind(), HoldsBall, Throwing, HoldsBall, Dash01, command.Source, PlayFielder()));
 
@@ -460,11 +474,7 @@ public sealed partial class LivePlaySystem
             if (ThrowT >= ThrowDur && !command.EffectInFlight)
             {
                 if (OnThrowLanded(dt, out var arrived)) return arrived;
-                if (!Throwing && !_loose)
-                {
-                    if (TryBeginClosePlay()) return new LivePlayCommandResult(Snapshot);
-                    if (IsTime()) return Commit();
-                }
+                if (!Throwing && !_loose && IsTime()) return Commit();
             }
             return new LivePlayCommandResult(Snapshot);
         }
@@ -803,14 +813,141 @@ public sealed partial class LivePlaySystem
             return null;
         }
         if (!Throwing && TickLiveContact(out var done))
+        {
+            // An unassisted force landed (§10.4): the glove decides again from the bag, as a receiver would.
+            if (_cpuWalkBag > 0)
+            {
+                _cpuWalkBag = 0;
+                _cpuThrowAt = -1;
+                _cpuDecided = false;
+            }
             return done;
+        }
         if (effectInFlight) return null;
         if (IsTime())
             return Commit();
+        if (RecoilT > 0) return null;
+        // Walking to the force bag to step on it (§10.4, S-41).
+        if (_cpuWalkBag > 0)
+        {
+            WalkGloveTo(Diamond.Bag(_cpuWalkBag), dt);
+            if (!Forces.At(_cpuWalkBag) && !Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == _cpuWalkBag))
+            {
+                _cpuWalkBag = 0;
+                _cpuThrowAt = -1;
+                _cpuDecided = false;
+            }
+            return null;
+        }
+        // The rundown (§9.7): run the runner down, throw once they are near a covered bag.
+        if (TickCpuRundown(dt)) return null;
         // The decision table (§8.8) runs once per possession, after the fielder's reaction.
-        if (!Throwing && RecoilT <= 0 && CpuMayThrow())
+        if (CpuMayThrow())
             CpuDecide();
         return null;
+    }
+
+    /// <summary>The glove with the ball walks toward a spot at the one chase speed (§8.1).</summary>
+    void WalkGloveTo((double X, double Z) goal, double dt)
+    {
+        var who = GloveChar();
+        var speed = FieldingResolver.ChaseSpeedFt(who, Preview?.Frozen ?? false, R);
+        var next = FieldingResolver.StepToward(GloveX, GloveZ, goal.X, goal.Z, speed, dt, Park, R);
+        GloveX = next.X;
+        GloveZ = next.Z;
+        _fielders[GlovePos] = (GloveX, GloveZ);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Rundown (§9.7): a body off the bags with the ball held in range
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// The runner in a rundown this frame (§9.7): live, off every bag, not the batter short of first,
+    /// not a forced runner whose force still stands (that is a throw to the bag), with a glove
+    /// holding the ball inside running.rundown.rangeFt of their body. Flags every body for the AI.
+    /// </summary>
+    void ReadRundown()
+    {
+        Runner? caught = null;
+        var range = R.Running.Rundown.RangeFt;
+        foreach (var r in Runners)
+        {
+            r.MarkRundown(false);
+            if (!r.Live || !HoldsBall || Throwing || _loose) continue;
+            if (r.IsBatter && r.Bag == 0) continue;
+            if (r.OnBag || r.IsOn(r.Bag) || r.OverrunProtected) continue;
+            if (r.Forced && r.DestBag > r.Bag && Forces.At(r.NextBag)) continue;
+            var (x, z) = r.Position;
+            if (Diamond.Dist(GloveX, GloveZ, x, z) > range) continue;
+            // A glove standing on the bag a body is still closing on waits there: that is the tag at the bag (§10.3),
+            // not a chase. A body that stops or turns away is caught between the bags.
+            var heading = r.DestBag > r.Bag ? r.NextBag : r.Bag;
+            var closing = r.Moving && !r.Held && (r.DestBag > r.Bag ? r.Velocity > 0 : r.Velocity < 0);
+            if (closing && InPlay.OnThisBag(heading, GloveX, GloveZ, R.Running.Bags.OccupyRadiusFt)) continue;
+            r.MarkRundown(true);
+            caught ??= r;
+        }
+        if (caught is not null && RundownRunner is null)
+        {
+            _events.Add(LiveEvent.Rundown);
+            if (!_rundownCued)
+            {
+                _rundownCued = true;
+                Sub = $"{caught.Who.Name} is caught in a rundown!";
+            }
+        }
+        RundownRunner = caught;
+    }
+
+    /// <summary>The nearest live body off every bag that no force or waiting glove accounts for; the rundown read without the range.</summary>
+    Runner? StrayRunner()
+    {
+        Runner? best = null;
+        var bestD = double.MaxValue;
+        foreach (var r in Runners)
+        {
+            if (!r.Live || (r.IsBatter && r.Bag == 0)) continue;
+            if (r.OnBag || r.IsOn(r.Bag) || r.OverrunProtected) continue;
+            if (r.Forced && r.DestBag > r.Bag && Forces.At(r.NextBag)) continue;
+            var heading = r.DestBag > r.Bag ? r.NextBag : r.Bag;
+            var closing = r.Moving && !r.Held && (r.DestBag > r.Bag ? r.Velocity > 0 : r.Velocity < 0);
+            if (closing && InPlay.OnThisBag(heading, GloveX, GloveZ, R.Running.Bags.OccupyRadiusFt)) continue;
+            var (x, z) = r.Position;
+            var d = Diamond.Dist(GloveX, GloveZ, x, z);
+            if (d < bestD) { bestD = d; best = r; }
+        }
+        return best;
+    }
+
+    /// <summary>
+    /// The CPU glove in a rundown (§9.7): throw to the bag the runner is heading for once they are
+    /// inside running.rundown.throwWithinFt of it and a cover is there; run at them otherwise. When
+    /// every live runner is nearly on a bag the throw is a lazy lob. True when the rundown owned this frame.
+    /// </summary>
+    bool TickCpuRundown(double dt)
+    {
+        // In range it is the rundown; with nothing makeable on the table a stray body anywhere off the bags is
+        // run at the same way (a frozen runner cannot be left standing on the path, §9.7, §10.6).
+        var target = RundownRunner ?? (_cpuDecided ? StrayRunner() : null);
+        if (target is null || !target.Live || !HoldsBall || Throwing) return false;
+        var rd = R.Running.Rundown;
+        var bag = target.DestBag > target.Bag ? target.NextBag : target.Bag;
+        if (bag is < 1 or > 4) return false;
+        var at = Diamond.Bag(bag);
+        var (x, z) = target.Position;
+        var coverPos = CoverOf(bag);
+        var covered = !string.IsNullOrEmpty(coverPos) && coverPos != GlovePos
+                      && _fielders.TryGetValue(coverPos, out var coverAt)
+                      && Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) <= R.Fielding.Cover.RadiusFt;
+        if (covered && Diamond.Dist(x, z, at.X, at.Z) <= rd.ThrowWithinFt)
+        {
+            var lazy = Runners.Where(r => r.Live && r.Moving).All(r => r.SegmentFt <= 0 || Math.Max(r.Feet, r.SegmentFt - r.Feet) / r.SegmentFt >= rd.LazyLobFraction);
+            BeginThrowToBag(bag, lazy ? rd.LazyLobSpeedMul : 1);
+            return true;
+        }
+        WalkGloveTo((x, z), dt);
+        return true;
     }
 
     /// <summary>The CPU glove holds the ball: the throw waits for the reaction delay (§8.8), then the table runs once.</summary>
@@ -849,33 +986,83 @@ public sealed partial class LivePlaySystem
             return RunnerSystem.ArrivalSec(runner, bag, ElapsedSeconds, Dash01, R) - CpuThrowArrivalSec(bag);
         }
         bool Makeable(int bag) => Margin(bag) > makeable;
+        // A run at stake is worth the throw (§8.8 rule 2): the plate is played when the ball can land inside the
+        // close margin of the body, even short of the tie band; the mash or the tag at the plate decides.
+        bool PlateWorthIt() => !Forces.At(4) && Margin(4) > -R.Running.Close.MarginSec;
+        double DistTo(int bag)
+        {
+            var at = Diamond.Bag(bag);
+            return Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
+        }
+
+        // The doubled-off race (§10.5): a body off its start bag after the catch is a force back there.
+        if (Fly == FlyState.Caught)
+        {
+            Runner? best = null;
+            var bestMargin = double.NegativeInfinity;
+            foreach (var r in Runners)
+            {
+                if (!r.Live || !r.LeftEarly) continue;
+                var margin = RunnerSystem.ReturnSec(r, Dash01, R) - CpuThrowArrivalSec(r.FromBag);
+                if (margin > bestMargin) { bestMargin = margin; best = r; }
+            }
+            if (best is not null && bestMargin > makeable) { CpuPlayAt(best.FromBag); return; }
+        }
 
         if (!onGrass)
         {
+            // Two outs (§10.4, S-50): any makeable out ends the inning; the shortest throw among them.
+            if (_match.Outs >= 2)
+            {
+                var pick = 0;
+                var pickDist = double.MaxValue;
+                for (var bag = 1; bag <= 4; bag++)
+                {
+                    var candidate = bag == 1 ? Forces.At(1) : Forces.At(bag) || RunnerForBag(bag) is not null;
+                    if (!candidate || !Makeable(bag)) continue;
+                    var d = DistTo(bag);
+                    if (d < pickDist) { pickDist = d; pick = bag; }
+                }
+                if (pick > 0) { CpuPlayAt(pick); return; }
+                return;
+            }
             // 1. The lead forced bag ahead of a forced runner (second, third, home); the batter at first is rule 4.
             for (var bag = 4; bag >= 2; bag--)
             {
                 if (!Forces.At(bag)) continue;
                 var forced = _match.RunnerAt(bag - 1);
                 if (forced is null || !forced.Live || forced.Bag >= bag) continue;
-                if (Makeable(bag)) { CpuThrowTo(bag); return; }
+                if (Makeable(bag)) { CpuPlayAt(bag); return; }
                 break;
             }
             // 2. Home, 3. third (tags on a runner going).
-            if (!Forces.At(4) && Makeable(4)) { CpuThrowTo(4); return; }
-            if (!Forces.At(3) && Makeable(3)) { CpuThrowTo(3); return; }
+            if (!Forces.At(4) && Makeable(4) || PlateWorthIt()) { CpuPlayAt(4); return; }
+            if (!Forces.At(3) && Makeable(3)) { CpuPlayAt(3); return; }
             // 4. First.
-            if (Forces.At(1) && Makeable(1)) { CpuThrowTo(1); return; }
+            if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
             // 5. Hold: nobody is out on a throw; Time comes when the bodies settle (§10.6).
             return;
         }
 
         // Outfielders: home if a run is at stake, third, second, else the cutoff.
         var runAtStake = _match.Outs < 2 || Math.Abs(_match.HomeScore - _match.AwayScore) <= 2;
-        if (runAtStake && Makeable(4)) { CpuThrowTo(4); return; }
+        if (runAtStake && (Makeable(4) || PlateWorthIt())) { CpuThrowTo(4); return; }
         if (Makeable(3)) { CpuThrowTo(3); return; }
         if (Makeable(2)) { CpuThrowTo(2); return; }
         CpuThrowIn();
+    }
+
+    /// <summary>The play the table chose at <paramref name="bag"/>: step on it when inside fielding.throw.unassistedFt (§10.4, S-41), else throw.</summary>
+    void CpuPlayAt(int bag)
+    {
+        var at = Diamond.Bag(bag);
+        var forceThere = Forces.At(bag) || Runners.Any(r => r.Live && r.LeftEarly && r.FromBag == bag);
+        if (forceThere && Diamond.Dist(GloveX, GloveZ, at.X, at.Z) <= R.Fielding.Throw.UnassistedFt)
+        {
+            _cpuWalkBag = bag;
+            return;
+        }
+        CpuThrowTo(bag);
     }
 
     /// <summary>Seconds from now until a throw from this glove would land at <paramref name="bag"/>, through the cutoff when the arm cannot reach on the fly.</summary>
@@ -1146,7 +1333,9 @@ public sealed partial class LivePlaySystem
     void TickCutoffAndBackup(double dt)
     {
         var cover = R.Fielding.Cover;
-        if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && _cutoffPos != GlovePos
+        // The cutoff walks to the line while the ball is in the air, YOU ring or not (the ring is handed to
+        // the receiver at release, §8.5); once they hold it the spot is cleared.
+        if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
             && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos))
             _fielders[_cutoffPos] = StepFlat(cutAt, spot, cover.FtPerSec, cover.StopFt, dt);
         if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
@@ -1360,14 +1549,15 @@ public sealed partial class LivePlaySystem
         return null;
     }
 
-    /// <summary>A throw to <paramref name="bag"/> from the glove, with the pair's chemistry and the thrower's arm.</summary>
-    void BeginThrowToBag(int bag)
+    /// <summary>A throw to <paramref name="bag"/> from the glove, with the pair's chemistry and the thrower's arm; <paramref name="speedMul"/> under 1 is the lazy lob (§9.7).</summary>
+    void BeginThrowToBag(int bag, double speedMul = 1)
     {
         var map = Assigned();
         var coverPos = CoverOf(bag);
         var from = map.TryGetValue(GlovePos, out var glove) ? glove : PlayFielder();
         var cut = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
         var thr = cut is not null ? _match.ThrowBetween(from, cut) : ArmOnly(from);
+        if (speedMul < 1) thr = thr with { SpeedMul = thr.SpeedMul * speedMul };
         ArmedThrow = thr;
         ArmedCut = cut;
         var to = Diamond.Bag(bag);
@@ -1420,6 +1610,8 @@ public sealed partial class LivePlaySystem
         }
         _cpuThrowAt = -1;
         _cpuDecided = false;
+        _cpuWalkBag = 0;
+        _heldSince = -1;
         // The thrower stays where they are; the YOU ring hands to the receiver (§8.5).
         _fielders[_throwerPos] = (GloveX, GloveZ);
         if (!string.IsNullOrEmpty(receiverPos) && receiverPos != GlovePos)
@@ -1534,6 +1726,7 @@ public sealed partial class LivePlaySystem
     void SetLoose(double x, double z, double vx, double vz)
     {
         _loose = true;
+        _heldSince = -1;
         BallX = x;
         BallZ = z;
         BallY = 0;
@@ -1576,34 +1769,34 @@ public sealed partial class LivePlaySystem
         CatchGlove();
 
         InPlay.GroundThrowStep? step = null;
-        var stillComing = false;
         if (bag is >= 1 and <= 4)
         {
             var heading = RunnerSystem.HeadingTo(Runners, bag);
-            var close = ClosePlay.Offered(bag, Forces, heading is not null && !heading.IsOn(bag));
-            if (close) stillComing = true;
-            else
+            // The close play (§9.6, D5): only when the ball is at a tag bag ahead of the body by no more than the margin.
+            if (TryBeginClosePlay(bag))
             {
-                var verdict = ArrivalVerdict(bag);
-                if (verdict.Decided)
-                {
-                    var landed = ApplyThrow(bag, verdict.RunnerBeats, ThrowerChar());
-                    step = landed.Throw;
-                    if (step is { } s && !string.IsNullOrEmpty(s.Caption))
-                        Sub = s.Caption;
-                    MaybeStampCloseSafe(bag);
-                }
-                else if (heading is null && RunnerForBag(bag) is null && !Runners.Any(r => r.Live && r.IsOn(bag)))
-                {
-                    // Nobody to play on at that bag (S-34): the throw is named, nothing is decided.
-                    LastMoment = new LiveMoment(InPlay.ThrowVerdict.Wasted, bag, ThrowerChar(), null);
-                    Sub = Caption;
-                }
-                else
-                    stillComing = heading is not null;
+                result = new LivePlayCommandResult(Snapshot);
+                return true;
             }
+            var verdict = ArrivalVerdict(bag);
+            if (verdict.Decided)
+            {
+                var landed = ApplyThrow(bag, verdict.RunnerBeats, ThrowerChar());
+                step = landed.Throw;
+                if (step is { } s && !string.IsNullOrEmpty(s.Caption))
+                    Sub = s.Caption;
+                MaybeStampCloseSafe(bag);
+            }
+            else if (heading is null && RunnerForBag(bag) is null && !Runners.Any(r => r.Live && r.IsOn(bag))
+                     && (PlayerFielding || Seats.HumanOwnsThrow))
+            {
+                // Nobody to play on at that bag (S-34): a human's throw is named, nothing is decided. The CPU's
+                // throw-in to the bag ahead of the lead runner (§8.8 rule 5) is the hold, not a wasted throw.
+                LastMoment = new LiveMoment(InPlay.ThrowVerdict.Wasted, bag, ThrowerChar(), null);
+                Sub = Caption;
+            }
+            // Otherwise the body is still coming, outside the margin: the glove holds on the bag and the tag rule runs (§10.3).
         }
-        _ = stillComing;
 
         if (step is { } decided && WaitForNextThrow(decided))
         {
@@ -1634,14 +1827,17 @@ public sealed partial class LivePlaySystem
         var (x, z) = target.Position;
         var bags = R.Running.Bags;
         if (Diamond.Dist(x, z, at.X, at.Z) <= bags.TagSafeRadiusFt) return (true, true);
-        var reach = bags.TagReachFt - (target.Sliding ? bags.SlideReachCutFt : 0);
+        var reach = InPlay.TagReachFt(GloveChar(), target.Sliding, R);
         if (Diamond.Dist(x, z, at.X, at.Z) < reach) return (true, false);
         return (false, false);
     }
 
+    /// <summary>The runner in ahead of the throw by no more than the margin (§9.6): the small SAFE, at a bag or across the plate.</summary>
     void MaybeStampCloseSafe(int bag)
     {
-        var runner = Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
+        var runner = bag == 4
+            ? Runners.FirstOrDefault(r => r.Scored && !double.IsNaN(r.ScoredAt))
+            : Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
         if (runner is null || double.IsNaN(runner.LastTouchAt)) return;
         if (InPlay.CloseSafe(ElapsedSeconds, runner.LastTouchAt, R))
             _events.Add(LiveEvent.StampSafe);
@@ -1714,6 +1910,7 @@ public sealed partial class LivePlaySystem
     void CatchGlove()
     {
         if (!Caught && !_gloved) _events.Add(LiveEvent.Glove);
+        _heldSince = ElapsedSeconds;
         Caught = true;
         _gloved = true;
         _loose = false;
@@ -1847,23 +2044,30 @@ public sealed partial class LivePlaySystem
     }
 
     // ---------------------------------------------------------------------------------
-    // Close play (spec §9.6 as shipped: the mash runs on every unforced 3B/home throw; P5 adds the margin)
+    // Close play (spec §9.6, D5): the mash only when the ball is at third or home ahead of the body by no more than the margin
     // ---------------------------------------------------------------------------------
 
     Runner? _closeRunner;
 
-    bool TryBeginClosePlay()
+    /// <summary>
+    /// The throw just landed in the cover's glove on <paramref name="bag"/>. A tag bag, an unforced
+    /// body bound there and short of it, and its arrival inside running.close.marginSec from now: the
+    /// mash contest. Anything else is decided by the geometry, silently.
+    /// </summary>
+    bool TryBeginClosePlay(int bag)
     {
-        var heading = RunnerSystem.HeadingTo(Runners, ThrowBag);
-        if (heading is null || heading.IsOn(ThrowBag) || !ClosePlay.Offered(ThrowBag, Forces, true))
+        var heading = RunnerSystem.HeadingTo(Runners, bag);
+        if (heading is null || heading.IsOn(bag) || !ClosePlay.Offered(bag, Forces, true))
             return false;
+        var runnerAt = RunnerSystem.ArrivalSec(heading, bag, ElapsedSeconds, Dash01, R);
+        if (!ClosePlay.WithinMargin(runnerAt, R)) return false;
         // The body in the play waits for the verdict (the mash is the slide): safe puts them on the bag, out retires them.
         _closeRunner = heading;
         heading.Halt();
         InClosePlay = true;
         _closePlayT = 0;
         CloseIcon = false;
-        CloseBag = ThrowBag;
+        CloseBag = bag;
         _closeOffAt = _closeDefAt = -1;
         return true;
     }
@@ -1910,19 +2114,26 @@ public sealed partial class LivePlaySystem
             }
         }
 
-        if (_closeOffAt < 0 || _closeDefAt < 0) return new LivePlayCommandResult(Snapshot);
-        var safe = ClosePlay.OffenseSafe(_closeOffAt, _closeDefAt);
-        Sub = ClosePlay.Caption(CloseBag, safe);
-        if (safe) _events.Add(LiveEvent.StampSafe);
+        // First press after the icon wins (§9.6): once one side has pressed and the clock is past that
+        // press, a seat that has not pressed yet can only be later. Nobody pressing yet keeps waiting.
+        var off = _closeOffAt >= 0 ? _closeOffAt : double.PositiveInfinity;
+        var def = _closeDefAt >= 0 ? _closeDefAt : double.PositiveInfinity;
+        var decided = !double.IsPositiveInfinity(off) && !double.IsPositiveInfinity(def)
+                      || Math.Min(off, def) < _closePlayT;
+        if (!decided) return new LivePlayCommandResult(Snapshot);
+        var safe = ClosePlay.OffenseSafe(off, def);
         if (_closeRunner is { Live: true } body)
         {
+            // The verdict is written once (§9.6): the body is on the bag, or the out is recorded; the caption follows the record.
             if (safe) body.Arrive(CloseBag, ElapsedSeconds);
-            else Retire(body.FromBag, CloseBag, OutType.Tag, PlayFielder());
+            else if (!Retire(body.FromBag, CloseBag, OutType.Tag, PlayFielder())) safe = true;
             if (!safe) LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagOut, CloseBag, PlayFielder(), body.Who);
             Throws++;
         }
         else
             ApplyThrow(CloseBag, safe, PlayFielder());
+        Sub = ClosePlay.Caption(CloseBag, safe);
+        if (safe) _events.Add(LiveEvent.StampSafe);
         _closeRunner = null;
         InClosePlay = false;
         CloseIcon = false;
