@@ -200,7 +200,10 @@ public sealed class Match
 
     sealed record PlayOrigin(PlayContext Context, Character Batter, Character Pitcher);
     PlayOrigin? _pendingPlay;
-    int _outsOnCurrentPlay;
+    /// <summary>Every out and every runner placement on the current play, in order. Emit stamps them on the outcome.</summary>
+    readonly List<OutRecord> _outsThisPlay = [];
+    readonly List<RunnerMove> _movesThisPlay = [];
+    int _outsOnCurrentPlay => _outsThisPlay.Count;
     public double PitcherOffsetX { get; private set; }
     public double BatterOffsetX { get; private set; }
     /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
@@ -370,23 +373,45 @@ public sealed class Match
         return true;
     }
 
-    /// <summary>
-     /// Retire the batter (bag 0) or a runner by their bag at contact. Every live out
-     /// passes through here so occupancy and the contact-time force chain cannot diverge.
-     /// </summary>
-    internal bool RetireLiveRunner(int fromBag, Character? fielder)
+    /// <summary>Set the out count for a drill or a scenario (0–2). Not during a live ball.</summary>
+    public bool SetOuts(int outs)
     {
+        if (Over || LivePlay.Active || outs is < 0 or > 2) return false;
+        Outs = outs;
+        return true;
+    }
+
+    /// <summary>
+    /// Retire the batter (bag 0) or a runner by their bag at contact. Every live out
+    /// passes through here so occupancy and the contact-time force chain cannot diverge.
+    /// </summary>
+    internal bool RetireLiveRunner(int fromBag, int atBag, OutType type, Character? fielder)
+    {
+        Character? who;
         if (fromBag is >= 1 and <= 3)
         {
-            if (RunnerAt(fromBag) is null) return false;
+            who = RunnerAt(fromBag)?.Who;
+            if (who is null) return false;
             SetBag(fromBag, null);
         }
-        else if (fromBag != 0) return false;
-        Outs++;
-        _outsOnCurrentPlay++;
+        else if (fromBag == 0) who = Batter;
+        else return false;
+        RecordOut(type, atBag, fromBag, who, fielder);
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
         AddStars(defense: true, Rules.Stars.Gains.LiveOut);
         return true;
+    }
+
+    /// <summary>The one place an out is counted: the tally and the typed record move together.</summary>
+    void RecordOut(OutType type, int atBag, int fromBag, Character runner, Character? fielder)
+    {
+        Outs++;
+        _outsThisPlay.Add(new OutRecord(type, atBag, fromBag, runner, fielder));
+    }
+
+    void RecordMove(Character runner, int fromBag, int toBag)
+    {
+        if (fromBag != toBag) _movesThisPlay.Add(new RunnerMove(runner, fromBag, toBag));
     }
 
     internal void PrepareLivePlay() => CurrentPlay();
@@ -395,35 +420,36 @@ public sealed class Match
     /// Close a live (or CPU-stepped) double-play race. Null means no force was recorded —
     /// FinishInPlay falls through to a one-out / infield single without auto-turning two.
     /// </summary>
-    string? CloseLiveGround(FieldingResult field, ref int runs, ref IReadOnlyList<string> scorers)
+    string? CloseLiveGround(FieldingResult field, ref int runs, ref IReadOnlyList<string> scorers, ref int batterToBag)
     {
         if (!LivePlay.ForceRecorded && !LivePlay.TurnedTwo)
             return null;
 
         string caption;
+        var live = LivePlay.LastMoment;
         if (LivePlay.TurnedTwo)
         {
-            caption = string.IsNullOrEmpty(LivePlay.Caption)
+            caption = live is null
                 ? $"{field.Fielder?.Name} turns two."
                 : LivePlay.Caption;
         }
         else if (Outs < 3)
         {
             (runs, scorers) = AdvanceHit(Batter, 1);
+            batterToBag = 1;
             caption = LivePlay.ForceBag == 2 || LivePlay.ForceBag == 0
                 ? $"Force at second. {Batter.Name} in at first."
-                : $"{(string.IsNullOrEmpty(LivePlay.Caption) ? "Force." : LivePlay.Caption)} {Batter.Name} in at first.";
+                : $"{(live is null ? "Force." : LivePlay.Caption)} {Batter.Name} in at first.";
         }
         else
         {
-            caption = string.IsNullOrEmpty(LivePlay.Caption)
+            caption = live is null
                 ? $"{field.Fielder?.Name} forces the runner."
                 : LivePlay.Caption;
         }
 
         NextBatter();
         CheckInning();
-        LivePlay.Reset();
         return caption;
     }
 
@@ -816,8 +842,7 @@ public sealed class Match
         ClearSteal();
         AddMvp(Pitcher.Id, 2);
         AddStars(defense: true, Rules.Stars.Gains.Strikeout);
-        Outs++;
-        _outsOnCurrentPlay++;
+        RecordOut(OutType.Strikeout, 0, 0, Batter, Pitcher);
         var how = swinging ? "goes down swinging." : "is caught looking.";
         var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, $"{Batter.Name} {how}", 0, []);
         NextBatter();
@@ -830,7 +855,8 @@ public sealed class Match
         ClearSteal();
         var (runs, scorers) = Advance(Batter, walk: true);
         AddMvp(Batter.Id, 1 + runs);
-        var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers);
+        var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
+            outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
         return ev;
     }
@@ -840,7 +866,8 @@ public sealed class Match
         ClearSteal();
         var (runs, scorers) = Advance(Batter, walk: true);
         AddMvp(Batter.Id, 1 + runs);
-        var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers);
+        var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
+            outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
         return ev;
     }
@@ -854,11 +881,16 @@ public sealed class Match
         var caption = "";
         var runs = 0;
         IReadOnlyList<string> scorers = [];
+        var batterToBag = 0;
+        // True once a branch built its caption from the live ball's own narration; otherwise
+        // an open live moment is prefixed at the end. Typed, so no branch inspects caption text.
+        var liveNarrated = false;
 
         switch (kind)
         {
             case PlayKind.HomeRun:
                 (runs, scorers) = ClearTheBases(Batter);
+                batterToBag = 4;
                 AddMvp(Batter.Id, 5 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                 caption = hit.StarSwingUsed is "furnace" or "heat-swing"
@@ -868,6 +900,7 @@ public sealed class Match
                 break;
             case PlayKind.Triple:
                 (runs, scorers) = AdvanceHit(Batter, 3);
+                batterToBag = 3;
                 AddMvp(Batter.Id, 3 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                 caption = $"{Batter.Name} triples.";
@@ -875,6 +908,7 @@ public sealed class Match
                 break;
             case PlayKind.Double:
                 (runs, scorers) = AdvanceHit(Batter, 2);
+                batterToBag = 2;
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                 caption = $"{Batter.Name} doubles.";
@@ -882,15 +916,16 @@ public sealed class Match
                 break;
             case PlayKind.Single:
                 (runs, scorers) = AdvanceHit(Batter, 1);
+                batterToBag = 1;
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.Single);
-                caption = !string.IsNullOrEmpty(LivePlay.Caption)
+                caption = LivePlay.LastMoment is not null
                     ? $"{LivePlay.Caption} {Batter.Name} in at first."
                     : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
                     : field.Heatball ? $"{Batter.Name} - it drops! Heatball."
                     : $"{Batter.Name} singles.";
+                liveNarrated = true;
                 NextBatter();
-                LivePlay.Reset();
                 break;
             case PlayKind.FlyOut:
             case PlayKind.GroundOut:
@@ -898,16 +933,18 @@ public sealed class Match
                 {
                     if (!LivePlay.Active)
                     {
+                        // Spec A.5 #48: a CPU hopper with a force on is still stepped as two throws here. P5 owns it.
                         LivePlay.Apply(LivePlayCommand.Begin(kind));
                         LivePlay.Apply(LivePlayCommand.ThrowArrived(2, runnerBeats: false, field.Fielder));
                         if (Outs < 3)
                             LivePlay.Apply(LivePlayCommand.ThrowArrived(
                                 1, InPlay.BatterBeatsThrow(Batter, hit, field, Dash01, Rules), field.Fielder));
                     }
-                    var closed = CloseLiveGround(field, ref runs, ref scorers);
+                    var closed = CloseLiveGround(field, ref runs, ref scorers, ref batterToBag);
                     if (closed is not null)
                     {
                         caption = closed;
+                        liveNarrated = true;
                         break;
                     }
                     // Live play, no throw landed. Do not caption a force.
@@ -915,29 +952,31 @@ public sealed class Match
                 }
                 if (LivePlay.BatterOut)
                 {
-                    caption = string.IsNullOrEmpty(LivePlay.Caption)
+                    caption = LivePlay.LastMoment is null
                         ? $"{field.Fielder?.Name} tags {Batter.Name}."
                         : LivePlay.Caption;
+                    liveNarrated = true;
                     NextBatter();
                     CheckInning();
-                    LivePlay.Reset();
                     break;
                 }
                 if (kind == PlayKind.GroundOut && LivePlay.Active && Outs > LivePlay.OutsAtOpen
                     && !LivePlay.ForceRecorded && !LivePlay.TurnedTwo && !LivePlay.BatterOut)
                 {
-                    caption = string.IsNullOrEmpty(LivePlay.Caption)
+                    var live = LivePlay.LastMoment;
+                    caption = live is null
                         ? $"{field.Fielder?.Name} tags the runner."
                         : LivePlay.Caption;
+                    liveNarrated = true;
                     if (Outs < 3)
                     {
                         (runs, scorers) = AdvanceHit(Batter, 1);
-                        if (!caption.Contains("first", StringComparison.OrdinalIgnoreCase))
+                        batterToBag = 1;
+                        if (!(live?.NarratesBatterAtFirst ?? false))
                             caption = $"{caption} {Batter.Name} in at first.";
                     }
                     NextBatter();
                     CheckInning();
-                    LivePlay.Reset();
                     break;
                 }
                 if (kind == PlayKind.GroundOut && LivePlay.Active && LivePlay.Throws > 0 && Outs == LivePlay.OutsAtOpen)
@@ -960,13 +999,16 @@ public sealed class Match
                     if (!beats)
                     {
                         SetBag(fromBag, null);
-                        Outs++;
-                        _outsOnCurrentPlay++;
+                        RecordOut(OutType.Tag, tagBag, fromBag, runner, field.Fielder);
                         AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                         AddStars(defense: true, Rules.Stars.Gains.LiveOut);
                         caption = $"{field.Fielder?.Name} tags {runner.Name}.";
                         if (Outs < 3)
+                        {
                             SetBag(1, Batter);
+                            RecordMove(Batter, 0, 1);
+                            batterToBag = 1;
+                        }
                         NextBatter();
                     }
                     else
@@ -975,6 +1017,7 @@ public sealed class Match
                         {
                             Score(runner);
                             SetBag(3, null);
+                            RecordMove(runner, 3, 4);
                             runs = 1;
                             scorers = [runner.Name];
                             caption = $"{runner.Name} beats the tag. {Batter.Name} in at first.";
@@ -983,9 +1026,12 @@ public sealed class Match
                         {
                             SetBag(3, runner);
                             SetBag(2, null);
+                            RecordMove(runner, 2, 3);
                             caption = $"{runner.Name} in at third. {Batter.Name} in at first.";
                         }
                         SetBag(1, Batter);
+                        RecordMove(Batter, 0, 1);
+                        batterToBag = 1;
                         NextBatter();
                     }
                     CheckInning();
@@ -1003,8 +1049,8 @@ public sealed class Match
                 }
                 if (Outs < 3)
                 {
-                    Outs++;
-                    _outsOnCurrentPlay++;
+                    RecordOut(kind == PlayKind.FlyOut ? OutType.Catch : OutType.ThrowOutAtFirst,
+                        kind == PlayKind.FlyOut ? 0 : 1, 0, Batter, field.Fielder);
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                     AddStars(defense: true, Rules.Stars.Gains.Out);
                 }
@@ -1054,14 +1100,17 @@ public sealed class Match
             };
         }
 
-        if (!string.IsNullOrEmpty(LivePlay.Caption) && !caption.Contains(LivePlay.Caption))
+        // A live decision nobody narrated above leads the caption. Typed: no branch reads caption text.
+        if (LivePlay.LastMoment is not null && !liveNarrated)
             caption = $"{LivePlay.Caption} {caption}";
 
+        var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
+                    && (field.Bobble || field.Throw is { Error: true });
         LivePlay.Reset();
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
-            new PlayOutcome(DefensiveFeat: field.Feat));
+            new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error));
     }
 
     PlayEvent Emit(
@@ -1077,10 +1126,20 @@ public sealed class Match
         var ev = new PlayEvent(
             kind, hit, pitch, swing, origin.Batter, origin.Pitcher, fielder, throwRes, runs, scorers, caption,
             heat, furnace, hang, lx, lz, next.Outs, next.AwayScore, next.HomeScore,
-            _outsOnCurrentPlay, origin.Context, next, outcome);
+            _outsOnCurrentPlay, origin.Context, next, WithPlayFacts(outcome));
         _log.Add(ev);
         _pendingPlay = null;
         return ev;
+    }
+
+    /// <summary>Stamp the play's outs and placements on the outcome. Fielder's choice falls out of them.</summary>
+    PlayOutcome WithPlayFacts(PlayOutcome? outcome)
+    {
+        var facts = outcome ?? PlayOutcome.Empty;
+        var outs = _outsThisPlay.ToList();
+        var moves = _movesThisPlay.ToList();
+        var choice = facts.BatterToBag == 1 && outs.Any(o => o.FromBag != 0);
+        return facts with { Outs = outs, Advances = moves, FieldersChoice = choice };
     }
 
     PlayOrigin BeginPlay()
@@ -1091,7 +1150,8 @@ public sealed class Match
             batter.Id, pitcher.Id, Inning, Top, Outs, Balls, Strikes, AwayScore, HomeScore,
             First?.Id, Second?.Id, Third?.Id);
         _pendingPlay = new PlayOrigin(context, batter, pitcher);
-        _outsOnCurrentPlay = 0;
+        _outsThisPlay.Clear();
+        _movesThisPlay.Clear();
         return _pendingPlay;
     }
 
@@ -1110,7 +1170,8 @@ public sealed class Match
             OutsAfter = next.Outs,
             AwayScoreAfter = next.AwayScore,
             HomeScoreAfter = next.HomeScore,
-            NextState = next
+            NextState = next,
+            Outcome = WithPlayFacts(ev.Outcome)
         };
         if (_log.Count > 0)
             _log[^1] = result;
@@ -1173,13 +1234,26 @@ public sealed class Match
             var t = Third;
             if (f is not null && s is not null && t is not null)
             {
-                Score(t); scorers.Add(t.Name); SetBag(3, s); SetBag(2, f); SetBag(1, batter);
+                Score(t); scorers.Add(t.Name); RecordMove(t, 3, 4);
+                SetBag(3, s); RecordMove(s, 2, 3);
+                SetBag(2, f); RecordMove(f, 1, 2);
+                SetBag(1, batter); RecordMove(batter, 0, 1);
             }
             else if (f is not null && s is not null)
-            { SetBag(3, s); SetBag(2, f); SetBag(1, batter); }
+            {
+                SetBag(3, s); RecordMove(s, 2, 3);
+                SetBag(2, f); RecordMove(f, 1, 2);
+                SetBag(1, batter); RecordMove(batter, 0, 1);
+            }
             else if (f is not null)
-            { SetBag(2, f); SetBag(1, batter); }
-            else SetBag(1, batter);
+            {
+                SetBag(2, f); RecordMove(f, 1, 2);
+                SetBag(1, batter); RecordMove(batter, 0, 1);
+            }
+            else
+            {
+                SetBag(1, batter); RecordMove(batter, 0, 1);
+            }
             return (scorers.Count, scorers);
         }
         return AdvanceHit(batter, 1);
@@ -1189,18 +1263,19 @@ public sealed class Match
     {
         var scorers = new List<string>();
         Character? n1 = null, n2 = null, n3 = null;
-        void Place(Character c, int fromPlus)
+        void Place(Character c, int from, int fromPlus)
         {
-            var dest = fromPlus;
+            var dest = Math.Min(4, fromPlus);
+            RecordMove(c, from, dest);
             if (dest >= 4) { Score(c); scorers.Add(c.Name); }
             else if (dest == 3) n3 = c;
             else if (dest == 2) n2 = c;
             else n1 = c;
         }
-        if (Third is not null) Place(Third, 3 + bases);
-        if (Second is not null) Place(Second, 2 + bases);
-        if (First is not null) Place(First, 1 + bases);
-        Place(batter, bases);
+        if (Third is not null) Place(Third, 3, 3 + bases);
+        if (Second is not null) Place(Second, 2, 2 + bases);
+        if (First is not null) Place(First, 1, 1 + bases);
+        Place(batter, 0, bases);
         SetBag(1, n1); SetBag(2, n2); SetBag(3, n3);
         return (scorers.Count, scorers);
     }
@@ -1222,6 +1297,7 @@ public sealed class Match
             {
                 Score(Third);
                 scorers.Add(Third.Name);
+                RecordMove(Third, 3, 4);
             }
             else
                 n3 = Third;
@@ -1230,7 +1306,10 @@ public sealed class Match
         if (Second is not null)
         {
             if (n3 is null)
+            {
                 n3 = Second;
+                RecordMove(Second, 2, 3);
+            }
             else
                 n2 = Second;
         }
@@ -1238,7 +1317,10 @@ public sealed class Match
         if (First is not null)
         {
             if (n2 is null)
+            {
                 n2 = First;
+                RecordMove(First, 1, 2);
+            }
             else
                 n1 = First;
         }
@@ -1252,10 +1334,10 @@ public sealed class Match
     (int Runs, IReadOnlyList<string> Scorers) ClearTheBases(Character batter)
     {
         var scorers = new List<string>();
-        if (Third is not null) { Score(Third); scorers.Add(Third.Name); }
-        if (Second is not null) { Score(Second); scorers.Add(Second.Name); }
-        if (First is not null) { Score(First); scorers.Add(First.Name); }
-        Score(batter); scorers.Add(batter.Name);
+        if (Third is not null) { Score(Third); scorers.Add(Third.Name); RecordMove(Third, 3, 4); }
+        if (Second is not null) { Score(Second); scorers.Add(Second.Name); RecordMove(Second, 2, 4); }
+        if (First is not null) { Score(First); scorers.Add(First.Name); RecordMove(First, 1, 4); }
+        Score(batter); scorers.Add(batter.Name); RecordMove(batter, 0, 4);
         ClearBags();
         return (scorers.Count, scorers);
     }
@@ -1405,6 +1487,7 @@ public sealed class Match
         {
             if (target == 3) { SetBag(3, runner); SetBag(2, null); }
             else { SetBag(2, runner); SetBag(1, null); }
+            RecordMove(runner, fromBag, target);
             AddMvp(runner.Id, 2);
             AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             result = ev with
@@ -1423,8 +1506,7 @@ public sealed class Match
         else
         {
             SetBag(fromBag, null);
-            Outs++;
-            _outsOnCurrentPlay++;
+            RecordOut(OutType.Tag, pickoff ? fromBag : throwBag, fromBag, runner, defender);
             AddMvp(defender.Id, 2);
             AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
             result = ev with
@@ -1490,8 +1572,7 @@ public sealed class Match
         var cover = map.GetValueOrDefault(StealThrow.CoverPos(bag));
         var thr = cover is not null ? ThrowBetween(Pitcher, cover) : ThrowBetween(Pitcher, runner);
         SetBag(bag, null);
-        Outs++;
-        _outsOnCurrentPlay++;
+        RecordOut(OutType.Tag, bag, bag, runner, Pitcher);
         AddMvp(catcher.Id, 2);
         AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
         var result = ev with
