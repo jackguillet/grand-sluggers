@@ -14,6 +14,13 @@ public static class FieldAbilities
         };
     }
 
+    /// <summary>Lick Catch / Grow reach further on the tag (§10.3): fielding.abilities.tagReachBonusFt.</summary>
+    public static double TagReachBonus(Character? c, RulesTable? rules = null) => c?.FieldAbility switch
+    {
+        "lick-catch" or "grow" => Rules.Or(rules).Fielding.Abilities.TagReachBonusFt,
+        _ => 0
+    };
+
     public static double FlyRangeBonus(Character c, RulesTable? rules = null) =>
         c.FieldAbility == "super-jump" ? Rules.Or(rules).Fielding.Abilities.SuperJumpFlyRangeFt : 0;
 

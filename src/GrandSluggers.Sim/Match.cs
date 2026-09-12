@@ -1205,7 +1205,11 @@ public sealed class Match
                         liveNarrated = true;
                         break;
                     default:
-                        caption = moment is not null ? LivePlay.Caption
+                        // A chain of outs names the chain (§10.4, §10.7) ahead of the last decision it narrated.
+                        var chain = _outsThisPlay.Count >= 3 ? "Triple play! "
+                            : _outsThisPlay.Count == 2 && moment is not { Verdict: InPlay.ThrowVerdict.TurnedTwo } ? "Double play. "
+                            : "";
+                        caption = moment is not null ? $"{chain}{LivePlay.Caption}"
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
                                 ? $"{field.Fielder?.Name} + {field.Buddy.Name} BUDDY JUMP!"
                             : kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.Clamber
@@ -1221,6 +1225,9 @@ public sealed class Match
                             caption = $"{caption} Sac fly.";
                         if (batterToBag == 1 && !(moment?.NarratesBatterAtFirst ?? false))
                             caption = $"{caption} {Batter.Name} in at first.";
+                        // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp stays OUT.
+                        if (FieldersChoiceNow(batterToBag))
+                            caption = $"{caption} Fielder's choice.";
                         liveNarrated = true;
                         break;
                 }
@@ -1339,9 +1346,11 @@ public sealed class Match
         var facts = outcome ?? PlayOutcome.Empty;
         var outs = _outsThisPlay.ToList();
         var moves = _movesThisPlay.ToList();
-        var choice = facts.BatterToBag == 1 && outs.Any(o => o.FromBag != 0);
-        return facts with { Outs = outs, Advances = moves, FieldersChoice = choice };
+        return facts with { Outs = outs, Advances = moves, FieldersChoice = FieldersChoiceNow(facts.BatterToBag) };
     }
+
+    /// <summary>The batter on first with an out recorded on another body this play (§10.4).</summary>
+    bool FieldersChoiceNow(int batterToBag) => batterToBag == 1 && _outsThisPlay.Any(o => o.FromBag != 0);
 
     PlayOrigin BeginPlay()
     {

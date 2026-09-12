@@ -113,6 +113,14 @@ public static class RunnerAi
         }
         if (runner.IsBatter && runner.Bag == 0) return; // first is the batter's bag whatever happens
 
+        // In a rundown the CPU runner runs away from the ball: it reverses on every throw (§9.7).
+        if (runner.InRundown && ball.Throwing && ball.ThrowBag is >= 1 and <= 4)
+        {
+            if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag) runner.Return();
+            else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag) runner.Send(next);
+            return;
+        }
+
         // Already running: turn back only early in the segment when the margin has gone (the reference's "keep going past 40%").
         if (runner.Advancing && runner.Feet > 0)
         {
@@ -121,7 +129,8 @@ public static class RunnerAi
                 runner.Return();
             return;
         }
-        if (!runner.OnBag || next > 4 || blocked) return;
+        // On the bag, or the batter through first and coming straight back (§9.4): the round-first read.
+        if (!(runner.OnBag || runner.OverrunProtected) || next > 4 || blocked) return;
 
         var margin = Margin(runner, next, ctx, r);
         if (runner.IsBatter)

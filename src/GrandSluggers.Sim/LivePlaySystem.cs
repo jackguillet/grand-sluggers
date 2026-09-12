@@ -215,6 +215,12 @@ public sealed partial class LivePlaySystem
     bool _aiPending;
     bool _wasHolding;
     bool _wasThrowing;
+    /// <summary>Play seconds the glove on the ball took possession; −1 while nobody holds it (the tag sweep reads it, §10.3).</summary>
+    double _heldSince = -1;
+    /// <summary>Every live body's position and the glove's at the start of the frame: the tag is judged through the frame, not at its end.</summary>
+    readonly Dictionary<Runner, (double X, double Z)> _prevPos = new();
+    (double X, double Z) _prevGlove;
+    double _prevAt = -1;
 
     internal LivePlaySystem(Match match) => _match = match;
 
@@ -332,6 +338,12 @@ public sealed partial class LivePlaySystem
         HasBall = command.HasBall;
         Throwing = command.Throwing;
         CatchMade = command.CatchMade;
+        // Where every body and the glove stood as the frame began (§10.3): the tag sweep reads them.
+        _prevAt = ElapsedSeconds;
+        _prevGlove = (GloveX, GloveZ);
+        _prevPos.Clear();
+        foreach (var r in Runners)
+            if (r.Live) _prevPos[r] = r.Position;
         ElapsedSeconds += command.DeltaSeconds;
         UpdateFly(FlyStateNow(command.PlayKind, command.CatchMade));
         RecordCatchOut(command.Fielder);
@@ -474,21 +486,38 @@ public sealed partial class LivePlaySystem
         return null;
     }
 
-    /// <summary>Glove with the ball touching a body off a bag (§10.3). Home is not a bag for the batter leaving the box.</summary>
+    /// <summary>
+    /// Glove with the ball touching a body off a bag (§10.3), judged through the frame: a body that
+    /// crossed the reach on its way to the bag was tagged before it touched, however short the step.
+    /// Home is not a bag for the batter leaving the box; a batter through first coming straight back
+    /// is untouchable (§9.4).
+    /// </summary>
     LivePlayCommandResult TryTag(double gloveX, double gloveZ, Character? fielder)
     {
         var bags = _match.Rules.Running.Bags;
         foreach (var runner in Runners.OrderBy(r => r.FromBag == 0 ? -1 : r.FromBag))
         {
-            if (!runner.Live) continue;
+            if (!runner.Live || runner.OverrunProtected) continue;
             var (x, z) = runner.Position;
-            // The plate is not a bag for the batter leaving the box (§10.3).
-            var onBag = !(runner.IsBatter && runner.Bag == 0) && InPlay.OccupyingBag(x, z, bags.TagSafeRadiusFt);
-            if (InPlay.Touches(true, false, gloveX, gloveZ, x, z, onBag, _match.Rules, runner.Sliding)
-                && ApplyTag(runner.FromBag, fielder))
+            var homeIsABag = !(runner.IsBatter && runner.Bag == 0);
+            var onBag = homeIsABag && InPlay.OccupyingBag(x, z, bags.TagSafeRadiusFt);
+            var reach = InPlay.TagReachFt(fielder, runner.Sliding, _match.Rules);
+            var tagged = InPlay.Touches(true, false, gloveX, gloveZ, x, z, onBag, _match.Rules, runner.Sliding, fielder);
+            if (!tagged && _heldSince >= 0 && _heldSince <= _prevAt + 1e-9 && _prevPos.TryGetValue(runner, out var prev))
+                tagged = InPlay.TagWithinFrame(_prevGlove, (gloveX, gloveZ), prev, (x, z), reach, homeIsABag, _match.Rules) >= 0;
+            if (tagged && ApplyTag(runner.FromBag, fielder, BagUnderGlove(gloveX, gloveZ)))
                 return new LivePlayCommandResult(Snapshot, TaggedFromBag: runner.FromBag);
         }
         return new LivePlayCommandResult(Snapshot);
+    }
+
+    /// <summary>The bag the glove stands on (running.bags.occupyRadiusFt), or 0 out in the field: where a tag is recorded.</summary>
+    int BagUnderGlove(double gloveX, double gloveZ)
+    {
+        var radius = _match.Rules.Running.Bags.OccupyRadiusFt;
+        for (var bag = 1; bag <= 4; bag++)
+            if (InPlay.OnThisBag(bag, gloveX, gloveZ, radius)) return bag;
+        return 0;
     }
 
     LivePlayCommandResult ThrowArrived(LivePlayCommand command)
@@ -524,6 +553,13 @@ public sealed partial class LivePlaySystem
             bag, Forces, present, runnerBeats, _match.Outs, ForceRecorded,
             fielder?.Name ?? "", _match.Batter.Name);
         Throws++;
+        // The out is recorded first (§10.4, A.5 #49): a retire that fails (nobody to retire, three outs already)
+        // narrates nothing and flags nothing.
+        if (step.Out && !Retire(target?.FromBag ?? InPlay.ForceState.FromBag(step.Bag), step.Bag, step.OutType, fielder))
+        {
+            step = step with { Out = false, Force = false, TurnedTwo = false, PlayOver = false, Caption = "", Verdict = InPlay.ThrowVerdict.None };
+            return new LivePlayCommandResult(Snapshot, step);
+        }
         // A silent verdict (nothing decided, or the batter simply safe at first) keeps the last narrated one.
         if (step.Verdict is not (InPlay.ThrowVerdict.None or InPlay.ThrowVerdict.BatterBeat))
             LastMoment = new LiveMoment(step.Verdict, step.Bag, fielder, target?.Who);
@@ -534,19 +570,20 @@ public sealed partial class LivePlaySystem
             ForceBag = step.Bag;
         }
         if (step.TurnedTwo) TurnedTwo = true;
-        if (step.Out)
-            Retire(target?.FromBag ?? InPlay.ForceState.FromBag(step.Bag), step.Bag, step.OutType, fielder);
-        else if (runnerBeats && target is not null && step.Verdict is not InPlay.ThrowVerdict.None)
+        if (!step.Out && runnerBeats && target is not null && step.Verdict is not InPlay.ThrowVerdict.None)
             target.Arrive(bag, ElapsedSeconds); // beat the throw: the bag is theirs
         return new LivePlayCommandResult(Snapshot, step);
     }
 
-    bool ApplyTag(int fromBag, Character? fielder)
+    /// <summary>The tag recorded where it was made: at <paramref name="atBag"/> when the glove stood on one, else out in the field (0).</summary>
+    bool ApplyTag(int fromBag, Character? fielder, int atBag = 0)
     {
         if (_match.Outs >= 3) return false;
         var who = _match.RunnerAt(fromBag)?.Who;
-        if (who is null || !Retire(fromBag, 0, OutType.Tag, fielder)) return false;
-        LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagRunner, 0, fielder, who);
+        if (who is null || !Retire(fromBag, atBag, OutType.Tag, fielder)) return false;
+        LastMoment = atBag is >= 1 and <= 4
+            ? new LiveMoment(InPlay.ThrowVerdict.TagOut, atBag, fielder, who)
+            : new LiveMoment(InPlay.ThrowVerdict.TagRunner, 0, fielder, who);
         return true;
     }
 
@@ -633,5 +670,8 @@ public sealed partial class LivePlaySystem
         _wasHolding = false;
         _wasThrowing = false;
         _prevRun = LivePadInput.Dead;
+        _heldSince = -1;
+        _prevPos.Clear();
+        _prevAt = -1;
     }
 }
