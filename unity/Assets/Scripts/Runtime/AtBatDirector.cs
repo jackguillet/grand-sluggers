@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -229,7 +230,7 @@ namespace GrandSluggers.UnityClient
             _pitch = pitch;
             var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
-            _flight = -(float)MoveBones.PitchRelease;
+            _flight = -(float)Motion.PitchRelease;
             _pitchAir = false;
             _swung = false;
             HoldPitchInHand();
@@ -265,7 +266,7 @@ namespace GrandSluggers.UnityClient
             }
             var hero = PitcherHero();
             if (hero != null)
-                hero.SetPose(HeroActor.Pose.ThrowPitch, 0f, pitch.Type);
+                hero.SetPose(Motion.Verb.ThrowPitch, 0f, pitch.Type);
             // Cut, do not blend. SET→flight blending looks at dirt while the
             // ball stays in the hand (#301).
             _cam.Cut(AtBatShots.Pitch);
@@ -297,7 +298,7 @@ namespace GrandSluggers.UnityClient
                 HoldPitchInHand();
                 // Authored release even if ThrowPitch never plays. Waiting on
                 // the clip left the ball in the glove while the count ticked.
-                var due = (float)MoveBones.PitchRelease;
+                var due = (float)Motion.PitchRelease;
                 if (_flight < 0)
                     return;
                 PitcherHero()?.SampleMotion(due);

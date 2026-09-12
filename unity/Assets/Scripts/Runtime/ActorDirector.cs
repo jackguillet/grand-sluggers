@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -83,23 +84,23 @@ namespace GrandSluggers.UnityClient
                     x = live.X;
                     z = live.Z;
                 }
-                var pose = HeroActor.Pose.Idle;
+                var pose = Motion.Verb.Idle;
                 var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
                 var highlighted = (_phase is Phase.InPlay or Phase.StealThrow) && (who.Id == itemLit || who.Id == litId || (buddyPartner && !_buddy));
                 if (highlighted && !buddyPartner)
                 {
                     x = _fx;
                     z = _fz;
-                    if (_throwing) pose = HeroActor.Pose.Catch;
-                    else if (_bobbling) pose = HeroActor.Pose.Miss;
-                    else if (_recoilT > 0) pose = HeroActor.Pose.Dive;
-                    else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
+                    if (_throwing) pose = Motion.Verb.Catch;
+                    else if (_bobbling) pose = Motion.Verb.Miss;
+                    else if (_recoilT > 0) pose = Motion.Verb.Dive;
+                    else if (_jumpT > 0) pose = who.FieldAbility == "clamber" ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else if ((_caught || _buddy) && !_throwing &&
                              Mathf.Abs(FieldPad.StickX) + Mathf.Abs(FieldPad.StickY) >= 0.35f)
-                        pose = HeroActor.Pose.Run;
-                    else if (_caught && _preview != null && _preview.Grounder) pose = HeroActor.Pose.Scoop;
-                    else if (_caught || _buddy) pose = HeroActor.Pose.Catch;
-                    else if (_diveT > 0) pose = HeroActor.Pose.Dive;
+                        pose = Motion.Verb.Run;
+                    else if (_caught && _preview != null && _preview.Grounder) pose = Motion.Verb.Scoop;
+                    else if (_caught || _buddy) pose = Motion.Verb.Catch;
+                    else if (_diveT > 0) pose = Motion.Verb.Dive;
                     else if (_preview != null && _path != null)
                     {
                         var fromX = x;
@@ -117,45 +118,45 @@ namespace GrandSluggers.UnityClient
                         if (CartoonJuice.ChaseIsARun(
                                 _caught || _buddy,
                                 Diamond.Dist(fromX, fromZ, route.X, route.Z)))
-                            pose = HeroActor.Pose.Run;
+                            pose = Motion.Verb.Run;
                         else
                             pose = FieldPose(who, _preview, false);
                     }
-                    else pose = HeroActor.Pose.Field;
+                    else pose = Motion.Verb.Field;
                 }
                 else if (buddyPartner)
                 {
                     var atWall = Diamond.Dist(x, z, WallPlant(_preview).X, WallPlant(_preview).Z) < 18;
-                    if (_throwing) pose = HeroActor.Pose.Field;
-                    else if (atWall) pose = HeroActor.Pose.Crouch;
-                    else pose = HeroActor.Pose.Field;
+                    if (_throwing) pose = Motion.Verb.Field;
+                    else if (atWall) pose = Motion.Verb.Crouch;
+                    else pose = Motion.Verb.Field;
                 }
                 else if (_phase == Phase.InPlay && _preview != null && who.Id == _preview.Fielder.Id)
                 {
                     if (_buddy && _jumpT > 0)
-                        pose = who.FieldAbility == "clamber" ? HeroActor.Pose.Clamber : HeroActor.Pose.Jump;
+                        pose = who.FieldAbility == "clamber" ? Motion.Verb.Clamber : Motion.Verb.Jump;
                     else
                         pose = FieldPose(who, _preview, _caught || _buddy);
                 }
                 else if ((_phase is Phase.InPlay or Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
-                    pose = HeroActor.Pose.Run;
+                    pose = Motion.Verb.Run;
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    pose = _phase == Phase.Flight ? HeroActor.Pose.ThrowPitch : HeroActor.Pose.ChargePitch;
+                    pose = _phase == Phase.Flight ? Motion.Verb.ThrowPitch : Motion.Verb.ChargePitch;
                 if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
-                    pose = HeroActor.Pose.Crouch;
+                    pose = Motion.Verb.Crouch;
                 if (_throwing && kv.Key == _throwFromPos)
-                    pose = HeroActor.Pose.Throw;
+                    pose = Motion.Verb.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
-                    pose = HeroActor.Pose.Catch;
-                if (_gun && kv.Key == "C" && !_gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
-                if (_gun && kv.Key == "P" && _gunThrowFromPitcher) pose = HeroActor.Pose.Throw;
+                    pose = Motion.Verb.Catch;
+                if (_gun && kv.Key == "C" && !_gunThrowFromPitcher) pose = Motion.Verb.Throw;
+                if (_gun && kv.Key == "P" && _gunThrowFromPitcher) pose = Motion.Verb.Throw;
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
                 hero.SetYou((_phase is Phase.InPlay or Phase.StealThrow) && who.Id == litId && HumanOwnsThrow);
                 hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
-                    pose = HeroActor.Pose.Charm;
+                    pose = Motion.Verb.Charm;
                 var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
                 hero.SetPose(pose, kv.Key == "P" ? _pitchCharge : 0, kv.Key == "P" ? pType : null);
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
@@ -173,8 +174,8 @@ namespace GrandSluggers.UnityClient
                 if (_gun && ((kv.Key == "C" && !_gunThrowFromPitcher) || (kv.Key == "P" && _gunThrowFromPitcher)))
                     look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
-                if (pose == HeroActor.Pose.ThrowPitch && _phase == Phase.Flight)
-                    hero.SampleMotion((float)MoveBones.PitchRelease + _flight);
+                if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
+                    hero.SampleMotion((float)Motion.PitchRelease + _flight);
                 else hero.Tick(dt);
             }
 
@@ -197,18 +198,18 @@ namespace GrandSluggers.UnityClient
                 var presentingSwing = committedSwing
                     && AtBatMotion.PresentsCommittedSwing(_committedSwingT);
                 var bPose = presentingSwing
-                    ? HeroActor.Pose.Swing
-                    : racing ? HeroActor.Pose.Run : BatterPose();
+                    ? Motion.Verb.Swing
+                    : racing ? Motion.Verb.Run : BatterPose();
                 // Use the committed charge after release, including CPU swings.
-                var swingCharge = bPose == HeroActor.Pose.Swing && _swing != null
+                var swingCharge = bPose == Motion.Verb.Swing && _swing != null
                     ? (float)_swing.Charge01
                     : HumanBats ? _charge : 0f;
                 bHero.SetPose(bPose, swingCharge);
                 bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _swingButton.Armed
                     ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                var batting = bPose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing
-                    or HeroActor.Pose.CheckSwing or HeroActor.Pose.Bunt or HeroActor.Pose.Miss;
+                var batting = bPose is Motion.Verb.ChargeSwing or Motion.Verb.Swing
+                    or Motion.Verb.CheckSwing or Motion.Verb.Bunt or Motion.Verb.Miss;
                 bHero.SetHeld(batting, false);
                 bHero.SetHighlight(false);
                 if (racing)
@@ -235,7 +236,7 @@ namespace GrandSluggers.UnityClient
                         (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
-                if (bPose == HeroActor.Pose.Swing && presentingSwing)
+                if (bPose == Motion.Verb.Swing && presentingSwing)
                     bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT));
                 else bHero.Tick(dt);
             }
@@ -299,38 +300,38 @@ namespace GrandSluggers.UnityClient
             _items?.Present(dt, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
         }
 
-        HeroActor.Pose BatterPose()
+        Motion.Verb BatterPose()
         {
             if (_phase == Phase.Result && _last != null)
             {
-                if (_last.Kind == PlayKind.SwingMiss) return HeroActor.Pose.Miss;
+                if (_last.Kind == PlayKind.SwingMiss) return Motion.Verb.Miss;
                 if (_last.Kind == PlayKind.Strikeout)
-                    return _swing != null && _swing.Swing ? HeroActor.Pose.Miss : HeroActor.Pose.Idle;
-                if (_last.Kind == PlayKind.HomeRun) return HeroActor.Pose.Cheer;
-                if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
-                return HeroActor.Pose.Idle;
+                    return _swing != null && _swing.Swing ? Motion.Verb.Miss : Motion.Verb.Idle;
+                if (_last.Kind == PlayKind.HomeRun) return Motion.Verb.Cheer;
+                if (_swing != null && _swing.Bunt) return Motion.Verb.Bunt;
+                return Motion.Verb.Idle;
             }
             if (_phase == Phase.GameOver)
-                return _match.HomeScore >= _match.AwayScore ? HeroActor.Pose.Cheer : HeroActor.Pose.Idle;
+                return _match.HomeScore >= _match.AwayScore ? Motion.Verb.Cheer : Motion.Verb.Idle;
             if (_phase == Phase.Flight && _swung)
             {
-                if (_swing != null && _swing.Bunt) return HeroActor.Pose.Bunt;
-                return HeroActor.Pose.Swing;
+                if (_swing != null && _swing.Bunt) return Motion.Verb.Bunt;
+                return Motion.Verb.Swing;
             }
-            if (_phase is Phase.Set or Phase.Flight) return HeroActor.Pose.ChargeSwing;
-            return HeroActor.Pose.Idle;
+            if (_phase is Phase.Set or Phase.Flight) return Motion.Verb.ChargeSwing;
+            return Motion.Verb.Idle;
         }
 
-        static HeroActor.Pose FieldPose(Character who, FieldingPreview pre, bool caught)
+        static Motion.Verb FieldPose(Character who, FieldingPreview pre, bool caught)
         {
-            if (caught) return pre.Grounder ? HeroActor.Pose.Scoop : HeroActor.Pose.Catch;
+            if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
             var a = who.FieldAbility;
-            if (a == "dive" && pre.Grounder) return HeroActor.Pose.Dive;
-            if (a == "burrow" && pre.Grounder) return HeroActor.Pose.Dive;
-            if (a == "super-jump" && pre.HomeRunLikely) return HeroActor.Pose.Jump;
-            if (a == "clamber" && pre.HomeRunLikely) return HeroActor.Pose.Clamber;
-            if (a == "spin-check") return HeroActor.Pose.Spin;
-            return HeroActor.Pose.Field;
+            if (a == "dive" && pre.Grounder) return Motion.Verb.Dive;
+            if (a == "burrow" && pre.Grounder) return Motion.Verb.Dive;
+            if (a == "super-jump" && pre.HomeRunLikely) return Motion.Verb.Jump;
+            if (a == "clamber" && pre.HomeRunLikely) return Motion.Verb.Clamber;
+            if (a == "spin-check") return Motion.Verb.Spin;
+            return Motion.Verb.Field;
         }
 
         void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)
@@ -342,7 +343,7 @@ namespace GrandSluggers.UnityClient
             var spot = Diamond.LeadSpot(bagNum, state != null ? state.Lead01 : 0);
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
-            var pose = HeroActor.Pose.Idle;
+            var pose = Motion.Verb.Idle;
             var racing = _phase == Phase.InPlay && _pending != null;
             if (racing)
             {
@@ -354,11 +355,11 @@ namespace GrandSluggers.UnityClient
                 var tagBag = dest > bagNum ? dest : bagNum + 1;
                 var threatened = _throwing && _throwBag == tagBag;
                 var going = dest > bagNum && !InPlay.OccupyingBag(at.X, at.Z);
-                pose = going ? (threatened ? HeroActor.Pose.Slide : HeroActor.Pose.Run) : pose;
+                pose = going ? (threatened ? Motion.Verb.Slide : Motion.Verb.Run) : pose;
             }
-            else if (state != null && state.Sliding) pose = HeroActor.Pose.Slide;
-            else if (state != null && state.StealAttempt) pose = HeroActor.Pose.Run;
-            else if (state != null && state.Lead01 > 0.08) pose = HeroActor.Pose.StealLead;
+            else if (state != null && state.Sliding) pose = Motion.Verb.Slide;
+            else if (state != null && state.StealAttempt) pose = Motion.Verb.Run;
+            else if (state != null && state.Lead01 > 0.08) pose = Motion.Verb.StealLead;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
@@ -396,8 +397,8 @@ namespace GrandSluggers.UnityClient
                 z = from.Z + (to.Z - from.Z) * t;
             }
             var h = Hero(_gunRunner);
-            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
-            if (!_gunSafe && u > 0.5f) pose = HeroActor.Pose.Dive;
+            var pose = u > 0.55f ? Motion.Verb.Slide : Motion.Verb.Run;
+            if (!_gunSafe && u > 0.5f) pose = Motion.Verb.Dive;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
@@ -466,8 +467,8 @@ namespace GrandSluggers.UnityClient
             var x = from.X + (to.X - from.X) * u;
             var z = from.Z + (to.Z - from.Z) * u;
             var h = Hero(runner);
-            var pose = u > 0.55f ? HeroActor.Pose.Slide : HeroActor.Pose.Run;
-            if (_throwing && _throwT >= _throwDur * 0.85f && u < 0.92f) pose = HeroActor.Pose.Dive;
+            var pose = u > 0.55f ? Motion.Verb.Slide : Motion.Verb.Run;
+            if (_throwing && _throwT >= _throwDur * 0.85f && u < 0.92f) pose = Motion.Verb.Dive;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
@@ -527,7 +528,7 @@ namespace GrandSluggers.UnityClient
                 var yours = ids[i] == CurrentPick().Yours;
                 var theirs = ids[i] == CurrentPick().Theirs;
                 var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, yours);
-                hero.SetPose(yours ? HeroActor.Pose.Cheer : theirs ? HeroActor.Pose.StealLead : HeroActor.Pose.Idle);
+                hero.SetPose(yours ? Motion.Verb.Cheer : theirs ? Motion.Verb.StealLead : Motion.Verb.Idle);
                 hero.SetHighlight(yours);
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);

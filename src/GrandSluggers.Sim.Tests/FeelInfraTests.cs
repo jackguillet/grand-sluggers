@@ -250,13 +250,13 @@ public class FeelInfraTests
     [Fact]
     public void SharedClipListHasIdleRunSwingPitchScoopSlide()
     {
-        var names = MoveBones.Clips.Select(c => c.ToLowerInvariant()).ToHashSet();
+        var names = Motion.ClipIds.Select(c => c.ToLowerInvariant()).ToHashSet();
         foreach (var need in new[] { "idle", "run", "jump", "swing", "pitch", "scoop", "slide", "throw" })
             Assert.Contains(need, names);
-        Assert.Contains(MoveBones.ClipList, c => c.Id == "swing" && c.Marks.Contains(MoveBones.ClipEvent.Contact));
-        Assert.Contains(MoveBones.ClipList, c => c.Id == "pitch" && c.Marks.Contains(MoveBones.ClipEvent.Release));
-        Assert.Equal(MoveBones.Verb.Scoop, MoveBones.ClipList.Single(c => c.Id == "scoop").Verb);
-        Assert.Equal(MoveBones.Verb.Slide, MoveBones.ClipList.Single(c => c.Id == "slide").Verb);
+        Assert.Contains(Motion.Clips, c => c.Id == "swing" && c.Mark == Motion.ClipEvent.Contact);
+        Assert.Contains(Motion.Clips, c => c.Id == "pitch" && c.Mark == Motion.ClipEvent.Release);
+        Assert.Equal("scoop", Motion.CueFor(Motion.Verb.Scoop).Clip);
+        Assert.Equal("slide", Motion.CueFor(Motion.Verb.Slide).Clip);
     }
 
     [Fact]
@@ -380,19 +380,6 @@ public class FeelInfraTests
         Assert.True(feel.CpuVsHumanTake + feel.CpuVsHumanMiss < 1);
         Assert.InRange(feel.ChargeMaxHoldSeconds, 0.25, 0.9);
         Assert.True(feel.ChargeOverchargeDecay > 0);
-    }
-
-    [Fact]
-    public void ScoopDropsThenPicksAndSlideTucksThenPops()
-    {
-        var drop = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, 0.06);
-        var pick = MoveBones.Evaluate(MoveBones.Verb.Scoop, 0, 0.22);
-        Assert.True(pick.Torso.X > drop.Torso.X || pick.RUpper.X > drop.RUpper.X,
-            $"scoop pick {pick.Torso.X}/{pick.RUpper.X} vs drop {drop.Torso.X}/{drop.RUpper.X}");
-        var tuck = MoveBones.Evaluate(MoveBones.Verb.Slide, 0, 0.10);
-        var pop = MoveBones.Evaluate(MoveBones.Verb.Slide, 0, 0.36);
-        Assert.True(tuck.Torso.X > 20, $"slide tuck {tuck.Torso.X}");
-        Assert.True(pop.Torso.X < tuck.Torso.X, $"slide pop {pop.Torso.X} vs tuck {tuck.Torso.X}");
     }
 
     static bool Near(Vec3 a, Vec3 b)

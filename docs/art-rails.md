@@ -19,7 +19,7 @@ The pattern: **one rig, named clips, skins, named VFX/audio events, a validator.
 
 ## What Grand Sluggers already has
 
-Feel infrastructure (#107): named camera shots, `MoveBones` clip list, Harbor as placed objects, feel tables, debug overlay. Sim vs Unity wall.
+Feel infrastructure (#107): named camera shots, the `Motion` verb catalog, Harbor as placed objects, feel tables, debug overlay. Sim vs Unity wall.
 
 What was still a prototype skin: portraits in `Resources/Art`, bodies as capsules, VFX/audio spawned in C#, parks as `ParkView` programs.
 
@@ -27,11 +27,10 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 
 | Slot | Data | Unity drop path | Until a file exists |
 | --- | --- | --- | --- |
-| Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | `SharedRig` primitives |
-| Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` | `MoveBones.Evaluate` (swing.fbx, scoop.fbx dropped) |
-| Skins | `data/art/skins.json` | `Assets/Art/Characters/SharedRig/extras.fbx` | primitive extras on the shared chain |
+| Shared rig | `data/art/rig.json` | `Assets/Art/Characters/SharedRig/hero-shared.fbx` | placeholder capsule + validator error |
+| Clips | `data/art/clips.json` | `Assets/Art/Animation/Clips/{id}` and `{id}-L` | idle take, then bind pose + validator error |
+| Skins / extras | `data/art/skins.json`, `data/art/extras.json` | `Assets/Art/Characters/SharedRig/extras.fbx` | the extra is not drawn; validator error |
 | Common hitting bat | `GearMesh.HittingBatVisual()` (`bat-wood`) | named `bat-wood` model in `Assets/Art/Characters/SharedRig/extras.fbx` | procedural wood bat |
-| Body mesh | skin `mesh` + `bind` | `Assets/Art/Characters/{id}/{id}.fbx` and `Resources/Art/Characters/{id}/{id}.fbx` | SharedRig primitives |
 | Portraits | skin `portrait` | `Assets/Art/UI/Portraits/{id}` | `Resources/Art/{id}-hero` |
 | VFX | `data/art/vfx.json` | `Assets/Art/VFX/{id}` | `SpecialFx` primitives |
 | Audio | `data/art/audio.json` + `data/art/audio-clips/{id}.wav` | `Assets/Art/Audio/{id}` | generated tones in `AudioBus` |
@@ -42,13 +41,12 @@ Role players inherit the faction body type and **must not** grow captain extras 
 
 ## Drop rules (when art is ready)
 
-1. **Shared sockets, unique packages.** Bone **names** stay in `data/art/rig.json`. Unique anatomy is a [character package](character-package.md): Generic FBX, painted weights (or Blender-authored pieces), clips on **that** armature. A posed GLB is a source. Do not heat-weight it onto Rio’s T-pose. The original six stay on `hero-shared` until they are packages.
-1b. **Drop.** Rigged FBX + `{id}-albedo.png` under `Art/Characters/{id}` and the Resources copy. URP Lit on import. Animator when clips exist. Character stills in [screenshot-gate](screenshot-gate.md) before a player rebuild.
-2. **One clip file per catalog id.** Name the file the clip id (`swing.fbx` / `swing.anim`). Events on the clip: `Contact`, `Release`, `FootPlant` — the same names Sim already understands.
-3. **Captains are skins or packages.** Palette, extras, portrait, scale. Unique anatomy is a package. `Silhouette.Proportions` stays the identity.
+1. **One rig, one body.** Bone **names** stay in `data/art/rig.json`. Every captain is `hero-shared` plus extras; unique packages are [deferred](character-package.md). Contract: [character-motion.md](character-motion.md).
+2. **One take file per catalog id, per hand.** `tools/blender/hero_shared_takes.py` bakes `swing.fbx` and `swing-L.fbx` from one pose table. Markers on the clip: `Contact`, `Release`, `FootPlant` — the same seconds the sim uses.
+3. **Captains are data.** Palette, extras from `data/art/extras.json`, portrait, `Silhouette.Proportions`. No per-captain code.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
-6. **Missing files are placeholders, not crashes.** The binder keeps MoveBones / generated audio / code VFX until the slot is filled.
+6. **Missing files are placeholders, not crashes.** A missing take holds idle, a missing body is a capsule, audio stays a generated tone, VFX stays code — and `cli art` says so.
 7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character mesh drops also need [character stills](screenshot-gate.md).
 
 The common hitting bat is authored handle-to-barrel along model-local +Y and
@@ -56,17 +54,16 @@ keeps that authored origin when its pieces are joined. The handle spans Y −1.0
 to −0.10 with the grip at −0.85; the full-width barrel spans Y −0.15 to +1.25
 at radius 0.12 before the measured shared-socket bind conversion. Unity art and
 player validation read the imported grip/wood submeshes and reject a recentered
-FBX. Every shared or packaged batter consumes the same selection. A package can
-supply the named `bat` socket; otherwise the shared forearm socket fallback
-supplies it. Neither path selects a character-specific hitting prop.
+FBX. Every batter consumes the same selection on the rig's `bat` socket, which
+the takes key on every frame for both hands. Nothing selects a
+character-specific hitting prop.
 
 ## Import (Unity)
 
-- Unique bodies: Generic rig, Avatar from this model. Humanoid only for T-pose bipeds that share clips.
-- Clips: Generic rig (not a new Humanoid avatar per unique captain). Loop only what the catalog marks `loop`.
+- Rig and takes: Generic, **no avatar**, so every curve (including the root bone's baked lift) writes its transform by path. Loop and markers come from `Motion.Clips` on import.
 - Portraits: sRGB, no mip maps, square.
 - Park textures: sRGB, mips on.
-- FBX: bake animations, one take per file, root at origin, facing −Z to match the silhouette bible.
+- FBX: one take per file, armature-only, root at origin, facing +Z (Unity forward).
 
 ## Validator
 

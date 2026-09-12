@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEngine;
@@ -10,7 +10,7 @@ using UnityEngine;
 namespace GrandSluggers.EditorTools
 {
     /// <summary>
-    /// Generic rig for the SharedRig drop and clip FBX takes. Hooks AssetDatabase
+    /// Generic rig for hero-shared and the take FBX files. Hooks AssetDatabase
     /// load for Play so Runtime does not reference UnityEditor.
     /// </summary>
     [InitializeOnLoad]
@@ -27,8 +27,6 @@ namespace GrandSluggers.EditorTools
                 AssetDatabase.LoadAssetAtPath<GameObject>(
                     string.IsNullOrWhiteSpace(path) ? DefaultSlot : path);
             ArtBinder.EditorLoadClip = LoadClip;
-            ArtBinder.EditorLoadPackageClip = LoadExactClip;
-            ArtBinder.EditorLoadController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>;
             ArtBinder.EditorLoadNamedMesh = LoadNamedMesh;
         }
 
@@ -123,21 +121,6 @@ namespace GrandSluggers.EditorTools
             return null;
         }
 
-        static AnimationClip LoadExactClip(string slot, string clipName)
-        {
-            foreach (var path in ClipCandidates(slot))
-            {
-                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-                {
-                    if (asset is AnimationClip clip
-                        && !clip.name.StartsWith("__preview", StringComparison.Ordinal)
-                        && clip.name.Equals(clipName, StringComparison.OrdinalIgnoreCase))
-                        return clip;
-                }
-            }
-            return null;
-        }
-
         static string[] ClipCandidates(string slot)
         {
             if (string.IsNullOrWhiteSpace(slot)) return Array.Empty<string>();
@@ -148,17 +131,18 @@ namespace GrandSluggers.EditorTools
         void OnPreprocessModel()
         {
             var rig = assetPath.IndexOf(RigFolder, StringComparison.OrdinalIgnoreCase) >= 0;
-            var body = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0;
             var clip = assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) >= 0;
             var park = assetPath.IndexOf(ParkFolder, StringComparison.OrdinalIgnoreCase) >= 0;
             var sharedExtras = assetPath.EndsWith(
                 "Art/Characters/SharedRig/extras.fbx", StringComparison.OrdinalIgnoreCase);
-            if (!rig && !body && !clip && !park) return;
+            if (!rig && !clip && !park) return;
             var imp = (ModelImporter)assetImporter;
+            // Generic without an avatar: every curve, including the root bone's
+            // baked lift, writes its transform by path. An avatar would treat the
+            // root bone as motion root and swallow that lift as root motion.
             imp.animationType = ModelImporterAnimationType.Generic;
-            imp.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-            var packageTake = body && assetPath.IndexOf("SharedRig", StringComparison.OrdinalIgnoreCase) < 0;
-            imp.importAnimation = clip || packageTake;
+            imp.avatarSetup = park ? ModelImporterAvatarSetup.CreateFromThisModel : ModelImporterAvatarSetup.NoAvatar;
+            imp.importAnimation = clip;
             imp.addCollider = false;
             imp.importBlendShapes = false;
             // The common-prop validator measures the imported bat submeshes,
@@ -168,94 +152,36 @@ namespace GrandSluggers.EditorTools
             imp.optimizeGameObjects = false;
         }
 
-        void OnPreprocessAnimation()
-        {
-            if (!TryPackageVerb(assetPath, out var verb)) return;
-            var importer = (ModelImporter)assetImporter;
-            var clips = importer.defaultClipAnimations;
-            for (var i = 0; i < clips.Length; i++)
-                Configure(clips[i], verb);
-            if (clips.Length > 0) importer.clipAnimations = clips;
-        }
-
-        internal static void Configure(ModelImporterClipAnimation clip, PackageVerbSlot verb)
-        {
-            clip.name = verb.Clip;
-            clip.loopTime = verb.Loop;
-            clip.events = verb.Markers.Select(marker => new AnimationEvent
-            {
-                time = (float)marker.At,
-                functionName = marker.Event,
-                stringParameter = marker.Event
-            }).ToArray();
-        }
-
+        /// <summary>Take files carry their catalog row: loop flag and the ball-event marker.</summary>
         void OnPostprocessAnimation(GameObject go, AnimationClip clip)
         {
-            var packageTake = assetPath.IndexOf("Art/Characters/", StringComparison.OrdinalIgnoreCase) >= 0
-                && assetPath.IndexOf("SharedRig", StringComparison.OrdinalIgnoreCase) < 0;
-            if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0 && !packageTake)
-                return;
-            var id = Path.GetFileNameWithoutExtension(assetPath);
-            if (packageTake && TryPackageVerb(assetPath, out var verb))
-            {
-                clip.name = verb.Clip;
-                clip.legacy = false;
-                clip.wrapMode = verb.Loop ? WrapMode.Loop : WrapMode.ClampForever;
-                var settings = AnimationUtility.GetAnimationClipSettings(clip);
-                settings.loopTime = verb.Loop;
-                AnimationUtility.SetAnimationClipSettings(clip, settings);
-                var events = new AnimationEvent[verb.Markers.Count];
-                for (var i = 0; i < verb.Markers.Count; i++)
-                {
-                    var marker = verb.Markers[i];
-                    events[i] = new AnimationEvent
-                    {
-                        time = (float)marker.At,
-                        functionName = marker.Event,
-                        stringParameter = marker.Event
-                    };
-                }
-                AnimationUtility.SetAnimationEvents(clip, events);
-                return;
-            }
-            if (packageTake && id.IndexOf('-') >= 0)
-                id = id.Substring(id.LastIndexOf('-') + 1);
-            clip.name = id;
+            if (assetPath.IndexOf(ClipFolder, StringComparison.OrdinalIgnoreCase) < 0) return;
+            var fileId = Path.GetFileNameWithoutExtension(assetPath);
+            var clipId = fileId.EndsWith("-L", StringComparison.OrdinalIgnoreCase)
+                ? fileId.Substring(0, fileId.Length - 2)
+                : fileId;
+            clip.name = fileId;
             clip.legacy = false;
-            var contact = -1f;
-            if (id.Equals("swing", StringComparison.OrdinalIgnoreCase)) contact = 0.30f;
-            else if (id.Equals("scoop", StringComparison.OrdinalIgnoreCase)) contact = 0.22f;
-            if (contact < 0f) return;
-            var ev = new AnimationEvent
+            if (!Motion.TryClip(clipId, out var row)) return;
+            clip.wrapMode = row.Loop ? WrapMode.Loop : WrapMode.ClampForever;
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = row.Loop;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            if (row.Mark == null)
             {
-                time = contact,
-                functionName = "Contact",
-                stringParameter = "Contact"
-            };
-            AnimationUtility.SetAnimationEvents(clip, new[] { ev });
-        }
-
-        static bool TryPackageVerb(string path, out PackageVerbSlot verb)
-        {
-            verb = default;
-            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
-            var art = ArtCatalog.Load(data);
-            if (art.PackageErrors.Count > 0)
-                throw new InvalidDataException(string.Join("; ", art.PackageErrors));
-            foreach (var package in art.Packages.Values)
-            {
-                foreach (var candidate in package.Verbs)
-                {
-                    if (path.Equals(candidate.Source, StringComparison.OrdinalIgnoreCase)
-                        || path.Equals(candidate.PlayerSource, StringComparison.OrdinalIgnoreCase))
-                    {
-                        verb = candidate;
-                        return true;
-                    }
-                }
+                AnimationUtility.SetAnimationEvents(clip, Array.Empty<AnimationEvent>());
+                return;
             }
-            return false;
+            var mark = row.Mark.Value.ToString();
+            AnimationUtility.SetAnimationEvents(clip, new[]
+            {
+                new AnimationEvent
+                {
+                    time = (float)row.MarkAt,
+                    functionName = mark,
+                    stringParameter = mark
+                }
+            });
         }
     }
 }

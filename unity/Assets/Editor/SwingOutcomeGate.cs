@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -131,7 +132,7 @@ namespace GrandSluggers.EditorTools
                 timingFrames = timingFrames
             };
             var hero = Hero(play, fixture.Batter.Id);
-            Require(hero.Current == HeroActor.Pose.Swing,
+            Require(hero.Current == Motion.Verb.Swing,
                 result.name + ": committed start did not enter Swing.");
             var startT = Get<float>(play, "_committedSwingT");
             Require(Math.Abs(startT) < 0.001f,
@@ -154,31 +155,31 @@ namespace GrandSluggers.EditorTools
                 Require(actionT + 0.0001f >= previous,
                     result.name + ": committed action clock moved backward.");
                 previous = actionT;
-                if (lastPose == HeroActor.Pose.Swing && hero.Current == HeroActor.Pose.Miss)
+                if (lastPose == Motion.Verb.Swing && hero.Current == Motion.Verb.Miss)
                     swingToMiss++;
                 lastPose = hero.Current;
                 resolved |= Phase(play) == "Result";
 
-                if (!sawContact && actionT >= MoveBones.SwingContact - 0.0001f
-                    && actionT <= MoveBones.SwingDur)
+                if (!sawContact && actionT >= Motion.SwingContact - 0.0001f
+                    && actionT <= Motion.SwingDur)
                 {
-                    Require(hero.Current == HeroActor.Pose.Swing,
+                    Require(hero.Current == Motion.Verb.Swing,
                         result.name + ": left Swing before authored contact.");
                     result.frames.Add(CaptureFrame(play, hero, result.name, "contact", frameDir));
                     sawContact = true;
                     result.contactPhase = Phase(play);
                     result.contactT = hero.PoseTime;
                 }
-                if (!sawFollow && Math.Abs(actionT - MoveBones.SwingDur) < 0.0001f)
+                if (!sawFollow && Math.Abs(actionT - Motion.SwingDur) < 0.0001f)
                 {
-                    Require(hero.Current == HeroActor.Pose.Swing,
+                    Require(hero.Current == Motion.Verb.Swing,
                         result.name + ": left Swing before authored follow-through.");
                     result.frames.Add(CaptureFrame(play, hero, result.name, "follow", frameDir));
                     sawFollow = true;
                     result.followPhase = Phase(play);
                     result.followT = hero.PoseTime;
                 }
-                if (resolved && actionT > MoveBones.SwingDur + 0.0001f)
+                if (resolved && actionT > Motion.SwingDur + 0.0001f)
                     break;
             }
 
@@ -189,14 +190,14 @@ namespace GrandSluggers.EditorTools
             Require(sawContact && sawFollow,
                 result.name + ": did not present both contact and follow-through.");
             Require(Phase(play) == "Result", result.name + ": pitch did not resolve to Result.");
-            Require(hero.Current == HeroActor.Pose.Miss,
+            Require(hero.Current == Motion.Verb.Miss,
                 result.name + ": completed whiff did not settle on Miss.");
 
             for (var frame = 0; frame < 6; frame++)
             {
                 Invoke(play, "DrawActors", Step);
                 hero = Hero(play, fixture.Batter.Id);
-                Require(hero.Current == HeroActor.Pose.Miss,
+                Require(hero.Current == Motion.Verb.Miss,
                     result.name + ": completed swing restarted during Result.");
             }
             Require(swingToMiss == 1,
@@ -223,7 +224,7 @@ namespace GrandSluggers.EditorTools
             var last = Get<PlayEvent>(play, "_last");
             Require(last != null && last.Kind == PlayKind.Strikeout,
                 captain + " called strikeout did not resolve as Strikeout.");
-            Require(hero.Current != HeroActor.Pose.Swing,
+            Require(hero.Current != Motion.Verb.Swing,
                 captain + " called strikeout entered Swing.");
             Require(Get<float>(play, "_committedSwingT") == (float)AtBatMotion.SwingNotStarted,
                 captain + " called strikeout armed a committed action clock.");

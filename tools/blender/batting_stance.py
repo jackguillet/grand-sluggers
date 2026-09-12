@@ -10,8 +10,8 @@ nearer the pitcher and that hand holds the knob end of the handle. The
 catalog's feetAxis runs from the back foot to the lead foot, so it points at
 the pitcher from either box; it is not "right minus left".
 
-A rig's *rendered* eyes are not always the eyes this scene authors. Each caller
-names its import basis so the DCC aims the landmark that Unity actually draws.
+The body is authored facing -Y with its face on that side, so the eye
+landmarks here are the eyes Unity draws.
 """
 from __future__ import annotations
 
@@ -23,17 +23,8 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 
-CATALOG = Path(__file__).resolve().parents[2] / "data/art/pose-clips/swing.json"
+CATALOG = Path(__file__).resolve().parents[2] / "data/art/batting-stance.json"
 
-
-# How a rig's rendered eyes relate to the DCC eye landmark this module aims.
-# A Generic character package (Elder Fenn) ships its authored eye meshes, so the
-# landmark is the face Unity draws. SharedRig.TryBindDrop instead hides the
-# shared blockout's eye meshes and rebuilds the face on the head bone's Unity
-# +Z; the blockout builds that head facing Blender +Y, which FBX import turns
-# into Unity -Z, so the drawn face is the reverse of the landmark.
-EYES_AS_AUTHORED = 1
-EYES_REVERSED_BY_IMPORT = -1
 
 # Which hand the authored take bats with. The shared and package takes are
 # right-handed; HeroActor mirrors the sampled pose for a left-handed batter.
@@ -81,12 +72,14 @@ def span_at(t: float, times):
     return max(len(times) - 2, 0), 0.0
 
 
-def target_at(t: float, *, eyes_basis: int = EYES_AS_AUTHORED):
+def target_at(t: float, bats: str = BATS_RIGHT):
     """Unity stance directions at t, converted to DCC axes.
 
     Between authored keys this interpolates exactly as BattingStance does in
     Sim, so a take baked on every frame agrees with the runtime contract at any
-    sample time the gate picks, not only on the five authored keys.
+    sample time the gate picks, not only on the five authored keys. A
+    left-handed batter is the reflection across the plate line: X flips, the
+    pitcher stays where it is (BattingStance.At in Sim).
     """
     index, u = span_at(t, [key for key, _ in KEYS])
     low, high = KEYS[index][1], KEYS[min(index + 1, len(KEYS) - 1)][1]
@@ -94,7 +87,8 @@ def target_at(t: float, *, eyes_basis: int = EYES_AS_AUTHORED):
         name: (low[name] + (high[name] - low[name]) * u).normalized()
         for name in low
     }
-    row["eyes"] = row["eyes"] * float(eyes_basis)
+    if bats == BATS_LEFT:
+        row = {name: Vector((-value.x, value.y, value.z)) for name, value in row.items()}
     return {name: unity_to_dcc(value) for name, value in row.items()}
 
 
@@ -187,7 +181,6 @@ def author_visible_stance(
     head_center: str,
     foot_left: str,
     foot_right: str,
-    eyes_basis: int = EYES_AS_AUTHORED,
     bats: str = BATS_RIGHT,
 ):
     """Align feet, visible chest, and visible eyes to the shared stance key.
@@ -196,7 +189,7 @@ def author_visible_stance(
     feetAxis, which turns the hips -- and the toes with them -- toward the
     plate. The chest and eyes are then aimed on their own bones.
     """
-    target = target_at(t, eyes_basis=eyes_basis)
+    target = target_at(t, bats)
     aim_bone_from_landmarks(
         arm_ob, "root", feet_axis(foot_left, foot_right, bats), target["feet"])
     aim_bone_from_landmarks(
@@ -216,7 +209,6 @@ def validate_visible_stance(
     head_center: str,
     foot_left: str,
     foot_right: str,
-    eyes_basis: int = EYES_AS_AUTHORED,
     minimum_dot: float = 0.995,
     bats: str = BATS_RIGHT,
     arm_ob=None,
@@ -230,7 +222,7 @@ def validate_visible_stance(
     blind spot through a 56/56 run. With ``arm_ob`` each toe must also face the
     plate, which is the part of Jack's contract the foot line alone cannot see.
     """
-    target = target_at(t, eyes_basis=eyes_basis)
+    target = target_at(t, bats)
     eyes = (rendered_center(eye_left) + rendered_center(eye_right)) * 0.5
     actual = {
         "chest": visible_direction(chest_front, chest_center),

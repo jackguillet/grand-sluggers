@@ -1,13 +1,188 @@
 {
   "clips": [
-    { "id": "idle", "verb": "Idle", "loop": true, "events": [], "slot": "Assets/Art/Animation/Clips/idle" },
-    { "id": "walk", "verb": "Walk", "loop": true, "events": ["FootPlant"], "footPlantAt": 0.0, "slot": "Assets/Art/Animation/Clips/walk" },
-    { "id": "run", "verb": "Run", "loop": true, "events": ["FootPlant"], "footPlantAt": 0.0, "authored": true, "slot": "Assets/Art/Animation/Clips/run" },
-    { "id": "jump", "verb": "Jump", "loop": false, "events": ["FootPlant"], "footPlantAt": 0.55, "slot": "Assets/Art/Animation/Clips/jump" },
-    { "id": "swing", "verb": "Swing", "loop": false, "events": ["Contact"], "contactAt": 0.30, "authored": true, "slot": "Assets/Art/Animation/Clips/swing", "playerSlot": "Assets/Resources/Art/Animation/Clips/swing" },
-    { "id": "pitch", "verb": "Pitch", "loop": false, "events": ["Release"], "releaseAt": 0.42, "authored": true, "slot": "Assets/Art/Animation/Clips/pitch" },
-    { "id": "scoop", "verb": "Scoop", "loop": false, "events": ["Contact"], "contactAt": 0.22, "authored": true, "slot": "Assets/Art/Animation/Clips/scoop" },
-    { "id": "slide", "verb": "Slide", "loop": false, "events": ["FootPlant"], "footPlantAt": 0.18, "slot": "Assets/Art/Animation/Clips/slide" },
-    { "id": "throw", "verb": "Throw", "loop": false, "events": ["Release"], "releaseAt": 0.18, "slot": "Assets/Art/Animation/Clips/throw" }
+    {
+      "id": "idle",
+      "loop": true,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/idle",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/idle"
+    },
+    {
+      "id": "field",
+      "loop": true,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/field",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/field"
+    },
+    {
+      "id": "cheer",
+      "loop": true,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/cheer",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/cheer"
+    },
+    {
+      "id": "charm",
+      "loop": true,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/charm",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/charm"
+    },
+    {
+      "id": "walk",
+      "loop": true,
+      "handed": false,
+      "events": [
+        "FootPlant"
+      ],
+      "footPlantAt": 0.0,
+      "slot": "Assets/Art/Animation/Clips/walk",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/walk"
+    },
+    {
+      "id": "run",
+      "loop": true,
+      "handed": false,
+      "events": [
+        "FootPlant"
+      ],
+      "footPlantAt": 0.0,
+      "slot": "Assets/Art/Animation/Clips/run",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/run"
+    },
+    {
+      "id": "jump",
+      "loop": false,
+      "handed": false,
+      "events": [
+        "FootPlant"
+      ],
+      "footPlantAt": 0.55,
+      "slot": "Assets/Art/Animation/Clips/jump",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/jump"
+    },
+    {
+      "id": "pitch",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Release"
+      ],
+      "releaseAt": 0.42,
+      "slot": "Assets/Art/Animation/Clips/pitch",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/pitch"
+    },
+    {
+      "id": "throw",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Release"
+      ],
+      "releaseAt": 0.18,
+      "slot": "Assets/Art/Animation/Clips/throw",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/throw"
+    },
+    {
+      "id": "swing",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Contact"
+      ],
+      "contactAt": 0.3,
+      "slot": "Assets/Art/Animation/Clips/swing",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/swing"
+    },
+    {
+      "id": "checkSwing",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/checkSwing",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/checkSwing"
+    },
+    {
+      "id": "bunt",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/bunt",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/bunt"
+    },
+    {
+      "id": "miss",
+      "loop": false,
+      "handed": true,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/miss",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/miss"
+    },
+    {
+      "id": "catch",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/catch",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/catch"
+    },
+    {
+      "id": "dive",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/dive",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/dive"
+    },
+    {
+      "id": "crouch",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/crouch",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/crouch"
+    },
+    {
+      "id": "stealLead",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/stealLead",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/stealLead"
+    },
+    {
+      "id": "spin",
+      "loop": false,
+      "handed": false,
+      "events": [],
+      "slot": "Assets/Art/Animation/Clips/spin",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/spin"
+    },
+    {
+      "id": "scoop",
+      "loop": false,
+      "handed": false,
+      "events": [
+        "Contact"
+      ],
+      "contactAt": 0.22,
+      "slot": "Assets/Art/Animation/Clips/scoop",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/scoop"
+    },
+    {
+      "id": "slide",
+      "loop": false,
+      "handed": false,
+      "events": [
+        "FootPlant"
+      ],
+      "footPlantAt": 0.18,
+      "slot": "Assets/Art/Animation/Clips/slide",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/slide"
+    }
   ]
 }

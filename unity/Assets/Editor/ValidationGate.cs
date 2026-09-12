@@ -41,7 +41,6 @@ namespace GrandSluggers.EditorTools
                         + " does not match the tracked project editor version " + expectedVersion + ".");
 
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-                CharacterPackageControllerImport.SyncRequired();
                 RequireCompiledSources(evidence);
 
                 var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath);
@@ -58,12 +57,6 @@ namespace GrandSluggers.EditorTools
                 evidence.artErrors = artErrors.ToArray();
                 if (artErrors.Count > 0)
                     throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));
-
-                var packageErrors = CharacterPackageImportValidation.Validate(content);
-                evidence.packageErrors = packageErrors.ToArray();
-                if (packageErrors.Count > 0)
-                    throw new BuildFailedException("Character package import validation failed:\n"
-                        + string.Join("\n", packageErrors));
 
                 evidence.ok = true;
                 WriteEvidence(evidencePath, evidence);
@@ -133,7 +126,6 @@ namespace GrandSluggers.EditorTools
             public string utc = "";
             public string[] assemblies = Array.Empty<string>();
             public string[] artErrors = Array.Empty<string>();
-            public string[] packageErrors = Array.Empty<string>();
             public string error = "";
         }
     }

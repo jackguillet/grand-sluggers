@@ -2,20 +2,20 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Shared-rig bat path in batter-local Unity axes: X crosses the plate, Y is
-/// height, and +Z faces the pitcher. The DCC take uses the same keys with its
-/// Y/Z axes converted during FBX export. Left-handed swings mirror only X.
+/// height, and +Z faces the pitcher. The DCC take is authored against these
+/// keys and baked for both hands; a left-handed swing is the exact reflection.
 /// </summary>
 public static class SwingPresentation
 {
-    public static readonly string[] SharedCaptains =
-        ["rio", "vale", "zig", "brondo", "konga", "ashlord"];
+    /// <summary>Every captain swings on the one shared rig.</summary>
+    public static readonly string[] SharedCaptains = Silhouette.Captains;
 
     public const double LoadAt = 0.00;
     public const double LaunchAt = 0.15;
     public const double NormalLoadAt = LaunchAt * 0.5;
     public const double ApproachAt = 0.24;
-    public const double ContactAt = MoveBones.SwingContact;
-    public const double FollowThroughAt = MoveBones.SwingDur;
+    public const double ContactAt = Motion.SwingContact;
+    public const double FollowThroughAt = Motion.SwingDur;
     public const double ContactStretchXZ = 1.14;
     public const double ContactSquashY = 0.84;
     /// <summary>
@@ -67,7 +67,7 @@ public static class SwingPresentation
     /// separate runtime pose.
     /// </summary>
     public static double LoadSampleAt(double charge01) =>
-        NormalLoadAt * (1 - Math.Clamp(charge01, 0, 1));
+        Motion.LoadSampleAt(NormalLoadAt, charge01);
 
     /// <summary>Shared root squash while the barrel accelerates through contact.</summary>
     public static Vec3 RootSquash(double poseT) =>
@@ -82,16 +82,13 @@ public static class SwingPresentation
         Vec3 Grip,
         Vec3 BarrelDirection);
 
-    // Evaluated rendered-hand centers and socket positions in shared-root space
-    // for a right-handed batter; Mirror() derives the left-handed one. LeftHand
-    // and RightHand are the batter's own hands: the blockout builds lHand at
-    // Blender -X with the character facing +Y, and the FBX import X reflection
-    // cancels against the -Z export facing, so the renderer named lHand is the
-    // batter's left in Unity. The lead hand (BattingStance.LeadSide) holds the
-    // knob end: a right-handed batter's LEFT hand sits nearest Grip on every
-    // key and under the right hand in the held load. The DCC take
-    // (tools/blender/hero_shared_swing.py HAND_TARGETS) and the Unity swing
-    // matrix measure these same points.
+    // Rendered-hand centers and the grip socket in batter-local space for a
+    // right-handed batter; Mirror() derives the left-handed contract. LeftHand
+    // and RightHand are the batter's own hands (the renderer named lHand). The
+    // lead hand (BattingStance.LeadSide) holds the knob end: a right-handed
+    // batter's LEFT hand sits nearest Grip on every key and under the right
+    // hand in the held load. The DCC take (tools/blender/hero_shared_takes.py
+    // HAND_TARGETS) solves to these points and the Unity swing matrix measures them.
     public static readonly IReadOnlyList<Key> Keys =
     [
         new(LoadAt,
