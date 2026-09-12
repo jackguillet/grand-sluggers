@@ -482,6 +482,45 @@ public class GameplayTests
         Assert.True(go.Scored, "all-advance tags up after the catch");
     }
 
+    [Fact]
+    public void FlyWithRunnerOnFirstHoldsOnTheBagByDefault()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var runner = _content.Must("rio");
+        match.StationRunner(1, runner);
+        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
+
+        var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 180, false, false);
+        var ev = match.FinishAtBat(pitch, swing, hit with { InPlay = true, Foul = false, CarryFt = 180 }, field);
+
+        Assert.Equal(PlayKind.FlyOut, ev.Kind);
+        Assert.Equal(runner.Id, match.First!.Id);
+        Assert.Null(match.Second);
+    }
+
+    [Fact]
+    public void FlyAllAdvanceTagsRunnerOnFirstToSecondAfterTheCatch()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var runner = _content.Must("rio");
+        match.StationRunner(1, runner);
+        Assert.True(match.AdvanceAll());
+        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var swing = new SwingCommand(true, 0, 0, false);
+        Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
+
+        var field = new FieldingResult(PlayKind.FlyOut, match.Pitcher, null, 2, 0, 180, false, false);
+        var ev = match.FinishAtBat(pitch, swing, hit with { InPlay = true, Foul = false, CarryFt = 180 }, field);
+
+        Assert.Equal(PlayKind.FlyOut, ev.Kind);
+        Assert.Null(match.First);
+        Assert.Equal(runner.Id, match.Second!.Id);
+        Assert.Equal(1, match.Outs);
+        Assert.DoesNotContain("triple", ev.Caption, StringComparison.OrdinalIgnoreCase);
+    }
+
     (bool Scored, PlayKind Kind) FlyWithThird(bool sendAll)
     {
         for (var seed = 1; seed <= 24; seed++)

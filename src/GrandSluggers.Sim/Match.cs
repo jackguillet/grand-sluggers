@@ -981,14 +981,12 @@ public sealed class Match
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
                     AddStars(defense: true, 0.35);
                 }
-                if (kind == PlayKind.FlyOut && Third is not null && Outs < 3 && hit.CarryFt > 230 && tagUp)
+                if (kind == PlayKind.FlyOut && Outs < 3 && tagUp)
                 {
-                    var tag = Third;
-                    SetBag(3, null);
-                    Score(tag);
-                    runs = 1;
-                    scorers = [tag.Name];
-                    caption = $"{field.Fielder?.Name} reels it in. Sac fly.";
+                    (runs, scorers) = AdvanceTagUp(hit.CarryFt > 230);
+                    caption = runs > 0
+                        ? $"{field.Fielder?.Name} reels it in. Sac fly."
+                        : $"{field.Fielder?.Name} puts it away. Runners tag up.";
                 }
                 else
                     caption = kind == PlayKind.FlyOut && field.Feat == DefensiveFeat.BuddyJump && field.Buddy is not null
@@ -1177,6 +1175,50 @@ public sealed class Match
         if (First is not null) Place(First, 1 + bases);
         Place(batter, bases);
         SetBag(1, n1); SetBag(2, n2); SetBag(3, n3);
+        return (scorers.Count, scorers);
+    }
+
+    /// <summary>
+    /// Advance runners one base after a caught fly when the offense sent them.
+    /// Runners are resolved from third back to first so a full base path moves
+    /// together. A runner on third only scores on a deep enough fly; otherwise
+    /// the occupied bag blocks the runners behind them.
+    /// </summary>
+    (int Runs, IReadOnlyList<string> Scorers) AdvanceTagUp(bool deepEnough)
+    {
+        var scorers = new List<string>();
+        Character? n1 = null, n2 = null, n3 = null;
+
+        if (Third is not null)
+        {
+            if (deepEnough)
+            {
+                Score(Third);
+                scorers.Add(Third.Name);
+            }
+            else
+                n3 = Third;
+        }
+
+        if (Second is not null)
+        {
+            if (n3 is null)
+                n3 = Second;
+            else
+                n2 = Second;
+        }
+
+        if (First is not null)
+        {
+            if (n2 is null)
+                n2 = First;
+            else
+                n1 = First;
+        }
+
+        SetBag(1, n1);
+        SetBag(2, n2);
+        SetBag(3, n3);
         return (scorers.Count, scorers);
     }
 
