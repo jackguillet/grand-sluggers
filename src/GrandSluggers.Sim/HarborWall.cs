@@ -34,18 +34,24 @@ public static class HarborWall
     static (double X, double Z)[]? _loop;
     static int _loopL, _loopC, _loopR;
 
+    static readonly object LoopLock = new();
+
     public static (double X, double Z)[] Loop(Park park)
     {
-        if (_loop != null
-            && _loopL == park.LeftFenceFt
-            && _loopC == park.CenterFenceFt
-            && _loopR == park.RightFenceFt)
+        // One slot, keyed by the three posts; the flight asks for every park from every thread, so the swap is atomic.
+        lock (LoopLock)
+        {
+            if (_loop != null
+                && _loopL == park.LeftFenceFt
+                && _loopC == park.CenterFenceFt
+                && _loopR == park.RightFenceFt)
+                return _loop;
+            _loopL = park.LeftFenceFt;
+            _loopC = park.CenterFenceFt;
+            _loopR = park.RightFenceFt;
+            _loop = BuildLoop(park);
             return _loop;
-        _loopL = park.LeftFenceFt;
-        _loopC = park.CenterFenceFt;
-        _loopR = park.RightFenceFt;
-        _loop = BuildLoop(park);
-        return _loop;
+        }
     }
 
     public static (double X, double Z) LoopPoint(Park park, int i)
@@ -95,7 +101,7 @@ public static class HarborWall
     /// Along the foul line toward home, offset into foul so the wall stays
     /// off the dirt and outside the dugout. Offset is 0 at the pole.
     /// </summary>
-    static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt)
+    public static (double X, double Z) FoulWall(int sign, double alongFt, double poleFt)
     {
         var inv = 0.7071067811865476;
         var s = Math.Max(0, alongFt);

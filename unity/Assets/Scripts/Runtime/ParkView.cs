@@ -243,14 +243,16 @@ namespace GrandSluggers.UnityClient
                     : Colors.Gold,
                 smooth: crystal ? 0.75f : rooftop ? 0.28f : 0.4f);
             var pole = Look.Lit(crystal ? Colors.Royal : rooftop ? Colors.Goldrush : Colors.Gold, smooth: 0.45f);
+            // The wall stands on the park's fenceHeightFt: the same top the flight clips against (§6.1).
+            var fenceH = (float)park.FenceHeightFt;
             for (var i = -18; i <= 18; i++)
             {
                 var spray = i / 18f * 48f;
                 var fence = (float)AtBatResolver.FenceAt(park, spray);
                 var rad = spray * Mathf.Deg2Rad;
-                var p = new Vector3(Mathf.Sin(rad) * fence, 5.2f, Mathf.Cos(rad) * fence);
-                Cube("Fence" + i, p, new Vector3(14, 10.4f, 1.8f), funfair && (i & 1) == 0 ? wallAlt : wall);
-                Cube("Cap" + i, p + new Vector3(0, 5.4f, 0), new Vector3(14, 0.35f, 2.1f), cap);
+                var p = new Vector3(Mathf.Sin(rad) * fence, fenceH * 0.5f, Mathf.Cos(rad) * fence);
+                Cube("Fence" + i, p, new Vector3(14, fenceH, 1.8f), funfair && (i & 1) == 0 ? wallAlt : wall);
+                Cube("Cap" + i, p + new Vector3(0, fenceH * 0.5f + 0.2f, 0), new Vector3(14, 0.35f, 2.1f), cap);
             }
             var poleL = ParkDiamond.FoulPole(park, -1);
             var poleR = ParkDiamond.FoulPole(park, 1);

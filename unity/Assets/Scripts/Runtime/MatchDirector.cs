@@ -61,7 +61,6 @@ namespace GrandSluggers.UnityClient
         HighlightClip _clip;
         Vector3 _hlAt;
         Sample[] _hlPath;
-        float _hlSpray;
         bool _replaying;
         bool _turntable;
         readonly Dictionary<string, HeroActor> _heroes = new Dictionary<string, HeroActor>();
@@ -769,7 +768,6 @@ namespace GrandSluggers.UnityClient
             var fly = _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double
                 or PlayKind.Single or PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.Foul;
             _hlPath = fly ? _path : null;
-            _hlSpray = _pending != null ? (float)_pending.SprayDeg : (float)_last.AtBat.SprayDeg;
         }
 
         void BeginGameOver()
@@ -794,7 +792,7 @@ namespace GrandSluggers.UnityClient
             {
                 var hang = (float)BallFlight.HangTime(_hlPath);
                 var t = Mathf.Clamp(_t, 0f, Mathf.Max(0.4f, hang));
-                var p = BallFlight.PointAt(_hlPath, _hlSpray, t);
+                var p = BallFlight.PointAt(_hlPath, t);
                 _ball = new Vector3((float)p.X, (float)p.Y, (float)p.Z);
                 if (_clip != null && _clip.Beat is HighlightBeat.BuddyJump or HighlightBeat.RobbedHomer)
                     _cam.SmashAt(_hlAt.sqrMagnitude > 0.4f ? _hlAt : _ball);

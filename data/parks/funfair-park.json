@@ -7,13 +7,37 @@
   "centerFenceFt": 390,
   "rightFenceFt": 340,
   "windMph": 6,
+  "windDeg": 0,
+  "fenceHeightFt": 8,
   "nightOnly": false,
   "dayOnly": false,
   "hazards": [
-    { "type": "warp_pipe", "x": 20, "z": 55, "radius": 4, "tag": "A" },
-    { "type": "warp_pipe", "x": -25, "z": 60, "radius": 4, "tag": "B" },
-    { "type": "warp_pipe", "x": 0, "z": 95, "radius": 4, "tag": "C" },
-    { "type": "train", "z": 310, "periodSec": 18 }
+    {
+      "type": "warp_pipe",
+      "x": 20,
+      "z": 55,
+      "radius": 4,
+      "tag": "A"
+    },
+    {
+      "type": "warp_pipe",
+      "x": -25,
+      "z": 60,
+      "radius": 4,
+      "tag": "B"
+    },
+    {
+      "type": "warp_pipe",
+      "x": 0,
+      "z": 95,
+      "radius": 4,
+      "tag": "C"
+    },
+    {
+      "type": "train",
+      "z": 310,
+      "periodSec": 18
+    }
   ],
   "notes": "Grounders that enter a warp can exit another. Night chompers in the outfield eat flies."
 }

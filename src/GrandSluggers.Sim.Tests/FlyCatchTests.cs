@@ -14,16 +14,15 @@ public class FlyCatchTests
         foreach (var park in content.Parks.Values)
         {
             var match = Match.Slice(content, parkId: park.Id);
-            var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 35,
-                BallFlight.CarryFeet(110, 35, park.WindMph), true, false, null, null);
+            var hit = FlightFixtures.Hit(park, 110, 35, 0, ContactQuality.Perfect);
             var pre = match.PreviewHit(hit);
             foreach (var spray in new[] { -35d, 0d, 35d })
             {
                 var wall = AtBatResolver.FenceAt(park, spray);
                 var outside = BallFlight.GroundPoint(wall + 1, spray);
-                Assert.False(FlyCatch.PickupInPlay(pre with { Grounder = true }, park,
+                Assert.False(FlyCatch.PickupInPlay(pre with { Class = BattedBallClass.Grounder }, park,
                     outside.X, outside.Z, 1, pre.HangTimeSec));
-                Assert.False(FlyCatch.PickupInPlay(pre with { Line = true }, park,
+                Assert.False(FlyCatch.PickupInPlay(pre with { Class = BattedBallClass.Liner }, park,
                     outside.X, outside.Z, 1, pre.HangTimeSec));
                 Assert.False(FlyCatch.TouchScoop(pre, park, outside.X, outside.Z, 0,
                     pre.HangTimeSec + 1, pre.HangTimeSec, 9, 20));
@@ -37,23 +36,28 @@ public class FlyCatchTests
     }
 
     [Fact]
-    public void HarborNearWallFlightNeverBecomesAPickupAfterCrossing()
+    public void HarborNearWallFlightMeetsTheWallAndStaysInThePark()
     {
         var content = ContentCatalog.Load();
         var match = Match.Slice(content);
         var park = match.Park;
-        var path = BallFlight.Trajectory(110, 35, park.WindMph);
-        var hang = BallFlight.HangTime(path);
-        var carry = BallFlight.CarryFeet(110, 35, park.WindMph);
-        Assert.InRange(carry, 404, 405); // Four feet past Harbor's center fence.
-        var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 35, carry, true, false, null, null);
+        // In the open this carries a few feet past Harbor's 400; in the park it meets the 8-ft wall below the top (§6.1).
+        Assert.True(BallFlight.CarryFeet(110, 35, 0) > park.CenterFenceFt, "in the open this lands past Harbor's 400");
+        var ball = BattedBall.Of(110, 35, 0, park);
+        Assert.Equal(BattedBallClass.Wall, ball.Class);
+        Assert.False(ball.HomeRun);
+        Assert.NotNull(ball.WallT);
+        Assert.True(ball.FenceClearFt < 0, $"met the wall {ball.FenceClearFt:0.0} ft over the top");
+        Assert.InRange(ball.LandingDist, park.CenterFenceFt - 1, park.CenterFenceFt + 0.5);
+        Assert.All(ball.Samples, sample => Assert.True(sample.Dist <= park.CenterFenceFt + 0.5, $"sample {sample.T:0.00} at {sample.Dist:0.0} is through the wall"));
+        var afterWall = ball.Samples.Where(s => s.T > ball.WallT + 0.5).ToArray();
+        Assert.NotEmpty(afterWall);
+        Assert.All(afterWall, s => Assert.True(s.Dist < park.CenterFenceFt - 1, "the carom comes back into the park"));
+        var hit = FlightFixtures.Hit(park, 110, 35, 0, ContactQuality.Perfect);
         var pre = match.PreviewHit(hit);
-        var plant = FlyCatch.WallPlant(pre, park);
-        var outside = path.Where(sample => sample.Dist > park.CenterFenceFt).ToArray();
-        Assert.NotEmpty(outside);
-        Assert.Contains(outside, sample => FlyCatch.TouchScoop(Math.Abs(sample.Dist - plant.Z), 20, sample.Height));
-        Assert.All(outside, sample => Assert.False(FlyCatch.TouchScoop(pre, park, 0, sample.Dist,
-            sample.Height, sample.T, hang, Math.Abs(sample.Dist - plant.Z), 20)));
+        Assert.Equal(BattedBallClass.Wall, pre.Class);
+        var plant = FlyCatch.ChaseTarget(pre, park);
+        Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < park.CenterFenceFt, "the glove plants inside the wall");
     }
 
     [Fact]
@@ -103,9 +107,8 @@ public class FlyCatchTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var pop = new AtBatResult(ContactQuality.Nice, true, false, 88, 32, 280, false, false, null, null, SprayDeg: 0);
-        Assert.False(FieldingResolver.IsGrounder(pop));
-        Assert.False(FieldingResolver.IsLine(pop));
+        var pop = FlightFixtures.Hit(match.Park, 88, 32, 0);
+        Assert.Equal(BattedBallClass.Fly, pop.Class);
         var pre = fielding.Preview(pop, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.HomeRunLikely);
         Assert.False(FlyCatch.NeedsJump(pre));
@@ -157,8 +160,10 @@ public class FlyCatchTests
         Assert.False(FlyCatch.JumpWindow(early, hang, rio, Harbor));
         Assert.True(FlyCatch.JumpWindow(early, hang, nico, Harbor));
         Assert.False(FlyCatch.JumpWindow(hang + 0.5, hang, nico, Harbor), "late is still late");
-        Assert.True(FieldAbilities.AirRob(Harbor, nico, Homer() with { CarryFt = AtBatResolver.FenceAt(Harbor, 0) + 10 }));
-        Assert.False(FieldAbilities.AirRob(Harbor, rio, Homer() with { CarryFt = AtBatResolver.FenceAt(Harbor, 0) + 10 }));
+        var tenOver = FlightFixtures.OverTheFence(Harbor, 10, 0);
+        Assert.True(FieldAbilities.AirRob(Harbor, nico, tenOver));
+        Assert.False(FieldAbilities.AirRob(Harbor, rio, tenOver));
+        Assert.False(FieldAbilities.AirRob(Harbor, nico, FlightFixtures.OverTheFence(Harbor, 25, 0)), "past the rob height it is gone");
     }
 
     [Fact]
@@ -235,10 +240,10 @@ public class FlyCatchTests
         Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, rio, Harbor));
         Assert.True(LandingMark.Hot(fly.HangTimeSec - 0.2, fly.HangTimeSec, rio, Harbor));
 
-        var liner = new FieldingPreview(rio, "SS", null, 1.1, 20, 110, false, false, false, false, false, 12, Line: true);
+        var liner = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, 1.1, 20, 110, radius: 12);
         Assert.True(LandingMark.On(liner, ballY: 7, hitT: 0.2, caught: false, buddy: false),
             "a liner still up gets the circle — it looks like a fly");
-        var hopper = new FieldingPreview(rio, "SS", null, 0.6, 12, 70, true, false, false, false, false, 12);
+        var hopper = FlightFixtures.Preview(rio, "SS", BattedBallClass.Grounder, 0.6, 12, 70, radius: 12);
         Assert.False(LandingMark.On(hopper, ballY: 3, hitT: 0.1, caught: false, buddy: false),
             "a hopper has no circle — they chase the live hop");
         var wall = Wall(rio);
@@ -250,7 +255,7 @@ public class FlyCatchTests
     {
         var dart = _content.Must("dart");
         var zig = _content.Must("zig");
-        var offered = new FieldingPreview(dart, "CF", zig, 4.2, 0, 390, false, true, false, false, false, 14);
+        var offered = FlightFixtures.Preview(dart, "CF", BattedBallClass.Homer, 4.2, 0, 390, zig);
         Assert.True(FieldingResolver.BuddyJumpOffered(offered));
         Assert.True(FlyCatch.NeedsJump(offered));
     }
@@ -264,8 +269,8 @@ public class FlyCatchTests
         new(ContactQuality.Perfect, true, false, 100, 28, 420, true, false, null, null, SprayDeg: 0);
 
     static FieldingPreview Routine(Character who) =>
-        new(who, "CF", null, 2.8, 0, 240, false, false, false, false, false, 14);
+        FlightFixtures.Preview(who, "CF", BattedBallClass.Fly, 2.8, 0, 240);
 
     static FieldingPreview Wall(Character who) =>
-        new(who, "CF", null, 4.2, 0, 420, false, true, false, false, false, 14);
+        FlightFixtures.Preview(who, "CF", BattedBallClass.Homer, 4.2, 0, 420);
 }

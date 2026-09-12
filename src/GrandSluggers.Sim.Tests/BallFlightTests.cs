@@ -25,7 +25,7 @@ public class BallFlightTests
         var hang = BallFlight.HangTime(samples);
         Assert.InRange(hang, 3.0 * BallFlight.TimeScale(), 6.5 * BallFlight.TimeScale());
         Assert.True(BallFlight.RestTime(samples) >= hang);
-        var p = BallFlight.PointAt(samples, 0, 0.5);
+        var p = BallFlight.PointAt(samples, 0.5);
         Assert.True(p.Y > 2);
         Assert.True(p.Z > 0);
     }
@@ -69,13 +69,13 @@ public class BallFlightTests
     {
         var samples = BallFlight.Trajectory(70, 10, 0);
         var hang = BallFlight.HangTime(samples);
-        var atGrass = BallFlight.PointAt(samples, 0, hang);
+        var atGrass = BallFlight.PointAt(samples, hang);
         Assert.True(atGrass.Y < 0.6, $"first grass y {atGrass.Y}");
-        var later = BallFlight.PointAt(samples, 0, hang + 0.08);
+        var later = BallFlight.PointAt(samples, hang + 0.08);
         // hop: height after grass is not stuck at zero for a hopper
         var peak = 0.0;
         for (var t = hang; t < hang + 0.4 && t < BallFlight.RestTime(samples); t += 0.02)
-            peak = Math.Max(peak, BallFlight.PointAt(samples, 0, t).Y);
+            peak = Math.Max(peak, BallFlight.PointAt(samples, t).Y);
         Assert.True(peak > 0.15, $"hop peak {peak}");
         _ = later;
     }

@@ -77,7 +77,7 @@ public class NightTests
         Assert.False(ParkHazards.ChompFly(park, true, 0, 228, grounder: true));
         Assert.False(ParkHazards.ChompFly(_content.Parks["harbor-diamond"], true, 0, 228));
 
-        var hit = new AtBatResult(ContactQuality.Nice, true, false, 88, 22, 228, false, false, null, null, SprayDeg: 0);
+        var hit = FlightFixtures.Landing(park, 228, 22, 0);
         var spark = PresetTeams.SparkAllStars(_content);
         var fielding = new FieldingResolver(_content.Chemistry);
         var day = fielding.Resolve(hit, park, spark.Roster, spark.Captain, new Random(1));

@@ -240,6 +240,9 @@ public static class ContentDataValidator
         Positive(row.Source, $"park '{p.Id}' centerFenceFt", p.CenterFenceFt, errors);
         Positive(row.Source, $"park '{p.Id}' rightFenceFt", p.RightFenceFt, errors);
         Finite(row.Source, $"park '{p.Id}' windMph", p.WindMph, errors);
+        FiniteRange(row.Source, $"park '{p.Id}' windDeg", p.WindDeg, -360, 360, errors);
+        if (!(p.FenceHeightFt > 0) || double.IsNaN(p.FenceHeightFt) || double.IsInfinity(p.FenceHeightFt))
+            errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must be greater than 0; got {p.FenceHeightFt}");
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
         {
             var h = p.Hazards![i];
@@ -402,12 +405,17 @@ internal sealed class ParkDto
     public int CenterFenceFt { get; set; }
     public int RightFenceFt { get; set; }
     public double WindMph { get; set; }
+    /// <summary>Where the wind blows toward: 0 out to CF, 90 toward the right-field line, 180 in (docs/parks.md).</summary>
+    public double WindDeg { get; set; }
+    /// <summary>Outfield fence top. Below it the ball caroms; above it between the poles is a home run (§6.1).</summary>
+    public double FenceHeightFt { get; set; }
     public List<HazardDto?>? Hazards { get; set; }
 
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
-        (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList());
+        (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
+        WindDeg, FenceHeightFt);
 }
 
 internal sealed class HazardDto
