@@ -975,3 +975,4 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-90 | Same seed + same recorded commands → identical `PlayEvent` stream, CPU seat and human seat (#512) |
 | S-91 | Every scenario above runs without Unity scene objects |
 | S-92 | No `PlayEvent` is produced by a `System.Random` outside the sim's `_rng` |
+| S-93 | Seat ownership is a function of (half, home/away, seated controllers) and nothing else (§0.4): the batting human's pad never reaches a glove, so a CPU defense scoops and throws with the offense pad live (S-31 with the human on offense, both halves, HOME and AWAY); the human on defense still owns the throw (S-33); in 1v1 the other controller owns the gloves every half (#579) |
