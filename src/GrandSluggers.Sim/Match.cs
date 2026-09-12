@@ -6,6 +6,7 @@ public sealed class Match
 
     readonly AtBatResolver _atBat;
     readonly FieldingResolver _fielding;
+    /// <summary>The only random stream that may decide a play. Seeded per match; every roll is a sim call.</summary>
     readonly Random _rng;
     readonly Dictionary<string, int> _mvp = new(StringComparer.OrdinalIgnoreCase);
     readonly List<PlayEvent> _log = [];
@@ -44,6 +45,8 @@ public sealed class Match
     public bool? ClosePlaySafe { get; set; }
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
+    /// <summary>The rule numbers this match plays by (data/rules).</summary>
+    public RulesTable Rules => Content.Rules;
     /// <summary>Portable command boundary for the ball between contact and Time.</summary>
     public LivePlaySystem LivePlay { get; }
 
@@ -56,8 +59,8 @@ public sealed class Match
         Night = night;
         Innings = innings;
         _rng = new Random(seed);
-        _atBat = new AtBatResolver(content.Chemistry);
-        _fielding = new FieldingResolver(content.Chemistry);
+        _atBat = new AtBatResolver(content.Chemistry, content.Rules);
+        _fielding = new FieldingResolver(content.Chemistry, content.Rules);
         LivePlay = new LivePlaySystem(this);
         AwayOrder = away.BattingOrder;
         HomeOrder = home.BattingOrder;
@@ -202,7 +205,7 @@ public sealed class Match
     public double BatterOffsetX { get; private set; }
     /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
     public double BatterContactOffsetX { get; private set; }
-    public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < 25;
+    public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < Rules.Pitching.Stamina.TiredBelow;
     public bool Paused { get; private set; }
     /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
     public bool SendAll { get; private set; }
@@ -344,7 +347,7 @@ public sealed class Match
         if (target is not 2 and not 3) return false;
         for (var bag = 1; bag <= 3; bag++)
             if (bag != SelectedBag) RunnerAt(bag)?.CancelSteal();
-        state.StartSteal(target);
+        state.StartSteal(target, Rules.Running.Steal.ArmedLeadMin);
         StealOn = true;
         return true;
     }
@@ -382,7 +385,7 @@ public sealed class Match
         Outs++;
         _outsOnCurrentPlay++;
         AddMvp(fielder?.Id ?? Pitcher.Id, 2);
-        AddStars(defense: true, 0.4);
+        AddStars(defense: true, Rules.Stars.Gains.LiveOut);
         return true;
     }
 
@@ -425,7 +428,9 @@ public sealed class Match
     }
 
     public int StarCost(Character who, Character teamCaptain) =>
-        who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase) ? 2 : 1;
+        who.Captain && !who.Id.Equals(teamCaptain.Id, StringComparison.OrdinalIgnoreCase)
+            ? Rules.Stars.Costs.GuestCaptain
+            : Rules.Stars.Costs.Own;
 
     public int PitchStarCost => StarCost(Pitcher, Defense.Captain);
     public int SwingStarCost => StarCost(Batter, Offense.Captain);
@@ -497,7 +502,7 @@ public sealed class Match
         var take = new SwingCommand(false, 0, 0, false);
         StealOn = true;
         var target = Baserunning.StealTarget(bag);
-        state.StartSteal(target);
+        state.StartSteal(target, Rules.Running.Steal.ArmedLeadMin);
         var ev = Emit(PlayKind.TakeBall, fake, take, EmptyHit(true), "Pickoff.", 0, []);
         return GunSteal(ev, pickoff: true);
     }
@@ -530,7 +535,10 @@ public sealed class Match
         var ready = pitch with { RubberX = pitch.RubberX != 0 ? pitch.RubberX : PitcherOffsetX,
             DeliveryPrepared = true };
         if (PitcherTired)
-            ready = ready with { AimX = ready.AimX + Gauss() * 0.22, AimY = ready.AimY + Gauss() * 0.18 };
+        {
+            var st = Rules.Pitching.Stamina;
+            ready = ready with { AimX = ready.AimX + Gauss() * st.TiredAimX, AimY = ready.AimY + Gauss() * st.TiredAimY };
+        }
         return ready;
     }
 
@@ -542,7 +550,7 @@ public sealed class Match
         BeginPlay();
 
         pitch = PreparePitch(pitch);
-        var contactAim = PitchFlight.ContactAim(pitch, Pitcher.StarPitch);
+        var contactAim = PitchFlight.ContactAim(pitch, Pitcher.StarPitch, Rules);
         var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
         SpendPitch(pitch);
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
@@ -550,7 +558,7 @@ public sealed class Match
 
         if (!swing.Swing)
         {
-            finished = AtBatResolver.HitsBatter(box, contactAim.X, contactAim.Y, Batter.Bats)
+            finished = AtBatResolver.HitsBatter(box, contactAim.X, contactAim.Y, Batter.Bats, Rules)
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
@@ -608,21 +616,22 @@ public sealed class Match
             .OrderByDescending(c => c.Stats.Pitch)
             .FirstOrDefault();
         if (next is null) return false;
+        var restore = Rules.Pitching.Stamina.SwapRestore;
         if (Top)
         {
             _homePitcher = next;
-            HomeStamina = Math.Min(100, HomeStamina + 35);
+            HomeStamina = Math.Min(100, HomeStamina + restore);
         }
         else
         {
             _awayPitcher = next;
-            AwayStamina = Math.Min(100, AwayStamina + 35);
+            AwayStamina = Math.Min(100, AwayStamina + restore);
         }
         return true;
     }
 
     public ThrowResult ThrowBetween(Character from, Character to) =>
-        FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _rng));
+        FieldAbilities.ApplyThrow(from, Content.Chemistry.FieldingThrow(from, to, _rng), Rules);
 
     public FieldingResult ApplyOffenseItem(AtBatResult hit, FieldingResult field, string? playerItem, Character? target = null)
     {
@@ -631,7 +640,7 @@ public sealed class Match
         var who = target ?? field.Fielder;
         if (!string.IsNullOrEmpty(playerItem))
             return ThrowItem(field, playerItem, who);
-        if (_rng.NextDouble() < 0.4)
+        if (_rng.NextDouble() < Rules.Batting.Items.CpuThrowChance)
             return ThrowItem(field, ErrorItems.Pick(_rng), who);
         return field;
     }
@@ -642,72 +651,88 @@ public sealed class Match
     public FieldingResult ThrowItem(FieldingResult field, string? item, Character? target)
     {
         if (string.IsNullOrEmpty(item)) return field;
-        return ErrorItems.Apply(field, item, _rng, target);
+        return ErrorItems.Apply(field, item, _rng, target, Rules);
     }
 
+    /// <summary>The CPU pitcher's rolls (pitching.cpu). §4.8 replaces them with a decision table (P1).</summary>
     public PitchCommand CpuPitch()
     {
-        var star = CanStarPitch && _rng.NextDouble() < (Pitcher.Captain ? 0.14 : 0.08);
-        var type = _rng.NextDouble() < 0.22 ? "changeup" : _rng.NextDouble() < 0.22 ? "slider" : _rng.NextDouble() < 0.5 ? "curve" : "fastball";
-        var charge = _rng.NextDouble() < 0.3 ? 0.75 + _rng.NextDouble() * 0.25 : 0.1 + _rng.NextDouble() * 0.35;
-        var err = Gauss() * (11 - Pitcher.Stats.Pitch) * 0.42;
-        if ((Top ? HomeStamina : AwayStamina) < 25) err *= 1.6;
-        var scatter = (11 - Pitcher.Stats.Pitch) * 0.055;
+        var c = Rules.Pitching.Cpu;
+        var tired = (Top ? HomeStamina : AwayStamina) < Rules.Pitching.Stamina.TiredBelow;
+        var star = CanStarPitch && _rng.NextDouble() < (Pitcher.Captain ? c.StarChanceCaptain : c.StarChance);
+        var type = _rng.NextDouble() < c.ChangeupChance ? "changeup"
+            : _rng.NextDouble() < c.SliderChance ? "slider"
+            : _rng.NextDouble() < c.CurveChance ? "curve" : "fastball";
+        var charge = _rng.NextDouble() < c.ChargeChance
+            ? c.ChargeMin + _rng.NextDouble() * c.ChargeSpan
+            : c.TapMin + _rng.NextDouble() * c.TapSpan;
+        var err = Gauss() * (11 - Pitcher.Stats.Pitch) * c.ErrorFramesPerPitchStat;
+        if (tired) err *= c.TiredErrorMul;
+        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterPerPitchStat;
         var aimX = Gauss() * scatter;
-        var aimY = Gauss() * scatter * 0.85;
-        if ((Top ? HomeStamina : AwayStamina) < 25)
+        var aimY = Gauss() * scatter * c.ScatterYMul;
+        if (tired)
         {
-            aimX *= 1.6;
-            aimY *= 1.6;
+            aimX *= c.TiredScatterMul;
+            aimY *= c.TiredScatterMul;
         }
         var changeup = type == "changeup";
-        var breakX = type == "slider" ? 0.85 : type == "curve" ? 0.7 : 0;
+        var breakX = type == "slider" ? c.SliderBreak : type == "curve" ? c.CurveBreak : 0;
         var delivery = new PitchCommand(changeup ? "fastball" : type, charge, err, star, aimX, aimY,
             breakX, changeup, PitcherOffsetX);
-        return PitchFlight.AimForCrossing(delivery, aimX + PitcherOffsetX * 0.35, aimY, Pitcher.StarPitch);
+        return PitchFlight.AimForCrossing(delivery, aimX + PitcherOffsetX * c.RubberCrossingMul, aimY, Pitcher.StarPitch, Rules);
     }
 
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, bool vsHumanPitcher = false)
     {
-        if (CanSteal && Batter.Stats.Run >= 7 && _rng.NextDouble() < 0.16)
+        // Spec A.1 #20: the steal roll rides in the swing (running.cpu). §11.6 moves it to the runner AI (P6).
+        var run = Rules.Running.Cpu;
+        if (CanSteal && Batter.Stats.Run >= run.StealMinRun && _rng.NextDouble() < run.StealChance)
         {
             StartSteal();
-            TakeLead(0.45 + _rng.NextDouble() * 0.35);
+            TakeLead(run.StealLeadMin + _rng.NextDouble() * run.StealLeadSpan);
         }
         if (vsHumanPitcher)
             return CpuSwingVsHuman(pitch, inZone);
         return CpuSwingArcade(pitch, inZone);
     }
 
+    /// <summary>The CPU batter's rolls (batting.cpu). §5.9 replaces them with a table (P1).</summary>
     SwingCommand CpuSwingArcade(PitchCommand pitch, bool inZone)
     {
-        var chase = !inZone && _rng.NextDouble() < 0.12;
+        var c = Rules.Batting.Cpu;
+        var sigmaMul = Rules.Cpu.Active.TimingSigmaMul;
+        var chase = !inZone && _rng.NextDouble() < c.ChaseChance;
         if (!inZone && !chase)
             return new SwingCommand(false, 0, 0, false);
-        if (AtBatResolver.CpuSacBuntSpot(inZone, First is not null, Outs, _rng.NextDouble()))
-            return new SwingCommand(true, 0.12, Gauss() * 2.2, false, Gauss() * 10, Bunt: true, LaunchAim: 0.35);
-        var star = CanStarSwing && inZone && _rng.NextDouble() < (Batter.Captain ? 0.14 : 0.08);
-        var charge = _rng.NextDouble() < 0.35 ? 0.7 + _rng.NextDouble() * 0.3 : _rng.NextDouble() * 0.4;
-        var err = Gauss() * (11 - Batter.Stats.Bat) * 0.62;
-        if (!inZone) err += 4 * Math.Sign(err == 0 ? 1 : err);
-        var spray = Gauss() * 12;
-        var launchAim = Gauss() * 0.45;
+        if (AtBatResolver.CpuSacBuntSpot(inZone, First is not null, Outs, _rng.NextDouble(), Rules))
+            return new SwingCommand(true, c.SacBuntCharge, Gauss() * c.SacBuntErrorSigma * sigmaMul, false,
+                Gauss() * c.SacBuntSpraySigma, Bunt: true, LaunchAim: c.SacBuntLaunchAim);
+        var star = CanStarSwing && inZone && _rng.NextDouble() < (Batter.Captain ? c.StarChanceCaptain : c.StarChance);
+        var charge = _rng.NextDouble() < c.ChargeChance ? c.ChargeMin + _rng.NextDouble() * c.ChargeSpan : _rng.NextDouble() * c.TapSpan;
+        var err = Gauss() * (11 - Batter.Stats.Bat) * c.ErrorFramesPerBatStat * sigmaMul;
+        if (!inZone) err += c.OutOfZoneErrorFrames * Math.Sign(err == 0 ? 1 : err);
+        var spray = Gauss() * c.SpraySigmaDeg;
+        var launchAim = Gauss() * c.LaunchAimSigma;
         return new SwingCommand(true, charge, err, star, spray, LaunchAim: launchAim);
     }
 
     /// <summary>
-    /// Human is pitching: uncharged middle-middle fastballs mix takes, misses, and weak hoppers.
-    /// Charged / star pitches still hurt. AutoPlay stays on <see cref="CpuSwingArcade"/>.
+    /// Human is pitching: uncharged middle-middle fastballs mix takes, misses, and weak hoppers
+    /// (batting.cpu.vsHuman). Charged / star pitches still hurt. AutoPlay stays on <see cref="CpuSwingArcade"/>.
+    /// Spec A.1 #20: the forced-miss clamp goes with the P1 table.
     /// </summary>
     SwingCommand CpuSwingVsHuman(PitchCommand pitch, bool inZone)
     {
-        var meatball = inZone && !pitch.Star && pitch.Charge01 < 0.55;
+        var v = Rules.Batting.Cpu.VsHuman;
+        var sigmaMul = Rules.Cpu.Active.TimingSigmaMul;
+        var meatball = inZone && !pitch.Star && pitch.Charge01 < v.MeatballChargeBelow;
         if (!inZone)
         {
-            if (_rng.NextDouble() >= 0.10)
+            if (_rng.NextDouble() >= v.ChaseChance)
                 return new SwingCommand(false, 0, 0, false);
-            var chaseErr = Gauss() * (11 - Batter.Stats.Bat) * 1.4 + 6;
-            return new SwingCommand(true, 0, chaseErr, false, Gauss() * 22, LaunchAim: 0.6);
+            var chaseErr = Gauss() * (11 - Batter.Stats.Bat) * v.ChaseErrorPerBatStat * sigmaMul + v.ChaseErrorBias;
+            return new SwingCommand(true, 0, chaseErr, false, Gauss() * v.ChaseSpraySigmaDeg, LaunchAim: v.ChaseLaunchAim);
         }
         if (!meatball)
             return CpuSwingArcade(pitch, inZone);
@@ -717,12 +742,14 @@ public sealed class Match
         if (roll < feel.CpuVsHumanTake)
             return new SwingCommand(false, 0, 0, false);
         if (roll < feel.CpuVsHumanTake + feel.CpuVsHumanMiss)
-            return new SwingCommand(true, 0, 9 + _rng.NextDouble() * 6, false, Gauss() * 24, LaunchAim: 0.7);
-        var err = 4.5 + Gauss() * 2.2;
-        if (Math.Abs(err) < 3.2)
-            err = err >= 0 ? 3.2 + _rng.NextDouble() : -3.2 - _rng.NextDouble();
-        var spray = Gauss() * 20;
-        return new SwingCommand(true, _rng.NextDouble() * 0.35, err, false, spray, LaunchAim: 0.55 + _rng.NextDouble() * 0.35);
+            return new SwingCommand(true, 0, v.MissErrorMin + _rng.NextDouble() * v.MissErrorSpan, false,
+                Gauss() * v.MissSpraySigmaDeg, LaunchAim: v.MissLaunchAim);
+        var err = v.ErrorMean + Gauss() * v.ErrorSigma * sigmaMul;
+        if (Math.Abs(err) < v.ErrorFloor)
+            err = err >= 0 ? v.ErrorFloor + _rng.NextDouble() : -v.ErrorFloor - _rng.NextDouble();
+        var spray = Gauss() * v.SpraySigmaDeg;
+        return new SwingCommand(true, _rng.NextDouble() * v.ChargeSpan, err, false, spray,
+            LaunchAim: v.LaunchAimMin + _rng.NextDouble() * v.LaunchAimSpan);
     }
 
     public PlayEvent AutoPlay()
@@ -788,7 +815,7 @@ public sealed class Match
         }
         ClearSteal();
         AddMvp(Pitcher.Id, 2);
-        AddStars(defense: true, 0.8);
+        AddStars(defense: true, Rules.Stars.Gains.Strikeout);
         Outs++;
         _outsOnCurrentPlay++;
         var how = swinging ? "goes down swinging." : "is caught looking.";
@@ -833,7 +860,7 @@ public sealed class Match
             case PlayKind.HomeRun:
                 (runs, scorers) = ClearTheBases(Batter);
                 AddMvp(Batter.Id, 5 + runs);
-                AddStars(defense: false, 1.0);
+                AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                 caption = hit.StarSwingUsed is "furnace" or "heat-swing"
                     ? $"{Batter.Name} {hit.StarSwingUsed!.ToUpperInvariant()} - it's gone."
                     : $"{Batter.Name} goes deep.";
@@ -842,21 +869,21 @@ public sealed class Match
             case PlayKind.Triple:
                 (runs, scorers) = AdvanceHit(Batter, 3);
                 AddMvp(Batter.Id, 3 + runs);
-                AddStars(defense: false, 0.8);
+                AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                 caption = $"{Batter.Name} triples.";
                 NextBatter();
                 break;
             case PlayKind.Double:
                 (runs, scorers) = AdvanceHit(Batter, 2);
                 AddMvp(Batter.Id, 2 + runs);
-                AddStars(defense: false, 0.8);
+                AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                 caption = $"{Batter.Name} doubles.";
                 NextBatter();
                 break;
             case PlayKind.Single:
                 (runs, scorers) = AdvanceHit(Batter, 1);
                 AddMvp(Batter.Id, 2 + runs);
-                AddStars(defense: false, 0.4);
+                AddStars(defense: false, Rules.Stars.Gains.Single);
                 caption = !string.IsNullOrEmpty(LivePlay.Caption)
                     ? $"{LivePlay.Caption} {Batter.Name} in at first."
                     : field.Warped ? $"{Batter.Name} - it hopped a {ParkHazards.WarpName(Park)}!"
@@ -875,7 +902,7 @@ public sealed class Match
                         LivePlay.Apply(LivePlayCommand.ThrowArrived(2, runnerBeats: false, field.Fielder));
                         if (Outs < 3)
                             LivePlay.Apply(LivePlayCommand.ThrowArrived(
-                                1, InPlay.BatterBeatsThrow(Batter, hit, field, Dash01), field.Fielder));
+                                1, InPlay.BatterBeatsThrow(Batter, hit, field, Dash01, Rules), field.Fielder));
                     }
                     var closed = CloseLiveGround(field, ref runs, ref scorers);
                     if (closed is not null)
@@ -928,7 +955,7 @@ public sealed class Match
                     var tagBag = InPlay.TagBag(Second is not null, Third is not null);
                     var fromBag = tagBag == 4 ? 3 : 2;
                     var runner = tagBag == 4 ? Third! : Second!;
-                    var beats = ClosePlaySafe ?? InPlay.RunnerBeatsTag(runner, hit, field, tagBag);
+                    var beats = ClosePlaySafe ?? InPlay.RunnerBeatsTag(runner, hit, field, tagBag, Rules);
                     ClosePlaySafe = null;
                     if (!beats)
                     {
@@ -936,7 +963,7 @@ public sealed class Match
                         Outs++;
                         _outsOnCurrentPlay++;
                         AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                        AddStars(defense: true, 0.4);
+                        AddStars(defense: true, Rules.Stars.Gains.LiveOut);
                         caption = $"{field.Fielder?.Name} tags {runner.Name}.";
                         if (Outs < 3)
                             SetBag(1, Batter);
@@ -964,7 +991,7 @@ public sealed class Match
                     CheckInning();
                     break;
                 }
-                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field, Dash01))
+                if (kind == PlayKind.GroundOut && InPlay.BatterBeatsThrow(Batter, hit, field, Dash01, Rules))
                 {
                     kind = PlayKind.Single;
                     goto case PlayKind.Single;
@@ -979,11 +1006,11 @@ public sealed class Match
                     Outs++;
                     _outsOnCurrentPlay++;
                     AddMvp(field.Fielder?.Id ?? Pitcher.Id, 2);
-                    AddStars(defense: true, 0.35);
+                    AddStars(defense: true, Rules.Stars.Gains.Out);
                 }
                 if (kind == PlayKind.FlyOut && Outs < 3 && tagUp)
                 {
-                    (runs, scorers) = AdvanceTagUp(hit.CarryFt > 230);
+                    (runs, scorers) = AdvanceTagUp(hit.CarryFt > Rules.Running.TagUp.SacFlyCarryFt);
                     caption = runs > 0
                         ? $"{field.Fielder?.Name} reels it in. Sac fly."
                         : $"{field.Fielder?.Name} puts it away. Runners tag up.";
@@ -1012,7 +1039,7 @@ public sealed class Match
         if (ParkHazards.HitStarSign(Park, field.LandingX, field.LandingZ) &&
             kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun or PlayKind.FlyOut)
         {
-            AddStars(defense: false, 1);
+            AddStars(defense: false, Rules.Stars.Gains.Billboard);
             caption += "  Billboard STAR!";
         }
 
@@ -1286,7 +1313,8 @@ public sealed class Match
 
     void SpendPitch(PitchCommand pitch)
     {
-        var cost = 6 + (int)(pitch.Charge01 * 4) + (pitch.Star ? 12 : 0);
+        var st = Rules.Pitching.Stamina;
+        var cost = st.PitchCost + (int)(pitch.Charge01 * st.ChargeCost) + (pitch.Star ? st.StarCost : 0);
         if (Top) HomeStamina = Math.Max(0, HomeStamina - cost);
         else AwayStamina = Math.Max(0, AwayStamina - cost);
         if (pitch.Star)
@@ -1320,7 +1348,7 @@ public sealed class Match
         var cover = FieldingResolver.Assign(Defense.Roster, Pitcher).GetValueOrDefault(StealThrow.CoverPos(throwBag));
         var defender = pickoff ? Pitcher : catcher;
         var thr = cover != null ? ThrowBetween(defender, cover) : ThrowBetween(defender, runner);
-        var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng);
+        var caught = StealThrow.CpuOut(runner, catcher, state.Lead01, target, thr, _rng, Rules);
         return ApplySteal(ev, fromBag, target, runner, defender, thr, caught,
             pickoff ? ThrowOrigin.PitcherRubber : ThrowOrigin.Catcher, throwBag, pickoff);
     }
@@ -1339,8 +1367,8 @@ public sealed class Match
         }
         thr ??= ThrowBetween(catcher, runner);
         var caught = throwBag == fromBag
-            ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, state.Lead01)
-            : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01);
+            ? StealThrow.PickoffOut(throwBag, releaseSec, thr, runner, state.Lead01, Rules)
+            : StealThrow.PlayerOut(throwBag, target, releaseSec, thr, runner, state.Lead01, Rules);
         var destination = throwBag is >= 1 and <= 4 ? throwBag : target;
         return ApplySteal(ev, fromBag, target, runner, catcher, thr, caught,
             ThrowOrigin.Catcher, destination, pickoff: false);
@@ -1378,7 +1406,7 @@ public sealed class Match
             if (target == 3) { SetBag(3, runner); SetBag(2, null); }
             else { SetBag(2, runner); SetBag(1, null); }
             AddMvp(runner.Id, 2);
-            AddStars(defense: false, 0.35);
+            AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             result = ev with
             {
                 Kind = PlayKind.StolenBase,
@@ -1398,7 +1426,7 @@ public sealed class Match
             Outs++;
             _outsOnCurrentPlay++;
             AddMvp(defender.Id, 2);
-            AddStars(defense: true, 0.4);
+            AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
             result = ev with
             {
                 Kind = PlayKind.CaughtStealing,
@@ -1418,14 +1446,16 @@ public sealed class Match
         return FinishEvent(result);
     }
 
+    /// <summary>Random pickoff on a walking lead (pitching.cpu.pickoff). Spec A.6 #63 / D3: retired by P6.</summary>
     PlayEvent ResolvePickoff(PlayEvent ev)
     {
         if (Over || Outs >= 3)
             return ev;
+        var pk = Rules.Pitching.Cpu.Pickoff;
         var bag = 0;
         RunnerState? state = null;
         Character? runner = null;
-        if (SelectedState is { Lead01: >= 0.2 } sel)
+        if (SelectedState is { } sel && sel.Lead01 >= pk.LeadMin)
         {
             bag = SelectedBag;
             state = sel;
@@ -1436,7 +1466,7 @@ public sealed class Match
             for (var b = 3; b >= 1; b--)
             {
                 var s = RunnerAt(b);
-                if (s is { Lead01: >= 0.2 })
+                if (s is not null && s.Lead01 >= pk.LeadMin)
                 {
                     bag = b;
                     state = s;
@@ -1448,12 +1478,12 @@ public sealed class Match
         if (bag == 0 || state is null || runner is null)
             return ev;
 
-        var risk = state.Lead01 * 0.42;
-        if (state.Returning) risk *= 0.18;
+        var risk = state.Lead01 * pk.RiskPerLead;
+        if (state.Returning) risk *= pk.ReturningMul;
         var map = FieldingResolver.Assign(Defense.Roster, Pitcher);
         var catcher = map.GetValueOrDefault("C") ?? Pitcher;
-        risk += (catcher.Stats.Field - runner.Stats.Run) * 0.02;
-        risk = Math.Clamp(risk, 0, 0.72);
+        risk += (catcher.Stats.Field - runner.Stats.Run) * pk.RiskPerStatDiff;
+        risk = Math.Clamp(risk, 0, pk.MaxRisk);
         if (_rng.NextDouble() >= risk)
             return ev;
 
@@ -1463,7 +1493,7 @@ public sealed class Match
         Outs++;
         _outsOnCurrentPlay++;
         AddMvp(catcher.Id, 2);
-        AddStars(defense: true, 0.4);
+        AddStars(defense: true, Rules.Stars.Gains.CaughtStealing);
         var result = ev with
         {
             Kind = PlayKind.CaughtStealing,
@@ -1482,15 +1512,16 @@ public sealed class Match
 
     void AddStars(bool defense, double amount)
     {
+        var max = Rules.Stars.MeterMax;
         if (defense)
         {
-            if (Top) HomeStars = Math.Min(5, HomeStars + amount);
-            else AwayStars = Math.Min(5, AwayStars + amount);
+            if (Top) HomeStars = Math.Min(max, HomeStars + amount);
+            else AwayStars = Math.Min(max, AwayStars + amount);
         }
         else
         {
-            if (Top) AwayStars = Math.Min(5, AwayStars + amount);
-            else HomeStars = Math.Min(5, HomeStars + amount);
+            if (Top) AwayStars = Math.Min(max, AwayStars + amount);
+            else HomeStars = Math.Min(max, HomeStars + amount);
         }
     }
 

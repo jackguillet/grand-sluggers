@@ -81,6 +81,9 @@ public static class ContentDataValidator
         var skillsPath = Path.Combine(root, "abilities", "star-skills.json");
         data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors) ?? new();
         data.StarSkillsSource = skillsPath;
+
+        // Rule numbers (spec §16). Missing fields fall back to code; unknown fields and bad ranges are errors.
+        data.Rules = RulesTable.Load(root, data.ReadErrors);
         return data;
     }
 
@@ -357,6 +360,7 @@ internal sealed class ContentData
     public string ChemistrySource { get; set; } = "";
     public StarSkillsDto StarSkills { get; set; } = new();
     public string StarSkillsSource { get; set; } = "";
+    public RulesTable? Rules { get; set; }
     public List<string> ReadErrors { get; } = [];
 }
 

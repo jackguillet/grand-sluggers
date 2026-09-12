@@ -1172,7 +1172,7 @@ namespace GrandSluggers.UnityClient
             _closePlayT += dt;
             if (!_closeIcon)
             {
-                if (_closePlayT < ClosePlay.IconDelay) return;
+                if (_closePlayT < (float)ClosePlay.IconDelaySec(_content.Rules)) return;
                 _closeIcon = true;
                 _closePlayT = 0;
                 return;

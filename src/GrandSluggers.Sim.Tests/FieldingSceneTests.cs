@@ -171,8 +171,8 @@ public class FieldingSceneTests
         var ss = Diamond.Positions["SS"];
         var cf = Diamond.Positions["CF"];
         Assert.False(FieldingResolver.OutfieldGrass(ss.X, ss.Z));
-        Assert.False(FieldingResolver.OutfieldGrass(0, FieldingResolver.InfieldLipFt - 1));
-        Assert.True(FieldingResolver.OutfieldGrass(0, FieldingResolver.InfieldLipFt));
+        Assert.False(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt - 1));
+        Assert.True(FieldingResolver.OutfieldGrass(0, Rules.Default.Flight.Classes.InfieldLipFt));
         Assert.True(FieldingResolver.OutfieldGrass(cf.X, cf.Z));
     }
 

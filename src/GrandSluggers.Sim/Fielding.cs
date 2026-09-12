@@ -7,8 +7,13 @@ public sealed class FieldingResolver
     public static readonly IReadOnlyList<string> OutfieldPursuitPositions = ["LF", "CF", "RF"];
 
     readonly ChemistryTable _chem;
+    readonly RulesTable _rules;
 
-    public FieldingResolver(ChemistryTable chem) => _chem = chem;
+    public FieldingResolver(ChemistryTable chem, RulesTable? rules = null)
+    {
+        _chem = chem;
+        _rules = Rules.Or(rules);
+    }
 
     public FieldingPreview Preview(
         AtBatResult hit,
@@ -19,11 +24,11 @@ public sealed class FieldingResolver
         bool night = false)
     {
         var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
-        var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph);
-        var hang = BallFlight.HangTime(samples);
-        var grounder = IsGrounder(hit);
-        var line = IsLine(hit);
-        var hrLikely = HomeRunLikely(hit, park);
+        var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph, _rules);
+        var hang = BallFlight.HangTime(samples, _rules);
+        var grounder = IsGrounder(hit, _rules);
+        var line = IsLine(hit, _rules);
+        var hrLikely = HomeRunLikely(hit, park, _rules);
         var assigned = Assign(defense, pitcher);
         var seed = new FieldingPreview(
             pitcher, "P", null, hang, landing.X, landing.Z, grounder, hrLikely,
@@ -40,22 +45,20 @@ public sealed class FieldingResolver
         var warped = false;
         if (grounder)
         {
-            var w = ParkHazards.WarpIfPipe(park, landing.X, landing.Z, rng);
+            var w = ParkHazards.WarpIfPipe(park, landing.X, landing.Z, rng, _rules);
             if (w.Warped)
             {
                 landing = (w.X, w.Z);
                 warped = true;
             }
         }
-        var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park);
+        var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
         var buddy = Buddy(defense, pitcher, fielder, pos, buddyPlant.X, buddyPlant.Z);
-        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night) && !FieldAbilities.IgnoresParkSlow(fielder))
+        var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night, _rules) && !FieldAbilities.IgnoresParkSlow(fielder))
                      || hit.StarSwingUsed == "heart-swing";
-        if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < 0.6)
+        if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < _rules.Fielding.Park.ShellWarpChance)
             warped = true;
-        var radius = 10 + fielder.Stats.Field * 0.6 + FieldAbilities.CatchBonus(fielder);
-        if (ParkHazards.CanClamber(park, fielder))
-            radius += 6;
+        var radius = CatchRadiusFt(fielder, park, _rules);
         var heat = hit.StarPitchUsed is "heatball" or "caskball";
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
         var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line);
@@ -75,9 +78,11 @@ public sealed class FieldingResolver
         bool night = false)
     {
         var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night);
+        var fr = _rules.Fielding;
+        var carry = _rules.Flight.Carry;
         if (shown.HomeRunLikely && hit.HomeRun)
         {
-            if (ParkHazards.CanClamberRob(park, shown.Fielder, hit) || FieldAbilities.AirRob(park, shown.Fielder, hit))
+            if (ParkHazards.CanClamberRob(park, shown.Fielder, hit, _rules) || FieldAbilities.AirRob(park, shown.Fielder, hit, _rules))
                 return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy,
                     Feat: CatchFeat(shown, hit, park));
             return new FieldingResult(PlayKind.HomeRun, null, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace);
@@ -95,64 +100,66 @@ public sealed class FieldingResolver
         var line = shown.Line;
         var furnace = shown.Furnace;
         var heatball = shown.Heatball;
-        var range = 24 + fielder.Stats.Field * 2.8 + fielder.Stats.Run * 1.8
-                    + FieldAbilities.FlyRangeBonus(fielder) + FieldAbilities.GroundRangeBonus(fielder);
+        var range = fr.Range.BaseFt + fielder.Stats.Field * fr.Range.FtPerField + fielder.Stats.Run * fr.Range.FtPerRun
+                    + FieldAbilities.FlyRangeBonus(fielder, _rules) + FieldAbilities.GroundRangeBonus(fielder, _rules);
         if (ParkHazards.CanClamber(park, fielder))
-            range += 18;
-        var speed = 21 + fielder.Stats.Run * 1.9; // ft/s
-        if (shown.Frozen) speed *= 0.45;
+            range += fr.Range.ClamberFt;
+        var speed = fr.Chase.BaseFtPerSec + fielder.Stats.Run * fr.Chase.FtPerSecPerRun; // ft/s
+        if (shown.Frozen) speed *= fr.Chase.FrozenMul;
         var start = Diamond.Positions[pos];
         var toBall = Diamond.Dist(start.X, start.Z, landingX, landingZ);
-        var arrive = toBall / Math.Max(8, speed);
+        var arrive = toBall / Math.Max(fr.Chase.MinFtPerSec, speed);
 
         if (line)
         {
-            var window = CatchWindowFt(shown.CatchRadius, false, false);
-            var reached = arrive <= hang && toBall < window * 3.6 && !shown.Frozen;
+            var window = CatchWindowFt(shown.CatchRadius, false, false, _rules);
+            var reached = arrive <= hang && toBall < window * fr.Catch.LineWindowMul && !shown.Frozen;
             if (reached)
             {
-                var drop = (heatball && rng.NextDouble() < 0.35)
-                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
+                var drop = (heatball && rng.NextDouble() < fr.Drops.Heatball)
+                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
                 if (!drop)
                     return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
                         Feat: CatchFeat(shown, hit, park));
             }
-            var skipKind = hit.CarryFt >= 180 ? PlayKind.Double : PlayKind.Single;
+            var skipKind = hit.CarryFt >= carry.LineDoubleFt ? PlayKind.Double : PlayKind.Single;
             skipKind = FieldAbilities.SpinCheck(fielder, skipKind);
             return new FieldingResult(skipKind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
         }
 
         if (!grounder)
         {
-            var catchWindow = hang - 0.25;
-            var reached = arrive <= catchWindow && toBall < range * 3.2;
+            var catchWindow = hang - fr.Catch.FlyWindowLeadSec;
+            var reached = arrive <= catchWindow && toBall < range * fr.Catch.FlyRangeMul;
             if (reached)
             {
-                var drop = (heatball && rng.NextDouble() < 0.35)
-                           || (shown.Frozen && rng.NextDouble() < 0.4)
-                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
+                var drop = (heatball && rng.NextDouble() < fr.Drops.Heatball)
+                           || (shown.Frozen && rng.NextDouble() < fr.Drops.Frozen)
+                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
                 if (!drop)
                     return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
                         Feat: CatchFeat(shown, hit, park));
             }
 
-            var kind = hit.CarryFt >= 330 ? PlayKind.Triple
-                : hit.CarryFt >= 250 ? PlayKind.Double
+            var kind = hit.CarryFt >= carry.TripleFt ? PlayKind.Triple
+                : hit.CarryFt >= carry.DoubleFt ? PlayKind.Double
                 : PlayKind.Single;
             kind = FieldAbilities.SpinCheck(fielder, kind);
             return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
         }
 
-        var gloveScore = fielder.Stats.Field + rng.NextDouble() * 4 + (glove?.ErrorReduction ?? 0) * 4;
-        var beat = hit.Quality == ContactQuality.Perfect ? 2.5 : 0;
-        var outPlay = gloveScore + 3 > 7 + beat && toBall < range * 2.5 && !shown.Frozen && !shown.Warped;
+        // Spec A.4 #37: the infield out/hit is still a stat roll here (fielding.groundOut). P4 replaces it with arrival geometry.
+        var roll = fr.GroundOut;
+        var gloveScore = fielder.Stats.Field + rng.NextDouble() * roll.RollSpan + (glove?.ErrorReduction ?? 0) * roll.GloveMul;
+        var beat = hit.Quality == ContactQuality.Perfect ? roll.PerfectBeat : 0;
+        var outPlay = gloveScore + roll.Bonus > roll.Threshold + beat && toBall < range * fr.Catch.GroundRangeMul && !shown.Frozen && !shown.Warped;
         if (outPlay)
         {
             var cut = Cutoff(defense, pitcher, fielder);
-            var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng));
-            var energy = InPlay.Energy(hit);
-            var bobble = InPlay.Bobbles(energy, fielder, rng, glove);
-            var knock = InPlay.KnockbackSec(energy, fielder);
+            var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng), _rules);
+            var energy = InPlay.Energy(hit, _rules);
+            var bobble = InPlay.Bobbles(energy, fielder, rng, glove, _rules);
+            var knock = InPlay.KnockbackSec(energy, fielder, _rules);
             var error = throwRes is { Error: true } || bobble;
             return new FieldingResult(
                 error ? PlayKind.Single : PlayKind.GroundOut,
@@ -160,7 +167,7 @@ public sealed class FieldingResolver
                 Bobble: bobble, KnockbackSec: error ? 0 : knock);
         }
 
-        var extra = hit.CarryFt > 90 && hit.Quality == ContactQuality.Perfect;
+        var extra = hit.CarryFt > carry.GroundDoubleFt && hit.Quality == ContactQuality.Perfect;
         var groundKind = FieldAbilities.SpinCheck(fielder, extra ? PlayKind.Double : PlayKind.Single);
         return new FieldingResult(
             groundKind,
@@ -227,28 +234,38 @@ public sealed class FieldingResolver
         return (best ?? assigned.Values.First(), bestPos);
     }
 
-    /// <summary>Catch radius plus dive/jump window. Body verbs buy you the extra feet.</summary>
-    public static double CatchWindowFt(double catchRadius, bool dive, bool jump)
+    /// <summary>Catch radius plus dive/jump window (fielding.catch). Body verbs buy you the extra feet.</summary>
+    public static double CatchWindowFt(double catchRadius, bool dive, bool jump, RulesTable? rules = null)
     {
-        var w = catchRadius + 4;
-        if (dive) w += 8;
-        if (jump) w += 8;
+        var c = Rules.Or(rules).Fielding.Catch;
+        var w = catchRadius + c.WindowPadFt;
+        if (dive) w += c.DiveReachFt;
+        if (jump) w += c.JumpReachFt;
         return w;
+    }
+
+    /// <summary>Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks).</summary>
+    public static double CatchRadiusFt(Character fielder, Park? park, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var radius = r.Fielding.Catch.RadiusBaseFt + fielder.Stats.Field * r.Fielding.Catch.RadiusPerField
+                     + FieldAbilities.CatchBonus(fielder, r);
+        if (park != null && ParkHazards.CanClamber(park, fielder))
+            radius += r.Fielding.Catch.ClamberRadiusFt;
+        return radius;
     }
 
     public static bool IsOutfield(string pos) => pos is "LF" or "CF" or "RF";
 
     /// <summary>
-    /// Dirt / grass lip ~95 ft past the rubber, same split baseball games use:
-    /// infielders own the hop on the dirt; outfielders own the grass.
+    /// Dirt / grass lip ~95 ft past the rubber (flight.classes.infieldLipFt), same split baseball
+    /// games use: infielders own the hop on the dirt; outfielders own the grass.
     /// </summary>
-    public const double InfieldLipFt = 155;
+    public static bool OutfieldGrass(double x, double z, RulesTable? rules = null) =>
+        Diamond.Dist(0, 0, x, z) >= Rules.Or(rules).Flight.Classes.InfieldLipFt;
 
-    public static bool OutfieldGrass(double x, double z) =>
-        Diamond.Dist(0, 0, x, z) >= InfieldLipFt;
-
-    public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ) =>
-        OutfieldGrass(ballX, ballZ) || OutfieldGrass(landingX, landingZ);
+    public static bool OutfieldShouldCharge(double ballX, double ballZ, double landingX, double landingZ, RulesTable? rules = null) =>
+        OutfieldGrass(ballX, ballZ, rules) || OutfieldGrass(landingX, landingZ, rules);
 
     /// <summary>
     /// Still up: fly or liner, hang not due, height above a hop.
@@ -273,9 +290,10 @@ public sealed class FieldingResolver
         double ballZ,
         double ballY,
         double hitT,
-        double? hangSec = null) =>
+        double? hangSec = null,
+        RulesTable? rules = null) =>
         InAir(pre, ballY, hitT, hangSec)
-            ? FlyCatch.ChaseTarget(pre, park)
+            ? FlyCatch.ChaseTarget(pre, park, rules)
             : (ballX, ballZ);
 
     /// <summary>
@@ -283,8 +301,8 @@ public sealed class FieldingResolver
     /// Live hop only once it is on the grass.
     /// </summary>
     public static (double X, double Z) OutfieldChaseTarget(
-        double ballX, double ballZ, double landingX, double landingZ, bool inAir = false) =>
-        inAir || !OutfieldGrass(ballX, ballZ) ? (landingX, landingZ) : (ballX, ballZ);
+        double ballX, double ballZ, double landingX, double landingZ, bool inAir = false, RulesTable? rules = null) =>
+        inAir || !OutfieldGrass(ballX, ballZ, rules) ? (landingX, landingZ) : (ballX, ballZ);
 
     /// <summary>
     /// Live glove: IF while the ball is on the dirt, nearest OF once it reaches the grass.
@@ -294,8 +312,9 @@ public sealed class FieldingResolver
         IReadOnlyDictionary<string, Character> assigned,
         double ballX,
         double ballZ,
-        IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
-        OutfieldGrass(ballX, ballZ)
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null,
+        RulesTable? rules = null) =>
+        OutfieldGrass(ballX, ballZ, rules)
             ? NearestIn(assigned, OutfieldPursuitPositions, ballX, ballZ, at)
             : NearestIn(assigned, InfieldPursuitPositions, ballX, ballZ, at);
 
@@ -309,22 +328,38 @@ public sealed class FieldingResolver
     public static bool HandoffToOutfield(string currentPos, string playPos) =>
         !IsOutfield(currentPos) && IsOutfield(playPos);
 
-    public static double ChaseSpeedFt(Character fielder, bool frozen) =>
-        (21 + fielder.Stats.Run * 1.9) * (frozen ? 0.45 : 1);
+    /// <summary>The one CPU chase speed (fielding.chase). §8.1: human and CPU share it (P4).</summary>
+    public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Fielding.Chase;
+        return (c.BaseFtPerSec + fielder.Stats.Run * c.FtPerSecPerRun) * (frozen ? c.FrozenMul : 1);
+    }
+
+    /// <summary>
+    /// The human stick glove speed as shipped (fielding.chase.stick*), the second glove speed of
+    /// spec A.4 #42. Dash (East held) multiplies it. P4 unifies it with <see cref="ChaseSpeedFt"/>.
+    /// </summary>
+    public static double StickSpeedFt(Character fielder, bool frozen, bool dash, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Fielding.Chase;
+        return (c.StickBaseFtPerSec + fielder.Stats.Run * c.StickFtPerSecPerRun) * (frozen ? c.StickFrozenMul : 1)
+               * (dash ? FieldDash.ChaseMul : 1);
+    }
 
     public static (double X, double Z) StepToward(
-        double x, double z, double tx, double tz, double speed, double dt, Park? park = null)
+        double x, double z, double tx, double tz, double speed, double dt, Park? park = null, RulesTable? rules = null)
     {
         var dx = tx - x;
         var dz = tz - z;
         var dist = Math.Sqrt(dx * dx + dz * dz);
-        if (dist <= 0.35) return park == null ? (x, z) : FieldBounds.Clamp(park, x, z);
+        if (dist <= Rules.Or(rules).Fielding.Chase.StepStopFt) return park == null ? (x, z) : FieldBounds.Clamp(park, x, z);
         var step = Math.Min(dist, speed * dt);
         var next = (X: x + dx / dist * step, Z: z + dz / dist * step);
         return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
     }
 
-    public static bool IsGrounder(AtBatResult hit) => hit.LaunchDeg < 14;
+    public static bool IsGrounder(AtBatResult hit, RulesTable? rules = null) =>
+        hit.LaunchDeg < Rules.Or(rules).Flight.Classes.GrounderMaxLaunchDeg;
 
     /// <summary>
     /// Hopper with first occupied is a two-throw race. Director steps <see cref="InPlay.ThrowToBag"/>;
@@ -333,15 +368,21 @@ public sealed class FieldingResolver
     public static bool DoublePlayHopper(bool grounder, bool firstOccupied, int outs) =>
         grounder && InPlay.DoublePlayOffered(firstOccupied, outs);
 
-    /// <summary>Low rocket: 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
-    public static bool IsLine(AtBatResult hit) =>
-        hit.LaunchDeg is >= 14 and < 22 && hit.ExitVeloMph >= 78 && !IsGrounder(hit);
+    /// <summary>Low rocket (flight.classes.line*): 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
+    public static bool IsLine(AtBatResult hit, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Flight.Classes;
+        return hit.LaunchDeg >= c.LineMinLaunchDeg && hit.LaunchDeg < c.LineMaxLaunchDeg
+               && hit.ExitVeloMph >= c.LineMinExitMph && !IsGrounder(hit, rules);
+    }
 
-    public static bool HomeRunLikely(AtBatResult hit, Park park)
+    public static bool HomeRunLikely(AtBatResult hit, Park park, RulesTable? rules = null)
     {
         if (hit.HomeRun) return true;
+        var c = Rules.Or(rules).Flight.Classes;
         var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt >= fence - 15 && hit.LaunchDeg is > 16 and < 40;
+        return hit.CarryFt >= fence - c.HomerLikelyFenceMarginFt
+               && hit.LaunchDeg > c.HomerLikelyLaunchMinDeg && hit.LaunchDeg < c.HomerLikelyLaunchMaxDeg;
     }
 
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>
@@ -469,23 +510,20 @@ public sealed record FieldingPreview(
 
 public static class ParkHazards
 {
-    public const double CrystalNightWindowMul = 0.85;
-    public const double EmberNightFireMul = 1.6;
+    public static double ContactWindowMul(Park park, bool night, RulesTable? rules = null) =>
+        night && park.Id == "crystal-rink" ? Rules.Or(rules).Fielding.Park.CrystalNightWindowMul : 1.0;
 
-    public static double ContactWindowMul(Park park, bool night) =>
-        night && park.Id == "crystal-rink" ? CrystalNightWindowMul : 1.0;
+    public static bool InFreeze(Park park, double x, double z, bool night = false, RulesTable? rules = null) =>
+        InSlow(park, x, z, night, rules);
 
-    public static bool InFreeze(Park park, double x, double z, bool night = false) =>
-        InSlow(park, x, z, night);
-
-    public static bool InSlow(Park park, double x, double z, bool night = false)
+    public static bool InSlow(Park park, double x, double z, bool night = false, RulesTable? rules = null)
     {
         foreach (var h in park.Hazards)
         {
             if (h.Type is not ("freeze_volume" or "lava_pit" or "fire_breath")) continue;
             var r = h.Radius;
             if (night && h.Type == "fire_breath")
-                r *= EmberNightFireMul;
+                r *= Rules.Or(rules).Fielding.Park.EmberNightFireMul;
             if (Diamond.Dist(h.X, h.Z, x, z) <= r) return true;
         }
         return false;
@@ -506,14 +544,15 @@ public static class ParkHazards
         return false;
     }
 
-    public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng)
+    public static (double X, double Z, bool Warped) WarpIfPipe(Park park, double x, double z, Random rng, RulesTable? rules = null)
     {
         var pipes = park.Hazards.Where(h => h.Type is "warp_pipe" or "barrel").ToList();
         if (pipes.Count < 2) return (x, z, false);
+        var pad = Rules.Or(rules).Fielding.Park.PipeReachPadFt;
         Hazard? hit = null;
         foreach (var p in pipes)
         {
-            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + 8)
+            if (Diamond.Dist(p.X, p.Z, x, z) <= p.Radius + pad)
             {
                 hit = p;
                 break;
@@ -542,10 +581,10 @@ public static class ParkHazards
         fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase) &&
         park.Hazards.Any(h => h.Type == "climb_wall");
 
-    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit)
+    public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
     {
         if (!CanClamber(park, fielder)) return false;
         var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt <= fence + 28;
+        return hit.CarryFt <= fence + Rules.Or(rules).Fielding.Abilities.ClamberRobPastFenceFt;
     }
 }

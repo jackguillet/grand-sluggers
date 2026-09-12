@@ -143,7 +143,7 @@ public class FlyCatchTests
             "outside the glove is not a pickup");
         Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: 18),
             "a fly still up is not a pickup");
-        Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: FlyCatch.TouchScoopY));
+        Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: Rules.Default.Fielding.Catch.TouchScoopY));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class FlyCatchTests
         var rio = _content.Must("rio");
         Assert.Equal("super-jump", nico.FieldAbility);
         var hang = 3.2;
-        var early = hang - FlyCatch.WindowBeforeSec - 0.10;
+        var early = hang - Rules.Default.Fielding.Catch.WindowBeforeSec - 0.10;
         Assert.False(FlyCatch.JumpWindow(early, hang, rio, Harbor));
         Assert.True(FlyCatch.JumpWindow(early, hang, nico, Harbor));
         Assert.False(FlyCatch.JumpWindow(hang + 0.5, hang, nico, Harbor), "late is still late");

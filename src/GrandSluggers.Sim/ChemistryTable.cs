@@ -9,9 +9,11 @@ public sealed class ChemistryTable
     readonly Dictionary<string, string> _faction = new(StringComparer.OrdinalIgnoreCase);
     readonly HashSet<string> _good = new(StringComparer.OrdinalIgnoreCase);
     readonly HashSet<string> _bad = new(StringComparer.OrdinalIgnoreCase);
+    readonly RulesTable _rules;
 
-    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides)
+    public ChemistryTable(IEnumerable<Character> roster, ChemistryOverrides overrides, RulesTable? rules = null)
     {
+        _rules = Rules.Or(rules);
         foreach (var c in roster)
             _faction[c.Id] = c.Faction;
 
@@ -45,13 +47,18 @@ public sealed class ChemistryTable
 
     public Chemistry Between(Character a, Character b) => Between(a.Id, b.Id);
 
-    public static int Score(Chemistry c) => c switch
+    /// <summary>Affinity score of a pairing (stars.starting.*Score).</summary>
+    public static double Score(Chemistry c, RulesTable? rules = null)
     {
-        Chemistry.Good => 100,
-        Chemistry.Neutral => 50,
-        Chemistry.Bad => 10,
-        _ => 50
-    };
+        var st = Rules.Or(rules).Stars.Starting;
+        return c switch
+        {
+            Chemistry.Good => st.GoodScore,
+            Chemistry.Neutral => st.NeutralScore,
+            Chemistry.Bad => st.BadScore,
+            _ => st.NeutralScore
+        };
+    }
 
     /// <summary>Average chemistry of everyone except the captain, with the captain.</summary>
     public double AverageWithCaptain(Character captain, IEnumerable<Character> mates)
@@ -60,19 +67,21 @@ public sealed class ChemistryTable
             .Where(c => !c.Id.Equals(captain.Id, StringComparison.OrdinalIgnoreCase))
             .ToList();
         if (others.Count == 0)
-            return Score(Chemistry.Neutral);
-        return others.Average(c => Score(Between(captain, c)));
+            return Score(Chemistry.Neutral, _rules);
+        return others.Average(c => Score(Between(captain, c), _rules));
     }
 
     public double AverageWithCaptain(Team team) => AverageWithCaptain(team.Captain, team.Roster);
 
+    /// <summary>Starting meter from the roster's affinity with the captain (stars.starting).</summary>
     public int StartingStars(Character captain, IEnumerable<Character> mates)
     {
+        var st = _rules.Stars.Starting;
         var avg = AverageWithCaptain(captain, mates);
-        if (avg >= 70) return 5;
-        if (avg >= 55) return 4;
-        if (avg >= 35) return 3;
-        if (avg >= 15) return 2;
+        if (avg >= st.FiveAt) return 5;
+        if (avg >= st.FourAt) return 4;
+        if (avg >= st.ThreeAt) return 3;
+        if (avg >= st.TwoAt) return 2;
         if (avg > 0) return 1;
         return 0;
     }
@@ -82,25 +91,29 @@ public sealed class ChemistryTable
     /// <summary>Throw pair chemistry. Trails read this: good gold/purple, bad muddy and off-line.</summary>
     public Chemistry ThrowChemistry(Character from, Character to) => Between(from, to);
 
-    public ThrowResult FieldingThrow(Character from, Character to, Random rng, double errorChanceWhenBad = 0.25)
+    /// <summary>Throw pair chemistry → speed, error roll, lateral miss (fielding.chem). Spec §8.5 reworks the roll into accuracy (P4).</summary>
+    public ThrowResult FieldingThrow(Character from, Character to, Random rng, double? errorChanceWhenBad = null)
     {
+        var chem = _rules.Fielding.Chem;
         var rel = ThrowChemistry(from, to);
         return rel switch
         {
-            Chemistry.Good => new ThrowResult(rel, 1.35, false, 0),
-            Chemistry.Bad => new ThrowResult(rel, 0.70, rng.NextDouble() < errorChanceWhenBad, 14),
-            _ => new ThrowResult(rel, 1.0, false, 3)
+            Chemistry.Good => new ThrowResult(rel, chem.GoodSpeedMul, false, 0),
+            Chemistry.Bad => new ThrowResult(rel, chem.BadSpeedMul, rng.NextDouble() < (errorChanceWhenBad ?? chem.BadErrorChance), chem.BadLateralFt),
+            _ => new ThrowResult(rel, 1.0, false, chem.NeutralLateralFt)
         };
     }
 
+    /// <summary>Buddies on base multiply exit velocity (batting.buddiesOnBase).</summary>
     public double ChargePowerMul(Character batter, IEnumerable<Character> runnersOn)
     {
+        var b = _rules.Batting.BuddiesOnBase;
         var buddies = runnersOn.Count(r => Between(batter, r) == Chemistry.Good);
         return buddies switch
         {
-            >= 3 => 1.50,
-            2 => 1.25,
-            1 => 1.10,
+            >= 3 => b.ThreeMul,
+            2 => b.TwoMul,
+            1 => b.OneMul,
             _ => 1.0
         };
     }

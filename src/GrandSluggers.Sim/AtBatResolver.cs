@@ -6,28 +6,35 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public sealed class AtBatResolver
 {
-    public const double FastballMph = 88;
-    public const double PerfectWindowFrames = 1.0;
-    public const double BaseContactWindowFrames = 7.0;
-
-    /// <summary>Chalk. Past this spray is foul territory, not a caption on a fair fly.</summary>
+    /// <summary>
+    /// Chalk. Geometry of the diamond (first and third sit on the ±45° lines), shared by the
+    /// wall and stands meshes, so it stays a constant like <see cref="Diamond.Baseline"/>.
+    /// Past this spray is foul territory, not a caption on a fair fly.
+    /// </summary>
     public const double FoulLineDeg = 45;
 
-    /// <summary>Full stick at contact pulls down the line (spread can take it foul).</summary>
-    public const double SprayAimMaxDeg = 42;
+    /// <summary>A round fence shorter than this is a degenerate circle; the two-post lerp is used instead.</summary>
+    const double RoundFenceMinFt = 50;
 
-    public static double SprayAimDeg(double stickX) =>
-        Math.Clamp(stickX, -1, 1) * SprayAimMaxDeg;
+    /// <summary>Full stick at contact pulls down the line (batting.spray.stickMaxDeg; spread can take it foul).</summary>
+    public static double SprayAimDeg(double stickX, RulesTable? rules = null) =>
+        Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickMaxDeg;
 
     public static bool IsFoul(double sprayDeg) =>
         Math.Abs(sprayDeg) > FoulLineDeg;
 
     readonly ChemistryTable _chem;
+    readonly RulesTable _rules;
 
-    public AtBatResolver(ChemistryTable chem) => _chem = chem;
+    public AtBatResolver(ChemistryTable chem, RulesTable? rules = null)
+    {
+        _chem = chem;
+        _rules = Rules.Or(rules);
+    }
 
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
+        var b = _rules.Batting;
         var contact = input.Batter.Stats.Bat + (input.Bat?.ContactMod ?? 0);
         var power = input.Batter.Stats.Bat + (input.Bat?.PowerMod ?? 0);
         contact = Math.Clamp(contact, 1, 10);
@@ -36,17 +43,17 @@ public sealed class AtBatResolver
         var effective = input.Bat?.ChargeAlwaysFull == true ? 1.0
             : input.Charge01 > 0 ? input.Charge01
             : input.ChargeSwing ? 1.0 : 0;
-        var window = BaseContactWindowFrames + (contact - 5) * 0.55;
+        var window = b.Window.BaseFrames + (contact - 5) * b.Window.FramesPerContact;
         if (ChargeFeel.IsCharge(effective) && input.Bat?.ChargeAlwaysFull != true)
-            window *= 0.78;
+            window *= b.Window.ChargeMul;
         if (input.UseStarPitch)
             window *= StarSkills.BatterWindowMul(input.Pitcher.StarPitch);
-        window *= ParkHazards.ContactWindowMul(park, night);
+        window *= ParkHazards.ContactWindowMul(park, night, _rules);
 
-        var oval = SweetSpot.Overlap(input.BoxOffsetX, input.PitchAimX, input.PitchAimY);
+        var oval = SweetSpot.Overlap(input.BoxOffsetX, input.PitchAimX, input.PitchAimY, _rules);
         var timing = Math.Abs(input.TimingErrorFrames);
-        var quality = timing <= PerfectWindowFrames ? ContactQuality.Perfect
-            : timing <= window * 0.55 ? ContactQuality.Solid
+        var quality = timing <= b.Window.PerfectFrames ? ContactQuality.Perfect
+            : timing <= window * b.Window.SolidFraction ? ContactQuality.Solid
             : timing <= window ? ContactQuality.Cheap
             : ContactQuality.Miss;
         if (oval <= 0 && !input.Bunt)
@@ -55,7 +62,7 @@ public sealed class AtBatResolver
             quality = ContactQuality.Cheap;
 
         if (input.UseStarPitch && input.Pitcher.StarPitch == "phonyball"
-            && quality != ContactQuality.Perfect && rng.NextDouble() < 0.4)
+            && quality != ContactQuality.Perfect && rng.NextDouble() < b.Star.PhonyballWhiff)
             quality = ContactQuality.Miss;
 
         if (quality == ContactQuality.Miss)
@@ -70,56 +77,56 @@ public sealed class AtBatResolver
                 InZone: input.PitchInZone);
         }
 
-        var charge = 1.0 + 0.12 * Math.Clamp(effective, 0, 1);
+        var charge = 1.0 + b.Charge.PowerPerCharge * Math.Clamp(effective, 0, 1);
         if (input.Bat?.ChargeAlwaysFull == true)
-            charge = 1.10;
+            charge = b.Charge.ChargeBatMul;
         var qualityMul = quality switch
         {
-            ContactQuality.Perfect => 1.10,
-            ContactQuality.Solid => 1.0,
-            _ => 0.58
+            ContactQuality.Perfect => b.Quality.PerfectExitMul,
+            ContactQuality.Solid => b.Quality.SolidExitMul,
+            _ => b.Quality.CheapExitMul
         };
         var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing) : 1.0;
         var onBaseMul = _chem.ChargePowerMul(input.Batter, input.RunnersOn);
 
-        var exit = 52 + power * 3.35;
+        var exit = b.Exit.BaseMph + power * b.Exit.MphPerPower;
         exit *= charge * qualityMul * starSwingMul * onBaseMul;
-        if (input.PitcherStamina < 25)
-            exit *= 1.05;
+        if (input.PitcherStamina < _rules.Pitching.Stamina.TiredBelow)
+            exit *= b.Exit.TiredPitcherMul;
 
         // Late / under (positive frames) and stick-up (LaunchAim +) pull launch down into a hopper.
         // Early / over pops up. Square still mixes liners and some grounders.
         var signed = input.TimingErrorFrames;
-        var loft = 16 + (power - 5) * 1.0 + (ChargeFeel.IsCharge(effective) ? 2.5 : 0);
-        var launch = loft - signed * 1.35 - input.LaunchAim * 12 + (rng.NextDouble() - 0.5) * 14;
+        var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower + (ChargeFeel.IsCharge(effective) ? b.Charge.LoftDeg : 0);
+        var launch = loft - signed * b.Launch.DegPerFrame - input.LaunchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
         if (quality == ContactQuality.Cheap)
             launch = signed >= 0
-                ? 4 + rng.NextDouble() * 10
-                : 40 + rng.NextDouble() * 12;
+                ? b.Launch.CheapLateMinDeg + rng.NextDouble() * b.Launch.CheapLateSpanDeg
+                : b.Launch.CheapEarlyMinDeg + rng.NextDouble() * b.Launch.CheapEarlySpanDeg;
 
         if (input.Bunt)
         {
-            exit *= 0.42;
-            launch = 5 + rng.NextDouble() * 7;
+            exit *= b.Bunt.ExitMul;
+            launch = b.Bunt.LaunchMinDeg + rng.NextDouble() * b.Bunt.LaunchSpanDeg;
         }
-        launch = Math.Clamp(launch, 3, 52);
+        launch = Math.Clamp(launch, b.Launch.MinDeg, b.Launch.MaxDeg);
 
         if (input.UseStarSwing && !input.Bunt)
-            launch = StarLaunch(input.Batter.StarSwing, launch);
+            launch = StarLaunch(input.Batter.StarSwing, launch, b.Star);
 
-        var spray = input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality);
+        var spray = input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
         if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
-            spray += (rng.NextDouble() - 0.5) * 22;
+            spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
-            spray += (rng.NextDouble() - 0.5) * 18;
+            spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
         if (input.Bunt)
-            spray += (rng.NextDouble() - 0.5) * 28;
-        spray = CheapFoulPull(quality, spray, rng);
+            spray += (rng.NextDouble() - 0.5) * b.Bunt.SpraySpanDeg;
+        spray = CheapFoulPull(quality, spray, rng, b.Foul);
 
-        var carry = BallFlight.CarryFeet(exit, launch, park.WindMph);
+        var carry = BallFlight.CarryFeet(exit, launch, park.WindMph, _rules);
         var foul = IsFoul(spray);
         var fence = FenceAt(park, spray);
-        var homer = !foul && !input.Bunt && carry >= fence && launch is > 18 and < 38;
+        var homer = !foul && !input.Bunt && carry >= fence && launch > b.Homer.LaunchMinDeg && launch < b.Homer.LaunchMaxDeg;
 
         return new AtBatResult(
             quality,
@@ -137,23 +144,23 @@ public sealed class AtBatResolver
             InZone: input.PitchInZone);
     }
 
-    static double SpraySpread(ContactQuality q) => q switch
+    static double SpraySpread(ContactQuality q, SprayRules spray) => q switch
     {
-        ContactQuality.Perfect => 8,
-        ContactQuality.Solid => 18,
-        _ => 52
+        ContactQuality.Perfect => spray.PerfectSpreadDeg,
+        ContactQuality.Solid => spray.SolidSpreadDeg,
+        _ => spray.CheapSpreadDeg
     };
 
     /// <summary>
     /// Cheap contact already pulled toward a line can skip past the chalk.
     /// The ball flies foul — we do not stamp Foul on a fair spray.
     /// </summary>
-    static double CheapFoulPull(ContactQuality quality, double spray, Random rng)
+    static double CheapFoulPull(ContactQuality quality, double spray, Random rng, FoulRules foul)
     {
-        if (quality != ContactQuality.Cheap || Math.Abs(spray) <= 20 || rng.NextDouble() >= 0.4)
+        if (quality != ContactQuality.Cheap || Math.Abs(spray) <= foul.CheapPullMinDeg || rng.NextDouble() >= foul.CheapPullChance)
             return spray;
         var side = spray >= 0 ? 1 : -1;
-        return side * (FoulLineDeg + 6 + rng.NextDouble() * 14);
+        return side * (FoulLineDeg + foul.CheapPullPastDeg + rng.NextDouble() * foul.CheapPullSpanDeg);
     }
 
     public static double FenceAt(Park park, double sprayDeg)
@@ -163,7 +170,7 @@ public sealed class AtBatResolver
         var t = Math.Clamp((sprayDeg + FoulLineDeg) / (FoulLineDeg * 2), 0, 1);
         var spray = -FoulLineDeg + t * 2 * FoulLineDeg;
         var round = RoundFence(park, spray);
-        if (round > 50) return round;
+        if (round > RoundFenceMinFt) return round;
         if (t < 0.5)
             return Lerp(park.LeftFenceFt, park.CenterFenceFt, t * 2);
         return Lerp(park.CenterFenceFt, park.RightFenceFt, (t - 0.5) * 2);
@@ -208,7 +215,7 @@ public sealed class AtBatResolver
         if (disc < 0) return 0;
         var root = Math.Sqrt(disc);
         var far = Math.Max(b + root, b - root);
-        return far > 50 ? far : 0;
+        return far > RoundFenceMinFt ? far : 0;
     }
 
     static (double X, double Z) Post(double fenceFt, double sprayDeg)
@@ -217,11 +224,11 @@ public sealed class AtBatResolver
         return (Math.Sin(rad) * fenceFt, Math.Cos(rad) * fenceFt);
     }
 
-    static double StarLaunch(string swing, double fallback) => swing switch
+    static double StarLaunch(string swing, double fallback, StarSwingRules star) => swing switch
     {
-        "ground" => 8,
-        "fly" => 38,
-        "line" => 18,
+        "ground" => star.GroundLaunchDeg,
+        "fly" => star.FlyLaunchDeg,
+        "line" => star.LineLaunchDeg,
         _ => fallback
     };
 
@@ -235,11 +242,9 @@ public sealed class AtBatResolver
     }
 
     /// <summary>
-    /// Radius is expressed in normalized plate-aim units. The center comes from
-    /// the authored batter's box and converts the actor's world-space walk.
+    /// The batter's body radius in normalized plate-aim units (batting.hbp.bodyRadius). The
+    /// center comes from the authored batter's box and converts the actor's world-space walk.
     /// </summary>
-    public const double BatterBodyR = 0.32;
-
     public static double BatterBodyPlateX(double boxOffsetX, Hand bats = Hand.R)
     {
         var boxWorldX = bats == Hand.L ? HomeSet.BoxX : -HomeSet.BoxX;
@@ -247,36 +252,36 @@ public sealed class AtBatResolver
         return (boxWorldX + walkWorldX) / PitchFlight.PlateScaleX;
     }
 
-    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY, Hand bats = Hand.R)
+    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY, Hand bats = Hand.R, RulesTable? rules = null)
     {
+        var bodyR = Rules.Or(rules).Batting.Hbp.BodyRadius;
         var bodyX = BatterBodyPlateX(boxOffsetX, bats);
         var dx = pitchAimX - bodyX;
         var dy = pitchAimY;
-        return dx * dx + dy * dy <= BatterBodyR * BatterBodyR;
+        return dx * dx + dy * dy <= bodyR * bodyR;
     }
 
-    /// <summary>CPU sac: runner on first, fewer than two outs, in the zone.</summary>
-    public const double CpuSacBunt = 0.12;
+    /// <summary>CPU sac (batting.cpu.sacBuntChance): runner on first, fewer than two outs, in the zone.</summary>
+    public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll, RulesTable? rules = null) =>
+        inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
-    public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll) =>
-        inZone && runnerOnFirst && outs < 2 && roll < CpuSacBunt;
-
-    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat)
+    public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null)
     {
+        var sp = Rules.Or(rules).Pitching.Speed;
         var changeup = pitch.Changeup || pitch.Type == "changeup";
-        var baseSpeed = changeup ? 72
-            : pitch.Type == "curve" ? 76
-            : pitch.Type == "slider" ? 80
-            : 86;
-        var speed = baseSpeed + pitchStat * 0.9 + (changeup ? pitch.Charge01 * 3 : pitch.Charge01 * 8);
-        if (pitch.Star) speed *= 1.12;
+        var baseSpeed = changeup ? sp.ChangeupMph
+            : pitch.Type == "curve" ? sp.CurveMph
+            : pitch.Type == "slider" ? sp.SliderMph
+            : sp.FastballMph;
+        var speed = baseSpeed + pitchStat * sp.MphPerPitchStat + (changeup ? pitch.Charge01 * sp.ChangeupChargeMph : pitch.Charge01 * sp.ChargeMph);
+        if (pitch.Star) speed *= sp.StarSpeedMul;
         return speed;
     }
 
-    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher)
+    public static double PitchSpeedMph(PitchCommand pitch, Character pitcher, RulesTable? rules = null)
     {
-        var speed = PitchSpeedMph(pitch, pitcher.Stats.Pitch);
+        var speed = PitchSpeedMph(pitch, pitcher.Stats.Pitch, rules);
         if (!pitch.Star) return speed;
-        return speed / 1.12 * StarSkills.PitchSpeedMul(pitcher.StarPitch);
+        return speed / Rules.Or(rules).Pitching.Speed.StarSpeedMul * StarSkills.PitchSpeedMul(pitcher.StarPitch);
     }
 }
