@@ -17,6 +17,21 @@ public class BaserunningTests
     }
 
     [Fact]
+    public void StickTowardTheNextBagArmsTheStealAndBackReturns()
+    {
+        // Spec §9.2 / §11.1: no lead stick. Toward the next bag = steal, this bag or behind = return.
+        Assert.Equal(RunStick.Steal, Baserunning.StickVerb(2, 1));
+        Assert.Equal(RunStick.Steal, Baserunning.StickVerb(3, 2));
+        Assert.Equal(RunStick.Steal, Baserunning.StickVerb(4, 3));
+        Assert.Equal(RunStick.Return, Baserunning.StickVerb(1, 1));
+        Assert.Equal(RunStick.Return, Baserunning.StickVerb(4, 1));
+        Assert.Equal(RunStick.Return, Baserunning.StickVerb(2, 3));
+        Assert.Equal(RunStick.None, Baserunning.StickVerb(3, 1));
+        Assert.Equal(RunStick.None, Baserunning.StickVerb(0, 1));
+        Assert.Equal(RunStick.None, Baserunning.StickVerb(2, 0));
+    }
+
+    [Fact]
     public void StealTargetNeverHome()
     {
         Assert.Equal(2, Baserunning.StealTarget(1));
