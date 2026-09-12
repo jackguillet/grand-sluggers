@@ -83,13 +83,17 @@ BARREL_DIRECTIONS = {
 
 # Evaluated rendered-hand centers and socket grip in Unity shared-root space.
 # The same numbers drive SwingPresentation; conversion here is position-safe
-# (it changes basis without normalizing the authored distance).
+# (it changes basis without normalizing the authored distance). lFore drives
+# the lHand mesh, the batter's own left hand (Blender -X facing +Y; the import
+# X reflection cancels against the -Z export facing). It leads a right-handed
+# swing, so it holds the knob end nearest GRIP_TARGETS on every key and rides
+# under the right hand in the held load.
 HAND_TARGETS = {
-    0.00: {"lFore": (0.300, 2.727, 0.512), "rFore": (0.080, 2.522, 0.326)},
-    0.15: {"lFore": (0.416, 2.356, -0.235), "rFore": (0.143, 2.240, 0.016)},
-    0.24: {"lFore": (0.366, 1.729, -0.547), "rFore": (0.129, 1.798, -0.140)},
-    0.30: {"lFore": (0.458, 1.856, -0.622), "rFore": (0.124, 1.914, -0.257)},
-    0.50: {"lFore": (-0.242, 2.195, -0.576), "rFore": (-0.134, 2.155, -0.290)},
+    0.00: {"lFore": (0.080, 2.522, 0.326), "rFore": (0.300, 2.727, 0.512)},
+    0.15: {"lFore": (0.143, 2.240, 0.016), "rFore": (0.416, 2.356, -0.235)},
+    0.24: {"lFore": (0.129, 1.798, -0.140), "rFore": (0.366, 1.729, -0.547)},
+    0.30: {"lFore": (0.124, 1.914, -0.257), "rFore": (0.458, 1.856, -0.622)},
+    0.50: {"lFore": (-0.134, 2.155, -0.290), "rFore": (-0.242, 2.195, -0.576)},
 }
 GRIP_TARGETS = {
     0.00: (0.273, 2.215, 0.226),
@@ -301,6 +305,7 @@ def key_swing(arm_ob):
             eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
             foot_left="lShoe", foot_right="rShoe",
             eyes_basis=EYES_BASIS,
+            bats=batting_stance.BATS_RIGHT,
         )
         targets = {
             name: batting_stance.unity_to_dcc(value, normalize=False)
@@ -343,16 +348,27 @@ def key_swing(arm_ob):
             raise RuntimeError(f"bat direction missed at {t:.4f}: {actual} vs {expected}")
         grip = bat.head
         handle_end = grip + actual * HANDLE_LENGTH
-        for hand in (rendered_center("lHand"), rendered_center("rHand")):
+        along = {}
+        for name in ("lHand", "rHand"):
+            hand = rendered_center(name)
             distance = point_segment_distance(hand, grip, handle_end)
             if distance > 0.30:
                 raise RuntimeError(f"rendered hand missed handle at {t:.4f}: {distance:.3f}")
+            along[name] = (hand - grip).dot(actual)
+        # The lead (left) hand holds the knob end under the right on every
+        # frame; a two-handed grip cannot swap hands mid-swing.
+        if not 0.0 <= along["lHand"] < along["rHand"]:
+            raise RuntimeError(
+                f"lead hand left the knob end at {t:.4f}: "
+                f"lHand {along['lHand']:.3f} rHand {along['rHand']:.3f} up the handle")
         batting_stance.validate_visible_stance(
             t,
             chest_front="Stripe", chest_center="torsoMesh",
             eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
             foot_left="lShoe", foot_right="rShoe",
             eyes_basis=EYES_BASIS,
+            bats=batting_stance.BATS_RIGHT,
+            arm_ob=arm_ob,
         )
 
 

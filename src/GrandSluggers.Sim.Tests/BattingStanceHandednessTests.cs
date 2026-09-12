@@ -11,32 +11,48 @@ namespace GrandSluggers.Sim.Tests;
 ///   Left-handed:  bat hovers above the LEFT shoulder, feet face the plate,
 ///                 the RIGHT hand is below the left.
 ///
-/// Right-handed batters are confirmed correct on screen, so they are the
-/// anchor: whatever a right-handed batter renders today is the reference, and
-/// a left-handed batter has to stand the same way round the other box.
+/// The side opposite the batting hand leads: that hand holds the knob end of
+/// the handle under the top hand, and that foot stands nearer the pitcher. A
+/// left-handed batter is the right-handed pose reflected across the plate
+/// line, so every check below is written against the lead side rather than
+/// against "left" or "right", and holds for both boxes.
 ///
-/// The feet axis is a WORLD axis, not an identity-mirrored one. Both batters
-/// set their feet along the pitch line pointing the same way; handedness turns
-/// the chest and swaps which hand is low, it does not reverse the feet. That is
-/// already what <see cref="BattingStance"/> authors -- MirrorX leaves Z alone --
-/// and it is what the rendered left-handed body currently disagrees with.
+/// LeftHand / RightHand and the lHand / lShoe landmarks are the batter's own
+/// left: the blockout places them at Blender -X with the character facing +Y,
+/// and the FBX import X reflection cancels against the -Z export facing.
 /// </summary>
 public class BattingStanceHandednessTests
 {
-    static Hand Other(Hand hand) => hand == Hand.R ? Hand.L : Hand.R;
+    static readonly Hand[] Both = [Hand.R, Hand.L];
 
+    [Fact]
+    public void LeadSideIsOppositeTheBattingHand()
+    {
+        Assert.Equal(Hand.L, BattingStance.LeadSide(Hand.R));
+        Assert.Equal(Hand.R, BattingStance.LeadSide(Hand.L));
+    }
+
+    /// <summary>
+    /// FeetAxis runs from the back foot to the lead foot, so it points at the
+    /// pitcher for both batters: the reflection that turns a right-handed
+    /// batter into a left-handed one swaps which foot leads and leaves the
+    /// pitcher where it was. Signed on purpose -- an unsigned check scored a
+    /// take with the hips turned out of the box the same as a correct one.
+    /// </summary>
     [Theory]
     [InlineData(SwingPresentation.LoadAt)]
     [InlineData(SwingPresentation.LaunchAt)]
-    public void FeetAxisPointsTheSameWayForBothHands(double poseT)
+    [InlineData(SwingPresentation.ContactAt)]
+    [InlineData(SwingPresentation.FollowThroughAt)]
+    public void LeadFootStandsTowardThePitcherForBothHands(double poseT)
     {
-        var r = BattingStance.At(poseT, Hand.R);
-        var l = BattingStance.At(poseT, Hand.L);
-        Assert.True(r.FeetAxis.Z > 0.9,
-            $"right-handed feet axis should run toward the pitcher (z={r.FeetAxis.Z:0.000})");
-        Assert.True(l.FeetAxis.Z > 0.9,
-            "left-handed feet axis must point the same way as right-handed: handedness "
-            + $"turns the chest, it does not reverse the feet (z={l.FeetAxis.Z:0.000})");
+        foreach (var bats in Both)
+        {
+            var stance = BattingStance.At(poseT, bats);
+            Assert.True(stance.FeetAxis.Z >= BattingStance.AlignmentDot,
+                $"{bats} batter's back-to-lead foot line must point at the pitcher "
+                + $"(z={stance.FeetAxis.Z:0.000})");
+        }
     }
 
     [Theory]
@@ -64,12 +80,10 @@ public class BattingStanceHandednessTests
     }
 
     /// <summary>
-    /// The bottom hand on the handle is the lead hand -- the one opposite the
-    /// batting side. Jack's reference: a right-handed hitter's LEFT hand is
-    /// below the right, and a left-handed hitter's RIGHT hand is below the left.
-    /// `lHand` is genuinely the batter's left: the blockout places it at Blender
-    /// -X with the character facing +Y, and the FBX import X reflection cancels
-    /// against the -Z export facing.
+    /// The bottom hand on the handle is the lead hand. Jack's reference: a
+    /// right-handed hitter's LEFT hand is below the right, and a left-handed
+    /// hitter's RIGHT hand is below the left. Measured in the held load, where
+    /// the barrel stands above the hands so "below" also means "at the knob".
     /// </summary>
     [Theory]
     [InlineData(Hand.R)]
@@ -77,13 +91,37 @@ public class BattingStanceHandednessTests
     public void LeadHandRidesUnderTheTopHand(Hand bats)
     {
         var key = SwingPresentation.At(SwingPresentation.LoadAt, bats);
-        var leadIsLeft = bats == Hand.R;
-        var leadY = leadIsLeft ? key.LeftHand.Y : key.RightHand.Y;
-        var topY = leadIsLeft ? key.RightHand.Y : key.LeftHand.Y;
+        var lead = BattingStance.LeadSide(bats);
+        var leadY = lead == Hand.L ? key.LeftHand.Y : key.RightHand.Y;
+        var topY = lead == Hand.L ? key.RightHand.Y : key.LeftHand.Y;
         Assert.True(leadY < topY,
-            $"{bats} batter: the {(leadIsLeft ? "left" : "right")} hand must sit below the "
-            + $"{(leadIsLeft ? "right" : "left")} on the handle "
-            + $"(lead y={leadY:0.000}, top y={topY:0.000})");
+            $"{bats} batter: the {lead} hand must sit below the {bats} hand on the "
+            + $"handle (lead y={leadY:0.000}, top y={topY:0.000})");
+    }
+
+    /// <summary>
+    /// A two-handed grip cannot swap hands mid-swing. Height alone cannot say
+    /// which hand is which once the barrel comes level at approach and contact
+    /// -- read that way the old keys looked like they flipped twice -- so
+    /// measure along the handle: the lead hand stays nearest the knob on every
+    /// key and on every sample between them.
+    /// </summary>
+    [Theory]
+    [InlineData(Hand.R)]
+    [InlineData(Hand.L)]
+    public void LeadHandHoldsTheKnobEndThroughTheWholeSwing(Hand bats)
+    {
+        var lead = BattingStance.LeadSide(bats);
+        for (var step = 0; step <= 100; step++)
+        {
+            var t = SwingPresentation.FollowThroughAt * step / 100.0;
+            var key = SwingPresentation.At(t, bats);
+            var leadAlong = SwingPresentation.HandAlongHandle(key, lead);
+            var topAlong = SwingPresentation.HandAlongHandle(key, bats);
+            Assert.True(leadAlong >= 0 && leadAlong < topAlong,
+                $"{bats} batter at {t:0.000}: the {lead} hand must hold the knob end "
+                + $"(lead {leadAlong:0.000} ft up the handle, top {topAlong:0.000})");
+        }
     }
 
     [Fact]
