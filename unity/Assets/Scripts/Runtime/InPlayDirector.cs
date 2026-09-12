@@ -29,7 +29,10 @@ namespace GrandSluggers.UnityClient
             else if (_phase == Phase.StealThrow) TickStealThrow(dt);
         }
 
-        LiveSeats LiveSeatsNow() => new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus);
+        /// <summary>The sim's seat table for this half. Training seats come from the coach; a match derives them from (half, home/away, pads).</summary>
+        LiveSeats LiveSeatsNow() => TrainingOn
+            ? new LiveSeats(HumanBats, HumanPitches, PlayerMustField, Versus: false)
+            : _match != null ? GrandSluggers.Sim.LiveSeats.For(LiveSeats, _match.Top) : GrandSluggers.Sim.LiveSeats.CpuOnly;
 
         LivePadInput FieldInput()
         {
