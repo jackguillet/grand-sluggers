@@ -56,7 +56,20 @@ public sealed record Park(
     int CenterFenceFt,
     int RightFenceFt,
     double WindMph,
-    IReadOnlyList<Hazard> Hazards);
+    IReadOnlyList<Hazard> Hazards,
+    double WindDeg = 0,
+    double FenceHeightFt = 8)
+{
+    /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
+    public (double X, double Z) WindDirection
+    {
+        get
+        {
+            var rad = WindDeg * Math.PI / 180.0;
+            return (Math.Sin(rad), Math.Cos(rad));
+        }
+    }
+}
 
 public sealed record Hazard(string Type, double X, double Z, double Radius, string? Tag);
 
@@ -139,7 +152,8 @@ public sealed record AtBatResult(
     string? StarSwingUsed,
     double SprayDeg = 0,
     bool Foul = false,
-    bool InZone = true);
+    bool InZone = true,
+    BattedBallClass Class = BattedBallClass.Fly);
 
 public sealed record PitchCommand(
     string Type,
@@ -241,7 +255,8 @@ public sealed record PlayOutcome(
     IReadOnlyList<RunnerMove>? Advances = null,
     int BatterToBag = 0,
     bool Error = false,
-    bool FieldersChoice = false)
+    bool FieldersChoice = false,
+    bool GroundRuleDouble = false)
 {
     public static PlayOutcome Empty { get; } = new();
 
@@ -308,7 +323,29 @@ public sealed record PlayEvent(
     MatchState? NextState = null,
     PlayOutcome? Outcome = null);
 
-public readonly record struct Sample(double T, double Dist, double Height);
+/// <summary>What happened to the ball at this sample of the clipped path (spec §6.1).</summary>
+public enum SampleEvent
+{
+    None,
+    /// <summary>Ground contact (first grass, a hop, or the roll).</summary>
+    Ground,
+    /// <summary>Met the outfield fence below fence height: the carom starts here.</summary>
+    Wall,
+    /// <summary>Crossed the outfield fence above fence height between the poles: gone.</summary>
+    Fence,
+    /// <summary>Left the field over a foul wall or the backstop: dead in the stands.</summary>
+    Stands,
+    /// <summary>Touched a foul wall or the backstop below its top: foul, dead; the carom is for the camera.</summary>
+    FoulWall
+}
+
+/// <summary>
+/// One sample of the ball's clipped path. <see cref="T"/> is play seconds — the same clock
+/// <see cref="LivePlaySystem.ElapsedSeconds"/> runs gloves and runners on (spec §6.1, one clock).
+/// <see cref="Dist"/> is the horizontal distance from the plate; <see cref="X"/> / <see cref="Z"/> are the
+/// field position (the wind bends the path, so the spray is not constant along it).
+/// </summary>
+public readonly record struct Sample(double T, double Dist, double Height, double X = 0, double Z = 0, SampleEvent Event = SampleEvent.None);
 
 public sealed record ThrowResult(
     Chemistry Relation,

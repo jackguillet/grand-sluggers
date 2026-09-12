@@ -360,7 +360,6 @@ public sealed class BattingRules
     public BuntRules Bunt { get; init; } = new();
     public SprayRules Spray { get; init; } = new();
     public FoulRules Foul { get; init; } = new();
-    public HomerRules Homer { get; init; } = new();
     public CursorRules Cursor { get; init; } = new();
     public HbpRules Hbp { get; init; } = new();
     public StarSwingRules Star { get; init; } = new();
@@ -372,7 +371,6 @@ public sealed class BattingRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "batting.launch.minDeg", Launch.MinDeg, Launch.MaxDeg, errors);
-        RulesValidation.Order(source, "batting.homer.launchMinDeg", Homer.LaunchMinDeg, Homer.LaunchMaxDeg, errors);
         RulesValidation.Order(source, "batting.window.floorFrames", Window.FloorFrames, Window.ChargeFrames, errors);
         RulesValidation.Order(source, "batting.window.chargeFrames", Window.ChargeFrames, Window.SlapFrames, errors);
         RulesValidation.Order(source, "batting.cursor.perfectFraction", Cursor.PerfectFraction, 1, errors);
@@ -489,12 +487,6 @@ public sealed class FoulRules
     public double CheapPullSpanDeg { get; init; } = 14;
 }
 
-public sealed class HomerRules
-{
-    public double LaunchMinDeg { get; init; } = 18;
-    public double LaunchMaxDeg { get; init; } = 38;
-}
-
 /// <summary>
 /// The cursor (spec §5.2, D4): the bat drawn on the plate plane in world feet, centered where the
 /// batter's box walk puts it, tall as the zone. Along the barrel the nice half-axis is
@@ -586,14 +578,21 @@ public sealed class FlightRules
 {
     [Positive] public double Gravity { get; init; } = 32.174;
     public double Drag { get; init; } = 0.0019;
+    /// <summary>
+    /// Arcade hang: sample times are stretched by this so gloves can get under a fly. Carry
+    /// does not change. The stretched sample clock <em>is</em> the play clock fielders and
+    /// runners run on (<see cref="LivePlaySystem.ElapsedSeconds"/>) — one clock (§0.3, §6.1).
+    /// </summary>
     [Positive] public double TimeScale { get; init; } = 1.65;
     [Positive] public double PlateHeightFt { get; init; } = 2.5;
+    /// <summary>How much of the flag reading the ball feels at field level (drag is taken relative to the wind).</summary>
     public double WindMul { get; init; } = 0.35;
     [Positive] public int SampleHz { get; init; } = 120;
     [Positive] public double MaxSeconds { get; init; } = 12;
     public BounceRules Bounce { get; init; } = new();
     public SkidRules Skid { get; init; } = new();
     public RollRules Roll { get; init; } = new();
+    public WallRules Wall { get; init; } = new();
     public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
     public CarryBandRules Carry { get; init; } = new();
@@ -602,8 +601,9 @@ public sealed class FlightRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "flight.skid.launchMinDeg", Skid.LaunchMinDeg, Skid.LaunchMaxDeg, errors);
-        RulesValidation.Order(source, "flight.classes.lineMinLaunchDeg", Classes.LineMinLaunchDeg, Classes.LineMaxLaunchDeg, errors);
-        RulesValidation.Order(source, "flight.classes.homerLikelyLaunchMinDeg", Classes.HomerLikelyLaunchMinDeg, Classes.HomerLikelyLaunchMaxDeg, errors);
+        RulesValidation.Order(source, "flight.classes.topperMaxLaunchDeg", Classes.TopperMaxLaunchDeg, Classes.GrounderMaxLaunchDeg, errors);
+        RulesValidation.Order(source, "flight.classes.grounderMaxLaunchDeg", Classes.GrounderMaxLaunchDeg, Classes.ChopperMaxLaunchDeg, errors);
+        RulesValidation.Order(source, "flight.classes.chopperMaxLaunchDeg", Classes.ChopperMaxLaunchDeg, Classes.LinerMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.carry.doubleFt", Carry.DoubleFt, Carry.TripleFt, errors);
     }
 }
@@ -631,23 +631,35 @@ public sealed class RollRules
     public double RestSpeed { get; init; } = 1.4;
 }
 
-public sealed class LandingRules
+/// <summary>The outfield fence below fence height: the carom (§7.9). Normal speed × restitution, along the wall × tangential.</summary>
+public sealed class WallRules
 {
-    /// <summary>Samples before this time are still leaving the bat; ignore them for first grass.</summary>
-    public double FirstGrassMinSec { get; init; } = 0.08;
-    public double GrassHeightFt { get; init; } = 0.05;
+    [Chance] public double Restitution { get; init; } = 0.48;
+    [Chance] public double Tangential { get; init; } = 0.82;
 }
 
+public sealed class LandingRules
+{
+    /// <summary>Samples before this play time are still leaving the bat: the ground does not exist yet (one time base for every landing guard).</summary>
+    public double FirstGrassMinSec { get; init; } = 0.08;
+}
+
+/// <summary>The one batted-ball class table (§6.2): launch and exit at contact, refined by the flight.</summary>
 public sealed class BattedBallClassRules
 {
-    public double GrounderMaxLaunchDeg { get; init; } = 14;
-    public double LineMinLaunchDeg { get; init; } = 14;
-    public double LineMaxLaunchDeg { get; init; } = 22;
-    public double LineMinExitMph { get; init; } = 78;
-    public double HomerLikelyFenceMarginFt { get; init; } = 15;
-    public double HomerLikelyLaunchMinDeg { get; init; } = 16;
-    public double HomerLikelyLaunchMaxDeg { get; init; } = 40;
-    /// <summary>Dirt / grass lip past the rubber. Infielders own the hop inside it.</summary>
+    /// <summary>Below this launch: topper (a weak roller in front of the plate).</summary>
+    public double TopperMaxLaunchDeg { get; init; } = 3;
+    /// <summary>Topper … this: grounder (an infield hop).</summary>
+    public double GrounderMaxLaunchDeg { get; init; } = 10;
+    /// <summary>Topper … this with a high first bounce inside the plate: chopper.</summary>
+    public double ChopperMaxLaunchDeg { get; init; } = 14;
+    public double ChopperFirstBounceFt { get; init; } = 30;
+    public double ChopperBounceHeightFt { get; init; } = 3;
+    public double ChopperMinExitMph { get; init; } = 70;
+    /// <summary>Grounder … this with real exit: liner (a rope).</summary>
+    public double LinerMaxLaunchDeg { get; init; } = 22;
+    public double LinerMinExitMph { get; init; } = 78;
+    /// <summary>Dirt / grass lip past the rubber. A fly landing inside it is a pop; infielders own the hop inside it.</summary>
     [Positive] public double InfieldLipFt { get; init; } = 155;
 }
 
@@ -726,6 +738,11 @@ public sealed class CatchRules
     public double JumpReachFt { get; init; } = 8;
     public double DiveMaxBallY { get; init; } = 7.5;
     public double NeedsJumpReachFt { get; init; } = 22;
+    /// <summary>Rob heights (§8.4): a leap at the wall takes a ball clearing the fence by at most this.</summary>
+    public double JumpRobFt { get; init; } = 4;
+    public double SuperJumpRobFt { get; init; } = 18;
+    public double ClamberRobFt { get; init; } = 28;
+    public double BuddyJumpRobFt { get; init; } = 18;
     public double TouchScoopY { get; init; } = 3.2;
     public double JumpBallY { get; init; } = 2.2;
     public double WallBallY { get; init; } = 4.5;
@@ -811,8 +828,6 @@ public sealed class FieldAbilityRules
     public double DiveGroundRangeFt { get; init; } = 16;
     [Positive] public double LaserMul { get; init; } = 1.45;
     [Positive] public double SnapThrowMul { get; init; } = 1.22;
-    public double AirRobPastFenceFt { get; init; } = 18;
-    public double ClamberRobPastFenceFt { get; init; } = 28;
 }
 
 /// <summary>

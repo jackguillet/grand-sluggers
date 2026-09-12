@@ -20,8 +20,9 @@ public class FoulTests
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
         Assert.False(r.HomeRun);
-        Assert.True(AtBatResolver.IsFoul(r.SprayDeg));
-        Assert.True(Math.Abs(r.SprayDeg) > AtBatResolver.FoulLineDeg);
+        Assert.Equal(BattedBallClass.Foul, r.Class);
+        var ball = BattedBall.Of(r, park);
+        Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ), "the untouched ball is judged where it lands or rolls (§5.6)");
         Assert.True(r.ExitVeloMph > 1);
     }
 
@@ -34,7 +35,7 @@ public class FoulTests
             var r = new AtBatResolver(_content.Chemistry).Resolve(Square(0), park, new Random(seed));
             Assert.False(r.Foul, $"seed {seed} spray {r.SprayDeg} labeled foul inside the lines");
             Assert.True(r.InPlay);
-            Assert.False(AtBatResolver.IsFoul(r.SprayDeg));
+            Assert.NotEqual(BattedBallClass.Foul, r.Class);
         }
     }
 
@@ -53,9 +54,9 @@ public class FoulTests
             Assert.True(r.Foul, $"seed {seed} spray {r.SprayDeg}");
             Assert.False(r.HomeRun, $"seed {seed} homer in foul territory carry {r.CarryFt}");
             Assert.False(r.InPlay);
-            carry = Math.Max(carry, r.CarryFt);
+            carry = Math.Max(carry, BallFlight.CarryFeet(r.ExitVeloMph, r.LaunchDeg, 0));
         }
-        Assert.True(carry > park.RightFenceFt * 0.6, $"expected a real fly, best carry {carry}");
+        Assert.True(carry > park.RightFenceFt * 0.6, $"expected a real fly, best open carry {carry}");
     }
 
     [Fact]
@@ -110,14 +111,15 @@ public class FoulTests
                     { CrossingX = -SweetSpot.TipSign(bats) * 0.95, CrossingY = StrikeZoneGeometry.CenterY },
                 park, new Random(seed));
             if (r.Quality == ContactQuality.Miss) continue;
+            var ball = BattedBall.Of(r, park);
             if (r.Foul)
             {
                 fouls++;
-                Assert.True(Math.Abs(r.SprayDeg) > AtBatResolver.FoulLineDeg,
-                    $"foul spray {r.SprayDeg} still inside the lines");
+                Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ),
+                    $"foul spray {r.SprayDeg} judged fair at ({ball.DecidedX:0},{ball.DecidedZ:0})");
             }
             else
-                Assert.False(AtBatResolver.IsFoul(r.SprayDeg));
+                Assert.True(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ));
         }
         Assert.True(fouls > 8, $"expected sitting-visible fouls off a pulled sour swing, got {fouls}");
     }

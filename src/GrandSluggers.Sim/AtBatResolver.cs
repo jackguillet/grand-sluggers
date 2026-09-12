@@ -21,9 +21,6 @@ public sealed class AtBatResolver
     public static double SprayAimDeg(double stickX, RulesTable? rules = null) =>
         Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
 
-    public static bool IsFoul(double sprayDeg) =>
-        Math.Abs(sprayDeg) > FoulLineDeg;
-
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
 
@@ -128,25 +125,29 @@ public sealed class AtBatResolver
             spray += (rng.NextDouble() - 0.5) * b.Bunt.SpraySpanDeg;
         spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
 
-        var carry = BallFlight.CarryFeet(exit, launch, park.WindMph, _rules);
-        var foul = IsFoul(spray);
-        var fence = FenceAt(park, spray);
-        var homer = !foul && !input.Bunt && carry >= fence && launch > b.Homer.LaunchMinDeg && launch < b.Homer.LaunchMaxDeg;
+        // The flight decides (spec §5.6, §6.1): the clipped path in this park says where the ball
+        // lands, whether it clears the fence, and whether the untouched ball is fair or foul.
+        // One rule for the resolver, the fielding preview, and the landing ring.
+        exit = Math.Round(exit, 1);
+        launch = Math.Round(launch, 1);
+        spray = Math.Round(spray, 1);
+        var ball = BattedBall.Of(exit, launch, spray, input.Bunt, park, _rules);
 
         return new AtBatResult(
             quality,
-            InPlay: !foul,
+            InPlay: !ball.Foul,
             Strike: false,
-            ExitVeloMph: Math.Round(exit, 1),
-            LaunchDeg: Math.Round(launch, 1),
-            CarryFt: Math.Round(carry, 1),
-            HomeRun: homer && !foul,
+            ExitVeloMph: exit,
+            LaunchDeg: launch,
+            CarryFt: Math.Round(ball.LandingDist, 1),
+            HomeRun: ball.HomeRun,
             ChemistryItemOffered: _chem.ChemistryItemOffered(input.Batter, input.OnDeck),
             StarPitchUsed: input.UseStarPitch ? input.Pitcher.StarPitch : null,
             StarSwingUsed: input.UseStarSwing ? input.Batter.StarSwing : null,
             SprayDeg: spray,
-            Foul: foul,
-            InZone: input.PitchInZone);
+            Foul: ball.Foul,
+            InZone: input.PitchInZone,
+            Class: ball.Class);
     }
 
     /// <summary>
@@ -237,7 +238,8 @@ public sealed class AtBatResolver
         return Math.Abs(sl - sr) < 0.2;
     }
 
-    static double RoundFence(Park park, double sprayDeg)
+    /// <summary>The circle through the three posts, or 0 where it degenerates (then <see cref="FenceAt"/> lerps the posts).</summary>
+    public static double RoundFence(Park park, double sprayDeg)
     {
         var lf = Post(park.LeftFenceFt, -FoulLineDeg);
         var cf = Post(park.CenterFenceFt, 0);

@@ -4,7 +4,19 @@ public sealed class FieldingResolver
 {
     public static readonly IReadOnlyList<string> InfieldPursuitPositions = ["P", "C", "1B", "2B", "3B", "SS"];
     public static readonly IReadOnlyList<string> AirPursuitPositions = ["LF", "CF", "RF", "SS", "2B"];
+    /// <summary>A pop: the corners and the catcher join the air pool in their sector; the P never takes one if anyone else can (§7.7, §8.2).</summary>
+    public static readonly IReadOnlyList<string> PopPursuitPositions = ["LF", "CF", "RF", "SS", "2B", "1B", "3B", "C"];
     public static readonly IReadOnlyList<string> OutfieldPursuitPositions = ["LF", "CF", "RF"];
+    /// <summary>A foul flight near the lines (§7.11).</summary>
+    public static readonly IReadOnlyList<string> FoulPursuitPositions = ["C", "1B", "3B", "LF", "RF"];
+
+    /// <summary>The pursuit pool for a class (§8.2): dirt and ropes to the infield, pops to the air pool plus the corners, flies to the air pool.</summary>
+    public static IReadOnlyList<string> PursuitPool(BattedBallClass shape, bool foul)
+    {
+        if (foul) return FoulPursuitPositions;
+        if (shape.OnTheDirt() || shape == BattedBallClass.Liner) return InfieldPursuitPositions;
+        return shape == BattedBallClass.Pop ? PopPursuitPositions : AirPursuitPositions;
+    }
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -23,23 +35,23 @@ public sealed class FieldingResolver
         Random rng,
         bool night = false)
     {
-        var landing = BallFlight.GroundPoint(hit.CarryFt, hit.SprayDeg);
-        var samples = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, park.WindMph, _rules);
-        var hang = BallFlight.HangTime(samples, _rules);
-        var grounder = IsGrounder(hit, _rules);
-        var line = IsLine(hit, _rules);
-        var hrLikely = HomeRunLikely(hit, park, _rules);
+        // One flight for the preview, the ring, and the homer call (§5.6): the clipped path in this park.
+        var ball = BattedBall.Of(hit, park, _rules);
+        var samples = ball.Samples;
+        var hang = ball.HangT;
+        var landing = (X: ball.LandingX, Z: ball.LandingZ);
+        var shape = ball.Shape;
+        var grounder = shape.OnTheDirt();
+        var line = shape == BattedBallClass.Liner;
         var assigned = Assign(defense, pitcher);
         var seed = new FieldingPreview(
-            pitcher, "P", null, hang, landing.X, landing.Z, grounder, hrLikely,
-            false, false, false, 10, Line: line);
+            pitcher, "P", null, hang, landing.X, landing.Z, shape, false, false, false, 10, Foul: ball.Foul, Ball: ball);
         var pursuit = FieldingPursuit.Choose(
             assigned,
-            !grounder && !line ? AirPursuitPositions : InfieldPursuitPositions,
+            PursuitPool(shape, ball.Foul),
             seed,
             park,
-            samples,
-            hit.SprayDeg);
+            samples);
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
         var warped = false;
@@ -63,8 +75,8 @@ public sealed class FieldingResolver
         var furnace = hit.StarSwingUsed is "furnace" or "heat-swing";
         var chomped = ParkHazards.ChompFly(park, night, landing.X, landing.Z, grounder || line);
         return new FieldingPreview(
-            fielder, pos, buddy, hang, landing.X, landing.Z, grounder, hrLikely,
-            heat, furnace, freeze, radius, warped, Chomped: chomped, Line: line);
+            fielder, pos, buddy, hang, landing.X, landing.Z, shape,
+            heat, furnace, freeze, radius, warped, Chomped: chomped, Foul: ball.Foul, Ball: ball);
     }
 
     public FieldingResult Resolve(
@@ -80,8 +92,10 @@ public sealed class FieldingResolver
         var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night);
         var fr = _rules.Fielding;
         var carry = _rules.Flight.Carry;
-        if (shown.HomeRunLikely && hit.HomeRun)
+        var ball = shown.Ball ?? BattedBall.Of(hit, park, _rules);
+        if (shown.HomeRunLikely)
         {
+            // The rob is a height (§8.4): the ability's reach over the fence against the ball's clearance at the crossing.
             if (ParkHazards.CanClamberRob(park, shown.Fielder, hit, _rules) || FieldAbilities.AirRob(park, shown.Fielder, hit, _rules))
                 return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy,
                     Feat: CatchFeat(shown, hit, park));
@@ -141,7 +155,11 @@ public sealed class FieldingResolver
                         Feat: CatchFeat(shown, hit, park));
             }
 
-            var kind = hit.CarryFt >= carry.TripleFt ? PlayKind.Triple
+            // Bounced then over (§1): every runner takes two. Off the wall (§7.9): the double / triple scene, a double until P3 runs it.
+            if (ball.GroundRule)
+                return new FieldingResult(PlayKind.Double, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, GroundRule: true);
+            var kind = shown.Class == BattedBallClass.Wall ? PlayKind.Double
+                : hit.CarryFt >= carry.TripleFt ? PlayKind.Triple
                 : hit.CarryFt >= carry.DoubleFt ? PlayKind.Double
                 : PlayKind.Single;
             kind = FieldAbilities.SpinCheck(fielder, kind);
@@ -181,11 +199,14 @@ public sealed class FieldingResolver
     /// <summary>The resolved catch verb, kept as a fact so copy can change without changing behavior.</summary>
     public static DefensiveFeat CatchFeat(FieldingPreview shown, AtBatResult hit, Park park)
     {
+        _ = hit;
         if (BuddyJumpOffered(shown))
             return DefensiveFeat.BuddyJump;
-        if (ParkHazards.CanClamber(park, shown.Fielder) && hit.CarryFt > 260)
+        if (!shown.HomeRunLikely)
+            return DefensiveFeat.None;
+        if (ParkHazards.CanClamber(park, shown.Fielder))
             return DefensiveFeat.Clamber;
-        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase) && hit.CarryFt > 250)
+        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
             return DefensiveFeat.SuperJump;
         return DefensiveFeat.None;
     }
@@ -358,32 +379,12 @@ public sealed class FieldingResolver
         return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
     }
 
-    public static bool IsGrounder(AtBatResult hit, RulesTable? rules = null) =>
-        hit.LaunchDeg < Rules.Or(rules).Flight.Classes.GrounderMaxLaunchDeg;
-
     /// <summary>
     /// Hopper with first occupied is a two-throw race. Director steps <see cref="InPlay.ThrowToBag"/>;
     /// do not collapse it into one GroundOut.
     /// </summary>
     public static bool DoublePlayHopper(bool grounder, bool firstOccupied, int outs) =>
         grounder && InPlay.DoublePlayOffered(firstOccupied, outs);
-
-    /// <summary>Low rocket (flight.classes.line*): 14–22° with real exit. Not a hopper, not a fly with a ring.</summary>
-    public static bool IsLine(AtBatResult hit, RulesTable? rules = null)
-    {
-        var c = Rules.Or(rules).Flight.Classes;
-        return hit.LaunchDeg >= c.LineMinLaunchDeg && hit.LaunchDeg < c.LineMaxLaunchDeg
-               && hit.ExitVeloMph >= c.LineMinExitMph && !IsGrounder(hit, rules);
-    }
-
-    public static bool HomeRunLikely(AtBatResult hit, Park park, RulesTable? rules = null)
-    {
-        if (hit.HomeRun) return true;
-        var c = Rules.Or(rules).Flight.Classes;
-        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt >= fence - c.HomerLikelyFenceMarginFt
-               && hit.LaunchDeg > c.HomerLikelyLaunchMinDeg && hit.LaunchDeg < c.HomerLikelyLaunchMaxDeg;
-    }
 
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>
     public static bool BuddyJumpOffered(FieldingPreview pre) =>
@@ -489,8 +490,13 @@ public sealed record FieldingResult(
     bool Chomped = false,
     bool Bobble = false,
     double KnockbackSec = 0,
-    DefensiveFeat Feat = DefensiveFeat.None);
+    DefensiveFeat Feat = DefensiveFeat.None,
+    bool GroundRule = false);
 
+/// <summary>
+/// What the defense is looking at from the crack: the glove on it, the landing mark, and the
+/// ball's class (§6.2) — the one table the pools, the ring, the catch window, and the cameras read.
+/// </summary>
 public sealed record FieldingPreview(
     Character Fielder,
     string Position,
@@ -498,15 +504,25 @@ public sealed record FieldingPreview(
     double HangTimeSec,
     double LandingX,
     double LandingZ,
-    bool Grounder,
-    bool HomeRunLikely,
+    BattedBallClass Class,
     bool Heatball,
     bool Furnace,
     bool Frozen,
     double CatchRadius,
     bool Warped = false,
     bool Chomped = false,
-    bool Line = false);
+    bool Foul = false,
+    BattedBall? Ball = null)
+{
+    /// <summary>On the dirt: the glove scoops it, no ring, no window.</summary>
+    public bool Grounder => Class.OnTheDirt();
+
+    /// <summary>A rope: the short window on the infield.</summary>
+    public bool Line => Class == BattedBallClass.Liner;
+
+    /// <summary>The flight clears the fence: only a leap at the wall takes it (§8.4).</summary>
+    public bool HomeRunLikely => Class == BattedBallClass.Homer;
+}
 
 public static class ParkHazards
 {
@@ -581,10 +597,11 @@ public static class ParkHazards
         fielder.FieldAbility.Equals("clamber", StringComparison.OrdinalIgnoreCase) &&
         park.Hazards.Any(h => h.Type == "climb_wall");
 
+    /// <summary>Clamber robs a ball clearing the fence by at most fielding.catch.clamberRobFt (§8.4).</summary>
     public static bool CanClamberRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
     {
         if (!CanClamber(park, fielder)) return false;
-        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt <= fence + Rules.Or(rules).Fielding.Abilities.ClamberRobPastFenceFt;
+        var ball = BattedBall.Of(hit, park, rules);
+        return ball.HomeRun && ball.FenceClearFt <= Rules.Or(rules).Fielding.Catch.ClamberRobFt;
     }
 }

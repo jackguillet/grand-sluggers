@@ -29,6 +29,10 @@
     "jumpReachFt": 8,
     "diveMaxBallY": 7.5,
     "needsJumpReachFt": 22,
+    "jumpRobFt": 4,
+    "superJumpRobFt": 18,
+    "clamberRobFt": 28,
+    "buddyJumpRobFt": 18,
     "touchScoopY": 3.2,
     "jumpBallY": 2.2,
     "wallBallY": 4.5,
@@ -88,9 +92,7 @@
     "superJumpFlyRangeFt": 22,
     "diveGroundRangeFt": 16,
     "laserMul": 1.45,
-    "snapThrowMul": 1.22,
-    "airRobPastFenceFt": 18,
-    "clamberRobPastFenceFt": 28
+    "snapThrowMul": 1.22
   },
   "throw": {
     "releaseSec": 0.22,
@@ -111,15 +113,15 @@
     "errorMul": 0.72,
     "cpuReleaseBaseSec": 0.42,
     "cpuReleasePerField": 0.014,
-    "cpuReleaseNoiseSec": 0.20,
-    "cpuReleaseMinSec": 0.10,
+    "cpuReleaseNoiseSec": 0.2,
+    "cpuReleaseMinSec": 0.1,
     "cpuReleaseMaxSec": 0.58,
     "tagHoldSec": 0.38,
     "cpuRemainNoiseSec": 0.28
   },
   "chem": {
     "goodSpeedMul": 1.35,
-    "badSpeedMul": 0.70,
+    "badSpeedMul": 0.7,
     "badErrorChance": 0.25,
     "badLateralFt": 14,
     "neutralLateralFt": 3

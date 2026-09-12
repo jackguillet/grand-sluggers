@@ -64,8 +64,8 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | Count | 4 balls = walk. 3 strikes = strikeout. Foul with 2 strikes stays 2 strikes **except a bunt**, which is strike three (§5.8). | ✅ P1 (S-18) |
 | Hit by pitch | A pitch that meets the batter's body while the batter does not swing awards first base (§4.6). | ✅ P1 geometry (S-16, S-17); the rubber-walk reach is P1 part b |
 | Balk, intentional walk, dropped third strike, check swing, infield fly, appeal plays | Not in the game. | ✅ by omission |
-| Ground-rule double | A fair ball that bounces on the field then leaves it over the fence: batter and all runners advance exactly two bases from where they started. | ❌ (no fence in flight, `BallFlight.cs`) |
-| Ball out of play (foul territory beyond the wall / into the stands) | Foul ball, dead. | ✅ (spray > 45° is dead) |
+| Ground-rule double | A fair ball that bounces on the field then leaves it over the fence: batter and all runners advance exactly two bases from where they started. | ✅ P2 (`BattedBall.GroundRule`, `PlayOutcome.GroundRuleDouble`; S-59) |
+| Ball out of play (foul territory beyond the wall / into the stands) | Foul ball, dead. | ✅ P2 (over a foul wall or the backstop is `SampleEvent.Stands`) |
 | Stars | Shared 0–5 per team. §12. | ✅ |
 | Ties in geometry | Tie at a bag goes to the runner. | ✅ (`InPlay.ForceOnBag`) |
 
@@ -256,9 +256,9 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 
 ### 5.6 Fair, foul, home run
 
-- A ball is **foul** if it *lands* (or is first touched by a fielder) in foul territory, or rolls foul before passing a base without being touched. It is **fair** if it lands fair past the bases, or is touched fair, or leaves the park between the poles. The chalk is geometry, not a spray cutoff. ⚠️ Foul = spray > 45° at contact; a 400 ft fly at 44° is a homer, a 46° pop is foul (`AtBatResolver.cs:13-23`).
-- **Home run**: the flight crosses the fence line above fence height between the poles. One rule, used by the flight, the fielding preview, and the landing ring. ⚠️ Two mismatched launch bands (18–38° vs 16–40°) (`AtBatResolver.cs:119-122`, `Fielding.cs:340-346`); no fence in the trajectory.
-- A ball that hits the wall is live (§7.9). A ball that bounces over is a ground-rule double (§1).
+- A ball is **foul** if it *lands* (or is first touched by a fielder) in foul territory, or rolls foul before passing a base without being touched. It is **fair** if it lands fair past the bases, or is touched fair, or leaves the park between the poles. The chalk is geometry, not a spray cutoff. ✅ P2: the untouched path's verdict is `BattedBall.Foul`, decided where the ball first lands past the bags, where it crosses the bag circle (90 ft) on a roll, where it rests, or where it touches a foul wall (S-20 … S-23). The wind bends the path, so the landing spray is not the spray at contact. There is no spin in the flight: a roll only curves with the wind. Touch-by-a-fielder is the live ball's call (P2 part b).
+- **Home run**: the flight crosses the fence line above fence height between the poles. One rule, used by the flight, the fielding preview, and the landing ring. ✅ P2 (`BattedBall.HomeRun` from the fence crossing; the launch bands are gone).
+- A ball that hits the wall is live (§7.9). A ball that bounces over is a ground-rule double (§1). ✅ P2
 - **Foul ball** with fewer than 2 strikes adds a strike. With 2 strikes, nothing (except bunt). Runners return. The ball still flies so the camera can chase it; the stamp says FOUL when it lands. ✅ ⚠️ `FinishFoul` skips `AfterPitch` so no steal/pickoff resolution on a foul.
 - A foul fly can be **caught** for an out (§7.11). ❌ Foul flights are never fielded.
 
@@ -299,12 +299,13 @@ Charge vs slap by archetype (reference): balanced 50%, power 80%, speed 30%, tec
 
 ### 6.1 Flight
 
-- 3-D ballistic with drag and a directional park wind (`Park.WindMph` + `WindDeg`), integrated at 120 Hz. ⚠️ 2-D with scalar downrange wind (`BallFlight.cs:34`).
-- Sample times are stretched by `TimeScale` (1.65) so gloves can get under a fly. Carry does not change. Pitches and throws are **not** stretched. ✅ The same stretched clock is the clock fielders and runners run on — one clock (§0.3). ✅ by accident today; make it explicit.
-- Bounce: restitution 0.48, horizontal 0.82; liners (14–22°) skid (0.28 / 0.93). Roll friction 22 ft/s². Rest at 1.4 ft/s. ✅ (constants → `data/rules/flight.json`)
-- **Fence**: the path is clipped by the outfield fence polygon (from the park's L/C/R distances, `RoundFence`). Below fence height → wall carom (§7.9). Above → home run. Bounce then over → ground-rule double. ❌
-- **Foul lines / backstop / side walls** are the field boundary; the ball cannot leave the park except over the fence or into foul stands (dead). ⚠️ `FieldBounds` clamps gloves; the ball itself rolls through the wall.
-- **Landing mark**: the first ground contact of the clipped path; the ring is where a glove has to be. Wall plant if the ball hits the wall first. ✅ (`FlyCatch.ChaseTarget`)
+- 3-D ballistic with drag taken relative to a directional park wind (`Park.WindMph` + `WindDeg`, `flight.windMul` of the flag reading), integrated at 120 Hz. ✅ P2 (`BallFlight.Trajectory(exit, launch, spray, park)`; every `Sample` carries X / Z / height and an event).
+- Sample times are stretched by `TimeScale` (1.65) so gloves can get under a fly. Carry does not change. Pitches and throws are **not** stretched. **The stretched sample clock is the play clock**: `LivePlaySystem.ElapsedSeconds` advances on it, the ball sits at `PointAt(path, ElapsedSeconds)`, and every glove, runner, and throw is judged against it — one clock (§0.3). ✅ P2 (explicit in `BallFlight` and `FlightRules.TimeScale`; the one-clock test in `FlightScenarioTests`).
+- Bounce: restitution 0.48, horizontal 0.82; liners (14–22°) skid (0.28 / 0.93). Roll friction 22 ft/s². Rest at 1.4 ft/s. Wall carom: normal × 0.48, along the wall × 0.82 (`flight.wall`). ✅ (`data/rules/flight.json`)
+- **Fence**: the path is clipped by the park boundary (`FieldBounds.Of(park)`): the outfield fence between the poles is the circle through the park's L / C / R posts (`RoundFence`) at `fenceHeightFt`; the foul wraps are the diamond kit's hip rail (36 ft off each line, flaring to the pole) and the round backstop (36 ft behind the plate). Below fence height → wall carom (§7.9). Above, between the poles → home run. Bounce then over → ground-rule double. Any touch of a foul wall, or over one, → foul, dead. ✅ P2
+- **Foul lines / backstop / side walls** are the field boundary; the ball cannot leave the park except over the fence or into foul stands (dead). ✅ P2 (property test: no sample of a fair trajectory lies outside the polygon except above the fence).
+- **Landing mark**: the first ground contact of the clipped path; the ring is where a glove has to be. Wall plant if the ball meets the wall or clears the fence first (`BattedBall.HangT` is that instant; the catch window sits on it). ✅ (`FlyCatch.ChaseTarget`)
+- **Landing guards** share one time base: the ground does not exist before `flight.landing.firstGrassMinSec` of play time, and every landing fact (hang, carry, the ring) reads the sample events, not a second height threshold. ✅ P2
 
 ### 6.2 Batted-ball classes
 
@@ -313,17 +314,17 @@ Class is a function of launch angle and exit velocity at contact, used by fieldi
 | Class | Launch | Exit | Typical |
 | --- | --- | --- | --- |
 | Topper | < 3° | any | Weak roller in front of the plate |
-| Grounder | 3–10° | any | Infield hop |
-| Chopper | 3–14° with a first bounce inside 30 ft and bounce height > 3 ft | ≥ 70 | High bounce, slow to the glove |
+| Grounder | 3–10° (and 10–14° under 78 mph) | any | Infield hop |
+| Chopper | < 14° with a first bounce inside 30 ft and bounce height > 3 ft | ≥ 70 | High bounce, slow to the glove |
 | Liner | 10–22° | ≥ 78 | Rope; catchable inside 1.2 s |
-| Fly (infield / pop) | > 22° | first landing < 155 ft | Pop-up, long hang |
-| Fly (outfield) | > 22° | landing ≥ 155 ft | Routine / deep by carry |
+| Fly (infield / pop) | > 22° (or 14–22° under 78 mph) | first landing < 155 ft | Pop-up, long hang |
+| Fly (outfield) | > 22° (or 14–22° under 78 mph) | landing ≥ 155 ft | Routine / deep by carry |
 | Wall ball | fly or liner that meets the fence below fence height | | Carom |
 | Home run | crosses the fence above height | | Dead, runners circle |
 | Bunt | bunt verb | | Dribbler in the triangle |
 | Foul | lands / touched in foul territory | | Dead unless caught |
 
-⚠️ `IsGrounder < 14°`, `IsLine 14–22°`, `HomeRunLikely` bands are three separate hard-coded checks (`Fielding.cs:327-346`).
+✅ P2: `BattedBallClass` and `BattedBall.Of` (`flight.classes`). `BattedBallClasses.ByLaunch` is the read at the crack (topper / grounder / liner / fly) the cameras use; the flight refines it (chopper by the first hop, pop by the landing, wall and homer by the fence). `AtBatResult.Class` and `FieldingPreview.Class` carry it; the pursuit pool is `FieldingResolver.PursuitPool(class, foul)`. The chopper row reads "< 14°" rather than "3–14°": launched from the bat's height, no ball at 3° and 70 mph first bounces inside 30 ft — the chopper is a ball driven down, and it becomes reachable once §5.4's launch bands (P1) include the topper band below 3°.
 
 ---
 
@@ -401,13 +402,13 @@ Common to all live plays:
 
 ### 7.9 Wall ball / carom
 
-- A fly or liner that meets the fence below fence height caroms (restitution 0.48, angle mirrored) and drops at the base of the wall. The outfielder plays the carom (route to the first reachable point on the post-carom path).
-- Runners: this is the **double / triple** scene. Batter reads the carom; runner on 1st scores on a carom to the gap with < 2 outs if the margin says so.
-- Rob: in the window at the wall, West (jump) with Super Jump / Clamber / Buddy Jump can catch a ball that would clear the fence by ≤ the ability's rob height (§8.4). ✅ windows; ❌ no fence in the flight.
+- A fly or liner that meets the fence below fence height caroms (restitution 0.48, angle mirrored) and drops at the base of the wall. The outfielder plays the carom (route to the first reachable point on the post-carom path). ✅ P2 (`BattedBallClass.Wall`; `LiveEvent.WallCarom` is the thump the client plays; S-58).
+- Runners: this is the **double / triple** scene. Batter reads the carom; runner on 1st scores on a carom to the gap with < 2 outs if the margin says so. ⚠️ Until P3 runs the bases by geometry an uncaught wall ball is a double (`FlyCatch.PlayerKind`, `FieldingResolver.Resolve`).
+- Rob: in the window at the wall, West (jump) with Super Jump / Clamber / Buddy Jump can catch a ball that would clear the fence by ≤ the ability's rob height (§8.4). ✅ P2 (`FlyCatch.CanRob` against `BattedBall.FenceClearFt`; S-56, S-57).
 
 ### 7.10 Home run
 
-- Fence crossed above fence height between the poles. Dead ball. Batter and all runners circle at trot speed; scoring is immediate (the throw cannot happen). Stamp HOME RUN / GRAND SLAM. ✅
+- Fence crossed above fence height between the poles. Dead ball. Batter and all runners circle at trot speed; scoring is immediate (the throw cannot happen). Stamp HOME RUN / GRAND SLAM. ✅ (the crossing is the one homer rule, P2)
 - The ball keeps flying into the stands (presentation). Night: fireworks (Harbor).
 
 ### 7.11 Foul ball
@@ -458,7 +459,7 @@ Common to all live plays:
 | Dive | East tap | 10 ft lunge toward the ball, +8 ft reach, ball < 7.5 ft |
 | Grow / Lick (ability) | passive | +6 / +3 ft catch radius, window +0.08 |
 
-✅ all windows exist (`FlyCatch`, `FieldAbilities`). ❌ the rob height is meaningless until the flight has a fence.
+✅ all windows exist (`FlyCatch`, `FieldAbilities`). ✅ P2: the rob heights are `fielding.catch.jumpRobFt / superJumpRobFt / clamberRobFt / buddyJumpRobFt`, judged against the ball's clearance over the fence at the crossing (`FlyCatch.CanRob`, S-56 / S-57).
 
 ### 8.5 Throws
 
@@ -758,8 +759,8 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | File | Sections |
 | --- | --- |
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `flight` (release hand, rubber walk, `AirSeconds` scale and clamps, break ramp), `shapes` (fastball / changeup / curve / slider curves), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1) |
-| `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
-| `flight.json` | gravity, drag, `timeScale`, plate height, wind, sample rate; `bounce`, `skid`, `roll`, `landing`, `classes` (grounder / line / homer-likely bands, infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
+| `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
+| `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
 | `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
 | `running.json` | `homeToFirst`, `bagToBag`, `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (lead-as-time-credit race as shipped until P6), `tagUp` (sac-fly carry), `stick`, `dash` (mash per press), `cpu` (the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
@@ -805,10 +806,10 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 
 | # | Where | What | Spec |
 | --- | --- | --- | --- |
-| 24 | `BallFlight.cs:34` | Scalar downrange wind | §6.1 |
-| 25 | `BallFlight.cs` | No fence, wall, or foul line in the trajectory | §6.1, §7.9 |
-| 26 | `BallFlight.cs:68, 116-119` | Landing guards in two time bases | §6.1 |
-| 27 | `Fielding.cs:327-346` | Three separate class bands | §6.2 |
+| 24 | `BallFlight.cs:34` | Scalar downrange wind | §6.1 — ✅ P2 |
+| 25 | `BallFlight.cs` | No fence, wall, or foul line in the trajectory | §6.1, §7.9 — ✅ P2 (`FieldBounds.Of`, `BattedBall`) |
+| 26 | `BallFlight.cs:68, 116-119` | Landing guards in two time bases | §6.1 — ✅ P2 |
+| 27 | `Fielding.cs:327-346` | Three separate class bands | §6.2 — ✅ P2 (`BattedBallClass`) |
 | 28 | `Fielding.cs:420-432` | Positions by roster order | §8.1 |
 
 ### A.3 Runner model (P3)

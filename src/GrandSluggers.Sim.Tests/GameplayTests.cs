@@ -72,8 +72,7 @@ public class GameplayTests
     {
         var park = _content.Parks["harbor-diamond"];
         var nico = _content.Must("nico");
-        var fence = AtBatResolver.FenceAt(park, 0);
-        var hit = new AtBatResult(ContactQuality.Perfect, true, false, 100, 28, fence + 10, true, false, null, null);
+        var hit = FlightFixtures.OverTheFence(park, 10, 0);
         Assert.True(FieldAbilities.AirRob(park, nico, hit));
         Assert.False(FieldAbilities.AirRob(park, _content.Must("rio"), hit));
     }
