@@ -22,7 +22,15 @@ namespace GrandSluggers.UnityClient
         public BallView Ball => _ball;
         public bool Night => _night;
 
-        public void Build(Park park, bool night = false)
+        RulesTable _rules;
+
+        public void Build(Park park, bool night, RulesTable rules)
+        {
+            _rules = rules ?? Rules.Default;
+            BuildPark(park, night);
+        }
+
+        void BuildPark(Park park, bool night)
         {
             if (_root != null) Destroy(_root.gameObject);
             _root = new GameObject("Park").transform;
@@ -1079,7 +1087,7 @@ namespace GrandSluggers.UnityClient
             armR.transform.localRotation = Quaternion.Euler(0, 0, -28f);
             if (breath)
             {
-                var amp = _night ? (float)ParkHazards.EmberNightFireMul : 1f;
+                var amp = _night ? (float)(_rules ?? Rules.Default).Fielding.Park.EmberNightFireMul : 1f;
                 var br = radius * amp;
                 Look.Prim(PrimitiveType.Cylinder, "Breath", root, new Vector3(0, 6.6f, 2.8f), new Vector3(br * 0.55f, br * 0.55f, br * 0.55f), fire);
                 var cone = Look.Prim(PrimitiveType.Cylinder, "Flame", root, new Vector3(0, 6.4f, 5.4f * amp), new Vector3(br * 1.1f, br * 0.7f, br * 1.1f), fire);

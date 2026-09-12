@@ -413,7 +413,7 @@ public static class ParkDiamond
 
     public static bool TrackIsInsideTheWall(Park park) =>
         TrackWidth > 8f && TrackWidth < 24f
-        && TrackMid(park, 0) > FieldingResolver.InfieldLipFt
+        && TrackMid(park, 0) > Rules.Default.Flight.Classes.InfieldLipFt
         && TrackMid(park, 0) < park.CenterFenceFt;
 
     public static bool PoleIsOnTheFoulLine(Park park)

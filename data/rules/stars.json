@@ -1,0 +1,27 @@
+{
+  "meterMax": 5,
+  "gains": {
+    "strikeout": 0.8,
+    "homeRun": 1.0,
+    "extraBaseHit": 0.8,
+    "single": 0.4,
+    "out": 0.35,
+    "liveOut": 0.4,
+    "stolenBase": 0.35,
+    "caughtStealing": 0.4,
+    "billboard": 1.0
+  },
+  "costs": {
+    "own": 1,
+    "guestCaptain": 2
+  },
+  "starting": {
+    "goodScore": 100,
+    "neutralScore": 50,
+    "badScore": 10,
+    "fiveAt": 70,
+    "fourAt": 55,
+    "threeAt": 35,
+    "twoAt": 15
+  }
+}

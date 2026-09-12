@@ -9,78 +9,99 @@ public static class InPlay
     /// a caught ball must instead finish through the ordinary live-play rules.
     /// </summary>
     public static bool DeadBallResultReady(PlayKind kind, double elapsed, double hangSeconds,
-        bool caught, bool throwing, bool effectInFlight) =>
-        HasDeadBallResult(kind) && !caught && !throwing && !effectInFlight
-        && elapsed >= Math.Max(2.4, hangSeconds + 0.35);
+        bool caught, bool throwing, bool effectInFlight, RulesTable? rules = null)
+    {
+        var dead = Rules.Or(rules).Flight.DeadBall;
+        return HasDeadBallResult(kind) && !caught && !throwing && !effectInFlight
+            && elapsed >= Math.Max(dead.MinSec, hangSeconds + dead.AfterHangSec);
+    }
 
     public static bool HasDeadBallResult(PlayKind kind) => kind == PlayKind.HomeRun;
 
-    public static double Energy(AtBatResult hit)
+    public static double Energy(AtBatResult hit, RulesTable? rules = null)
     {
+        var quality = Rules.Or(rules).Batting.Quality;
         var q = hit.Quality switch
         {
-            ContactQuality.Perfect => 1.25,
-            ContactQuality.Solid => 1.0,
-            ContactQuality.Cheap => 0.55,
+            ContactQuality.Perfect => quality.PerfectEnergyMul,
+            ContactQuality.Solid => quality.SolidEnergyMul,
+            ContactQuality.Cheap => quality.CheapEnergyMul,
             _ => 0
         };
         return hit.ExitVeloMph * q;
     }
 
-    public static double KnockbackSec(double energy, Character? fielder)
+    public static double KnockbackSec(double energy, Character? fielder, RulesTable? rules = null)
     {
-        if (energy < 72 || fielder is null) return 0;
-        var w = (11 - fielder.Stats.Field) * 0.045;
-        return Math.Clamp((energy - 72) / 90 * w, 0, 0.55);
+        var k = Rules.Or(rules).Fielding.Knockback;
+        if (energy < k.MinEnergy || fielder is null) return 0;
+        var w = (11 - fielder.Stats.Field) * k.SecPerFieldDeficit;
+        return Math.Clamp((energy - k.MinEnergy) / k.EnergySpan * w, 0, k.MaxSec);
     }
 
-    public static bool Bobbles(double energy, Character fielder, Random rng, GloveItem? glove = null)
+    public static bool Bobbles(double energy, Character fielder, Random rng, GloveItem? glove = null, RulesTable? rules = null)
     {
-        if (energy < 78) return false;
-        var hands = fielder.Stats.Field + (glove?.ErrorReduction ?? 0) * 3;
-        var chance = Math.Clamp((energy - 78) / 110.0 * (11 - hands) * 0.08, 0, 0.5);
+        var b = Rules.Or(rules).Fielding.Bobble;
+        if (energy < b.MinEnergy) return false;
+        var hands = fielder.Stats.Field + (glove?.ErrorReduction ?? 0) * b.HandsPerGloveReduction;
+        var chance = Math.Clamp((energy - b.MinEnergy) / b.EnergySpan * (11 - hands) * b.ChancePerHands, 0, b.MaxChance);
         return rng.NextDouble() < chance;
     }
 
-    /// <summary>Bang-bang: the throw arrived and the runner got there first by a step.</summary>
-    public const double CloseMarginSec = 0.45;
-
+    /// <summary>Bang-bang: the throw arrived and the runner got there first by a step (running.close.marginSec).</summary>
     /// <param name="arrivedAt">Live play time when the throw (or mash) lands.</param>
     /// <param name="needed">Run time to the bag.</param>
-    public static bool CloseSafe(double arrivedAt, double needed) =>
-        arrivedAt >= needed && arrivedAt - needed <= CloseMarginSec;
+    public static bool CloseSafe(double arrivedAt, double needed, RulesTable? rules = null) =>
+        arrivedAt >= needed && arrivedAt - needed <= Rules.Or(rules).Running.Close.MarginSec;
 
-    public static double HomeToFirstSec(Character batter, double dash01 = 0)
+    public static double HomeToFirstSec(Character batter, double dash01 = 0, RulesTable? rules = null)
     {
-        var run = Math.Clamp(4.32 - batter.Stats.Run * 0.13, 2.9, 4.35);
+        var h = Rules.Or(rules).Running.HomeToFirst;
+        var run = Math.Clamp(h.BaseSec - batter.Stats.Run * h.SecPerRun, h.MinSec, h.MaxSec);
         var dash = Math.Clamp(dash01, 0, 1);
-        return Math.Max(2.45, run * (1 - 0.12 * dash));
+        return Math.Max(h.FloorSec, run * (1 - h.DashMul * dash));
     }
 
     /// <summary>Named camera for the contact type. One table: <see cref="PlayCamera"/>.</summary>
     public static string TheaterShot(AtBatResult hit) => PlayCamera.FromHit(hit);
 
-    public static double ThrowSec(double distFt, ThrowResult? thr)
+    /// <summary>The verdict clock of a fielder's throw (fielding.throw). §8.5 makes it the only throw clock (P4).</summary>
+    public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable? rules = null)
     {
-        var fps = 56 * (thr?.SpeedMul ?? 1);
-        return 0.22 + distFt / Math.Max(32, fps);
+        var t = Rules.Or(rules).Fielding.Throw;
+        var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
+        return t.ReleaseSec + distFt / Math.Max(t.MinFtPerSec, fps);
+    }
+
+    /// <summary>
+    /// The live flight clock the client plays for a thrown ball, as shipped (fielding.throw.flight*).
+    /// A second formula next to <see cref="ThrowSec"/>; P4 collapses them (spec A.4 #40).
+    /// </summary>
+    public static double ThrowFlightSec(ThrowResult? thr, RulesTable? rules = null)
+    {
+        var t = Rules.Or(rules).Fielding.Throw;
+        var mul = Math.Max(t.FlightMinMul, thr?.SpeedMul ?? 1);
+        return Math.Clamp(t.FlightBaseSec / mul, t.FlightMinSec, t.FlightMaxSec);
     }
 
     /// <summary>True if the batter reaches first before the throw after a scoop at the landing.</summary>
-    public static bool BatterBeatsThrow(Character batter, AtBatResult hit, FieldingResult field, double dash01 = 0)
+    public static bool BatterBeatsThrow(Character batter, AtBatResult hit, FieldingResult field, double dash01 = 0, RulesTable? rules = null)
     {
         if (field.Kind != PlayKind.GroundOut || field.Fielder is null) return false;
-        var run = HomeToFirstSec(batter, dash01);
+        var run = HomeToFirstSec(batter, dash01, rules);
         var already = field.HangTimeSec;
         var left = run - already;
         if (left <= 0) return true;
         var dist = Diamond.Dist(field.LandingX, field.LandingZ, Diamond.First.X, Diamond.First.Z);
-        var tThrow = ThrowSec(dist, field.Throw) + KnockbackSec(Energy(hit), field.Fielder);
+        var tThrow = ThrowSec(dist, field.Throw, rules) + KnockbackSec(Energy(hit, rules), field.Fielder, rules);
         return left < tThrow;
     }
 
-    public static double BagToBagSec(Character runner) =>
-        Math.Clamp(3.55 - runner.Stats.Run * 0.12, 2.45, 3.65);
+    public static double BagToBagSec(Character runner, RulesTable? rules = null)
+    {
+        var b = Rules.Or(rules).Running.BagToBag;
+        return Math.Clamp(b.BaseSec - runner.Stats.Run * b.SecPerRun, b.MinSec, b.MaxSec);
+    }
 
     /// <summary>Lead non-force runner's next bag: home if third is on, else third if second is on.</summary>
     public static int TagBag(bool secondOccupied, bool thirdOccupied)
@@ -91,16 +112,16 @@ public static class InPlay
     }
 
     /// <summary>True if the runner reaches <paramref name="toBag"/> before the throw from the scoop.</summary>
-    public static bool RunnerBeatsTag(Character runner, AtBatResult hit, FieldingResult field, int toBag)
+    public static bool RunnerBeatsTag(Character runner, AtBatResult hit, FieldingResult field, int toBag, RulesTable? rules = null)
     {
         if (field.Kind != PlayKind.GroundOut || field.Fielder is null || toBag <= 0) return false;
-        var run = BagToBagSec(runner);
+        var run = BagToBagSec(runner, rules);
         var already = field.HangTimeSec;
         var left = run - already;
         if (left <= 0) return true;
         var dest = Diamond.Bag(toBag);
         var dist = Diamond.Dist(field.LandingX, field.LandingZ, dest.X, dest.Z);
-        var tThrow = ThrowSec(dist, field.Throw) + KnockbackSec(Energy(hit), field.Fielder);
+        var tThrow = ThrowSec(dist, field.Throw, rules) + KnockbackSec(Energy(hit, rules), field.Fielder, rules);
         return left < tThrow;
     }
 
@@ -293,10 +314,11 @@ public static class InPlay
     /// </summary>
     public static bool StickNamesBag(bool chasing, bool caught) => !chasing && !caught;
 
-    /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
-    public static int DiamondBag(double x, double y, double mag2 = 0.55)
+    /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0 (running.stick.diamondDeadMag2).</summary>
+    public static int DiamondBag(double x, double y, double? mag2 = null, RulesTable? rules = null)
     {
-        if (x * x + y * y < mag2) return 0;
+        var dead = mag2 ?? Rules.Or(rules).Running.Stick.DiamondDeadMag2;
+        if (x * x + y * y < dead) return 0;
         if (Math.Abs(x) > Math.Abs(y)) return x > 0 ? 1 : 3;
         return y > 0 ? 2 : 4;
     }
@@ -333,11 +355,9 @@ public static class InPlay
     /// <summary>
     /// Time. The glove has the ball, nobody is throwing.
     /// Three outs end it now. A putout with no remaining live runners ends it now.
-    /// Otherwise every live runner has occupied a bag for <see cref="TimeOnBagSec"/>.
+    /// Otherwise every live runner has occupied a bag for running.bags.timeOnBagSec.
     /// Picking up the ball is not Time — the batter is still live until the out.
     /// </summary>
-    public const double TimeOnBagSec = 1.0;
-
     public readonly record struct Occupy(bool OnBag, double Sec);
 
     public static bool Time(
@@ -348,14 +368,16 @@ public static class InPlay
         Occupy? first = null,
         Occupy? second = null,
         Occupy? third = null,
-        bool batterOut = false)
+        bool batterOut = false,
+        RulesTable? rules = null)
     {
         if (outs >= 3) return true;
         if (!hasBall || throwing) return false;
-        if (!batterOut && !Settled(batter)) return false;
-        if (first is { } a && !Settled(a)) return false;
-        if (second is { } b && !Settled(b)) return false;
-        if (third is { } c && !Settled(c)) return false;
+        var onBagSec = Rules.Or(rules).Running.Bags.TimeOnBagSec;
+        if (!batterOut && !Settled(batter, onBagSec)) return false;
+        if (first is { } a && !Settled(a, onBagSec)) return false;
+        if (second is { } b && !Settled(b, onBagSec)) return false;
+        if (third is { } c && !Settled(c, onBagSec)) return false;
         return true;
     }
 
@@ -363,7 +385,7 @@ public static class InPlay
     public static bool LiveBatter(PlayKind kind, bool putOut) =>
         BatterDestBag(kind) > 0 && !putOut;
 
-    static bool Settled(Occupy o) => o.OnBag && o.Sec + 1e-9 >= TimeOnBagSec;
+    static bool Settled(Occupy o, double onBagSec) => o.OnBag && o.Sec + 1e-9 >= onBagSec;
 
     public static Occupy TickOccupy(bool onBag, double sec, double dt) =>
         onBag ? new Occupy(true, sec + dt) : new Occupy(false, 0);
@@ -392,17 +414,11 @@ public static class InPlay
         return dest > 4 ? 4 : dest;
     }
 
-    public const double OccupyRadiusFt = 6;
-
     /// <summary>
-    /// Glove with the ball touches a runner. Toy bodies read big from the
-    /// diamond camera — this is body contact, not a force at the bag.
+    /// Glove with the ball touches a runner (running.bags.tagReachFt). Toy bodies read big from
+    /// the diamond camera — this is body contact, not a force at the bag. A runner standing
+    /// inside tagSafeRadiusFt of a bag is safe; tighter than the Time occupy so a step off is a tag.
     /// </summary>
-    public const double TagReachFt = 14;
-
-    /// <summary>Standing on the bag. Tighter than Time occupy so a step off is a tag.</summary>
-    public const double TagSafeRadiusFt = 3.5;
-
     public static bool Touches(
         bool hasBall,
         bool throwing,
@@ -410,31 +426,35 @@ public static class InPlay
         double gloveZ,
         double runnerX,
         double runnerZ,
-        bool? runnerOnBag = null)
+        bool? runnerOnBag = null,
+        RulesTable? rules = null)
     {
         if (!hasBall || throwing) return false;
-        var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, TagSafeRadiusFt);
+        var bags = Rules.Or(rules).Running.Bags;
+        var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, bags.TagSafeRadiusFt);
         if (onBag) return false;
-        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt;
+        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < bags.TagReachFt;
     }
 
-    public static bool OccupyingBag(double x, double z, double radius = OccupyRadiusFt)
+    /// <summary>Inside a bag's occupy radius (running.bags.occupyRadiusFt) of home or any bag.</summary>
+    public static bool OccupyingBag(double x, double z, double? radius = null, RulesTable? rules = null)
     {
-        if (Diamond.Dist(x, z, 0, 0) <= radius) return true;
+        var r = radius ?? Rules.Or(rules).Running.Bags.OccupyRadiusFt;
+        if (Diamond.Dist(x, z, 0, 0) <= r) return true;
         for (var bag = 1; bag <= 3; bag++)
         {
             var p = Diamond.Bag(bag);
-            if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return true;
+            if (Diamond.Dist(x, z, p.X, p.Z) <= r) return true;
         }
         return false;
     }
 
     /// <summary>On this bag only. Home is 4.</summary>
-    public static bool OnThisBag(int bag, double x, double z, double radius = OccupyRadiusFt)
+    public static bool OnThisBag(int bag, double x, double z, double? radius = null, RulesTable? rules = null)
     {
         if (bag is < 1 or > 4) return false;
         var p = Diamond.Bag(bag);
-        return Diamond.Dist(x, z, p.X, p.Z) <= radius;
+        return Diamond.Dist(x, z, p.X, p.Z) <= (radius ?? Rules.Or(rules).Running.Bags.OccupyRadiusFt);
     }
 
     /// <summary>
@@ -464,23 +484,25 @@ public static class InPlay
         double gloveX,
         double gloveZ,
         double runnerX,
-        double runnerZ)
+        double runnerZ,
+        RulesTable? rules = null)
     {
         if (!force || !hasBall || throwing) return false;
-        if (!OnThisBag(bag, gloveX, gloveZ, OccupyRadiusFt)) return false;
-        if (OnThisBag(bag, runnerX, runnerZ, TagSafeRadiusFt)) return false;
+        var bags = Rules.Or(rules).Running.Bags;
+        if (!OnThisBag(bag, gloveX, gloveZ, bags.OccupyRadiusFt)) return false;
+        if (OnThisBag(bag, runnerX, runnerZ, bags.TagSafeRadiusFt)) return false;
         return true;
     }
 
     /// <summary>Feet along home → 1B → 2B → 3B → home. destBag 1..4. fromBag 0 is home.</summary>
     public static (double X, double Z) TowardBag(
-        int fromBag, int destBag, double feet, double homeX = 0, double homeZ = 0)
+        int fromBag, int destBag, double feet, double homeX = 0, double homeZ = 0, RulesTable? rules = null)
     {
         if (destBag <= fromBag)
             return fromBag <= 0 ? (homeX, homeZ) : Diamond.Bag(fromBag);
         var cap = (destBag - fromBag) * Diamond.Baseline;
         feet = Math.Clamp(feet, 0, cap);
-        if (feet >= cap - 0.5)
+        if (feet >= cap - Rules.Or(rules).Running.Bags.SnapFt)
         {
             var end = destBag >= 4 ? Diamond.Home : Diamond.Bag(destBag);
             return (end.X, end.Z);
@@ -493,9 +515,12 @@ public static class InPlay
         return (from.X + (to.X - from.X) * u, from.Z + (to.Z - from.Z) * u);
     }
 
-    public static (double X, double Z) AlongBases(double feet, int destBag, double startX = 0, double startZ = 0) =>
-        TowardBag(0, destBag, feet, startX, startZ);
+    public static (double X, double Z) AlongBases(double feet, int destBag, double startX = 0, double startZ = 0, RulesTable? rules = null) =>
+        TowardBag(0, destBag, feet, startX, startZ, rules);
 
-    public static double RunFeet(double elapsed, Character who, double dash01 = 0) =>
-        elapsed * Diamond.Baseline / Math.Max(0.4, HomeToFirstSec(who, dash01));
+    public static double RunFeet(double elapsed, Character who, double dash01 = 0, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        return elapsed * Diamond.Baseline / Math.Max(r.Running.HomeToFirst.RunFeetMinSec, HomeToFirstSec(who, dash01, r));
+    }
 }
