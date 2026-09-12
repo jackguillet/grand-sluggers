@@ -36,8 +36,15 @@ public sealed class Match
     public int HomeBatter { get; private set; }
     public double AwayStars { get; private set; }
     public double HomeStars { get; private set; }
-    public int AwayStamina { get; private set; } = 100;
-    public int HomeStamina { get; private set; } = 100;
+    /// <summary>Each character's own arm for the match (spec §4.7), keyed by id; a pool is opened on first use.</summary>
+    readonly Dictionary<string, int> _stamina = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The defense in glove order (Diamond.Order after the pitcher); a swap trades two slots.</summary>
+    readonly List<Character> _homeDefense;
+    readonly List<Character> _awayDefense;
+    bool _swappedThisHalf;
+    /// <summary>What the CPU batter remembers between pitches (spec §5.9 tracking): the last crossing seen by each offense, and the rubber the last pitch left from.</summary>
+    double? _awayLastCrossingX, _homeLastCrossingX;
+    double _lastPitchRubberX;
     Character _homePitcher;
     Character _awayPitcher;
     public bool Over { get; private set; }
@@ -59,7 +66,7 @@ public sealed class Match
         Night = night;
         Innings = innings;
         _rng = new Random(seed);
-        _atBat = new AtBatResolver(content.Chemistry, content.Rules);
+        _atBat = new AtBatResolver(content.Chemistry, content.Rules, content.StarSkills);
         _fielding = new FieldingResolver(content.Chemistry, content.Rules);
         LivePlay = new LivePlaySystem(this);
         AwayOrder = away.BattingOrder;
@@ -68,6 +75,8 @@ public sealed class Match
         HomeStars = content.Chemistry.StartingStars(home);
         _homePitcher = home.Pitcher;
         _awayPitcher = away.Pitcher;
+        _homeDefense = home.Roster.ToList();
+        _awayDefense = away.Roster.ToList();
         HomeBat = GearMesh.SignatureBat(content, home.Captain.Id);
         AwayBat = GearMesh.SignatureBat(content, away.Captain.Id);
         HomeGlove = content.Gloves.GetValueOrDefault("web-back") ?? content.Gloves.Values.First();
@@ -175,7 +184,14 @@ public sealed class Match
     public Team Defense => Top ? Home : Away;
     public Character Batter => (Top ? AwayOrder : HomeOrder)[Top ? AwayBatter : HomeBatter];
     public Character Pitcher => Top ? _homePitcher : _awayPitcher;
-    public int PitcherStamina => Top ? HomeStamina : AwayStamina;
+    /// <summary>The defense in glove order: <see cref="FieldingResolver.Assign"/> reads it, the swap reorders it.</summary>
+    public IReadOnlyList<Character> DefenseRoster => Top ? _homeDefense : _awayDefense;
+    /// <summary>The pitcher's own arm (spec §4.7). Can go below zero: exhausted.</summary>
+    public int PitcherStamina => StaminaOf(Pitcher);
+    public int PitcherStaminaMax => StaminaPool(Pitcher);
+    public bool PitcherExhausted => PitcherStamina < 0;
+    /// <summary>Once per half-inning (spec §4.7).</summary>
+    public bool CanSwapPitcher => !_swappedThisHalf && !Over;
     public Character? OnDeck
     {
         get
@@ -208,7 +224,7 @@ public sealed class Match
     public double BatterOffsetX { get; private set; }
     /// <summary>World-X box offset held from bat-ball contact into the live run.</summary>
     public double BatterContactOffsetX { get; private set; }
-    public bool PitcherTired => (Top ? HomeStamina : AwayStamina) < Rules.Pitching.Stamina.TiredBelow;
+    public bool PitcherTired => PitcherStamina < Rules.Pitching.Stamina.TiredBelow;
     public bool Paused { get; private set; }
     /// <summary>All-advance this pitch: fly tag-up is on. Default fly is hold.</summary>
     public bool SendAll { get; private set; }
@@ -527,12 +543,12 @@ public sealed class Match
         {
             state.ReturnToBag(1);
             StealOn = false;
-            var stay = Emit(PlayKind.TakeBall, new PitchCommand("fastball", 0, 0, false),
+            var stay = Emit(PlayKind.TakeBall, new PitchCommand("fastball", 0, false),
                 new SwingCommand(false, 0, 0, false), EmptyHit(true),
                 $"{runner.Name} back to the bag.", 0, []);
             return stay;
         }
-        var fake = new PitchCommand("fastball", 0, 0, false);
+        var fake = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         StealOn = true;
         var target = Baserunning.StealTarget(bag);
@@ -570,10 +586,39 @@ public sealed class Match
             DeliveryPrepared = true };
         if (PitcherTired)
         {
+            // TIRED (spec §4.7): a crossing wobble in feet and less break; exhausted is worse.
             var st = Rules.Pitching.Stamina;
-            ready = ready with { AimX = ready.AimX + Gauss() * st.TiredAimX, AimY = ready.AimY + Gauss() * st.TiredAimY };
+            var wobble = PitcherExhausted ? st.ExhaustedWobbleFt : st.TiredWobbleFt;
+            ready = ready with
+            {
+                AimX = ready.AimX + Gauss() * wobble / PitchFlight.PlateScaleX,
+                AimY = ready.AimY + Gauss() * wobble / PitchFlight.PlateScaleY,
+                BreakMul = st.TiredBreakMul
+            };
         }
         return ready;
+    }
+
+    /// <summary>The pitch's speed from this arm: shape, stat, charge, Nice!, the star skill, and fatigue (spec §4.7).</summary>
+    public double PitchSpeedMph(PitchCommand pitch)
+    {
+        var st = Rules.Pitching.Stamina;
+        var penalty = PitcherExhausted ? st.ExhaustedMph : PitcherTired ? st.TiredMph : 0;
+        return AtBatResolver.PitchSpeedMph(pitch, Pitcher, Rules, Content.StarSkills, penalty);
+    }
+
+    // ---- stamina (spec §4.7) --------------------------------------------------------
+
+    public int StaminaPool(Character who) =>
+        Rules.Pitching.Stamina.PoolBase + who.Stats.Pitch * Rules.Pitching.Stamina.PoolPerPitch;
+
+    public int StaminaOf(Character who) =>
+        _stamina.TryGetValue(who.Id, out var pool) ? pool : StaminaPool(who);
+
+    void ChargeArm(Character who, int cost)
+    {
+        if (cost == 0) return;
+        _stamina[who.Id] = StaminaOf(who) - cost;
     }
 
     public bool BeginAtBat(PitchCommand pitch, SwingCommand swing, out AtBatResult hit, out PlayEvent? finished)
@@ -588,6 +633,7 @@ public sealed class Match
         var crossing = PitchFlight.Point(pitch, 1, Pitcher.StarPitch, rules: Rules);
         var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
+        if (Top) _awayLastCrossingX = crossing.X; else _homeLastCrossingX = crossing.X;
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         BatterContactOffsetX = box;
 
@@ -608,7 +654,7 @@ public sealed class Match
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
             ChargeFeel.IsCharge(pitch.Charge01), pitch.Changeup || pitch.Type == "changeup",
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
-            Top ? HomeStamina : AwayStamina,
+            PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
             swing.Charge01, box, crossing.X, crossing.Y);
 
@@ -640,27 +686,39 @@ public sealed class Match
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
         _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night);
 
-    public bool SwapPitcher()
+    /// <summary>
+    /// Pitcher swap (spec §4.7): any fielder takes the mound (the best Pitch stat when nobody is
+    /// named) with their own arm; the old pitcher takes the glove they vacated. Once per half-inning.
+    /// </summary>
+    public bool SwapPitcher(Character? next = null)
     {
-        var team = Defense;
+        if (!CanSwapPitcher) return false;
+        var defense = Top ? _homeDefense : _awayDefense;
         var cur = Pitcher;
-        var next = team.Roster
+        next ??= defense
             .Where(c => !c.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(c => c.Stats.Pitch)
             .FirstOrDefault();
-        if (next is null) return false;
-        var restore = Rules.Pitching.Stamina.SwapRestore;
-        if (Top)
-        {
-            _homePitcher = next;
-            HomeStamina = Math.Min(100, HomeStamina + restore);
-        }
-        else
-        {
-            _awayPitcher = next;
-            AwayStamina = Math.Min(100, AwayStamina + restore);
-        }
+        if (next is null || next.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase)) return false;
+        var from = defense.FindIndex(c => c.Id.Equals(cur.Id, StringComparison.OrdinalIgnoreCase));
+        var to = defense.FindIndex(c => c.Id.Equals(next.Id, StringComparison.OrdinalIgnoreCase));
+        if (from < 0 || to < 0) return false;
+        (defense[from], defense[to]) = (defense[to], defense[from]);
+        if (Top) _homePitcher = next;
+        else _awayPitcher = next;
+        _swappedThisHalf = true;
+        PitcherOffsetX = 0;
         return true;
+    }
+
+    /// <summary>The CPU swaps at TIRED with a lead of cpuSwapLead, or at exhaustion always (spec §4.7).</summary>
+    public bool CpuConsidersSwap()
+    {
+        if (!CanSwapPitcher) return false;
+        var lead = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
+        if (PitcherExhausted || (PitcherTired && lead >= Rules.Pitching.Stamina.CpuSwapLead))
+            return SwapPitcher();
+        return false;
     }
 
     public ThrowResult ThrowBetween(Character from, Character to) =>
@@ -687,72 +745,194 @@ public sealed class Match
         return ErrorItems.Apply(field, item, _rng, target, Rules);
     }
 
-    /// <summary>The CPU pitcher's rolls (pitching.cpu). §4.8 replaces them with a decision table (P1).</summary>
+    /// <summary>
+    /// The CPU pitcher (spec §4.8): one row of the table per SET from the count, the outs and the
+    /// runners; a location target in world feet (never dead center), a verb from the row's mix,
+    /// scatter σ = (11 − Pitch) × scatterFtPerPitchStat around the target, TIRED noise on top.
+    /// Walking the rubber is a real verb here too: the batter may mistrack it (§5.9).
+    /// </summary>
     public PitchCommand CpuPitch()
     {
         var c = Rules.Pitching.Cpu;
-        var tired = (Top ? HomeStamina : AwayStamina) < Rules.Pitching.Stamina.TiredBelow;
-        var star = CanStarPitch && _rng.NextDouble() < (Pitcher.Captain ? c.StarChanceCaptain : c.StarChance);
-        var changeup = _rng.NextDouble() < c.ChangeupChance;
-        // Break is a stick verb, not a type (spec §4.3): the CPU holds it one way for the flight.
-        var breakX = !changeup && _rng.NextDouble() < c.BreakChance ? (_rng.NextDouble() < 0.5 ? -1.0 : 1.0) : 0;
-        var charge = _rng.NextDouble() < c.ChargeChance
-            ? c.ChargeMin + _rng.NextDouble() * c.ChargeSpan
-            : c.TapMin + _rng.NextDouble() * c.TapSpan;
-        var err = Gauss() * (11 - Pitcher.Stats.Pitch) * c.ErrorFramesPerPitchStat;
-        if (tired) err *= c.TiredErrorMul;
-        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterPerPitchStat;
-        var aimX = Gauss() * scatter;
-        var aimY = Gauss() * scatter * c.ScatterYMul;
-        if (tired)
+        var row = CpuPitchRow();
+        if (_rng.NextDouble() < c.RubberWalkChance)
+            PitcherOffsetX = (_rng.NextDouble() * 2 - 1) * c.RubberWalkMax;
+
+        var (tx, ty) = CpuPitchTarget(row.Location, c.Locations);
+        var scatter = (11 - Pitcher.Stats.Pitch) * c.ScatterFtPerPitchStat * (PitcherTired ? c.TiredScatterMul : 1);
+        tx += Gauss() * scatter;
+        ty += Gauss() * scatter;
+
+        var verb = CpuPitchVerb(row);
+        var charged = verb == "charge";
+        var changeup = verb == "changeup";
+        var breakX = verb == "break" ? (_rng.NextDouble() < 0.5 ? -1.0 : 1.0) : 0;
+        var charge = charged ? 1.0 : c.TapMin + _rng.NextDouble() * c.TapSpan;
+        var star = CanStarPitch && Pitcher.Captain && _rng.NextDouble() < row.StarChance;
+        var delivery = new PitchCommand(changeup ? "changeup" : "fastball", charge, star,
+            Changeup: changeup, BreakX: breakX, RubberX: PitcherOffsetX,
+            Nice: charged && _rng.NextDouble() < c.NiceChance);
+        // The row names a crossing; the rubber and the break are compensated into the aim.
+        return PitchFlight.AimForCrossing(delivery, tx / PitchFlight.PlateScaleX,
+            (ty - PitchFlight.PlateY) / PitchFlight.PlateScaleY, Pitcher.StarPitch, Rules);
+    }
+
+    /// <summary>Which row of §4.8 this SET reads.</summary>
+    public CpuPitchRow CpuPitchRow()
+    {
+        var c = Rules.Pitching.Cpu;
+        if (Outs == 2 && RunnersOn().Any()) return c.RunnerTwoOuts;
+        if (Strikes == 2 && Balls <= 1) return c.Ahead;
+        if (Balls >= 2 && Strikes <= 1) return c.Behind;
+        return c.Even;
+    }
+
+    /// <summary>The named location in world feet at the plate plane; the away side is by batter hand.</summary>
+    (double X, double Y) CpuPitchTarget(string location, CpuPitchLocations loc)
+    {
+        var away = SweetSpot.TipSign(Batter.Bats);
+        var halfW = StrikeZoneGeometry.HalfWidth;
+        var halfH = StrikeZoneGeometry.Height / 2;
+        var cy = StrikeZoneGeometry.CenterY;
+        switch (location)
         {
-            aimX *= c.TiredScatterMul;
-            aimY *= c.TiredScatterMul;
+            case "waste":
+                return (away * (halfW + loc.WasteOutFt), cy + (_rng.NextDouble() < 0.5 ? -1 : 1) * halfH / 2);
+            case "middleIn":
+                return (-away * loc.MiddleInFt, cy);
+            case "middle":
+                return (0, cy + (_rng.NextDouble() * 2 - 1) * loc.MiddleYSpreadFt);
+            default:
+                var side = _rng.NextDouble() < loc.EdgeAwayChance ? away : -away;
+                var vertical = _rng.NextDouble() < 0.5 ? -1 : 1;
+                return (side * (halfW - loc.EdgeInsetFt), cy + vertical * (halfH - loc.EdgeInsetFt));
         }
-        var delivery = new PitchCommand("fastball", charge, err, star, aimX, aimY,
-            breakX, changeup, PitcherOffsetX);
-        // The CPU picks a crossing; the rubber and the break are compensated into the aim (§4.8 lands the location table).
-        return PitchFlight.AimForCrossing(delivery, aimX, aimY, Pitcher.StarPitch, Rules);
+    }
+
+    string CpuPitchVerb(CpuPitchRow row)
+    {
+        var total = row.Normal + row.Charge + row.Changeup + row.Break;
+        var roll = _rng.NextDouble() * total;
+        if (roll < row.Normal) return "normal";
+        roll -= row.Normal;
+        if (roll < row.Charge) return "charge";
+        roll -= row.Charge;
+        if (roll < row.Changeup) return "changeup";
+        return "break";
     }
 
     /// <summary>
-    /// The CPU batter's rolls (batting.cpu), the same table whoever is pitching: a human's meatball
-    /// is punished by geometry, never protected by a forced miss (spec §5.9). §5.9's tracking table
-    /// lands with the CPU tables (P1 part c).
+    /// The CPU batter (spec §5.9): a table read at the plate plane from the final crossing, the
+    /// same whoever is pitching. No side effects: the box it stands in and the swing it makes are
+    /// the returned command. Steals are the runner AI's (<see cref="CpuArmSteal"/>).
     /// </summary>
     public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
     {
-        // Spec A.1 #20: the steal roll rides in the swing (running.cpu). §11.6 moves it to the runner AI (P6).
-        var run = Rules.Running.Cpu;
-        if (CanSteal && Batter.Stats.Run >= run.StealMinRun && _rng.NextDouble() < run.StealChance)
+        var c = Rules.Batting.Cpu;
+        var level = Rules.Cpu.Active;
+        var bat = Batter.Stats.Bat;
+        var (cx, cy) = PitchFlight.Crossing(pitch, Pitcher.StarPitch, Rules);
+        var zone = CpuZoneClass(cx, cy, inZone, c);
+        var take = new SwingCommand(false, 0, 0, false);
+
+        // Sac bunt: runner on first only, no outs, a light bat, close game.
+        var trailing = (Top ? HomeScore - AwayScore : AwayScore - HomeScore);
+        if (inZone && First is not null && Second is null && Third is null && Outs == 0
+            && bat <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax && _rng.NextDouble() < c.SacBuntChance)
+            return new SwingCommand(true, 0, Gauss() * c.SacBuntErrorSigma * level.TimingSigmaMul, false,
+                Gauss() * c.SacBuntSpraySigma, Bunt: true, LaunchAim: c.SacBuntLaunchAim,
+                BoxOffsetX: CpuTrackedBox(cx, c, level));
+
+        var swing = zone switch
         {
-            StartSteal();
-            TakeLead(run.StealLeadMin + _rng.NextDouble() * run.StealLeadSpan);
+            CpuZone.Middle => true,
+            CpuZone.Edge => Strikes == 2 || _rng.NextDouble() < c.EdgeSwingChance,
+            CpuZone.Near => _rng.NextDouble() * 100 < (Strikes == 2 ? c.ChaseTwoStrikesBase : c.ChaseBase) - bat,
+            _ => false
+        };
+        if (!swing) return take;
+
+        var star = CanStarSwing && Batter.Captain && inZone && (RunnersOn().Any() || Strikes == 2)
+                   && _rng.NextDouble() < c.StarChance;
+        var risp = Second is not null || Third is not null;
+        var forcedCharge = zone == CpuZone.Middle
+                           && (((Balls, Strikes) is (2, 0) or (3, 1) or (3, 0)) && bat >= c.ChargeBatMin
+                               || risp && Outs < 2 && bat >= c.RispChargeBatMin);
+        var charge = forcedCharge || _rng.NextDouble() < CpuChargeChance(Batter, c.Archetype) ? 1.0 : 0;
+
+        var tracked = _rng.NextDouble() < c.TrackPerfectChance;
+        var err = Gauss() * (11 - bat) * c.ErrorFramesPerBatStat * level.TimingSigmaMul;
+        if (!tracked && (pitch.IsChangeup || ChargeFeel.IsCharge(pitch.Charge01)))
+        {
+            // Fooled: a changeup pulls the bat early past the ball (late), a charged pitch beats it (early).
+            var fooled = c.FooledMinFrames + _rng.NextDouble() * c.FooledSpanFrames;
+            err += pitch.IsChangeup ? fooled : -fooled;
         }
-        return CpuSwingArcade(pitch, inZone);
+        var box = tracked ? Math.Clamp(cx / HomeSet.BatterWalk, -1, 1) : CpuTrackedBox(cx, c, level);
+        return new SwingCommand(true, charge, err, star, Gauss() * c.SpraySigmaDeg,
+            LaunchAim: Gauss() * c.LaunchAimSigma, BoxOffsetX: box);
     }
 
-    SwingCommand CpuSwingArcade(PitchCommand pitch, bool inZone)
+    enum CpuZone { Middle, Edge, Near, Far }
+
+    static CpuZone CpuZoneClass(double x, double y, bool inZone, CpuBatterRules c)
     {
-        var c = Rules.Batting.Cpu;
-        var sigmaMul = Rules.Cpu.Active.TimingSigmaMul;
-        var chase = !inZone && _rng.NextDouble() < c.ChaseChance;
-        if (!inZone && !chase)
-            return new SwingCommand(false, 0, 0, false);
-        if (AtBatResolver.CpuSacBuntSpot(inZone, First is not null, Outs, _rng.NextDouble(), Rules))
-            return new SwingCommand(true, c.SacBuntCharge, Gauss() * c.SacBuntErrorSigma * sigmaMul, false,
-                Gauss() * c.SacBuntSpraySigma, Bunt: true, LaunchAim: c.SacBuntLaunchAim);
-        var star = CanStarSwing && inZone && _rng.NextDouble() < (Batter.Captain ? c.StarChanceCaptain : c.StarChance);
-        var charge = _rng.NextDouble() < c.ChargeChance ? c.ChargeMin + _rng.NextDouble() * c.ChargeSpan : _rng.NextDouble() * c.TapSpan;
-        var err = Gauss() * (11 - Batter.Stats.Bat) * c.ErrorFramesPerBatStat * sigmaMul;
-        if (!inZone) err += c.OutOfZoneErrorFrames * Math.Sign(err == 0 ? 1 : err);
-        var spray = Gauss() * c.SpraySigmaDeg;
-        var launchAim = Gauss() * c.LaunchAimSigma;
-        return new SwingCommand(true, charge, err, star, spray, LaunchAim: launchAim);
+        var dx = Math.Abs(x);
+        var dy = Math.Abs(y - StrikeZoneGeometry.CenterY);
+        if (inZone)
+            return dx <= StrikeZoneGeometry.HalfWidth * c.MiddleFraction && dy <= StrikeZoneGeometry.Height / 2 * c.MiddleFraction
+                ? CpuZone.Middle
+                : CpuZone.Edge;
+        var outX = Math.Max(0, dx - StrikeZoneGeometry.HalfWidth);
+        var outY = Math.Max(0, dy - StrikeZoneGeometry.Height / 2);
+        return Math.Sqrt(outX * outX + outY * outY) <= c.NearFt ? CpuZone.Near : CpuZone.Far;
+    }
+
+    /// <summary>
+    /// The box after a failed re-read (spec §5.9 tracking): the guess is the last crossing this
+    /// offense saw (the first pitch guesses the middle) plus a fixed offset; the miss is likelier
+    /// when the pitcher moved on the rubber since the last pitch.
+    /// </summary>
+    double CpuTrackedBox(double crossingX, CpuBatterRules c, CpuLevelRules level)
+    {
+        var last = Top ? _awayLastCrossingX : _homeLastCrossingX;
+        var chance = Math.Min(0.95, (RubberMovedSinceLastPitch ? c.MistrackMovedChance : c.MistrackChance) * level.MistrackMul);
+        var guess = _rng.NextDouble() < chance ? (last ?? 0) : crossingX;
+        var offset = (c.MistrackMinFt + _rng.NextDouble() * c.MistrackSpanFt) * (_rng.NextDouble() < 0.5 ? -1 : 1);
+        return Math.Clamp((guess + offset) / HomeSet.BatterWalk, -1, 1);
+    }
+
+    /// <summary>The pitcher walked the rubber since the last pitch this offense saw.</summary>
+    public bool RubberMovedSinceLastPitch => Math.Abs(PitcherOffsetX - _lastPitchRubberX) > 0.05;
+
+    /// <summary>Charge vs slap by archetype (spec §5.9), from the Bat / Run split.</summary>
+    public static double CpuChargeChance(Character who, CpuArchetypeRules a)
+    {
+        var bat = who.Stats.Bat;
+        var run = who.Stats.Run;
+        if (bat >= a.TechniqueMin && run >= a.TechniqueMin) return a.Technique;
+        if (bat - run >= a.SplitStat) return a.Power;
+        if (run - bat >= a.SplitStat) return a.Speed;
+        return a.Balanced;
+    }
+
+    /// <summary>
+    /// The CPU offense's steal roll for this SET (running.cpu). It used to ride inside the swing;
+    /// it is a SET verb of the runner. TODO(P6 #568): move into the runner AI (spec §11.6).
+    /// </summary>
+    public bool CpuArmSteal()
+    {
+        var run = Rules.Running.Cpu;
+        if (!CanSteal || Batter.Stats.Run < run.StealMinRun || _rng.NextDouble() >= run.StealChance) return false;
+        StartSteal();
+        TakeLead(run.StealLeadMin + _rng.NextDouble() * run.StealLeadSpan);
+        return true;
     }
 
     public PlayEvent AutoPlay()
     {
+        CpuConsidersSwap();
+        CpuArmSteal();
         var pitch = PreparePitch(CpuPitch());
         var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
         var swing = CpuSwing(pitch, inZone);
@@ -865,6 +1045,7 @@ public sealed class Match
         switch (kind)
         {
             case PlayKind.HomeRun:
+                ChargeArm(Pitcher, Rules.Pitching.Stamina.HomerCost);
                 (runs, scorers) = ClearTheBases(Batter);
                 batterToBag = 4;
                 AddMvp(Batter.Id, 5 + runs);
@@ -1176,6 +1357,8 @@ public sealed class Match
         Outs = 0;
         Balls = 0;
         Strikes = 0;
+        _swappedThisHalf = false;
+        PitcherOffsetX = 0;
         ClearBags();
         if (Top)
         {
@@ -1369,14 +1552,20 @@ public sealed class Match
         if (Top) AwayScore++;
         else HomeScore++;
         AddMvp(who.Id, 1);
+        // Each run allowed costs the arm on the mound (spec §4.7).
+        ChargeArm(Pitcher, Rules.Pitching.Stamina.RunCost);
     }
 
     void SpendPitch(PitchCommand pitch)
     {
         var st = Rules.Pitching.Stamina;
-        var cost = st.PitchCost + (int)(pitch.Charge01 * st.ChargeCost) + (pitch.Star ? st.StarCost : 0);
-        if (Top) HomeStamina = Math.Max(0, HomeStamina - cost);
-        else AwayStamina = Math.Max(0, AwayStamina - cost);
+        var cost = st.PitchCost
+                   + (ChargeFeel.IsCharge(pitch.Charge01) ? st.ChargeCost : 0)
+                   + (pitch.IsChangeup ? st.ChangeupCost : 0)
+                   + (pitch.BreakX != 0 ? st.BreakCost : 0)
+                   + (pitch.Star ? StarSkills.StaminaCost(Pitcher.StarPitch, Content.StarSkills) : 0);
+        ChargeArm(Pitcher, cost);
+        _lastPitchRubberX = pitch.RubberX;
         if (pitch.Star)
         {
             var starsCost = PitchStarCost;

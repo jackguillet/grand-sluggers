@@ -226,8 +226,14 @@ public static class BroadcastHud
 
     public static bool PoorArm(int stamina) => stamina < TiredArm;
 
+    /// <summary>TIRED below the rule's threshold (pitching.stamina.tiredBelow).</summary>
+    public static bool PoorArm(int stamina, RulesTable rules) => stamina < rules.Pitching.Stamina.TiredBelow;
+
     public static string ArmLine(int stamina) =>
         PoorArm(stamina) ? $"ARM  {stamina}  ·  TIRED" : $"ARM  {stamina}";
+
+    public static string ArmLine(int stamina, RulesTable rules) =>
+        PoorArm(stamina, rules) ? $"ARM  {stamina}  ·  TIRED" : $"ARM  {stamina}";
 
     public static string ControlDisplay(bool hasGlove, string pos, string name, bool jump = false, bool dive = false)
     {

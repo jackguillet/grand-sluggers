@@ -156,7 +156,7 @@ public sealed partial class LivePlaySystem
     RulesTable R => _match.Rules;
     Park Park => _match.Park;
     FeelTable Feel => _match.Content.Feel;
-    Dictionary<string, Character> Assigned() => FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+    Dictionary<string, Character> Assigned() => FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
     double Hang => Path is null ? (Preview?.HangTimeSec ?? 0) : BallFlight.HangTime(Path, R);
     double Rest => Path is null ? 0 : BallFlight.RestTime(Path);
 

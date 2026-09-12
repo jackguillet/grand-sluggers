@@ -64,7 +64,7 @@ namespace GrandSluggers.UnityClient
             }
             TeamSheet.HideBoard();
             _chem?.Hide();
-            var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+            var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
             var litId = "";
             if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;

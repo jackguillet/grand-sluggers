@@ -78,6 +78,6 @@ public class PlayOutcomeTests
         Character fielder, Character? buddy, double x, double z, bool homeRunLikely, bool line = false) =>
         new(fielder, "CF", buddy, 4, x, z, false, homeRunLikely, false, false, false, 20, Line: line);
 
-    static PitchCommand Pitch() => new("fastball", 0, 0, false);
+    static PitchCommand Pitch() => new("fastball", 0, false);
     static SwingCommand Swing() => new(true, 0, 0, false);
 }

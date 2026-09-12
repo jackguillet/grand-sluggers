@@ -250,7 +250,7 @@ namespace GrandSluggers.EditorTools
             var match = Setup(play, Seats.Versus);
             Tick(play, "TickSet", State(), State(stickX: 1));
             Require(match.BatterOffsetX > 0, "Virtual batting stick did not move the batter.");
-            Invoke(play, "Launch", new PitchCommand("fastball", 0, 0, false));
+            Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
             var zone = Get<StrikeZone>(play, "_zone");
             var target = Get<Transform>(zone, "_target");
             var before = target.localPosition.x;

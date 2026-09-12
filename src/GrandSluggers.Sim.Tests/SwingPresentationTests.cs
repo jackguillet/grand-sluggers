@@ -192,7 +192,7 @@ public class SwingPresentationTests
         var match = Match.Slice(ContentCatalog.Load(), seed: 503);
         const double atContact = 0.35;
         match.BeginAtBat(
-            new PitchCommand("fastball", 0, 40, false),
+            new PitchCommand("fastball", 0, false),
             new SwingCommand(false, 0, 0, false, BoxOffsetX: atContact),
             out _, out _);
 
