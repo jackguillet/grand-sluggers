@@ -355,6 +355,51 @@ public sealed class FlightScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // §8.1  Positions come from the lineup's glove diamond, not roster order (S-26 for the swap)
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void PositionsComeFromTheLineupGloveDiamondNotRosterOrder()
+    {
+        var home = TeamBuilder.Draft(_content, "rio");
+        var byRoster = FieldingResolver.Assign(home.ToTeam().Roster, home.ToTeam().Pitcher);
+        // Offense / Defense Setup: the captain moves to center; the starting center fielder takes the mound.
+        var centerFielder = home.Gloves["CF"];
+        Assert.True(home.SetGlove("CF", "rio"));
+        Assert.Equal("rio", home.Gloves["CF"].Id);
+        Assert.Equal(centerFielder.Id, home.Gloves["P"].Id);
+        var team = home.ToTeam();
+        Assert.NotNull(team.Gloves);
+
+        var match = Match.Exhibition(_content, team, PresetTeams.EmberCourt(_content), seed: 3);
+        Assert.True(match.Top, "the home nine is on defense");
+        var assigned = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        Assert.Equal("rio", assigned["CF"].Id);
+        Assert.Equal(centerFielder.Id, assigned["P"].Id);
+        Assert.Equal(centerFielder.Id, match.Pitcher.Id);
+        foreach (var pos in Diamond.Order)
+            Assert.Equal(home.Gloves[pos].Id, assigned[pos].Id);
+        Assert.NotEqual(byRoster["CF"].Id, assigned["CF"].Id);
+
+        // The live ball reads the same diamond: a fly to center is the captain's.
+        var fly = FlightFixtures.Hit(match.Park, 90, 34, 0);
+        var preview = match.PreviewHit(fly);
+        Assert.Equal("CF", preview.Position);
+        Assert.Equal("rio", preview.Fielder.Id);
+
+        // S-26: a swap puts the new pitcher on the mound and the old pitcher on the vacated glove.
+        var before = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        Assert.True(match.SwapPitcher());
+        var swapped = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        var vacated = Diamond.Order.Single(pos => before[pos].Id == match.Pitcher.Id);
+        Assert.NotEqual("P", vacated);
+        Assert.Equal(centerFielder.Id, swapped[vacated].Id);
+        Assert.Equal(match.Pitcher.Id, swapped["P"].Id);
+        foreach (var pos in Diamond.Order.Where(p => p != "P" && p != vacated))
+            Assert.Equal(before[pos].Id, swapped[pos].Id);
+    }
+
+    // ---------------------------------------------------------------------------------
 
     /// <summary>A Harbor match whose home defense (the top half) has the named glove in center.</summary>
     Match RobbersMatch(string centerFielder)

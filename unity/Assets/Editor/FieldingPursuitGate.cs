@@ -117,7 +117,7 @@ namespace GrandSluggers.EditorTools
             Invoke(play, "StartFly", hit);
 
             var unityPath = Get<Sample[]>(play, "_path");
-            var map = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+            var map = FieldingResolver.Assign(match.Defense, match.Pitcher);
             var initialPos = Get<string>(play, "_glovePos");
             var initialWho = map[initialPos];
             var initialAt = Get<Dictionary<string, (double X, double Z)>>(play, "_gloveAt")[initialPos];

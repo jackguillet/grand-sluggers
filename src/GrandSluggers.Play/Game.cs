@@ -439,7 +439,7 @@ public sealed class Game : IDisposable
                 ThrowResult? thr = null;
                 if (field.ThrowBase is > 0 and < 5 && _caught)
                 {
-                    var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                    var map = FieldingResolver.Assign(_match.Defense, _match.Pitcher);
                     cut = field.ThrowBase switch
                     {
                         1 => map.GetValueOrDefault("1B"),
@@ -557,7 +557,7 @@ public sealed class Game : IDisposable
 
     void DrawActors()
     {
-        var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+        var defense = FieldingResolver.Assign(_match.Defense, _match.Pitcher);
         foreach (var (pos, who) in defense)
         {
             var p = Diamond.Positions[pos];
