@@ -134,12 +134,12 @@ public sealed class RulesTests
     {
         // Not a tune: proof the helpers read the table they are handed rather than a literal.
         var batter = _content.Must("rio");
-        var shipped = InPlay.HomeToFirstSec(batter, 0, _content.Rules);
+        var shipped = RunnerSystem.BagSec(batter, _content.Rules);
         var slower = new RulesTable
         {
-            Running = new RunningRules { HomeToFirst = new HomeToFirstRules { BaseSec = 9, MaxSec = 9 } }
+            Running = new RunningRules { BagSec = new BagSecRules { BaseSec = 9, MaxSec = 9 } }
         };
-        Assert.True(InPlay.HomeToFirstSec(batter, 0, slower) > shipped);
+        Assert.True(RunnerSystem.BagSec(batter, slower) > shipped);
     }
 
     static void Compare(object a, object b, string path, List<string> differences)

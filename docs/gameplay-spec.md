@@ -35,7 +35,7 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 
 | # | Question | Decision | Why |
 | --- | --- | --- | --- |
-| D1 | Lead-offs | **None.** Runners stand on the bag. `Lead01`, the lead stick verb, and the mini-diamond lead pips are retired. | Neither Sluggers nor Superstar Baseball has leads. Leads are what made random pickoffs "necessary" and what made the steal a time credit instead of a race. |
+| D1 | Lead-offs | **None.** Runners stand on the bag. `Lead01`, the lead stick verb, and the mini-diamond lead pips are retired. ✅ P3 | Neither Sluggers nor Superstar Baseball has leads. Leads are what made random pickoffs "necessary" and what made the steal a time credit instead of a race. |
 | D2 | Steal jump | Armed runner breaks at **release**; armed inside the first 0.25 s of the windup is a **perfect steal** and breaks 0.4 s before release. | Superstar Baseball frame data (frame 40 vs frame 15 of the windup). |
 | D3 | Pickoff | A runner on the bag is always safe. A pickoff catches an armed runner who **already broke** (an early arm breaks on the pitcher's first motion, including a pickoff motion). | Reference: "a pure pick-off can never get a runner out". This is the mind game, not a roll. |
 | D4 | Contact quality | **Cursor decides quality, timing decides direction.** Sour / nice / perfect by where the ball meets the cursor; early pulls, late pushes; outside the window is a whiff. | Booklet plus the Superstar datamine (five bat zones, 9-frame slap / 7-frame charge window). |
@@ -69,7 +69,7 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | Stars | Shared 0–5 per team. §12. | ✅ |
 | Ties in geometry | Tie at a bag goes to the runner. | ✅ (`InPlay.ForceOnBag`) |
 
-**Scoring on the third out.** A run counts if the runner touched home *before* the third out, unless the third out is a force or the batter-runner retired before first. Both timers are already tracked by the live play; the rule is a comparison at `Complete`. ❌ (`FinishInPlay` places runners by table).
+**Scoring on the third out.** A run counts if the runner touched home *before* the third out, unless the third out is a force or the batter-runner retired before first. Both timers are already tracked by the live play; the rule is a comparison at `Complete`. ✅ P3 (`Runner.ScoredAt` against the third out's play time; S-78, S-79).
 
 ---
 
@@ -335,8 +335,8 @@ Each subsection is one scene: **who fields**, **what runners do**, **the throw**
 Common to all live plays:
 
 - **Batter always runs** on fair contact. ✅
-- **Forced runners run** on a grounder (they have no choice). Unforced runners hold at a **read step** (a few feet off the bag, leaning) until the ball is through or fielded, then go/hold by the send rule. ❌ (`OccupiedDestBag` table)
-- **On a fly / liner**, all runners hold near the bag until the catch or the drop (tag-up rule §9.5). ✅ hold; ⚠️ tag-up is one global flag.
+- **Forced runners run** on a grounder (they have no choice). Unforced runners hold on the bag until the ball is through or fielded, then go/hold by the send rule (a human) or the margin table (CPU, §9.9). ✅ P3 (`Runner.Forced`, `RunnerAi`); the read step is presentation.
+- **On a fly / liner**, all runners hold on the bag until the catch or the drop (tag-up rule §9.5). ✅ P3 (`FlyState`, per runner).
 - **The throw** goes where the fielder names (human) or where the decision table says (CPU, §8.8). The out is judged when the ball arrives (§10). ✅ for named bags.
 - Camera: `diamond` 45° on the dirt under the ball; fly pulls back to `diamond-fly`; a throw does not cut behind the thrower (`data/feel/shots.json`). ✅
 - Stamp: OUT / SINGLE / DOUBLE / TRIPLE / HOME RUN / DOUBLE PLAY / TRIPLE PLAY / FOUL / ERROR when the play is dead. ✅ ⚠️ ERROR stamp missing.
@@ -373,7 +373,7 @@ Common to all live plays:
 ### 7.5 Grounder through the infield (to the outfield)
 
 - Infielder misses (no route reaches) → outfield hand-off: LF/CF/RF charge the roll (`HandoffToOutfield`). ✅
-- **Runners**: batter rounds first and reads the outfielder (send to 2B if the pickup is deep and the arm is weak, §9.9). Runner on 1st → 3rd if the ball is to RF/CF and picked up beyond 200 ft, else 2B. Runner on 2nd → home unless the ball is hit to LF shallow and the arm is strong. Runner on 3rd scores. All by the margin formula, not a table. ❌
+- **Runners**: batter rounds first and reads the outfielder (send to 2B if the pickup is deep and the arm is weak, §9.9). Runner on 1st → 3rd if the ball is to RF/CF and picked up beyond 200 ft, else 2B. Runner on 2nd → home unless the ball is hit to LF shallow and the arm is strong. Runner on 3rd scores. All by the margin formula, not a table. ✅ P3 (`RunnerAi.Margin` at contact, at the pickup, at each throw, at each bag).
 - **Throw**: outfielder throws to the base *ahead* of the lead runner if makeable, else to the **cutoff** (§8.7) to hold the batter at first. A throw home goes through the cutoff unless the arm can reach on the fly.
 - Runner thrown out at a base = tag (unforced) or force (batter at 2B when an outfielder throws there? no — the batter is only forced at 1B). ✅ tag/force distinction.
 - Stamp SINGLE / DOUBLE; OUT at a bag stamps OUT with the caption naming the throw.
@@ -398,12 +398,12 @@ Common to all live plays:
 - **Runners**: hold; tag-up on the catch if sent (§9.5). A runner on 3rd with < 2 outs tags on any fly caught ≥ 200 ft from the plate (CPU rule; human decides).
 - **Caught**: out (routine / DIVE / JUMP stamp). Throw after the catch to the bag ahead of a tagging runner; the margin decides (§10.2).
 - **Dropped**: live, runners go by the outfield-single rule.
-- **Sac fly**: the runner from 3rd scores if home arrival < throw arrival. It is a live throw, can be an out. ❌ (`AdvanceTagUp`, carry > 230 ft literal, `Match.cs:986`)
+- **Sac fly**: the runner from 3rd scores if home arrival < throw arrival. It is a live throw, can be an out. ✅ P3 (the body tags at the catch and races the throw; `AdvanceTagUp` and the 230 ft literal are gone).
 
 ### 7.9 Wall ball / carom
 
 - A fly or liner that meets the fence below fence height caroms (restitution 0.48, angle mirrored) and drops at the base of the wall. The outfielder plays the carom (route to the first reachable point on the post-carom path). ✅ P2 (`BattedBallClass.Wall`; `LiveEvent.WallCarom` is the thump the client plays; S-58).
-- Runners: this is the **double / triple** scene. Batter reads the carom; runner on 1st scores on a carom to the gap with < 2 outs if the margin says so. ⚠️ Until P3 runs the bases by geometry an uncaught wall ball is a double (`FlyCatch.PlayerKind`, `FieldingResolver.Resolve`).
+- Runners: this is the **double / triple** scene. Batter reads the carom; runner on 1st scores on a carom to the gap with < 2 outs if the margin says so. ✅ P3: the bodies take what the carom and the arm give (S-58 asserts second or third, never a dead double).
 - Rob: in the window at the wall, West (jump) with Super Jump / Clamber / Buddy Jump can catch a ball that would clear the fence by ≤ the ability's rob height (§8.4). ✅ P2 (`FlyCatch.CanRob` against `BattedBall.FenceClearFt`; S-56, S-57).
 
 ### 7.10 Home run
@@ -463,7 +463,7 @@ Common to all live plays:
 
 ### 8.5 Throws
 
-- **One throw model.** `throwSec = 0.22 + dist / (56 × arm × chem × ability)` ft/s, with `arm = 0.85 + Field × 0.03`. This one number flies the ball *and* judges the bag. ⚠️ Four formulas: `InPlay.ThrowSec`, `StealThrow.CatcherThrowSec`, the Unity `_throwDur = max(0.55, spec)`, and `RelayBeats` re-deriving from hang (`InPlay.cs:63-67`, `StealThrow.cs:42-53`, `InPlayDirector.cs:745, 862-887`).
+- **One throw model.** `throwSec = 0.22 + dist / (56 × arm × chem × ability)` ft/s, with `arm = 0.85 + Field × 0.03`. This one number flies the ball *and* judges the bag. ✅ P3: `InPlay.ThrowSec` flies the live throw and the runner bodies race it (the flat `fielding.throw.flight*` clock and `RelayBeats` are gone); ⚠️ `arm` is still the chemistry multiplier only (`ThrowResult.SpeedMul`), and `StealThrow.CatcherThrowSec` keeps the catcher's own gun until P6.
 - **Accuracy**: lateral error σ = (11 − Field) × 0.35 ft. A throw that lands more than 6 ft from the cover is **not caught** — it skips past, the ball is live, runners take the extra base (stamp ERROR). ⚠️ `LateralFt` is computed and never read (`ChemistryTable.cs:91-92`).
 - **Chemistry** (systems.md, reference): good ×1.30 speed, purple laser, never to the cutoff. Bad: **20% of throws are "slanted"** — ×0.70 speed with a 10–14 ft lateral miss (an error by the rule above); the other 80% are ordinary. The roll is on the *input* (the throw's accuracy), the outcome is still the ball missing the cover. ⚠️ Today the 25% roll is a boolean `Error` that the resolver converts to a Single (`ChemistryTable.cs:85-94`, `Fielding.cs:152-160`).
 - **Situational speed** (reference): a throw to a bag nobody can beat is a lazy lob (×0.35) — presentation of a non-play; a throw to an **uncovered bag slows to a lob until the cover arrives**, and if nobody is coming it drops at the bag (live). This is how "the receiver must be on the bag" reads on screen.
@@ -507,37 +507,37 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ### 9.1 The runner model
 
-- Each runner (including the batter-runner) is an object with **position on the basepath** (bag index + feet along the segment), **velocity**, **state** (`OnBag`, `Advancing`, `Returning`, `Stealing`, `Sliding`, `Out`, `Scored`), a **destination bag**, and a **forced** flag snapshotted at contact. ❌ Today: three `RunnerState` slots with `Lead01`, no position, no batter-runner (`Models.cs:276-330`), state wiped by `SetBag` (`Match.cs:1236-1254`).
-- Speed: `bagSec = 3.55 − Run × 0.12` (clamped 2.45–3.65) per 90 ft, **one formula** for every segment. The batter-runner starts **0.5 s after contact** from where they stood in the box (reference: 31 frames; a left-handed batter reaches first ≈ 0.5 s sooner because the box is closer). Dash ×1.12 at full mash. ⚠️ Two curves (`InPlay.cs:53-58, 82-83`), and `RunFeet` positions all runners at home-to-first speed.
-- **Runners cannot pass each other** (a trailing runner inside 27 ft of the runner ahead stops behind them). ❌
-- A runner's position is what every tag, force, and arrival uses. No closed-form "beats" re-derivation. ⚠️ (`RelayBeats`, `BatterBeatsThrow`)
+- Each runner (including the batter-runner) is an object with **position on the basepath** (bag index + feet along the segment), **velocity**, **state** (`OnBag`, `Advancing`, `Returning`, `Stealing`, `Sliding`, `Out`, `Scored`), a **destination bag**, and a **forced** flag snapshotted at contact. ✅ P3 (`Runner`, `RunnerSystem`; `Match.Runners`, `Match.BatterRunner`; the three nullable slots and `RunnerState` are gone, and Complete re-seats the same objects instead of rebuilding them).
+- Speed: `bagSec = 3.55 − Run × 0.12` (clamped 2.45–3.65) per 90 ft, **one formula** for every segment (`running.bagSec`). The batter-runner starts **0.5 s after contact** from where they stood in the box (reference: 31 frames); the box is a few feet closer to first for a left-handed batter, so they arrive about 0.1 s sooner by our geometry (the reference's 0.5 s is its box placement, not ours). Dash ×1.12 at full mash. ✅ P3 (`RunnerSystem.BagSec` / `SpeedFtPerSec`; `homeToFirst` and `bagToBag` are gone).
+- **Runners cannot pass each other** (a trailing runner inside 27 ft of the runner ahead stops behind them, `running.bagSec.noPassFt`). ✅ P3
+- A runner's position is what every tag, force, and arrival uses. No closed-form "beats" re-derivation. ✅ P3 (`RunnerSystem.ArrivalSec(runner, bag)` is the sim query P4's fielder reads; `BatterBeatsThrow`, `RunnerBeatsTag`, `RelayBeats` are gone).
 
 ### 9.2 No leads (D1)
 
-- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET now **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go. ✅ stick arms the steal (P0, `Baserunning.StickVerb`); the rest of D1 is P3.
-- `Lead01`, `TakeLead`, `ReturnToBag`, `LeadSpot`, `MiniLead`, the Unity lead rates and the `Lead` chapter of how-to-play are retired in the same PR. ⚠️ all shipped (`Models.cs:276-330`, `Diamond.cs:46-52`, `Baserunning.cs:71-77`, `ActorDirector.cs:411-453`).
+- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go. ✅ P3 (`Runner.StealArmed`; P6 lands the break).
+- `Lead01`, `TakeLead`, `ReturnToBag`'s walk-back, `LeadSpot`, `MiniLead`, the Unity lead rates, the lead pips, and the Lead chapter of how-to-play are retired. ✅ P3. The random pickoff on a walking lead (`ResolvePickoff`, `pitching.cpu.pickoff`) went with them (D3): a runner on the bag is always safe; a pickoff plays only on an armed runner.
 
 ### 9.3 Send / hold per runner
 
-- **All-advance (LB / `,`)**: every runner's destination = next bag (and the next after that if they arrive and it is open). **All-return (RB / `.`)**: every runner returns to the last bag. **Freeze** (both / `/`): hold where they are. A tap of the opposite button halts (reference). ✅ global flags.
-- **Per-runner**: D-pad selects a runner (right 1B, up 2B, left 3B, down = batter-runner); stick toward the next bag sends that runner; stick back returns that runner; halt freezes that runner. ⚠️ Halt exists; send/return are only global (`Match.SendAll`).
-- Forced runners cannot be held on a grounder once the batter reaches first (they are forced off). A human "hold" on a forced runner is ignored until the force is removed (batter out at first).
-- The **batter-runner** is selectable (down / 4 while running) and obeys the same send/return: round first and go, or stop at the bag.
+- **All-advance (LB / `,`)**: every runner's destination = next bag (and the next after that if they arrive and it is open). **All-return (RB / `.`)**: every runner returns to the last bag. **Freeze** (both / `/`): hold where they are. A tap of the opposite button halts (reference). ✅ P3 (`LivePadInput.AllAdvance / AllReturn / Freeze` through the live ball's `Tick`; the tap-halt is the press edge).
+- **Per-runner**: D-pad selects a runner (right 1B, up 2B, left 3B, down = batter-runner); stick toward the next bag sends that runner; stick back returns that runner; halt freezes that runner. ✅ P3 (`Match.SendRunnerAt`, `ReturnToBagAt`, `HaltAt`; the same verbs before the pitch select and arm).
+- Forced runners cannot be held on a grounder once the batter reaches first (they are forced off). A human "hold" on a forced runner is ignored until the force is removed (batter out at first). ✅ P3 (`Runner.Forced` against the live force chain).
+- The **batter-runner** is selectable (down / 4 while running) and obeys the same send/return: round first and go, or stop at the bag. ✅ P3
 
 ### 9.4 Dash, slide, rounding
 
 - Dash: mash South, +0.28 per press to 1.0, decays 0.5/s; ×1.12 speed at full. ✅
-- Slide: automatic on the last 12 ft into a bag when a tag is threatened (throw armed to that bag or a glove within 20 ft with the ball) and the runner is stopping at that bag; a runner rounding never slides (reference). West/South near the bag forces it. A slide shrinks the tag reach by 2 ft; it does not change arrival time. ⚠️ `Sliding` posed, never consulted (`Models.cs:320`).
-- Rounding: a runner heading past a bag runs a shallow arc (presentation) and reaches the next bag at the same `bagSec` — no time penalty in the arcade rule.
-- Overrun first: the batter-runner may run through first base and is safe from a tag while returning directly, unless they turn toward second (then live).
+- Slide: automatic on the last 12 ft into a bag when a tag is threatened (throw armed to that bag or a glove with the ball within 20 ft) and the runner is stopping at that bag; a runner rounding never slides (reference). West/South near the bag forces it. A slide shrinks the tag reach by 2 ft; it does not change arrival time. ✅ P3 (`running.bags.slideFt / slideThreatFt / slideReachCutFt`; `InPlay.Touches(sliding:)`).
+- Rounding: a runner heading past a bag runs a shallow arc (presentation) and reaches the next bag at the same `bagSec` — no time penalty in the arcade rule. ✅ P3
+- Overrun first: the batter-runner may run through first base and is safe from a tag while returning directly, unless they turn toward second (then live). ❌ P5 (the body stops on the bag today).
 
 ### 9.5 Fly balls and tag-ups
 
-- On a catchable fly/liner the game **sends every runner back to their bag** (reference: automatic return on a fly). A human can override with a send, at the doubled-off risk.
-- Runners **cannot leave until the ball is firmly caught** (post-bobble). After the catch, a runner on the bag may advance (**tag up**). A runner off the bag at the catch must return and touch before advancing; if the defense throws to that bag and the ball beats them back, they are out (doubled off, §10.5).
-- All-advance pressed *before* the catch means "tag and go on the catch" — the runner waits on the bag and leaves at the catch. ✅ (`SendAll` tag-up) ⚠️ one global flag, no per-runner.
-- A lone runner cannot cross home on a fly with < 2 outs until the catch/drop resolves (reference restriction; keeps a dropped fly honest).
-- CPU: runner on 3rd tags on a caught fly ≥ 200 ft with < 2 outs; runner on 2nd tags to third on a fly to RF ≥ 250 ft; else holds. Batter-runner on a fly stays near first until the drop/catch.
+- On a catchable fly/liner the game **sends every runner back to their bag** (reference: automatic return on a fly). A human can override with a send, at the doubled-off risk. ✅ P3 (`FlyState.InAir` holds every runner but the batter, who runs to first and waits there).
+- Runners **cannot leave until the ball is firmly caught** (post-bobble). After the catch, a runner on the bag may advance (**tag up**). A runner off the bag at the catch must return and touch before advancing; if the defense throws to that bag and the ball beats them back, they are out (doubled off, §10.5). ✅ P3 (`Runner.LeftEarly`; `ThrowVerdict.DoubledOff`).
+- All-advance pressed *before* the catch means "tag and go on the catch" — the runner waits on the bag and leaves at the catch. ✅ P3 (`Runner.TagAndGo`, per runner; LB before the pitch arms it for the coming fly).
+- A lone runner cannot cross home on a fly with < 2 outs until the catch/drop resolves (reference restriction; keeps a dropped fly honest). ✅ P3 (the body is held a foot short of the plate).
+- CPU: runner on 3rd tags on a caught fly ≥ 200 ft with < 2 outs; runner on 2nd tags to third on a fly to RF ≥ 250 ft; else holds. Batter-runner on a fly stays near first until the drop/catch. ✅ P3 (`running.cpu.tagThirdMinCarryFt / tagSecondMinCarryFt`).
 
 ### 9.6 Close plays
 
@@ -567,7 +567,7 @@ Evaluated at contact, at every fielder touch, and at every throw release (events
 | Score situation | trailing by ≥ 3 in the last inning: thresholds −0.2 | Aggressive when desperate |
 | Steal | §11.6 | Not in the swing function |
 
-Reference shape for the "go" rule: keep going if time-to-bag < throw-time − 0.33 s (−0.5 s on easy), with a bonus once past 40% of the segment; otherwise turn back with a 12–20% chance of a mistake. ❌ (`OccupiedDestBag` table.) Difficulty scales thresholds ±0.15.
+Reference shape for the "go" rule: keep going if time-to-bag < throw-time − 0.33 s (−0.5 s on easy), with a bonus once past 40% of the segment; otherwise turn back with a 12–20% chance of a mistake. ✅ P3 (`RunnerAi`, `running.cpu`: the thresholds above, `commitFraction` 0.4 for the turn-back, the mistake roll left out — no roll decides a runner). Difficulty adds `cpu.*.runnerMarginSec` (+0.15 easy, −0.15 hard) to every threshold. `throwArrival` is the defense's live read: the glove on (or the route to) the ball, `running.cpu.reactionSec` 0.35, then `InPlay.ThrowSec` over the distance.
 
 ---
 
@@ -629,9 +629,9 @@ Rules that fall out of geometry, and must not be tabled:
 
 ### 10.6 When the play ends (Time)
 
-`Time` is true when: three outs; **or** the ball is held by a fielder inside the infield (within 100 ft of the plate) and not thrown, **and** every live runner is on a bag or out, for `TimeOnBagSec` (1.0). A home run ends at the crossing plus the trot. ✅ (`InPlay.Time`) ⚠️ the "held by an infielder" clause is missing, so an outfielder holding the ball with everyone standing on bags ends the play (fine) but a runner dancing off a bag keeps it alive forever (fixed by rundown rules, §9.7).
+`Time` is true when: three outs; **or** the ball is held by a fielder on the infield (inside the dirt / grass lip, `flight.classes.infieldLipFt` — the 100 ft of the first draft put 2B and SS on the grass) and not thrown, **and** every live runner is on a bag or out, for `TimeOnBagSec` (1.0). Nobody left to play on (every runner out or home) is Time wherever the ball is, and so is a ball lying at rest that nobody picked up once every body has settled. A home run ends at the crossing plus the trot. ✅ P3 (`InPlay.Time` over the bodies; a CPU outfielder holding a ball with everyone settled throws it in, §8.8 rule 5).
 
-At `Complete`: runs = runners who crossed home before the third out (with the §1 force exception), outs already recorded, bags = where each runner stands. **No table placement.** ❌ (`FinishInPlay` `AdvanceHit` / `Advance` / `AdvanceTagUp`, and three `goto case Single` reclassifications, `Match.cs:899-976`.)
+At `Complete`: runs = runners who crossed home before the third out (with the §1 force exception), outs already recorded, bags = where each runner stands. **No table placement.** ✅ P3 (`Match.SettleRunners`; `AdvanceHit`, `AdvanceTagUp`, `OccupiedDestBag`, `BatterDestBag`, and the `goto case Single` reclassifications are gone; walks, hits by pitch, homers, and ground-rule doubles are the only placements by rule). The stamp reads the bodies: an out on the play stamps OUT (the batter safe at first behind it is a fielder's choice, §10.4); no out, the batter's bag names the hit. Every CPU ball — `cli match`, `AutoPlay`, a cold `FinishAtBat` — runs through the same live ball (`Match.RunLive`), so there is one path.
 
 ### 10.7 Triple play
 
@@ -760,11 +760,11 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | --- | --- |
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `release` (Nice! band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `shapes` (fastball hump, changeup hang / dump / drop), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1 part c). The rubber walk distance is geometry (`HomeSet.PitcherWalk`) |
 | `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
-| `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
+| `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `carry` (the resolver's hit label until P4 retires the roll; the bodies decide the bases), `deadBall` (homer trot, foul flight hold) |
 | `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
-| `running.json` | `homeToFirst`, `bagToBag`, `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (lead-as-time-credit race as shipped until P6), `tagUp` (sac-fly carry), `stick`, `dash` (mash per press), `cpu` (the steal roll as shipped until P6) |
+| `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
-| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction ×, mistrack × (live: CPU batter σ and tracking, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6). Normal is ×1 everywhere so the tables read as written. |
+| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction ×, mistrack × (live: CPU batter σ and tracking, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
 
 Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
 
@@ -816,14 +816,16 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 
 | # | Where | What | Spec |
 | --- | --- | --- | --- |
-| 29 | `Models.cs:276-330`, `Match.cs:28-33` | No runner position/velocity/batter-runner | §9.1 |
-| 30 | `Match.cs:1236-1254` | `SetBag` wipes runner state | §9.1 |
-| 31 | `InPlay.cs:53-58, 82-83, 499-500` | Two speed curves; all runners move at home-to-first speed | §9.1 |
-| 32 | `InPlay.cs:372-393`, `Match.cs:1139-1223` | Advance by `PlayKind` table; runner on 3rd scores on any grounder; 2nd never scores on a single | §7, §9.9 |
-| 33 | `Match.cs:299-336` | Send/return only global | §9.3 |
-| 34 | `Models.cs:320`, `ActorDirector.cs:360` | `Sliding` never consulted | §9.4 |
-| 35 | `Match.cs:986` | Sac fly = carry > 230 literal, no throw | §7.8 |
-| 36 | `Models.cs:276-330`, `Diamond.cs:46-52`, `Baserunning.cs:71-77`, `ActorDirector.cs:411-453` | Lead-off system to retire (D1) | §9.2 |
+| 29 | `Models.cs:276-330`, `Match.cs:28-33` | No runner position/velocity/batter-runner | §9.1 — ✅ P3 (`Runner`) |
+| 30 | `Match.cs:1236-1254` | `SetBag` wipes runner state | §9.1 — ✅ P3 (`Runner.Seat` on the same object) |
+| 31 | `InPlay.cs:53-58, 82-83, 499-500` | Two speed curves; all runners move at home-to-first speed | §9.1 — ✅ P3 (`running.bagSec`) |
+| 32 | `InPlay.cs:372-393`, `Match.cs:1139-1223` | Advance by `PlayKind` table; runner on 3rd scores on any grounder; 2nd never scores on a single | §7, §9.9 — ✅ P3 (`RunnerAi`, `SettleRunners`) |
+| 33 | `Match.cs:299-336` | Send/return only global | §9.3 — ✅ P3 |
+| 34 | `Models.cs:320`, `ActorDirector.cs:360` | `Sliding` never consulted | §9.4 — ✅ P3 (`RunnerPhase.Sliding`, the reach cut) |
+| 35 | `Match.cs:986` | Sac fly = carry > 230 literal, no throw | §7.8 — ✅ P3 |
+| 36 | `Models.cs:276-330`, `Diamond.cs:46-52`, `Baserunning.cs:71-77`, `ActorDirector.cs:411-453` | Lead-off system to retire (D1) | §9.2 — ✅ P3 |
+
+P3 also closed A.4 #40's fourth clock (the flat `fielding.throw.flight*` flight the client played): the live throw flies on `InPlay.ThrowSec`, because bodies now race it. The `arm` term of §8.5 and the resolver's roll (#37, #38) stay P4's.
 
 ### A.4 Fielding decides by geometry (P4)
 
@@ -879,7 +881,7 @@ P0 moved these into the sim without changing them: #38 is `LivePlaySystem.Field.
 | 67 | `data/feel/table.json` | `throwEase`, `chargeDecay`, `inPlayCommitSeconds` read only by tests; `runHz` shadowed by `Motion.RunHz` | Removed. |
 | 68 | everywhere in §16 | ~150 rule constants in C# with no data hook | `data/rules/*.json` + `RulesTable` + validator; the rows above name their section. Rule numbers still *shaped* like the old code (the infield roll, the lead credit, the CPU rolls) are tabled as shipped and marked for their epic. |
 
-The stale close-play verdict (A.5 #52) and the wrong-clock arrival inputs (A.5 #55, §9.1) crossed into the sim unchanged; they are P5's and P3's to fix, now headlessly.
+The stale close-play verdict (A.5 #52) is gone with `Match.ClosePlaySafe` (the contest's verdict is applied to the body in the play and nothing else reads it); the wrong-clock arrival inputs (A.5 #55, §9.1) are P3's `RunnerSystem.ArrivalSec`. The mash's ±0.25 s gate (A.5 #53) stays P5's: today the contest runs whenever the ball is at third or home before an unforced runner still coming, and that runner's body waits for the verdict.
 
 ---
 

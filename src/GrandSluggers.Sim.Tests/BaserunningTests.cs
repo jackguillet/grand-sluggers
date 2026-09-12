@@ -49,18 +49,15 @@ public class BaserunningTests
     }
 
     [Fact]
-    public void MiniLeadWalksOffTheBag()
+    public void MiniDiamondPipsAreTheThrowTellPips()
     {
+        // D1: there are no leads, so a pip sits on its bag; the map is the throw tell's.
         Assert.Equal(FieldAssist.BagPip(1), Baserunning.DiamondPip(1));
         Assert.Equal(FieldAssist.BagPip(2), Baserunning.DiamondPip(2));
-        var glued = Baserunning.MiniLead(1, 0);
-        var walked = Baserunning.MiniLead(1, 1);
-        Assert.Equal(Baserunning.DiamondPip(1).U, glued.U, 3);
-        Assert.Equal(Baserunning.DiamondPip(1).V, glued.V, 3);
-        Assert.True(walked.U < glued.U);
-        Assert.True(walked.V > glued.V);
-        var second = Baserunning.MiniLead(2, 1);
-        Assert.True(second.U < Baserunning.DiamondPip(2).U);
+        Assert.Equal((1.0, 0.5), Baserunning.DiamondPip(1));
+        Assert.Equal((0.5, 1.0), Baserunning.DiamondPip(2));
+        Assert.Equal((0.0, 0.5), Baserunning.DiamondPip(3));
+        Assert.Equal((0.5, 0.0), Baserunning.DiamondPip(4));
     }
 
     [Fact]

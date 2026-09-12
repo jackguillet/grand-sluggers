@@ -240,14 +240,22 @@ public sealed class FlightScenarioTests
         var plant = FlyCatch.ChaseTarget(preview, match.Park);
         Assert.True(Diamond.Dist(0, 0, plant.X, plant.Z) < Harbor.CenterFenceFt, "the glove plants inside the wall");
         var cued = false;
-        // The human runs the wrong way; nobody is at the wall.
-        var play = RunHuman(match, hit, preview, _ => new LivePadInput(StickX: -1, StickY: 0), out var caughtAt,
-            live => cued |= live.Events.Contains(LiveEvent.WallCarom));
-        Assert.True(caughtAt < 0);
+        var wallAt = preview.HangTimeSec;
+        // The human steps off the plant through the catch window (no wall catch), leaves the stick so the
+        // glove plays the carom like CPU, then throws to third once they have it. The batter's body reads
+        // the pickup and the arm (§7.9, §9.9): a live play to the end, never a dead double. How far they get
+        // is the arm table's (fielding.throw), P4's to make an arm.
+        var play = RunHuman(match, hit, preview,
+            live => live.HoldsBall ? new LivePadInput(SouthDown: true, KeysBag: 3)
+                : live.ElapsedSeconds > wallAt - 0.7 && live.ElapsedSeconds < wallAt + 0.4 ? new LivePadInput(StickX: -1, StickY: 0)
+                : LivePadInput.Dead,
+            out var caughtAt, live => cued |= live.Events.Contains(LiveEvent.WallCarom));
+        Assert.True(caughtAt < 0 || caughtAt > wallAt, "no catch in the air: the ball met the wall first; the pickup came after");
         Assert.True(cued, "the wall thump is a cue the client plays");
-        Assert.Equal(PlayKind.Double, play.Kind);
+        Assert.True(play.Kind is PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun, play.Kind.ToString());
         Assert.False(play.Outcome!.GroundRuleDouble);
-        Assert.Equal(2, play.Outcome.BatterToBag);
+        Assert.InRange(play.Outcome.BatterToBag, 2, 4);
+        Assert.Empty(play.Outcome.OutsMade);
     }
 
     [Fact]

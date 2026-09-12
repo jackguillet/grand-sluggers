@@ -1,25 +1,22 @@
 {
-  "homeToFirst": {
-    "baseSec": 4.32,
-    "secPerRun": 0.13,
-    "minSec": 2.9,
-    "maxSec": 4.35,
-    "dashMul": 0.12,
-    "floorSec": 2.45,
-    "runFeetMinSec": 0.4
-  },
-  "bagToBag": {
+  "bagSec": {
     "baseSec": 3.55,
     "secPerRun": 0.12,
     "minSec": 2.45,
-    "maxSec": 3.65
+    "maxSec": 3.65,
+    "dashMul": 0.12,
+    "batterStartSec": 0.5,
+    "noPassFt": 27
   },
   "bags": {
     "occupyRadiusFt": 6,
     "tagReachFt": 14,
     "tagSafeRadiusFt": 3.5,
     "timeOnBagSec": 1.0,
-    "snapFt": 0.5
+    "snapFt": 0.5,
+    "slideFt": 12,
+    "slideThreatFt": 20,
+    "slideReachCutFt": 2
   },
   "close": {
     "marginSec": 0.45,
@@ -29,17 +26,11 @@
   },
   "steal": {
     "jumpBaseSec": 0.62,
-    "jumpPerLeadSec": 1.08,
     "remainMinSec": 0.58,
     "returnBaseSec": 0.62,
-    "returnPerLeadSec": 0.92,
     "returnPerRunDeficitSec": 0.06,
     "returnMinSec": 0.42,
-    "armedLeadMin": 0.2,
     "noThrowRemainSec": 1.6
-  },
-  "tagUp": {
-    "sacFlyCarryFt": 230
   },
   "stick": {
     "diamondDeadMag2": 0.55
@@ -49,9 +40,21 @@
     "maxDash": 1.0
   },
   "cpu": {
+    "reactionSec": 0.35,
+    "groundGoMarginSec": 0.4,
+    "infieldBackFt": 110,
+    "thirdHomeMarginSec": 0.3,
+    "outfieldGoSec": 0.5,
+    "outfieldGoPerRunSec": 0.03,
+    "twoOutsGoBonusSec": 0.3,
+    "roundFirstSec": 0.6,
+    "roundFirstPerRunSec": 0.03,
+    "desperateTrailRuns": 3,
+    "desperateSec": 0.2,
+    "commitFraction": 0.4,
+    "tagThirdMinCarryFt": 200,
+    "tagSecondMinCarryFt": 250,
     "stealMinRun": 7,
-    "stealChance": 0.16,
-    "stealLeadMin": 0.45,
-    "stealLeadSpan": 0.35
+    "stealChance": 0.16
   }
 }

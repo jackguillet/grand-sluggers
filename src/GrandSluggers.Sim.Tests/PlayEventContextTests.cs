@@ -15,7 +15,8 @@ public class PlayEventContextTests
         var match = Match.Slice(_content, innings: 3, seed: 1);
         var batter = match.Batter;
         var pitcher = match.Pitcher;
-        Assert.True(match.BeginAtBat(Paint, Swing, out var hit, out _));
+        Assert.True(match.BeginAtBat(Paint, Swing, out _, out _));
+        var hit = FlightFixtures.Landing(match.Park, 220, 6, -40);
 
         var ev = match.FinishAtBat(Paint, Swing, hit,
             new FieldingResult(PlayKind.Single, pitcher, null, 1, 20, 80, false, false));
@@ -116,7 +117,6 @@ public class PlayEventContextTests
         FinishFlyOut(match);
         FinishFlyOut(match);
         Assert.True(match.StationRunner(1, match.OnDeck!));
-        Assert.True(match.TakeLeadAt(1, 0.25));
         Assert.True(match.StartSteal());
         var batter = match.Batter;
         var pitcher = match.Pitcher;

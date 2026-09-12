@@ -9,15 +9,12 @@ public static class ClosePlay
     /// <summary>Seconds after the throw lands until the mash icon appears (running.close.iconDelaySec).</summary>
     public static double IconDelaySec(RulesTable? rules = null) => Rules.Or(rules).Running.Close.IconDelaySec;
 
-    public static bool Offered(int throwBag, bool secondOccupied, bool thirdOccupied) =>
-        Offered(throwBag, InPlay.ForceState.Empty, secondOccupied, thirdOccupied);
-
-    /// <summary>Mash at third/home on a tag. A force is the throw, not a mash.</summary>
-    public static bool Offered(int throwBag, InPlay.ForceState force, bool secondOccupied, bool thirdOccupied)
+    /// <summary>Mash at third/home on a tag. A force is the throw, not a mash; nobody coming is no play.</summary>
+    public static bool Offered(int throwBag, InPlay.ForceState force, bool runnerHeadingThere)
     {
         if (throwBag is not (3 or 4)) return false;
         if (force.At(throwBag)) return false;
-        return InPlay.TagBag(secondOccupied, thirdOccupied) == throwBag;
+        return runnerHeadingThere;
     }
 
     public static bool IsCloseBag(int bag) => bag is 3 or 4;

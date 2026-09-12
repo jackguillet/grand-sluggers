@@ -210,8 +210,8 @@ public sealed class ScenarioTests
         var field = Grounder(match);
         match.LivePlay.Apply(LivePlayCommand.Begin(PlayKind.GroundOut));
         var advanced = match.LivePlay.Apply(LivePlayCommand.Advance(1, PlayKind.GroundOut, true, false, true, 0));
-        var feet = InPlay.RunFeet(advanced.Snapshot.ElapsedSeconds, match.Batter, 0, match.Rules);
-        var at = InPlay.AlongBases(feet, 1, HomeSet.BatterX, HomeSet.BatterZ, match.Rules);
+        _ = advanced;
+        var at = match.BatterRunner!.Position;
         var tag = match.LivePlay.Apply(LivePlayCommand.Contact(
             PlayKind.GroundOut, true, false, true, at.X, at.Z, 0, field.Fielder));
         Assert.Equal(0, tag.TaggedFromBag);
@@ -246,7 +246,8 @@ public sealed class ScenarioTests
     {
         var scenario = new Scenario(_content, seed: 1).Runner(1, 1).Runner(2, 2).Runner(3, 3);
         var match = scenario.Match;
-        var hit = scenario.Contact() with { HomeRun = true, CarryFt = 420, LaunchDeg = 30 };
+        scenario.Contact();
+        var hit = FlightFixtures.OverTheFence(match.Park, 20, 0);
         var field = new FieldingResult(PlayKind.HomeRun, null, null, 4, 0, 420, false, false);
         var play = match.FinishAtBat(Scenario.Paint, Scenario.Swing, hit, field);
 
@@ -262,7 +263,8 @@ public sealed class ScenarioTests
     {
         var scenario = new Scenario(_content, seed: 1);
         var match = scenario.Match;
-        var hit = scenario.Contact();
+        scenario.Contact();
+        var hit = FlightFixtures.Landing(match.Park, 45, 8, -12);
         var field = new FieldingResult(
             PlayKind.Single, match.Pitcher, match.Batter, 1.5, 48, 72, false, false,
             new ThrowResult(Chemistry.Good, 1.7, false), Bobble: true);
