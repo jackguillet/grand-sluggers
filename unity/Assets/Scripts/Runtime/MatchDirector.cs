@@ -69,7 +69,7 @@ namespace GrandSluggers.UnityClient
 
         enum Phase { Title, Select, Field, Lineup, Set, Flight, InPlay, StealThrow, Result, GameOver }
         Phase _phase = Phase.Title;
-        readonly string[] _pitches = { "fastball", "changeup", "curve", "slider" };
+        readonly string[] _pitches = { "fastball", "changeup" };
         int _itemPick;
         Character _itemTarget;
         bool _itemThrown;

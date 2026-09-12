@@ -11,13 +11,15 @@ public class PitchJudgmentTests
     [Theory]
     [InlineData(-1)]
     [InlineData(1)]
-    public void TakenLiveCurveOutsideCannotBeCalledStrikeThree(double curve)
+    public void TakenLiveBreakOutsideCannotBeCalledStrikeThree(double curve)
     {
         var match = Match.Slice(content, innings: 3, seed: 1);
         var heart = new PitchCommand("fastball", 0, 0, false);
         Assert.Equal(PlayKind.TakeStrike, match.Play(heart, Take).Kind);
         Assert.Equal(PlayKind.TakeStrike, match.Play(heart, Take).Kind);
-        var delivered = match.PreparePitch(heart with { BreakX = curve });
+        // On the edge, then the stick carries it out (the cap is half a zone, spec §4.2).
+        var edge = Scenario.PitchAt(curve * (StrikeZoneGeometry.HalfWidth - 0.1), StrikeZoneGeometry.CenterY);
+        var delivered = match.PreparePitch(edge with { BreakX = curve });
         var crossing = PitchFlight.Point(delivered, 1);
         Assert.True(Math.Abs(crossing.X) > StrikeZoneGeometry.HalfWidth);
         var result = match.Play(delivered, Take);
@@ -33,21 +35,22 @@ public class PitchJudgmentTests
         var match = Match.Slice(content, innings: 3, seed: 1);
         var heart = new PitchCommand("fastball", 0, 0, false);
         match.Play(heart, Take); match.Play(heart, Take);
-        var result = match.Play(heart with { BreakX = 1 }, new SwingCommand(true, 0, 99, false));
+        var edge = Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, StrikeZoneGeometry.CenterY);
+        var result = match.Play(edge with { BreakX = 1 }, new SwingCommand(true, 0, 99, false));
         Assert.Equal(PlayKind.Strikeout, result.Kind);
         Assert.False(result.AtBat.InZone);
         Assert.Equal(1, match.Outs);
     }
 
     [Fact]
-    public void PitchTypeCurveRubberAndStarAreJudgedAtTheRenderedCrossing()
+    public void PitchShapeBreakRubberAndStarAreJudgedAtTheRenderedCrossing()
     {
-        foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+        foreach (var type in new[] { "fastball", "changeup" })
         foreach (var star in new[] { "", "heatball", "prismball", "charmball", "phonyball", "caskball" })
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         foreach (var charge in new[] { 0.0, 1.0 })
         {
-            var pitch = new PitchCommand(type, charge, 0, star != "", 0.2, -0.2, offset, false, offset);
+            var pitch = new PitchCommand(type, charge, 0, star != "", 0.2, -0.2, offset, false, offset * 0.3);
             var world = PitchFlight.Point(pitch, 1, star);
             var aim = PitchFlight.ContactAim(pitch, star);
             Assert.Equal(world.X, aim.X * PitchFlight.PlateScaleX, 10);
@@ -149,7 +152,7 @@ public class PitchJudgmentTests
     [Fact]
     public void IntendedCrossingSurvivesEveryDeliveryShape()
     {
-        foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+        foreach (var type in new[] { "fastball", "changeup" })
         foreach (var star in new[] { "", "heatball", "prismball", "charmball", "phonyball", "caskball" })
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         {
@@ -174,16 +177,43 @@ public class PitchJudgmentTests
         for (var i = 0; i < 5000; i++)
         {
             var pitch = match.CpuPitch();
-            var type = pitch.Changeup ? "changeup" : pitch.Type;
+            var type = pitch.IsChangeup ? "changeup" : pitch.BreakX != 0 ? "break" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
             if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch))
                 strikes[type] = strikes.GetValueOrDefault(type) + 1;
         }
-        foreach (var type in new[] { "fastball", "changeup", "curve", "slider" })
+        foreach (var type in new[] { "fastball", "changeup", "break" })
         {
-            Assert.True(seen[type] > 100);
+            Assert.True(seen[type] > 100, $"{type} seen {seen.GetValueOrDefault(type)}");
             Assert.InRange((double)strikes.GetValueOrDefault(type) / seen[type], 0.65, 1.0);
         }
+    }
+
+    [Fact]
+    public void TheAimTellIsTheCrossingTheUmpireJudges()
+    {
+        // #577: one function for the tell, the ball, and the umpire. Walking the rubber moves the
+        // tell with the body; the stick moves it during flight; a charged pitch barely bends.
+        var r = content.Rules;
+        var still = new PitchCommand("fastball", 0, 0, false);
+        var walked = still with { RubberX = 0.5 };
+        Assert.Equal(HomeSet.PitcherWalk * 0.5, SetTells.Locator(walked).X - SetTells.Locator(still).X, 6);
+        var bent = walked with { BreakX = -1 };
+        Assert.Equal(-r.Pitching.Flight.BreakMaxFt, SetTells.Locator(bent).X - SetTells.Locator(walked).X, 6);
+        var charged = bent with { Charge01 = 1 };
+        Assert.Equal(-r.Pitching.Flight.BreakMaxFt * r.Pitching.Flight.BreakDampedMul,
+            SetTells.Locator(charged).X - SetTells.Locator(walked).X, 6);
+        foreach (var pitch in new[] { still, walked, bent, charged })
+        {
+            var (x, y) = SetTells.Locator(pitch);
+            var p = PitchFlight.Point(pitch, 1);
+            Assert.Equal((p.X, p.Y), (x, y));
+            Assert.Equal(StrikeZoneGeometry.Contains(x, y), SetTells.InZone(pitch));
+            Assert.Equal(StrikeZoneGeometry.Contains(x, y), AtBatResolver.PitchInZone(pitch, 5));
+        }
+        Assert.True(SetTells.AimTellOn(true, true));
+        Assert.False(SetTells.AimTellOn(false, true));
+        Assert.False(SetTells.AimTellOn(true, false));
     }
 
 }
