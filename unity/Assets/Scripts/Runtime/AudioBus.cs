@@ -11,7 +11,14 @@ namespace GrandSluggers.UnityClient
     public sealed class AudioBus : MonoBehaviour
     {
         const int Rate = 22050;
+        // A park never plays the same sound twice. One wav fired identically on
+        // every pitch is the tell, so every sfx one-shot takes its own voice and
+        // its own small detune. Not per event: every play type gets it.
+        const int Shots = 6;
+        const float Jitter = 0.045f;
 
+        AudioSource[] _shots;
+        int _shot;
         AudioSource _sfx;
         AudioSource _crowd;
         AudioSource _vo;
@@ -24,6 +31,8 @@ namespace GrandSluggers.UnityClient
             _sfx = Src("Sfx", 0.9f, false);
             _crowd = Src("Crowd", 0.1f, true);
             _vo = Src("Vo", 0.85f, false);
+            _shots = new AudioSource[Shots];
+            for (var i = 0; i < Shots; i++) _shots[i] = Src("Shot" + i, 0.9f, false);
 
             Tone("bat-perfect", Crack("BatPerfect", 2400f, 0.55f, 1f, 0.09f));
             Tone("bat-solid", Crack("BatSolid", 1400f, 0.4f, 0.78f, 0.08f));
@@ -50,6 +59,14 @@ namespace GrandSluggers.UnityClient
             var clip = Resolve(eventId);
             var src = SourceFor(eventId);
             if (clip == null || src == null) return;
+            if (src == _sfx && _shots != null)
+            {
+                // Round robin so a quick catch never cuts off the crack.
+                src = _shots[_shot];
+                _shot = (_shot + 1) % _shots.Length;
+                src.pitch = 1f + Random.Range(-Jitter, Jitter);
+                volume *= 1f - Random.Range(0f, Jitter * 2f);
+            }
             src.PlayOneShot(clip, volume);
         }
 
