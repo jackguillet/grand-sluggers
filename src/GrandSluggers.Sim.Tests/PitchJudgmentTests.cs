@@ -14,7 +14,7 @@ public class PitchJudgmentTests
     public void TakenLiveBreakOutsideCannotBeCalledStrikeThree(double curve)
     {
         var match = Match.Slice(content, innings: 3, seed: 1);
-        var heart = new PitchCommand("fastball", 0, 0, false);
+        var heart = new PitchCommand("fastball", 0, false);
         Assert.Equal(PlayKind.TakeStrike, match.Play(heart, Take).Kind);
         Assert.Equal(PlayKind.TakeStrike, match.Play(heart, Take).Kind);
         // On the edge, then the stick carries it out (the cap is half a zone, spec §4.2).
@@ -33,7 +33,7 @@ public class PitchJudgmentTests
     public void MissedSwingOutsideIsStillStrikeThree()
     {
         var match = Match.Slice(content, innings: 3, seed: 1);
-        var heart = new PitchCommand("fastball", 0, 0, false);
+        var heart = new PitchCommand("fastball", 0, false);
         match.Play(heart, Take); match.Play(heart, Take);
         var edge = Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, StrikeZoneGeometry.CenterY);
         var result = match.Play(edge with { BreakX = 1 }, new SwingCommand(true, 0, 99, false));
@@ -50,7 +50,7 @@ public class PitchJudgmentTests
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         foreach (var charge in new[] { 0.0, 1.0 })
         {
-            var pitch = new PitchCommand(type, charge, 0, star != "", 0.2, -0.2, offset, false, offset * 0.3);
+            var pitch = new PitchCommand(type, charge, star != "", 0.2, -0.2, offset, false, offset * 0.3);
             var world = PitchFlight.Point(pitch, 1, star);
             var aim = PitchFlight.ContactAim(pitch, star);
             Assert.Equal(world.X, aim.X * PitchFlight.PlateScaleX, 10);
@@ -100,7 +100,7 @@ public class PitchJudgmentTests
         var nearWorldX = StrikeZoneGeometry.HalfWidth + 0.05;
         var nearAimX = nearWorldX / PitchFlight.PlateScaleX;
         var near = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, 0, false), nearAimX, 0);
+            new PitchCommand("fastball", 0, false), nearAimX, 0);
         Assert.False(StrikeZoneGeometry.Contains(near));
         Assert.False(AtBatResolver.HitsBatter(0, nearWorldX, PitchFlight.PlateY, Hand.R));
         var ballMatch = Match.Slice(content, innings: 3, seed: 1);
@@ -110,7 +110,7 @@ public class PitchJudgmentTests
         var bodyMatch = Match.Slice(content, innings: 3, seed: 1);
         var bodyAimX = AtBatResolver.BatterBodyX(0, bodyMatch.Batter.Bats) / PitchFlight.PlateScaleX;
         var bodyPitch = PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", 0, 0, false), bodyAimX, 0);
+            new PitchCommand("fastball", 0, false), bodyAimX, 0);
         var plunk = bodyMatch.Play(bodyPitch, Take);
         Assert.Equal(PlayKind.HitByPitch, plunk.Kind);
         Assert.False(plunk.AtBat.InZone);
@@ -121,7 +121,7 @@ public class PitchJudgmentTests
     {
         var match = Match.Slice(content, innings: 3, seed: 1);
         match.WalkPitcher(0.6);
-        var ready = match.PreparePitch(new PitchCommand("fastball", 0, 0, false));
+        var ready = match.PreparePitch(new PitchCommand("fastball", 0, false));
         Assert.Equal(0.6, ready.RubberX);
         Assert.Same(ready, match.PreparePitch(ready));
         match.WalkPitcher(-1.2);
@@ -134,10 +134,10 @@ public class PitchJudgmentTests
     {
         var match = Match.Slice(content, innings: 99, seed: 17);
         // Repeated taken outside pitches spend stamina without retiring the side.
-        var outside = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var outside = new PitchCommand("fastball", 0, false, AimX: 1.5);
         for (var i = 0; i < 150 && !match.PitcherTired; i++) match.Play(outside, Take);
         Assert.True(match.PitcherTired);
-        var raw = new PitchCommand("fastball", 0, 0, false);
+        var raw = new PitchCommand("fastball", 0, false);
         var ready = match.PreparePitch(raw);
         Assert.True(ready.DeliveryPrepared);
         Assert.True(ready.AimX != raw.AimX || ready.AimY != raw.AimY);
@@ -156,7 +156,7 @@ public class PitchJudgmentTests
         foreach (var star in new[] { "", "heatball", "prismball", "charmball", "phonyball", "caskball" })
         foreach (var offset in new[] { -1.0, 0, 1.0 })
         {
-            var raw = new PitchCommand(type, 1, 0, star != "", BreakX: offset, RubberX: offset);
+            var raw = new PitchCommand(type, 1, star != "", BreakX: offset, RubberX: offset);
             var aimed = PitchFlight.AimForCrossing(raw, 0.2, -0.1, star);
             var contact = PitchFlight.ContactAim(aimed, star);
             Assert.Equal(0.2, contact.X, 10);
@@ -169,24 +169,30 @@ public class PitchJudgmentTests
     }
 
     [Fact]
-    public void CpuBreakingBallsCanReachTheIntendedZone()
+    public void CpuBreakingBallsAndChangeupsReachTheZoneLikeFastballs()
     {
+        // The table names a crossing and compensates the shape, the break, and the rubber into the
+        // aim (spec §4.8): at an even count every verb lands in the frame about as often.
         var match = Match.Slice(content, seed: 535);
         var seen = new Dictionary<string, int>();
         var strikes = new Dictionary<string, int>();
         for (var i = 0; i < 5000; i++)
         {
             var pitch = match.CpuPitch();
-            var type = pitch.IsChangeup ? "changeup" : pitch.BreakX != 0 ? "break" : "fastball";
+            var type = pitch.IsChangeup ? "changeup" : pitch.BreakX != 0 ? "break" : ChargeFeel.IsCharge(pitch.Charge01) ? "charge" : "fastball";
             seen[type] = seen.GetValueOrDefault(type) + 1;
             if (AtBatResolver.PitchInZone(pitch, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch))
                 strikes[type] = strikes.GetValueOrDefault(type) + 1;
         }
-        foreach (var type in new[] { "fastball", "changeup", "break" })
+        var rates = new Dictionary<string, double>();
+        foreach (var type in new[] { "fastball", "charge", "changeup", "break" })
         {
             Assert.True(seen[type] > 100, $"{type} seen {seen.GetValueOrDefault(type)}");
-            Assert.InRange((double)strikes.GetValueOrDefault(type) / seen[type], 0.65, 1.0);
+            rates[type] = (double)strikes.GetValueOrDefault(type) / seen[type];
+            Assert.InRange(rates[type], 0.4, 0.95);
         }
+        Assert.True(Math.Abs(rates["break"] - rates["fastball"]) < 0.15, $"break {rates["break"]:0.00} vs fastball {rates["fastball"]:0.00}");
+        Assert.True(Math.Abs(rates["changeup"] - rates["fastball"]) < 0.15, $"changeup {rates["changeup"]:0.00} vs fastball {rates["fastball"]:0.00}");
     }
 
     [Fact]
@@ -195,7 +201,7 @@ public class PitchJudgmentTests
         // #577: one function for the tell, the ball, and the umpire. Walking the rubber moves the
         // tell with the body; the stick moves it during flight; a charged pitch barely bends.
         var r = content.Rules;
-        var still = new PitchCommand("fastball", 0, 0, false);
+        var still = new PitchCommand("fastball", 0, false);
         var walked = still with { RubberX = 0.5 };
         Assert.Equal(HomeSet.PitcherWalk * 0.5, SetTells.Locator(walked).X - SetTells.Locator(still).X, 6);
         var bent = walked with { BreakX = -1 };
