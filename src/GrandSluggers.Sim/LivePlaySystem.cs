@@ -128,6 +128,18 @@ public sealed record LivePlayCommandResult(
     PlayEvent? CompletedPlay = null);
 
 /// <summary>
+/// The last thing the live ball decided, as typed facts. <see cref="LivePlaySystem.Caption"/>
+/// is narrated from it; Match composes the play's caption from it and never reads the text.
+/// </summary>
+public sealed record LiveMoment(InPlay.ThrowVerdict Verdict, int Bag, Character? Fielder, Character? Runner)
+{
+    public bool NarratesBatterAtFirst => InPlay.NarratesBatterAtFirst(Verdict);
+
+    public string Narrate(string batterName, string defaultFielderName) =>
+        InPlay.Narrate(Verdict, Bag, Fielder?.Name ?? defaultFielderName, batterName, Runner?.Name);
+}
+
+/// <summary>
 /// Owns the mutable state and baseball commands for the ball between contact and Time.
 /// It has no Unity dependency: callers supply elapsed time, possession, and glove location,
 /// then consume a snapshot and any out/result produced by the command.
@@ -154,9 +166,14 @@ public sealed class LivePlaySystem
     public int ForceBag { get; private set; }
     public bool TurnedTwo { get; private set; }
     public bool BatterOut { get; private set; }
+    /// <summary>A throw to first arrived after the batter: the batter-runner is on the bag.</summary>
+    public bool BatterSafeAtFirst { get; private set; }
     public int Throws { get; private set; }
     public int OutsAtOpen { get; private set; }
-    public string Caption { get; private set; } = "";
+    /// <summary>The last narrated decision of this live ball, or null when nothing has been decided yet.</summary>
+    public LiveMoment? LastMoment { get; private set; }
+    /// <summary>Narrated from <see cref="LastMoment"/>, last. Presentation only; no rule reads it.</summary>
+    public string Caption => LastMoment?.Narrate(_match.Batter.Name, _match.Pitcher.Name) ?? "";
 
     public LivePlaySnapshot Snapshot => new(
         Active,
@@ -217,9 +234,10 @@ public sealed class LivePlaySystem
         ForceBag = 0;
         TurnedTwo = false;
         BatterOut = false;
+        BatterSafeAtFirst = false;
         Throws = 0;
         OutsAtOpen = _match.Outs;
-        Caption = "";
+        LastMoment = null;
         return new LivePlayCommandResult(Snapshot);
     }
 
@@ -255,10 +273,10 @@ public sealed class LivePlaySystem
         if (InPlay.LiveBatter(PlayKind, BatterOut) && Forces.At(1))
         {
             var dest = InPlay.BatterDestBag(PlayKind);
-            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01);
+            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01, _match.Rules);
             var (x, z) = InPlay.AlongBases(feet, dest,
-                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
-            if (InPlay.ForceOnBag(true, 1, true, false, command.GloveX, command.GloveZ, x, z))
+                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ, _match.Rules);
+            if (InPlay.ForceOnBag(true, 1, true, false, command.GloveX, command.GloveZ, x, z, _match.Rules))
                 return ApplyThrow(1, runnerBeats: false, command.Fielder);
         }
 
@@ -269,9 +287,9 @@ public sealed class LivePlaySystem
             var who = _match.RunnerAt(from)?.Who;
             if (who is null) continue;
             var dest = InPlay.OccupiedDestBag(from, PlayKind, _match.SendAll, CatchMade);
-            var feet = InPlay.RunFeet(ElapsedSeconds, who);
-            var (x, z) = InPlay.TowardBag(from, dest, feet);
-            if (InPlay.ForceOnBag(true, bag, true, false, command.GloveX, command.GloveZ, x, z))
+            var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
+            var (x, z) = InPlay.TowardBag(from, dest, feet, rules: _match.Rules);
+            if (InPlay.ForceOnBag(true, bag, true, false, command.GloveX, command.GloveZ, x, z, _match.Rules))
                 return ApplyThrow(bag, runnerBeats: false, command.Fielder);
         }
         return null;
@@ -282,10 +300,10 @@ public sealed class LivePlaySystem
         if (InPlay.LiveBatter(PlayKind, BatterOut))
         {
             var dest = InPlay.BatterDestBag(PlayKind);
-            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01);
+            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01, _match.Rules);
             var (x, z) = InPlay.AlongBases(feet, dest,
-                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
-            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z)
+                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ, _match.Rules);
+            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z, rules: _match.Rules)
                 && ApplyTag(0, command.Fielder))
                 return new LivePlayCommandResult(Snapshot, TaggedFromBag: 0);
         }
@@ -295,9 +313,9 @@ public sealed class LivePlaySystem
             var who = _match.RunnerAt(bag)?.Who;
             if (who is null) continue;
             var dest = InPlay.OccupiedDestBag(bag, PlayKind, _match.SendAll, CatchMade);
-            var feet = InPlay.RunFeet(ElapsedSeconds, who);
-            var (x, z) = InPlay.TowardBag(bag, dest, feet);
-            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z)
+            var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
+            var (x, z) = InPlay.TowardBag(bag, dest, feet, rules: _match.Rules);
+            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z, rules: _match.Rules)
                 && ApplyTag(bag, command.Fielder))
                 return new LivePlayCommandResult(Snapshot, TaggedFromBag: bag);
         }
@@ -334,14 +352,17 @@ public sealed class LivePlaySystem
             bag, Forces, present, runnerBeats, _match.Outs, ForceRecorded,
             fielder?.Name ?? "", _match.Batter.Name);
         Throws++;
-        if (!string.IsNullOrEmpty(step.Caption)) Caption = step.Caption;
+        // A silent verdict (nothing decided, or the batter simply safe at first) keeps the last narrated one.
+        if (step.Verdict is not (InPlay.ThrowVerdict.None or InPlay.ThrowVerdict.BatterBeat))
+            LastMoment = new LiveMoment(step.Verdict, step.Bag, fielder, null);
+        if (step.BatterSafe) BatterSafeAtFirst = true;
         if (step.Force)
         {
             ForceRecorded = true;
             ForceBag = step.Bag;
         }
         if (step.TurnedTwo) TurnedTwo = true;
-        if (step.Out) Retire(InPlay.ForceState.FromBag(step.Bag), fielder);
+        if (step.Out) Retire(InPlay.ForceState.FromBag(step.Bag), step.Bag, step.OutType, fielder);
         return new LivePlayCommandResult(Snapshot, step);
     }
 
@@ -349,19 +370,19 @@ public sealed class LivePlaySystem
     {
         if (_match.Outs >= 3) return false;
         var who = fromBag == 0 ? _match.Batter : _match.RunnerAt(fromBag)?.Who;
-        if (who is null || !Retire(fromBag, fielder)) return false;
-        Caption = $"{fielder?.Name ?? _match.Pitcher.Name} tags {who.Name}.";
+        if (who is null || !Retire(fromBag, 0, OutType.Tag, fielder)) return false;
+        LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagRunner, 0, fielder, who);
         return true;
     }
 
-    bool Retire(int fromBag, Character? fielder)
+    bool Retire(int fromBag, int atBag, OutType type, Character? fielder)
     {
         if (fromBag == 0)
         {
             if (BatterOut) return false;
             BatterOut = true;
         }
-        if (!_match.RetireLiveRunner(fromBag, fielder)) return false;
+        if (!_match.RetireLiveRunner(fromBag, atBag, type, fielder)) return false;
         Forces = Forces.AfterOutAt(fromBag + 1);
         return true;
     }
@@ -387,12 +408,12 @@ public sealed class LivePlaySystem
     void TickOccupancy(double dt, double dash01)
     {
         var dest = InPlay.BatterDestBag(PlayKind);
-        var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, dash01);
+        var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, dash01, _match.Rules);
         var startX = HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX);
         var (bx, bz) = dest > 0
-            ? InPlay.AlongBases(feet, dest, startX, HomeSet.BatterZ)
+            ? InPlay.AlongBases(feet, dest, startX, HomeSet.BatterZ, _match.Rules)
             : (startX, HomeSet.BatterZ);
-        _batter = InPlay.TickOccupy(dest > 0 && InPlay.OnThisBag(dest, bx, bz), _batter.Sec, dt);
+        _batter = InPlay.TickOccupy(dest > 0 && InPlay.OnThisBag(dest, bx, bz, rules: _match.Rules), _batter.Sec, dt);
         _first = TickRunner(1, _match.First, _first, dt);
         _second = TickRunner(2, _match.Second, _second, dt);
         _third = TickRunner(3, _match.Third, _third, dt);
@@ -402,9 +423,9 @@ public sealed class LivePlaySystem
     {
         if (who is null) return default;
         var dest = InPlay.OccupiedDestBag(fromBag, PlayKind, _match.SendAll, CatchMade);
-        var feet = InPlay.RunFeet(ElapsedSeconds, who);
-        var (x, z) = InPlay.TowardBag(fromBag, dest, feet);
-        return InPlay.TickOccupy(InPlay.OnThisBag(dest, x, z), occupy.Sec, dt);
+        var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
+        var (x, z) = InPlay.TowardBag(fromBag, dest, feet, rules: _match.Rules);
+        return InPlay.TickOccupy(InPlay.OnThisBag(dest, x, z, rules: _match.Rules), occupy.Sec, dt);
     }
 
     bool IsTime()
@@ -419,7 +440,8 @@ public sealed class LivePlaySystem
             _match.First is not null ? _first : null,
             _match.Second is not null ? _second : null,
             _match.Third is not null ? _third : null,
-            batterOut);
+            batterOut,
+            _match.Rules);
     }
 
     LivePlayCommandResult ResetResult()
@@ -446,8 +468,9 @@ public sealed class LivePlaySystem
         ForceBag = 0;
         TurnedTwo = false;
         BatterOut = false;
+        BatterSafeAtFirst = false;
         Throws = 0;
         OutsAtOpen = 0;
-        Caption = "";
+        LastMoment = null;
     }
 }
