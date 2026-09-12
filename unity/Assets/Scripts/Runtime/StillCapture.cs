@@ -396,7 +396,13 @@ namespace GrandSluggers.UnityClient
             var towardPlate = _match.Batter.Bats == Hand.L ? Vector3.left : Vector3.right;
             var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
             var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
-            var feetAlongPitch = Mathf.Abs(Vector3.Dot(feetLine, Vector3.forward));
+            // Signed on purpose. BattingStance authors one world feet axis for
+            // both hands -- MirrorX leaves Z alone -- because handedness turns
+            // the chest and swaps the low hand, it does not reverse the feet.
+            // Taking Mathf.Abs here scored a reversed stance identically to a
+            // correct one, which is how left-handed batters stood backwards
+            // through a 56/56 run.
+            var feetAlongPitch = Vector3.Dot(feetLine, Vector3.forward);
             if (beat is "ready" or "rest" or "load")
             {
                 if (!stanceMeasured)
@@ -413,6 +419,20 @@ namespace GrandSluggers.UnityClient
                         failures.Add($"{captain} {power} {beat}: feet do not align along pitch ({feetAlongPitch:0.000})");
                     if (eyesTowardPitcher < alignment)
                         failures.Add($"{captain} {power} {beat}: eyes do not face pitcher ({eyesTowardPitcher:0.000})");
+                    // The lead hand rides low on the handle and swaps sides with
+                    // the batter. Landmark names are not anatomy -- DCC X is
+                    // reflected on import -- so compare the drawn stack against
+                    // the authored key for this hand rather than against "left".
+                    if (renderedHands)
+                    {
+                        var authored = SwingPresentation.At(hero.PoseTime, _match.Batter.Bats);
+                        var authoredLeftLow = authored.LeftHand.Y < authored.RightHand.Y;
+                        var drawnLeftLow = left.y < right.y;
+                        if (drawnLeftLow != authoredLeftLow)
+                            failures.Add($"{captain} {power} {beat}: hands are stacked the wrong way up "
+                                + $"for a {_match.Batter.Bats} batter (drawn gap {left.y - right.y:0.000}, "
+                                + $"authored gap {authored.LeftHand.Y - authored.RightHand.Y:0.000})");
+                    }
                 }
             }
             var expectedPose = beat is "ready" or "rest" or "load"
