@@ -173,6 +173,78 @@ public sealed class LiveBallScenarioTests
         Assert.All(offenders, o => Assert.StartsWith("AudioBus.cs:", o));
     }
 
+    [Fact]
+    public void OnePlayerBattingStealResolvesFromTicksAlone()
+    {
+        // The one-controller flow as the client drives it: no D-pad (selection syncs to the lead
+        // runner), L3 toggles the steal, the runner leads through the pitch, the take arms the
+        // catcher, and the CPU catcher guns from ticks with a dead pad.
+        var scenario = new Scenario(_content, seed: 3).Runner(1, 1);
+        var match = scenario.Match;
+        Assert.True(match.ToggleSteal());
+        Assert.True(match.StealOn);
+        for (var i = 0; i < 60; i++) match.TakeLeadAt(match.ArmedStealBag, Frame * 2.4);
+        Assert.False(match.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var pitch));
+        Assert.True(match.StealThrowPending);
+        var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
+        match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch!, seats, LivePlayCommandSource.Human));
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 12 && play is null; i++)
+            play = match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human)).CompletedPlay;
+        Assert.NotNull(play);
+        Assert.True(play!.Kind is PlayKind.StolenBase or PlayKind.CaughtStealing, play.Kind.ToString());
+        Assert.False(match.LivePlay.StealPhase);
+    }
+
+    [Theory]
+    [InlineData(3, true)]
+    [InlineData(40, false)]
+    public void OnePlayerBattingClosePlayAtThirdIsDecidedByTheRunnersMash(int pressFramesAfterIcon, bool safe)
+    {
+        // Runner on second, hopper to an infielder: the CPU defense throws to third, the icon
+        // comes up, and the batting human's first South press after it races the CPU glove.
+        var scenario = new Scenario(_content, seed: 5).Runner(2, 1);
+        var match = scenario.Match;
+        var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
+        var preview = match.PreviewHit(hit);
+        var field = match.ResolveFielding(hit, preview);
+        Assert.Equal(PlayKind.GroundOut, field.Kind);
+        var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, LivePlayCommandSource.Human));
+        PlayEvent? play = null;
+        var iconAt = -1;
+        var pressed = false;
+        var closeBag = 0;
+        for (var i = 0; i < 60 * 20 && play is null; i++)
+        {
+            var run = LivePadInput.Dead;
+            if (iconAt >= 0 && !pressed && i >= iconAt + pressFramesAfterIcon)
+            {
+                run = new LivePadInput(SouthDown: true);
+                pressed = true;
+            }
+            play = live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, run, false, LivePlayCommandSource.Human)).CompletedPlay;
+            if (live.InClosePlay) closeBag = live.CloseBag;
+            if (iconAt < 0 && live.CloseIcon) iconAt = i;
+        }
+        Assert.Equal(3, closeBag);
+        Assert.True(iconAt > 0, "the icon came up");
+        Assert.NotNull(play);
+        if (safe)
+        {
+            Assert.Equal(PlayKind.Single, play!.Kind);
+            Assert.NotNull(match.Third);
+            Assert.Empty(play.Outcome!.OutsMade);
+        }
+        else
+        {
+            Assert.Equal(PlayKind.GroundOut, play!.Kind);
+            var tag = Assert.Single(play.Outcome!.OutsMade);
+            Assert.Equal((OutType.Tag, 3, 2), (tag.Type, tag.Bag, tag.FromBag));
+        }
+    }
+
     // ---------------------------------------------------------------------------------
 
     (Scenario Scenario, PlayEvent Play) RunGrounder(LivePlayCommandSource seat, bool runnerOnFirst, Action<LivePlaySystem>? observe = null)
