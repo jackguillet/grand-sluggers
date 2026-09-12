@@ -120,7 +120,7 @@ public class AtBatFeelTests
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact, flight), 8);
         Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact - 0.05, flight), 8);
         Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact + 0.05, flight), 8);
-        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > AtBatResolver.BaseContactWindowFrames);
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.BaseFrames);
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
             Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);
@@ -314,8 +314,8 @@ public class AtBatFeelTests
         var right = SweetSpot.WorldCenter(0.4);
         Assert.True(right.X > left.X, $"cursor right {right.X} vs left {left.X}");
         Assert.Equal(PitchFlight.PlateY, left.Y);
-        Assert.True(SweetSpot.WorldHalfWidth < 0.92, "cursor is narrower than the visible strike frame");
-        Assert.True(SweetSpot.WorldHalfHeight < (3.65 - 1.45) * 0.5,
+        Assert.True(SweetSpot.WorldHalfWidth() < 0.92, "cursor is narrower than the visible strike frame");
+        Assert.True(SweetSpot.WorldHalfHeight() < (3.65 - 1.45) * 0.5,
             "cursor is shorter than the visible strike frame");
         var park = _content.Parks["harbor-diamond"];
         var resolver = new AtBatResolver(_content.Chemistry);

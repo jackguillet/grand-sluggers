@@ -1,0 +1,49 @@
+{
+  "gravity": 32.174,
+  "drag": 0.0019,
+  "timeScale": 1.65,
+  "plateHeightFt": 2.5,
+  "windMul": 0.35,
+  "sampleHz": 120,
+  "maxSeconds": 12,
+  "bounce": {
+    "restitution": 0.48,
+    "horizontal": 0.82,
+    "minVy": 3.6
+  },
+  "skid": {
+    "launchMinDeg": 14,
+    "launchMaxDeg": 22,
+    "minVy": 2.2,
+    "restitution": 0.28,
+    "horizontal": 0.93
+  },
+  "roll": {
+    "friction": 22,
+    "restSpeed": 1.4
+  },
+  "landing": {
+    "firstGrassMinSec": 0.08,
+    "grassHeightFt": 0.05
+  },
+  "classes": {
+    "grounderMaxLaunchDeg": 14,
+    "lineMinLaunchDeg": 14,
+    "lineMaxLaunchDeg": 22,
+    "lineMinExitMph": 78,
+    "homerLikelyFenceMarginFt": 15,
+    "homerLikelyLaunchMinDeg": 16,
+    "homerLikelyLaunchMaxDeg": 40,
+    "infieldLipFt": 155
+  },
+  "carry": {
+    "tripleFt": 330,
+    "doubleFt": 250,
+    "lineDoubleFt": 180,
+    "groundDoubleFt": 90
+  },
+  "deadBall": {
+    "minSec": 2.4,
+    "afterHangSec": 0.35
+  }
+}

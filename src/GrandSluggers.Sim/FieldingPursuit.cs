@@ -31,16 +31,18 @@ public static class FieldingPursuit
         double nowSec,
         double fromX,
         double fromZ,
-        double speedFtPerSec)
+        double speedFtPerSec,
+        RulesTable? rules = null)
     {
-        var hang = BallFlight.HangTime(path);
-        var live = BallFlight.PointAt(path, sprayDeg, nowSec);
+        var r = Rules.Or(rules);
+        var hang = BallFlight.HangTime(path, r);
+        var live = BallFlight.PointAt(path, sprayDeg, nowSec, r);
         if (FieldingResolver.InAir(preview, live.Y, nowSec, hang))
         {
-            var plant = FlyCatch.ChaseTarget(preview, park);
-            return Fixed(plant.X, plant.Z, hang, nowSec, fromX, fromZ, speedFtPerSec, airCatch: true);
+            var plant = FlyCatch.ChaseTarget(preview, park, r);
+            return Fixed(plant.X, plant.Z, hang, nowSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
         }
-        return Rolling(path, sprayDeg, park, nowSec, fromX, fromZ, speedFtPerSec);
+        return Rolling(path, sprayDeg, park, nowSec, fromX, fromZ, speedFtPerSec, r);
     }
 
     public static Choice Choose(
@@ -51,7 +53,8 @@ public static class FieldingPursuit
         IReadOnlyList<Sample> path,
         double sprayDeg,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null,
-        double nowSec = 0)
+        double nowSec = 0,
+        RulesTable? rules = null)
     {
         Choice? best = null;
         foreach (var position in positions)
@@ -60,8 +63,8 @@ public static class FieldingPursuit
             var start = at != null && at.TryGetValue(position, out var live)
                 ? live
                 : Diamond.Positions[position];
-            var speed = FieldingResolver.ChaseSpeedFt(fielder, preview.Frozen);
-            var route = Plan(preview, park, path, sprayDeg, nowSec, start.X, start.Z, speed);
+            var speed = FieldingResolver.ChaseSpeedFt(fielder, preview.Frozen, rules);
+            var route = Plan(preview, park, path, sprayDeg, nowSec, start.X, start.Z, speed, rules);
             var candidate = new Choice(fielder, position, route);
             if (best is null || Better(candidate.Route, best.Value.Route))
                 best = candidate;
@@ -77,25 +80,27 @@ public static class FieldingPursuit
         double nowSec,
         double fromX,
         double fromZ,
-        double speedFtPerSec)
+        double speedFtPerSec,
+        RulesTable rules)
     {
         Route? lastLegal = null;
+        var scoopY = rules.Fielding.Catch.TouchScoopY;
         for (var i = 0; i < path.Count; i++)
         {
             var sample = path[i];
             if (sample.T + 1e-6 < nowSec) continue;
-            if (sample.Height >= FlyCatch.TouchScoopY) continue;
+            if (sample.Height >= scoopY) continue;
             var point = BallFlight.GroundPoint(sample.Dist, sprayDeg);
             if (!FieldBounds.Inside(park, point.X, point.Z)) break;
-            var route = Fixed(point.X, point.Z, sample.T, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false);
+            var route = Fixed(point.X, point.Z, sample.T, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
             lastLegal = route;
             if (route.Reachable) return route;
         }
 
         if (lastLegal is not null) return lastLegal.Value;
-        var live = BallFlight.PointAt(path, sprayDeg, nowSec);
+        var live = BallFlight.PointAt(path, sprayDeg, nowSec, rules);
         var legal = FieldBounds.Clamp(park, live.X, live.Z);
-        return Fixed(legal.X, legal.Z, nowSec, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false);
+        return Fixed(legal.X, legal.Z, nowSec, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
     }
 
     static Route Fixed(
@@ -106,13 +111,14 @@ public static class FieldingPursuit
         double fromX,
         double fromZ,
         double speedFtPerSec,
-        bool airCatch)
+        bool airCatch,
+        RulesTable rules)
     {
         var travel = Diamond.Dist(fromX, fromZ, x, z);
         var available = Math.Max(0, meetSec - nowSec);
         var speed = Math.Max(0, speedFtPerSec);
         return new Route(x, z, meetSec, travel, speed, available,
-            travel <= speed * available + 0.35, airCatch);
+            travel <= speed * available + rules.Fielding.Chase.ReachSlackFt, airCatch);
     }
 
     static bool Better(Route candidate, Route current)

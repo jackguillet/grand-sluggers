@@ -47,7 +47,7 @@ public class NightTests
     {
         var park = _content.Parks["crystal-rink"];
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(park, false));
-        Assert.Equal(ParkHazards.CrystalNightWindowMul, ParkHazards.ContactWindowMul(park, true));
+        Assert.Equal(Rules.Default.Fielding.Park.CrystalNightWindowMul, ParkHazards.ContactWindowMul(park, true));
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(_content.Parks["harbor-diamond"], true));
 
         var input = new AtBatInput(

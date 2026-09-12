@@ -3,38 +3,46 @@ namespace GrandSluggers.Sim;
 /// <summary>One defensive verb per character — the Sluggers "who you are on defense."</summary>
 public static class FieldAbilities
 {
-    public static double CatchBonus(Character c) => c.FieldAbility switch
+    public static double CatchBonus(Character c, RulesTable? rules = null)
     {
-        "lick-catch" or "grow" or "withdraw" => 6,
-        "super-jump" => 3,
+        var a = Rules.Or(rules).Fielding.Abilities;
+        return c.FieldAbility switch
+        {
+            "lick-catch" or "grow" or "withdraw" => a.BigCatchBonusFt,
+            "super-jump" => a.SuperJumpCatchBonusFt,
+            _ => 0
+        };
+    }
+
+    public static double FlyRangeBonus(Character c, RulesTable? rules = null) =>
+        c.FieldAbility == "super-jump" ? Rules.Or(rules).Fielding.Abilities.SuperJumpFlyRangeFt : 0;
+
+    public static double GroundRangeBonus(Character c, RulesTable? rules = null) => c.FieldAbility switch
+    {
+        "dive" or "burrow" => Rules.Or(rules).Fielding.Abilities.DiveGroundRangeFt,
         _ => 0
     };
 
-    public static double FlyRangeBonus(Character c) =>
-        c.FieldAbility == "super-jump" ? 22 : 0;
-
-    public static double GroundRangeBonus(Character c) => c.FieldAbility switch
+    public static double ThrowMul(Character c, RulesTable? rules = null)
     {
-        "dive" or "burrow" => 16,
-        _ => 0
-    };
-
-    public static double ThrowMul(Character c) => c.FieldAbility switch
-    {
-        "laser" => 1.45,
-        "snap-throw" => 1.22,
-        _ => 1.0
-    };
+        var a = Rules.Or(rules).Fielding.Abilities;
+        return c.FieldAbility switch
+        {
+            "laser" => a.LaserMul,
+            "snap-throw" => a.SnapThrowMul,
+            _ => 1.0
+        };
+    }
 
     public static bool IgnoresParkSlow(Character c) =>
         c.FieldAbility.Equals("burrow", StringComparison.OrdinalIgnoreCase);
 
-    public static bool AirRob(Park park, Character fielder, AtBatResult hit)
+    public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
     {
         if (!fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
             return false;
         var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt <= fence + 18;
+        return hit.CarryFt <= fence + Rules.Or(rules).Fielding.Abilities.AirRobPastFenceFt;
     }
 
     public static PlayKind SpinCheck(Character fielder, PlayKind kind)
@@ -49,8 +57,8 @@ public static class FieldAbilities
         };
     }
 
-    public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes) =>
-        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from) };
+    public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable? rules = null) =>
+        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) };
 }
 
 public static class ErrorItems
@@ -68,14 +76,14 @@ public static class ErrorItems
         return false;
     }
 
-    public static FieldingResult Apply(FieldingResult field, string item, Random rng) =>
-        Apply(field, item, rng, null);
+    public static FieldingResult Apply(FieldingResult field, string item, Random rng, RulesTable? rules = null) =>
+        Apply(field, item, rng, null, rules);
 
     /// <summary>
-    /// Banana slips the play fielder (peel on the grass). Rocket has to hit that body.
-    /// POW is an infield hop — grounders only. Smoke/ghost/paint are not items.
+    /// Banana slips the play fielder (peel on the grass). Rocket has to hit that body
+    /// (batting.items.rocketDazeChance). POW is an infield hop — grounders only. Smoke/ghost/paint are not items.
     /// </summary>
-    public static FieldingResult Apply(FieldingResult field, string item, Random rng, Character? target)
+    public static FieldingResult Apply(FieldingResult field, string item, Random rng, Character? target, RulesTable? rules = null)
     {
         if (!Known(item)) return field;
         var id = item.Trim().ToLowerInvariant();
@@ -84,7 +92,7 @@ public static class ErrorItems
         var turns = id switch
         {
             "banana" => outPlay && onPlay,
-            "rocket" => outPlay && onPlay && rng.NextDouble() < 0.55,
+            "rocket" => outPlay && onPlay && rng.NextDouble() < Rules.Or(rules).Batting.Items.RocketDazeChance,
             "pow" => field.Kind == PlayKind.GroundOut && onPlay,
             _ => false
         };

@@ -51,8 +51,8 @@ public class PitchTests
         Assert.InRange(meat, 0.85, 1.15);
         Assert.True(gas < meat, $"charged FB {gas} vs meat {meat}");
         Assert.True(change > meat, $"changeup {change} vs meat {meat}");
-        Assert.True(gas >= PitchFlight.AirMin);
-        Assert.True(change <= PitchFlight.AirMax);
+        Assert.True(gas >= Rules.Default.Pitching.Flight.AirMinSec);
+        Assert.True(change <= Rules.Default.Pitching.Flight.AirMaxSec);
     }
 
     [Fact]

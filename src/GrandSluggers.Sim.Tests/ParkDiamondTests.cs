@@ -67,7 +67,7 @@ public class ParkDiamondTests
         Assert.True(ParkDiamond.TrackFollowsTheFenceArc(Harbor),
             "warning track inner edge must follow the fence, not sawtooth boxes");
         Assert.True(ParkDiamond.TrackMid(Harbor, 0) < Harbor.CenterFenceFt);
-        Assert.True(ParkDiamond.GrassZ1(Harbor) > FieldingResolver.InfieldLipFt);
+        Assert.True(ParkDiamond.GrassZ1(Harbor) > Rules.Default.Flight.Classes.InfieldLipFt);
 
         var shortPark = Harbor with { LeftFenceFt = 280, CenterFenceFt = 320, RightFenceFt = 280 };
         Assert.True(ParkDiamond.PoleIsOnTheFoulLine(shortPark));

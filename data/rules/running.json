@@ -1,0 +1,53 @@
+{
+  "homeToFirst": {
+    "baseSec": 4.32,
+    "secPerRun": 0.13,
+    "minSec": 2.9,
+    "maxSec": 4.35,
+    "dashMul": 0.12,
+    "floorSec": 2.45,
+    "runFeetMinSec": 0.4
+  },
+  "bagToBag": {
+    "baseSec": 3.55,
+    "secPerRun": 0.12,
+    "minSec": 2.45,
+    "maxSec": 3.65
+  },
+  "bags": {
+    "occupyRadiusFt": 6,
+    "tagReachFt": 14,
+    "tagSafeRadiusFt": 3.5,
+    "timeOnBagSec": 1.0,
+    "snapFt": 0.5
+  },
+  "close": {
+    "marginSec": 0.45,
+    "iconDelaySec": 0.22,
+    "cpuReactionBaseSec": 0.20,
+    "cpuReactionPerStat": 0.032
+  },
+  "steal": {
+    "jumpBaseSec": 0.62,
+    "jumpPerLeadSec": 1.08,
+    "remainMinSec": 0.58,
+    "returnBaseSec": 0.62,
+    "returnPerLeadSec": 0.92,
+    "returnPerRunDeficitSec": 0.06,
+    "returnMinSec": 0.42,
+    "armedLeadMin": 0.2,
+    "noThrowRemainSec": 1.6
+  },
+  "tagUp": {
+    "sacFlyCarryFt": 230
+  },
+  "stick": {
+    "diamondDeadMag2": 0.55
+  },
+  "cpu": {
+    "stealMinRun": 7,
+    "stealChance": 0.16,
+    "stealLeadMin": 0.45,
+    "stealLeadSpan": 0.35
+  }
+}

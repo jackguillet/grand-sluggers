@@ -1,0 +1,24 @@
+{
+  "level": "normal",
+  "easy": {
+    "timingSigmaMul": 1.3,
+    "reactionMul": 1.4,
+    "makeableMarginSec": 0.30,
+    "perfectStealChance": 0,
+    "pickoffChance": 0.03
+  },
+  "normal": {
+    "timingSigmaMul": 1.0,
+    "reactionMul": 1.0,
+    "makeableMarginSec": 0.15,
+    "perfectStealChance": 0.2,
+    "pickoffChance": 0.06
+  },
+  "hard": {
+    "timingSigmaMul": 0.8,
+    "reactionMul": 0.8,
+    "makeableMarginSec": 0.05,
+    "perfectStealChance": 0.4,
+    "pickoffChance": 0.10
+  }
+}

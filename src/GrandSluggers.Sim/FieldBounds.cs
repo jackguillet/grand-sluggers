@@ -36,7 +36,7 @@ public static class FieldBounds
         if (dist < 0.5) return (0, zz);
 
         var spray = SprayDeg(x, zz);
-        if (dist > FieldingResolver.InfieldLipFt && Math.Abs(spray) > FoulSprayDeg)
+        if (dist > Rules.Default.Flight.Classes.InfieldLipFt && Math.Abs(spray) > FoulSprayDeg)
         {
             spray = Math.Sign(spray) * FoulSprayDeg;
             var rad = spray * (Math.PI / 180.0);
