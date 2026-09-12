@@ -260,7 +260,7 @@ public class InPlayTests
         Assert.True(InPlay.FairContactSendsBatter(hopper));
         var field = match.ResolveFielding(hopper);
         Assert.True(field.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut, field.Kind.ToString());
-        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false, LaunchAim: 0.6);
         Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
         var ev = match.FinishAtBat(pitch, swing, hit, field);

@@ -110,7 +110,7 @@ namespace GrandSluggers.EditorTools
             string scenario, double timingFrames, bool strikeout, string frameDir)
         {
             var fixture = Setup(play, captain, strikeout);
-            var pitch = new PitchCommand("fastball", 0, 0, false);
+            var pitch = new PitchCommand("fastball", 0, false);
             Invoke(play, "Launch", pitch);
             var pitchDur = Get<float>(play, "_pitchDur");
             var swing = new SwingCommand(true, charge, timingFrames, false);
@@ -212,7 +212,7 @@ namespace GrandSluggers.EditorTools
             MatchDirector play, string captain, string rig, string frameDir)
         {
             var fixture = Setup(play, captain, strikeout: true);
-            Invoke(play, "Launch", new PitchCommand("fastball", 0, 0, false));
+            Invoke(play, "Launch", new PitchCommand("fastball", 0, false));
             Set(play, "_swing", new SwingCommand(false, 0, 0, false));
             Set(play, "_swung", false);
             Set(play, "_pitchAir", true);
@@ -255,7 +255,7 @@ namespace GrandSluggers.EditorTools
             match.SkipToHomeCaptainAtBat();
             if (strikeout)
             {
-                var paint = new PitchCommand("fastball", 0, 0, false);
+                var paint = new PitchCommand("fastball", 0, false);
                 var take = new SwingCommand(false, 0, 0, false);
                 match.Play(paint, take);
                 match.Play(paint, take);

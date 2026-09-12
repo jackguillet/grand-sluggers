@@ -13,7 +13,7 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class Scenario
 {
-    public static readonly PitchCommand Paint = new("fastball", 0, 0, false);
+    public static readonly PitchCommand Paint = new("fastball", 0, false);
     public static readonly SwingCommand Swing = new(true, 0, 0, false);
     public static readonly SwingCommand Take = new(false, 0, 0, false);
 
@@ -23,7 +23,7 @@ public sealed class Scenario
     /// </summary>
     public static PitchCommand PitchAt(double worldX, double worldY, double charge = 0, bool changeup = false) =>
         PitchFlight.AimForCrossing(
-            new PitchCommand("fastball", charge, 0, false, Changeup: changeup),
+            new PitchCommand("fastball", charge, false, Changeup: changeup),
             worldX / PitchFlight.PlateScaleX,
             (worldY - PitchFlight.PlateY) / PitchFlight.PlateScaleY);
 

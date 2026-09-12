@@ -191,6 +191,23 @@ public static class ContentDataValidator
                 errors.Add($"{source}: star {kind} '{key}' has an empty id");
             else if (!value.Id.Equals(key, StringComparison.Ordinal))
                 errors.Add($"{source}: star {kind} key '{key}' does not match id '{value.Id}'");
+            // The numbers the sim reads (spec §13): a value outside its range is a data error, not a fallback.
+            if (kind == "pitch")
+            {
+                if (value.SpeedMul is null || value.SpeedMul <= 0)
+                    errors.Add($"{source}: star pitch '{key}' speedMul must be greater than 0; got {value.SpeedMul?.ToString() ?? "null"}");
+                if (value.StaminaCost is null || value.StaminaCost < 0)
+                    errors.Add($"{source}: star pitch '{key}' staminaCost must be at least 0; got {value.StaminaCost?.ToString() ?? "null"}");
+                if (value.BatterWindowMul is not null && (value.BatterWindowMul <= 0 || value.BatterWindowMul > 1))
+                    errors.Add($"{source}: star pitch '{key}' batterWindowMul must be in (0, 1]; got {value.BatterWindowMul}");
+            }
+            else
+            {
+                if (value.ExitVeloMul is null || value.ExitVeloMul <= 0)
+                    errors.Add($"{source}: star swing '{key}' exitVeloMul must be greater than 0; got {value.ExitVeloMul?.ToString() ?? "null"}");
+                if (value.LaunchDeg is not null && (value.LaunchDeg < 0 || value.LaunchDeg > 60))
+                    errors.Add($"{source}: star swing '{key}' launchDeg must be between 0 and 60; got {value.LaunchDeg}");
+            }
         }
         return ids;
     }
@@ -455,4 +472,24 @@ internal sealed class StarSkillsDto
 internal sealed class StarSkillDto
 {
     public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Kind { get; set; } = "";
+    public double? SpeedMul { get; set; }
+    public int? StaminaCost { get; set; }
+    public double? BatterWindowMul { get; set; }
+    public bool LateBreak { get; set; }
+    public bool Decoy { get; set; }
+    public string? OnCatch { get; set; }
+    public double? ExitVeloMul { get; set; }
+    public double? LaunchDeg { get; set; }
+    public string? Terrain { get; set; }
+    public double? FielderPauseSec { get; set; }
+    public bool InfieldChaos { get; set; }
+    public bool Fragments { get; set; }
+
+    public StarPitchSkill ToPitch() => new(Id, Name, Kind, SpeedMul ?? 1.0, StaminaCost ?? 0,
+        BatterWindowMul ?? 1.0, LateBreak, Decoy, OnCatch);
+
+    public StarSwingSkill ToSwing() => new(Id, Name, Kind, ExitVeloMul ?? 1.0, LaunchDeg, Terrain,
+        FielderPauseSec ?? 0, InfieldChaos, Decoy, Fragments);
 }

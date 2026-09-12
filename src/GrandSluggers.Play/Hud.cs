@@ -179,8 +179,8 @@ public static class Hud
     {
         Raylib.DrawText($"P {match.Pitcher.Name}  arm {match.PitcherStamina}", x, y, 18, Palette.HudInk);
         Raylib.DrawRectangle(x, y + 22, 160, 10, Palette.C(200, 200, 204));
-        Raylib.DrawRectangle(x, y + 22, (int)(160 * (match.PitcherStamina / 100.0)), 10,
-            match.PitcherStamina < 25 ? Palette.Bad : Palette.Good);
+        Raylib.DrawRectangle(x, y + 22, (int)(160 * Math.Clamp(match.PitcherStamina / (double)match.PitcherStaminaMax, 0, 1)), 10,
+            match.PitcherTired ? Palette.Bad : Palette.Good);
         Raylib.DrawText(match.Park.Name, x, y + 38, 16, Palette.HudInk);
     }
 

@@ -63,7 +63,7 @@ public class FoulTests
     public void FoulIsAStrikeUnlessTwo()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var pull = new SwingCommand(true, 0, 0, false, SprayAimDeg: 60);
         var batter = match.Batter.Id;
 

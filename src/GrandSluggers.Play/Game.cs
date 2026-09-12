@@ -283,7 +283,7 @@ public sealed class Game : IDisposable
     PitchCommand PlayerPitch(FrameInput input)
     {
         var star = _starArmed && _match.CanStarPitch;
-        return new PitchCommand(_pitches[_pitchIndex], _charge, 0, star, input.MoveX, input.MoveZ);
+        return new PitchCommand(_pitches[_pitchIndex], _charge, star, input.MoveX, input.MoveZ);
     }
 
     static float Bounce(float t)
@@ -296,7 +296,7 @@ public sealed class Game : IDisposable
     {
         pitch = _match.PreparePitch(pitch);
         _pitch = pitch;
-        var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
+        var mph = _match.PitchSpeedMph(pitch);
         _pitchDur = (float)PitchFlight.AirSeconds(mph);
         _flightAge = 0;
         _playerSwung = false;
@@ -439,7 +439,7 @@ public sealed class Game : IDisposable
                 ThrowResult? thr = null;
                 if (field.ThrowBase is > 0 and < 5 && _caught)
                 {
-                    var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+                    var map = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
                     cut = field.ThrowBase switch
                     {
                         1 => map.GetValueOrDefault("1B"),
@@ -557,7 +557,7 @@ public sealed class Game : IDisposable
 
     void DrawActors()
     {
-        var defense = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
+        var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher);
         foreach (var (pos, who) in defense)
         {
             var p = Diamond.Positions[pos];
