@@ -8,6 +8,12 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 temp="$root/unity/Temp"
 builds="$root/unity/Builds"
 mkdir -p "$temp" "$builds"
+revision="$(git -C "$root" rev-parse HEAD)"
+
+if [[ -n "$(git -C "$root" status --porcelain --untracked-files=no)" ]]; then
+  echo "tracked changes make revision evidence ambiguous; commit them before building" >&2
+  exit 1
+fi
 
 pack_player() {
   local exe="$builds/linux/GrandSluggers.x86_64"
@@ -33,9 +39,7 @@ if [[ "${1:-}" == "pack" ]]; then
 fi
 
 rm -f "$temp/gs-player-done.json"
-cat > "$temp/gs-player-request.json" <<'JSON'
-{"target":"linux","width":1280,"height":800,"development":true}
-JSON
+printf '{"target":"linux","width":1280,"height":800,"development":true,"revision":"%s"}\n' "$revision" > "$temp/gs-player-request.json"
 echo "wrote $temp/gs-player-request.json"
 if ! pgrep -x Unity >/dev/null; then
   echo "Unity editor is not running. Open grand-sluggers/unity, then re-run."
@@ -46,7 +50,7 @@ for i in {1..180}; do
   if [[ -f "$temp/gs-player-done.json" ]]; then
     cat "$temp/gs-player-done.json"
     echo
-    if grep -q '"ok":true' "$temp/gs-player-done.json"; then
+    if python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d.get("ok") is True; assert d.get("revision")==sys.argv[2]; assert d.get("scene")=="Assets/Scenes/HarborDiamond.unity"' "$temp/gs-player-done.json" "$revision"; then
       pack_player
     else
       echo "build failed, not packing" >&2

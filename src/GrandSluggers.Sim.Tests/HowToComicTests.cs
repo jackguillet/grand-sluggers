@@ -37,16 +37,17 @@ public class HowToComicTests
         Assert.False(HowToPlay.MixesHardware(padSwing));
         Assert.False(HowToPlay.MixesHardware(keySwing));
 
-        Assert.Equal("LT", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
-        Assert.Equal("South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
-        Assert.Contains("Shift", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
-        Assert.Contains("Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
+        Assert.Equal("Hold South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Charge);
+        Assert.Equal("Release South", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Pad).Commit);
+        Assert.Contains("Hold Space", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Charge);
+        Assert.Equal("Release", HowToComic.MotionOf(HowToComic.Pitch, InputScheme.Keys).Commit);
 
         var row = HowToComic.Row(0, 1280, 800);
-        Assert.True(row.W > 900);
-        Assert.True(row.H > 90, "two comics plus big type still fit");
+        Assert.True(row.W > 500);
+        Assert.True(row.H > 190, "two comics plus measured couch copy still fit");
         var next = HowToComic.Row(1, 1280, 800);
-        Assert.True(next.Y > row.Y);
+        Assert.True(next.X > row.X);
+        Assert.Equal(row.Y, next.Y);
         Assert.Equal("pitch-swing", HowToPlay.Must("pitch-swing").Id);
     }
 }

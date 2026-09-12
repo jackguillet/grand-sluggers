@@ -78,7 +78,7 @@ public sealed class Training
 
     static void SeedFirst(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         var n = 0;
         while (match.First is null && !match.Over && n++ < 16)
@@ -174,11 +174,10 @@ public sealed class Training
     }
 
     /// <summary>Fielding part 2: hopper with a runner on first, two throws, two outs.</summary>
-    public bool RecordTurnTwo(string? caption)
+    public bool RecordTurnTwo(PlayEvent? play)
     {
         if (Finished || Lesson != PracticeLesson.Fielding) return false;
-        if (string.IsNullOrEmpty(caption)
-            || caption.IndexOf("turns two", StringComparison.OrdinalIgnoreCase) < 0)
+        if (play is not { Kind: PlayKind.GroundOut, OutsOnPlay: 2 })
             return false;
         _turnedTwo = true;
         CurrentDrill = 4;
@@ -290,8 +289,8 @@ public sealed class Training
         ? "South  title"
         : Lesson switch
         {
-            PracticeLesson.Pitching => "South pitch   LT charge   West changeup   stick break",
-            PracticeLesson.Batting => "stick walk   LT MAX   South swing",
+            PracticeLesson.Pitching => "South hold/release   West changeup   stick break",
+            PracticeLesson.Batting => "stick walk   South hold/release at MAX",
             PracticeLesson.Fielding => LessonPart >= 2
                 ? "South to second    South to first"
                 : "South catch   West jump   d-pad throw   East dash",

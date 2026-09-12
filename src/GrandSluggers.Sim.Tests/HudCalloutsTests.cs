@@ -28,7 +28,10 @@ public class HudCalloutsTests
         foreach (var mark in HudCallouts.Set.Marks.Concat(HudCallouts.InPlay.Marks))
             Assert.False(HowToPlay.MixesHardware(mark.Label), mark.Id);
         var row = HudCallouts.Row(0, 1280, 800);
-        Assert.True(row.W > 900);
+        Assert.True(row.W > 500);
+        var next = HudCallouts.Row(1, 1280, 800);
+        Assert.True(next.X > row.X);
+        Assert.Equal(row.Y, next.Y);
         Assert.Equal("screen", HowToPlay.Must("screen").Id);
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("landing ring"));

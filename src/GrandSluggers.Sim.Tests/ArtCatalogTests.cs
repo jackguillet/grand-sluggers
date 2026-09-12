@@ -46,12 +46,18 @@ public class ArtCatalogTests
         Assert.Contains("Release", pitch.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(MoveBones.PitchRelease, pitch.ReleaseAt);
         Assert.StartsWith("Assets/Art/Animation/Clips/", swing.Slot, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("Assets/Resources/Art/Animation/Clips/", swing.PlayerSlot, StringComparison.OrdinalIgnoreCase);
         var repo = Directory.GetParent(_content.Root)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
             (swing.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fbx), fbx);
         Assert.True(new FileInfo(fbx).Length > 10_000, "swing.fbx is empty");
+        var playerFbx = Path.GetFullPath(Path.Combine(repo, "unity",
+            (swing.PlayerSlot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
+        Assert.True(File.Exists(playerFbx), playerFbx);
+        Assert.True(new FileInfo(playerFbx).Length > 10_000, "player swing.fbx is empty");
+        Assert.Equal(File.ReadAllBytes(fbx), File.ReadAllBytes(playerFbx));
         var pitchFbx = Path.GetFullPath(Path.Combine(repo, "unity",
             (pitch.Slot + ".fbx").Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(pitchFbx), pitchFbx);
@@ -70,7 +76,7 @@ public class ArtCatalogTests
     }
 
     [Fact]
-    public void AuthoredSwingClipIsNotRawMoveBones()
+    public void AuthoredSwingAndFallbackShareTheExactCutKeys()
     {
         Assert.True(_content.Art.TryClip("swing", out var clip) && clip.Authored);
         Assert.False(clip.Loop);
@@ -78,15 +84,17 @@ public class ArtCatalogTests
         Assert.Contains("Contact", clip.Events, StringComparer.OrdinalIgnoreCase);
         Assert.True(_content.Art.TryAuthored("swing", 0, out var load));
         var bonesLoad = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, 0);
-        Assert.NotEqual(bonesLoad.Torso.Y, load.Torso.Y);
-        Assert.True(Math.Abs(load.Torso.Y) > Math.Abs(bonesLoad.Torso.Y),
-            $"authored load {load.Torso.Y} vs bones {bonesLoad.Torso.Y}");
+        Assert.Equal(bonesLoad.Torso, load.Torso);
+        Assert.Equal(bonesLoad.LUpper, load.LUpper);
+        Assert.Equal(bonesLoad.RUpper, load.RUpper);
+        Assert.Equal(bonesLoad.Bat, load.Bat);
 
         Assert.True(_content.Art.TryAuthored("swing", clip.ContactAt, out var contact));
         var bonesHit = MoveBones.Evaluate(MoveBones.Verb.Swing, 0, clip.ContactAt);
-        Assert.NotEqual(bonesHit.Torso.Y, contact.Torso.Y);
-        Assert.True(Math.Abs(contact.Torso.Y) > Math.Abs(bonesHit.Torso.Y),
-            $"authored contact yaw {contact.Torso.Y} vs bones {bonesHit.Torso.Y}");
+        Assert.Equal(bonesHit.Torso, contact.Torso);
+        Assert.Equal(bonesHit.LUpper, contact.LUpper);
+        Assert.Equal(bonesHit.RUpper, contact.RUpper);
+        Assert.Equal(bonesHit.Bat, contact.Bat);
         Assert.True(_content.Art.TryAuthored("swing", 10, out var held));
         Assert.True(_content.Art.TryAuthored("swing", 0.50, out var wrap));
         Assert.Equal(wrap.Torso.Y, held.Torso.Y);
@@ -196,19 +204,28 @@ public class ArtCatalogTests
         Assert.True(File.Exists(extrasFbx), extrasFbx);
         Assert.True(new FileInfo(extrasFbx).Length > 10_000, "extras.fbx is empty");
         var extrasAscii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(extrasFbx));
-        Assert.Contains("bat-wood", extrasAscii);
+        Assert.Contains(GearMesh.HittingBatVisual(), extrasAscii);
         Assert.Contains("glove-brown", extrasAscii);
         Assert.Contains("baseball", extrasAscii);
         Assert.Contains("brim", extrasAscii);
         var extrasPy = Path.GetFullPath(Path.Combine(repo, "tools", "blender", "hero_shared_extras.py"));
         Assert.True(File.Exists(extrasPy), extrasPy);
         var extrasSrc = File.ReadAllText(extrasPy);
+        Assert.Contains($"join(\"{GearMesh.HittingBatVisual()}\"", extrasSrc);
+        Assert.Contains("authored_origin=(0.0, 0.0, 0.0)", extrasSrc);
+        Assert.Contains("if o.name != \"bat-wood\"", extrasSrc);
         Assert.Contains("Diameter 1", extrasSrc);
         Assert.Contains("(1.0, 1.0, 1.0), cream)", extrasSrc);
+        var importer = File.ReadAllText(Path.GetFullPath(Path.Combine(repo, "unity",
+            "Assets/Editor/SharedRigImport.cs".Replace('/', Path.DirectorySeparatorChar))));
+        Assert.Contains("imp.isReadable = sharedExtras", importer);
+        Assert.Contains("Art/Characters/SharedRig/extras.fbx", importer);
         var extrasRes = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Resources/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(extrasRes), extrasRes + " — toys must bind in the Linux player");
         Assert.Equal(new FileInfo(extrasFbx).Length, new FileInfo(extrasRes).Length);
+        var resourcesAscii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(extrasRes));
+        Assert.Contains(GearMesh.HittingBatVisual(), resourcesAscii);
         var fennFbx = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Art/Characters/fenn/fenn.fbx".Replace('/', Path.DirectorySeparatorChar)));
         Assert.True(File.Exists(fennFbx), fennFbx);

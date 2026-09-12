@@ -28,6 +28,8 @@ namespace GrandSluggers.UnityClient
         public bool Night;
         [System.NonSerialized] public bool Pad1Home = true;
         bool _versusWanted;
+        readonly MatchSeatLifecycle _matchSeats = new MatchSeatLifecycle();
+        readonly DeviceSeatRecovery _deviceRecovery = new DeviceSeatRecovery();
         LineupScreens _lineup;
         bool _lineupTouched;
         MenuNav.Gate _lineupX;
@@ -98,8 +100,9 @@ namespace GrandSluggers.UnityClient
         float _pitchDur = 0.5f;
         bool _pitchAir;
         Vector3 _relFrom;
-        float _hitT;
-        float _occupyBatter, _occupy1, _occupy2, _occupy3;
+        float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
+        LivePlayCommandSource LiveCommandSource =>
+            _playerFielding || HumanOwnsThrow ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
         float _freeze;
         float _smash;
         bool _showTiming;
@@ -148,15 +151,12 @@ namespace GrandSluggers.UnityClient
         Character _armedCut;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
-        int _stampOutsBefore;
-        int _stampInning;
-        bool _stampTop;
         bool _gun;
         float _gunT, _gunDur;
         Vector3 _gunFrom, _gunTo;
         Character _gunRunner;
-        int _gunFromBag, _gunToBag;
-        bool _gunSafe, _gunPickoff;
+        int _gunFromBag, _gunToBag, _gunThrowToBag;
+        bool _gunSafe, _gunPickoff, _gunThrowFromPitcher;
         double _gunLead;
         PlayEvent _stealPitch;
         float _stealT;
@@ -165,10 +165,11 @@ namespace GrandSluggers.UnityClient
         double _stealRelease;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
-        Seats LiveSeats =>
+        Seats SelectedSeats =>
             TrainingOn || _mode != PlayMode.Exhibition
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
+        Seats LiveSeats => _matchSeats.Current(SelectedSeats);
         bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
@@ -243,6 +244,11 @@ namespace GrandSluggers.UnityClient
         {
             Controls.Tick(Time.unscaledDeltaTime);
             if (_match == null) return;
+            if (TickDeviceRecovery())
+            {
+                _actors.Draw(0f);
+                return;
+            }
             var dt = Time.deltaTime;
             if (Controls.TimingAid) _showTiming = !_showTiming;
             if (Controls.FeelDebug) _feelDebug = !_feelDebug;
@@ -309,6 +315,11 @@ namespace GrandSluggers.UnityClient
         void OnGUI()
         {
             if (_match == null) return;
+            if (_deviceRecovery.Active)
+            {
+                HudView.DeviceRecovery(_deviceRecovery.MissingSeat);
+                return;
+            }
             if (_phase == Phase.Select)
                 HudView.Select(HomeCaptain, AwayCaptain, Pad1Home, _content,
                     _versusWanted, Controls.Pad2.Present);
@@ -400,7 +411,7 @@ namespace GrandSluggers.UnityClient
                 var hopper = _preview != null && _preview.Grounder;
                 var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
                 var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, false);
-                var def = _match.LiveForce
+                var def = _match.LivePlay.ForceRecorded
                     ? 1
                     : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
                 HudView.BagTell(InPlay.CommitBag(armed, hopper, FieldPad.Cutoff, def));
@@ -534,12 +545,50 @@ namespace GrandSluggers.UnityClient
         {
             _match.SetPaused(false);
             if (TrainingOn) _coach.Stop();
+            ReleaseMatchSeats();
             _phase = Phase.Title;
             _t = 0;
             _banner = _sub = "";
             _replaying = false;
             _audio?.CrowdBed(false);
             _cam.Play("title");
+        }
+
+        void BindMatchSeats()
+        {
+            if (_matchSeats.Bound) return;
+            var seats = _matchSeats.Bind(SelectedSeats);
+            Controls.BeginMatch(seats.BothHuman);
+        }
+
+        void ReleaseMatchSeats()
+        {
+            Controls.EndMatch();
+            _matchSeats.Release();
+            _deviceRecovery.Complete();
+        }
+
+        /// <summary>
+        /// Runs before every play-phase director. A missing physical device therefore
+        /// freezes SET, pitch flight, live balls, and throws at the same boundary.
+        /// </summary>
+        bool TickDeviceRecovery()
+        {
+            if (!_matchSeats.Bound) return false;
+            var missing = Controls.MissingMatchSeat(_matchSeats.Seats);
+            if (missing != LineupSeat.Cpu)
+            {
+                _deviceRecovery.WaitFor(missing, _match.Paused);
+                _match.SetPaused(true);
+                Controls.TryRecoverMatchSeat(missing);
+                return true;
+            }
+            if (!_deviceRecovery.Active) return false;
+            var resume = _deviceRecovery.ResumeWhenReady;
+            _deviceRecovery.Complete();
+            if (resume) _match.SetPaused(false);
+            Controls.CatchPlay();
+            return true;
         }
 
         Match NewMatch()
@@ -578,14 +627,6 @@ namespace GrandSluggers.UnityClient
             _coach.OnSwing(_swing, _last.AtBat);
         }
 
-        void RememberStamp()
-        {
-            if (_match == null) return;
-            _stampOutsBefore = _match.Outs;
-            _stampInning = _match.Inning;
-            _stampTop = _match.Top;
-        }
-
         void Banner()
         {
             if (TrainingOn && _phase != Phase.Result && _last == null)
@@ -595,12 +636,11 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             if (_last != null && _last.Kind == PlayKind.FlyOut &&
-                _last.Caption != null && _last.Caption.IndexOf("BUDDY", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                _last.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump)
                 _banner = "BUDDY JUMP";
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
-                var outs = PlayStamp.OutsRecorded(_stampOutsBefore, _stampInning, _stampTop, _match);
-                _banner = PlayStamp.Label(_last.Kind, outs, _last.RunsScored,
+                _banner = PlayStamp.Label(_last.Kind, _last.OutsOnPlay, _last.RunsScored,
                     _last.Swing.Bunt, _catchDive, _catchJump);
             }
             else
@@ -717,9 +757,6 @@ namespace GrandSluggers.UnityClient
             _caught = true;
             _gloved = true;
             HoldBallInGlove();
-            if (_playerFielding && _preview != null && _preview.Grounder
-                && _match != null && _match.First != null)
-                _match.OpenLivePlay();
         }
 
         void ArmRecoil()
@@ -738,7 +775,7 @@ namespace GrandSluggers.UnityClient
                 var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
                 var who = map.TryGetValue(_glovePos, out var g) ? g : _preview.Fielder;
                 var energy = InPlay.Energy(_pending);
-                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(_hitT * 40));
+                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(LiveTime * 40));
                 bobble = InPlay.Bobbles(energy, who, rng, _match.DefenseGlove);
                 knock = InPlay.KnockbackSec(energy, who);
                 _playerBobble = bobble;
@@ -800,7 +837,7 @@ namespace GrandSluggers.UnityClient
             if (_last == null || _match == null) return;
             var pick = Highlight.Pick(_match.Log);
             if (pick == null) return;
-            if (_last.Kind != pick.Play.Kind || _last.Caption != pick.Play.Caption) return;
+            if (_match.Log.Count == 0 || !ReferenceEquals(_match.Log[_match.Log.Count - 1], pick.Play)) return;
             _clip = pick;
             _hlAt = _ball;
             var fly = _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double

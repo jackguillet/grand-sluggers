@@ -15,14 +15,15 @@ namespace GrandSluggers.UnityClient
     {
         public struct BoneBind
         {
-            public Quaternion Torso, Head, LUpper, LFore, RUpper, RFore, LThigh, LShin, RThigh, RShin;
+            public Quaternion Torso, Head, LUpper, LFore, RUpper, RFore, LThigh, LShin, RThigh, RShin, Bat, Glove;
         }
 
         public sealed class Chain
         {
-            public Transform Root, Torso, Head, Cap;
+            public Transform Root, StanceRoot, Torso, Head, Cap;
             public Transform LUpper, LFore, RUpper, RFore;
             public Transform LThigh, LShin, RThigh, RShin;
+            public Transform Bat, Glove;
             public Transform Ring;
             public Vector3 BaseScale;
             public Vector3 TorsoRest;
@@ -70,10 +71,11 @@ namespace GrandSluggers.UnityClient
             chain.Root = new GameObject("root").transform;
             chain.Root.SetParent(parent, false);
             // Stature is Height. Girth is Width. Do not squash the whole toy on XZ.
+            var sharedScale = Silhouette.SharedRootScale(spec);
             chain.BaseScale = new Vector3(
-                Mathf.Lerp(spec.Height, spec.Width, 0.55f),
-                spec.Height,
-                Mathf.Lerp(spec.Height, spec.Width, 0.45f)) * Silhouette.ToyScale;
+                (float)sharedScale.X,
+                (float)sharedScale.Y,
+                (float)sharedScale.Z);
             chain.Root.localScale = chain.BaseScale;
             chain.Bind = IdentityBind();
 
@@ -198,6 +200,8 @@ namespace GrandSluggers.UnityClient
             chain.RFore = Look.Prim(PrimitiveType.Capsule, "rFore", chain.RUpper, new Vector3(0, -0.82f, 0), new Vector3(0.92f, 0.72f, 0.92f), flesh).transform;
             Hand(chain.LFore, flesh, ink);
             Hand(chain.RFore, flesh, ink);
+            chain.Bat = EnsureBone(chain.RFore, "bat", new Vector3(0, -0.68f, 0.12f));
+            chain.Glove = EnsureBone(chain.LFore, "glove", new Vector3(0, -0.68f, 0.12f));
 
             var thighLen = speed ? 0.42f : pageant ? 0.72f : 0.58f;
             var thighThick = brick ? 0.78f : speed ? 0.72f : pageant ? 0.42f : 0.56f;
@@ -274,6 +278,7 @@ namespace GrandSluggers.UnityClient
             var chain = new Chain();
             chain.Root = go.transform;
             chain.Torso = FindBone(go.transform, "torso") ?? EnsureBone(go.transform, "torso", new Vector3(0, 2.28f, 0));
+            chain.StanceRoot = FindStanceRoot(go.transform, chain.Torso);
             chain.Head = FindBone(go.transform, "head") ?? EnsureBone(chain.Torso, "head", new Vector3(0, 1.6f, 0));
             chain.LUpper = FindBone(go.transform, "lUpper") ?? EnsureBone(chain.Torso, "lUpper", new Vector3(-0.95f, 0.1f, 0));
             chain.LFore = FindBone(go.transform, "lFore") ?? EnsureBone(chain.LUpper, "lFore", new Vector3(0, -0.9f, 0));
@@ -283,6 +288,8 @@ namespace GrandSluggers.UnityClient
             chain.LShin = FindBone(go.transform, "lShin") ?? EnsureBone(chain.LThigh, "lShin", new Vector3(0, -0.6f, 0));
             chain.RThigh = FindBone(go.transform, "rThigh") ?? EnsureBone(go.transform, "rThigh", new Vector3(0.42f, 1.05f, 0));
             chain.RShin = FindBone(go.transform, "rShin") ?? EnsureBone(chain.RThigh, "rShin", new Vector3(0, -0.6f, 0));
+            chain.Bat = FindBone(go.transform, "bat") ?? EnsureBone(chain.RFore, "bat", new Vector3(0, -0.68f, 0.12f));
+            chain.Glove = FindBone(go.transform, "glove") ?? EnsureBone(chain.LFore, "glove", new Vector3(0, -0.68f, 0.12f));
 
             if (CharacterPackage.IsSegmented(bind))
                 BindPieces(go, chain);
@@ -503,11 +510,15 @@ namespace GrandSluggers.UnityClient
                 UnityEngine.Object.Destroy(go);
                 return null;
             }
+            chain.StanceRoot = FindStanceRoot(go.transform, chain.Torso);
+            chain.Bat = FindDeep(go.transform, "bat") ?? EnsureBone(chain.RFore, "bat", new Vector3(0, -0.68f, 0.12f));
+            chain.Glove = FindDeep(go.transform, "glove") ?? EnsureBone(chain.LFore, "glove", new Vector3(0, -0.68f, 0.12f));
 
+            var sharedScale = Silhouette.SharedRootScale(spec);
             chain.BaseScale = new Vector3(
-                Mathf.Lerp(spec.Height, spec.Width, 0.55f),
-                spec.Height,
-                Mathf.Lerp(spec.Height, spec.Width, 0.45f)) * Silhouette.ToyScale;
+                (float)sharedScale.X,
+                (float)sharedScale.Y,
+                (float)sharedScale.Z);
             chain.Root.localScale = chain.BaseScale;
             chain.TorsoRest = chain.Torso.localPosition;
             var ape = body == "konga";
@@ -772,11 +783,21 @@ namespace GrandSluggers.UnityClient
             return null;
         }
 
+        static Transform FindStanceRoot(Transform modelRoot, Transform torso)
+        {
+            for (var current = torso != null ? torso.parent : null;
+                 current != null && current != modelRoot;
+                 current = current.parent)
+                if (current.name.Equals("root", StringComparison.OrdinalIgnoreCase))
+                    return current;
+            return null;
+        }
+
         static BoneBind IdentityBind()
         {
             var b = new BoneBind();
             b.Torso = b.Head = b.LUpper = b.LFore = b.RUpper = b.RFore =
-                b.LThigh = b.LShin = b.RThigh = b.RShin = Quaternion.identity;
+                b.LThigh = b.LShin = b.RThigh = b.RShin = b.Bat = b.Glove = Quaternion.identity;
             return b;
         }
 
@@ -794,7 +815,9 @@ namespace GrandSluggers.UnityClient
                 LThigh = R(c.LThigh),
                 LShin = R(c.LShin),
                 RThigh = R(c.RThigh),
-                RShin = R(c.RShin)
+                RShin = R(c.RShin),
+                Bat = R(c.Bat),
+                Glove = R(c.Glove)
             };
         }
     }
