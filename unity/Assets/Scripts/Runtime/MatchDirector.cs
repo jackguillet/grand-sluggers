@@ -154,7 +154,6 @@ namespace GrandSluggers.UnityClient
                 ? Seats.One
                 : Seats.FromPads(Controls.PadCount, Pad1Home, versus: _versusWanted);
         Seats LiveSeats => _matchSeats.Current(SelectedSeats);
-        bool Versus => LiveSeats.BothHuman && !TrainingOn;
         bool HumanPitches => TrainingOn
             ? _coach.PlayerPitches
             : _match != null && LiveSeats.HumanPitches(_match.Top);
@@ -163,19 +162,24 @@ namespace GrandSluggers.UnityClient
             : _match != null && LiveSeats.HumanBats(_match.Top);
         bool PlayerMustField => TrainingOn && _coach.PlayerFields;
         bool PlayerFields => _playerFielding || PlayerMustField;
-        bool HumanOwnsThrow => FieldAssist.HumanOwnsThrow(PlayerMustField || Versus || HumanPitches);
+        /// <summary>A human sits the defense this half (spec §0.4). Mirrors <see cref="GrandSluggers.Sim.LiveSeats.HumanFields"/>.</summary>
+        bool HumanFields => LiveSeatsNow().HumanFields;
+        bool HumanOwnsThrow => LiveSeatsNow().HumanOwnsThrow;
         Controls.Pad PitchPad => HumanPitches && _match != null
             ? Controls.Of(LiveSeats.Pitching(_match.Top))
             : Controls.Pad1;
         Controls.Pad BatPad => HumanBats && _match != null
             ? Controls.Of(LiveSeats.Batting(_match.Top))
             : Controls.None;
-        Controls.Pad FieldPad => Versus && _match != null
-            ? Controls.Of(LiveSeats.Fielding(_match.Top))
-            : Controls.Pad1;
-        Controls.Pad RunPad => Versus && _match != null
-            ? Controls.Of(LiveSeats.Running(_match.Top))
-            : Controls.Pad1;
+        // The glove pad is the controller seated on defense this half; the runner pad is the one
+        // on offense. A seat the CPU holds is a dead pad, so the batting human's stick never
+        // takes a glove and their South never gates a CPU throw (#579, #209).
+        Controls.Pad FieldPad => !HumanFields ? Controls.None
+            : TrainingOn ? Controls.Pad1
+            : Controls.Of(LiveSeats.Fielding(_match.Top));
+        Controls.Pad RunPad => !HumanBats ? Controls.None
+            : TrainingOn ? Controls.Pad1
+            : Controls.Of(LiveSeats.Running(_match.Top));
         bool ItemOffered =>
             HumanBats && _pending != null && _pending.ChemistryItemOffered && !_itemThrown
             && _phase == Phase.InPlay && !_throwing;

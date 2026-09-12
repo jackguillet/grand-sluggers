@@ -26,8 +26,33 @@ public sealed record LiveSeats(bool HumanBats, bool HumanPitches, bool PlayerMus
 {
     public static LiveSeats CpuOnly { get; } = new(false, false, false, false);
 
+    /// <summary>
+    /// Seat ownership for a half is a function of (half, home/away, seated controllers) and
+    /// nothing else (spec §0.4). The batting human never owns a glove: in 1P vs CPU the whole
+    /// defense is CPU that half; in 1v1 the other controller sits it. Training drills that
+    /// force the player onto the glove say so through <see cref="PlayerMustField"/>, not here.
+    /// </summary>
+    public static LiveSeats For(Seats seats, bool top) =>
+        new(seats.HumanBats(top), seats.HumanPitches(top), PlayerMustField: false, seats.BothHuman);
+
+    /// <summary>A human sits the defense this half: their pad owns the glove and the throw.</summary>
+    public bool HumanFields => PlayerMustField || Versus || HumanPitches;
+
+    /// <summary>A human sits the offense this half: their pad owns the runners.</summary>
+    public bool HumanRuns => HumanBats;
+
     /// <summary>Human is on defense: they throw. CPU may still run and catch on a dead stick.</summary>
-    public bool HumanOwnsThrow => FieldAssist.HumanOwnsThrow(PlayerMustField || Versus || HumanPitches);
+    public bool HumanOwnsThrow => FieldAssist.HumanOwnsThrow(HumanFields);
+
+    /// <summary>
+    /// A pad reaches the gloves only through a seat that owns them. A press from any other
+    /// controller is dead here, so no glove is ever taken, and no throw ever waits, on a pad
+    /// that is not on defense.
+    /// </summary>
+    public LivePadInput OwnedFieldPad(LivePadInput? pad) => HumanFields ? pad ?? LivePadInput.Dead : LivePadInput.Dead;
+
+    /// <summary>Same boundary for the runners: only the offense seat dashes, mashes, or sends.</summary>
+    public LivePadInput OwnedRunPad(LivePadInput? pad) => HumanRuns ? pad ?? LivePadInput.Dead : LivePadInput.Dead;
 }
 
 /// <summary>A presentation cue the live ball raised this frame. Unity plays it; nothing decides by it.</summary>
@@ -259,8 +284,10 @@ public sealed partial class LivePlaySystem
     {
         _events.Clear();
         var dt = command.DeltaSeconds;
-        var field = command.FieldPad ?? LivePadInput.Dead;
-        var run = command.RunPad ?? LivePadInput.Dead;
+        // Ownership of a press is decided here, once, from the seats: the offense pad never
+        // reaches the gloves and the defense pad never reaches the runners (spec §0.4, #579).
+        var field = Seats.OwnedFieldPad(command.FieldPad);
+        var run = Seats.OwnedRunPad(command.RunPad);
         if (dt <= 0) return new LivePlayCommandResult(Snapshot);
 
         if (DeadFlight)
