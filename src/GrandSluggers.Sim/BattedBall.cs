@@ -79,11 +79,17 @@ public sealed record BattedBall(
     double? WallT,
     double FenceClearFt)
 {
+    /// <summary>The ball leaves the field over a wall in the air: catching it there is a rob at that wall's top (§8.4).</summary>
+    public bool LeavesInTheAir => LeavesT is { } t && WallT is null && !GroundRule && t <= HangT + 1e-9;
+
     /// <summary>The spec's class: <see cref="BattedBallClass.Foul"/> when the untouched path is foul, else the shape.</summary>
     public BattedBallClass Class => Foul ? BattedBallClass.Foul : Shape;
 
     /// <summary>The ball met the outfield fence below its top before touching the ground.</summary>
     public bool MetTheWall => Shape == BattedBallClass.Wall;
+
+    /// <summary>Height above the top of the wall the ball left over (the fence or a foul wall); NaN if it stayed in.</summary>
+    public double WallClearFt => FenceClearFt;
 
     /// <summary>The ball leaves the park (over the fence or into the foul stands).</summary>
     public bool Leaves => LeavesT is not null;
@@ -148,6 +154,7 @@ public sealed record BattedBall(
                     if (leavesT is null)
                     {
                         leavesT = s.T;
+                        clear = s.Height - FieldBounds.FoulWallHeightFt;
                         // A ball already fair that bounces into the foul stands is out of play the same way
                         // as one that hops the fence: two bases (§1). Anything else over a foul wall is foul.
                         if (decided && !foul) groundRule = true;
@@ -191,7 +198,8 @@ public sealed record BattedBall(
         var landingDist = mark.Dist;
 
         BattedBallClass shape;
-        if (bunt) shape = BattedBallClass.Bunt;
+        // A bunt popped up (§5.8) is a pop the corners and the catcher can take (§7.3), not a dribbler.
+        if (bunt && launchDeg <= c.LinerMaxLaunchDeg) shape = BattedBallClass.Bunt;
         else if (homer) shape = BattedBallClass.Homer;
         else if (wallT is not null) shape = BattedBallClass.Wall;
         else

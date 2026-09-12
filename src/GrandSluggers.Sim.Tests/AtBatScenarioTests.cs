@@ -366,6 +366,7 @@ public sealed class AtBatScenarioTests
     public void S18_FoulBuntWithTwoStrikesIsAStrikeout()
     {
         var strikeouts = 0;
+        var caughtPops = 0;
         var fouls = 0;
         for (var seed = 1; seed <= 200; seed++)
         {
@@ -379,14 +380,24 @@ public sealed class AtBatScenarioTests
             var ev = match.Play(Scenario.PitchAt(handle, CenterY), Scenario.SwingAt(0, bunt: true, stickX: 1));
             if (ev.Kind == PlayKind.Foul) fouls++;
             if (!ev.AtBat.Foul) continue;
-            strikeouts++;
-            Assert.Equal(PlayKind.Strikeout, ev.Kind);
-            Assert.Contains("bunts foul", ev.Caption);
+            // A foul bunt is live like any flight (§7.11): popped up and caught it is a fly out (§7.3);
+            // dead on the ground with two strikes it is strike three (§1, §5.8). Either way the batter is out.
+            if (ev.Kind == PlayKind.FlyOut)
+            {
+                caughtPops++;
+                Assert.Equal(BattedBallClass.Pop, ev.AtBat.Class);
+            }
+            else
+            {
+                strikeouts++;
+                Assert.Equal(PlayKind.Strikeout, ev.Kind);
+                Assert.Contains("bunts foul", ev.Caption);
+            }
             Assert.Equal(1, match.Outs);
             Assert.NotEqual(batter.Id, match.Batter.Id);
         }
         Assert.Equal(0, fouls);
-        Assert.True(strikeouts > 5, $"a pulled sour bunt goes foul sometimes: {strikeouts} of 200");
+        Assert.True(strikeouts + caughtPops > 5, $"a pulled sour bunt goes foul sometimes: {strikeouts} + {caughtPops} of 200");
     }
 
     [Fact]

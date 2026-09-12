@@ -783,7 +783,7 @@ public sealed class DeadBallRules
 {
     public double MinSec { get; init; } = 2.4;
     public double AfterHangSec { get; init; } = 0.35;
-    /// <summary>A flight nobody plays (a foul) holds this long past rest before the result.</summary>
+    /// <summary>A flight nobody plays holds this long past the ball's rest (or exit) before the result.</summary>
     public double RestHoldSec { get; init; } = 0.2;
 }
 

@@ -10,8 +10,12 @@ public static class FlyCatch
 {
     public static bool IsFly(FieldingPreview pre) => pre.Class.IsFlyShape();
 
-    /// <summary>The flight clears the fence: only a leap in the window at the wall takes it. South does not scoop a rob.</summary>
-    public static bool NeedsJump(FieldingPreview pre) => pre.HomeRunLikely;
+    /// <summary>
+    /// The flight leaves the field in the air — over the fence, or a foul over a rail or the
+    /// backstop: only a leap in the window at that wall takes it (§8.4). South does not scoop a rob.
+    /// </summary>
+    public static bool NeedsJump(FieldingPreview pre) =>
+        pre.HomeRunLikely || (pre.Foul && pre.Ball is { LeavesInTheAir: true });
 
     /// <summary>
     /// The rob height (§8.4, fielding.catch.*RobFt): a leap takes a ball clearing the fence by at
@@ -130,10 +134,17 @@ public static class FlyCatch
         (pre.Grounder || pre.Line || hitT >= hangSec)
         && FieldBounds.InPark(park, ballX, ballZ);
 
-    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true, RulesTable? rules = null)
+    /// <summary>
+    /// What the human glove's play is. <paramref name="foul"/> is the fair / foul call: the untouched
+    /// path's verdict until a touch decides it (§5.6). A foul fly caught in the air is an out (§7.11);
+    /// any other foul ball is dead.
+    /// </summary>
+    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true, RulesTable? rules = null, bool? foul = null)
     {
-        if (caught && pre.Grounder) return PlayKind.GroundOut;
+        var isFoul = foul ?? pre.Foul;
         if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
+        if (isFoul) return PlayKind.Foul;
+        if (caught && pre.Grounder) return PlayKind.GroundOut;
         if (pre.HomeRunLikely)
             return PlayKind.HomeRun;
         // Bounced then over, or off the wall (§1, §7.9): a double until P3 runs the bases by geometry.

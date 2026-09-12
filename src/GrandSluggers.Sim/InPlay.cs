@@ -4,19 +4,22 @@ namespace GrandSluggers.Sim;
 public static class InPlay
 {
     /// <summary>
-    /// An uncaught ball leaving the park ends without glove possession or a bag dwell.
-    /// Preserve the existing flight/spectacle beat, including the wall-catch window;
-    /// a caught ball must instead finish through the ordinary live-play rules.
+    /// A dead ball ends without glove possession or a bag dwell: a homer once it has crossed
+    /// (<paramref name="deadAtSeconds"/> is the fence crossing) or a foul once the untouched
+    /// path's verdict is in (where it landed past the bags, rolled foul, rested, or left the
+    /// field). The spectacle beat (flight.deadBall) holds the camera on it first. A caught ball
+    /// must instead finish through the ordinary live-play rules.
     /// </summary>
-    public static bool DeadBallResultReady(PlayKind kind, double elapsed, double hangSeconds,
+    public static bool DeadBallResultReady(PlayKind kind, double elapsed, double deadAtSeconds,
         bool caught, bool throwing, bool effectInFlight, RulesTable? rules = null)
     {
         var dead = Rules.Or(rules).Flight.DeadBall;
         return HasDeadBallResult(kind) && !caught && !throwing && !effectInFlight
-            && elapsed >= Math.Max(dead.MinSec, hangSeconds + dead.AfterHangSec);
+            && elapsed >= Math.Max(dead.MinSec, deadAtSeconds + dead.AfterHangSec);
     }
 
-    public static bool HasDeadBallResult(PlayKind kind) => kind == PlayKind.HomeRun;
+    /// <summary>The play ends by the ball, not by a glove: a home run, or a foul nobody caught (§7.10, §7.11).</summary>
+    public static bool HasDeadBallResult(PlayKind kind) => kind is PlayKind.HomeRun or PlayKind.Foul;
 
     public static double Energy(AtBatResult hit, RulesTable? rules = null)
     {

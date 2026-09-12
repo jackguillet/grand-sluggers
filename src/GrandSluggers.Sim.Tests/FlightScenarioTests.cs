@@ -50,7 +50,7 @@ public sealed class FlightScenarioTests
         Assert.True(hit.Foul);
         Assert.False(hit.HomeRun);
         Assert.False(hit.InPlay);
-        Assert.Equal(BattedBallClass.Foul, hit.Class);
+        Assert.Equal(BattedBallClass.Foul, ball.Class);
         Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ));
         Assert.False(InPlay.FairContactSendsBatter(hit));
     }
@@ -65,7 +65,7 @@ public sealed class FlightScenarioTests
         var hit = FlightFixtures.Hit(Harbor, 36, 5, 47);
         var ball = BattedBall.Of(hit, Harbor);
         Assert.True(hit.Foul);
-        Assert.Equal(BattedBallClass.Foul, hit.Class);
+        Assert.Equal(BattedBallClass.Foul, ball.Class);
         Assert.False(FieldBounds.PastTheBags(ball.DecidedX, ball.DecidedZ), "judged before the bag, where it came to rest");
         Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ));
         Assert.Equal(BallFlight.RestTime(ball.Samples), ball.DecidedT, 3);
@@ -87,6 +87,102 @@ public sealed class FlightScenarioTests
         var slow = BattedBall.Of(36, 5, 44, Harbor);
         Assert.False(slow.Foul);
         Assert.False(FieldBounds.PastTheBags(slow.DecidedX, slow.DecidedZ));
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-24 / S-24b / S-21 live  A foul flight is fielded; a foul nobody plays is dead on landing (§7.11, #575)
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S24_FoulPopBehindThePlate_CatcherUnderIt_IsAnOut()
+    {
+        var hit = FlightFixtures.Hit(Harbor, 30, 80, 180);
+        Assert.True(hit.Foul);
+        Assert.Equal(BattedBallClass.Pop, hit.Class);
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("C", preview.Position);
+        Assert.True(preview.Foul);
+        Assert.False(FlyCatch.NeedsJump(preview), "it comes down inside the backstop wrap: a plain catch");
+        var field = match.ResolveFielding(hit, preview);
+        Assert.Equal(PlayKind.FlyOut, field.Kind);
+
+        var strikes = match.Strikes;
+        var play = RunCpu(match, hit, preview, field, out var caughtAt);
+        Assert.Equal(PlayKind.FlyOut, play.Kind);
+        var only = Assert.Single(play.Outcome!.OutsMade);
+        Assert.Equal(OutType.Catch, only.Type);
+        Assert.Equal(0, only.FromBag);
+        Assert.Equal(preview.Fielder.Id, only.Fielder?.Id);
+        Assert.True(caughtAt > 0 && caughtAt <= preview.HangTimeSec + Frame, $"caught at {caughtAt:0.00} before it lands at {preview.HangTimeSec:0.00}");
+        Assert.Equal(1, match.Outs);
+        Assert.Equal(0, match.Strikes);
+        _ = strikes;
+    }
+
+    [Fact]
+    public void S24b_FoulFlyNobodyReaches_IsFoulAndDeadWithinTheCountHold()
+    {
+        var hit = FlightFixtures.Hit(Harbor, 85, 30, 50);
+        var ball = BattedBall.Of(hit, Harbor);
+        Assert.True(hit.Foul);
+        Assert.NotNull(ball.LeavesT);
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        Assert.Contains(preview.Position, FieldingResolver.FoulPursuitPositions);
+        Assert.True(FlyCatch.NeedsJump(preview), "it sails into the stands: only a rob at the rail takes it");
+        Assert.Equal(PlayKind.Foul, match.ResolveFielding(hit, preview).Kind);
+
+        var strikes = match.Strikes;
+        var play = RunHuman(match, hit, preview, _ => new LivePadInput(StickX: -1, StickY: -1), out var caughtAt, out var deadAt);
+        Assert.True(caughtAt < 0);
+        Assert.Equal(PlayKind.Foul, play.Kind);
+        Assert.Equal("FOUL", PlayStamp.Label(play));
+        Assert.Equal(strikes + 1, match.Strikes);
+        Assert.Equal(0, match.Outs);
+        var hold = _content.Feel.AfterCountSeconds;
+        Assert.True(deadAt >= ball.DecidedT - Frame, $"dead at {deadAt:0.00} before its call at {ball.DecidedT:0.00}");
+        Assert.True(deadAt <= ball.DecidedT + hold + Frame, $"dead at {deadAt:0.00}, more than {hold} after landing at {ball.DecidedT:0.00}");
+        Assert.False(match.LivePlay.Active, "the play never hangs");
+    }
+
+    [Fact]
+    public void S21_Live_FoulAt46DegreesIsDeadWhenItLands()
+    {
+        var fair = FlightFixtures.OverTheFence(Harbor, 10, 44);
+        var hit = FlightFixtures.Hit(Harbor, fair.ExitVeloMph, fair.LaunchDeg, 46, ContactQuality.Perfect);
+        var ball = BattedBall.Of(hit, Harbor);
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        var field = match.ResolveFielding(hit, preview);
+        Assert.Equal(PlayKind.Foul, field.Kind);
+        var strikes = match.Strikes;
+        var play = RunCpu(match, hit, preview, field, out var caughtAt, out var deadAt);
+        Assert.True(caughtAt < 0);
+        Assert.Equal(PlayKind.Foul, play.Kind);
+        Assert.Equal(strikes + 1, match.Strikes);
+        Assert.InRange(deadAt, ball.DecidedT - Frame, ball.DecidedT + _content.Feel.AfterCountSeconds + Frame);
+        Assert.Equal(0, play.Outcome!.BatterToBag);
+        Assert.Empty(play.Outcome.Moves);
+    }
+
+    [Fact]
+    public void FoulRollerTouchedOnFoulGroundIsDeadInTheGlove()
+    {
+        var hit = FlightFixtures.Hit(Harbor, 36, 5, 47);
+        var ball = BattedBall.Of(hit, Harbor);
+        Assert.True(hit.Foul);
+        Assert.True(ball.DecidedT > ball.HangT + 1, "untouched it would roll a while before resting foul");
+        var match = Match.Slice(_content, seed: 2);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Grounder);
+        var field = match.ResolveFielding(hit, preview);
+        Assert.Equal(PlayKind.Foul, field.Kind);
+        var play = RunCpu(match, hit, preview, field, out var caughtAt, out var deadAt);
+        Assert.True(caughtAt > 0, "the corner glove scoops the roller");
+        Assert.Equal(FairFoulCall.Undecided, match.LivePlay.Call); // reset after the commit
+        Assert.Equal(PlayKind.Foul, play.Kind);
+        Assert.True(deadAt < ball.DecidedT, $"the touch at {caughtAt:0.00} made the call; dead at {deadAt:0.00}, not at rest {ball.DecidedT:0.00}");
     }
 
     // ---------------------------------------------------------------------------------
@@ -259,6 +355,51 @@ public sealed class FlightScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // §8.1  Positions come from the lineup's glove diamond, not roster order (S-26 for the swap)
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void PositionsComeFromTheLineupGloveDiamondNotRosterOrder()
+    {
+        var home = TeamBuilder.Draft(_content, "rio");
+        var byRoster = FieldingResolver.Assign(home.ToTeam().Roster, home.ToTeam().Pitcher);
+        // Offense / Defense Setup: the captain moves to center; the starting center fielder takes the mound.
+        var centerFielder = home.Gloves["CF"];
+        Assert.True(home.SetGlove("CF", "rio"));
+        Assert.Equal("rio", home.Gloves["CF"].Id);
+        Assert.Equal(centerFielder.Id, home.Gloves["P"].Id);
+        var team = home.ToTeam();
+        Assert.NotNull(team.Gloves);
+
+        var match = Match.Exhibition(_content, team, PresetTeams.EmberCourt(_content), seed: 3);
+        Assert.True(match.Top, "the home nine is on defense");
+        var assigned = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        Assert.Equal("rio", assigned["CF"].Id);
+        Assert.Equal(centerFielder.Id, assigned["P"].Id);
+        Assert.Equal(centerFielder.Id, match.Pitcher.Id);
+        foreach (var pos in Diamond.Order)
+            Assert.Equal(home.Gloves[pos].Id, assigned[pos].Id);
+        Assert.NotEqual(byRoster["CF"].Id, assigned["CF"].Id);
+
+        // The live ball reads the same diamond: a fly to center is the captain's.
+        var fly = FlightFixtures.Hit(match.Park, 90, 34, 0);
+        var preview = match.PreviewHit(fly);
+        Assert.Equal("CF", preview.Position);
+        Assert.Equal("rio", preview.Fielder.Id);
+
+        // S-26: a swap puts the new pitcher on the mound and the old pitcher on the vacated glove.
+        var before = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        Assert.True(match.SwapPitcher());
+        var swapped = FieldingResolver.Assign(match.Defense, match.Pitcher);
+        var vacated = Diamond.Order.Single(pos => before[pos].Id == match.Pitcher.Id);
+        Assert.NotEqual("P", vacated);
+        Assert.Equal(centerFielder.Id, swapped[vacated].Id);
+        Assert.Equal(match.Pitcher.Id, swapped["P"].Id);
+        foreach (var pos in Diamond.Order.Where(p => p != "P" && p != vacated))
+            Assert.Equal(before[pos].Id, swapped[pos].Id);
+    }
+
+    // ---------------------------------------------------------------------------------
 
     /// <summary>A Harbor match whose home defense (the top half) has the named glove in center.</summary>
     Match RobbersMatch(string centerFielder)
@@ -292,24 +433,51 @@ public sealed class FlightScenarioTests
 
     /// <summary>The human owns the glove from contact; the pad is scripted per frame from the live state.</summary>
     static PlayEvent RunHuman(Match match, AtBatResult hit, FieldingPreview preview, Func<LivePlaySystem, LivePadInput> pad,
-        out double caughtAt, Action<LivePlaySystem>? observe = null)
+        out double caughtAt, Action<LivePlaySystem>? observe = null) =>
+        RunHuman(match, hit, preview, pad, out caughtAt, out _, observe);
+
+    /// <summary>The CPU seat: dead pads, the resolver's call for the glove.</summary>
+    static PlayEvent RunCpu(Match match, AtBatResult hit, FieldingPreview preview, FieldingResult field, out double caughtAt) =>
+        RunCpu(match, hit, preview, field, out caughtAt, out _);
+
+    static PlayEvent RunCpu(Match match, AtBatResult hit, FieldingPreview preview, FieldingResult field, out double caughtAt, out double deadAt)
+    {
+        var live = match.LivePlay;
+        var begun = live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu));
+        Assert.True(begun.Snapshot.Active);
+        return Drive(live, _ => LivePadInput.Dead, LivePlayCommandSource.Cpu, null, out caughtAt, out deadAt);
+    }
+
+    static PlayEvent RunHuman(Match match, AtBatResult hit, FieldingPreview preview, Func<LivePlaySystem, LivePadInput> pad,
+        out double caughtAt, out double deadAt, Action<LivePlaySystem>? observe = null)
     {
         var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
         var live = match.LivePlay;
         var begun = live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats, 0, LivePlayCommandSource.Human));
         Assert.True(begun.Snapshot.Active);
         Assert.True(live.PlayerFielding);
+        return Drive(live, pad, LivePlayCommandSource.Human, observe, out caughtAt, out deadAt);
+    }
+
+    /// <summary>Ticks the live ball to Complete. <paramref name="deadAt"/> is the play clock at the commit tick.</summary>
+    static PlayEvent Drive(LivePlaySystem live, Func<LivePlaySystem, LivePadInput> pad, LivePlayCommandSource seat,
+        Action<LivePlaySystem>? observe, out double caughtAt, out double deadAt)
+    {
         caughtAt = -1;
+        deadAt = -1;
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 25 && play is null; i++)
         {
             var before = live.ElapsedSeconds;
-            var result = live.Apply(LivePlayCommand.Tick(Frame, pad(live), LivePadInput.Dead, false, LivePlayCommandSource.Human));
+            var result = live.Apply(LivePlayCommand.Tick(Frame, pad(live), LivePadInput.Dead, false, seat));
             observe?.Invoke(live);
             play = result.CompletedPlay;
-            // A catch with nobody on is Time at once: the play completes (and the live ball resets) on the catch tick.
-            if (caughtAt < 0 && (live.Caught || play?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true))
+            // A catch with nobody on (or a foul touch) is Time at once: the play completes, and the live ball
+            // resets, on the touch tick — the glove cue raised that tick is the record of it.
+            if (caughtAt < 0 && (live.Caught || live.Events.Contains(LiveEvent.Glove)
+                                 || play?.Outcome?.OutsMade.Any(o => o.Type == OutType.Catch) == true))
                 caughtAt = before + Frame;
+            if (play is not null) deadAt = before + Frame;
         }
         Assert.NotNull(play);
         return play!;
