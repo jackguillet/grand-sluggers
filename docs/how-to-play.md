@@ -105,7 +105,7 @@ Two screens. Not a 3D huddle with a name list.
 | --- | --- | --- |
 | Tap and release South / Space / left click | Normal — easier control | Slap — better contact |
 | Hold the same button, release at MAX | Charge pitch — fast; rings line up then **decay** | Charge swing — extra-base; same rings |
-| Modifier | West / V through release = **changeup** (hangs then dumps) | West hold / V = **bunt** |
+| Modifier | West / V through release = **changeup** (hangs then dumps; the pitcher card reads **CHANGE** while held) | West hold / V = **bunt** |
 | North + South / Q + Space | Star pitch (costs a star even if hit) | Star swing (costs a star even on a miss) |
 
 Press South / Space / left click to start the load; release the same button to throw or swing. A quick tap is the normal pitch or full slap swing. Hold until the rings line up, then release → **Nice!** on the mound, **MAX** at the plate; that is the charge tell, not a verdict. The word for the contact — **PERFECT**, **NICE**, **SOUR** — comes only when the bat meets the ball. Holding beyond the MAX band loses power. The pitch has a **gold streak** so you can see it come in. Release the swing before the ball reaches home: the bat reaches contact 0.30 seconds after release. Timing is judged when the bat comes around. Only holding West / V / Ctrl bunts. The pitcher releases the ball at the 0.42-second mark of the delivery after button release. Pitcher, batter, and ball share contact slow-down and pause.
@@ -120,7 +120,7 @@ SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller,
 - **Sweet-spot oval** follows the batter, never the pitch. Walk so its center eats the ball. The oval is the bat: its heart is PERFECT, the oval NICE, the rim SOUR; it is as tall as the strike frame, so any strike is on the bat. Where the ball meets the oval decides how hard you hit it; **when** you swing decides where it goes — early pulls, late pushes, outside the window is a whiff (9 frames for a slap, 7 for a charge). A charge narrows the oval and the window and pays ×1.25 on a perfect. Stick L/R at contact nudges the direction; stick up tops it, stick down lifts it.
 - **Take outside the white frame** — ball. Swing and miss outside it — strike.
 - **D-pad / 1 2 3 + South** — pickoff before the pitch. A glued runner goes back; a dancing lead can be out.
-- **Select / R** — swap pitcher (when they sweat, they are tired).
+- **Select / R** — opens the pitcher swap in SET: the card reads **SWAP → glove name**, stick / A-D / d-pad picks **any fielder**, Select / R again confirms, East / G closes. The new arm brings its own pool; the old pitcher takes the vacated glove. Once per half-inning. When the card reads TIRED (sweat), that is the moment.
 - **Start / H / Esc** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space / left click ok. Click a row. Wheel turns How to play pages. East / right click / Esc back. Tab on the title cycles 3 / 6 / 9 innings.
 
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
