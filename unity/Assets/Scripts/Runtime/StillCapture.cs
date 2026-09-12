@@ -396,12 +396,13 @@ namespace GrandSluggers.UnityClient
             var towardPlate = _match.Batter.Bats == Hand.L ? Vector3.left : Vector3.right;
             var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
             var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
-            // Signed on purpose. BattingStance authors one world feet axis for
-            // both hands -- MirrorX leaves Z alone -- because handedness turns
-            // the chest and swaps the low hand, it does not reverse the feet.
-            // Taking Mathf.Abs here scored a reversed stance identically to a
-            // correct one, which is how left-handed batters stood backwards
-            // through a 56/56 run.
+            // Signed on purpose. feetLine runs from the back foot to the lead
+            // foot (BattingStance.LeadSide), which points at the pitcher from
+            // either box when the hips face the plate. Taking Mathf.Abs here
+            // scored hips turned out of the box -- right foot forward on a
+            // right-handed batter, toes pointing away from the plate -- the
+            // same as a correct stance, which is how every captain stood that
+            // way through a 56/56 run.
             var feetAlongPitch = Vector3.Dot(feetLine, Vector3.forward);
             if (beat is "ready" or "rest" or "load")
             {
@@ -416,26 +417,24 @@ namespace GrandSluggers.UnityClient
                     if (chestTowardPlate < alignment)
                         failures.Add($"{captain} {power} {beat}: chest is not sideways toward plate ({chestTowardPlate:0.000})");
                     if (feetAlongPitch < alignment)
-                        failures.Add($"{captain} {power} {beat}: feet do not align along pitch ({feetAlongPitch:0.000})");
+                        failures.Add($"{captain} {power} {beat}: lead foot is not toward the pitcher (back-to-lead {feetAlongPitch:0.000})");
                     if (eyesTowardPitcher < alignment)
                         failures.Add($"{captain} {power} {beat}: eyes do not face pitcher ({eyesTowardPitcher:0.000})");
-                    // The lead hand rides low on the handle and swaps sides with
-                    // the batter. Landmark names are not anatomy -- DCC X is
-                    // reflected on import -- so compare the drawn stack against
-                    // the authored key for this hand rather than against "left".
                     // The lead hand rides low on the handle: left under right for a
                     // right-handed batter, right under left for a left-handed one.
                     // lHand really is the batter's left -- the blockout puts it at
                     // Blender -X facing +Y, and the import X reflection cancels
-                    // against the -Z export facing.
+                    // against the -Z export facing -- so the drawn stack is read
+                    // by name against the lead side, never against the authored
+                    // key (a check anchored to the key agreed with its own bug).
                     if (renderedHands)
                     {
-                        var leadIsLeft = _match.Batter.Bats == Hand.R;
-                        var leadY = leadIsLeft ? left.y : right.y;
-                        var topY = leadIsLeft ? right.y : left.y;
+                        var lead = BattingStance.LeadSide(_match.Batter.Bats);
+                        var leadY = lead == Hand.L ? left.y : right.y;
+                        var topY = lead == Hand.L ? right.y : left.y;
                         if (leadY >= topY)
-                            failures.Add($"{captain} {power} {beat}: {(leadIsLeft ? "left" : "right")} hand "
-                                + $"must ride under the {(leadIsLeft ? "right" : "left")} on the handle for a "
+                            failures.Add($"{captain} {power} {beat}: {(lead == Hand.L ? "left" : "right")} hand "
+                                + $"must ride under the {(lead == Hand.L ? "right" : "left")} on the handle for a "
                                 + $"{_match.Batter.Bats} batter (lead y {leadY:0.000}, top y {topY:0.000})");
                     }
                 }

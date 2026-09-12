@@ -82,25 +82,32 @@ public static class SwingPresentation
         Vec3 Grip,
         Vec3 BarrelDirection);
 
-    // Evaluated rendered-hand centers and socket positions in shared-root space.
-    // The DCC authoring check and Unity swing matrix measure these same points;
-    // DCC X is reflected during FBX import.
+    // Evaluated rendered-hand centers and socket positions in shared-root space
+    // for a right-handed batter; Mirror() derives the left-handed one. LeftHand
+    // and RightHand are the batter's own hands: the blockout builds lHand at
+    // Blender -X with the character facing +Y, and the FBX import X reflection
+    // cancels against the -Z export facing, so the renderer named lHand is the
+    // batter's left in Unity. The lead hand (BattingStance.LeadSide) holds the
+    // knob end: a right-handed batter's LEFT hand sits nearest Grip on every
+    // key and under the right hand in the held load. The DCC take
+    // (tools/blender/hero_shared_swing.py HAND_TARGETS) and the Unity swing
+    // matrix measure these same points.
     public static readonly IReadOnlyList<Key> Keys =
     [
         new(LoadAt,
-            new(0.300, 2.727, 0.512), new(0.080, 2.522, 0.326),
+            new(0.080, 2.522, 0.326), new(0.300, 2.727, 0.512),
             new(0.273, 2.215, 0.226), Unit(-0.18, 0.89, 0.42)),
         new(LaunchAt,
-            new(0.416, 2.356, -0.235), new(0.143, 2.240, 0.016),
+            new(0.143, 2.240, 0.016), new(0.416, 2.356, -0.235),
             new(0.326, 2.013, 0.249), Unit(-0.10, 0.62, -0.78)),
         new(ApproachAt,
-            new(0.366, 1.729, -0.547), new(0.129, 1.798, -0.140),
+            new(0.129, 1.798, -0.140), new(0.366, 1.729, -0.547),
             new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
         new(ContactAt,
-            new(0.458, 1.856, -0.622), new(0.124, 1.914, -0.257),
+            new(0.124, 1.914, -0.257), new(0.458, 1.856, -0.622),
             new(-0.069, 1.872, -0.149), Unit(0.7790, 0.0275, -0.6264)),
         new(FollowThroughAt,
-            new(-0.242, 2.195, -0.576), new(-0.134, 2.155, -0.290),
+            new(-0.134, 2.155, -0.290), new(-0.242, 2.195, -0.576),
             new(0.060, 2.032, -0.073), Unit(-0.54, 0.31, -0.78))
     ];
 
@@ -170,6 +177,21 @@ public static class SwingPresentation
             0,
             1);
         return Distance(point, Add(key.Grip, Mul(axis, u)));
+    }
+
+    /// <summary>
+    /// Where a hand sits along the handle, in feet from the grip socket at the
+    /// knob toward the barrel. The lead hand (<see cref="BattingStance.LeadSide"/>)
+    /// holds the knob end, so it reads smaller than the top hand on every key.
+    /// Height cannot say this once the barrel comes level at approach.
+    /// </summary>
+    public static double HandAlongHandle(Key key, Hand hand)
+    {
+        var point = hand == Hand.L ? key.LeftHand : key.RightHand;
+        var axis = Normalize(key.BarrelDirection);
+        return (point.X - key.Grip.X) * axis.X
+            + (point.Y - key.Grip.Y) * axis.Y
+            + (point.Z - key.Grip.Z) * axis.Z;
     }
 
     public static double ContactAttackAngleDeg(Hand hand = Hand.R)
@@ -260,17 +282,43 @@ public static class SwingPresentation
 /// the pitcher and the handed plate direction is inward from the batter box.
 /// These directions turn the body without moving the shared hand, bat, or
 /// plate-intercept keys above.
+///
+/// Jack's stance, for both hands: the bat hovers above the batting-side
+/// shoulder, the feet face the plate, and the lead side -- opposite the
+/// batting hand -- rides under the top hand on the handle and stands nearer
+/// the pitcher. A left-handed batter is that pose reflected across the plate
+/// line, so every direction here is written against the lead side rather
+/// than against "left" or "right".
 /// </summary>
 public static class BattingStance
 {
     public const double AlignmentToleranceDeg = 15;
     public const double AlignmentDot = 0.9659258262890683;
 
+    /// <param name="ChestForward">Where the visible chest faces.</param>
+    /// <param name="EyesForward">Where the visible eyes look.</param>
+    /// <param name="FeetAxis">
+    /// From the back foot to the lead foot. Not "right minus left": a
+    /// right-handed batter leads with the left foot, a left-handed batter with
+    /// the right, so this signed line reads +Z only when the hips face the
+    /// plate. Aiming the take at right-minus-left instead put the right foot
+    /// forward on a right-handed batter, turned the hips out of the box with the
+    /// toes pointing away from the plate, and left the torso twisted half a
+    /// turn to keep the chest on it.
+    /// </param>
     public readonly record struct Key(
         double T,
         Vec3 ChestForward,
         Vec3 EyesForward,
         Vec3 FeetAxis);
+
+    /// <summary>
+    /// The side that leads the swing is the one opposite the batting hand. It
+    /// holds the knob end of the handle under the top hand and stands nearer
+    /// the pitcher: a right-handed batter leads with the left hand and foot, a
+    /// left-handed batter with the right.
+    /// </summary>
+    public static Hand LeadSide(Hand bats) => bats == Hand.L ? Hand.R : Hand.L;
 
     // Grand Sluggers authored tuning. Ready and launch stay closed to the
     // pitcher; approach, contact, and follow then turn through the ball.
@@ -294,6 +342,8 @@ public static class BattingStance
     public static Key At(double poseT, Hand hand = Hand.R)
     {
         var right = Interpolate(poseT);
+        // The reflection that makes a left-handed batter swaps which foot
+        // leads. FeetAxis is already written back-to-lead, so its Z survives.
         return hand == Hand.L ? right with
         {
             ChestForward = MirrorX(right.ChestForward),
