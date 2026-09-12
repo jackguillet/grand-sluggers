@@ -364,10 +364,7 @@ namespace GrandSluggers.UnityClient
                     StartStealGun(stealRunner, stealBag, stealLead, finished);
                     return;
                 }
-                if (finished != null && finished.Kind == PlayKind.Foul && hit.ExitVeloMph > 1)
-                    StartFly(hit);
-                else
-                    BeginResult();
+                BeginResult();
                 return;
             }
             NoteTrainingPitch();
@@ -397,12 +394,10 @@ namespace GrandSluggers.UnityClient
             _phase = Phase.InPlay;
             _t = 0;
             _path = null;
+            // Every batted ball — foul territory included (§7.11) — is one live ball the sim plays out.
             var seat = _match.LivePlay.Source;
-            if (_pending != null && _preview != null)
-                _match.LivePlay.Apply(LivePlayCommand.BeginLive(
-                    _pitch, _swing, hit, _preview, _cpuField, LiveSeatsNow(), _dash01, seat));
-            else
-                _match.LivePlay.Apply(LivePlayCommand.BeginFlight(hit, seat));
+            _match.LivePlay.Apply(LivePlayCommand.BeginLive(
+                _pitch, _swing, hit, _preview, _cpuField, LiveSeatsNow(), _dash01, seat));
             SyncFromLive();
             // The contact word comes from the typed zone, never from the release (#578).
             _banner = PlayStamp.ContactTell(hit.Quality);

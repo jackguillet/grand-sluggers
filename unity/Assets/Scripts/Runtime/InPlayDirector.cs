@@ -80,6 +80,8 @@ namespace GrandSluggers.UnityClient
                 FinishLive(result.CompletedPlay, live.LastFieldResult);
                 return;
             }
+            // The sim commits every live ball itself, fouls included (#575). FlightDone is only a ball
+            // with nothing to play (no path); it must never stand in for a result.
             if (result.FlightDone && !_itemFlying) BeginResult();
         }
 
