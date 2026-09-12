@@ -59,17 +59,10 @@ namespace GrandSluggers.UnityClient
             _throwing = false;
             _closePlay = false;
             _closeIcon = false;
-            _closePlayT = 0;
             _closeBag = 0;
-            _closeOffAt = _closeDefAt = -1f;
-            _relayBags = null;
-            _relayI = 0;
-            _awaitingRelay = false;
             _coverPos = "";
             _recoilT = 0;
             _bobbling = false;
-            _recoilArmed = false;
-            _playerBobble = false;
             _diveT = _jumpT = _swapLock = 0;
             _catchDive = _catchJump = false;
             _gloveAt.Clear();
@@ -90,11 +83,7 @@ namespace GrandSluggers.UnityClient
             _banner = _sub = "";
             _gun = false;
             _gunRunner = null;
-            _stealPitch = null;
             _stealT = 0;
-            _stealTagT = -1f;
-            _cpuGunAt = 0;
-            _stealRelease = 0;
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _park.Ball.Place(_ball, "", "fastball", false, false);
@@ -102,7 +91,6 @@ namespace GrandSluggers.UnityClient
             HoldPitchInHand();
             _aimX = _aimY = 0;
             _smash = 0;
-            _gloved = false;
             _audio?.CrowdBed(true);
             AimSetCamera();
             LogSetCam("begin");
@@ -381,74 +369,37 @@ namespace GrandSluggers.UnityClient
             _pending = hit;
             _preview = _match.PreviewHit(hit);
             _cpuField = null;
-            _playerFielding = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
+            var playerStarts = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
             _itemThrown = false;
             _itemFlying = false;
             _itemFly = 0;
             _itemId = "";
             _itemPick = 0;
             _itemTarget = _preview != null ? _preview.Fielder : null;
-            if (!_playerFielding)
+            if (!playerStarts)
             {
                 _cpuField = _match.ResolveFielding(hit, _preview);
                 if (!HumanBats)
                     _cpuField = _match.ApplyOffenseItem(hit, _cpuField, null);
             }
-            InitGloves();
-            _caught = _buddy = false;
-            _throwBag = 0;
-            _throwing = false;
-            _relayBags = null;
-            _relayI = 0;
-            _awaitingRelay = false;
-            _coverPos = "";
-            _recoilT = 0;
-            _bobbling = false;
-            _recoilArmed = false;
-            _playerBobble = false;
-            _armedThrow = null;
-            _armedCut = null;
             _park.Ball.Release();
-            _diveT = _jumpT = 0;
-            _buddyWindow = false;
-            _buddyPos = "";
             StartFly(hit);
-        }
-
-        void InitGloves()
-        {
-            _gloveAt.Clear();
-            var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-            foreach (var kv in map)
-                _gloveAt[kv.Key] = Diamond.Positions[kv.Key];
-            _swapLock = 0;
-            if (_preview == null)
-            {
-                _glovePos = "P";
-                _fx = Diamond.Rubber.X;
-                _fz = Diamond.Rubber.Z;
-                return;
-            }
-            // Preview owns the trajectory-planned first glove for CPU and dead-stick
-            // defense alike. Player swap remains available once the ball is live.
-            var pick = (who: _preview.Fielder, pos: _preview.Position);
-            _glovePos = pick.pos;
-            var at = _gloveAt[_glovePos];
-            _fx = at.X;
-            _fz = at.Z;
         }
 
         void StartFly(AtBatResult hit)
         {
-            var list = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, _match.Park.WindMph);
-            _path = new Sample[list.Count];
-            for (var i = 0; i < list.Count; i++) _path[i] = list[i];
             _phase = Phase.InPlay;
             _t = 0;
-            _match.LivePlay.Apply(LivePlayCommand.Begin(LiveKind(), LiveCommandSource));
+            _path = null;
+            var seat = _match.LivePlay.Source;
+            if (_pending != null && _preview != null)
+                _match.LivePlay.Apply(LivePlayCommand.BeginLive(
+                    _pitch, _swing, hit, _preview, _cpuField, LiveSeatsNow(), _dash01, seat));
+            else
+                _match.LivePlay.Apply(LivePlayCommand.BeginFlight(hit, seat));
+            SyncFromLive();
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
-            _gloved = false;
             if (hit.Quality != ContactQuality.Miss) _audio?.Bat(hit.Quality);
             if (hit.StarSwingUsed != null)
             {

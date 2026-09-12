@@ -6,11 +6,19 @@
     "minFtPerSec": 8,
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
+    "swapLockSec": 0.7,
     "stickBaseFtPerSec": 18,
     "stickFtPerSecPerRun": 1.8,
     "stickFrozenMul": 0.4,
     "coverFtPerSec": 28,
     "coverStopFt": 1.2
+  },
+  "dash": {
+    "chaseMul": 1.35,
+    "buddyTossFt": 28,
+    "kickFt": 22,
+    "diveLungeFt": 10,
+    "itemSmashFt": 24
   },
   "catch": {
     "radiusBaseFt": 10,
@@ -45,7 +53,10 @@
     "buddyHeldBallY": 6.4,
     "buddyLeapBallY": 2.2,
     "hoverLeadSec": 0.4,
-    "hoverMinSec": 0.25
+    "hoverMinSec": 0.25,
+    "jumpArmSec": 0.55,
+    "wallJumpArmSec": 0.7,
+    "diveArmSec": 0.5
   },
   "range": {
     "baseFt": 24,

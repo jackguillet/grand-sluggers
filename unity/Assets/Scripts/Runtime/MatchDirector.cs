@@ -58,7 +58,6 @@ namespace GrandSluggers.UnityClient
         StarMeter _stars;
         const string TrainedKey = "gs.trained";
         bool _hideHelp;
-        bool _gloved;
         HighlightClip _clip;
         Vector3 _hlAt;
         Sample[] _hlPath;
@@ -101,8 +100,6 @@ namespace GrandSluggers.UnityClient
         bool _pitchAir;
         Vector3 _relFrom;
         float LiveTime => _match != null ? (float)_match.LivePlay.ElapsedSeconds : 0f;
-        LivePlayCommandSource LiveCommandSource =>
-            _playerFielding || HumanOwnsThrow ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
         float _freeze;
         float _smash;
         bool _showTiming;
@@ -131,24 +128,15 @@ namespace GrandSluggers.UnityClient
         bool _throwing;
         float _throwT, _throwDur;
         bool _closePlay;
-        float _closePlayT;
         string _bagStamp = "";
         float _bagStampT;
         bool _closeIcon;
         int _closeBag;
-        float _closeOffAt;
-        float _closeDefAt;
-        int[] _relayBags;
-        int _relayI;
-        bool _awaitingRelay;
         string _coverPos = "";
         float _recoilT;
         bool _bobbling;
-        bool _recoilArmed;
-        bool _playerBobble;
         FieldingResult _cpuField;
         ThrowResult _armedThrow;
-        Character _armedCut;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
         bool _gun;
@@ -158,11 +146,7 @@ namespace GrandSluggers.UnityClient
         int _gunFromBag, _gunToBag, _gunThrowToBag;
         bool _gunSafe, _gunPickoff, _gunThrowFromPitcher;
         double _gunLead;
-        PlayEvent _stealPitch;
         float _stealT;
-        float _stealTagT = -1f;
-        float _cpuGunAt;
-        double _stealRelease;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats SelectedSeats =>
@@ -407,21 +391,9 @@ namespace GrandSluggers.UnityClient
             if (!mutePlay && ItemOffered && _itemTarget != null)
                 HudView.ItemPointer(_itemTarget.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
-            {
-                var hopper = _preview != null && _preview.Grounder;
-                var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
-                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, false);
-                var def = _match.LivePlay.ForceRecorded
-                    ? 1
-                    : InPlay.DefaultGroundBag(_match.First != null, _match.Second != null, _match.Third != null);
-                HudView.BagTell(InPlay.CommitBag(armed, hopper, FieldPad.Cutoff, def));
-            }
+                HudView.BagTell(_match.LivePlay.CommitBagFor(FieldInput()));
             if (!mutePlay && _phase == Phase.StealThrow && !_throwing)
-            {
-                var stick = FieldPad.StickBag > 0 ? FieldPad.StickBag : FieldPad.ArrowBag;
-                var armed = InPlay.ArmedBag(_throwBag > 0 ? _throwBag : FieldPad.ThrowBag, stick, true);
-                HudView.BagTell(StealThrow.CommitBag(armed, _match.StealTargetBag));
-            }
+                HudView.BagTell(_match.LivePlay.StealCommitBagFor(FieldInput()));
             if (_feelDebug)
             {
                 var verb = "";
@@ -674,10 +646,9 @@ namespace GrandSluggers.UnityClient
             {
                 var dest = ItemTargetWorld();
                 var dist = Diamond.Dist(_fx, _fz, dest.x, dest.z);
-                if (FieldDash.DestroysItem(true, true, dist))
+                if (FieldDash.DestroysItem(true, true, dist, _content.Rules))
                 {
-                    if (_cpuField != null)
-                        _cpuField = ErrorItems.Smash(_cpuField, _preview != null && _preview.Grounder);
+                    _match.LivePlay.Apply(LivePlayCommand.SmashItem(_match.LivePlay.Source));
                     _itemFlying = false;
                     _itemId = "";
                     _items?.Hide();
@@ -694,12 +665,7 @@ namespace GrandSluggers.UnityClient
                 _sub = ErrorItems.All[_itemPick].ToUpperInvariant() + "  ·  stick aim  ·  E throw";
             if (!pad.ItemConfirm || _itemTarget == null) return;
             var id = ErrorItems.All[_itemPick];
-            if (_cpuField != null)
-            {
-                _cpuField = _match.ThrowItem(_cpuField, id, _itemTarget);
-                if (_cpuField.Kind is not (PlayKind.FlyOut or PlayKind.GroundOut))
-                    _caught = false;
-            }
+            _match.LivePlay.Apply(LivePlayCommand.ApplyItem(id, _itemTarget, _match.LivePlay.Source));
             _itemThrown = true;
             _itemFlying = true;
             _itemFly = 0;
@@ -750,50 +716,6 @@ namespace GrandSluggers.UnityClient
         bool HideHelp() => _hideHelp || PlayerPrefs.GetInt(TrainedKey, 0) == 1;
 
         string HighlightCaption() => _clip != null ? _clip.Play.Caption : "";
-
-        void CatchGlove()
-        {
-            if (!_caught && !_gloved) _audio?.Glove();
-            _caught = true;
-            _gloved = true;
-            HoldBallInGlove();
-        }
-
-        void ArmRecoil()
-        {
-            if (_recoilArmed || _preview == null || !_preview.Grounder || _buddy) return;
-            _recoilArmed = true;
-            var bobble = false;
-            var knock = 0.0;
-            if (_cpuField != null)
-            {
-                bobble = _cpuField.Bobble;
-                knock = _cpuField.KnockbackSec;
-            }
-            else if (_pending != null)
-            {
-                var map = FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
-                var who = map.TryGetValue(_glovePos, out var g) ? g : _preview.Fielder;
-                var energy = InPlay.Energy(_pending);
-                var rng = new System.Random(Seed + _match.Inning * 17 + _match.Outs * 5 + (int)(LiveTime * 40));
-                bobble = InPlay.Bobbles(energy, who, rng, _match.DefenseGlove);
-                knock = InPlay.KnockbackSec(energy, who);
-                _playerBobble = bobble;
-            }
-            if (bobble)
-            {
-                _bobbling = true;
-                _recoilT = 0.58f;
-                _park.Ball.Release();
-                var dir = new Vector3((float)_fx, 0f, (float)_fz);
-                var away = _ball - dir;
-                away.y = 0;
-                if (away.sqrMagnitude < 0.4f) away = Vector3.forward;
-                _ball = new Vector3((float)_fx, 3.1f, (float)_fz) + away.normalized * 6.5f;
-            }
-            else if (knock > 0.02)
-                _recoilT = (float)knock;
-        }
 
         void HoldBallInGlove()
         {

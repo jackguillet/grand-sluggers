@@ -410,7 +410,7 @@ public class AtBatFeelTests
         var dash = InPlay.HomeToFirstSec(dart, 1);
         Assert.True(dash < still, $"dash {dash} vs {still}");
         Assert.True(dash > 2.4, "dash is not a teleport");
-        Assert.True(FieldDash.ChaseMul > 1);
+        Assert.True(FieldDash.ChaseMul() > 1);
         var rio = _content.Must("rio");
         var nico = _content.Must("nico");
         Assert.True(FieldDash.BuddyTossOffered(_content.Chemistry.Between(rio, nico), 12)

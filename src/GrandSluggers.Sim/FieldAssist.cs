@@ -6,8 +6,6 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class FieldAssist
 {
-    public const double StickTake = 0.35;
-
     public static bool PlayerStartsOnGlove(bool trainingRequiresPlayer) => trainingRequiresPlayer;
 
     /// <summary>
@@ -75,12 +73,13 @@ public static class FieldAssist
         double aimX,
         double aimZ,
         double stickX,
-        double stickY) =>
-        SwapGlove(current, at, aimX, aimZ, stickX, stickY);
+        double stickY,
+        double stickTake) =>
+        SwapGlove(current, at, aimX, aimZ, stickX, stickY, stickTake);
 
     /// <summary>
     /// Select / R: stick points at who you want; dead stick takes the next-nearest to the ball.
-    /// Not Diamond.Order.
+    /// Not Diamond.Order. <paramref name="stickTake"/> is data/feel fieldAssistStick.
     /// </summary>
     public static string SwapGlove(
         string current,
@@ -88,11 +87,12 @@ public static class FieldAssist
         double ballX,
         double ballZ,
         double stickX,
-        double stickY)
+        double stickY,
+        double stickTake)
     {
         if (at == null || at.Count == 0) return current;
         var mag = Math.Abs(stickX) + Math.Abs(stickY);
-        if (mag >= StickTake)
+        if (mag >= stickTake)
             return NearestInDirection(current, at, stickX, stickY);
         return NextNearestToBall(current, at, ballX, ballZ);
     }
