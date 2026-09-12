@@ -4,6 +4,12 @@ The source catalog is written in Unity batter-local axes: +X crosses the
 plate for a right-handed batter, +Y is up, and +Z faces the pitcher. Blender's
 FBX basis maps those directions to (-X, -Z, +Y).
 
+Every take here is authored right-handed and reflected in Unity for a
+left-handed batter. The side opposite the batting hand leads: that foot stands
+nearer the pitcher and that hand holds the knob end of the handle. The
+catalog's feetAxis runs from the back foot to the lead foot, so it points at
+the pitcher from either box; it is not "right minus left".
+
 A rig's *rendered* eyes are not always the eyes this scene authors. Each caller
 names its import basis so the DCC aims the landmark that Unity actually draws.
 """
@@ -28,6 +34,13 @@ CATALOG = Path(__file__).resolve().parents[2] / "data/art/pose-clips/swing.json"
 # into Unity -Z, so the drawn face is the reverse of the landmark.
 EYES_AS_AUTHORED = 1
 EYES_REVERSED_BY_IMPORT = -1
+
+# Which hand the authored take bats with. The shared and package takes are
+# right-handed; HeroActor mirrors the sampled pose for a left-handed batter.
+BATS_RIGHT = "R"
+BATS_LEFT = "L"
+# "Feet face the plate": each toe within this cone of the plate direction.
+FEET_FACE_PLATE_DOT = 0.7071
 
 
 def _load_keys():
@@ -110,8 +123,34 @@ def visible_direction(front: str, center: str):
     return flat(rendered_center(front) - rendered_center(center))
 
 
-def feet_axis(left: str, right: str):
-    return flat(rendered_center(right) - rendered_center(left))
+def lead_side(bats: str = BATS_RIGHT) -> str:
+    """The side opposite the batting hand leads the swing."""
+    return BATS_LEFT if bats == BATS_RIGHT else BATS_RIGHT
+
+
+def plate_direction(bats: str = BATS_RIGHT):
+    """Across the plate from the batter's box, in DCC axes."""
+    return unity_to_dcc((1.0 if bats == BATS_RIGHT else -1.0, 0.0, 0.0))
+
+
+def feet_axis(left: str, right: str, bats: str = BATS_RIGHT):
+    """From the back foot to the lead foot.
+
+    Not right-minus-left: a right-handed batter leads with the left foot. The
+    catalog's feetAxis points at the pitcher, and this signed line agrees with
+    it only when the hips face the plate. Aiming the root at right-minus-left
+    put the right foot forward on the right-handed take, turned the hips out
+    of the box with the toes pointing away from the plate, and left the torso
+    twisted half a turn to keep the chest on it.
+    """
+    lead, back = (left, right) if lead_side(bats) == BATS_LEFT else (right, left)
+    return flat(rendered_center(lead) - rendered_center(back))
+
+
+def toe_direction(arm_ob, shoe: str, shin: str):
+    """Where a foot points: from the shin joint it hangs on to the shoe center."""
+    joint = arm_ob.matrix_world @ arm_ob.pose.bones[shin].tail
+    return flat(rendered_center(shoe) - joint)
 
 
 def _signed_yaw(current, target):
@@ -149,11 +188,17 @@ def author_visible_stance(
     foot_left: str,
     foot_right: str,
     eyes_basis: int = EYES_AS_AUTHORED,
+    bats: str = BATS_RIGHT,
 ):
-    """Align feet, visible chest, and visible eyes to the shared stance key."""
+    """Align feet, visible chest, and visible eyes to the shared stance key.
+
+    The root is yawed until the back-to-lead foot line meets the catalog's
+    feetAxis, which turns the hips -- and the toes with them -- toward the
+    plate. The chest and eyes are then aimed on their own bones.
+    """
     target = target_at(t, eyes_basis=eyes_basis)
     aim_bone_from_landmarks(
-        arm_ob, "root", feet_axis(foot_left, foot_right), target["feet"])
+        arm_ob, "root", feet_axis(foot_left, foot_right, bats), target["feet"])
     aim_bone_from_landmarks(
         arm_ob, "torso", visible_direction(chest_front, chest_center), target["chest"])
     eyes = (rendered_center(eye_left) + rendered_center(eye_right)) * 0.5
@@ -173,21 +218,42 @@ def validate_visible_stance(
     foot_right: str,
     eyes_basis: int = EYES_AS_AUTHORED,
     minimum_dot: float = 0.995,
+    bats: str = BATS_RIGHT,
+    arm_ob=None,
+    shin_left: str = "lShin",
+    shin_right: str = "rShin",
 ):
+    """Falsify the rendered stance against the catalog.
+
+    The feet check is signed: an unsigned one scored hips turned out of the box
+    the same as hips facing the plate, and the Unity swing matrix repeated the
+    blind spot through a 56/56 run. With ``arm_ob`` each toe must also face the
+    plate, which is the part of Jack's contract the foot line alone cannot see.
+    """
     target = target_at(t, eyes_basis=eyes_basis)
     eyes = (rendered_center(eye_left) + rendered_center(eye_right)) * 0.5
     actual = {
         "chest": visible_direction(chest_front, chest_center),
         "eyes": flat(eyes - rendered_center(head_center)),
-        "feet": feet_axis(foot_left, foot_right),
+        "feet": feet_axis(foot_left, foot_right, bats),
     }
     for name, expected in target.items():
         dot = actual[name].dot(expected)
-        if name == "feet":
-            dot = abs(dot)
         if dot < minimum_dot:
             raise RuntimeError(
                 f"{name} missed stance at {t:.2f}: dot {dot:.4f}; "
                 f"actual {tuple(round(v, 4) for v in actual[name])}; "
                 f"expected {tuple(round(v, 4) for v in expected)}"
+            )
+    if arm_ob is None:
+        return
+    plate = plate_direction(bats)
+    for shoe, shin in ((foot_left, shin_left), (foot_right, shin_right)):
+        toe = toe_direction(arm_ob, shoe, shin)
+        dot = toe.dot(plate)
+        if dot < FEET_FACE_PLATE_DOT:
+            raise RuntimeError(
+                f"{shoe} does not face the plate at {t:.2f}: dot {dot:.4f}; "
+                f"toe {tuple(round(v, 4) for v in toe)}; "
+                f"plate {tuple(round(v, 4) for v in plate)}"
             )

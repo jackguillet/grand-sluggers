@@ -209,7 +209,18 @@ namespace GrandSluggers.UnityClient
             if (!TryVisibleFoot(centers, "rShoe", "rFoot", _rShin, out var footR)) return false;
             chestForward = Vector3.ProjectOnPlane(chest - torso, Vector3.up).normalized;
             eyeForward = Vector3.ProjectOnPlane((eyeL + eyeR) * 0.5f - head, Vector3.up).normalized;
-            feetLine = Vector3.ProjectOnPlane(footR - footL, Vector3.up).normalized;
+            // From the back foot to the lead foot (BattingStance.LeadSide): a
+            // right-handed batter's left foot stands nearer the pitcher, a
+            // left-handed batter's right foot does. lShoe really is the
+            // batter's left -- the blockout puts it at Blender -X facing +Y and
+            // the import X reflection cancels against the -Z export facing --
+            // so "right minus left" would read +Z for a right-handed batter
+            // only when the right foot is forward, which is the hips turned out
+            // of the box. Back-to-lead reads +Z from either box when the hips
+            // face the plate.
+            var leadFoot = _batsLeft ? footR : footL;
+            var backFoot = _batsLeft ? footL : footR;
+            feetLine = Vector3.ProjectOnPlane(leadFoot - backFoot, Vector3.up).normalized;
             return chestForward.sqrMagnitude > 0.9f && eyeForward.sqrMagnitude > 0.9f
                 && feetLine.sqrMagnitude > 0.9f;
         }
