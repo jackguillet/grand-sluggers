@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -318,24 +319,24 @@ namespace GrandSluggers.UnityClient
             {
                 // Live SET uses ChargeSwing before the button is armed. Unlike
                 // Idle, this is the batting-ready pose and keeps the bat shown.
-                hero.SetPose(HeroActor.Pose.ChargeSwing, 0);
+                hero.SetPose(Motion.Verb.ChargeSwing, 0);
                 hero.SnapTick(0);
             }
             else if (beat == "load")
             {
-                hero.SetPose(HeroActor.Pose.ChargeSwing, charge);
+                hero.SetPose(Motion.Verb.ChargeSwing, charge);
                 hero.SnapTick(0);
             }
             else
             {
                 // Reproduce the held-load -> committed-swing handoff so normal
                 // and MAX exercise the same path as live play.
-                hero.SetPose(HeroActor.Pose.ChargeSwing, charge);
+                hero.SetPose(Motion.Verb.ChargeSwing, charge);
                 hero.SnapTick(0);
-                hero.SetPose(HeroActor.Pose.Swing, charge);
+                hero.SetPose(Motion.Verb.Swing, charge);
                 hero.SnapTick(beat == "contact"
-                    ? (float)MoveBones.SwingContact
-                    : (float)MoveBones.SwingDur);
+                    ? (float)Motion.SwingContact
+                    : (float)Motion.SwingDur);
             }
 
             _cam.SmashCut(hero.transform.position + Vector3.up * (float)HomeSet.BatterChestY);
@@ -440,10 +441,10 @@ namespace GrandSluggers.UnityClient
                 }
             }
             var expectedPose = beat is "ready" or "rest" or "load"
-                ? HeroActor.Pose.ChargeSwing
-                : HeroActor.Pose.Swing;
-            var expectedPoseTime = beat == "contact" ? (float)MoveBones.SwingContact
-                : beat == "follow" ? (float)MoveBones.SwingDur
+                ? Motion.Verb.ChargeSwing
+                : Motion.Verb.Swing;
+            var expectedPoseTime = beat == "contact" ? (float)Motion.SwingContact
+                : beat == "follow" ? (float)Motion.SwingDur
                 : 0f;
             if (hero.Current != expectedPose || Mathf.Abs(hero.PoseTime - expectedPoseTime) > 0.0001f)
                 failures.Add(
@@ -689,8 +690,8 @@ namespace GrandSluggers.UnityClient
 
             if (shot == "mound")
             {
-                PosePitcher(HeroActor.Pose.ChargePitch, charge, true);
-                PoseBatter(HeroActor.Pose.Idle, 0, false);
+                PosePitcher(Motion.Verb.ChargePitch, charge, true);
+                PoseBatter(Motion.Verb.Idle, 0, false);
                 _cam.Cut("mound");
                 return;
             }
@@ -698,8 +699,8 @@ namespace GrandSluggers.UnityClient
             if (shot == "plate")
             {
                 HideCatcher();
-                PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
-                PosePitcher(HeroActor.Pose.ChargePitch, 1, false);
+                PoseBatter(Motion.Verb.ChargeSwing, charge, true);
+                PosePitcher(Motion.Verb.ChargePitch, 1, false);
                 HoldPitchInHand();
                 _cam.CutRaw("plate",
                     new Vector3((float)StillPose.PlateCamX, (float)StillPose.PlateCamY, (float)StillPose.PlateCamZ),
@@ -711,10 +712,10 @@ namespace GrandSluggers.UnityClient
             if (shot == "pitch")
             {
                 HideCatcher();
-                PoseBatter(HeroActor.Pose.ChargeSwing, charge, true);
-                PosePitcher(HeroActor.Pose.ThrowPitch, 1, false);
+                PoseBatter(Motion.Verb.ChargeSwing, charge, true);
+                PosePitcher(Motion.Verb.ThrowPitch, 1, false);
                 if (_match.Pitcher != null && _heroes.TryGetValue(_match.Pitcher.Id, out var ph) && ph != null)
-                    ph.SnapTick((float)MoveBones.PitchRelease);
+                    ph.SnapTick((float)Motion.PitchRelease);
                 _pitch ??= new PitchCommand("fastball", 1, 0, false);
                 CaptureReleaseFromHand();
                 if (!StillPose.PitchReleaseIsOnTheMound(_relFrom.z))
@@ -740,7 +741,7 @@ namespace GrandSluggers.UnityClient
                 var gz = (float)StillPose.ScoopZ;
                 foreach (var kv in _heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
-                PoseBatter(HeroActor.Pose.Run, 0, false);
+                PoseBatter(Motion.Verb.Run, 0, false);
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var run) && run != null)
                 {
                     run.gameObject.SetActive(true);
@@ -762,7 +763,7 @@ namespace GrandSluggers.UnityClient
                 if (fh != null)
                 {
                     fh.gameObject.SetActive(true);
-                    fh.SetPose(HeroActor.Pose.Scoop, 0);
+                    fh.SetPose(Motion.Verb.Scoop, 0);
                     fh.SetHeld(false, true);
                     fh.Place(new Vector3(gx, 0f, gz), new Vector3(1f, 0f, 1f));
                     fh.SnapTick((float)StillPose.ScoopPoseT);
@@ -785,7 +786,7 @@ namespace GrandSluggers.UnityClient
                 HideBackstop();
                 foreach (var kv in _heroes)
                     if (kv.Value != null) kv.Value.gameObject.SetActive(false);
-                PoseBatter(HeroActor.Pose.Swing, 1, false);
+                PoseBatter(Motion.Verb.Swing, 1, false);
                 var chest = new Vector3(
                     (float)HomeSet.BatterXFor(_match.Batter.Bats),
                     (float)HomeSet.BatterChestY,
@@ -793,7 +794,7 @@ namespace GrandSluggers.UnityClient
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var sw) && sw != null)
                 {
                     sw.gameObject.SetActive(true);
-                    sw.SnapTick((float)MoveBones.SwingContact);
+                    sw.SnapTick((float)Motion.SwingContact);
                     chest = sw.transform.position + Vector3.up * 3.2f;
                 }
                 var star = _pending != null ? _pending.StarSwingUsed : _match.Batter.StarSwing;
@@ -823,15 +824,13 @@ namespace GrandSluggers.UnityClient
                 new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ));
             if (pose)
             {
-                hero.enabled = true;
-                hero.SetPose(HeroActor.Pose.Swing, 1);
+                hero.SetPose(Motion.Verb.Swing, 1);
                 hero.SnapTick((float)StillPose.CharPoseT);
             }
             else
             {
-                // Bind pose. Idle take / CharacterMotion was shredding the rest still.
-                hero.SetPose(HeroActor.Pose.Idle, 0);
-                hero.enabled = false;
+                hero.SetPose(Motion.Verb.Idle, 0);
+                hero.SnapTick(0f);
             }
             _cam.CutRaw("select",
                 new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ),
@@ -868,13 +867,13 @@ namespace GrandSluggers.UnityClient
             return h;
         }
 
-        void PoseBatter(HeroActor.Pose pose, float charge, bool ring)
+        void PoseBatter(Motion.Verb pose, float charge, bool ring)
         {
             if (_match?.Batter == null) return;
             if (!_heroes.TryGetValue(_match.Batter.Id, out var b) || b == null) return;
             b.SetPose(pose, charge);
             b.SetChargeRing(ring ? charge : 0);
-            b.SetHeld(pose is HeroActor.Pose.ChargeSwing or HeroActor.Pose.Swing, false);
+            b.SetHeld(pose is Motion.Verb.ChargeSwing or Motion.Verb.Swing, false);
             b.Place(new Vector3(
                 (float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX),
                 0f,
@@ -882,7 +881,7 @@ namespace GrandSluggers.UnityClient
             b.SnapTick(0.08f);
         }
 
-        void PosePitcher(HeroActor.Pose pose, float charge, bool ring)
+        void PosePitcher(Motion.Verb pose, float charge, bool ring)
         {
             if (_match?.Pitcher == null) return;
             var p = EnsureHero(_match.Pitcher);
@@ -893,7 +892,7 @@ namespace GrandSluggers.UnityClient
             p.Place(
                 new Vector3(0f, 0f, (float)Diamond.Mound),
                 new Vector3(0f, 0f, -1f));
-            p.SnapTick(pose == HeroActor.Pose.ThrowPitch ? (float)MoveBones.PitchRelease : 0.08f);
+            p.SnapTick(pose == Motion.Verb.ThrowPitch ? (float)Motion.PitchRelease : 0.08f);
         }
     }
 }

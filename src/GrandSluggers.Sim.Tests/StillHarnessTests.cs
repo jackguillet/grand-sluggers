@@ -77,7 +77,7 @@ public class StillHarnessTests
     {
         Assert.True(StillPose.CharCameraLooksAtChest(StillPose.CharLookY));
         Assert.True(StillPose.CharCameraIsNotBrim(StillPose.CharLookY, StillPose.CharCamY));
-        Assert.Equal(MoveBones.SwingContact, StillPose.CharPoseT);
+        Assert.Equal(Motion.SwingContact, StillPose.CharPoseT);
         Assert.True(StillPose.CharCameraIsThreeQuarter(
             StillPose.CharCamX, StillPose.CharCamZ, StillPose.CharZ),
             "3/4 on the face — dead-on behind the shell is illegible");

@@ -63,7 +63,7 @@ public static class StillPose
     public const double CharCamZ = 9;
     public const double CharLookY = 2.5;
     public const double CharFov = 34;
-    public const double CharPoseT = MoveBones.SwingContact;
+    public const double CharPoseT = Motion.SwingContact;
 
     public static bool CharCameraLooksAtChest(double lookY) => lookY >= 2.0 && lookY <= 4.0;
 

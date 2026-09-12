@@ -16,7 +16,7 @@ Locked identity stills. Gameplay cameras stay in `CameraRig`.
 | Side | `(14, 5.5, 0)` | chest | 32 |
 | Back | `(0, 5.5, 14)` | chest | 32 |
 
-World units. Actor at origin, facing −Z for the front plate. Do not move FOV or distance per captain — the six types have to compare.
+World units. Actor at origin, facing +Z (Unity forward). Do not move FOV or distance per captain — the six types have to compare.
 
 Gameplay: pitcher 3/4, batter over-shoulder, fly follow. Those cameras must still name the body.
 
@@ -38,7 +38,7 @@ SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK
 
 Head/Height ≥ 1.0 on every type so the face reads at catcher-eye. Cuts stay different. Numbers live in `Silhouette.cs`.
 
-Numbers live in `src/GrandSluggers.Sim/Silhouette.cs` and `HeroActor.Build`. Role players do not get a new anatomy. Unique captains (Fenn) are character packages: same bone names, own mesh and rest pose. Spec: `docs/character-package.md`.
+Numbers live in `src/GrandSluggers.Sim/Silhouette.cs`. Role players do not get a new anatomy. Unique captains are deferred: `docs/character-package.md`.
 
 ## Role players
 
@@ -46,13 +46,13 @@ Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey,
 
 ## Signature extras (captains only)
 
-- **Rio** — oversized brim, round cheeks, fat sneakers
+- **Rio** — round cheeks, fat sneakers (the brim returns when caps come back as accessories)
 - **Vale** — neck cylinder, pageant sash, ice crown instead of a ballcap
 - **Zig** — goggle discs, almost-no-neck
 - **Brondo** — cube chest, brick jaw
 - **Konga** — ape snout, hanging arms, belly
 - **Ashlord** — horns, short cape, unlit ember eyes
-- **Fenn** — shell-as-brim, walking cane, cream plastron. Unique Generic package (`docs/character-package.md`).
+- **Fenn** — shell-as-brim, cane slung across the back. Same rig, extras `shell` and `staff`.
 
 ## Bats
 
@@ -60,10 +60,9 @@ Every character holds the same original `bat-wood` model while batting. It stays
 on the shared bat socket from ready and load through swing and follow-through;
 the authored model origin stays fixed, its handle runs from Y −1.00 to −0.10,
 the grip sits at Y −0.85, and its radius-0.12 barrel runs from Y −0.15 to +1.25
-before the measured shared-socket bind conversion. Left-handed batters mirror
-the shared socket. Fenn's Generic package resolves the same named `bat` socket contract;
-the runtime creates the standard forearm fallback when the FBX omits that
-socket. Its walking cane remains a character extra rather than the hitting prop.
+before the measured shared-socket bind conversion. A left-handed batter plays
+the baked mirror take, in which the same `bat` socket is keyed on the other
+hand. Fenn's cane is a back-slung extra, never the hitting prop.
 
 Signature items still own gameplay stats and an inventory visual id. Defaults:
 
@@ -86,4 +85,4 @@ Gloves sit on the fielding hand (non-throwing) whenever the body is on defense �
 
 ## Animation
 
-Procedural on this rig until a clip file fills the slot. No 2D sprites on the 3D diamond. Shared clip list (idle, walk, run, jump, swing, pitch, scoop, slide, throw) lives in `data/art/clips.json` and `MoveBones.ClipList`. Unique captains are packages (`docs/character-package.md`). See `docs/art-rails.md`.
+Every verb is a Blender take on this rig; nothing is procedural. The clip list lives in `data/art/clips.json` and `Motion.Clips`. Handed takes are baked for both hands. Contract: `docs/character-motion.md`.

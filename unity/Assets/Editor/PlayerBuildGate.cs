@@ -97,18 +97,12 @@ namespace GrandSluggers.EditorTools
             if (width < 640) width = 1280;
             if (height < 360) height = 800;
 
-            CharacterPackageControllerImport.SyncRequired();
-
             var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
             var content = ContentCatalog.Load(data);
             var artErrors = new System.Collections.Generic.List<string>(content.Art.Validate(content));
             artErrors.AddRange(ArtRailsValidate.ValidateCommonBatImport());
             if (artErrors.Count > 0)
                 throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));
-            var packageErrors = CharacterPackageImportValidation.Validate(content);
-            if (packageErrors.Count > 0)
-                throw new BuildFailedException("Character package import validation failed:\n"
-                    + string.Join("\n", packageErrors));
 
             var unityRoot = Directory.GetParent(Application.dataPath)!.FullName;
             var exe = Path.Combine(unityRoot, mac ? RelOutMac : RelOutLinux);

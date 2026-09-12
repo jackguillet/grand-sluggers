@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GrandSluggers.UnityClient
 {
     /// <summary>
-    /// Resolves catalog slots. Missing Unity files keep the procedural placeholder.
+    /// Resolves catalog slots to Unity assets. A missing file is a logged placeholder, never a crash.
     /// </summary>
     public static class ArtBinder
     {
@@ -19,12 +19,6 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>Editor Play fills this so clip FBX/anim loads without a Resources copy.</summary>
         public static Func<string, AnimationClip> EditorLoadClip;
-
-        /// <summary>Editor Play loads an exact named subclip from a package source.</summary>
-        public static Func<string, string, AnimationClip> EditorLoadPackageClip;
-
-        /// <summary>Editor Play loads the package controller from its authoring slot.</summary>
-        public static Func<string, RuntimeAnimatorController> EditorLoadController;
 
         /// <summary>Editor Play: named mesh inside a kit FBX (dugout-1b, wall-panel, …).</summary>
         public static Func<string, string, GameObject> EditorLoadNamedMesh;
@@ -61,85 +55,6 @@ namespace GrandSluggers.UnityClient
             return go;
         }
 
-        /// <summary>Character package body. Null keeps hero-shared / primitives.</summary>
-        public static GameObject LoadBodyPrefab(string id)
-        {
-            if (_art == null || string.IsNullOrWhiteSpace(id)) return null;
-            if (!_art.Skins.TryGetValue(id, out var skin) || string.IsNullOrWhiteSpace(skin.Mesh))
-                return null;
-            var slot = skin.Mesh;
-            foreach (var key in BodyResourceKeys(id, slot))
-            {
-                var go = Resources.Load<GameObject>(key);
-                if (go != null) return go;
-            }
-            if (EditorLoadPrefab == null) return null;
-            foreach (var path in BodyEditorPaths(id, slot))
-            {
-                var go = EditorLoadPrefab(path);
-                if (go != null) return go;
-            }
-            return null;
-        }
-
-        /// <summary>Ready per-package Generic clip. Null follows the declared CharacterMotion fallback.</summary>
-        public static AnimationClip LoadPackageClip(string id, PackageVerbSlot verb)
-        {
-            if (string.IsNullOrWhiteSpace(id) || !CharacterPackage.IsReady(verb)
-                || string.IsNullOrWhiteSpace(verb.Clip)) return null;
-            var key = ResourceKey(verb.PlayerSource);
-            var loaded = LoadExactResourceClip(key, verb.Clip);
-            if (loaded != null) return loaded;
-            if (EditorLoadPackageClip == null) return null;
-            return EditorLoadPackageClip(verb.Source, verb.Clip);
-        }
-
-        public static RuntimeAnimatorController LoadPackageController(string id)
-        {
-            if (_art == null || !_art.TryPackage(id, out var package)) return null;
-            var loaded = Resources.Load<RuntimeAnimatorController>(ResourceKey(package.PlayerController));
-            if (loaded != null) return loaded;
-            return EditorLoadController != null ? EditorLoadController(package.Controller) : null;
-        }
-
-        /// <summary>{id}-albedo in Resources/Art/Characters/{id}/ or Resources/Art/.</summary>
-        public static Texture2D LoadBodyAlbedo(string id)
-        {
-            if (string.IsNullOrWhiteSpace(id)) return null;
-            var a = Resources.Load<Texture2D>("Art/Characters/" + id + "/" + id + "-albedo");
-            if (a != null) return a;
-            return Resources.Load<Texture2D>("Art/" + id + "-albedo");
-        }
-
-        static string[] BodyResourceKeys(string id, string slot)
-        {
-            var trimmed = SlotToResources(slot ?? "");
-            if (trimmed.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring(0, trimmed.Length - 4);
-            if (trimmed.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
-                trimmed = trimmed.Substring("Resources/".Length);
-            return new[]
-            {
-                trimmed,
-                "Art/Characters/" + id + "/" + id,
-                "Art/" + id
-            };
-        }
-
-        static string[] BodyEditorPaths(string id, string slot)
-        {
-            var a = string.IsNullOrWhiteSpace(slot) ? "" : slot;
-            if (a.Length > 0 && !a.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)
-                && !a.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
-                a = "Assets/" + a;
-            return new[]
-            {
-                a,
-                "Assets/Resources/Art/Characters/" + id + "/" + id + ".fbx",
-                "Assets/Art/Characters/" + id + "/" + id + ".fbx"
-            };
-        }
-
         /// <summary>Catalog FBX if the slot has a Unity file; null keeps SharedRig primitives.</summary>
         public static GameObject LoadSharedRigPrefab()
         {
@@ -171,42 +86,42 @@ namespace GrandSluggers.UnityClient
             return Resources.Load<Texture2D>("Art/" + id + "-hero");
         }
 
-        public static string ClipPath(string clipId)
+        /// <summary>Catalog slot for a take file id: a clip id or its baked mirror <c>{clip}-L</c>.</summary>
+        public static string ClipPath(string fileId, bool player = false)
         {
-            if (_art != null && _art.TryClip(clipId, out var clip)) return clip.Slot;
-            return "";
+            if (_art == null || string.IsNullOrWhiteSpace(fileId)) return "";
+            var left = fileId.EndsWith("-L", StringComparison.OrdinalIgnoreCase);
+            var clipId = left ? fileId.Substring(0, fileId.Length - 2) : fileId;
+            if (!_art.TryClip(clipId, out var clip)) return "";
+            var (slot, playerSlot) = ArtCatalog.ClipFiles(clip, left ? Hand.L : Hand.R);
+            return player ? playerSlot : slot;
         }
 
-        /// <summary>Catalog AnimationClip if the slot has a Unity file; null keeps MoveBones.</summary>
-        public static AnimationClip LoadClip(string clipId)
+        /// <summary>Catalog AnimationClip for a take file id. Null means the take is not baked.</summary>
+        public static AnimationClip LoadClip(string fileId)
         {
-            if (string.IsNullOrWhiteSpace(clipId)) return null;
-            if (ClipCache.TryGetValue(clipId, out var hit)) return hit;
-            if (ClipMiss.Contains(clipId)) return null;
+            if (string.IsNullOrWhiteSpace(fileId)) return null;
+            if (ClipCache.TryGetValue(fileId, out var hit)) return hit;
+            if (ClipMiss.Contains(fileId)) return null;
 
-            var slot = ClipPath(clipId);
+            var slot = ClipPath(fileId);
             if (string.IsNullOrWhiteSpace(slot))
             {
-                ClipMiss.Add(clipId);
+                ClipMiss.Add(fileId);
                 return null;
             }
-
-            _art.TryClip(clipId, out var clip);
-            var playerSlot = string.IsNullOrWhiteSpace(clip.PlayerSlot) ? slot : clip.PlayerSlot;
-            var key = ResourceKey(playerSlot);
-            var loaded = LoadExactResourceClip(key, clipId);
+            var key = ResourceKey(ClipPath(fileId, player: true));
+            var loaded = LoadExactResourceClip(key, fileId);
             if (loaded == null)
                 loaded = Resources.Load<AnimationClip>(key);
-            if (loaded == null)
-                loaded = Resources.Load<AnimationClip>(key + "/" + clipId);
             if (loaded == null && EditorLoadClip != null)
                 loaded = EditorLoadClip(slot);
             if (loaded == null)
             {
-                ClipMiss.Add(clipId);
+                ClipMiss.Add(fileId);
                 return null;
             }
-            ClipCache[clipId] = loaded;
+            ClipCache[fileId] = loaded;
             return loaded;
         }
 
