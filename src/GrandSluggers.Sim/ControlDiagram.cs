@@ -86,7 +86,7 @@ public static class ControlDiagram
 
     public static readonly IReadOnlyList<Callout> PadCallouts =
     [
-        new("stick", "Left stick", "L3 steal", "", "Move / run", 0.02f, 0.38f),
+        new("stick", "Left stick", "To the next bag: steal (L3 too)", "", "Move / run", 0.02f, 0.38f),
         new("dpad", "D-pad", "", "", "Bags — 1B 2B 3B home", 0.02f, 0.56f),
         new("lt", "LT", "Item modifier", "", "", 0.02f, 0.20f),
         new("lb", "LB / RB", "All advance / return", "Cutoff", "", 0.02f, 0.28f),

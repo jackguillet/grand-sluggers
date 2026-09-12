@@ -14,14 +14,14 @@ public class FieldAssistTests
         Assert.True(FieldAssist.PlayerStartsOnGlove(true));
         Assert.True(FieldAssist.HumanOwnsThrow(true));
         Assert.False(FieldAssist.HumanOwnsThrow(false));
-        Assert.Equal(0.35, FieldAssist.StickTake);
-        Assert.Equal(0.35, _content.Feel.FieldAssistStick);
-        Assert.False(FieldAssist.StickTakesGlove(0, 0, FieldAssist.StickTake, false));
-        Assert.False(FieldAssist.StickTakesGlove(0.1, 0.1, FieldAssist.StickTake, false));
-        Assert.True(FieldAssist.StickTakesGlove(0.4, 0, FieldAssist.StickTake, false));
-        Assert.True(FieldAssist.StickTakesGlove(0, 0, FieldAssist.StickTake, true));
-        Assert.True(FieldAssist.StickDead(0, 0, FieldAssist.StickTake));
-        Assert.False(FieldAssist.StickDead(0.4, 0, FieldAssist.StickTake));
+        var take = _content.Feel.FieldAssistStick;
+        Assert.Equal(0.35, take);
+        Assert.False(FieldAssist.StickTakesGlove(0, 0, take, false));
+        Assert.False(FieldAssist.StickTakesGlove(0.1, 0.1, take, false));
+        Assert.True(FieldAssist.StickTakesGlove(0.4, 0, take, false));
+        Assert.True(FieldAssist.StickTakesGlove(0, 0, take, true));
+        Assert.True(FieldAssist.StickDead(0, 0, take));
+        Assert.False(FieldAssist.StickDead(0.4, 0, take));
         Assert.True(FieldAssist.CpuChases(hasBall: false, throwing: false, stickDead: true));
         Assert.False(FieldAssist.CpuChases(hasBall: true, throwing: false, stickDead: true),
             "with the ball they wait for the throw");
@@ -79,14 +79,15 @@ public class FieldAssistTests
             ["P"] = Diamond.Positions["P"],
         };
         var ball = Diamond.Positions["SS"];
-        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 1, 0));
-        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, -1, 0));
-        Assert.Equal("1B", FieldAssist.SwapGlove("P", at, ball.X, ball.Z, 1, -0.4));
+        var take = _content.Feel.FieldAssistStick;
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 1, 0, take));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, -1, 0, take));
+        Assert.Equal("1B", FieldAssist.SwapGlove("P", at, ball.X, ball.Z, 1, -0.4, take));
         var nearSecond = (Diamond.Positions["2B"].X, Diamond.Positions["2B"].Z + 4);
-        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0));
-        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0));
+        Assert.Equal("2B", FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take));
+        Assert.Equal("3B", FieldAssist.SwapGlove("SS", at, ball.X, ball.Z, 0, 0, take));
         Assert.Equal(
-            FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0),
-            FieldAssist.SwitchHint("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0));
+            FieldAssist.SwapGlove("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take),
+            FieldAssist.SwitchHint("SS", at, nearSecond.Item1, nearSecond.Item2, 0, 0, take));
     }
 }

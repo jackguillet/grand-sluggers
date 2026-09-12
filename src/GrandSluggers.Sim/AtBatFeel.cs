@@ -153,35 +153,34 @@ public static class SweetSpot
         Overlap(walk, 0, 0, rules) <= 0;
 }
 
-/// <summary>Fielding dash and buddy-toss before the glove.</summary>
+/// <summary>Fielding dash and buddy-toss before the glove (fielding.dash).</summary>
 public static class FieldDash
 {
-    public const double ChaseMul = 1.35;
+    public static double ChaseMul(RulesTable? rules = null) => Rules.Or(rules).Fielding.Dash.ChaseMul;
 
-    public static bool BuddyTossOffered(Chemistry rel, double distFt) =>
-        rel == Chemistry.Good && distFt < 28;
+    public static bool BuddyTossOffered(Chemistry rel, double distFt, RulesTable? rules = null) =>
+        rel == Chemistry.Good && distFt < Rules.Or(rules).Fielding.Dash.BuddyTossFt;
 
     public static FieldingResult ApplyBuddyToss(FieldingResult field, Character partner, ThrowResult thr) =>
         field with { Fielder = partner, Throw = thr };
 
-    public const double KickFt = 22;
-    public const double DiveLungeFt = 10;
-
-    public static bool KickOffered(double distFt) => distFt < KickFt;
+    public static bool KickOffered(double distFt, RulesTable? rules = null) =>
+        distFt < Rules.Or(rules).Fielding.Dash.KickFt;
 
     /// <summary>Dive carries the body toward the ball. Not a teleport.</summary>
-    public static (double X, double Z) Lunge(double x, double z, double tx, double tz, double ft = DiveLungeFt)
+    public static (double X, double Z) Lunge(double x, double z, double tx, double tz, double? ft = null, RulesTable? rules = null)
     {
+        var reach = ft ?? Rules.Or(rules).Fielding.Dash.DiveLungeFt;
         var dx = tx - x;
         var dz = tz - z;
         var d = Math.Sqrt(dx * dx + dz * dz);
         if (d < 0.01) return (x, z);
-        var u = Math.Min(1, ft / d);
+        var u = Math.Min(1, reach / d);
         return (x + dx * u, z + dz * u);
     }
 
-    public static bool DestroysItem(bool attack, bool itemFlying, double distFt) =>
-        attack && itemFlying && distFt < 24;
+    public static bool DestroysItem(bool attack, bool itemFlying, double distFt, RulesTable? rules = null) =>
+        attack && itemFlying && distFt < Rules.Or(rules).Fielding.Dash.ItemSmashFt;
 }
 
 /// <summary>The button starts the swing; the contact mark is what meets the pitch.

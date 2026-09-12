@@ -622,6 +622,8 @@ public sealed class DeadBallRules
 {
     public double MinSec { get; init; } = 2.4;
     public double AfterHangSec { get; init; } = 0.35;
+    /// <summary>A flight nobody plays (a foul) holds this long past rest before the result.</summary>
+    public double RestHoldSec { get; init; } = 0.2;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -631,6 +633,7 @@ public sealed class DeadBallRules
 public sealed class FieldingRules
 {
     public ChaseRules Chase { get; init; } = new();
+    public FieldDashRules Dash { get; init; } = new();
     public CatchRules Catch { get; init; } = new();
     public RangeRules Range { get; init; } = new();
     public DropRules Drops { get; init; } = new();
@@ -660,6 +663,8 @@ public sealed class ChaseRules
     public double StepStopFt { get; init; } = 0.35;
     /// <summary>A route counts as reachable when the glove lands within this of the meet point.</summary>
     public double ReachSlackFt { get; init; } = 0.35;
+    /// <summary>After Select / R swaps the glove, the stick does not re-take it for this long.</summary>
+    public double SwapLockSec { get; init; } = 0.7;
     /// <summary>Human stick glove. §8.1 unifies it with the CPU chase (P4); the second formula lives here until then.</summary>
     [Positive] public double StickBaseFtPerSec { get; init; } = 18;
     public double StickFtPerSecPerRun { get; init; } = 1.8;
@@ -706,6 +711,21 @@ public sealed class CatchRules
     public double BuddyLeapBallY { get; init; } = 2.2;
     public double HoverLeadSec { get; init; } = 0.4;
     public double HoverMinSec { get; init; } = 0.25;
+    /// <summary>West arms the leap for this long (§8.4); longer when the play is at the wall.</summary>
+    public double JumpArmSec { get; init; } = 0.55;
+    public double WallJumpArmSec { get; init; } = 0.7;
+    /// <summary>East arms the dive reach for this long.</summary>
+    public double DiveArmSec { get; init; } = 0.5;
+}
+
+/// <summary>Field dash, buddy toss, kick, and the dive lunge (§8.1, §8.4, §8.7).</summary>
+public sealed class FieldDashRules
+{
+    [Positive] public double ChaseMul { get; init; } = 1.35;
+    public double BuddyTossFt { get; init; } = 28;
+    public double KickFt { get; init; } = 22;
+    public double DiveLungeFt { get; init; } = 10;
+    public double ItemSmashFt { get; init; } = 24;
 }
 
 public sealed class RangeRules
@@ -841,6 +861,7 @@ public sealed class RunningRules
     public StealRules Steal { get; init; } = new();
     public TagUpRules TagUp { get; init; } = new();
     public RunStickRules Stick { get; init; } = new();
+    public DashRules Dash { get; init; } = new();
     public CpuRunnerRules Cpu { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
@@ -908,6 +929,13 @@ public sealed class StealRules
 public sealed class TagUpRules
 {
     public double SacFlyCarryFt { get; init; } = 230;
+}
+
+/// <summary>Mash South to dash (§9.4): each press adds this, to the cap.</summary>
+public sealed class DashRules
+{
+    [Chance] public double PerPress { get; init; } = 0.28;
+    [Chance] public double MaxDash { get; init; } = 1.0;
 }
 
 public sealed class RunStickRules

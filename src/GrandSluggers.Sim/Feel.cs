@@ -84,15 +84,11 @@ public sealed class FeelTable
         double smashFreeze,
         double solidFreeze,
         double smashHold,
-        double throwEase,
         double cameraBlend,
-        double chargeDecay,
-        double runHz,
         double fieldAssistStick,
         double pitcherReadySeconds,
         double afterOutSeconds,
         double afterCountSeconds,
-        double inPlayCommitSeconds,
         double cpuVsHumanTake,
         double cpuVsHumanMiss,
         double chargeMaxHoldSeconds,
@@ -103,15 +99,11 @@ public sealed class FeelTable
         SmashFreeze = smashFreeze;
         SolidFreeze = solidFreeze;
         SmashHold = smashHold;
-        ThrowEase = throwEase;
         CameraBlend = cameraBlend;
-        ChargeDecay = chargeDecay;
-        RunHz = runHz;
         FieldAssistStick = fieldAssistStick;
         PitcherReadySeconds = pitcherReadySeconds;
         AfterOutSeconds = afterOutSeconds;
         AfterCountSeconds = afterCountSeconds;
-        InPlayCommitSeconds = inPlayCommitSeconds;
         CpuVsHumanTake = cpuVsHumanTake;
         CpuVsHumanMiss = cpuVsHumanMiss;
         ChargeMaxHoldSeconds = chargeMaxHoldSeconds;
@@ -123,15 +115,12 @@ public sealed class FeelTable
     public double SmashFreeze { get; }
     public double SolidFreeze { get; }
     public double SmashHold { get; }
-    public double ThrowEase { get; }
     public double CameraBlend { get; }
-    public double ChargeDecay { get; }
-    public double RunHz { get; }
+    /// <summary>Stick magnitude that takes the glove from the CPU (the one threshold; FieldAssist reads it).</summary>
     public double FieldAssistStick { get; }
     public double PitcherReadySeconds { get; }
     public double AfterOutSeconds { get; }
     public double AfterCountSeconds { get; }
-    public double InPlayCommitSeconds { get; }
     public double CpuVsHumanTake { get; }
     public double CpuVsHumanMiss { get; }
     public double ChargeMaxHoldSeconds { get; }
@@ -150,11 +139,10 @@ public sealed class FeelTable
             ?? throw new InvalidDataException($"Bad feel table {path}");
         if (dto.PitchChargeSeconds <= 0 || dto.SmashFreeze <= 0)
             throw new InvalidDataException("Feel table charge and smash freeze must be positive");
-        var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : FieldAssist.StickTake;
+        var assist = dto.FieldAssistStick > 0 ? dto.FieldAssistStick : 0.35;
         var ready = dto.PitcherReadySeconds > 0 ? dto.PitcherReadySeconds : 0.55;
         var after = dto.AfterOutSeconds > 0 ? dto.AfterOutSeconds : 1.35;
         var count = dto.AfterCountSeconds > 0 ? dto.AfterCountSeconds : 0.7;
-        var commit = dto.InPlayCommitSeconds > 0 ? dto.InPlayCommitSeconds : 1.6;
         var take = dto.CpuVsHumanTake > 0 ? dto.CpuVsHumanTake : 0.32;
         var miss = dto.CpuVsHumanMiss > 0 ? dto.CpuVsHumanMiss : 0.22;
         var maxHold = dto.ChargeMaxHoldSeconds > 0 ? dto.ChargeMaxHoldSeconds : 0.5;
@@ -165,15 +153,11 @@ public sealed class FeelTable
             dto.SmashFreeze,
             dto.SolidFreeze,
             dto.SmashHold,
-            dto.ThrowEase,
             dto.CameraBlend,
-            dto.ChargeDecay,
-            dto.RunHz,
             assist,
             ready,
             after,
             count,
-            commit,
             take,
             miss,
             maxHold,
@@ -187,15 +171,11 @@ public sealed class FeelTable
         public double SmashFreeze { get; set; }
         public double SolidFreeze { get; set; }
         public double SmashHold { get; set; }
-        public double ThrowEase { get; set; } = 6;
         public double CameraBlend { get; set; } = 6;
-        public double ChargeDecay { get; set; } = 1.4;
-        public double RunHz { get; set; } = 2.55;
         public double FieldAssistStick { get; set; } = 0.35;
         public double PitcherReadySeconds { get; set; } = 0.55;
         public double AfterOutSeconds { get; set; } = 1.35;
         public double AfterCountSeconds { get; set; } = 0.7;
-        public double InPlayCommitSeconds { get; set; } = 1.6;
         public double CpuVsHumanTake { get; set; } = 0.32;
         public double CpuVsHumanMiss { get; set; } = 0.22;
         public double ChargeMaxHoldSeconds { get; set; } = 0.5;
