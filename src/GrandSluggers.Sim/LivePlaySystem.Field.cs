@@ -55,6 +55,19 @@ public sealed record LiveSeats(bool HumanBats, bool HumanPitches, bool PlayerMus
     public LivePadInput OwnedRunPad(LivePadInput? pad) => HumanRuns ? pad ?? LivePadInput.Dead : LivePadInput.Dead;
 }
 
+/// <summary>The fair / foul call of a live batted ball (§5.6).</summary>
+public enum FairFoulCall
+{
+    /// <summary>Nobody has touched it: the untouched path's verdict stands (<see cref="BattedBall.Foul"/>).</summary>
+    Undecided,
+    /// <summary>First touched on the ground in fair territory.</summary>
+    Fair,
+    /// <summary>First touched on the ground in foul territory: dead.</summary>
+    Foul,
+    /// <summary>Caught in the air: an out wherever it was (§7.11).</summary>
+    Caught
+}
+
 /// <summary>A presentation cue the live ball raised this frame. Unity plays it; nothing decides by it.</summary>
 public enum LiveEvent
 {
@@ -81,6 +94,7 @@ public sealed partial class LivePlaySystem
     bool _gloved;
     bool _recoilArmed;
     bool _wallCued;
+    FairFoulCall _call;
     int[]? _relayBags;
     int _relayI;
     double _closePlayT;
@@ -102,9 +116,11 @@ public sealed partial class LivePlaySystem
     /// <summary>The batted ball's facts (§6.2): class, landing, wall, fence, and the untouched fair / foul verdict.</summary>
     public BattedBall? Ball { get; private set; }
     public LiveSeats Seats { get; private set; } = LiveSeats.CpuOnly;
-    /// <summary>A foul or dead flight: the ball flies for the camera, nobody plays it.</summary>
-    public bool DeadFlight { get; private set; }
     public bool FlightDone { get; private set; }
+    /// <summary>The fair / foul call so far (§5.6): the untouched path's verdict until a glove touches the ball.</summary>
+    public FairFoulCall Call => _call;
+    /// <summary>Foul as things stand: called foul on a touch, or untouched on a path the flight says is foul.</summary>
+    public bool FoulNow => _call == FairFoulCall.Foul || (_call == FairFoulCall.Undecided && Ball is { Foul: true });
     public bool StealPhase { get; private set; }
 
     public double BallX { get; private set; }
@@ -163,6 +179,8 @@ public sealed partial class LivePlaySystem
     Dictionary<string, Character> Assigned() => FieldingResolver.Assign(_match.Defense.Roster, _match.Pitcher);
     double Hang => Path is null ? (Preview?.HangTimeSec ?? 0) : BallFlight.HangTime(Path, R);
     double Rest => Path is null ? 0 : BallFlight.RestTime(Path);
+    /// <summary>The instant a dead ball is decided: a foul at its verdict, anything else at the landing mark.</summary>
+    double DeadAt => Ball is not null && LiveKind() == PlayKind.Foul ? Ball.DecidedT : Hang;
 
     // ---------------------------------------------------------------------------------
     // Begin
@@ -195,20 +213,6 @@ public sealed partial class LivePlaySystem
         return new LivePlayCommandResult(Snapshot);
     }
 
-    /// <summary>A foul (or any dead) flight: the ball flies for the camera, nobody plays it.</summary>
-    LivePlayCommandResult BeginFlight(LivePlayCommand command)
-    {
-        if (command.Hit is null) return new LivePlayCommandResult(Snapshot);
-        ResetField();
-        _events.Clear();
-        Hit = null;
-        Ball = BattedBall.Of(command.Hit, Park, R);
-        Path = Ball.Samples;
-        DeadFlight = true;
-        FlightDone = false;
-        return new LivePlayCommandResult(Snapshot);
-    }
-
     void InitGloves()
     {
         _fielders.Clear();
@@ -238,8 +242,8 @@ public sealed partial class LivePlaySystem
         Field = null;
         Path = null;
         Ball = null;
-        DeadFlight = false;
         FlightDone = false;
+        _call = FairFoulCall.Undecided;
         StealPhase = false;
         _fielders.Clear();
         GlovePos = "P";
@@ -297,18 +301,6 @@ public sealed partial class LivePlaySystem
         var field = Seats.OwnedFieldPad(command.FieldPad);
         var run = Seats.OwnedRunPad(command.RunPad);
         if (dt <= 0) return new LivePlayCommandResult(Snapshot);
-
-        if (DeadFlight)
-        {
-            ElapsedSeconds += dt;
-            if (Path is not null)
-            {
-                var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
-                (BallX, BallY, BallZ) = p;
-            }
-            FlightDone = Path is null || (ElapsedSeconds >= Rest + R.Flight.DeadBall.RestHoldSec && !command.EffectInFlight);
-            return new LivePlayCommandResult(Snapshot);
-        }
 
         if (StealPhase)
         {
@@ -402,8 +394,9 @@ public sealed partial class LivePlaySystem
         }
 
         // A dead ball does not wait for a fielder to possess it. Keep this before
-        // ownership dispatch so CPU, assisted defense and two-pad play agree.
-        if (Hit is not null && InPlay.DeadBallResultReady(LiveKind(), ElapsedSeconds, Hang, HoldsBall, Throwing,
+        // ownership dispatch so CPU, assisted defense and two-pad play agree. A homer is dead
+        // at the crossing; a foul is dead when the untouched path's call is in (§7.11).
+        if (Hit is not null && InPlay.DeadBallResultReady(LiveKind(), ElapsedSeconds, DeadAt, HoldsBall, Throwing,
                 command.EffectInFlight, R))
             return Commit();
 
@@ -541,19 +534,19 @@ public sealed partial class LivePlaySystem
         {
             if (FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, window, R))
             {
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
             var pickupInPlay = FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
             if (pickupInPlay && pad.SouthDown && d < window)
             {
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
             if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, window, BallY, R))
             {
                 CatchDive = true;
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
         }
@@ -566,7 +559,7 @@ public sealed partial class LivePlaySystem
             var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
             if (stick < stickTake && FlyCatch.AutoCatch(under, inWin, needsJump))
             {
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
             if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, under, inWin, needsJump, canRob))
@@ -580,13 +573,13 @@ public sealed partial class LivePlaySystem
                     _fielders[GlovePos] = (GloveX, GloveZ);
                     _events.Add(LiveEvent.BuddyJump);
                 }
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
             if (!needsJump && FlyCatch.PlayerDiveCatch(DiveT > 0, d, window, BallY, R))
             {
                 CatchDive = true;
-                CatchGlove();
+                TakeBattedBall();
                 ArmRecoil();
             }
         }
@@ -622,6 +615,9 @@ public sealed partial class LivePlaySystem
         if (HoldsBall)
         {
             SwitchPos = "";
+            // Touched foul: dead in the glove, no throw to make (§7.11).
+            if (LiveKind() == PlayKind.Foul)
+                return Commit();
             if (TickLiveContact(out var contactDone))
                 return contactDone;
             if (pad.SouthDown || pad.Cutoff)
@@ -674,7 +670,7 @@ public sealed partial class LivePlaySystem
         var cpuDist = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
         if (!Caught && FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuWindow, R))
         {
-            CatchGlove();
+            TakeBattedBall();
             ArmRecoil();
         }
         if (!Caught && !grounder)
@@ -685,7 +681,7 @@ public sealed partial class LivePlaySystem
             var under = FlyCatch.Under(GloveX, GloveZ, BallX, BallZ, plant.X, plant.Z, cpuWindow, needsJump, R);
             if (FlyCatch.AutoCatch(under, inWin, needsJump))
             {
-                CatchGlove();
+                TakeBattedBall();
                 if (cpu.Kind is not PlayKind.FlyOut)
                     Field = cpu = cpu with { Kind = PlayKind.FlyOut };
                 ArmRecoil();
@@ -698,9 +694,15 @@ public sealed partial class LivePlaySystem
                     ? ElapsedSeconds >= hang - catchRules.LineCatchLeadSec && BallY < catchRules.LineCatchMaxBallY
                     : ElapsedSeconds >= hang - catchRules.FlyCatchLeadSec))
         {
-            CatchGlove();
+            TakeBattedBall();
             ArmRecoil();
         }
+        // The touch made the call: a foul-territory pickup is dead in the glove; a fair pickup of a
+        // ball the flight had rolling foul is a live hop the resolver never scored — play it as one.
+        if (HoldsBall && !Throwing && LiveKind() == PlayKind.Foul)
+            return Commit();
+        if (HoldsBall && _call == FairFoulCall.Fair && cpu.Kind == PlayKind.Foul)
+            Field = cpu = cpu with { Kind = FlyCatch.PlayerKind(true, pre, Hit, inAir: false, R, foul: false) };
         if (!grounder && !line && !HoldsBall && ElapsedSeconds < hang) return null;
         if ((grounder || line) && !Caught && ElapsedSeconds < rest) return null;
         if (cpu.Bobble && Caught)
@@ -831,11 +833,13 @@ public sealed partial class LivePlaySystem
         {
             var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
             var airborne = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, Hang);
-            var positions = airborne
-                ? FieldingResolver.AirPursuitPositions
-                : FieldingResolver.OutfieldGrass(live.X, live.Z, R)
-                    ? FieldingResolver.OutfieldPursuitPositions
-                    : FieldingResolver.InfieldPursuitPositions;
+            var positions = FoulNow
+                ? FieldingResolver.FoulPursuitPositions
+                : airborne
+                    ? FieldingResolver.AirPursuitPositions
+                    : FieldingResolver.OutfieldGrass(live.X, live.Z, R)
+                        ? FieldingResolver.OutfieldPursuitPositions
+                        : FieldingResolver.InfieldPursuitPositions;
             var choice = FieldingPursuit.Choose(map, positions, Preview, Park, Path, _fielders, ElapsedSeconds, R);
             pick = (choice.Fielder, choice.Position);
         }
@@ -1215,11 +1219,13 @@ public sealed partial class LivePlaySystem
         }
         if (HoldsBall)
         {
+            if (LiveKind() == PlayKind.Foul)
+                return new FieldingResult(PlayKind.Foul, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace);
             if (Bobbling || PlayerBobble)
                 return new FieldingResult(PlayKind.Single, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy, Bobble: true);
             // The catch can be committed a frame after hang. Once the glove owns an aerial ball
             // it is still a fly out; do not reclassify the catch from carry distance.
-            var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: true, R);
+            var kind = FlyCatch.PlayerKind(true, pre, hit, inAir: true, R, foul: FoulNow);
             var knock = pre.Grounder && hit is not null ? InPlay.KnockbackSec(InPlay.Energy(hit, R), from, R) : 0;
             var feat = kind == PlayKind.FlyOut && hit is not null
                 ? FieldingResolver.PlayerCatchFeat(pre, Park, Buddy, CatchJump)
@@ -1227,7 +1233,7 @@ public sealed partial class LivePlaySystem
             return new FieldingResult(kind, from, cut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, thr, pre.Buddy,
                 KnockbackSec: knock, Feat: feat);
         }
-        var miss = FlyCatch.PlayerKind(false, pre, hit, rules: R);
+        var miss = FlyCatch.PlayerKind(false, pre, hit, rules: R, foul: FoulNow);
         return new FieldingResult(miss, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy,
             GroundRule: pre.Ball is { GroundRule: true });
     }
@@ -1241,6 +1247,23 @@ public sealed partial class LivePlaySystem
         if (!Caught && !_gloved) _events.Add(LiveEvent.Glove);
         Caught = true;
         _gloved = true;
+    }
+
+    /// <summary>
+    /// The glove takes the batted ball, and that touch makes the fair / foul call (§5.6): in the
+    /// air it is a catch (an out wherever the ball was); on the ground it is fair or foul by
+    /// where the ball is. Thrown balls and the steal phase go through <see cref="CatchGlove"/>.
+    /// </summary>
+    void TakeBattedBall()
+    {
+        var first = !Caught;
+        CatchGlove();
+        if (!first || _call != FairFoulCall.Undecided || Preview is null) return;
+        // In the air = before the ball's first ground contact (the landing mark), read off the path, not a height.
+        var inTheAir = !Preview.Grounder && ElapsedSeconds <= Hang + 1e-6;
+        _call = inTheAir ? FairFoulCall.Caught
+            : FieldBounds.IsFair(BallX, BallZ) ? FairFoulCall.Fair
+            : FairFoulCall.Foul;
     }
 
     void ArmRecoil()
@@ -1302,10 +1325,13 @@ public sealed partial class LivePlaySystem
 
     PlayKind LiveKind()
     {
-        if (Field is not null) return Field.Kind;
+        // A touch that called it foul is dead whatever the resolver said; a catch of a foul fly is an out.
+        if (_call == FairFoulCall.Foul) return PlayKind.Foul;
+        if (Field is not null)
+            return _call == FairFoulCall.Caught && Field.Kind == PlayKind.Foul ? PlayKind.FlyOut : Field.Kind;
         if (Preview is null || Hit is null) return PlayKind.Single;
         var inAir = HoldsBall || ElapsedSeconds < Hang;
-        return FlyCatch.PlayerKind(HoldsBall, Preview, Hit, inAir, R);
+        return FlyCatch.PlayerKind(HoldsBall, Preview, Hit, inAir, R, foul: FoulNow);
     }
 
     // ---------------------------------------------------------------------------------
@@ -1384,6 +1410,7 @@ public sealed partial class LivePlaySystem
     LivePlayCommandResult ApplyItem(LivePlayCommand command)
     {
         if (Field is null || string.IsNullOrEmpty(command.ItemId)) return new LivePlayCommandResult(Snapshot);
+        if (FoulNow) return new LivePlayCommandResult(Snapshot); // a foul cannot become a hit (§7.11)
         Field = _match.ThrowItem(Field, command.ItemId, command.Fielder);
         if (Field.Kind is not (PlayKind.FlyOut or PlayKind.GroundOut))
             Caught = false;
