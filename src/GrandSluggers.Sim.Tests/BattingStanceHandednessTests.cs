@@ -63,6 +63,29 @@ public class BattingStanceHandednessTests
             $"{bats} batter must watch the pitcher (z={stance.EyesForward.Z:0.000})");
     }
 
+    /// <summary>
+    /// The bottom hand on the handle is the lead hand -- the one opposite the
+    /// batting side. Jack's reference: a right-handed hitter's LEFT hand is
+    /// below the right, and a left-handed hitter's RIGHT hand is below the left.
+    /// `lHand` is genuinely the batter's left: the blockout places it at Blender
+    /// -X with the character facing +Y, and the FBX import X reflection cancels
+    /// against the -Z export facing.
+    /// </summary>
+    [Theory]
+    [InlineData(Hand.R)]
+    [InlineData(Hand.L)]
+    public void LeadHandRidesUnderTheTopHand(Hand bats)
+    {
+        var key = SwingPresentation.At(SwingPresentation.LoadAt, bats);
+        var leadIsLeft = bats == Hand.R;
+        var leadY = leadIsLeft ? key.LeftHand.Y : key.RightHand.Y;
+        var topY = leadIsLeft ? key.RightHand.Y : key.LeftHand.Y;
+        Assert.True(leadY < topY,
+            $"{bats} batter: the {(leadIsLeft ? "left" : "right")} hand must sit below the "
+            + $"{(leadIsLeft ? "right" : "left")} on the handle "
+            + $"(lead y={leadY:0.000}, top y={topY:0.000})");
+    }
+
     [Fact]
     public void MirroringSwapsTheHandsWithoutChangingTheGrip()
     {

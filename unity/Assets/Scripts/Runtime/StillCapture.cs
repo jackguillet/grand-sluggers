@@ -423,15 +423,20 @@ namespace GrandSluggers.UnityClient
                     // the batter. Landmark names are not anatomy -- DCC X is
                     // reflected on import -- so compare the drawn stack against
                     // the authored key for this hand rather than against "left".
+                    // The lead hand rides low on the handle: left under right for a
+                    // right-handed batter, right under left for a left-handed one.
+                    // lHand really is the batter's left -- the blockout puts it at
+                    // Blender -X facing +Y, and the import X reflection cancels
+                    // against the -Z export facing.
                     if (renderedHands)
                     {
-                        var authored = SwingPresentation.At(hero.PoseTime, _match.Batter.Bats);
-                        var authoredLeftLow = authored.LeftHand.Y < authored.RightHand.Y;
-                        var drawnLeftLow = left.y < right.y;
-                        if (drawnLeftLow != authoredLeftLow)
-                            failures.Add($"{captain} {power} {beat}: hands are stacked the wrong way up "
-                                + $"for a {_match.Batter.Bats} batter (drawn gap {left.y - right.y:0.000}, "
-                                + $"authored gap {authored.LeftHand.Y - authored.RightHand.Y:0.000})");
+                        var leadIsLeft = _match.Batter.Bats == Hand.R;
+                        var leadY = leadIsLeft ? left.y : right.y;
+                        var topY = leadIsLeft ? right.y : left.y;
+                        if (leadY >= topY)
+                            failures.Add($"{captain} {power} {beat}: {(leadIsLeft ? "left" : "right")} hand "
+                                + $"must ride under the {(leadIsLeft ? "right" : "left")} on the handle for a "
+                                + $"{_match.Batter.Bats} batter (lead y {leadY:0.000}, top y {topY:0.000})");
                     }
                 }
             }
