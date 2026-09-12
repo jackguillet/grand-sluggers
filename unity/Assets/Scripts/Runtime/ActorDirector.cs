@@ -411,7 +411,7 @@ namespace GrandSluggers.UnityClient
         void TickBaserunning(float dt)
         {
             if (_match == null || _match.LeadBag == 0) return;
-            if (HumanBats && (_phase is Phase.Set or Phase.Flight || (_phase == Phase.InPlay && Versus)))
+            if (HumanBats && _phase is Phase.Set or Phase.Flight or Phase.InPlay)
             {
                 var run = RunPad;
                 if (run.ThrowBag > 0)
