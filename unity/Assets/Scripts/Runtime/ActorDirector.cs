@@ -33,7 +33,7 @@ namespace GrandSluggers.UnityClient
                     if (!_used.Contains(kv.Key) && kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
                 _park.Ball.Hide();
-                _zone.Show(false, 0, 0);
+                _zone.Hide();
                 _ring?.Hide();
                 return;
             }
@@ -47,7 +47,7 @@ namespace GrandSluggers.UnityClient
                     if (kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
                 _park.Ball.Hide();
-                _zone.Show(false, 0, 0);
+                _zone.Hide();
                 _ring?.Hide();
                 return;
             }
@@ -58,7 +58,7 @@ namespace GrandSluggers.UnityClient
                     if (kv.Value != null)
                         kv.Value.gameObject.SetActive(false);
                 _park.Ball.Hide();
-                _zone.Show(false, 0, 0);
+                _zone.Hide();
                 _ring?.Hide();
                 return;
             }
@@ -267,7 +267,8 @@ namespace GrandSluggers.UnityClient
                 _park.Ball.Hide();
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
-            _zone.Show(SetTells.ZoneOn(setOrFlight), BatterCursorX, 0);
+            if (SetTells.ZoneOn(setOrFlight)) ShowCursor();
+            else _zone.Hide();
             _park.Ball.EmitTrail(SetTells.TrailOn(_phase is Phase.Flight or Phase.InPlay or Phase.StealThrow));
 
             Character fielder = null;

@@ -95,7 +95,7 @@ public class FieldingSceneTests
     public void ResolveFieldingReusesPreview()
     {
         var match = Match.Slice(_content, seed: 7);
-        var hit = new AtBatResult(ContactQuality.Solid, true, false, 88, 22, 240, false, false, null, null, SprayDeg: -8);
+        var hit = new AtBatResult(ContactQuality.Nice, true, false, 88, 22, 240, false, false, null, null, SprayDeg: -8);
         var pre = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, pre);
         Assert.Equal(pre.Fielder.Id, field.Fielder?.Id);
@@ -232,7 +232,7 @@ public class FieldingSceneTests
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var deep = new AtBatResult(ContactQuality.Solid, true, false, 92, 8, 220, false, false, null, null, SprayDeg: 0);
+        var deep = new AtBatResult(ContactQuality.Nice, true, false, 92, 8, 220, false, false, null, null, SprayDeg: 0);
         Assert.True(FieldingResolver.IsGrounder(deep));
         var pre = fielding.Preview(deep, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
@@ -250,7 +250,7 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var liner = new AtBatResult(ContactQuality.Solid, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
+        var liner = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
         Assert.True(FieldingResolver.IsLine(liner));
         Assert.False(FieldingResolver.IsGrounder(liner));
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
@@ -306,7 +306,7 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var liner = new AtBatResult(ContactQuality.Solid, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
+        var liner = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
         Assert.True(FieldingResolver.IsLine(liner));
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Line);
@@ -324,7 +324,7 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 88, 8, 90, false, false, null, null, SprayDeg: -12);
+        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 88, 8, 90, false, false, null, null, SprayDeg: -12);
         Assert.True(FieldingResolver.IsGrounder(hopper));
         var pre = fielding.Preview(hopper, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
@@ -392,5 +392,5 @@ public class FieldingSceneTests
     }
 
     static AtBatResult Fly(double carry, double launch, double spray, bool hr = false) =>
-        new(ContactQuality.Solid, true, false, 95, launch, carry, hr, false, null, null, SprayDeg: spray);
+        new(ContactQuality.Nice, true, false, 95, launch, carry, hr, false, null, null, SprayDeg: spray);
 }

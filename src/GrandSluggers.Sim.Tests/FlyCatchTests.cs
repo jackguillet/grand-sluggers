@@ -103,7 +103,7 @@ public class FlyCatchTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var pop = new AtBatResult(ContactQuality.Solid, true, false, 88, 32, 280, false, false, null, null, SprayDeg: 0);
+        var pop = new AtBatResult(ContactQuality.Nice, true, false, 88, 32, 280, false, false, null, null, SprayDeg: 0);
         Assert.False(FieldingResolver.IsGrounder(pop));
         Assert.False(FieldingResolver.IsLine(pop));
         var pre = fielding.Preview(pop, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
@@ -258,7 +258,7 @@ public class FlyCatchTests
     Park Harbor => _content.Parks["harbor-diamond"];
 
     static AtBatResult Pop() =>
-        new(ContactQuality.Solid, true, false, 88, 32, 240, false, false, null, null, SprayDeg: 0);
+        new(ContactQuality.Nice, true, false, 88, 32, 240, false, false, null, null, SprayDeg: 0);
 
     static AtBatResult Homer() =>
         new(ContactQuality.Perfect, true, false, 100, 28, 420, true, false, null, null, SprayDeg: 0);

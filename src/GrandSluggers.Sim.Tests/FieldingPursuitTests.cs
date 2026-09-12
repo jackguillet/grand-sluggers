@@ -17,7 +17,7 @@ public class FieldingPursuitTests
             var match = Match.Slice(_content, parkId: park.Id, seed: 7);
             var path = BallFlight.Trajectory(exit, 8, park.WindMph);
             var carry = BallFlight.FirstLandingDist(path);
-            var hit = new AtBatResult(ContactQuality.Solid, true, false, exit, 8, carry,
+            var hit = new AtBatResult(ContactQuality.Nice, true, false, exit, 8, carry,
                 false, false, null, null, SprayDeg: spray);
             var pre = match.PreviewHit(hit);
             var start = Diamond.Positions[pre.Position];
@@ -44,7 +44,7 @@ public class FieldingPursuitTests
         const double exit = 92;
         const double spray = -24;
         var path = BallFlight.Trajectory(exit, 7, park.WindMph);
-        var hit = new AtBatResult(ContactQuality.Solid, true, false, exit, 7,
+        var hit = new AtBatResult(ContactQuality.Nice, true, false, exit, 7,
             BallFlight.FirstLandingDist(path), false, false, null, null, SprayDeg: spray);
         var pre = match.PreviewHit(hit);
         var at = Diamond.Positions[pre.Position];

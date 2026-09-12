@@ -180,16 +180,16 @@ public class AtBatTests
     }
 
     [Fact]
-    public void LateSwingGroundsMoreOftenThanSquare()
+    public void TimingDecidesDirectionNotQuality()
     {
-        var late = 0;
-        var square = 0;
-        for (var seed = 0; seed < 40; seed++)
-        {
-            if (Swing(timing: 6, seed: seed).LaunchDeg < 14) late++;
-            if (Swing(timing: 0, seed: seed).LaunchDeg < 14) square++;
-        }
-        Assert.True(late > square, $"late {late} vs square {square}");
+        // D4: inside the window early pulls (a right-handed batter toward third, negative spray),
+        // late pushes; the zone is the same at both edges.
+        var early = Swing(timing: -3, bat: 5);
+        var late = Swing(timing: 3, bat: 5);
+        Assert.Equal(early.Quality, late.Quality);
+        Assert.NotEqual(ContactQuality.Miss, early.Quality);
+        Assert.True(early.SprayDeg < -20, $"early spray {early.SprayDeg}");
+        Assert.True(late.SprayDeg > 20, $"late spray {late.SprayDeg}");
     }
 
     [Fact]
@@ -232,9 +232,8 @@ public class AtBatTests
             Batter: batter,
             OnDeck: _content.Must("nico"),
             RunnersOn: [],
-            PitchType: "fastball",
             ChargePitch: false,
-            ChargeSwing: false,
+            ChangeupPitch: false,
             TimingErrorFrames: timing,
             UseStarPitch: false,
             UseStarSwing: false,

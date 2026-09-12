@@ -37,7 +37,7 @@ public class FieldAssistTests
     {
         var match = Match.Exhibition(_content, "rio", "ashlord", seed: 7);
         Assert.True(match.Top);
-        var hopper = new AtBatResult(ContactQuality.Solid, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
+        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         var field = match.ResolveFielding(hopper);
         Assert.True(field.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut, field.Kind.ToString());
         Assert.NotNull(field.Fielder);

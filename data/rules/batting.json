@@ -1,53 +1,60 @@
 {
   "window": {
-    "baseFrames": 7.0,
-    "framesPerContact": 0.55,
-    "chargeMul": 0.78,
-    "perfectFrames": 1.0,
-    "solidFraction": 0.55
+    "slapFrames": 9.0,
+    "chargeFrames": 7.0,
+    "framesPerContact": 0.4,
+    "floorFrames": 5.0,
+    "squareFraction": 0.9
   },
   "charge": {
-    "powerPerCharge": 0.12,
-    "chargeBatMul": 1.10,
     "loftDeg": 2.5
   },
   "quality": {
-    "perfectExitMul": 1.10,
-    "solidExitMul": 1.0,
-    "cheapExitMul": 0.58,
+    "slap": {
+      "perfect": 1.0,
+      "nice": 0.95,
+      "sour": 0.75
+    },
+    "charge": {
+      "perfect": 1.25,
+      "nice": 1.12,
+      "sour": 0.95
+    },
     "perfectEnergyMul": 1.25,
-    "solidEnergyMul": 1.0,
-    "cheapEnergyMul": 0.55
+    "niceEnergyMul": 1.0,
+    "sourEnergyMul": 0.55
   },
   "exit": {
-    "baseMph": 52,
-    "mphPerPower": 3.35,
+    "baseMph": 57,
+    "mphPerPower": 3.7,
     "tiredPitcherMul": 1.05
   },
   "launch": {
     "loftBaseDeg": 16,
     "loftPerPower": 1.0,
-    "degPerFrame": 1.35,
+    "perFtOfHeight": 6,
     "stickDeg": 12,
     "noiseDeg": 14,
-    "cheapLateMinDeg": 4,
-    "cheapLateSpanDeg": 10,
-    "cheapEarlyMinDeg": 40,
-    "cheapEarlySpanDeg": 12,
+    "topperMinDeg": 3,
+    "topperSpanDeg": 9,
+    "popMinDeg": 44,
+    "popSpanDeg": 8,
     "minDeg": 3,
     "maxDeg": 52
   },
   "bunt": {
     "exitMul": 0.42,
-    "launchMinDeg": 5,
-    "launchSpanDeg": 7,
-    "spraySpanDeg": 28
+    "launchMinDeg": 3,
+    "launchSpanDeg": 9,
+    "spraySpanDeg": 28,
+    "popAboveCenterFt": 0.8
   },
   "spray": {
     "perfectSpreadDeg": 8,
-    "solidSpreadDeg": 18,
-    "cheapSpreadDeg": 52,
-    "stickMaxDeg": 42,
+    "niceSpreadDeg": 18,
+    "sourSpreadDeg": 52,
+    "stickDeg": 12,
+    "timingDeg": 55,
     "outOfZoneSpanDeg": 18
   },
   "foul": {
@@ -60,14 +67,16 @@
     "launchMinDeg": 18,
     "launchMaxDeg": 38
   },
-  "oval": {
-    "halfWidth": 0.32,
-    "halfHeight": 0.28,
-    "edgeD2": 2.25,
-    "edgeOverlap": 0.35
+  "cursor": {
+    "niceTipFt": 1.05,
+    "niceHandleFt": 0.75,
+    "perfectFraction": 0.42,
+    "rimFraction": 0.33,
+    "scalePerContact": 0.04,
+    "chargeMul": 0.8
   },
   "hbp": {
-    "bodyRadius": 0.32
+    "bodyRadiusFt": 0.45
   },
   "star": {
     "phonyballWhiff": 0.4,
@@ -77,9 +86,18 @@
     "lineLaunchDeg": 18
   },
   "buddiesOnBase": {
-    "oneMul": 1.10,
+    "oneMul": 1.1,
     "twoMul": 1.25,
-    "threeMul": 1.50
+    "threeMul": 1.5,
+    "widenOne": 1.05,
+    "widenTwo": 1.1,
+    "widenThree": 1.2
+  },
+  "pitchFactor": {
+    "chargedVsSour": 0.6,
+    "chargedVsPerfectCharge": 1.1,
+    "niceDampPerPitch": 0.02,
+    "sourDampPerPitch": 0.05
   },
   "items": {
     "cpuThrowChance": 0.4,
@@ -101,25 +119,6 @@
     "errorFramesPerBatStat": 0.62,
     "outOfZoneErrorFrames": 4,
     "spraySigmaDeg": 12,
-    "launchAimSigma": 0.45,
-    "vsHuman": {
-      "meatballChargeBelow": 0.55,
-      "chaseChance": 0.10,
-      "chaseErrorPerBatStat": 1.4,
-      "chaseErrorBias": 6,
-      "chaseSpraySigmaDeg": 22,
-      "chaseLaunchAim": 0.6,
-      "missErrorMin": 9,
-      "missErrorSpan": 6,
-      "missSpraySigmaDeg": 24,
-      "missLaunchAim": 0.7,
-      "errorMean": 4.5,
-      "errorSigma": 2.2,
-      "errorFloor": 3.2,
-      "spraySigmaDeg": 20,
-      "chargeSpan": 0.35,
-      "launchAimMin": 0.55,
-      "launchAimSpan": 0.35
-    }
+    "launchAimSigma": 0.45
   }
 }

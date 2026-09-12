@@ -30,23 +30,17 @@ namespace GrandSluggers.UnityClient
             var cursor = new GameObject("BatterCursor");
             cursor.transform.SetParent(_root, false);
             var gold = Look.Unlit(new Color(1f, 0.82f, 0.15f, 0.92f));
-            var oval = cursor.AddComponent<LineRenderer>();
-            oval.name = "SweetSpotOval";
-            oval.useWorldSpace = false;
-            oval.loop = true;
-            oval.positionCount = 40;
-            oval.startWidth = oval.endWidth = 0.075f;
-            oval.sharedMaterial = gold;
-            oval.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            oval.receiveShadows = false;
-            for (var i = 0; i < oval.positionCount; i++)
-            {
-                var a = i * Mathf.PI * 2f / oval.positionCount;
-                oval.SetPosition(i, new Vector3(
-                    Mathf.Cos(a) * (float)SweetSpot.WorldHalfWidth(rules),
-                    Mathf.Sin(a) * (float)SweetSpot.WorldHalfHeight(rules),
-                    0));
-            }
+            _oval = cursor.AddComponent<LineRenderer>();
+            _oval.name = "SweetSpotOval";
+            _oval.useWorldSpace = false;
+            _oval.loop = true;
+            _oval.positionCount = Segments;
+            _oval.startWidth = _oval.endWidth = 0.075f;
+            _oval.sharedMaterial = gold;
+            _oval.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _oval.receiveShadows = false;
+            _rules = rules;
+            Outline(Hand.R, 1f);
             var centerMarker = Look.Prim(PrimitiveType.Sphere, "SweetSpot", cursor.transform,
                 Vector3.zero, Vector3.one * 0.13f, gold);
             Object.Destroy(centerMarker.GetComponent<Collider>());
@@ -54,12 +48,36 @@ namespace GrandSluggers.UnityClient
             _root.gameObject.SetActive(false);
         }
 
-        public void Show(bool on, float boxOffsetX, float unusedY)
+        const int Segments = 40;
+        LineRenderer _oval;
+        RulesTable _rules;
+        Hand _drawnHand = Hand.R;
+        float _drawnScale = -1f;
+
+        /// <summary>The drawn oval is the hitbox the sim judges: tip side long, handle side short (spec §5.2).</summary>
+        void Outline(Hand bats, float barrelScale)
+        {
+            if (_oval == null) return;
+            if (bats == _drawnHand && Mathf.Approximately(barrelScale, _drawnScale)) return;
+            _drawnHand = bats;
+            _drawnScale = barrelScale;
+            var pts = SweetSpot.Outline(bats, barrelScale, Segments, _rules);
+            for (var i = 0; i < pts.Count; i++)
+                _oval.SetPosition(i, new Vector3((float)pts[i].X, (float)pts[i].Y, 0));
+        }
+
+        /// <summary>
+        /// Follow the batter, never the pitch: the box walk in X, the zone center in Y.
+        /// <paramref name="barrelScale"/> is the swing's bat scale (contact, charge, buddies).
+        /// </summary>
+        public void Hide() => Show(false, 0, Hand.R);
+
+        public void Show(bool on, float boxOffsetX, Hand bats, float barrelScale = 1f)
         {
             if (_root == null) return;
             _root.gameObject.SetActive(on);
             if (!on || _target == null) return;
-            _ = unusedY;
+            Outline(bats, barrelScale);
             var (x, y) = SweetSpot.WorldCenter(boxOffsetX);
             _target.localPosition = new Vector3((float)x, (float)y, (float)StrikeZoneGeometry.PlateZ);
         }

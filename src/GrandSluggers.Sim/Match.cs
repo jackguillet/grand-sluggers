@@ -584,20 +584,20 @@ public sealed class Match
         BeginPlay();
 
         pitch = PreparePitch(pitch);
-        var contactAim = PitchFlight.ContactAim(pitch, Pitcher.StarPitch, Rules);
-        var inZone = AtBatResolver.PitchInZone(pitch, Pitcher.Stats.Pitch, Pitcher.StarPitch);
+        // One crossing for the umpire, the body, and the bat: the shown pitch is the judged pitch (§3).
+        var crossing = PitchFlight.Point(pitch, 1, Pitcher.StarPitch, rules: Rules);
+        var inZone = StrikeZoneGeometry.Contains(crossing.X, crossing.Y);
         SpendPitch(pitch);
         var box = swing.BoxOffsetX != 0 ? swing.BoxOffsetX : BatterOffsetX;
         BatterContactOffsetX = box;
 
         if (!swing.Swing)
         {
-            finished = AtBatResolver.HitsBatter(box, contactAim.X, contactAim.Y, Batter.Bats, Rules)
+            finished = AtBatResolver.HitsBatter(box, crossing.X, crossing.Y, Batter.Bats, Rules)
                 ? FinishHitByPitch(pitch, swing, EmptyHit(inZone))
                 : FinishTake(pitch, swing, inZone);
             EndIfWalkOff();
             finished = FinishEvent(finished);
-            ResetBatter();
             return false;
         }
 
@@ -606,14 +606,13 @@ public sealed class Match
         var bat = OffenseBat;
         var input = new AtBatInput(
             Pitcher, Batter, OnDeck, RunnersOn().ToList(),
-            pitch.Type, ChargeFeel.IsCharge(pitch.Charge01), ChargeFeel.IsCharge(swing.Charge01),
+            ChargeFeel.IsCharge(pitch.Charge01), pitch.Changeup || pitch.Type == "changeup",
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             Top ? HomeStamina : AwayStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
-            swing.Charge01, box, contactAim.X, contactAim.Y);
+            swing.Charge01, box, crossing.X, crossing.Y);
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
-        ResetBatter();
         if (hit.Foul)
         {
             finished = FinishFoul(pitch, swing, hit);
@@ -717,7 +716,12 @@ public sealed class Match
         return PitchFlight.AimForCrossing(delivery, aimX + PitcherOffsetX * c.RubberCrossingMul, aimY, Pitcher.StarPitch, Rules);
     }
 
-    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone, bool vsHumanPitcher = false)
+    /// <summary>
+    /// The CPU batter's rolls (batting.cpu), the same table whoever is pitching: a human's meatball
+    /// is punished by geometry, never protected by a forced miss (spec §5.9). §5.9's tracking table
+    /// lands with the CPU tables (P1 part c).
+    /// </summary>
+    public SwingCommand CpuSwing(PitchCommand pitch, bool inZone)
     {
         // Spec A.1 #20: the steal roll rides in the swing (running.cpu). §11.6 moves it to the runner AI (P6).
         var run = Rules.Running.Cpu;
@@ -726,12 +730,9 @@ public sealed class Match
             StartSteal();
             TakeLead(run.StealLeadMin + _rng.NextDouble() * run.StealLeadSpan);
         }
-        if (vsHumanPitcher)
-            return CpuSwingVsHuman(pitch, inZone);
         return CpuSwingArcade(pitch, inZone);
     }
 
-    /// <summary>The CPU batter's rolls (batting.cpu). §5.9 replaces them with a table (P1).</summary>
     SwingCommand CpuSwingArcade(PitchCommand pitch, bool inZone)
     {
         var c = Rules.Batting.Cpu;
@@ -749,41 +750,6 @@ public sealed class Match
         var spray = Gauss() * c.SpraySigmaDeg;
         var launchAim = Gauss() * c.LaunchAimSigma;
         return new SwingCommand(true, charge, err, star, spray, LaunchAim: launchAim);
-    }
-
-    /// <summary>
-    /// Human is pitching: uncharged middle-middle fastballs mix takes, misses, and weak hoppers
-    /// (batting.cpu.vsHuman). Charged / star pitches still hurt. AutoPlay stays on <see cref="CpuSwingArcade"/>.
-    /// Spec A.1 #20: the forced-miss clamp goes with the P1 table.
-    /// </summary>
-    SwingCommand CpuSwingVsHuman(PitchCommand pitch, bool inZone)
-    {
-        var v = Rules.Batting.Cpu.VsHuman;
-        var sigmaMul = Rules.Cpu.Active.TimingSigmaMul;
-        var meatball = inZone && !pitch.Star && pitch.Charge01 < v.MeatballChargeBelow;
-        if (!inZone)
-        {
-            if (_rng.NextDouble() >= v.ChaseChance)
-                return new SwingCommand(false, 0, 0, false);
-            var chaseErr = Gauss() * (11 - Batter.Stats.Bat) * v.ChaseErrorPerBatStat * sigmaMul + v.ChaseErrorBias;
-            return new SwingCommand(true, 0, chaseErr, false, Gauss() * v.ChaseSpraySigmaDeg, LaunchAim: v.ChaseLaunchAim);
-        }
-        if (!meatball)
-            return CpuSwingArcade(pitch, inZone);
-
-        var feel = Content.Feel;
-        var roll = _rng.NextDouble();
-        if (roll < feel.CpuVsHumanTake)
-            return new SwingCommand(false, 0, 0, false);
-        if (roll < feel.CpuVsHumanTake + feel.CpuVsHumanMiss)
-            return new SwingCommand(true, 0, v.MissErrorMin + _rng.NextDouble() * v.MissErrorSpan, false,
-                Gauss() * v.MissSpraySigmaDeg, LaunchAim: v.MissLaunchAim);
-        var err = v.ErrorMean + Gauss() * v.ErrorSigma * sigmaMul;
-        if (Math.Abs(err) < v.ErrorFloor)
-            err = err >= 0 ? v.ErrorFloor + _rng.NextDouble() : -v.ErrorFloor - _rng.NextDouble();
-        var spray = Gauss() * v.SpraySigmaDeg;
-        return new SwingCommand(true, _rng.NextDouble() * v.ChargeSpan, err, false, spray,
-            LaunchAim: v.LaunchAimMin + _rng.NextDouble() * v.LaunchAimSpan);
     }
 
     public PlayEvent AutoPlay()
@@ -833,13 +799,16 @@ public sealed class Match
 
     PlayEvent FinishFoul(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
+        // A foul bunt with two strikes is strike three (spec §1, §5.8).
+        if (swing.Bunt && Strikes >= 2)
+            return FinishStrike(pitch, swing, hit, swinging: true, how: "bunts foul for strike three.");
         if (Strikes < 2) Strikes++;
         AddMvp(Batter.Id, 0);
         ClearSteal();
         return Emit(PlayKind.Foul, pitch, swing, hit, "Foul.", 0, [], furnace: hit.StarSwingUsed is "furnace" or "heat-swing", heat: hit.StarPitchUsed == "heatball");
     }
 
-    PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging)
+    PlayEvent FinishStrike(PitchCommand pitch, SwingCommand swing, AtBatResult hit, bool swinging, string? how = null)
     {
         Strikes++;
         if (Strikes < 3)
@@ -851,7 +820,7 @@ public sealed class Match
         AddMvp(Pitcher.Id, 2);
         AddStars(defense: true, Rules.Stars.Gains.Strikeout);
         RecordOut(OutType.Strikeout, 0, 0, Batter, Pitcher);
-        var how = swinging ? "goes down swinging." : "is caught looking.";
+        how ??= swinging ? "goes down swinging." : "is caught looking.";
         var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, $"{Batter.Name} {how}", 0, []);
         NextBatter();
         CheckInning();
@@ -1190,6 +1159,8 @@ public sealed class Match
     {
         Balls = 0;
         Strikes = 0;
+        // The box persists across the pitches of one at-bat (§3); the next hitter starts centered.
+        ResetBatter();
         if (Top) AwayBatter = (AwayBatter + 1) % AwayOrder.Count;
         else HomeBatter = (HomeBatter + 1) % HomeOrder.Count;
     }

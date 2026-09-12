@@ -188,16 +188,16 @@ static void SimAtBat(ContentCatalog content, string matchup, int seed)
 
     for (var i = 0; i < 8; i++)
     {
-        var timing = rng.NextDouble() * 10 - 4; // -4..6 frames
+        var timing = rng.NextDouble() * 10 - 5; // -5..5 frames around the 9-frame slap window
         var input = new AtBatInput(
             Pitcher: pitcher,
             Batter: batter,
             OnDeck: onDeck,
             RunnersOn: [],
-            PitchType: "fastball",
             ChargePitch: false,
-            ChargeSwing: i % 3 == 0,
+            ChangeupPitch: false,
             TimingErrorFrames: timing,
+            Charge01: i % 3 == 0 ? 1 : 0,
             UseStarPitch: i == 6,
             UseStarSwing: i == 7,
             Bat: ember ? content.Bats.GetValueOrDefault("harbor-lumber") : content.Bats.GetValueOrDefault("furnace-club"),

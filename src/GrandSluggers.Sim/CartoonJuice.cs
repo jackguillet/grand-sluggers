@@ -5,22 +5,22 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class CartoonJuice
 {
-    public const double CheapFreeze = 0.06;
+    public const double SourFreeze = 0.06;
     public const float PerfectPunch = 16f;
-    public const float SolidPunch = 10f;
-    public const float CheapPunch = 6f;
+    public const float NicePunch = 10f;
+    public const float SourPunch = 6f;
     public const double RunFromBallFt = 12;
     public const double WalkFtPerSec = 3.5;
     public const double RunFtPerSec = 14;
 
     public static bool DirtPuff(ContactQuality quality) =>
-        quality is ContactQuality.Cheap or ContactQuality.Solid or ContactQuality.Perfect;
+        quality is ContactQuality.Sour or ContactQuality.Nice or ContactQuality.Perfect;
 
     public static float Punch(ContactQuality quality) => quality switch
     {
         ContactQuality.Perfect => PerfectPunch,
-        ContactQuality.Solid => SolidPunch,
-        ContactQuality.Cheap => CheapPunch,
+        ContactQuality.Nice => NicePunch,
+        ContactQuality.Sour => SourPunch,
         _ => 0
     };
 

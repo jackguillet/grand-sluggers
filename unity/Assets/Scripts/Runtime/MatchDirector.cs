@@ -632,7 +632,7 @@ namespace GrandSluggers.UnityClient
             _smash = 0;
             _itemFlying = false;
             _items?.Hide();
-            _zone.Show(false, 0, 0);
+            _zone.Hide();
             _ring?.Hide();
             // Hits/outs stamp on the live field camera. Next pitch SET is BeginSet (#301).
             if (_last == null || !PlayStamp.HoldsLiveCamera(_last.Kind))
