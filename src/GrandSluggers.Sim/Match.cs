@@ -37,6 +37,8 @@ public sealed class Match
     public Character? First => RunnerAt(1)?.Who;
     public Character? Second => RunnerAt(2)?.Who;
     public Character? Third => RunnerAt(3)?.Who;
+    /// <summary>Mercy rule on (spec §1): off below the table's scheduled-innings floor whatever this says.</summary>
+    public bool Mercy { get; }
     int _selectedBag;
     bool _pickedRunner;
     public int AwayBatter { get; private set; }
@@ -62,9 +64,10 @@ public sealed class Match
     /// <summary>Portable command boundary for the ball between contact and Time.</summary>
     public LivePlaySystem LivePlay { get; }
 
-    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false)
+    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true)
     {
         Content = content;
+        Mercy = mercy;
         Away = away;
         Home = home;
         Park = park;
@@ -1377,6 +1380,11 @@ public sealed class Match
             Over = true;
     }
 
+    /// <summary>
+    /// Three outs: the half ends (spec §1, D8). The bottom is skipped when home leads after the
+    /// top of the last inning; a tie plays extra innings to the cap; mercy ends it at the end of
+    /// a half when the side that just batted is the trailing one by the table's margin.
+    /// </summary>
     void CheckInning()
     {
         if (Outs < 3) return;
@@ -1393,13 +1401,23 @@ public sealed class Match
                 Over = true;
                 return;
             }
+            if (MercyEnds(HomeScore - AwayScore))
+            {
+                Over = true;
+                return;
+            }
             Top = false;
             return;
         }
 
+        if (MercyEnds(AwayScore - HomeScore))
+        {
+            Over = true;
+            return;
+        }
         if (Inning >= Innings)
         {
-            if (HomeScore != AwayScore || Inning >= Innings + 1)
+            if (HomeScore != AwayScore || Inning >= Innings + Rules.Match.ExtraInningsCap)
             {
                 Over = true;
                 return;
@@ -1407,9 +1425,18 @@ public sealed class Match
         }
         Inning++;
         Top = true;
-        if (Inning > Innings + 1)
-            Over = true;
     }
+
+    /// <summary>Mercy (§1): the side that just batted trails by the table's runs, from its first inning on, in a game long enough.</summary>
+    public bool MercyEnds(int leadOverSideThatJustBatted)
+    {
+        var m = Rules.Match.Mercy;
+        if (!Mercy || Innings < m.MinScheduledInnings || Inning < m.FromInning) return false;
+        return leadOverSideThatJustBatted >= m.Runs;
+    }
+
+    /// <summary>Past the scheduled innings (D8): a tie here plays on to the cap.</summary>
+    public bool ExtraInnings => Inning > Innings;
 
     /// <summary>A walk or a hit by pitch (§7.12): the batter to first and only the forced runners one bag, by rule.</summary>
     (int Runs, IReadOnlyList<string> Scorers) PlaceByWalk(Character batter)
