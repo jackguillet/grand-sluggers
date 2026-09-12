@@ -406,7 +406,7 @@ namespace GrandSluggers.UnityClient
                     // User's square sideways stance: chest toward the plate,
                     // feet along the mound/home line, head watching the pitcher.
                     // Fifteen degrees allows an authored coil, not a front-facing body.
-                    const float alignment = 0.9659258f;
+                    var alignment = (float)BattingStance.AlignmentDot;
                     if (chestTowardPlate < alignment)
                         failures.Add($"{captain} {power} {beat}: chest is not sideways toward plate ({chestTowardPlate:0.000})");
                     if (feetAlongPitch < alignment)
@@ -478,7 +478,8 @@ namespace GrandSluggers.UnityClient
                 failures.Add(
                     $"{captain} {power} {beat}: barrel left the authored key "
                     + $"(dot {directionDot:0.000})");
-            if (sharedRigMetrics && beat is "ready" or "load" && actualDirection.y < 0.70f)
+            if (sharedRigMetrics && beat is "ready" or "load"
+                && actualDirection.y < (float)SwingPresentation.LoadedBarrelRise)
                 failures.Add(
                     $"{captain} {power} {beat}: loaded barrel did not rise above the hands "
                     + $"(world Y {actualDirection.y:0.000})");

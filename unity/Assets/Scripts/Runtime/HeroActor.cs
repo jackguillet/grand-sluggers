@@ -179,7 +179,9 @@ namespace GrandSluggers.UnityClient
         }
 
         // Measure the visible body, not bone-local axes whose bind conventions
-        // differ between the shared armature and Generic packages.
+        // differ between the shared armature and Generic packages. SharedRig
+        // hides the drop rig's authored eyes and rebuilds the face it draws, so
+        // skip anything switched off: a hidden landmark is not the stance.
         internal bool TryRenderedBattingStance(
             out Vector3 chestForward, out Vector3 eyeForward, out Vector3 feetLine)
         {
@@ -192,6 +194,7 @@ namespace GrandSluggers.UnityClient
                 var name = renderer.name;
                 if (name is not ("Stripe" or "Belly" or "torsoMesh" or "headMesh"
                     or "EyeL" or "EyeR" or "lShoe" or "rShoe" or "lFoot" or "rFoot")) continue;
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
                 if (TryPosedBounds(renderer, out var posed)) centers[name] = posed.Center;
             }
             if (!centers.TryGetValue("torsoMesh", out var torso)

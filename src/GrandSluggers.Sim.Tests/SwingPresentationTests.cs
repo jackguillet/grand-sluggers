@@ -46,6 +46,56 @@ public class SwingPresentationTests
     }
 
     [Fact]
+    public void LoadedBarrelStandsAboveTheHandsOnEveryHeldSample()
+    {
+        // The gate holds a batter at any charge, so it samples the take between
+        // the authored keys. Zig's shared-root squash (Height 0.56) shortens the
+        // rendered rise hardest; a body that fails here fails the still gate.
+        foreach (var body in SwingPresentation.SharedCaptains)
+        {
+            var scale = Silhouette.SharedRootScale(Silhouette.Proportions(body));
+            for (var step = 0; step <= 40; step++)
+            {
+                var charge = step / 40.0;
+                var t = SwingPresentation.LoadSampleAt(charge);
+                foreach (var hand in new[] { Hand.R, Hand.L })
+                {
+                    var direction = SwingPresentation.At(t, hand).BarrelDirection;
+                    var world = new Vec3(
+                        direction.X * scale.X, direction.Y * scale.Y, direction.Z * scale.Z);
+                    var length = Math.Sqrt(
+                        world.X * world.X + world.Y * world.Y + world.Z * world.Z);
+                    Assert.True(
+                        world.Y / length >= SwingPresentation.LoadedBarrelRise,
+                        $"{body} held at {charge:0.00} drops the barrel to {world.Y / length:0.000}");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void HeldAndSwungHandsStayOnTheAuthoredHandle()
+    {
+        // The DCC take bakes this contract on every frame, so the gate samples
+        // it between the authored keys. A new key that pulls a hand off the
+        // handle in between would author a rig the still gate then rejects.
+        for (var step = 0; step <= 200; step++)
+        {
+            var t = SwingPresentation.FollowThroughAt * step / 200.0;
+            foreach (var hand in new[] { Hand.R, Hand.L })
+            {
+                var key = SwingPresentation.At(t, hand);
+                foreach (var fist in new[] { Hand.L, Hand.R })
+                    Assert.True(
+                        SwingPresentation.HandToHandle(key, fist)
+                            <= SwingPresentation.HandToHandleAllowance,
+                        $"{fist} fist leaves the handle at {t:0.000}: "
+                        + $"{SwingPresentation.HandToHandle(key, fist):0.000}");
+            }
+        }
+    }
+
+    [Fact]
     public void DccCatalogCarriesThePortableStanceDirections()
     {
         var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
