@@ -9,7 +9,7 @@ Presentation feel (camera shots, charge seconds, smash freeze) lives in `data/fe
 - 9 vs 9. Positions: P, C, 1B, 2B, 3B, SS, LF, CF, RF.
 - 3 / 6 / 9 innings (default 3 for party, 9 for “real”).
 - Walks, strikeouts, fly outs, ground outs, force, tags, steals (simplified), errors.
-- Mercy optional (10 runs after 3).
+- Mercy optional, on by default in Exhibition: a 10-run lead at the end of a half from the third inning ends it; off for 3-inning games. Extra innings up to three; a tie at the cap is a tie.
 - Pitcher stamina. Swap pitcher = swap a fielder onto the mound.
 
 ## Stats (shown 1–10)
