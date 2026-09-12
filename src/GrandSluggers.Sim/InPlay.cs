@@ -517,9 +517,20 @@ public static class InPlay
         !FieldingResolver.OutfieldGrass(gloveX, gloveZ, rules);
 
     /// <summary>
-    /// Glove with the ball touches a runner (running.bags.tagReachFt). Toy bodies read big from
-    /// the diamond camera — this is body contact, not a force at the bag. A runner standing
-    /// inside tagSafeRadiusFt of a bag is safe; tighter than the Time occupy so a step off is a tag.
+    /// The tag reach of this glove (§10.3): running.bags.tagReachFt, plus the Lick / Grow bonus,
+    /// less the slide cut when the runner is sliding (§9.4).
+    /// </summary>
+    public static double TagReachFt(Character? fielder, bool sliding = false, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var bags = r.Running.Bags;
+        return bags.TagReachFt + FieldAbilities.TagReachBonus(fielder, r) - (sliding ? bags.SlideReachCutFt : 0);
+    }
+
+    /// <summary>
+    /// Glove with the ball touches a runner (running.bags.tagReachFt): body contact, not a force at
+    /// the bag. A runner standing inside tagSafeRadiusFt of a bag is touching it and safe; tighter
+    /// than the Time occupy so a step off is a tag.
     /// </summary>
     public static bool Touches(
         bool hasBall,
@@ -530,15 +541,52 @@ public static class InPlay
         double runnerZ,
         bool? runnerOnBag = null,
         RulesTable? rules = null,
-        bool sliding = false)
+        bool sliding = false,
+        Character? fielder = null)
     {
         if (!hasBall || throwing) return false;
         var bags = Rules.Or(rules).Running.Bags;
         var onBag = runnerOnBag ?? OccupyingBag(runnerX, runnerZ, bags.TagSafeRadiusFt);
         if (onBag) return false;
-        // A slide shrinks the tag reach; it does not change the arrival (§9.4).
-        var reach = bags.TagReachFt - (sliding ? bags.SlideReachCutFt : 0);
-        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < reach;
+        return Diamond.Dist(gloveX, gloveZ, runnerX, runnerZ) < TagReachFt(fielder, sliding, rules);
+    }
+
+    /// <summary>
+    /// The tag inside one frame (§10.2, §10.3): the glove held the ball through the frame while the
+    /// runner's body moved from <c>prev</c> to <c>now</c>; the first point on that step inside the
+    /// reach and off every bag is the tag, even when the body ends the frame on the bag. Returns
+    /// the fraction of the frame at which it landed, or −1 when the body never came into reach
+    /// off a bag. Tie goes to the runner: a body that is on the bag at the same point is safe.
+    /// </summary>
+    public static double TagWithinFrame(
+        (double X, double Z) glovePrev, (double X, double Z) gloveNow,
+        (double X, double Z) runnerPrev, (double X, double Z) runnerNow,
+        double reachFt, bool homeIsABag, RulesTable? rules = null, int steps = 12)
+    {
+        var safe = Rules.Or(rules).Running.Bags.TagSafeRadiusFt;
+        for (var i = 1; i <= steps; i++)
+        {
+            var u = (double)i / steps;
+            var gx = glovePrev.X + (gloveNow.X - glovePrev.X) * u;
+            var gz = glovePrev.Z + (gloveNow.Z - glovePrev.Z) * u;
+            var rx = runnerPrev.X + (runnerNow.X - runnerPrev.X) * u;
+            var rz = runnerPrev.Z + (runnerNow.Z - runnerPrev.Z) * u;
+            var onBag = homeIsABag ? OccupyingBag(rx, rz, safe) : OccupyingNonHomeBag(rx, rz, safe);
+            if (onBag) return -1;
+            if (Diamond.Dist(gx, gz, rx, rz) < reachFt) return u;
+        }
+        return -1;
+    }
+
+    /// <summary>Inside a bag's safe radius of first, second, or third; the plate is not a bag for the batter leaving the box (§10.3).</summary>
+    public static bool OccupyingNonHomeBag(double x, double z, double radius)
+    {
+        for (var bag = 1; bag <= 3; bag++)
+        {
+            var p = Diamond.Bag(bag);
+            if (Diamond.Dist(x, z, p.X, p.Z) <= radius) return true;
+        }
+        return false;
     }
 
     /// <summary>Inside a bag's occupy radius (running.bags.occupyRadiusFt) of home or any bag.</summary>

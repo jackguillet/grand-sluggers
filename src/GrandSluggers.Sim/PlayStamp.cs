@@ -20,8 +20,9 @@ public static class PlayStamp
     public static string Label(PlayEvent ev, int outsThisPlay) =>
         ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
 
+    /// <summary>The stamp from the typed outcome (§15): the outs made on the play name DOUBLE PLAY / TRIPLE PLAY.</summary>
     public static string Label(PlayEvent ev) =>
-        ev == null ? "" : Label(ev.Kind, ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
+        ev == null ? "" : Label(ev.Kind, ev.Outcome?.Outs?.Count ?? ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
 
     /// <param name="error">A throw sailed and the offense took what it took (§8.5, §8.6): the stamp is ERROR, not the hit.</param>
     public static string Label(PlayKind kind, int outsThisPlay, int runs,

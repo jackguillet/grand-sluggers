@@ -62,7 +62,8 @@ public sealed class LiveBallScenarioTests
     {
         // The offense sends the slowest runner from second at contact (LB) on a sharp grounder to the
         // first baseman; the CPU glove reads the tag at third as makeable and throws there before the
-        // batter at first (§8.8 rules 3–4); the mash then decides it (§9.6).
+        // batter at first (§8.8 rules 3–4). The mash runs only when the ball is there ahead of the body
+        // by no more than the margin (§9.6, D5); further out the geometry decides silently.
         var seedMatch = new Scenario(_content, seed: 5).Match;
         var slowest = Enumerable.Range(1, seedMatch.AwayOrder.Count - 1).OrderBy(i => seedMatch.AwayOrder[i].Stats.Run).First();
         var scenario = new Scenario(_content, seed: 5).Runner(2, slowest);
@@ -78,12 +79,18 @@ public sealed class LiveBallScenarioTests
         var sawThrowToThird = false;
         var frame = 0;
         var iconAt = -1;
+        var arrivalBeforeLanding = double.NaN;
         var play = RunToComplete(match, hit, preview, field, seats, LivePlayCommandSource.Human, out _,
             observe: live =>
             {
                 frame++;
                 if (live.Events.Contains(LiveEvent.CloseIcon)) { sawIcon = true; iconAt = frame; }
-                if (live.Throwing && live.ThrowBag == 3) sawThrowToThird = true;
+                if (live.Throwing && live.ThrowBag == 3)
+                {
+                    sawThrowToThird = true;
+                    var body = match.RunnerAt(2);
+                    if (body is { Live: true }) arrivalBeforeLanding = RunnerSystem.ArrivalSec(body, 3, live.ElapsedSeconds, live.Dash01, match.Rules);
+                }
             },
             // LB at contact sends the runner; the offense mashes a few frames after the icon (§9.6).
             runPad: i => i < 3 ? new LivePadInput(AllAdvance: true)
@@ -95,8 +102,9 @@ public sealed class LiveBallScenarioTests
         var tagged = facts.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3 && o.Runner.Id == runner.Id);
         var advanced = facts.Moves.Any(m => m.Runner.Id == runner.Id && m.FromBag == 2 && m.ToBag == 3);
         Assert.True(tagged ^ advanced, "the race decided one thing: out at third, or safe at third");
-        // The mash only runs when the ball is at the bag before the body (§9.6); a runner in cleanly is no contest.
-        Assert.True(sawIcon || advanced, "the mash icon appeared after the throw landed, unless the runner was already in");
+        var within = arrivalBeforeLanding > 0 && arrivalBeforeLanding <= match.Rules.Running.Close.MarginSec + Frame;
+        Assert.Equal(within, sawIcon);
+        if (!within && arrivalBeforeLanding > 0) Assert.True(tagged, "the ball well ahead of the body is the tag, no contest");
     }
 
     [Theory]
@@ -210,58 +218,6 @@ public sealed class LiveBallScenarioTests
         Assert.NotNull(play);
         Assert.True(play!.Kind is PlayKind.StolenBase or PlayKind.CaughtStealing, play.Kind.ToString());
         Assert.False(match.LivePlay.StealPhase);
-    }
-
-    [Theory]
-    [InlineData(3, true)]
-    [InlineData(40, false)]
-    public void OnePlayerBattingClosePlayAtThirdIsDecidedByTheRunnersMash(int pressFramesAfterIcon, bool safe)
-    {
-        // Runner on second, hopper to an infielder: the batting human sends the runner (LB at
-        // contact), the CPU defense throws to third, the icon comes up, and the human's first
-        // South press after it races the CPU glove. The slowest hitter in the order runs, so the
-        // ball is at the bag first (§9.6).
-        var seedMatch = new Scenario(_content, seed: 5).Match;
-        var slowest = Enumerable.Range(1, seedMatch.AwayOrder.Count - 1).OrderBy(i => seedMatch.AwayOrder[i].Stats.Run).First();
-        var scenario = new Scenario(_content, seed: 5).Runner(2, slowest);
-        var match = scenario.Match;
-        var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
-        var preview = match.PreviewHit(hit);
-        var field = match.ResolveFielding(hit, preview);
-        Assert.Equal(PlayKind.InPlay, field.Kind);
-        var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
-        var live = match.LivePlay;
-        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, LivePlayCommandSource.Human));
-        PlayEvent? play = null;
-        var iconAt = -1;
-        var pressed = false;
-        var closeBag = 0;
-        for (var i = 0; i < 60 * 20 && play is null; i++)
-        {
-            var run = i < 3 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead;
-            if (iconAt >= 0 && !pressed && i >= iconAt + pressFramesAfterIcon)
-            {
-                run = new LivePadInput(SouthDown: true);
-                pressed = true;
-            }
-            play = live.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, run, false, LivePlayCommandSource.Human)).CompletedPlay;
-            if (live.InClosePlay) closeBag = live.CloseBag;
-            if (iconAt < 0 && live.CloseIcon) iconAt = i;
-        }
-        Assert.Equal(3, closeBag);
-        Assert.True(iconAt > 0, "the icon came up");
-        Assert.NotNull(play);
-        if (safe)
-        {
-            Assert.NotNull(match.Third);
-            Assert.DoesNotContain(play!.Outcome!.OutsMade, o => o.FromBag == 2);
-        }
-        else
-        {
-            Assert.Equal(PlayKind.GroundOut, play!.Kind);
-            var tag = Assert.Single(play.Outcome!.OutsMade, o => o.FromBag == 2);
-            Assert.Equal((OutType.Tag, 3, 2), (tag.Type, tag.Bag, tag.FromBag));
-        }
     }
 
     // ---------------------------------------------------------------------------------

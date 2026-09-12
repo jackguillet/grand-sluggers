@@ -69,6 +69,15 @@ public sealed class Runner
     public (double X, double Z) Start { get; private set; }
     /// <summary>Set by the runner tick on the frame a bag is touched; the runner AI re-reads the play on it.</summary>
     public bool ArrivedThisTick { get; internal set; }
+    /// <summary>Feet past first along the line from home, running through the bag (§9.4). 0 everywhere else.</summary>
+    public double OverrunFt { get; private set; }
+    /// <summary>Still running out through first; false once turned back toward the bag.</summary>
+    public bool OverrunOut { get; private set; }
+    /// <summary>Caught between bags with a glove holding the ball in range (§9.7). Set by the live ball each frame.</summary>
+    public bool InRundown { get; private set; }
+
+    /// <summary>The live ball's read of the rundown this frame (§9.7).</summary>
+    public void MarkRundown(bool on) => InRundown = on;
 
     public Runner(Character who, int bag)
     {
@@ -85,9 +94,14 @@ public sealed class Runner
 
     public bool Live => Phase is not (RunnerPhase.Out or RunnerPhase.Scored);
     public bool IsBatter => FromBag == 0;
-    public bool OnBag => Phase == RunnerPhase.OnBag;
+    /// <summary>Settled on the bag: standing there with nowhere else to be. A body just sent, or owing a retouch, is not (Time reads this, §10.6).</summary>
+    public bool OnBag => Phase == RunnerPhase.OnBag && DestBag == Bag && !LeftEarly;
     public bool Moving => Phase is RunnerPhase.Advancing or RunnerPhase.Sliding or RunnerPhase.Returning or RunnerPhase.Stealing;
     public bool Sliding => Phase == RunnerPhase.Sliding;
+    /// <summary>Past first on the run-through (§9.4).</summary>
+    public bool Overrunning => OverrunFt > 0;
+    /// <summary>Running through first and coming straight back: the bag is theirs, no tag reaches them (§9.4, §10.3).</summary>
+    public bool OverrunProtected => Overrunning && DestBag <= 1;
     public bool Scored => Phase == RunnerPhase.Scored;
     public bool Out => Phase == RunnerPhase.Out;
     /// <summary>Heading for a bag beyond the last one touched.</summary>
@@ -108,6 +122,15 @@ public sealed class Runner
         get
         {
             if (Bag >= 4) return Diamond.Home;
+            if (Overrunning && Bag == 1 && Feet <= 0)
+            {
+                // Through the bag on the line from home, past first (§9.4).
+                var first = Diamond.First;
+                var len = Math.Max(1, Diamond.Dist(Diamond.Home.X, Diamond.Home.Z, first.X, first.Z));
+                var ux = (first.X - Diamond.Home.X) / len;
+                var uz = (first.Z - Diamond.Home.Z) / len;
+                return (first.X + ux * OverrunFt, first.Z + uz * OverrunFt);
+            }
             var from = Bag == 0 ? Start : Diamond.Bag(Bag);
             var to = Diamond.Bag(Bag + 1);
             var u = Math.Clamp(Feet / SegmentFt, 0, 1);
@@ -120,11 +143,20 @@ public sealed class Runner
     {
         if (bag <= Bag) return 0;
         var first = SegmentFt - Feet;
-        return first + (bag - Bag - 1) * Diamond.Baseline;
+        // Past first on the run-through: the way back to the bag comes first (§9.4).
+        return first + (bag - Bag - 1) * Diamond.Baseline + OverrunFt;
     }
 
-    /// <summary>Standing on <paramref name="bag"/>: the last bag touched, feet 0.</summary>
-    public bool IsOn(int bag) => Live && Bag == bag && Feet <= 0 && Phase != RunnerPhase.Returning;
+    /// <summary>Feet back along the path to <see cref="FromBag"/> (the doubled-off race, §10.5): 0 when standing there.</summary>
+    public double FeetBackToStart()
+    {
+        if (!Live || IsBatter) return 0;
+        if (Bag < FromBag) return 0;
+        return Feet + (Bag - FromBag) * Diamond.Baseline;
+    }
+
+    /// <summary>Standing on <paramref name="bag"/>: the last bag touched, feet 0. A body through first and coming straight back holds it (§9.4).</summary>
+    public bool IsOn(int bag) => Live && Bag == bag && Feet <= 0 && (Phase != RunnerPhase.Returning || OverrunProtected);
 
     /// <summary>Stand this runner on a bag between plays (or at Complete): the bag is now where they start from.</summary>
     public void Seat(int bag)
@@ -146,6 +178,9 @@ public sealed class Runner
         LeftEarly = false;
         ForceSlide = false;
         ArrivedThisTick = false;
+        OverrunFt = 0;
+        OverrunOut = false;
+        InRundown = false;
     }
 
     /// <summary>Contact: snapshot the force, clear the play flags. The steal arm survives (P6 reads it).</summary>
@@ -164,6 +199,9 @@ public sealed class Runner
         LeftEarly = false;
         ForceSlide = false;
         ArrivedThisTick = false;
+        OverrunFt = 0;
+        OverrunOut = false;
+        InRundown = false;
     }
 
     /// <summary>Head for <paramref name="bag"/> (never back past the last touched bag; home at most).</summary>
@@ -174,6 +212,7 @@ public sealed class Runner
         Held = false;
         if (human) HumanSent = true;
         if (LeftEarly) DestBag = Bag; // must retouch first (§10.5); the return decides the rest
+        if (Overrunning && DestBag > 1) OverrunOut = false; // turned toward second: back to the bag first, live (§9.4)
     }
 
     /// <summary>Come back to the last bag touched (to the start bag after a catch, §9.5).</summary>
@@ -190,9 +229,13 @@ public sealed class Runner
     public void Halt()
     {
         if (!Live) return;
+        // Fair contact always sends the batter (§7): there is no halting them in the box.
+        if (IsBatter && Bag == 0) return;
         Held = true;
         Velocity = 0;
         TagAndGo = false;
+        // Halted on the bag: the bag is where they stay (a send is cancelled; Time may read them as settled, §10.6).
+        if (Feet <= 0 && !Overrunning && Bag >= 1) DestBag = Bag;
     }
 
     public void SetTagAndGo(bool on)
@@ -224,6 +267,8 @@ public sealed class Runner
         }
         Bag = bag;
         Feet = 0;
+        OverrunFt = 0;
+        OverrunOut = false;
         Phase = RunnerPhase.OnBag;
         DestBag = bag;
         Velocity = 0;
@@ -252,6 +297,17 @@ public sealed class Runner
     // ---- the tick (called by RunnerSystem only) ----
 
     internal void SetVelocity(double v) => Velocity = v;
+    /// <summary>The batter-runner touched first stopping there: run through it (§9.4).</summary>
+    internal void BeginOverrun(double startFt)
+    {
+        OverrunFt = Math.Max(1e-3, startFt);
+        OverrunOut = true;
+    }
+    internal void SetOverrun(double feet, bool outward)
+    {
+        OverrunFt = Math.Max(0, feet);
+        OverrunOut = outward && OverrunFt > 0;
+    }
     internal void SetFeet(double feet) => Feet = feet;
     internal void SetPhase(RunnerPhase phase) => Phase = phase;
     internal void SetDest(int bag) => DestBag = Math.Clamp(bag, 0, 4);
@@ -320,6 +376,17 @@ public static class RunnerSystem
         return wait + feet / SpeedFtPerSec(runner.Who, dash01, rules);
     }
 
+    /// <summary>
+    /// Seconds until this runner is back on their start bag from where they are (§10.5): the
+    /// doubled-off race the fielder reads. 0 when standing there; infinite when not live.
+    /// </summary>
+    public static double ReturnSec(Runner runner, double dash01 = 0, RulesTable? rules = null)
+    {
+        if (!runner.Live) return double.PositiveInfinity;
+        var feet = runner.FeetBackToStart();
+        return feet <= 0 ? 0 : feet / SpeedFtPerSec(runner.Who, dash01, rules);
+    }
+
     /// <summary>The live runner heading for <paramref name="bag"/> (or standing short of it, bound there), nearest first.</summary>
     public static Runner? HeadingTo(IEnumerable<Runner> runners, int bag) =>
         runners.Where(r => r.Live && r.Bag < bag && r.DestBag >= bag)
@@ -355,6 +422,42 @@ public static class RunnerSystem
             var held = runner.Held && !forcedNow;
             var speed = SpeedFtPerSec(runner.Who, ctx.Dash01, r);
             var waiting = runner.IsBatter && runner.Bag == 0 && ctx.Elapsed < speedRules.BatterStartSec;
+
+            // Through first (§9.4): out to overrunFt, then straight back; sent on, they turn back at once and are live.
+            if (runner.Overrunning)
+            {
+                if (runner.OverrunOut && runner.DestBag <= 1)
+                {
+                    var outFt = runner.OverrunFt + speed * dt;
+                    runner.SetVelocity(speed);
+                    runner.SetPhase(RunnerPhase.Advancing);
+                    if (outFt >= bagRules.OverrunFt) runner.SetOverrun(bagRules.OverrunFt, outward: false);
+                    else runner.SetOverrun(outFt, outward: true);
+                }
+                else
+                {
+                    var backFt = runner.OverrunFt - speed * dt;
+                    runner.SetVelocity(-speed);
+                    runner.SetPhase(RunnerPhase.Returning);
+                    runner.SetOverrun(backFt, outward: false);
+                    if (!runner.Overrunning)
+                    {
+                        runner.TouchBag(1, ctx.Elapsed);
+                        runner.ArrivedThisTick = true;
+                        if (runner.DestBag <= 1)
+                        {
+                            runner.SetDest(1);
+                            runner.SetPhase(RunnerPhase.OnBag);
+                            runner.SetVelocity(0);
+                        }
+                        else
+                            runner.SetPhase(RunnerPhase.Advancing);
+                    }
+                }
+                runner.TickOnBag(dt);
+                ahead = runner;
+                continue;
+            }
 
             if (held || waiting)
             {
@@ -407,8 +510,15 @@ public static class RunnerSystem
                     {
                         runner.SetFeet(0);
                         runner.SetDest(next);
-                        runner.SetPhase(RunnerPhase.OnBag);
                         runner.ClearForceSlide();
+                        // The batter-runner runs through first (§9.4); everyone else stops on the bag.
+                        if (next == 1 && runner.IsBatter && runner.Phase != RunnerPhase.Sliding)
+                        {
+                            runner.BeginOverrun(overflow);
+                            runner.SetPhase(RunnerPhase.Advancing);
+                        }
+                        else
+                            runner.SetPhase(RunnerPhase.OnBag);
                         break;
                     }
                     runner.SetFeet(overflow);

@@ -10,16 +10,17 @@
   },
   "bags": {
     "occupyRadiusFt": 6,
-    "tagReachFt": 14,
-    "tagSafeRadiusFt": 3.5,
+    "tagReachFt": 4,
+    "tagSafeRadiusFt": 1.5,
     "timeOnBagSec": 1.0,
     "snapFt": 0.5,
     "slideFt": 12,
     "slideThreatFt": 20,
-    "slideReachCutFt": 2
+    "slideReachCutFt": 2,
+    "overrunFt": 12
   },
   "close": {
-    "marginSec": 0.45,
+    "marginSec": 0.25,
     "iconDelaySec": 0.22,
     "cpuReactionBaseSec": 0.20,
     "cpuReactionPerStat": 0.032
@@ -38,6 +39,12 @@
   "dash": {
     "perPress": 0.28,
     "maxDash": 1.0
+  },
+  "rundown": {
+    "rangeFt": 20,
+    "throwWithinFt": 8,
+    "lazyLobFraction": 0.8,
+    "lazyLobSpeedMul": 0.5
   },
   "cpu": {
     "reactionSec": 0.35,

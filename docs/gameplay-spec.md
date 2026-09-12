@@ -503,6 +503,8 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ✅ P4 (`LivePlaySystem.CpuDecide`): the table runs once per possession, after the reaction (`fielding.reaction.throw*` × `cpu.reactionMul`), from the live bodies and `RunnerSystem.ArrivalSec`; rule 1 is the lead force ahead of a forced runner (second, third, home), the batter at first is rule 4; a tag candidate is a runner whose body is bound for the bag; "makeable" is `margin > cpu.makeableMarginSec`; a bag beyond the arm's fly reach is judged through the cutoff (§8.5, §8.7). The receiver of a caught throw runs the table again after its own reaction, which is the double-play chain. An infielder with nothing makeable holds and Time comes (§10.6); an outfielder throws in to the cutoff or to the bag ahead of the lead runner.
 
+✅ P5 adds to the same table: after a catch, a body off its start bag is a force back there ahead of rule 1 (`RunnerSystem.ReturnSec` against the throw, §10.5); with **two outs** any makeable out ends the inning, so the shortest makeable throw goes (S-50); the **plate is worth the throw** whenever the ball can land inside the close margin of the body (`running.close.marginSec`), even short of the tie band — the mash or the tag at the plate decides, a run is never conceded by a glove holding the ball; a play the table chose at a bag inside `fielding.throw.unassistedFt` (8) of the glove is made by **stepping on it**, not a throw (S-41, S-46); and a body caught between bags is run at (§9.7).
+
 ---
 
 ## 9. Baserunning
@@ -531,7 +533,7 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 - Dash: mash South, +0.28 per press to 1.0, decays 0.5/s; ×1.12 speed at full. ✅
 - Slide: automatic on the last 12 ft into a bag when a tag is threatened (throw armed to that bag or a glove with the ball within 20 ft) and the runner is stopping at that bag; a runner rounding never slides (reference). West/South near the bag forces it. A slide shrinks the tag reach by 2 ft; it does not change arrival time. ✅ P3 (`running.bags.slideFt / slideThreatFt / slideReachCutFt`; `InPlay.Touches(sliding:)`).
 - Rounding: a runner heading past a bag runs a shallow arc (presentation) and reaches the next bag at the same `bagSec` — no time penalty in the arcade rule. ✅ P3
-- Overrun first: the batter-runner may run through first base and is safe from a tag while returning directly, unless they turn toward second (then live). ❌ P5 (the body stops on the bag today).
+- Overrun first: the batter-runner may run through first base and is safe from a tag while returning directly, unless they turn toward second (then live). ✅ P5 (`Runner.OverrunFt`, `running.bags.overrunFt` 12: the body runs through on the line from home and comes straight back, holding the bag and untouchable the whole way; Time waits for the return; sent on while out there they turn back at once and are live). Every other body stops on the bag it is stopping at.
 
 ### 9.5 Fly balls and tag-ups
 
@@ -543,14 +545,14 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ### 9.6 Close plays
 
-- A close play is a **geometric** condition: the throw arrives within ±`closeMargin` (0.25 s) of the runner at a tag bag (3B or home; a force is never close-played). Only then does the **mash contest** run: the icon appears, first press after the icon wins, CPU reacts at `0.20 + (10 − stat) × 0.032`. Outside the margin the geometry decides and no icon appears. ⚠️ Today the contest runs on every unforced throw to 3B/home regardless of margin (`ClosePlay.cs`, `InPlayDirector.cs:1157-1223`), and its verdict is written twice (`ClosePlaySafe` stale, `Match.cs:44, 932`).
+- A close play is a **geometric** condition: the throw arrives within ±`closeMargin` (0.25 s) of the runner at a tag bag (3B or home; a force is never close-played). Only then does the **mash contest** run: the icon appears, first press after the icon wins, CPU reacts at `0.20 + (10 − stat) × 0.032`. Outside the margin the geometry decides and no icon appears. ✅ P5 (`ClosePlay.WithinMargin`, `running.close.marginSec` 0.25): the ball on the bag **ahead of the body** by no more than the margin runs the mash; the body **in ahead of the ball** by no more than the margin is safe on the bag (§10.3) and pops the small SAFE, no contest; further out either way the geometry decides silently — the tag at the bag, or the runner in. Once one seat has pressed and the clock is past that press the other seat can only be later, so a seat that never presses loses to the CPU's reaction (S-75). The verdict is written once (the out is recorded, or the body is placed on the bag; the caption follows the record; `ClosePlaySafe` is gone).
 - Stamp SAFE (small) / OUT.
 
 ### 9.7 Rundowns
 
-- A runner caught between bags (a fielder with the ball inside 20 ft on the path, the runner not on a bag) is in a rundown: the fielder runs the runner toward the bag they came from; covering fielders take throws; the runner may reverse (stick). The tag rule (§10.3) ends it. A rundown ends by tag, by the runner reaching a bag, or by a throw that misses (runner advances).
-- CPU runner in a rundown reverses each time the ball is thrown. CPU fielders throw when the runner is inside 8 ft of a covered bag and run at them otherwise; when every runner is ≥ 80% of the way to a bag the throw is a lazy lob (reference). ❌
-- Runners stay on the basepath (no running off the line to dodge — the reference exploit is closed by clamping the runner to the path).
+- A runner caught between bags (a fielder with the ball inside 20 ft on the path, the runner not on a bag) is in a rundown: the fielder runs the runner toward the bag they came from; covering fielders take throws; the runner may reverse (stick). The tag rule (§10.3) ends it. A rundown ends by tag, by the runner reaching a bag, or by a throw that misses (runner advances). ✅ P5 (`running.rundown.rangeFt` 20; `LivePlaySystem.ReadRundown` flags the body each frame, `Runner.InRundown`; `LiveEvent.Rundown` cues it). A glove standing on the bag a body is still closing on is not a rundown: it waits there and the tag at the bag decides (§10.3). A body that stops or turns away is caught.
+- CPU runner in a rundown reverses each time the ball is thrown. CPU fielders throw when the runner is inside 8 ft of a covered bag and run at them otherwise; when every runner is ≥ 80% of the way to a bag the throw is a lazy lob (reference). ✅ P5 (`RunnerAi`: a throw to the bag ahead turns the body back, a throw to the bag behind sends it on; `LivePlaySystem.TickCpuRundown`: `running.rundown.throwWithinFt` 8 to a bag whose cover is inside the cover radius, the chase at the one glove speed otherwise, `lazyLobFraction` 0.8 / `lazyLobSpeedMul` 0.5). A CPU glove with nothing makeable on the table runs at a stray body wherever it stands: a runner frozen on the path is never left standing (Time needs every body on a bag, §10.6).
+- Runners stay on the basepath (no running off the line to dodge — the reference exploit is closed by clamping the runner to the path). ✅ (the bodies are one-dimensional on the path).
 
 ### 9.8 Scoring and the play's end — see §10.6.
 
@@ -585,17 +587,17 @@ Reference shape for the "go" rule: keep going if time-to-bag < throw-time − 0.
 | Tag | A fielder holding the ball touches a runner who is not on a bag (or who is off the bag they must return to) |
 | Throw-out at first | The force at first: ball in the glove on the bag before the batter's foot |
 
-Everything else (caught stealing, picked off, doubled off, appeal) is a tag or a force. ✅ tag/force/catch exist; ❌ several are decided upstream by rolls and tables (Appendix A).
+Everything else (caught stealing, picked off, doubled off, appeal) is a tag or a force. ✅ P5: these five are the only paths to `Outs++` (`Match.RecordOut` through `RetireLiveRunner`; the recorders are `RecordCatchOut`, `TryForce`, `ApplyThrow`, `TryTag`, and the close-play verdict). `Retire`'s result gates every caption and flag: a retire that fails narrates nothing. The steal race as shipped (§11) is a tag recorded the same way until P6 lands the break.
 
 ### 10.2 Arrival
 
-`ballArrival(bag)` = release time + `throwSec` (§8.5), then the receiver must be inside 6 ft of the bag (cover). If nobody covers, the ball skips past: live. `runnerArrival(bag)` = from the runner's position and speed. Out iff `ballArrival + 0` < `runnerArrival` **and** the receiver is on the bag (force) or tags (unforced). Tie → runner. ✅ predicate (`InPlay.ForceOnBag`); ⚠️ inputs are the wrong clocks.
+`ballArrival(bag)` = release time + `throwSec` (§8.5), then the receiver must be inside 6 ft of the bag (cover). If nobody covers, the ball skips past: live. `runnerArrival(bag)` = from the runner's position and speed. Out iff `ballArrival + 0` < `runnerArrival` **and** the receiver is on the bag (force) or tags (unforced). Tie → runner. ✅ P5 (`LivePlaySystem.OnThrowArrived` / `ArrivalVerdict` from the bodies: a forced body short of the bag is out, a body on it beat the throw, an unforced body inside the reach is tagged, one further out is waited for and the tag rule runs frame by frame). The scripted harness command `ThrowArrived` (tests only) still states the arrival it wants; no runtime path uses it.
 
 ### 10.3 Tag geometry
 
-- A tag is a glove with the ball inside **reach** of the runner: `TagReachFt` = 4 ft (+2 with Lick / Grow); the runner is not touching a bag (`TagSafeRadiusFt` 3.5). Home plate is a bag for a runner coming home, **not** for the batter leaving the box. ⚠️ 14 ft reach (`InPlay.cs:402`), home safe for the batter (`:416-417`).
+- A tag is a glove with the ball inside **reach** of the runner: `TagReachFt` = 4 ft (+2 with Lick / Grow, `fielding.abilities.tagReachBonusFt`); the runner is not touching a bag (`TagSafeRadiusFt` **1.5**). Home plate is a bag for a runner coming home, **not** for the batter leaving the box. ✅ P5 (`InPlay.TagReachFt`, `InPlay.Touches(fielder:)`). The safe radius moved from the 3.5 of the first draft to 1.5: the slide takes 2 ft off the reach (§9.4), and a safe radius wider than the slid reach would make every slide untaggable; the table validates `tagSafeRadiusFt ≤ tagReachFt − slideReachCutFt`. The tag is judged **through the frame** (`InPlay.TagWithinFrame`): a body that crossed the reach on its way to the bag was tagged before it touched, however short the step, so a 60 Hz body cannot skip the four-foot window. A tag records the bag the glove stands on (or 0 in the field).
 - Human: have the ball, touch the runner (walk into them). South is not required. ✅
-- The runner on a bag is safe. A runner who overran second or third is off the bag and taggable. Overrun first is protected (§9.4).
+- The runner on a bag is safe. A runner who overran second or third is off the bag and taggable. Overrun first is protected (§9.4). ✅ P5 (`Runner.OverrunProtected`; nobody overruns second or third — a body stops on the bag it is stopping at, and one that rounds is off it and live).
 
 ### 10.4 Double plays (ground ball)
 
@@ -617,7 +619,7 @@ The classic turn: force at second, throw to first. Each leg is its own throw wit
 
 Rules that fall out of geometry, and must not be tabled:
 
-- The second throw is only an out if it beats the batter; a slow turn is a **fielder's choice** (one out, batter safe at first). Caption FIELDER'S CHOICE, stamp OUT. ⚠️ A synthetic DP is fabricated when no live throw happened (`Match.cs:870-879`); a retire that fails still commits the caption (`LivePlaySystem.cs:344`).
+- The second throw is only an out if it beats the batter; a slow turn is a **fielder's choice** (one out, batter safe at first). Caption FIELDER'S CHOICE, stamp OUT. ✅ P5 (the synthetic DP went with P3's Complete; `ApplyThrow` records the out first and narrates only what was recorded; `PlayOutcome.FieldersChoice` and the caption "Fielder's choice." come from the same typed facts; a chain of outs captions "Double play." / "Triple play!" ahead of its last decision; `PlayStamp.Label(PlayEvent)` reads the typed outs). One press is one throw on the human seat; the CPU steps on a force bag inside `fielding.throw.unassistedFt` instead of throwing (S-41, S-46).
 - The force at second is removed the moment the batter is retired at first; any later play on that runner is a tag.
 - The receiver must be on the bag: if the cover has not arrived (slow SS), the ball waits in the air — the out is late. That is how a **fast runner beats a DP**.
 - A **neighborhood play** does not exist; the foot must be on the bag (6 ft occupancy radius is the arcade tolerance).
@@ -629,6 +631,8 @@ Rules that fall out of geometry, and must not be tabled:
 - Fly ball, runner tags and goes, throw beats them: **tag** at the next bag (never a force). S-54 (sac fly thrown out at home).
 - Pop-up dropped on purpose with runners on: no infield fly rule; forced runners must go. CPU runners stay on the bag, so the drop is a force at the lead bag only. S-55.
 
+✅ P5: the CPU reads the doubled-off race ahead of its table (`RunnerSystem.ReturnSec` against the throw to the start bag, or a walk onto it inside `fielding.throw.unassistedFt`); a human sends a runner into the doubled-off risk with the stick on that runner (LB on a ball in the air is tag-and-go, §9.5). A body owing a retouch is not settled: Time waits for it (§10.6).
+
 ### 10.6 When the play ends (Time)
 
 `Time` is true when: three outs; **or** the ball is held by a fielder on the infield (inside the dirt / grass lip, `flight.classes.infieldLipFt` — the 100 ft of the first draft put 2B and SS on the grass) and not thrown, **and** every live runner is on a bag or out, for `TimeOnBagSec` (1.0). Nobody left to play on (every runner out or home) is Time wherever the ball is, and so is a ball lying at rest that nobody picked up once every body has settled. A home run ends at the crossing plus the trot. ✅ P3 (`InPlay.Time` over the bodies; a CPU outfielder holding a ball with everyone settled throws it in, §8.8 rule 5).
@@ -637,7 +641,7 @@ At `Complete`: runs = runners who crossed home before the third out (with the §
 
 ### 10.7 Triple play
 
-Three outs on one live ball by the rules above (liner, double off, double off; or force, force, tag). Stamp TRIPLE PLAY. ✅ stamp; ❌ reachable only through the label.
+Three outs on one live ball by the rules above (liner, double off, double off; or force, force, tag). Stamp TRIPLE PLAY. ✅ P5: reachable through the forces alone (runners on first and second, a hard grounder beside third: step on third, the force at second, the throw to first — `OutsScenarioTests`), stamped from the typed outs, captioned "Triple play!".
 
 ---
 
@@ -763,8 +767,8 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `release` (Nice! band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `shapes` (fastball hump, changeup hang / dump / drop), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1 part c). The rubber walk distance is geometry (`HomeSet.PitcherWalk`) |
 | `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze chance, the item's flight and its slip / daze / hop seconds), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
 | `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `deadBall` (homer trot, foul flight hold). The `carry` hit bands are gone (P4): the bodies decide the bases |
-| `fielding.json` | `chase` (the one glove speed, swap lock, the loose-ball scoop reach), `reaction` (the lockout per position, the CPU throw delay), `cover` (flat cover speed and start, D11; the cover radius a throw must land inside; the backup distance), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, jump/dive arm times), `drops` (star effects only), `wallPlant`, `abilities`, `throw` (the one throw model: release, base speed, arm, lateral σ, the lob wait, the fly reach), `overthrow` (how a missed throw rolls), `catcher` (CPU release, tag hold), `chem` (good speed, the slant), `bobble`, `knockback`, `park` |
-| `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
+| `fielding.json` | `chase` (the one glove speed, swap lock, the loose-ball scoop reach), `reaction` (the lockout per position, the CPU throw delay), `cover` (flat cover speed and start, D11; the cover radius a throw must land inside; the backup distance), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, jump/dive arm times), `drops` (star effects only), `wallPlant`, `abilities` (catch, range, and throw bonuses; the Lick / Grow tag reach), `throw` (the one throw model: release, base speed, arm, lateral σ, the lob wait, the fly reach, the unassisted step-on distance), `overthrow` (how a missed throw rolls), `catcher` (CPU release, tag hold), `chem` (good speed, the slant), `bobble`, `knockback`, `park` |
+| `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide, the run-through at first), `close` (the close-play margin, icon delay, CPU reaction), `rundown` (range, the throw distance, the lazy lob), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
 | `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (CPU batter σ and tracking, close-play reaction, catcher release, the fielder's throw delay), mistrack ×, makeable margin (§8.8), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
 | `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1 |
@@ -848,22 +852,22 @@ P3 also closed A.4 #40's fourth clock (the flat `fielding.throw.flight*` flight 
 
 P4 left to the client: the "E" tell on the thrower's body (`LiveEvent.ThrowSailed`) and the bobble puff (`LiveEvent.Bobble`) are cues the sim raises; `InPlayDirector` plays a dust puff and releases the ball for both. The lazy lob to a bag nobody can beat (§8.5, reference) is not modelled.
 
-### A.5 Outs, double plays, Time (P5)
+### A.5 Outs, double plays, Time (P5) — ✅ closed by P5 (#567)
 
-| # | Where | What | Spec |
-| --- | --- | --- | --- |
-| 48 | `Match.cs:870-879` | Synthetic DP from fabricated throws | §10.4 |
-| 49 | `LivePlaySystem.cs:344` | `Retire` result discarded after committing caption/flags | §10.4 |
-| 50 | `Match.cs:899-976` | Outcome inferred from bookkeeping deltas; three `goto case Single` | §10.6 |
-| 51 | `Match.cs:908, 1030-1031` | Control flow on caption text | §15 |
-| 52 | `Match.cs:44, 932`, `InPlayDirector.cs:1215` | `ClosePlaySafe` stale across plays | §9.6 |
-| 53 | `ClosePlay.cs`, `InPlayDirector.cs:1157-1223` | Mash on every unforced 3B/home throw | §9.6 |
-| 54 | `InPlay.cs:402, 416-417` | Tag reach 14 ft; home is a safe bag for the batter | §10.3 |
-| 55 | `LivePlaySystem.cs:307-313` | `ThrowArrived` sets HasBall/CatchMade unconditionally | §10.2 |
-| 56 | `InPlayDirector.cs:150-152` | Rest fallback bypasses `CommitInPlay` | §10.6 |
-| 57 | `Match.cs:556-559` vs `:575-584` | Walk-off only on the take path | §1 |
-| 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 |
-| 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 |
+| # | Where | What | Spec | Closed |
+| --- | --- | --- | --- | --- |
+| 48 | `Match.cs:870-879` | Synthetic DP from fabricated throws | §10.4 | P3 (Complete reads the bodies) |
+| 49 | `LivePlaySystem.cs:344` | `Retire` result discarded after committing caption/flags | §10.4 | P5 (`ApplyThrow`, the close-play verdict) |
+| 50 | `Match.cs:899-976` | Outcome inferred from bookkeeping deltas; three `goto case Single` | §10.6 | P3 |
+| 51 | `Match.cs:908, 1030-1031` | Control flow on caption text | §15 | P3 |
+| 52 | `Match.cs:44, 932`, `InPlayDirector.cs:1215` | `ClosePlaySafe` stale across plays | §9.6 | P3 / P5 (one verdict, written once) |
+| 53 | `ClosePlay.cs`, `InPlayDirector.cs:1157-1223` | Mash on every unforced 3B/home throw | §9.6 | P5 (`ClosePlay.WithinMargin`) |
+| 54 | `InPlay.cs:402, 416-417` | Tag reach 14 ft; home is a safe bag for the batter | §10.3 | P5 (4 ft + ability, judged through the frame; the batter's plate was closed in P3) |
+| 55 | `LivePlaySystem.cs:307-313` | `ThrowArrived` sets HasBall/CatchMade unconditionally | §10.2 | scripted harness command only (tests); the live ball lands every throw through `OnThrowLanded` |
+| 56 | `InPlayDirector.cs:150-152` | Rest fallback bypasses `CommitInPlay` | §10.6 | P3 (the sim commits every ball) |
+| 57 | `Match.cs:556-559` vs `:575-584` | Walk-off only on the take path | §1 | P3 |
+| 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 | P5 |
+| 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 | P3 / P4 / P5 (rundown) |
 
 ### A.6 Steals and pickoffs (P6)
 
@@ -941,9 +945,11 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-38 | Runner on 3rd, infield in, grounder to SS, < 2 outs | CPU runner | Holds; SS throws to 1B |
 | S-39 | Runner on 3rd, 2 outs, any grounder | CPU runner | Goes on contact |
 
-### B.3 Double plays (§10.4) — S-40 … S-50 as tabled, each asserting: two outs only if both arrivals win; one out + FIELDER'S CHOICE otherwise; force removed after the batter is retired first (S-43, S-48 are tags).
+### B.3 Double plays (§10.4) — S-40 … S-50 as tabled, each asserting: two outs only if both arrivals win; one out + FIELDER'S CHOICE otherwise; force removed after the batter is retired first (S-43, S-48 are tags). ✅ P5 (`OutsScenarioTests`, every row on the CPU seat and on the human seat; a throw is an out only when the body it was for was short of the bag as it landed).
 
 ### B.4 Flies, liners, tag-ups
+
+✅ P5 for S-51 … S-55 (`OutsScenarioTests`; S-54 runs with the roster's Field-8 arm and three runner speeds); ✅ P2 for S-56 … S-59 (`FlightScenarioTests`).
 
 | Id | Setup | Input | Expect |
 | --- | --- | --- | --- |
@@ -960,6 +966,8 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 ### B.5 Steals and pickoffs — S-60 … S-72 as tabled in §11.5.
 
 ### B.6 Close plays, rundowns, Time, scoring
+
+✅ P5 for S-73 … S-76 (`OutsScenarioTests`); ✅ P3 for S-77 … S-79 (`RunnerScenarioTests`) and S-80 … S-82 (`InningsScenarioTests`).
 
 | Id | Setup | Input | Expect |
 | --- | --- | --- | --- |

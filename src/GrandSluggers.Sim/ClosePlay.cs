@@ -19,6 +19,14 @@ public static class ClosePlay
 
     public static bool IsCloseBag(int bag) => bag is 3 or 4;
 
+    /// <summary>
+    /// The geometric gate (§9.6, D5): the ball is on the bag now and the body arrives in
+    /// <paramref name="runnerArrivalSec"/>; the mash runs only when that is inside running.close.marginSec.
+    /// A body already there is safe (§10.3); one further out is tagged or not by the reach.
+    /// </summary>
+    public static bool WithinMargin(double runnerArrivalSec, RulesTable? rules = null) =>
+        runnerArrivalSec > 0 && runnerArrivalSec <= Rules.Or(rules).Running.Close.MarginSec;
+
     /// <summary>Seconds after the icon until a CPU side mashes (running.close, × cpu reactionMul). Better Field (defense) or Run (offense) is faster.</summary>
     public static double CpuReactionSec(int stat, RulesTable? rules = null)
     {
