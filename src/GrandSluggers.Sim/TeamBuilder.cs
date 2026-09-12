@@ -193,7 +193,8 @@ public sealed class TeamBuilder
         }
 
         var starter = _glove.TryGetValue("P", out var p) ? p : Captain;
-        return new Team(Name, Captain, roster, _order.ToList(), starter);
+        return new Team(Name, Captain, roster, _order.ToList(), starter,
+            new Dictionary<string, Character>(_glove, StringComparer.OrdinalIgnoreCase));
     }
 
     void AssignDefaultGloves()
