@@ -39,10 +39,11 @@ public class ClosePlayTests
         Assert.True(FieldDash.DestroysItem(true, true, 10));
         Assert.False(FieldDash.DestroysItem(false, true, 10));
         Assert.False(FieldDash.DestroysItem(true, false, 10));
-        var field = new FieldingResult(PlayKind.Single, null, null, 1, 0, 40, false, false, Item: "banana");
+        var field = new FieldingResult(PlayKind.InPlay, null, null, 1, 0, 40, false, false, Item: "banana", ItemHit: true);
         var smashed = ErrorItems.Smash(field, grounder: true);
-        Assert.Equal(PlayKind.GroundOut, smashed.Kind);
+        Assert.Equal(PlayKind.InPlay, smashed.Kind);
         Assert.Null(smashed.Item);
+        Assert.False(smashed.ItemHit, "a smashed item never lands");
     }
 
     [Fact]

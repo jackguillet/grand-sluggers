@@ -71,18 +71,23 @@ public class InPlayTests
     }
 
     [Fact]
-    public void ScoopMissIsASingleNotASilentGroundOut()
+    public void TheResolverNamesNothingOnAGrounderTheLiveBallDoes()
     {
         var match = Match.Slice(_content, seed: 4);
         var fielding = new FieldingResolver(_content.Chemistry);
-        // Deep hopper: landing is past the infield so the nearest glove cannot scoop it.
+        // Deep hopper: landing is past the infield so the nearest glove cannot scoop it before the grass.
         var hit = FlightFixtures.Landing(match.Park, 300, 8, 2);
         var rng = new Random(4);
         var pre = fielding.Preview(hit, match.Park, match.Defense.Roster, match.Pitcher, rng);
         Assert.True(pre.Grounder, "launch 8 must be a hopper");
         var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, rng, pre: pre);
-        Assert.Equal(PlayKind.Single, field.Kind);
-        Assert.NotEqual(PlayKind.GroundOut, field.Kind);
+        Assert.Equal(PlayKind.InPlay, field.Kind);
+        Assert.False(field.Caught);
+        // Through the infield to the grass: the outfielder picks it up and the batter is on by geometry (§7.5).
+        Assert.True(match.BeginAtBat(new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), out _, out _));
+        var play = match.FinishAtBat(new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), hit, field);
+        Assert.True(play.Kind is PlayKind.Single or PlayKind.Double, play.Kind.ToString());
+        Assert.Empty(play.Outcome!.OutsMade);
     }
 
     [Fact]
@@ -107,8 +112,6 @@ public class InPlayTests
         Assert.True(InPlay.DoublePlayOffered(true, 1));
         Assert.False(InPlay.DoublePlayOffered(true, 2));
         Assert.False(InPlay.DoublePlayOffered(false, 0));
-        Assert.True(FieldingResolver.DoublePlayHopper(true, true, 0));
-        Assert.False(FieldingResolver.DoublePlayHopper(false, true, 0));
         Assert.Equal(2, InPlay.CommitBag(0, hopperCaught: true, cutoff: false, defaultBag: 2));
         Assert.Equal(1, InPlay.CommitBag(0, hopperCaught: true, cutoff: false, defaultBag: 1));
         Assert.Equal(0, InPlay.CommitBag(0, hopperCaught: true, cutoff: true, defaultBag: 2));
@@ -248,7 +251,7 @@ public class InPlayTests
         var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4);
         Assert.True(InPlay.FairContactSendsBatter(hopper));
         var field = match.ResolveFielding(hopper);
-        Assert.True(field.Kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut, field.Kind.ToString());
+        Assert.Equal(PlayKind.InPlay, field.Kind);
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false, LaunchAim: 0.6);
         Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
@@ -259,44 +262,63 @@ public class InPlayTests
     }
 
     [Fact]
-    public void HardHopperCanBobbleIntoASingle()
+    public void HardHopperCanBobbleAndTheFumbleIsTimeNotACaption()
     {
-        var match = Match.Slice(_content, seed: 1);
-        var fielding = new FieldingResolver(_content.Chemistry);
-        var hit = new AtBatResult(ContactQuality.Perfect, true, false, 110, 8, 45, false, false, null, null, SprayDeg: 2);
-        var bobbles = 0;
-        var outs = 0;
+        // §8.6: a rocket at the shins can be fumbled; the ball scatters loose, the runner gains the
+        // fumble, and the play goes on — nothing converts the play by the roll.
+        var hit = FlightFixtures.Hit(_content.Parks["harbor-diamond"], 110, 6, -19, ContactQuality.Perfect);
+        Assert.True(hit.Class.OnTheDirt());
+        var energy = InPlay.Energy(hit);
+        var weakHands = _content.Must("konga");
+        var rolls = 0;
         for (var i = 0; i < 80; i++)
+            if (InPlay.Bobbles(energy, weakHands, new Random(i))) rolls++;
+        Assert.True(rolls > 0, "a rocket at the shins must eat someone in 80 tries");
+        Assert.True(InPlay.KnockbackSec(energy, weakHands) > 0, "a 110 mph perfect hopper must shove the fielder");
+
+        var bobbled = 0;
+        var outs = 0;
+        for (var seed = 1; seed <= 12; seed++)
         {
-            var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, new Random(i));
-            if (field.Bobble)
+            var scenario = new Scenario(_content, seed: seed);
+            var match = scenario.Match;
+            scenario.Contact();
+            var preview = match.PreviewHit(hit);
+            var live = match.LivePlay;
+            live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, match.ResolveFielding(hit, preview), LiveSeats.CpuOnly));
+            PlayEvent? play = null;
+            var sawBobble = false;
+            var sawLoose = false;
+            for (var i = 0; i < 60 * 30 && play is null; i++)
             {
-                bobbles++;
-                Assert.Equal(PlayKind.Single, field.Kind);
-                Assert.Equal(0, field.KnockbackSec);
+                var r = live.Apply(LivePlayCommand.Tick(1.0 / 60));
+                if (live.Events.Contains(LiveEvent.Bobble)) sawBobble = true;
+                if (live.LooseBall) sawLoose = true;
+                play = r.CompletedPlay;
             }
-            else if (field.Kind == PlayKind.GroundOut)
+            Assert.NotNull(play);
+            if (sawBobble)
             {
-                outs++;
-                Assert.False(field.Bobble);
-                Assert.True(field.KnockbackSec > 0, "a 110 mph perfect hopper must shove the fielder");
+                bobbled++;
+                Assert.True(sawLoose, "the fumble scatters the ball loose");
+                Assert.False(play!.Outcome!.Error, "a bobble is not the error (§8.6)");
             }
+            if (play!.Outcome!.OutsMade.Count > 0) outs++;
         }
-        Assert.True(bobbles > 0, "a rocket at the shins must eat someone in 80 tries");
-        Assert.True(outs > 0, "the same rocket is still an out when the glove holds");
+        Assert.True(bobbled + outs > 0, "the rocket is fielded one way or the other");
     }
 
     [Fact]
     public void DyingRollerDoesNotBobbleOrKnockBack()
     {
-        var match = Match.Slice(_content, seed: 2);
-        var fielding = new FieldingResolver(_content.Chemistry);
         var hit = new AtBatResult(ContactQuality.Sour, true, false, 40, 6, 30, false, false, null, null, SprayDeg: 0);
-        for (var i = 0; i < 40; i++)
+        var energy = InPlay.Energy(hit);
+        foreach (var who in new[] { "konga", "rio", "frost" })
         {
-            var field = fielding.Resolve(hit, match.Park, match.Defense.Roster, match.Pitcher, new Random(i));
-            Assert.False(field.Bobble);
-            Assert.Equal(0, field.KnockbackSec);
+            var c = _content.Must(who);
+            for (var i = 0; i < 40; i++)
+                Assert.False(InPlay.Bobbles(energy, c, new Random(i)));
+            Assert.Equal(0, InPlay.KnockbackSec(energy, c));
         }
     }
 

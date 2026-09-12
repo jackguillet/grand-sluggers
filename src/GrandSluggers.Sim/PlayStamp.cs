@@ -18,17 +18,19 @@ public static class PlayStamp
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
     public static string Label(PlayEvent ev, int outsThisPlay) =>
-        ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt);
+        ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
 
     public static string Label(PlayEvent ev) =>
-        ev == null ? "" : Label(ev.Kind, ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt);
+        ev == null ? "" : Label(ev.Kind, ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
 
+    /// <param name="error">A throw sailed and the offense took what it took (§8.5, §8.6): the stamp is ERROR, not the hit.</param>
     public static string Label(PlayKind kind, int outsThisPlay, int runs,
-        bool bunt = false, bool dive = false, bool jump = false)
+        bool bunt = false, bool dive = false, bool jump = false, bool error = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
+        if (error && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple) return Error;
         if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
             return "BUNT";
         if (jump && kind == PlayKind.FlyOut) return "JUMP";
@@ -93,6 +95,7 @@ public static class PlayStamp
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;
 
     public const string Safe = "SAFE";
+    public const string Error = "ERROR";
 
     /// <summary>
     /// Hits and outs stamp on the live field camera. Counts stay on SET.

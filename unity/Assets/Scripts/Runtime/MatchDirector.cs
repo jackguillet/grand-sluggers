@@ -616,7 +616,7 @@ namespace GrandSluggers.UnityClient
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
                 _banner = PlayStamp.Label(_last.Kind, _last.OutsOnPlay, _last.RunsScored,
-                    _last.Swing.Bunt, _catchDive, _catchJump);
+                    _last.Swing.Bunt, _catchDive, _catchJump, _last.Outcome != null && _last.Outcome.Error);
             }
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");

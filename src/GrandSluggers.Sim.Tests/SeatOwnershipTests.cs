@@ -74,9 +74,8 @@ public sealed class SeatOwnershipTests
         var hit = HopperToShort(scenario, match);
         var preview = match.PreviewHit(hit);
         Assert.Equal("SS", preview.Position);
-        // The throw the CPU makes once it has the ball. The resolver's roll for whether the
-        // grounder is an out at all is spec A.4 #38 (P4); this row is about who throws, not that.
-        var field = SyntheticGroundOut(match, preview);
+        // Whether the grounder is an out is the glove and the throw against the batter's body (§8.8, §10.2); this row is about who throws.
+        var field = match.ResolveFielding(hit, preview);
         var batterSec = match.Rules.Running.BagSec.BatterStartSec
                         + Diamond.Dist(HomeSet.BatterBodyX(match.Batter.Bats), HomeSet.BatterZ, Diamond.First.X, Diamond.First.Z)
                         / RunnerSystem.SpeedFtPerSec(match.Batter, 0, match.Rules);
@@ -84,14 +83,15 @@ public sealed class SeatOwnershipTests
         var offense = new LivePadInput(StickX: 0.9, StickY: 0.3, Swap: true);
         var fieldPad = offenseStickLeaksToFieldPad ? offense : LivePadInput.Dead;
         var thrownFrom = (X: 0.0, Z: 0.0);
+        ThrowResult? thrown = null;
         var play = RunToComplete(match, hit, preview, field, live, fieldPad, offense, out var caughtAt, out var threwAt, out var everHuman,
-            l => { if (l.Throwing && thrownFrom == (0, 0)) thrownFrom = (l.ThrowFrom.X, l.ThrowFrom.Z); });
+            l => { if (l.Throwing && thrownFrom == (0, 0)) { thrownFrom = (l.ThrowFrom.X, l.ThrowFrom.Z); thrown = l.ArmedThrow; } });
 
         Assert.False(everHuman, "the batting human never owned a glove");
         Assert.True(caughtAt >= 0, "the CPU glove scooped");
         Assert.True(threwAt >= 0, "the CPU glove threw");
         // The out is geometry (§10.2): the throw's arrival at first against the batter's body, whichever way it falls.
-        var ballAtFirst = threwAt + InPlay.ThrowArrivalSec(thrownFrom.X, thrownFrom.Z, 1, field.Throw, match.Rules);
+        var ballAtFirst = threwAt + InPlay.ThrowArrivalSec(thrownFrom.X, thrownFrom.Z, 1, thrown, match.Rules);
         if (ballAtFirst < batterSec)
         {
             Assert.Equal(PlayKind.GroundOut, play.Kind);
@@ -103,8 +103,9 @@ public sealed class SeatOwnershipTests
             Assert.Equal(PlayKind.Single, play.Kind);
             Assert.Equal(1, play.Outcome!.BatterToBag);
         }
-        // The CPU glove throws as soon as the scoop's knockback settles: within the throw time, not on a press.
-        Assert.InRange(threwAt - caughtAt, 0, match.Rules.Fielding.Knockback.MaxSec + Frame * 2);
+        // The CPU glove throws once its reaction settles (§8.8): within the reaction and the knockback, not on a press.
+        var ss = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher, match.Defense.Gloves)["SS"];
+        Assert.InRange(threwAt - caughtAt, 0, InPlay.ThrowReactionSec(ss, match.Rules) + match.Rules.Fielding.Knockback.MaxSec + Frame * 2);
     }
 
     [Theory]
@@ -167,7 +168,7 @@ public sealed class SeatOwnershipTests
         for (var i = 0; i < 60 * 20 && play is null; i++)
         {
             var result = live.Apply(LivePlayCommand.Tick(Frame, fieldPad, runPad, false, live.Source));
-            if (caughtAt < 0 && live.Caught) caughtAt = live.ElapsedSeconds;
+            if (caughtAt < 0 && (live.Caught || live.Events.Contains(LiveEvent.Glove))) caughtAt = live.ElapsedSeconds > 0 ? live.ElapsedSeconds : (i + 1) * Frame;
             if (threwAt < 0 && live.Throwing) threwAt = live.ElapsedSeconds;
             observe?.Invoke(live);
             everHuman |= live.PlayerFielding;

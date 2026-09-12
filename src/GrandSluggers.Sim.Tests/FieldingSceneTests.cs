@@ -57,21 +57,37 @@ public class FieldingSceneTests
     }
 
     [Fact]
-    public void BadThrowIsSlowerAndOffLine()
+    public void BadChemistrySlantsAShareOfThrowsAndGoodIsFaster()
     {
+        // §8.5: bad chemistry is a chance of a slanted throw (slower, off the cover by 10–14 ft);
+        // the rest are ordinary. Good chemistry is faster. Every arm carries its own lateral σ.
         var chem = _content.Chemistry;
-        var rng = new Random(7);
-        var good = chem.FieldingThrow(_content.Must("rio"), _content.Must("nico"), rng);
-        var bad = chem.FieldingThrow(_content.Must("rio"), _content.Must("ashlord"), rng);
-        var neu = chem.FieldingThrow(_content.Must("frost"), _content.Must("vine"), rng);
-        Assert.Equal(Chemistry.Good, good.Relation);
-        Assert.Equal(Chemistry.Bad, bad.Relation);
-        Assert.Equal(Chemistry.Neutral, neu.Relation);
-        Assert.True(good.SpeedMul > neu.SpeedMul);
-        Assert.True(neu.SpeedMul > bad.SpeedMul);
-        Assert.Equal(0, good.LateralFt);
-        Assert.True(bad.LateralFt > neu.LateralFt);
-        Assert.False(good.Error);
+        var rules = _content.Rules.Fielding;
+        var rio = _content.Must("rio");
+        var slanted = 0;
+        for (var seed = 0; seed < 400; seed++)
+        {
+            var rng = new Random(seed);
+            var good = chem.FieldingThrow(rio, _content.Must("nico"), rng);
+            var bad = chem.FieldingThrow(rio, _content.Must("ashlord"), rng);
+            var neu = chem.FieldingThrow(_content.Must("frost"), _content.Must("vine"), rng);
+            Assert.Equal(Chemistry.Good, good.Relation);
+            Assert.Equal(Chemistry.Bad, bad.Relation);
+            Assert.Equal(Chemistry.Neutral, neu.Relation);
+            Assert.Equal(rules.Chem.GoodSpeedMul, good.SpeedMul);
+            Assert.False(good.Slanted);
+            Assert.Equal(1.0, neu.SpeedMul);
+            if (bad.Slanted)
+            {
+                slanted++;
+                Assert.Equal(rules.Chem.SlantSpeedMul, bad.SpeedMul);
+                Assert.InRange(Math.Abs(bad.LateralFt), rules.Chem.SlantLateralMinFt, rules.Chem.SlantLateralMaxFt);
+                Assert.True(Math.Abs(bad.LateralFt) > rules.Cover.RadiusFt, "a slanted throw misses the cover's reach");
+            }
+            else
+                Assert.Equal(1.0, bad.SpeedMul);
+        }
+        Assert.InRange(slanted, 400 * 0.12, 400 * 0.30);
     }
 
     [Fact]

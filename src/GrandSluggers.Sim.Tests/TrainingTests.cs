@@ -131,10 +131,9 @@ public class TrainingTests
         var match = run.MakeMatch(_content, seed: 2);
         Assert.True(run.SetupTurnTwo(match));
         Assert.NotNull(match.First);
-        var fielder = match.Pitcher;
-        var hit = new AtBatResult(ContactQuality.Nice, true, false, 82, 5, 55, false, false, null, null);
-        var field = new FieldingResult(PlayKind.GroundOut, fielder, match.Batter, 0.8, 10, 40, false, false,
-            new ThrowResult(Chemistry.Good, 1.35, false));
+        // A hard grounder right at the shortstop: the CPU glove turns two by geometry (§8.8).
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var field = match.ResolveFielding(hit, match.PreviewHit(hit));
         var play = match.FinishAtBat(
             new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), hit, field);
         Assert.Equal(2, play.OutsOnPlay);

@@ -161,8 +161,7 @@ public sealed class Training
     public bool RecordFielding(FieldingResult field)
     {
         if (Finished || Lesson != PracticeLesson.Fielding) return false;
-        var caught = field.Fielder is not null &&
-                     field.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
+        var caught = field.Fielder is not null && (field.Caught || field.Kind is PlayKind.FlyOut or PlayKind.GroundOut);
         var threw = field.Throw is not null && field.Cutoff is not null;
         var toss = field.Throw is not null && field.Fielder is not null;
         if ((!caught || !threw) && !toss) return false;

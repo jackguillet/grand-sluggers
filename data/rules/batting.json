@@ -94,7 +94,11 @@
   },
   "items": {
     "cpuThrowChance": 0.4,
-    "rocketDazeChance": 0.55
+    "rocketDazeChance": 0.55,
+    "flySec": 0.9,
+    "slipSec": 0.8,
+    "dazeSec": 0.8,
+    "powHopSec": 0.8
   },
   "cpu": {
     "middleFraction": 0.34,
