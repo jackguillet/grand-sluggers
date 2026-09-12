@@ -27,7 +27,6 @@ public static class FieldingPursuit
         FieldingPreview preview,
         Park park,
         IReadOnlyList<Sample> path,
-        double sprayDeg,
         double nowSec,
         double fromX,
         double fromZ,
@@ -36,13 +35,13 @@ public static class FieldingPursuit
     {
         var r = Rules.Or(rules);
         var hang = BallFlight.HangTime(path, r);
-        var live = BallFlight.PointAt(path, sprayDeg, nowSec, r);
+        var live = BallFlight.PointAt(path, nowSec, r);
         if (FieldingResolver.InAir(preview, live.Y, nowSec, hang))
         {
             var plant = FlyCatch.ChaseTarget(preview, park, r);
             return Fixed(plant.X, plant.Z, hang, nowSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
         }
-        return Rolling(path, sprayDeg, park, nowSec, fromX, fromZ, speedFtPerSec, r);
+        return Rolling(path, park, nowSec, fromX, fromZ, speedFtPerSec, r);
     }
 
     public static Choice Choose(
@@ -51,7 +50,6 @@ public static class FieldingPursuit
         FieldingPreview preview,
         Park park,
         IReadOnlyList<Sample> path,
-        double sprayDeg,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null,
         double nowSec = 0,
         RulesTable? rules = null)
@@ -64,7 +62,7 @@ public static class FieldingPursuit
                 ? live
                 : Diamond.Positions[position];
             var speed = FieldingResolver.ChaseSpeedFt(fielder, preview.Frozen, rules);
-            var route = Plan(preview, park, path, sprayDeg, nowSec, start.X, start.Z, speed, rules);
+            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules);
             var candidate = new Choice(fielder, position, route);
             if (best is null || Better(candidate.Route, best.Value.Route))
                 best = candidate;
@@ -75,7 +73,6 @@ public static class FieldingPursuit
 
     static Route Rolling(
         IReadOnlyList<Sample> path,
-        double sprayDeg,
         Park park,
         double nowSec,
         double fromX,
@@ -90,15 +87,16 @@ public static class FieldingPursuit
             var sample = path[i];
             if (sample.T + 1e-6 < nowSec) continue;
             if (sample.Height >= scoopY) continue;
-            var point = BallFlight.GroundPoint(sample.Dist, sprayDeg);
-            if (!FieldBounds.Inside(park, point.X, point.Z)) break;
-            var route = Fixed(point.X, point.Z, sample.T, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
+            // Gone over a wall: nothing past this sample is a pickup.
+            if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
+            if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
+            var route = Fixed(sample.X, sample.Z, sample.T, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
             lastLegal = route;
             if (route.Reachable) return route;
         }
 
         if (lastLegal is not null) return lastLegal.Value;
-        var live = BallFlight.PointAt(path, sprayDeg, nowSec, rules);
+        var live = BallFlight.PointAt(path, nowSec, rules);
         var legal = FieldBounds.Clamp(park, live.X, live.Z);
         return Fixed(legal.X, legal.Z, nowSec, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
     }

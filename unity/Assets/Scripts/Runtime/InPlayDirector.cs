@@ -162,6 +162,11 @@ namespace GrandSluggers.UnityClient
                         _itemId = "";
                         _items?.Hide();
                         break;
+                    case LiveEvent.WallCarom:
+                        // The ball met the fence below its top (§7.9): a thump and dust at the wall; the sim plays the carom.
+                        _park.Ball.ContactPuff(_ball);
+                        _audio?.Glove();
+                        break;
                 }
             }
             if (result.Throw is { } step && !string.IsNullOrEmpty(step.Caption))
@@ -205,10 +210,9 @@ namespace GrandSluggers.UnityClient
         {
             if (_preview != null) return FlyCatch.IsFly(_preview);
             if (_pending != null)
-                return !FieldingResolver.IsGrounder(_pending, _content.Rules) && !FieldingResolver.IsLine(_pending, _content.Rules);
+                return BattedBallClasses.ByLaunch(_pending.LaunchDeg, _pending.ExitVeloMph, _content.Rules).IsFlyShape();
             return _last != null
-                && !FieldingResolver.IsGrounder(_last.AtBat, _content.Rules)
-                && !FieldingResolver.IsLine(_last.AtBat, _content.Rules);
+                && BattedBallClasses.ByLaunch(_last.AtBat.LaunchDeg, _last.AtBat.ExitVeloMph, _content.Rules).IsFlyShape();
         }
 
         bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);

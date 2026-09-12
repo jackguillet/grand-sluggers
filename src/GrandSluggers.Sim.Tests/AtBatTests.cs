@@ -201,11 +201,13 @@ public class AtBatTests
         for (var seed = 0; seed < 50; seed++)
         {
             var r = Swing(timing: 0, seed: seed);
-            if (FieldingResolver.IsGrounder(r)) hops++;
-            else if (FieldingResolver.IsLine(r)) lines++;
+            if (r.Class.OnTheDirt()) hops++;
+            else if (r.Class == BattedBallClass.Liner) lines++;
             else flies++;
         }
-        Assert.True(hops > 0, "square contact should produce some grounders");
+        // The class table (§6.2) draws the hop / rope line at 10°; the launch bands that put a square
+        // swing under it are §5.4 (P1). Square contact must still not be one shape.
+        Assert.True(hops + lines > 0, "square contact should produce some hops or ropes");
         Assert.True(flies > 0, "square contact should still produce flies");
         Assert.True(lines > 0, "square contact should produce some line drives");
         Assert.NotEqual(50, flies);

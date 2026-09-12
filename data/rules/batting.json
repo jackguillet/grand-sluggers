@@ -63,10 +63,6 @@
     "cheapPullPastDeg": 6,
     "cheapPullSpanDeg": 14
   },
-  "homer": {
-    "launchMinDeg": 18,
-    "launchMaxDeg": 38
-  },
   "cursor": {
     "niceTipFt": 1.05,
     "niceHandleFt": 0.75,

@@ -92,14 +92,13 @@ namespace GrandSluggers.EditorTools
             var pitch = new PitchCommand("fastball", 0, 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             Require(match.BeginAtBat(pitch, swing, out _, out _), "Fixture did not enter contact.");
-            var path = BallFlight.Trajectory(spec.ExitVelo, spec.Launch, match.Park.WindMph);
-            var carry = BallFlight.FirstLandingDist(path);
-            var fence = AtBatResolver.FenceAt(match.Park, spec.Spray);
-            var homeRun = spec.Wall;
-            Require(!homeRun || carry > fence, "Wall fixture did not clear the Harbor fence.");
+            // The one flight (spec §5.6): the fixture is a contact; the park says what it does.
+            var flight = BattedBall.Of(spec.ExitVelo, spec.Launch, spec.Spray, match.Park, content.Rules);
+            Require(!spec.Wall || flight.HomeRun, "Wall fixture did not clear the Harbor fence.");
+            Require(!flight.Foul, "Fixture went foul.");
             var hit = new AtBatResult(
-                ContactQuality.Nice, true, false, spec.ExitVelo, spec.Launch, carry,
-                homeRun, false, null, null, SprayDeg: spec.Spray);
+                ContactQuality.Nice, true, false, spec.ExitVelo, spec.Launch, flight.LandingDist,
+                flight.HomeRun, false, null, null, SprayDeg: spec.Spray, Class: flight.Class);
             var preview = match.PreviewHit(hit);
             Require(preview.Grounder == spec.Ground, "Fixture trajectory classification changed.");
             Require(!spec.Wall || preview.HomeRunLikely, "Wall fixture lost its wall plant.");
@@ -124,7 +123,7 @@ namespace GrandSluggers.EditorTools
             var initialAt = Get<Dictionary<string, (double X, double Z)>>(play, "_gloveAt")[initialPos];
             var initialSpeed = FieldingResolver.ChaseSpeedFt(initialWho, preview.Frozen);
             var initialRoute = FieldingPursuit.Plan(
-                preview, match.Park, unityPath, spec.Spray, 0, initialAt.X, initialAt.Z, initialSpeed);
+                preview, match.Park, unityPath, 0, initialAt.X, initialAt.Z, initialSpeed);
             entry.initialFielder = initialWho.Id;
             entry.initialPosition = initialPos;
             entry.initialTargetX = initialRoute.X;
@@ -190,7 +189,7 @@ namespace GrandSluggers.EditorTools
                     var who = map.TryGetValue(afterOwner, out var active) ? active : preview.Fielder;
                     var speed = FieldingResolver.ChaseSpeedFt(who, preview.Frozen);
                     var route = FieldingPursuit.Plan(
-                        preview, match.Park, unityPath, spec.Spray, match.LivePlay.ElapsedSeconds,
+                        preview, match.Park, unityPath, match.LivePlay.ElapsedSeconds,
                         afterX, afterZ, speed);
                     frames.Add(new Frame
                     {

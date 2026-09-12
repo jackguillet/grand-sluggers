@@ -22,18 +22,22 @@
     "friction": 22,
     "restSpeed": 1.4
   },
+  "wall": {
+    "restitution": 0.48,
+    "tangential": 0.82
+  },
   "landing": {
-    "firstGrassMinSec": 0.08,
-    "grassHeightFt": 0.05
+    "firstGrassMinSec": 0.08
   },
   "classes": {
-    "grounderMaxLaunchDeg": 14,
-    "lineMinLaunchDeg": 14,
-    "lineMaxLaunchDeg": 22,
-    "lineMinExitMph": 78,
-    "homerLikelyFenceMarginFt": 15,
-    "homerLikelyLaunchMinDeg": 16,
-    "homerLikelyLaunchMaxDeg": 40,
+    "topperMaxLaunchDeg": 3,
+    "grounderMaxLaunchDeg": 10,
+    "chopperMaxLaunchDeg": 14,
+    "chopperFirstBounceFt": 30,
+    "chopperBounceHeightFt": 3,
+    "chopperMinExitMph": 70,
+    "linerMaxLaunchDeg": 22,
+    "linerMinExitMph": 78,
     "infieldLipFt": 155
   },
   "carry": {

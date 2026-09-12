@@ -37,12 +37,13 @@ public static class FieldAbilities
     public static bool IgnoresParkSlow(Character c) =>
         c.FieldAbility.Equals("burrow", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>Super Jump robs a ball clearing the fence by at most fielding.catch.superJumpRobFt (§8.4).</summary>
     public static bool AirRob(Park park, Character fielder, AtBatResult hit, RulesTable? rules = null)
     {
         if (!fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
             return false;
-        var fence = AtBatResolver.FenceAt(park, hit.SprayDeg);
-        return hit.CarryFt <= fence + Rules.Or(rules).Fielding.Abilities.AirRobPastFenceFt;
+        var ball = BattedBall.Of(hit, park, rules);
+        return ball.HomeRun && ball.FenceClearFt <= Rules.Or(rules).Fielding.Catch.SuperJumpRobFt;
     }
 
     public static PlayKind SpinCheck(Character fielder, PlayKind kind)

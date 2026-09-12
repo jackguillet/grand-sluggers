@@ -100,9 +100,11 @@ public static class PlayCamera
     {
         if (!string.IsNullOrEmpty(hit.StarSwingUsed)) return Beat.Smash;
         if (hit.HomeRun) return Beat.Homer;
-        if (FieldingResolver.IsGrounder(hit))
+        // The class table's read at the crack (§6.2): the dirt cam for a hop, the rope cam for a liner, else pull back.
+        var shape = BattedBallClasses.ByLaunch(hit.LaunchDeg, hit.ExitVeloMph);
+        if (shape.OnTheDirt())
             return hit.SprayDeg < -8 ? Beat.GrounderPull : Beat.Grounder;
-        if (FieldingResolver.IsLine(hit)) return Beat.Line;
+        if (shape == BattedBallClass.Liner) return Beat.Line;
         return Beat.Fly;
     }
 

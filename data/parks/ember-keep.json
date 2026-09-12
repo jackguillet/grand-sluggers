@@ -7,14 +7,41 @@
   "centerFenceFt": 408,
   "rightFenceFt": 338,
   "windMph": 1,
+  "windDeg": 0,
+  "fenceHeightFt": 10,
   "nightOnly": false,
   "dayOnly": false,
   "hazards": [
-    { "type": "lava_pit", "x": 38, "z": 78, "radius": 10 },
-    { "type": "lava_pit", "x": -42, "z": 96, "radius": 10 },
-    { "type": "lava_pit", "x": 12, "z": 188, "radius": 12 },
-    { "type": "fire_breath", "x": 0, "z": 250, "radius": 16 },
-    { "type": "statue", "x": 0, "z": 310, "radius": 10 }
+    {
+      "type": "lava_pit",
+      "x": 38,
+      "z": 78,
+      "radius": 10
+    },
+    {
+      "type": "lava_pit",
+      "x": -42,
+      "z": 96,
+      "radius": 10
+    },
+    {
+      "type": "lava_pit",
+      "x": 12,
+      "z": 188,
+      "radius": 12
+    },
+    {
+      "type": "fire_breath",
+      "x": 0,
+      "z": 250,
+      "radius": 16
+    },
+    {
+      "type": "statue",
+      "x": 0,
+      "z": 310,
+      "radius": 10
+    }
   ],
   "notes": "Lava pits and the captain statue's fire breath slow fielders the same way Crystal freezers do. Night fire breath reaches farther. Deep fences; Ashlord still goes yard."
 }

@@ -7,6 +7,8 @@
   "centerFenceFt": 400,
   "rightFenceFt": 330,
   "windMph": 4,
+  "windDeg": 20,
+  "fenceHeightFt": 8,
   "nightOnly": false,
   "dayOnly": false,
   "hazards": [],

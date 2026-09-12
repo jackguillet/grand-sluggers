@@ -86,7 +86,7 @@ public class InPlayTests
         var match = Match.Slice(_content, seed: 4);
         var fielding = new FieldingResolver(_content.Chemistry);
         // Deep hopper: landing is past the infield so the nearest glove cannot scoop it.
-        var hit = new AtBatResult(ContactQuality.Nice, true, false, 72, 8, 360, false, false, null, null, SprayDeg: 2);
+        var hit = FlightFixtures.Landing(match.Park, 300, 8, 2);
         var rng = new Random(4);
         var pre = fielding.Preview(hit, match.Park, match.Defense.Roster, match.Pitcher, rng);
         Assert.True(pre.Grounder, "launch 8 must be a hopper");
@@ -326,9 +326,9 @@ public class InPlayTests
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(fly));
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(homer));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(star));
-        Assert.True(FieldingResolver.IsLine(line));
-        Assert.True(FieldingResolver.IsGrounder(hopper));
-        Assert.False(FieldingResolver.IsGrounder(fly));
+        Assert.Equal(BattedBallClass.Liner, BattedBallClasses.ByLaunch(line.LaunchDeg, line.ExitVeloMph));
+        Assert.True(BattedBallClasses.ByLaunch(hopper.LaunchDeg, hopper.ExitVeloMph).OnTheDirt());
+        Assert.False(BattedBallClasses.ByLaunch(fly.LaunchDeg, fly.ExitVeloMph).OnTheDirt());
     }
 
     [Fact]
