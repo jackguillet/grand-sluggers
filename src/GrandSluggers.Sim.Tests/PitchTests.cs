@@ -95,22 +95,38 @@ public class PitchTests
     }
 
     [Fact]
-    public void SliderBreaksLate()
+    public void BreakIsAStickVerbNotAType()
     {
-        var fb = PitchFlight.Point("fastball", 0.4).X;
-        var early = PitchFlight.Point("slider", 0.4).X;
-        var late = PitchFlight.Point("slider", 0.95).X;
-        Assert.True(Math.Abs(early - fb) < 0.45, $"slider still true at 0.4, x={early} fb={fb}");
-        Assert.True(late > early + 0.8, $"slider bites late, early {early} late {late}");
+        // Spec §4.3: "curve" / "slider" are retired; an unknown type flies as a fastball.
+        var fb = PitchFlight.Point("fastball", 1);
+        Assert.Equal(fb, PitchFlight.Point("curve", 1));
+        Assert.Equal(fb, PitchFlight.Point("slider", 1));
+        Assert.Equal(["fastball", "changeup"], Training.CorePitches);
     }
 
     [Fact]
-    public void CurveIsTwoPlane()
+    public void BreakGrowsLateAndTheEyeSeesABendMidFlight()
     {
-        var mid = PitchFlight.Point("curve", 0.5);
-        var fb = PitchFlight.Point("fastball", 0.5);
-        Assert.True(Math.Abs(mid.X - fb.X) > 0.8, $"curve sweep, curveX {mid.X} fbX {fb.X}");
-        Assert.True(mid.Y > fb.Y + 0.4, $"curve hump, curveY {mid.Y} fbY {fb.Y}");
+        var f = Rules.Default.Pitching.Flight;
+        var straightMid = PitchFlight.Point("fastball", 0.5).X;
+        var bentMid = PitchFlight.Point("fastball", 0.5, breakX: 1).X;
+        Assert.True(bentMid > straightMid, "the stick bends the ball toward its side mid-flight");
+        var atLateFrom = PitchFlight.BreakShiftFt(f.BreakLateFrom, 1, false, f);
+        var atPlate = PitchFlight.BreakShiftFt(1, 1, false, f);
+        Assert.True(atPlate > atLateFrom, $"drift grows late: {atLateFrom} → {atPlate}");
+        Assert.Equal(f.BreakMaxFt, atPlate, 8);
+    }
+
+    [Fact]
+    public void BreakStepIsDirectionOnlyAtAPitchStatRate()
+    {
+        var r = Rules.Default;
+        var f = r.Pitching.Flight;
+        Assert.Equal(PitchFlight.BreakStep(0, 1, 0.1, 5, r), PitchFlight.BreakStep(0, 0.2, 0.1, 5, r), 8);
+        Assert.Equal(f.BreakRatePerSec * 0.1, PitchFlight.BreakStep(0, 1, 0.1, 5, r), 8);
+        Assert.True(PitchFlight.BreakStep(0, 1, 0.1, 10, r) > PitchFlight.BreakStep(0, 1, 0.1, 2, r), "a better arm bends faster");
+        Assert.Equal(0, PitchFlight.BreakStep(0, 0, 0.1, 5, r));
+        Assert.Equal(-1, PitchFlight.BreakStep(-0.9, -1, 1, 5, r));
     }
 
     [Fact]
@@ -123,11 +139,47 @@ public class PitchTests
     }
 
     [Fact]
-    public void LiveBreakMovesAFastballOffTheHeart()
+    public void FullBreakMovesTheCrossingHalfAZoneAndChargeOrChangeupTakeATenth()
     {
+        var f = Rules.Default.Pitching.Flight;
         var heart = PitchFlight.Point("fastball", 1, 0, 0);
         var broke = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1);
-        Assert.True(Math.Abs(broke.X - heart.X) > 1.0, $"break {broke.X} vs heart {heart.X}");
+        Assert.Equal(f.BreakMaxFt, broke.X - heart.X, 6);
+        Assert.Equal(StrikeZoneGeometry.HalfWidth / 2, f.BreakMaxFt, 2);
+        Assert.Equal(-f.BreakMaxFt, PitchFlight.Point("fastball", 1, 0, 0, breakX: -1).X - heart.X, 6);
+        var charged = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1, charged: true);
+        var change = PitchFlight.Point("fastball", 1, 0, 0, breakX: 1, changeup: true);
+        Assert.Equal(f.BreakMaxFt * f.BreakDampedMul, charged.X - heart.X, 6);
+        Assert.Equal(f.BreakMaxFt * f.BreakDampedMul, change.X - PitchFlight.Point("fastball", 1, 0, 0, changeup: true).X, 6);
+        // Full stick over the top of the range stays at the cap.
+        Assert.Equal(broke.X, PitchFlight.Point("fastball", 1, 0, 0, breakX: 3).X, 6);
+    }
+
+    [Fact]
+    public void EveryShapeCrossesAtItsAimAndHeightIsAPitchProperty()
+    {
+        // Spec §4.2: a normal / charged pitch crosses mid-zone; a changeup crosses lower by a pitch number.
+        var fb = PitchFlight.Point("fastball", 1);
+        Assert.Equal(StrikeZoneGeometry.CenterY, fb.Y, 6);
+        Assert.Equal(0, fb.X, 6);
+        var charged = PitchFlight.Point("fastball", 1, charged: true);
+        Assert.Equal(fb.Y, charged.Y, 6);
+        var change = PitchFlight.Point("fastball", 1, changeup: true);
+        Assert.Equal(StrikeZoneGeometry.CenterY - Rules.Default.Pitching.Shapes.ChangeupDropFt, change.Y, 6);
+        Assert.True(change.Y > StrikeZoneGeometry.Bottom, "the changeup dumps inside the zone by default");
+        Assert.True(change.Y < StrikeZoneGeometry.CenterY - StrikeZoneGeometry.Height / 4);
+    }
+
+    [Fact]
+    public void NiceReleaseAddsFivePercent()
+    {
+        var plain = new PitchCommand("fastball", 1, 0, false);
+        var nice = plain with { Nice = true };
+        Assert.Equal(Rules.Default.Pitching.Release.NiceMul, AtBatResolver.PitchSpeedMph(nice, 7) / AtBatResolver.PitchSpeedMph(plain, 7), 8);
+        var band = Rules.Default.Pitching.Release.NiceBandSec;
+        Assert.True(ChargeFeel.NiceRelease(1, band - 0.01, 0.5));
+        Assert.False(ChargeFeel.NiceRelease(1, band + 0.01, 0.5));
+        Assert.False(ChargeFeel.NiceRelease(0.9, 0, 0.5));
     }
 
     [Fact]
@@ -141,11 +193,15 @@ public class PitchTests
     }
 
     [Fact]
-    public void RubberWalkMovesPlateX()
+    public void RubberWalkMovesTheCrossingTheSameWorldDistanceAsTheBodyOnce()
     {
+        // Spec §4.2, #577: release hand and crossing both move HomeSet.PitcherWalk per unit, for every seat.
         var heart = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 0);
         var walked = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 1);
-        Assert.True(walked.X > heart.X + 0.4, $"rubber {walked.X} vs heart {heart.X}");
+        Assert.Equal(HomeSet.PitcherWalk, walked.X - heart.X, 6);
+        Assert.Equal(HomeSet.PitcherWalk, PitchFlight.Release(1).X - PitchFlight.Release(0).X, 6);
+        var command = new PitchCommand("fastball", 0, 0, false, RubberX: -0.5);
+        Assert.Equal(-0.5 * HomeSet.PitcherWalk, PitchFlight.Crossing(command).X, 6);
     }
 
     [Fact]

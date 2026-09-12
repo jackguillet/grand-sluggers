@@ -12,7 +12,7 @@ public sealed class Game : IDisposable
     readonly bool _demo;
     int _seed;
     readonly ContentCatalog _content;
-    readonly string[] _pitches = ["fastball", "changeup", "curve", "slider"];
+    readonly string[] _pitches = ["fastball", "changeup"];
     Match _match;
     Phase _phase = Phase.Title;
     string _homeCaptain = "rio";
