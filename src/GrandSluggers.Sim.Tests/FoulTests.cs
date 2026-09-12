@@ -20,7 +20,7 @@ public class FoulTests
         Assert.True(r.Foul);
         Assert.False(r.InPlay);
         Assert.False(r.HomeRun);
-        Assert.Equal(BattedBallClass.Foul, r.Class);
+        Assert.Equal(BattedBallClass.Foul, BattedBall.Of(r, park).Class);
         var ball = BattedBall.Of(r, park);
         Assert.False(FieldBounds.IsFair(ball.DecidedX, ball.DecidedZ), "the untouched ball is judged where it lands or rolls (§5.6)");
         Assert.True(r.ExitVeloMph > 1);
@@ -35,7 +35,7 @@ public class FoulTests
             var r = new AtBatResolver(_content.Chemistry).Resolve(Square(0), park, new Random(seed));
             Assert.False(r.Foul, $"seed {seed} spray {r.SprayDeg} labeled foul inside the lines");
             Assert.True(r.InPlay);
-            Assert.NotEqual(BattedBallClass.Foul, r.Class);
+            Assert.NotEqual(BattedBallClass.Foul, BattedBall.Of(r, park).Class);
         }
     }
 
@@ -67,23 +67,34 @@ public class FoulTests
         var pull = new SwingCommand(true, 0, 0, false, SprayAimDeg: 60);
         var batter = match.Batter.Id;
 
-        var first = match.Play(paint, pull);
+        // A foul is a live ball (§7.11): contact enters play, and the play commits FOUL when the ball is dead.
+        PlayEvent FoulPlay()
+        {
+            Assert.True(match.BeginAtBat(paint, pull, out var hit, out _), "a foul flight is live from contact");
+            Assert.True(hit.Foul);
+            var preview = match.PreviewHit(hit);
+            var dead = new FieldingResult(PlayKind.Foul, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
+            return match.FinishAtBat(paint, pull, hit, dead);
+        }
+
+        var first = FoulPlay();
         Assert.Equal(PlayKind.Foul, first.Kind);
         Assert.Equal("Foul.", first.Caption);
         Assert.Equal(1, match.Strikes);
         Assert.Equal(0, match.Outs);
         Assert.Equal(batter, match.Batter.Id);
 
-        var second = match.Play(paint, pull);
+        var second = FoulPlay();
         Assert.Equal(PlayKind.Foul, second.Kind);
         Assert.Equal(2, match.Strikes);
 
-        var third = match.Play(paint, pull);
+        var third = FoulPlay();
         Assert.Equal(PlayKind.Foul, third.Kind);
         Assert.Equal(2, match.Strikes);
         Assert.Equal(0, match.Outs);
         Assert.Equal(batter, match.Batter.Id);
         Assert.False(InPlay.FairContactSendsBatter(third.AtBat));
+        Assert.Equal(0, third.Outcome?.BatterToBag);
     }
 
     [Fact]

@@ -217,11 +217,20 @@ public sealed class LivePlaySystemTests
     [InlineData(PlayKind.HomeRun, false, false, true)]
     [InlineData(PlayKind.FlyOut, false, false, false)]
     [InlineData(PlayKind.Single, false, false, false)]
-    [InlineData(PlayKind.Foul, false, false, false)]
+    [InlineData(PlayKind.Foul, true, false, false)]
     public void DeadBallCompletionCannotResolveACatchThrowEffectOrOrdinaryLiveBall(
         PlayKind kind, bool caught, bool throwing, bool effectInFlight)
     {
         Assert.False(InPlay.DeadBallResultReady(kind, 100, 4, caught, throwing, effectInFlight));
+    }
+
+    [Fact]
+    public void AFoulNobodyCaughtIsADeadBallResultOnceItsCallIsIn()
+    {
+        // §7.11: dead at the verdict plus the spectacle beat, never before it.
+        Assert.True(InPlay.HasDeadBallResult(PlayKind.Foul));
+        Assert.True(InPlay.DeadBallResultReady(PlayKind.Foul, 100, 4, false, false, false));
+        Assert.False(InPlay.DeadBallResultReady(PlayKind.Foul, 4.1, 4, false, false, false));
     }
 
     (Match Match, AtBatResult Hit, FieldingResult Field) GrounderOnFirst()

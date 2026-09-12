@@ -149,7 +149,7 @@ public sealed class AtBatResolver
             SprayDeg: spray,
             Foul: ball.Foul,
             InZone: input.PitchInZone,
-            Class: ball.Class);
+            Class: ball.Shape);
     }
 
     /// <summary>

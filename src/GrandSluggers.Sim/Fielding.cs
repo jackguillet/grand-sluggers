@@ -33,7 +33,8 @@ public sealed class FieldingResolver
         IReadOnlyList<Character> defense,
         Character pitcher,
         Random rng,
-        bool night = false)
+        bool night = false,
+        IReadOnlyDictionary<string, Character>? gloves = null)
     {
         // One flight for the preview, the ring, and the homer call (§5.6): the clipped path in this park.
         var ball = BattedBall.Of(hit, park, _rules);
@@ -43,7 +44,7 @@ public sealed class FieldingResolver
         var shape = ball.Shape;
         var grounder = shape.OnTheDirt();
         var line = shape == BattedBallClass.Liner;
-        var assigned = Assign(defense, pitcher);
+        var assigned = Assign(defense, pitcher, gloves);
         var seed = new FieldingPreview(
             pitcher, "P", null, hang, landing.X, landing.Z, shape, false, false, false, 10, Foul: ball.Foul, Ball: ball);
         var pursuit = FieldingPursuit.Choose(
@@ -65,7 +66,7 @@ public sealed class FieldingResolver
             }
         }
         var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park, _rules);
-        var buddy = Buddy(defense, pitcher, fielder, pos, buddyPlant.X, buddyPlant.Z);
+        var buddy = Buddy(assigned, fielder, pos, buddyPlant.X, buddyPlant.Z);
         var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night, _rules) && !FieldAbilities.IgnoresParkSlow(fielder))
                      || hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < _rules.Fielding.Park.ShellWarpChance)
@@ -87,9 +88,10 @@ public sealed class FieldingResolver
         Random rng,
         GloveItem? glove = null,
         FieldingPreview? pre = null,
-        bool night = false)
+        bool night = false,
+        IReadOnlyDictionary<string, Character>? gloves = null)
     {
-        var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night);
+        var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night, gloves);
         var fr = _rules.Fielding;
         var carry = _rules.Flight.Carry;
         var ball = shown.Ball ?? BattedBall.Of(hit, park, _rules);
@@ -104,6 +106,8 @@ public sealed class FieldingResolver
         if (shown.Chomped)
             return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true,
                 Feat: CatchFeat(shown, hit, park));
+        if (shown.Foul)
+            return ResolveFoul(hit, shown, rng);
 
         var fielder = shown.Fielder;
         var pos = shown.Position;
@@ -173,7 +177,7 @@ public sealed class FieldingResolver
         var outPlay = gloveScore + roll.Bonus > roll.Threshold + beat && toBall < range * fr.Catch.GroundRangeMul && !shown.Frozen && !shown.Warped;
         if (outPlay)
         {
-            var cut = Cutoff(defense, pitcher, fielder);
+            var cut = Cutoff(defense, Assign(defense, pitcher, gloves), fielder);
             var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng), _rules);
             var energy = InPlay.Energy(hit, _rules);
             var bobble = InPlay.Bobbles(energy, fielder, rng, glove, _rules);
@@ -190,6 +194,37 @@ public sealed class FieldingResolver
         return new FieldingResult(
             groundKind,
             fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
+    }
+
+    /// <summary>
+    /// A foul flight (§7.11): the glove from the foul pool that gets under it before it lands
+    /// catches it for an out; otherwise it is dead where the untouched path says (the live
+    /// ball then holds the camera until that instant). A foul roller is never an out here.
+    /// </summary>
+    FieldingResult ResolveFoul(AtBatResult hit, FieldingPreview shown, Random rng)
+    {
+        var fr = _rules.Fielding;
+        var fielder = shown.Fielder;
+        var dead = new FieldingResult(PlayKind.Foul, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
+        if (shown.Grounder || shown.Frozen) return dead;
+        // Into the stands: a catch at the rail is a rob, by the glove's reach over that wall (§8.4).
+        if (shown.Ball is { LeavesInTheAir: true } leaving && !FlyCatch.CanRob(leaving.WallClearFt, fielder, null, false, _rules))
+            return dead;
+        var range = fr.Range.BaseFt + fielder.Stats.Field * fr.Range.FtPerField + fielder.Stats.Run * fr.Range.FtPerRun
+                    + FieldAbilities.FlyRangeBonus(fielder, _rules) + FieldAbilities.GroundRangeBonus(fielder, _rules);
+        var speed = fr.Chase.BaseFtPerSec + fielder.Stats.Run * fr.Chase.FtPerSecPerRun;
+        var start = Diamond.Positions[shown.Position];
+        var toBall = Diamond.Dist(start.X, start.Z, shown.LandingX, shown.LandingZ);
+        var arrive = toBall / Math.Max(fr.Chase.MinFtPerSec, speed);
+        var reached = shown.Line
+            ? arrive <= shown.HangTimeSec && toBall < CatchWindowFt(shown.CatchRadius, false, false, _rules) * fr.Catch.LineWindowMul
+            : arrive <= shown.HangTimeSec - fr.Catch.FlyWindowLeadSec && toBall < range * fr.Catch.FlyRangeMul;
+        if (!reached) return dead;
+        var drop = (shown.Heatball && rng.NextDouble() < fr.Drops.Heatball)
+                   || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
+        return drop
+            ? dead
+            : new FieldingResult(PlayKind.FlyOut, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
     }
 
     public (Character Fielder, string Pos) NearestPublic(
@@ -429,8 +464,7 @@ public sealed class FieldingResolver
     }
 
     Character? Buddy(
-        IReadOnlyList<Character> defense,
-        Character pitcher,
+        IReadOnlyDictionary<string, Character> keyed,
         Character fielder,
         string fielderPos,
         double x,
@@ -439,7 +473,6 @@ public sealed class FieldingResolver
         if (!IsOutfield(fielderPos)) return null;
         Character? best = null;
         var bestD = double.MaxValue;
-        var keyed = Assign(defense, pitcher);
         foreach (var pos in new[] { "LF", "CF", "RF" })
         {
             if (!keyed.TryGetValue(pos, out var c) || c.Id == fielder.Id) continue;
@@ -451,17 +484,48 @@ public sealed class FieldingResolver
         return best;
     }
 
-    static Character? Cutoff(IReadOnlyList<Character> defense, Character pitcher, Character from)
+    static Character? Cutoff(IReadOnlyList<Character> defense, IReadOnlyDictionary<string, Character> keyed, Character from)
     {
-        var keyed = Assign(defense, pitcher);
         if (keyed.TryGetValue("SS", out var ss) && ss.Id != from.Id) return ss;
         if (keyed.TryGetValue("2B", out var two) && two.Id != from.Id) return two;
         return defense.FirstOrDefault(c => c.Id != from.Id);
     }
 
+    /// <summary>The defensive alignment: the team's glove diamond (§8.1) with whoever is on the mound now.</summary>
+    public static Dictionary<string, Character> Assign(Team team, Character pitcher) =>
+        Assign(team.Roster, pitcher, team.Gloves);
+
+    /// <summary>
+    /// Positions from the lineup's glove diamond, not roster order (§8.1). When the pitcher on the
+    /// mound is not the diamond's P (a swap, §4.7), the old pitcher takes the vacated glove. Without
+    /// a diamond the roster order stands in for it, P first.
+    /// </summary>
+    public static Dictionary<string, Character> Assign(
+        IReadOnlyList<Character> defense, Character pitcher, IReadOnlyDictionary<string, Character>? gloves)
+    {
+        if (gloves is not null && gloves.TryGetValue("P", out var diamondP) && Diamond.Order.All(gloves.ContainsKey))
+        {
+            var map = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase);
+            foreach (var pos in Diamond.Order) map[pos] = gloves[pos];
+            if (!diamondP.Id.Equals(pitcher.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                var vacated = Diamond.Order.FirstOrDefault(pos => gloves[pos].Id.Equals(pitcher.Id, StringComparison.OrdinalIgnoreCase));
+                if (vacated is not null)
+                {
+                    map[vacated] = diamondP;
+                    map["P"] = pitcher;
+                    return map;
+                }
+            }
+            else
+                return map;
+        }
+        return Assign(defense, pitcher);
+    }
+
     public static Dictionary<string, Character> Assign(IReadOnlyList<Character> defense, Character pitcher)
     {
-        var map = new Dictionary<string, Character> { ["P"] = pitcher };
+        var map = new Dictionary<string, Character>(StringComparer.OrdinalIgnoreCase) { ["P"] = pitcher };
         var rest = defense.Where(c => c.Id != pitcher.Id).ToList();
         var i = 0;
         foreach (var pos in Diamond.Order)
