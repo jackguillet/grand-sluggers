@@ -311,15 +311,15 @@ public sealed class AtBatResolver
     public static bool CpuSacBuntSpot(bool inZone, bool runnerOnFirst, int outs, double roll, RulesTable? rules = null) =>
         inZone && runnerOnFirst && outs < 2 && roll < Rules.Or(rules).Batting.Cpu.SacBuntChance;
 
+    /// <summary>Speed by shape, Pitch stat and charge (pitching.speed); a Nice! release adds pitching.release.niceMul (spec §4.1).</summary>
     public static double PitchSpeedMph(PitchCommand pitch, int pitchStat, RulesTable? rules = null)
     {
-        var sp = Rules.Or(rules).Pitching.Speed;
-        var changeup = pitch.Changeup || pitch.Type == "changeup";
-        var baseSpeed = changeup ? sp.ChangeupMph
-            : pitch.Type == "curve" ? sp.CurveMph
-            : pitch.Type == "slider" ? sp.SliderMph
-            : sp.FastballMph;
+        var r = Rules.Or(rules);
+        var sp = r.Pitching.Speed;
+        var changeup = pitch.IsChangeup;
+        var baseSpeed = changeup ? sp.ChangeupMph : sp.FastballMph;
         var speed = baseSpeed + pitchStat * sp.MphPerPitchStat + (changeup ? pitch.Charge01 * sp.ChangeupChargeMph : pitch.Charge01 * sp.ChargeMph);
+        if (pitch.Nice) speed *= r.Pitching.Release.NiceMul;
         if (pitch.Star) speed *= sp.StarSpeedMul;
         return speed;
     }

@@ -19,6 +19,10 @@ public static class ChargeFeel
     public static bool AtMax(double fill01, double secondsPastFull, double maxHold) =>
         fill01 >= 1 && secondsPastFull <= maxHold;
 
+    /// <summary>A release inside the first <c>pitching.release.niceBandSec</c> of MAX is Nice! (spec §4.1).</summary>
+    public static bool NiceRelease(double fill01, double secondsPastFull, double maxHold, RulesTable? rules = null) =>
+        AtMax(fill01, secondsPastFull, maxHold) && secondsPastFull <= Rules.Or(rules).Pitching.Release.NiceBandSec;
+
     public static bool IsSlap(double effective01) => effective01 < SlapBelow;
 
     public static bool IsCharge(double effective01) => effective01 >= ChargeAt;
@@ -315,6 +319,22 @@ public static class AtBatMotion
 
     public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>
         (pressAt + (bunt ? 0 : Motion.SwingContact) - plateAt) * 60;
+
+    /// <summary>
+    /// When the CPU batter commits (spec §3, §5.9): the latest square press (plate − contact)
+    /// less batting.cpu.decideLeadSec, from the trajectory as it stands then. A human who has
+    /// already pressed is in the same position: the judgment still reads the final crossing.
+    /// </summary>
+    public static double CpuDecisionTime(double plateAt, RulesTable? rules = null) =>
+        plateAt - Motion.SwingContact - Rules.Or(rules).Batting.Cpu.DecideLeadSec;
+
+    /// <summary>A CPU swing cannot start before the decision: the judged error is clamped to what the bat can show.</summary>
+    public static SwingCommand CommitCpuSwing(SwingCommand swing, double plateAt, RulesTable? rules = null)
+    {
+        if (!swing.Swing) return swing;
+        var earliest = SwingErrorFrames(CpuDecisionTime(plateAt, rules), plateAt, swing.Bunt);
+        return swing.TimingErrorFrames < earliest ? swing with { TimingErrorFrames = earliest } : swing;
+    }
 
     public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
         plateAt + errorFrames / 60 - (bunt ? 0 : Motion.SwingContact);

@@ -64,6 +64,8 @@ public static class HomeSet
     public const double BatterX = -BoxX;
     public const double BatterZ = 3.0;
     public const double BatterWalk = 2.4;
+    /// <summary>Feet the pitcher's body, release hand, and crossing move per unit of rubber walk (spec §4.2): once, the same for both seats.</summary>
+    public const double PitcherWalk = 2.4;
     public const double BatterChestY = 3.2;
 
     /// <summary>
