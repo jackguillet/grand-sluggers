@@ -615,10 +615,23 @@ public sealed class PitchFactorRules
     [Chance] public double SourDampPerPitch { get; init; } = 0.05;
 }
 
+/// <summary>
+/// Items after contact (§12): each is a field effect with a duration, never a kind conversion.
+/// A peel slips the fielder who steps on it, a rocket dazes the body it hits, a POW hops every
+/// ball on the dirt once. They add time; the geometry then decides the play.
+/// </summary>
 public sealed class OffenseItemRules
 {
     [Chance] public double CpuThrowChance { get; init; } = 0.4;
     [Chance] public double RocketDazeChance { get; init; } = 0.55;
+    /// <summary>Headless flight of the item from the dugout to the body (the client lands its own throw and calls ApplyItem).</summary>
+    [Positive] public double FlySec { get; init; } = 0.9;
+    /// <summary>A fielder on a peel cannot take the ball for this long.</summary>
+    [Positive] public double SlipSec { get; init; } = 0.8;
+    /// <summary>A dazed fielder cannot take the ball for this long.</summary>
+    [Positive] public double DazeSec { get; init; } = 0.8;
+    /// <summary>A POW keeps every ball on the dirt hopping, unscoopable, for this long.</summary>
+    [Positive] public double PowHopSec { get; init; } = 0.8;
 }
 
 /// <summary>
@@ -714,7 +727,6 @@ public sealed class FlightRules
     public WallRules Wall { get; init; } = new();
     public LandingRules Landing { get; init; } = new();
     public BattedBallClassRules Classes { get; init; } = new();
-    public CarryBandRules Carry { get; init; } = new();
     public DeadBallRules DeadBall { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
@@ -723,7 +735,6 @@ public sealed class FlightRules
         RulesValidation.Order(source, "flight.classes.topperMaxLaunchDeg", Classes.TopperMaxLaunchDeg, Classes.GrounderMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.grounderMaxLaunchDeg", Classes.GrounderMaxLaunchDeg, Classes.ChopperMaxLaunchDeg, errors);
         RulesValidation.Order(source, "flight.classes.chopperMaxLaunchDeg", Classes.ChopperMaxLaunchDeg, Classes.LinerMaxLaunchDeg, errors);
-        RulesValidation.Order(source, "flight.carry.doubleFt", Carry.DoubleFt, Carry.TripleFt, errors);
     }
 }
 
@@ -783,14 +794,6 @@ public sealed class BattedBallClassRules
 }
 
 /// <summary>Hit type by carry when nobody catches it. P3 replaces these with runner geometry.</summary>
-public sealed class CarryBandRules
-{
-    public double TripleFt { get; init; } = 330;
-    public double DoubleFt { get; init; } = 250;
-    public double LineDoubleFt { get; init; } = 180;
-    public double GroundDoubleFt { get; init; } = 90;
-}
-
 public sealed class DeadBallRules
 {
     public double MinSec { get; init; } = 2.4;
@@ -806,14 +809,15 @@ public sealed class DeadBallRules
 public sealed class FieldingRules
 {
     public ChaseRules Chase { get; init; } = new();
+    public ReactionRules Reaction { get; init; } = new();
+    public CoverRules Cover { get; init; } = new();
     public FieldDashRules Dash { get; init; } = new();
     public CatchRules Catch { get; init; } = new();
-    public RangeRules Range { get; init; } = new();
     public DropRules Drops { get; init; } = new();
-    public GroundOutRollRules GroundOut { get; init; } = new();
     public WallPlantRules WallPlant { get; init; } = new();
     public FieldAbilityRules Abilities { get; init; } = new();
     public ThrowRules Throw { get; init; } = new();
+    public OverthrowRules Overthrow { get; init; } = new();
     public CatcherRules Catcher { get; init; } = new();
     public ThrowChemistryRules Chem { get; init; } = new();
     public BobbleRules Bobble { get; init; } = new();
@@ -823,7 +827,62 @@ public sealed class FieldingRules
     internal void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "fielding.catcher.cpuReleaseMinSec", Catcher.CpuReleaseMinSec, Catcher.CpuReleaseMaxSec, errors);
+        RulesValidation.Order(source, "fielding.chem.slantLateralMinFt", Chem.SlantLateralMinFt, Chem.SlantLateralMaxFt, errors);
+        RulesValidation.Order(source, "fielding.throw.minFtPerSec", Throw.MinFtPerSec, Throw.BaseFtPerSec, errors);
     }
+}
+
+/// <summary>
+/// Reaction lockout after contact before a body moves, by position (§8.2, reference frames → seconds).
+/// The camera cut to the diamond happens at the pitcher's. The CPU fielder's delay before a throw
+/// is <c>throwBaseSec − Field × throwPerFieldSec</c> (§8.8), × the difficulty's reaction multiplier.
+/// </summary>
+public sealed class ReactionRules
+{
+    [Positive] public double PitcherSec { get; init; } = 0.42;
+    [Positive] public double CatcherSec { get; init; } = 0.67;
+    [Positive] public double FirstSec { get; init; } = 0.27;
+    [Positive] public double SecondSec { get; init; } = 0.25;
+    [Positive] public double ThirdSec { get; init; } = 0.30;
+    [Positive] public double ShortSec { get; init; } = 0.28;
+    [Positive] public double OutfieldSec { get; init; } = 0.83;
+    [Positive] public double ThrowBaseSec { get; init; } = 0.35;
+    public double ThrowPerFieldSec { get; init; } = 0.02;
+    [Positive] public double ThrowMinSec { get; init; } = 0.08;
+
+    /// <summary>Seconds after contact before the body at <paramref name="pos"/> may move.</summary>
+    public double LockoutSec(string pos) => pos switch
+    {
+        "P" => PitcherSec,
+        "C" => CatcherSec,
+        "1B" => FirstSec,
+        "2B" => SecondSec,
+        "3B" => ThirdSec,
+        "SS" => ShortSec,
+        _ => OutfieldSec
+    };
+}
+
+/// <summary>Cover, cutoff and backup bodies (§8.7): a flat speed (D11) after a start delay; a throw is caught inside the cover radius of its target.</summary>
+public sealed class CoverRules
+{
+    [Positive] public double FtPerSec { get; init; } = 28;
+    /// <summary>Cover starts walking this long after contact.</summary>
+    public double StartSec { get; init; } = 0.23;
+    public double StopFt { get; init; } = 1.2;
+    /// <summary>A throw landing farther than this from the receiver is not caught: it skips past, live (§8.5).</summary>
+    [Positive] public double RadiusFt { get; init; } = 6;
+    /// <summary>The backup body stands this far behind a throw's target, on its line.</summary>
+    [Positive] public double BackupFt { get; init; } = 60;
+}
+
+/// <summary>A throw that misses its cover, or drops at an uncovered bag, rolls on from where it landed.</summary>
+public sealed class OverthrowRules
+{
+    /// <summary>A sailed throw keeps this much of its flight speed past the target.</summary>
+    [Chance] public double CarryMul { get; init; } = 0.35;
+    [Positive] public double DecelFtPerSec2 { get; init; } = 18;
+    [Positive] public double MaxRollFt { get; init; } = 45;
 }
 
 public sealed class ChaseRules
@@ -837,13 +896,8 @@ public sealed class ChaseRules
     public double ReachSlackFt { get; init; } = 0.35;
     /// <summary>After Select / R swaps the glove, the stick does not re-take it for this long.</summary>
     public double SwapLockSec { get; init; } = 0.7;
-    /// <summary>Human stick glove. §8.1 unifies it with the CPU chase (P4); the second formula lives here until then.</summary>
-    [Positive] public double StickBaseFtPerSec { get; init; } = 18;
-    public double StickFtPerSecPerRun { get; init; } = 1.8;
-    [Positive] public double StickFrozenMul { get; init; } = 0.4;
-    /// <summary>Flat bag-cover speed (D11).</summary>
-    [Positive] public double CoverFtPerSec { get; init; } = 28;
-    public double CoverStopFt { get; init; } = 1.2;
+    /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
+    [Positive] public double LooseScoopFt { get; init; } = 3.5;
 }
 
 public sealed class CatchRules
@@ -870,19 +924,8 @@ public sealed class CatchRules
     public double SuperJumpWindowSec { get; init; } = 0.16;
     public double GrowWindowSec { get; init; } = 0.08;
     public double ClamberWindowSec { get; init; } = 0.12;
-    /// <summary>Resolver fly catch: the glove must arrive this long before hang.</summary>
-    public double FlyWindowLeadSec { get; init; } = 0.25;
-    public double LineWindowMul { get; init; } = 3.6;
-    public double FlyRangeMul { get; init; } = 3.2;
-    public double GroundRangeMul { get; init; } = 2.5;
     public double BuddyPlantFt { get; init; } = 26;
     public double BuddyJumpHoldSec { get; init; } = 0.18;
-    public double FlyThrowDelaySec { get; init; } = 0.35;
-    /// <summary>CPU dead-stick catch beats, as shipped. §8.3 replaces them with the radius at the window (P4).</summary>
-    public double LineCatchLeadSec { get; init; } = 0.12;
-    public double LineCatchMaxBallY { get; init; } = 8;
-    public double FlyCatchLeadSec { get; init; } = 0.18;
-    public double GrounderScoopMaxBallY { get; init; } = 3.2;
     public double HeldBallY { get; init; } = 2.2;
     public double BuddyHeldBallY { get; init; } = 6.4;
     public double BuddyLeapBallY { get; init; } = 2.2;
@@ -905,29 +948,11 @@ public sealed class FieldDashRules
     public double ItemSmashFt { get; init; } = 24;
 }
 
-public sealed class RangeRules
-{
-    [Positive] public double BaseFt { get; init; } = 24;
-    public double FtPerField { get; init; } = 2.8;
-    public double FtPerRun { get; init; } = 1.8;
-    public double ClamberFt { get; init; } = 18;
-}
-
 public sealed class DropRules
 {
     [Chance] public double Heatball { get; init; } = 0.35;
     [Chance] public double PhonySwing { get; init; } = 0.35;
     [Chance] public double Frozen { get; init; } = 0.4;
-}
-
-/// <summary>The infield out/hit roll (spec A.4 #37). P4 replaces it with arrival geometry; the numbers live here until then.</summary>
-public sealed class GroundOutRollRules
-{
-    public double RollSpan { get; init; } = 4;
-    public double GloveMul { get; init; } = 4;
-    public double Bonus { get; init; } = 3;
-    public double Threshold { get; init; } = 7;
-    public double PerfectBeat { get; init; } = 2.5;
 }
 
 public sealed class WallPlantRules
@@ -949,25 +974,29 @@ public sealed class FieldAbilityRules
 }
 
 /// <summary>
-/// Throw clocks as shipped: the verdict clock (<see cref="InPlay.ThrowSec"/>) and the live
-/// flight clock the client played (a fourth formula, spec A.4 #40). P4 collapses them into one.
+/// The one throw model (§8.5): <c>throwSec = releaseSec + dist / (baseFtPerSec × arm × chem × ability)</c>
+/// with <c>arm = armBase + Field × armPerField</c>. It flies the ball and judges the bag, for every
+/// arm on the field, the catcher's gun included. Lateral error σ = (11 − Field) × lateralSigmaPerFieldDeficitFt.
 /// </summary>
 public sealed class ThrowRules
 {
     public double ReleaseSec { get; init; } = 0.22;
-    [Positive] public double BaseFtPerSec { get; init; } = 56;
+    [Positive] public double BaseFtPerSec { get; init; } = 100;
     [Positive] public double MinFtPerSec { get; init; } = 32;
+    [Positive] public double ArmBase { get; init; } = 0.85;
+    public double ArmPerField { get; init; } = 0.03;
+    public double LateralSigmaPerFieldDeficitFt { get; init; } = 0.35;
+    /// <summary>A throw to an uncovered bag hangs as a lob this long for the cover; then it drops at the bag, live.</summary>
+    [Positive] public double LobMaxSec { get; init; } = 1.5;
+    /// <summary>A throw longer than this goes through the cutoff on the line (§8.7); the relay continues with the cutoff's arm.</summary>
+    [Positive] public double OnTheFlyFt { get; init; } = 200;
     public double HandHeightFt { get; init; } = 3.2;
     public double BagHeightFt { get; init; } = 1.2;
 }
 
+/// <summary>The catcher's release on a steal (§11.3); the gun itself is the one throw model (<see cref="ThrowRules"/>).</summary>
 public sealed class CatcherRules
 {
-    public double ReleaseSec { get; init; } = 0.12;
-    [Positive] public double BaseFtPerSec { get; init; } = 96;
-    [Positive] public double MinFtPerSec { get; init; } = 64;
-    [Positive] public double MinMul { get; init; } = 0.45;
-    [Positive] public double ErrorMul { get; init; } = 0.72;
     public double CpuReleaseBaseSec { get; init; } = 0.42;
     public double CpuReleasePerField { get; init; } = 0.014;
     public double CpuReleaseNoiseSec { get; init; } = 0.20;
@@ -978,13 +1007,18 @@ public sealed class CatcherRules
     public double CpuRemainNoiseSec { get; init; } = 0.28;
 }
 
+/// <summary>
+/// Chemistry on a throw (§8.5): good is faster; bad has a chance of a slanted throw — slower and
+/// off the cover by a lateral miss the receiver cannot reach — and is ordinary otherwise. The roll
+/// is on the input; the outcome is still the ball missing the cover.
+/// </summary>
 public sealed class ThrowChemistryRules
 {
-    [Positive] public double GoodSpeedMul { get; init; } = 1.35;
-    [Positive] public double BadSpeedMul { get; init; } = 0.70;
-    [Chance] public double BadErrorChance { get; init; } = 0.25;
-    public double BadLateralFt { get; init; } = 14;
-    public double NeutralLateralFt { get; init; } = 3;
+    [Positive] public double GoodSpeedMul { get; init; } = 1.30;
+    [Chance] public double SlantChance { get; init; } = 0.20;
+    [Positive] public double SlantSpeedMul { get; init; } = 0.70;
+    [Positive] public double SlantLateralMinFt { get; init; } = 10;
+    [Positive] public double SlantLateralMaxFt { get; init; } = 14;
 }
 
 public sealed class BobbleRules

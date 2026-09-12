@@ -2,8 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// Catcher gun on a steal. One throw to the bag — not a sim roll, not a rundown.
-/// Reuses <see cref="FieldAssist.CoverKey"/> / <see cref="FieldAssist.AfterThrowPos"/>
-/// and <see cref="InPlay.DiamondBag"/>. Camera is <see cref="PlayCamera.Beat.StealThrow"/>.
+/// Reuses <see cref="FieldAssist.CoverKey"/> and <see cref="InPlay.DiamondBag"/>. Camera is <see cref="PlayCamera.Beat.StealThrow"/>.
 /// </summary>
 public static class StealThrow
 {
@@ -22,9 +21,6 @@ public static class StealThrow
 
     public static string CoverPos(int bag) => FieldAssist.CoverKey(bag is 2 or 3 ? bag : 0);
 
-    public static string AfterThrowPos(string currentPos, int bag) =>
-        FieldAssist.AfterThrowPos(currentPos, bag);
-
     public static (double X, double Z) CatcherSpot => Diamond.Positions["C"];
 
     public static double GunDistFt(int bag)
@@ -34,23 +30,16 @@ public static class StealThrow
         return Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
     }
 
-    /// <summary>Catcher pop, release to tag. Faster than a hopper relay.</summary>
+    /// <summary>Catcher gun to the steal bag: the one throw clock (§8.5, §11.3) over the plate-to-bag distance.</summary>
     public static double GunSec(int bag, ThrowResult? thr, RulesTable? rules = null)
         => CatcherThrowSec(bag is 2 or 3 ? bag : 2, thr, rules);
 
-    /// <summary>Flight from the catcher to a named occupied or steal bag (fielding.catcher).</summary>
+    /// <summary>Flight from the catcher to a named occupied or steal bag: <see cref="InPlay.ThrowSec"/> with the catcher's arm in <paramref name="thr"/>.</summary>
     public static double CatcherThrowSec(int bag, ThrowResult? thr, RulesTable? rules = null)
     {
         if (bag is < 1 or > 3)
             throw new ArgumentOutOfRangeException(nameof(bag), "Catcher throws need an occupied or steal bag.");
-        var k = Rules.Or(rules).Fielding.Catcher;
-        var mul = thr?.SpeedMul ?? 1;
-        if (thr is { Error: true }) mul *= k.ErrorMul;
-        var fps = k.BaseFtPerSec * Math.Max(k.MinMul, mul);
-        var c = CatcherSpot;
-        var dest = Diamond.Bag(bag);
-        var dist = Diamond.Dist(c.X, c.Z, dest.X, dest.Z);
-        return k.ReleaseSec + dist / Math.Max(k.MinFtPerSec, fps);
+        return InPlay.ThrowSec(GunDistFt(bag), thr, rules);
     }
 
     /// <summary>

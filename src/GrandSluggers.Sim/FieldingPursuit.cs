@@ -23,6 +23,7 @@ public static class FieldingPursuit
 
     public readonly record struct Choice(Character Fielder, string Position, Route Route);
 
+    /// <param name="readySec">Play seconds when this body may start moving (the reaction lockout, §8.2); the route's travel time starts there.</param>
     public static Route Plan(
         FieldingPreview preview,
         Park park,
@@ -31,19 +32,22 @@ public static class FieldingPursuit
         double fromX,
         double fromZ,
         double speedFtPerSec,
-        RulesTable? rules = null)
+        RulesTable? rules = null,
+        double readySec = 0)
     {
         var r = Rules.Or(rules);
         var hang = BallFlight.HangTime(path, r);
         var live = BallFlight.PointAt(path, nowSec, r);
+        var startSec = Math.Max(nowSec, readySec);
         if (FieldingResolver.InAir(preview, live.Y, nowSec, hang))
         {
             var plant = FlyCatch.ChaseTarget(preview, park, r);
-            return Fixed(plant.X, plant.Z, hang, nowSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
+            return Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
         }
-        return Rolling(path, park, nowSec, fromX, fromZ, speedFtPerSec, r);
+        return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, r);
     }
 
+    /// <param name="readyAt">Per position, the play seconds each body may start moving (the reaction lockout, §8.2).</param>
     public static Choice Choose(
         IReadOnlyDictionary<string, Character> assigned,
         IReadOnlyList<string> positions,
@@ -52,7 +56,8 @@ public static class FieldingPursuit
         IReadOnlyList<Sample> path,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null,
         double nowSec = 0,
-        RulesTable? rules = null)
+        RulesTable? rules = null,
+        IReadOnlyDictionary<string, double>? readyAt = null)
     {
         Choice? best = null;
         foreach (var position in positions)
@@ -62,7 +67,8 @@ public static class FieldingPursuit
                 ? live
                 : Diamond.Positions[position];
             var speed = FieldingResolver.ChaseSpeedFt(fielder, preview.Frozen, rules);
-            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules);
+            var ready = readyAt != null && readyAt.TryGetValue(position, out var r0) ? r0 : 0;
+            var route = Plan(preview, park, path, nowSec, start.X, start.Z, speed, rules, ready);
             var candidate = new Choice(fielder, position, route);
             if (best is null || Better(candidate.Route, best.Value.Route))
                 best = candidate;
@@ -75,6 +81,7 @@ public static class FieldingPursuit
         IReadOnlyList<Sample> path,
         Park park,
         double nowSec,
+        double startSec,
         double fromX,
         double fromZ,
         double speedFtPerSec,
@@ -90,7 +97,7 @@ public static class FieldingPursuit
             // Gone over a wall: nothing past this sample is a pickup.
             if (sample.Event is SampleEvent.Fence or SampleEvent.Stands) break;
             if (!FieldBounds.Inside(park, sample.X, sample.Z)) continue;
-            var route = Fixed(sample.X, sample.Z, sample.T, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
+            var route = Fixed(sample.X, sample.Z, sample.T, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
             lastLegal = route;
             if (route.Reachable) return route;
         }
@@ -98,7 +105,7 @@ public static class FieldingPursuit
         if (lastLegal is not null) return lastLegal.Value;
         var live = BallFlight.PointAt(path, nowSec, rules);
         var legal = FieldBounds.Clamp(park, live.X, live.Z);
-        return Fixed(legal.X, legal.Z, nowSec, nowSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
+        return Fixed(legal.X, legal.Z, nowSec, startSec, fromX, fromZ, speedFtPerSec, airCatch: false, rules);
     }
 
     static Route Fixed(

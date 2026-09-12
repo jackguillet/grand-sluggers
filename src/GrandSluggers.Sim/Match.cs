@@ -507,6 +507,20 @@ public sealed class Match
     internal bool RollBobble(double energy, Character who) =>
         InPlay.Bobbles(energy, who, _rng, DefenseGlove, Rules);
 
+    /// <summary>
+    /// A drop on the catch is allowed only for star effects (§8.6, fielding.drops): a heatball, a
+    /// phony swing, a frozen glove. Plain baseball never rolls a drop. One seeded stream (S-92).
+    /// </summary>
+    internal bool RollDrop(AtBatResult hit, bool frozen)
+    {
+        var d = Rules.Fielding.Drops;
+        var heat = hit.StarPitchUsed is "heatball" or "caskball";
+        if (heat && _rng.NextDouble() < d.Heatball) return true;
+        if (hit.StarSwingUsed == "phony-swing" && _rng.NextDouble() < d.PhonySwing) return true;
+        if (frozen && _rng.NextDouble() < d.Frozen) return true;
+        return false;
+    }
+
     /// <summary>The CPU catcher's release on a steal, from the one seeded stream (S-92).</summary>
     internal double RollCatcherRelease(Character catcher) =>
         StealThrow.CpuReleaseSec(catcher, _rng, Rules);
@@ -1237,8 +1251,9 @@ public sealed class Match
         if (moment is not null && !liveNarrated)
             caption = $"{LivePlay.Caption} {caption}";
 
-        var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple
-                    && (field.Bobble || field.Throw is { Error: true });
+        // The ERROR (§8.5, §8.6): a throw that skipped past its cover let the offense take what it took.
+        // A bobble is only time; it is never the error by itself.
+        var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple && field.ThrowSailed;
         LivePlay.Reset();
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,

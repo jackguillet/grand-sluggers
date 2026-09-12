@@ -211,7 +211,9 @@ public enum PlayKind
     HitByPitch,
     Strikeout,
     StolenBase,
-    CaughtStealing
+    CaughtStealing,
+    /// <summary>The ball is live and nobody has decided it yet: Complete names the play from the bodies (§10.6). Never stamped.</summary>
+    InPlay
 }
 
 public enum DefensiveFeat
@@ -365,8 +367,13 @@ public enum SampleEvent
 /// </summary>
 public readonly record struct Sample(double T, double Dist, double Height, double X = 0, double Z = 0, SampleEvent Event = SampleEvent.None);
 
+/// <summary>
+/// One throw's input (§8.5): the pair's chemistry, the speed multiplier (arm × chemistry × ability)
+/// the one throw clock flies it on, whether bad chemistry slanted it, and the signed lateral miss
+/// in feet at the target. Whether it is caught is the receiver's radius, decided where it lands.
+/// </summary>
 public sealed record ThrowResult(
     Chemistry Relation,
     double SpeedMul,
-    bool Error,
+    bool Slanted,
     double LateralFt = 0);

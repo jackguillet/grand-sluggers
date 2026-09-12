@@ -52,7 +52,8 @@ public sealed class FieldingResolver
             PursuitPool(shape, ball.Foul),
             seed,
             park,
-            samples);
+            samples,
+            readyAt: ReactionLockouts(_rules));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
         var warped = false;
@@ -80,6 +81,11 @@ public sealed class FieldingResolver
             heat, furnace, freeze, radius, warped, Chomped: chomped, Foul: ball.Foul, Ball: ball);
     }
 
+    /// <summary>
+    /// What the batted ball decides on its own, before any glove (§7): a homer at the crossing, a
+    /// foul on the untouched path, a chomped fly. Everything else is <see cref="PlayKind.InPlay"/>:
+    /// the live ball's gloves, throws and runner bodies decide it, never a roll (§8.3, §8.8, A.4 #37).
+    /// </summary>
     public FieldingResult Resolve(
         AtBatResult hit,
         Park park,
@@ -91,145 +97,17 @@ public sealed class FieldingResolver
         bool night = false,
         IReadOnlyDictionary<string, Character>? gloves = null)
     {
+        _ = glove;
         var shown = pre ?? Preview(hit, park, defense, pitcher, rng, night, gloves);
-        var fr = _rules.Fielding;
-        var carry = _rules.Flight.Carry;
         var ball = shown.Ball ?? BattedBall.Of(hit, park, _rules);
-        if (shown.HomeRunLikely)
-        {
-            // The rob is a height (§8.4): the ability's reach over the fence against the ball's clearance at the crossing.
-            if (ParkHazards.CanClamberRob(park, shown.Fielder, hit, _rules) || FieldAbilities.AirRob(park, shown.Fielder, hit, _rules))
-                return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy,
-                    Feat: CatchFeat(shown, hit, park));
-            return new FieldingResult(PlayKind.HomeRun, null, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace);
-        }
-        if (shown.Chomped)
-            return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true,
-                Feat: CatchFeat(shown, hit, park));
-        if (shown.Foul)
-            return ResolveFoul(hit, shown, rng);
-
-        var fielder = shown.Fielder;
-        var pos = shown.Position;
-        var landingX = shown.LandingX;
-        var landingZ = shown.LandingZ;
-        var hang = shown.HangTimeSec;
-        var grounder = shown.Grounder;
-        var line = shown.Line;
-        var furnace = shown.Furnace;
-        var heatball = shown.Heatball;
-        var range = fr.Range.BaseFt + fielder.Stats.Field * fr.Range.FtPerField + fielder.Stats.Run * fr.Range.FtPerRun
-                    + FieldAbilities.FlyRangeBonus(fielder, _rules) + FieldAbilities.GroundRangeBonus(fielder, _rules);
-        if (ParkHazards.CanClamber(park, fielder))
-            range += fr.Range.ClamberFt;
-        var speed = fr.Chase.BaseFtPerSec + fielder.Stats.Run * fr.Chase.FtPerSecPerRun; // ft/s
-        if (shown.Frozen) speed *= fr.Chase.FrozenMul;
-        var start = Diamond.Positions[pos];
-        var toBall = Diamond.Dist(start.X, start.Z, landingX, landingZ);
-        var arrive = toBall / Math.Max(fr.Chase.MinFtPerSec, speed);
-
-        if (line)
-        {
-            var window = CatchWindowFt(shown.CatchRadius, false, false, _rules);
-            var reached = arrive <= hang && toBall < window * fr.Catch.LineWindowMul && !shown.Frozen;
-            if (reached)
-            {
-                var drop = (heatball && rng.NextDouble() < fr.Drops.Heatball)
-                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
-                if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
-                        Feat: CatchFeat(shown, hit, park));
-            }
-            var skipKind = hit.CarryFt >= carry.LineDoubleFt ? PlayKind.Double : PlayKind.Single;
-            skipKind = FieldAbilities.SpinCheck(fielder, skipKind);
-            return new FieldingResult(skipKind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
-        }
-
-        if (!grounder)
-        {
-            var catchWindow = hang - fr.Catch.FlyWindowLeadSec;
-            var reached = arrive <= catchWindow && toBall < range * fr.Catch.FlyRangeMul;
-            if (reached)
-            {
-                var drop = (heatball && rng.NextDouble() < fr.Drops.Heatball)
-                           || (shown.Frozen && rng.NextDouble() < fr.Drops.Frozen)
-                           || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
-                if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
-                        Feat: CatchFeat(shown, hit, park));
-            }
-
-            // Bounced then over (§1): every runner takes two. Off the wall (§7.9): the double / triple scene, a double until P3 runs it.
-            if (ball.GroundRule)
-                return new FieldingResult(PlayKind.Double, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, GroundRule: true);
-            var kind = shown.Class == BattedBallClass.Wall ? PlayKind.Double
-                : hit.CarryFt >= carry.TripleFt ? PlayKind.Triple
-                : hit.CarryFt >= carry.DoubleFt ? PlayKind.Double
-                : PlayKind.Single;
-            kind = FieldAbilities.SpinCheck(fielder, kind);
-            return new FieldingResult(kind, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
-        }
-
-        // Spec A.4 #37: the infield out/hit is still a stat roll here (fielding.groundOut). P4 replaces it with arrival geometry.
-        var roll = fr.GroundOut;
-        var gloveScore = fielder.Stats.Field + rng.NextDouble() * roll.RollSpan + (glove?.ErrorReduction ?? 0) * roll.GloveMul;
-        var beat = hit.Quality == ContactQuality.Perfect ? roll.PerfectBeat : 0;
-        var outPlay = gloveScore + roll.Bonus > roll.Threshold + beat && toBall < range * fr.Catch.GroundRangeMul && !shown.Frozen && !shown.Warped;
-        if (outPlay)
-        {
-            var cut = Cutoff(defense, Assign(defense, pitcher, gloves), fielder);
-            var throwRes = cut is null ? null : FieldAbilities.ApplyThrow(fielder, _chem.FieldingThrow(fielder, cut, rng), _rules);
-            var energy = InPlay.Energy(hit, _rules);
-            var bobble = InPlay.Bobbles(energy, fielder, rng, glove, _rules);
-            var knock = InPlay.KnockbackSec(energy, fielder, _rules);
-            var error = throwRes is { Error: true } || bobble;
-            return new FieldingResult(
-                error ? PlayKind.Single : PlayKind.GroundOut,
-                fielder, cut, hang, landingX, landingZ, heatball, furnace, throwRes, shown.Buddy,
-                Bobble: bobble, KnockbackSec: error ? 0 : knock);
-        }
-
-        var extra = hit.CarryFt > carry.GroundDoubleFt && hit.Quality == ContactQuality.Perfect;
-        var groundKind = FieldAbilities.SpinCheck(fielder, extra ? PlayKind.Double : PlayKind.Single);
+        var kind = shown.Chomped ? PlayKind.FlyOut
+            : shown.HomeRunLikely ? PlayKind.HomeRun
+            : shown.Foul ? PlayKind.Foul
+            : PlayKind.InPlay;
         return new FieldingResult(
-            groundKind,
-            fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
+            kind, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace,
+            Buddy: shown.Buddy, Warped: shown.Warped, Chomped: shown.Chomped, GroundRule: ball.GroundRule);
     }
-
-    /// <summary>
-    /// A foul flight (§7.11): the glove from the foul pool that gets under it before it lands
-    /// catches it for an out; otherwise it is dead where the untouched path says (the live
-    /// ball then holds the camera until that instant). A foul roller is never an out here.
-    /// </summary>
-    FieldingResult ResolveFoul(AtBatResult hit, FieldingPreview shown, Random rng)
-    {
-        var fr = _rules.Fielding;
-        var fielder = shown.Fielder;
-        var dead = new FieldingResult(PlayKind.Foul, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
-        if (shown.Grounder || shown.Frozen) return dead;
-        // Into the stands: a catch at the rail is a rob, by the glove's reach over that wall (§8.4).
-        if (shown.Ball is { LeavesInTheAir: true } leaving && !FlyCatch.CanRob(leaving.WallClearFt, fielder, null, false, _rules))
-            return dead;
-        var range = fr.Range.BaseFt + fielder.Stats.Field * fr.Range.FtPerField + fielder.Stats.Run * fr.Range.FtPerRun
-                    + FieldAbilities.FlyRangeBonus(fielder, _rules) + FieldAbilities.GroundRangeBonus(fielder, _rules);
-        var speed = fr.Chase.BaseFtPerSec + fielder.Stats.Run * fr.Chase.FtPerSecPerRun;
-        var start = Diamond.Positions[shown.Position];
-        var toBall = Diamond.Dist(start.X, start.Z, shown.LandingX, shown.LandingZ);
-        var arrive = toBall / Math.Max(fr.Chase.MinFtPerSec, speed);
-        var reached = shown.Line
-            ? arrive <= shown.HangTimeSec && toBall < CatchWindowFt(shown.CatchRadius, false, false, _rules) * fr.Catch.LineWindowMul
-            : arrive <= shown.HangTimeSec - fr.Catch.FlyWindowLeadSec && toBall < range * fr.Catch.FlyRangeMul;
-        if (!reached) return dead;
-        var drop = (shown.Heatball && rng.NextDouble() < fr.Drops.Heatball)
-                   || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
-        return drop
-            ? dead
-            : new FieldingResult(PlayKind.FlyOut, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
-    }
-
-    public (Character Fielder, string Pos) NearestPublic(
-        IReadOnlyList<Character> defense, Character pitcher, double x, double z, bool outfield) =>
-        Nearest(defense, pitcher, x, z, outfield);
 
     /// <summary>The resolved catch verb, kept as a fact so copy can change without changing behavior.</summary>
     public static DefensiveFeat CatchFeat(FieldingPreview shown, AtBatResult hit, Park park)
@@ -384,22 +262,21 @@ public sealed class FieldingResolver
     public static bool HandoffToOutfield(string currentPos, string playPos) =>
         !IsOutfield(currentPos) && IsOutfield(playPos);
 
-    /// <summary>The one CPU chase speed (fielding.chase). §8.1: human and CPU share it (P4).</summary>
-    public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable? rules = null)
+    /// <summary>The one glove speed (§8.1, fielding.chase): human stick and CPU chase share it; dash (East held) multiplies it.</summary>
+    public static double ChaseSpeedFt(Character fielder, bool frozen, RulesTable? rules = null, bool dash = false)
     {
         var c = Rules.Or(rules).Fielding.Chase;
-        return (c.BaseFtPerSec + fielder.Stats.Run * c.FtPerSecPerRun) * (frozen ? c.FrozenMul : 1);
+        return (c.BaseFtPerSec + fielder.Stats.Run * c.FtPerSecPerRun) * (frozen ? c.FrozenMul : 1)
+               * (dash ? FieldDash.ChaseMul(rules) : 1);
     }
 
-    /// <summary>
-    /// The human stick glove speed as shipped (fielding.chase.stick*), the second glove speed of
-    /// spec A.4 #42. Dash (East held) multiplies it. P4 unifies it with <see cref="ChaseSpeedFt"/>.
-    /// </summary>
-    public static double StickSpeedFt(Character fielder, bool frozen, bool dash, RulesTable? rules = null)
+    /// <summary>The reaction lockout per position (§8.2, fielding.reaction): play seconds before each body may move.</summary>
+    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null)
     {
-        var c = Rules.Or(rules).Fielding.Chase;
-        return (c.StickBaseFtPerSec + fielder.Stats.Run * c.StickFtPerSecPerRun) * (frozen ? c.StickFrozenMul : 1)
-               * (dash ? FieldDash.ChaseMul(rules) : 1);
+        var re = Rules.Or(rules).Fielding.Reaction;
+        var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        foreach (var pos in Diamond.Order) map[pos] = re.LockoutSec(pos);
+        return map;
     }
 
     public static (double X, double Z) StepToward(
@@ -414,27 +291,9 @@ public sealed class FieldingResolver
         return park == null ? next : FieldBounds.Clamp(park, next.X, next.Z);
     }
 
-    /// <summary>
-    /// Hopper with first occupied is a two-throw race. Director steps <see cref="InPlay.ThrowToBag"/>;
-    /// do not collapse it into one GroundOut.
-    /// </summary>
-    public static bool DoublePlayHopper(bool grounder, bool firstOccupied, int outs) =>
-        grounder && InPlay.DoublePlayOffered(firstOccupied, outs);
-
     /// <summary>Timed wall leap. Two good-chem outfielders under a would-be homer, not a flag on any fly.</summary>
     public static bool BuddyJumpOffered(FieldingPreview pre) =>
         pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && !pre.Line && IsOutfield(pre.Position);
-
-    static (Character Fielder, string Pos) Nearest(
-        IReadOnlyList<Character> defense,
-        Character pitcher,
-        double x,
-        double z,
-        bool outfield)
-    {
-        var keyed = Assign(defense, pitcher);
-        return NearestIn(keyed, outfield ? AirPursuitPositions : InfieldPursuitPositions, x, z, at: null);
-    }
 
     static (Character Fielder, string Pos) NearestIn(
         IReadOnlyDictionary<string, Character> keyed,
@@ -484,13 +343,6 @@ public sealed class FieldingResolver
         return best;
     }
 
-    static Character? Cutoff(IReadOnlyList<Character> defense, IReadOnlyDictionary<string, Character> keyed, Character from)
-    {
-        if (keyed.TryGetValue("SS", out var ss) && ss.Id != from.Id) return ss;
-        if (keyed.TryGetValue("2B", out var two) && two.Id != from.Id) return two;
-        return defense.FirstOrDefault(c => c.Id != from.Id);
-    }
-
     /// <summary>The defensive alignment: the team's glove diamond (§8.1) with whoever is on the mound now.</summary>
     public static Dictionary<string, Character> Assign(Team team, Character pitcher) =>
         Assign(team.Roster, pitcher, team.Gloves);
@@ -538,6 +390,12 @@ public sealed class FieldingResolver
     }
 }
 
+/// <summary>
+/// The fielding facts of one batted ball. Before the live ball runs, <see cref="Kind"/> is only
+/// what the flight decides alone (homer, foul, chomped) or <see cref="PlayKind.InPlay"/>; after
+/// Time it carries what the gloves did — who took the ball, the last throw, a bobble, a sailed
+/// throw — and Complete names the play from the bodies (§10.6).
+/// </summary>
 public sealed record FieldingResult(
     PlayKind Kind,
     Character? Fielder,
@@ -555,7 +413,14 @@ public sealed record FieldingResult(
     bool Bobble = false,
     double KnockbackSec = 0,
     DefensiveFeat Feat = DefensiveFeat.None,
-    bool GroundRule = false);
+    bool GroundRule = false,
+    /// <summary>A glove took the ball this play.</summary>
+    bool Caught = false,
+    /// <summary>A throw missed its cover and skipped past, live (§8.5, §8.6): the ERROR.</summary>
+    bool ThrowSailed = false,
+    /// <summary>The thrown item landed on its body (§12); <see cref="ItemTarget"/> is who.</summary>
+    bool ItemHit = false,
+    Character? ItemTarget = null);
 
 /// <summary>
 /// What the defense is looking at from the crack: the glove on it, the landing mark, and the

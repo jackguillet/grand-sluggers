@@ -58,24 +58,37 @@ public sealed class LiveBallScenarioTests
     }
 
     [Fact]
-    public void ClosePlayRaceAtThirdResolvesWithCpuReactions()
+    public void ClosePlayRaceAtThirdResolvesAgainstTheCpuGlove()
     {
-        var scenario = new Scenario(_content, seed: 1).Runner(2, 2);
+        // The offense sends the slowest runner from second at contact (LB) on a sharp grounder to the
+        // first baseman; the CPU glove reads the tag at third as makeable and throws there before the
+        // batter at first (§8.8 rules 3–4); the mash then decides it (§9.6).
+        var seedMatch = new Scenario(_content, seed: 5).Match;
+        var slowest = Enumerable.Range(1, seedMatch.AwayOrder.Count - 1).OrderBy(i => seedMatch.AwayOrder[i].Stats.Run).First();
+        var scenario = new Scenario(_content, seed: 5).Runner(2, slowest);
         var match = scenario.Match;
         var runner = match.Second!;
         // To the right side, away from the runner's path from second to third.
-        var hit = Grounder(scenario.Contact(), match, sprayDeg: 24);
+        var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
         var preview = match.PreviewHit(hit);
-        var field = new FieldingResult(PlayKind.GroundOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false,
-            new ThrowResult(Chemistry.Neutral, 1.0, false));
+        Assert.Equal("1B", preview.Position);
+        var field = match.ResolveFielding(hit, preview);
+        var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
         var sawIcon = false;
         var sawThrowToThird = false;
-        var play = RunToComplete(match, hit, preview, field, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu, out _,
+        var frame = 0;
+        var iconAt = -1;
+        var play = RunToComplete(match, hit, preview, field, seats, LivePlayCommandSource.Human, out _,
             observe: live =>
             {
-                if (live.Events.Contains(LiveEvent.CloseIcon)) sawIcon = true;
+                frame++;
+                if (live.Events.Contains(LiveEvent.CloseIcon)) { sawIcon = true; iconAt = frame; }
                 if (live.Throwing && live.ThrowBag == 3) sawThrowToThird = true;
-            });
+            },
+            // LB at contact sends the runner; the offense mashes a few frames after the icon (§9.6).
+            runPad: i => i < 3 ? new LivePadInput(AllAdvance: true)
+                : iconAt >= 0 && i == iconAt + 3 ? new LivePadInput(SouthDown: true)
+                : LivePadInput.Dead);
 
         Assert.True(sawThrowToThird, "with first empty and the runner going the CPU throws to the tag bag (S-37)");
         var facts = play.Outcome!;
@@ -116,7 +129,7 @@ public sealed class LiveBallScenarioTests
     }
 
     [Fact]
-    public void AHumanStickRunsTheGloveAtTheStickSpeedFromTheTable()
+    public void AHumanStickRunsTheGloveAtTheOneChaseSpeedAfterTheLockout()
     {
         var scenario = new Scenario(_content, seed: 1);
         var match = scenario.Match;
@@ -130,8 +143,12 @@ public sealed class LiveBallScenarioTests
             match.LivePlay.Apply(LivePlayCommand.Tick(Frame, pad, LivePadInput.Dead, false, LivePlayCommandSource.Human));
 
         Assert.True(match.LivePlay.PlayerFielding, "a live stick takes the glove from the CPU");
-        var who = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher)[match.LivePlay.GlovePos];
-        var expected = FieldingResolver.StickSpeedFt(who, preview.Frozen, false, match.Rules) * Frame * 30;
+        // One glove speed for human and CPU (§8.1); the body moves once its reaction lockout is over (§8.2).
+        var pos = match.LivePlay.GlovePos;
+        var who = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher)[pos];
+        var lockout = match.Rules.Fielding.Reaction.LockoutSec(pos);
+        var moving = Math.Max(0, Frame * 30 - lockout);
+        var expected = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules) * moving;
         var moved = match.LivePlay.GloveX - before.GloveX;
         Assert.InRange(moved, expected * 0.5, expected * 1.05);
     }
@@ -211,7 +228,7 @@ public sealed class LiveBallScenarioTests
         var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
         var preview = match.PreviewHit(hit);
         var field = match.ResolveFielding(hit, preview);
-        Assert.Equal(PlayKind.GroundOut, field.Kind);
+        Assert.Equal(PlayKind.InPlay, field.Kind);
         var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
         var live = match.LivePlay;
         live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, LivePlayCommandSource.Human));
@@ -280,7 +297,7 @@ public sealed class LiveBallScenarioTests
 
     static PlayEvent RunToComplete(
         Match match, AtBatResult hit, FieldingPreview preview, FieldingResult? field, LiveSeats seats,
-        LivePlayCommandSource seat, out double caughtAt, Action<LivePlaySystem>? observe = null)
+        LivePlayCommandSource seat, out double caughtAt, Action<LivePlaySystem>? observe = null, Func<int, LivePadInput>? runPad = null)
     {
         var begun = match.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, seats, 0, seat));
         Assert.True(begun.Snapshot.Active);
@@ -288,8 +305,10 @@ public sealed class LiveBallScenarioTests
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 20 && play is null; i++)
         {
-            var result = match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, seat));
-            if (caughtAt < 0 && match.LivePlay.Caught) caughtAt = match.LivePlay.ElapsedSeconds;
+            var result = match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, runPad?.Invoke(i) ?? LivePadInput.Dead, false, seat));
+            // A catch that ends the play (nobody left to run) commits on the same tick; the Glove cue still says when.
+            if (caughtAt < 0 && (match.LivePlay.Caught || match.LivePlay.Events.Contains(LiveEvent.Glove)))
+                caughtAt = match.LivePlay.ElapsedSeconds > 0 ? match.LivePlay.ElapsedSeconds : (i + 1) * Frame;
             observe?.Invoke(match.LivePlay);
             play = result.CompletedPlay;
         }

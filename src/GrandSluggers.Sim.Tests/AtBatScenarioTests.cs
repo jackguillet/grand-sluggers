@@ -606,7 +606,7 @@ public sealed class AtBatScenarioTests
         return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
     }
 
-    [Fact(Skip = "S-29 reopens at P4 (#566). P3 (#565) plays every CPU ball through the live glove, and the CPU glove catches by a full-speed chase to the landing over the stretched hang with no reaction lockout (spec A.4 #38, §8.2): 50 seeds give runs 0.40 / 0.58 per side, fly outs 16 per game, singles 1.2, doubles 0.3. The catch model is P4's to make geometric; nothing here is tuned to pass.")]
+    [Fact(Skip = "S-29 stays open after P4 (#566). The glove is geometric now (radius at the window, reaction lockout, one arm at 100 ft/s, the §8.8 table): 50 seeds give runs 0.88 / 0.40 per side, singles 3.0, doubles 0.7, HR 0.6, fly outs 13.9 per game (P3: 0.42 / 0.54, 1.2, 0.3, 15.4). What holds the band down is the fly-out rate: the stretched hang (flight.timeScale 1.65) lets any outfielder reach a routine fly after its lockout, so the contact mix, not the catch, decides it (§5.9 / §6.1). Nothing here is tuned to pass.")]
     public void S29_FiftySeedCpuGamesLandInTheBand()
     {
         // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways

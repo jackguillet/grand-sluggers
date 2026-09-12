@@ -50,8 +50,8 @@ public class ChemistryTests
     {
         var t = _content.Chemistry.FieldingThrow(_content.Must("rio"), _content.Must("nico"), new Random(1));
         Assert.Equal(Chemistry.Good, t.Relation);
-        Assert.Equal(1.35, t.SpeedMul);
-        Assert.False(t.Error);
+        Assert.Equal(1.30, t.SpeedMul);
+        Assert.False(t.Slanted);
     }
 
     [Fact]

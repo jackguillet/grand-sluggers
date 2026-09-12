@@ -87,7 +87,7 @@ public sealed class RulesTests
     }
 
     [Theory]
-    [InlineData("fielding.json", "chem", "badErrorChance", 1.4, "fielding.chem.badErrorChance must be between 0 and 1")]
+    [InlineData("fielding.json", "chem", "slantChance", 1.4, "fielding.chem.slantChance must be between 0 and 1")]
     [InlineData("fielding.json", "throw", "baseFtPerSec", 0, "fielding.throw.baseFtPerSec must be greater than 0")]
     [InlineData("running.json", "bags", "tagReachFt", -3, "running.bags.tagReachFt must be greater than 0")]
     [InlineData("batting.json", "launch", "noiseDeg", -1, "batting.launch.noiseDeg must be finite and at least 0")]

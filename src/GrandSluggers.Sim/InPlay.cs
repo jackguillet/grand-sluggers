@@ -62,14 +62,137 @@ public static class InPlay
 
     /// <summary>
     /// The one throw clock (spec §8.5, fielding.throw): release plus distance over the arm. It flies
-    /// the live ball and judges the bag; the runner bodies race it (§9.1). The flat flight clock the
-    /// client used to play is gone (A.4 #40).
+    /// the live ball and judges the bag, for every arm on the field including the catcher's gun;
+    /// the runner bodies race it (§9.1). <paramref name="thr"/> carries arm × chemistry × ability.
     /// </summary>
     public static double ThrowSec(double distFt, ThrowResult? thr, RulesTable? rules = null)
     {
         var t = Rules.Or(rules).Fielding.Throw;
         var fps = t.BaseFtPerSec * (thr?.SpeedMul ?? 1);
         return t.ReleaseSec + distFt / Math.Max(t.MinFtPerSec, fps);
+    }
+
+    /// <summary>The thrower's arm (§8.5): <c>armBase + Field × armPerField</c>.</summary>
+    public static double ArmMul(Character who, RulesTable? rules = null)
+    {
+        var t = Rules.Or(rules).Fielding.Throw;
+        return Math.Max(0.1, t.ArmBase + who.Stats.Field * t.ArmPerField);
+    }
+
+    /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Field × throwPerFieldSec</c>, × the difficulty's reaction multiplier.</summary>
+    public static double ThrowReactionSec(Character who, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var re = r.Fielding.Reaction;
+        return Math.Max(re.ThrowMinSec, re.ThrowBaseSec - who.Stats.Field * re.ThrowPerFieldSec) * r.Cpu.Active.ReactionMul;
+    }
+
+    /// <summary>A throw is caught when it lands inside the cover radius of its receiver (§8.5, fielding.cover.radiusFt).</summary>
+    public static bool ThrowCaught(double landingX, double landingZ, double receiverX, double receiverZ, RulesTable? rules = null) =>
+        Diamond.Dist(landingX, landingZ, receiverX, receiverZ) <= Rules.Or(rules).Fielding.Cover.RadiusFt;
+
+    /// <summary>Where a throw released at (fromX, fromZ) toward (toX, toZ) lands with a signed lateral miss (feet to the thrower's right of the line).</summary>
+    public static (double X, double Z) ThrowLanding(double fromX, double fromZ, double toX, double toZ, double lateralFt)
+    {
+        var dx = toX - fromX;
+        var dz = toZ - fromZ;
+        var len = Math.Sqrt(dx * dx + dz * dz);
+        if (len < 1e-6) return (toX, toZ);
+        // Perpendicular to the throw line, to the thrower's right.
+        var px = dz / len;
+        var pz = -dx / len;
+        return (toX + px * lateralFt, toZ + pz * lateralFt);
+    }
+
+    /// <summary>
+    /// Who covers each bag this play (§8.7): 1B covers first (2B when 1B is the glove), 2B / SS cover
+    /// second (whichever is not the glove; with both free the one away from the ball's side), 3B
+    /// third, C home, and P backfills any bag whose cover is the glove. The glove never covers.
+    /// </summary>
+    public static Dictionary<int, string> CoverMap(string glovePos, double ballX)
+    {
+        var map = new Dictionary<int, string>();
+        string Pick(params string[] order)
+        {
+            foreach (var pos in order)
+                if (pos != glovePos) return pos;
+            return "";
+        }
+        map[1] = Pick("1B", "2B", "P");
+        map[2] = glovePos == "SS" ? Pick("2B", "P")
+            : glovePos == "2B" ? Pick("SS", "P")
+            : ballX > 0 ? "SS" : "2B";
+        map[3] = Pick("3B", "SS", "P");
+        map[4] = Pick("C", "P");
+        return map;
+    }
+
+    /// <summary>
+    /// The cutoff for a throw from (fromX, fromZ) to (toX, toZ) (§8.7): the infielder nearest the
+    /// line between them who is neither the glove nor the bag's cover, and their spot on the line.
+    /// Null when the throw is short enough that nobody stands between.
+    /// </summary>
+    public static (string Pos, double X, double Z)? CutoffFor(
+        double fromX, double fromZ, double toX, double toZ,
+        IReadOnlyDictionary<string, (double X, double Z)> spots, string glovePos, string coverPos)
+    {
+        var dx = toX - fromX;
+        var dz = toZ - fromZ;
+        var len2 = dx * dx + dz * dz;
+        if (len2 < 1e-6) return null;
+        (string Pos, double X, double Z)? best = null;
+        var bestD = double.MaxValue;
+        foreach (var pos in new[] { "SS", "2B", "1B", "3B" })
+        {
+            if (pos == glovePos || pos == coverPos) continue;
+            if (!spots.TryGetValue(pos, out var at)) continue;
+            var t = ((at.X - fromX) * dx + (at.Z - fromZ) * dz) / len2;
+            if (t is < 0.15 or > 0.85) continue;
+            var lx = fromX + dx * t;
+            var lz = fromZ + dz * t;
+            var d = Diamond.Dist(at.X, at.Z, lx, lz);
+            if (d < bestD)
+            {
+                bestD = d;
+                best = (pos, lx, lz);
+            }
+        }
+        return best;
+    }
+
+    /// <summary>The backup spot for a throw: on its line, <paramref name="backupFt"/> beyond the target (§8.7).</summary>
+    public static (double X, double Z) BackupSpot(double fromX, double fromZ, double toX, double toZ, double backupFt)
+    {
+        var dx = toX - fromX;
+        var dz = toZ - fromZ;
+        var len = Math.Sqrt(dx * dx + dz * dz);
+        if (len < 1e-6) return (toX, toZ);
+        return (toX + dx / len * backupFt, toZ + dz / len * backupFt);
+    }
+
+    /// <summary>
+    /// The body that backs up a throw to <paramref name="bag"/> (§8.7): the pitcher behind first
+    /// and home, the outfielder nearest the backup spot behind second and third. Never the glove or
+    /// the cover.
+    /// </summary>
+    public static string BackupPos(int bag, double spotX, double spotZ,
+        IReadOnlyDictionary<string, (double X, double Z)> spots, string glovePos, string coverPos)
+    {
+        if (bag is 1 or 4)
+            return glovePos != "P" && coverPos != "P" ? "P" : "";
+        var best = "";
+        var bestD = double.MaxValue;
+        foreach (var pos in FieldingResolver.OutfieldPursuitPositions)
+        {
+            if (pos == glovePos || pos == coverPos || !spots.TryGetValue(pos, out var at)) continue;
+            var d = Diamond.Dist(at.X, at.Z, spotX, spotZ);
+            if (d < bestD)
+            {
+                bestD = d;
+                best = pos;
+            }
+        }
+        return best;
     }
 
     /// <summary>Seconds until a throw released now from (x, z) lands at <paramref name="bag"/>: <see cref="ThrowSec"/> over that distance.</summary>
@@ -177,7 +300,9 @@ public static class InPlay
         /// <summary>A live body tag away from a bag (named runner).</summary>
         TagRunner,
         /// <summary>A runner off the bag at the catch, forced back at their start bag (§10.5).</summary>
-        DoubledOff
+        DoubledOff,
+        /// <summary>A throw to a bag with nobody to play on (S-34): the caption names it; nothing is decided.</summary>
+        Wasted
     }
 
     /// <summary>
@@ -226,9 +351,19 @@ public static class InPlay
             ThrowVerdict.TagOut => $"{fielderName} tags the runner{where}.",
             ThrowVerdict.TagRunner => $"{fielderName} tags {runnerName ?? "the runner"}.",
             ThrowVerdict.DoubledOff => $"{fielderName} doubles {runnerName ?? "the runner"} off{(bag == 1 ? " first" : bag == 2 ? " second" : where)}.",
+            ThrowVerdict.Wasted => $"{fielderName} throws to {BagName(bag)} with nobody to play on.",
             _ => ""
         };
     }
+
+    public static string BagName(int bag) => bag switch
+    {
+        1 => "first",
+        2 => "second",
+        3 => "third",
+        4 => "home",
+        _ => "the cutoff"
+    };
 
     static GroundThrowStep Step(
         ThrowVerdict verdict, int bag, bool @out, bool force, bool turnedTwo, bool batterSafe, bool playOver,

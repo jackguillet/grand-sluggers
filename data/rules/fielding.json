@@ -7,11 +7,26 @@
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
-    "stickBaseFtPerSec": 18,
-    "stickFtPerSecPerRun": 1.8,
-    "stickFrozenMul": 0.4,
-    "coverFtPerSec": 28,
-    "coverStopFt": 1.2
+    "looseScoopFt": 3.5
+  },
+  "reaction": {
+    "pitcherSec": 0.42,
+    "catcherSec": 0.67,
+    "firstSec": 0.27,
+    "secondSec": 0.25,
+    "thirdSec": 0.30,
+    "shortSec": 0.28,
+    "outfieldSec": 0.83,
+    "throwBaseSec": 0.35,
+    "throwPerFieldSec": 0.02,
+    "throwMinSec": 0.08
+  },
+  "cover": {
+    "ftPerSec": 28,
+    "startSec": 0.23,
+    "stopFt": 1.2,
+    "radiusFt": 6,
+    "backupFt": 60
   },
   "dash": {
     "chaseMul": 1.35,
@@ -42,17 +57,8 @@
     "superJumpWindowSec": 0.16,
     "growWindowSec": 0.08,
     "clamberWindowSec": 0.12,
-    "flyWindowLeadSec": 0.25,
-    "lineWindowMul": 3.6,
-    "flyRangeMul": 3.2,
-    "groundRangeMul": 2.5,
     "buddyPlantFt": 26,
     "buddyJumpHoldSec": 0.18,
-    "flyThrowDelaySec": 0.35,
-    "lineCatchLeadSec": 0.12,
-    "lineCatchMaxBallY": 8,
-    "flyCatchLeadSec": 0.18,
-    "grounderScoopMaxBallY": 3.2,
     "heldBallY": 2.2,
     "buddyHeldBallY": 6.4,
     "buddyLeapBallY": 2.2,
@@ -62,23 +68,10 @@
     "wallJumpArmSec": 0.7,
     "diveArmSec": 0.5
   },
-  "range": {
-    "baseFt": 24,
-    "ftPerField": 2.8,
-    "ftPerRun": 1.8,
-    "clamberFt": 18
-  },
   "drops": {
     "heatball": 0.35,
     "phonySwing": 0.35,
     "frozen": 0.4
-  },
-  "groundOut": {
-    "rollSpan": 4,
-    "gloveMul": 4,
-    "bonus": 3,
-    "threshold": 7,
-    "perfectBeat": 2.5
   },
   "wallPlant": {
     "insideFenceFt": 8,
@@ -96,17 +89,22 @@
   },
   "throw": {
     "releaseSec": 0.22,
-    "baseFtPerSec": 56,
+    "baseFtPerSec": 100,
     "minFtPerSec": 32,
+    "armBase": 0.85,
+    "armPerField": 0.03,
+    "lateralSigmaPerFieldDeficitFt": 0.35,
+    "lobMaxSec": 1.5,
+    "onTheFlyFt": 200,
     "handHeightFt": 3.2,
     "bagHeightFt": 1.2
   },
+  "overthrow": {
+    "carryMul": 0.35,
+    "decelFtPerSec2": 18,
+    "maxRollFt": 45
+  },
   "catcher": {
-    "releaseSec": 0.12,
-    "baseFtPerSec": 96,
-    "minFtPerSec": 64,
-    "minMul": 0.45,
-    "errorMul": 0.72,
     "cpuReleaseBaseSec": 0.42,
     "cpuReleasePerField": 0.014,
     "cpuReleaseNoiseSec": 0.2,
@@ -116,11 +114,11 @@
     "cpuRemainNoiseSec": 0.28
   },
   "chem": {
-    "goodSpeedMul": 1.35,
-    "badSpeedMul": 0.7,
-    "badErrorChance": 0.25,
-    "badLateralFt": 14,
-    "neutralLateralFt": 3
+    "goodSpeedMul": 1.30,
+    "slantChance": 0.20,
+    "slantSpeedMul": 0.70,
+    "slantLateralMinFt": 10,
+    "slantLateralMaxFt": 14
   },
   "bobble": {
     "minEnergy": 78,

@@ -104,8 +104,9 @@ public sealed class FlightScenarioTests
         Assert.Equal("C", preview.Position);
         Assert.True(preview.Foul);
         Assert.False(FlyCatch.NeedsJump(preview), "it comes down inside the backstop wrap: a plain catch");
+        // The untouched path is foul; whether the catcher gets under it is the live glove's (§8.3).
         var field = match.ResolveFielding(hit, preview);
-        Assert.Equal(PlayKind.FlyOut, field.Kind);
+        Assert.Equal(PlayKind.Foul, field.Kind);
 
         var strikes = match.Strikes;
         var play = RunCpu(match, hit, preview, field, out var caughtAt);
