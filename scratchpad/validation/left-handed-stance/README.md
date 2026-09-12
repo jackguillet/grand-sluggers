@@ -1,69 +1,43 @@
-# Left-handed batters stand with their feet reversed
+# Batting stance: the side opposite the batting hand leads
 
-Reported by Jack: "the feet are backwards for left handed batters". Right-handed
-batters are confirmed correct on screen, so they are the anchor.
+Reported by Jack: "the feet are backwards for left handed batters". Measured in
+Blender, the authored take had every captain's lower body backwards; the
+left-handed body is an exact mirror of it, and Ashlord's block shoes are where
+the toe direction reads. `HANDOFF.md` has the numbers, the fix, and the gates.
 
 ## Contract
 
     R: bat above the RIGHT shoulder, feet face the plate, LEFT hand below right.
     L: bat above the LEFT shoulder,  feet face the plate, RIGHT hand below left.
 
-`BattingStance` already authors this correctly. Its `FeetAxis` is `(0,0,1)` at
-every key and `MirrorX` leaves Z alone, so both batters set their feet along the
-pitch line pointing the same way. Handedness turns the chest and swaps the low
-hand; it does not reverse the feet. `BattingStanceHandednessTests` pins that and
-passes 7/7 -- the authored data is not the problem.
+Stated once: the lead side is opposite the batting hand. Lead foot toward the
+pitcher, lead hand at the knob end under the top hand. `BattingStance.LeadSide`.
 
-The rendered left-handed body disagrees.
+## Two defects, both on all seven captains
 
-## Why the matrix scored 56/56 anyway
-
-`StillCapture` took `Mathf.Abs` of the feet dot, so a reversed stance was
-indistinguishable from a correct one. The gate is now signed, and it also
-compares the drawn hand stack against the authored key for that hand. Landmark
-names are not anatomy -- DCC X is reflected on import -- so the hand check is
-anchored to the authored key rather than to the name "left".
-
-## Result on this revision (gate-catches-lefties.json)
-
-| captain | bats | rows | signed feetAlongPitch |
+| defect | root cause | fix | caught by |
 | --- | --- | --- | --- |
-| rio, vale, brondo, fenn | R | 8/8 | +1.00 |
-| zig, konga, ashlord | L | 4/8 | -1.00 |
+| hips out of the box, toes away from the plate, right foot forward | `feet_axis` was right-minus-left; the catalog's feetAxis points at the pitcher, so the root yawed the right foot forward and the torso twisted to keep the chest on the plate | feetAxis means back foot to lead foot; DCC aims the root at it | signed lead-foot dot in Sim, DCC and the matrix; DCC toe check |
+| hands swapped on every key | keys authored with the right hand at the knob | swap LeftHand/RightHand on all five keys, swap the DCC targets, re-bake | `HandAlongHandle` along the handle in Sim and DCC; drawn hand stack in the matrix |
 
-12 failures: 3 left-handed captains x 2 powers x ready and load. Hand stacking
-passes for all seven, so the hands are right and the feet alone are reversed.
+## Why earlier runs missed it
 
-## Not done here
+- The matrix took `Mathf.Abs` of the feet dot, and the DCC validator did the
+  same, so hips turned out of the box scored as correct (56/56).
+- The feet line was right-minus-left, which is only the lead foot for a
+  left-handed batter.
+- Hand order was read by height. Once the barrel comes level at approach,
+  height cannot say which hand is at the knob; along the handle the right hand
+  was at the knob on every key.
 
-Fixing the rendered left-handed stance. The gate is the falsifier now; the fix
-is a separate change and stays look-gated.
+## Files here
 
-## Hands are wrong too, for every captain
-
-Jack's reference photo: the bottom hand on the handle is the lead hand. Right-
-handed hitter -> LEFT hand under the right. Left-handed -> RIGHT under the left.
-
-`lHand` really is the batter's left hand. `hero_shared_blockout.py` places it at
-Blender X -0.95 with the character facing +Y, and the FBX import X reflection
-cancels against the `axis_forward="-Z"` export facing. An earlier reading of
-this file concluded the names were reflected in Unity; that was wrong, and it is
-what made the first hand check pass when it should not have.
-
-The authored `SwingPresentation` LoadAt key has the two hands swapped:
-
-    LeftHand  (0.300, 2.727, 0.512)
-    RightHand (0.080, 2.522, 0.326)   <- right hand is the low hand
-
-For a right-handed batter the left hand must be the low one. `Mirror` then
-reproduces the same error flipped for left-handers, so the defect is on all
-seven captains, not only the three lefties.
-
-`LeadHandRidesUnderTheTopHand` fails for both hands on this revision.
-
-## Two independent defects
-
-| defect | who | authored data | caught by |
-| --- | --- | --- | --- |
-| feet reversed | left-handed only | correct | signed feet dot in the matrix |
-| hands swapped | all seven | wrong | lead-hand check, Sim + matrix |
+- `1291c0a-rio-ashlord.json`, `gate-catches-lefties.json` — matrix runs on the
+  gate-only branch (before the fix)
+- `swing-rio-normal-ready.png`, `swing-ashlord-normal-ready.png` — before stills
+- `fix-lead-side.json` — matrix run on the fix branch, 56/56 with the signed
+  lead-foot line and the lead-hand stack live
+- `after-swing-{rio,vale,ashlord}-normal-ready.png` — after stills (vale has the
+  blockout's cube shoes, so the toe direction reads on a right-hander too)
+- `look-gate-before-after.png` — the assembled comparison for Jack's look gate
+- `HANDOFF.md` — the full write-up and what the next session should do
