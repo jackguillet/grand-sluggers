@@ -353,10 +353,11 @@ public class AtBatFeelTests
     [Fact]
     public void PickoffNeverFreesAGluedRunnerAndCanCatchASteal()
     {
+        // D1 / D3: a runner on the bag is always safe; only an armed runner can be caught.
         var glued = Match.Slice(_content, seed: 1);
         WalkOn(glued);
         Assert.NotNull(glued.First);
-        Assert.Equal(0, glued.Lead01);
+        Assert.False(glued.StealAttempt);
         var stay = glued.Pickoff(1);
         Assert.NotNull(stay);
         Assert.NotEqual(PlayKind.CaughtStealing, stay!.Kind);
@@ -364,7 +365,6 @@ public class AtBatFeelTests
 
         var dancing = Match.Slice(_content, seed: 4);
         WalkOn(dancing);
-        dancing.TakeLead(1);
         dancing.ToggleSteal();
         var gun = dancing.Pickoff(1);
         Assert.NotNull(gun);
@@ -409,10 +409,10 @@ public class AtBatFeelTests
     public void DashShortensHomeToFirstBuddyTossTransfers()
     {
         var dart = _content.Must("dart");
-        var still = InPlay.HomeToFirstSec(dart);
-        var dash = InPlay.HomeToFirstSec(dart, 1);
-        Assert.True(dash < still, $"dash {dash} vs {still}");
-        Assert.True(dash > 2.4, "dash is not a teleport");
+        var still = RunnerSystem.SpeedFtPerSec(dart);
+        var dash = RunnerSystem.SpeedFtPerSec(dart, 1);
+        Assert.True(dash > still, $"dash {dash} vs {still}");
+        Assert.True(dash < still * 1.3, "dash is not a teleport");
         Assert.True(FieldDash.ChaseMul() > 1);
         var rio = _content.Must("rio");
         var nico = _content.Must("nico");

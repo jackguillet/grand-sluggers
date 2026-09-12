@@ -1,13 +1,14 @@
 namespace GrandSluggers.Sim;
 
-/// <summary>
-/// Named-bag running. Same diamond as throws (right 1B, up 2B, left 3B, down home).
-/// Home is never a steal target. Per-bag lead lives on <see cref="RunnerState"/>.
-/// After the pitch, a steal is a catcher gun (<see cref="StealThrow"/>), not a sim roll.
-/// </summary>
 /// <summary>The stick on a runner during SET or the pitch.</summary>
 public enum RunStick { None, Steal, Return }
 
+/// <summary>
+/// Named-bag running. Same diamond as throws (right 1B, up 2B, left 3B, down home).
+/// Home is never a steal target. There are no leads (D1): a runner stands on the bag until
+/// contact, a steal break, or a send. After the pitch, a steal is a catcher gun
+/// (<see cref="StealThrow"/>), not a sim roll.
+/// </summary>
 public static class Baserunning
 {
     /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
@@ -82,13 +83,4 @@ public static class Baserunning
         4 => (0.5, 0.0),
         _ => (0.5, 0.5)
     };
-
-    /// <summary>Occupied pip walks toward the next bag. Lead 1.0 is 45% of the way.</summary>
-    public static (double U, double V) MiniLead(int bag, double lead01)
-    {
-        var from = DiamondPip(bag);
-        var to = DiamondPip(NextBag(bag));
-        var t = Math.Clamp(lead01, 0, 1) * 0.45;
-        return (from.U + (to.U - from.U) * t, from.V + (to.V - from.V) * t);
-    }
 }

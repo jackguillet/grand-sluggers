@@ -35,9 +35,6 @@ public class BroadcastHudTests
         Assert.False(bug.RunnerFirst);
         Assert.False(bug.RunnerSecond);
         Assert.False(bug.RunnerThird);
-        Assert.Equal(0, bug.LeadFirst);
-        Assert.Equal(0, bug.LeadSecond);
-        Assert.Equal(0, bug.LeadThird);
         Assert.Equal(0, bug.SelectedBag);
         Assert.Equal(match.Pitcher.Name, bug.Pitcher);
         Assert.Equal(match.Batter.Name, bug.Batter);
@@ -141,22 +138,21 @@ public class BroadcastHudTests
     }
 
     [Fact]
-    public void MiniDiamondCarriesLeadsNotJustOccupancy()
+    public void MiniDiamondCarriesOccupancyAndTheSelectedRunner()
     {
+        // D1: no lead pips. The pip is the bag a live runner last touched, and the selected one is marked.
         var match = Match.Slice(_content, seed: 1);
         var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
-        Assert.True(match.TakeLead(0.6));
         var bug = BroadcastHud.From(match);
         Assert.True(bug.RunnerFirst);
-        Assert.InRange(bug.LeadFirst, 0.59, 0.61);
-        Assert.Equal(0, bug.LeadSecond);
+        Assert.False(bug.RunnerSecond);
+        Assert.False(bug.RunnerThird);
         Assert.Equal(1, bug.SelectedBag);
-        var glued = Baserunning.MiniLead(1, 0);
-        var walked = Baserunning.MiniLead(1, bug.LeadFirst);
-        Assert.True(walked.V > glued.V);
+        Assert.True(match.Occupied(1));
+        Assert.False(match.Occupied(2));
     }
 
     [Fact]

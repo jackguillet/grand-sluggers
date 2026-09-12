@@ -77,13 +77,13 @@ public sealed class LiveBallScenarioTests
                 if (live.Throwing && live.ThrowBag == 3) sawThrowToThird = true;
             });
 
-        Assert.True(sawThrowToThird, "with first empty the CPU throws to the tag bag");
-        Assert.True(sawIcon, "the mash icon appeared after the throw landed");
-        // Match.ClosePlaySafe may still hold the verdict here: spec A.5 #52 (stale across plays), P5's to write once.
+        Assert.True(sawThrowToThird, "with first empty and the runner going the CPU throws to the tag bag (S-37)");
         var facts = play.Outcome!;
         var tagged = facts.OutsMade.Any(o => o.Type == OutType.Tag && o.Bag == 3 && o.Runner.Id == runner.Id);
         var advanced = facts.Moves.Any(m => m.Runner.Id == runner.Id && m.FromBag == 2 && m.ToBag == 3);
         Assert.True(tagged ^ advanced, "the race decided one thing: out at third, or safe at third");
+        // The mash only runs when the ball is at the bag before the body (§9.6); a runner in cleanly is no contest.
+        Assert.True(sawIcon || advanced, "the mash icon appeared after the throw landed, unless the runner was already in");
     }
 
     [Theory]
@@ -177,13 +177,12 @@ public sealed class LiveBallScenarioTests
     public void OnePlayerBattingStealResolvesFromTicksAlone()
     {
         // The one-controller flow as the client drives it: no D-pad (selection syncs to the lead
-        // runner), L3 toggles the steal, the runner leads through the pitch, the take arms the
-        // catcher, and the CPU catcher guns from ticks with a dead pad.
+        // runner), L3 toggles the steal, the runner stands on the bag through the pitch (D1), the
+        // take arms the catcher, and the CPU catcher guns from ticks with a dead pad.
         var scenario = new Scenario(_content, seed: 3).Runner(1, 1);
         var match = scenario.Match;
         Assert.True(match.ToggleSteal());
         Assert.True(match.StealOn);
-        for (var i = 0; i < 60; i++) match.TakeLeadAt(match.ArmedStealBag, Frame * 2.4);
         Assert.False(match.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var pitch));
         Assert.True(match.StealThrowPending);
         var seats = new LiveSeats(HumanBats: true, HumanPitches: false, PlayerMustField: false, Versus: false);
@@ -201,9 +200,13 @@ public sealed class LiveBallScenarioTests
     [InlineData(40, false)]
     public void OnePlayerBattingClosePlayAtThirdIsDecidedByTheRunnersMash(int pressFramesAfterIcon, bool safe)
     {
-        // Runner on second, hopper to an infielder: the CPU defense throws to third, the icon
-        // comes up, and the batting human's first South press after it races the CPU glove.
-        var scenario = new Scenario(_content, seed: 5).Runner(2, 1);
+        // Runner on second, hopper to an infielder: the batting human sends the runner (LB at
+        // contact), the CPU defense throws to third, the icon comes up, and the human's first
+        // South press after it races the CPU glove. The slowest hitter in the order runs, so the
+        // ball is at the bag first (§9.6).
+        var seedMatch = new Scenario(_content, seed: 5).Match;
+        var slowest = Enumerable.Range(1, seedMatch.AwayOrder.Count - 1).OrderBy(i => seedMatch.AwayOrder[i].Stats.Run).First();
+        var scenario = new Scenario(_content, seed: 5).Runner(2, slowest);
         var match = scenario.Match;
         var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
         var preview = match.PreviewHit(hit);
@@ -218,7 +221,7 @@ public sealed class LiveBallScenarioTests
         var closeBag = 0;
         for (var i = 0; i < 60 * 20 && play is null; i++)
         {
-            var run = LivePadInput.Dead;
+            var run = i < 3 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead;
             if (iconAt >= 0 && !pressed && i >= iconAt + pressFramesAfterIcon)
             {
                 run = new LivePadInput(SouthDown: true);
@@ -233,14 +236,13 @@ public sealed class LiveBallScenarioTests
         Assert.NotNull(play);
         if (safe)
         {
-            Assert.Equal(PlayKind.Single, play!.Kind);
             Assert.NotNull(match.Third);
-            Assert.Empty(play.Outcome!.OutsMade);
+            Assert.DoesNotContain(play!.Outcome!.OutsMade, o => o.FromBag == 2);
         }
         else
         {
             Assert.Equal(PlayKind.GroundOut, play!.Kind);
-            var tag = Assert.Single(play.Outcome!.OutsMade);
+            var tag = Assert.Single(play.Outcome!.OutsMade, o => o.FromBag == 2);
             Assert.Equal((OutType.Tag, 3, 2), (tag.Type, tag.Bag, tag.FromBag));
         }
     }

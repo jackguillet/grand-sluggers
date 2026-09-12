@@ -108,13 +108,6 @@
     "tapMin": 0.1,
     "tapSpan": 0.35,
     "rubberWalkChance": 0.35,
-    "rubberWalkMax": 0.4,
-    "pickoff": {
-      "leadMin": 0.2,
-      "riskPerLead": 0.42,
-      "returningMul": 0.18,
-      "riskPerStatDiff": 0.02,
-      "maxRisk": 0.72
-    }
+    "rubberWalkMax": 0.4
   }
 }

@@ -98,10 +98,6 @@
     "releaseSec": 0.22,
     "baseFtPerSec": 56,
     "minFtPerSec": 32,
-    "flightBaseSec": 1.12,
-    "flightMinMul": 0.45,
-    "flightMinSec": 0.55,
-    "flightMaxSec": 1.55,
     "handHeightFt": 3.2,
     "bagHeightFt": 1.2
   },

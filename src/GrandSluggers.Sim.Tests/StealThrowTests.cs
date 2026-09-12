@@ -33,10 +33,13 @@ public class StealThrowTests
     }
 
     [Fact]
-    public void BiggerLeadLeavesLessTimeToTheBag()
+    public void TheStealRaceStartsFromTheBag()
     {
+        // D1: no lead credit. The runner's time to the bag is the bag run less the jump on the pitch.
         var dart = _content.Must("dart");
-        Assert.True(StealThrow.RunnerRemainSec(dart, 1) < StealThrow.RunnerRemainSec(dart, 0));
+        var slow = _content.Must("konga");
+        Assert.True(StealThrow.RunnerRemainSec(dart) < RunnerSystem.BagSec(dart));
+        Assert.True(StealThrow.RunnerRemainSec(dart) < StealThrow.RunnerRemainSec(slow));
         Assert.True(StealThrow.GunSec(2, null) > 0.4);
         Assert.True(StealThrow.GunDistFt(2) > 100);
     }
@@ -47,11 +50,11 @@ public class StealThrowTests
         var dart = _content.Must("dart");
         var laser = new ThrowResult(Chemistry.Good, 1.35, false);
         var mud = new ThrowResult(Chemistry.Bad, 0.7, true);
-        Assert.True(StealThrow.PlayerOut(2, 2, 0.05, laser, dart, 0.25), "early gun beats a small lead");
-        Assert.False(StealThrow.PlayerOut(2, 2, 1.35, laser, dart, 0.25), "late gun loses the same steal");
-        Assert.False(StealThrow.PlayerOut(1, 2, 0.05, laser, dart, 0.25), "wrong bag is safe");
-        Assert.False(StealThrow.PlayerOut(4, 2, 0.05, laser, dart, 0.25), "home is not a steal gun");
-        Assert.False(StealThrow.PlayerOut(2, 2, 0.05, mud, dart, 1.0), "error + max lead is a steal");
+        Assert.True(StealThrow.PlayerOut(2, 2, 0.05, laser, dart), "early gun beats the runner");
+        Assert.False(StealThrow.PlayerOut(2, 2, 1.35, laser, dart), "late gun loses the same steal");
+        Assert.False(StealThrow.PlayerOut(1, 2, 0.05, laser, dart), "wrong bag is safe");
+        Assert.False(StealThrow.PlayerOut(4, 2, 0.05, laser, dart), "home is not a steal gun");
+        Assert.False(StealThrow.PlayerOut(2, 2, 1.0, mud, dart), "a late error throw is a steal");
     }
 
     [Theory]
@@ -61,45 +64,42 @@ public class StealThrowTests
     {
         var dart = _content.Must("dart");
         var laser = new ThrowResult(Chemistry.Good, 1.35, false);
-        const double lead = 0.75;
         var flight = StealThrow.CatcherThrowSec(occupiedBag, laser);
-        var returnTime = StealThrow.RunnerReturnSec(dart, lead);
+        var returnTime = StealThrow.RunnerReturnSec(dart);
         var lastWinningRelease = returnTime - flight;
 
-        Assert.True(lastWinningRelease > 0.05,
-            $"three-quarter lead must leave a playable pickoff window: return {returnTime:F6}, flight {flight:F6}");
-        Assert.True(StealThrow.PickoffOut(occupiedBag, lastWinningRelease - 0.001, laser, dart, lead));
-        Assert.False(StealThrow.PickoffOut(occupiedBag, lastWinningRelease + 0.001, laser, dart, lead));
+        Assert.True(StealThrow.PickoffOut(occupiedBag, lastWinningRelease - 0.001, laser, dart));
+        Assert.False(StealThrow.PickoffOut(occupiedBag, lastWinningRelease + 0.001, laser, dart));
     }
 
     [Fact]
-    public void PickoffWindowFollowsLeadRunnerAndThrowRelationships()
+    public void PickoffWindowFollowsRunnerAndThrowRelationships()
     {
         var fast = _content.Must("dart");
         var slow = _content.Must("konga");
         var laser = new ThrowResult(Chemistry.Good, 1.35, false);
         var mud = new ThrowResult(Chemistry.Bad, 0.7, true);
 
-        Assert.True(StealThrow.RunnerReturnSec(fast, 0.75) > StealThrow.RunnerReturnSec(fast, 0.25));
-        Assert.True(StealThrow.RunnerReturnSec(slow, 0.25) > StealThrow.RunnerReturnSec(fast, 0.25));
+        Assert.True(StealThrow.RunnerReturnSec(slow) > StealThrow.RunnerReturnSec(fast));
         Assert.True(StealThrow.CatcherThrowSec(1, laser) < StealThrow.CatcherThrowSec(1, mud));
-        Assert.False(StealThrow.PickoffOut(3, 0, laser, slow, 1), "catcher pickoff targets are first or second");
+        Assert.False(StealThrow.PickoffOut(3, 0, laser, slow), "catcher pickoff targets are first or second");
     }
 
     [Fact]
-    public void CpuGunLetsABiggerLeadStealMore()
+    public void CpuGunCatchesASlowRunnerMoreThanAFastOne()
     {
         var dart = _content.Must("dart");
+        var slow = _content.Must("konga");
         var catcher = _content.Must("vale");
         var thr = new ThrowResult(Chemistry.Neutral, 1.0, false);
-        var glued = 0;
-        var walked = 0;
+        var fastSafe = 0;
+        var slowSafe = 0;
         for (var seed = 1; seed <= 48; seed++)
         {
-            if (!StealThrow.CpuOut(dart, catcher, 0, 2, thr, new Random(seed))) glued++;
-            if (!StealThrow.CpuOut(dart, catcher, 1, 2, thr, new Random(seed))) walked++;
+            if (!StealThrow.CpuOut(dart, catcher, 2, thr, new Random(seed))) fastSafe++;
+            if (!StealThrow.CpuOut(slow, catcher, 2, thr, new Random(seed))) slowSafe++;
         }
-        Assert.True(walked > glued, $"max lead steals {walked} vs glued {glued}");
+        Assert.True(fastSafe >= slowSafe, $"fast runner steals {fastSafe} vs slow {slowSafe}");
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class StealThrowTests
     {
         var match = Match.Slice(_content, seed: 3);
         WalkOn(match);
-        match.TakeLead(1);
+        match.StartSteal();
         var ev = match.Pickoff(1);
 
         Assert.NotNull(ev);
@@ -185,7 +185,6 @@ public class StealThrowTests
     {
         var match = Match.Slice(_content, seed: seed);
         WalkOn(match);
-        match.TakeLead(0.35);
         match.StartSteal();
         var take = new SwingCommand(false, 0, 0, false);
         var wild = new PitchCommand("fastball", 0, false);

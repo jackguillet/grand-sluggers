@@ -71,8 +71,9 @@ public sealed record LivePlayCommand(
         bool throwing,
         bool catchMade,
         double dash01,
-        LivePlayCommandSource source = LivePlayCommandSource.System) =>
-        new(LivePlayCommandKind.Advance, source, dt, kind, hasBall, throwing, catchMade, dash01);
+        LivePlayCommandSource source = LivePlayCommandSource.System,
+        Character? fielder = null) =>
+        new(LivePlayCommandKind.Advance, source, dt, kind, hasBall, throwing, catchMade, dash01, Fielder: fielder);
 
     public static LivePlayCommand Contact(
         PlayKind kind,
@@ -147,6 +148,21 @@ public sealed record LivePlayCommand(
         new(LivePlayCommandKind.SmashItem, source);
 }
 
+/// <summary>A runner as the client and the harness see it this frame (spec §9.1).</summary>
+public sealed record RunnerView(
+    Character Who,
+    int FromBag,
+    int Bag,
+    double Feet,
+    RunnerPhase Phase,
+    int DestBag,
+    bool Forced,
+    double X,
+    double Z,
+    double OnBagSec,
+    bool Held,
+    bool StealArmed);
+
 public sealed record LivePlaySnapshot(
     bool Active,
     bool Paused,
@@ -155,10 +171,7 @@ public sealed record LivePlaySnapshot(
     bool HasBall,
     bool Throwing,
     bool CatchMade,
-    InPlay.Occupy Batter,
-    InPlay.Occupy? First,
-    InPlay.Occupy? Second,
-    InPlay.Occupy? Third,
+    IReadOnlyList<RunnerView> Runners,
     bool IsTime,
     InPlay.ForceState Forces,
     bool ForceRecorded,
@@ -166,7 +179,8 @@ public sealed record LivePlaySnapshot(
     bool BatterOut,
     int Throws,
     int OutsAtOpen,
-    string Caption);
+    string Caption,
+    FlyState Fly);
 
 public sealed record LivePlayCommandResult(
     LivePlaySnapshot Snapshot,
@@ -190,15 +204,17 @@ public sealed record LiveMoment(InPlay.ThrowVerdict Verdict, int Bag, Character?
 /// <summary>
 /// Owns the mutable state and baseball commands for the ball between contact and Time.
 /// It has no Unity dependency: callers supply elapsed time, possession, and glove location,
-/// then consume a snapshot and any out/result produced by the command.
+/// then consume a snapshot and any out/result produced by the command. The runners are
+/// <see cref="Match.Runners"/>: bodies this system moves and judges (spec §9).
 /// </summary>
 public sealed partial class LivePlaySystem
 {
     readonly Match _match;
-    InPlay.Occupy _batter;
-    InPlay.Occupy _first;
-    InPlay.Occupy _second;
-    InPlay.Occupy _third;
+    LivePadInput _prevRun = LivePadInput.Dead;
+    bool _catchRecorded;
+    bool _aiPending;
+    bool _wasHolding;
+    bool _wasThrowing;
 
     internal LivePlaySystem(Match match) => _match = match;
 
@@ -218,10 +234,15 @@ public sealed partial class LivePlaySystem
     public bool BatterSafeAtFirst { get; private set; }
     public int Throws { get; private set; }
     public int OutsAtOpen { get; private set; }
+    /// <summary>The ball as the runners read it (spec §9.5): in the air they hold, at the catch they tag, at the drop they run.</summary>
+    public FlyState Fly { get; private set; }
     /// <summary>The last narrated decision of this live ball, or null when nothing has been decided yet.</summary>
     public LiveMoment? LastMoment { get; private set; }
     /// <summary>Narrated from <see cref="LastMoment"/>, last. Presentation only; no rule reads it.</summary>
     public string Caption => LastMoment?.Narrate(_match.Batter.Name, _match.Pitcher.Name) ?? "";
+
+    /// <summary>The bodies on the path this play, the batter-runner included.</summary>
+    public IReadOnlyList<Runner> Runners => _match.Runners;
 
     public LivePlaySnapshot Snapshot => new(
         Active,
@@ -231,10 +252,7 @@ public sealed partial class LivePlaySystem
         HasBall,
         Throwing,
         CatchMade,
-        _batter,
-        _match.First is not null ? _first : null,
-        _match.Second is not null ? _second : null,
-        _match.Third is not null ? _third : null,
+        Runners.Select(View).ToList(),
         IsTime(),
         Forces,
         ForceRecorded,
@@ -242,7 +260,14 @@ public sealed partial class LivePlaySystem
         BatterOut,
         Throws,
         OutsAtOpen,
-        Caption);
+        Caption,
+        Fly);
+
+    static RunnerView View(Runner r)
+    {
+        var (x, z) = r.Position;
+        return new RunnerView(r.Who, r.FromBag, r.Bag, r.Feet, r.Phase, r.DestBag, r.Forced, x, z, r.OnBagSec, r.Held, r.StealArmed);
+    }
 
     public LivePlayCommandResult Apply(LivePlayCommand command)
     {
@@ -277,10 +302,6 @@ public sealed partial class LivePlaySystem
         HasBall = false;
         Throwing = false;
         CatchMade = false;
-        _batter = default;
-        _first = default;
-        _second = default;
-        _third = default;
         Forces = InPlay.ForceState.FromOccupancy(
             _match.First is not null, _match.Second is not null, _match.Third is not null);
         ForceRecorded = false;
@@ -291,9 +312,18 @@ public sealed partial class LivePlaySystem
         Throws = 0;
         OutsAtOpen = _match.Outs;
         LastMoment = null;
+        _catchRecorded = false;
+        _wasHolding = false;
+        _wasThrowing = false;
+        _prevRun = LivePadInput.Dead;
+        // Contact: the batter is a body in the box, every runner snapshots its force (§9.1).
+        _match.BeginRunners(HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
+        Fly = FlyStateNow(command.PlayKind, command.CatchMade);
+        _aiPending = true;
         return new LivePlayCommandResult(Snapshot);
     }
 
+    /// <summary>One frame of the bodies: the scripted path (no flight) and the tick share it.</summary>
     LivePlayCommandResult Advance(LivePlayCommand command)
     {
         if (!Active || Paused || command.DeltaSeconds <= 0)
@@ -303,8 +333,94 @@ public sealed partial class LivePlaySystem
         Throwing = command.Throwing;
         CatchMade = command.CatchMade;
         ElapsedSeconds += command.DeltaSeconds;
-        TickOccupancy(command.DeltaSeconds, command.Dash01);
+        UpdateFly(FlyStateNow(command.PlayKind, command.CatchMade));
+        RecordCatchOut(command.Fielder);
+        if (HasBall && !_wasHolding) _aiPending = true;
+        if (Throwing && !_wasThrowing) _aiPending = true;
+        _wasHolding = HasBall;
+        _wasThrowing = Throwing;
+        TickRunners(command.DeltaSeconds, command.Dash01);
         return new LivePlayCommandResult(Snapshot);
+    }
+
+    /// <summary>What the runners read off the ball this frame (§9.5).</summary>
+    FlyState FlyStateNow(PlayKind kind, bool catchMade)
+    {
+        if (Preview is not null && Path is not null)
+        {
+            if (Preview.Grounder) return FlyState.None;
+            if (HoldsBall) return Call == FairFoulCall.Caught ? FlyState.Caught : FlyState.Dropped;
+            return ElapsedSeconds < Hang ? FlyState.InAir : FlyState.Dropped;
+        }
+        if (kind == PlayKind.FlyOut) return catchMade ? FlyState.Caught : FlyState.InAir;
+        return FlyState.None;
+    }
+
+    void UpdateFly(FlyState next)
+    {
+        if (next == Fly) return;
+        var was = Fly;
+        Fly = next;
+        if (next == FlyState.Caught && was != FlyState.Caught)
+        {
+            // Firmly caught (§9.5, §10.5): a runner off the start bag owes a retouch; one waiting with the send goes.
+            foreach (var r in Runners)
+            {
+                if (!r.Live || r.IsBatter) continue;
+                if (r.Bag != r.FromBag || r.Feet > 0) r.MarkLeftEarly();
+                else if (r.TagAndGo) r.Send(r.NextBag, human: true);
+            }
+            _aiPending = true;
+        }
+        else if (next == FlyState.Dropped)
+        {
+            foreach (var r in Runners)
+                if (r.Live && !r.IsBatter && r.TagAndGo && r.OnBag) r.Send(r.NextBag, human: true);
+            _aiPending = true;
+        }
+    }
+
+    /// <summary>A fly, liner, or pop held in the air is the out (§10.1): recorded once, the moment the glove owns it.</summary>
+    void RecordCatchOut(Character? fielder)
+    {
+        if (_catchRecorded || BatterOut) return;
+        if (Fly != FlyState.Caught || PlayKind != PlayKind.FlyOut) return;
+        _catchRecorded = true;
+        Retire(0, 0, OutType.Catch, fielder ?? PlayFielder());
+    }
+
+    void TickRunners(double dt, double dash01)
+    {
+        var ctx = new RunnerTickContext(
+            ElapsedSeconds,
+            dash01,
+            Fly,
+            _match.Outs,
+            bag => Forces.At(bag),
+            TagThreatAt);
+        // Decide, then move (a scripted step is one long frame); a bag touched this frame is read at once.
+        Decide(dash01);
+        RunnerSystem.Tick(Runners, dt, ctx, _match.Rules);
+        foreach (var r in Runners)
+            if (r.ArrivedThisTick) _aiPending = true;
+        Decide(dash01);
+    }
+
+    void Decide(double dash01)
+    {
+        if (!_aiPending) return;
+        _aiPending = false;
+        if (Seats.HumanRuns) return;
+        RunnerAi.Decide(Runners, AiContext(dash01), bag => Forces.At(bag), _match.Rules);
+    }
+
+    /// <summary>A throw armed to the bag, or a glove with the ball close to it: the runner slides in (§9.4).</summary>
+    bool TagThreatAt(int bag)
+    {
+        var at = Diamond.Bag(bag);
+        if (Throwing && ThrowBag == bag) return true;
+        if (HasBall && !Throwing && Diamond.Dist(GloveX, GloveZ, at.X, at.Z) <= _match.Rules.Running.Bags.SlideThreatFt) return true;
+        return false;
     }
 
     LivePlayCommandResult Contact(LivePlayCommand command)
@@ -314,63 +430,63 @@ public sealed partial class LivePlaySystem
         HasBall = command.HasBall;
         Throwing = command.Throwing;
         CatchMade = command.CatchMade;
+        UpdateFly(FlyStateNow(command.PlayKind, command.CatchMade));
+        RecordCatchOut(command.Fielder);
         if (!HasBall || Throwing) return new LivePlayCommandResult(Snapshot);
 
-        var force = TryForce(command);
+        var force = TryForce(command.GloveX, command.GloveZ, command.Fielder);
         if (force is not null) return force;
-        return TryTag(command);
+        return TryTag(command.GloveX, command.GloveZ, command.Fielder);
     }
 
-    LivePlayCommandResult? TryForce(LivePlayCommand command)
+    /// <summary>The runner a throw to <paramref name="bag"/> is for: the forced one behind it, else whoever is heading there.</summary>
+    Runner? RunnerForBag(int bag)
     {
-        if (InPlay.LiveBatter(PlayKind, BatterOut) && Forces.At(1))
+        if (Forces.At(bag))
         {
-            var dest = InPlay.BatterDestBag(PlayKind);
-            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01, _match.Rules);
-            var (x, z) = InPlay.AlongBases(feet, dest,
-                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ, _match.Rules);
-            if (InPlay.ForceOnBag(true, 1, true, false, command.GloveX, command.GloveZ, x, z, _match.Rules))
-                return ApplyThrow(1, runnerBeats: false, command.Fielder);
+            var forced = _match.RunnerAt(bag - 1);
+            if (forced is not null && forced.Live && forced.Bag < bag) return forced;
         }
+        return RunnerSystem.HeadingTo(Runners, bag);
+    }
 
-        for (var bag = 2; bag <= 4; bag++)
+    /// <summary>Glove with the ball on a force bag ahead of the forced runner, or on the start bag of a runner doubled off (§10.1, §10.5).</summary>
+    LivePlayCommandResult? TryForce(double gloveX, double gloveZ, Character? fielder)
+    {
+        var bags = _match.Rules.Running.Bags;
+        for (var bag = 1; bag <= 4; bag++)
         {
             if (!Forces.At(bag)) continue;
-            var from = bag - 1;
-            var who = _match.RunnerAt(from)?.Who;
-            if (who is null) continue;
-            var dest = InPlay.OccupiedDestBag(from, PlayKind, _match.SendAll, CatchMade);
-            var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
-            var (x, z) = InPlay.TowardBag(from, dest, feet, rules: _match.Rules);
-            if (InPlay.ForceOnBag(true, bag, true, false, command.GloveX, command.GloveZ, x, z, _match.Rules))
-                return ApplyThrow(bag, runnerBeats: false, command.Fielder);
+            var runner = _match.RunnerAt(bag - 1);
+            if (runner is null || !runner.Live || runner.Bag >= bag) continue;
+            if (Fly == FlyState.InAir) continue;
+            if (!InPlay.OnThisBag(bag, gloveX, gloveZ, bags.OccupyRadiusFt)) continue;
+            return ApplyThrow(bag, runnerBeats: false, fielder);
+        }
+        foreach (var runner in Runners)
+        {
+            if (!runner.Live || !runner.LeftEarly || _match.Outs >= 3) continue;
+            if (!InPlay.OnThisBag(runner.FromBag, gloveX, gloveZ, bags.OccupyRadiusFt)) continue;
+            if (!Retire(runner.FromBag, runner.FromBag, OutType.Force, fielder)) continue;
+            LastMoment = new LiveMoment(InPlay.ThrowVerdict.DoubledOff, runner.FromBag, fielder, runner.Who);
+            return new LivePlayCommandResult(Snapshot, TaggedFromBag: runner.FromBag);
         }
         return null;
     }
 
-    LivePlayCommandResult TryTag(LivePlayCommand command)
+    /// <summary>Glove with the ball touching a body off a bag (§10.3). Home is not a bag for the batter leaving the box.</summary>
+    LivePlayCommandResult TryTag(double gloveX, double gloveZ, Character? fielder)
     {
-        if (InPlay.LiveBatter(PlayKind, BatterOut))
+        var bags = _match.Rules.Running.Bags;
+        foreach (var runner in Runners.OrderBy(r => r.FromBag == 0 ? -1 : r.FromBag))
         {
-            var dest = InPlay.BatterDestBag(PlayKind);
-            var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, command.Dash01, _match.Rules);
-            var (x, z) = InPlay.AlongBases(feet, dest,
-                HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ, _match.Rules);
-            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z, rules: _match.Rules)
-                && ApplyTag(0, command.Fielder))
-                return new LivePlayCommandResult(Snapshot, TaggedFromBag: 0);
-        }
-
-        for (var bag = 1; bag <= 3; bag++)
-        {
-            var who = _match.RunnerAt(bag)?.Who;
-            if (who is null) continue;
-            var dest = InPlay.OccupiedDestBag(bag, PlayKind, _match.SendAll, CatchMade);
-            var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
-            var (x, z) = InPlay.TowardBag(bag, dest, feet, rules: _match.Rules);
-            if (InPlay.Touches(true, false, command.GloveX, command.GloveZ, x, z, rules: _match.Rules)
-                && ApplyTag(bag, command.Fielder))
-                return new LivePlayCommandResult(Snapshot, TaggedFromBag: bag);
+            if (!runner.Live) continue;
+            var (x, z) = runner.Position;
+            // The plate is not a bag for the batter leaving the box (§10.3).
+            var onBag = !(runner.IsBatter && runner.Bag == 0) && InPlay.OccupyingBag(x, z, bags.TagSafeRadiusFt);
+            if (InPlay.Touches(true, false, gloveX, gloveZ, x, z, onBag, _match.Rules, runner.Sliding)
+                && ApplyTag(runner.FromBag, fielder))
+                return new LivePlayCommandResult(Snapshot, TaggedFromBag: runner.FromBag);
         }
         return new LivePlayCommandResult(Snapshot);
     }
@@ -381,7 +497,7 @@ public sealed partial class LivePlaySystem
         HasBall = true;
         Throwing = false;
         CatchMade = true;
-        return ApplyThrow(command.Bag, command.RunnerBeats, command.Fielder);
+        return ApplyThrow(command.Bag, command.RunnerBeats, command.Fielder, scripted: true);
     }
 
     LivePlayCommandResult TagRunner(LivePlayCommand command)
@@ -391,23 +507,26 @@ public sealed partial class LivePlaySystem
         return new LivePlayCommandResult(Snapshot, TaggedFromBag: tagged ? command.Bag : null);
     }
 
-    LivePlayCommandResult ApplyThrow(int bag, bool runnerBeats, Character? fielder)
+    /// <summary>
+    /// The ball is at <paramref name="bag"/>; the verdict is <see cref="InPlay.ThrowToBag"/> over the
+    /// runner it is for. A scripted verdict (the harness saying who won) is about the runner on the
+    /// bag behind when nobody's body is heading there.
+    /// </summary>
+    LivePlayCommandResult ApplyThrow(int bag, bool runnerBeats, Character? fielder, bool scripted = false)
     {
-        var present = bag switch
-        {
-            1 => !BatterOut,
-            2 => _match.First is not null,
-            3 => _match.Second is not null,
-            4 => _match.Third is not null,
-            _ => false
-        };
+        var target = RunnerForBag(bag);
+        if (target is null && scripted)
+            target = Runners.FirstOrDefault(r => r.Live && r.Bag == bag - 1 && (bag == 1 ? r.IsBatter : !r.IsBatter));
+        var standing = Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
+        var present = target is not null || standing is not null;
+        if (target is null && standing is not null) runnerBeats = true;
         var step = InPlay.ThrowToBag(
             bag, Forces, present, runnerBeats, _match.Outs, ForceRecorded,
             fielder?.Name ?? "", _match.Batter.Name);
         Throws++;
         // A silent verdict (nothing decided, or the batter simply safe at first) keeps the last narrated one.
         if (step.Verdict is not (InPlay.ThrowVerdict.None or InPlay.ThrowVerdict.BatterBeat))
-            LastMoment = new LiveMoment(step.Verdict, step.Bag, fielder, null);
+            LastMoment = new LiveMoment(step.Verdict, step.Bag, fielder, target?.Who);
         if (step.BatterSafe) BatterSafeAtFirst = true;
         if (step.Force)
         {
@@ -415,14 +534,17 @@ public sealed partial class LivePlaySystem
             ForceBag = step.Bag;
         }
         if (step.TurnedTwo) TurnedTwo = true;
-        if (step.Out) Retire(InPlay.ForceState.FromBag(step.Bag), step.Bag, step.OutType, fielder);
+        if (step.Out)
+            Retire(target?.FromBag ?? InPlay.ForceState.FromBag(step.Bag), step.Bag, step.OutType, fielder);
+        else if (runnerBeats && target is not null && step.Verdict is not InPlay.ThrowVerdict.None)
+            target.Arrive(bag, ElapsedSeconds); // beat the throw: the bag is theirs
         return new LivePlayCommandResult(Snapshot, step);
     }
 
     bool ApplyTag(int fromBag, Character? fielder)
     {
         if (_match.Outs >= 3) return false;
-        var who = fromBag == 0 ? _match.Batter : _match.RunnerAt(fromBag)?.Who;
+        var who = _match.RunnerAt(fromBag)?.Who;
         if (who is null || !Retire(fromBag, 0, OutType.Tag, fielder)) return false;
         LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagRunner, 0, fielder, who);
         return true;
@@ -437,6 +559,7 @@ public sealed partial class LivePlaySystem
         }
         if (!_match.RetireLiveRunner(fromBag, atBag, type, fielder)) return false;
         Forces = Forces.AfterOutAt(fromBag + 1);
+        _aiPending = true;
         return true;
     }
 
@@ -458,43 +581,23 @@ public sealed partial class LivePlaySystem
 
     internal void SetPausedFromMatch(bool paused) => Paused = paused && Active;
 
-    void TickOccupancy(double dt, double dash01)
-    {
-        var dest = InPlay.BatterDestBag(PlayKind);
-        var feet = InPlay.RunFeet(ElapsedSeconds, _match.Batter, dash01, _match.Rules);
-        var startX = HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX);
-        var (bx, bz) = dest > 0
-            ? InPlay.AlongBases(feet, dest, startX, HomeSet.BatterZ, _match.Rules)
-            : (startX, HomeSet.BatterZ);
-        _batter = InPlay.TickOccupy(dest > 0 && InPlay.OnThisBag(dest, bx, bz, rules: _match.Rules), _batter.Sec, dt);
-        _first = TickRunner(1, _match.First, _first, dt);
-        _second = TickRunner(2, _match.Second, _second, dt);
-        _third = TickRunner(3, _match.Third, _third, dt);
-    }
-
-    InPlay.Occupy TickRunner(int fromBag, Character? who, InPlay.Occupy occupy, double dt)
-    {
-        if (who is null) return default;
-        var dest = InPlay.OccupiedDestBag(fromBag, PlayKind, _match.SendAll, CatchMade);
-        var feet = InPlay.RunFeet(ElapsedSeconds, who, 0, _match.Rules);
-        var (x, z) = InPlay.TowardBag(fromBag, dest, feet, rules: _match.Rules);
-        return InPlay.TickOccupy(InPlay.OnThisBag(dest, x, z, rules: _match.Rules), occupy.Sec, dt);
-    }
-
+    /// <summary>
+    /// Time (§10.6): three outs, or an infielder holding the ball unthrown with every live runner
+    /// settled on a bag. Nobody left to play on (every runner out or home) is Time wherever the
+    /// ball is; so is a ball lying at rest that nobody picked up once every body has settled.
+    /// </summary>
     bool IsTime()
     {
         if (!Active || Paused) return false;
-        var batterOut = !InPlay.LiveBatter(PlayKind, BatterOut);
-        return InPlay.Time(
-            HasBall,
-            Throwing,
-            _match.Outs,
-            _batter,
-            _match.First is not null ? _first : null,
-            _match.Second is not null ? _second : null,
-            _match.Third is not null ? _third : null,
-            batterOut,
-            _match.Rules);
+        if (_match.Outs >= 3) return true;
+        var nobodyLive = Runners.All(r => !r.Live);
+        if (nobodyLive && !Throwing) return true;
+        var resting = Path is not null && !HasBall && !Throwing
+                      && ElapsedSeconds >= Rest + _match.Rules.Flight.DeadBall.RestHoldSec;
+        if (resting)
+            return InPlay.Time(true, false, _match.Outs, true, Runners, _match.Rules);
+        var heldInInfield = Path is null || InPlay.HeldInInfield(GloveX, GloveZ, _match.Rules);
+        return InPlay.Time(HasBall, Throwing, _match.Outs, heldInInfield, Runners, _match.Rules);
     }
 
     LivePlayCommandResult ResetResult()
@@ -513,10 +616,6 @@ public sealed partial class LivePlaySystem
         HasBall = false;
         Throwing = false;
         CatchMade = false;
-        _batter = default;
-        _first = default;
-        _second = default;
-        _third = default;
         Forces = InPlay.ForceState.Empty;
         ForceRecorded = false;
         ForceBag = 0;
@@ -526,5 +625,11 @@ public sealed partial class LivePlaySystem
         Throws = 0;
         OutsAtOpen = 0;
         LastMoment = null;
+        Fly = FlyState.None;
+        _catchRecorded = false;
+        _aiPending = false;
+        _wasHolding = false;
+        _wasThrowing = false;
+        _prevRun = LivePadInput.Dead;
     }
 }
