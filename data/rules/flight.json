@@ -44,6 +44,7 @@
   },
   "deadBall": {
     "minSec": 2.4,
-    "afterHangSec": 0.35
+    "afterHangSec": 0.35,
+    "restHoldSec": 0.2
   }
 }

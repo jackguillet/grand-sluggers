@@ -416,6 +416,14 @@ public sealed class Match
 
     internal void PrepareLivePlay() => CurrentPlay();
 
+    /// <summary>Bobble on a live scoop, from the one seeded stream (S-92).</summary>
+    internal bool RollBobble(double energy, Character who) =>
+        InPlay.Bobbles(energy, who, _rng, DefenseGlove, Rules);
+
+    /// <summary>The CPU catcher's release on a steal, from the one seeded stream (S-92).</summary>
+    internal double RollCatcherRelease(Character catcher) =>
+        StealThrow.CpuReleaseSec(catcher, _rng, Rules);
+
     /// <summary>
     /// Close a live (or CPU-stepped) double-play race. Null means no force was recorded —
     /// FinishInPlay falls through to a one-out / infield single without auto-turning two.

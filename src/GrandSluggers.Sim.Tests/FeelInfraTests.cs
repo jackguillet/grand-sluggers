@@ -367,14 +367,12 @@ public class FeelInfraTests
         Assert.True(feel.SwingChargeSeconds > 0, $"swing charge {feel.SwingChargeSeconds}");
         Assert.True(feel.SmashFreeze > 0, $"smash freeze {feel.SmashFreeze}");
         Assert.True(feel.SmashHold > 0, $"smash hold {feel.SmashHold}");
-        Assert.True(feel.ThrowEase > 0, $"throw ease {feel.ThrowEase}");
         Assert.True(feel.CameraBlend > 0, $"camera blend {feel.CameraBlend}");
-        Assert.Equal(FieldAssist.StickTake, feel.FieldAssistStick);
+        Assert.InRange(feel.FieldAssistStick, 0.1, 0.8);
         Assert.InRange(feel.PitcherReadySeconds, 0.4, 0.9);
         Assert.InRange(feel.AfterOutSeconds, 1.0, 1.6);
         Assert.InRange(feel.AfterCountSeconds, 0.4, 0.9);
         Assert.True(feel.AfterCountSeconds < feel.AfterOutSeconds);
-        Assert.True(feel.InPlayCommitSeconds > 0, $"in-play commit {feel.InPlayCommitSeconds}");
         Assert.True(feel.CpuVsHumanTake > 0 && feel.CpuVsHumanTake < 1);
         Assert.True(feel.CpuVsHumanMiss > 0 && feel.CpuVsHumanMiss < 1);
         Assert.True(feel.CpuVsHumanTake + feel.CpuVsHumanMiss < 1);

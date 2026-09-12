@@ -20,7 +20,7 @@ Every ❌ and ⚠️ is collected in Appendix A with the file and line. Every ru
 
 ## 0. Principles
 
-1. **Sim owns baseball. Unity presents.** Every out, safe, strike, ball, foul, and advance is decided in `GrandSluggers.Sim` from positions and times. Unity may animate a verdict; it may not produce one. ⚠️ Today Unity's `InPlayDirector` decides relay chains, close plays, CPU catch timing, and the steal phase.
+1. **Sim owns baseball. Unity presents.** Every out, safe, strike, ball, foul, and advance is decided in `GrandSluggers.Sim` from positions and times. Unity may animate a verdict; it may not produce one. ✅ P0: `LivePlaySystem` owns the live ball from contact to Time — gloves, catches, throws, the relay chain, the close-play race, the bobble, and the steal phase — from one `Tick` command per frame carrying both pads; `InPlayDirector` translates the pads, mirrors the state, and plays the cues.
 2. **Geometry decides. Rolls only add noise, never outcomes.** A stat changes speed, range, window, or accuracy. It does not roll "out or single" (`Fielding.cs:146-161` ❌). Randomness is allowed on *inputs* (a CPU's timing error, a bad-chemistry throw's lateral error), never on *results*.
 3. **One clock, one body.** A runner has one position and one speed. A throw has one duration used both to fly the ball and to judge the bag. A fielder has one speed whether a human or CPU holds the stick. ⚠️ Today there are two runner speeds, four throw-speed formulas, and two glove speeds (Appendix A).
 4. **The user owns the verb; CPU covers the rest.** Dead stick means the CPU plays that seat *by these same rules*. A human never gets an auto-out and never gets robbed of one by a script.
@@ -513,7 +513,7 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ### 9.2 No leads (D1)
 
-- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET now **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go.
+- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET now **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go. ✅ stick arms the steal (P0, `Baserunning.StickVerb`); the rest of D1 is P3.
 - `Lead01`, `TakeLead`, `ReturnToBag`, `LeadSpot`, `MiniLead`, the Unity lead rates and the `Lead` chapter of how-to-play are retired in the same PR. ⚠️ all shipped (`Models.cs:276-330`, `Diamond.cs:46-52`, `Baserunning.cs:71-77`, `ActorDirector.cs:411-453`).
 
 ### 9.3 Send / hold per runner
@@ -642,7 +642,7 @@ Three outs on one live ball by the rules above (liner, double off, double off; o
 
 ### 11.1 Arming
 
-- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ⚠️ `StartSteal` cancels every other runner (`Match.cs:338-350`).
+- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). ✅ both arms (P0). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ⚠️ `StartSteal` cancels every other runner (`Match.cs:338-350`).
 - Targets: 1st→2nd, 2nd→3rd, **3rd→home** (D10). ⚠️ `Baserunning.StealTarget(3) == 0` (`Baserunning.cs:25`).
 - A steal into an occupied bag is not offered unless that runner is also armed (double steal).
 
@@ -735,7 +735,7 @@ Harbor has no hazard. Others tick hazard ids (`ParkHazards`): freeze volumes (×
 
 ## 15. Presentation contract per play
 
-For each play class the camera, the stamp, and the hold are data (`data/feel/shots.json`, `table.json`). The sim emits typed `PlayEvent`s; Unity may not infer the play from caption text. ⚠️ Captions are load-bearing (`Match.cs:908, 1030-1031`).
+For each play class the camera, the stamp, and the hold are data (`data/feel/shots.json`, `table.json`). The sim emits typed `PlayEvent`s; Unity may not infer the play from caption text. ✅ P0: `PlayOutcome` carries the outs made (type, bag, runner, fielder), every runner placement, the batter's bag, error, and fielder's choice; `InPlay.ThrowToBag` decides a `ThrowVerdict` and captions are narrated from it last (`InPlay.Narrate`). No rule reads caption text.
 
 | Class | Camera | Freeze | Stamp |
 | --- | --- | --- | --- |
@@ -751,19 +751,21 @@ For each play class the camera, the stamp, and the hold are data (`data/feel/sho
 
 ## 16. Data tables (rails)
 
-Presentation stays in `data/feel/`. Rules move to `data/rules/` with a validator in `ContentValidation` and defaults in code only as a load fallback. Proposed files and the numbers each owns (all currently hard-coded; lines in Appendix A):
+Presentation stays in `data/feel/`. Rules live in `data/rules/` (✅ P0), loaded by `RulesTable` into `ContentCatalog.Rules` the way `FeelTable` is loaded: the JSON is the source of truth, the C# initializers are only the load fallback for a field a file does not name, and `ContentDataValidator` (so `cli art` and every `ContentCatalog.Load`) refuses a missing file, an unknown field, or a value outside its declared range (`[Positive]`, `[Chance]`, `[Signed]`). A test pins the JSON to the code defaults field for field. Every helper that reads a number takes the table it is handed (`Match.Rules`, `ContentCatalog.Rules`); a caller with no catalog falls back to the table found from the data root. **Any new rule number is a field here with a validator, never a C# literal.** Structural geometry stays constant: `Diamond`, the plate frame (`PitchFlight.PlateY`, `PlateScaleX/Y`), and the 45° foul line the wall and stands meshes share.
 
-| File | Owns |
+Files and the sections each owns (P0 moved the numbers that existed; later epics add fields, not literals):
+
+| File | Sections |
 | --- | --- |
-| `pitching.json` | base mph per shape, Pitch coefficient, charge mph, changeup ratio, break cap (zone halves), `AirSeconds` scale and clamps, release point, stamina pool and costs, TIRED thresholds and wobble, CPU pitcher table (§4.8) |
-| `batting.json` | window base and per-contact slope, charge window ×, perfect band, floor, tier boundaries, tier exit ×, tier spray spread, timing→spray, stick spray/launch degrees, oval size and falloff, bunt ×, HBP body radius, charge power curve, buddies-on-base ×, CPU batter table (§5.9) |
-| `flight.json` | gravity, drag, TimeScale, bounce, roll, batted-ball class bands, fence height, foul geometry |
-| `fielding.json` | chase speed, catch radius, jump/dive reach and windows, ability bonuses, throw speed and accuracy, chem ×, bobble curve, cover/cutoff rules, CPU fielder margins and reaction (§8.8) |
-| `running.json` | `bagSec` curve, start delay, dash, read-step feet, slide distance, tag reach, bag radii, `TimeOnBagSec`, close margin and CPU reaction, rundown thresholds, CPU runner table (§9.9), CPU steal table (§11.6) |
-| `stars.json` | meter gains per event, costs |
-| `cpu.json` | difficulty multipliers applied over the tables above |
+| `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `flight` (release hand, rubber walk, `AirSeconds` scale and clamps, break ramp), `shapes` (fastball / changeup / curve / slider curves), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1) |
+| `batting.json` | `window`, `charge`, `quality` (exit × and energy ×), `exit`, `launch`, `bunt`, `spray`, `foul` (cheap pull past the chalk), `homer` (launch band), `oval` (sweet spot size and edge), `hbp`, `star` (phonyball whiff, star launches), `buddiesOnBase`, `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped, with `vsHuman`; §5.9 replaces them in P1) |
+| `flight.json` | gravity, drag, `timeScale`, plate height, wind, sample rate; `bounce`, `skid`, `roll`, `landing`, `classes` (grounder / line / homer-likely bands, infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
+| `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
+| `running.json` | `homeToFirst`, `bagToBag`, `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (lead-as-time-credit race as shipped until P6), `tagUp` (sac-fly carry), `stick`, `dash` (mash per press), `cpu` (the steal roll as shipped until P6) |
+| `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
+| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (live: CPU batter σ, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6). Normal is ×1 everywhere so the tables read as written. |
 
-Feel values already in `table.json` that are dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed or made live in the same PR that adds `data/rules/`.
+Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
 
 ---
 
@@ -838,6 +840,8 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 46 | `MatchDirector.cs:762-796` | Unity re-rolls the bobble with an ad-hoc seed | §8.6 |
 | 47 | `InPlayDirector.cs:1225-1232` | `LiveKind` returns HR/3B/2B from carry mid-flight | §7 |
 
+P0 moved these into the sim without changing them: #38 is `LivePlaySystem.Field.cs` (`fielding.catch.*CatchLeadSec`), #40's fourth clock is `fielding.throw.flight*`, #42 is `fielding.chase.stick*` (still a second speed), #43 is `fielding.chase.coverFtPerSec` (still no start delay), #45 is `TakeCoverAfterThrow`, #47 is `LivePlaySystem.LiveKind`. #46 is closed: the bobble rolls on `Match._rng`.
+
 ### A.5 Outs, double plays, Time (P5)
 
 | # | Where | What | Spec |
@@ -866,13 +870,15 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 64 | `Match.cs:1319-1323`, `StealThrow.cs:96-115` | Pickoff resolved with the steal race; real pickoff race unreachable | §11.4 |
 | 65 | `StealThrow.cs:23` | No cover at bags 1 and 4; chem computed defender-vs-runner | §11.4 |
 
-### A.7 Architecture (P0 / #512)
+### A.7 Architecture (P0 / #512) — ✅ closed by P0
 
-| # | Where | What |
-| --- | --- | --- |
-| 66 | `InPlayDirector.cs` (1249 lines) | Relay chain, close play, CPU catch timing, steal phase, glove speeds are Unity-side baseball |
-| 67 | `data/feel/table.json` | `throwEase`, `chargeDecay`, `inPlayCommitSeconds` read only by tests; `runHz` shadowed by `Motion.RunHz` |
-| 68 | everywhere in §16 | ~150 rule constants in C# with no data hook |
+| # | Where | What | Now |
+| --- | --- | --- | --- |
+| 66 | `InPlayDirector.cs` (1249 lines) | Relay chain, close play, CPU catch timing, steal phase, glove speeds are Unity-side baseball | `LivePlaySystem.Field.cs` owns them; `InPlayDirector.cs` translates pads, mirrors state, plays cues. The bobble and the CPU catcher's release roll on `Match._rng` (S-92). |
+| 67 | `data/feel/table.json` | `throwEase`, `chargeDecay`, `inPlayCommitSeconds` read only by tests; `runHz` shadowed by `Motion.RunHz` | Removed. |
+| 68 | everywhere in §16 | ~150 rule constants in C# with no data hook | `data/rules/*.json` + `RulesTable` + validator; the rows above name their section. Rule numbers still *shaped* like the old code (the infield roll, the lead credit, the CPU rolls) are tabled as shipped and marked for their epic. |
+
+The stale close-play verdict (A.5 #52) and the wrong-clock arrival inputs (A.5 #55, §9.1) crossed into the sim unchanged; they are P5's and P3's to fix, now headlessly.
 
 ---
 

@@ -18,7 +18,19 @@ public enum LivePlayCommandKind
     Pause,
     Resume,
     Complete,
-    Reset
+    Reset,
+    /// <summary>Contact: the sim takes the ball, the gloves, and the seats and plays it out through <see cref="Tick"/>.</summary>
+    BeginLive,
+    /// <summary>A foul or dead flight the camera follows; nobody plays it.</summary>
+    BeginFlight,
+    /// <summary>One frame of the live ball with both pads.</summary>
+    Tick,
+    /// <summary>A steal is armed after a take or a miss: the catcher's throw play.</summary>
+    BeginSteal,
+    /// <summary>The offense threw an item at the play glove (client verb; the ball's result changes here).</summary>
+    ApplyItem,
+    /// <summary>The defense smashed the flying item: an out that became a hit goes back to an out.</summary>
+    SmashItem
 }
 
 /// <summary>
@@ -42,7 +54,14 @@ public sealed record LivePlayCommand(
     PitchCommand? Pitch = null,
     SwingCommand? Swing = null,
     AtBatResult? Hit = null,
-    FieldingResult? Field = null)
+    FieldingResult? Field = null,
+    FieldingPreview? Preview = null,
+    LiveSeats? Seats = null,
+    LivePadInput? FieldPad = null,
+    LivePadInput? RunPad = null,
+    bool EffectInFlight = false,
+    string? ItemId = null,
+    PlayEvent? StealPitch = null)
 {
     public static LivePlayCommand Begin(PlayKind kind, LivePlayCommandSource source = LivePlayCommandSource.System) =>
         new(LivePlayCommandKind.Begin, source, PlayKind: kind);
@@ -98,6 +117,39 @@ public sealed record LivePlayCommand(
         new(LivePlayCommandKind.Complete, source, Pitch: pitch, Swing: swing, Hit: hit, Field: field);
 
     public static LivePlayCommand Reset() => new(LivePlayCommandKind.Reset);
+
+    /// <summary>Fair contact. The sim computes the flight, seats the gloves, and owns the ball until Time.</summary>
+    public static LivePlayCommand BeginLive(
+        PitchCommand pitch,
+        SwingCommand swing,
+        AtBatResult hit,
+        FieldingPreview preview,
+        FieldingResult? cpuField,
+        LiveSeats seats,
+        double dash01 = 0,
+        LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.BeginLive, source, Dash01: dash01, Pitch: pitch, Swing: swing, Hit: hit,
+            Field: cpuField, Preview: preview, Seats: seats);
+
+    public static LivePlayCommand BeginFlight(AtBatResult hit, LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.BeginFlight, source, Hit: hit);
+
+    public static LivePlayCommand Tick(
+        double dt,
+        LivePadInput? fieldPad = null,
+        LivePadInput? runPad = null,
+        bool effectInFlight = false,
+        LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.Tick, source, dt, FieldPad: fieldPad, RunPad: runPad, EffectInFlight: effectInFlight);
+
+    public static LivePlayCommand BeginSteal(PlayEvent pitch, LiveSeats seats, LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.BeginSteal, source, Seats: seats, StealPitch: pitch);
+
+    public static LivePlayCommand ApplyItem(string itemId, Character? target, LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.ApplyItem, source, Fielder: target, ItemId: itemId);
+
+    public static LivePlayCommand SmashItem(LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.SmashItem, source);
 }
 
 public sealed record LivePlaySnapshot(
@@ -125,7 +177,8 @@ public sealed record LivePlayCommandResult(
     LivePlaySnapshot Snapshot,
     InPlay.GroundThrowStep? Throw = null,
     int? TaggedFromBag = null,
-    PlayEvent? CompletedPlay = null);
+    PlayEvent? CompletedPlay = null,
+    bool FlightDone = false);
 
 /// <summary>
 /// The last thing the live ball decided, as typed facts. <see cref="LivePlaySystem.Caption"/>
@@ -144,7 +197,7 @@ public sealed record LiveMoment(InPlay.ThrowVerdict Verdict, int Bag, Character?
 /// It has no Unity dependency: callers supply elapsed time, possession, and glove location,
 /// then consume a snapshot and any out/result produced by the command.
 /// </summary>
-public sealed class LivePlaySystem
+public sealed partial class LivePlaySystem
 {
     readonly Match _match;
     InPlay.Occupy _batter;
@@ -209,6 +262,12 @@ public sealed class LivePlaySystem
             LivePlayCommandKind.Resume => SetPaused(false),
             LivePlayCommandKind.Complete => Complete(command),
             LivePlayCommandKind.Reset => ResetResult(),
+            LivePlayCommandKind.BeginLive => BeginLive(command),
+            LivePlayCommandKind.BeginFlight => BeginFlight(command),
+            LivePlayCommandKind.Tick => Tick(command),
+            LivePlayCommandKind.BeginSteal => BeginSteal(command),
+            LivePlayCommandKind.ApplyItem => ApplyItem(command),
+            LivePlayCommandKind.SmashItem => SmashItem(),
             _ => new LivePlayCommandResult(Snapshot)
         };
     }
@@ -452,6 +511,7 @@ public sealed class LivePlaySystem
 
     internal void Reset()
     {
+        ResetField();
         Active = false;
         Paused = false;
         ElapsedSeconds = 0;
