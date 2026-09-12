@@ -38,3 +38,32 @@ passes for all seven, so the hands are right and the feet alone are reversed.
 
 Fixing the rendered left-handed stance. The gate is the falsifier now; the fix
 is a separate change and stays look-gated.
+
+## Hands are wrong too, for every captain
+
+Jack's reference photo: the bottom hand on the handle is the lead hand. Right-
+handed hitter -> LEFT hand under the right. Left-handed -> RIGHT under the left.
+
+`lHand` really is the batter's left hand. `hero_shared_blockout.py` places it at
+Blender X -0.95 with the character facing +Y, and the FBX import X reflection
+cancels against the `axis_forward="-Z"` export facing. An earlier reading of
+this file concluded the names were reflected in Unity; that was wrong, and it is
+what made the first hand check pass when it should not have.
+
+The authored `SwingPresentation` LoadAt key has the two hands swapped:
+
+    LeftHand  (0.300, 2.727, 0.512)
+    RightHand (0.080, 2.522, 0.326)   <- right hand is the low hand
+
+For a right-handed batter the left hand must be the low one. `Mirror` then
+reproduces the same error flipped for left-handers, so the defect is on all
+seven captains, not only the three lefties.
+
+`LeadHandRidesUnderTheTopHand` fails for both hands on this revision.
+
+## Two independent defects
+
+| defect | who | authored data | caught by |
+| --- | --- | --- | --- |
+| feet reversed | left-handed only | correct | signed feet dot in the matrix |
+| hands swapped | all seven | wrong | lead-hand check, Sim + matrix |
