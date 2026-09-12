@@ -42,7 +42,7 @@ public class SchemeTests
         Assert.Equal("South hold", Scheme.Pad("charge"));
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
-        Assert.Equal("L3", Scheme.Pad("steal"));
+        Assert.Equal("Stick to the next bag / L3", Scheme.Pad("steal"));
     }
 
     [Fact]

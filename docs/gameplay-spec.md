@@ -513,7 +513,7 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ### 9.2 No leads (D1)
 
-- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET now **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go.
+- Runners stand on the bag until contact, a steal break (§11.2), or a send. There is no lead stick, no lead pip, no pickoff risk from standing there. The stick-toward-a-bag verb during SET now **arms a steal for the selected runner** (same as L3), which keeps the couch map simple: point at the bag you want, press to go. ✅ stick arms the steal (P0, `Baserunning.StickVerb`); the rest of D1 is P3.
 - `Lead01`, `TakeLead`, `ReturnToBag`, `LeadSpot`, `MiniLead`, the Unity lead rates and the `Lead` chapter of how-to-play are retired in the same PR. ⚠️ all shipped (`Models.cs:276-330`, `Diamond.cs:46-52`, `Baserunning.cs:71-77`, `ActorDirector.cs:411-453`).
 
 ### 9.3 Send / hold per runner
@@ -642,7 +642,7 @@ Three outs on one live ball by the rules above (liner, double off, double off; o
 
 ### 11.1 Arming
 
-- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ⚠️ `StartSteal` cancels every other runner (`Match.cs:338-350`).
+- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). ✅ both arms (P0). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ⚠️ `StartSteal` cancels every other runner (`Match.cs:338-350`).
 - Targets: 1st→2nd, 2nd→3rd, **3rd→home** (D10). ⚠️ `Baserunning.StealTarget(3) == 0` (`Baserunning.cs:25`).
 - A steal into an occupied bag is not offered unless that runner is also armed (double steal).
 

@@ -33,7 +33,6 @@ public sealed class Training
     bool _caughtAndThrew;
     bool _scoopedHopper;
     bool _turnedTwo;
-    bool _ranLead;
     bool _ranSteal;
     bool _ranDash;
     bool _skipped;
@@ -100,7 +99,6 @@ public sealed class Training
         LessonPart = 1;
         _throws = 0;
         _maxCharges = 0;
-        _ranLead = false;
         _ranSteal = false;
         _ranDash = false;
         _skipped = false;
@@ -227,14 +225,12 @@ public sealed class Training
         if (Finished || Lesson != PracticeLesson.Running) return false;
         if (match != null)
         {
-            if ((match.SelectedState?.Lead01 ?? 0) > 0.2 || match.Lead01 > 0.2)
-                _ranLead = true;
             if (match.StealOn || match.StealAttempt || match.ArmedStealBag > 0)
                 _ranSteal = true;
             if (match.Dash01 > 0.25)
                 _ranDash = true;
         }
-        if (!_ranLead || (!_ranSteal && !_ranDash)) return false;
+        if (!_ranSteal && !_ranDash) return false;
         CurrentDrill = 5;
         return true;
     }
@@ -279,7 +275,7 @@ public sealed class Training
             PracticeLesson.Pitching => LessonPart == 2 ? "Charge at MAX" : "Throw the ball",
             PracticeLesson.Batting => "Oval and charge",
             PracticeLesson.Fielding => LessonPart >= 2 ? "Turn two" : "Catch it, throw a bag",
-            PracticeLesson.Running => "Pick a runner, lead, steal",
+            PracticeLesson.Running => "Pick a runner, steal",
             PracticeLesson.Special => "Star pitch / star swing",
             PracticeLesson.Free => "Free practice",
             _ => ""
@@ -294,7 +290,7 @@ public sealed class Training
             PracticeLesson.Fielding => LessonPart >= 2
                 ? "South to second    South to first"
                 : "South catch   West jump   d-pad throw   East dash",
-            PracticeLesson.Running => "D-pad pick   stick lead   L3 steal",
+            PracticeLesson.Running => "D-pad pick   stick or L3 steal   South dash",
             PracticeLesson.Special => "North + South star",
             PracticeLesson.Free => "any verb  ·  East skip",
             _ => ""

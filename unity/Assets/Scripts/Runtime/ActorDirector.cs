@@ -427,12 +427,13 @@ namespace GrandSluggers.UnityClient
                 else if (run.AllReturn)
                     _match.ReturnAll(dt * 2.0f);
                 var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
-                var next = Baserunning.NextBag(bag);
-                var prev = Baserunning.PrevBag(bag);
                 var stick = InPlay.DiamondBag(run.StickX, run.StickY);
-                if (stick == next) _match.TakeLead(dt * 1.7f);
-                else if (stick == bag || stick == prev) _match.ReturnToBag(dt * 2.0f);
-                if ((_phase is Phase.Set or Phase.Flight) && run.Steal) _match.ToggleSteal();
+                var verb = Baserunning.StickVerb(stick, bag);
+                var armPhase = _phase is Phase.Set or Phase.Flight;
+                // Spec §9.2 / §11.1: the stick toward the next bag arms the steal, same as L3. No lead stick.
+                if (verb == RunStick.Steal && armPhase && !_match.StealAttempt) _match.StartSteal();
+                else if (verb == RunStick.Return) _match.ReturnToBag(dt * 2.0f);
+                if (armPhase && run.Steal) _match.ToggleSteal();
                 var near = _match.Lead01 <= 0.24 || (_match.StealAttempt && _match.Lead01 >= 0.7);
                 if (near && (run.WestDown || run.SouthDown))
                     _match.Slide();

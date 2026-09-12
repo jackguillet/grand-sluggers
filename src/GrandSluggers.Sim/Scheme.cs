@@ -17,7 +17,7 @@ public static class Scheme
         new("bags", "D-pad", "1 2 3 4", "Click bag / mouse quadrant"),
         new("all-advance", "LB", ",", "Click advance"),
         new("all-return", "RB", ".", "Click return"),
-        new("steal", "L3", "Z", "Click steal"),
+        new("steal", "Stick to the next bag / L3", "Z", "Click steal"),
         new("changeup", "West", "V", "Left Ctrl"),
         new("swap", "Select", "R", "Click swap"),
         new("bunt", "West hold", "V", "Left Ctrl hold in the box"),

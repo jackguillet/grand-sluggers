@@ -5,6 +5,9 @@ namespace GrandSluggers.Sim;
 /// Home is never a steal target. Per-bag lead lives on <see cref="RunnerState"/>.
 /// After the pitch, a steal is a catcher gun (<see cref="StealThrow"/>), not a sim roll.
 /// </summary>
+/// <summary>The stick on a runner during SET or the pitch.</summary>
+public enum RunStick { None, Steal, Return }
+
 public static class Baserunning
 {
     /// <summary>Right 1B, up 2B, left 3B, down home. Dead stick is 0.</summary>
@@ -23,6 +26,19 @@ public static class Baserunning
 
     /// <summary>Next bag for a steal. 0 means no steal (home or invalid).</summary>
     public static int StealTarget(int fromBag) => fromBag is 1 or 2 ? fromBag + 1 : 0;
+
+    /// <summary>
+    /// What the stick says about the selected runner before the ball is in play (spec §9.2, §11.1):
+    /// toward the next bag arms a steal (same as L3); toward this bag or the one behind returns
+    /// (and cancels the steal). There is no lead stick.
+    /// </summary>
+    public static RunStick StickVerb(int stickBag, int selectedBag)
+    {
+        if (stickBag <= 0 || selectedBag is < 1 or > 3) return RunStick.None;
+        if (stickBag == NextBag(selectedBag)) return RunStick.Steal;
+        if (stickBag == selectedBag || stickBag == PrevBag(selectedBag)) return RunStick.Return;
+        return RunStick.None;
+    }
 
     public static bool Occupied(int bag, bool first, bool second, bool third) => bag switch
     {
