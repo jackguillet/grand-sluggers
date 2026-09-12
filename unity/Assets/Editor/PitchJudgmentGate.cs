@@ -49,10 +49,10 @@ namespace GrandSluggers.EditorTools
                 {
                     var match = Match.Slice(Get<ContentCatalog>(play, "_content"), innings: 3, seed: 1);
                     Set(play, "_match", match); Invoke(play, "BeginSet"); Set(play, "_gateHold", true);
-                    match.Play(new PitchCommand("fastball", 0, 0, false), new SwingCommand(false, 0, 0, false));
-                    match.Play(new PitchCommand("fastball", 0, 0, false), new SwingCommand(false, 0, 0, false));
+                    match.Play(new PitchCommand("fastball", 0, false), new SwingCommand(false, 0, 0, false));
+                    match.Play(new PitchCommand("fastball", 0, false), new SwingCommand(false, 0, 0, false));
                     Require(match.Strikes == 2, "Could not establish two-strike fixture.");
-                    var command = new PitchCommand(type, charge, 0, star, BreakX: curve, RubberX: 0.3);
+                    var command = new PitchCommand(type, charge, star, BreakX: curve, RubberX: 0.3);
                     Invoke(play, "Launch", command);
                     Set(play, "_swing", new SwingCommand(false, 0, 0, false));
                     Set(play, "_flight", Get<float>(play, "_pitchDur"));

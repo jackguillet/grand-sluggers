@@ -163,7 +163,7 @@ public sealed class ScenarioTests
         var scenario = new Scenario(_content, seed: 1).Runner(1, 1);
         var match = scenario.Match;
         var runner = match.First!;
-        var wide = new PitchCommand("fastball", 0, 0, false, AimX: 3, AimY: 3);
+        var wide = new PitchCommand("fastball", 0, false, AimX: 3, AimY: 3);
         PlayEvent? last = null;
         for (var i = 0; i < 4; i++)
             last = match.Play(wide, Scenario.Take);

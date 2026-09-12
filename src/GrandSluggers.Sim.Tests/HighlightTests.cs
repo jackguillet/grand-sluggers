@@ -145,7 +145,7 @@ public class HighlightTests
             false,
             starPitch ? "heatball" : null,
             null);
-        var pitch = new PitchCommand("fastball", 0, 0, starPitch);
+        var pitch = new PitchCommand("fastball", 0, starPitch);
         var swing = new SwingCommand(kind != PlayKind.TakeBall && kind != PlayKind.TakeStrike, 0, 0, false);
         return new PlayEvent(
             kind, hit, pitch, swing, rio, ash, null, null, 0, [], caption,

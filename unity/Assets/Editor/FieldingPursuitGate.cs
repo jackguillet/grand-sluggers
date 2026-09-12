@@ -89,7 +89,7 @@ namespace GrandSluggers.EditorTools
             Invoke(play, "BeginSet");
             Set(play, "_gateHold", true);
 
-            var pitch = new PitchCommand("fastball", 0, 0, false);
+            var pitch = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             Require(match.BeginAtBat(pitch, swing, out _, out _), "Fixture did not enter contact.");
             var path = BallFlight.Trajectory(spec.ExitVelo, spec.Launch, match.Park.WindMph);
