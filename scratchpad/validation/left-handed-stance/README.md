@@ -1,44 +1,40 @@
-# Lead side is on the wrong hand and foot (both stances)
+# Left-handed batters stand with their feet reversed
 
-Reported as "the feet are backwards for left handed batters". Measuring against
-the stated contract, the defect is not left-handed-only: every captain carries
-the lead hand and lead foot on the batting side instead of opposite it.
+Reported by Jack: "the feet are backwards for left handed batters". Right-handed
+batters are confirmed correct on screen, so they are the anchor.
 
-Contract:
-  R: bat above the RIGHT shoulder, feet face the plate, LEFT hand below right.
-  L: bat above the LEFT shoulder,  feet face the plate, RIGHT hand below left.
+## Contract
 
-From the merged 40e8b5c matrix run, ready beat, normal power:
+    R: bat above the RIGHT shoulder, feet face the plate, LEFT hand below right.
+    L: bat above the LEFT shoulder,  feet face the plate, RIGHT hand below left.
 
-| captain | bats | lower hand | contract | foot toward pitcher | contract |
-| --- | --- | --- | --- | --- | --- |
-| rio, vale, brondo, fenn | R | right | left | right | left |
-| zig, konga, ashlord | L | left | right | left | right |
+`BattingStance` already authors this correctly. Its `FeetAxis` is `(0,0,1)` at
+every key and `MirrorX` leaves Z alone, so both batters set their feet along the
+pitch line pointing the same way. Handedness turns the chest and swaps the low
+hand; it does not reverse the feet. `BattingStanceHandednessTests` pins that and
+passes 7/7 -- the authored data is not the problem.
 
-Source is the authored right-handed take in `SwingPresentation.Keys`. Its
-LoadAt key puts the right hand lower than the left:
+The rendered left-handed body disagrees.
 
-    LeftHand  (0.300, 2.727, 0.512)
-    RightHand (0.080, 2.522, 0.326)
+## Why the matrix scored 56/56 anyway
 
-`SwingPresentation.Mirror` then reproduces that faithfully for left-handed
-batters, so both stances are wrong in the same way and lefties read as the
-mirror of an already-wrong pose.
+`StillCapture` took `Mathf.Abs` of the feet dot, so a reversed stance was
+indistinguishable from a correct one. The gate is now signed, and it also
+compares the drawn hand stack against the authored key for that hand. Landmark
+names are not anatomy -- DCC X is reflected on import -- so the hand check is
+anchored to the authored key rather than to the name "left".
 
-Why the swing matrix passes 56/56 anyway:
+## Result on this revision (gate-catches-lefties.json)
 
-- `StillCapture` takes `Mathf.Abs` of the feet dot, so the front foot has no
-  sign and a reversed stance scores identically.
-- Nothing compares the two hand heights.
-- Nothing checks which shoulder the bat sits above.
+| captain | bats | rows | signed feetAlongPitch |
+| --- | --- | --- | --- |
+| rio, vale, brondo, fenn | R | 8/8 | +1.00 |
+| zig, konga, ashlord | L | 4/8 | -1.00 |
 
-`src/GrandSluggers.Sim.Tests/BattingStanceHandednessTests.cs` encodes the
-contract and fails 4 of 6 on this revision. The hand-gap check passes, which is
-how we know the mirror is faithful and the reference take is the problem.
+12 failures: 3 left-handed captains x 2 powers x ready and load. Hand stacking
+passes for all seven, so the hands are right and the feet alone are reversed.
 
-`swing-ashlord-normal-ready.png` beside `swing-rio-normal-ready.png`: ashlord's
-bat hangs low toward the dirt rather than above the left shoulder.
+## Not done here
 
-Not done here: re-authoring the shared take. That is Blender work on
-`hero_shared_swing.py` plus a `swing.fbx` re-bake, it moves every captain, and
-it is look-gated.
+Fixing the rendered left-handed stance. The gate is the falsifier now; the fix
+is a separate change and stays look-gated.
