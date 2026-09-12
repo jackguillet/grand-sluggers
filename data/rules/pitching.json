@@ -1,40 +1,38 @@
 {
   "speed": {
     "fastballMph": 86,
-    "sliderMph": 80,
-    "curveMph": 76,
     "changeupMph": 72,
     "mphPerPitchStat": 0.9,
     "chargeMph": 8,
     "changeupChargeMph": 3,
     "starSpeedMul": 1.12
   },
+  "release": {
+    "niceBandSec": 0.25,
+    "niceMul": 1.05
+  },
   "flight": {
     "releaseHandX": 1.55,
     "releaseHandY": 6.2,
     "releaseTowardPlate": 2.6,
-    "rubberReleaseX": 2.2,
-    "rubberCrossingX": 0.35,
     "arcadeScale": 2.05,
     "airMinSec": 0.78,
     "airMaxSec": 1.28,
     "minMph": 40,
-    "breakEarly": 1.55,
+    "breakMaxFt": 0.46,
+    "breakEarly": 0.35,
     "breakLateFrom": 0.55,
     "breakLateSpan": 0.45,
-    "breakLate": 1.8
+    "breakDampedMul": 0.1,
+    "breakRatePerSec": 2.4,
+    "breakRatePerPitchStat": 0.12
   },
   "shapes": {
-    "fastballDrop": 0.35,
+    "fastballHump": 0.35,
     "changeupHangUntil": 0.62,
     "changeupHangRate": 0.72,
     "changeupDumpRate": 1.55,
-    "curveSweep": 1.7,
-    "curveHump": 1.35,
-    "sliderBiteFrom": 0.55,
-    "sliderBiteSpan": 0.45,
-    "sliderBite": 2.4,
-    "sliderDrop": 0.55
+    "changeupDropFt": 0.9
   },
   "starShapes": {
     "heatballWobbleHz": 18,
@@ -61,8 +59,7 @@
     "starChanceCaptain": 0.14,
     "starChance": 0.08,
     "changeupChance": 0.22,
-    "sliderChance": 0.22,
-    "curveChance": 0.5,
+    "breakChance": 0.4,
     "chargeChance": 0.3,
     "chargeMin": 0.75,
     "chargeSpan": 0.25,
@@ -73,9 +70,6 @@
     "scatterPerPitchStat": 0.055,
     "scatterYMul": 0.85,
     "tiredScatterMul": 1.6,
-    "sliderBreak": 0.85,
-    "curveBreak": 0.7,
-    "rubberCrossingMul": 0.35,
     "pickoff": {
       "leadMin": 0.2,
       "riskPerLead": 0.42,

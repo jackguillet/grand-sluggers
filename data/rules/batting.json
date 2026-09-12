@@ -115,6 +115,7 @@
     "errorFramesPerBatStat": 0.62,
     "outOfZoneErrorFrames": 4,
     "spraySigmaDeg": 12,
-    "launchAimSigma": 0.45
+    "launchAimSigma": 0.45,
+    "decideLeadSec": 0.12
   }
 }

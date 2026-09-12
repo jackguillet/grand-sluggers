@@ -693,9 +693,9 @@ public sealed class Match
         var c = Rules.Pitching.Cpu;
         var tired = (Top ? HomeStamina : AwayStamina) < Rules.Pitching.Stamina.TiredBelow;
         var star = CanStarPitch && _rng.NextDouble() < (Pitcher.Captain ? c.StarChanceCaptain : c.StarChance);
-        var type = _rng.NextDouble() < c.ChangeupChance ? "changeup"
-            : _rng.NextDouble() < c.SliderChance ? "slider"
-            : _rng.NextDouble() < c.CurveChance ? "curve" : "fastball";
+        var changeup = _rng.NextDouble() < c.ChangeupChance;
+        // Break is a stick verb, not a type (spec §4.3): the CPU holds it one way for the flight.
+        var breakX = !changeup && _rng.NextDouble() < c.BreakChance ? (_rng.NextDouble() < 0.5 ? -1.0 : 1.0) : 0;
         var charge = _rng.NextDouble() < c.ChargeChance
             ? c.ChargeMin + _rng.NextDouble() * c.ChargeSpan
             : c.TapMin + _rng.NextDouble() * c.TapSpan;
@@ -709,11 +709,10 @@ public sealed class Match
             aimX *= c.TiredScatterMul;
             aimY *= c.TiredScatterMul;
         }
-        var changeup = type == "changeup";
-        var breakX = type == "slider" ? c.SliderBreak : type == "curve" ? c.CurveBreak : 0;
-        var delivery = new PitchCommand(changeup ? "fastball" : type, charge, err, star, aimX, aimY,
+        var delivery = new PitchCommand("fastball", charge, err, star, aimX, aimY,
             breakX, changeup, PitcherOffsetX);
-        return PitchFlight.AimForCrossing(delivery, aimX + PitcherOffsetX * c.RubberCrossingMul, aimY, Pitcher.StarPitch, Rules);
+        // The CPU picks a crossing; the rubber and the break are compensated into the aim (§4.8 lands the location table).
+        return PitchFlight.AimForCrossing(delivery, aimX, aimY, Pitcher.StarPitch, Rules);
     }
 
     /// <summary>

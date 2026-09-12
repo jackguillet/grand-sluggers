@@ -519,11 +519,11 @@ namespace GrandSluggers.UnityClient
             }
             var plateMin = new Vector3(
                 (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
-                (float)(PitchFlight.PlateY - 1.2 - physicalBat.BarrelRadius),
+                (float)(SwingPresentation.PlateBandY - 1.2 - physicalBat.BarrelRadius),
                 (float)(HomeSet.PlatePointZ - physicalBat.BarrelRadius));
             var plateMax = new Vector3(
                 (float)(HomeSet.PlateW / 2 + physicalBat.BarrelRadius),
-                (float)(PitchFlight.PlateY + 1.2 + physicalBat.BarrelRadius),
+                (float)(SwingPresentation.PlateBandY + 1.2 + physicalBat.BarrelRadius),
                 (float)(HomeSet.PlateFrontZ + physicalBat.BarrelRadius));
             if (beat == "contact"
                 && !SegmentIntersectsBox(
@@ -535,7 +535,7 @@ namespace GrandSluggers.UnityClient
                     + $"({physicalBat.BarrelEnd.x:0.00}, {physicalBat.BarrelEnd.y:0.00}, "
                     + $"{physicalBat.BarrelEnd.z:0.00})");
 
-            var plate = new Vector3(0f, (float)PitchFlight.PlateY, (float)HomeSet.PlateCenterZ);
+            var plate = new Vector3(0f, (float)SwingPresentation.PlateBandY, (float)HomeSet.PlateCenterZ);
             var axis = physicalBat.BarrelEnd - physicalBat.BarrelStart;
             var axisSq = axis.sqrMagnitude;
             var u = axisSq < 0.0001f ? 0f : Mathf.Clamp01(

@@ -15,6 +15,11 @@ public static class SwingPresentation
     public const double NormalLoadAt = LaunchAt * 0.5;
     public const double ApproachAt = 0.24;
     public const double ContactAt = Motion.SwingContact;
+    /// <summary>
+    /// Center of the authored swing's contact band (±1.2 ft): the DCC take contract, measured by
+    /// the still gate. Not the pitch's crossing height (<see cref="PitchFlight.PlateY"/>).
+    /// </summary>
+    public const double PlateBandY = 2.4;
     public const double FollowThroughAt = Motion.SwingDur;
     public const double ContactStretchXZ = 1.14;
     public const double ContactSquashY = 0.84;
@@ -151,11 +156,11 @@ public static class SwingPresentation
         var barrel = BarrelSegmentWorld(bodyType, hand, poseT, worldOffsetX);
         var min = new Vec3(
             -HomeSet.PlateW / 2 - barrel.Radius,
-            PitchFlight.PlateY - 1.2 - barrel.Radius,
+            PlateBandY - 1.2 - barrel.Radius,
             HomeSet.PlatePointZ - barrel.Radius);
         var max = new Vec3(
             HomeSet.PlateW / 2 + barrel.Radius,
-            PitchFlight.PlateY + 1.2 + barrel.Radius,
+            PlateBandY + 1.2 + barrel.Radius,
             HomeSet.PlateFrontZ + barrel.Radius);
         return SegmentIntersectsBox(barrel.Start, barrel.End, min, max);
     }
