@@ -104,6 +104,8 @@ public sealed class FieldingResolver
         if (shown.Chomped)
             return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true,
                 Feat: CatchFeat(shown, hit, park));
+        if (shown.Foul)
+            return ResolveFoul(hit, shown, rng);
 
         var fielder = shown.Fielder;
         var pos = shown.Position;
@@ -190,6 +192,37 @@ public sealed class FieldingResolver
         return new FieldingResult(
             groundKind,
             fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy, Warped: shown.Warped);
+    }
+
+    /// <summary>
+    /// A foul flight (§7.11): the glove from the foul pool that gets under it before it lands
+    /// catches it for an out; otherwise it is dead where the untouched path says (the live
+    /// ball then holds the camera until that instant). A foul roller is never an out here.
+    /// </summary>
+    FieldingResult ResolveFoul(AtBatResult hit, FieldingPreview shown, Random rng)
+    {
+        var fr = _rules.Fielding;
+        var fielder = shown.Fielder;
+        var dead = new FieldingResult(PlayKind.Foul, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
+        if (shown.Grounder || shown.Frozen) return dead;
+        // Into the stands: a catch at the rail is a rob, by the glove's reach over that wall (§8.4).
+        if (shown.Ball is { LeavesInTheAir: true } leaving && !FlyCatch.CanRob(leaving.WallClearFt, fielder, null, false, _rules))
+            return dead;
+        var range = fr.Range.BaseFt + fielder.Stats.Field * fr.Range.FtPerField + fielder.Stats.Run * fr.Range.FtPerRun
+                    + FieldAbilities.FlyRangeBonus(fielder, _rules) + FieldAbilities.GroundRangeBonus(fielder, _rules);
+        var speed = fr.Chase.BaseFtPerSec + fielder.Stats.Run * fr.Chase.FtPerSecPerRun;
+        var start = Diamond.Positions[shown.Position];
+        var toBall = Diamond.Dist(start.X, start.Z, shown.LandingX, shown.LandingZ);
+        var arrive = toBall / Math.Max(fr.Chase.MinFtPerSec, speed);
+        var reached = shown.Line
+            ? arrive <= shown.HangTimeSec && toBall < CatchWindowFt(shown.CatchRadius, false, false, _rules) * fr.Catch.LineWindowMul
+            : arrive <= shown.HangTimeSec - fr.Catch.FlyWindowLeadSec && toBall < range * fr.Catch.FlyRangeMul;
+        if (!reached) return dead;
+        var drop = (shown.Heatball && rng.NextDouble() < fr.Drops.Heatball)
+                   || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < fr.Drops.PhonySwing);
+        return drop
+            ? dead
+            : new FieldingResult(PlayKind.FlyOut, fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace);
     }
 
     public (Character Fielder, string Pos) NearestPublic(

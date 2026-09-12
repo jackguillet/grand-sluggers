@@ -153,6 +153,7 @@ public sealed record AtBatResult(
     double SprayDeg = 0,
     bool Foul = false,
     bool InZone = true,
+    /// <summary>The batted ball's shape from the one flight (§6.2: topper … homer, bunt). <see cref="Foul"/> is the chalk.</summary>
     BattedBallClass Class = BattedBallClass.Fly);
 
 public sealed record PitchCommand(

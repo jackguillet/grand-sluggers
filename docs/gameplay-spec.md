@@ -104,7 +104,7 @@ SET ──(pitch commit)──▶ WINDUP ──(release @0.42)──▶ FLIGHT �
 | **SET** | Pitcher walks the rubber, batter walks the box, offense arms steals (D-pad runner + L3) and all-advance, defense arms a pickoff, either side arms a star. Pitcher readiness beat `pitcherReadySeconds` (0.55). Runners stand on their bags (D1). | Both | Pitch commit (release of South at the mound). Pickoff (bag + South). Call time. |
 | **WINDUP** | Delivery animation. Batter may still walk the box and start a charge. A steal armed inside the first 0.25 s is a **perfect steal** (D2). Runners with a steal armed break at **release** (perfect: 0.4 s before). | Both | Release at `Motion.PitchRelease` (0.42). |
 | **FLIGHT** | Ball travels rubber → plate in `AirSeconds` (≈0.85–1.10, D7). Pitcher steers break (stick L/R). Batter may swing at any moment; the bat reaches the plane 0.30 after release of the button. Stealing runners run at ⅔ speed until the ball reaches the plate. | Both | Ball crosses the plate plane (take) or bat plane meets ball (swing). |
-| **JUDGE** | One function, one frame: strike/ball, swing/miss, contact quality, foul/fair, HBP. | Sim | Dead or live. |
+| **JUDGE** | One function, one frame: strike/ball, swing/miss, contact quality, HBP. Fair / foul is the live ball's call (§5.6): every batted ball goes LIVE. | Sim | Dead or live. |
 | **DEAD** | Count updates. Steal in progress resolves as a **catcher throw play** (§11). Pickoff resolves as a pickoff play. | Sim, then catcher seat | Stamp. |
 | **LIVE** | Ball in play. Fielders, runners, throws, tags, forces (§7–11). | Both | `Time` (§10.6). |
 | **STAMP** | Result named on the field. Scoring, outs, bag placement already applied. Hold `afterOutSeconds` / `afterCountSeconds`. | Sim | SET, half change, or game over. |
@@ -259,8 +259,8 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 - A ball is **foul** if it *lands* (or is first touched by a fielder) in foul territory, or rolls foul before passing a base without being touched. It is **fair** if it lands fair past the bases, or is touched fair, or leaves the park between the poles. The chalk is geometry, not a spray cutoff. ✅ P2: the untouched path's verdict is `BattedBall.Foul`, decided where the ball first lands past the bags, where it crosses the bag circle (90 ft) on a roll, where it rests, or where it touches a foul wall (S-20 … S-23). The wind bends the path, so the landing spray is not the spray at contact. There is no spin in the flight: a roll only curves with the wind. Touch-by-a-fielder is the live ball's call (P2 part b).
 - **Home run**: the flight crosses the fence line above fence height between the poles. One rule, used by the flight, the fielding preview, and the landing ring. ✅ P2 (`BattedBall.HomeRun` from the fence crossing; the launch bands are gone).
 - A ball that hits the wall is live (§7.9). A ball that bounces over is a ground-rule double (§1). ✅ P2
-- **Foul ball** with fewer than 2 strikes adds a strike. With 2 strikes, nothing (except bunt). Runners return. The ball still flies so the camera can chase it; the stamp says FOUL when it lands. ✅ ⚠️ `FinishFoul` skips `AfterPitch` so no steal/pickoff resolution on a foul.
-- A foul fly can be **caught** for an out (§7.11). ❌ Foul flights are never fielded.
+- **Foul ball** with fewer than 2 strikes adds a strike. With 2 strikes, nothing (except bunt). Runners return. The ball still flies so the camera can chase it; the stamp says FOUL when it lands. ✅ P2: a foul is a live ball the sim plays out (`LivePlaySystem`, `FairFoulCall`); it commits as `PlayKind.Foul` through `FinishInPlay` at the untouched path's verdict (plus the `flight.deadBall` beat) or at a touch on foul ground, and goes through `AfterPitch` like a take or a miss.
+- A foul fly can be **caught** for an out (§7.11). ✅ P2 (S-24; the touch before the landing mark is the catch).
 
 ### 5.7 Hit by pitch — see §4.6.
 
@@ -324,7 +324,7 @@ Class is a function of launch angle and exit velocity at contact, used by fieldi
 | Bunt | bunt verb | | Dribbler in the triangle |
 | Foul | lands / touched in foul territory | | Dead unless caught |
 
-✅ P2: `BattedBallClass` and `BattedBall.Of` (`flight.classes`). `BattedBallClasses.ByLaunch` is the read at the crack (topper / grounder / liner / fly) the cameras use; the flight refines it (chopper by the first hop, pop by the landing, wall and homer by the fence). `AtBatResult.Class` and `FieldingPreview.Class` carry it; the pursuit pool is `FieldingResolver.PursuitPool(class, foul)`. The chopper row reads "< 14°" rather than "3–14°": launched from the bat's height, no ball at 3° and 70 mph first bounces inside 30 ft — the chopper is a ball driven down, and it becomes reachable once §5.4's launch bands (P1) include the topper band below 3°.
+✅ P2: `BattedBallClass` and `BattedBall.Of` (`flight.classes`). `BattedBallClasses.ByLaunch` is the read at the crack (topper / grounder / liner / fly) the cameras use; the flight refines it (chopper by the first hop, pop by the landing, wall and homer by the fence). `AtBatResult.Class` and `FieldingPreview.Class` carry the shape (topper … homer, bunt) with `Foul` beside it as the chalk; `BattedBall.Class` is the spec's row (Foul when the untouched path is foul). A bunt popped up (§5.8) is a pop, not a bunt. The pursuit pool is `FieldingResolver.PursuitPool(class, foul)`. The chopper row reads "< 14°" rather than "3–14°": launched from the bat's height, no ball at 3° and 70 mph first bounces inside 30 ft — the chopper is a ball driven down, and it becomes reachable once §5.4's launch bands (P1) include the topper band below 3°.
 
 ---
 
@@ -413,9 +413,9 @@ Common to all live plays:
 
 ### 7.11 Foul ball
 
-- Foul grounder / foul pop: dead when it lands or leaves the field, **unless a fielder catches it** (foul fly out: C, 1B, 3B, LF, RF near the lines).
-- Runners return. A caught foul fly is a fly ball for tag-up purposes.
-- Stamp FOUL when dead. ✅ dead stamp; ❌ never fielded.
+- Foul grounder / foul pop: dead when it lands or leaves the field, **unless a fielder catches it** (foul fly out: C, 1B, 3B, LF, RF near the lines). ✅ P2: the foul pool is `FieldingResolver.FoulPursuitPositions`, routed by the same planner; the call is made where the ball lands, rolls foul, rests, leaves, or is first touched (`BattedBall.DecidedT`, `LivePlaySystem.Call`). A touch on fair ground before the roll went foul makes it a fair ball and the play goes on.
+- Runners return. A caught foul fly is a fly ball for tag-up purposes. ✅ (it is `PlayKind.FlyOut`)
+- Stamp FOUL when dead, within the count hold (S-24b). The play never hangs: a foul is a dead-ball result the sim commits itself (#575). ✅ P2
 
 ### 7.12 Strikeout / walk / HBP with runners
 
