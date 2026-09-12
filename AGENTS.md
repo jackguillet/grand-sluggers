@@ -2,7 +2,7 @@
 
 Grand Sluggers is a **complete, polished party baseball game** we will still want in five years. The bar is Nintendo-level Exhibition (then local 1v1): Super Sluggers *systems* — cameras, HUD, plays, lineup, juice — with **original toys**. Not a prototype that lucks into a still. Not a Mario clone.
 
-Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. Sequence: `docs/roadmap.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
+Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
 
 ## The stack (do this, in order)
 
@@ -19,7 +19,7 @@ Agents start here. Do not pick a lower row because it is easier.
 
 Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a fail. Rule: `.grok/rules/exact-work.md`.
 
-- Research the spec (MLB, the reference still, existing tables) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists."
+- Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists." A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/`.
 - **View the change** (Play `HarborDiamond` + Scene orbit, still, live bounds vs the reference). Math-only is not verification. If you cannot look, say so — do not claim look done.
 - "Close" / "better" from Jack is a correction, not acceptance.
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.

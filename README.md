@@ -77,6 +77,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [unity/README.md](unity/README.md) | Unity editor, scene, license |
 | [docs/engine-decision.md](docs/engine-decision.md) | Unity vs Godot vs Unreal — why Unity |
 | [docs/validation.md](docs/validation.md) | Portable, Unity import, build, smoke, and human validation lanes |
+| [docs/gameplay-spec.md](docs/gameplay-spec.md) | **Source of truth for every play**: pitch, swing, fielding, running, outs, steals, CPU — with the gap audit and scenario tests |
 | [docs/systems.md](docs/systems.md) | Chemistry, stars, batting, pitching, fielding, gear, parks |
 | [docs/roster.md](docs/roster.md) | Factions, captains, placeholder roster |
 | [docs/silhouette-bible.md](docs/silhouette-bible.md) | Locked camera, six body types, signature bats |
