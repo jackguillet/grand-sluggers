@@ -8,11 +8,32 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class FlyCatch
 {
-    public static bool IsFly(FieldingPreview pre) => !pre.Grounder && !pre.Line;
+    public static bool IsFly(FieldingPreview pre) => pre.Class.IsFlyShape();
 
-    /// <summary>Would-be homer: jump in the window at the wall. South does not scoop a rob.</summary>
-    public static bool NeedsJump(FieldingPreview pre) =>
-        IsFly(pre) && pre.HomeRunLikely;
+    /// <summary>The flight clears the fence: only a leap in the window at the wall takes it. South does not scoop a rob.</summary>
+    public static bool NeedsJump(FieldingPreview pre) => pre.HomeRunLikely;
+
+    /// <summary>
+    /// The rob height (§8.4, fielding.catch.*RobFt): a leap takes a ball clearing the fence by at
+    /// most the glove's reach over it — plain jump, Super Jump, Clamber on a climb wall, or a
+    /// buddy jump. A ball higher than that is gone whatever the window says.
+    /// </summary>
+    public static double RobHeightFt(Character? fielder, Park? park, bool buddy = false, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Fielding.Catch;
+        var reach = c.JumpRobFt;
+        if (buddy) reach = Math.Max(reach, c.BuddyJumpRobFt);
+        if (fielder is null) return reach;
+        if (fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+            reach = Math.Max(reach, c.SuperJumpRobFt);
+        if (park != null && ParkHazards.CanClamber(park, fielder))
+            reach = Math.Max(reach, c.ClamberRobFt);
+        return reach;
+    }
+
+    /// <summary>Can this glove's leap reach a ball clearing the fence by <paramref name="clearFt"/>?</summary>
+    public static bool CanRob(double clearFt, Character? fielder, Park? park, bool buddy = false, RulesTable? rules = null) =>
+        !double.IsNaN(clearFt) && clearFt <= RobHeightFt(fielder, park, buddy, rules);
 
     /// <summary>
     /// Super Jump / Grow / Clamber add seconds, not an auto-rob.
@@ -79,8 +100,9 @@ public static class FlyCatch
         bool southDown,
         bool under,
         bool inWindow,
-        bool needsJump) =>
-        (jumpDown && inWindow && under) || (southDown && under && !needsJump);
+        bool needsJump,
+        bool canRob = true) =>
+        (jumpDown && inWindow && under && (!needsJump || canRob)) || (southDown && under && !needsJump);
 
     public static bool PlayerDiveCatch(bool diveArmed, double distFt, double windowFt, double ballY, RulesTable? rules = null) =>
         diveArmed && distFt < windowFt && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
@@ -106,7 +128,7 @@ public static class FlyCatch
     public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
         double hitT, double hangSec, RulesTable? rules = null) =>
         (pre.Grounder || pre.Line || hitT >= hangSec)
-        && FieldBounds.DistHome(ballX, ballZ) <= AtBatResolver.FenceAt(park, FieldBounds.SprayDeg(ballX, ballZ));
+        && FieldBounds.InPark(park, ballX, ballZ);
 
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true, RulesTable? rules = null)
     {
@@ -114,6 +136,9 @@ public static class FlyCatch
         if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
         if (pre.HomeRunLikely)
             return PlayKind.HomeRun;
+        // Bounced then over, or off the wall (§1, §7.9): a double until P3 runs the bases by geometry.
+        if (pre.Ball is { GroundRule: true } || pre.Class == BattedBallClass.Wall)
+            return PlayKind.Double;
         var carry = hit?.CarryFt ?? 0;
         var bands = Rules.Or(rules).Flight.Carry;
         return carry >= bands.TripleFt ? PlayKind.Triple
@@ -138,9 +163,11 @@ public static class FlyCatch
         return (x * s, z * s);
     }
 
+    /// <summary>The ring: the landing mark, or the plant inside the wall when the ball meets the fence first (§6.1).</summary>
     public static (double X, double Z) ChaseTarget(FieldingPreview pre, Park? park = null, RulesTable? rules = null)
     {
-        var raw = NeedsJump(pre) ? WallPlant(pre, park, rules) : (X: pre.LandingX, Z: pre.LandingZ);
+        var atWall = NeedsJump(pre) || pre.Class == BattedBallClass.Wall;
+        var raw = atWall ? WallPlant(pre, park, rules) : (X: pre.LandingX, Z: pre.LandingZ);
         return park == null ? raw : FieldBounds.Clamp(park, raw.X, raw.Z);
     }
 
@@ -156,9 +183,10 @@ public static class FlyCatch
         bool caught,
         RulesTable? rules = null)
     {
-        if (FieldingResolver.IsGrounder(hit, rules))
+        var shape = pre?.Class ?? BattedBallClasses.ByLaunch(hit.LaunchDeg, hit.ExitVeloMph, rules);
+        if (shape.OnTheDirt())
             return hit.SprayDeg < -8 ? PlayCamera.Beat.GrounderPull : PlayCamera.Beat.Grounder;
-        if (FieldingResolver.IsLine(hit, rules)) return PlayCamera.Beat.Line;
+        if (shape == BattedBallClass.Liner) return PlayCamera.Beat.Line;
         if (pre != null && NeedsJump(pre))
         {
             if (caught || SitOnWall(hitT, hangSec, rules)) return PlayCamera.Beat.Wall;

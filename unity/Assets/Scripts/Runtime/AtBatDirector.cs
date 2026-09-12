@@ -450,7 +450,9 @@ namespace GrandSluggers.UnityClient
         void AimDiamond(AtBatResult hit)
         {
             _ = hit;
-            _cam.HoldInPlay(_ball, fly: !FieldingResolver.IsGrounder(hit) && !FieldingResolver.IsLine(hit));
+            _cam.HoldInPlay(_ball, fly: _preview != null
+                ? FlyCatch.IsFly(_preview)
+                : BattedBallClasses.ByLaunch(hit.LaunchDeg, hit.ExitVeloMph, _content.Rules).IsFlyShape());
         }
 
     }

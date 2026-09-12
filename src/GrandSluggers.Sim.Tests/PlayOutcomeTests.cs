@@ -13,7 +13,8 @@ public class PlayOutcomeTests
         var match = Match.Slice(_content, seed: 7);
         var fielder = _content.Must("nico");
         var buddy = _content.Must("gull");
-        var hit = Fly(carry: 300, homeRun: false);
+        // A real homer by ten feet: the buddy jump's rob height (18) takes it (§8.4).
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
         var at = Diamond.Positions["CF"];
         var preview = Preview(fielder, buddy, at.X, at.Z, homeRunLikely: true);
 
@@ -31,7 +32,7 @@ public class PlayOutcomeTests
         var match = Match.Slice(_content, seed: 7);
         var fielder = _content.Must("nico");
         var fence = AtBatResolver.FenceAt(match.Park, 0);
-        var hit = Fly(fence + 10, homeRun: true);
+        var hit = FlightFixtures.OverTheFence(match.Park, 10, 0);
         var field = match.ResolveFielding(hit, Preview(fielder, null, 0, fence, homeRunLikely: true));
         var ev = match.FinishAtBat(Pitch(), Swing(), hit, field);
 
@@ -47,7 +48,7 @@ public class PlayOutcomeTests
         var match = Match.Slice(_content, seed: 7, parkId: "canopy-yard");
         var fielder = _content.Must("konga");
         var fence = AtBatResolver.FenceAt(match.Park, 0);
-        var hit = Fly(fence + 12, homeRun: true);
+        var hit = FlightFixtures.OverTheFence(match.Park, 12, 0);
         var field = match.ResolveFielding(hit, Preview(fielder, null, 0, fence, homeRunLikely: true));
         var ev = match.FinishAtBat(Pitch(), Swing(), hit, field);
 
@@ -71,12 +72,10 @@ public class PlayOutcomeTests
         Assert.Equal(DefensiveFeat.BuddyJump, FieldingResolver.PlayerCatchFeat(buddy, park, true, true));
     }
 
-    static AtBatResult Fly(double carry, bool homeRun) => new(
-        ContactQuality.Perfect, true, false, 102, 28, carry, homeRun, false, null, null);
-
     static FieldingPreview Preview(
         Character fielder, Character? buddy, double x, double z, bool homeRunLikely, bool line = false) =>
-        new(fielder, "CF", buddy, 4, x, z, false, homeRunLikely, false, false, false, 20, Line: line);
+        FlightFixtures.Preview(fielder, "CF", homeRunLikely ? BattedBallClass.Homer : line ? BattedBallClass.Liner : BattedBallClass.Fly,
+            4, x, z, buddy, 20);
 
     static PitchCommand Pitch() => new("fastball", 0, 0, false);
     static SwingCommand Swing() => new(true, 0, 0, false);

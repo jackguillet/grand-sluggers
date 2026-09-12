@@ -63,7 +63,9 @@ public enum LiveEvent
     StampSafe,
     CloseIcon,
     BuddyJump,
-    ItemSmashed
+    ItemSmashed,
+    /// <summary>The ball met the outfield fence below its top: the carom (§7.9).</summary>
+    WallCarom
 }
 
 /// <summary>
@@ -78,6 +80,7 @@ public sealed partial class LivePlaySystem
     readonly List<LiveEvent> _events = [];
     bool _gloved;
     bool _recoilArmed;
+    bool _wallCued;
     int[]? _relayBags;
     int _relayI;
     double _closePlayT;
@@ -96,7 +99,8 @@ public sealed partial class LivePlaySystem
     /// <summary>The fielding result the last completed play was scored from.</summary>
     public FieldingResult? LastFieldResult { get; private set; }
     public IReadOnlyList<Sample>? Path { get; private set; }
-    public double SprayDeg { get; private set; }
+    /// <summary>The batted ball's facts (§6.2): class, landing, wall, fence, and the untouched fair / foul verdict.</summary>
+    public BattedBall? Ball { get; private set; }
     public LiveSeats Seats { get; private set; } = LiveSeats.CpuOnly;
     /// <summary>A foul or dead flight: the ball flies for the camera, nobody plays it.</summary>
     public bool DeadFlight { get; private set; }
@@ -169,14 +173,15 @@ public sealed partial class LivePlaySystem
         if (command.Hit is null || command.Pitch is null || command.Swing is null)
             return new LivePlayCommandResult(Snapshot);
         ResetField();
+        _events.Clear();
         Pitch = command.Pitch;
         Swing = command.Swing;
         Hit = command.Hit;
         Preview = command.Preview;
         Field = command.Field;
         Seats = command.Seats ?? LiveSeats.CpuOnly;
-        SprayDeg = Hit.SprayDeg;
-        Path = BallFlight.Trajectory(Hit.ExitVeloMph, Hit.LaunchDeg, Park.WindMph, R);
+        Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
+        Path = Ball.Samples;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         InitGloves();
         var kind = LiveKind();
@@ -195,9 +200,10 @@ public sealed partial class LivePlaySystem
     {
         if (command.Hit is null) return new LivePlayCommandResult(Snapshot);
         ResetField();
+        _events.Clear();
         Hit = null;
-        SprayDeg = command.Hit.SprayDeg;
-        Path = BallFlight.Trajectory(command.Hit.ExitVeloMph, command.Hit.LaunchDeg, Park.WindMph, R);
+        Ball = BattedBall.Of(command.Hit, Park, R);
+        Path = Ball.Samples;
         DeadFlight = true;
         FlightDone = false;
         return new LivePlayCommandResult(Snapshot);
@@ -231,7 +237,7 @@ public sealed partial class LivePlaySystem
         Preview = null;
         Field = null;
         Path = null;
-        SprayDeg = 0;
+        Ball = null;
         DeadFlight = false;
         FlightDone = false;
         StealPhase = false;
@@ -258,6 +264,7 @@ public sealed partial class LivePlaySystem
         CatchDive = CatchJump = false;
         _gloved = false;
         _recoilArmed = false;
+        _wallCued = false;
         _relayBags = null;
         _relayI = 0;
         AwaitingRelay = false;
@@ -273,7 +280,8 @@ public sealed partial class LivePlaySystem
         StealPitch = null;
         _cpuGunAt = 0;
         Sub = "";
-        _events.Clear();
+        // Cues are per command: Tick clears them on entry. Clearing here would drop the cue raised on
+        // the tick that also completes the play (a catch, the wall thump) before Unity reads it.
     }
 
     // ---------------------------------------------------------------------------------
@@ -295,7 +303,7 @@ public sealed partial class LivePlaySystem
             ElapsedSeconds += dt;
             if (Path is not null)
             {
-                var p = BallFlight.PointAt(Path, SprayDeg, ElapsedSeconds, R);
+                var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
                 (BallX, BallY, BallZ) = p;
             }
             FlightDone = Path is null || (ElapsedSeconds >= Rest + R.Flight.DeadBall.RestHoldSec && !command.EffectInFlight);
@@ -337,7 +345,7 @@ public sealed partial class LivePlaySystem
         }
         else if (!Throwing)
         {
-            var p = BallFlight.PointAt(Path, SprayDeg, ElapsedSeconds, R);
+            var p = BallFlight.PointAt(Path, ElapsedSeconds, R);
             (BallX, BallY, BallZ) = p;
         }
 
@@ -397,6 +405,16 @@ public sealed partial class LivePlaySystem
         // ownership dispatch so CPU, assisted defense and two-pad play agree.
         if (Hit is not null && InPlay.DeadBallResultReady(LiveKind(), ElapsedSeconds, Hang, HoldsBall, Throwing,
                 command.EffectInFlight, R))
+            return Commit();
+
+        if (Ball is not null && !_wallCued && Ball.WallT is { } wallT && ElapsedSeconds >= wallT && !HoldsBall)
+        {
+            _wallCued = true;
+            _events.Add(LiveEvent.WallCarom);
+        }
+        // Bounced then over the fence (§1): nobody can play it once it is gone; the ground-rule double is committed here.
+        if (Hit is not null && Ball is { GroundRule: true, LeavesT: { } leftAt } && !HoldsBall && !Throwing
+            && ElapsedSeconds >= leftAt + R.Flight.DeadBall.RestHoldSec && !command.EffectInFlight)
             return Commit();
 
         if (PlayerFielding && Preview is not null && Hit is not null)
@@ -544,12 +562,14 @@ public sealed partial class LivePlaySystem
             var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
             var under = FlyCatch.Under(GloveX, GloveZ, BallX, BallZ, plant.X, plant.Z, window, needsJump, R);
             var jumpTry = JumpT > 0 && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
+            var buddyRob = buddyOn && Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z) < catchRules.BuddyPlantFt;
+            var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
             if (stick < stickTake && FlyCatch.AutoCatch(under, inWin, needsJump))
             {
                 CatchGlove();
                 ArmRecoil();
             }
-            if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, under, inWin, needsJump))
+            if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, under, inWin, needsJump, canRob))
             {
                 if (jumpTry) CatchJump = true;
                 if (buddyOn && inWin && Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z) < catchRules.BuddyPlantFt)
@@ -721,7 +741,7 @@ public sealed partial class LivePlaySystem
     void ChaseGlove(double dt, FieldingPreview pre)
     {
         if (Path is null) return;
-        var live = BallFlight.PointAt(Path, SprayDeg, ElapsedSeconds, R);
+        var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
         var map = Assigned();
         var hang = Hang;
         var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, hang);
@@ -729,7 +749,7 @@ public sealed partial class LivePlaySystem
         TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z);
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var run = FieldingResolver.ChaseSpeedFt(who, pre.Frozen, R);
-        var route = FieldingPursuit.Plan(pre, Park, Path, SprayDeg, ElapsedSeconds, GloveX, GloveZ, run, R);
+        var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, run, R);
         var next = FieldingResolver.StepToward(GloveX, GloveZ, route.X, route.Z, run, dt, Park, R);
         GloveX = next.X;
         GloveZ = next.Z;
@@ -753,7 +773,7 @@ public sealed partial class LivePlaySystem
     {
         if (Preview is null || Hit is null || Path is null) return;
         if (HoldsBall || Throwing) return;
-        var live = BallFlight.PointAt(Path, SprayDeg, ElapsedSeconds, R);
+        var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
         var hang = Hang;
         var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, hang);
         var plant = FlyCatch.ChaseTarget(Preview, Park, R);
@@ -764,7 +784,7 @@ public sealed partial class LivePlaySystem
             return;
         var map = Assigned();
         var of = FieldingPursuit.Choose(
-            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, SprayDeg, _fielders, ElapsedSeconds, R);
+            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R);
         if (of.Position == GlovePos) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, Preview.Frozen, R);
@@ -809,14 +829,14 @@ public sealed partial class LivePlaySystem
         (Character Fielder, string Pos) pick;
         if (Preview is not null && Path is not null)
         {
-            var live = BallFlight.PointAt(Path, SprayDeg, ElapsedSeconds, R);
+            var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
             var airborne = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, Hang);
             var positions = airborne
                 ? FieldingResolver.AirPursuitPositions
                 : FieldingResolver.OutfieldGrass(live.X, live.Z, R)
                     ? FieldingResolver.OutfieldPursuitPositions
                     : FieldingResolver.InfieldPursuitPositions;
-            var choice = FieldingPursuit.Choose(map, positions, Preview, Park, Path, SprayDeg, _fielders, ElapsedSeconds, R);
+            var choice = FieldingPursuit.Choose(map, positions, Preview, Park, Path, _fielders, ElapsedSeconds, R);
             pick = (choice.Fielder, choice.Position);
         }
         else
@@ -836,7 +856,7 @@ public sealed partial class LivePlaySystem
             var map = Assigned();
             var who = map.TryGetValue(GlovePos, out var fielder) ? fielder : pre.Fielder;
             var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen, R);
-            var route = FieldingPursuit.Plan(pre, Park, Path, SprayDeg, ElapsedSeconds, GloveX, GloveZ, speed, R);
+            var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R);
             return (route.X, route.Z);
         }
         return (BallX, BallZ);
@@ -1208,7 +1228,8 @@ public sealed partial class LivePlaySystem
                 KnockbackSec: knock, Feat: feat);
         }
         var miss = FlyCatch.PlayerKind(false, pre, hit, rules: R);
-        return new FieldingResult(miss, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy);
+        return new FieldingResult(miss, from, null, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace, Buddy: pre.Buddy,
+            GroundRule: pre.Ball is { GroundRule: true });
     }
 
     // ---------------------------------------------------------------------------------
@@ -1386,6 +1407,7 @@ public sealed partial class LivePlaySystem
     {
         if (command.StealPitch is null) return new LivePlayCommandResult(Snapshot);
         ResetField();
+        _events.Clear();
         Reset();
         Active = true;
         Paused = _match.Paused;

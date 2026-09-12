@@ -109,12 +109,12 @@ public class FieldingSceneTests
         var dart = _content.Must("dart");
         var zig = _content.Must("zig");
         var lace = _content.Must("lace");
-        var offered = new FieldingPreview(dart, "CF", zig, 4.2, 0, 390, false, true, false, false, false, 14);
+        var offered = FlightFixtures.Preview(dart, "CF", BattedBallClass.Homer, 4.2, 0, 390, zig);
         Assert.True(FieldingResolver.BuddyJumpOffered(offered));
 
         Assert.False(FieldingResolver.BuddyJumpOffered(offered with { Buddy = null }));
-        Assert.False(FieldingResolver.BuddyJumpOffered(offered with { HomeRunLikely = false }));
-        Assert.False(FieldingResolver.BuddyJumpOffered(offered with { Grounder = true }));
+        Assert.False(FieldingResolver.BuddyJumpOffered(offered with { Class = BattedBallClass.Fly }));
+        Assert.False(FieldingResolver.BuddyJumpOffered(offered with { Class = BattedBallClass.Grounder }));
         Assert.False(FieldingResolver.BuddyJumpOffered(offered with { Fielder = lace, Position = "SS" }));
     }
 
@@ -125,7 +125,7 @@ public class FieldingSceneTests
         var park = _content.Parks["harbor-diamond"];
         var rio = _content.Must("rio");
         var fielding = new FieldingResolver(_content.Chemistry);
-        var homer = Fly(395, 28, 0, hr: true);
+        var homer = FlightFixtures.OverTheFence(park, 10, 0);
         var pre = fielding.Preview(homer, park, spark.Roster, rio, new Random(1));
         Assert.Equal("CF", pre.Position);
         Assert.Equal("dart", pre.Fielder.Id);
@@ -159,7 +159,7 @@ public class FieldingSceneTests
         Assert.Null(infield.Buddy);
         Assert.False(FieldingResolver.BuddyJumpOffered(infield));
 
-        var rivals = fielding.Preview(Fly(395, 28, 0, hr: true), park, mixed.Roster, mixed.Captain, rng);
+        var rivals = fielding.Preview(FlightFixtures.OverTheFence(park, 10, 0), park, mixed.Roster, mixed.Captain, rng);
         Assert.True(rivals.HomeRunLikely);
         Assert.Null(rivals.Buddy);
         Assert.False(FieldingResolver.BuddyJumpOffered(rivals));
@@ -232,8 +232,8 @@ public class FieldingSceneTests
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var deep = new AtBatResult(ContactQuality.Nice, true, false, 92, 8, 220, false, false, null, null, SprayDeg: 0);
-        Assert.True(FieldingResolver.IsGrounder(deep));
+        var deep = FlightFixtures.Hit(match.Park, 104, 9, 0);
+        Assert.True(deep.Class.OnTheDirt());
         var pre = fielding.Preview(deep, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
         Assert.True(FieldingResolver.OutfieldGrass(pre.LandingX, pre.LandingZ));
@@ -250,9 +250,8 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var liner = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
-        Assert.True(FieldingResolver.IsLine(liner));
-        Assert.False(FieldingResolver.IsGrounder(liner));
+        var liner = FlightFixtures.Hit(match.Park, 95, 16, 6);
+        Assert.Equal(BattedBallClass.Liner, liner.Class);
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Line);
         Assert.False(pre.Grounder);
@@ -268,8 +267,7 @@ public class FieldingSceneTests
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
         var fly = Fly(280, 28, 8);
-        Assert.False(FieldingResolver.IsGrounder(fly));
-        Assert.False(FieldingResolver.IsLine(fly));
+        Assert.Equal(BattedBallClass.Fly, fly.Class);
         var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.Grounder);
         Assert.True(FieldingResolver.InAir(pre, ballY: 18, hitT: 0.25));
@@ -306,8 +304,8 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var liner = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 120, false, false, null, null, SprayDeg: 6);
-        Assert.True(FieldingResolver.IsLine(liner));
+        var liner = FlightFixtures.Hit(match.Park, 95, 16, 6);
+        Assert.Equal(BattedBallClass.Liner, liner.Class);
         var pre = fielding.Preview(liner, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Line);
         Assert.True(FieldingResolver.InAir(pre, ballY: 7, hitT: 0.2));
@@ -324,8 +322,8 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var hopper = new AtBatResult(ContactQuality.Nice, true, false, 88, 8, 90, false, false, null, null, SprayDeg: -12);
-        Assert.True(FieldingResolver.IsGrounder(hopper));
+        var hopper = FlightFixtures.Hit(match.Park, 88, 8, -12);
+        Assert.True(hopper.Class.OnTheDirt());
         var pre = fielding.Preview(hopper, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.True(pre.Grounder);
         Assert.False(FieldingResolver.InAir(pre, ballY: 4, hitT: 0.1));
@@ -377,7 +375,7 @@ public class FieldingSceneTests
         Assert.False(FieldBounds.Inside(canopy, 0, 500));
 
         var rio = _content.Must("rio");
-        var deep = new FieldingPreview(rio, "CF", null, 4.0, 0, 460, false, false, false, false, false, 14);
+        var deep = FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 4.0, 0, 460);
         var plant = FlyCatch.ChaseTarget(deep, harbor);
         Assert.True(FieldBounds.Inside(harbor, plant.X, plant.Z),
             "a 460 ft fly chase is the wall, not the seats");
@@ -391,6 +389,11 @@ public class FieldingSceneTests
         Assert.True(at.Z < harbor.CenterFenceFt - 4);
     }
 
-    static AtBatResult Fly(double carry, double launch, double spray, bool hr = false) =>
-        new(ContactQuality.Nice, true, false, 95, launch, carry, hr, false, null, null, SprayDeg: spray);
+    /// <summary>A real fly that lands <paramref name="carry"/> out in the open; Harbor's fence then says whether it is gone.</summary>
+    AtBatResult Fly(double carry, double launch, double spray, bool hr = false)
+    {
+        var hit = FlightFixtures.Landing(_content.Parks["harbor-diamond"], carry, launch, spray);
+        Assert.Equal(hr, hit.HomeRun);
+        return hit;
+    }
 }

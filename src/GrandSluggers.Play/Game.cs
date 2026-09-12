@@ -391,7 +391,7 @@ public sealed class Game : IDisposable
 
     void StartFly(AtBatResult hit, bool playerField)
     {
-        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, _match.Park.WindMph);
+        _hitPath = BallFlight.Trajectory(hit.ExitVeloMph, hit.LaunchDeg, hit.SprayDeg, _match.Park);
         _hitT = 0;
         _phase = Phase.InPlay;
         _phaseT = 0;
@@ -407,8 +407,7 @@ public sealed class Game : IDisposable
             BeginResult();
             return;
         }
-        var spray = _pendingHit?.SprayDeg ?? _last!.AtBat.SprayDeg;
-        var p = BallFlight.PointAt(_hitPath, spray, _hitT);
+        var p = BallFlight.PointAt(_hitPath, _hitT);
         _ball = new Vector3((float)p.X, (float)Math.Max(0.6, p.Y), (float)p.Z);
         _trail.Add(_ball);
         if (_trail.Count > 40) _trail.RemoveAt(0);

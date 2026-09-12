@@ -176,7 +176,7 @@ public sealed class SeatOwnershipTests
     /// </summary>
     static AtBatResult HopperToShort(Scenario scenario, Match match) => match.Top
         ? Shape(scenario.Contact(), match, exit: 84, launch: 8, spray: -12)
-        : Shape(scenario.Contact(), match, exit: 88, launch: 6, spray: -14);
+        : Shape(scenario.Contact(), match, exit: 88, launch: 6, spray: -18);
 
     static AtBatResult Shape(AtBatResult hit, Match match, double exit, double launch, double spray)
     {

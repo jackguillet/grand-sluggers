@@ -884,11 +884,14 @@ public sealed class Match
                 NextBatter();
                 break;
             case PlayKind.Double:
+                // A ground-rule double (§1) is the same placement: batter and every runner exactly two bases.
                 (runs, scorers) = AdvanceHit(Batter, 2);
                 batterToBag = 2;
                 AddMvp(Batter.Id, 2 + runs);
                 AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
-                caption = $"{Batter.Name} doubles.";
+                caption = field.GroundRule
+                    ? $"{Batter.Name} - over the fence on a hop. Ground-rule double."
+                    : $"{Batter.Name} doubles.";
                 NextBatter();
                 break;
             case PlayKind.Single:
@@ -1087,7 +1090,8 @@ public sealed class Match
         return Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
-            new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error));
+            new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
+                GroundRuleDouble: kind == PlayKind.Double && field.GroundRule));
     }
 
     PlayEvent Emit(

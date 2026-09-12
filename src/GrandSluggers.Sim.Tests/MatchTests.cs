@@ -505,7 +505,7 @@ public class MatchTests
         var samples = BallFlight.Trajectory(95, 28, 0);
         Assert.True(samples.Count > 10);
         Assert.InRange(BallFlight.HangTime(samples), 3.0 * BallFlight.TimeScale(), 6.5 * BallFlight.TimeScale());
-        var p = BallFlight.PointAt(samples, 0, 0.5);
+        var p = BallFlight.PointAt(samples, 0.5);
         Assert.True(p.Y > 2);
         Assert.True(p.Z > 0);
     }
@@ -633,9 +633,7 @@ public class MatchTests
     public void ClamberRobsAJustOverFenceHomer()
     {
         var park = _content.Parks["canopy-yard"];
-        var fence = AtBatResolver.FenceAt(park, 0);
-        var hit = new AtBatResult(
-            ContactQuality.Perfect, true, false, 102, 28, fence + 12, true, false, null, null);
+        var hit = FlightFixtures.OverTheFence(park, 12, 0);
         Assert.True(ParkHazards.CanClamberRob(park, _content.Must("konga"), hit));
         Assert.False(ParkHazards.CanClamberRob(park, _content.Must("ashlord"), hit));
         Assert.False(ParkHazards.CanClamberRob(_content.Parks["harbor-diamond"], _content.Must("konga"), hit));
