@@ -8,26 +8,26 @@ public class PitchTests
     [Fact]
     public void CenterAimIsInTheZone()
     {
-        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false), 7));
-        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.1, 0.1), 7));
+        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false), 7));
+        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.1, 0.1), 7));
     }
 
     [Fact]
     public void InsideAimIsABall()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.95, 0), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.95, 0), 7));
     }
 
     [Fact]
     public void DirtAimIsABall()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0, -0.9), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0, -0.9), 7));
     }
 
     [Fact]
     public void HighAimIsABall()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0, 1.3), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0, 1.3), 7));
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class PitchTests
     [Fact]
     public void NiceReleaseAddsFivePercent()
     {
-        var plain = new PitchCommand("fastball", 1, 0, false);
+        var plain = new PitchCommand("fastball", 1, false);
         var nice = plain with { Nice = true };
         Assert.Equal(Rules.Default.Pitching.Release.NiceMul, AtBatResolver.PitchSpeedMph(nice, 7) / AtBatResolver.PitchSpeedMph(plain, 7), 8);
         var band = Rules.Default.Pitching.Release.NiceBandSec;
@@ -200,16 +200,16 @@ public class PitchTests
         var walked = PitchFlight.Point("fastball", 1, 0, 0, rubberX: 1);
         Assert.Equal(HomeSet.PitcherWalk, walked.X - heart.X, 6);
         Assert.Equal(HomeSet.PitcherWalk, PitchFlight.Release(1).X - PitchFlight.Release(0).X, 6);
-        var command = new PitchCommand("fastball", 0, 0, false, RubberX: -0.5);
+        var command = new PitchCommand("fastball", 0, false, RubberX: -0.5);
         Assert.Equal(-0.5 * HomeSet.PitcherWalk, PitchFlight.Crossing(command).X, 6);
     }
 
     [Fact]
     public void ChangeupFlagIsSlowerThanAMaxFastball()
     {
-        var maxFb = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, 0, false), 7);
-        var change = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, 0, false, Changeup: true), 7);
-        var typed = AtBatResolver.PitchSpeedMph(new PitchCommand("changeup", 1, 0, false), 7);
+        var maxFb = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7);
+        var change = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false, Changeup: true), 7);
+        var typed = AtBatResolver.PitchSpeedMph(new PitchCommand("changeup", 1, false), 7);
         Assert.True(change < maxFb, $"changeup {change} vs MAX fastball {maxFb}");
         Assert.True(typed < maxFb, $"typed changeup {typed} vs MAX {maxFb}");
         Assert.InRange(change, typed - 0.5, typed + 0.5);

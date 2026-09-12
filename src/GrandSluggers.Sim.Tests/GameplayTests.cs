@@ -153,14 +153,14 @@ public class GameplayTests
     public void StealCanTakeSecond()
     {
         var match = Match.Slice(_content, seed: 2);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var take = new SwingCommand(false, 0, 0, false);
         match.Play(paint, take);
         match.Play(paint, take);
         match.Play(paint, take);
         Assert.Equal(PlayKind.Strikeout, match.Log[^1].Kind);
 
-        var walk = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var walk = new PitchCommand("fastball", 0, false, AimX: 1.5);
         for (var i = 0; i < 4; i++)
             match.Play(walk, take);
         Assert.NotNull(match.First);
@@ -179,7 +179,7 @@ public class GameplayTests
         var match = Match.Slice(_content, seed: 9);
         var dart = _content.Must("dart");
         // Walk dart on: put a fast runner on first via four balls, then steal with a take.
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
@@ -188,7 +188,7 @@ public class GameplayTests
         var won = false;
         for (var i = 0; i < 12 && !match.Over; i++)
         {
-            var ev = match.Play(new PitchCommand("fastball", 0, 8, false), take);
+            var ev = match.Play(new PitchCommand("fastball", 0, false), take);
             if (ev.Kind == PlayKind.StolenBase)
             {
                 won = true;
@@ -299,7 +299,7 @@ public class GameplayTests
     {
         var walkMatch = Match.Slice(_content, seed: 1);
         WalkOn(walkMatch);
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (walkMatch.Balls < 3 && !walkMatch.Over)
             walkMatch.Play(wild, take);
@@ -314,7 +314,7 @@ public class GameplayTests
 
         var kMatch = Match.Slice(_content, seed: 2);
         WalkOn(kMatch);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         while (kMatch.Strikes < 2 && !kMatch.Over)
             kMatch.Play(paint, take);
         Assert.True(kMatch.StartSteal());
@@ -342,7 +342,7 @@ public class GameplayTests
             var match = Match.Slice(_content, seed: seed);
             WalkOn(match);
             match.TakeLead(1);
-            var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+            var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
             if (ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff)
@@ -367,7 +367,7 @@ public class GameplayTests
             var match = Match.Slice(_content, seed: seed);
             WalkOn(match);
             Assert.Equal(0, match.Lead01);
-            var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+            var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
             var take = new SwingCommand(false, 0, 0, false);
             var ev = match.Play(wild, take);
             Assert.NotEqual(PlayKind.CaughtStealing, ev.Kind);
@@ -396,7 +396,7 @@ public class GameplayTests
             WalkOn(match);
             if (lead > 0) match.TakeLead(lead);
             match.StartSteal();
-            var wild = new PitchCommand("fastball", 0, 8, false);
+            var wild = new PitchCommand("fastball", 0, false);
             var take = new SwingCommand(false, 0, 0, false);
             for (var i = 0; i < 6 && !match.Over; i++)
             {
@@ -415,7 +415,7 @@ public class GameplayTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);
@@ -424,7 +424,7 @@ public class GameplayTests
 
     static void WalkOnSecond(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.Second is null && !match.Over)
             match.Play(wild, take);
@@ -435,7 +435,7 @@ public class GameplayTests
     public void FairContactPutsTheBatterOnFirst()
     {
         var match = Match.Slice(_content, seed: 1);
-        var paint = new PitchCommand("fastball", 0, 0, false);
+        var paint = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         var who = match.Batter;
         Assert.True(match.BeginAtBat(paint, swing, out var hit, out _));
@@ -492,7 +492,7 @@ public class GameplayTests
         var match = Match.Slice(_content, seed: 1);
         var runner = _content.Must("rio");
         match.StationRunner(1, runner);
-        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
 
@@ -511,7 +511,7 @@ public class GameplayTests
         var runner = _content.Must("rio");
         match.StationRunner(1, runner);
         Assert.True(match.AdvanceAll());
-        var pitch = new PitchCommand("fastball", 0, 0, false);
+        var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(pitch, swing, out var hit, out _));
 
@@ -536,7 +536,7 @@ public class GameplayTests
             if (match.Third is null) continue;
             var thirdId = match.Third.Id;
             if (sendAll) match.AdvanceAll(0.3);
-            var paint = new PitchCommand("fastball", 0, 0, false);
+            var paint = new PitchCommand("fastball", 0, false);
             var swing = new SwingCommand(true, 0, 0, false);
             if (!match.BeginAtBat(paint, swing, out var hit, out _))
                 continue;
@@ -553,7 +553,7 @@ public class GameplayTests
 
     static void WalkOnThird(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.Third is null && !match.Over)
             match.Play(wild, take);

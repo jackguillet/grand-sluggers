@@ -166,7 +166,6 @@ public sealed record AtBatResult(
 public sealed record PitchCommand(
     string Type,
     double Charge01,
-    double TimingErrorFrames,
     bool Star,
     double AimX = 0,
     double AimY = 0,
@@ -174,7 +173,8 @@ public sealed record PitchCommand(
     bool Changeup = false,
     double RubberX = 0,
     bool DeliveryPrepared = false,
-    bool Nice = false)
+    bool Nice = false,
+    double BreakMul = 1)
 {
     public bool IsChangeup => Changeup || Type == "changeup";
 }

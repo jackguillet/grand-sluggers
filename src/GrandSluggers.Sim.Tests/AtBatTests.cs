@@ -175,8 +175,8 @@ public class AtBatTests
     [Fact]
     public void InsideAimIsStillABallAfterLocation()
     {
-        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.95, 0), 7));
-        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, 0, false, 0.1, 0.1), 7));
+        Assert.False(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.95, 0), 7));
+        Assert.True(AtBatResolver.PitchInZone(new PitchCommand("fastball", 0, false, 0.1, 0.1), 7));
     }
 
     [Fact]

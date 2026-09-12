@@ -302,8 +302,8 @@ public class AtBatFeelTests
         }
         Assert.True(slapHits > chargeHits, $"slap contact {slapHits} vs charge {chargeHits}");
         Assert.True(maxCarry > lateCarry, $"MAX carry {maxCarry} vs overcharge {lateCarry}");
-        var maxMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, 0, false), 7);
-        var overMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", late, 0, false), 7);
+        var maxMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", 1, false), 7);
+        var overMph = AtBatResolver.PitchSpeedMph(new PitchCommand("fastball", late, false), 7);
         Assert.True(maxMph > overMph, $"MAX mph {maxMph} vs over {overMph}");
     }
 
@@ -346,7 +346,7 @@ public class AtBatFeelTests
     {
         var match = Match.Exhibition(_content, "rio", "ashlord", seed: 1);
         var before = match.AwayStars;
-        match.Play(new PitchCommand("fastball", 0, 0, false), new SwingCommand(true, 0, 40, true));
+        match.Play(new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 40, true));
         Assert.True(match.AwayStars < before, $"stars {match.AwayStars} vs {before}");
     }
 
@@ -376,7 +376,7 @@ public class AtBatFeelTests
     {
         var match = Match.Exhibition(_content, "rio", "ashlord", seed: 2);
         Assert.False(match.PitcherTired);
-        var meat = new PitchCommand("fastball", 1, 0, true);
+        var meat = new PitchCommand("fastball", 1, true);
         var take = new SwingCommand(false, 0, 0, false);
         for (var i = 0; i < 40 && !match.PitcherTired && !match.Over; i++)
             match.Play(meat, take);
@@ -435,7 +435,7 @@ public class AtBatFeelTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
+        var wild = new PitchCommand("fastball", 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);

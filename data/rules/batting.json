@@ -76,10 +76,7 @@
   },
   "star": {
     "phonyballWhiff": 0.4,
-    "prismballSpraySpanDeg": 22,
-    "groundLaunchDeg": 8,
-    "flyLaunchDeg": 38,
-    "lineLaunchDeg": 18
+    "prismballSpraySpanDeg": 22
   },
   "buddiesOnBase": {
     "oneMul": 1.1,
@@ -100,22 +97,38 @@
     "rocketDazeChance": 0.55
   },
   "cpu": {
-    "sacBuntChance": 0.12,
-    "sacBuntCharge": 0.12,
+    "middleFraction": 0.34,
+    "nearFt": 0.4,
+    "edgeSwingChance": 0.65,
+    "chaseBase": 18,
+    "chaseTwoStrikesBase": 30,
+    "chargeBatMin": 6,
+    "rispChargeBatMin": 7,
+    "sacBuntChance": 0.35,
+    "sacBuntBatMax": 5,
+    "sacBuntTrailMax": 2,
     "sacBuntErrorSigma": 2.2,
     "sacBuntSpraySigma": 10,
     "sacBuntLaunchAim": 0.35,
-    "chaseChance": 0.12,
-    "starChanceCaptain": 0.14,
-    "starChance": 0.08,
-    "chargeChance": 0.35,
-    "chargeMin": 0.7,
-    "chargeSpan": 0.3,
-    "tapSpan": 0.4,
+    "starChance": 0.2,
     "errorFramesPerBatStat": 0.62,
-    "outOfZoneErrorFrames": 4,
+    "fooledMinFrames": 4,
+    "fooledSpanFrames": 5,
+    "trackPerfectChance": 0.55,
+    "mistrackMinFt": 0.11,
+    "mistrackSpanFt": 0.3,
+    "mistrackMovedChance": 0.7,
+    "mistrackChance": 0.3,
     "spraySigmaDeg": 12,
     "launchAimSigma": 0.45,
+    "archetype": {
+      "balanced": 0.5,
+      "power": 0.8,
+      "speed": 0.3,
+      "technique": 0.1,
+      "splitStat": 2,
+      "techniqueMin": 7
+    },
     "decideLeadSec": 0.12
   }
 }

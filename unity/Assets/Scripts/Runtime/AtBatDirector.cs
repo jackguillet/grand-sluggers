@@ -148,6 +148,10 @@ namespace GrandSluggers.UnityClient
             }
             _pip += dt * 1.35f;
             if (mound.SwapPitcher) _match.SwapPitcher();
+            // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI arms a steal.
+            // TODO(P6 #568): the steal arm belongs to the runner AI, not the at-bat.
+            if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
+            if (!HumanBats && _t < dt) _match.CpuArmSteal();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
@@ -188,7 +192,7 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>The pitch as it stands in SET: the rubber, the changeup hold, the charge so far. Not committed.</summary>
         PitchCommand PreviewPitch() =>
-            new(PitchPad.Changeup ? "changeup" : "fastball", EffectiveCharge(_pitchCharge, _pitchPast), 0,
+            new(PitchPad.Changeup ? "changeup" : "fastball", EffectiveCharge(_pitchCharge, _pitchPast),
                 _starPitch && _match.CanStarPitch, Changeup: PitchPad.Changeup, RubberX: _match.PitcherOffsetX);
 
         /// <summary>
@@ -244,7 +248,7 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
             var changeup = PitchPad.Changeup;
             return new PitchCommand(changeup ? "changeup" : "fastball",
-                EffectiveCharge((float)fill01, (float)secondsPastFull), 0,
+                EffectiveCharge((float)fill01, (float)secondsPastFull),
                 _starPitch && _match.CanStarPitch,
                 Changeup: changeup, RubberX: _match.PitcherOffsetX,
                 Nice: ChargeFeel.NiceRelease(fill01, secondsPastFull, _feel.ChargeMaxHoldSeconds, _match.Rules));
@@ -254,7 +258,7 @@ namespace GrandSluggers.UnityClient
         {
             pitch = _match.PreparePitch(pitch);
             _pitch = pitch;
-            var mph = AtBatResolver.PitchSpeedMph(pitch, _match.Pitcher);
+            var mph = _match.PitchSpeedMph(pitch);
             _pitchDur = (float)PitchFlight.AirSeconds(mph);
             _flight = -(float)Motion.PitchRelease;
             _pitchAir = false;
