@@ -1,7 +1,9 @@
-Drop one file per catalog id: {id}.fbx or {id}.anim. Same bones as data/art/rig.json.
+One take per clip id in data/art/clips.json, armature-only FBX on the hero-shared bones.
+Handed takes (swing, pitch, throw, checkSwing, bunt, miss) also ship {id}-L.fbx: the exact
+sagittal reflection, baked and validated in Blender. Nothing mirrors at runtime.
 
-HeroActor samples the Unity clip when the file exists; otherwise authored pose JSON
-then MoveBones.Evaluate. Loop clips sample clock time. One-shots sample pose time
-so Contact hits. swing.fbx Contact at 0.30. scoop.fbx Contact at 0.22 (glove on the dirt).
-Generic rig, face −Z, one take. Do not add a second skeleton.
-pitch.fbx Release at 0.42. From the plate the arm comes forward.
+Author: tools/blender/hero_shared_takes.py (one pose table, per-frame falsifiers, clay sheets).
+Player copies in Assets/Resources/Art/Animation/Clips must be byte-identical; cli art checks.
+Loop clips sample match time. One-shots sample the verb clock so Contact (swing 0.30),
+Release (pitch 0.42, throw 0.18), and FootPlant hit the same seconds the sim uses.
+Contract: docs/character-motion.md

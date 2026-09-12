@@ -19,6 +19,7 @@ namespace GrandSluggers.UnityClient
         public static readonly Color Canopy = Hex(0x784E2A);
         public static readonly Color Fen = Hex(0x5B8F62);
         public static readonly Color FenCream = Hex(0xE8DCC0);
+        public static readonly Color FenSkin = Hex(0x7FB57A);
         public static readonly Color Skin = Hex(0xF2C9A4);
         public static readonly Color SkinShadow = new Color(0.35f, 0.3f, 0.36f);
         public static readonly Color Gold = Hex(0xFFCC40);
@@ -57,8 +58,12 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        public static Color SkinTone(string faction) =>
-            faction == "ember" || faction == "canopy" ? SkinShadow : Skin;
+        public static Color SkinTone(string faction) => faction switch
+        {
+            "ember" or "canopy" => SkinShadow,
+            "fen" => FenSkin,
+            _ => Skin
+        };
 
         public static Color Hex(int rgb) =>
             new(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, 1f);

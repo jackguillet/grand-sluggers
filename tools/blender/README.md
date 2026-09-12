@@ -1,112 +1,36 @@
-# SharedRig blockout (Rio)
+# Blender authoring
 
-One armature, bone names from `data/art/rig.json`. Style lock: `tools/blender/style-lock/`.
-Meshes are vertex-group skinned (Unity SkinnedMeshRenderer), not bone-parented.
+Everything a character is comes from three scripts. Contract: `docs/character-motion.md`.
+
+| Script | Makes | Check |
+| --- | --- | --- |
+| `hero_shared_blockout.py` | the one body, `hero-shared.fbx` | `--clay` renders a four-view sheet |
+| `hero_shared_extras.py` | captain accessories + common props, `extras.fbx` | `--clay` renders one tile per extra on the body |
+| `hero_shared_takes.py` | every take, both hands, `Clips/*.fbx` | refuses to export a take that misses its contract; `--sheets` renders a clay contact sheet per clip |
 
 ```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_blockout.py -- \
-  --out unity/Assets/Art/Characters/SharedRig/hero-shared.fbx
+B=/opt/homebrew/bin/blender
+$B -b --python tools/blender/hero_shared_blockout.py -- --out unity/Assets/Art/Characters/SharedRig/hero-shared.fbx --resources unity/Assets/Resources/Art/Characters/SharedRig --clay scratchpad/takes
+$B -b --python tools/blender/hero_shared_extras.py -- --out unity/Assets/Art/Characters/SharedRig/extras.fbx --resources unity/Assets/Resources/Art/Characters/SharedRig --clay scratchpad/takes
+$B -b --python tools/blender/hero_shared_takes.py -- --out unity/Assets/Art/Animation/Clips --resources unity/Assets/Resources/Art/Animation/Clips --sheets scratchpad/takes [--only swing,pitch]
 ```
 
-Unity import: Generic rig (not Humanoid). Root at origin, faces −Z.
-`Silhouette.ToyScale` (1.18) is applied in Play — do not scale the FBX again.
-Rio six stay extras on this chain. Unique captains are packages (`docs/character-package.md`).
-Missing FBX keeps `SharedRig` primitives.
+`--resources` writes the standalone player copy from the same export, so the two slots in the catalog cannot drift; `cli art` fails if they do.
 
-Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
+## Conventions (stated once, proven by the script)
 
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_swing.py -- \
-  --out unity/Assets/Art/Animation/Clips/swing.fbx \
-  --resources unity/Assets/Resources/Art/Animation/Clips
-```
+The body is authored facing Blender −Y with its left hand at +X, so the FBX (`axis_forward="-Z"`, `axis_up="Y"`, X reflected on Unity import) lands facing Unity +Z with `lHand` at Unity −X. DCC → Unity is `(bx, by, bz) → (−bx, bz, −by)`; Unity → DCC is `batting_stance.unity_to_dcc`.
 
-`--resources` writes the standalone player copy from the same export, so the two
-slots in `data/art/clips.json` cannot drift apart.
+Poses in `hero_shared_takes.py` are written in body terms — `flex` forward, `abduct` outward, `twist`; `lean`, `turn` (left), `tilt`; `lift` — and converted to bone-local Eulers per side. `assert_conventions()` moves a hand and a foot on the built rig and fails the bake if any sign is wrong, so the table cannot drift from the rig.
 
-The take is authored and falsified on **every** frame, not only on the five keys
-in the catalog. Gameplay and the still gate sample it at charge-dependent times
-between keys, so a rig that only meets `SwingPresentation` on the keys drifts off
-the handle and drops the loaded barrel in between. Each frame bakes the same
-interpolation the runtime contract uses.
+The swing solves both hands to `SwingPresentation.Keys` (analytic two-bone IK, deterministic), aims the stance at `data/art/batting-stance.json`, and keys the `bat` socket from the grip and barrel direction. A left-handed take is the exact reflection of the right-handed one: every rendered landmark must land within a millimetre of its mirror, and the mirrored take is validated against the left-handed contract (lead foot, lead hand at the knob, chest and toes to the plate).
 
-The shared rig authors the eyes through `batting_stance.EYES_REVERSED_BY_IMPORT`:
-`SharedRig.TryBindDrop` hides the blockout's eye meshes and rebuilds the face it
-draws on the head bone's Unity +Z, which is the reverse of this scene's landmark.
-A Generic package that ships its own eyes (Elder Fenn) stays on the default
-`EYES_AS_AUTHORED`.
+Look before Unity: the clay sheets are the author's own check. Jack's look gate is `docs/screenshot-gate.md`.
 
-HeroActor samples the clip when present; missing file keeps authored eulers / MoveBones.
+## Harbor kit
 
-Captain extras kit (one file, names match `data/art/skins.json`):
+`harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives.
 
 ```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_extras.py -- \
-  --out unity/Assets/Art/Characters/SharedRig/extras.fbx
-```
-
-Pitch take (`Release` at 0.42s, throw toward home, same keys as `data/art/pose-clips/pitch.json`):
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_pitch.py -- \
-  --out unity/Assets/Art/Animation/Clips/pitch.fbx
-```
-
-Scoop take (`Contact` at 0.22s, glove on the dirt, same keys as `data/art/pose-clips/scoop.json`):
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_shared_scoop.py -- \
-  --out unity/Assets/Art/Animation/Clips/scoop.fbx
-```
-
-Unique character package. Spec: `docs/character-package.md`. A posed unrigged GLB is a **source**, not a player mesh. Quality path is a Generic FBX with painted weights (or Blender-authored pieces) and clips on that armature. `drop_character.py` is a converter, not the ship pipeline.
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/drop_character.py -- \
-  --src /path/to/hero.glb --id fenn --bind skinned --keep-weights \
-  --out unity/Assets/Art/Characters/fenn/fenn.fbx \
-  --resources unity/Assets/Resources/Art/Characters/fenn/fenn.fbx \
-  --portrait unity/Assets/Resources/Art/fenn-hero.jpg
-```
-
-Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` requires `--keep-weights`. Default `--bind rigid`. `--bind segmented` is Blender-authored pieces only — a Python split shredded Fenn. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
-
-Generic idle + pose takes on an existing package (no remesh). The exporter keeps
-the source FBX space settings and trims each take to its keyed range; a different
-axis/scale export basis can resolve by bone name in Unity while collapsing skin:
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/package_clips.py -- \
-  --src unity/Assets/Art/Characters/fenn/fenn.fbx --id fenn \
-  --out-dir unity/Assets/Art/Characters/fenn \
-  --resources unity/Assets/Resources/Art/Characters/fenn
-```
-
-Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned). This
-single command authors the body, idle, pose, chargeSwing, and swing from one
-Blender scene so their bind basis cannot drift through an FBX import/re-export
-round trip:
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
-  --out unity/Assets/Art/Characters/fenn/fenn.fbx \
-  --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
-  --resources unity/Assets/Resources/Art/Characters/fenn
-```
-
-Fenn's batting constraints bake into his own armature. Both hands surround the
-named grip, socket local -Y points toward the barrel, charge maps from ready to
-MAX, and swing contact remains 0.30 s.
-
-`hero_shared_extras.py` keeps `bat-wood` at its authored model origin when the
-handle, barrel, and knob are joined. In model-local +Y the handle is
-`[-1.00, -0.10]`, the grip is `-0.85`, and the radius-0.12 barrel is
-`[-0.15, 1.25]`. `ArtRailsValidate` checks those coordinates after Unity import,
-so do not recenter that named mesh during cleanup.
-
-Harbor kit (sunken dugout + stairs, wall panel, crowd, home-plate, bag). Missing file keeps HarborKit primitives. Layout: `HarborDugout` / `HarborInfield`.
-
-```bash
-/opt/homebrew/bin/blender --background --python tools/blender/harbor_kit.py -- \
-  --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx
+$B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx
 ```

@@ -2,14 +2,16 @@ namespace GrandSluggers.Sim;
 
 public readonly record struct RigBoneMap(string Id, IReadOnlyList<string> Bones, IReadOnlyList<string> Events, string Slot);
 
+/// <summary>One clip file slot. Left-handed takes sit next to the right-handed file as <c>{id}-L</c>.</summary>
 public readonly record struct ClipSlot(
-    string Id, string Verb, bool Loop, IReadOnlyList<string> Events, string Slot,
-    double ContactAt, double ReleaseAt, double FootPlantAt, bool Authored,
-    string PlayerSlot = "");
+    string Id, bool Loop, bool Handed, IReadOnlyList<string> Events, string Slot, string PlayerSlot,
+    double ContactAt, double ReleaseAt, double FootPlantAt);
 
 public readonly record struct SkinSlot(
-    string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette,
-    string? Mesh = null, string Bind = "");
+    string Id, string BodyType, bool Captain, IReadOnlyList<string> Extras, string? Portrait, string Palette);
+
+/// <summary>An accessory mesh in the extras kit, authored in its socket bone's space.</summary>
+public readonly record struct ExtraSlot(string Id, string Bone, IReadOnlyList<string> Hides);
 
 public readonly record struct NamedSlot(string Id, string Slot, string Kind, bool Authored = false);
 
@@ -17,55 +19,45 @@ public readonly record struct ParkKitSlot(string Id, string Slot, bool Placed);
 
 public sealed class ArtCatalog
 {
+    public const string ExtrasKitSlot = "Assets/Art/Characters/SharedRig/extras.fbx";
+    public const string ExtrasKitPlayerSlot = "Assets/Resources/Art/Characters/SharedRig/extras.fbx";
+
     ArtCatalog(
         RigBoneMap rig,
         IReadOnlyList<ClipSlot> clips,
         IReadOnlyDictionary<string, SkinSlot> skins,
+        IReadOnlyDictionary<string, ExtraSlot> extras,
         IReadOnlyList<NamedSlot> vfx,
         IReadOnlyList<NamedSlot> audio,
         IReadOnlyList<NamedSlot> materials,
         IReadOnlyList<ParkKitSlot> parks,
-        IReadOnlyList<string> folders,
-        IReadOnlyDictionary<string, CharacterPackageSpec> packages,
-        IReadOnlyList<string> packageErrors,
-        PoseClips poses)
+        IReadOnlyList<string> folders)
     {
         Rig = rig;
         Clips = clips;
         Skins = skins;
+        Extras = extras;
         Vfx = vfx;
         Audio = audio;
         Materials = materials;
         Parks = parks;
         Folders = folders;
-        Packages = packages;
-        PackageErrors = packageErrors;
-        Poses = poses;
     }
 
     public RigBoneMap Rig { get; }
     public IReadOnlyList<ClipSlot> Clips { get; }
     public IReadOnlyDictionary<string, SkinSlot> Skins { get; }
+    public IReadOnlyDictionary<string, ExtraSlot> Extras { get; }
     public IReadOnlyList<NamedSlot> Vfx { get; }
     public IReadOnlyList<NamedSlot> Audio { get; }
     public IReadOnlyList<NamedSlot> Materials { get; }
     public IReadOnlyList<ParkKitSlot> Parks { get; }
     public IReadOnlyList<string> Folders { get; }
-    public IReadOnlyDictionary<string, CharacterPackageSpec> Packages { get; }
-    public IReadOnlyList<string> PackageErrors { get; }
-    public PoseClips Poses { get; }
-
-    public bool TryAuthored(string id, double t, out MoveBones.Sample sample)
-    {
-        sample = default;
-        if (!TryClip(id, out var clip) || !clip.Authored) return false;
-        return Poses.TryEvaluate(id, t, out sample);
-    }
 
     public SkinSlot SkinOf(Character who)
     {
         if (Skins.TryGetValue(who.Id, out var skin)) return skin;
-        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction, null, "");
+        return new SkinSlot(who.Id, Silhouette.BodyType(who), false, [], null, who.Faction);
     }
 
     public bool TryClip(string id, out ClipSlot clip)
@@ -73,6 +65,8 @@ public sealed class ArtCatalog
         clip = Clips.FirstOrDefault(c => c.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
         return !string.IsNullOrEmpty(clip.Id);
     }
+
+    public bool TryExtra(string id, out ExtraSlot extra) => Extras.TryGetValue(id, out extra);
 
     public bool TryVfx(string id, out NamedSlot slot)
     {
@@ -92,20 +86,23 @@ public sealed class ArtCatalog
         return !string.IsNullOrEmpty(kit.Id);
     }
 
-    public bool TryPackage(string id, out CharacterPackageSpec package) =>
-        Packages.TryGetValue(id, out package!);
-
-    public bool TryPackageVerb(string id, MoveBones.Verb verb, out PackageVerbSlot slot)
+    /// <summary>Authoring and player FBX paths for a clip and hand, relative to <c>unity/</c>.</summary>
+    public static (string Slot, string PlayerSlot) ClipFiles(ClipSlot clip, Hand hand)
     {
-        slot = default;
-        return TryPackage(id, out var package)
-            && CharacterPackage.TryVerb(package, verb, out slot);
+        var suffix = clip.Handed && hand == Hand.L ? "-L" : "";
+        return (clip.Slot + suffix + ".fbx", clip.PlayerSlot + suffix + ".fbx");
+    }
+
+    static string Unity(string dataRoot, string slot)
+    {
+        var repo = Directory.GetParent(Path.GetFullPath(dataRoot))?.FullName ?? dataRoot;
+        return Path.GetFullPath(Path.Combine(repo, "unity", slot.Replace('/', Path.DirectorySeparatorChar)));
     }
 
     public IReadOnlyList<string> Validate(ContentCatalog content)
     {
-        var errors = new List<string>(PackageErrors);
-        foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
+        var errors = new List<string>();
+        foreach (var bone in new[] { "root", "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
         {
             if (!Rig.Bones.Any(b => b.Equals(bone, StringComparison.OrdinalIgnoreCase)))
                 errors.Add("rig missing bone " + bone);
@@ -115,36 +112,62 @@ public sealed class ArtCatalog
             if (!Rig.Events.Any(e => e.Equals(ev, StringComparison.OrdinalIgnoreCase)))
                 errors.Add("rig missing event " + ev);
         }
-
-        var clipIds = Clips.Select(c => c.Id.ToLowerInvariant()).ToHashSet();
-        foreach (var need in MoveBones.Clips)
+        var rigFbx = Unity(content.Root, Rig.Slot);
+        if (!File.Exists(rigFbx)) errors.Add("rig FBX missing " + Rig.Slot);
+        else
         {
-            if (!clipIds.Contains(need.ToLowerInvariant()))
-                errors.Add("clip catalog missing " + need);
+            var player = Unity(content.Root, "Assets/Resources/" + Rig.Slot["Assets/".Length..]);
+            if (!File.Exists(player) || !SameBytes(rigFbx, player))
+                errors.Add("rig player copy missing or different " + Rig.Slot);
+        }
+
+        // Every take the sim can ask for, both hands where handed, authoring and player copies identical.
+        var listed = Clips.ToDictionary(c => c.Id, StringComparer.OrdinalIgnoreCase);
+        foreach (var need in Motion.Clips)
+        {
+            if (!listed.TryGetValue(need.Id, out var clip))
+            {
+                errors.Add("clip catalog missing " + need.Id);
+                continue;
+            }
+            if (clip.Loop != need.Loop) errors.Add("clip " + need.Id + " loop must be " + need.Loop);
+            if (clip.Handed != need.Handed) errors.Add("clip " + need.Id + " handed must be " + need.Handed);
+            var mark = need.Mark?.ToString();
+            if (mark != null && !clip.Events.Contains(mark, StringComparer.OrdinalIgnoreCase))
+                errors.Add("clip " + need.Id + " needs " + mark + " event");
+            if (mark == null && clip.Events.Count > 0)
+                errors.Add("clip " + need.Id + " has no marker in Motion but lists events");
+            var at = need.Mark switch
+            {
+                Motion.ClipEvent.Contact => clip.ContactAt,
+                Motion.ClipEvent.Release => clip.ReleaseAt,
+                Motion.ClipEvent.FootPlant => clip.FootPlantAt,
+                _ => 0
+            };
+            if (need.Mark != null && Math.Abs(at - need.MarkAt) > 1e-6)
+                errors.Add("clip " + need.Id + " " + mark + " at " + at + " must be " + need.MarkAt);
+            foreach (var hand in clip.Handed ? new[] { Hand.R, Hand.L } : new[] { Hand.R })
+            {
+                var (slot, playerSlot) = ClipFiles(clip, hand);
+                var file = Unity(content.Root, slot);
+                var player = Unity(content.Root, playerSlot);
+                if (!File.Exists(file) || new FileInfo(file).Length < 4096)
+                    errors.Add("clip take missing " + slot);
+                else if (!File.Exists(player) || !SameBytes(file, player))
+                    errors.Add("clip player copy missing or different " + playerSlot);
+            }
         }
         foreach (var clip in Clips)
         {
-            if (!Enum.TryParse<MoveBones.Verb>(clip.Verb, ignoreCase: true, out var verb))
-                errors.Add("clip " + clip.Id + " unknown verb " + clip.Verb);
-            else
-            {
-                var listed = MoveBones.ClipList.FirstOrDefault(c => c.Id.Equals(clip.Id, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrEmpty(listed.Id) && listed.Verb != verb)
-                    errors.Add("clip " + clip.Id + " verb mismatch");
-            }
+            if (!Motion.TryClip(clip.Id, out _))
+                errors.Add("clip " + clip.Id + " is not a Motion clip");
             foreach (var ev in clip.Events)
             {
                 if (!Rig.Events.Any(e => e.Equals(ev, StringComparison.OrdinalIgnoreCase)))
                     errors.Add("clip " + clip.Id + " event " + ev + " not on rig");
             }
-            if (string.IsNullOrWhiteSpace(clip.Slot))
+            if (string.IsNullOrWhiteSpace(clip.Slot) || string.IsNullOrWhiteSpace(clip.PlayerSlot))
                 errors.Add("clip " + clip.Id + " missing slot");
-            if (clip.Events.Contains("Contact") && clip.ContactAt <= 0)
-                errors.Add("clip " + clip.Id + " Contact needs contactAt");
-            if (clip.Events.Contains("Release") && clip.ReleaseAt <= 0)
-                errors.Add("clip " + clip.Id + " Release needs releaseAt");
-            if (clip.Authored && !Poses.TryEvaluate(clip.Id, 0, out _))
-                errors.Add("authored clip missing pose keys " + clip.Id);
         }
 
         foreach (var id in Silhouette.Captains)
@@ -159,12 +182,6 @@ public sealed class ArtCatalog
                 errors.Add("skin " + id + " bodyType should be self");
             if (skin.Extras.Count == 0) errors.Add("captain skin " + id + " needs extras");
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
-            if (!string.IsNullOrWhiteSpace(skin.Mesh))
-            {
-                var bind = string.IsNullOrWhiteSpace(skin.Bind) ? CharacterPackage.Rigid : skin.Bind;
-                if (!CharacterPackage.Valid(bind))
-                    errors.Add("skin " + id + " bind must be shared, segmented, skinned, or rigid");
-            }
         }
 
         foreach (var who in content.Characters.Values)
@@ -175,7 +192,30 @@ public sealed class ArtCatalog
                 errors.Add("skin " + who.Id + " bodyType " + skin.BodyType + " != " + expected);
             if (!who.Captain && skin.Extras.Count > 0)
                 errors.Add("role skin " + who.Id + " must not grow captain extras");
+            foreach (var extra in skin.Extras)
+                if (!Extras.ContainsKey(extra))
+                    errors.Add("skin " + who.Id + " extra " + extra + " is not in extras.json");
         }
+
+        var kit = Unity(content.Root, ExtrasKitSlot);
+        var kitNames = File.Exists(kit) ? System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(kit)) : "";
+        if (kitNames.Length == 0) errors.Add("extras kit missing " + ExtrasKitSlot);
+        else
+        {
+            var player = Unity(content.Root, ExtrasKitPlayerSlot);
+            if (!File.Exists(player) || !SameBytes(kit, player))
+                errors.Add("extras kit player copy missing or different " + ExtrasKitPlayerSlot);
+        }
+        foreach (var extra in Extras.Values)
+        {
+            if (!Rig.Bones.Any(b => b.Equals(extra.Bone, StringComparison.OrdinalIgnoreCase)))
+                errors.Add("extra " + extra.Id + " bone " + extra.Bone + " not on rig");
+            if (kitNames.Length > 0 && !kitNames.Contains(extra.Id, StringComparison.Ordinal))
+                errors.Add("extra " + extra.Id + " is not a mesh in " + ExtrasKitSlot);
+        }
+        foreach (var prop in new[] { GearMesh.HittingBatVisual(), "glove-brown", "baseball" })
+            if (kitNames.Length > 0 && !kitNames.Contains(prop, StringComparison.Ordinal))
+                errors.Add("prop " + prop + " is not a mesh in " + ExtrasKitSlot);
 
         foreach (var park in content.Parks.Keys)
         {
@@ -217,17 +257,15 @@ public sealed class ArtCatalog
         }
 
         if (Folders.Count == 0) errors.Add("art folder list empty");
-        foreach (var skin in Skins.Values)
-        {
-            Packages.TryGetValue(skin.Id, out var package);
-            errors.AddRange(CharacterPackage.ValidateFiles(content.Root, skin, package));
-        }
-        foreach (var id in Packages.Keys)
-        {
-            if (!Skins.TryGetValue(id, out var skin) || string.IsNullOrWhiteSpace(skin.Mesh))
-                errors.Add("package manifest " + id + " has no packaged skin");
-        }
         return errors;
+    }
+
+    static bool SameBytes(string a, string b)
+    {
+        var fa = new FileInfo(a);
+        var fb = new FileInfo(b);
+        if (fa.Length != fb.Length) return false;
+        return File.ReadAllBytes(a).AsSpan().SequenceEqual(File.ReadAllBytes(b));
     }
 
     public static ArtCatalog Load(string dataRoot)
@@ -245,18 +283,17 @@ public sealed class ArtCatalog
 
         var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
-            new ClipSlot(c.Id, c.Verb, c.Loop, c.Events ?? [], c.Slot, c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.Authored,
-                c.PlayerSlot)).ToList();
+            new ClipSlot(c.Id, c.Loop, c.Handed, c.Events ?? [], c.Slot, c.PlayerSlot,
+                c.ContactAt, c.ReleaseAt, c.FootPlantAt)).ToList();
 
         var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
         foreach (var s in skinDto.Skins ?? [])
-        {
-            var bind = string.IsNullOrWhiteSpace(s.Bind)
-                ? (string.IsNullOrWhiteSpace(s.Mesh) ? "" : "rigid")
-                : s.Bind.Trim().ToLowerInvariant();
-            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette, s.Mesh, bind);
-        }
+            skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette);
+
+        var extras = new Dictionary<string, ExtraSlot>(StringComparer.OrdinalIgnoreCase);
+        foreach (var e in Read<ExtrasFile>(Path.Combine(art, "extras.json"), json).Extras ?? [])
+            extras[e.Id] = new ExtraSlot(e.Id, e.Bone, e.Hides ?? []);
 
         var vfx = (Read<EventsFile>(Path.Combine(art, "vfx.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
@@ -267,74 +304,8 @@ public sealed class ArtCatalog
         var parks = (Read<ParksFile>(Path.Combine(art, "parks.json"), json).Kits ?? [])
             .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed)).ToList();
         var folders = Read<FoldersFile>(Path.Combine(art, "folders.json"), json).Folders ?? [];
-        var packages = new Dictionary<string, CharacterPackageSpec>(StringComparer.OrdinalIgnoreCase);
-        var packageErrors = new List<string>();
-        var packageFile = Read<PackagesFile>(Path.Combine(art, "character-packages.json"), json);
-        if (packageFile.Packages == null)
-            packageErrors.Add("character-packages.json packages must be an array");
-        for (var packageIndex = 0; packageIndex < (packageFile.Packages?.Count ?? 0); packageIndex++)
-        {
-            var package = packageFile.Packages![packageIndex];
-            var row = "character-packages.json packages[" + packageIndex + "]";
-            if (package == null)
-            {
-                packageErrors.Add(row + " must be an object");
-                continue;
-            }
-            var id = (package.Id ?? "").Trim();
-            if (id.Length == 0)
-            {
-                packageErrors.Add(row + " id is required");
-                continue;
-            }
-            if (packages.ContainsKey(id))
-            {
-                packageErrors.Add(row + " duplicates package id " + id);
-                continue;
-            }
-            var verbs = new List<PackageVerbSlot>();
-            if (package.Verbs == null)
-                packageErrors.Add(row + " verbs must be an array");
-            for (var verbIndex = 0; verbIndex < (package.Verbs?.Count ?? 0); verbIndex++)
-            {
-                var verb = package.Verbs![verbIndex];
-                var verbRow = row + ".verbs[" + verbIndex + "]";
-                if (verb == null)
-                {
-                    packageErrors.Add(verbRow + " must be an object");
-                    continue;
-                }
-                var markers = new List<PackageTimingMarker>();
-                if (verb.Markers == null)
-                    packageErrors.Add(verbRow + ".markers must be an array");
-                for (var markerIndex = 0; markerIndex < (verb.Markers?.Count ?? 0); markerIndex++)
-                {
-                    var marker = verb.Markers![markerIndex];
-                    if (marker == null)
-                    {
-                        packageErrors.Add(verbRow + ".markers[" + markerIndex + "] must be an object");
-                        continue;
-                    }
-                    markers.Add(new PackageTimingMarker(marker.Event ?? "", marker.At));
-                }
-                verbs.Add(new PackageVerbSlot(
-                    verb.Verb ?? "",
-                    verb.Source ?? "",
-                    verb.PlayerSource ?? "",
-                    verb.Clip ?? "",
-                    verb.Loop,
-                    verb.Clock ?? "",
-                    markers,
-                    verb.Readiness ?? "",
-                    verb.Fallback ?? ""));
-            }
-            packages.Add(id, new CharacterPackageSpec(
-                id, package.Controller ?? "", package.PlayerController ?? "", verbs));
-        }
-        var poses = PoseClips.Load(dataRoot);
 
-        return new ArtCatalog(rig, clips, skins, vfx, audio, mats, parks, folders,
-            packages, packageErrors, poses);
+        return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders);
     }
 
     static T Read<T>(string path, JsonSerializerOptions json)
@@ -355,15 +326,14 @@ public sealed class ArtCatalog
     sealed class ClipDto
     {
         public string Id { get; set; } = "";
-        public string Verb { get; set; } = "";
         public bool Loop { get; set; }
+        public bool Handed { get; set; }
         public List<string>? Events { get; set; }
         public string Slot { get; set; } = "";
         public string PlayerSlot { get; set; } = "";
         public double ContactAt { get; set; }
         public double ReleaseAt { get; set; }
         public double FootPlantAt { get; set; }
-        public bool Authored { get; set; }
     }
 
     sealed class SkinsFile { public List<SkinDto>? Skins { get; set; } }
@@ -375,8 +345,14 @@ public sealed class ArtCatalog
         public List<string>? Extras { get; set; }
         public string? Portrait { get; set; }
         public string Palette { get; set; } = "";
-        public string? Mesh { get; set; }
-        public string? Bind { get; set; }
+    }
+
+    sealed class ExtrasFile { public List<ExtraDto>? Extras { get; set; } }
+    sealed class ExtraDto
+    {
+        public string Id { get; set; } = "";
+        public string Bone { get; set; } = "";
+        public List<string>? Hides { get; set; }
     }
 
     sealed class EventsFile { public List<EventDto>? Events { get; set; } }
@@ -400,29 +376,4 @@ public sealed class ArtCatalog
     }
 
     sealed class FoldersFile { public List<string>? Folders { get; set; } }
-    sealed class PackagesFile { public List<PackageDto?>? Packages { get; set; } }
-    sealed class PackageDto
-    {
-        public string? Id { get; set; }
-        public string? Controller { get; set; }
-        public string? PlayerController { get; set; }
-        public List<PackageVerbDto?>? Verbs { get; set; }
-    }
-    sealed class PackageVerbDto
-    {
-        public string? Verb { get; set; }
-        public string? Source { get; set; }
-        public string? PlayerSource { get; set; }
-        public string? Clip { get; set; }
-        public bool Loop { get; set; }
-        public string? Clock { get; set; }
-        public List<PackageMarkerDto?>? Markers { get; set; }
-        public string? Readiness { get; set; }
-        public string? Fallback { get; set; }
-    }
-    sealed class PackageMarkerDto
-    {
-        public string? Event { get; set; }
-        public double At { get; set; }
-    }
 }

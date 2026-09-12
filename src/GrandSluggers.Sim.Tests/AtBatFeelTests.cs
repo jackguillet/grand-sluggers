@@ -100,7 +100,7 @@ public class AtBatFeelTests
         Assert.Equal(0.25, intent.LaunchAim);
         Assert.Equal(-0.35, intent.BoxOffsetX);
 
-        const double releaseAt = -MoveBones.PitchRelease;
+        const double releaseAt = -Motion.PitchRelease;
         const double plateAt = 1.0;
         var swing = intent.Resolve(releaseAt, plateAt, effectiveCharge: 0.4, star: true);
         Assert.True(swing.Swing);
@@ -117,9 +117,9 @@ public class AtBatFeelTests
     [InlineData(1.28)]
     public void SwingTimesTheBatContactAgainstEveryPitchSpeed(double flight)
     {
-        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact, flight), 8);
-        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact - 0.05, flight), 8);
-        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - MoveBones.SwingContact + 0.05, flight), 8);
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact, flight), 8);
+        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact - 0.05, flight), 8);
+        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact + 0.05, flight), 8);
         Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > AtBatResolver.BaseContactWindowFrames);
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
@@ -127,19 +127,26 @@ public class AtBatFeelTests
     }
 
     [Theory]
-    [InlineData("pitch", MoveBones.PitchRelease)]
-    [InlineData("swing", MoveBones.SwingContact)]
-    public void HeldLoadBlendsContinuouslyButNeverDelaysTheEvent(string clip, double mark)
+    [InlineData(Motion.PitchNormalLoadAt, Motion.PitchRelease)]
+    [InlineData(SwingPresentation.NormalLoadAt, Motion.SwingContact)]
+    public void HeldLoadBlendsContinuouslyButNeverDelaysTheEvent(double normalLoadAt, double mark)
     {
-        Assert.True(_content.Art.TryAuthored(clip, mark, out var contact));
         foreach (var charge in new[] { 0.0, 0.5, 1.0 })
         {
-            var verb = clip == "pitch" ? MoveBones.Verb.ChargePitch : MoveBones.Verb.ChargeSwing;
-            var load = MoveBones.Evaluate(verb, 0, 0, charge);
-            Assert.Equal(load, AtBatMotion.FromLoad(load, contact, 0, mark));
-            Assert.Equal(contact, AtBatMotion.FromLoad(load, contact, mark, mark));
-            Assert.Equal(contact, AtBatMotion.FromLoad(load, contact, mark * 0.5, mark));
+            var loadAt = Motion.LoadSampleAt(normalLoadAt, charge);
+            Assert.Equal(loadAt, AtBatMotion.LoadedClipTime(0, loadAt, mark), 8);
+            Assert.Equal(mark, AtBatMotion.LoadedClipTime(mark, loadAt, mark), 8);
+            Assert.Equal(mark * 0.5, AtBatMotion.LoadedClipTime(mark * 0.5, loadAt, mark), 8);
+            var previous = AtBatMotion.LoadedClipTime(0, loadAt, mark);
+            for (var poseT = 0.005; poseT <= mark; poseT += 0.005)
+            {
+                var sample = AtBatMotion.LoadedClipTime(poseT, loadAt, mark);
+                Assert.True(sample >= previous, $"charge {charge} went backward at {poseT}");
+                previous = sample;
+            }
         }
+        Assert.Equal(0, Motion.LoadSampleAt(normalLoadAt, 1), 8);
+        Assert.Equal(normalLoadAt, Motion.LoadSampleAt(normalLoadAt, 0), 8);
     }
 
     [Fact]
@@ -151,14 +158,14 @@ public class AtBatFeelTests
         {
             var previous = AtBatMotion.SwingClipTime(0, charge);
             Assert.Equal(SwingPresentation.LoadSampleAt(charge), previous, 8);
-            for (var poseT = 0.01; poseT <= MoveBones.SwingContact; poseT += 0.01)
+            for (var poseT = 0.01; poseT <= Motion.SwingContact; poseT += 0.01)
             {
                 var sampleT = AtBatMotion.SwingClipTime(poseT, charge);
                 Assert.True(sampleT >= previous, $"charge {charge} went backward at {poseT}: {sampleT} < {previous}");
                 previous = sampleT;
             }
-            Assert.Equal(MoveBones.SwingContact,
-                AtBatMotion.SwingClipTime(MoveBones.SwingContact, charge), 8);
+            Assert.Equal(Motion.SwingContact,
+                AtBatMotion.SwingClipTime(Motion.SwingContact, charge), 8);
         }
     }
 
@@ -176,18 +183,18 @@ public class AtBatFeelTests
         Assert.Equal(0.10, clock, 8);
 
         var sawContact = false;
-        while (clock < MoveBones.SwingDur)
+        while (clock < Motion.SwingDur)
         {
             clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
-            sawContact |= Math.Abs(clock - MoveBones.SwingContact) < 1e-8;
+            sawContact |= Math.Abs(clock - Motion.SwingContact) < 1e-8;
             Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
         }
         Assert.True(sawContact);
-        Assert.Equal(MoveBones.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+        Assert.Equal(Motion.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
         Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
-        Assert.Equal(MoveBones.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+        Assert.Equal(Motion.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
     }
 
     [Fact]
@@ -200,12 +207,12 @@ public class AtBatFeelTests
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
         clock = AtBatMotion.AdvanceCommittedSwing(
-            clock, start + MoveBones.SwingDur, start, MoveBones.SwingDur);
-        Assert.Equal(MoveBones.SwingDur, clock, 8);
+            clock, start + Motion.SwingDur, start, Motion.SwingDur);
+        Assert.Equal(Motion.SwingDur, clock, 8);
         Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 1.0 / 60);
-        Assert.True(clock > MoveBones.SwingDur);
+        Assert.True(clock > Motion.SwingDur);
         Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
     }
 
