@@ -182,6 +182,8 @@ namespace GrandSluggers.UnityClient
         // differ between the shared armature and Generic packages. SharedRig
         // hides the drop rig's authored eyes and rebuilds the face it draws, so
         // skip anything switched off: a hidden landmark is not the stance.
+        // Where an extras kit hides an authored landmark and draws its own, the
+        // bone carrying the replacement stands in — see TryVisibleFoot.
         internal bool TryRenderedBattingStance(
             out Vector3 chestForward, out Vector3 eyeForward, out Vector3 feetLine)
         {
@@ -203,15 +205,49 @@ namespace GrandSluggers.UnityClient
                 || !centers.TryGetValue("EyeR", out var eyeR)) return false;
             if (!centers.TryGetValue("Stripe", out var chest)
                 && !centers.TryGetValue("Belly", out chest)) return false;
-            if (!centers.TryGetValue("lShoe", out var footL)
-                && !centers.TryGetValue("lFoot", out footL)) return false;
-            if (!centers.TryGetValue("rShoe", out var footR)
-                && !centers.TryGetValue("rFoot", out footR)) return false;
+            if (!TryVisibleFoot(centers, "lShoe", "lFoot", _lShin, out var footL)) return false;
+            if (!TryVisibleFoot(centers, "rShoe", "rFoot", _rShin, out var footR)) return false;
             chestForward = Vector3.ProjectOnPlane(chest - torso, Vector3.up).normalized;
             eyeForward = Vector3.ProjectOnPlane((eyeL + eyeR) * 0.5f - head, Vector3.up).normalized;
             feetLine = Vector3.ProjectOnPlane(footR - footL, Vector3.up).normalized;
             return chestForward.sqrMagnitude > 0.9f && eyeForward.sqrMagnitude > 0.9f
                 && feetLine.sqrMagnitude > 0.9f;
+        }
+
+        /// <summary>
+        /// The foot a captain actually shows. An extras kit can replace the
+        /// authored shoe with a dropped piece and hide the original — rio's
+        /// sneakers do — so when the named mesh is not drawn, measure whatever
+        /// the shin carries instead of reading a switched-off landmark.
+        /// </summary>
+        bool TryVisibleFoot(
+            System.Collections.Generic.IDictionary<string, Vector3> centers,
+            string authored, string alternate, Transform shin, out Vector3 center)
+        {
+            if (centers.TryGetValue(authored, out center)) return true;
+            if (centers.TryGetValue(alternate, out center)) return true;
+            return TryVisibleCenterUnder(shin, out center);
+        }
+
+        bool TryVisibleCenterUnder(Transform bone, out Vector3 center)
+        {
+            center = Vector3.zero;
+            if (bone == null) return false;
+            var found = false;
+            var bounds = new Bounds();
+            foreach (var renderer in bone.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+                if (!TryPosedBounds(renderer, out var posed)) continue;
+                if (found) bounds.Encapsulate(posed.Center);
+                else
+                {
+                    bounds = new Bounds(posed.Center, Vector3.zero);
+                    found = true;
+                }
+            }
+            center = bounds.center;
+            return found;
         }
 
         internal bool TryRenderedSwingHands(
