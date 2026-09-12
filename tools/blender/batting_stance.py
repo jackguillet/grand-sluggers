@@ -3,6 +3,9 @@
 The source catalog is written in Unity batter-local axes: +X crosses the
 plate for a right-handed batter, +Y is up, and +Z faces the pitcher. Blender's
 FBX basis maps those directions to (-X, -Z, +Y).
+
+A rig's *rendered* eyes are not always the eyes this scene authors. Each caller
+names its import basis so the DCC aims the landmark that Unity actually draws.
 """
 from __future__ import annotations
 
@@ -17,16 +20,31 @@ from mathutils import Matrix, Quaternion, Vector
 CATALOG = Path(__file__).resolve().parents[2] / "data/art/pose-clips/swing.json"
 
 
+# How a rig's rendered eyes relate to the DCC eye landmark this module aims.
+# A Generic character package (Elder Fenn) ships its authored eye meshes, so the
+# landmark is the face Unity draws. SharedRig.TryBindDrop instead hides the
+# shared blockout's eye meshes and rebuilds the face on the head bone's Unity
+# +Z; the blockout builds that head facing Blender +Y, which FBX import turns
+# into Unity -Z, so the drawn face is the reverse of the landmark.
+EYES_AS_AUTHORED = 1
+EYES_REVERSED_BY_IMPORT = -1
+
+
 def _load_keys():
     rows = json.loads(CATALOG.read_text())["keys"]
-    return {
-        round(float(row["t"]), 4): {
-            "chest": Vector(row["chestForward"]).normalized(),
-            "eyes": Vector(row["eyesForward"]).normalized(),
-            "feet": Vector(row["feetAxis"]).normalized(),
-        }
+    keys = [
+        (
+            round(float(row["t"]), 4),
+            {
+                "chest": Vector(row["chestForward"]).normalized(),
+                "eyes": Vector(row["eyesForward"]).normalized(),
+                "feet": Vector(row["feetAxis"]).normalized(),
+            },
+        )
         for row in rows
-    }
+    ]
+    keys.sort(key=lambda row: row[0])
+    return keys
 
 
 KEYS = _load_keys()
@@ -38,11 +56,32 @@ def unity_to_dcc(value, *, normalize: bool = True):
     return converted.normalized() if normalize else converted
 
 
-def target_at(t: float):
-    key = round(float(t), 4)
-    if key not in KEYS:
-        raise KeyError(f"batting stance has no authored key at {t:.4f}")
-    row = KEYS[key]
+def span_at(t: float, times):
+    """The authored span holding t, matching BattingStance.Interpolate in Sim."""
+    t = min(max(float(t), times[0]), times[-1])
+    for index in range(len(times) - 1):
+        low, high = times[index], times[index + 1]
+        if t > high and index < len(times) - 2:
+            continue
+        u = 0.0 if high - low <= 1e-9 else (t - low) / (high - low)
+        return index, u
+    return max(len(times) - 2, 0), 0.0
+
+
+def target_at(t: float, *, eyes_basis: int = EYES_AS_AUTHORED):
+    """Unity stance directions at t, converted to DCC axes.
+
+    Between authored keys this interpolates exactly as BattingStance does in
+    Sim, so a take baked on every frame agrees with the runtime contract at any
+    sample time the gate picks, not only on the five authored keys.
+    """
+    index, u = span_at(t, [key for key, _ in KEYS])
+    low, high = KEYS[index][1], KEYS[min(index + 1, len(KEYS) - 1)][1]
+    row = {
+        name: (low[name] + (high[name] - low[name]) * u).normalized()
+        for name in low
+    }
+    row["eyes"] = row["eyes"] * float(eyes_basis)
     return {name: unity_to_dcc(value) for name, value in row.items()}
 
 
@@ -109,9 +148,10 @@ def author_visible_stance(
     head_center: str,
     foot_left: str,
     foot_right: str,
+    eyes_basis: int = EYES_AS_AUTHORED,
 ):
     """Align feet, visible chest, and visible eyes to the shared stance key."""
-    target = target_at(t)
+    target = target_at(t, eyes_basis=eyes_basis)
     aim_bone_from_landmarks(
         arm_ob, "root", feet_axis(foot_left, foot_right), target["feet"])
     aim_bone_from_landmarks(
@@ -131,9 +171,10 @@ def validate_visible_stance(
     head_center: str,
     foot_left: str,
     foot_right: str,
+    eyes_basis: int = EYES_AS_AUTHORED,
     minimum_dot: float = 0.995,
 ):
-    target = target_at(t)
+    target = target_at(t, eyes_basis=eyes_basis)
     eyes = (rendered_center(eye_left) + rendered_center(eye_right)) * 0.5
     actual = {
         "chest": visible_direction(chest_front, chest_center),

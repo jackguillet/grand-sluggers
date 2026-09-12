@@ -17,8 +17,24 @@ Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_shared_swing.py -- \
-  --out unity/Assets/Art/Animation/Clips/swing.fbx
+  --out unity/Assets/Art/Animation/Clips/swing.fbx \
+  --resources unity/Assets/Resources/Art/Animation/Clips
 ```
+
+`--resources` writes the standalone player copy from the same export, so the two
+slots in `data/art/clips.json` cannot drift apart.
+
+The take is authored and falsified on **every** frame, not only on the five keys
+in the catalog. Gameplay and the still gate sample it at charge-dependent times
+between keys, so a rig that only meets `SwingPresentation` on the keys drifts off
+the handle and drops the loaded barrel in between. Each frame bakes the same
+interpolation the runtime contract uses.
+
+The shared rig authors the eyes through `batting_stance.EYES_REVERSED_BY_IMPORT`:
+`SharedRig.TryBindDrop` hides the blockout's eye meshes and rebuilds the face it
+draws on the head bone's Unity +Z, which is the reverse of this scene's landmark.
+A Generic package that ships its own eyes (Elder Fenn) stays on the default
+`EYES_AS_AUTHORED`.
 
 HeroActor samples the clip when present; missing file keeps authored eulers / MoveBones.
 

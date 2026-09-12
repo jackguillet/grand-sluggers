@@ -18,6 +18,12 @@ public static class SwingPresentation
     public const double FollowThroughAt = MoveBones.SwingDur;
     public const double ContactStretchXZ = 1.14;
     public const double ContactSquashY = 0.84;
+    /// <summary>
+    /// A held load shows the barrel standing above the hands. Measured on the
+    /// rendered bat in world space, so a squat captain's shared-root squash
+    /// counts against it: the ready/load barrel must clear this on every body.
+    /// </summary>
+    public const double LoadedBarrelRise = 0.70;
 
     /// <summary>Canonical bat-wood center sits this far above the grip socket.</summary>
     public const double ModelCenterFromGrip = 0.85;
@@ -40,6 +46,12 @@ public static class SwingPresentation
     /// applies only this fixed model-to-socket bind.
     /// </summary>
     public static readonly Vec3 ModelBarrelAxisAtSocket = new(0, -1, 0);
+    /// <summary>
+    /// A rendered hand is a fist around the handle, not a point on it. The still
+    /// gate measures the mesh against the physical handle; the authored keys
+    /// must stay inside this so a DCC take can seat both fists at any sample.
+    /// </summary>
+    public const double HandToHandleAllowance = 0.20;
     public const double ModelHandleRadius = 0.08;
     public const double ModelBarrelRadius = 0.12;
     public static double BarrelRadius => ModelBarrelRadius * Silhouette.BatScale;
