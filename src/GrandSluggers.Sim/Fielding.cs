@@ -2,6 +2,10 @@ namespace GrandSluggers.Sim;
 
 public sealed class FieldingResolver
 {
+    public static readonly IReadOnlyList<string> InfieldPursuitPositions = ["P", "C", "1B", "2B", "3B", "SS"];
+    public static readonly IReadOnlyList<string> AirPursuitPositions = ["LF", "CF", "RF", "SS", "2B"];
+    public static readonly IReadOnlyList<string> OutfieldPursuitPositions = ["LF", "CF", "RF"];
+
     readonly ChemistryTable _chem;
 
     public FieldingResolver(ChemistryTable chem) => _chem = chem;
@@ -20,7 +24,19 @@ public sealed class FieldingResolver
         var grounder = IsGrounder(hit);
         var line = IsLine(hit);
         var hrLikely = HomeRunLikely(hit, park);
-        var (fielder, pos) = Nearest(defense, pitcher, landing.X, landing.Z, outfield: !grounder && !line);
+        var assigned = Assign(defense, pitcher);
+        var seed = new FieldingPreview(
+            pitcher, "P", null, hang, landing.X, landing.Z, grounder, hrLikely,
+            false, false, false, 10, Line: line);
+        var pursuit = FieldingPursuit.Choose(
+            assigned,
+            !grounder && !line ? AirPursuitPositions : InfieldPursuitPositions,
+            seed,
+            park,
+            samples,
+            hit.SprayDeg);
+        var fielder = pursuit.Fielder;
+        var pos = pursuit.Position;
         var warped = false;
         if (grounder)
         {
@@ -31,7 +47,8 @@ public sealed class FieldingResolver
                 warped = true;
             }
         }
-        var buddy = Buddy(defense, pitcher, fielder, pos, landing.X, landing.Z);
+        var buddyPlant = FlyCatch.ChaseTarget(seed with { Fielder = fielder, Position = pos }, park);
+        var buddy = Buddy(defense, pitcher, fielder, pos, buddyPlant.X, buddyPlant.Z);
         var freeze = (ParkHazards.InSlow(park, landing.X, landing.Z, night) && !FieldAbilities.IgnoresParkSlow(fielder))
                      || hit.StarSwingUsed == "heart-swing";
         if (grounder && hit.StarSwingUsed is "shell-swing" or "cask-swing" && rng.NextDouble() < 0.6)
@@ -61,11 +78,13 @@ public sealed class FieldingResolver
         if (shown.HomeRunLikely && hit.HomeRun)
         {
             if (ParkHazards.CanClamberRob(park, shown.Fielder, hit) || FieldAbilities.AirRob(park, shown.Fielder, hit))
-                return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy);
+                return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace, Buddy: shown.Buddy,
+                    Feat: CatchFeat(shown, hit, park));
             return new FieldingResult(PlayKind.HomeRun, null, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, false, shown.Furnace);
         }
         if (shown.Chomped)
-            return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true);
+            return new FieldingResult(PlayKind.FlyOut, shown.Fielder, null, shown.HangTimeSec, shown.LandingX, shown.LandingZ, shown.Heatball, shown.Furnace, Buddy: shown.Buddy, Chomped: true,
+                Feat: CatchFeat(shown, hit, park));
 
         var fielder = shown.Fielder;
         var pos = shown.Position;
@@ -95,7 +114,8 @@ public sealed class FieldingResolver
                 var drop = (heatball && rng.NextDouble() < 0.35)
                            || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
                 if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy);
+                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
+                        Feat: CatchFeat(shown, hit, park));
             }
             var skipKind = hit.CarryFt >= 180 ? PlayKind.Double : PlayKind.Single;
             skipKind = FieldAbilities.SpinCheck(fielder, skipKind);
@@ -112,7 +132,8 @@ public sealed class FieldingResolver
                            || (shown.Frozen && rng.NextDouble() < 0.4)
                            || (hit.StarSwingUsed == "phony-swing" && rng.NextDouble() < 0.35);
                 if (!drop)
-                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy);
+                    return new FieldingResult(PlayKind.FlyOut, fielder, null, hang, landingX, landingZ, heatball, furnace, Buddy: shown.Buddy,
+                        Feat: CatchFeat(shown, hit, park));
             }
 
             var kind = hit.CarryFt >= 330 ? PlayKind.Triple
@@ -149,6 +170,32 @@ public sealed class FieldingResolver
     public (Character Fielder, string Pos) NearestPublic(
         IReadOnlyList<Character> defense, Character pitcher, double x, double z, bool outfield) =>
         Nearest(defense, pitcher, x, z, outfield);
+
+    /// <summary>The resolved catch verb, kept as a fact so copy can change without changing behavior.</summary>
+    public static DefensiveFeat CatchFeat(FieldingPreview shown, AtBatResult hit, Park park)
+    {
+        if (BuddyJumpOffered(shown))
+            return DefensiveFeat.BuddyJump;
+        if (ParkHazards.CanClamber(park, shown.Fielder) && hit.CarryFt > 260)
+            return DefensiveFeat.Clamber;
+        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase) && hit.CarryFt > 250)
+            return DefensiveFeat.SuperJump;
+        return DefensiveFeat.None;
+    }
+
+    /// <summary>The live glove verb the player actually completed on this catch.</summary>
+    public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, bool buddyJump, bool jumped)
+    {
+        if (buddyJump)
+            return DefensiveFeat.BuddyJump;
+        if (!jumped || !shown.HomeRunLikely)
+            return DefensiveFeat.None;
+        if (ParkHazards.CanClamber(park, shown.Fielder))
+            return DefensiveFeat.Clamber;
+        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+            return DefensiveFeat.SuperJump;
+        return DefensiveFeat.None;
+    }
 
     /// <summary>Closest glove to (x, z) among all nine. Pass live spots when fielders have moved.</summary>
     public static (Character Fielder, string Pos) NearestGlove(
@@ -249,31 +296,21 @@ public sealed class FieldingResolver
         double ballZ,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
         OutfieldGrass(ballX, ballZ)
-            ? NearestIn(assigned, OutfieldCorners, ballX, ballZ, at)
-            : NearestIn(assigned, InfieldPool, ballX, ballZ, at);
+            ? NearestIn(assigned, OutfieldPursuitPositions, ballX, ballZ, at)
+            : NearestIn(assigned, InfieldPursuitPositions, ballX, ballZ, at);
 
     public static (Character Fielder, string Pos) NearestOutfielder(
         IReadOnlyDictionary<string, Character> assigned,
         double x,
         double z,
         IReadOnlyDictionary<string, (double X, double Z)>? at = null) =>
-        NearestIn(assigned, OutfieldCorners, x, z, at);
+        NearestIn(assigned, OutfieldPursuitPositions, x, z, at);
 
     public static bool HandoffToOutfield(string currentPos, string playPos) =>
         !IsOutfield(currentPos) && IsOutfield(playPos);
 
     public static double ChaseSpeedFt(Character fielder, bool frozen) =>
         (21 + fielder.Stats.Run * 1.9) * (frozen ? 0.45 : 1);
-
-    /// <summary>
-    /// Get under the landing before hang. Run speed, or dist/remain if that's faster.
-    /// Frozen gloves stay slow and can miss.
-    /// </summary>
-    public static double CatchUpSpeedFt(double dist, double remainSec, double runSpeed, bool frozen = false)
-    {
-        if (frozen) return runSpeed;
-        return Math.Max(runSpeed, dist / Math.Max(0.25, remainSec));
-    }
 
     public static (double X, double Z) StepToward(
         double x, double z, double tx, double tz, double speed, double dt, Park? park = null)
@@ -311,10 +348,6 @@ public sealed class FieldingResolver
     public static bool BuddyJumpOffered(FieldingPreview pre) =>
         pre.Buddy is not null && pre.HomeRunLikely && !pre.Grounder && !pre.Line && IsOutfield(pre.Position);
 
-    static readonly string[] InfieldPool = ["P", "C", "1B", "2B", "3B", "SS"];
-    static readonly string[] OutfieldPool = ["LF", "CF", "RF", "SS", "2B"];
-    static readonly string[] OutfieldCorners = ["LF", "CF", "RF"];
-
     static (Character Fielder, string Pos) Nearest(
         IReadOnlyList<Character> defense,
         Character pitcher,
@@ -323,7 +356,7 @@ public sealed class FieldingResolver
         bool outfield)
     {
         var keyed = Assign(defense, pitcher);
-        return NearestIn(keyed, outfield ? OutfieldPool : InfieldPool, x, z, at: null);
+        return NearestIn(keyed, outfield ? AirPursuitPositions : InfieldPursuitPositions, x, z, at: null);
     }
 
     static (Character Fielder, string Pos) NearestIn(
@@ -414,7 +447,8 @@ public sealed record FieldingResult(
     string? Item = null,
     bool Chomped = false,
     bool Bobble = false,
-    double KnockbackSec = 0);
+    double KnockbackSec = 0,
+    DefensiveFeat Feat = DefensiveFeat.None);
 
 public sealed record FieldingPreview(
     Character Fielder,

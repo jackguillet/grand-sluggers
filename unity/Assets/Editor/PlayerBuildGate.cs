@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using GrandSluggers.Sim;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -40,8 +41,10 @@ namespace GrandSluggers.EditorTools
             var temp = TempDir();
             Directory.CreateDirectory(temp);
             var req = Path.Combine(temp, RequestFile);
+            var revision = Environment.GetEnvironmentVariable("GS_BUILD_REVISION") ?? "";
             if (!File.Exists(req))
-                File.WriteAllText(req, "{\"target\":\"" + target + "\",\"width\":1280,\"height\":800,\"development\":" + (development ? "true" : "false") + "}");
+                File.WriteAllText(req, "{\"target\":\"" + target + "\",\"width\":1280,\"height\":800,\"development\":"
+                    + (development ? "true" : "false") + ",\"revision\":\"" + revision + "\"}");
             try { File.Delete(Path.Combine(temp, DoneFile)); } catch { /* first run */ }
         }
 
@@ -66,6 +69,7 @@ namespace GrandSluggers.EditorTools
                 return;
 
             var json = File.ReadAllText(req);
+            var revision = JsonString(json, "revision", "");
             var mac = Mac(json);
             var want = mac ? BuildTarget.StandaloneOSX : BuildTarget.StandaloneLinux64;
             if (EditorUserBuildSettings.activeBuildTarget != want)
@@ -76,22 +80,35 @@ namespace GrandSluggers.EditorTools
             }
 
             _busy = true;
-            try { Build(req, temp, json, mac); }
+            try { Build(req, temp, json, mac, revision); }
             catch (Exception ex)
             {
-                WriteDone(temp, false, "", ex.Message);
+                WriteDone(temp, false, "", ex.Message, revision);
                 try { File.Delete(req); } catch { /* leftover is ok */ }
             }
             finally { _busy = false; }
         }
 
-        static void Build(string reqPath, string temp, string json, bool mac)
+        static void Build(string reqPath, string temp, string json, bool mac, string revision)
         {
             var width = JsonInt(json, "width", 1280);
             var height = JsonInt(json, "height", 800);
             var development = JsonBool(json, "development", !mac);
             if (width < 640) width = 1280;
             if (height < 360) height = 800;
+
+            CharacterPackageControllerImport.SyncRequired();
+
+            var data = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "data"));
+            var content = ContentCatalog.Load(data);
+            var artErrors = new System.Collections.Generic.List<string>(content.Art.Validate(content));
+            artErrors.AddRange(ArtRailsValidate.ValidateCommonBatImport());
+            if (artErrors.Count > 0)
+                throw new BuildFailedException("Art validation failed:\n" + string.Join("\n", artErrors));
+            var packageErrors = CharacterPackageImportValidation.Validate(content);
+            if (packageErrors.Count > 0)
+                throw new BuildFailedException("Character package import validation failed:\n"
+                    + string.Join("\n", packageErrors));
 
             var unityRoot = Directory.GetParent(Application.dataPath)!.FullName;
             var exe = Path.Combine(unityRoot, mac ? RelOutMac : RelOutLinux);
@@ -138,7 +155,7 @@ namespace GrandSluggers.EditorTools
             PlayerSettings.defaultScreenHeight = prevH;
             PlayerSettings.resizableWindow = prevResizable;
 
-            WriteDone(temp, ok, exe, err);
+            WriteDone(temp, ok, exe, err, revision);
             Debug.Log("Grand Sluggers player gate: " + (ok ? "ok " + exe : err));
         }
 
@@ -160,13 +177,32 @@ namespace GrandSluggers.EditorTools
             return File.Exists(exe);
         }
 
-        static void WriteDone(string temp, bool ok, string exe, string error)
+        static void WriteDone(string temp, bool ok, string exe, string error, string revision)
         {
             Directory.CreateDirectory(temp);
-            var json = "{\"ok\":" + (ok ? "true" : "false")
-                + ",\"exe\":\"" + (exe ?? "").Replace("\\", "/")
-                + "\",\"error\":\"" + (error ?? "").Replace("\"", "'") + "\"}";
-            File.WriteAllText(Path.Combine(temp, DoneFile), json);
+            var evidence = new BuildEvidence
+            {
+                ok = ok,
+                revision = revision,
+                scene = ScenePath,
+                unityVersion = Application.unityVersion,
+                exe = exe ?? "",
+                error = error ?? "",
+                utc = DateTime.UtcNow.ToString("O")
+            };
+            File.WriteAllText(Path.Combine(temp, DoneFile), JsonUtility.ToJson(evidence, true));
+        }
+
+        [Serializable]
+        sealed class BuildEvidence
+        {
+            public bool ok;
+            public string revision = "";
+            public string scene = "";
+            public string unityVersion = "";
+            public string exe = "";
+            public string error = "";
+            public string utc = "";
         }
 
         static string TempDir()

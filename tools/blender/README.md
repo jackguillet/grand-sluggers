@@ -17,8 +17,24 @@ Swing take (`Contact` at 0.30s, same keys as `data/art/pose-clips/swing.json`):
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_shared_swing.py -- \
-  --out unity/Assets/Art/Animation/Clips/swing.fbx
+  --out unity/Assets/Art/Animation/Clips/swing.fbx \
+  --resources unity/Assets/Resources/Art/Animation/Clips
 ```
+
+`--resources` writes the standalone player copy from the same export, so the two
+slots in `data/art/clips.json` cannot drift apart.
+
+The take is authored and falsified on **every** frame, not only on the five keys
+in the catalog. Gameplay and the still gate sample it at charge-dependent times
+between keys, so a rig that only meets `SwingPresentation` on the keys drifts off
+the handle and drops the loaded barrel in between. Each frame bakes the same
+interpolation the runtime contract uses.
+
+The shared rig authors the eyes through `batting_stance.EYES_REVERSED_BY_IMPORT`:
+`SharedRig.TryBindDrop` hides the blockout's eye meshes and rebuilds the face it
+draws on the head bone's Unity +Z, which is the reverse of this scene's landmark.
+A Generic package that ships its own eyes (Elder Fenn) stays on the default
+`EYES_AS_AUTHORED`.
 
 HeroActor samples the clip when present; missing file keeps authored eulers / MoveBones.
 
@@ -55,7 +71,9 @@ Unique character package. Spec: `docs/character-package.md`. A posed unrigged GL
 
 Writes `{id}-albedo.png` (1024) next to the FBX. `--bind skinned` requires `--keep-weights`. Default `--bind rigid`. `--bind segmented` is Blender-authored pieces only — a Python split shredded Fenn. Character stills (`docs/screenshot-gate.md`) before a player rebuild.
 
-Generic idle + pose takes on an existing package (no remesh):
+Generic idle + pose takes on an existing package (no remesh). The exporter keeps
+the source FBX space settings and trims each take to its keyed range; a different
+axis/scale export basis can resolve by bone name in Unity while collapsing skin:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/package_clips.py -- \
@@ -64,7 +82,10 @@ Generic idle + pose takes on an existing package (no remesh):
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
 
-Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned):
+Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned). This
+single command authors the body, idle, pose, chargeSwing, and swing from one
+Blender scene so their bind basis cannot drift through an FBX import/re-export
+round trip:
 
 ```bash
 /opt/homebrew/bin/blender --background --python tools/blender/hero_fenn.py -- \
@@ -72,6 +93,16 @@ Elder Fenn cartoon package (closed volumes, 100% one bone, bind=skinned):
   --albedo unity/Assets/Art/Characters/fenn/fenn-albedo.png \
   --resources unity/Assets/Resources/Art/Characters/fenn
 ```
+
+Fenn's batting constraints bake into his own armature. Both hands surround the
+named grip, socket local -Y points toward the barrel, charge maps from ready to
+MAX, and swing contact remains 0.30 s.
+
+`hero_shared_extras.py` keeps `bat-wood` at its authored model origin when the
+handle, barrel, and knob are joined. In model-local +Y the handle is
+`[-1.00, -0.10]`, the grip is `-0.85`, and the radius-0.12 barrel is
+`[-0.15, 1.25]`. `ArtRailsValidate` checks those coordinates after Unity import,
+so do not recenter that named mesh during cleanup.
 
 Harbor kit (sunken dugout + stairs, wall panel, crowd, home-plate, bag). Missing file keeps HarborKit primitives. Layout: `HarborDugout` / `HarborInfield`.
 

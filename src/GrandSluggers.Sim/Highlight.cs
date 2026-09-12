@@ -32,10 +32,9 @@ public static class Highlight
 
     static HighlightClip Grade(PlayEvent ev)
     {
-        var cap = ev.Caption ?? "";
-        if (ev.Kind == PlayKind.FlyOut && Has(cap, "BUDDY"))
+        if (ev.Kind == PlayKind.FlyOut && ev.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump)
             return new HighlightClip(ev, HighlightBeat.BuddyJump, 100);
-        if (ev.Kind == PlayKind.FlyOut && (Has(cap, "SUPER JUMP") || Has(cap, "CLAMBER")))
+        if (ev.Kind == PlayKind.FlyOut && ev.Outcome?.DefensiveFeat is DefensiveFeat.SuperJump or DefensiveFeat.Clamber)
             return new HighlightClip(ev, HighlightBeat.RobbedHomer, 90);
         if (ev.Kind == PlayKind.HomeRun)
             return new HighlightClip(ev, HighlightBeat.HomeRun, 80);
@@ -53,6 +52,4 @@ public static class Highlight
     static bool StarPitch(PlayEvent ev) =>
         ev.Pitch.Star || !string.IsNullOrEmpty(ev.AtBat.StarPitchUsed);
 
-    static bool Has(string caption, string token) =>
-        caption.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
 }

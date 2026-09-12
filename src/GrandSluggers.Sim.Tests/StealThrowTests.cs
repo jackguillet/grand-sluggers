@@ -52,8 +52,38 @@ public class StealThrowTests
         Assert.False(StealThrow.PlayerOut(1, 2, 0.05, laser, dart, 0.25), "wrong bag is safe");
         Assert.False(StealThrow.PlayerOut(4, 2, 0.05, laser, dart, 0.25), "home is not a steal gun");
         Assert.False(StealThrow.PlayerOut(2, 2, 0.05, mud, dart, 1.0), "error + max lead is a steal");
-        Assert.True(StealThrow.PickoffOut(1, 0.05, laser, dart, 0.25), "an early throw back to first can tag");
-        Assert.False(StealThrow.PickoffOut(1, 1.35, laser, dart, 0.25), "a late throw back to first is safe");
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void PickoffIsDecidedByTheMeasuredThrowAndReturnRace(int occupiedBag)
+    {
+        var dart = _content.Must("dart");
+        var laser = new ThrowResult(Chemistry.Good, 1.35, false);
+        const double lead = 0.75;
+        var flight = StealThrow.CatcherThrowSec(occupiedBag, laser);
+        var returnTime = StealThrow.RunnerReturnSec(dart, lead);
+        var lastWinningRelease = returnTime - flight;
+
+        Assert.True(lastWinningRelease > 0.05,
+            $"three-quarter lead must leave a playable pickoff window: return {returnTime:F6}, flight {flight:F6}");
+        Assert.True(StealThrow.PickoffOut(occupiedBag, lastWinningRelease - 0.001, laser, dart, lead));
+        Assert.False(StealThrow.PickoffOut(occupiedBag, lastWinningRelease + 0.001, laser, dart, lead));
+    }
+
+    [Fact]
+    public void PickoffWindowFollowsLeadRunnerAndThrowRelationships()
+    {
+        var fast = _content.Must("dart");
+        var slow = _content.Must("konga");
+        var laser = new ThrowResult(Chemistry.Good, 1.35, false);
+        var mud = new ThrowResult(Chemistry.Bad, 0.7, true);
+
+        Assert.True(StealThrow.RunnerReturnSec(fast, 0.75) > StealThrow.RunnerReturnSec(fast, 0.25));
+        Assert.True(StealThrow.RunnerReturnSec(slow, 0.25) > StealThrow.RunnerReturnSec(fast, 0.25));
+        Assert.True(StealThrow.CatcherThrowSec(1, laser) < StealThrow.CatcherThrowSec(1, mud));
+        Assert.False(StealThrow.PickoffOut(3, 0, laser, slow, 1), "catcher pickoff targets are first or second");
     }
 
     [Fact]
@@ -101,10 +131,54 @@ public class StealThrowTests
         var safe = late.Match.ResolveStealThrow(late.Ev, 2, 1.4, laser);
         Assert.Equal(PlayKind.CaughtStealing, outPlay.Kind);
         Assert.Equal(PlayKind.StolenBase, safe.Kind);
+        Assert.Equal(RunnerPlayResult.CaughtStealing, outPlay.Outcome?.RunnerResult);
+        Assert.Equal(RunnerPlayResult.StolenBase, safe.Outcome?.RunnerResult);
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 2), outPlay.Outcome?.ThrowEndpoint);
+        Assert.Equal(outPlay.Outcome?.ThrowEndpoint,
+            (outPlay with { Caption = "El corredor fue retirado." }).Outcome?.ThrowEndpoint);
         Assert.Null(early.Match.First);
         Assert.NotNull(late.Match.Second);
         Assert.False(early.Match.StealThrowPending);
         Assert.False(late.Match.StealThrowPending);
+    }
+
+    [Fact]
+    public void LiveWrongBagPreservesTheActualThrowEndpoint()
+    {
+        var armed = ArmedTake(seed: 3);
+        var laser = new ThrowResult(Chemistry.Good, 1.4, false);
+        var ev = armed.Match.ResolveStealThrow(armed.Ev, 1, 1.4, laser);
+
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 1), ev.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(ev.Outcome?.ThrowEndpoint,
+            (ev with { Caption = "送球先はコピーに依存しない。" }).Outcome?.ThrowEndpoint);
+    }
+
+    [Fact]
+    public void CpuGunPublishesCatcherAndTargetBag()
+    {
+        var armed = ArmedTake(seed: 3);
+        var ev = armed.Match.GunSteal(armed.Ev);
+
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.Catcher, 2), ev.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(2, ev.Outcome?.RunnerToBag);
+    }
+
+    [Fact]
+    public void NamedPickoffPublishesPitcherAndOriginalBag()
+    {
+        var match = Match.Slice(_content, seed: 3);
+        WalkOn(match);
+        match.TakeLead(1);
+        var ev = match.Pickoff(1);
+
+        Assert.NotNull(ev);
+        Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev!.Outcome?.ThrowEndpoint);
+        Assert.Equal(1, ev.Outcome?.RunnerFromBag);
+        Assert.Equal(ev.Outcome?.ThrowEndpoint,
+            (ev with { Caption = "Texto reemplazado." }).Outcome?.ThrowEndpoint);
     }
 
     (Match Match, PlayEvent Ev) ArmedTake(int seed)
@@ -123,7 +197,7 @@ public class StealThrowTests
 
     static void WalkOn(Match match)
     {
-        var wild = new PitchCommand("fastball", 0, 40, false);
+        var wild = new PitchCommand("fastball", 0, 0, false, AimX: 1.5);
         var take = new SwingCommand(false, 0, 0, false);
         while (match.First is null && !match.Over)
             match.Play(wild, take);

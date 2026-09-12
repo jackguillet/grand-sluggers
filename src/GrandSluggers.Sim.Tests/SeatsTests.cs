@@ -82,16 +82,156 @@ public class SeatsTests
     }
 
     [Fact]
-    public void UnplugPad2BecomesCpuWithoutANewInning()
+    public void DisconnectingPlayerOneDoesNotPromotePlayerTwoWhenDeviceListReorders()
     {
-        var vs = Seats.FromPads(2, versus: true);
-        var unplug = Seats.FromPads(1, versus: true);
-        Assert.True(vs.HumanBats(top: true));
-        Assert.True(unplug.CpuBats(top: true));
-        Assert.True(unplug.HumanPitches(top: true));
-        Assert.Equal(LineupSeat.Pad1, unplug.Home);
-        Assert.Equal(vs.Home, unplug.Home);
-        Assert.Equal(1, unplug.Count);
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+
+        Assert.Equal(LineupSeat.Pad1, devices.Missing(Seats.Versus, [202]));
+        Assert.False(devices.Present(LineupSeat.Pad1, [202]));
+        Assert.True(devices.Present(LineupSeat.Pad2, [202]));
+        Assert.False(devices.Reassign(LineupSeat.Pad1, 202));
+        Assert.Equal(101, devices.Pad1DeviceId);
+        Assert.Equal(202, devices.Pad2DeviceId);
+    }
+
+    [Fact]
+    public void DisconnectingPlayerTwoLeavesPlayerOneOnTheSameTeam()
+    {
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+
+        Assert.Equal(LineupSeat.Pad2, devices.Missing(Seats.Versus, [101]));
+        Assert.True(devices.Present(LineupSeat.Pad1, [101]));
+        Assert.False(devices.Present(LineupSeat.Pad2, [101]));
+        Assert.Equal(101, devices.DeviceId(Seats.Versus.Home));
+        Assert.Equal(202, devices.DeviceId(Seats.Versus.Away));
+    }
+
+    [Fact]
+    public void ReconnectOrderDoesNotChangeHomeOrAwayOwnership()
+    {
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+
+        Assert.Equal(LineupSeat.Cpu, devices.Missing(Seats.Versus, [202, 101]));
+        Assert.Equal(101, devices.DeviceId(Seats.Versus.Home));
+        Assert.Equal(202, devices.DeviceId(Seats.Versus.Away));
+        Assert.Equal(202, devices.DeviceId(Seats.AwayVersus.Home));
+        Assert.Equal(101, devices.DeviceId(Seats.AwayVersus.Away));
+    }
+
+    [Fact]
+    public void UnseatedControllerCanDeliberatelyTakeOnlyTheMissingSeat()
+    {
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+        Assert.Equal(LineupSeat.Pad2, devices.Missing(Seats.Versus, [101, 303]));
+
+        Assert.True(devices.Reassign(LineupSeat.Pad2, 303));
+
+        Assert.Equal(LineupSeat.Cpu, devices.Missing(Seats.Versus, [101, 303]));
+        Assert.Equal(101, devices.Pad1DeviceId);
+        Assert.Equal(303, devices.Pad2DeviceId);
+    }
+
+    [Fact]
+    public void KeyboardAndMouseCanRecoverPlayerOneOnly()
+    {
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+        Assert.Equal(LineupSeat.Pad1, devices.Missing(Seats.Versus, [202]));
+
+        Assert.False(devices.UseKeyboardMouse(LineupSeat.Pad2));
+        Assert.True(devices.UseKeyboardMouse(LineupSeat.Pad1));
+
+        Assert.True(devices.Pad1UsesKeyboardMouse);
+        Assert.Null(devices.Pad1DeviceId);
+        Assert.Equal(LineupSeat.Cpu, devices.Missing(Seats.Versus, [202]));
+    }
+
+    [Fact]
+    public void OnePlayerSupportsControllerAndKeyboardMatchBindings()
+    {
+        var controller = DeviceSeats.BeginMatch([101], player1KeyboardMouse: false, versus: false);
+        var keyboard = DeviceSeats.BeginMatch([101], player1KeyboardMouse: true, versus: false);
+        var controllerModeWithoutAPad = DeviceSeats.BeginMatch([], player1KeyboardMouse: false, versus: false);
+
+        Assert.Equal(LineupSeat.Pad1, controller.Missing(Seats.One, []));
+        Assert.Equal(LineupSeat.Cpu, controller.Missing(Seats.One, [101]));
+        Assert.Equal(LineupSeat.Cpu, keyboard.Missing(Seats.One, []));
+        Assert.False(keyboard.Present(LineupSeat.Pad2, []));
+        Assert.True(controllerModeWithoutAPad.Pad1UsesKeyboardMouse);
+    }
+
+    [Fact]
+    public void KeyboardPlayerOneStillLeavesTheSecondPhysicalGamepadForPlayerTwo()
+    {
+        var controllerMatch = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: false, versus: true);
+        var keyboardMatch = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: true, versus: true);
+
+        Assert.Equal(101, controllerMatch.Pad1DeviceId);
+        Assert.Equal(202, controllerMatch.Pad2DeviceId);
+        Assert.True(keyboardMatch.Pad1UsesKeyboardMouse);
+        Assert.Null(keyboardMatch.Pad1DeviceId);
+        Assert.Equal(202, keyboardMatch.Pad2DeviceId);
+    }
+
+    [Fact]
+    public void DisconnectPausePolicySurvivesSetFlightAndLiveThrowBoundaries()
+    {
+        var devices = new DeviceSeats(pad1DeviceId: 101, pad2DeviceId: 202);
+        foreach (var moment in new[] { "SET", "pitch flight", "live ball", "throw" })
+        {
+            var recovery = new DeviceSeatRecovery();
+            var missing = devices.Missing(Seats.Versus, [202]);
+            recovery.WaitFor(missing, matchWasPaused: false);
+
+            Assert.True(recovery.Active, moment);
+            Assert.True(recovery.ResumeWhenReady, moment);
+            Assert.Equal(LineupSeat.Pad1, recovery.MissingSeat);
+        }
+    }
+
+    [Fact]
+    public void ReconnectResumesOnlyWhenDisconnectCausedThePause()
+    {
+        var running = new DeviceSeatRecovery();
+        running.WaitFor(LineupSeat.Pad2, matchWasPaused: false);
+        running.WaitFor(LineupSeat.Pad2, matchWasPaused: true);
+        Assert.True(running.ResumeWhenReady);
+        running.Complete();
+        Assert.False(running.Active);
+
+        var alreadyAtCallTime = new DeviceSeatRecovery();
+        alreadyAtCallTime.WaitFor(LineupSeat.Pad2, matchWasPaused: true);
+        Assert.False(alreadyAtCallTime.ResumeWhenReady);
+    }
+
+    [Fact]
+    public void ConfirmedSeatsSurviveSetupAndCallTimeRecoveryUntilBackToSelect()
+    {
+        var lifecycle = new MatchSeatLifecycle();
+        Assert.Equal(Seats.One, lifecycle.Current(Seats.FromPads(1, versus: true)));
+
+        var confirmed = lifecycle.Bind(Seats.FromPads(2, versus: true));
+        var devices = DeviceSeats.BeginMatch([101, 202], player1KeyboardMouse: false, versus: confirmed.BothHuman);
+
+        Assert.Equal(Seats.Versus, confirmed);
+        Assert.True(lifecycle.Bound);
+        Assert.Equal(Seats.Versus, lifecycle.Bind(Seats.AwayOne));
+        foreach (var moment in new[] { "Team Setup", "Defense Setup", "Call time" })
+        {
+            // Player 1 disappearing must not make the surviving Player 2 become
+            // the one-player seat while setup or Call time is on screen.
+            Assert.Equal(Seats.Versus, lifecycle.Current(Seats.FromPads(1, versus: true)));
+            var recovery = new DeviceSeatRecovery();
+            recovery.WaitFor(devices.Missing(lifecycle.Seats, [202]), matchWasPaused: moment == "Call time");
+            Assert.Equal(LineupSeat.Pad1, recovery.MissingSeat);
+            Assert.Equal(moment != "Call time", recovery.ResumeWhenReady);
+            Assert.Equal(LineupSeat.Cpu, devices.Missing(lifecycle.Seats, [101, 202]));
+            recovery.Complete();
+        }
+
+        lifecycle.Release();
+        Assert.False(lifecycle.Bound);
+        Assert.Equal(Seats.AwayOne, lifecycle.Current(Seats.FromPads(1, pad1Home: false, versus: true)));
+        Assert.Equal(Seats.AwayOne, lifecycle.Bind(Seats.FromPads(1, pad1Home: false, versus: false)));
     }
 
     [Fact]

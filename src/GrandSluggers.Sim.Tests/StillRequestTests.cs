@@ -6,6 +6,30 @@ namespace GrandSluggers.Sim.Tests;
 public class StillRequestTests
 {
     [Fact]
+    public void ExternalRequestMustExistAndPassTheSameParserBeforeStaging()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "gs-still-request-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var path = Path.Combine(root, "fenn-plate.json");
+            const string json = """{"shots":["plate","pitch","char-pose"],"home":"fenn","away":"rio"}""";
+            File.WriteAllText(path, json);
+
+            Assert.Equal(json, StillRequest.ReadValidatedJsonFile(path));
+
+            File.WriteAllText(path, """{"shots":["not-a-shot"]}""");
+            Assert.Throws<InvalidDataException>(() => StillRequest.ReadValidatedJsonFile(path));
+            Assert.Throws<FileNotFoundException>(() =>
+                StillRequest.ReadValidatedJsonFile(Path.Combine(root, "missing.json")));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void DefaultRequestIsTitlePlateMoundHudOffRio()
     {
         var req = StillRequest.Parse("{}");
@@ -59,6 +83,37 @@ public class StillRequestTests
         Assert.Equal("/tmp/gs/char-fenn-pose.png", StillRequest.PngPath("/tmp/gs", "char-pose", "fenn"));
         Assert.True(StillRequest.IsCharShot("char-rest"));
         Assert.False(StillRequest.IsCharShot("plate"));
+    }
+
+    [Fact]
+    public void SwingMatrixIsOptInAndWritesLabeledRosterPaths()
+    {
+        var req = StillRequest.Parse("""{"shots":["swing-matrix"]}""");
+        Assert.Equal(new[] { "swing-matrix" }, req.ResolvedShots());
+        Assert.Equal(SwingPresentation.SharedCaptains, req.ResolvedSwingCaptains());
+        Assert.DoesNotContain("swing-matrix", StillRequest.DefaultShots);
+        Assert.True(StillRequest.IsSwingMatrixShot("swing-matrix"));
+        Assert.Equal("/tmp/gs/swing-ashlord-max-contact.png",
+            StillRequest.SwingPngPath("/tmp/gs", "ashlord", "max", "contact"));
+    }
+
+    [Fact]
+    public void SwingMatrixCanSelectFennWithoutAddingItToSharedRigMetrics()
+    {
+        var req = StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["FENN","rio"]}
+            """);
+
+        Assert.Equal(new[] { "fenn", "rio" }, req.ResolvedSwingCaptains());
+        Assert.DoesNotContain("fenn", SwingPresentation.SharedCaptains);
+        var unknown = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["not-a-player"]}
+            """));
+        Assert.Contains("not playable", unknown.Message);
+        var duplicate = Assert.Throws<InvalidDataException>(() => StillRequest.Parse("""
+            {"shots":["swing-matrix"],"swingCaptains":["fenn","FENN"]}
+            """));
+        Assert.Contains("duplicated", duplicate.Message);
     }
 
     [Fact]

@@ -29,6 +29,98 @@ public static class ChargeFeel
             : "";
 }
 
+public readonly record struct ChargeButtonState(
+    bool Armed,
+    double Fill01,
+    double SecondsPastFull);
+
+public readonly record struct ChargeButtonStep(
+    ChargeButtonState Next,
+    bool Committed,
+    double CommitFill01,
+    double CommitSecondsPastFull);
+
+/// <summary>
+/// One release-edge swing, captured before a presentation phase can change.
+/// SET and Flight both resolve this same immutable intent exactly once.
+/// </summary>
+public readonly record struct SwingInputIntent(
+    bool Committed,
+    double Fill01,
+    double SecondsPastFull,
+    double SprayAimDeg,
+    bool Bunt,
+    double LaunchAim,
+    double BoxOffsetX)
+{
+    public static SwingInputIntent Capture(
+        ChargeButtonStep button,
+        double stickX,
+        double stickY,
+        bool bunt,
+        double boxOffsetX) =>
+        button.Committed
+            ? new SwingInputIntent(
+                true,
+                button.CommitFill01,
+                button.CommitSecondsPastFull,
+                AtBatResolver.SprayAimDeg(stickX),
+                bunt,
+                stickY,
+                boxOffsetX)
+            : default;
+
+    public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star) =>
+        new(
+            true,
+            effectiveCharge,
+            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, Bunt),
+            star,
+            SprayAimDeg,
+            Bunt,
+            LaunchAim,
+            BoxOffsetX);
+}
+
+/// <summary>
+/// Super Sluggers' button load: press starts the windup, holding fills it,
+/// and releasing commits either a quick normal action or the stored charge.
+/// </summary>
+public static class ChargeButton
+{
+    public static ChargeButtonStep Advance(
+        ChargeButtonState state,
+        bool pressed,
+        bool held,
+        bool released,
+        double deltaSeconds,
+        double secondsToFull,
+        bool accepting = true)
+    {
+        if (!accepting)
+            return default;
+
+        var armed = state.Armed || pressed;
+        var fill = Math.Clamp(state.Fill01, 0, 1);
+        var past = Math.Max(0, state.SecondsPastFull);
+        if (armed && held)
+        {
+            var next = Math.Min(1, fill + Math.Max(0, deltaSeconds) / Math.Max(0.01, secondsToFull));
+            if (next >= 1 && fill >= 1) past += Math.Max(0, deltaSeconds);
+            else if (next >= 1) past = 0;
+            fill = next;
+        }
+
+        if (armed && released)
+            return new ChargeButtonStep(default, true, fill, past);
+
+        var nextState = armed
+            ? new ChargeButtonState(true, fill, past)
+            : default;
+        return new ChargeButtonStep(nextState, false, 0, 0);
+    }
+}
+
 /// <summary>
 /// Sweet-spot oval at the plate, smaller than the zone. Center follows the batter.
 /// </summary>
@@ -36,6 +128,12 @@ public static class SweetSpot
 {
     public const double HalfWidth = 0.32;
     public const double HalfHeight = 0.28;
+
+    public const double WorldHalfWidth = HalfWidth * PitchFlight.PlateScaleX;
+    public const double WorldHalfHeight = HalfHeight * PitchFlight.PlateScaleY;
+
+    public static (double X, double Y) WorldCenter(double boxOffsetX) =>
+        PitchFlight.PlateTarget(boxOffsetX, 0);
 
     public static double Overlap(double boxOffsetX, double pitchAimX, double pitchAimY)
     {
@@ -88,13 +186,35 @@ public static class FieldDash
 /// Timing errors remain in the resolver's 60 Hz frames, independent of render rate.</summary>
 public static class AtBatMotion
 {
+    /// <summary>Sentinel before a committed swing has entered presentation.</summary>
+    public const double SwingNotStarted = -1;
+
     // Finish blending the held load halfway to the event. Release/contact itself
     // must sample the clip exactly, without frame-dependent recursive smoothing.
     public static MoveBones.Sample FromLoad(MoveBones.Sample load, MoveBones.Sample motion,
         double poseTime, double eventAt)
     {
+        var u = LoadBlend01(poseTime, eventAt);
+        if (u <= 0) return load;
+        if (u >= 1) return motion;
+        return MoveBones.Mix(load, motion, u);
+    }
+
+    public static double LoadBlend01(double poseTime, double eventAt)
+    {
         var u = Math.Clamp(poseTime / (eventAt * 0.5), 0, 1);
-        return MoveBones.Mix(load, motion, u * u * (3 - 2 * u));
+        return u * u * (3 - 2 * u);
+    }
+
+    /// <summary>
+    /// Continue forward from the held authored load and meet the canonical take
+    /// by halfway to contact. This stays monotonic for the 0.075-second normal
+    /// load offset and preserves the exact 0.30-second contact sample.
+    /// </summary>
+    public static double SwingClipTime(double poseTime, double charge01)
+    {
+        var loadAt = SwingPresentation.LoadSampleAt(charge01);
+        return poseTime + loadAt * (1 - LoadBlend01(poseTime, MoveBones.SwingContact));
     }
 
     public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>
@@ -102,4 +222,28 @@ public static class AtBatMotion
 
     public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
         plateAt + errorFrames / 60 - (bunt ? 0 : MoveBones.SwingContact);
+
+    /// <summary>
+    /// Advance one committed action clock. The flight-derived target keeps the
+    /// authored contact mark tied to pitch timing; after the pitch resolves,
+    /// frame time carries the same action through its follow-through. Landing
+    /// exactly on SwingDur presents the final key once before the clock retires.
+    /// </summary>
+    public static double AdvanceCommittedSwing(
+        double current, double flightTime, double swingStart, double dt)
+    {
+        var target = Math.Max(0, flightTime - swingStart);
+        if (current < 0)
+            return Math.Min(target, MoveBones.SwingDur);
+        if (current >= MoveBones.SwingDur)
+            return current + Math.Max(0, dt);
+        return Math.Min(MoveBones.SwingDur,
+            Math.Max(target, current + Math.Max(0, dt)));
+    }
+
+    public static bool PresentsCommittedSwing(double actionTime) =>
+        actionTime >= 0 && actionTime <= MoveBones.SwingDur;
+
+    public static double CommittedSwingSample(double actionTime) =>
+        Math.Clamp(actionTime, 0, MoveBones.SwingDur);
 }

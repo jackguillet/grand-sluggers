@@ -133,6 +133,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenSelect()
         {
+            ReleaseMatchSeats();
             _phase = Phase.Select;
             _t = 0;
             _selectX.Catch(Controls.Pad1.MenuAxisX);
@@ -197,6 +198,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenField()
         {
+            BindMatchSeats();
             _phase = Phase.Field;
             _t = 0;
             _selectX.Catch(Controls.MenuX);
@@ -244,6 +246,7 @@ namespace GrandSluggers.UnityClient
 
         void OpenTitle()
         {
+            ReleaseMatchSeats();
             _phase = Phase.Title;
             _t = 0;
             _clip = null;
@@ -294,6 +297,7 @@ namespace GrandSluggers.UnityClient
                 _hideHelp = true;
             }
             _coach?.Stop();
+            ReleaseMatchSeats();
             _mode = PlayMode.Training;
             Seed++;
             _phase = Phase.Title;
@@ -324,6 +328,7 @@ namespace GrandSluggers.UnityClient
             _spec.Build(transform);
             _items.Build(transform);
             _stars?.Build(transform);
+            ReleaseMatchSeats();
             _phase = Phase.Title;
             _t = 0;
             _replaying = false;

@@ -25,7 +25,7 @@ public static class ContentsToc
     public static readonly IReadOnlyList<Chapter> Chapters = Build();
 
     public const string Picture = "contents";
-    /// <summary>Two intro lines. The TOC is the page.</summary>
+    /// <summary>One measured intro paragraph. The TOC and shared footer carry navigation.</summary>
     public const float IntroBandMul = 2.2f;
 
     static IReadOnlyList<Chapter> Build()
@@ -70,9 +70,14 @@ public static class ContentsToc
     {
         var card = Card(screenW, screenH);
         var n = Math.Max(1, Chapters.Count);
-        var top = 10f;
-        var h = (card.H - top - 10f) / n;
-        return (card.X + 16f, card.Y + top + index * h, card.W - 32f, h);
+        var rows = (n + 1) / 2;
+        var column = index / rows;
+        var row = index % rows;
+        const float top = 10f;
+        const float gap = 18f;
+        var w = (card.W - 32f - gap) * 0.5f;
+        var h = (card.H - top - 10f) / rows;
+        return (card.X + 16f + column * (w + gap), card.Y + top + row * h, w, h);
     }
 
     public static (float X, float Y, float W, float H) LineBand(float screenW, float screenH)
