@@ -58,14 +58,19 @@ public static class SetTells
 
     public static bool ZoneOn(bool setOrFlight) => setOrFlight;
 
-    public static (double X, double Y) Locator(double aimX, double aimY) =>
-        PitchFlight.PlateTarget(aimX, aimY);
+    /// <summary>
+    /// The pitcher's aim tell: the crossing of the pitch as it stands, in world feet at the plate
+    /// plane. Walking the rubber moves it with the body; the stick moves it during flight; it is
+    /// the same point the umpire judges (spec §4.4, #577).
+    /// </summary>
+    public static (double X, double Y) Locator(PitchCommand pitch, string? starPitchId = null, RulesTable? rules = null) =>
+        PitchFlight.Crossing(pitch, starPitchId, rules);
 
-    public static bool InZone(double aimX, double aimY)
-    {
-        var pitch = new PitchCommand("fastball", 0, 0, false, aimX, aimY);
-        return AtBatResolver.PitchInZone(pitch, 6);
-    }
+    public static bool InZone(PitchCommand pitch, string? starPitchId = null) =>
+        StrikeZoneGeometry.Contains(pitch, starPitchId);
+
+    /// <summary>The tell is the pitcher's: shown on the pitching seat, never to the batter as a giveaway.</summary>
+    public static bool AimTellOn(bool humanPitches, bool setOrFlight) => humanPitches && setOrFlight;
 
     public static bool TrailOn(bool flight) => flight;
 

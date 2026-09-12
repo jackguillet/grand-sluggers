@@ -162,7 +162,7 @@ namespace GrandSluggers.UnityClient
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
-                    x += _match.PitcherOffsetX * 2.2;
+                    x += _match.PitcherOffsetX * HomeSet.PitcherWalk;
                 var look = kv.Key == "P" && _phase is not Phase.InPlay and not Phase.StealThrow
                     ? new Vector3(0, 0, -1)
                     : _phase is Phase.InPlay or Phase.StealThrow

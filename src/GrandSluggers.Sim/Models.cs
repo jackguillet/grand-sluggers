@@ -155,6 +155,14 @@ public sealed record AtBatResult(
     bool InZone = true,
     BattedBallClass Class = BattedBallClass.Fly);
 
+/// <summary>
+/// One pitch (spec §4.1 – §4.3). <paramref name="Type"/> is the shape id ("fastball" / "changeup";
+/// <paramref name="Changeup"/> says the same for a modifier). Location is the rubber walk
+/// (<paramref name="RubberX"/>, world feet per <see cref="HomeSet.PitcherWalk"/>) and the stick
+/// after release (<paramref name="BreakX"/>, −1..1, capped at half a zone); <paramref name="AimX"/> /
+/// <paramref name="AimY"/> are the CPU's plate-aim target and the tired wobble. <paramref name="Nice"/>
+/// is a release inside the Nice band of MAX (+5% mph).
+/// </summary>
 public sealed record PitchCommand(
     string Type,
     double Charge01,
@@ -165,7 +173,11 @@ public sealed record PitchCommand(
     double BreakX = 0,
     bool Changeup = false,
     double RubberX = 0,
-    bool DeliveryPrepared = false);
+    bool DeliveryPrepared = false,
+    bool Nice = false)
+{
+    public bool IsChangeup => Changeup || Type == "changeup";
+}
 
 public sealed record SwingCommand(
     bool Swing,

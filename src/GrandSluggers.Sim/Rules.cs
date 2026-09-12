@@ -231,6 +231,7 @@ public static class RulesValidation
 public sealed class PitchingRules
 {
     public PitchSpeedRules Speed { get; init; } = new();
+    public PitchReleaseRules Release { get; init; } = new();
     public PitchFlightRules Flight { get; init; } = new();
     public PitchShapeRules Shapes { get; init; } = new();
     public StarPitchShapeRules StarShapes { get; init; } = new();
@@ -242,8 +243,6 @@ public sealed class PitchingRules
 public sealed class PitchSpeedRules
 {
     [Positive] public double FastballMph { get; init; } = 86;
-    [Positive] public double SliderMph { get; init; } = 80;
-    [Positive] public double CurveMph { get; init; } = 76;
     [Positive] public double ChangeupMph { get; init; } = 72;
     public double MphPerPitchStat { get; init; } = 0.9;
     public double ChargeMph { get; init; } = 8;
@@ -251,39 +250,48 @@ public sealed class PitchSpeedRules
     [Positive] public double StarSpeedMul { get; init; } = 1.12;
 }
 
-/// <summary>Release point, air time, and break geometry (<see cref="PitchFlight"/>).</summary>
+/// <summary>The charge release (spec §4.1): inside the first <see cref="NiceBandSec"/> of MAX is a Nice! release, +<see cref="NiceMul"/> mph.</summary>
+public sealed class PitchReleaseRules
+{
+    [Positive] public double NiceBandSec { get; init; } = 0.25;
+    [Positive] public double NiceMul { get; init; } = 1.05;
+}
+
+/// <summary>Release point, air time, and the break (<see cref="PitchFlight"/>, spec §4.1 – §4.3).</summary>
 public sealed class PitchFlightRules
 {
     [Signed] public double ReleaseHandX { get; init; } = 1.55;
     [Positive] public double ReleaseHandY { get; init; } = 6.2;
     public double ReleaseTowardPlate { get; init; } = 2.6;
-    /// <summary>Feet the release hand moves per unit of rubber walk.</summary>
-    public double RubberReleaseX { get; init; } = 2.2;
-    /// <summary>Plate-aim units the crossing moves per unit of rubber walk.</summary>
-    public double RubberCrossingX { get; init; } = 0.35;
     [Positive] public double ArcadeScale { get; init; } = 2.05;
     [Positive] public double AirMinSec { get; init; } = 0.78;
     [Positive] public double AirMaxSec { get; init; } = 1.28;
     [Positive] public double MinMph { get; init; } = 40;
-    public double BreakEarly { get; init; } = 1.55;
-    /// <summary>Late break ramps over [breakLateFrom, breakLateFrom + breakLateSpan] of the flight.</summary>
+    /// <summary>Feet the crossing moves at full break: half the zone width (spec §4.2).</summary>
+    [Positive] public double BreakMaxFt { get; init; } = 0.46;
+    /// <summary>The mid-flight bend the eye sees; it is gone by the plate.</summary>
+    public double BreakEarly { get; init; } = 0.35;
+    /// <summary>The drift grows over [breakLateFrom, breakLateFrom + breakLateSpan] of the flight.</summary>
     [Chance] public double BreakLateFrom { get; init; } = 0.55;
     [Positive] public double BreakLateSpan { get; init; } = 0.45;
-    public double BreakLate { get; init; } = 1.8;
+    /// <summary>A charged pitch or a changeup takes this much of the break (reference: "essentially straight").</summary>
+    [Chance] public double BreakDampedMul { get; init; } = 0.10;
+    /// <summary>How fast a held stick brings the bend to full, per second, at Pitch 5 …</summary>
+    [Positive] public double BreakRatePerSec { get; init; } = 2.4;
+    /// <summary>… and per Pitch-stat point above 5.</summary>
+    public double BreakRatePerPitchStat { get; init; } = 0.12;
 }
 
+/// <summary>The two shapes (spec §4.3): every shape crosses at its aim; the changeup's aim is <see cref="ChangeupDropFt"/> lower.</summary>
 public sealed class PitchShapeRules
 {
-    public double FastballDrop { get; init; } = 0.35;
+    /// <summary>The fastball rides above the straight line mid-flight and settles on its aim.</summary>
+    public double FastballHump { get; init; } = 0.35;
     [Chance] public double ChangeupHangUntil { get; init; } = 0.62;
     public double ChangeupHangRate { get; init; } = 0.72;
     public double ChangeupDumpRate { get; init; } = 1.55;
-    public double CurveSweep { get; init; } = 1.7;
-    public double CurveHump { get; init; } = 1.35;
-    [Chance] public double SliderBiteFrom { get; init; } = 0.55;
-    [Positive] public double SliderBiteSpan { get; init; } = 0.45;
-    public double SliderBite { get; init; } = 2.4;
-    public double SliderDrop { get; init; } = 0.55;
+    /// <summary>The changeup crosses this far below a fastball's height (up to one zone-half).</summary>
+    public double ChangeupDropFt { get; init; } = 0.9;
 }
 
 public sealed class StarPitchShapeRules
@@ -312,14 +320,14 @@ public sealed class StaminaRules
     public double TiredAimY { get; init; } = 0.18;
 }
 
-/// <summary>The CPU pitcher's rolls as shipped. §4.8 replaces them with a table (P1); the numbers live here until then.</summary>
+/// <summary>The CPU pitcher's rolls as shipped. §4.8 replaces them with a table (P1 part c); the numbers live here until then.</summary>
 public sealed class CpuPitcherRules
 {
     [Chance] public double StarChanceCaptain { get; init; } = 0.14;
     [Chance] public double StarChance { get; init; } = 0.08;
     [Chance] public double ChangeupChance { get; init; } = 0.22;
-    [Chance] public double SliderChance { get; init; } = 0.22;
-    [Chance] public double CurveChance { get; init; } = 0.5;
+    /// <summary>A break pitch: the stick held to one side for the whole flight.</summary>
+    [Chance] public double BreakChance { get; init; } = 0.4;
     [Chance] public double ChargeChance { get; init; } = 0.3;
     [Chance] public double ChargeMin { get; init; } = 0.75;
     [Chance] public double ChargeSpan { get; init; } = 0.25;
@@ -330,9 +338,6 @@ public sealed class CpuPitcherRules
     public double ScatterPerPitchStat { get; init; } = 0.055;
     public double ScatterYMul { get; init; } = 0.85;
     public double TiredScatterMul { get; init; } = 1.6;
-    public double SliderBreak { get; init; } = 0.85;
-    public double CurveBreak { get; init; } = 0.7;
-    public double RubberCrossingMul { get; init; } = 0.35;
     public CpuPickoffRules Pickoff { get; init; } = new();
 }
 
@@ -568,6 +573,11 @@ public sealed class CpuBatterRules
     public double OutOfZoneErrorFrames { get; init; } = 4;
     public double SpraySigmaDeg { get; init; } = 12;
     public double LaunchAimSigma { get; init; } = 0.45;
+    /// <summary>
+    /// The CPU batter commits this long before the latest square press (plate − 0.30 s), from the
+    /// trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
+    /// </summary>
+    [Positive] public double DecideLeadSec { get; init; } = 0.12;
 }
 
 // ---------------------------------------------------------------------------------------

@@ -55,6 +55,40 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+    // S-04  The CPU batter decides from the final crossing
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S04_CpuBatterReadsTheSteeredCrossingAndTakesAPitchSteeredOut()
+    {
+        // A human pitcher on the edge steers full break out of the zone during flight. The CPU
+        // decides from the pitch as it stands at the plate plane, so it takes at (100 − chase)%.
+        var chase = _content.Rules.Batting.Cpu.ChaseChance;
+        var takes = 0;
+        const int n = 300;
+        for (var seed = 1; seed <= n; seed++)
+        {
+            var s = new Scenario(_content, seed);
+            var match = s.Match;
+            var edge = match.PreparePitch(Scenario.PitchAt(StrikeZoneGeometry.HalfWidth - 0.1, CenterY));
+            Assert.True(StrikeZoneGeometry.Contains(edge), "the launched pitch is a strike");
+            var steered = edge with { BreakX = 1 };
+            Assert.False(StrikeZoneGeometry.Contains(steered), "full break carries it out");
+            var swing = match.CpuSwing(steered, AtBatResolver.PitchInZone(steered, match.Pitcher.Stats.Pitch, match.Pitcher.StarPitch));
+            if (!swing.Swing) takes++;
+        }
+        Assert.InRange(takes / (double)n, 1 - chase - 0.08, 1 - chase + 0.08);
+
+        // The decision instant is before the latest square press, and a CPU swing never claims an earlier bat.
+        var plateAt = 1.0;
+        var decide = AtBatMotion.CpuDecisionTime(plateAt, _content.Rules);
+        Assert.True(decide < plateAt - Motion.SwingContact);
+        var early = AtBatMotion.CommitCpuSwing(Scenario.SwingAt(-30), plateAt, _content.Rules);
+        Assert.Equal(AtBatMotion.SwingErrorFrames(decide, plateAt), early.TimingErrorFrames, 8);
+        Assert.Equal(2, AtBatMotion.CommitCpuSwing(Scenario.SwingAt(2), plateAt, _content.Rules).TimingErrorFrames);
+    }
+
+    // ---------------------------------------------------------------------------------
     // S-05 … S-06  Any strike is hittable; height is earned on the mound
     // ---------------------------------------------------------------------------------
 
@@ -273,6 +307,28 @@ public sealed class AtBatScenarioTests
         Assert.Equal(batter.Id, match.First?.Id);
         Assert.Equal((0, 0), (match.Balls, match.Strikes));
         Assert.Equal(0, match.BatterOffsetX);
+    }
+
+    [Fact]
+    public void S16_HumanPitcherReachesTheBodyByWalkingTheRubberAndBreaking()
+    {
+        // Spec §4.6: rubber walked fully toward the batter's side plus full break toward them
+        // reaches the body circle with the box centered. AimX is not a stick; only the walk and the break.
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var bats = match.Batter.Bats;
+        var toward = -SweetSpot.TipSign(bats);
+        Assert.True(match.WalkPitcher(toward * 1.0));
+        var pitch = new PitchCommand("fastball", 0, 0, false, RubberX: match.PitcherOffsetX, BreakX: toward);
+        var (x, y) = PitchFlight.Crossing(pitch);
+        Assert.True(AtBatResolver.HitsBatter(0, x, y, bats), $"crossing {x:0.00} vs body {AtBatResolver.BatterBodyX(0, bats):0.00}");
+        var ev = match.Play(pitch, Scenario.Take);
+        Assert.Equal(PlayKind.HitByPitch, ev.Kind);
+        // Without the break the same walk is a ball, not a plunk.
+        var t = new Scenario(_content);
+        t.Match.WalkPitcher(toward * 1.0);
+        var straight = new PitchCommand("fastball", 0, 0, false, RubberX: t.Match.PitcherOffsetX);
+        Assert.Equal(PlayKind.TakeBall, t.Match.Play(straight, Scenario.Take).Kind);
     }
 
     [Fact]
