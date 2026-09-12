@@ -339,13 +339,13 @@ Common to all live plays:
 - **On a fly / liner**, all runners hold on the bag until the catch or the drop (tag-up rule §9.5). ✅ P3 (`FlyState`, per runner).
 - **The throw** goes where the fielder names (human) or where the decision table says (CPU, §8.8). The out is judged when the ball arrives (§10). ✅ for named bags.
 - Camera: `diamond` 45° on the dirt under the ball; fly pulls back to `diamond-fly`; a throw does not cut behind the thrower (`data/feel/shots.json`). ✅
-- Stamp: OUT / SINGLE / DOUBLE / TRIPLE / HOME RUN / DOUBLE PLAY / TRIPLE PLAY / FOUL / ERROR when the play is dead. ✅ ⚠️ ERROR stamp missing.
+- Stamp: OUT / SINGLE / DOUBLE / TRIPLE / HOME RUN / DOUBLE PLAY / TRIPLE PLAY / FOUL / ERROR when the play is dead. ✅ P4: ERROR is the throw that skipped past its cover (`PlayOutcome.Error`, `PlayStamp.Error`); it stamps on the hit it allowed, never on an out.
 
 ### 7.1 Grounder to an infielder (routine)
 
 - **Fields**: the infielder whose planned route meets the ball earliest (`FieldingPursuit.Choose`) — 1B/2B/SS/3B, P on comebackers, C on toppers. Gloves scoop by touching the ball on the dirt (no button). ✅
 - **Runners**: batter to first; forced runners go; unforced hold at the read step, then advance only if the throw goes elsewhere and they can beat a relay (§9.9).
-- **Throw**: nobody on → 1B. Runner on 1st → 2B for the force (then 1B if time, §10.4). Runners on 1st and 2nd → 3B if the fielder is 3B/SS near the bag, else 2B. Loaded → home if the fielder is inside 60 ft of the plate, else 2B. Human names the bag; the default follows this table. ✅ default bags; ❌ CPU out decided by a roll (`Fielding.cs:146-161`), Unity then force-feeds the glove at hang (`InPlayDirector.cs:397-403`).
+- **Throw**: nobody on → 1B. Runner on 1st → 2B for the force (then 1B if time, §10.4). Runners on 1st and 2nd → 3B if the fielder is 3B/SS near the bag, else 2B. Loaded → home if the fielder is inside 60 ft of the plate, else 2B. Human names the bag; the default follows this table. ✅ default bags; ✅ P4: the CPU throw is the decision table (§8.8) from the live bodies; the roll is gone and nothing is force-fed at hang (the resolver's `Kind` is only what the flight decides alone — a homer, a foul, a chomp — or `PlayKind.InPlay`).
 - **Out**: force at the bag if the ball (in a glove on the bag) arrives before the runner. Tie to runner. Bobble (§8.6) adds time; it does not decide.
 - Stamp OUT (one out) / FORCE OUT caption / SINGLE if the runner beats it (a fielder's choice or an error — stamp ERROR if the throw sailed).
 
@@ -354,7 +354,7 @@ Common to all live plays:
 - **Fields**: P or C, or a charging 3B/1B. Bare-hand pose if the fielder is running toward home.
 - **Runners**: batter races; forced runners usually safe (the throw goes to 1B by default because the force at 2B is not makeable — the decision table computes margins, §8.8).
 - **Throw**: 1B unless a runner on 3rd is going home and the fielder is inside 45 ft (then home).
-- Beat the throw → infield single (stamp SINGLE). ✅ possible; ⚠️ resolved by the roll.
+- Beat the throw → infield single (stamp SINGLE). ✅ P4 (S-32): the arrival compare, never a roll.
 
 ### 7.3 Bunt
 
@@ -430,14 +430,14 @@ Common to all live plays:
 ### 8.1 Bodies and positions
 
 - Nine positions from `Diamond.Positions` (feet). Defensive alignment is the lineup's glove diamond (Offense / Defense Setup), not roster order. ✅ P2: `Team.Gloves` carries the diamond and `FieldingResolver.Assign(team, pitcher)` reads it; after a pitcher swap (§4.7) the old pitcher takes the vacated glove (S-26). Preset teams with no diamond stand in roster order.
-- Speed in the field: `chase = 21 + Run × 1.9` ft/s, **one formula** for human and CPU. ⚠️ Human glove uses `18 + Run×1.8` (`InPlayDirector.cs:184`).
+- Speed in the field: `chase = 21 + Run × 1.9` ft/s, **one formula** for human and CPU. ✅ P4 (`FieldingResolver.ChaseSpeedFt` with the dash multiplier; the stick table is gone).
 - Frozen (park hazard) ×0.45. Dash (East held) ×1.35 for 2 s then fades.
 
 ### 8.2 Who is on the ball
 
 - On contact the sim plans a route per candidate to the **landing** (fly) or the **first reachable point** (roller) and picks the earliest meet, then shortest travel (`FieldingPursuit.Better`). Ties: CF over corners, SS over 2B, infielder over pitcher. ✅
 - Pools: infield dirt → P, C, 1B, 2B, 3B, SS. Air → LF, CF, RF, SS, 2B (+ C, 1B, 3B on pops in their sector). Grass → LF, CF, RF. ✅
-- **Reaction lockout** after contact before a body moves, by position (reference frames → seconds): P 0.42, C 0.67, 1B 0.27, 2B 0.25, 3B 0.30, SS 0.28, OF 0.83. The camera cut to the diamond happens at 0.42. Data (`fielding.json`). ❌ (no lockout; gloves move on frame 1)
+- **Reaction lockout** after contact before a body moves, by position (reference frames → seconds): P 0.42, C 0.67, 1B 0.27, 2B 0.25, 3B 0.30, SS 0.28, OF 0.83. The camera cut to the diamond happens at 0.42. Data (`fielding.reaction`). ✅ P4: every body, the human's stick glove included; the pursuit planner counts the lockout in its routes, so the glove picked at contact is the one whose body gets there first.
 - The **YOU** ring names the glove; Select/R swaps to the pulsing next-nearest. Dead stick = CPU runs that glove. ✅
 
 ### 8.3 Catch
@@ -446,7 +446,8 @@ Common to all live plays:
 - Catch radius = 10 + Field × 0.6 (+ ability). A jump adds 8 ft of reach and a window bonus; a dive adds 8 ft along the lunge (10 ft) and only below 7.5 ft ball height. ✅
 - **Roller**: standing on the ball scoops it, no button. ✅ Bobble check on scoop (§8.6).
 - **Liner**: same as fly with the short window.
-- **CPU catch is geometric**: the glove must be inside the radius at the window. It is **never force-fed at hang because a roll said out**. ❌ (`InPlayDirector.cs:397-403`)
+- **CPU catch is geometric**: the glove must be inside the radius at the window. It is **never force-fed at hang because a roll said out**. ✅ P4: the CPU glove takes a fly only by `FlyCatch.AutoCatch` (under the plant, in the window, and at the wall only inside its rob height, §8.4) and a roller only by touching it; a drop is rolled only for a star effect (heatball, phony swing, frozen) on the one seeded stream.
+- **Loose ball**: a fumble, an overthrow, or a lob nobody came for leaves the ball on the ground in nobody's glove; it rolls to a stop (`fielding.overthrow`) and the nearest body chases it. A loose ball is picked up by touching it (`fielding.chase.looseScoopFt`), never by the catch radius.
 
 ### 8.4 Jump, dive, wall rob, buddy jump
 
@@ -463,27 +464,28 @@ Common to all live plays:
 
 ### 8.5 Throws
 
-- **One throw model.** `throwSec = 0.22 + dist / (56 × arm × chem × ability)` ft/s, with `arm = 0.85 + Field × 0.03`. This one number flies the ball *and* judges the bag. ✅ P3: `InPlay.ThrowSec` flies the live throw and the runner bodies race it (the flat `fielding.throw.flight*` clock and `RelayBeats` are gone); ⚠️ `arm` is still the chemistry multiplier only (`ThrowResult.SpeedMul`), and `StealThrow.CatcherThrowSec` keeps the catcher's own gun until P6.
-- **Accuracy**: lateral error σ = (11 − Field) × 0.35 ft. A throw that lands more than 6 ft from the cover is **not caught** — it skips past, the ball is live, runners take the extra base (stamp ERROR). ⚠️ `LateralFt` is computed and never read (`ChemistryTable.cs:91-92`).
-- **Chemistry** (systems.md, reference): good ×1.30 speed, purple laser, never to the cutoff. Bad: **20% of throws are "slanted"** — ×0.70 speed with a 10–14 ft lateral miss (an error by the rule above); the other 80% are ordinary. The roll is on the *input* (the throw's accuracy), the outcome is still the ball missing the cover. ⚠️ Today the 25% roll is a boolean `Error` that the resolver converts to a Single (`ChemistryTable.cs:85-94`, `Fielding.cs:152-160`).
-- **Situational speed** (reference): a throw to a bag nobody can beat is a lazy lob (×0.35) — presentation of a non-play; a throw to an **uncovered bag slows to a lob until the cover arrives**, and if nobody is coming it drops at the bag (live). This is how "the receiver must be on the bag" reads on screen.
+- **One throw model.** `throwSec = 0.22 + dist / (100 × arm × chem × ability)` ft/s, with `arm = 0.85 + Field × 0.03`. This one number flies the ball *and* judges the bag, for every arm on the field — the catcher's gun on a steal included (§11.3). ✅ P4: `InPlay.ThrowSec` over `ThrowResult.SpeedMul` = arm × chemistry × ability (`fielding.throw`); `StealThrow.CatcherThrowSec` is the same clock over the plate-to-bag distance. The base was the reference 56 ft/s (38 mph) until P4; at that speed a routine grounder to short could not retire a Run-5 batter (S-31), so the base is 100 ft/s (68 mph): the number is data, the scenario is the contract.
+- **Accuracy**: lateral error σ = (11 − Field) × 0.35 ft. A throw that lands more than 6 ft from the cover is **not caught** — it skips past, the ball is live, runners take what the pickup gives them (stamp ERROR). ✅ P4: `ThrowResult.LateralFt` is sampled on the throw, `InPlay.ThrowLanding` puts the ball there, and the receiver's reach (`fielding.cover.radiusFt`) decides the catch where it lands (S-35).
+- **Chemistry** (systems.md, reference): good ×1.30 speed, purple laser, never to the cutoff. Bad: **20% of throws are "slanted"** — ×0.70 speed with a 10–14 ft lateral miss (an error by the rule above); the other 80% are ordinary. The roll is on the *input* (the throw's accuracy), the outcome is still the ball missing the cover. ✅ P4 (`fielding.chem.slant*`; the boolean `Error` and the Single conversion are gone).
+- **Situational speed**: a throw to an **uncovered bag hangs as a lob until the cover arrives**, and if nobody comes inside `fielding.throw.lobMaxSec` it drops at the bag, live. This is how "the receiver must be on the bag" reads on screen. ✅ P4. The lazy lob to a bag nobody can beat (×0.35, reference) is presentation and is not modelled.
+- **Reach on the fly**: a throw longer than `fielding.throw.onTheFlyFt` (200 ft) goes through the cutoff on the line (§8.7); the CPU's margin for such a bag counts the cutoff's reaction and arm.
 - Abilities: Laser ×1.45, Snap Throw ×1.22. ✅
-- The thrower's body: after the throw the fielder **stays where they are** (or drifts to back up); the receiver at the bag is whoever covers (§8.7). ⚠️ The human glove teleports to the destination bag at release (`FieldAssist.AfterThrowPos`, `InPlayDirector.cs:749-768`). Fix: the human's YOU ring hands to the receiver; the body does not move.
+- The thrower's body: after the throw the fielder **stays where they are**; the receiver at the bag is whoever covers (§8.7). ✅ P4: the YOU ring hands to the receiver at release and follows that body's walk to the bag; the thrower's body stays put (`FieldAssist.AfterThrowPos` is gone).
 - You may **arm a bag before the catch**; the throw fires on South after the catch. ✅
 
 ### 8.6 Errors
 
-- **Bobble**: on a scoop or catch, chance = f(ball energy, hands) — hard-hit balls to weak gloves. A bobble is a 0.58 s fumble with the ball scattered ≤ 6.5 ft; the play is live and the runner gains that time. It **never converts an out into a caption**. ⚠️ Turns `GroundOut` into `Single` in the resolver (`Fielding.cs:152-160`); Unity re-rolls with an ad-hoc seed (`MatchDirector.cs:762-796`).
-- **Throwing error**: the lateral miss above.
-- **Drop** (star effects, frozen): a fixed drop chance on the catch is allowed for *skills* (burn-hop, phony) because the skill is the two-second rule; it is never allowed for plain baseball.
-- Stamp ERROR and an "E" tell on the body. ❌
+- **Bobble**: on a scoop, chance = f(ball energy, hands) — hard-hit balls to weak gloves. A bobble is a 0.58 s fumble with the ball scattered ≤ 6.5 ft, loose on the ground; the play is live, the glove is out of it for the fumble and then chases, and the runner gains that time. It **never converts an out into a caption** and is not by itself the error. ✅ P4 (`LiveEvent.Bobble`; the resolver conversion and the Unity re-roll are gone).
+- **Throwing error**: the lateral miss above. ✅ P4.
+- **Drop** (star effects, frozen): a fixed drop chance on the catch is allowed for *skills* (burn-hop, phony) because the skill is the two-second rule; it is never allowed for plain baseball. ✅ P4 (`Match.RollDrop`, `fielding.drops`).
+- Stamp ERROR ✅ P4 (`PlayStamp.Error` on the hit a sailed throw allowed). The "E" tell on the body is presentation the client still owes (`LiveEvent.ThrowSailed` is the cue).
 
 ### 8.7 Cover, cutoff, relay, backup
 
-- **Cover**: on contact each non-fielding infielder walks to the bag they cover — 1B covers first (2B covers first if 1B is fielding), 2B/SS cover second (whichever is not fielding), 3B third, C home, P backfills any abandoned bag and backs up first on a ball to the right side and home on a throw home. Cover moves at a **flat cover speed** starting 0.23 s after contact (reference: constant, stat-independent; D11) — a data number, not `28` in Unity (`InPlayDirector.cs:340-355` ⚠️). Outfielders not on the ball go to support spots or back up the throw 60 ft behind its target.
-- **Cutoff**: on an outfield throw home or to third, the cutoff is the infielder on the line between the fielder and the target (SS for LF/CF, 2B for RF; 1B for a throw home from RF). Geometric, not "SS then 2B" (`Fielding.cs:412-418` ⚠️). LB / X with no bag = throw to the cutoff. ✅ verb.
-- **Relay**: a throw to the cutoff continues automatically to the armed bag (human) or to the decision-table bag (CPU) with the cutoff's own arm.
-- **Backup**: the pitcher / the outfielder behind a bag runs to the backup spot on a throw. Presentation-only at first, but it decides where an overthrow stops (§8.5).
+- **Cover**: on contact each non-fielding infielder walks to the bag they cover — 1B covers first (2B covers first if 1B is fielding), 2B/SS cover second (whichever is not fielding; with both free, the one away from the ball's side), 3B third, C home, P backfills any bag whose cover is the glove. Cover moves at a **flat cover speed** starting 0.23 s after contact (constant, stat-independent; D11) — `fielding.cover`. ✅ P4 (`InPlay.CoverMap`). Outfielders not on the ball back up the throw 60 ft behind its target.
+- **Cutoff**: on a throw longer than the arm's fly reach (§8.5), the cutoff is the infielder nearest the line between the fielder and the target who is neither the glove nor the bag's cover (SS for LF/CF, 2B or 1B for RF). Geometric. ✅ P4 (`InPlay.CutoffFor`). LB / X with no bag = throw to the cutoff on the line to the armed bag (home by default). ✅ verb.
+- **Relay**: a throw to the cutoff continues automatically to the armed bag (human) or by the decision table from the cutoff's spot (CPU) with the cutoff's own arm. ✅ P4.
+- **Backup**: the pitcher behind first and home, the outfielder nearest the spot behind second and third, runs to the backup spot 60 ft past the target on the throw line (`InPlay.BackupSpot`, `InPlay.BackupPos`). It decides where an overthrow stops: the loose ball rolls on and the nearest body — the backup, when they are there — picks it up. ✅ P4.
 
 ### 8.8 CPU fielder decisions
 
@@ -499,7 +501,7 @@ Outfielders: 1) home if makeable and a run is at stake (score within 2 or < 2 ou
 
 Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× / 1.0× / 0.8×.
 
-❌ None of this exists; the CPU out is the roll at `Fielding.cs:146-161` and the relay chain is Unity's.
+✅ P4 (`LivePlaySystem.CpuDecide`): the table runs once per possession, after the reaction (`fielding.reaction.throw*` × `cpu.reactionMul`), from the live bodies and `RunnerSystem.ArrivalSec`; rule 1 is the lead force ahead of a forced runner (second, third, home), the batter at first is rule 4; a tag candidate is a runner whose body is bound for the bag; "makeable" is `margin > cpu.makeableMarginSec`; a bag beyond the arm's fly reach is judged through the cutoff (§8.5, §8.7). The receiver of a caught throw runs the table again after its own reaction, which is the double-play chain. An infielder with nothing makeable holds and Time comes (§10.6); an outfielder throws in to the cutoff or to the bag ahead of the lead runner.
 
 ---
 
@@ -700,7 +702,7 @@ Mechanics are in systems.md. The play contract:
 - **Buddy Jump / Buddy Throw** are verbs with windows (§8.4, §8.7), not rolls.
 - **Star meter**: gains are events (hit +0.5, extra-base +1, K +0.5, DP +1, robbed HR +1, park feature +1; `data/rules/stars.json`). Spend 1 (2 for a guest captain; a missed star swing costs 1 for everyone). ✅ (values are literals in `Match.cs`.)
 - **MVP** (reference algorithm, `stars.json`): walk-off homer → hitter; walk-off hit → hitter; else points — HR 10, winning pitcher 5, go-ahead RBI 5, robbed homer / buddy jump 5, K 3, RBI 3, hit / walk / HBP / SB 1, close play won 2, item that mattered 2. ⚠️ ad-hoc points (`Match.cs:384` etc.).
-- **Items** after contact (banana / rocket / POW): each is a *field* effect with geometry — a peel at a spot (a fielder who steps on it slips 0.8 s), a rocket at a body (dazed 0.8 s if hit; the fielder may smash it with North), a POW on the dirt (every ball on the ground hops once). They add time; they do not "convert an out to a single". ⚠️ Banana converts a would-be out (`Match.cs:634`, systems.md); CPU auto-throws on a 40% roll.
+- **Items** after contact (banana / rocket / POW): each is a *field* effect with seconds (`batting.items`) — a peel on the fielder it was aimed at keeps that glove off the ball for 0.8 s, a rocket dazes the body it hits for 0.8 s (the fielder may smash it with North), a POW keeps every ball on the dirt hopping, unscoopable, for 0.8 s. They add time; the geometry then decides the play. A body hit while holding the ball drops it loose. ✅ P4 (`FieldingResult.ItemHit`, `ErrorItems.EffectSec`; the kind conversion is gone). The peel as a spot on the grass that any fielder can step on is still the aimed body only. CPU auto-throws on a 40% roll.
 
 ---
 
@@ -759,12 +761,12 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | File | Sections |
 | --- | --- |
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `release` (Nice! band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `shapes` (fastball hump, changeup hang / dump / drop), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1 part c). The rubber walk distance is geometry (`HomeSet.PitcherWalk`) |
-| `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
-| `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `carry` (the resolver's hit label until P4 retires the roll; the bodies decide the bases), `deadBall` (homer trot, foul flight hold) |
-| `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
+| `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze chance, the item's flight and its slip / daze / hop seconds), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
+| `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `deadBall` (homer trot, foul flight hold). The `carry` hit bands are gone (P4): the bodies decide the bases |
+| `fielding.json` | `chase` (the one glove speed, swap lock, the loose-ball scoop reach), `reaction` (the lockout per position, the CPU throw delay), `cover` (flat cover speed and start, D11; the cover radius a throw must land inside; the backup distance), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, jump/dive arm times), `drops` (star effects only), `wallPlant`, `abilities`, `throw` (the one throw model: release, base speed, arm, lateral σ, the lob wait, the fly reach), `overthrow` (how a missed throw rolls), `catcher` (CPU release, tag hold), `chem` (good speed, the slant), `bobble`, `knockback`, `park` |
 | `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
-| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction ×, mistrack × (live: CPU batter σ and tracking, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
+| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (CPU batter σ and tracking, close-play reaction, catcher release, the fielder's throw delay), mistrack ×, makeable margin (§8.8), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
 | `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1 |
 
 Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
@@ -828,23 +830,23 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 
 P3 also closed A.4 #40's fourth clock (the flat `fielding.throw.flight*` flight the client played): the live throw flies on `InPlay.ThrowSec`, because bodies now race it. The `arm` term of §8.5 and the resolver's roll (#37, #38) stay P4's.
 
-### A.4 Fielding decides by geometry (P4)
+### A.4 Fielding decides by geometry (P4) — ✅ closed by P4 (#566)
 
 | # | Where | What | Spec |
 | --- | --- | --- | --- |
-| 37 | `Fielding.cs:146-161` | Infield out/hit is a stat roll | §7.1, §8.8 |
-| 38 | `InPlayDirector.cs:371-403` | Glove force-fed at hang with no distance check | §8.3 |
-| 39 | `Fielding.cs:113-116, 130-133, 152-160` | Drop/bobble converts out→single as a caption | §8.6 |
-| 40 | `InPlay.cs:63-67`, `StealThrow.cs:42-53`, `InPlayDirector.cs:745, 862-887` | Four throw-speed formulas; verdict ignores flight time | §8.5 |
-| 41 | `ChemistryTable.cs:85-94` | 25% error roll; `LateralFt` never read | §8.5 |
-| 42 | `InPlayDirector.cs:182-192` vs `Fielding.cs:312-313` | Two glove speeds | §8.1 |
-| 43 | `InPlayDirector.cs:340-355` | Cover speed is a Unity literal (flat is correct, D11; the number belongs in `running.json` and the start delay is missing) | §8.7 |
-| 44 | `Fielding.cs:412-418` | Cutoff hard-coded SS→2B | §8.7 |
-| 45 | `FieldAssist.cs:59-63`, `InPlayDirector.cs:749-768, 806-814` | Thrower teleports to the bag | §8.5 |
-| 46 | `MatchDirector.cs:762-796` | Unity re-rolls the bobble with an ad-hoc seed | §8.6 |
-| 47 | `InPlayDirector.cs:1225-1232` | `LiveKind` returns HR/3B/2B from carry mid-flight | §7 |
+| 37 | `Fielding.cs:146-161` | Infield out/hit is a stat roll — ✅ gone; `FieldingResolver.Resolve` names only what the flight decides alone or `PlayKind.InPlay` | §7.1, §8.8 |
+| 38 | `InPlayDirector.cs:371-403` | Glove force-fed at hang with no distance check — ✅ the CPU catch is `FlyCatch.AutoCatch` at the radius in the window | §8.3 |
+| 39 | `Fielding.cs:113-116, 130-133, 152-160` | Drop/bobble converts out→single as a caption — ✅ a bobble is a loose ball; drops are star effects only | §8.6 |
+| 40 | `InPlay.cs:63-67`, `StealThrow.cs:42-53`, `InPlayDirector.cs:745, 862-887` | Four throw-speed formulas; verdict ignores flight time — ✅ one clock, the catcher's gun included | §8.5 |
+| 41 | `ChemistryTable.cs:85-94` | 25% error roll; `LateralFt` never read — ✅ the slant is a lateral miss the receiver's reach judges | §8.5 |
+| 42 | `InPlayDirector.cs:182-192` vs `Fielding.cs:312-313` | Two glove speeds — ✅ one | §8.1 |
+| 43 | `InPlayDirector.cs:340-355` | Cover speed is a Unity literal — ✅ `fielding.cover` with the start delay | §8.7 |
+| 44 | `Fielding.cs:412-418` | Cutoff hard-coded SS→2B — ✅ `InPlay.CutoffFor` by the line | §8.7 |
+| 45 | `FieldAssist.cs:59-63`, `InPlayDirector.cs:749-768, 806-814` | Thrower teleports to the bag — ✅ the body stays; the YOU ring hands to the receiver | §8.5 |
+| 46 | `MatchDirector.cs:762-796` | Unity re-rolls the bobble with an ad-hoc seed — ✅ closed by P0 | §8.6 |
+| 47 | `InPlayDirector.cs:1225-1232` | `LiveKind` returns HR/3B/2B from carry mid-flight — ✅ `PlayKind.InPlay` until Complete | §7 |
 
-P0 moved these into the sim without changing them: #38 is `LivePlaySystem.Field.cs` (`fielding.catch.*CatchLeadSec`), #40's fourth clock is `fielding.throw.flight*`, #42 is `fielding.chase.stick*` (still a second speed), #43 is `fielding.chase.coverFtPerSec` (still no start delay), #45 is `TakeCoverAfterThrow`, #47 is `LivePlaySystem.LiveKind`. #46 is closed: the bobble rolls on `Match._rng`.
+P4 left to the client: the "E" tell on the thrower's body (`LiveEvent.ThrowSailed`) and the bobble puff (`LiveEvent.Bobble`) are cues the sim raises; `InPlayDirector` plays a dust puff and releases the ball for both. The lazy lob to a bag nobody can beat (§8.5, reference) is not modelled.
 
 ### A.5 Outs, double plays, Time (P5)
 
@@ -861,7 +863,7 @@ P0 moved these into the sim without changing them: #38 is `LivePlaySystem.Field.
 | 56 | `InPlayDirector.cs:150-152` | Rest fallback bypasses `CommitInPlay` | §10.6 |
 | 57 | `Match.cs:556-559` vs `:575-584` | Walk-off only on the take path | §1 |
 | 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 |
-| 59 | — | Extra innings, mercy, ground-rule double, ERROR stamp, foul fly catch, rundown missing | §1, §7.11, §9.7 |
+| 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 |
 
 ### A.6 Steals and pickoffs (P6)
 
@@ -930,7 +932,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | Id | Setup | Input | Expect |
 | --- | --- | --- | --- |
 | S-31 | Nobody on, routine grounder to SS, Run 5 batter | CPU | Force at 1B, out; throw arrival < runner arrival by geometry |
-| S-32 | Same, Run 10 batter, SS Field 2 | CPU | Infield single (arrival compare), no roll |
+| S-32 | Same, Run 9 batter (the roster's fastest), SS Field 3 with no throw ability (every Field-2 glove carries Laser) | CPU | Infield single (arrival compare), no roll |
 | S-33 | Same as S-31, human SS never throws | Dead stick then no South | CPU runs the glove; ball scooped; no throw unless the human presses South; batter safe when Time |
 | S-34 | Grounder to SS, human arms 3B with nobody on, throws | | Ball to 3B; batter safe at 1B; caption names the wasted throw |
 | S-35 | Bad-chem throw to 1B, σ big | 100 seeds | Some throws miss the cover by > 6 ft → live, ERROR, batter to 2B |

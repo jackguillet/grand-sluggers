@@ -115,6 +115,10 @@ public static class FlyCatch
     public static bool AutoCatch(bool under, bool inWindow, bool needsJump) =>
         under && inWindow && !needsJump;
 
+    /// <summary>The CPU glove at the wall (§8.3, §8.4): under the plant in the window, and its leap reaches the ball's clearance.</summary>
+    public static bool AutoCatch(bool under, bool inWindow, bool needsJump, bool canRob) =>
+        under && inWindow && (!needsJump || canRob);
+
     /// <summary>
     /// Hopper on the dirt: if the glove can touch the ball, they scoop.
     /// No South. No stick. A fly still in the air is not a pickup.
@@ -128,33 +132,28 @@ public static class FlyCatch
         PickupInPlay(pre, park, ballX, ballZ, hitT, hangSec, rules)
         && TouchScoop(distFt, windowFt, ballY, rules);
 
-    /// <summary>Shared eligibility for automatic, button and diving dirt pickups.</summary>
+    /// <summary>
+    /// Shared eligibility for automatic, button and diving dirt pickups: a roller, or any ball once it
+    /// has landed. A liner in the air is a catch in the short window (§7.6, §8.3), never a scoop.
+    /// </summary>
     public static bool PickupInPlay(FieldingPreview pre, Park park, double ballX, double ballZ,
         double hitT, double hangSec, RulesTable? rules = null) =>
-        (pre.Grounder || pre.Line || hitT >= hangSec)
+        (pre.Grounder || hitT >= hangSec)
         && FieldBounds.InPark(park, ballX, ballZ);
 
     /// <summary>
-    /// What the human glove's play is. <paramref name="foul"/> is the fair / foul call: the untouched
-    /// path's verdict until a touch decides it (§5.6). A foul fly caught in the air is an out (§7.11);
-    /// any other foul ball is dead.
+    /// What the ball has decided so far. <paramref name="foul"/> is the fair / foul call: the
+    /// untouched path's verdict until a touch decides it (§5.6). A fly caught in the air is an out
+    /// wherever it was (§7.11); an uncaught homer flight is a home run at the crossing; a foul is
+    /// dead; anything else is <see cref="PlayKind.InPlay"/> until the bodies name it at Complete.
     /// </summary>
-    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, AtBatResult? hit, bool inAir = true, RulesTable? rules = null, bool? foul = null)
+    public static PlayKind PlayerKind(bool caught, FieldingPreview pre, bool inAir = true, bool? foul = null)
     {
         var isFoul = foul ?? pre.Foul;
         if (caught && inAir && !pre.Grounder) return PlayKind.FlyOut;
         if (isFoul) return PlayKind.Foul;
-        if (caught && pre.Grounder) return PlayKind.GroundOut;
-        if (pre.HomeRunLikely)
-            return PlayKind.HomeRun;
-        // Bounced then over, or off the wall (§1, §7.9): a double until P3 runs the bases by geometry.
-        if (pre.Ball is { GroundRule: true } || pre.Class == BattedBallClass.Wall)
-            return PlayKind.Double;
-        var carry = hit?.CarryFt ?? 0;
-        var bands = Rules.Or(rules).Flight.Carry;
-        return carry >= bands.TripleFt ? PlayKind.Triple
-            : carry >= bands.DoubleFt ? PlayKind.Double
-            : PlayKind.Single;
+        if (pre.HomeRunLikely && !caught) return PlayKind.HomeRun;
+        return PlayKind.InPlay;
     }
 
     /// <summary>Just inside the fence, where the glove plants for a wall leap (fielding.wallPlant).</summary>

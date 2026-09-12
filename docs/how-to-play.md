@@ -161,10 +161,10 @@ On contact the camera sits at **45°** on the dirt under the ball. **CF is the t
 - **D-pad / 1 2 3 4** — arm a bag (right 1B, up 2B, left 3B, down home). A mini-diamond pip lights the armed bag. **South** throws. Hopper with no bag throws to **second** when first is occupied, else **first**. LB / X with no direction is a **relay**, not a random bag. You can arm before the glove; the throw waits for South. Stick after the catch **runs**, it does not throw. **Outs land on the catch, when the throw lands, when you have the ball and touch a runner off a bag, or when you step on a force bag with the ball** (1B on first retires the batter — you do not tag them). A ball to the outfield is not a force at second until someone throws there. They do not gun to first on a dead stick when you are on defense. CPU defense (you are batting) still throws — you see it.
 - **Turn two.** Runner on first, hopper to an infielder: throw to second (force), you are the glove at that bag, throw to first. Beat the batter → two outs. Late → runner on first, force at second. Mini diamond updates as each out records. You throw both — one South on the hopper is not two outs. Dead stick does not turn two for you when you are on defense.
 - **Force.** Batter is always forced to first. First occupied → force at second. First and second → force at third. Bases loaded → force at home. Beat the throw to the bag and they are out — no mash. Putting the batter out at first removes the other forces (then it is a tag). A throw to third or home is an out when you beat them. Mash (close play) is a tag at third or home, never a force.
-- After the ball leaves your hand **you are the glove at that bag**. Stick can still take a different glove. A steal gun is the same throw from the catcher, without a hop.
+- After the ball leaves your hand **you are the glove at that bag** — the YOU ring hands to the cover and rides them to the bag; the thrower's body stays where it threw from. A throw that misses the cover's reach skips past and is live (**ERROR** when it costs you); a throw to a bag nobody covers yet hangs until the cover gets there. Stick can still take a different glove. A steal gun is the same throw from the catcher, without a hop.
 - **LT+RB / South+LT / E** after contact — chemistry item (banana grass, rocket body, POW hop)
 
-Good throws are gold/purple and fast. Bad throws are muddy and offline.
+Good throws are gold/purple and fast. Bad throws are muddy, and one in five of them slants past the cover.
 
 ---
 

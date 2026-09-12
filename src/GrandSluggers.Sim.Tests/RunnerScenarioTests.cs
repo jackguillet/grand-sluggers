@@ -195,7 +195,7 @@ public sealed class RunnerScenarioTests
         var play = Run(match, hit, preview, field, LiveSeats.CpuOnly, live =>
         {
             var third = match.RunnerAt(3);
-            if (caughtAt < 0 && live.Caught) caughtAt = live.ElapsedSeconds;
+            if (caughtAt < 0 && (live.Caught || live.Events.Contains(LiveEvent.Glove))) caughtAt = live.ElapsedSeconds;
             if (live.Fly == FlyState.InAir && third is { Live: true } && third.Feet > 0) leftEarly = true;
             if (leftAt < 0 && third is { Live: true } && third.Feet > 0) leftAt = live.ElapsedSeconds;
         });

@@ -58,8 +58,9 @@ public static class FieldAbilities
         };
     }
 
+    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5).</summary>
     public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable? rules = null) =>
-        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) };
+        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules) };
 }
 
 public static class ErrorItems
@@ -82,36 +83,48 @@ public static class ErrorItems
 
     /// <summary>
     /// Banana slips the play fielder (peel on the grass). Rocket has to hit that body
-    /// (batting.items.rocketDazeChance). POW is an infield hop — grounders only. Smoke/ghost/paint are not items.
+    /// (batting.items.rocketDazeChance). POW is an infield hop — grounders only. Smoke/ghost/paint
+    /// are not items. The item is a field effect with a duration (§12): <see cref="FieldingResult.ItemHit"/>
+    /// says it landed on the body; the live ball then keeps that glove off the ball for the item's
+    /// seconds. It never converts an out into a caption.
     /// </summary>
     public static FieldingResult Apply(FieldingResult field, string item, Random rng, Character? target, RulesTable? rules = null)
     {
         if (!Known(item)) return field;
         var id = item.Trim().ToLowerInvariant();
-        var outPlay = field.Kind is PlayKind.FlyOut or PlayKind.GroundOut;
         var onPlay = HitsPlay(field, id, target);
-        var turns = id switch
+        var lands = id switch
         {
-            "banana" => outPlay && onPlay,
-            "rocket" => outPlay && onPlay && rng.NextDouble() < Rules.Or(rules).Batting.Items.RocketDazeChance,
-            "pow" => field.Kind == PlayKind.GroundOut && onPlay,
+            "banana" => onPlay,
+            "rocket" => onPlay && rng.NextDouble() < Rules.Or(rules).Batting.Items.RocketDazeChance,
+            "pow" => onPlay,
             _ => false
         };
-        return field with
+        return field with { Item = id, ItemHit = lands, ItemTarget = target ?? field.Fielder };
+    }
+
+    /// <summary>Seconds the item keeps its glove off the ball (batting.items).</summary>
+    public static double EffectSec(string? item, RulesTable? rules = null)
+    {
+        var items = Rules.Or(rules).Batting.Items;
+        return item?.Trim().ToLowerInvariant() switch
         {
-            Kind = turns ? PlayKind.Single : field.Kind,
-            Item = id
+            "banana" => items.SlipSec,
+            "rocket" => items.DazeSec,
+            "pow" => items.PowHopSec,
+            _ => 0
         };
     }
 
-    /// <summary>Attack smashed the flying item. An out that became a single goes back to an out.</summary>
+    /// <summary>A POW hops every ball on the dirt: no glove scoops while it lasts. A peel or a rocket is one body.</summary>
+    public static bool AffectsEveryGlove(string? item) => item?.Trim().ToLowerInvariant() == "pow";
+
+    /// <summary>Attack smashed the flying item: it never lands.</summary>
     public static FieldingResult Smash(FieldingResult field, bool grounder)
     {
+        _ = grounder;
         if (string.IsNullOrEmpty(field.Item)) return field;
-        var restored = field.Kind is PlayKind.Single or PlayKind.Double
-            ? (grounder ? PlayKind.GroundOut : PlayKind.FlyOut)
-            : field.Kind;
-        return field with { Kind = restored, Item = null };
+        return field with { Item = null, ItemHit = false, ItemTarget = null };
     }
 
     static bool HitsPlay(FieldingResult field, string item, Character? target)

@@ -169,6 +169,16 @@ namespace GrandSluggers.UnityClient
                         _park.Ball.ContactPuff(_ball);
                         _audio?.Glove();
                         break;
+                    case LiveEvent.ThrowSailed:
+                        // The throw skipped past its cover (§8.5): the ball is loose; the ERROR stamp comes at Time.
+                        _park.Ball.Release();
+                        _park.Ball.ContactPuff(_ball);
+                        break;
+                    case LiveEvent.Bobble:
+                        // The fumble (§8.6): the ball scatters on the dirt; the glove chases it.
+                        _park.Ball.Release();
+                        _park.Ball.ContactPuff(_ball);
+                        break;
                 }
             }
             if (result.Throw is { } step && !string.IsNullOrEmpty(step.Caption))

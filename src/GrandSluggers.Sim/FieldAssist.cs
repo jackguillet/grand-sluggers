@@ -40,7 +40,11 @@ public static class FieldAssist
         _ => Diamond.Positions.TryGetValue(pos, out var at) ? at : Diamond.Rubber
     };
 
-    /// <summary>Bag number → cover position. 1=1B, 2=2B, 3=3B, 4=home/C.</summary>
+    /// <summary>
+    /// Bag number → the position that covers it when nobody else is on the ball: 1=1B, 2=2B,
+    /// 3=3B, 4=home/C. The live map (<see cref="InPlay.CoverMap"/>) reassigns a bag whose owner
+    /// is the glove (§8.7).
+    /// </summary>
     public static string CoverKey(int bag) => bag switch
     {
         1 => "1B",
@@ -49,16 +53,6 @@ public static class FieldAssist
         4 => "C",
         _ => ""
     };
-
-    /// <summary>
-    /// The moment the ball leaves the hand you are the cover at that bag (#329).
-    /// Cutoff / no bag leaves you where you were.
-    /// </summary>
-    public static string AfterThrowPos(string currentPos, int bag)
-    {
-        var cover = CoverKey(bag);
-        return string.IsNullOrEmpty(cover) ? currentPos : cover;
-    }
 
     /// <summary>Mini-diamond UV. Same named-bag map as running leads.</summary>
     public static (double U, double V) BagPip(int bag) => Baserunning.DiamondPip(bag);

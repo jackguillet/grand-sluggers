@@ -24,8 +24,6 @@ public class StealThrowTests
         Assert.Equal("2B", StealThrow.CoverPos(2));
         Assert.Equal("3B", StealThrow.CoverPos(3));
         Assert.Equal("", StealThrow.CoverPos(4));
-        Assert.Equal("2B", StealThrow.AfterThrowPos("C", 2));
-        Assert.Equal("2B", FieldAssist.AfterThrowPos("C", 2));
         Assert.Equal(FieldAssist.CoverKey(2), StealThrow.CoverPos(2));
         Assert.Equal(PlayCamera.Shot(PlayCamera.Beat.StealThrow), PlayCamera.Shot(PlayCamera.Beat.Throw));
         Assert.Equal(2, InPlay.DiamondBag(0, 1));
