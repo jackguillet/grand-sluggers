@@ -429,7 +429,7 @@ Common to all live plays:
 
 ### 8.1 Bodies and positions
 
-- Nine positions from `Diamond.Positions` (feet). Defensive alignment is the lineup's glove diamond (Offense / Defense Setup), not roster order. ⚠️ Assigned by roster list order (`Fielding.cs:420-432`).
+- Nine positions from `Diamond.Positions` (feet). Defensive alignment is the lineup's glove diamond (Offense / Defense Setup), not roster order. ✅ P2: `Team.Gloves` carries the diamond and `FieldingResolver.Assign(team, pitcher)` reads it; after a pitcher swap (§4.7) the old pitcher takes the vacated glove (S-26). Preset teams with no diamond stand in roster order.
 - Speed in the field: `chase = 21 + Run × 1.9` ft/s, **one formula** for human and CPU. ⚠️ Human glove uses `18 + Run×1.8` (`InPlayDirector.cs:184`).
 - Frozen (park hazard) ×0.45. Dash (East held) ×1.35 for 2 s then fades.
 
@@ -810,7 +810,7 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 25 | `BallFlight.cs` | No fence, wall, or foul line in the trajectory | §6.1, §7.9 — ✅ P2 (`FieldBounds.Of`, `BattedBall`) |
 | 26 | `BallFlight.cs:68, 116-119` | Landing guards in two time bases | §6.1 — ✅ P2 |
 | 27 | `Fielding.cs:327-346` | Three separate class bands | §6.2 — ✅ P2 (`BattedBallClass`) |
-| 28 | `Fielding.cs:420-432` | Positions by roster order | §8.1 |
+| 28 | `Fielding.cs:420-432` | Positions by roster order | §8.1 — ✅ P2 (`Team.Gloves`) |
 
 ### A.3 Runner model (P3)
 
