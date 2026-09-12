@@ -200,6 +200,30 @@ public static class InPlay
         };
     }
 
+    /// <summary>What one throw to a bag decided. The caption is narrated from this, never read back.</summary>
+    public enum ThrowVerdict
+    {
+        None,
+        /// <summary>Batter beat the relay to first after the force was recorded at second.</summary>
+        BatterSafeAfterForce,
+        /// <summary>The forced runner beat the throw to second.</summary>
+        BeatForce,
+        /// <summary>Batter beat an unforced throw to first; nothing to narrate.</summary>
+        BatterBeat,
+        /// <summary>The runner beat the throw at a bag.</summary>
+        Beat,
+        /// <summary>Second out of the turn, at first.</summary>
+        TurnedTwo,
+        /// <summary>The batter thrown out at first.</summary>
+        OutAtFirst,
+        /// <summary>A forced runner put out at a bag.</summary>
+        ForceOut,
+        /// <summary>An unforced runner tagged at a bag.</summary>
+        TagOut,
+        /// <summary>A live body tag away from a bag (named runner).</summary>
+        TagRunner
+    }
+
     /// <summary>
     /// One throw of a live double-play race. The director steps this as the ball lands so
     /// outs and the mini diamond update immediately. CPU FinishAtBat applies the same table
@@ -213,7 +237,47 @@ public static class InPlay
         bool BatterSafe,
         bool PlayOver,
         int NextDefaultBag,
-        string Caption);
+        string Caption,
+        ThrowVerdict Verdict = ThrowVerdict.None)
+    {
+        /// <summary>The out this step recorded, when <see cref="Out"/>.</summary>
+        public OutType OutType => OutTypeOf(Verdict);
+    }
+
+    public static OutType OutTypeOf(ThrowVerdict verdict) => verdict switch
+    {
+        ThrowVerdict.ForceOut => OutType.Force,
+        ThrowVerdict.TagOut or ThrowVerdict.TagRunner => OutType.Tag,
+        _ => OutType.ThrowOutAtFirst
+    };
+
+    /// <summary>Whether the narration of this verdict already places the batter at first.</summary>
+    public static bool NarratesBatterAtFirst(ThrowVerdict verdict) => verdict == ThrowVerdict.BatterSafeAfterForce;
+
+    /// <summary>The caption for a verdict. Produced from the typed facts, last; nothing reads it back.</summary>
+    public static string Narrate(ThrowVerdict verdict, int bag, string? fielderName, string? batterName, string? runnerName = null)
+    {
+        fielderName ??= "";
+        batterName ??= "";
+        var where = bag == 3 ? " at third" : bag == 4 ? " at home" : "";
+        return verdict switch
+        {
+            ThrowVerdict.BatterSafeAfterForce => $"Force at second. {batterName} in at first.",
+            ThrowVerdict.BeatForce or ThrowVerdict.Beat => $"{batterName} beats the throw.",
+            ThrowVerdict.TurnedTwo => $"{fielderName} turns two.",
+            ThrowVerdict.OutAtFirst => $"{fielderName} to first.",
+            ThrowVerdict.ForceOut => $"{fielderName} forces the runner{where}.",
+            ThrowVerdict.TagOut => $"{fielderName} tags the runner{where}.",
+            ThrowVerdict.TagRunner => $"{fielderName} tags {runnerName ?? "the runner"}.",
+            _ => ""
+        };
+    }
+
+    static GroundThrowStep Step(
+        ThrowVerdict verdict, int bag, bool @out, bool force, bool turnedTwo, bool batterSafe, bool playOver,
+        int nextDefaultBag, string? fielderName, string? batterName) =>
+        new(bag, @out, force, turnedTwo, batterSafe, playOver, nextDefaultBag,
+            Narrate(verdict, bag, fielderName, batterName), verdict);
 
     /// <summary>
     /// Pure baseball for one throw to a bag. Match applies it; the director decides when.
@@ -252,60 +316,39 @@ public static class InPlay
         fielderName ??= "";
         batterName ??= "";
         if (outs >= 3)
-            return new(bag, false, alreadyForced, false, false, true, 0, "");
+            return Step(ThrowVerdict.None, bag, false, alreadyForced, false, false, true, 0, fielderName, batterName);
         if (bag is < 1 or > 4)
-            return new(bag, false, alreadyForced, false, false, false, 0, "");
+            return Step(ThrowVerdict.None, bag, false, alreadyForced, false, false, false, 0, fielderName, batterName);
 
         var isForce = force.At(bag);
         if (!isForce && !runnerPresent)
-            return new(bag, false, alreadyForced, false, false, false, 0, "");
+            return Step(ThrowVerdict.None, bag, false, alreadyForced, false, false, false, 0, fielderName, batterName);
 
         if (runnerBeats)
         {
             if (bag == 1 && alreadyForced)
-                return new(
-                    bag, false, true, false, true, true, 0,
-                    $"Force at second. {batterName} in at first.");
+                return Step(ThrowVerdict.BatterSafeAfterForce, bag, false, true, false, true, true, 0, fielderName, batterName);
             if (bag == 2 && isForce)
-                return new(bag, false, false, false, true, true, 0, $"{batterName} beats the throw.");
+                return Step(ThrowVerdict.BeatForce, bag, false, false, false, true, true, 0, fielderName, batterName);
             if (bag == 1)
-                return new(bag, false, false, false, true, false, 0, "");
-            return new(bag, false, alreadyForced, false, false, false, 0, $"{batterName} beats the throw.");
+                return Step(ThrowVerdict.BatterBeat, bag, false, false, false, true, false, 0, fielderName, batterName);
+            return Step(ThrowVerdict.Beat, bag, false, alreadyForced, false, false, false, 0, fielderName, batterName);
         }
 
         if (bag == 1 && alreadyForced)
-            return new(
-                bag, true, true, true, false, true, 0,
-                $"{fielderName} turns two.");
+            return Step(ThrowVerdict.TurnedTwo, bag, true, true, true, false, true, 0, fielderName, batterName);
 
         var outsAfter = outs + 1;
         var over = outsAfter >= 3;
         if (isForce)
-        {
-            var where = bag == 2 ? "" : bag == 3 ? " at third" : bag == 4 ? " at home" : "";
-            var caption = bag == 1
-                ? $"{fielderName} to first."
-                : $"{fielderName} forces the runner{where}.";
-            return new(
-                bag,
-                Out: true,
-                Force: bag != 1,
-                TurnedTwo: false,
-                BatterSafe: false,
-                PlayOver: over,
-                NextDefaultBag: NextBagAfterForce(bag, outsAfter),
-                Caption: caption);
-        }
+            return Step(
+                bag == 1 ? ThrowVerdict.OutAtFirst : ThrowVerdict.ForceOut,
+                bag, true, bag != 1, false, false, over, NextBagAfterForce(bag, outsAfter), fielderName, batterName);
 
         if (bag == 1)
-            return new(
-                bag, true, false, false, false, over, 0,
-                $"{fielderName} to first.");
+            return Step(ThrowVerdict.OutAtFirst, bag, true, false, false, false, over, 0, fielderName, batterName);
 
-        var tagWhere = bag == 3 ? " at third" : bag == 4 ? " at home" : "";
-        return new(
-            bag, true, false, false, false, over, 0,
-            $"{fielderName} tags the runner{tagWhere}.");
+        return Step(ThrowVerdict.TagOut, bag, true, false, false, false, over, 0, fielderName, batterName);
     }
 
     /// <summary>

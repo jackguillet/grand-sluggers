@@ -200,13 +200,49 @@ public enum ThrowOrigin
 /// <summary>The baseball endpoints of a resolved throw, independent of its presentation copy.</summary>
 public sealed record ThrowEndpoint(ThrowOrigin Origin, int DestinationBag);
 
-/// <summary>Typed facts from a resolved play that presentation and highlights may act on.</summary>
+/// <summary>The five ways (spec §10.1). Caught stealing, picked off, and doubled off are tags or forces.</summary>
+public enum OutType
+{
+    Strikeout,
+    Catch,
+    Force,
+    Tag,
+    ThrowOutAtFirst
+}
+
+/// <summary>
+/// One out on the play: who, how, where. <paramref name="FromBag"/> 0 is the batter-runner.
+/// <paramref name="Bag"/> is where it was made: 1..4, or 0 at the plate / in the field.
+/// </summary>
+public sealed record OutRecord(OutType Type, int Bag, int FromBag, Character Runner, Character? Fielder);
+
+/// <summary>A runner's placement on the play. <paramref name="FromBag"/> 0 is the batter; <paramref name="ToBag"/> 4 scored.</summary>
+public sealed record RunnerMove(Character Runner, int FromBag, int ToBag);
+
+/// <summary>
+/// Typed facts from a resolved play. Presentation, highlights, and the scenario harness read
+/// these; the caption is produced from them last and is never read back (spec §15).
+/// </summary>
 public sealed record PlayOutcome(
     DefensiveFeat DefensiveFeat = DefensiveFeat.None,
     RunnerPlayResult RunnerResult = RunnerPlayResult.None,
     int RunnerFromBag = 0,
     int RunnerToBag = 0,
-    ThrowEndpoint? ThrowEndpoint = null);
+    ThrowEndpoint? ThrowEndpoint = null,
+    IReadOnlyList<OutRecord>? Outs = null,
+    IReadOnlyList<RunnerMove>? Advances = null,
+    int BatterToBag = 0,
+    bool Error = false,
+    bool FieldersChoice = false)
+{
+    public static PlayOutcome Empty { get; } = new();
+
+    /// <summary>Every out on the play, in the order it was made.</summary>
+    public IReadOnlyList<OutRecord> OutsMade => Outs ?? [];
+
+    /// <summary>Every runner who changed bags, including the batter-runner (from bag 0).</summary>
+    public IReadOnlyList<RunnerMove> Moves => Advances ?? [];
+}
 
 /// <summary>The actors and match state at the start of one pitch or pickoff play.</summary>
 public sealed record PlayContext(
