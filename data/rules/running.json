@@ -44,6 +44,10 @@
   "stick": {
     "diamondDeadMag2": 0.55
   },
+  "dash": {
+    "perPress": 0.28,
+    "maxDash": 1.0
+  },
   "cpu": {
     "stealMinRun": 7,
     "stealChance": 0.16,

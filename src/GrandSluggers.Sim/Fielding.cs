@@ -343,7 +343,7 @@ public sealed class FieldingResolver
     {
         var c = Rules.Or(rules).Fielding.Chase;
         return (c.StickBaseFtPerSec + fielder.Stats.Run * c.StickFtPerSecPerRun) * (frozen ? c.StickFrozenMul : 1)
-               * (dash ? FieldDash.ChaseMul : 1);
+               * (dash ? FieldDash.ChaseMul(rules) : 1);
     }
 
     public static (double X, double Z) StepToward(
