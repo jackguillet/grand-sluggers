@@ -18,7 +18,6 @@ namespace GrandSluggers.UnityClient
     {
         ChargeButtonState _pitchButton;
         ChargeButtonState _swingButton;
-        SwingInputIntent _setSwingIntent;
 
         internal void TickAtBat(float dt)
         {
@@ -42,7 +41,6 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _pitchButton = default;
             _swingButton = default;
-            _setSwingIntent = default;
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
@@ -94,7 +92,7 @@ namespace GrandSluggers.UnityClient
             _audio?.CrowdBed(true);
             AimSetCamera();
             LogSetCam("begin");
-            _zone.Show(true, BatterCursorX, 0);
+            ShowCursor();
             if (TrainingOn && _coach != null && _coach.Session != null && _match != null
                 && _coach.Session.Lesson == PracticeLesson.Fielding && _coach.Session.LessonPart >= 2)
                 _coach.Session.SetupTurnTwo(_match);
@@ -136,7 +134,6 @@ namespace GrandSluggers.UnityClient
             var mound = PitchPad;
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
-            var swingButton = default(ChargeButtonStep);
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
@@ -145,8 +142,9 @@ namespace GrandSluggers.UnityClient
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanBats)
             {
-                swingButton = TickChargeButton(dt, _feel.SwingChargeSeconds, box,
-                    ref _swingButton, ref _charge, ref _chargePast);
+                // A press during SET is not a swing (spec §3): the hold builds, the release drops.
+                TickChargeButton(dt, _feel.SwingChargeSeconds, box,
+                    ref _swingButton, ref _charge, ref _chargePast, commits: false);
             }
             _pip += dt * 1.35f;
             if (mound.SwapPitcher) _match.SwapPitcher();
@@ -156,10 +154,9 @@ namespace GrandSluggers.UnityClient
             if (HumanBats)
             {
                 _bunt = box.WestHeld;
+                // Down resets the box in SET only (§5.4); in flight the same axis aims launch.
                 if (box.StickY < -0.7f) _match.ResetBatter();
                 else _match.WalkBatter(box.StickX * dt * 1.6f);
-                _setSwingIntent = SwingInputIntent.Capture(
-                    swingButton, box.StickX, box.StickY, _bunt, _match.BatterOffsetX);
             }
             if (HumanPitches)
             {
@@ -167,7 +164,6 @@ namespace GrandSluggers.UnityClient
                 else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
-                _zone.Show(true, BatterCursorX, 0);
                 if (_t >= (float)_feel.PitcherReadySeconds)
                 {
                     if (mound.ThrowBag > 0 && mound.SouthDown)
@@ -183,17 +179,30 @@ namespace GrandSluggers.UnityClient
                     }
                 }
             }
+            ShowCursor();
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
                 Launch(_match.CpuPitch());
-            _setSwingIntent = default;
+        }
+
+        /// <summary>The gold oval follows the batter and shows this swing's barrel (contact, charge, buddies).</summary>
+        void ShowCursor()
+        {
+            if (_match == null) return;
+            var contact = Math.Clamp(_match.Batter.Stats.Bat + (_match.OffenseBat?.ContactMod ?? 0), 1, 10);
+            var chargeBat = _match.OffenseBat?.ChargeAlwaysFull == true;
+            var charged = chargeBat || ChargeFeel.IsCharge(EffectiveCharge(_charge, _chargePast));
+            var buddies = _match.Chemistry.BuddiesOnBase(_match.Batter, _match.RunnersOn());
+            var scale = SweetSpot.BarrelScale(contact, charged, chargeBat, buddies, _match.Rules);
+            _zone.Show(true, BatterCursorX, _match.Batter.Bats, (float)scale);
         }
 
         static ChargeButtonStep TickChargeButton(float dt, double seconds, Controls.Pad pad,
-            ref ChargeButtonState state, ref float charge, ref float past, bool accepting = true)
+            ref ChargeButtonState state, ref float charge, ref float past, bool accepting = true,
+            bool commits = true)
         {
             var step = ChargeButton.Advance(state, pad.SouthDown, pad.SouthHeld, pad.SouthUp, dt, seconds,
-                accepting);
+                accepting, commits);
             state = step.Next;
             charge = (float)state.Fill01;
             past = (float)state.SecondsPastFull;
@@ -231,19 +240,16 @@ namespace GrandSluggers.UnityClient
                 _chargePast = 0;
                 _swingButton = default;
                 _swing = _match.CpuSwing(pitch,
-                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
+                    AtBatResolver.PitchInZone(pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch));
             }
             _phase = Phase.Flight;
             _t = 0;
-            if (HumanBats)
-                CommitSwing(_setSwingIntent);
-            _setSwingIntent = default;
             var rel = PitchFlight.Release(pitch.RubberX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _aimX = (float)pitch.AimX;
             _aimY = (float)pitch.AimY;
             _breakX = (float)pitch.BreakX;
-            _zone.Show(true, BatterCursorX, 0);
+            ShowCursor();
             _rig.Punch(pitch.Star ? 8f : 4f);
             _spec.ResetDecoy();
             _hideHelp = true;
@@ -273,9 +279,9 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast);
                 if (box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
                 if (box.WestHeld) _bunt = true;
-                if (box.StickY < -0.7f) _match.ResetBatter();
-                else _match.WalkBatter(box.StickX * dt * 1.6f);
-                _zone.Show(true, BatterCursorX, 0);
+                // Stick U/D aims launch here; it never resets the box once the windup starts (§5.4).
+                _match.WalkBatter(box.StickX * dt * 1.6f);
+                ShowCursor();
                 if (swingButton.Committed)
                     CommitSwing(SwingInputIntent.Capture(
                         swingButton, box.StickX, box.StickY,
@@ -309,7 +315,7 @@ namespace GrandSluggers.UnityClient
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch), vsHumanPitcher: HumanPitches);
+                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch));
             Resolve();
         }
 
@@ -398,6 +404,8 @@ namespace GrandSluggers.UnityClient
             else
                 _match.LivePlay.Apply(LivePlayCommand.BeginFlight(hit, seat));
             SyncFromLive();
+            // The contact word comes from the typed zone, never from the release (#578).
+            _banner = PlayStamp.ContactTell(hit.Quality);
             if (hit.HomeRun && _match.Night)
                 _park.BurstFireworks(_ball);
             if (hit.Quality != ContactQuality.Miss) _audio?.Bat(hit.Quality);
@@ -417,14 +425,14 @@ namespace GrandSluggers.UnityClient
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
                 _audio?.Swell();
             }
-            else if (hit.Quality == ContactQuality.Solid)
+            else if (hit.Quality == ContactQuality.Nice)
             {
                 _freeze = (float)_feel.SolidFreeze;
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
-            else if (hit.Quality == ContactQuality.Cheap)
+            else if (hit.Quality == ContactQuality.Sour)
             {
-                _freeze = (float)CartoonJuice.CheapFreeze;
+                _freeze = (float)CartoonJuice.SourFreeze;
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
             AimDiamond(hit);

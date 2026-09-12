@@ -98,7 +98,7 @@ namespace GrandSluggers.EditorTools
             var homeRun = spec.Wall;
             Require(!homeRun || carry > fence, "Wall fixture did not clear the Harbor fence.");
             var hit = new AtBatResult(
-                ContactQuality.Solid, true, false, spec.ExitVelo, spec.Launch, carry,
+                ContactQuality.Nice, true, false, spec.ExitVelo, spec.Launch, carry,
                 homeRun, false, null, null, SprayDeg: spec.Spray);
             var preview = match.PreviewHit(hit);
             Require(preview.Grounder == spec.Ground, "Fixture trajectory classification changed.");

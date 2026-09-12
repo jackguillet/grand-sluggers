@@ -133,7 +133,7 @@ public class TrainingTests
         Assert.True(run.SetupTurnTwo(match));
         Assert.NotNull(match.First);
         var fielder = match.Pitcher;
-        var hit = new AtBatResult(ContactQuality.Solid, true, false, 82, 5, 55, false, false, null, null);
+        var hit = new AtBatResult(ContactQuality.Nice, true, false, 82, 5, 55, false, false, null, null);
         var field = new FieldingResult(PlayKind.GroundOut, fielder, match.Batter, 0.8, 10, 40, false, false,
             new ThrowResult(Chemistry.Good, 1.35, false));
         var play = match.FinishAtBat(
@@ -160,7 +160,7 @@ public class TrainingTests
     }
 
     static AtBatResult SolidHit() =>
-        new(ContactQuality.Solid, true, false, 88, 22, 240, false, false, null, null);
+        new(ContactQuality.Nice, true, false, 88, 22, 240, false, false, null, null);
 
     static FieldingResult CaughtThrow(ContentCatalog content)
     {

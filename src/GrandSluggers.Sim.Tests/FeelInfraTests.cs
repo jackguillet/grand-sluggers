@@ -373,9 +373,6 @@ public class FeelInfraTests
         Assert.InRange(feel.AfterOutSeconds, 1.0, 1.6);
         Assert.InRange(feel.AfterCountSeconds, 0.4, 0.9);
         Assert.True(feel.AfterCountSeconds < feel.AfterOutSeconds);
-        Assert.True(feel.CpuVsHumanTake > 0 && feel.CpuVsHumanTake < 1);
-        Assert.True(feel.CpuVsHumanMiss > 0 && feel.CpuVsHumanMiss < 1);
-        Assert.True(feel.CpuVsHumanTake + feel.CpuVsHumanMiss < 1);
         Assert.InRange(feel.ChargeMaxHoldSeconds, 0.25, 0.9);
         Assert.True(feel.ChargeOverchargeDecay > 0);
     }

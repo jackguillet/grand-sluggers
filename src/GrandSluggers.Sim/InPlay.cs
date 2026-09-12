@@ -24,8 +24,8 @@ public static class InPlay
         var q = hit.Quality switch
         {
             ContactQuality.Perfect => quality.PerfectEnergyMul,
-            ContactQuality.Solid => quality.SolidEnergyMul,
-            ContactQuality.Cheap => quality.CheapEnergyMul,
+            ContactQuality.Nice => quality.NiceEnergyMul,
+            ContactQuality.Sour => quality.SourEnergyMul,
             _ => 0
         };
         return hit.ExitVeloMph * q;

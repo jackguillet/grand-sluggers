@@ -468,7 +468,7 @@ public class MatchTests
     public void InsideTakeIsHitByPitchAndAwardsFirst()
     {
         var match = Match.Slice(_content, innings: 3, seed: 1);
-        var bodyX = AtBatResolver.BatterBodyPlateX(0, match.Batter.Bats);
+        var bodyX = AtBatResolver.BatterBodyX(0, match.Batter.Bats) / PitchFlight.PlateScaleX;
         var plunk = PitchFlight.AimForCrossing(
             new PitchCommand("fastball", 0, 0, false), bodyX, 0);
         var take = new SwingCommand(false, 0, 0, false);
@@ -487,8 +487,8 @@ public class MatchTests
         var park = _content.Parks["harbor-diamond"];
         var input = new AtBatInput(
             _content.Must("rio"), _content.Must("ashlord"), _content.Must("cinder"), [],
-            "fastball", false, true, 0, false, true,
-            _content.Bats["furnace-club"], 80, SprayAimDeg: 0, PitchInZone: true);
+            false, false, 0, false, true,
+            _content.Bats["furnace-club"], 80, SprayAimDeg: 0, PitchInZone: true, Charge01: 1);
         var best = 0.0;
         for (var seed = 0; seed < 20; seed++)
         {

@@ -9,7 +9,7 @@ public class FoulTests
 
     AtBatInput Square(double sprayAim, double timing = 0, bool starSwing = false) =>
         new(_content.Must("vale"), _content.Must("rio"), _content.Must("nico"), [],
-            "fastball", false, starSwing, timing, false, starSwing,
+            false, false, timing, false, starSwing,
             _content.Bats["harbor-lumber"], 80, SprayAimDeg: sprayAim, PitchInZone: true);
 
     [Fact]
@@ -44,8 +44,8 @@ public class FoulTests
         var park = _content.Parks["harbor-diamond"];
         var input = new AtBatInput(
             _content.Must("vale"), _content.Must("ashlord"), _content.Must("cinder"), [],
-            "fastball", false, true, 0, false, true,
-            _content.Bats["furnace-club"], 80, SprayAimDeg: 70, PitchInZone: true);
+            false, false, 0, false, true,
+            _content.Bats["furnace-club"], 80, SprayAimDeg: 70, PitchInZone: true, Charge01: 1);
         var carry = 0.0;
         for (var seed = 0; seed < 20; seed++)
         {
@@ -86,22 +86,29 @@ public class FoulTests
     }
 
     [Fact]
-    public void FullStickPullsDownTheLine()
+    public void FullStickShiftsTheRangeNotTheWholeField()
     {
-        Assert.InRange(AtBatResolver.SprayAimDeg(1), 36, AtBatResolver.FoulLineDeg);
+        // Spec §5.3: the stick shifts direction by ±12°; timing across the window does the rest.
+        Assert.Equal(Rules.Default.Batting.Spray.StickDeg, AtBatResolver.SprayAimDeg(1));
+        Assert.True(AtBatResolver.SprayAimDeg(1) < AtBatResolver.FoulLineDeg);
         Assert.Equal(-AtBatResolver.SprayAimDeg(1), AtBatResolver.SprayAimDeg(-1));
         Assert.Equal(0, AtBatResolver.SprayAimDeg(0));
     }
 
     [Fact]
-    public void CheapPullFliesIntoFoulTerritory()
+    public void SourPullFliesIntoFoulTerritory()
     {
+        // A sour swing (the handle side of the bat) pulled to the pull line by an early press.
         var park = _content.Parks["harbor-diamond"];
         var fouls = 0;
+        var bats = _content.Must("rio").Bats;
+        var pullSide = -SweetSpot.TipSign(bats);
         for (var seed = 0; seed < 80; seed++)
         {
             var r = new AtBatResolver(_content.Chemistry).Resolve(
-                Square(AtBatResolver.SprayAimDeg(1), timing: 5), park, new Random(seed));
+                Square(AtBatResolver.SprayAimDeg(pullSide), timing: -3.5) with
+                    { CrossingX = -SweetSpot.TipSign(bats) * 0.95, CrossingY = StrikeZoneGeometry.CenterY },
+                park, new Random(seed));
             if (r.Quality == ContactQuality.Miss) continue;
             if (r.Foul)
             {
@@ -112,13 +119,13 @@ public class FoulTests
             else
                 Assert.False(AtBatResolver.IsFoul(r.SprayDeg));
         }
-        Assert.True(fouls > 8, $"expected sitting-visible fouls off a full-stick cheap swing, got {fouls}");
+        Assert.True(fouls > 8, $"expected sitting-visible fouls off a pulled sour swing, got {fouls}");
     }
 
     [Fact]
     public void FairContactSendsTheBatterFoulDoesNot()
     {
-        var fair = new AtBatResult(ContactQuality.Solid, true, false, 90, 18, 180, false, false, null, null, 12);
+        var fair = new AtBatResult(ContactQuality.Nice, true, false, 90, 18, 180, false, false, null, null, 12);
         var foul = fair with { InPlay = false, Foul = true, SprayDeg = 52 };
         Assert.True(InPlay.FairContactSendsBatter(fair));
         Assert.False(InPlay.FairContactSendsBatter(foul));

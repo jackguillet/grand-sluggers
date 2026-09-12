@@ -1,8 +1,9 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
-/// Arcade at-bat: timing window + charge + bat + chemistry-on-base + a ballistic carry estimate.
-/// Not a sim of spin axis. Good enough to tune numbers before Unity exists.
+/// The at-bat contract (spec §5, D4): the cursor decides quality, timing decides direction.
+/// One swing at one crossing, resolved from world geometry and the tables in batting.json;
+/// the only randomness is spread on the inputs (launch noise, spray spread), never the outcome.
 /// </summary>
 public sealed class AtBatResolver
 {
@@ -16,9 +17,9 @@ public sealed class AtBatResolver
     /// <summary>A round fence shorter than this is a degenerate circle; the two-post lerp is used instead.</summary>
     const double RoundFenceMinFt = 50;
 
-    /// <summary>Full stick at contact pulls down the line (batting.spray.stickMaxDeg; spread can take it foul).</summary>
+    /// <summary>Stick L/R at contact shifts the whole direction range (batting.spray.stickDeg, spec §5.3).</summary>
     public static double SprayAimDeg(double stickX, RulesTable? rules = null) =>
-        Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickMaxDeg;
+        Math.Clamp(stickX, -1, 1) * Rules.Or(rules).Batting.Spray.StickDeg;
 
     public static bool IsFoul(double sprayDeg) =>
         Math.Abs(sprayDeg) > FoulLineDeg;
@@ -35,31 +36,31 @@ public sealed class AtBatResolver
     public AtBatResult Resolve(AtBatInput input, Park park, Random rng, bool night = false)
     {
         var b = _rules.Batting;
-        var contact = input.Batter.Stats.Bat + (input.Bat?.ContactMod ?? 0);
-        var power = input.Batter.Stats.Bat + (input.Bat?.PowerMod ?? 0);
-        contact = Math.Clamp(contact, 1, 10);
-        power = Math.Clamp(power, 1, 10);
+        var contact = Math.Clamp(input.Batter.Stats.Bat + (input.Bat?.ContactMod ?? 0), 1, 10);
+        var power = Math.Clamp(input.Batter.Stats.Bat + (input.Bat?.PowerMod ?? 0), 1, 10);
+        var bats = input.Batter.Bats;
 
-        var effective = input.Bat?.ChargeAlwaysFull == true ? 1.0
-            : input.Charge01 > 0 ? input.Charge01
-            : input.ChargeSwing ? 1.0 : 0;
-        var window = b.Window.BaseFrames + (contact - 5) * b.Window.FramesPerContact;
-        if (ChargeFeel.IsCharge(effective) && input.Bat?.ChargeAlwaysFull != true)
-            window *= b.Window.ChargeMul;
-        if (input.UseStarPitch)
-            window *= StarSkills.BatterWindowMul(input.Pitcher.StarPitch);
-        window *= ParkHazards.ContactWindowMul(park, night, _rules);
+        // The Charge Bat is a MAX charge for free with the narrow charge zones off (§5.5).
+        var chargeBat = input.Bat?.ChargeAlwaysFull == true;
+        var effective = chargeBat ? 1.0 : Math.Clamp(input.Charge01, 0, 1);
+        var charged = ChargeFeel.IsCharge(effective);
+        var buddies = _chem.BuddiesOnBase(input.Batter, input.RunnersOn);
 
-        var oval = SweetSpot.Overlap(input.BoxOffsetX, input.PitchAimX, input.PitchAimY, _rules);
-        var timing = Math.Abs(input.TimingErrorFrames);
-        var quality = timing <= b.Window.PerfectFrames ? ContactQuality.Perfect
-            : timing <= window * b.Window.SolidFraction ? ContactQuality.Solid
-            : timing <= window ? ContactQuality.Cheap
+        // Timing (§5.3): outside the window the bat is not on the plane.
+        var window = ContactWindowFrames(contact, charged && !chargeBat,
+            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules);
+        var half = window / 2;
+        var err = input.TimingErrorFrames;
+        var onPlane = Math.Abs(err) <= half;
+
+        // Cursor (§5.2): where the crossing meets the bat.
+        var barrel = SweetSpot.BarrelScale(contact, charged, chargeBat, buddies, _rules);
+        var quality = onPlane
+            ? SweetSpot.Zone(input.BoxOffsetX, bats, input.CrossingX, input.CrossingY, barrel, _rules)
             : ContactQuality.Miss;
-        if (oval <= 0 && !input.Bunt)
-            quality = ContactQuality.Miss;
-        else if (oval < 1 && quality == ContactQuality.Perfect)
-            quality = ContactQuality.Cheap;
+        // The rim of the window is not square: one tier down, never two (§5.3).
+        if (quality > ContactQuality.Sour && Math.Abs(err) > half * b.Window.SquareFraction)
+            quality--;
 
         if (input.UseStarPitch && input.Pitcher.StarPitch == "phonyball"
             && quality != ContactQuality.Perfect && rng.NextDouble() < b.Star.PhonyballWhiff)
@@ -77,51 +78,55 @@ public sealed class AtBatResolver
                 InZone: input.PitchInZone);
         }
 
-        var charge = 1.0 + b.Charge.PowerPerCharge * Math.Clamp(effective, 0, 1);
-        if (input.Bat?.ChargeAlwaysFull == true)
-            charge = b.Charge.ChargeBatMul;
-        var qualityMul = quality switch
-        {
-            ContactQuality.Perfect => b.Quality.PerfectExitMul,
-            ContactQuality.Solid => b.Quality.SolidExitMul,
-            _ => b.Quality.CheapExitMul
-        };
+        // Exit (§5.5): base(power) × zone (slap → charge column by the charge) × star × buddies × pitch.
+        var zoneMul = Lerp(b.Quality.Slap.For(quality), b.Quality.Charge.For(quality), effective);
         var starSwingMul = input.UseStarSwing ? StarSkills.SwingExitMul(input.Batter.StarSwing) : 1.0;
-        var onBaseMul = _chem.ChargePowerMul(input.Batter, input.RunnersOn);
+        var onBaseMul = charged ? _chem.ChargePowerMul(input.Batter, input.RunnersOn) : 1.0;
+        var pitchMul = PitchFactor(input.ChargePitch, quality, charged, input.Pitcher.Stats.Pitch, b.PitchFactor);
 
         var exit = b.Exit.BaseMph + power * b.Exit.MphPerPower;
-        exit *= charge * qualityMul * starSwingMul * onBaseMul;
+        exit *= zoneMul * starSwingMul * onBaseMul * pitchMul;
         if (input.PitcherStamina < _rules.Pitching.Stamina.TiredBelow)
             exit *= b.Exit.TiredPitcherMul;
 
-        // Late / under (positive frames) and stick-up (LaunchAim +) pull launch down into a hopper.
-        // Early / over pops up. Square still mixes liners and some grounders.
-        var signed = input.TimingErrorFrames;
-        var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower + (ChargeFeel.IsCharge(effective) ? b.Charge.LoftDeg : 0);
-        var launch = loft - signed * b.Launch.DegPerFrame - input.LaunchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
-        if (quality == ContactQuality.Cheap)
-            launch = signed >= 0
-                ? b.Launch.CheapLateMinDeg + rng.NextDouble() * b.Launch.CheapLateSpanDeg
-                : b.Launch.CheapEarlyMinDeg + rng.NextDouble() * b.Launch.CheapEarlySpanDeg;
+        // Launch (§5.4): power and charge lift, the pitch height, the stick (up = grounder), noise.
+        var height = input.CrossingY - StrikeZoneGeometry.CenterY;
+        var loft = b.Launch.LoftBaseDeg + (power - 5) * b.Launch.LoftPerPower
+                   + (charged ? b.Charge.LoftDeg : 0) + height * b.Launch.PerFtOfHeight;
+        var launch = loft - input.LaunchAim * b.Launch.StickDeg + (rng.NextDouble() - 0.5) * b.Launch.NoiseDeg;
+        if (quality == ContactQuality.Sour)
+        {
+            // Sour is forced to a band: early tops it, late pops it; a sour slap on a changeup
+            // or a charged pitch is a pop-up (§5.2, the pitcher-vs-batter game).
+            var pop = err > 0 || (!charged && (input.ChangeupPitch || input.ChargePitch));
+            launch = pop
+                ? b.Launch.PopMinDeg + rng.NextDouble() * b.Launch.PopSpanDeg
+                : b.Launch.TopperMinDeg + rng.NextDouble() * b.Launch.TopperSpanDeg;
+        }
 
         if (input.Bunt)
         {
             exit *= b.Bunt.ExitMul;
-            launch = b.Bunt.LaunchMinDeg + rng.NextDouble() * b.Bunt.LaunchSpanDeg;
+            var pop = quality == ContactQuality.Sour || height > b.Bunt.PopAboveCenterFt;
+            launch = pop
+                ? b.Launch.PopMinDeg + rng.NextDouble() * b.Launch.PopSpanDeg
+                : b.Bunt.LaunchMinDeg + rng.NextDouble() * b.Bunt.LaunchSpanDeg;
         }
         launch = Math.Clamp(launch, b.Launch.MinDeg, b.Launch.MaxDeg);
 
         if (input.UseStarSwing && !input.Bunt)
             launch = StarLaunch(input.Batter.StarSwing, launch, b.Star);
 
-        var spray = input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
+        // Direction (§5.3): early pulls, late pushes; the stick shifts; the zone spreads.
+        var spray = (input.Bunt ? 0 : TimingSprayDeg(err, window, bats, _rules))
+                    + input.SprayAimDeg + (rng.NextDouble() - 0.5) * SpraySpread(quality, b.Spray);
         if (input.UseStarPitch && input.Pitcher.StarPitch == "prismball")
             spray += (rng.NextDouble() - 0.5) * b.Star.PrismballSpraySpanDeg;
         if (!input.PitchInZone)
             spray += (rng.NextDouble() - 0.5) * b.Spray.OutOfZoneSpanDeg;
         if (input.Bunt)
             spray += (rng.NextDouble() - 0.5) * b.Bunt.SpraySpanDeg;
-        spray = CheapFoulPull(quality, spray, rng, b.Foul);
+        spray = Math.Round(SourFoulPull(quality, spray, rng, b.Foul), 1);
 
         var carry = BallFlight.CarryFeet(exit, launch, park.WindMph, _rules);
         var foul = IsFoul(spray);
@@ -139,25 +144,69 @@ public sealed class AtBatResolver
             ChemistryItemOffered: _chem.ChemistryItemOffered(input.Batter, input.OnDeck),
             StarPitchUsed: input.UseStarPitch ? input.Pitcher.StarPitch : null,
             StarSwingUsed: input.UseStarSwing ? input.Batter.StarSwing : null,
-            SprayDeg: Math.Round(spray, 1),
+            SprayDeg: spray,
             Foul: foul,
             InZone: input.PitchInZone);
+    }
+
+    /// <summary>
+    /// The timing window in frames at 60 Hz (spec §5.3): slap 9 / charge 7, ± (contact − 5) × 0.4,
+    /// × the star pitch's window multiplier × the park's, floored. Inside is ± half of this.
+    /// </summary>
+    public static double ContactWindowFrames(int contact, bool charged, string? starPitch, Park? park, bool night,
+        RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var w = r.Batting.Window;
+        var frames = (charged ? w.ChargeFrames : w.SlapFrames) + (Math.Clamp(contact, 1, 10) - 5) * w.FramesPerContact;
+        if (starPitch is not null)
+            frames *= StarSkills.BatterWindowMul(starPitch);
+        if (park is not null)
+            frames *= ParkHazards.ContactWindowMul(park, night, r);
+        return Math.Max(w.FloorFrames, frames);
+    }
+
+    /// <summary>
+    /// Direction from timing (spec §5.3): linear across the window, earliest ≈ −timingDeg toward
+    /// the pull line, latest ≈ +timingDeg toward the opposite line. A right-handed batter pulls
+    /// toward third (negative spray); a left-handed batter pulls toward first.
+    /// </summary>
+    public static double TimingSprayDeg(double errFrames, double windowFrames, Hand bats, RulesTable? rules = null)
+    {
+        var half = Math.Max(0.01, windowFrames / 2);
+        var t = Math.Clamp(errFrames / half, -1, 1);
+        return t * Rules.Or(rules).Batting.Spray.TimingDeg * SweetSpot.TipSign(bats);
+    }
+
+    /// <summary>
+    /// The pitch's say (spec §5.5): a charged pitch met sour ×0.6, met by a perfect charge ×1.1;
+    /// a high-Pitch arm dampens non-perfect contact per stat point above 5.
+    /// </summary>
+    public static double PitchFactor(bool chargedPitch, ContactQuality quality, bool chargedSwing, int pitchStat, PitchFactorRules f)
+    {
+        var mul = 1.0;
+        if (chargedPitch && quality == ContactQuality.Sour) mul *= f.ChargedVsSour;
+        if (chargedPitch && chargedSwing && quality == ContactQuality.Perfect) mul *= f.ChargedVsPerfectCharge;
+        var above = Math.Max(0, Math.Clamp(pitchStat, 1, 10) - 5);
+        if (quality == ContactQuality.Nice) mul *= 1 - above * f.NiceDampPerPitch;
+        if (quality == ContactQuality.Sour) mul *= 1 - above * f.SourDampPerPitch;
+        return mul;
     }
 
     static double SpraySpread(ContactQuality q, SprayRules spray) => q switch
     {
         ContactQuality.Perfect => spray.PerfectSpreadDeg,
-        ContactQuality.Solid => spray.SolidSpreadDeg,
-        _ => spray.CheapSpreadDeg
+        ContactQuality.Nice => spray.NiceSpreadDeg,
+        _ => spray.SourSpreadDeg
     };
 
     /// <summary>
-    /// Cheap contact already pulled toward a line can skip past the chalk.
-    /// The ball flies foul — we do not stamp Foul on a fair spray.
+    /// Sour contact already pulled toward a line can skip past the chalk (batting.foul, the
+    /// spray cutoff as shipped until P2 lands the foul lines in the flight).
     /// </summary>
-    static double CheapFoulPull(ContactQuality quality, double spray, Random rng, FoulRules foul)
+    static double SourFoulPull(ContactQuality quality, double spray, Random rng, FoulRules foul)
     {
-        if (quality != ContactQuality.Cheap || Math.Abs(spray) <= foul.CheapPullMinDeg || rng.NextDouble() >= foul.CheapPullChance)
+        if (quality != ContactQuality.Sour || Math.Abs(spray) <= foul.CheapPullMinDeg || rng.NextDouble() >= foul.CheapPullChance)
             return spray;
         var side = spray >= 0 ? 1 : -1;
         return side * (FoulLineDeg + foul.CheapPullPastDeg + rng.NextDouble() * foul.CheapPullSpanDeg);
@@ -241,23 +290,20 @@ public sealed class AtBatResolver
         return StrikeZoneGeometry.Contains(pitch, starPitchId);
     }
 
-    /// <summary>
-    /// The batter's body radius in normalized plate-aim units (batting.hbp.bodyRadius). The
-    /// center comes from the authored batter's box and converts the actor's world-space walk.
-    /// </summary>
-    public static double BatterBodyPlateX(double boxOffsetX, Hand bats = Hand.R)
-    {
-        var boxWorldX = bats == Hand.L ? HomeSet.BoxX : -HomeSet.BoxX;
-        var walkWorldX = boxOffsetX * HomeSet.BatterWalk;
-        return (boxWorldX + walkWorldX) / PitchFlight.PlateScaleX;
-    }
+    /// <summary>The batter's body at the plate plane in world feet: the authored box plus the walk (spec §4.6).</summary>
+    public static double BatterBodyX(double boxOffsetX, Hand bats = Hand.R) =>
+        HomeSet.BatterBodyX(bats, boxOffsetX);
 
-    public static bool HitsBatter(double boxOffsetX, double pitchAimX, double pitchAimY, Hand bats = Hand.R, RulesTable? rules = null)
+    /// <summary>
+    /// Hit by pitch (spec §4.6): the crossing lies inside the body circle (batting.hbp.bodyRadiusFt)
+    /// centered where the body actually is, at the natural crossing height. World feet, the same
+    /// point the umpire and the cursor read; body and cursor move the same distance per box unit.
+    /// </summary>
+    public static bool HitsBatter(double boxOffsetX, double crossingX, double crossingY, Hand bats = Hand.R, RulesTable? rules = null)
     {
-        var bodyR = Rules.Or(rules).Batting.Hbp.BodyRadius;
-        var bodyX = BatterBodyPlateX(boxOffsetX, bats);
-        var dx = pitchAimX - bodyX;
-        var dy = pitchAimY;
+        var bodyR = Rules.Or(rules).Batting.Hbp.BodyRadiusFt;
+        var dx = crossingX - BatterBodyX(boxOffsetX, bats);
+        var dy = crossingY - PitchFlight.PlateY;
         return dx * dx + dy * dy <= bodyR * bodyR;
     }
 

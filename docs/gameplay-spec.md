@@ -61,8 +61,8 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | Mercy | Optional (default **on** in Exhibition). 10-run lead after the trailing side has batted in inning 3 (or later) ends the game. Off for 3-inning games. | ❌ (documented in systems.md, not in sim) |
 | Designated hitter | None. The pitcher bats. | ✅ |
 | Lineup | Nine, set in Offense / Defense Setup. No substitutions except the pitcher swap (§4.7). | ✅ |
-| Count | 4 balls = walk. 3 strikes = strikeout. Foul with 2 strikes stays 2 strikes **except a bunt**, which is strike three (§5.8). | ⚠️ foul bunt (`Match.cs:773-779`) |
-| Hit by pitch | A pitch that meets the batter's body while the batter does not swing awards first base (§4.6). | ⚠️ unreachable geometry (`AtBatResolver.cs:241-256`) |
+| Count | 4 balls = walk. 3 strikes = strikeout. Foul with 2 strikes stays 2 strikes **except a bunt**, which is strike three (§5.8). | ✅ P1 (S-18) |
+| Hit by pitch | A pitch that meets the batter's body while the batter does not swing awards first base (§4.6). | ✅ P1 geometry (S-16, S-17); the rubber-walk reach is P1 part b |
 | Balk, intentional walk, dropped third strike, check swing, infield fly, appeal plays | Not in the game. | ✅ by omission |
 | Ground-rule double | A fair ball that bounces on the field then leaves it over the fence: batter and all runners advance exactly two bases from where they started. | ❌ (no fence in flight, `BallFlight.cs`) |
 | Ball out of play (foul territory beyond the wall / into the stands) | Foul ball, dead. | ✅ (spray > 45° is dead) |
@@ -112,8 +112,8 @@ SET ──(pitch commit)──▶ WINDUP ──(release @0.42)──▶ FLIGHT �
 Rules:
 
 - **The judged pitch is the shown pitch.** The strike/ball/contact verdict is computed from the same trajectory the batter sees, including in-flight break. ⚠️ CPU batter decides at launch before the human steers (`AtBatDirector.cs:245-246, 311-314`). Fix: CPU batter decides at the same plate-plane instant as a human would, from the final trajectory (S-05).
-- **A swing before release is a swing.** It resolves as an early miss (strike) with the bat arriving 0.30 s after the press. A press during SET is ignored (it is not a swing yet). ⚠️ SET press silently dropped or resolved as a −65-frame miss (`AtBatDirector.cs:173-174, 235`).
-- **Box and rubber positions persist** across pitches of the same at-bat; Down resets. ⚠️ `ResetBatter()` after every pitch (`Match.cs:558, 574`).
+- **A swing before release is a swing.** It resolves as an early miss (strike) with the bat arriving 0.30 s after the press. A press during SET is ignored (it is not a swing yet): the hold still builds a charge, the release does not commit (`ChargeButton.Advance(commits: false)`). ✅ P1 (S-14, S-15)
+- **Box and rubber positions persist** across pitches of the same at-bat; Down resets (SET only). The next hitter starts centered. ✅ P1 (S-16)
 - **Nothing advances baseball while a seat is disconnected** (how-to-play.md, two controllers). ✅
 
 ---
@@ -169,8 +169,8 @@ Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick ver
 
 ### 4.6 Hit by pitch
 
-- If the pitch's plate-plane point lies inside the batter's body circle (radius ≈ 0.45 ft, centered where the batter body actually is, including box walk) **and the batter did not swing**, the batter is hit: first base, forced runners advance, ball dead, stamp HIT BY PITCH. Balls/strikes unchanged.
-- The batter body and the sweet-spot oval move by the **same** world distance per box unit. ⚠️ Cursor moves 1.85 ft/unit, body 2.4 ft/unit (`AtBatFeel.cs`, `HomeSet.BatterWalk`).
+- If the pitch's plate-plane point lies inside the batter's body circle (`batting.hbp.bodyRadiusFt` 0.45, world feet, centered where the batter body actually is, including box walk, at the natural crossing height) **and the batter did not swing**, the batter is hit: first base, forced runners advance, ball dead, stamp HIT BY PITCH. Balls/strikes unchanged. ✅ P1 (S-16, S-17)
+- The batter body and the cursor move by the **same** world distance per box unit (`HomeSet.BatterWalk`). ✅ P1
 - A human pitcher can reach the body by walking the rubber fully toward the batter's side plus break. CPU pitchers reach it only through scatter (rare, ≈1 per game at Pitch ≤ 4). ⚠️ unreachable (`AtBatResolver.cs:250-256`).
 
 ### 4.7 Stamina and the pitcher swap
@@ -209,49 +209,49 @@ Aim scatter σ = (11 − Pitch) × 0.055 ft around the *target*, not the center.
 | Bunt | Hold West through the pitch | Batter squares at the press; contact when the ball reaches the bat (§5.8) |
 | Star | North armed + South | Captain star swing (§13). Costs a star even on a miss |
 
-Charge at MAX is the "Nice!" tell (rings line up). ✅ ⚠️ Charge adds only ×1.12 power (`AtBatResolver.cs:73-75`), too small to be a choice.
+Charge at MAX is a *charge* tell (rings line up; the swing shows MAX, the pitch its booklet word "Nice!"). Words about the contact — PERFECT / NICE / SOUR — come only from the typed zone once the bat meets the ball; a miss shows STRIKE (#578). ✅ P1
 
 ### 5.2 The cursor (sweet spot) — quality
 
 The reference model (D4): the bat is a hitbox along the swing plane, split into **five zones** — sour / nice / perfect / nice / perfect — and the ball meets one of them by *where it crosses*, not by when you pressed. The cursor on screen is that hitbox drawn on the plate.
 
-- A gold oval **follows the batter**, never the pitch (booklet-confirmed). Box walk moves it in X; its Y is the batter's natural contact height. The oval is the perfect+nice zones; the rim is sour.
-- The oval is **tall enough that any strike is hittable**: it spans the zone height plus a rim. Quality is by distance from the center along X (bat barrel: tip side sour, sweet spot perfect, handle side sour, asymmetric per body — the handle side is shorter) and along Y (a ball at the top or bottom of the zone is at best nice). ❌ Today the oval covers only Y ∈ [1.83, 2.97] of a zone spanning [1.45, 3.65]; the top 0.68 ft and bottom 0.38 ft of every strike are an automatic miss (`AtBatFeel.cs:127-152`), and the overlap is a 3-step quantization.
-- Bat (contact) stat scales the oval; a charge **narrows** the perfect and nice zones (reference: charge zones are smaller than slap zones). Good-chemistry runners on base widen the slap zones (×1.05 / 1.10 / 1.20 for 1 / 2 / 3).
-- Vertical placement is *earned* by the pitch choice on the mound (a changeup dumps under the center; a high charged fastball rides over it). A **sour slap on a changeup or a charged pitch is a pop-up** (reference rule). That is the pitcher-vs-batter game.
+- A gold oval **follows the batter**, never the pitch (booklet-confirmed). Box walk moves it in X by the same world distance as the body; its Y is the zone center. The oval is the perfect+nice zones; the rim is sour. ✅ P1 (`SweetSpot`, world feet, `batting.cursor`)
+- The oval is **tall enough that any strike is hittable**: its nice half-height is the zone half-height, and the sour rim is the barrel's rectangle `rimFraction` beyond it, so the corners of the frame are on the bat with the box centered. Quality is by the ellipse distance from the center: along X the bat barrel (nice half-axis `niceTipFt` 1.05 toward the tip, `niceHandleFt` 0.75 toward the hands — the handle side is shorter), along Y a ball at the top or bottom of the zone is at best nice. The perfect heart is `perfectFraction` (0.42) of the oval. The client draws exactly this outline (`SweetSpot.Outline`). ✅ P1 (S-05, S-06)
+- Bat (contact) stat scales the barrel (`scalePerContact` 0.04 per point from 5); a charge **narrows** it (`chargeMul` 0.8; reference: charge zones are smaller than slap zones). Good-chemistry runners on base widen a slap's barrel (×1.05 / 1.10 / 1.20 for 1 / 2 / 3, `buddiesOnBase.widen*`). ✅ P1 (S-11, S-30)
+- Vertical placement is *earned* by the pitch choice on the mound (a changeup dumps under the center; a high charged fastball rides over it). A **sour slap on a changeup or a charged pitch is a pop-up** (reference rule). That is the pitcher-vs-batter game. ✅ P1 (S-12)
 
 | Zone | Slap exit (× base) | Charge exit (× base) | Tell |
 | --- | --- | --- | --- |
-| Perfect | 1.00 | 1.15 | PERFECT flash, crack, `solidFreeze` |
+| Perfect | 1.00 | 1.25 | PERFECT flash, crack, `solidFreeze` |
 | Nice | 0.95 | 1.12 | NICE |
 | Sour | 0.75 | 0.95 | dull thud; forced pop/topper by timing |
 | Off the bat | miss | miss | whiff |
 
-Reference numbers behind the ratios: slap sour 100–130 / nice 140–145 / perfect 145–150; charge sour 140–150 / nice 162–177 / perfect 160–170, with the perfect charge carrying because it gets no added gravity.
+The two columns are `batting.quality.slap` / `.charge`, interpolated by the effective charge (a decayed overcharge lands between them). The perfect charge is the ×1.25 of §5.5. Reference numbers behind the ratios: slap sour 100–130 / nice 140–145 / perfect 145–150; charge sour 140–150 / nice 162–177 / perfect 160–170, with the perfect charge carrying because it gets no added gravity.
 
 ### 5.3 Timing — the window and direction
 
 `err` = (bat-plane time − ball-plate time) in frames at 60 Hz, bat plane = press + 0.30 s (`Motion.SwingContact`).
 
-- **Window**: slap **9 frames**, charge **7 frames** (reference), ± (contact − 5) × 0.4, × skill multipliers, **floored at 5 frames**. Outside the window the bat is not on the plane: **miss**, strike. ⚠️ Today the window is 4.8–9.75 frames with a 1.0-frame "perfect" *timing* band sampled once per render frame — a coin flip at 60 fps (`AtBatResolver.cs:9-11`); no floor.
-- Inside the window, timing does **not** change quality (D4). It changes **direction**: early contact **pulls**, late contact **pushes** (opposite field). Linear across the window: earliest frame ≈ 55° toward the pull line, center ≈ straight at second, latest ≈ 55° toward the opposite line. Stick L/R at contact shifts the whole range by ±12°.
-- The batter's handedness mirrors the map. A right-handed batter who is early hits toward 3B.
-- Quality still moves slightly with timing only through the *rim*: the earliest and latest frame reduce the cursor overlap by one zone (perfect → nice) because the bat is not square. Never two zones. ⚠️ Perfect → Cheap (`AtBatResolver.cs:54-55`).
+- **Window**: slap **9 frames**, charge **7 frames** (reference), + (contact − 5) × 0.4, × skill multipliers (`star-skills.json` `batterWindowMul`) × the park's, **floored at 5 frames** (`batting.window`). The window is a total width: the bat is on the plane when |err| ≤ half of it. Outside it the bat is not on the plane: **miss**, strike. The Charge Bat keeps the slap window. ✅ P1 (S-08, S-09, S-10, S-30; `AtBatResolver.ContactWindowFrames`)
+- Inside the window, timing does **not** change quality (D4). It changes **direction**: early contact **pulls**, late contact **pushes** (opposite field). Linear across the window: earliest frame ≈ 55° toward the pull line (`spray.timingDeg`), center ≈ straight at second, latest ≈ 55° toward the opposite line. Stick L/R at contact shifts the whole range by ±12° (`spray.stickDeg`). The zone adds its spread (`spray.*SpreadDeg`). ✅ P1 (S-07, S-08)
+- The batter's handedness mirrors the map. A right-handed batter who is early hits toward 3B. ✅ P1
+- Quality still moves slightly with timing only through the *rim*: the outermost (1 − `squareFraction`) of each half-window reduces the cursor zone by one (perfect → nice, nice → sour) because the bat is not square. Never two zones; sour stays sour. ✅ P1
 
 ### 5.4 Height and the stick
 
-- **Launch** = base by pitch height (low pitch → lower launch) **+** stick U/D at contact: **Up = over the top = grounder** (probability mass to the lowest band), **Down = under = lift** (to the highest band). The reference maps up→grounder, down→fly; this matches the current sign (`AtBatResolver.cs:90-91`) and is now the rule. The same axis must **not** also reset the box (`AtBatDirector.cs:171, 288` ⚠️ — Down-reset is a SET verb only, before the windup).
-- Launch is drawn from five bands (topper / grounder / liner / fly / pop) with probabilities by zone × swing × stick, `data/rules/batting.json`. Sour contact is forced to the topper (early) or pop (late) band. ✅ shape; ⚠️ single formula with ±7° noise.
+- **Launch** = base by power and charge (`launch.loftBaseDeg`, `loftPerPower`, `charge.loftDeg`) **+** the pitch height (`perFtOfHeight` per foot the crossing sits above the zone center: a low pitch launches lower) **+** stick U/D at contact (`stickDeg`): **Up = over the top = grounder**, **Down = under = lift**. The reference maps up→grounder, down→fly and that is the rule. The same axis does **not** reset the box: Down-reset is a SET verb only, before the windup. ✅ P1 (S-06, S-13)
+- Launch noise is ±`noiseDeg`/2. Sour contact is forced to a band: the topper band (`topperMinDeg`..) when early, the pop band (`popMinDeg`..) when late or on the §5.2 pop-up rule. ✅ P1 (S-12). The five-band probability table (topper / grounder / liner / fly / pop by zone × swing × stick) is the P2 batted-ball class table; until then the class is read from the launch.
 - Sluggers' "scatter hit" (D-pad at contact) is our stick L/R above. The reference guide calls it unreliable; ours is deterministic.
 
 ### 5.5 Exit velocity
 
 `exit = base(power) × zone × charge × starSwing × buddies × pitch`.
 
-- `charge`: 0 → slap; MAX → **×1.25** (reference: charge perfect 160–170 vs slap perfect 145–150, with less gravity). Below MAX interpolates; past the band it decays. ⚠️ ×1.12 max (`AtBatResolver.cs:73-75`).
-- `buddies`: good-chemistry runners on base — **×1.10 / 1.25 / 1.50 on a charged swing** (reference), and the slap-zone widening in §5.2. ⚠️ Applies to every contact including cheap (`ChemistryTable.cs:96-105`).
-- `pitch`: a charged pitch met with sour contact ×0.6; met with a perfect charge ×1.1 (reference "pitch type impact"). A high-Pitch arm dampens non-perfect contact (nice ×0.9, sour ×0.75 at Pitch 10) — the reference's hidden "cursed ball" made visible as the Pitch stat.
-- The Charge Bat gives a manual-MAX charge for free and keeps the narrow charge zones off; it is never worse than a manual charge. ⚠️ Pins ×1.10, below the manual ×1.12 (`AtBatResolver.cs:73-75`).
+- `zone × charge`: the §5.2 table — 0 → the slap column; MAX → the charge column (**×1.25** on a perfect; reference: charge perfect 160–170 vs slap perfect 145–150, with less gravity). Below MAX interpolates; past the band the charge decays and the exit slides back toward the slap column. ✅ P1 (S-11, S-30)
+- `buddies`: good-chemistry runners on base — **×1.10 / 1.25 / 1.50 on a charged swing only** (`buddiesOnBase.*Mul`), and the slap-zone widening in §5.2. ✅ P1
+- `pitch` (`batting.pitchFactor`): a charged pitch met with sour contact ×0.6; met with a perfect charge ×1.1 (reference "pitch type impact"). A high-Pitch arm dampens non-perfect contact per stat point above 5 (nice ×0.9, sour ×0.75 at Pitch 10) — the reference's hidden "cursed ball" made visible as the Pitch stat. ✅ P1
+- The Charge Bat gives a manual-MAX charge for free and keeps the narrow charge zones and the charge window off; it is never worse than a manual charge. ✅ P1 (S-30)
 - Pull / push hitters (`data/characters/` optional `hitType`): ×1.05 to the named side, ×0.9 to the other. Optional; default mid.
 
 ### 5.6 Fair, foul, home run
@@ -266,10 +266,10 @@ Reference numbers behind the ratios: slap sour 100–130 / nice 140–145 / perf
 
 ### 5.8 Bunt
 
-- Hold West before the pitch: the batter squares (pose tell for the defense). Contact is judged when the ball reaches the bat plane, same clock as a swing (no 0.30 offset because the bat is already there). ⚠️ Judged at the press (`AtBatFeel.cs:217-221`).
-- Quality: timing tiers apply; a bunt still needs oval overlap (a high pitch popped up is a bunt pop). ⚠️ Bypasses the oval (`AtBatResolver.cs:52`).
-- Ball: exit ×0.42, launch 3–12°, spray toward the stick side ±14°. Never a home run. ✅
-- **Foul bunt with two strikes is a strikeout.** ❌
+- Hold West before the pitch: the batter squares (pose tell for the defense). Contact is judged when the ball reaches the bat plane, same clock as a swing (no 0.30 offset because the bat is already there, `AtBatMotion.SwingErrorFrames(bunt)`). ✅ P1
+- Quality: the window and the cursor apply; a bunt off the bat is a miss. A sour bunt, or a crossing more than `bunt.popAboveCenterFt` above the zone center, is a **bunt pop** (the pop band). ✅ P1 (S-19)
+- Ball: exit ×0.42, launch 3–12°, spray toward the stick side ±14° (timing does not steer a bunt). Never a home run. ✅
+- **Foul bunt with two strikes is a strikeout.** ✅ P1 (S-18)
 - Bunt fielding: P, C, 1B, 3B charge (§7.3). Runner rules: sac bunt is a live play, not a table.
 
 ### 5.9 CPU batter
@@ -289,7 +289,7 @@ A table, evaluated when the ball crosses the plate plane (same instant a human's
 
 **Tracking** (the reference model): during the windup the CPU batter *guesses* the crossing (50–80% "same as last pitch") and walks the box toward it; after release it re-reads the ball with a chance to track perfectly or with a fixed offset (0.11–0.41 ft, worse on easy). **If the pitcher moved on the rubber since the last pitch, the mistrack chance rises sharply** (reference: 30–95%). That is why walking the rubber is a real verb against the CPU. Timing error σ = (11 − Bat) × 0.62 frames; fooled by a changeup / charge it swings 4–9 frames early / late.
 
-**No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ❌ `CpuSwingVsHuman` forces |err| ≥ 3.2 and takes 32% of meatballs (`Match.cs:698-726`). `CpuSwing` must not arm steals (side effect, `Match.cs:672-676`) — that is the runner AI (§11.6).
+**No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ✅ P1 part a: `CpuSwingVsHuman`, its `batting.cpu.vsHuman` numbers, and the `cpuVsHumanTake` / `cpuVsHumanMiss` feel rolls are deleted; one table whoever pitches. ⚠️ `CpuSwing` must not arm steals (side effect, `Match.cs` `CpuSwing`) — that is the runner AI (§11.6, P6).
 
 Charge vs slap by archetype (reference): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's Bat/Run split.
 
@@ -758,14 +758,14 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | File | Sections |
 | --- | --- |
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `flight` (release hand, rubber walk, `AirSeconds` scale and clamps, break ramp), `shapes` (fastball / changeup / curve / slider curves), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1) |
-| `batting.json` | `window`, `charge`, `quality` (exit × and energy ×), `exit`, `launch`, `bunt`, `spray`, `foul` (cheap pull past the chalk), `homer` (launch band), `oval` (sweet spot size and edge), `hbp`, `star` (phonyball whiff, star launches), `buddiesOnBase`, `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped, with `vsHuman`; §5.9 replaces them in P1) |
+| `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
 | `flight.json` | gravity, drag, `timeScale`, plate height, wind, sample rate; `bounce`, `skid`, `roll`, `landing`, `classes` (grounder / line / homer-likely bands, infield lip), `carry` (hit type by carry until P3), `deadBall` (homer trot, foul flight hold) |
 | `fielding.json` | `chase` (CPU speed; the human stick speed as shipped until P4 unifies them; flat cover speed, D11; swap lock), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, the CPU catch beats as shipped until P4, jump/dive arm times), `range`, `drops`, `groundOut` (the infield roll as shipped until P4), `wallPlant`, `abilities`, `throw` (verdict clock and the live flight clock as shipped until P4 collapses them), `catcher` (gun, CPU release, tag hold), `chem`, `bobble`, `knockback`, `park` |
 | `running.json` | `homeToFirst`, `bagToBag`, `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`), `close` (SAFE-stamp margin, icon delay, CPU reaction), `steal` (lead-as-time-credit race as shipped until P6), `tagUp` (sac-fly carry), `stick`, `dash` (mash per press), `cpu` (the steal roll as shipped until P6) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
 | `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (live: CPU batter σ, close-play reaction, catcher release), makeable margin (P4), perfect-steal chance and pickoff chance (P6). Normal is ×1 everywhere so the tables read as written. |
 
-Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
+Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
 
 ---
 
@@ -777,26 +777,26 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 
 | # | Where | What | Spec |
 | --- | --- | --- | --- |
-| 1 | `AtBatFeel.cs:127-152`, `AtBatDirector.cs:109` | Sweet-spot oval has a fixed Y covering only [1.83, 2.97] of a [1.45, 3.65] zone; 3-step overlap | §5.2 |
+| 1 | `AtBatFeel.cs:127-152`, `AtBatDirector.cs:109` | Sweet-spot oval has a fixed Y covering only [1.83, 2.97] of a [1.45, 3.65] zone; 3-step overlap — ✅ P1a (`SweetSpot` in world feet, five zones, S-05 … S-12) | §5.2 |
 | 2 | `AtBatDirector.cs:222-224` | Human pitch type hard-coded fastball, `AimY` 0; `curve`/`slider` unreachable | §4.1, §4.3 |
 | 3 | `AtBatDirector.cs:224`, `Match.cs:667`, `PitchFlight.cs:45` | Rubber walk moves the crossing 1.35× for a human, 0.35× for CPU | §4.2 |
 | 4 | `PitchFlight.cs:58-63` | Full break moves the crossing 1.8 ft (zone half-width 0.92) | §4.2 |
 | 5 | `AtBatDirector.cs:245-246, 311-314` | CPU batter judges at launch, before in-flight steering | §3 |
-| 6 | `AtBatResolver.cs:9-11, 48-51` | Perfect band 1.0 frame, no window floor | §5.3 |
-| 7 | `AtBatResolver.cs:54-55` | Off-center Perfect demotes to Cheap | §5.3 |
-| 8 | `AtBatResolver.cs:73-75` | Charge ×1.12 max; Charge Bat pinned to ×1.10 | §5.1, §5.5 |
-| 9 | `ChemistryTable.cs:96-105` | Buddies-on-base × applies to every contact | §5.5 |
+| 6 | `AtBatResolver.cs:9-11, 48-51` | Perfect band 1.0 frame, no window floor — ✅ P1a (`ContactWindowFrames`, S-08 … S-10) | §5.3 |
+| 7 | `AtBatResolver.cs:54-55` | Off-center Perfect demotes to Cheap — ✅ P1a (one tier at the rim, never two) | §5.3 |
+| 8 | `AtBatResolver.cs:73-75` | Charge ×1.12 max; Charge Bat pinned to ×1.10 — ✅ P1a (`quality.charge` column, S-11, S-30) | §5.1, §5.5 |
+| 9 | `ChemistryTable.cs:96-105` | Buddies-on-base × applies to every contact — ✅ P1a (charged swings only; slap widen) | §5.5 |
 | 10 | `AtBatResolver.cs:13-23, 151-157` | Foul = spray > 45°; `CheapFoulPull` 40% teleport | §5.6 |
 | 11 | `AtBatResolver.cs:119-122` vs `Fielding.cs:340-346` | Two homer launch bands | §5.6 |
-| 12 | `AtBatResolver.cs:241-256`, `Match.cs:811-819` | HBP unreachable; `FinishHitByPitch` ignores `inZone` | §4.6 |
-| 13 | `AtBatFeel.cs` vs `HomeSet.BatterWalk` | Cursor moves 1.85 ft/unit, body 2.4 ft/unit | §4.6 |
-| 14 | `AtBatFeel.cs:217-221`, `AtBatResolver.cs:52` | Bunt judged at the press; bypasses the oval | §5.8 |
-| 15 | `Match.cs:773-779` | Foul bunt with 2 strikes not a K; `FinishFoul` skips `AfterPitch` | §5.8, §5.6 |
-| 16 | `AtBatDirector.cs:171, 173-174, 235, 288` | Stick-down both aims launch and resets the box; SET press dropped / −65-frame miss | §5.4, §3 |
-| 17 | `Match.cs:558, 574` | Box walk reset every pitch | §3 |
+| 12 | `AtBatResolver.cs:241-256`, `Match.cs:811-819` | HBP unreachable; `FinishHitByPitch` ignores `inZone` — ✅ P1a body geometry in world feet (S-16, S-17); the rubber-walk reach is P1b | §4.6 |
+| 13 | `AtBatFeel.cs` vs `HomeSet.BatterWalk` | Cursor moves 1.85 ft/unit, body 2.4 ft/unit — ✅ P1a (both `HomeSet.BatterWalk`) | §4.6 |
+| 14 | `AtBatFeel.cs:217-221`, `AtBatResolver.cs:52` | Bunt judged at the press; bypasses the oval — ✅ P1a (S-19) | §5.8 |
+| 15 | `Match.cs:773-779` | Foul bunt with 2 strikes not a K — ✅ P1a (S-18); `FinishFoul` skips `AfterPitch` — stays until P6 retires the pickoff roll | §5.8, §5.6 |
+| 16 | `AtBatDirector.cs:171, 173-174, 235, 288` | Stick-down both aims launch and resets the box; SET press dropped / −65-frame miss — ✅ P1a (S-14, S-15; Down resets in SET only) | §5.4, §3 |
+| 17 | `Match.cs:558, 574` | Box walk reset every pitch — ✅ P1a (persists across the at-bat, S-16) | §3 |
 | 18 | `Match.cs:38-39, 87, 205, 602-622, 654, 658, 1289` | Team stamina, flat costs, threshold ×4, swap +35 | §4.7 |
 | 19 | `Match.cs:648-668` | CPU pitcher aims center, nested type rolls, dead `TimingErrorFrames` | §4.8 |
-| 20 | `Match.cs:672-676, 698-726` | `CpuSwing` arms steals; forced \|err\| ≥ 3.2 vs a human | §5.9, §11.6 |
+| 20 | `Match.cs:672-676, 698-726` | `CpuSwing` arms steals; forced \|err\| ≥ 3.2 vs a human — clamp ✅ P1a (`CpuSwingVsHuman` deleted); the steal arm moves to the runner AI in P6 | §5.9, §11.6 |
 | 21 | `AtBatResolver.cs:232, 264-281`; `Models.cs:105, 123, 139` | Discarded `pitchStat`; 1.12 divide-out; dead `ChargePitch`, `Strike`, `TimingErrorFrames` | cleanup |
 | 22 | `Fielding.cs:472-476` | Park id string special-cased for the window | §14 |
 | 23 | `star-skills.json` vs `FieldAbilities.cs:117-152`, `AtBatResolver.cs:220-226`, `Match.cs:1289` | JSON dead; `staff-swing` 1.08 vs 1.10; `staminaCost` ignored | §13 |

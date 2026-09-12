@@ -104,11 +104,15 @@ public sealed class ChemistryTable
         };
     }
 
-    /// <summary>Buddies on base multiply exit velocity (batting.buddiesOnBase).</summary>
+    /// <summary>Good-chemistry runners on base for this batter (spec §5.2, §5.5).</summary>
+    public int BuddiesOnBase(Character batter, IEnumerable<Character> runnersOn) =>
+        runnersOn.Count(r => Between(batter, r) == Chemistry.Good);
+
+    /// <summary>Buddies on base multiply a charged swing's exit velocity (batting.buddiesOnBase). The resolver gates the charge.</summary>
     public double ChargePowerMul(Character batter, IEnumerable<Character> runnersOn)
     {
         var b = _rules.Batting.BuddiesOnBase;
-        var buddies = runnersOn.Count(r => Between(batter, r) == Chemistry.Good);
+        var buddies = BuddiesOnBase(batter, runnersOn);
         return buddies switch
         {
             >= 3 => b.ThreeMul,
