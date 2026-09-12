@@ -156,7 +156,7 @@ namespace GrandSluggers.UnityClient
                 hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = Motion.Verb.Charm;
-                var pType = _pitch != null ? _pitch.Type : _pitches[_pitchIndex];
+                var pType = ShownPitchType;
                 hero.SetPose(pose, kv.Key == "P" ? _pitchCharge : 0, kv.Key == "P" ? pType : null);
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
