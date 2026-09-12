@@ -88,12 +88,17 @@ public sealed record GloveItem(
     int ArmMod,
     string Visual = "glove-brown");
 
+/// <summary>
+/// A nine. <paramref name="Gloves"/> is the lineup's glove diamond from Offense / Defense Setup
+/// (position → player, §8.1); null means the roster order stands in for it (the preset teams).
+/// </summary>
 public sealed record Team(
     string Name,
     Character Captain,
     IReadOnlyList<Character> Roster,
     IReadOnlyList<Character>? Order = null,
-    Character? Starter = null)
+    Character? Starter = null,
+    IReadOnlyDictionary<string, Character>? Gloves = null)
 {
     public IEnumerable<Character> Everyone => Roster;
 
@@ -153,6 +158,7 @@ public sealed record AtBatResult(
     double SprayDeg = 0,
     bool Foul = false,
     bool InZone = true,
+    /// <summary>The batted ball's shape from the one flight (§6.2: topper … homer, bunt). <see cref="Foul"/> is the chalk.</summary>
     BattedBallClass Class = BattedBallClass.Fly);
 
 /// <summary>

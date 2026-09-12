@@ -21,8 +21,6 @@ public enum LivePlayCommandKind
     Reset,
     /// <summary>Contact: the sim takes the ball, the gloves, and the seats and plays it out through <see cref="Tick"/>.</summary>
     BeginLive,
-    /// <summary>A foul or dead flight the camera follows; nobody plays it.</summary>
-    BeginFlight,
     /// <summary>One frame of the live ball with both pads.</summary>
     Tick,
     /// <summary>A steal is armed after a take or a miss: the catcher's throw play.</summary>
@@ -130,9 +128,6 @@ public sealed record LivePlayCommand(
         LivePlayCommandSource source = LivePlayCommandSource.System) =>
         new(LivePlayCommandKind.BeginLive, source, Dash01: dash01, Pitch: pitch, Swing: swing, Hit: hit,
             Field: cpuField, Preview: preview, Seats: seats);
-
-    public static LivePlayCommand BeginFlight(AtBatResult hit, LivePlayCommandSource source = LivePlayCommandSource.System) =>
-        new(LivePlayCommandKind.BeginFlight, source, Hit: hit);
 
     public static LivePlayCommand Tick(
         double dt,
@@ -263,7 +258,6 @@ public sealed partial class LivePlaySystem
             LivePlayCommandKind.Complete => Complete(command),
             LivePlayCommandKind.Reset => ResetResult(),
             LivePlayCommandKind.BeginLive => BeginLive(command),
-            LivePlayCommandKind.BeginFlight => BeginFlight(command),
             LivePlayCommandKind.Tick => Tick(command),
             LivePlayCommandKind.BeginSteal => BeginSteal(command),
             LivePlayCommandKind.ApplyItem => ApplyItem(command),
