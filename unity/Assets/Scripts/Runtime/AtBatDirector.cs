@@ -41,6 +41,7 @@ namespace GrandSluggers.UnityClient
             _chargePast = 0;
             _pitchButton = default;
             _swingButton = default;
+            _swapPick = null;
             _breakX = 0;
             _dash01 = 0;
             if (_match != null) _match.Dash01 = 0;
@@ -134,10 +135,11 @@ namespace GrandSluggers.UnityClient
             var mound = PitchPad;
             var box = BatPad;
             var pitchButton = default(ChargeButtonStep);
+            if (HumanPitches) TickSwapPick(dt, mound);
             if (HumanPitches)
                 pitchButton = TickChargeButton(dt, _feel.PitchChargeSeconds, mound,
                     ref _pitchButton, ref _pitchCharge, ref _pitchPast,
-                    _t >= (float)_feel.PitcherReadySeconds);
+                    _t >= (float)_feel.PitcherReadySeconds && _swapPick == null);
             else
                 _pitchCharge = Mathf.Clamp01(_t / Mathf.Max(0.12f, (float)_feel.PitcherReadySeconds));
             if (HumanBats)
@@ -147,7 +149,6 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast, commits: false);
             }
             _pip += dt * 1.35f;
-            if (mound.SwapPitcher) _match.SwapPitcher();
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI arms a steal.
             // TODO(P6 #568): the steal arm belongs to the runner AI, not the at-bat.
             if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
@@ -164,7 +165,8 @@ namespace GrandSluggers.UnityClient
             }
             if (HumanPitches)
             {
-                if (mound.StickY < -0.7f) _match.ResetPitcher();
+                if (_swapPick != null) { }
+                else if (mound.StickY < -0.7f) _match.ResetPitcher();
                 else _match.WalkPitcher(PitchWorldX(mound.StickX) * dt * 1.6f);
                 _aimX = (float)_match.PitcherOffsetX;
                 _aimY = 0;
@@ -188,6 +190,52 @@ namespace GrandSluggers.UnityClient
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
                 Launch(_match.CpuPitch());
+        }
+
+        /// <summary>The pitcher card's verb tells: STAR, CHANGE while West is held, the swap pick (spec §4.1, §4.7).</summary>
+        string PitcherExtra()
+        {
+            if (_match == null) return "";
+            var set = _phase == Phase.Set && HumanPitches;
+            return BroadcastHud.PitcherExtra(
+                _starPitch && HumanPitches,
+                set && PitchPad.Changeup,
+                set ? _swapPick?.Tell : null,
+                set && _swapPick == null && PitcherSwapPick.CanOpen(_match));
+        }
+
+        /// <summary>The pitcher's shape for the pose and the ball: the changeup hold in SET, the pitch once thrown.</summary>
+        string ShownPitchType => _pitch != null ? _pitch.Type : HumanPitches && PitchPad.Changeup ? "changeup" : "fastball";
+
+        /// <summary>
+        /// Select opens the swap pick, the stick or d-pad steps it, Select confirms, East closes
+        /// (spec §4.7, #582). While it is open the stick does not walk and South does not throw.
+        /// </summary>
+        void TickSwapPick(float dt, Controls.Pad mound)
+        {
+            if (_swapPick == null)
+            {
+                if (mound.SwapPitcher && PitcherSwapPick.CanOpen(_match))
+                {
+                    _swapPick = new PitcherSwapPick(_match);
+                    _swapArmed = MenuNav.Arm(mound.MenuAxisX);
+                    _swapHold = 0f;
+                }
+                return;
+            }
+            if (mound.SwapPitcher)
+            {
+                _swapPick.Confirm(_match);
+                _swapPick = null;
+                return;
+            }
+            if (mound.EastDown)
+            {
+                _swapPick = null;
+                return;
+            }
+            var step = MenuNav.Step(mound.MenuAxisX, mound.MenuTapX, dt, ref _swapArmed, ref _swapHold);
+            if (step != 0) _swapPick.Step(step);
         }
 
         /// <summary>The pitch as it stands in SET: the rubber, the changeup hold, the charge so far. Not committed.</summary>

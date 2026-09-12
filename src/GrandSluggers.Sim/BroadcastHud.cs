@@ -11,6 +11,20 @@ public static class BroadcastHud
         => spectacleActive || smashSeconds > 0 || freezeSeconds > 0;
 
     /// <summary>AB card extras. Steal names L3 until it's on.</summary>
+    /// <summary>
+    /// The pitcher card's verb tells in SET (spec §4.1, §4.7; #582): the way the batter card
+    /// shows BUNT and STEAL. CHANGE while West is held, STAR when armed, the swap pick while open.
+    /// </summary>
+    public static string PitcherExtra(bool star, bool changeup, string? swapTell = null, bool canSwap = false)
+    {
+        var s = "";
+        if (star) s += "STAR  ";
+        if (changeup) s += "CHANGE  ";
+        if (!string.IsNullOrEmpty(swapTell)) s += swapTell + "  ·  Select";
+        else if (canSwap) s += "Select SWAP";
+        return s.Trim();
+    }
+
     public static string BatterExtra(bool star, bool stealOn, bool canSteal, bool bunt, string item)
     {
         var s = "";
