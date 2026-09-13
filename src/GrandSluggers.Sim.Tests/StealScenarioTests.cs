@@ -537,7 +537,7 @@ public sealed class StealScenarioTests
         Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), ev.Outcome.ThrowEndpoint);
     }
 
-    [Fact(Skip = "S-69 is open: #640 (#568). The pickoff formation stands the middle infielder the rubber's ball-X picks (2B) on second, the throw from first is addressed to the one the first baseman's ball-X picks (SS), and the runner-play tick never walks them: the ball hangs as a lob at second for fielding.throw.lobMaxSec while a body with no head start walks in. Every away runner, Run 2 to Run 9, steals second on the pickoff. Nothing here is tuned to pass.")]
+    [Fact]
     public void S69_PickoffAtFirstOnARunnerArmedInSetCatchesThemBetweenBags()
     {
         var match = Defense();
@@ -547,7 +547,7 @@ public sealed class StealScenarioTests
         Assert.Equal(StealArm.Set, match.RunnerAt(1)!.StealArm);
         var rundown = false;
         var run = RunPickoff(match, 1, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu,
-            runPad: (_, live) => { if (live.InRundown) rundown = true; return LivePadInput.Dead; });
+            runPad: (_, live) => { if (live.InRundown) rundown = true; ThrowsGoToTheBodyOnTheBag(match, live); return LivePadInput.Dead; });
         Assert.True(run.Broke, "the SET arm broke on the pitcher's first motion (D3)");
         Assert.Equal(1, run.Throws[0].Bag);
         Assert.Equal("P", run.Throws[0].FromPos);
@@ -565,6 +565,61 @@ public sealed class StealScenarioTests
             Assert.Equal("PICKED OFF", PlayStamp.Label(run.Play));
         }
         Assert.Equal(new ThrowEndpoint(ThrowOrigin.PitcherRubber, 1), facts.ThrowEndpoint);
+    }
+
+    [Theory]
+    [InlineData("konga", 2)]
+    [InlineData("fenn", 3)]
+    [InlineData("brondo", 4)]
+    public void S69_ThePickoffOnASlowRunnerWhoBrokeIsARundownTheThrowAheadEnds(string who, int run)
+    {
+        // A body slower than the glove (Run 2 to 4) stays inside the rundown range the whole way, so the receiver's read
+        // is the rundown's (§9.7): the chase keeps them trapped with the ball behind them, the throw ahead goes at the
+        // last makeable moment to the body the formation stood on second, and a body the ball beats both ways takes the
+        // tag there (#640). Nothing about the runner, the glove, or the lob is tuned.
+        var runner = _content.Must(who);
+        Assert.Equal(run, runner.Stats.Run);
+        var home = _content.Team("Defense", "vale", "pewter", "lace", "frost", "basil", "ashlord", "vine", "moss", "hex");
+        var away = _content.Team("Offense", who, "cinder", "dart", "jester", "zig", "grit", "soot", "boom", "nugget");
+        var match = Match.Exhibition(_content, home, away, 3, 1);
+        Assert.True(match.StationRunner(1, runner));
+        Assert.True(match.StartSteal());
+        var rundown = false;
+        var throwsToSecond = 0;
+        var result = RunPickoff(match, 1, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu,
+            runPad: (_, live) =>
+            {
+                if (live.InRundown) rundown = true;
+                if (live.Events.Contains(LiveEvent.ThrowPop) && live.ThrowBag == 2)
+                {
+                    throwsToSecond++;
+                    Assert.Equal("1B", live.ThrowFromPos);
+                    Assert.True(live.ArmedThrow?.SpeedMul >= 1 - 1e-9, "a throw that races a body to the bag is never the lazy lob");
+                }
+                ThrowsGoToTheBodyOnTheBag(match, live);
+                return LivePadInput.Dead;
+            });
+        Assert.True(result.Broke);
+        Assert.True(rundown, "a body the glove cannot gain on is chased inside running.rundown.rangeFt");
+        Assert.Equal(1, throwsToSecond);
+        var facts = result.Play.Outcome!;
+        var tagged = Assert.Single(facts.OutsMade, o => o.Runner.Id == runner.Id);
+        Assert.Equal((OutType.Tag, 2), (tagged.Type, tagged.Bag));
+        Assert.Equal(RunnerPlayResult.PickedOff, facts.RunnerResult);
+        Assert.Equal("PICKED OFF", PlayStamp.Label(result.Play));
+    }
+
+    /// <summary>
+    /// §8.7 on a runner play (#640): every throw to a bag is addressed to the body the formation stood there — the one
+    /// cover read of the play — so the receiver is on the bag (inside fielding.cover.radiusFt) the frame the throw pops.
+    /// </summary>
+    void ThrowsGoToTheBodyOnTheBag(Match match, LivePlaySystem live)
+    {
+        if (!live.Events.Contains(LiveEvent.ThrowPop) || live.ThrowBag is < 1 or > 4) return;
+        var bag = Diamond.Bag(live.ThrowBag);
+        Assert.True(live.Fielders.TryGetValue(live.CoverPos, out var at), $"the throw to bag {live.ThrowBag} names a receiver");
+        Assert.True(Diamond.Dist(at.X, at.Z, bag.X, bag.Z) <= match.Rules.Fielding.Cover.RadiusFt,
+            $"the throw to bag {live.ThrowBag} is addressed to {live.CoverPos} standing on it, not a body at ({at.X:0},{at.Z:0})");
     }
 
     [Fact]
