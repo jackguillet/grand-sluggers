@@ -198,17 +198,15 @@ public class FlyCatchTests
     }
 
     [Fact]
-    public void FollowPutsTheWallShotOnTheGlove()
+    public void AWallBallFollowsTheBallOnTheFlyShot()
     {
-        var wall = _content.Shots.Must(PlayCamera.Wall);
-        Assert.Equal("glove", wall.Look, ignoreCase: true);
+        // D14 / #608: the wall beat is the fly follow on the dirt under the ball, not a glove cam that swoops in.
+        var fly = _content.Shots.Must(PlayCamera.InPlayFly);
         var at = new Vec3(12, 5.5, 310);
-        var framed = PlayCamera.Follow(wall, at);
-        Assert.Equal(PlayCamera.Wall, framed.Shot);
-        Assert.Equal(at, framed.Look);
-        Assert.InRange(framed.Pos.X - at.X, 20, 28);
-        Assert.InRange(framed.Pos.Z - at.Z, -38, -28);
-        Assert.Equal(wall.Fov, framed.Fov);
+        var framed = PlayCamera.FollowGround(fly, at);
+        Assert.Equal(PlayCamera.InPlayFly, framed.Shot);
+        Assert.Equal(new Vec3(at.X, 0, at.Z), framed.Look);
+        Assert.Equal(fly.Fov, framed.Fov);
         var one = PlayCamera.Shot(PlayCamera.Beat.Wall, seats: 1);
         var two = PlayCamera.Shot(PlayCamera.Beat.Wall, seats: 2);
         Assert.Equal(one, two);

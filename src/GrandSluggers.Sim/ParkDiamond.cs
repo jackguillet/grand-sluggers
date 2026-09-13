@@ -60,7 +60,7 @@ public static class ParkDiamond
     /// <summary>Outer ring tucks under the wall face, not past it.</summary>
     public const float TrackWallInset = 0.5f;
 
-    /// <summary>Yellow pole above the 26-ft wall. Photo-scale: ~3× the fence.</summary>
+    /// <summary>Yellow pole well above the park's wall. Photo-scale: several times the fence.</summary>
     public const float PoleHeight = 72f;
     public const float PoleRadius = 0.62f;
     /// <summary>Grate from the wall cap up the shaft. Faces fair, sits on the fair side of the pole.</summary>
@@ -77,13 +77,13 @@ public static class ParkDiamond
         return (-s * inv, inv);
     }
 
-    public static bool ScreenFacesFair()
+    public static bool ScreenFacesFair(Park park)
     {
         var rf = FairInward(1);
         var lf = FairInward(-1);
         return rf.X < 0 && rf.Z > 0 && lf.X > 0 && lf.Z > 0
-            && PoleHeight > HarborWall.OutfieldHeight * 2.2f
-            && PoleScreenH > HarborWall.OutfieldHeight;
+            && PoleHeight > HarborWall.OutfieldHeight(park) * 2.2f
+            && PoleScreenH > HarborWall.OutfieldHeight(park);
     }
 
     /// <summary>Mow stripe width. Bands of constant X — home → CF, vertical in the overhead.</summary>

@@ -29,8 +29,6 @@ public static class PlayCamera
         Rundown,
     }
 
-    public const string Wall = "wall";
-
     /// <summary>
     /// Live batted ball. 45° down from the home side of the dirt under the ball
     /// so CF is the top of the frame and home sits under second.
