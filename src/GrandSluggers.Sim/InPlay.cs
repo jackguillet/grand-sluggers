@@ -107,7 +107,12 @@ public static class InPlay
     /// <summary>
     /// Who covers each bag this play (§8.7): 1B covers first (2B when 1B is the glove), 2B / SS cover
     /// second (whichever is not the glove; with both free the one away from the ball's side), 3B
-    /// third, C home, and P backfills any bag whose cover is the glove. The glove never covers.
+    /// third, C home, and P backfills any bag whose cover is the glove. The glove never covers, and no
+    /// body covers two bags.
+    /// <paramref name="ballX"/> is one number per play (<c>LivePlaySystem.CoverBallX</c>: the landing X
+    /// of a batted ball, the glove's spot when a runner play forms), never the ball's position at the
+    /// moment of a read — two reads with different X can name different middle infielders for second,
+    /// and the throw then goes to a body nobody walked to the bag (#640).
     /// </summary>
     public static Dictionary<int, string> CoverMap(string glovePos, double ballX)
     {
@@ -118,11 +123,13 @@ public static class InPlay
                 if (pos != glovePos) return pos;
             return "";
         }
-        map[1] = Pick("1B", "2B", "P");
+        // Second first: the middle infielder it takes is spoken for, so first and third fall through to the
+        // pitcher rather than naming one body for two bags (a runner play reads the map with the ball at X 0).
         map[2] = glovePos == "SS" ? Pick("2B", "P")
             : glovePos == "2B" ? Pick("SS", "P")
             : ballX > 0 ? "SS" : "2B";
-        map[3] = Pick("3B", "SS", "P");
+        map[1] = Pick("1B", map[2] == "2B" ? "P" : "2B", "P");
+        map[3] = Pick("3B", map[2] == "SS" ? "P" : "SS", "P");
         map[4] = Pick("C", "P");
         return map;
     }
