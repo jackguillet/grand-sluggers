@@ -31,11 +31,18 @@ Bonus stills that save a later sitting (same rules):
 | Fly | `diamond-fly` | Same 45°, pulled back, more FOV. CF at the top. Fielder reads, ball is a baseball |
 | Homer | `diamond-fly` | Same pulled-back 45°. The ball flies toward CF at the top of the frame |
 
-## Character stills (look gate)
+## Dual stills (look gate)
 
-Any change under `Art/Characters/`, `Art/Animation/Clips/`, or `tools/blender/` needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
+Any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`, or Harbor kit meshes needs **both** PNGs in `scratchpad/stills/` and linked in the PR **before** a player rebuild. HUD off. Named captain. Catalog: `data/agent/dual-stills.json`.
 
-Capture: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Capture Character Stills**). PNGs land in `unity/Temp/gs-stills/`. Copy into `scratchpad/stills/` for the PR. Do not rebuild the Mac player as proof.
+1. **DCC still** — `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named files: `dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
+2. **In-game still** — `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot.
+
+A read-only **look-critic** (`.grok/skills/look-critic/`) compares the PNGs to this table and `docs/silhouette-bible.md`. It files a child or a PR comment. It cannot mark #188 done. It cannot edit this rubric. Agents file both PNGs, spawn the critic, and **stop**. Humans pass or fail.
+
+`dotnet test`, `cli art`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. There is no CI image-diff. Do not rebuild the Mac player as proof.
+
+Capture in-game: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Capture Character Stills**). The script copies into `scratchpad/stills/` when the PNGs exist.
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
@@ -57,6 +64,10 @@ Capture with **Grand Sluggers → Capture Request File** and `{"shots":["swing-m
 Name files:
 
 ```
+dcc-body.png
+dcc-extras.png
+dcc-{clip}.png
+dcc-harbor-kit.png
 char-{id}-rest.png
 char-{id}-pose.png
 swing-{id}-{normal|max}-{ready|load|contact|follow|finish}.png

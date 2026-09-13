@@ -47,7 +47,7 @@ Role players inherit the faction body type and **must not** grow captain extras 
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** A missing take holds idle, a missing body is a capsule, audio stays a generated tone, VFX stays code — and `cli art` says so.
-7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character mesh drops also need [character stills](screenshot-gate.md).
+7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character and Harbor kit drops also need [dual stills](screenshot-gate.md) (DCC + in-game) in `scratchpad/stills/`. A look-critic files; Jack passes.
 
 The common hitting bat is authored handle-to-barrel along model-local +Y and
 keeps that authored origin when its pieces are joined. The handle spans Y −1.00
