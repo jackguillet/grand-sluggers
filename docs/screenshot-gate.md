@@ -250,3 +250,12 @@ both rendered hands meet the physical handle in shared-root space, MAX load and
 the two swing keys preserve their authored direction, the loaded barrel rises, the physical bat stays outside
 the drawn head on every beat (#623), and the physical barrel segment crosses the plate volume. Normal and MAX each
 run for every selected captain in one editor launch.
+
+### Shared motion revision 2
+
+The swing matrix now runs **every requested captain × both batting hands ×
+normal/MAX × ready/load/contact/follow/finish** (140 rows for seven captains).
+Filenames include the forced anatomical hand, such as `swing-rio-L-max-contact.png`.
+The override lives only in the capture harness and calls the ordinary baked
+clip selector. Other still shots restore roster handedness. Pitch, throw, bunt,
+body and equipment acceptance are specified in [baseball-motion-spec.md](baseball-motion-spec.md).

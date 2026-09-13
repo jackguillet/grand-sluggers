@@ -46,8 +46,8 @@ public static class SwingPresentation
     /// a sphere of radius <see cref="HeadRadius"/>). The crouch in a take's legs lowers it by the
     /// key's <see cref="Key.Lift"/>.
     /// </summary>
-    public static readonly Vec3 HeadCenterAtRest = new(0, 4.05, 0.08);
-    public const double HeadRadius = 0.86;
+    public static readonly Vec3 HeadCenterAtRest = new(0, 4.36, 0.05);
+    public const double HeadRadius = 0.45;
     /// <summary>
     /// How far the head's center can wander from the vertical axis as the stance yaws the root,
     /// torso and head (measured at most 0.08 across both takes). The contract treats the head as
@@ -165,54 +165,28 @@ public static class SwingPresentation
     // SwingPresentationTests holds the two equal, and the Unity swing matrix
     // measures the rendered result.
     // <swing-keys>
-    /// <summary>The slap (#613): starts on the ready key with no windup, a compact arc, the held finish.</summary>
+    // Generated from data/art/swing-takes.json by tools/blender/sync_swing_contract.py.
     public static readonly IReadOnlyList<Key> SlapKeys =
     [
-        new(LoadAt,
-            new(0.4688, 2.4914, -0.6068), new(0.5108, 2.9177, -0.8447),
-            new(0.45, 2.3, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
-        new(LaunchAt,
-            new(0.304, 2.1492, 0.0776), new(0.2551, 2.4526, -0.304),
-            new(0.326, 2.013, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
-        new(ApproachAt,
-            new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695),
-            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
-        new(ContactAt,
-            new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937),
-            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
-        new(FollowThroughAt,
-            new(-0.0588, 2.1748, -0.2694), new(-0.3234, 2.3414, -0.6467),
-            new(0.06, 2.1, -0.1), Unit(-0.54, 0.34, -0.77), -0.14),
-        new(FinishAt,
-            new(-0.1359, 2.5752, 0.0464), new(-0.2159, 2.7428, -0.407),
-            new(-0.1, 2.5, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.14)
+        new(0, new(0.4688, 3.1414, -0.6068), new(0.5108, 3.5677, -0.8447), new(0.45, 2.95, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
+        new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
+        new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
+        new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
+        new(0.5, new(-0.0588, 2.9248, -0.2694), new(-0.3234, 3.0914, -0.6467), new(0.06, 2.85, -0.1), Unit(-0.54, 0.34, -0.77), -0.14),
+        new(0.6, new(-0.1359, 3.3252, 0.0464), new(-0.2159, 3.4928, -0.407), new(-0.1, 3.25, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.14),
     ];
 
-    /// <summary>The charge (#613): the windup the hold shows, the ready key, a bigger arc, the held finish. The bat clears the head throughout (#623).</summary>
     public static readonly IReadOnlyList<Key> ChargeKeys =
     [
-        new(LoadAt,
-            new(0.7371, 2.7414, -0.4519), new(0.8197, 3.1677, -0.679),
-            new(0.7, 2.55, -0.35), Unit(0.1686, 0.87, -0.4633), -0.2),
-        new(NormalLoadAt,
-            new(0.4688, 2.4914, -0.6068), new(0.5108, 2.9177, -0.8447),
-            new(0.45, 2.3, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
-        new(LaunchAt,
-            new(0.304, 2.1492, 0.0776), new(0.2551, 2.4526, -0.304),
-            new(0.326, 2.013, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
-        new(ApproachAt,
-            new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695),
-            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
-        new(ContactAt,
-            new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937),
-            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
-        new(FollowThroughAt,
-            new(-0.1538, 2.4423, -0.2274), new(-0.4963, 2.6478, -0.5112),
-            new(0.0, 2.35, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.12),
-        new(FinishAt,
-            new(-0.1118, 2.65, -0.0167), new(-0.0267, 2.65, -0.4992),
-            new(-0.15, 2.65, 0.2), Unit(0.1736, 0.0, -0.9848), -0.12)
+        new(0, new(0.7371, 3.3914, -0.4519), new(0.8197, 3.8177, -0.679), new(0.7, 3.2, -0.35), Unit(0.1686, 0.87, -0.4633), -0.2),
+        new(0.075, new(0.4688, 3.1414, -0.6068), new(0.5108, 3.5677, -0.8447), new(0.45, 2.95, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
+        new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
+        new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
+        new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
+        new(0.5, new(-0.1538, 3.1923, -0.2274), new(-0.4963, 3.3978, -0.5112), new(0, 3.1, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.12),
+        new(0.6, new(-0.1118, 3.4, -0.0167), new(-0.0267, 3.4, -0.4992), new(-0.15, 3.4, 0.2), Unit(0.1736, 0, -0.9848), -0.12),
     ];
+
     // </swing-keys>
 
     public static Key At(double poseT, Hand hand, SwingTake take)

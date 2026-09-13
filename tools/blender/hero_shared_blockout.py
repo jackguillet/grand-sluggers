@@ -13,6 +13,7 @@ Do not scale the FBX. Contract: docs/character-motion.md.
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import shutil
 import sys
@@ -22,21 +23,9 @@ import bpy
 from mathutils import Vector
 
 
-BONES = [
-    "root",
-    "torso",
-    "head",
-    "lUpper",
-    "lFore",
-    "rUpper",
-    "rFore",
-    "lThigh",
-    "lShin",
-    "rThigh",
-    "rShin",
-    "bat",
-    "glove",
-]
+RIG = json.loads((Path(__file__).resolve().parents[2] / "data/art/rig.json").read_text())
+BONES = RIG["bones"]
+ANATOMY = RIG["anatomy"]
 
 # Material names are palette roles. Unity recolors by these names.
 PALETTE = {
@@ -53,7 +42,7 @@ PALETTE = {
 # Landmarks the DCC validators and the Unity swing matrix read by name.
 LANDMARKS = ("torsoMesh", "Stripe", "headMesh", "EyeL", "EyeR", "lHand", "rHand", "lShoe", "rShoe")
 
-HEAD = Vector((0.0, -0.08, 4.05))
+HEAD = Vector(ANATOMY["headCenter"])
 
 
 def nuke():
@@ -69,6 +58,7 @@ def mat(name, color):
     if m is not None:
         return m
     m = bpy.data.materials.new(name)
+    m.diffuse_color = (*color, 1.0)
     m.use_nodes = True
     bsdf = m.node_tree.nodes.get("Principled BSDF")
     if bsdf:
@@ -138,23 +128,28 @@ def build_armature():
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="EDIT")
 
-    # Z-up, faces -Y, left at +X. Limb bones hang straight down with roll 0:
-    # local X = world X, local Y = down the bone, local Z = world +Y (behind).
-    add_bone(arm_data, "root", (0, 0, 0), (0, 0, 0.25))
-    add_bone(arm_data, "torso", (0, 0, 1.15), (0, 0, 2.55), "root")
-    add_bone(arm_data, "head", (0, -0.05, 3.35), (0, -0.05, 4.55), "torso")
-    add_bone(arm_data, "lUpper", (0.95, 0, 2.45), (0.95, 0, 1.55), "torso")
-    add_bone(arm_data, "lFore", (0.95, 0, 1.55), (0.95, 0, 0.85), "lUpper")
-    add_bone(arm_data, "rUpper", (-0.95, 0, 2.45), (-0.95, 0, 1.55), "torso")
-    add_bone(arm_data, "rFore", (-0.95, 0, 1.55), (-0.95, 0, 0.85), "rUpper")
-    add_bone(arm_data, "lThigh", (0.42, 0, 1.05), (0.42, 0, 0.45), "root")
-    add_bone(arm_data, "lShin", (0.42, 0, 0.45), (0.42, 0, 0.08), "lThigh")
-    add_bone(arm_data, "rThigh", (-0.42, 0, 1.05), (-0.42, 0, 0.45), "root")
-    add_bone(arm_data, "rShin", (-0.42, 0, 0.45), (-0.42, 0, 0.08), "rThigh")
-    add_bone(arm_data, "bat", (-1.15, -0.15, 0.90), (-1.15, -0.15, 0.20), "rFore")
-    add_bone(arm_data, "glove", (1.15, -0.15, 0.90), (1.15, -0.15, 0.20), "lFore")
+    # Data owns the rest hierarchy; all takes use this same armature.
+    for joint in RIG["joints"]:
+        add_bone(arm_data, joint["name"], joint["head"], joint["tail"], joint["parent"])
     bpy.ops.object.mode_set(mode="OBJECT")
     return arm_ob, arm_data
+
+
+def jersey_mesh(material):
+    """One continuous tailored jersey; graded spine/chest skin weights replace
+    a stack of disconnected torso ellipsoids. Rings are in the shared bind."""
+    rings=[(2.28,.42,.29),(2.42,.44,.30),(2.66,.43,.30),(2.90,.52,.33),
+           (3.15,.61,.345),(3.38,.59,.32),(3.54,.43,.26),(3.66,.19,.18)]
+    vertices=[(rx*math.cos(i*2*math.pi/32),-.02+ry*math.sin(i*2*math.pi/32),z)
+              for z,rx,ry in rings for i in range(32)]
+    faces=[(j*32+i,j*32+(i+1)%32,(j+1)*32+(i+1)%32,(j+1)*32+i)
+           for j in range(len(rings)-1) for i in range(32)]
+    faces.extend([tuple(reversed(range(32))),tuple((len(rings)-1)*32+i for i in range(32))])
+    mesh=bpy.data.meshes.new("jersey-surface");mesh.from_pydata(vertices,[],faces);mesh.update()
+    ob=bpy.data.objects.new("torsoMesh",mesh);bpy.context.collection.objects.link(ob)
+    mesh.materials.append(material)
+    for poly in mesh.polygons:poly.use_smooth=True
+    return ob
 
 
 def build_scene():
@@ -175,32 +170,44 @@ def build_scene():
         add(kind, "l" + name, (x, y, z), scale, key, "l" + bone, (rx, -ry, -rz))
         add(kind, "r" + name, (-x, y, z), scale, key, "r" + bone, (rx, -ry, -rz))
 
-    add("uv_sphere", "Hip", (0, 0, 1.05), (1.42, 1.12, 1.00), "slack", "root")
-    add("uv_sphere", "torsoMesh", (0, -0.05, 2.28), (1.42, 0.98, 1.85), "jersey", "torso")
-    add("cube", "Stripe", (0, -0.52, 2.35), (0.32, 0.08, 1.20), "gold", "torso")
-
-    # Face on the front (-Y). Eyes are the stance landmark; whites sit behind them.
-    add("uv_sphere", "headMesh", tuple(HEAD), (1.72, 1.72, 1.72), "flesh", "head")
+    add("uv_sphere", "Hip", (0, 0, 2.13), (1.00, 0.65, 0.62), "slack", "pelvis")
+    pieces.append((jersey_mesh(mats["jersey"]), "torso"))
+    add("cube", "Stripe", (0, -0.365, 3.12), (0.16, 0.04, 0.76), "gold", "torso")
+    add("uv_sphere", "NeckMesh", (0, -0.05, 3.80), (0.36, 0.36, 0.55), "flesh", "neck")
+    d = ANATOMY["headDiameter"]
+    add("uv_sphere", "headMesh", tuple(HEAD), (d, d, d), "flesh", "head")
+    face = d / 1.72
     for side, sx in (("L", 1.0), ("R", -1.0)):
-        add("uv_sphere", "White" + side, (sx * 0.30, HEAD.y - 0.78, HEAD.z + 0.12), (0.42, 0.42, 0.42), "white", "head")
-        add("uv_sphere", "Eye" + side, (sx * 0.30, HEAD.y - 0.94, HEAD.z + 0.12), (0.22, 0.22, 0.22), "ink", "head")
-        add("cube", "Brow" + side, (sx * 0.30, HEAD.y - 0.80, HEAD.z + 0.38), (0.38, 0.12, 0.08), "ink", "head")
-        add("uv_sphere", "Ear" + side, (sx * 0.86, HEAD.y, HEAD.z + 0.03), (0.28, 0.28, 0.28), "flesh", "head")
-    add("uv_sphere", "Mouth", (0, HEAD.y - 0.80, HEAD.z - 0.28), (0.42, 0.16, 0.18), "ink", "head")
-
-    # No cap. Hats return later as accessories on the head socket.
-
-    sym("uv_sphere", "UpperMesh", (0.95, 0, 2.00), (0.64, 0.64, 1.05), "jersey", "Upper")
-    sym("uv_sphere", "ForeMesh", (0.95, 0, 1.18), (0.52, 0.52, 0.82), "flesh", "Fore")
-    sym("uv_sphere", "Hand", (0.95, -0.10, 0.72), (0.48, 0.40, 0.38), "flesh", "Fore")
-    sym("uv_sphere", "ThighMesh", (0.42, 0, 0.78), (0.68, 0.68, 0.88), "slack", "Thigh")
-    sym("uv_sphere", "ShinMesh", (0.42, 0, 0.32), (0.54, 0.54, 0.58), "slack", "Shin")
-    sym("cube", "Shoe", (0.42, -0.32, 0.12), (0.70, 1.05, 0.42), "leather", "Shin")
+        def face_piece(kind, name, offset, scale, role):
+            add(kind, name + side, tuple(HEAD + Vector(offset) * face), tuple(v * face for v in scale), role, "head")
+        face_piece("uv_sphere", "White", (sx*.30,-.78,.12), (.42,.42,.42), "white")
+        face_piece("uv_sphere", "Eye", (sx*.30,-.94,.12), (.22,.22,.22), "ink")
+        face_piece("cube", "Brow", (sx*.30,-.80,.38), (.38,.12,.08), "ink")
+        face_piece("uv_sphere", "Ear", (sx*.86,0,.03), (.28,.28,.28), "flesh")
+    add("uv_sphere", "Mouth", tuple(HEAD + Vector((0,-.80,-.28))*face), tuple(v*face for v in (.42,.16,.18)), "ink", "head")
+    # No cap. Sculpted toy segments overlap at the anatomical pivots. Wrists
+    # and feet have independent skin groups, so they can articulate naturally.
+    sym("uv_sphere", "Shoulder", (.72,0,3.45), (.46,.46,.46), "jersey", "Upper")
+    sym("uv_sphere", "UpperMesh", (.72,0,2.99), (.40,.42,1.12), "jersey", "Upper")
+    sym("uv_sphere", "Elbow", (.72,0,2.48), (.31,.31,.31), "flesh", "Fore")
+    sym("uv_sphere", "ForeMesh", (.72,0,2.05), (.32,.34,1.02), "flesh", "Fore")
+    sym("uv_sphere", "Hand", tuple(ANATOMY["handCenter"]), (.32,.28,.32), "flesh", "Wrist")
+    sym("uv_sphere", "Thumb", (.57,-.08,1.49), (.14,.17,.22), "flesh", "Wrist")
+    sym("uv_sphere", "ThighMesh", (.36,0,1.65), (.52,.56,1.15), "slack", "Thigh")
+    sym("uv_sphere", "Knee", (.36,0,1.16), (.38,.39,.39), "slack", "Shin")
+    sym("uv_sphere", "ShinMesh", (.36,0,.71), (.36,.40,1.02), "slack", "Shin")
+    sym("uv_sphere", "Shoe", tuple(ANATOMY["shoeCenter"]), (.44,.76,.32), "leather", "Foot")
 
     bpy.context.view_layer.objects.active = arm_ob
     bpy.ops.object.mode_set(mode="OBJECT")
     for ob, bone in pieces:
         skin(ob, arm_ob, bone)
+        if ob.name == "torsoMesh":
+            chest=ob.vertex_groups["torso"];waist=ob.vertex_groups.new(name="spine")
+            for v in ob.data.vertices:
+                weight=max(0.0,min(1.0,(v.co.z-2.65)/.45))
+                chest.add([v.index],weight,"REPLACE")
+                waist.add([v.index],1-weight,"REPLACE")
 
     missing = [n for n in BONES if n not in arm_data.bones]
     if missing:

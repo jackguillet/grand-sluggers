@@ -77,6 +77,17 @@
       "playerSlot": "Assets/Resources/Art/Animation/Clips/pitch"
     },
     {
+      "id": "pitch-charge",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Release"
+      ],
+      "releaseAt": 0.42,
+      "slot": "Assets/Art/Animation/Clips/pitch-charge",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/pitch-charge"
+    },
+    {
       "id": "throw",
       "loop": false,
       "handed": true,

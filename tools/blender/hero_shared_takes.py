@@ -39,15 +39,11 @@ JUMP_PEAK = 4.2
 HOLD = 0.20
 
 LIMBS = ("lUpper", "rUpper", "lFore", "rFore", "lThigh", "rThigh", "lShin", "rShin")
-SPINE = ("root", "torso", "head")
-MIRROR = {
-    "root": "root", "torso": "torso", "head": "head",
-    "lUpper": "rUpper", "rUpper": "lUpper", "lFore": "rFore", "rFore": "lFore",
-    "lThigh": "rThigh", "rThigh": "lThigh", "lShin": "rShin", "rShin": "lShin",
-    "bat": "bat", "glove": "glove",
-}
-ORDER = ("root", "torso", "head", "lUpper", "lFore", "rUpper", "rFore",
-         "lThigh", "lShin", "rThigh", "rShin", "bat", "glove")
+SPINE = ("root", "pelvis", "spine", "torso", "neck", "head")
+MIRROR = {name: (("r" if name[0] == "l" else "l") + name[1:]
+                if name.startswith(("l", "r")) and name != "root" else name)
+          for name in body.BONES}
+ORDER = tuple(body.BONES)
 REFLECT = Matrix(((-1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)))
 
 
@@ -259,30 +255,9 @@ def _jump_keys():
 
 JUMP = _jump_keys()
 
-# Right-handed pitcher: chest turns to his right (3B) in the windup, the LEFT
-# leg lifts and strides, the right arm cocks behind and comes over the top at
-# release toward home (-Y).
-PITCH = [
-    (0.00, K(torso=spine(-14, -30, -6), head=spine(6, 28), lUpper=limb(34, 30), rUpper=limb(-40, 24, 0), lFore=limb(60), rFore=limb(20),
-             lThigh=limb(72, 12), rThigh=limb(-4), lShin=limb(62), rShin=limb(8), lift=0.06)),
-    (0.18, K(torso=spine(-8, -18, -4), head=spine(4, 14), lUpper=limb(56, 24), rUpper=limb(-70, 82, 0), lFore=limb(36), rFore=limb(92),
-             lThigh=limb(52, 16), rThigh=limb(-10), lShin=limb(26), rShin=limb(12), lift=0.10)),
-    (0.30, K(torso=spine(2, 4, 0), head=spine(4, 2), lUpper=limb(28, 18), rUpper=limb(150, 46, 0), lFore=limb(28), rFore=limb(46),
-             lThigh=limb(46, 18), rThigh=limb(-24), lShin=limb(12), rShin=limb(18), lift=0.02)),
-    (0.42, K(torso=spine(18, 26, 6), head=spine(6, -6), lUpper=limb(-12, 18), rUpper=limb(136, 22, 0), lFore=limb(22), rFore=limb(6),
-             lThigh=limb(50, 20), rThigh=limb(-32), lShin=limb(14), rShin=limb(24), lift=0.0)),
-    (0.50, K(torso=spine(30, 34, 8), head=spine(14, -10), lUpper=limb(-22, 16), rUpper=limb(70, -18, 0), lFore=limb(22), rFore=limb(14),
-             lThigh=limb(44, 18), rThigh=limb(-28), lShin=limb(14), rShin=limb(22), lift=0.0)),
-]
-
-THROW = [
-    (0.00, K(torso=spine(10, -22), head=spine(4, 16), lUpper=limb(40, 24), rUpper=limb(-40, 80, 0), lFore=limb(30), rFore=limb(90),
-             lThigh=limb(26, 8), rThigh=limb(6), lShin=limb(22), rShin=limb(14))),
-    (0.18, K(torso=spine(14, 6), head=spine(6, 0), lUpper=limb(10, 22), rUpper=limb(100, 45, 0), lFore=limb(24), rFore=limb(12),
-             lThigh=limb(24, 8), rThigh=limb(10), lShin=limb(20), rShin=limb(16))),
-    (0.40, K(torso=spine(16, 22), head=spine(8, -6), lUpper=limb(-6, 20), rUpper=limb(120, -10, 0), lFore=limb(20), rFore=limb(8),
-             lThigh=limb(18, 8), rThigh=limb(10), lShin=limb(20), rShin=limb(14))),
-]
+# Named default motion data; both hands are baked from this one source.
+BASEBALL = json.loads((Path(__file__).resolve().parents[2] / "data/art/baseball-takes.json").read_text())
+BASEBALL_TAKES = {row["id"]: row for row in BASEBALL["takes"]}
 
 SCOOP = [
     (0.00, K(torso=spine(14, 4), head=spine(10), lUpper=limb(20, 10), rUpper=limb(22, 10), lFore=limb(24), rFore=limb(26),
@@ -400,9 +375,10 @@ def _interp_table(table, t, times):
 
 # ------------------------------------------------------------ swing solving
 
-ARM_UPPER_LEN = 0.90
+ARM_UPPER_LEN = next((Vector(j["tail"]) - Vector(j["head"])).length
+                     for j in body.RIG["joints"] if j["name"] == "rUpper")
 # The hand mesh center in the forearm's frame: 0.83 down the bone, 0.10 forward.
-HAND_IN_FORE = Vector((0.0, 0.83, -0.10))
+HAND_IN_FORE = Vector((0.0, 2.48 - body.ANATOMY["handCenter"][2], body.ANATOMY["handCenter"][1]))
 
 
 def _frame(head: Vector, y_axis: Vector, x_axis: Vector) -> Matrix:
@@ -423,7 +399,10 @@ def solve_two_bone(arm, fore: str, hand_target: Vector, pole: Vector):
     Returns the miss distance."""
     upper = ARM_PARENT[fore]
     shoulder = (arm.matrix_world @ arm.pose.bones[upper].head).copy()
-    effector_len = HAND_IN_FORE.length
+    # Include the authored wrist articulation in the effector offset. The
+    # solver remains two-bone, but the hands no longer freeze to the forearm.
+    hand_in_fore = (arm.matrix_world @ arm.pose.bones[fore].matrix).inverted() @ center(HAND_MESH[fore])
+    effector_len = hand_in_fore.length
     to_target = hand_target - shoulder
     reach = to_target.length
     max_reach = ARM_UPPER_LEN + effector_len - 1e-4
@@ -444,12 +423,12 @@ def solve_two_bone(arm, fore: str, hand_target: Vector, pole: Vector):
     # R_f · HAND_IN_FORE lands on the target: rotate the effector back by the
     # hand offset angle within the bend plane.
     d = (shoulder + to_target - elbow).normalized()
-    offset_angle = math.atan2(-HAND_IN_FORE.z, HAND_IN_FORE.y)
+    offset_angle = math.atan2(-hand_in_fore.z, hand_in_fore.y)
     best = None
     for sign in (1.0, -1.0):
         y_f = Matrix.Rotation(sign * offset_angle, 3, hinge) @ d
         m_f = _frame(elbow, y_f, hinge)
-        landed = elbow + (m_f.to_3x3() @ HAND_IN_FORE)
+        landed = elbow + (m_f.to_3x3() @ hand_in_fore)
         miss = (landed - (shoulder + to_target)).length
         if best is None or miss < best[0]:
             best = (miss, m_f)
@@ -514,10 +493,21 @@ def bat_head_clearance(grip, axis):
     return point_segment_distance(head, start, end) - radius - BAT_RADIUS
 
 
+def ground_support(arm):
+    deps=bpy.context.evaluated_depsgraph_get()
+    low=1e6
+    for name in ("lShoe","rShoe"):
+        ob=bpy.data.objects[name].evaluated_get(deps);mesh=ob.to_mesh()
+        low=min(low,min((ob.matrix_world @ v.co).z for v in mesh.vertices));ob.to_mesh_clear()
+    root=arm.pose.bones["root"];matrix=root.matrix.copy();matrix.translation.z-=low
+    root.matrix=matrix;bpy.context.view_layer.update()
+
+
 def pose_swing_frame(arm, t, clip=SWING_SLAP):
     swing = SWINGS[clip]
     times = swing["times"]
     apply_pose(arm, pose_at([(k, swing["legs"][k]) for k in times], t, ease=False, loop=False, duration=SWING_FINISH))
+    ground_support(arm)
     batting_stance.author_visible_stance(arm, t, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
     targets = {name: batting_stance.unity_to_dcc(v, normalize=False)
                for name, v in _interp_table(swing["hands"], t, times).items()}
@@ -663,6 +653,7 @@ def write_action(arm, name, frames, locals_by_frame):
     action assigned: Blender re-evaluates fcurves on every depsgraph update
     and would overwrite a pose set between keys."""
     action = bpy.data.actions.new(name)
+    action.use_fake_user = True
     arm.animation_data.action = action
     for frame, _ in frames:
         bpy.context.scene.frame_set(frame + 1)
@@ -750,6 +741,7 @@ def bake(arm, take: Take, out_dir: Path, sheets: Path | None, resources: Path | 
             take.custom(arm, t)
         else:
             apply_pose(arm, pose_at(take.keys, t, take.ease, take.loop, take.duration))
+        review_equipment(take.clip)
         if want_tile(t):
             tiles.append(clay.render(sheets / f"{take.clip}-{t:.2f}.png", take.view, 360, 480))
         try:
@@ -770,6 +762,7 @@ def bake(arm, take: Take, out_dir: Path, sheets: Path | None, resources: Path | 
         locals_l = {}
         for frame, t in frames:
             reflect_pose(arm, matrices[frame], rest)
+            review_equipment(take.clip, left=True)
             if want_tile(t):
                 tiles.append(clay.render(sheets / f"{take.clip}-L-{t:.2f}.png", clay.mirror_view(take.view), 360, 480))
             try:
@@ -827,13 +820,79 @@ def miss_frame(arm, t):
 
 
 def bunt_frame(arm, t):
-    apply_pose(arm, K(torso=spine(10, 40), head=spine(4, 30), lUpper=limb(70, 30), rUpper=limb(60, 26), lFore=limb(20), rFore=limb(30),
-                      lThigh=limb(24, 8), rThigh=limb(20, 10), lShin=limb(26), rShin=limb(22), lift=-0.30))
+    row = BASEBALL["bunt"]
+    apply_pose(arm, row["pose"])
+    ground_support(arm)
     batting_stance.author_visible_stance(arm, 0.0, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
-    targets = {"lFore": batting_stance.unity_to_dcc((0.05, 2.35, 0.45), normalize=False),
-               "rFore": batting_stance.unity_to_dcc((0.55, 2.40, 0.35), normalize=False)}
-    solve_rendered_hands(arm, targets)
-    aim_bat(arm, (0.96, 0.05, -0.28), (0.30, 2.30, 0.60))
+    axis = Vector(row["barrel"]).normalized()
+    grip = Vector(row["grip"])
+    targets = {"lFore": batting_stance.unity_to_dcc(grip + axis*row["leadAlong"], normalize=False),
+               "rFore": batting_stance.unity_to_dcc(grip + axis*row["topAlong"], normalize=False)}
+    missed = solve_rendered_hands(arm, targets)
+    if max(missed.values()) > HAND_SOLVE_TOLERANCE:
+        raise RuntimeError(f"bunt hand solve missed: {missed}")
+    aim_bat(arm, axis, grip)
+
+
+def bunt_validate(arm, t, bats):
+    row=BASEBALL["bunt"]; bat=arm.pose.bones["bat"]
+    axis=-(bat.matrix.to_3x3() @ Vector((0,1,0))).normalized()
+    lead,top=("lHand","rHand") if bats==batting_stance.BATS_RIGHT else ("rHand","lHand")
+    for hand,along in ((lead,row["leadAlong"]),(top,row["topAlong"])):
+        miss=(center(hand)-(bat.head+axis*along)).length
+        if miss > .02: raise RuntimeError(f"bunt {bats} {hand} misses bat by {miss:.3f}")
+    if abs(axis.z) > .02: raise RuntimeError("bunt barrel must be level")
+
+
+def solve_leg(arm, side, ankle):
+    upper=arm.pose.bones[side+"Thigh"];lower=arm.pose.bones[side+"Shin"]
+    hip=upper.head.copy();target=Vector(ankle);delta=target-hip;reach=delta.length
+    a=arm.data.bones[side+"Thigh"].length;b=arm.data.bones[side+"Shin"].length
+    if reach>a+b+.001:raise RuntimeError(f"{side} planted foot is unreachable: {reach:.3f}>{a+b:.3f}")
+    direction=delta.normalized();pole=Vector((0,-1,0))
+    bend=(pole-direction*pole.dot(direction)).normalized()
+    cosine=max(-1,min(1,(a*a+reach*reach-b*b)/(2*a*reach)))
+    knee=hip+a*(direction*cosine+bend*math.sqrt(1-cosine*cosine))
+    hinge=direction.cross(bend).normalized()
+    for pb,head,tail in ((upper,hip,knee),(lower,knee,target)):
+        pb.rotation_mode="QUATERNION";pb.matrix=_frame(head,tail-head,hinge)
+        bpy.context.view_layer.update()
+    # Independent ankle: shoe rests flat while shin bends. The entire solved
+    # pose, including feet and their sockets, is reflected for the other hand.
+    foot=arm.pose.bones[side+"Foot"];matrix=arm.data.bones[side+"Foot"].matrix_local.copy()
+    matrix.translation=target;foot.rotation_mode="QUATERNION";foot.matrix=matrix
+    bpy.context.view_layer.update()
+
+
+def baseball_frame(clip):
+    row=BASEBALL_TAKES[clip];keys=row["keys"];times=[k["t"] for k in keys]
+    def custom(arm,t):
+        apply_pose(arm,pose_at([(k["t"],k["pose"]) for k in keys],t,True,False,row["duration"]))
+        index,u=batting_stance.span_at(t,times);u=_smooth(u)
+        a=keys[index]["feet"];b=keys[min(index+1,len(keys)-1)]["feet"]
+        root=arm.pose.bones["root"];matrix=root.matrix.copy()
+        matrix.translation=Vector((0,-_lerp(a["travel"],b["travel"],u),_lerp(a["rootLift"],b["rootLift"],u)))
+        root.matrix=matrix;bpy.context.view_layer.update()
+        for side,name in (("l","left"),("r","right")):
+            solve_leg(arm,side,tuple(_lerp(x,y,u) for x,y in zip(a[name],b[name])))
+    return custom
+
+
+def baseball_validate(clip):
+    release=BASEBALL_TAKES[clip]["releaseAt"]
+    def validate(arm,t,bats):
+        for side in ("l", "r"):
+            if (arm.pose.bones[side+"Glove"].head-arm.pose.bones[side+"Wrist"].head).length > .001:
+                raise RuntimeError(f"{clip} {bats} glove left wrist at {t}")
+            if (arm.pose.bones[side+"Release"].head-center(side+"Hand")).length > .002:
+                raise RuntimeError(f"{clip} {bats} release socket left palm at {t}")
+        if abs(t-release)>.5/FPS:return
+        if clip.startswith("pitch"):validate_pitch_release(arm,bats)
+        else:
+            hand="rHand" if bats==batting_stance.BATS_RIGHT else "lHand"
+            if center(hand).y >= center("torsoMesh").y-.4:
+                raise RuntimeError(f"{clip} {bats} release hand must lead chest")
+    return validate
 
 
 TAKES = [
@@ -844,15 +903,16 @@ TAKES = [
     Take("walk", WALK, duration=RUN_DUR / 0.55, loop=True, sink=0.3),
     Take("run", RUN, duration=RUN_DUR, loop=True, sink=0.3),
     Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
-    Take("pitch", PITCH, duration=0.50, handed=True, mark=0.42, validate=pitch_validate, sink=0.3, view="three-quarter-right"),
-    Take("throw", THROW, duration=0.40, handed=True, mark=0.18, sink=0.2, view="three-quarter-right"),
+    *[Take(row["id"], [(k["t"],k["pose"]) for k in row["keys"]], duration=row["duration"],
+           handed=True, mark=row["releaseAt"], custom=baseball_frame(row["id"]), validate=baseball_validate(row["id"]), sink=.3, view="three-quarter-right")
+      for row in BASEBALL["takes"]],
     # Slap and charge (#613): both meet the ball at Contact and end on the held finish (#583).
     *[Take(clip, None, view="three-quarter-right", duration=SWING_FINISH, handed=True, ease=False, mark=SWING_CONTACT,
            custom=swing_frame(clip), validate=swing_validate(clip), sheet_times=SWINGS[clip]["times"], sink=0.2)
       for clip in (SWING_SLAP, SWING_CHARGE)],
     Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
          sheet_times=[0.0], sink=0.2),
-    Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, sheet_times=[0.0], sink=0.6),
+    Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, validate=bunt_validate, sheet_times=[0.0], sink=0.6),
     Take("miss", None, view="three-quarter-right", duration=HOLD, handed=True, custom=miss_frame, sheet_times=[0.0], sink=0.2),
     Take("catch", CATCH, duration=HOLD),
     Take("dive", DIVE, duration=HOLD, sink=1.0),
@@ -864,26 +924,35 @@ TAKES = [
 ]
 
 
-def add_render_bat(arm):
-    """A bat on the bat socket for the clay sheets only. Takes export
-    armature-only, so this never ships; it follows the same socket contract
-    HeroActor binds: barrel along the socket's -Y from the grip."""
-    bone = arm.data.bones["bat"]
-    head = arm.matrix_world @ bone.head_local
-    tail = arm.matrix_world @ bone.tail_local
-    direction = (head - tail).normalized()
-    scale = 1.28
-    start = head - direction * 0.29 * scale
-    length = 2.39 * scale
-    mid = start + direction * length * 0.5
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.12 * scale, depth=length, location=mid, vertices=16)
-    ob = bpy.context.active_object
-    ob.name = "renderBat"
-    ob.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-    ob.data.materials.append(body.mat("gold", body.PALETTE["gold"]))
-    body.skin(ob, arm, "bat")
-    return ob
+def add_review_equipment(arm):
+    """Use the actual authored props in evidence, seated at their bind origins."""
+    import hero_shared_extras as extras
+    props = extras.build_props({k:body.mat(k,v) for k,v in {**body.PALETTE,**extras.EXTRA_COLORS}.items()})
+    keep={"bat-wood":"bat", "glove-brown":"lGlove", "glove-brown-R":"rGlove"}
+    for name, ob in list(props.items()):
+        if name not in keep:
+            bpy.data.objects.remove(ob,do_unlink=True);continue
+        bone=keep[name]
+        matrix=arm.data.bones[bone].matrix_local
+        rotation=Matrix.Rotation(math.pi/2 if bone=="bat" else -math.pi/2,4,"X")
+        scale=1.28 if bone=="bat" else 1.42
+        for v in ob.data.vertices:
+            co=v.co.copy()
+            if bone=="bat":co.z+=.85
+            v.co=matrix @ (rotation @ (co*scale))
+        body.skin(ob,arm,bone)
+        ob.hide_render=True
+    return keep
+
+
+def review_equipment(clip, left=False):
+    batting=clip.startswith("swing-") or clip in ("bunt","checkSwing","miss")
+    for name in ("bat-wood","glove-brown","glove-brown-R"):
+        ob=bpy.data.objects.get(name)
+        if ob:
+            ob.hide_render = (not batting if name=="bat-wood" else
+                              batting or (name.endswith("-R") != left))
+
 
 
 def main(argv):
@@ -892,6 +961,7 @@ def main(argv):
     p.add_argument("--resources", default="")
     p.add_argument("--sheets", default="")
     p.add_argument("--only", default="")
+    p.add_argument("--blend", default="", help="Save editable rig, mesh, props and baked actions for inspection.")
     args = p.parse_args(argv)
     out = Path(args.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -899,13 +969,20 @@ def main(argv):
     sheets = Path(args.sheets).resolve() if args.sheets else None
     only = {s.strip() for s in args.only.split(",") if s.strip()}
     arm = body.build_scene()
-    add_render_bat(arm)
+    add_review_equipment(arm)
     assert_conventions(arm)
     print("conventions ok")
     for take in TAKES:
         if only and take.clip not in only:
             continue
         bake(arm, take, out, sheets, resources)
+    if args.blend:
+        arm.animation_data.action=bpy.data.actions.get(SWING_SLAP)
+        bpy.context.scene.frame_start=1
+        bpy.context.scene.frame_end=37
+        bpy.context.scene.frame_set(1)
+        review_equipment(SWING_SLAP)
+        bpy.ops.wm.save_as_mainfile(filepath=str(Path(args.blend).resolve()))
     print("takes done")
 
 

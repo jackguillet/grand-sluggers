@@ -357,7 +357,7 @@ public static class AtBatMotion
         actionTime >= 0 && (actionTime <= takeSec || !contact || runnerFromBoxFt < stepFt);
 
     public static double PitchClipTime(double poseTime, double charge01) =>
-        LoadedClipTime(poseTime, Motion.PitchLoadSampleAt(charge01), Motion.PitchRelease);
+        LoadedClipTime(poseTime, Motion.LoadAtFor(Motion.Verb.ThrowPitch, charge01), Motion.PitchRelease);
 
     /// <summary>
     /// The press against the square press, the ball's plate time less batting.window.leadSec (D13),

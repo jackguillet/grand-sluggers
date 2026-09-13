@@ -23,6 +23,7 @@ from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hero_shared_blockout as body  # noqa: E402
+import baseball_equipment as equipment
 
 HEAD = body.HEAD
 
@@ -42,7 +43,7 @@ EXTRA_COLORS = {
 # checks they agree.
 SOCKETS = {
     "cheeks": "head",
-    "sneakers": "lShin",
+    "sneakers": "lFoot",
     "sash": "torso",
     "crown": "head",
     "neck": "torso",
@@ -58,7 +59,7 @@ SOCKETS = {
     "staff": "torso",
 }
 
-PROPS = ("bat-wood", "glove-brown", "baseball")
+PROPS = ("bat-wood", "glove-brown", "glove-brown-R", "glove-gold", "glove-gold-R", "baseball")
 
 
 def prim(kind, name, loc, scale, material, rot=(0.0, 0.0, 0.0)):
@@ -150,6 +151,27 @@ def build_extras(m):
     tip = prim("uv_sphere", "CaneTip", (-0.325, 0.62, 1.64), (0.14, 0.14, 0.14), m["gold"])
     out["staff"] = join("staff", [cane, knob, tip])
 
+    # Refit all accessory vertices as a group, anchored on the named anatomy.
+    # Head extras shrink with the head; torso pieces translate and narrow with
+    # the chest. No captain-specific runtime positions.
+    for name, ob in out.items():
+        socket = SOCKETS[name]
+        if socket == "head":
+            anchor = HEAD.copy(); factor = body.ANATOMY["headDiameter"] / 1.72
+            for v in ob.data.vertices:
+                world = ob.matrix_world @ v.co
+                v.co = ob.matrix_world.inverted() @ (anchor + (world-anchor)*factor)
+        elif socket == "torso":
+            for v in ob.data.vertices:
+                world = ob.matrix_world @ v.co
+                world.x *= .84; world.y *= .72; world.z += .84
+                v.co = ob.matrix_world.inverted() @ world
+        elif socket == "lFoot":
+            for v in ob.data.vertices:
+                world = ob.matrix_world @ v.co
+                world = Vector((.36+(world.x-.42)*.62, -.23+(world.y+.32)*.65, .16+(world.z-.12)*.75))
+                v.co = ob.matrix_world.inverted() @ world
+
     missing = [k for k in SOCKETS if k not in out]
     extra = [k for k in out if k not in SOCKETS]
     if missing or extra:
@@ -160,28 +182,24 @@ def build_extras(m):
 def build_props(m):
     """Common props. bat-wood keeps its measured origin: handle Y -1.00..-0.10,
     grip -0.85, barrel Y -0.15..1.25 at radius 0.12. Do not recenter it."""
-    handle = prim("cylinder", "BatHandle", (0, 0, -0.55), (0.16, 0.16, 0.9), m["grip"])
-    barrel = prim("cylinder", "BatBarrel", (0, 0, 0.55), (0.24, 0.24, 1.4), m["wood"])
-    knob = prim("uv_sphere", "BatKnob", (0, 0, -1.05), (0.22, 0.22, 0.18), m["wood"])
-    bat = join("bat-wood", [handle, barrel, knob], authored_origin=(0.0, 0.0, 0.0))
-    palm = prim("uv_sphere", "Palm", (0, 0, 0), (0.7, 0.55, 0.42), m["leather"])
-    web = prim("cube", "Web", (0, 0.12, 0.22), (0.55, 0.12, 0.42), m["leather"])
-    thumb = prim("cylinder", "Thumb", (-0.32, 0.05, 0.08), (0.18, 0.18, 0.55), m["leather"], rot=(0, math.radians(28), 0))
-    fingers = prim("cube", "Fingers", (0.12, 0.18, 0.06), (0.48, 0.22, 0.42), m["leather"])
-    glove = join("glove-brown", [palm, web, thumb, fingers])
+    bat = join("bat-wood", equipment.bat_parts(m), authored_origin=(0.0, 0.0, 0.0))
+    glove = join("glove-brown", equipment.glove_parts(m), authored_origin=(0.0, 0.0, 0.0))
+    gold = join("glove-gold", equipment.glove_parts(m, gold=True), authored_origin=(0.0, 0.0, 0.0))
+    right = equipment.reflected_mesh(glove, "glove-brown-R")
+    gold_right = equipment.reflected_mesh(gold, "glove-gold-R")
     # Diameter 1 (uv_sphere r=0.5 × scale 1) — Unity PrimitiveType.Sphere rest.
     # BallView localScale is Baseball.ApparentScale / ToyMesh.BaseballRestDiameter.
     ball = prim("uv_sphere", "BallBody", (0, 0, 0), (1.0, 1.0, 1.0), m["cream"])
     seam = prim("cube", "Seam", (0, 0, 0), (0.12, 0.94, 0.12), m["stitch"])
     baseball = join("baseball", [ball, seam])
-    for ob in (glove, baseball):
+    for ob in (baseball,):
         bpy.ops.object.select_all(action="DESELECT")
         ob.select_set(True)
         bpy.context.view_layer.objects.active = ob
         bpy.ops.object.origin_set(type="ORIGIN_GEOMETRY")
         ob.location = (0.0, 0.0, 0.0)
         bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
-    return {"bat-wood": bat, "glove-brown": glove, "baseball": baseball}
+    return {"bat-wood": bat, "glove-brown": glove, "glove-brown-R": right, "glove-gold": gold, "glove-gold-R": gold_right, "baseball": baseball}
 
 
 def clay_check(extras, folder: Path):
