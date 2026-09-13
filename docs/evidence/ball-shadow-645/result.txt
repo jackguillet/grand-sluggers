@@ -1,0 +1,1 @@
+PASS: live flight projection, render captures, hold/release/hide. Human look gate remains open.

@@ -117,7 +117,8 @@ public class SchemeTests
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
             Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme),
                 line => line.Contains("charge", StringComparison.OrdinalIgnoreCase) && line.Contains("MAX"));
-        Assert.True(HowToPlay.Mentions("puffs dirt"));
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+            Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("Shadow tracks ball"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));
