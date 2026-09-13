@@ -53,7 +53,7 @@ public sealed class FieldingResolver
             seed,
             park,
             samples,
-            readyAt: ReactionLockouts(_rules));
+            readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
         var warped = false;
@@ -277,14 +277,37 @@ public sealed class FieldingResolver
                * (dash ? FieldDash.ChaseMul(rules) : 1);
     }
 
-    /// <summary>The reaction lockout per position (§8.2, fielding.reaction): play seconds before each body may move.</summary>
-    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null)
+    /// <summary>
+    /// The chase speed of the body at <paramref name="pos"/> on this ball (§8.1, §8.2): the one glove speed, × <c>fielding.chase.outfieldAirMul</c>
+    /// for an outfielder on a ball hit in the air (a fly, a liner, a pop, a wall ball). Human stick and CPU chase share it. A ball on the
+    /// dirt, an infielder, a carry, and a loose ball run at the one speed.
+    /// </summary>
+    public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable? rules = null, bool dash = false) =>
+        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash)
+        * (IsOutfield(pos) && pre is { Grounder: false } ? Rules.Or(rules).Fielding.Chase.OutfieldAirMul : 1);
+
+    /// <summary>
+    /// The reaction lockout per position (§8.2, fielding.reaction): play seconds before each body may move,
+    /// × <paramref name="mul"/>. A ball in the air (<paramref name="airHangSec"/>, its landing instant) caps every
+    /// lockout at its hang, so no body is still frozen when the ball it waits on comes down. A ball on the dirt
+    /// passes no cap: the infield numbers are the ones the §10.4 double-play rows were tuned on.
+    /// </summary>
+    public static Dictionary<string, double> ReactionLockouts(RulesTable? rules = null, double mul = 1, double? airHangSec = null)
     {
         var re = Rules.Or(rules).Fielding.Reaction;
         var map = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-        foreach (var pos in Diamond.Order) map[pos] = re.LockoutSec(pos);
+        foreach (var pos in Diamond.Order)
+        {
+            var sec = re.LockoutSec(pos) * mul;
+            if (airHangSec is double hang) sec = Math.Min(sec, Math.Max(0, hang));
+            map[pos] = sec;
+        }
         return map;
     }
+
+    /// <summary>The lockouts a CPU-driven body waits: × the rung's <c>cpu.reactionMul</c> (§8.2, §16). The human glove waits <see cref="ReactionLockouts"/> at ×1.</summary>
+    public static Dictionary<string, double> CpuReactionLockouts(RulesTable? rules = null, double? airHangSec = null) =>
+        ReactionLockouts(rules, Rules.Or(rules).Cpu.Active.ReactionMul, airHangSec);
 
     public static (double X, double Z) StepToward(
         double x, double z, double tx, double tz, double speed, double dt, Park? park = null, RulesTable? rules = null)
