@@ -205,6 +205,7 @@ public class SwingPresentationTests
         var doc = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "data", "art", "swing-takes.json")))!;
         Assert.Equal(Motion.SwingContact, doc["contactAt"]!.GetValue<double>(), 8);
         Assert.Equal(Motion.SwingFinish, doc["finishAt"]!.GetValue<double>(), 8);
+        Assert.Equal(SwingPresentation.BatHeadClearance, doc["batHeadClearance"]!.GetValue<double>(), 8);
         var takes = doc["takes"]!.AsArray();
         Assert.Equal(2, takes.Count);
         foreach (var row in takes)
@@ -227,6 +228,8 @@ public class SwingPresentationTests
                 Assert.Equal(authored[i].BarrelDirection.X, bx / bn, 5);
                 Assert.Equal(authored[i].BarrelDirection.Y, by / bn, 5);
                 Assert.Equal(authored[i].BarrelDirection.Z, bz / bn, 5);
+                // The crouch moves the head the clearance contract measures (#623).
+                Assert.Equal(keys[i]!["legs"]?["lift"]?.GetValue<double>() ?? 0, authored[i].Lift, 3);
             }
         }
         // Approach and contact are the measured contract (docs/research-batting.md): both takes share them.
@@ -282,6 +285,45 @@ public class SwingPresentationTests
         // A slap has no windup: it starts on its ready key. A charge continues from the held windup.
         Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.CommittedLoadAt(0.3), 8);
         Assert.Equal(SwingPresentation.HeldLoadAt(0.8), SwingPresentation.CommittedLoadAt(0.8), 8);
+    }
+
+    // -------------------------------------------------------------------------------------
+    // #623: the bat never passes through the batter's head.
+    // -------------------------------------------------------------------------------------
+
+    [Fact]
+    public void TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp()
+    {
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
+        for (var step = 0; step <= 600; step++)
+        {
+            var t = SwingPresentation.FinishAt * step / 600.0;
+            var right = SwingPresentation.HeadClearance(SwingPresentation.At(t, Hand.R, take));
+            Assert.True(right >= SwingPresentation.BatHeadClearance,
+                $"{take} at {t:0.000}: the bat surface is {right:0.000} from the head");
+            // The head sits on the plate line's mirror axis: a left-handed batter clears it the same.
+            Assert.Equal(right, SwingPresentation.HeadClearance(SwingPresentation.At(t, Hand.L, take)), 9);
+        }
+        // The hold samples the charge take between the ready key and the windup: every charge.
+        for (var step = 0; step <= 100; step++)
+        {
+            var charge = step / 100.0;
+            var clearance = SwingPresentation.HeadClearance(
+                SwingPresentation.At(SwingPresentation.HeldLoadAt(charge), Hand.R, SwingTake.Charge));
+            Assert.True(clearance >= SwingPresentation.BatHeadClearance,
+                $"held charge {charge:0.00}: the bat surface is {clearance:0.000} from the head");
+        }
+    }
+
+    [Fact]
+    public void HeadClearanceCatchesABatThroughTheHead()
+    {
+        // The #613 windup that shipped: grip behind the ear, barrel up over the head.
+        var through = new SwingPresentation.Key(0, new Vec3(0, 0, 0), new Vec3(0, 0, 0),
+            new Vec3(0.25, 2.70, -0.62), new Vec3(0.06, 0.9007, 0.4303), -0.2);
+        Assert.True(SwingPresentation.HeadClearance(through) < 0);
+        var beside = through with { Grip = new Vec3(1.6, 2.70, 0) };
+        Assert.True(SwingPresentation.HeadClearance(beside) > SwingPresentation.BatHeadClearance);
     }
 
     [Fact]
