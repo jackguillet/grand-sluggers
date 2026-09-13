@@ -158,7 +158,7 @@ Save after each stage. The next prompt names the stage it continues. One-shottin
 
 ## 7. Distill (file *and* remember)
 
-✅ **R7 #654.** Cousin: playbook §5 (one issue per sitting finding). The finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test. character-art grew from one real failed still: `swing-*-max-load` (#623 / `bat-through-head`).
+✅ **R7 #654 / #660.** Cousin: playbook §5 (one issue per sitting finding). The finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test. character-art grew from one real failed still: `swing-*-max-load` (#623 / `bat-through-head`).
 
 After a sitting or a failed still:
 
@@ -225,7 +225,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
-| **R7. Distill** #654 | §7, G2, G9 | Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
+| **R7. Distill** #654 | §7, G2, G9 | ✅ #660. Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child
 
