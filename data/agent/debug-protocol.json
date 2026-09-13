@@ -1,0 +1,56 @@
+{
+  // Recurring signatures promote to a test on the second firing (BagIsInsideTheFoulLine shape).
+  // R7 owns making playbook §5 say that. GitHub sitting children stay; they are not the memory.
+  "entries": [
+    {
+      "id": "brim-in-plate-lens",
+      "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
+      "stage": "still-gate",
+      "cause": "CarnivalFront.cs:67 SelectLookY; :104 SelectCamIsTheToy — a look at Y=4.4 / Z=4 is Ashlord's brim. Gameplay cameras that aim at the hat are a framing bug, not a scale bug.",
+      "fix": "Look at the chest (SelectLookY = 2.6). SelectCamIsTheToy rejects brim and berm. Tune the shot; do not shrink the hat to save a camera.",
+      "promoted": "CarnivalFrontTests.SelectLookIsTheChestNotTheBrim",
+      "issue": "#352",
+      "pr": "#353"
+    },
+    {
+      "id": "boxes-kiss-plate",
+      "signature": "boxes kissing the plate; boxes 1.4 ft from the plate when the spec is 6 in; screenshot-gate batting SET fail",
+      "stage": "still-gate",
+      "cause": "HomeSet.cs:35 BoxGap; :98 BoxesClearThePlate — an invented or Minkowski gap instead of OBR Diagram 2's 6 inches.",
+      "fix": "BoxGap is 6 inches; BoxesClearThePlate encodes that gap. Cartoon fat is allowed; wrong topology is not.",
+      "promoted": "HomeSetTests.OfficialHomeLayout",
+      "issue": "#470",
+      "pr": "#471"
+    },
+    {
+      "id": "nice-hit-on-whiff",
+      "signature": "Nice Hit! on a swing that did not make contact; MAX release stamps a hit word",
+      "stage": "sitting",
+      "cause": "PlayStamp.cs:110-120 — the tell fired on the charge release at MAX, before the bat reached the ball. Spec §5.1–§5.3: MAX is a charge tell; PERFECT / NICE / SOUR are contact tells.",
+      "fix": "ContactTell reads only the typed contact zone. A miss shows STRIKE through the stamp; the release tell (MAX) never claims a hit.",
+      "promoted": "PlayStampTests.ContactWordsComeOnlyFromTheTypedZoneNeverTheRelease",
+      "issue": "#578",
+      "pr": "#600"
+    },
+    {
+      "id": "cpu-defense-waits-for-batter",
+      "signature": "CPU fielder scoops and waits for the batting human to throw; FieldPad falls back to pad 1 whenever the match is not 1v1",
+      "stage": "sitting",
+      "cause": "LivePlaySystem.Field.cs:35-42 — PlayerFields was true whenever you pitched, so the batting human's stick owned the glove (spec §0.4).",
+      "fix": "LiveSeats.For(seats, top): seat ownership is (half, side, pads). The batting human never owns a glove. A press from any other controller is dead.",
+      "promoted": "SeatOwnershipTests.S93_CpuDefenseThrowsOutTheBatterWithoutTheBattingHumansPad",
+      "issue": "#579",
+      "pr": "#585"
+    },
+    {
+      "id": "bat-through-head",
+      "signature": "swing-*-max-load barrel through the head; charge windup bat inside the skull; still-gate load fail",
+      "stage": "dcc",
+      "cause": "SwingPresentation.cs:60-74 HeadClearance; data/art/swing-takes.json charge windup key — barrel direction nearly straight up ran through the head. The DCC validator checked hands on the handle, not bat versus skull.",
+      "fix": "BatHeadClearance contract. The DCC bake refuses a take that misses it; sim samples both takes and the whole charge-up. Do not pose the bat in C#.",
+      "promoted": "SwingPresentationTests.TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp",
+      "issue": "#623",
+      "pr": "#624"
+    }
+  ]
+}
