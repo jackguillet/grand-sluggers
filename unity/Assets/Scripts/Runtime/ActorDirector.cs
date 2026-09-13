@@ -64,7 +64,12 @@ namespace GrandSluggers.UnityClient
             }
             TeamSheet.HideBoard();
             _chem?.Hide();
-            var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+            // The result beat draws the play's own bodies (§10.6, #574): the defense that made the play,
+            // where each glove stood at Time, whatever the match flipped to after the third out.
+            var resultBodies = _phase == Phase.Result ? _resultBodies : null;
+            var defense = resultBodies != null
+                ? ResultDefense(resultBodies)
+                : FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
             var litId = "";
             if ((_phase is Phase.InPlay or Phase.StealThrow) && defense.TryGetValue(_glovePos, out var litWho))
                 litId = litWho.Id;
@@ -232,9 +237,18 @@ namespace GrandSluggers.UnityClient
                 else bHero.Tick(dt);
             }
 
-            PlaceRunner(_match.First, Diamond.First, 1);
-            PlaceRunner(_match.Second, Diamond.Second, 2);
-            PlaceRunner(_match.Third, Diamond.Third, 3);
+            if (resultBodies != null)
+            {
+                foreach (var b in resultBodies)
+                    if (b.IsRunner && (boxBatter == null || b.Who.Id != boxBatter.Id))
+                        PlaceBodyAtTime(b);
+            }
+            else
+            {
+                PlaceRunner(_match.First, Diamond.First, 1);
+                PlaceRunner(_match.Second, Diamond.Second, 2);
+                PlaceRunner(_match.Third, Diamond.Third, 3);
+            }
 
             foreach (var kv in _heroes)
                 if (!_used.Contains(kv.Key) && kv.Value != null)
@@ -323,6 +337,28 @@ namespace GrandSluggers.UnityClient
             if (a == "clamber" && pre.HomeRunLikely) return Motion.Verb.Clamber;
             if (a == "spin-check") return Motion.Verb.Spin;
             return Motion.Verb.Field;
+        }
+
+        static Dictionary<string, Character> ResultDefense(IReadOnlyList<FieldBody> bodies)
+        {
+            var map = new Dictionary<string, Character>();
+            foreach (var b in bodies)
+                if (!b.IsRunner) map[b.Pos] = b.Who;
+            return map;
+        }
+
+        /// <summary>A live runner where the play left them (§10.6): on the bag they hold, or on the path at the third out.</summary>
+        void PlaceBodyAtTime(FieldBody b)
+        {
+            var h = Hero(b.Who);
+            h.SetPose(Motion.Verb.Idle);
+            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
+            h.SetHeld(false, false);
+            h.SetHighlight(false);
+            var rubber = Diamond.Rubber;
+            h.Place(new Vector3((float)b.X, 0, (float)b.Z),
+                new Vector3((float)(rubber.X - b.X), 0, (float)(rubber.Z - b.Z)));
+            h.Tick(Time.deltaTime);
         }
 
         void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)

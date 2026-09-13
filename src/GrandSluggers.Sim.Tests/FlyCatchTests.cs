@@ -190,8 +190,9 @@ public class FlyCatchTests
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, 0.1, hang, false));
+        // A star swing follows its class (§15): the smash beat is the home run's, timed by the client's smashHold.
         var smash = hr with { StarSwingUsed = "heat-swing" };
-        Assert.Equal(PlayCamera.Beat.Smash, PlayCamera.BeatFrom(smash));
+        Assert.Equal(PlayCamera.BeatFrom(hr), PlayCamera.BeatFrom(smash));
         Assert.Equal(PlayCamera.Beat.Homer, FlyCatch.LiveBeat(smash, pre, 0.2, hang, false));
         Assert.Equal(PlayCamera.Beat.Wall, FlyCatch.LiveBeat(smash, pre, hang - 0.4, hang, false));
     }

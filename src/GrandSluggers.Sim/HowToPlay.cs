@@ -223,7 +223,7 @@ public static class HowToPlay
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
             "West jumps in window; the circle turns red. East dives. North attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. Home is under second.",
+            "Camera is 45°; a fly pulls back. CF is the top. A throw sits on its bag.",
         ],
         [
             "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
@@ -231,7 +231,7 @@ public static class HowToPlay
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. Home is under second.",
+            "Camera is 45°; a fly pulls back. CF is the top. A throw sits on its bag.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [

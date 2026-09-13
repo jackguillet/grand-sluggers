@@ -196,6 +196,21 @@ public class PlayStampTests
     }
 
     [Fact]
+    public void ABatterWhoIsABodyOnThePathAtTimeIsNotDrawnInTheBox()
+    {
+        // #574: on a third out made elsewhere the match flips and the batter is nobody's runner any more;
+        // the typed bodies at Time still say where they stood, so the box stays empty for the result beat.
+        var match = Match.Exhibition(ContentCatalog.Load(), "rio", "ashlord", 3, seed: 1);
+        var batter = match.Batter;
+        var onFirst = new PlayOutcome(Bodies: [new FieldBody(FieldBody.Runner, batter, Diamond.First.X, Diamond.First.Z)]);
+        var ev = new PlayEvent(PlayKind.GroundOut, new AtBatResult(ContactQuality.Nice, true, false, 88, 8, 100, false, false, null, null),
+            new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), batter, match.Pitcher, null, null, 0, [], "",
+            false, false, 0, 0, 0, 0, 0, 0, Outcome: onFirst);
+        Assert.Null(PlayStamp.BoxBatter(ev, match));
+        Assert.NotNull(PlayStamp.BoxBatter(ev with { Outcome = PlayOutcome.Empty }, match));
+    }
+
+    [Fact]
     public void OutsRecordedSurvivesTheInningFlip()
     {
         var content = ContentCatalog.Load();

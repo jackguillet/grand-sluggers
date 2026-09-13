@@ -64,6 +64,7 @@ namespace GrandSluggers.UnityClient
             _bobbling = false;
             _diveT = _jumpT = _swapLock = 0;
             _gloveAt.Clear();
+            _resultBodies = null;
             _starPitch = false;
             _starSwing = false;
             _caught = false;
@@ -507,7 +508,8 @@ namespace GrandSluggers.UnityClient
                 Controls.RumbleContact(hit.Quality);
             if (CartoonJuice.DirtPuff(hit.Quality))
                 _park.Ball.ContactPuff(_ball);
-            if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null)
+            // The smash beat (§15): a perfect, a star swing, or a home run — smashFreeze + smashHold, the smash cam on the body.
+            if (hit.Quality == ContactQuality.Perfect || hit.StarSwingUsed != null || hit.HomeRun)
             {
                 _freeze = (float)_feel.SmashFreeze;
                 _smash = (float)_feel.SmashHold;
@@ -524,7 +526,7 @@ namespace GrandSluggers.UnityClient
                 _freeze = (float)CartoonJuice.SourFreeze;
                 _rig.Punch(CartoonJuice.Punch(hit.Quality));
             }
-            AimDiamond(hit);
+            AimLive();
         }
 
         Vector3 SmashLook()
@@ -534,14 +536,6 @@ namespace GrandSluggers.UnityClient
             return _ball.sqrMagnitude > 0.4f
                 ? _ball
                 : new Vector3((float)HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterOffsetX), (float)HomeSet.BatterChestY, (float)HomeSet.BatterZ);
-        }
-
-        void AimDiamond(AtBatResult hit)
-        {
-            _ = hit;
-            _cam.HoldInPlay(_ball, fly: _preview != null
-                ? FlyCatch.IsFly(_preview)
-                : BattedBallClasses.ByLaunch(hit.LaunchDeg, hit.ExitVeloMph, _content.Rules).IsFlyShape());
         }
 
     }

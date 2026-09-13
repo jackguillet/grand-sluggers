@@ -230,6 +230,47 @@ public sealed partial class LivePlaySystem
 
     /// <summary>The glove owns the ball (a catch or a buddy jump).</summary>
     public bool HoldsBall => Caught || Buddy;
+
+    /// <summary>
+    /// Every body on the field where it stands (§10.6, #574): each glove from the live map (the glove
+    /// on the ball at its own spot), each live runner on the path. Complete captures this before the
+    /// field resets so the result beat has one position source and nobody snaps to a table spot.
+    /// </summary>
+    public IReadOnlyList<FieldBody> BodiesNow()
+    {
+        var list = new List<FieldBody>();
+        foreach (var kv in Assigned())
+        {
+            (double X, double Z) at = kv.Key == GlovePos && Active ? (GloveX, GloveZ)
+                : _fielders.TryGetValue(kv.Key, out var p) ? p
+                : Diamond.Positions[kv.Key];
+            list.Add(new FieldBody(kv.Key, kv.Value, at.X, at.Z));
+        }
+        foreach (var r in Runners)
+        {
+            if (!r.Live) continue;
+            var (x, z) = r.Position;
+            list.Add(new FieldBody(FieldBody.Runner, r.Who, x, z));
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// The bag a runner play is about (§11.3, §11.4; the camera sits on it, §15): the throw's bag while
+    /// the ball is in the air, the pickoff bag, else the lead bag a body that broke is bound for.
+    /// </summary>
+    public int RunnerPlayBag
+    {
+        get
+        {
+            if (Throwing && ThrowBag > 0) return ThrowBag;
+            if (PickoffBag > 0) return PickoffBag;
+            var lead = 0;
+            foreach (var r in Runners)
+                if (r.Live && (r.Broke || r.Phase == RunnerPhase.Stealing) && r.DestBag > lead) lead = r.DestBag;
+            return lead;
+        }
+    }
     /// <summary>Human on the glove, or a human seat that owns the throw: their pad is the source.</summary>
     public LivePlayCommandSource Source =>
         PlayerFielding || Seats.HumanOwnsThrow ? LivePlayCommandSource.Human : LivePlayCommandSource.Cpu;
@@ -237,7 +278,9 @@ public sealed partial class LivePlaySystem
     RulesTable R => _match.Rules;
     Park Park => _match.Park;
     FeelTable Feel => _match.Content.Feel;
-    Dictionary<string, Character> Assigned() => FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+    /// <summary>The play's own defense map, read once per live ball: the gloves that started it stay its gloves through the third out and the flip.</summary>
+    Dictionary<string, Character> Assigned() => _assigned ??= FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
+    Dictionary<string, Character>? _assigned;
     double Hang => Path is null ? (Preview?.HangTimeSec ?? 0) : BallFlight.HangTime(Path, R);
     double Rest => Path is null ? 0 : BallFlight.RestTime(Path);
     /// <summary>The instant a dead ball is decided: a foul at its verdict, anything else at the landing mark.</summary>
@@ -304,6 +347,7 @@ public sealed partial class LivePlaySystem
 
     void ResetField()
     {
+        _assigned = null;
         Pitch = null;
         Swing = null;
         Hit = null;

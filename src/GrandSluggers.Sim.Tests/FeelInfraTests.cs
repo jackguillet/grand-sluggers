@@ -376,6 +376,9 @@ public class FeelInfraTests
         Assert.True(feel.AfterCountSeconds < feel.AfterOutSeconds);
         Assert.InRange(feel.ChargeMaxHoldSeconds, 0.25, 0.9);
         Assert.True(feel.ChargeOverchargeDecay > 0);
+        // The contact cut (§8.2, §15): the reference's 0.42 s, pinned to data/feel/table.json.
+        Assert.Equal(0.42, feel.ContactCutSeconds, 6);
+        Assert.True(feel.ContactCutSeconds > feel.SolidFreeze);
     }
 
     static bool Near(Vec3 a, Vec3 b)
