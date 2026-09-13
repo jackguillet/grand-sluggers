@@ -123,6 +123,9 @@ public sealed class Runner
     /// <summary>Feet along the whole path, home to home, for ordering and the no-pass rule.</summary>
     public double Progress => Bag >= 4 ? 4 * Diamond.Baseline : Bag * Diamond.Baseline + Feet * (Diamond.Baseline / SegmentFt);
 
+    /// <summary>The mini diamond's read of this body (§15, #606): <see cref="Baserunning.PathPip"/> over the same bag, feet, and overrun <see cref="Position"/> uses.</summary>
+    public (int From, int To, double U) Pip => Baserunning.PathPip(Bag, Feet, SegmentFt, Overrunning ? OverrunFt : 0);
+
     public (double X, double Z) Position
     {
         get
