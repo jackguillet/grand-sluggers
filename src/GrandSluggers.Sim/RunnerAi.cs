@@ -18,7 +18,9 @@ public sealed record BallSituation(
     /// <summary>The ball's landing / current spot, for "in front of the runner" and the infield-in read.</summary>
     double BallX,
     double BallZ,
-    double CarryFt);
+    double CarryFt,
+    /// <summary>The batted ball is a bunt (§7.3): the runner from third holds at contact unless the offense sent them.</summary>
+    bool Bunt = false);
 
 /// <summary>Everything the CPU runner reads at a decision event (§9.9).</summary>
 public sealed record RunnerAiContext(
@@ -147,6 +149,8 @@ public static class RunnerAi
             // A grounder in the infield.
             if (runner.Bag == 3)
             {
+                // A bunt is not the squeeze (§7.3): the runner from third holds until a glove has it; the send is the human's stick.
+                if (ball.Bunt && !ball.Held && !ball.Throwing) return;
                 // The infield-back read is the contact read (where the fielder will field it); once the ball is in a glove the margin decides.
                 var infieldBack = !ball.Held && !ball.Throwing
                                   && Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z) >= cpu.InfieldBackFt;

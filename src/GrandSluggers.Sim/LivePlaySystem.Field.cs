@@ -246,6 +246,11 @@ public sealed partial class LivePlaySystem
     /// <summary>The glove owns the ball (a catch or a buddy jump).</summary>
     public bool HoldsBall => Caught || Buddy;
 
+    /// <summary>Play seconds the batter had been squared at the plate time (§7.3); 0 with no square.</summary>
+    public double SquareSec => Swing?.SquareSec ?? 0;
+    /// <summary>The bunt alignment is on (§7.3): the batter squared, or the ball is a bunt; the middle covers first and second.</summary>
+    public bool BuntAlignment => BuntDefense.AlignmentOn(Swing, Ball?.Shape);
+
     /// <summary>
     /// Every body on the field where it stands (§10.6, #574): each glove from the live map (the glove
     /// on the ball at its own spot), each live runner on the path. Complete captures this before the
@@ -352,6 +357,11 @@ public sealed partial class LivePlaySystem
         _fielders.Clear();
         foreach (var kv in Assigned())
             _fielders[kv.Key] = Diamond.Positions[kv.Key];
+        // The square (§7.3): the corners crashed and the middle walked to the bags while the pitch was thrown; the
+        // live ball starts from those bodies — the same function the presenter drew them from (BuntDefense.Spots).
+        if (BuntDefense.Squared(Swing))
+            foreach (var kv in BuntDefense.Spots(Assigned(), SquareSec, R))
+                _fielders[kv.Key] = kv.Value;
         SwapLock = 0;
         if (Preview is null)
         {
@@ -519,6 +529,7 @@ public sealed partial class LivePlaySystem
         TickCutoffAndBackup(dt);
         ChargeOutfield(dt);
         TickHandoffCoast(dt);
+        ChargeBunt(dt);
         // While the throw is in the air the YOU ring rides the receiver: the cursor follows that body's walk to the bag.
         if (Throwing && _fielders.TryGetValue(GlovePos, out var receiverAt))
             (GloveX, GloveZ) = receiverAt;
@@ -1152,6 +1163,18 @@ public sealed partial class LivePlaySystem
             var at = Diamond.Bag(bag);
             return Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
         }
+        // The lead forced bag ahead of a forced runner still short of it (second, third, home), or 0.
+        int LeadForce()
+        {
+            for (var bag = 4; bag >= 2; bag--)
+            {
+                if (!Forces.At(bag)) continue;
+                var forced = _match.RunnerAt(bag - 1);
+                if (forced is null || !forced.Live || forced.Bag >= bag) continue;
+                return bag;
+            }
+            return 0;
+        }
 
         // The doubled-off race (§10.5): a body off its start bag after the catch is a force back there.
         if (Fly == FlyState.Caught)
@@ -1184,15 +1207,23 @@ public sealed partial class LivePlaySystem
                 if (pick > 0) { CpuPlayAt(pick); return; }
                 return;
             }
-            // 1. The lead forced bag ahead of a forced runner (second, third, home); the batter at first is rule 4.
-            for (var bag = 4; bag >= 2; bag--)
+            // The bunt (§7.3): the batter at first by default; the lead force only when the bunt came too hard for the
+            // sac (fielding.bunt.hardExitMph) and it is makeable; home on a squeeze only from inside bunt.squeezeHomeFt.
+            // A popped bunt is a pop (§5.8): the catch and the doubled-off race above are its rows.
+            if (Ball is { Shape: BattedBallClass.Bunt })
             {
-                if (!Forces.At(bag)) continue;
-                var forced = _match.RunnerAt(bag - 1);
-                if (forced is null || !forced.Live || forced.Bag >= bag) continue;
-                if (Makeable(bag)) { CpuPlayAt(bag); return; }
-                break;
+                var b = R.Fielding.Bunt;
+                if (DistTo(4) <= b.SqueezeHomeFt && (Makeable(4) || PlateWorthIt())) { CpuPlayAt(4); return; }
+                if (Hit is not null && BuntDefense.TooHard(Hit, b) && LeadForce() is > 0 and var hardLead && Makeable(hardLead))
+                {
+                    CpuPlayAt(hardLead);
+                    return;
+                }
+                if (Forces.At(1) && Makeable(1)) { CpuPlayAt(1); return; }
+                return;
             }
+            // 1. The lead forced bag ahead of a forced runner (second, third, home); the batter at first is rule 4.
+            if (LeadForce() is > 0 and var lead && Makeable(lead)) { CpuPlayAt(lead); return; }
             // 2. Home, 3. third, then second (tags on a runner going): the lead body first, unless a trailing
             // body's margin is better by running.steal.cpuTrailPreferSec (§11.3, the double steal).
             var tagBag = 0;
@@ -1370,6 +1401,8 @@ public sealed partial class LivePlaySystem
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
         }
+        // A bunt (§7.3): the runner from third holds at contact unless the offense sent them.
+        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt } };
         var trailing = _match.Inning >= _match.Innings
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
             : int.MinValue;
@@ -1564,8 +1597,24 @@ public sealed partial class LivePlaySystem
     {
         if (bag is < 1 or > 4) return "";
         var ballX = Preview?.LandingX ?? BallX;
-        var map = InPlay.CoverMap(OnBallPos, ballX);
+        var map = CoverMapNow(OnBallPos, ballX);
         return map.TryGetValue(bag, out var pos) ? pos : FieldAssist.CoverKey(bag);
+    }
+
+    /// <summary>The cover map for this ball (§8.7): the bunt's (the middle behind the crash, §7.3) while the alignment is on, else the diamond's.</summary>
+    Dictionary<int, string> CoverMapNow(string onBall, double ballX) =>
+        !RunnerPlay && BuntAlignment ? BuntDefense.CoverMap(onBall, R.Fielding.Bunt) : InPlay.CoverMap(onBall, ballX);
+
+    /// <summary>
+    /// A charge body on a bunt (§7.3) that is free to converge on the ball: in the bunt table, not the glove, and not
+    /// the cover of a bag a play still stands at (the catcher stays home on a squeeze, §10.3).
+    /// </summary>
+    bool BuntChargeBody(string pos, Dictionary<int, string> covers)
+    {
+        if (Ball is not { Shape: BattedBallClass.Bunt } || pos == GlovePos || !BuntDefense.Charges(pos, R.Fielding.Bunt)) return false;
+        foreach (var kv in covers)
+            if (kv.Value == pos && PlayStandsAt(kv.Key)) return false;
+        return true;
     }
 
     /// <summary>Cover bodies walk to their bags at the flat cover speed after the start delay (§8.7, D11).</summary>
@@ -1575,15 +1624,44 @@ public sealed partial class LivePlaySystem
         var cover = R.Fielding.Cover;
         var ballX = Preview?.LandingX ?? 0;
         var onBall = OnBallPos;
-        var map = InPlay.CoverMap(onBall, ballX);
+        var map = CoverMapNow(onBall, ballX);
+        var squared = !RunnerPlay && BuntDefense.Squared(Swing);
         foreach (var kv in map)
         {
             var pos = kv.Value;
             if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
-            if (!RunnerPlay && ElapsedSeconds < Math.Max(cover.StartSec, ReadyAt(pos))) continue;
+            // A body already walking on the square keeps walking through the crack (§7.3); the rest wait the cover start.
+            var onSquare = squared && BuntDefense.CoverBag(pos, R.Fielding.Bunt) == kv.Key;
+            if (!RunnerPlay && !onSquare && ElapsedSeconds < Math.Max(cover.StartSec, ReadyAt(pos))) continue;
+            // A charge body converges on the bunt instead of covering an idle bag (ChargeBunt).
+            if (!HoldsBall && !Throwing && !_loose && BuntChargeBody(pos, map)) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
             _fielders[pos] = StepFlat(at, goal, cover.FtPerSec, cover.StopFt, dt);
+        }
+    }
+
+    /// <summary>
+    /// The triangle on a bunt (§7.3): every charge body that is not the glove converges on the ball to
+    /// fielding.bunt.chargeStopFt once its lockout is over (§8.2), unless a play stands at the bag it covers.
+    /// They do not take the ball: the glove is the earliest route (§8.2) and the touch is the glove's; a human
+    /// who takes one of them with the stick keeps it (§8.9).
+    /// </summary>
+    void ChargeBunt(double dt)
+    {
+        if (Preview is null || Hit is null || Path is null || RunnerPlay) return;
+        if (Ball is not { Shape: BattedBallClass.Bunt } || HoldsBall || Throwing || _loose) return;
+        var b = R.Fielding.Bunt;
+        var map = Assigned();
+        var covers = CoverMapNow(OnBallPos, Preview.LandingX);
+        foreach (var pos in b.Charge)
+        {
+            if (!map.TryGetValue(pos, out var who) || !BuntChargeBody(pos, covers) || !CanMove(pos)) continue;
+            if (pos == _cutoffPos || pos == _backupPos) continue;
+            if (!_fielders.TryGetValue(pos, out var at)) continue;
+            if (Diamond.Dist(at.X, at.Z, BallX, BallZ) <= b.ChargeStopFt) continue;
+            var speed = FieldingResolver.ChaseSpeedFt(who, pos, Preview, R);
+            _fielders[pos] = FieldingResolver.StepToward(at.X, at.Z, BallX, BallZ, speed, dt, Park, R);
         }
     }
 
