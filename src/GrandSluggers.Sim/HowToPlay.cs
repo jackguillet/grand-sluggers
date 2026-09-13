@@ -194,7 +194,7 @@ public static class HowToPlay
         [
             "Stick L/R walk the rubber (pitch) or the box (hit).",
             "A sitting stick does not walk. Flick from rest.",
-            "The sweet-spot oval follows the batter, never the pitch. Walk so its center eats the ball.",
+            "The sweet-spot oval follows the batter, never the pitch; the box resets each pitch.",
             "After the pitch is in the air, stick L/R break. A pale ring on the plate is where it will cross.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
             "D-pad 1 2 3 + South pickoff: a runner on the bag is safe, one who broke is caught between bags. Select opens the swap: stick picks any fielder, Select again.",
@@ -202,7 +202,7 @@ public static class HowToPlay
         [
             "A/D or mouse walk the rubber (pitch) or the box (hit).",
             "Keys already down at SET do not walk. Right-drag is this-frame. A parked cursor is dead.",
-            "The sweet-spot oval follows the batter, never the pitch. Walk so its center eats the ball.",
+            "The sweet-spot oval follows the batter, never the pitch; the box resets each pitch.",
             "After the pitch is in the air, A/D break. A pale ring on the plate is where it will cross.",
             "Take outside the white frame: ball. Swing and miss outside: strike.",
             "1 2 3 + Space pickoff: a runner on the bag is safe, one who broke is caught between bags. R opens the swap: A/D picks any fielder, R again.",
