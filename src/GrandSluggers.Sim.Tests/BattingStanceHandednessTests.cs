@@ -90,13 +90,16 @@ public class BattingStanceHandednessTests
     [InlineData(Hand.L)]
     public void LeadHandRidesUnderTheTopHand(Hand bats)
     {
-        var key = SwingPresentation.At(SwingPresentation.LoadAt, bats);
-        var lead = BattingStance.LeadSide(bats);
-        var leadY = lead == Hand.L ? key.LeftHand.Y : key.RightHand.Y;
-        var topY = lead == Hand.L ? key.RightHand.Y : key.LeftHand.Y;
-        Assert.True(leadY < topY,
-            $"{bats} batter: the {lead} hand must sit below the {bats} hand on the "
-            + $"handle (lead y={leadY:0.000}, top y={topY:0.000})");
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
+        {
+            var key = SwingPresentation.At(SwingPresentation.LoadAt, bats, take);
+            var lead = BattingStance.LeadSide(bats);
+            var leadY = lead == Hand.L ? key.LeftHand.Y : key.RightHand.Y;
+            var topY = lead == Hand.L ? key.RightHand.Y : key.LeftHand.Y;
+            Assert.True(leadY < topY,
+                $"{take} {bats} batter: the {lead} hand must sit below the {bats} hand on the "
+                + $"handle (lead y={leadY:0.000}, top y={topY:0.000})");
+        }
     }
 
     /// <summary>
@@ -112,14 +115,15 @@ public class BattingStanceHandednessTests
     public void LeadHandHoldsTheKnobEndThroughTheWholeSwing(Hand bats)
     {
         var lead = BattingStance.LeadSide(bats);
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         for (var step = 0; step <= 100; step++)
         {
-            var t = SwingPresentation.FollowThroughAt * step / 100.0;
-            var key = SwingPresentation.At(t, bats);
+            var t = SwingPresentation.FinishAt * step / 100.0;
+            var key = SwingPresentation.At(t, bats, take);
             var leadAlong = SwingPresentation.HandAlongHandle(key, lead);
             var topAlong = SwingPresentation.HandAlongHandle(key, bats);
             Assert.True(leadAlong >= 0 && leadAlong < topAlong,
-                $"{bats} batter at {t:0.000}: the {lead} hand must hold the knob end "
+                $"{take} {bats} batter at {t:0.000}: the {lead} hand must hold the knob end "
                 + $"(lead {leadAlong:0.000} ft up the handle, top {topAlong:0.000})");
         }
     }
@@ -127,8 +131,8 @@ public class BattingStanceHandednessTests
     [Fact]
     public void MirroringSwapsTheHandsWithoutChangingTheGrip()
     {
-        var r = SwingPresentation.At(SwingPresentation.LoadAt, Hand.R);
-        var l = SwingPresentation.At(SwingPresentation.LoadAt, Hand.L);
+        var r = SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Charge);
+        var l = SwingPresentation.At(SwingPresentation.LoadAt, Hand.L, SwingTake.Charge);
 
         static double Gap(SwingPresentation.Key k)
         {

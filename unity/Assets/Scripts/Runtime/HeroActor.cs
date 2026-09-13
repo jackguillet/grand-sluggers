@@ -317,7 +317,8 @@ namespace GrandSluggers.UnityClient
         void Animate(float dt)
         {
             var verb = Locomotion(_verb);
-            var cue = Motion.CueFor(verb);
+            // The committed swing plays the slap or the charge take by its charge (#613).
+            var cue = Motion.CueFor(verb, _charge);
             var hand = Motion.UsesBattingHand(verb)
                 ? (_batsLeft ? Hand.L : Hand.R)
                 : (_throwsLeft ? Hand.L : Hand.R);

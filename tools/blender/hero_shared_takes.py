@@ -18,6 +18,7 @@ Contract: docs/character-motion.md. Runtime clocks: src/GrandSluggers.Sim/Motion
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import shutil
 import sys
@@ -338,41 +339,38 @@ SPIN = [
              lThigh=limb(4), rThigh=limb(4), lShin=limb(6), rShin=limb(6))),
 ]
 
-# Swing legs by key; arms are solved, spine is aimed, the bat is keyed.
-SWING_LEGS = {
-    0.00: K(lThigh=limb(8, 4), rThigh=limb(-6, 10), lShin=limb(16), rShin=limb(12)),
-    0.15: K(lThigh=limb(14, 4), rThigh=limb(-12, 16), lShin=limb(18), rShin=limb(16)),
-    0.24: K(lThigh=limb(16, 4), rThigh=limb(-20, 22), lShin=limb(20), rShin=limb(24)),
-    0.30: K(lThigh=limb(16, 4), rThigh=limb(-22, 24), lShin=limb(20), rShin=limb(26)),
-    0.50: K(lThigh=limb(10, 4), rThigh=limb(-12, 20), lShin=limb(16), rShin=limb(22)),
-}
-SWING_KEY_TIMES = sorted(SWING_LEGS)
-SWING_DUR = 0.50
-SWING_CONTACT = 0.30
+# The two swings (#613) live in data/art/swing-takes.json, shared with
+# SwingPresentation.SlapKeys / ChargeKeys: per key the rendered hand centers,
+# the grip socket and the barrel direction (Unity batter-local, right-handed),
+# and the legs in body terms. Arms are solved, the spine is aimed at
+# data/art/batting-stance.json, the bat is keyed.
+SWING_CATALOG = Path(__file__).resolve().parents[2] / "data/art/swing-takes.json"
+SWING_SLAP = "swing-slap"
+SWING_CHARGE = "swing-charge"
 
-# Batter-local Unity space (+Z pitcher, +X across the plate for a right-handed
-# batter). These are the SwingPresentation.Keys hand and grip targets.
-HAND_TARGETS = {
-    0.00: {"lFore": (0.080, 2.522, 0.326), "rFore": (0.300, 2.727, 0.512)},
-    0.15: {"lFore": (0.143, 2.240, 0.016), "rFore": (0.416, 2.356, -0.235)},
-    0.24: {"lFore": (0.129, 1.798, -0.140), "rFore": (0.366, 1.729, -0.547)},
-    0.30: {"lFore": (0.124, 1.914, -0.257), "rFore": (0.458, 1.856, -0.622)},
-    0.50: {"lFore": (-0.134, 2.155, -0.290), "rFore": (-0.242, 2.195, -0.576)},
-}
-GRIP_TARGETS = {
-    0.00: (0.273, 2.215, 0.226),
-    0.15: (0.326, 2.013, 0.249),
-    0.24: (0.049, 1.761, 0.071),
-    0.30: (-0.069, 1.872, -0.149),
-    0.50: (0.060, 2.032, -0.073),
-}
-BARREL_DIRECTIONS = {
-    0.00: (-0.18, 0.89, 0.42),
-    0.15: (-0.10, 0.62, -0.78),
-    0.24: (0.4315, 0.005, -0.9022),
-    0.30: (0.7790, 0.0275, -0.6264),
-    0.50: (-0.54, 0.31, -0.78),
-}
+
+def _load_swings():
+    doc = json.loads(SWING_CATALOG.read_text())
+    swings = {}
+    for row in doc["takes"]:
+        keys = sorted(row["keys"], key=lambda k: k["t"])
+        times = [round(float(k["t"]), 4) for k in keys]
+        swings[row["id"]] = {
+            "times": times,
+            "legs": {t: {bone: (v if bone == "lift" else limb(v["flex"], v["abduct"], v["twist"]))
+                         for bone, v in k["legs"].items()} for t, k in zip(times, keys)},
+            "hands": {t: {"lFore": tuple(k["leftHand"]), "rFore": tuple(k["rightHand"])} for t, k in zip(times, keys)},
+            "grip": {t: tuple(k["grip"]) for t, k in zip(times, keys)},
+            "barrel": {t: tuple(k["barrel"]) for t, k in zip(times, keys)},
+        }
+    return doc, swings
+
+
+SWING_DOC, SWINGS = _load_swings()
+SWING_CONTACT = float(SWING_DOC["contactAt"])
+SWING_FINISH = float(SWING_DOC["finishAt"])
+# The follow-through key (Motion.SwingDur); the take goes on to its held finish.
+SWING_DUR = 0.50
 HAND_MESH = {"lFore": "lHand", "rFore": "rHand"}
 ARM_PARENT = {"lFore": "lUpper", "rFore": "rUpper"}
 HANDLE_LENGTH = 0.85 * 1.28
@@ -383,10 +381,10 @@ STANCE_LANDMARKS = dict(chest_front="Stripe", chest_center="torsoMesh",
                         foot_left="lShoe", foot_right="rShoe")
 
 
-def _interp_table(table, t):
-    index, u = batting_stance.span_at(t, SWING_KEY_TIMES)
-    a = table[SWING_KEY_TIMES[index]]
-    b = table[SWING_KEY_TIMES[min(index + 1, len(SWING_KEY_TIMES) - 1)]]
+def _interp_table(table, t, times):
+    index, u = batting_stance.span_at(t, times)
+    a = table[times[index]]
+    b = table[times[min(index + 1, len(times) - 1)]]
     if isinstance(a, dict):
         return {k: tuple(_lerp(x, y, u) for x, y in zip(a[k], b[k])) for k in a}
     return tuple(_lerp(x, y, u) for x, y in zip(a, b))
@@ -488,21 +486,25 @@ def point_segment_distance(point, start, end):
     return (point - (start + axis * u)).length
 
 
-def pose_swing_frame(arm, t):
-    apply_pose(arm, pose_at([(k, SWING_LEGS[k]) for k in SWING_KEY_TIMES], t, ease=False, loop=False, duration=SWING_DUR))
+def pose_swing_frame(arm, t, clip=SWING_SLAP):
+    swing = SWINGS[clip]
+    times = swing["times"]
+    apply_pose(arm, pose_at([(k, swing["legs"][k]) for k in times], t, ease=False, loop=False, duration=SWING_FINISH))
     batting_stance.author_visible_stance(arm, t, bats=batting_stance.BATS_RIGHT, **STANCE_LANDMARKS)
-    targets = {name: batting_stance.unity_to_dcc(v, normalize=False) for name, v in _interp_table(HAND_TARGETS, t).items()}
+    targets = {name: batting_stance.unity_to_dcc(v, normalize=False)
+               for name, v in _interp_table(swing["hands"], t, times).items()}
     missed = solve_rendered_hands(arm, targets)
     for name, distance in missed.items():
         if distance > HAND_SOLVE_TOLERANCE:
-            raise RuntimeError(f"swing {name} hand solve missed at {t:.4f}: {distance:.4f}")
-    aim_bat(arm, _interp_table(BARREL_DIRECTIONS, t), _interp_table(GRIP_TARGETS, t))
+            raise RuntimeError(f"{clip} {name} hand solve missed at {t:.4f}: {distance:.4f}")
+    aim_bat(arm, _interp_table(swing["barrel"], t, times), _interp_table(swing["grip"], t, times))
 
 
-def validate_swing_frame(arm, t, bats):
+def validate_swing_frame(arm, t, bats, clip=SWING_SLAP):
+    swing = SWINGS[clip]
     bat = arm.pose.bones["bat"]
     actual = -(bat.matrix.to_3x3() @ Vector((0, 1, 0))).normalized()
-    direction = Vector(_interp_table(BARREL_DIRECTIONS, t))
+    direction = Vector(_interp_table(swing["barrel"], t, swing["times"]))
     if bats == batting_stance.BATS_LEFT:
         direction.x = -direction.x
     expected = batting_stance.unity_to_dcc(tuple(direction))
@@ -761,8 +763,16 @@ def bake(arm, take: Take, out_dir: Path, sheets: Path | None, resources: Path | 
     return outputs
 
 
-def swing_validate(arm, t, bats):
-    validate_swing_frame(arm, t, bats)
+def swing_frame(clip):
+    def custom(arm, t):
+        pose_swing_frame(arm, t, clip)
+    return custom
+
+
+def swing_validate(clip):
+    def validate(arm, t, bats):
+        validate_swing_frame(arm, t, bats, clip)
+    return validate
 
 
 def pitch_validate(arm, t, bats):
@@ -772,12 +782,12 @@ def pitch_validate(arm, t, bats):
 
 def held_swing_frame(t_source):
     def custom(arm, t):
-        pose_swing_frame(arm, t_source)
+        pose_swing_frame(arm, t_source, SWING_SLAP)
     return custom
 
 
 def miss_frame(arm, t):
-    pose_swing_frame(arm, SWING_DUR)
+    pose_swing_frame(arm, SWING_DUR, SWING_SLAP)
     head = arm.pose.bones["head"]
     head.rotation_mode = "QUATERNION"
     head.matrix = head.matrix @ Matrix.Rotation(math.radians(25), 4, "X")
@@ -804,8 +814,10 @@ TAKES = [
     Take("jump", JUMP, duration=JUMP_DUR, sink=0.2),
     Take("pitch", PITCH, duration=0.50, handed=True, mark=0.42, validate=pitch_validate, sink=0.3, view="three-quarter-right"),
     Take("throw", THROW, duration=0.40, handed=True, mark=0.18, sink=0.2, view="three-quarter-right"),
-    Take("swing", None, view="three-quarter-right", duration=SWING_DUR, handed=True, ease=False, mark=SWING_CONTACT,
-         custom=pose_swing_frame, validate=swing_validate, sheet_times=SWING_KEY_TIMES, sink=0.2),
+    # Slap and charge (#613): both meet the ball at Contact and end on the held finish (#583).
+    *[Take(clip, None, view="three-quarter-right", duration=SWING_FINISH, handed=True, ease=False, mark=SWING_CONTACT,
+           custom=swing_frame(clip), validate=swing_validate(clip), sheet_times=SWINGS[clip]["times"], sink=0.2)
+      for clip in (SWING_SLAP, SWING_CHARGE)],
     Take("checkSwing", None, view="three-quarter-right", duration=HOLD, handed=True, custom=held_swing_frame(0.20), validate=None,
          sheet_times=[0.0], sink=0.2),
     Take("bunt", None, view="three-quarter-right", duration=HOLD, handed=True, custom=bunt_frame, sheet_times=[0.0], sink=0.6),
@@ -871,4 +883,12 @@ if __name__ == "__main__":
         argv = argv[argv.index("--") + 1 :]
     else:
         argv = argv[1:]
-    main(argv)
+    try:
+        main(argv)
+    except Exception:
+        # Blender -b exits 0 when a --python script raises; a take that misses its
+        # contract must fail the bake gate (docs/character-motion.md).
+        import traceback
+        traceback.print_exc()
+        sys.stdout.flush()
+        sys.exit(1)

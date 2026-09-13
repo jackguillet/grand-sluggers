@@ -45,16 +45,21 @@ public class ArtCatalogTests
             Assert.StartsWith("Assets/Resources/Art/Animation/Clips/", clip.PlayerSlot, StringComparison.OrdinalIgnoreCase);
         }
         Assert.Equal(Motion.Clips.Count, _content.Art.Clips.Count);
-        Assert.True(_content.Art.TryClip("swing", out var swing));
+        Assert.True(_content.Art.TryClip("swing-slap", out var swing));
         Assert.Contains("Contact", swing.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(Motion.SwingContact, swing.ContactAt);
+        Assert.Equal(Motion.SwingFinish, swing.FinishAt);
+        Assert.True(_content.Art.TryClip("swing-charge", out var charge));
+        Assert.Equal(Motion.SwingContact, charge.ContactAt);
+        Assert.Equal(Motion.SwingFinish, charge.FinishAt);
+        Assert.False(_content.Art.TryClip("swing", out _));
         Assert.True(_content.Art.TryClip("pitch", out var pitch));
         Assert.Contains("Release", pitch.Events, StringComparer.OrdinalIgnoreCase);
         Assert.Equal(Motion.PitchRelease, pitch.ReleaseAt);
-        Assert.Equal(("Assets/Art/Animation/Clips/swing-L.fbx", "Assets/Resources/Art/Animation/Clips/swing-L.fbx"),
+        Assert.Equal(("Assets/Art/Animation/Clips/swing-slap-L.fbx", "Assets/Resources/Art/Animation/Clips/swing-slap-L.fbx"),
             ArtCatalog.ClipFiles(swing, Hand.L));
-        Assert.Equal(("Assets/Art/Animation/Clips/swing.fbx", "Assets/Resources/Art/Animation/Clips/swing.fbx"),
-            ArtCatalog.ClipFiles(swing, Hand.R));
+        Assert.Equal(("Assets/Art/Animation/Clips/swing-charge.fbx", "Assets/Resources/Art/Animation/Clips/swing-charge.fbx"),
+            ArtCatalog.ClipFiles(charge, Hand.R));
         Assert.True(_content.Art.TryClip("run", out var run));
         Assert.Equal(("Assets/Art/Animation/Clips/run.fbx", "Assets/Resources/Art/Animation/Clips/run.fbx"),
             ArtCatalog.ClipFiles(run, Hand.L));

@@ -36,15 +36,17 @@ public class SwingPresentationTests
         Assert.Equal(Motion.SwingContact,
             AtBatMotion.SwingClipTime(AtBatMotion.CommittedSwingSample(clock, takeSec), charge, contactSec), 8);
 
-        // Load → launch → approach → contact → follow-through, in order, never backward.
+        // Every key of the take this charge plays, in order, never backward (#613: slap or charge).
+        var take = SwingPresentation.TakeFor(charge);
+        var keys = SwingPresentation.KeysFor(take);
         var previous = AtBatMotion.SwingClipTime(0, charge, contactSec);
-        Assert.Equal(SwingPresentation.LoadSampleAt(charge), previous, 8);
+        Assert.Equal(SwingPresentation.CommittedLoadAt(charge), previous, 8);
         var crossed = new List<double>();
         var keyIndex = 0;
         void Cross(double sample)
         {
-            while (keyIndex < SwingPresentation.Keys.Count && sample >= SwingPresentation.Keys[keyIndex].T - 1e-9)
-                crossed.Add(SwingPresentation.Keys[keyIndex++].T);
+            while (keyIndex < keys.Count && sample >= keys[keyIndex].T - 1e-9)
+                crossed.Add(keys[keyIndex++].T);
         }
         Cross(previous);
         const int steps = 2000;
@@ -56,10 +58,10 @@ public class SwingPresentationTests
             Cross(sample);
             previous = sample;
         }
-        Assert.Equal(SwingPresentation.Keys.Select(k => k.T), crossed);
-        Assert.Equal(Motion.SwingDur, AtBatMotion.SwingClipTime(takeSec, charge, contactSec), 8);
-        // The follow-through after contact is the take's own 0.20 s, not warped.
-        Assert.Equal(Motion.SwingDur - Motion.SwingContact, takeSec - contactSec, 8);
+        Assert.Equal(keys.Select(k => k.T), crossed);
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.SwingClipTime(takeSec, charge, contactSec), 8);
+        // The follow-through and finish after contact are the take's own 0.30 s, not warped.
+        Assert.Equal(Motion.SwingFinish - Motion.SwingContact, takeSec - contactSec, 8);
     }
 
     [Theory]
@@ -72,9 +74,9 @@ public class SwingPresentationTests
         Assert.False(AtBatResolver.InWindow(err, window));
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(Motion.SwingContact, contactSec, 8);
-        Assert.Equal(Motion.SwingDur, AtBatMotion.SwingTakeSeconds(contactSec), 8);
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.SwingTakeSeconds(contactSec), 8);
         foreach (var charge in new[] { 0.0, 1.0 })
-        for (var t = 0.0; t <= Motion.SwingDur; t += 0.01)
+        for (var t = 0.0; t <= Motion.SwingFinish; t += 0.01)
             Assert.Equal(AtBatMotion.SwingClipTime(t, charge), AtBatMotion.SwingClipTime(t, charge, contactSec), 8);
 
         // The bat's Contact mark is not on the ball: early lands after the ball has gone, late before it would arrive.
@@ -94,7 +96,7 @@ public class SwingPresentationTests
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(0, contactSec, 8);
         Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
-        Assert.Equal(SwingPresentation.LoadSampleAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
+        Assert.Equal(SwingPresentation.CommittedLoadAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
         // The normal slap window never needs that clamp: its latest press is still before the ball.
         Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.SlapFrames / 2,
             "batting.window.leadSec must cover half the slap window so contact meets the ball");
@@ -153,10 +155,10 @@ public class SwingPresentationTests
             for (var step = 0; step <= 40; step++)
             {
                 var charge = step / 40.0;
-                var t = SwingPresentation.LoadSampleAt(charge);
+                var t = SwingPresentation.HeldLoadAt(charge);
                 foreach (var hand in new[] { Hand.R, Hand.L })
                 {
-                    var direction = SwingPresentation.At(t, hand).BarrelDirection;
+                    var direction = SwingPresentation.At(t, hand, SwingTake.Charge).BarrelDirection;
                     var world = new Vec3(
                         direction.X * scale.X, direction.Y * scale.Y, direction.Z * scale.Z);
                     var length = Math.Sqrt(
@@ -175,20 +177,129 @@ public class SwingPresentationTests
         // The DCC take bakes this contract on every frame, so the gate samples
         // it between the authored keys. A new key that pulls a hand off the
         // handle in between would author a rig the still gate then rejects.
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         for (var step = 0; step <= 200; step++)
         {
-            var t = SwingPresentation.FollowThroughAt * step / 200.0;
+            var t = SwingPresentation.FinishAt * step / 200.0;
             foreach (var hand in new[] { Hand.R, Hand.L })
             {
-                var key = SwingPresentation.At(t, hand);
+                var key = SwingPresentation.At(t, hand, take);
                 foreach (var fist in new[] { Hand.L, Hand.R })
                     Assert.True(
                         SwingPresentation.HandToHandle(key, fist)
                             <= SwingPresentation.HandToHandleAllowance,
-                        $"{fist} fist leaves the handle at {t:0.000}: "
+                        $"{take} {fist} fist leaves the handle at {t:0.000}: "
                         + $"{SwingPresentation.HandToHandle(key, fist):0.000}");
             }
         }
+    }
+
+    // -------------------------------------------------------------------------------------
+    // #613: two takes on one rig, one catalog, a held finish (#583).
+    // -------------------------------------------------------------------------------------
+
+    [Fact]
+    public void DccSwingTakesCatalogCarriesTheContractKeys()
+    {
+        var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
+        var doc = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "data", "art", "swing-takes.json")))!;
+        Assert.Equal(Motion.SwingContact, doc["contactAt"]!.GetValue<double>(), 8);
+        Assert.Equal(Motion.SwingFinish, doc["finishAt"]!.GetValue<double>(), 8);
+        var takes = doc["takes"]!.AsArray();
+        Assert.Equal(2, takes.Count);
+        foreach (var row in takes)
+        {
+            var take = row!["take"]!.GetValue<string>() == "charge" ? SwingTake.Charge : SwingTake.Slap;
+            Assert.Equal(take == SwingTake.Charge ? Motion.SwingChargeClip : Motion.SwingSlapClip, row["id"]!.GetValue<string>());
+            var keys = row["keys"]!.AsArray();
+            var authored = SwingPresentation.KeysFor(take);
+            Assert.Equal(authored.Count, keys.Count);
+            for (var i = 0; i < keys.Count; i++)
+            {
+                Assert.Equal(authored[i].T, keys[i]!["t"]!.GetValue<double>(), 8);
+                AssertVector(authored[i].LeftHand, keys[i]!["leftHand"]!.AsArray());
+                AssertVector(authored[i].RightHand, keys[i]!["rightHand"]!.AsArray());
+                AssertVector(authored[i].Grip, keys[i]!["grip"]!.AsArray());
+                // The catalog stores the unit barrel to 4 places; compare directions, not digits.
+                var barrel = keys[i]!["barrel"]!.AsArray();
+                var (bx, by, bz) = (barrel[0]!.GetValue<double>(), barrel[1]!.GetValue<double>(), barrel[2]!.GetValue<double>());
+                var bn = Math.Sqrt(bx * bx + by * by + bz * bz);
+                Assert.Equal(authored[i].BarrelDirection.X, bx / bn, 5);
+                Assert.Equal(authored[i].BarrelDirection.Y, by / bn, 5);
+                Assert.Equal(authored[i].BarrelDirection.Z, bz / bn, 5);
+            }
+        }
+        // Approach and contact are the measured contract (docs/research-batting.md): both takes share them.
+        foreach (var t in new[] { SwingPresentation.ApproachAt, SwingPresentation.ContactAt })
+            AssertSameKey(SwingPresentation.At(t, Hand.R, SwingTake.Slap), SwingPresentation.At(t, Hand.R, SwingTake.Charge));
+        // Every take starts on a load, ends on the held finish, and a held charge at no charge is the slap's first key.
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
+        {
+            Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.KeysFor(take)[0].T);
+            Assert.Equal(SwingPresentation.FinishAt, SwingPresentation.KeysFor(take)[^1].T);
+        }
+        AssertSameKey(SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Slap),
+            SwingPresentation.At(SwingPresentation.HeldLoadAt(0), Hand.R, SwingTake.Charge));
+    }
+
+    static void AssertSameKey(SwingPresentation.Key a, SwingPresentation.Key b)
+    {
+        foreach (var (x, y) in new[] { (a.LeftHand, b.LeftHand), (a.RightHand, b.RightHand), (a.Grip, b.Grip), (a.BarrelDirection, b.BarrelDirection) })
+        {
+            Assert.Equal(x.X, y.X, 9);
+            Assert.Equal(x.Y, y.Y, 9);
+            Assert.Equal(x.Z, y.Z, 9);
+        }
+    }
+
+    [Fact]
+    public void TheChargeTakeWindsUpAndSwingsABiggerArcThanTheSlap()
+    {
+        foreach (var hand in new[] { Hand.R, Hand.L })
+        {
+            var ready = SwingPresentation.At(SwingPresentation.HeldLoadAt(0), hand, SwingTake.Charge);
+            var windup = SwingPresentation.At(SwingPresentation.HeldLoadAt(1), hand, SwingTake.Charge);
+            var top = hand == Hand.L ? (Func<SwingPresentation.Key, Vec3>)(k => k.LeftHand) : k => k.RightHand;
+            Assert.True(top(windup).Y > top(ready).Y + 0.1, $"{hand}: MAX must show a windup above the ready hands");
+            Assert.True(Distance(windup.Grip, ready.Grip) > 0.3, $"{hand}: the windup must move the hands back");
+
+            var contact = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.ContactAt, hand, SwingTake.Slap));
+            double Arc(SwingTake take) => Distance(contact,
+                SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.FollowThroughAt, hand, take)));
+            Assert.True(Arc(SwingTake.Charge) > Arc(SwingTake.Slap) + 0.3,
+                $"{hand}: charge follow-through arc {Arc(SwingTake.Charge):0.00} vs slap {Arc(SwingTake.Slap):0.00}");
+        }
+    }
+
+    [Fact]
+    public void TheResolversChargeTestPicksTheTake()
+    {
+        Assert.Equal(SwingTake.Slap, SwingPresentation.TakeFor(ChargeFeel.ChargeAt - 0.01));
+        Assert.Equal(SwingTake.Charge, SwingPresentation.TakeFor(ChargeFeel.ChargeAt));
+        Assert.Equal(Motion.SwingSlapClip, Motion.CueFor(Motion.Verb.Swing, 0).Clip);
+        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.Swing, 1).Clip);
+        Assert.Equal(Motion.SwingChargeClip, Motion.CueFor(Motion.Verb.ChargeSwing, 0).Clip);
+        // A slap has no windup: it starts on its ready key. A charge continues from the held windup.
+        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.CommittedLoadAt(0.3), 8);
+        Assert.Equal(SwingPresentation.HeldLoadAt(0.8), SwingPresentation.CommittedLoadAt(0.8), 8);
+    }
+
+    [Fact]
+    public void TheFinishHoldsThroughTheStampUntilSetOrTheFirstStep()
+    {
+        var feel = ContentCatalog.Load().Feel;
+        var step = feel.SwingFinishStepFt;
+        var takeSec = AtBatMotion.SwingTakeSeconds(Motion.SwingContact);
+        // A whiff: the take, then its finish, however long the STRIKE stamp and the contact freeze last.
+        for (var t = 0.0; t <= 5.0; t += 0.05)
+            Assert.True(AtBatMotion.PresentsSwing(t, takeSec, contact: false, runnerFromBoxFt: 0, step));
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.CommittedSwingSample(5.0, takeSec), 8);
+        // Contact: the finish holds while the batter-runner is still in the box, then lets go to the run.
+        Assert.True(AtBatMotion.PresentsSwing(takeSec + 1.0, takeSec, contact: true, runnerFromBoxFt: step - 0.01, step));
+        Assert.False(AtBatMotion.PresentsSwing(takeSec + 0.01, takeSec, contact: true, runnerFromBoxFt: step, step));
+        // The take itself always plays through, contact or not.
+        Assert.True(AtBatMotion.PresentsSwing(takeSec, takeSec, contact: true, runnerFromBoxFt: 99, step));
+        Assert.False(AtBatMotion.PresentsSwing(AtBatMotion.SwingNotStarted, takeSec, contact: false, runnerFromBoxFt: 0, step));
     }
 
     [Fact]
@@ -229,10 +340,11 @@ public class SwingPresentationTests
     [Fact]
     public void BothHandsStayOnOneGripFromLoadThroughFollowThrough()
     {
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         foreach (var hand in new[] { Hand.R, Hand.L })
-        foreach (var key in SwingPresentation.Keys)
+        foreach (var key in SwingPresentation.KeysFor(take))
         {
-            var pose = SwingPresentation.At(key.T, hand);
+            var pose = SwingPresentation.At(key.T, hand, take);
             Assert.InRange(SwingPresentation.HandGap(pose), 0.20, 0.55);
             Assert.InRange(SwingPresentation.HandToHandle(pose, Hand.L), 0, 0.30);
             Assert.InRange(SwingPresentation.HandToHandle(pose, Hand.R), 0, 0.30);
@@ -242,11 +354,12 @@ public class SwingPresentationTests
     [Fact]
     public void ContactBarrelCutsThePlateForEverySharedCaptainAndHand()
     {
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         foreach (var body in SwingPresentation.SharedCaptains)
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
             Assert.True(SwingPresentation.BarrelCrossesPlate(
-                body, hand, Motion.SwingContact), $"{body} {hand} missed the plate");
+                body, hand, Motion.SwingContact, take), $"{take} {body} {hand} missed the plate");
         }
     }
 
@@ -255,13 +368,14 @@ public class SwingPresentationTests
     {
         Assert.InRange(Length(SwingPresentation.ModelBarrelAxisAtSocket), 0.999, 1.001);
         Assert.Equal(0.12 * Silhouette.BatScale, SwingPresentation.BarrelRadius, 8);
+        foreach (var take in new[] { SwingTake.Slap, SwingTake.Charge })
         foreach (var hand in new[] { Hand.R, Hand.L })
         {
-            Assert.True(SwingPresentation.At(SwingPresentation.LoadAt, hand).BarrelDirection.Y > 0.70);
-            Assert.True(SwingPresentation.At(SwingPresentation.NormalLoadAt, hand).BarrelDirection.Y > 0.70);
-            Assert.InRange(SwingPresentation.ContactAttackAngleDeg(hand), 5, 20);
-            var contact = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.ContactAt, hand));
-            var follow = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.FollowThroughAt, hand));
+            Assert.True(SwingPresentation.At(SwingPresentation.LoadAt, hand, take).BarrelDirection.Y > 0.70);
+            Assert.True(SwingPresentation.At(SwingPresentation.NormalLoadAt, hand, SwingTake.Charge).BarrelDirection.Y > 0.70);
+            Assert.InRange(SwingPresentation.ContactAttackAngleDeg(take, hand), 5, 20);
+            var contact = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.ContactAt, hand, take));
+            var follow = SwingPresentation.BarrelPoint(SwingPresentation.At(SwingPresentation.FollowThroughAt, hand, take));
             var pullSign = hand == Hand.R ? -1 : 1;
             Assert.True((follow.X - contact.X) * pullSign > 1.0,
                 $"{hand} follow x={follow.X:0.00}, contact x={contact.X:0.00}");

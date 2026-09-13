@@ -208,8 +208,8 @@ Row choice: a runner on with two outs first; then two strikes with at most one b
 
 | Verb | Input | Swing |
 | --- | --- | --- |
-| Slap | Tap and release South | Full swing, widest window, base power |
-| Charge | Hold to MAX (`swingChargeSeconds` 0.45), release in the MAX band | Narrower window (×0.78), more power (up to ×1.35 at MAX). Past the band the charge decays |
+| Slap | Tap and release South | Full swing, widest window, base power. Plays the `swing-slap` take: no windup, compact (#613) |
+| Charge | Hold to MAX (`swingChargeSeconds` 0.45), release in the MAX band | Narrower window (×0.78), more power (up to ×1.35 at MAX). Past the band the charge decays Plays the `swing-charge` take: the hold shows its windup, a bigger arc (#613) |
 | Bunt | Hold West through the pitch | Batter squares at the press; contact when the ball reaches the bat (§5.8) |
 | Star | North armed + South | Captain star swing (§13). Costs a star even on a miss |
 
@@ -236,6 +236,8 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 ### 5.3 Timing — the window and direction
 
 `err` = (press time − (ball-plate time − `window.leadSec`)) in frames at 60 Hz (D13, #612; `leadSec` 0.10, `AtBatMotion.SwingErrorFrames`). The take's `Contact` mark (`Motion.SwingContact`, 0.30 into the take) is an animation contract, not the judgment: for a press inside the window the take is warped so the mark lands on the ball's plate time (`AtBatMotion.SwingContactSec`, `SwingClipTime`) — load → contact is compressed onto the span from the press to the plate, the follow-through plays at the take's own speed, the keys keep their order and the take never plays backward; a press inside the window but after the ball is on the plate (only a widened window) lands Contact at the press. Outside the window the take plays at its natural 0.50 s and the bat misses the ball honestly. The warp is read at the press from the same window number the resolver judges (`Match.SwingWindowFrames`). ✅ #612 (S-07, S-08, S-09; `SwingPresentationTests`)
+
+The take is the swing that is judged (#613): a charge (`ChargeFeel.IsCharge`, the same test that narrows the window) plays `swing-charge`, anything else `swing-slap`; both share the Contact mark and the measured approach and contact keys, so the warp above is one rule for both. Both end on a held finish at 0.60 that stays up through the STRIKE stamp until SET, or through the contact freeze until the batter-runner is `feel.swingFinishStepFt` out of the box (#583). ✅ #613 (`SwingPresentationTests`, `MotionTests`, the swing matrix `finish` beat)
 
 - **Window**: slap **9 frames**, charge **7 frames** (reference), + (contact − 5) × 0.4, × skill multipliers (`star-skills.json` `batterWindowMul`) × the park's × the difficulty rung's `cpu.json` `humanWindowMul` for a pad's swing only (EASY 1.3 / NORMAL 1.0 / HARD 0.9, printed on the title's difficulty line), **floored at 5 frames** (`batting.window`). The window is a total width: the bat is on the plane when |err| ≤ half of it. Outside it the bat is not on the plane: **miss**, strike. The Charge Bat keeps the slap window. ✅ P1 (S-08, S-09, S-10, S-30; `AtBatResolver.ContactWindowFrames`)
 - Inside the window, timing does **not** change quality (D4). It changes **direction**: early contact **pulls**, late contact **pushes** (opposite field). Linear across the window: earliest frame ≈ 55° toward the pull line (`spray.timingDeg`), center ≈ straight at second, latest ≈ 55° toward the opposite line. Stick L/R at contact shifts the whole range by ±12° (`spray.stickDeg`). The zone adds its spread (`spray.*SpreadDeg`). ✅ P1 (S-07, S-08)
