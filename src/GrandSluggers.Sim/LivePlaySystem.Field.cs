@@ -639,12 +639,7 @@ public sealed partial class LivePlaySystem
         var catchRules = R.Fielding.Catch;
 
         NoteSwitchHint(map, pre, pad);
-        // Select (§8.9): never while holding the ball, and locked for chase.swapLockSec after a switch (S-99).
-        if (pad.Swap && SwapLock <= 0 && !buddyOn && !HoldsBall)
-        {
-            CycleGlove(map, pad);
-            SwapLock = R.Fielding.Chase.SwapLockSec;
-        }
+        if (SelectTakes(pad, buddyOn)) TakeSelect(map, pad);
 
         var stick = pad.StickMag;
         var steering = (chasing || HoldsBall) && !Throwing;
@@ -822,9 +817,7 @@ public sealed partial class LivePlaySystem
             return;
         PlayerFielding = true;
         // The take is not a re-pick (D16, D18): the stick takes the body wearing the ring; Select is the switch, with its lock (§8.9).
-        if (!pad.Swap) return;
-        CycleGlove(Assigned(), pad);
-        SwapLock = R.Fielding.Chase.SwapLockSec;
+        if (SelectTakes(pad)) TakeSelect(Assigned(), pad);
     }
 
     // ---------------------------------------------------------------------------------
@@ -969,6 +962,13 @@ public sealed partial class LivePlaySystem
         var human = PlayerFielding || Seats.HumanOwnsThrow;
         if (human) PlayerFielding = true;
         if (Throwing) return null;
+        // Select / R is the one §8.9 rule here as on a batted ball (#637): live on a loose ball, refused with the ball in the
+        // glove, so the ring and the ball never leave the catcher (or the receiver) on a press; the HUD pulses the body it would take.
+        if (human)
+        {
+            NoteSwitchHint(map, Preview, pad);
+            if (SelectTakes(pad)) TakeSelect(map, pad);
+        }
         if (_loose)
         {
             ChaseLooseBall(dt, map, human ? pad : LivePadInput.Dead);
@@ -978,7 +978,6 @@ public sealed partial class LivePlaySystem
         if (!HoldsBall) return null;
         if (!human) return TickCpuHeld(dt, effectInFlight);
 
-        if (pad.Swap) CycleGlove(map, pad);
         WalkGloveWithStick(dt, map, pad);
         if (TickLiveContact(out var contactDone))
             return contactDone;
@@ -1001,14 +1000,21 @@ public sealed partial class LivePlaySystem
         _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
-    /// <summary>A loose ball on a runner play (a sailed pickoff, an overthrow): the nearest body runs it down (a human steers), and touching it is the scoop (§8.6).</summary>
+    /// <summary>
+    /// A loose ball on a runner play (a sailed pickoff, an overthrow): the nearest body runs it down and touching it is the scoop (§8.6).
+    /// A live stick steers; the nearest-body hand-off and the CPU's walk run on a dead stick outside the Select lock, the batted-ball
+    /// chase's rule (§8.9), so a Select holds the body it took for <c>chase.swapLockSec</c>.
+    /// </summary>
     void ChaseLooseBall(double dt, Dictionary<string, Character> map, LivePadInput pad)
     {
-        TryHandoffLoose(map);
-        if (pad.StickMag >= Feel.FieldAssistStick)
+        var dead = FieldAssist.StickDead(pad.StickX, pad.StickY, Feel.FieldAssistStick);
+        if (!dead)
             WalkGloveWithStick(dt, map, pad);
-        else if (CanMove(GlovePos))
-            WalkGloveTo((BallX, BallZ), dt);
+        else if (SwapLock <= 0 && FieldAssist.CpuChases(HoldsBall, Throwing, dead))
+        {
+            TryHandoffLoose(map);
+            if (CanMove(GlovePos)) WalkGloveTo((BallX, BallZ), dt);
+        }
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
         if (GloveMayTake(GlovePos) && FlyCatch.TouchScoop(d, R.Fielding.Chase.LooseScoopFt, BallY, R))
             TakeBall();
@@ -1718,7 +1724,7 @@ public sealed partial class LivePlaySystem
         return (BallX, BallZ);
     }
 
-    void NoteSwitchHint(Dictionary<string, Character> map, FieldingPreview pre, LivePadInput pad)
+    void NoteSwitchHint(Dictionary<string, Character> map, FieldingPreview? pre, LivePadInput pad)
     {
         if (HoldsBall || Throwing)
         {
@@ -1738,6 +1744,21 @@ public sealed partial class LivePlaySystem
         foreach (var kv in map)
             spots[kv.Key] = _fielders.TryGetValue(kv.Key, out var live) ? live : Diamond.Positions[kv.Key];
         return spots;
+    }
+
+    /// <summary>
+    /// Select / R lands this frame (§8.9): the human's switch, one rule for the batted-ball play and the runner play (§11.3, §11.4):
+    /// never while holding the ball or throwing (the ring and the ball stay in the glove, S-99, #637), never inside
+    /// <c>chase.swapLockSec</c> of the last switch, never while a buddy jump is offered (the ring is the jump's).
+    /// </summary>
+    bool SelectTakes(LivePadInput pad, bool buddyOn = false) =>
+        pad.Swap && SwapLock <= 0 && !buddyOn && !HoldsBall && !Throwing;
+
+    /// <summary>The switch itself: the ring to the body Select names (<see cref="FieldAssist.SwapGlove"/>) and the lock.</summary>
+    void TakeSelect(Dictionary<string, Character> map, LivePadInput pad)
+    {
+        CycleGlove(map, pad);
+        SwapLock = R.Fielding.Chase.SwapLockSec;
     }
 
     void CycleGlove(Dictionary<string, Character> map, LivePadInput pad)
