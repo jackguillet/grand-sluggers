@@ -309,11 +309,11 @@ namespace GrandSluggers.UnityClient
             hero.gameObject.SetActive(true);
             hero.SetChargeRing(0);
             hero.SetHeld(true, false);
-            hero.Place(new Vector3(
-                    (float)HomeSet.BatterBodyX(_match.Batter.Bats),
-                    0f,
-                    (float)HomeSet.BatterZ),
-                Vector3.forward);
+            var box = new Vector3(
+                (float)HomeSet.BatterBodyX(_match.Batter.Bats),
+                0f,
+                (float)HomeSet.BatterZ);
+            hero.PlaceStill(box, box + Vector3.forward);
 
             if (beat == "ready" || beat == "rest")
             {
@@ -745,9 +745,8 @@ namespace GrandSluggers.UnityClient
                 if (_match.Batter != null && _heroes.TryGetValue(_match.Batter.Id, out var run) && run != null)
                 {
                     run.gameObject.SetActive(true);
-                    run.Place(
-                        new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ),
-                        new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
+                    var runAt = new Vector3((float)StillPose.RunnerX, 0f, (float)StillPose.RunnerZ);
+                    run.PlaceStill(runAt, runAt + new Vector3((float)Diamond.First.X, 0f, (float)Diamond.First.Z));
                 }
                 var defense = FieldingResolver.Assign(_match.DefenseRoster, _match.Pitcher, _match.Defense.Gloves);
                 Character scoopWho = null;
@@ -765,7 +764,7 @@ namespace GrandSluggers.UnityClient
                     fh.gameObject.SetActive(true);
                     fh.SetPose(Motion.Verb.Scoop, 0);
                     fh.SetHeld(false, true);
-                    fh.Place(new Vector3(gx, 0f, gz), new Vector3(1f, 0f, 1f));
+                    fh.PlaceStill(new Vector3(gx, 0f, gz), new Vector3(gx + 1f, 0f, gz + 1f));
                     fh.SnapTick((float)StillPose.ScoopPoseT);
                     _ball = new Vector3(gx, (float)StillPose.ScoopBallY, gz);
                     _park.Ball.Place(_ball, "", "fastball", false);
