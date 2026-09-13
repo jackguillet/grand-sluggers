@@ -95,7 +95,14 @@ public class BaseballMotionContractTests
     {
         var equipment=Art("baseball-equipment.json");
         var bat=equipment["bat"]!;
-        var profile=bat["profile"]!.AsArray();
+        var profiles=bat["profile"]!;
+        var profile=profiles.AsObject().SelectMany(p=>p.Value!.AsArray()).ToArray();
+        var handle=profiles["handle"]!.AsArray();
+        Assert.Equal(-1.0,handle[0]![0]!.GetValue<double>(),8);
+        Assert.Equal(SwingPresentation.HandleEndFromModelCenter,handle.Last()![0]!.GetValue<double>(),8);
+        Assert.Equal(SwingPresentation.ModelHandleRadius,handle.Max(p=>p![1]!.GetValue<double>()),8);
+        Assert.Equal(SwingPresentation.BarrelStartFromModelCenter,profiles["barrel"]![0]![0]!.GetValue<double>(),8);
+        Assert.Equal(-.96,profiles["knob"]!.AsArray().Last()![0]!.GetValue<double>(),8);
         Assert.Equal(-SwingPresentation.ModelCenterFromGrip,bat["grip"]!.GetValue<double>(),8);
         Assert.Equal(SwingPresentation.BatStartFromGrip-SwingPresentation.ModelCenterFromGrip,profile[0]![0]!.GetValue<double>(),8);
         Assert.Equal(SwingPresentation.BarrelFromModelCenter,profile.Last()![0]!.GetValue<double>(),8);
