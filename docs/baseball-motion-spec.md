@@ -34,7 +34,7 @@ Every defensive actor, including pitcher and catcher, wears a glove on the hand 
 
 The glove has an open wrist, concave pocket, four distinct finger stalls, a thumb, webbing and laces. Its origin is the wrist bind, not its bounding-box center. Both hand meshes use the same dimensions. Brown/gold gear changes finish without changing the wearing hand.
 
-The bat has a knob, wrapped grip, continuous taper, barrel and rounded end. Keep the measured gameplay envelope: model Y −1.14 to +1.25, grip −0.85, barrel −0.15 to +1.25, maximum barrel radius 0.12; shared scale 1.28. Polish must preserve the contact geometry. Equipment dimensions and slots precede asset baking.
+The bat has a knob, wrapped grip, continuous taper, barrel and rounded end. Keep the measured gameplay envelope: model Y −1.14 to +1.25, knob −1.14 to −0.96, grip −0.85, handle −1.00 to −0.10 at radius 0.08, barrel −0.15 to +1.25 with maximum radius 0.12; shared scale 1.28. The three named lathe profiles have seated overlaps so their materials retain the imported measurement contract. Polish must preserve the contact geometry. Equipment dimensions and slots precede asset baking.
 
 ## 5. Replicable authoring procedure
 

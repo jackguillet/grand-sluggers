@@ -58,15 +58,15 @@ def lathe(name, profile, material, segments=40):
 
 def bat_parts(m):
     spec=SPEC['bat']
-    bat=lathe('BatBarrel',spec['profile'],m['wood'])
-    bat.data.materials.append(m['grip'])
-    for polygon in bat.data.polygons:
-        if -1.001 < polygon.center.z < -.10001:
-            polygon.material_index=1
-    # Raised diagonal wrap reads from gameplay distance without altering the
-    # bat's collision envelope or handle endpoint.
-    points=[(.083*math.cos(i*.20),.083*math.sin(i*.20),-.98+.63*i/240) for i in range(241)]
-    return [bat,tube('GripWrap',points,.008,m['cream'])]
+    profiles=spec['profile']
+    # Tiny seated overlaps preserve the measured named components while the
+    # visible outline flows from knob through handle and taper to rounded tip.
+    pieces=[lathe('BatKnob',profiles['knob'],m['wood']),
+            lathe('BatHandle',profiles['handle'],m['grip']),
+            lathe('BatBarrel',profiles['barrel'],m['wood'])]
+    points=[(.074*math.cos(i*.20),.074*math.sin(i*.20),-.98+.63*i/240) for i in range(241)]
+    pieces.append(tube('GripWrap',points,.006,m['cream']))
+    return pieces
 
 
 def glove_parts(m, gold=False):
