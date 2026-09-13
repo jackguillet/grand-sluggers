@@ -935,8 +935,10 @@ public sealed class ChaseRules
     public double StepStopFt { get; init; } = 0.35;
     /// <summary>A route counts as reachable when the glove lands within this of the meet point.</summary>
     public double ReachSlackFt { get; init; } = 0.35;
-    /// <summary>After Select / R swaps the glove, the stick does not re-take it for this long.</summary>
+    /// <summary>After Select / R swaps the glove, another press is ignored and the CPU chase waits for this long (§8.9).</summary>
     public double SwapLockSec { get; init; } = 0.7;
+    /// <summary>After a hand-off the body the ring left keeps its velocity for this long, then stops (§8.9): the swap does not jerk.</summary>
+    public double HandoffCoastSec { get; init; } = 0.2;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
     [Positive] public double LooseScoopFt { get; init; } = 3.5;
     /// <summary>

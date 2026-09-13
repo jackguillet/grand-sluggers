@@ -124,6 +124,14 @@ public sealed partial class LivePlaySystem
     bool _dropped;
     Character? _firstGlove;
 
+    // The hand-off coast (§8.9): the body the ring left keeps the glove's last velocity for chase.handoffCoastSec, then stops.
+    (string Pos, double X, double Z) _gloveLast = ("", 0, 0);
+    double _lastDt;
+    (double X, double Z) _gloveVel;
+    string _coastPos = "";
+    (double X, double Z) _coastVel;
+    double _coastT;
+
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
     bool _loose;
     double _looseVX;
@@ -409,6 +417,12 @@ public sealed partial class LivePlaySystem
         _loose = false;
         _looseVX = _looseVZ = 0;
         _looseRestAt = -1;
+        _gloveLast = ("", 0, 0);
+        _lastDt = 0;
+        _gloveVel = (0, 0);
+        _coastPos = "";
+        _coastVel = (0, 0);
+        _coastT = 0;
         _throwerPos = "";
         _cutoffPos = "";
         _cutoffSpot = null;
@@ -459,6 +473,13 @@ public sealed partial class LivePlaySystem
         if (!RunnerPlay && (Path is null || Path.Count == 0))
             return new LivePlayCommandResult(Snapshot, FlightDone: true);
 
+        // The glove's own velocity over the last frame: what the body keeps for chase.handoffCoastSec when the ring leaves it (§8.9).
+        _gloveVel = _gloveLast.Pos == GlovePos && _lastDt > 0
+            ? ((GloveX - _gloveLast.X) / _lastDt, (GloveZ - _gloveLast.Z) / _lastDt)
+            : (0, 0);
+        _gloveLast = (GlovePos, GloveX, GloveZ);
+        _lastDt = dt;
+
         // Dash: mash South on the offense pad (running.dash).
         if (run.SouthDown) Dash01 = Math.Min(R.Running.Dash.MaxDash, Dash01 + R.Running.Dash.PerPress);
         _match.Dash01 = Dash01;
@@ -497,6 +518,7 @@ public sealed partial class LivePlaySystem
         TickCoverBags(dt);
         TickCutoffAndBackup(dt);
         ChargeOutfield(dt);
+        TickHandoffCoast(dt);
         // While the throw is in the air the YOU ring rides the receiver: the cursor follows that body's walk to the bag.
         if (Throwing && _fielders.TryGetValue(GlovePos, out var receiverAt))
             (GloveX, GloveZ) = receiverAt;
@@ -606,7 +628,8 @@ public sealed partial class LivePlaySystem
         var catchRules = R.Fielding.Catch;
 
         NoteSwitchHint(map, pre, pad);
-        if (pad.Swap && !buddyOn && !HoldsBall)
+        // Select (§8.9): never while holding the ball, and locked for chase.swapLockSec after a switch (S-99).
+        if (pad.Swap && SwapLock <= 0 && !buddyOn && !HoldsBall)
         {
             CycleGlove(map, pad);
             SwapLock = R.Fielding.Chase.SwapLockSec;
@@ -787,11 +810,10 @@ public sealed partial class LivePlaySystem
         if (!FieldAssist.StickTakesGlove(pad.StickX, pad.StickY, Feel.FieldAssistStick, pad.Swap))
             return;
         PlayerFielding = true;
-        var map = Assigned();
-        if (pad.Swap)
-            CycleGlove(map, pad);
-        else
-            AutoGlove(map);
+        // The take is not a re-pick (D16, D18): the stick takes the body wearing the ring; Select is the switch, with its lock (§8.9).
+        if (!pad.Swap) return;
+        CycleGlove(Assigned(), pad);
+        SwapLock = R.Fielding.Chase.SwapLockSec;
     }
 
     // ---------------------------------------------------------------------------------
@@ -1415,7 +1437,7 @@ public sealed partial class LivePlaySystem
         var hang = Hang;
         var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, hang);
         var airTarget = FlyCatch.ChaseTarget(pre, Park, R);
-        TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z);
+        TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
         if (!CanMove(GlovePos)) return;
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
@@ -1426,11 +1448,36 @@ public sealed partial class LivePlaySystem
         _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
-    void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ)
+    /// <summary>
+    /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air) is on the outfield grass, the play glove moves
+    /// to the outfielder whose route meets it earliest (D16) — and, on the ground, never while the current glove still has a route to
+    /// it (D17, S-96): the body keeps the ball as long as its own route reaches it no later than that outfielder's, or the ball is
+    /// inside its reach. Never by the ball's position alone; one way only. In the air the plant alone decides (a liner the infield
+    /// could reach past the lip is still the outfield's): applying D17 there catches the liners the stretched hang lets the infield
+    /// run under and drops the S-29 band to 1.6 runs a side — the hang is P7's lever, tracked in #636.
+    /// </summary>
+    void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ, bool airborne)
     {
-        var pick = FieldingResolver.PlayGlove(map, ballX, ballZ, _fielders, R);
-        if (!FieldingResolver.HandoffToOutfield(GlovePos, pick.Pos)) return;
-        HandGloveTo(pick.Pos);
+        if (FieldingResolver.IsOutfield(GlovePos) || !FieldingResolver.OutfieldGrass(ballX, ballZ, R)) return;
+        if (Preview is null || Path is null)
+        {
+            var pick = FieldingResolver.PlayGlove(map, ballX, ballZ, _fielders, R);
+            if (FieldingResolver.HandoffToOutfield(GlovePos, pick.Pos)) HandGloveTo(pick.Pos);
+            return;
+        }
+        var of = FieldingPursuit.Choose(
+            map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
+        if (!airborne)
+        {
+            var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
+            var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
+            var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+            // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
+            var inReach = FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
+                Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
+            if (inReach || mine.Reachable && !FieldingPursuit.Better(of.Route, mine)) return;
+        }
+        HandGloveTo(of.Position);
     }
 
     /// <summary>A loose ball is the nearest body's (§8.6, §8.7): the backup behind an overthrow, the fielder beside a fumble.</summary>
@@ -1442,11 +1489,20 @@ public sealed partial class LivePlaySystem
         HandGloveTo(pick.Pos);
     }
 
-    /// <summary>The play glove (and the YOU ring) moves to another body; every body stays where it stands.</summary>
-    void HandGloveTo(string pos)
+    /// <summary>
+    /// The play glove (and the YOU ring) moves to another body; every body stays where it stands. The body the ring left keeps its
+    /// velocity for <c>chase.handoffCoastSec</c> (§8.9) unless <paramref name="coast"/> is off: a throw's release, where the thrower stays put (§8.5).
+    /// </summary>
+    void HandGloveTo(string pos, bool coast = true)
     {
         if (pos == GlovePos) return;
         _fielders[GlovePos] = (GloveX, GloveZ);
+        if (coast && (_gloveVel.X != 0 || _gloveVel.Z != 0))
+        {
+            _coastPos = GlovePos;
+            _coastVel = _gloveVel;
+            _coastT = R.Fielding.Chase.HandoffCoastSec;
+        }
         GlovePos = pos;
         if (_fielders.TryGetValue(GlovePos, out var at))
         {
@@ -1460,6 +1516,25 @@ public sealed partial class LivePlaySystem
             _fielders[GlovePos] = (GloveX, GloveZ);
         }
     }
+
+    /// <summary>
+    /// After a hand-off the previous body keeps its velocity for <c>chase.handoffCoastSec</c>, then stops (§8.9): the ring moves, the body
+    /// does not jerk. The cover, cutoff, backup, and charge walks wait for it.
+    /// </summary>
+    void TickHandoffCoast(double dt)
+    {
+        if (_coastT <= 0) return;
+        if (string.IsNullOrEmpty(_coastPos) || _coastPos == GlovePos || !_fielders.TryGetValue(_coastPos, out var at))
+        {
+            _coastT = 0;
+            return;
+        }
+        var step = Math.Min(dt, _coastT);
+        _fielders[_coastPos] = FieldBounds.Clamp(Park, at.X + _coastVel.X * step, at.Z + _coastVel.Z * step);
+        _coastT -= dt;
+    }
+
+    bool Coasting(string pos) => _coastT > 0 && pos == _coastPos;
 
     void ChargeOutfield(double dt)
     {
@@ -1477,7 +1552,7 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         var of = FieldingPursuit.Choose(
             map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
-        if (of.Position == GlovePos) return;
+        if (of.Position == GlovePos || Coasting(of.Position)) return;
         if (!CanMove(of.Position)) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
@@ -1504,7 +1579,7 @@ public sealed partial class LivePlaySystem
         foreach (var kv in map)
         {
             var pos = kv.Value;
-            if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos) continue;
+            if (string.IsNullOrEmpty(pos) || pos == onBall || pos == _cutoffPos || pos == _backupPos || Coasting(pos)) continue;
             if (!RunnerPlay && ElapsedSeconds < Math.Max(cover.StartSec, ReadyAt(pos))) continue;
             if (!_fielders.TryGetValue(pos, out var at)) continue;
             var goal = Diamond.Bag(kv.Key);
@@ -1519,10 +1594,10 @@ public sealed partial class LivePlaySystem
         // The cutoff walks to the line while the ball is in the air, YOU ring or not (the ring is handed to
         // the receiver at release, §8.5); once they hold it the spot is cleared.
         if (!string.IsNullOrEmpty(_cutoffPos) && _cutoffSpot is { } spot && (Throwing || _cutoffPos != GlovePos)
-            && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos))
+            && _fielders.TryGetValue(_cutoffPos, out var cutAt) && CanMove(_cutoffPos) && !Coasting(_cutoffPos))
             _fielders[_cutoffPos] = StepFlat(cutAt, spot, cover.FtPerSec, cover.StopFt, dt);
         if (!string.IsNullOrEmpty(_backupPos) && _backupPos != GlovePos
-            && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos))
+            && _fielders.TryGetValue(_backupPos, out var backAt) && CanMove(_backupPos) && !Coasting(_backupPos))
             _fielders[_backupPos] = StepFlat(backAt, _backupSpot, cover.FtPerSec, cover.StopFt, dt);
     }
 
@@ -1549,30 +1624,6 @@ public sealed partial class LivePlaySystem
         foreach (var k in _fielders.Keys.ToList())
             _fielders[k] = FieldBounds.Clamp(Park, _fielders[k].X, _fielders[k].Z);
         _fielders[GlovePos] = feet;
-    }
-
-    void AutoGlove(Dictionary<string, Character> map)
-    {
-        (Character Fielder, string Pos) pick;
-        if (_loose)
-            pick = FieldingResolver.NearestGlove(map, BallX, BallZ, _fielders);
-        else if (Preview is not null && Path is not null)
-        {
-            var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
-            var airborne = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, Hang);
-            var positions = FoulNow
-                ? FieldingResolver.FoulPursuitPositions
-                : airborne
-                    ? FieldingResolver.AirPursuitPositions
-                    : FieldingResolver.OutfieldGrass(live.X, live.Z, R)
-                        ? FieldingResolver.OutfieldPursuitPositions
-                        : FieldingResolver.InfieldPursuitPositions;
-            var choice = FieldingPursuit.Choose(map, positions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
-            pick = (choice.Fielder, choice.Position);
-        }
-        else
-            pick = FieldingResolver.PlayGlove(map, BallX, BallZ, _fielders, R);
-        HandGloveTo(pick.Pos);
     }
 
     (double X, double Z) SwitchAim(FieldingPreview? pre)
@@ -1805,10 +1856,10 @@ public sealed partial class LivePlaySystem
         _cpuDecided = false;
         _cpuWalkBag = 0;
         _heldSince = -1;
-        // The thrower stays where they are; the YOU ring hands to the receiver (§8.5).
+        // The thrower stays where they are; the YOU ring hands to the receiver (§8.5). No coast: a release is not a run.
         _fielders[_throwerPos] = (GloveX, GloveZ);
         if (!string.IsNullOrEmpty(receiverPos) && receiverPos != GlovePos)
-            HandGloveTo(receiverPos);
+            HandGloveTo(receiverPos, coast: false);
         _events.Add(LiveEvent.ThrowPop);
     }
 
