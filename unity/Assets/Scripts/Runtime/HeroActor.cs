@@ -23,6 +23,8 @@ namespace GrandSluggers.UnityClient
         string _pitchType = "fastball";
         float _t;
         float _poseT;
+        /// <summary>When the swing take's Contact mark lands after the press (D13); the take's own mark unless warped.</summary>
+        float _swingContactSec = (float)Motion.SwingContact;
         bool _grow;
         bool _lit;
         bool _hint;
@@ -36,7 +38,8 @@ namespace GrandSluggers.UnityClient
         string _id = "";
         string _batVisual = "";
         string _gloveVisual = "";
-        Vector3 _look = Vector3.forward;
+        readonly BodyHeading _heading = new();
+        BodyFacing.Rates _facing = BodyFacing.Rates.Default;
         Vector3 _baseScale = Vector3.one;
         Vector3 _ground;
         bool _hasGround;
@@ -47,6 +50,8 @@ namespace GrandSluggers.UnityClient
         public float PoseTime => _poseT;
         public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
         public Transform ThrowHand => _throwsLeft ? _lFore : _rFore;
+        /// <summary>Which heading the body is turning toward this frame (spec §8.2, <see cref="BodyFacing"/>).</summary>
+        public BodyFacing.Source Facing => _heading.Source;
 
         public void Bind(Character who)
         {
@@ -75,7 +80,11 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Motion.Verb verb, float charge = 0f, string pitchType = null)
         {
-            if (verb != _verb) _poseT = 0f;
+            if (verb != _verb)
+            {
+                _poseT = 0f;
+                _swingContactSec = (float)Motion.SwingContact;
+            }
             _verb = verb;
             _charge = Mathf.Clamp01(charge);
             if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
@@ -106,6 +115,12 @@ namespace GrandSluggers.UnityClient
 
         public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
 
+        /// <summary>Warp the swing take so its Contact mark lands this many seconds after the press (D13, #612).</summary>
+        public void SetSwingContact(float seconds) => _swingContactSec = Mathf.Max(0f, seconds);
+
+        /// <summary>The turn rate and thresholds from data/feel/table.json.</summary>
+        public void SetFacing(BodyFacing.Rates rates) => _facing = rates;
+
         /// <summary>Still-gate: cut to the verb at this time. Live play crossfades.</summary>
         public void SnapTick(float poseT)
         {
@@ -123,23 +138,28 @@ namespace GrandSluggers.UnityClient
             Tick(0f);
         }
 
-        public void Place(Vector3 pos, Vector3 look)
+        /// <summary>
+        /// Stand here; face <paramref name="look"/> when planted, the run while moving (§8.2). A pinned look wins
+        /// even while moving (the pitcher on the rubber, the batter in the box).
+        /// </summary>
+        public void Place(Vector3 pos, Vector3 look, bool pinned = false) =>
+            Place(pos, new BodyFacing.Facts(look.x, look.z, pinned));
+
+        /// <summary>Stand here and turn toward the heading <see cref="BodyFacing"/> picks, at the feel table's rate.</summary>
+        public void Place(Vector3 pos, BodyFacing.Facts facts)
         {
             var ground = new Vector3(pos.x, 0f, pos.z);
-            if (_hasGround && Time.deltaTime > 1e-5f)
+            var dt = Time.deltaTime;
+            if (_hasGround && dt > 1e-5f)
             {
-                var inst = Vector3.Distance(ground, _ground) / Time.deltaTime;
+                var inst = Vector3.Distance(ground, _ground) / dt;
                 _speed = Mathf.Lerp(_speed, inst, 0.4f);
             }
             _hasGround = true;
             _ground = ground;
             transform.position = pos;
-            _look = look.sqrMagnitude < 0.01f ? Vector3.forward : look.normalized;
-            if (_verb != Motion.Verb.Spin)
-            {
-                var yaw = Quaternion.LookRotation(new Vector3(_look.x, 0f, _look.z));
-                transform.rotation = Quaternion.Slerp(transform.rotation, yaw, 0.35f);
-            }
+            var yaw = (float)_heading.Tick(pos.x, pos.z, dt, facts, _facing);
+            transform.rotation = Quaternion.Euler(0f, yaw, 0f);
         }
 
         /// <summary>Still-gate: stand on the dirt looking at a world point.</summary>
@@ -150,7 +170,7 @@ namespace GrandSluggers.UnityClient
             d.y = 0f;
             if (d.sqrMagnitude < 0.01f) d = Vector3.back;
             transform.rotation = Quaternion.LookRotation(d);
-            _look = d.normalized;
+            _heading.Snap(pos.x, pos.z, BodyFacing.YawOf(d.x, d.z));
             _ground = new Vector3(pos.x, 0f, pos.z);
             _hasGround = true;
         }
@@ -165,7 +185,7 @@ namespace GrandSluggers.UnityClient
                 var squash = Vector3.one;
                 if (_verb == Motion.Verb.Swing)
                 {
-                    var s = SwingPresentation.RootSquash(_poseT);
+                    var s = SwingPresentation.RootSquash(AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec));
                     squash = new Vector3((float)s.X, (float)s.Y, (float)s.Z);
                 }
                 var want = Vector3.Scale(_baseScale * g, squash);
@@ -308,7 +328,7 @@ namespace GrandSluggers.UnityClient
                 Motion.Clock.Charge => Motion.LoadAtFor(verb, _charge),
                 _ => verb switch
                 {
-                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge),
+                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec),
                     Motion.Verb.ThrowPitch => AtBatMotion.PitchClipTime(_poseT, _charge),
                     _ => (double)_poseT
                 }
@@ -336,9 +356,6 @@ namespace GrandSluggers.UnityClient
                     _player.Evaluate(_snap ? 0f : dt);
                 }
             }
-            if (verb == Motion.Verb.Spin && dt > 0f)
-                transform.rotation *= Quaternion.Euler(0, 720f * dt, 0);
-
             var batting = Motion.UsesBattingHand(verb);
             var gloveOn = verb switch
             {
@@ -357,6 +374,8 @@ namespace GrandSluggers.UnityClient
         {
             if (verb is not (Motion.Verb.Idle or Motion.Verb.Field or Motion.Verb.Walk or Motion.Verb.Run))
                 return verb;
+            // The backpedal (§8.2) is the short steps under a fly, never the sprint cycle run in reverse.
+            if (_heading.Source == BodyFacing.Source.Backpedal && _speed > CartoonJuice.WalkFtPerSec) return Motion.Verb.Walk;
             if (_speed > CartoonJuice.RunFtPerSec) return Motion.Verb.Run;
             if (_speed > CartoonJuice.WalkFtPerSec) return Motion.Verb.Walk;
             if (verb is Motion.Verb.Walk or Motion.Verb.Run)

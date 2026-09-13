@@ -84,7 +84,7 @@ public sealed class AtBatScenarioTests
         // The decision instant is before the latest square press, and a CPU swing never claims an earlier bat.
         var plateAt = 1.0;
         var decide = AtBatMotion.CpuDecisionTime(plateAt, _content.Rules);
-        Assert.True(decide < plateAt - Motion.SwingContact);
+        Assert.True(decide < AtBatMotion.SquarePressAt(plateAt, rules: _content.Rules));
         var early = AtBatMotion.CommitCpuSwing(Scenario.SwingAt(-30), plateAt, _content.Rules);
         Assert.Equal(AtBatMotion.SwingErrorFrames(decide, plateAt), early.TimingErrorFrames, 8);
         Assert.Equal(2, AtBatMotion.CommitCpuSwing(Scenario.SwingAt(2), plateAt, _content.Rules).TimingErrorFrames);
@@ -127,8 +127,16 @@ public sealed class AtBatScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
-    // S-07 … S-09  Cursor decides quality, timing decides direction, the window is the window
+    // S-07 … S-09  Cursor decides quality, timing decides direction, the window is the window.
+    // Re-expressed against the ball's plate time (D13, #612): the square press is the plate time
+    // less batting.window.leadSec (0.10 s), not press + 0.30.
     // ---------------------------------------------------------------------------------
+
+    const double PlateAt = 0.98;
+
+    /// <summary>The judged error of a press <paramref name="beforePlate"/> seconds before the ball reaches the plate.</summary>
+    double PressFrames(double beforePlate) =>
+        AtBatMotion.SwingErrorFrames(PlateAt - beforePlate, PlateAt, rules: _content.Rules);
 
     [Fact]
     public void S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter()
@@ -136,9 +144,12 @@ public sealed class AtBatScenarioTests
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
         var spread = _content.Rules.Batting.Spray.PerfectSpreadDeg / 2;
+        Assert.Equal(0.10, _content.Rules.Batting.Window.LeadSec, 8);
+        var err = PressFrames(0.10);
+        Assert.Equal(0, err, 8);
         for (var seed = 0; seed < 20; seed++)
         {
-            var r = resolver.Resolve(Input(bat: 5, err: 0), park, new Random(seed));
+            var r = resolver.Resolve(Input(bat: 5, err: err), park, new Random(seed));
             Assert.Equal(ContactQuality.Perfect, r.Quality);
             Assert.InRange(r.SprayDeg, -spread, spread);
             Assert.True(r.InPlay);
@@ -150,7 +161,9 @@ public sealed class AtBatScenarioTests
     {
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
-        var input = Input(bat: 5, err: -4);
+        var err = PressFrames(0.10 + 4.0 / 60);
+        Assert.Equal(-4, err, 8);
+        var input = Input(bat: 5, err: err);
         var pull = -SweetSpot.TipSign(input.Batter.Bats);
         Assert.Equal(9, AtBatResolver.ContactWindowFrames(5, false, null, park, false));
         for (var seed = 0; seed < 20; seed++)
@@ -158,6 +171,29 @@ public sealed class AtBatScenarioTests
             var r = resolver.Resolve(input, park, new Random(seed));
             Assert.Equal(ContactQuality.Perfect, r.Quality);
             Assert.InRange(r.SprayDeg * pull, 40, 55);
+        }
+    }
+
+    [Theory]
+    [InlineData(0.17, -1)]
+    [InlineData(0.03, 1)]
+    public void S08_PressesAtTheWindowsEdgesPullEarlyAndPushLate(double beforePlate, int side)
+    {
+        // plate − 0.17 is 4.2 frames early and plate − 0.03 is 4.2 frames late: inside the
+        // 4.5-frame half window, on its unsquare rim (one tier down, never a miss).
+        var resolver = new AtBatResolver(_content.Chemistry);
+        var park = _content.Parks["harbor-diamond"];
+        var err = PressFrames(beforePlate);
+        Assert.Equal(side * 4.2, err, 8);
+        var input = Input(bat: 5, err: err);
+        var nice = _content.Rules.Batting.Spray.NiceSpreadDeg / 2;
+        var expected = AtBatResolver.TimingSprayDeg(err, 9, input.Batter.Bats, _content.Rules);
+        Assert.Equal(side, Math.Sign(expected * SweetSpot.TipSign(input.Batter.Bats)));
+        for (var seed = 0; seed < 20; seed++)
+        {
+            var r = resolver.Resolve(input, park, new Random(seed));
+            Assert.Equal(ContactQuality.Nice, r.Quality);
+            Assert.InRange(r.SprayDeg, expected - nice - 0.1, expected + nice + 0.1);
         }
     }
 
@@ -169,6 +205,11 @@ public sealed class AtBatScenarioTests
         var r = resolver.Resolve(Input(bat: 5, err: 5), park, new Random(1));
         Assert.Equal(ContactQuality.Miss, r.Quality);
         Assert.False(r.InPlay);
+        // A press after the ball is on the plate (+0.05 s = 9 frames late) is a miss, and so is
+        // plate − 0.02: 4.8 frames late is past the 4.5-frame half window.
+        Assert.Equal(9, PressFrames(-0.05), 8);
+        Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat: 5, err: PressFrames(-0.05)), park, new Random(1)).Quality);
+        Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat: 5, err: PressFrames(0.02)), park, new Random(1)).Quality);
         var s = new Scenario(_content);
         Assert.Equal(PlayKind.SwingMiss, s.Match.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(5)).Kind);
     }

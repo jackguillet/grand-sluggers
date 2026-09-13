@@ -122,7 +122,9 @@ public sealed record Team(
 /// <summary>
 /// One swing at one crossing. <paramref name="CrossingX"/> / <paramref name="CrossingY"/> are the
 /// pitch at the plate plane in world feet (the same point the umpire and the aim tell read);
-/// <paramref name="TimingErrorFrames"/> is bat-plane time minus ball-plate time at 60 Hz.
+/// <paramref name="TimingErrorFrames"/> is the press minus the square press (the ball's plate time
+/// less <c>batting.window.leadSec</c>) at 60 Hz, D13. <paramref name="HumanWindowMul"/> is the
+/// difficulty rung's widening of a human batter's window (1 for the CPU).
 /// </summary>
 public sealed record AtBatInput(
     Character Pitcher,
@@ -143,7 +145,8 @@ public sealed record AtBatInput(
     double Charge01 = 0,
     double BoxOffsetX = 0,
     double CrossingX = 0,
-    double CrossingY = PitchFlight.PlateY);
+    double CrossingY = PitchFlight.PlateY,
+    double HumanWindowMul = 1);
 
 public sealed record AtBatResult(
     ContactQuality Quality,
@@ -194,7 +197,9 @@ public sealed record SwingCommand(
     double SprayAimDeg = 0,
     bool Bunt = false,
     double LaunchAim = 0,
-    double BoxOffsetX = 0);
+    double BoxOffsetX = 0,
+    /// <summary>A seat's pad pressed it: the rung's <see cref="CpuLevelRules.HumanWindowMul"/> applies.</summary>
+    bool Human = false);
 
 public enum PlayKind
 {
