@@ -6,7 +6,7 @@ namespace GrandSluggers.UnityClient
 {
     /// <summary>
     /// The live ball, presented. The sim (<see cref="LivePlaySystem"/>) owns the gloves, the
-    /// catch, the throws, the relay chain, the close-play race, the bobble and the steal phase;
+    /// catch, the throws, the relay chain, the close-play race, the bobble and the runner play (steals, pickoffs);
     /// this partial translates the pads into one command per frame, mirrors the sim's state
     /// into the director's fields for the actors and HUD, and plays the cues it raises.
     /// </summary>
@@ -121,7 +121,6 @@ namespace GrandSluggers.UnityClient
             _closeBag = live.CloseBag;
             _closeIcon = live.CloseIcon;
             _dash01 = (float)live.Dash01;
-            _stealT = (float)live.StealT;
             if (live.Field != null) _cpuField = live.Field;
             if (live.Preview != null) _preview = live.Preview;
             if (live.Hit != null) _pending = live.Hit;
@@ -233,11 +232,12 @@ namespace GrandSluggers.UnityClient
 
         PlayKind LiveKind() => _match.LivePlay.PlayKind;
 
-        // ---- Steal phase: the sim runs the catcher's throw play; this draws it. ----
+        // ---- The runner play (§11.3, §11.4): the sim runs the catcher's throw or the pickoff; this draws it. ----
 
-        void StartStealThrow(PlayEvent pitch)
+        /// <summary>After a take or a miss with a runner who broke (<paramref name="pitch"/>), or a pickoff already begun in the sim (null).</summary>
+        void StartRunnerPlay(PlayEvent pitch)
         {
-            _last = pitch;
+            if (pitch != null) _last = pitch;
             _phase = Phase.StealThrow;
             _t = 0;
             _pending = null;
@@ -245,9 +245,16 @@ namespace GrandSluggers.UnityClient
             _cpuField = null;
             _path = null;
             _park.Ball.Release();
-            _match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch, LiveSeatsNow(), _match.LivePlay.Source));
+            if (pitch != null)
+                _match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch, LiveSeatsNow(), _match.LivePlay.Source));
             SyncFromLive();
             PlayLiveCues(new LivePlayCommandResult(_match.LivePlay.Snapshot));
+            if (!_match.LivePlay.Active)
+            {
+                // Nobody to play on (every armed runner was entitled by the walk): the pitch stands.
+                BeginResult();
+                return;
+            }
             AimStealThrowCam();
         }
 

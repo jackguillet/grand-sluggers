@@ -80,9 +80,6 @@ namespace GrandSluggers.UnityClient
             _itemPick = 0;
             _items?.Hide();
             _banner = _sub = "";
-            _gun = false;
-            _gunRunner = null;
-            _stealT = 0;
             var rel = PitchFlight.Release(_match.PitcherOffsetX);
             _ball = new Vector3((float)rel.X, (float)rel.Y, (float)rel.Z);
             _park.Ball.Place(_ball, "", "fastball", false, false);
@@ -149,8 +146,7 @@ namespace GrandSluggers.UnityClient
                     ref _swingButton, ref _charge, ref _chargePast, commits: false);
             }
             _pip += dt * 1.35f;
-            // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI arms a steal.
-            // TODO(P6 #568): the steal arm belongs to the runner AI, not the at-bat.
+            // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
             if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
             if (!HumanBats && _t < dt) _match.CpuArmSteal();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
@@ -174,8 +170,7 @@ namespace GrandSluggers.UnityClient
                 {
                     if (mound.ThrowBag > 0 && mound.SouthDown)
                     {
-                        var po = _match.Pickoff(mound.ThrowBag);
-                        if (po != null) { _last = po; Banner(); BeginResult(); }
+                        BeginPickoff(mound.ThrowBag);
                         return;
                     }
                     if (pitchButton.Committed)
@@ -189,7 +184,27 @@ namespace GrandSluggers.UnityClient
             ShowAimTell(HumanPitches ? PreviewPitch() : null);
             AimSetCamera();
             if (!HumanPitches && _t > (float)_feel.PitcherReadySeconds)
+            {
+                // The CPU pitcher's pickoff read (§4.5, §4.8): a runner who armed in SET is between bags on the motion.
+                var pickoffBag = _match.CpuPickoffBag();
+                if (pickoffBag > 0)
+                {
+                    BeginPickoff(pickoffBag);
+                    return;
+                }
                 Launch(_match.CpuPitch());
+            }
+        }
+
+        /// <summary>The pickoff (§4.5, D3): a runner on the bag is the beat; a runner who broke is the live runner play.</summary>
+        void BeginPickoff(int bag)
+        {
+            if (_match.BeginPickoff(bag, LiveSeatsNow(), out var dead, _match.LivePlay.Source))
+            {
+                StartRunnerPlay(null);
+                return;
+            }
+            if (dead != null) { _last = dead; Banner(); BeginResult(); }
         }
 
         /// <summary>The pitcher card's verb tells: STAR, CHANGE while West is held, the swap pick (spec §4.1, §4.7).</summary>
@@ -433,9 +448,6 @@ namespace GrandSluggers.UnityClient
 
         void Resolve()
         {
-            var stealBag = _match.ArmedStealBag > 0 ? _match.ArmedStealBag : _match.SelectedBag;
-            var stealState = _match.RunnerAt(stealBag);
-            var stealRunner = stealState?.Who;
             if (!_match.BeginAtBat(_pitch, _swing, out var hit, out var finished))
             {
                 _last = finished;
@@ -444,13 +456,7 @@ namespace GrandSluggers.UnityClient
                 Banner();
                 if (finished != null && _match.StealThrowPending)
                 {
-                    StartStealThrow(finished);
-                    return;
-                }
-                if (finished != null && stealRunner != null &&
-                    (finished.Kind == PlayKind.StolenBase || finished.Kind == PlayKind.CaughtStealing))
-                {
-                    StartStealGun(stealRunner, stealBag, finished);
+                    StartRunnerPlay(finished);
                     return;
                 }
                 BeginResult();

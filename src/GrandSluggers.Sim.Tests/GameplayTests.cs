@@ -273,8 +273,9 @@ public class GameplayTests
     }
 
     [Fact]
-    public void StealHomeIsRejected()
+    public void StealOfHomeIsArmedFromThird()
     {
+        // D10: the steal of home is legal; home itself is never a selectable runner before the pitch.
         var match = Match.Slice(_content, seed: 1);
         WalkOn(match);
         WalkOnSecond(match);
@@ -282,11 +283,11 @@ public class GameplayTests
         Assert.NotNull(match.Third);
         Assert.Equal(3, match.LeadBag);
         Assert.True(match.SelectRunner(3));
-        Assert.False(match.CanSteal);
-        Assert.False(match.StartSteal());
-        Assert.False(match.StealOn);
-        Assert.Equal(0, match.StealTargetBag);
-        Assert.Equal(0, Baserunning.StealTarget(3));
+        Assert.True(match.CanSteal);
+        Assert.True(match.StartSteal());
+        Assert.True(match.StealOn);
+        Assert.Equal(4, match.StealTargetBag);
+        Assert.Equal(4, Baserunning.StealTarget(3));
         Assert.False(match.SelectRunner(4));
     }
 
@@ -315,7 +316,9 @@ public class GameplayTests
             kMatch.Play(paint, take);
         Assert.True(kMatch.StartSteal());
         var punched = kMatch.Play(paint, take);
-        Assert.Equal(PlayKind.Strikeout, punched.Kind);
+        // The runner broke on the pitch (§11.2): the strikeout is on the play, and the catcher's throw play decides the body (S-62).
+        Assert.Contains(punched.Outcome!.OutsMade, o => o.Type == OutType.Strikeout);
+        Assert.True(punched.Kind is PlayKind.Strikeout or PlayKind.CaughtStealing or PlayKind.StolenBase, punched.Kind.ToString());
         Assert.False(kMatch.StealOn);
         Assert.Equal(0, kMatch.ArmedStealBag);
     }

@@ -998,17 +998,16 @@ public sealed class ThrowRules
     public double BagHeightFt { get; init; } = 1.2;
 }
 
-/// <summary>The catcher's release on a steal (§11.3); the gun itself is the one throw model (<see cref="ThrowRules"/>).</summary>
+/// <summary>The CPU catcher's release on a steal (§11.3): <c>base − Field × perField ± noise / 2</c>, clamped, × the difficulty's reaction. The gun itself is the one throw model (<see cref="ThrowRules"/>); the out is the tag at the bag (§10.3).</summary>
 public sealed class CatcherRules
 {
+    /// <summary>Where the catcher holds the ball at the crossing (§11.3): this far behind the plate, so the gun is a throw from the plate, not from the SET crouch spot.</summary>
+    [Positive] public double BehindPlateFt { get; init; } = 3;
     public double CpuReleaseBaseSec { get; init; } = 0.42;
     public double CpuReleasePerField { get; init; } = 0.014;
     public double CpuReleaseNoiseSec { get; init; } = 0.20;
     public double CpuReleaseMinSec { get; init; } = 0.10;
     public double CpuReleaseMaxSec { get; init; } = 0.58;
-    /// <summary>The tag beat after a steal throw lands, before the verdict is committed.</summary>
-    public double TagHoldSec { get; init; } = 0.38;
-    public double CpuRemainNoiseSec { get; init; } = 0.28;
 }
 
 /// <summary>
@@ -1078,6 +1077,8 @@ public sealed class RunningRules
         RulesValidation.Order(source, "running.bagSec.minSec", BagSec.MinSec, BagSec.MaxSec, errors);
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.OccupyRadiusFt, errors);
         RulesValidation.Order(source, "running.bags.slideReachCutFt", Bags.SlideReachCutFt, Bags.TagReachFt, errors);
+        RulesValidation.Order(source, "running.cpu.stealBaseRun6", Cpu.StealBaseRun6, Cpu.StealBaseRun8, errors);
+        RulesValidation.Order(source, "running.cpu.stealBaseRun8", Cpu.StealBaseRun8, Cpu.StealBaseRun10, errors);
         // A slide narrows the tag window but never closes it: the safe radius stays inside the slid reach (§10.3).
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.TagReachFt - Bags.SlideReachCutFt, errors);
         RulesValidation.Order(source, "running.rundown.throwWithinFt", Rundown.ThrowWithinFt, Rundown.RangeFt, errors);
@@ -1135,16 +1136,24 @@ public sealed class ClosePlayRules
     public double CpuReactionPerStat { get; init; } = 0.032;
 }
 
-/// <summary>The steal race as shipped, from the bag (D1: no lead credit). D2 replaces it with a break at release (P6).</summary>
+/// <summary>
+/// The steal jump (§11.2, D2): an armed runner breaks at release and runs at <see cref="AirSpeedMul"/> of
+/// their speed while the pitch is in the air; armed inside the first <see cref="PerfectWindowSec"/> of the
+/// windup is a perfect steal that breaks <see cref="PerfectEarlySec"/> before release. There is no time
+/// credit: the body is placed by the clock and the tag decides (§10.3).
+/// </summary>
 public sealed class StealRules
 {
-    public double JumpBaseSec { get; init; } = 0.62;
-    [Positive] public double RemainMinSec { get; init; } = 0.58;
-    public double ReturnBaseSec { get; init; } = 0.62;
-    public double ReturnPerRunDeficitSec { get; init; } = 0.06;
-    [Positive] public double ReturnMinSec { get; init; } = 0.42;
-    /// <summary>The steal phase gives up and commits when nobody has thrown by this long past the runner's arrival.</summary>
-    public double NoThrowRemainSec { get; init; } = 1.6;
+    /// <summary>Speed fraction of an armed runner between the break and the ball reaching the plate.</summary>
+    [Chance] public double AirSpeedMul { get; init; } = 0.6667;
+    /// <summary>A perfect steal breaks this long before release.</summary>
+    [Positive] public double PerfectEarlySec { get; init; } = 0.4;
+    /// <summary>Arming inside this many seconds of the windup is the perfect steal.</summary>
+    [Positive] public double PerfectWindowSec { get; init; } = 0.25;
+    /// <summary>The CPU catcher throws on the trailing runner of a double steal only when that margin is better by this (§11.3).</summary>
+    [Positive] public double CpuTrailPreferSec { get; init; } = 0.3;
+    /// <summary>With a runner on third watching a steal of second, the free middle infielder cuts this far in front of the bag on the throw line (S-66).</summary>
+    [Positive] public double CutInFrontFt { get; init; } = 25;
 }
 
 /// <summary>
@@ -1206,9 +1215,21 @@ public sealed class CpuRunnerRules
     public double TagThirdMinCarryFt { get; init; } = 200;
     /// <summary>Runner on second tags for third on a caught fly to right this deep.</summary>
     public double TagSecondMinCarryFt { get; init; } = 250;
-    /// <summary>The SET steal roll as shipped (spec A.1 #20). §11.6 moves it to a runner table (P6).</summary>
-    public int StealMinRun { get; init; } = 7;
-    [Chance] public double StealChance { get; init; } = 0.16;
+    /// <summary>The CPU steal table (§11.6): base chance by Run, 0 at or below <see cref="StealMinRun"/>, linear between the anchors.</summary>
+    public int StealMinRun { get; init; } = 4;
+    [Chance] public double StealBaseRun6 { get; init; } = 0.06;
+    [Chance] public double StealBaseRun8 { get; init; } = 0.16;
+    [Chance] public double StealBaseRun10 { get; init; } = 0.25;
+    /// <summary>× with two outs.</summary>
+    [Positive] public double StealTwoOutsMul { get; init; } = 1.5;
+    /// <summary>× with the captain slugger at the plate.</summary>
+    [Positive] public double StealCaptainUpMul { get; init; } = 0.5;
+    /// <summary>No steal when trailing by at least this many runs.</summary>
+    public int StealTrailingRuns { get; init; } = 5;
+    /// <summary>The CPU pitcher's pickoff chance (cpu.*.pickoffChance) is multiplied by this when it sees a steal pip armed in SET (§4.5, D3).</summary>
+    [Positive] public double PickoffSeenArmMul { get; init; } = 3;
+    /// <summary>On first-and-third the CPU pickoff goes to first this often, else the lead runner (§4.8).</summary>
+    [Chance] public double PickoffFirstOnCornersChance { get; init; } = 0.66;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1234,7 +1255,6 @@ public sealed class StarGainRules
     /// <summary>An out made live: a force, a tag, a caught runner.</summary>
     public double LiveOut { get; init; } = 0.4;
     public double StolenBase { get; init; } = 0.35;
-    public double CaughtStealing { get; init; } = 0.4;
     public double Billboard { get; init; } = 1.0;
 }
 
@@ -1298,9 +1318,9 @@ public sealed class CpuLevelRules
     [Positive] public double MistrackMul { get; init; } = 1.0;
     /// <summary>Margin a CPU fielder needs to call a play makeable (§8.8). Read by P4.</summary>
     public double MakeableMarginSec { get; init; } = 0.15;
-    /// <summary>Perfect-steal chance (§11.6). Read by P6.</summary>
+    /// <summary>Perfect-steal chance (§11.6): the CPU runner arms inside the window instead of in SET.</summary>
     [Chance] public double PerfectStealChance { get; init; } = 0.2;
-    /// <summary>Pickoff attempt chance per SET with a runner on (§4.8). Read by P6.</summary>
+    /// <summary>Pickoff attempt chance per SET with a runner on (§4.5, §4.8); × running.cpu.pickoffSeenArmMul when a pip is armed.</summary>
     [Chance] public double PickoffChance { get; init; } = 0.06;
     /// <summary>Added to every CPU baserunner threshold (§9.9): easy hesitates, hard goes.</summary>
     [Signed] public double RunnerMarginSec { get; init; } = 0;

@@ -49,8 +49,12 @@ public sealed class Runner
     public double Velocity { get; private set; }
     /// <summary>A halt from the offense pad: the body stops where it is until sent or returned.</summary>
     public bool Held { get; private set; }
-    /// <summary>The SET steal arm (spec §11.1). P6 lands the break; here it names the runner the catcher throws on.</summary>
-    public bool StealArmed { get; private set; }
+    /// <summary>The steal arm and when it was made (spec §11.1, §11.2): SET, the windup, or the perfect window.</summary>
+    public StealArm StealArm { get; private set; }
+    /// <summary>A steal is armed on this runner.</summary>
+    public bool StealArmed => StealArm != StealArm.None;
+    /// <summary>The armed runner has left the bag on the pitch or the pickoff motion: the steal is a body in motion (§11.2).</summary>
+    public bool Broke { get; private set; }
     /// <summary>Seconds settled on <see cref="Bag"/>; 0 while moving (Time reads it, §10.6).</summary>
     public double OnBagSec { get; private set; }
     /// <summary>Play seconds when home was crossed; NaN otherwise (the third-out rule, §1).</summary>
@@ -106,7 +110,9 @@ public sealed class Runner
     public bool Out => Phase == RunnerPhase.Out;
     /// <summary>Heading for a bag beyond the last one touched.</summary>
     public bool Advancing => Live && DestBag > Bag && !Held;
-    public int StealTarget => StealArmed ? Baserunning.NextBag(Bag) : 0;
+    public int StealTarget => StealArmed ? Baserunning.StealTarget(FromBag) : 0;
+    /// <summary>On the steal segment: armed, broke, and not past the bag they broke toward (the runner AI never second-guesses this body, §9.9).</summary>
+    public bool Stealing => StealArmed && Broke && Bag == FromBag;
 
     /// <summary>The next bag on the path, 4 at home.</summary>
     public int NextBag => Math.Min(4, Bag + 1);
@@ -169,7 +175,8 @@ public sealed class Runner
         Forced = false;
         Velocity = 0;
         Held = false;
-        StealArmed = false;
+        StealArm = StealArm.None;
+        Broke = false;
         OnBagSec = 0;
         ScoredAt = double.NaN;
         LastTouchAt = double.NaN;
@@ -243,8 +250,38 @@ public sealed class Runner
         if (Live) TagAndGo = on;
     }
 
-    public void ArmSteal() => StealArmed = true;
-    public void CancelSteal() => StealArmed = false;
+    /// <summary>Arm the steal (§11.1). Nothing else changes until the break.</summary>
+    public void ArmSteal(StealArm arm = StealArm.Set)
+    {
+        if (Live && arm != StealArm.None) StealArm = arm;
+    }
+
+    /// <summary>Stick back before the pitch: the arm comes off. A body that already broke stays a body (the return is <see cref="Return"/>).</summary>
+    public void CancelSteal()
+    {
+        if (Broke) return;
+        StealArm = StealArm.None;
+    }
+
+    /// <summary>The pitch (or the pickoff motion) came: this armed runner has broken (§11.2). The body is placed when the live ball begins.</summary>
+    public void MarkBroke()
+    {
+        if (Live && StealArmed && !IsBatter) Broke = true;
+    }
+
+    /// <summary>
+    /// The break (§11.2, D2 / D3): the armed body leaves the bag toward its steal target with the
+    /// head start the clock gave it (<see cref="StealBreak.HeadStartFt"/>), full speed from here.
+    /// </summary>
+    public void Break(double headStartFt)
+    {
+        if (!Live || !StealArmed || IsBatter) return;
+        Broke = true;
+        Held = false;
+        DestBag = Math.Min(4, Bag + 1);
+        Feet = Math.Clamp(headStartFt, 0, Diamond.Baseline);
+        Phase = RunnerPhase.Stealing;
+    }
     public void RequestSlide() => ForceSlide = true;
 
     /// <summary>The fly was caught with this runner off the start bag: they owe a retouch (§10.5).</summary>
@@ -491,7 +528,7 @@ public static class RunnerSystem
                 if (stopping && remaining <= bagRules.SlideFt && (runner.ForceSlide || ctx.TagThreatAt(runner.NextBag)))
                     runner.SetPhase(RunnerPhase.Sliding);
                 else if (runner.Phase != RunnerPhase.Sliding || !stopping)
-                    runner.SetPhase(runner.StealArmed && runner.Bag == runner.FromBag ? RunnerPhase.Stealing : RunnerPhase.Advancing);
+                    runner.SetPhase(runner.Stealing ? RunnerPhase.Stealing : RunnerPhase.Advancing);
                 // Touch the bag (snap over the last half foot).
                 while (runner.Live && (runner.Feet >= runner.SegmentFt || (stopping && runner.SegmentFt - runner.Feet <= bagRules.SnapFt)))
                 {

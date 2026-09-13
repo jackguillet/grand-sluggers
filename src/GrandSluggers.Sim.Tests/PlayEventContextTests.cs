@@ -125,8 +125,8 @@ public class PlayEventContextTests
         Assert.False(match.BeginAtBat(wild, take, out _, out var pitchEvent));
         Assert.NotNull(pitchEvent);
 
-        var ev = match.ResolveStealThrow(
-            pitchEvent!, 2, 0, new ThrowResult(Chemistry.Good, 5, false));
+        // The catcher's throw play (§11.3): a Run-2 body from the bag against the CPU gun is the tag at second.
+        var ev = match.RunStealPlay(pitchEvent!);
 
         var context = Assert.IsType<PlayContext>(ev.Context);
         var next = Assert.IsType<MatchState>(ev.NextState);
@@ -152,8 +152,9 @@ public class PlayEventContextTests
         Assert.False(match.BeginAtBat(wild, take, out _, out var pitchEvent));
         Assert.NotNull(pitchEvent);
 
-        var ev = match.ResolveStealThrow(
-            pitchEvent!, 2, 9, new ThrowResult(Chemistry.Neutral, 1, false));
+        // The human catcher never throws (§11.3): the runner takes second and Time seats them there.
+        var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
+        var ev = match.RunStealPlay(pitchEvent!, seats, LivePlayCommandSource.Human);
 
         var context = Assert.IsType<PlayContext>(ev.Context);
         var next = Assert.IsType<MatchState>(ev.NextState);

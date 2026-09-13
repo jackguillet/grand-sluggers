@@ -121,6 +121,8 @@ public static class RunnerAi
             return;
         }
 
+        // A body on its steal segment is committed (§11.2): the catcher's read never turns a stealer back; only the rundown above does.
+        if (runner.Stealing) return;
         // Already running: turn back only early in the segment when the margin has gone (the reference's "keep going past 40%").
         if (runner.Advancing && runner.Feet > 0)
         {
@@ -158,6 +160,53 @@ public static class RunnerAi
         }
         if (margin > Threshold(runner, ctx, cpu, slack, ball))
             runner.Send(next);
+    }
+
+    /// <summary>
+    /// The CPU steal table (§11.6), once per at-bat at SET: <c>P = base(Run) × situation</c>, base 0 at or
+    /// below running.cpu.stealMinRun, linear through the Run 6 / 8 / 10 anchors; × two outs, × the captain
+    /// slugger up, × 0 with a runner armed ahead (no double steal into a body), × 0 trailing by the table's
+    /// runs. The lead runner is read first. Perfect steal by the difficulty's chance; otherwise the arm is
+    /// SET's, exposed to the pickoff (D3). The rolls are the caller's seeded stream.
+    /// </summary>
+    public static IReadOnlyList<(Runner Runner, StealArm Arm)> StealPlan(
+        IReadOnlyList<Runner> runners, bool captainUp, int outs, int trailingRuns, Random rng, RulesTable? rules = null)
+    {
+        var r = Rules.Or(rules);
+        var cpu = r.Running.Cpu;
+        var plan = new List<(Runner, StealArm)>();
+        if (trailingRuns >= cpu.StealTrailingRuns) return plan;
+        var armedAhead = false;
+        foreach (var runner in runners.Where(x => x.Live && !x.IsBatter && x.OnBag).OrderByDescending(x => x.Bag))
+        {
+            var next = Baserunning.StealTarget(runner.Bag);
+            if (next == 0) continue;
+            var open = next == 4 || !runners.Any(o => o.Live && o != runner && o.Bag == next);
+            var chance = open && !armedAhead ? StealBase(runner.Who.Stats.Run, cpu) : 0;
+            if (outs == 2) chance *= cpu.StealTwoOutsMul;
+            if (captainUp) chance *= cpu.StealCaptainUpMul;
+            // One roll per runner whatever the chance, so the stream is the same shape for every table (S-92).
+            var roll = rng.NextDouble();
+            if (chance <= 0 || roll >= chance)
+            {
+                armedAhead = false;
+                continue;
+            }
+            var perfect = rng.NextDouble() < r.Cpu.Active.PerfectStealChance;
+            plan.Add((runner, perfect ? StealArm.Perfect : StealArm.Set));
+            armedAhead = true;
+        }
+        return plan;
+    }
+
+    /// <summary>The base steal chance by Run (§11.6): 0 at or below the floor, then linear through the anchors.</summary>
+    public static double StealBase(int run, CpuRunnerRules cpu)
+    {
+        if (run <= cpu.StealMinRun) return 0;
+        static double Lerp(double a, double b, double t) => a + (b - a) * Math.Clamp(t, 0, 1);
+        if (run <= 6) return Lerp(0, cpu.StealBaseRun6, (run - cpu.StealMinRun) / Math.Max(1.0, 6 - cpu.StealMinRun));
+        if (run <= 8) return Lerp(cpu.StealBaseRun6, cpu.StealBaseRun8, (run - 6) / 2.0);
+        return Lerp(cpu.StealBaseRun8, cpu.StealBaseRun10, (run - 8) / 2.0);
     }
 
     /// <summary>The outfield "go" threshold for this runner (§9.9): aggression by Run, more with two outs, more when desperate.</summary>

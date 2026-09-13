@@ -36,15 +36,15 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | # | Question | Decision | Why |
 | --- | --- | --- | --- |
 | D1 | Lead-offs | **None.** Runners stand on the bag. `Lead01`, the lead stick verb, and the mini-diamond lead pips are retired. ✅ P3 | Neither Sluggers nor Superstar Baseball has leads. Leads are what made random pickoffs "necessary" and what made the steal a time credit instead of a race. |
-| D2 | Steal jump | Armed runner breaks at **release**; armed inside the first 0.25 s of the windup is a **perfect steal** and breaks 0.4 s before release. | Superstar Baseball frame data (frame 40 vs frame 15 of the windup). |
-| D3 | Pickoff | A runner on the bag is always safe. A pickoff catches an armed runner who **already broke** (an early arm breaks on the pitcher's first motion, including a pickoff motion). | Reference: "a pure pick-off can never get a runner out". This is the mind game, not a roll. |
+| D2 | Steal jump | Armed runner breaks at **release**; armed inside the first 0.25 s of the windup is a **perfect steal** and breaks 0.4 s before release. ✅ P6 | Superstar Baseball frame data (frame 40 vs frame 15 of the windup). |
+| D3 | Pickoff | A runner on the bag is always safe. A pickoff catches an armed runner who **already broke** (an early arm breaks on the pitcher's first motion, including a pickoff motion). ✅ P6 | Reference: "a pure pick-off can never get a runner out". This is the mind game, not a roll. |
 | D4 | Contact quality | **Cursor decides quality, timing decides direction.** Sour / nice / perfect by where the ball meets the cursor; early pulls, late pushes; outside the window is a whiff. | Booklet plus the Superstar datamine (five bat zones, 9-frame slap / 7-frame charge window). |
 | D5 | Close plays | Button prompt at **third and home only**, only when the throw and the runner arrive together. | Sluggers booklet wording. Superstar Baseball used a body-check roll instead; we take the prompt. |
 | D6 | Five-star free homer | **No.** | Superstar Baseball had it; Sluggers dropped it. |
 | D7 | Pitch pace | Keep ≈ 0.85–1.10 s to the plate for now; the reference is closer to 0.6–0.75 s. Human parity gate (#534) decides. | Derived from Superstar speeds, not measured in Sluggers. |
 | D8 | Innings | 3 / 6 / 9 (not 1 / 3 / 5 / 7 / 9). Extra innings up to +3. Mercy 10 at the end of an inning. | Party default; the reference cap and mercy are copied. |
 | D9 | Infield fly, balk, dropped third strike, intentional walk, DH | None. | Neither game has them. |
-| D10 | Steal of home | Legal (armed from third). | Nothing in the reference forbids it; the catcher's zero-length throw makes it rare. |
+| D10 | Steal of home | Legal (armed from third). ✅ P6 | Nothing in the reference forbids it; the catcher's zero-length throw makes it rare. |
 | D11 | Flat bag-cover speed | Keep (it is how the reference moves covers), but as a data number. | Superstar datamine: constant cover speed starting 14 frames after the hit. |
 
 ---
@@ -105,7 +105,7 @@ SET ──(pitch commit)──▶ WINDUP ──(release @0.42)──▶ FLIGHT �
 | **WINDUP** | Delivery animation. Batter may still walk the box and start a charge. A steal armed inside the first 0.25 s is a **perfect steal** (D2). Runners with a steal armed break at **release** (perfect: 0.4 s before). | Both | Release at `Motion.PitchRelease` (0.42). |
 | **FLIGHT** | Ball travels rubber → plate in `AirSeconds` (≈0.85–1.10, D7). Pitcher steers break (stick L/R). Batter may swing at any moment; the bat reaches the plane 0.30 after release of the button. Stealing runners run at ⅔ speed until the ball reaches the plate. | Both | Ball crosses the plate plane (take) or bat plane meets ball (swing). |
 | **JUDGE** | One function, one frame: strike/ball, swing/miss, contact quality, HBP. Fair / foul is the live ball's call (§5.6): every batted ball goes LIVE. | Sim | Dead or live. |
-| **DEAD** | Count updates. Steal in progress resolves as a **catcher throw play** (§11). Pickoff resolves as a pickoff play. | Sim, then catcher seat | Stamp. |
+| **DEAD** | Count updates. A runner who broke makes the pitch a **catcher throw play** (§11.3), the same live ball as LIVE with the ball already in the catcher's glove. A pickoff in SET is the same play with the pitcher's throw in the air (§11.4). | Sim, then catcher seat | Stamp. |
 | **LIVE** | Ball in play. Fielders, runners, throws, tags, forces (§7–11). | Both | `Time` (§10.6). |
 | **STAMP** | Result named on the field. Scoring, outs, bag placement already applied. Hold `afterOutSeconds` / `afterCountSeconds`. | Sim | SET, half change, or game over. |
 
@@ -162,10 +162,10 @@ Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick ver
 ### 4.5 Pickoff (SET only)
 
 - Defense arms a bag (D-pad / 1–3) and presses South during SET. The pitcher turns and throws to that bag; the covering fielder (1B / SS / 3B) takes it. The pitch clock resets; the count does not change.
-- A runner **on the bag** is safe. Always. No play, a small "back" beat, no stamp. (Reference: a pure pickoff never retires a runner.) ✅ for a glued runner today.
-- A runner who has **broken** (an early-armed steal breaks on the pitcher's first motion — a pickoff motion counts, D3) is now between bags: the receiver at the bag throws ahead of them or chases; a **rundown** (§9.7) or a tag at the next bag decides it by geometry. That is the whole point of the pickoff: it punishes arming the steal too early. ❌ Today a pickoff arms a *steal* on the runner and a miss awards the base (`Match.cs:480-503, 1376-1393`).
-- **No random pickoffs.** A runner is never retired on a pitch by a roll. ❌ (`ResolvePickoff`, `Match.cs:1421-1481`, up to 72% per pitch with a lead.)
-- CPU pitcher attempts a pickoff 3–10% of SETs with a runner on (by difficulty), lead runner by default, 1B on first-and-third (§4.8). A failed CPU pickoff is a wasted beat, not a base.
+- A runner **on the bag** is safe. Always. No play, a small "back" beat, no stamp. (Reference: a pure pickoff never retires a runner.) ✅ P6 (`PlayKind.Pickoff`: the count stands, `PlayStamp.Shows` is false; `Match.BeginPickoff` never opens a live ball when nobody broke).
+- A runner who has **broken** (an early-armed steal breaks on the pitcher's first motion — a pickoff motion counts, D3) is now between bags: the receiver at the bag throws ahead of them or chases; a **rundown** (§9.7) or a tag at the next bag decides it by geometry. That is the whole point of the pickoff: it punishes arming the steal too early. ✅ P6: the pickoff is a **live runner play** (`LivePlaySystem.RunnerPlay`) — the pitcher's throw to the named bag is the one throw model (§8.5) from the rubber, every runner armed in SET (`StealArm.Set`) has broken toward their next bag at full speed (no head start: the motion is the break), and P5's tag, rundown, and Time rules finish it. A pickoff throw that sails is live and the runner takes the bag (S-71, the ERROR). Stamp PICKED OFF (`RunnerPlayResult.PickedOff`).
+- **No random pickoffs.** A runner is never retired on a pitch by a roll. ✅ P3 / P6 (`ResolvePickoff` is gone; the CPU pickoff is a read at SET, never an out by itself, S-72).
+- CPU pitcher attempts a pickoff 3–10% of SETs with a runner on (by difficulty), lead runner by default, 1B on first-and-third (§4.8). A failed CPU pickoff is a wasted beat, not a base. ✅ P6 (`Match.CpuPickoffBag`: `cpu.*.pickoffChance`, × `running.cpu.pickoffSeenArmMul` (3) when a steal pip armed in SET is showing — a perfect arm is the windup's and is never seen in SET; first on the corners by `running.cpu.pickoffFirstOnCornersChance`).
 
 ### 4.6 Hit by pitch
 
@@ -192,7 +192,7 @@ A decision table, not nested rolls (`pitching.json` `cpu`, `Match.CpuPitch`). Ev
 | Behind 2-0, 3-0, 3-1 | Middle-in, safe | 60 / 30 / 5 / 5 | 0% |
 | Runner on with 2 outs | Middle, fast | 50 / 40 / 0 / 10 (pitch-out never) | 0% |
 | TIRED | Whatever the table says, then §4.7 noise | | |
-| Pickoff | Before the pitch: 3% / 6% / 10% by difficulty when a runner is on; lead runner, or 1B on first-and-third (66%) | | P6 |
+| Pickoff | Before the pitch: 3% / 6% / 10% by difficulty when a runner is on (×3 when it sees a pip armed in SET, D3); lead runner, or 1B on first-and-third (66%) | | ✅ P6 |
 
 Row choice: a runner on with two outs first; then two strikes with at most one ball is *ahead*; two or more balls with at most one strike is *behind*; every other count (0-0, 1-0, 1-1, 0-1, 2-1, 2-2, 3-2) reads the *even* row. Locations are feet from the frame (`cpu.locations`): *edge* = `edgeInsetFt` inside a corner, the away corner (by batter hand) `edgeAwayChance` of the time; *waste* = `wasteOutFt` outside on the away side; *middle-in* = `middleInFt` toward the batter at mid-height; *middle* = center ± `middleYSpreadFt`. A charge is MAX with a Nice! release `niceChance` of the time; a break is the stick held one way. The CPU walks the rubber before `rubberWalkChance` of its pitches (up to `rubberWalkMax`) — a real verb the batter may mistrack (§5.9). Aim scatter σ = (11 − Pitch) × `scatterFtPerPitchStat` (0.055 ft) around the *target*, never the center; × `tiredScatterMul` when TIRED. ✅ P1. The `TimingErrorFrames` on `PitchCommand` was dead and is removed. ✅ P1
 
@@ -505,6 +505,8 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ✅ P5 adds to the same table: after a catch, a body off its start bag is a force back there ahead of rule 1 (`RunnerSystem.ReturnSec` against the throw, §10.5); with **two outs** any makeable out ends the inning, so the shortest makeable throw goes (S-50); the **plate is worth the throw** whenever the ball can land inside the close margin of the body (`running.close.marginSec`), even short of the tie band — the mash or the tag at the plate decides, a run is never conceded by a glove holding the ball; a play the table chose at a bag inside `fielding.throw.unassistedFt` (8) of the glove is made by **stepping on it**, not a throw (S-41, S-46); and a body caught between bags is run at (§9.7).
 
+✅ P6 adds: **second** joins home and third as a tag candidate (a body bound for second unforced — the stealer, the batter rounding first) and every tag bag is **worth the throw** inside the close margin, not only the plate (the catcher throws on a close steal rather than conceding it; the tag at the bag decides). Among the tag bags the lead body is played unless a trailing body's margin is better by `running.steal.cpuTrailPreferSec` (0.3, the double steal, §11.3). The play at a bag is made by **whoever gets the ball there first**: the glove's own legs (`fielding.chase`) or a throw to a cover who must be at the bag to take it (`fielding.cover` walk; a lob waits, §8.5) — so the catcher walks to the plate on a steal of home instead of lobbing at a bag nobody covers, and a first baseman who fields it near the bag takes it themselves. `margin` is read against that arrival.
+
 ---
 
 ## 9. Baserunning
@@ -569,7 +571,7 @@ Evaluated at contact, at every fielder touch, and at every throw release (events
 | Batter-runner rounding first | margin(2B) > 0.6 − Run × 0.03 | Reads the pickup: ball behind the outfielder = go |
 | Fly ball | hold; tag-up rules §9.5 | |
 | Score situation | trailing by ≥ 3 in the last inning: thresholds −0.2 | Aggressive when desperate |
-| Steal | §11.6 | Not in the swing function |
+| Steal | §11.6 | Not in the swing function. A body on its steal segment never turns back on the catcher's read (only the rundown reverses it, §9.7) ✅ P6 |
 
 Reference shape for the "go" rule: keep going if time-to-bag < throw-time − 0.33 s (−0.5 s on easy), with a bonus once past 40% of the segment; otherwise turn back with a 12–20% chance of a mistake. ✅ P3 (`RunnerAi`, `running.cpu`: the thresholds above, `commitFraction` 0.4 for the turn-back, the mistake roll left out — no roll decides a runner). Difficulty adds `cpu.*.runnerMarginSec` (+0.15 easy, −0.15 hard) to every threshold. `throwArrival` is the defense's live read: the glove on (or the route to) the ball, `running.cpu.reactionSec` 0.35, then `InPlay.ThrowSec` over the distance.
 
@@ -587,7 +589,7 @@ Reference shape for the "go" rule: keep going if time-to-bag < throw-time − 0.
 | Tag | A fielder holding the ball touches a runner who is not on a bag (or who is off the bag they must return to) |
 | Throw-out at first | The force at first: ball in the glove on the bag before the batter's foot |
 
-Everything else (caught stealing, picked off, doubled off, appeal) is a tag or a force. ✅ P5: these five are the only paths to `Outs++` (`Match.RecordOut` through `RetireLiveRunner`; the recorders are `RecordCatchOut`, `TryForce`, `ApplyThrow`, `TryTag`, and the close-play verdict). `Retire`'s result gates every caption and flag: a retire that fails narrates nothing. The steal race as shipped (§11) is a tag recorded the same way until P6 lands the break.
+Everything else (caught stealing, picked off, doubled off, appeal) is a tag or a force. ✅ P5: these five are the only paths to `Outs++` (`Match.RecordOut` through `RetireLiveRunner`; the recorders are `RecordCatchOut`, `TryForce`, `ApplyThrow`, `TryTag`, and the close-play verdict). `Retire`'s result gates every caption and flag: a retire that fails narrates nothing. ✅ P6: caught stealing and picked off are the same tags, made on a live runner play (§11.3, §11.4); the old steal race is gone.
 
 ### 10.2 Arrival
 
@@ -598,6 +600,7 @@ Everything else (caught stealing, picked off, doubled off, appeal) is a tag or a
 - A tag is a glove with the ball inside **reach** of the runner: `TagReachFt` = 4 ft (+2 with Lick / Grow, `fielding.abilities.tagReachBonusFt`); the runner is not touching a bag (`TagSafeRadiusFt` **1.5**). Home plate is a bag for a runner coming home, **not** for the batter leaving the box. ✅ P5 (`InPlay.TagReachFt`, `InPlay.Touches(fielder:)`). The safe radius moved from the 3.5 of the first draft to 1.5: the slide takes 2 ft off the reach (§9.4), and a safe radius wider than the slid reach would make every slide untaggable; the table validates `tagSafeRadiusFt ≤ tagReachFt − slideReachCutFt`. The tag is judged **through the frame** (`InPlay.TagWithinFrame`): a body that crossed the reach on its way to the bag was tagged before it touched, however short the step, so a 60 Hz body cannot skip the four-foot window. A tag records the bag the glove stands on (or 0 in the field).
 - Human: have the ball, touch the runner (walk into them). South is not required. ✅
 - The runner on a bag is safe. A runner who overran second or third is off the bag and taggable. Overrun first is protected (§9.4). ✅ P5 (`Runner.OverrunProtected`; nobody overruns second or third — a body stops on the bag it is stopping at, and one that rounds is off it and live).
+- A glove that walks to a bag a body is bound for **waits there** and the tag at the bag decides (the catcher at the plate on a steal of home, the first baseman on a pickoff throw); it leaves once nobody is bound there. ✅ P6 (`LivePlaySystem.PlayStandsAt`).
 
 ### 10.4 Double plays (ground ball)
 
@@ -649,52 +652,56 @@ Three outs on one live ball by the rules above (liner, double off, double off; o
 
 ### 11.1 Arming
 
-- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). ✅ both arms (P0). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ⚠️ `StartSteal` cancels every other runner (`Match.cs:338-350`).
-- Targets: 1st→2nd, 2nd→3rd, **3rd→home** (D10). ⚠️ `Baserunning.StealTarget(3) == 0` (`Baserunning.cs:25`).
-- A steal into an occupied bag is not offered unless that runner is also armed (double steal).
+- Select a runner (D-pad) and press L3 / Z — or push the stick toward the next bag — during SET or WINDUP: that runner's steal is armed (tell: a crouch and a purple STEAL pip). ✅ both arms (P0). All-return (RB) cancels before the windup. **Any number of runners may be armed** — a double steal is two arms. ✅ P6 (`Match.StartStealAt` arms one body and leaves the rest; stick back on a runner takes only that arm off; `Runner.StealArm` records SET / windup / perfect).
+- Targets: 1st→2nd, 2nd→3rd, **3rd→home** (D10). ✅ P6 (`Baserunning.StealTarget(3) == 4`).
+- A steal into an occupied bag is not offered unless that runner is also armed (double steal). ✅ P6 (`Baserunning.CanSteal(…, nextRunnerArmed)`); an arm whose bag holds an unarmed body drops at the pitch (`Match.BreakArmedRunners`).
+- A perfect arm's pip shows once the windup starts, never in SET: the CPU pitcher's pickoff read sees only SET arms (§4.5).
 
 ### 11.2 The jump (D2)
 
-- Armed runners **break at release** (0.42 into the delivery) from the bag at `bagSec` speed, ×⅔ while the pitch is still in the air, full speed once it reaches the plate (reference).
-- **Perfect steal**: armed inside the first 0.25 s of the windup → breaks 0.4 s before release; the pip turns gold. Arming *before* the windup (in SET) is the ordinary steal. Arming late in the windup still breaks at release.
-- **Early break risk (D3)**: a runner armed in SET breaks on the pitcher's **first motion** — if that motion is a pickoff, they are caught between bags (§11.4). This is the pitcher's read on a runner who armed too early: the CPU pitcher's pickoff rate rises when it sees the pip.
-- A runner returns on a foul (dead) and on a home run (trot). On a ball in play the steal simply becomes running.
-- ⚠️ Today `RunnerRemainSec` models a lead as a time credit and the runner leaves at commit (`StealThrow.cs:59-64`).
+- Armed runners **break at release** (0.42 into the delivery) from the bag at `bagSec` speed, ×⅔ while the pitch is still in the air, full speed once it reaches the plate (reference). ✅ P6 (`StealBreak`, `running.steal.airSpeedMul` 0.6667): the break is a body on the pitch's own clock — when the ball is dead in the catcher's glove (or live off the bat) every runner who broke stands `StealBreak.HeadStartFt` up the path (`airSpeedMul × speed × (AirSeconds + perfectEarlySec)`), and runs at full speed from there. There is no time credit and nothing rolls.
+- **Perfect steal**: armed inside the first 0.25 s of the windup → breaks 0.4 s before release; the pip turns gold. Arming *before* the windup (in SET) is the ordinary steal. Arming late in the windup still breaks at release; after release it is too late (nothing arms). ✅ P6 (`StealBreak.ArmFor(windupSec)`, `running.steal.perfectWindowSec` 0.25, `perfectEarlySec` 0.4; the client passes the windup clock, headless callers arm in SET).
+- **Early break risk (D3)**: a runner armed in SET breaks on the pitcher's **first motion** — if that motion is a pickoff, they are caught between bags (§11.4). This is the pitcher's read on a runner who armed too early: the CPU pitcher's pickoff rate rises when it sees the pip. ✅ P6 (`StealBreak.BreaksOnPickoff`: SET arms only).
+- A runner returns on a foul (dead) and on a home run (trot). On a ball in play the steal simply becomes running. ✅ P6 (S-64: the body starts the live ball on the path with its head start, phase Stealing, forced or not).
+- The race by the numbers: a Run-9 body armed perfect on a fastball is at second in ≈ 1.65 s from the catch; the CPU catcher's release (≈ 0.35 s) plus the gun from the plate (0.22 + 130 ft over the arm) is ≈ 1.8–1.9 s for a Field-5 arm and ≈ 1.4 s for a Field-8 arm released at once. Ordinary steals belong to burners; a Run ≤ 5 body from the bag is tagged by ≈ 0.5 s (S-60, S-62, S-70).
 
 ### 11.3 Catcher throw play (after a take or a miss)
 
-- The ball is in the catcher's glove at plate crossing + 0.05. The defense (human catcher seat, or CPU) arms a bag and presses South; the throw is a normal throw (§8.5) from the plate with the catcher's arm. Release delay: human = press time; CPU = `0.42 − Field × 0.014 ± 0.10`. ✅ (`StealThrow`, Unity `Phase.StealThrow`)
-- The out is a **tag** at the bag: ball arrival + receiver on the bag + tag reach vs runner arrival (§10.3). With two runners stealing the catcher picks one (human) or the lead runner unless the trailing runner's margin is ≥ 0.3 better (CPU).
-- On a **walk** or **HBP** the runner from 1st is entitled to 2nd — no play on them; other runners' steals are live.
-- Stamp STOLEN BASE / CAUGHT STEALING. ✅
+- The ball is in the catcher's glove at plate crossing + 0.05. The defense (human catcher seat, or CPU) arms a bag and presses South; the throw is a normal throw (§8.5) from the plate with the catcher's arm. Release delay: human = press time; CPU = `0.42 − Field × 0.014 ± 0.10`. ✅ P6: the steal is a **live runner play** (`LivePlaySystem.RunnerPlay`, `Match.RunStealPlay` headless, Unity `Phase.StealThrow` ticking the same commands): the catcher holds the ball `fielding.catcher.behindPlateFt` (3) behind the plate, the cover of every bag a body is bound for is on it (the middle infielder breaks to the bag on the pitch), the throw is `BeginThrowToBag` with the pair's chemistry (thrower and cover, never the runner), the human presses (a South with nothing armed throws to the lead body's bag), the CPU's first decision runs at its release (`StealThrow.CpuReleaseSec`, one seeded stream) through the §8.8 table.
+- The out is a **tag** at the bag: ball arrival + receiver on the bag + tag reach vs runner arrival (§10.3). With two runners stealing the catcher picks one (human) or the lead runner unless the trailing runner's margin is ≥ 0.3 better (CPU). ✅ P6 (`ArrivalVerdict` / `TryTag` at the bag, the mash at third or home inside the margin (§9.6); `running.steal.cpuTrailPreferSec`).
+- On a **walk** or **HBP** the runner from 1st is entitled to 2nd — no play on them; other runners' steals are live. ✅ P6 (`PlaceByWalk` seats the forced bodies; an unforced body that broke still runs its play, S-63).
+- With a runner on third watching a steal of second the free middle infielder cuts `running.steal.cutInFrontFt` (25) in front of the bag on the throw line: the cutoff verb (LB with nothing armed) sends the throw to them and they hold for the play at the plate (S-66); the cover at second can return it home too.
+- Stamp STOLEN BASE / CAUGHT STEALING. ✅ A strikeout with the runner caught is two outs on one pitch: DOUBLE PLAY (S-62). Time seats the bodies and completes the pitch's event (`Match.FinishRunnerPlay`): a runner out is CAUGHT STEALING, a runner who took a bag is a STOLEN BASE, a body back on its bag leaves the pitch as it was; a run that crossed counts by §1.
 
 ### 11.4 Pickoff play (SET)
 
-- Pitcher throws to the armed bag. A runner on the bag is safe; no race (D3).
-- A runner who broke on the pickoff motion (armed in SET) is between bags: the receiver throws ahead or chases; the runner may keep going or come back (stick). It resolves as a tag at either bag or a rundown (§9.7). ❌ Currently the steal race is reused (`Match.cs:1319-1323`), a miss awards the base (`:1376-1393`), and the cover lookup returns "" for bags 1 and 4 (`StealThrow.cs:23`).
-- Pickoff at 2nd: SS covers. At 3rd: 3B. At 1st: 1B. Home: none.
+- Pitcher throws to the armed bag. A runner on the bag is safe; no race (D3). ✅ P6
+- A runner who broke on the pickoff motion (armed in SET) is between bags: the receiver throws ahead or chases; the runner may keep going or come back (stick). It resolves as a tag at either bag or a rundown (§9.7). ✅ P6 (`Match.BeginPickoff` → `LivePlayCommand.BeginPickoff`; the same live ball as §11.3 with the pitcher's throw already in the air; `RunnerPlayResult.PickedOff`, stamp PICKED OFF).
+- Pickoff at 2nd: the live cover map's middle infielder (`InPlay.CoverMap`). At 3rd: 3B. At 1st: 1B. Home: the catcher (the plate is theirs). ✅ P6 (`StealThrow.CoverPos` covers every bag).
 
 ### 11.5 Scenarios
 
 | Scenario | Rule | Id |
 | --- | --- | --- |
-| Straight steal of 2nd, take | Catcher throw to 2B, tag | S-60 |
-| Steal of 2nd, swing and miss | Same; the batter's body does not block | S-61 |
-| Strikeout + caught stealing | Two outs on one pitch; stamp DOUBLE PLAY | S-62 |
-| Steal of 2nd, ball four | Runner entitled to 2B; no play | S-63 |
-| Steal of 2nd, ball in play | Steal becomes running; forced anyway | S-64 |
-| Double steal 1st & 2nd | Catcher picks; lead runner default | S-65 |
-| Double steal 1st & 3rd (delayed) | Runner on 1st goes; catcher throws to 2B → runner on 3rd may break for home when the throw passes the mound (stick); the SS/2B can cut the throw and return it home (cutoff verb) | S-66 |
-| Steal of home | Catcher receives, tags; the runner needs a perfect steal and a slow pitch (changeup) to have a chance | S-67 |
-| Pickoff at 1st, runner not armed | Back, no play, no stamp | S-68 |
-| Pickoff at 1st, runner armed in SET | Runner broke on the motion; tag at 1B or 2B / rundown by geometry | S-69 |
-| Perfect steal (armed 0.2 s into the windup), average catcher | Runner breaks 0.4 s early; safe at 2B against a Field-5 catcher, out against Field 9 with a Nice release | S-70 |
-| Pickoff throw sails (bad chem) | Ball live; runner advances | S-71 |
-| CPU never picks off a runner at random | | S-72 |
+| Straight steal of 2nd, take | Catcher throw to 2B, tag | S-60 ✅ |
+| Steal of 2nd, swing and miss | Same; the batter's body does not block | S-61 ✅ |
+| Strikeout + caught stealing | Two outs on one pitch; stamp DOUBLE PLAY | S-62 ✅ |
+| Steal of 2nd, ball four | Runner entitled to 2B; no play (an unforced runner's steal is live) | S-63 ✅ |
+| Steal of 2nd, ball in play | Steal becomes running; forced anyway | S-64 ✅ |
+| Double steal 1st & 2nd | Catcher picks; lead runner default | S-65 ✅ |
+| Double steal 1st & 3rd (delayed) | Runner on 1st goes; catcher throws to 2B → runner on 3rd may break for home when the throw passes the mound (stick); the SS/2B can cut the throw (cutoff verb, `running.steal.cutInFrontFt`) or the cover at 2B returns it home | S-66 ✅ |
+| Steal of home | Catcher receives, walks to the plate, tags; the runner needs a perfect steal and a slow pitch (changeup) to have a chance | S-67 ✅ |
+| Pickoff at 1st, runner not armed | Back, no play, no stamp | S-68 ✅ |
+| Pickoff at 1st, runner armed in SET | Runner broke on the motion; tag at 1B or 2B / rundown by geometry | S-69 ✅ |
+| Perfect steal (armed 0.2 s into the windup), average catcher | Runner breaks 0.4 s early; safe at 2B against a Field-5 catcher, out against the roster's best arm (Field 8; the row's Field 9 is not on any roster) with a Nice release | S-70 ✅ |
+| Pickoff throw sails (bad chem) | Ball live; runner advances (ERROR) | S-71 ✅ |
+| CPU never picks off a runner at random | | S-72 ✅ |
+
+✅ P6 (`StealScenarioTests`): every row runs headlessly on the seats it names; the CPU catcher and the human catcher drive the same live ball.
 
 ### 11.6 CPU steal decisions
 
-At SET, for each runner with an open next bag: `P(steal) = base(Run) × situation`, base = 0 for Run ≤ 4, 0.06 at Run 6, 0.16 at Run 8, 0.25 at Run 10; ×1.5 with 2 outs, ×0.5 with the captain slugger up, ×0 with a runner already armed ahead of them (no double steal into a body), ×0 when trailing by ≥ 5. Perfect-steal chance 0 / 20 / 40 / 50% by difficulty (reference); otherwise the CPU arms in SET and is exposed to the pickoff. Evaluated once per at-bat (not per pitch), as a runner-AI event — not inside `CpuSwing`.
+At SET, for each runner with an open next bag: `P(steal) = base(Run) × situation`, base = 0 for Run ≤ 4, 0.06 at Run 6, 0.16 at Run 8, 0.25 at Run 10; ×1.5 with 2 outs, ×0.5 with the captain slugger up, ×0 with a runner already armed ahead of them (no double steal into a body), ×0 when trailing by ≥ 5. Perfect-steal chance 0 / 20 / 40 / 50% by difficulty (reference); otherwise the CPU arms in SET and is exposed to the pickoff. Evaluated once per at-bat (not per pitch), as a runner-AI event — not inside `CpuSwing`. ✅ P6 (`RunnerAi.StealPlan`, `running.cpu.stealMinRun / stealBaseRun6 / 8 / 10 / stealTwoOutsMul / stealCaptainUpMul / stealTrailingRuns`, `cpu.*.perfectStealChance`; `Match.CpuArmSteal` runs it once per at-bat on the one seeded stream; the old `stealChance` roll is gone).
 
 ---
 
@@ -767,10 +774,10 @@ Files and the sections each owns (P0 moved the numbers that existed; later epics
 | `pitching.json` | `speed` (base mph per shape, Pitch coefficient, charge mph, changeup charge, star ×), `release` (Nice! band and ×), `flight` (release hand, `AirSeconds` scale and clamps, break cap / ramp / damping / rate), `shapes` (fastball hump, changeup hang / dump / drop), `starShapes` (heat, prism, charm, phony, cask wobble), `stamina` (costs, TIRED threshold, swap restore, tired aim wobble), `cpu` (the CPU pitcher's rolls as shipped, with `pickoff`; §4.8 replaces them with a table in P1 part c). The rubber walk distance is geometry (`HomeSet.PitcherWalk`) |
 | `batting.json` | `window` (slap / charge frames, per-contact, floor, square fraction), `charge` (loft), `quality` (`slap` / `charge` exit columns by zone, energy ×), `exit`, `launch` (loft, height, stick, noise, topper and pop bands), `bunt` (exit, launch, spray, pop height), `spray` (zone spread, stick, timing), `foul` (sour pull past the chalk, until P2), `homer` (launch band), `cursor` (barrel half-axes, perfect and rim fractions, contact scale, charge narrowing), `hbp` (body radius, world feet), `star` (phonyball whiff, star launches), `buddiesOnBase` (charged power ×, slap widen ×), `pitchFactor` (charged pitch vs sour / perfect charge, high-Pitch damping), `items` (CPU throw chance, rocket daze chance, the item's flight and its slip / daze / hop seconds), `cpu` (the CPU batter's rolls as shipped; §5.9's tracking table lands in P1 part c) |
 | `flight.json` | gravity, drag, `timeScale`, plate height, `windMul`, sample rate; `bounce`, `skid`, `roll`, `wall` (carom restitution / tangential), `landing` (the one landing guard), `classes` (the §6.2 table: topper / grounder / chopper / liner bands, the chopper's hop, the infield lip), `deadBall` (homer trot, foul flight hold). The `carry` hit bands are gone (P4): the bodies decide the bases |
-| `fielding.json` | `chase` (the one glove speed, swap lock, the loose-ball scoop reach), `reaction` (the lockout per position, the CPU throw delay), `cover` (flat cover speed and start, D11; the cover radius a throw must land inside; the backup distance), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, jump/dive arm times), `drops` (star effects only), `wallPlant`, `abilities` (catch, range, and throw bonuses; the Lick / Grow tag reach), `throw` (the one throw model: release, base speed, arm, lateral σ, the lob wait, the fly reach, the unassisted step-on distance), `overthrow` (how a missed throw rolls), `catcher` (CPU release, tag hold), `chem` (good speed, the slant), `bobble`, `knockback`, `park` |
-| `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide, the run-through at first), `close` (the close-play margin, icon delay, CPU reaction), `rundown` (range, the throw distance, the lazy lob), `steal` (the race from the bag as shipped until P6), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the steal roll as shipped until P6) |
+| `fielding.json` | `chase` (the one glove speed, swap lock, the loose-ball scoop reach), `reaction` (the lockout per position, the CPU throw delay), `cover` (flat cover speed and start, D11; the cover radius a throw must land inside; the backup distance), `dash` (chase ×, buddy toss, kick, dive lunge, item smash), `catch` (radius, windows, reaches, ability windows, jump/dive arm times), `drops` (star effects only), `wallPlant`, `abilities` (catch, range, and throw bonuses; the Lick / Grow tag reach), `throw` (the one throw model: release, base speed, arm, lateral σ, the lob wait, the fly reach, the unassisted step-on distance), `overthrow` (how a missed throw rolls), `catcher` (where the catcher holds the ball behind the plate, the CPU release), `chem` (good speed, the slant), `bobble`, `knockback`, `park` |
+| `running.json` | `bagSec` (the one speed: base, per Run, clamps, dash, the batter's start delay, the no-pass gap), `bags` (occupy radius, tag reach, tag-safe radius, `timeOnBagSec`, the slide, the run-through at first), `close` (the close-play margin, icon delay, CPU reaction), `rundown` (range, the throw distance, the lazy lob), `steal` (the jump, D2: the air speed fraction, the perfect window and its early break; the CPU catcher's trailing-runner preference; the cut in front of second), `stick`, `dash` (mash per press), `cpu` (the §9.9 thresholds; the §11.6 steal table; the pickoff read's pip multiplier and the corners chance) |
 | `stars.json` | `meterMax`, `gains` per event, `costs`, `starting` (chemistry scores and the starting-meter thresholds) |
-| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (CPU batter σ and tracking, close-play reaction, catcher release, the fielder's throw delay), mistrack ×, makeable margin (§8.8), perfect-steal chance and pickoff chance (P6), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
+| `cpu.json` | `level` and the `easy` / `normal` / `hard` rungs: timing-σ ×, reaction × (CPU batter σ and tracking, close-play reaction, catcher release, the fielder's throw delay), mistrack ×, makeable margin (§8.8), perfect-steal chance and pickoff chance (§11.6, §4.5), `runnerMarginSec` (§9.9). Normal is ×1 everywhere so the tables read as written. |
 | `match.json` | `extraInningsCap`, `mercy` (`runs`, `fromInning`, `minScheduledInnings`) — §1 |
 
 Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommitSeconds`, `runHz`) are removed from `table.json` and `FeelTable` (✅ P0), and `cpuVsHumanTake` / `cpuVsHumanMiss` with the forced-miss clamp (✅ P1); `fieldAssistStick` is the one stick-take threshold and `FieldAssist` reads it (the duplicate `FieldAssist.StickTake` constant is gone).
@@ -869,16 +876,16 @@ P4 left to the client: the "E" tell on the thrower's body (`LiveEvent.ThrowSaile
 | 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 | P5 |
 | 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 | P3 / P4 / P5 (rundown) |
 
-### A.6 Steals and pickoffs (P6)
+### A.6 Steals and pickoffs (P6) — ✅ closed by P6
 
-| # | Where | What | Spec |
-| --- | --- | --- | --- |
-| 60 | `Match.cs:338-350`, `Baserunning.cs:25, 46-49` | Double steal impossible; no steal of home | §11.1 |
-| 61 | `StealThrow.cs:59-64`, `ActorDirector.cs:441-446` | Lead as a time credit; runner leaves at commit; no perfect steal | §11.2 |
-| 62 | `Match.cs:480-503, 1376-1393` | Pickoff arms a steal; a miss awards the base | §11.4 |
-| 63 | `Match.cs:1421-1481` | Random pickoffs on every pitch (≤ 72%) | §4.5, D3 |
-| 64 | `Match.cs:1319-1323`, `StealThrow.cs:96-115` | Pickoff resolved with the steal race; real pickoff race unreachable | §11.4 |
-| 65 | `StealThrow.cs:23` | No cover at bags 1 and 4; chem computed defender-vs-runner | §11.4 |
+| # | Where | What | Spec | Closed |
+| --- | --- | --- | --- | --- |
+| 60 | `Match.cs:338-350`, `Baserunning.cs:25, 46-49` | Double steal impossible; no steal of home | §11.1 | `StartStealAt` arms one body; `StealTarget(3) == 4` |
+| 61 | `StealThrow.cs:59-64`, `ActorDirector.cs:441-446` | Lead as a time credit; runner leaves at commit; no perfect steal | §11.2 | `StealBreak`: the break at release on the pitch's clock, the perfect arm off the windup clock; `RunnerRemainSec` is gone |
+| 62 | `Match.cs:480-503, 1376-1393` | Pickoff arms a steal; a miss awards the base | §11.4 | `Match.BeginPickoff`: the pickoff is a live runner play; a sailed throw is live |
+| 63 | `Match.cs:1421-1481` | Random pickoffs on every pitch (≤ 72%) | §4.5, D3 | gone with P3; the CPU read (`CpuPickoffBag`) is a rate, never an out |
+| 64 | `Match.cs:1319-1323`, `StealThrow.cs:96-115` | Pickoff resolved with the steal race; real pickoff race unreachable | §11.4 | one live ball for both; `GunSteal` / `ResolveStealThrow` / `ApplySteal` deleted |
+| 65 | `StealThrow.cs:23` | No cover at bags 1 and 4; chem computed defender-vs-runner | §11.4 | `StealThrow.CoverPos` covers every bag; `BeginThrowToBag` rolls the thrower–cover pair |
 
 ### A.7 Architecture (P0 / #512) — ✅ closed by P0
 
@@ -963,7 +970,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-58 | Fly hits the wall 8 ft up | | Carom; live; batter to 2B by geometry |
 | S-59 | Bounce then over the fence | | Ground-rule double: every runner +2 |
 
-### B.5 Steals and pickoffs — S-60 … S-72 as tabled in §11.5.
+### B.5 Steals and pickoffs — S-60 … S-72 as tabled in §11.5. ✅ P6 (`StealScenarioTests`).
 
 ### B.6 Close plays, rundowns, Time, scoring
 

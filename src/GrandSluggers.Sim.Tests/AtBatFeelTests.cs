@@ -360,7 +360,8 @@ public class AtBatFeelTests
         Assert.False(glued.StealAttempt);
         var stay = glued.Pickoff(1);
         Assert.NotNull(stay);
-        Assert.NotEqual(PlayKind.CaughtStealing, stay!.Kind);
+        Assert.Equal(PlayKind.Pickoff, stay!.Kind);
+        Assert.False(PlayStamp.Shows(stay.Kind), "the beat has no stamp (§4.5)");
         Assert.NotNull(glued.First);
 
         var dancing = Match.Slice(_content, seed: 4);
@@ -368,7 +369,7 @@ public class AtBatFeelTests
         dancing.ToggleSteal();
         var gun = dancing.Pickoff(1);
         Assert.NotNull(gun);
-        Assert.True(gun!.Kind is PlayKind.CaughtStealing or PlayKind.StolenBase or PlayKind.TakeBall, gun.Kind.ToString());
+        Assert.True(gun!.Kind is PlayKind.CaughtStealing or PlayKind.StolenBase or PlayKind.Pickoff, gun.Kind.ToString());
     }
 
     [Fact]
