@@ -1322,7 +1322,7 @@ public sealed class Match
         var ev = Emit(PlayKind.Strikeout, pitch, swing, hit, $"{Batter.Name} {how}", 0, []);
         NextBatter();
         CheckInning();
-        return FinishEvent(ev);
+        return AfterPitch(FinishEvent(ev));
     }
 
     PlayEvent FinishWalk(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
@@ -1334,7 +1334,7 @@ public sealed class Match
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
-        return ev;
+        return AfterPitch(ev);
     }
 
     PlayEvent FinishHitByPitch(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
@@ -1346,7 +1346,7 @@ public sealed class Match
         var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
-        return ev;
+        return AfterPitch(ev);
     }
 
     /// <summary>
@@ -1529,11 +1529,12 @@ public sealed class Match
         // A bobble is only time; it is never the error by itself.
         var error = kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple && field.ThrowSailed;
         LivePlay.Reset();
-        return Emit(kind, pitch, swing, hit, caption, runs, scorers,
+        // A foul keeps the at-bat and a hit ends it; either way the pitch is over and the box recenters (D12).
+        return AfterPitch(Emit(kind, pitch, swing, hit, caption, runs, scorers,
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
             new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
-                GroundRuleDouble: kind == PlayKind.Double && field.GroundRule, Bodies: bodies));
+                GroundRuleDouble: kind == PlayKind.Double && field.GroundRule, Bodies: bodies)));
     }
 
     /// <summary>
@@ -1660,7 +1661,7 @@ public sealed class Match
         Balls = 0;
         Strikes = 0;
         _cpuStealDecided = false;
-        // The box persists across the pitches of one at-bat (§3); the next hitter starts centered.
+        // The next hitter starts centered (the box recenters after every pitch too, D12: AfterPitch).
         ResetBatter();
         if (Top) AwayBatter = (AwayBatter + 1) % AwayOrder.Count;
         else HomeBatter = (HomeBatter + 1) % HomeOrder.Count;
@@ -1893,7 +1894,17 @@ public sealed class Match
     }
 
     /// <summary>A dead pitch. The random pickoff that used to ride here is gone with the leads (D1, D3).</summary>
-    PlayEvent AfterPitch(PlayEvent ev) => ev;
+    /// <summary>
+    /// The pitch is over (spec §3, D12, #607): whatever it was — a ball, a strike, a foul, a walk, a
+    /// plunk, a strikeout, a ball in play — the box recenters for the next SET. The swing that used the
+    /// walk already latched it (<see cref="BatterContactOffsetX"/>). Every pitch's finish returns
+    /// through here; a pickoff in SET is not a pitch and leaves the box alone.
+    /// </summary>
+    PlayEvent AfterPitch(PlayEvent ev)
+    {
+        ResetBatter();
+        return ev;
+    }
 
     void AddStars(bool defense, double amount)
     {

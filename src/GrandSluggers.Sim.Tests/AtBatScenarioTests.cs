@@ -375,15 +375,50 @@ public sealed class AtBatScenarioTests
     }
 
     [Fact]
-    public void S16_TheBoxPersistsAcrossPitchesOfOneAtBat()
+    public void S16_TheBoxRecentersAfterEveryPitch_ABallAStrikeAndAFoul()
+    {
+        // D12 (#607): the box is a per-pitch adjustment; the next SET starts centered whatever the pitch did.
+        var s = new Scenario(_content);
+        var match = s.Match;
+        var batter = match.Batter;
+
+        Assert.True(match.WalkBatter(0.8));
+        Assert.Equal(0.8, match.BatterOffsetX);
+        Assert.Equal(PlayKind.TakeBall, match.Play(Scenario.PitchAt(1.6, CenterY), Scenario.Take).Kind);
+        Assert.Equal((1, 0), (match.Balls, match.Strikes));
+        Assert.Equal(0, match.BatterOffsetX);
+
+        Assert.True(match.WalkBatter(0.8));
+        Assert.Equal(PlayKind.SwingMiss, match.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(20)).Kind);
+        Assert.Equal((1, 1), (match.Balls, match.Strikes));
+        Assert.Equal(0, match.BatterOffsetX);
+
+        Assert.True(match.WalkBatter(0.8));
+        var foul = FlightFixtures.Hit(match.Park, 90, 20, 60, ContactQuality.Nice);
+        Assert.True(foul.Foul);
+        var preview = match.PreviewHit(foul);
+        var play = match.FinishAtBat(Scenario.Paint, Scenario.Swing, foul, match.ResolveFielding(foul, preview));
+        Assert.Equal(PlayKind.Foul, play.Kind);
+        Assert.Equal(batter.Id, match.Batter.Id);
+        Assert.Equal((1, 2), (match.Balls, match.Strikes));
+        Assert.Equal(0, match.BatterOffsetX);
+    }
+
+    [Fact]
+    public void S16_TheContactOffsetLatchesTheWalkTheSwingUsedThenTheBoxRecenters()
     {
         var s = new Scenario(_content);
         var match = s.Match;
-        match.WalkBatter(0.6);
-        match.Play(Scenario.PitchAt(1.6, CenterY), Scenario.Take);
-        Assert.Equal(0.6, match.BatterOffsetX);
-        match.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(20));
-        Assert.Equal(0.6, match.BatterOffsetX);
+        var batter = match.Batter;
+        Assert.True(match.WalkBatter(0.8));
+        // A ball met on the cursor where the walked box put it.
+        var sweet = SweetSpot.WorldCenter(match.BatterOffsetX);
+        var ev = match.Play(Scenario.PitchAt(sweet.X, CenterY), Scenario.SwingAt(0));
+        Assert.NotEqual(PlayKind.SwingMiss, ev.Kind);
+        Assert.NotEqual(PlayKind.TakeBall, ev.Kind);
+        Assert.Equal(0.8, match.BatterContactOffsetX, 9);
+        Assert.Equal(0, match.BatterOffsetX);
+        _ = batter;
     }
 
     [Fact]
