@@ -23,10 +23,12 @@ namespace GrandSluggers.UnityClient
         public bool Night => _night;
 
         RulesTable _rules;
+        FeelTable _feel;
 
-        public void Build(Park park, bool night, RulesTable rules)
+        public void Build(Park park, bool night, RulesTable rules, FeelTable feel)
         {
             _rules = rules ?? Rules.Default;
+            _feel = feel;
             BuildPark(park, night);
         }
 
@@ -173,7 +175,7 @@ namespace GrandSluggers.UnityClient
 
             _ball = gameObject.GetComponent<BallView>();
             if (_ball == null) _ball = gameObject.AddComponent<BallView>();
-            _ball.Build(_root);
+            _ball.Build(_root, _feel.BallShadow);
         }
 
         void Infield(Material dirt)

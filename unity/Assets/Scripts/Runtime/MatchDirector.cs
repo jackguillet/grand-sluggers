@@ -194,7 +194,7 @@ namespace GrandSluggers.UnityClient
             _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec = gameObject.AddComponent<SpecialFx>();
             _spec.Build(transform);
             _items = gameObject.AddComponent<ItemView>();
@@ -508,7 +508,7 @@ namespace GrandSluggers.UnityClient
         {
             Seed++;
             _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
             _items.Build(transform);
             _stars?.Build(transform);

@@ -1,0 +1,35 @@
+namespace GrandSluggers.Sim;
+
+/// <summary>Ground cue for the ball's current position, independent of the landing ring and camera.</summary>
+public sealed class BallShadowFeel
+{
+    public double NearDiameterFt { get; set; } = 5;
+    public double FarDiameterFt { get; set; } = 3;
+    public double HeightRangeFt { get; set; } = 60;
+    public double SurfaceLiftFt { get; set; } = 0.04;
+    public double Opacity { get; set; } = 0.65;
+
+    public void Validate()
+    {
+        if (!double.IsFinite(NearDiameterFt) || !double.IsFinite(FarDiameterFt)
+            || !double.IsFinite(HeightRangeFt) || !double.IsFinite(SurfaceLiftFt)
+            || !double.IsFinite(Opacity) || FarDiameterFt <= 0 || NearDiameterFt < FarDiameterFt
+            || HeightRangeFt <= 0 || SurfaceLiftFt <= 0 || Opacity <= 0 || Opacity > 1)
+            throw new InvalidDataException("Ball shadow needs positive diameters, near >= far, a positive height/lift and opacity in (0, 1].");
+    }
+}
+
+public static class BallShadow
+{
+    public static double Diameter(double heightFt, BallShadowFeel feel) =>
+        feel.NearDiameterFt + (feel.FarDiameterFt - feel.NearDiameterFt)
+        * Math.Clamp(heightFt / feel.HeightRangeFt, 0, 1);
+
+    /// <summary>
+    /// Clear the field's highest flat skin and follow the mound. The small gap above grass
+    /// also prevents the disk from slicing into dirt when it straddles the apron edge.
+    /// </summary>
+    public static Vec3 Project(double x, double z, BallShadowFeel feel) =>
+        new(x, Math.Max(Math.Max(ParkDiamond.GrassTop, ParkDiamond.PathTop),
+            ParkDiamond.StandY(x, z)) + feel.SurfaceLiftFt, z);
+}
