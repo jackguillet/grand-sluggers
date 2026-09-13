@@ -66,6 +66,27 @@ public sealed class Match
     public string Difficulty => Rules.Cpu.Level;
     /// <summary>Portable command boundary for the ball between contact and Time.</summary>
     public LivePlaySystem LivePlay { get; }
+    /// <summary>The seed this match was constructed with. Tracing and <c>cli match --seed</c> both read it.</summary>
+    public int Seed { get; }
+    bool _tracing;
+    readonly List<PlayTrace> _traces = [];
+    /// <summary>
+    /// Opt-in per-play geometry dump (agent-rails R3). Off, AutoPlay is unchanged. On, each
+    /// <see cref="Play"/> / <see cref="Pickoff"/> freezes a <see cref="PlayTrace"/> of ball,
+    /// runners, glove, and bags. The dump does not decide baseball.
+    /// </summary>
+    public bool Tracing
+    {
+        get => _tracing;
+        set
+        {
+            _tracing = value;
+            LivePlay.Recording = value;
+            _traces.Clear();
+        }
+    }
+    public IReadOnlyList<PlayTrace> Traces => _traces;
+    public PlayTraceLog TraceLog() => new(Seed, Home.Captain.Id, Away.Captain.Id, Park.Id, _traces);
 
     public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null)
     {
@@ -77,6 +98,7 @@ public sealed class Match
         Park = park;
         Night = night;
         Innings = innings;
+        Seed = seed;
         _rng = new Random(seed);
         _atBat = new AtBatResolver(content.Chemistry, content.Rules, content.StarSkills);
         _fielding = new FieldingResolver(content.Chemistry, content.Rules);
@@ -751,8 +773,20 @@ public sealed class Match
     /// <summary>The pickoff played out headlessly (tests, the CPU game): the beat, or the live play to Time.</summary>
     public PlayEvent? Pickoff(int bag, LiveSeats? seats = null)
     {
-        if (!BeginPickoff(bag, seats ?? LiveSeats.CpuOnly, out var dead)) return dead;
-        return RunRunnerPlayTicks(LivePlayCommandSource.Cpu);
+        if (!BeginPickoff(bag, seats ?? LiveSeats.CpuOnly, out var dead))
+        {
+            CollectTrace(dead);
+            return dead;
+        }
+        var ev = RunRunnerPlayTicks(LivePlayCommandSource.Cpu);
+        CollectTrace(ev);
+        return ev;
+    }
+
+    void CollectTrace(PlayEvent? ev)
+    {
+        if (!_tracing || ev is null) return;
+        _traces.Add(LivePlay.TakeTrace(ev));
     }
 
     /// <summary>
@@ -788,12 +822,18 @@ public sealed class Match
     public PlayEvent Play(PitchCommand pitch, SwingCommand swing, string? item = null)
     {
         pitch = PreparePitch(pitch);
+        PlayEvent ev;
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
-            return StealThrowPending ? RunStealPlay(finished!) : finished!;
-        var preview = PreviewHit(hit, swing);
-        var field = ResolveFielding(hit, preview);
-        field = ApplyOffenseItem(hit, field, item);
-        return RunLive(pitch, swing, hit, preview, field, LiveSeats.CpuOnly);
+            ev = StealThrowPending ? RunStealPlay(finished!) : finished!;
+        else
+        {
+            var preview = PreviewHit(hit, swing);
+            var field = ResolveFielding(hit, preview);
+            field = ApplyOffenseItem(hit, field, item);
+            ev = RunLive(pitch, swing, hit, preview, field, LiveSeats.CpuOnly);
+        }
+        CollectTrace(ev);
+        return ev;
     }
 
     /// <summary>The headless frame: the live ball ticks at 60 Hz whoever drives it (S-90 needs one clock).</summary>

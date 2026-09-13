@@ -12,7 +12,7 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
-        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args));
+        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args));
         break;
     case "challenge":
         RunChallenge(content, CaptainId(args), Seed(args));
@@ -40,7 +40,7 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard] [--trace [file]]
               challenge [--captain rio] [--seed N]
               art
               protocol
@@ -86,6 +86,18 @@ static string AwayId(string[] args)
         if (args[i] == "--away")
             return args[i + 1];
     return "ashlord";
+}
+
+static string? TraceArg(string[] args)
+{
+    for (var i = 0; i < args.Length; i++)
+    {
+        if (args[i] != "--trace") continue;
+        if (i + 1 < args.Length && !args[i + 1].StartsWith('-'))
+            return args[i + 1];
+        return "-";
+    }
+    return null;
 }
 
 static string CaptainId(string[] args)
@@ -172,22 +184,36 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace)
 {
     var match = string.IsNullOrEmpty(parkId)
         ? Match.Exhibition(content, home, away, innings: 3, seed: seed, difficulty: difficulty)
         : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, difficulty: difficulty);
-    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
-    Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
-    while (!match.Over)
+    if (trace is not null) match.Tracing = true;
+    var log = Console.Out;
+    if (trace == "-") Console.SetOut(Console.Error);
+    try
     {
-        var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
-        var ev = match.AutoPlay();
-        Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
+        Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
+        while (!match.Over)
+        {
+            var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
+            var ev = match.AutoPlay();
+            Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+        }
+        var mvp = match.Mvp();
+        Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
+        Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
     }
-    var mvp = match.Mvp();
-    Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
-    Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
+    finally
+    {
+        if (trace == "-") Console.SetOut(log);
+    }
+    if (trace is null) return;
+    var json = match.TraceLog().ToJson();
+    if (trace == "-") log.WriteLine(json);
+    else File.WriteAllText(trace, json);
 }
 
 static void RunChallenge(ContentCatalog content, string captainId, int seed)
