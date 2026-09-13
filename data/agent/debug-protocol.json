@@ -61,7 +61,7 @@
       "fix": "CharFraming looks at Silhouette chest height and pulls back by extra height. Every captain's head top is inside the frustum. Do not raise a constant until the tallest fits.",
       "promoted": "StillHarnessTests.CharacterTurntableKeepsEveryCaptainsHeadInFrame",
       "issue": "#559",
-      "pr": ""
+      "pr": "#664"
     }
   ]
 }
