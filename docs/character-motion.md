@@ -16,7 +16,7 @@ That is not a rail. It is five patches that agree by accident.
 2. **A captain is data.** `Silhouette.Proportions` (root scale), a faction palette, and a list of extras from `data/art/extras.json` placed on named bones. No per-captain geometry in C#.
 3. **One motion source: Blender takes.** Every `Motion.Verb` plays an FBX clip baked by `tools/blender/hero_shared_takes.py` from one pose table. C# contains no Euler angles for any body part. `SwingPresentation` and `BattingStance` remain the *contract* the swing take is authored against and measured by; they never drive bones.
 4. **Handedness is baked.** A handed take is authored right-handed and reflected across the sagittal plane in Blender, exactly, into `{clip}-L.fbx`. Both files are validated per frame against the same handed contract. Runtime picks the file by `Character.Bats` or `Character.Throws`. There is no runtime mirroring of any bone, socket, or sample.
-5. **The sim owns the clock.** A clip is sampled at a time the sim computes: world time for loops, verb time for one-shots, `LoadSampleAt(charge)` for a held load. Markers (`Contact`, `Release`, `FootPlant`) are at the same seconds the sim uses. Presentation never advances a clip on its own.
+5. **The sim owns the clock.** A clip is sampled at a time the sim computes: world time for loops, verb time for one-shots, `LoadSampleAt(charge)` for a held load. Markers (`Contact`, `Release`, `FootPlant`) are at the same seconds the sim uses. The swing is the one take the sim time-warps (D13, #612): for a press inside the timing window `AtBatMotion.SwingClipTime` compresses load → contact so the `Contact` mark lands on the ball's plate time, then plays the follow-through at the take's own speed; outside the window the take plays at its natural 0.50 s. The warp only changes when a key is shown, never its order or its pose. Presentation never advances a clip on its own.
 6. **Bodies are kinematic.** No Rigidbody, no PhysX on a character. The ball is the sim's. Squash and stretch are scale on the presentation wrapper, never on bones. Lift (jump arc, run bob, crouch) is baked into the take's `root` bone.
 7. **Placeholders, not crashes; validators, not hope.** Missing body FBX: a capsule and a validator error. Missing clip: the idle clip, then bind pose, and a validator error. `cli art` fails before a build does.
 8. **Look is Jack's.** DCC falsifiers, Sim tests, and the Unity swing matrix prove the contract. A still in `docs/screenshot-gate.md` passes the look. Agents do not.
@@ -46,7 +46,7 @@ Mesh landmarks the gates read by name: `torsoMesh`, `Stripe`, `headMesh`, `EyeL`
 | Verb | Clip | Clock | Handed | Marker |
 | --- | --- | --- | --- | --- |
 | Idle, Field, Cheer, Charm | idle / field / cheer / charm | world (loop) | no | |
-| Walk, Run | walk / run | world (loop) | no | FootPlant 0 |
+| Walk, Run | walk / run | world (loop) | no | FootPlant 0; the root yaw is `BodyFacing` (gameplay-spec §8.2): the run while moving, the walk take on the backpedal |
 | Jump, Clamber | jump | verb | no | FootPlant 0.55 |
 | ChargePitch | pitch at `LoadSampleAt(charge)` | charge | yes | |
 | ThrowPitch | pitch at `LoadedClipTime` | verb | yes | Release 0.42 |

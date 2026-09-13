@@ -415,8 +415,11 @@ namespace GrandSluggers.UnityClient
                     _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)),
                     _pitchDur, _match.Rules);
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
-                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt))
+                && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
+            {
                 _swung = true;
+                _swingContactSec = SwingContactSec(_swing);
+            }
             if (u < 1) return;
             _swing ??= HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
@@ -434,8 +437,18 @@ namespace GrandSluggers.UnityClient
                 intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
             _swing = intent.Resolve(
-                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing);
+                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing, _match.Rules);
+            _swingContactSec = SwingContactSec(_swing);
         }
+
+        /// <summary>
+        /// When the committed take's Contact mark lands after the press (D13, #612): on the ball's
+        /// plate time inside the window, the take's own mark outside. Read at the press, before the
+        /// pitch resolves and the next batter steps in.
+        /// </summary>
+        float SwingContactSec(SwingCommand swing) =>
+            (float)AtBatMotion.SwingContactSec(swing.TimingErrorFrames,
+                _match.SwingWindowFrames(_pitch, swing), _match.Rules);
 
         float PitchWorldX(float screenX)
         {

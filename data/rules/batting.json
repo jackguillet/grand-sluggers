@@ -4,7 +4,8 @@
     "chargeFrames": 7.0,
     "framesPerContact": 0.4,
     "floorFrames": 5.0,
-    "squareFraction": 0.9
+    "squareFraction": 0.9,
+    "leadSec": 0.1
   },
   "charge": {
     "loftDeg": 2.5

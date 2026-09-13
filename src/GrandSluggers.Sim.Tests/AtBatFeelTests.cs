@@ -117,10 +117,13 @@ public class AtBatFeelTests
     [InlineData(1.28)]
     public void SwingTimesTheBatContactAgainstEveryPitchSpeed(double flight)
     {
-        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact, flight), 8);
-        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact - 0.05, flight), 8);
-        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - Motion.SwingContact + 0.05, flight), 8);
-        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.SlapFrames);
+        // D13: the square press is the ball's plate time less the lead, whatever the pitch speed.
+        var lead = Rules.Default.Batting.Window.LeadSec;
+        Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight - lead, flight), 8);
+        Assert.Equal(-3, AtBatMotion.SwingErrorFrames(flight - lead - 0.05, flight), 8);
+        Assert.Equal(3, AtBatMotion.SwingErrorFrames(flight - lead + 0.05, flight), 8);
+        // Pressing when the ball is already on the plate is past the slap's half window.
+        Assert.True(AtBatMotion.SwingErrorFrames(flight, flight) > Rules.Default.Batting.Window.SlapFrames / 2);
         Assert.Equal(0, AtBatMotion.SwingErrorFrames(flight, flight, bunt: true), 8);
         foreach (var error in new[] { -8.0, 0, 5.0 })
             Assert.Equal(error, AtBatMotion.SwingErrorFrames(AtBatMotion.SwingStart(flight, error), flight), 8);

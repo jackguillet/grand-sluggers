@@ -12,5 +12,10 @@
   "chargeMaxHoldSeconds": 0.5,
   "chargeOverchargeDecay": 0.8,
   "contactCutSeconds": 0.42,
-  "cameraHoldSeconds": 0.25
+  "cameraHoldSeconds": 0.25,
+  "bodyTurnDegPerSec": 720,
+  "headingSmoothSec": 0.08,
+  "headingTeleportFtPerSec": 90,
+  "backpedalFt": 12,
+  "faceBallMinFt": 3
 }

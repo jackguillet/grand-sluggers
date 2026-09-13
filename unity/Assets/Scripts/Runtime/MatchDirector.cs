@@ -360,7 +360,7 @@ namespace GrandSluggers.UnityClient
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
                 LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, _bunt,
-                CarnivalFront.TitleSetup(Innings, Difficulty));
+                CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
                     (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds);
