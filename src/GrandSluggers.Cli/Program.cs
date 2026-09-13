@@ -30,6 +30,9 @@ switch (cmd)
     case "art":
         PrintArt(content);
         break;
+    case "protocol":
+        PrintProtocol(content);
+        break;
     default:
         Console.WriteLine("""
             Grand Sluggers sim
@@ -40,6 +43,7 @@ switch (cmd)
               match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard]
               challenge [--captain rio] [--seed N]
               art
+              protocol
             """);
         break;
 }
@@ -102,9 +106,29 @@ static void PrintArt(ContentCatalog content)
     Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
     Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
     Console.WriteLine($"FOLDERS {art.Folders.Count}");
-    var errors = art.Validate(content);
+    var errors = art.Validate(content).Concat(DebugProtocol.Validate(content.Root)).ToList();
     if (errors.Count == 0)
-        Console.WriteLine("OK     catalog matches roster, clips, parks");
+        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+}
+
+static void PrintProtocol(ContentCatalog content)
+{
+    var protocol = DebugProtocol.Load(content.Root, new List<string>());
+    Console.WriteLine($"PROTOCOL {protocol.Entries.Count} entries");
+    foreach (var row in protocol.Entries)
+    {
+        var promoted = string.IsNullOrWhiteSpace(row.Promoted) ? "-" : row.Promoted;
+        Console.WriteLine($"  {row.Id,-32} {row.Stage,-14} {row.Issue,-8} {promoted}");
+    }
+    var errors = DebugProtocol.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     debug protocol matches spec §2");
     else
     {
         Console.WriteLine("FAIL   " + errors.Count + " errors");

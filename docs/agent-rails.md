@@ -4,7 +4,7 @@ This is the **source of truth for how coding agents build Grand Sluggers**. When
 
 The bar is not a one-shot playable demo. The bar is the stack in [AGENTS.md](../AGENTS.md): Harbor Exhibition a stranger can finish, sitting-found children, a toy that reads HUD-off, authored sound. Agents are the production line. They do not pass human gates.
 
-Companion docs: [playbook.md](playbook.md) (how a phase runs), [roadmap.md](roadmap.md) (sequence), [gameplay-spec.md](gameplay-spec.md) (baseball), [art-rails.md](art-rails.md) (slots), [character-motion.md](character-motion.md) (takes), [screenshot-gate.md](screenshot-gate.md) (stills). Feel numbers stay in `data/feel/`. Rule numbers stay in `data/rules/`. Art slots stay in `data/art/`. Agent memory that must survive a session lives in `data/agent/` once R2 ships.
+Companion docs: [playbook.md](playbook.md) (how a phase runs), [roadmap.md](roadmap.md) (sequence), [gameplay-spec.md](gameplay-spec.md) (baseball), [art-rails.md](art-rails.md) (slots), [character-motion.md](character-motion.md) (takes), [screenshot-gate.md](screenshot-gate.md) (stills). Feel numbers stay in `data/feel/`. Rule numbers stay in `data/rules/`. Art slots stay in `data/art/`. Agent memory that must survive a session lives in `data/agent/`.
 
 Status tags used throughout, first checked against `f419603` (2026-09-13). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work.
 
@@ -68,9 +68,9 @@ End each session with a playable artifact of its kind before the next prompt: ga
 
 ## 2. Debug protocol (remember)
 
-❌ **R2 #649.** OpenGame's Debug Skill, as a catalog.
+✅ **R2 #649.** OpenGame's Debug Skill, as a catalog.
 
-`data/agent/debug-protocol.json` (name stable) holds entries:
+`data/agent/debug-protocol.json` (name stable) holds entries. Load with `DebugProtocol.Load` or `dotnet run --project src/GrandSluggers.Cli -- protocol`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing.
 
 | Field | Meaning |
 | --- | --- |
@@ -188,6 +188,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Human gates stay human | #346, #209 sittings, #188 |
 | Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
 | Local standalone window | [local-player.md](local-player.md) |
+| Debug protocol | `data/agent/debug-protocol.json`, `cli protocol` |
 
 ---
 
@@ -198,8 +199,8 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
 | G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
-| G2 | Sitting memory is GitHub issues only | Playbook §5 | R2, R7 |
-| G3 | No loadable `(signature, cause, fix)` catalog | — | R2 |
+| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 still names only the GitHub child (R7) | R2 ✅, R7 |
+| G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `PlayEvent` stream, S-90, no per-tick dump | R3 |
 | G5 | DCC still is not a PR falsifier | Clay/sheets in `character-art`; screenshot-gate is in-game | R4 |
 | G6 | No critic that files look diffs | Humans pass #188 | R4 |
@@ -216,7 +217,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | Child | Owns | Exit | Serves | Order |
 | --- | --- | --- | --- | --- |
 | **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
-| **R2. Debug protocol** #649 | §2, G2, G3 | `data/agent/debug-protocol.json` + validator + at least five seeded rows from existing sittings. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
+| **R2. Debug protocol** #649 | §2, G2, G3 | ✅ `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
 | **R3. Play traces** #650 | §3, G4 | Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | DCC still + in-game still required in the PR for character / kit changes. Critic files, does not pass. screenshot-gate and character-art skill updated. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
