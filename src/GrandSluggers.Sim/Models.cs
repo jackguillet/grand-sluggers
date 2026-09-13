@@ -218,12 +218,17 @@ public enum PlayKind
     InPlay
 }
 
+/// <summary>The catch feat on the typed outcome (§8.4): what the glove did to make the catch. The stamp reads it (§15).</summary>
 public enum DefensiveFeat
 {
     None,
     BuddyJump,
     SuperJump,
-    Clamber
+    Clamber,
+    /// <summary>A plain jump catch in the window (West), not a wall rob.</summary>
+    Jump,
+    /// <summary>A dive catch or a dive scoop (East).</summary>
+    Dive
 }
 
 public enum RunnerPlayResult

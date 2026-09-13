@@ -115,8 +115,6 @@ namespace GrandSluggers.UnityClient
             _swapLock = (float)live.SwapLock;
             _recoilT = (float)live.RecoilT;
             _bobbling = live.Bobbling;
-            _catchDive = live.CatchDive;
-            _catchJump = live.CatchJump;
             _closePlay = live.InClosePlay;
             _closeBag = live.CloseBag;
             _closeIcon = live.CloseIcon;
@@ -156,7 +154,7 @@ namespace GrandSluggers.UnityClient
                         _audio?.ThrowPop();
                         break;
                     case LiveEvent.StampSafe:
-                        StampSafe();
+                        StampSmall(PlayStamp.LiveTell(cue));
                         break;
                     case LiveEvent.ItemSmashed:
                         _itemFlying = false;
@@ -169,9 +167,11 @@ namespace GrandSluggers.UnityClient
                         _audio?.Glove();
                         break;
                     case LiveEvent.ThrowSailed:
-                        // The throw skipped past its cover (§8.5): the ball is loose; the ERROR stamp comes at Time.
+                        // The throw skipped past its cover (§8.5, §8.6): the ball is loose, the small ERROR tell
+                        // pops now, and the play's stamp comes at Time from the typed outcome.
                         _park.Ball.Release();
                         _park.Ball.ContactPuff(_ball);
+                        StampSmall(PlayStamp.LiveTell(cue));
                         break;
                     case LiveEvent.Bobble:
                         // The fumble (§8.6): the ball scatters on the dirt; the glove chases it.
@@ -205,9 +205,11 @@ namespace GrandSluggers.UnityClient
             BeginResult();
         }
 
-        void StampSafe()
+        /// <summary>The small mid-play tell (SAFE, ERROR): the same sticker, the count's scale and hold.</summary>
+        void StampSmall(string tell)
         {
-            _bagStamp = PlayStamp.Safe;
+            if (string.IsNullOrEmpty(tell)) return;
+            _bagStamp = tell;
             _bagStampT = 0;
         }
 

@@ -478,7 +478,7 @@ Common to all live plays:
 - **Bobble**: on a scoop, chance = f(ball energy, hands) — hard-hit balls to weak gloves. A bobble is a 0.58 s fumble with the ball scattered ≤ 6.5 ft, loose on the ground; the play is live, the glove is out of it for the fumble and then chases, and the runner gains that time. It **never converts an out into a caption** and is not by itself the error. ✅ P4 (`LiveEvent.Bobble`; the resolver conversion and the Unity re-roll are gone).
 - **Throwing error**: the lateral miss above. ✅ P4.
 - **Drop** (star effects, frozen): a fixed drop chance on the catch is allowed for *skills* (burn-hop, phony) because the skill is the two-second rule; it is never allowed for plain baseball. ✅ P4 (`Match.RollDrop`, `fielding.drops`).
-- Stamp ERROR ✅ P4 (`PlayStamp.Error` on the hit a sailed throw allowed). The "E" tell on the body is presentation the client still owes (`LiveEvent.ThrowSailed` is the cue).
+- Stamp ERROR ✅ P4 (`PlayStamp.Error` on the hit a sailed throw allowed). The ERROR tell at the sail ✅ P8: `LiveEvent.ThrowSailed` pops the small ERROR sticker the moment the throw skips past (`PlayStamp.LiveTell`, the same rail as the small SAFE), and the play's stamp follows at Time.
 
 ### 8.7 Cover, cutoff, relay, backup
 
@@ -622,7 +622,7 @@ The classic turn: force at second, throw to first. Each leg is its own throw wit
 
 Rules that fall out of geometry, and must not be tabled:
 
-- The second throw is only an out if it beats the batter; a slow turn is a **fielder's choice** (one out, batter safe at first). Caption FIELDER'S CHOICE, stamp OUT. ✅ P5 (the synthetic DP went with P3's Complete; `ApplyThrow` records the out first and narrates only what was recorded; `PlayOutcome.FieldersChoice` and the caption "Fielder's choice." come from the same typed facts; a chain of outs captions "Double play." / "Triple play!" ahead of its last decision; `PlayStamp.Label(PlayEvent)` reads the typed outs). One press is one throw on the human seat; the CPU steps on a force bag inside `fielding.throw.unassistedFt` instead of throwing (S-41, S-46).
+- The second throw is only an out if it beats the batter; a slow turn is a **fielder's choice** (one out, batter safe at first). Caption and stamp FIELDER'S CHOICE (✅ P8: `PlayStamp.FieldersChoice` from `PlayOutcome.FieldersChoice`; the first draft stamped OUT). ✅ P5 (the synthetic DP went with P3's Complete; `ApplyThrow` records the out first and narrates only what was recorded; `PlayOutcome.FieldersChoice` and the caption "Fielder's choice." come from the same typed facts; a chain of outs captions "Double play." / "Triple play!" ahead of its last decision; `PlayStamp.Label(PlayEvent)` reads the typed outs). One press is one throw on the human seat; the CPU steps on a force bag inside `fielding.throw.unassistedFt` instead of throwing (S-41, S-46).
 - The force at second is removed the moment the batter is retired at first; any later play on that runner is a tag.
 - The receiver must be on the bag: if the cover has not arrived (slow SS), the ball waits in the air — the out is late. That is how a **fast runner beats a DP**.
 - A **neighborhood play** does not exist; the foot must be on the bag (6 ft occupancy radius is the arcade tolerance).
@@ -640,7 +640,7 @@ Rules that fall out of geometry, and must not be tabled:
 
 `Time` is true when: three outs; **or** the ball is held by a fielder on the infield (inside the dirt / grass lip, `flight.classes.infieldLipFt` — the 100 ft of the first draft put 2B and SS on the grass) and not thrown, **and** every live runner is on a bag or out, for `TimeOnBagSec` (1.0). Nobody left to play on (every runner out or home) is Time wherever the ball is, and so is a ball lying at rest that nobody picked up once every body has settled. A home run ends at the crossing plus the trot. ✅ P3 (`InPlay.Time` over the bodies; a CPU outfielder holding a ball with everyone settled throws it in, §8.8 rule 5).
 
-At `Complete`: runs = runners who crossed home before the third out (with the §1 force exception), outs already recorded, bags = where each runner stands. **No table placement.** ✅ P3 (`Match.SettleRunners`; `AdvanceHit`, `AdvanceTagUp`, `OccupiedDestBag`, `BatterDestBag`, and the `goto case Single` reclassifications are gone; walks, hits by pitch, homers, and ground-rule doubles are the only placements by rule). The stamp reads the bodies: an out on the play stamps OUT (the batter safe at first behind it is a fielder's choice, §10.4); no out, the batter's bag names the hit. Every CPU ball — `cli match`, `AutoPlay`, a cold `FinishAtBat` — runs through the same live ball (`Match.RunLive`), so there is one path.
+At `Complete`: runs = runners who crossed home before the third out (with the §1 force exception), outs already recorded, bags = where each runner stands. **No table placement.** ✅ P3 (`Match.SettleRunners`; `AdvanceHit`, `AdvanceTagUp`, `OccupiedDestBag`, `BatterDestBag`, and the `goto case Single` reclassifications are gone; walks, hits by pitch, homers, and ground-rule doubles are the only placements by rule). The stamp reads the bodies: an out on the play stamps OUT (the batter safe at first behind it stamps FIELDER'S CHOICE, §10.4); no out, the batter's bag names the hit. Every CPU ball — `cli match`, `AutoPlay`, a cold `FinishAtBat` — runs through the same live ball (`Match.RunLive`), so there is one path.
 
 ### 10.7 Triple play
 
@@ -749,16 +749,17 @@ Harbor has no hazard. Others tick hazard ids (`ParkHazards`): freeze volumes (×
 
 ## 15. Presentation contract per play
 
-For each play class the camera, the stamp, and the hold are data (`data/feel/shots.json`, `table.json`). The sim emits typed `PlayEvent`s; Unity may not infer the play from caption text. ✅ P0: `PlayOutcome` carries the outs made (type, bag, runner, fielder), every runner placement, the batter's bag, error, and fielder's choice; `InPlay.ThrowToBag` decides a `ThrowVerdict` and captions are narrated from it last (`InPlay.Narrate`). No rule reads caption text.
+For each play class the camera, the stamp, and the hold are data (`data/feel/shots.json`, `table.json`). The sim emits typed `PlayEvent`s; Unity may not infer the play from caption text. ✅ P8 (stamps): every stamp in the table is `PlayStamp.Label(PlayEvent)` over the typed outcome — the outs made, `DefensiveFeat` (buddy jump, the wall robs, a plain JUMP, a DIVE, set at the catch), `Error`, `FieldersChoice`, `RunnerResult` — and the client calls nothing else; the contact word is `PlayStamp.ContactTell` over the typed zone and the release tell is MAX / Nice! alone (#578). ✅ P0: `PlayOutcome` carries the outs made (type, bag, runner, fielder), every runner placement, the batter's bag, error, and fielder's choice; `InPlay.ThrowToBag` decides a `ThrowVerdict` and captions are narrated from it last (`InPlay.Narrate`). No rule reads caption text.
 
 | Class | Camera | Freeze | Stamp |
 | --- | --- | --- | --- |
 | Pitch / take / miss | `mound` (1P pitching) / `plate` | — | BALL / STRIKE / STRIKE OUT / WALK / HIT BY PITCH |
-| Grounder | `diamond` follows the dirt | `solidFreeze` on the crack | OUT / SINGLE / DOUBLE PLAY / ERROR |
-| Liner / fly | `diamond-fly` | `solidFreeze` | OUT (DIVE / JUMP) / SINGLE / DOUBLE / TRIPLE |
+| Grounder | `diamond` follows the dirt | `solidFreeze` on the crack | OUT (DIVE) / FIELDER'S CHOICE / SINGLE / DOUBLE PLAY / TRIPLE PLAY / ERROR / BUNT |
+| Liner / fly | `diamond-fly` | `solidFreeze` | OUT (DIVE / JUMP / BUDDY JUMP) / SINGLE / DOUBLE / TRIPLE / DOUBLE PLAY / ERROR |
 | Home run | `smash` override | `smashFreeze` + `smashHold` | HOME RUN / GRAND SLAM |
-| Steal / pickoff | `throw` to the bag | — | STOLEN BASE / CAUGHT STEALING / PICKED OFF |
-| Close play | bag cam | — | SAFE / OUT |
+| Steal / pickoff | `throw` to the bag | — | STOLEN BASE / CAUGHT STEALING / PICKED OFF / ERROR; a strikeout plus a caught stealing is DOUBLE PLAY |
+| Close play | bag cam | — | SAFE (small, mid-play) / OUT |
+| Throw that sails | — | — | ERROR (small, mid-play at the sail); the play's stamp at Time |
 | Star | skill VFX, scorebug mutes 2 s | — | — |
 
 ---
