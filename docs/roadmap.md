@@ -61,7 +61,7 @@ Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 
 
 | Child | Rail | Status |
 | --- | --- | --- |
-| R1 #648 | Session split (gameplay / presentation / art) | Spec PR |
+| R1 #648 | Session split (gameplay / presentation / art) | #655 |
 | R2 #649 | Debug protocol in `data/agent/` | ❌ |
 | R3 #650 | Play traces (tick JSON) | ❌ |
 | R4 #651 | Dual stills + critic that files | ❌ |

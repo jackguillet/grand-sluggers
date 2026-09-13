@@ -60,7 +60,7 @@ A session declares its kind in the prompt and on the issue. File owners and the 
 | **Presentation** | `data/feel/` cameras and timing, HUD, `HowToPlay.cs`, `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one catalog slot in `data/art/`, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
-✅ **R1 #648.** Standing order in [AGENTS.md](../AGENTS.md) and `.grok/rules/agent-rails.md`. A mixed-session change is a review fail.
+✅ **R1 #648 / #655.** Standing order in [AGENTS.md](../AGENTS.md) and `.grok/rules/agent-rails.md`. A mixed-session change is a review fail.
 
 End each session with a playable artifact of its kind before the next prompt: gameplay → `dotnet test` + `cli match` in the spec band; presentation → named shot / book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the Mac player as proof of look.
 
@@ -197,7 +197,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
-| G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648) | R1 ✅ |
+| G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
 | G2 | Sitting memory is GitHub issues only | Playbook §5 | R2, R7 |
 | G3 | No loadable `(signature, cause, fix)` catalog | — | R2 |
 | G4 | Agents cannot grep a play's geometry | `PlayEvent` stream, S-90, no per-tick dump | R3 |
