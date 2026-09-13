@@ -117,7 +117,7 @@ Rules:
 
 - **The judged pitch is the shown pitch.** The strike/ball/contact verdict is computed from the same trajectory the batter sees, including in-flight break. The CPU batter commits at the decision instant (plate − `batting.window.leadSec` − `batting.cpu.decideLeadSec`) from the trajectory as it stands then, exactly like a human who has pressed; the judgment reads the final crossing (`AtBatMotion.CpuDecisionTime`, `CommitCpuSwing`). ✅ P1 (S-04)
 - **A swing before release is a swing.** It resolves as an early miss (strike); the take plays at its natural length (Contact 0.30 s after the press, D13). A press during SET is ignored (it is not a swing yet): the hold still builds a charge, the release does not commit (`ChargeButton.Advance(commits: false)`). ✅ P1 (S-14, S-15)
-- **The box recenters after every pitch** (D12, #607); Down recenters early in SET; the pitcher's rubber persists. ⚠️ Today the box persists across the at-bat (`Match.NextBatter`, P1 S-16) — S-16 is re-expressed under D12.
+- **The box recenters after every pitch** (D12, #607); Down recenters early in SET; the pitcher's rubber persists. ✅ #607: every pitch's finish returns through `Match.AfterPitch`, which calls `ResetBatter` (take, swing and miss, foul, strikeout, walk, HBP, ball in play); `BatterContactOffsetX` still latches the walk the swing used (S-16 under D12).
 - **Nothing advances baseball while a seat is disconnected** (how-to-play.md, two controllers). ✅
 
 ---
@@ -823,7 +823,7 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 14 | `AtBatFeel.cs:217-221`, `AtBatResolver.cs:52` | Bunt judged at the press; bypasses the oval — ✅ P1a (S-19) | §5.8 |
 | 15 | `Match.cs:773-779` | Foul bunt with 2 strikes not a K — ✅ P1a (S-18); `FinishFoul` skips `AfterPitch` — stays until P6 retires the pickoff roll | §5.8, §5.6 |
 | 16 | `AtBatDirector.cs:171, 173-174, 235, 288` | Stick-down both aims launch and resets the box; SET press dropped / −65-frame miss — ✅ P1a (S-14, S-15; Down resets in SET only) | §5.4, §3 |
-| 17 | `Match.cs:558, 574` | Box walk reset every pitch — ✅ P1a (persists across the at-bat, S-16) | §3 |
+| 17 | `Match.cs:558, 574` | Box walk reset every pitch — ✅ P1a persisted it across the at-bat; D12 (#607) recenters it after every pitch through `Match.AfterPitch` (S-16) | §3 |
 | 18 | `Match.cs:38-39, 87, 205, 602-622, 654, 658, 1289` | Team stamina, flat costs, threshold ×4, swap +35 — ✅ P1c (per-pitcher pools, table costs, JSON star cost, swap trades gloves, S-25, S-26) | §4.7 |
 | 19 | `Match.cs:648-668` | CPU pitcher aims center, nested type rolls, dead `TimingErrorFrames` — ✅ P1c (location-by-count table, S-27; the field is removed) | §4.8 |
 | 20 | `Match.cs:672-676, 698-726` | `CpuSwing` arms steals; forced \|err\| ≥ 3.2 vs a human — ✅ P1 (`CpuSwing` is pure, S-28; the steal roll is `CpuArmSteal`, a SET verb, until P6 #568 moves it into the runner AI) | §5.9, §11.6 |
@@ -939,6 +939,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-15 | Press 0.1 s before release | | Early miss, strike |
 | S-16 | Walk the box 1.0, take a pitch at body X | | HBP, first base, count unchanged |
 | S-17 | Same, swing | | Strike, no HBP |
+| S-16b | Walk the box 0.8, then a take, a swinging strike, a foul; and a swing that makes contact (D12) | | `BatterOffsetX` 0 at the next SET after each; the contact latches 0.8 in `BatterContactOffsetX` |
 | S-18 | Bunt, 2 strikes, foul | | Strikeout |
 | S-19 | Bunt, pitch high | | Bunt pop (oval applies) |
 | S-20 | Ball at 44° spray, 400 ft | | Fair, home run |
