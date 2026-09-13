@@ -8,11 +8,13 @@ This is the production plan **after** feel infrastructure (#107) and art rails (
 
 **Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit (diamond + dress), feel tables, F2 overlay, art catalog, HUD-off specials as catalog VFX events, audio buses with authored bat / glove / crowd, scorebug that mutes during spectacle, the How to play book, one shared rig with baked takes for every captain. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later.
 
-**The gap (Jack's sitting, 2026-09).** It works and it is raw. Pitching is reversed from the mound camera (#533), strikeouts happen on pitches drawn outside the frame (#535), the batting cursor cannot reach the top or bottom of the zone, and the plays underneath are not baseball yet: a grounder is an out because a stat roll said so before anyone fielded it, runners move by a lookup table, double plays are fabricated from two synthetic throws, a missed pickoff hands the runner a base, and a double steal is impossible by construction. The code map is Appendix A of the spec; the headless `cli match` at seed 7 is an 8–0 doubles fest with items on every other hit.
+**Phase P shipped (2026-09-12, one day, nine sessions).** Every play is now decided by geometry from `data/rules/` tables: the cursor decides contact quality and timing decides direction; the flight has a fence, a wall, and foul lines; runners are bodies on the basepath with no lead-offs; the infield out is a race, not a roll; double plays, fielder's choices, close plays inside the margin, and rundowns follow spec §10; steals break at release and a pickoff catches only a runner who broke; the CPU pitcher, batter, fielder, runner, and steal decisions are tables with an EASY / NORMAL / HARD ladder; stamps and cameras come from typed outcomes; the book follows the verbs. `cli match` over fifty seeds sits in the spec band (S-29 in CI: 2.5–2.7 runs a side, singles over doubles, ~1.3 HR). What was true in the morning — the roll at `Fielding.cs:146`, the runner lookup table, the synthetic double play, the free base on a missed pickoff — is gone.
+
+**The gap now.** The code is ahead of the sittings. Three human gates are stacked and none has been run on a current build: the #534 parity sitting, the narrated half-inning, and the #346 book sitting. Until Jack has played them, Phase P is code-complete, not done.
 
 **Definition of Nintendo-level for this game (unchanged).** Couch, gamepad, three innings at Harbor. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race. You want to play again.
 
-**New in this revision.** Phase P below is the gameplay-parity sequence. It goes **ahead of** the toy playset (#246) in the stack, because AGENTS.md row 1 is "Harbor Exhibition is playable" and the play is what is broken. Phases A–E are kept below as the presentation plan they always were.
+**Sequence from here.** Phase P's human gates (below), one skeptic pass, then the toy playset (#246, Phase T). Phases A–E are kept as the presentation plan they always were.
 
 Tracker #39 is the older checklist. Many of its children shipped as first-pass. This doc is the sequence from **now**.
 
@@ -55,9 +57,35 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ---
 
-## Phase P — Plays like Sluggers (now)
+## Phase P — Plays like Sluggers (code shipped 2026-09-12; gates open)
 
-Parent epic: **#209** (Harbor Exhibition plays like a baseball game). Each row below becomes one child epic with the spec sections it owns and the scenario ids that close it. Rows are **serial** unless marked; the order is chosen so every step lands on the previous one's rails.
+Parent epic: **#209** (Harbor Exhibition plays like a baseball game). Each row is one child epic with the spec sections it owns and the scenario ids that closed it. Rows were **serial** except P1 ∥ P2 and P8 alongside P7.
+
+| Epic | Shipped as |
+| --- | --- |
+| P0 #562 | #571 rules tables · #584 typed outcomes + scenario harness · #573 live ball into the sim (closes #512) |
+| P1 #563 | #586 cursor / timing · #587 pitch shapes, one crossing, aim tell (#533 #577) · #589 CPU tables, per-pitcher stamina, star skills from JSON · #592 pad verbs + book (#582) · integrated onto main by #593 |
+| P2 #564 | #588 3-D flight, fence, classes · #590 foul geometry and foul fielding (#575) · #591 positions from the lineup · integrated by #594 |
+| P3 #565 | #595 runners are bodies, no leads, Complete places them · #596 extra innings, mercy, walk-off |
+| P4 #566 | #597 the roll is dead, one throw model, CPU fielder table |
+| P5 #567 | #598 tag reach, close-play margin, rundowns, the DP matrix |
+| P6 #568 | #599 steals and pickoffs as one live runner play |
+| P7 #569 | #603 S-29 in CI, difficulty ladder, stars / MVP / items from tables, park window as data |
+| P8 #570 | #600 stamps from typed outcomes (#578) · #601 cameras per class, the catcher stays put (#574) · #602 the book follows the verbs |
+
+Lesson from the day: stacked PRs must be opened **against `main`** (or the top of the stack merged into `main` at the end). P1 and P2 merged their parts into their own parent branches and `main` only had part (a) of each until #593 / #594.
+
+### Phase P exit — the three sittings (Jack)
+
+The consolidated checklist is on #209. In order:
+
+1. **Parity sitting (#534)** — keyboard + mouse, one pad, two pads: rubber walk with the aim ring, CHANGE, the visible SWAP pick, tap / MAX / overcharge / changeup / break / star, the taller oval and a strike at the top of the frame, MAX on release and PERFECT / NICE / SOUR only on contact, early pulls / late pushes, bunt pop and the two-strike foul bunt K, HIT BY PITCH, the CPU working corners and mistracking when you move on the rubber. Then the **pitch-pace call (spec D7)**. Closes #563, #564.
+2. **Narrated half-inning (#598)** — every out has a reason you saw: a 6-4-3 or a FIELDER'S CHOICE, the 3-6 tag and a rundown, a silent tag at third versus a bang-bang icon, the relay home on a tag-up, the batter running through first. Watch the outfield on every fly for #576 / #580 and the 2.4 s outfield read on your own glove (#603). Closes #565–#568 and the fielding notes.
+3. **Three innings, then the book (#346)** — pad only, normal difficulty, then keyboard + mouse; Call time → How to play must be enough. Closes #209 and #342.
+
+What sticks becomes a sitting-found child, as on 2026-09-12. After the gates: one **skeptic pass** by an agent (play the named path on a preview build, run the harness and the fifty seeds), then Phase T.
+
+### The original Phase P plan (for the record)
 
 **Exit for the phase:** Jack plays three innings at Harbor on a pad against the CPU and can say, for every out and every safe, what decided it — a bag, a tag, a catch, a beaten throw, a mash. `cli match` over 50 seeds reads like baseball (spec S-29). No play is resolved by a roll or a caption (spec A.4, A.5 empty).
 
@@ -148,13 +176,12 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 
 ## Recommended next move
 
-**Phase P0 → P1 (and P2 in parallel).** The Phase P epics are filed as children of #209 (#562–#570); #512 folds into P0 and #533, #534, #535 into P1. Then:
+**The three Phase P sittings, then Phase T.**
 
-1. P0 — rules tables, typed outcomes, scenario harness, sim owns live play.
-2. P1 — the at-bat contract (cursor / timing / charge / break / stamina / CPU tables). Human parity sitting.
-3. P2 — flight with a fence.
-4. P3 → P4 → P5 → P6, each closed by its scenario list and a skeptic sitting.
-5. P7 balance, P8 presentation alongside.
+1. Play the three sittings above on the current standalone (`python3 tools/local-player.py` after any merge). File what sticks. Make the pitch-pace call.
+2. One skeptic pass: an agent plays Exhibition → pitch → swing → grounder → throw → steal on a preview build and reruns the harness and S-29.
+3. **Phase T (#246)**, serial: toy language (#247), front of house as a carnival (#248), lineup as the chemistry toy (#249), in-play cartoon juice (#250). The swing finish pose (#583) rides with #250. Each closes on a still you would show a friend.
+4. Phase D stays gated on "Exhibition is the reason people stay".
 
 Command to keep agents honest:
 
