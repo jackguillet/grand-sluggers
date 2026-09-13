@@ -67,7 +67,7 @@ Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 
 | R4 #651 | Dual stills + critic that files | #659 |
 | R5 #652 | Unity CLI observation only | later |
 | R6 #653 | Stage-save DCC | ❌ |
-| R7 #654 | Distill sittings into protocol / tests | ❌ |
+| R7 #654 | Distill sittings into protocol / tests | playbook §5 + character-art from #623 |
 
 ---
 
