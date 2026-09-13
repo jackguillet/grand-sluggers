@@ -975,6 +975,13 @@ public sealed class ChaseRules
     /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
     /// </summary>
     [Positive] public double OutfieldAirMul { get; init; } = 0.6;
+    /// <summary>
+    /// An infielder (P, C, 1B, 2B, 3B, SS) under a ball on the stretched clock (a fly or a pop, §6.1) runs at the one glove speed × this
+    /// (§8.1). The other half of the S-29 lever (#636): once the hand-off honours the infielder's route in the air (D17), this is how far
+    /// the infield reaches back under a short fly past the lip. A liner runs on its own clock and an infielder runs the one speed at it;
+    /// balls on the dirt run the one speed the §10.4 double-play rows were tuned on.
+    /// </summary>
+    [Positive] public double InfieldAirMul { get; init; } = 0.45;
 }
 
 public sealed class CatchRules

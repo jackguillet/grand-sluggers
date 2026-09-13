@@ -256,7 +256,9 @@ public sealed class ControlScenarioTests
         Assert.Equal(ssAfterCoast.Z, ssLater.Z, 3);
     }
 
-    [Theory(Skip = "#636: in the air the hand-off is still decided on the plant alone; applying D17 there drops the S-29 band to 1.58 / 1.78 (the infield's air chase under the stretched hang is P7's lever)")]
+    // #636: the in-air D17. SS runs the one speed at a liner (§8.1: fielding.chase.infieldAirMul is for the stretched clock only),
+    // so the rope it reaches with the plant 2 ft past the lip stays its own even though a position-only hand-off would fire.
+    [Theory]
     [InlineData(true)]   // human, dead stick: the CPU runs SS
     [InlineData(false)]  // the CPU seat
     public void S97_ALinerTheShortstopReachesPastTheLipIsNeverHandedOffAndShortCatchesIt(bool human)

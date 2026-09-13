@@ -1489,11 +1489,10 @@ public sealed partial class LivePlaySystem
 
     /// <summary>
     /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air) is on the outfield grass, the play glove moves
-    /// to the outfielder whose route meets it earliest (D16) — and, on the ground, never while the current glove still has a route to
-    /// it (D17, S-96): the body keeps the ball as long as its own route reaches it no later than that outfielder's, or the ball is
-    /// inside its reach. Never by the ball's position alone; one way only. In the air the plant alone decides (a liner the infield
-    /// could reach past the lip is still the outfield's): applying D17 there catches the liners the stretched hang lets the infield
-    /// run under and drops the S-29 band to 1.6 runs a side — the hang is P7's lever, tracked in #636.
+    /// to the outfielder whose route meets it earliest (D16) — and never while the current glove still has a route to it (D17, S-96 on
+    /// the ground, S-97 in the air, #636): the body keeps the ball as long as its own route reaches it no later than that outfielder's,
+    /// or the ball is inside its reach. Never by the ball's position alone; one way only. The infield's reach on a ball in the air is
+    /// <c>fielding.chase.infieldAirMul</c> (§8.1): the S-29 band is held there, not by giving the liner away.
     /// </summary>
     void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ, bool airborne)
     {
@@ -1506,16 +1505,15 @@ public sealed partial class LivePlaySystem
         }
         var of = FieldingPursuit.Choose(
             map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
-        if (!airborne)
-        {
-            var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
-            var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
-            var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
-            // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
-            var inReach = FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
-                Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
-            if (inReach || mine.Reachable && !FieldingPursuit.Better(of.Route, mine)) return;
-        }
+        // D17, in the air and on the ground alike: the glove keeps the ball while its own route still meets it no later than the
+        // outfielder's (the plant on a ball in the air, the first reachable sample on a roller).
+        var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
+        var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
+        var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
+        // A scoopable ball inside the glove's reach is a route of zero feet: the touch (§8.3) is this frame's play, whatever the planner says of the next sample.
+        var inReach = !airborne && FlyCatch.TouchScoop(Preview, Park, BallX, BallZ, BallY, ElapsedSeconds, Hang,
+            Diamond.Dist(GloveX, GloveZ, BallX, BallZ), CatchWindow(map), R);
+        if (inReach || mine.Reachable && !FieldingPursuit.Better(of.Route, mine)) return;
         HandGloveTo(of.Position);
     }
 

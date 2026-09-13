@@ -288,12 +288,21 @@ public sealed class FieldingResolver
 
     /// <summary>
     /// The chase speed of the body at <paramref name="pos"/> on this ball (§8.1, §8.2): the one glove speed, × <c>fielding.chase.outfieldAirMul</c>
-    /// for an outfielder on a ball hit in the air (a fly, a liner, a pop, a wall ball). Human stick and CPU chase share it. A ball on the
-    /// dirt, an infielder, a carry, and a loose ball run at the one speed.
+    /// for an outfielder on a ball hit in the air (a fly, a liner, a pop, a wall ball), × <c>fielding.chase.infieldAirMul</c> for an
+    /// infielder under a ball on the stretched clock (a fly or a pop, §6.1: the hang is the watcher's, the reach under it is real). Human
+    /// stick and CPU chase share it. A ball on the dirt, an infielder on a liner (a rope gets past the glove or it does not, §7.6), a carry,
+    /// and a loose ball run at the one speed.
     /// </summary>
     public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable? rules = null, bool dash = false) =>
-        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash)
-        * (IsOutfield(pos) && pre is { Grounder: false } ? Rules.Or(rules).Fielding.Chase.OutfieldAirMul : 1);
+        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash) * AirMul(pos, pre, rules);
+
+    static double AirMul(string pos, FieldingPreview? pre, RulesTable? rules)
+    {
+        if (pre is not { Grounder: false }) return 1;
+        var c = Rules.Or(rules).Fielding.Chase;
+        if (IsOutfield(pos)) return c.OutfieldAirMul;
+        return pre.Line ? 1 : c.InfieldAirMul;
+    }
 
     /// <summary>
     /// The reaction lockout per position (§8.2, fielding.reaction): play seconds before each body may move,
