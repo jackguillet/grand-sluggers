@@ -552,7 +552,7 @@ A hand-off is **never** triggered by distance alone, never re-evaluated per fram
 
 **No lock (D17), no auto-throw.** There is no hold-to-lock verb (Superstar's L, Power Pros' R1) because nothing auto-switches by distance. There is no auto-throw for the human seat at any difficulty (Sluggers Remote-only mode throws for you; we do not): the CPU throws only for CPU-owned gloves (#579). Difficulty changes the CPU's lockouts and margins, never who you are.
 
-**What is not decided.** Whether the human may *refuse* the receiver hand-off (today the ring goes to the receiver at release; the stick can take another body afterwards) — S-98 pins today's behavior. Whether Sluggers itself hands off mid-play is UNVERIFIED (the booklet only documents the switch button); the emulator study in the research notes is how to find out.
+**What is not decided.** Whether the human may *refuse* the receiver hand-off (today the ring goes to the receiver at release; the stick can take another body afterwards) — S-98 pins today's behavior. Whether Sluggers itself hands off mid-play is UNVERIFIED (the booklet only documents the switch button); the emulator study was **skipped by decision on 2026-09-13** — the genre rule and the sitting decide. Tracking: #633 (S-94 … S-99 in the harness, the route guard and the coast), #634 (the sixteen unnamed scenario ids).
 
 ## 9. Baserunning
 
