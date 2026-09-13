@@ -7,6 +7,9 @@
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
+    // #633 (S-97): after a hand-off the body the ring left keeps its velocity for this long, then stops (the FIFA
+    // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
+    "handoffCoastSec": 0.2,
     "looseScoopFt": 3.5,
     // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
