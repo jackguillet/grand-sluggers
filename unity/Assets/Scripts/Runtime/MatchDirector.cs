@@ -10,6 +10,8 @@ namespace GrandSluggers.UnityClient
     {
         public int Seed = 7;
         public int Innings = 3;
+        /// <summary>The CPU difficulty rung (cpu.json easy / normal / hard), picked on the title next to the innings.</summary>
+        public string Difficulty = "normal";
         public PracticeLesson PracticePick = PracticeLesson.Pitching;
         int _pauseItem;
         bool _pauseHowTo;
@@ -357,7 +359,8 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, _bunt);
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, _bunt,
+                CarnivalFront.TitleSetup(Innings, Difficulty));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
                     (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds);
@@ -577,7 +580,7 @@ namespace GrandSluggers.UnityClient
                 return _campaign.MakeMatch(_content, Innings, Seed, night: Night);
             }
             _campaign = null;
-            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night);
+            return Match.Exhibition(_content, HomeCaptain, AwayCaptain, Innings, Seed, ParkId, Night, Difficulty);
         }
 
         string ParkDisplayName(string parkId) =>
@@ -632,7 +635,7 @@ namespace GrandSluggers.UnityClient
             if (_itemFlying)
             {
                 _itemFly += dt;
-                if (_itemFly >= ItemView.FlySeconds) _itemFlying = false;
+                if (_itemFly >= (float)_content.Rules.Batting.Items.FlySec) _itemFlying = false;
             }
             if (_itemFlying && FieldPad.Attack)
             {

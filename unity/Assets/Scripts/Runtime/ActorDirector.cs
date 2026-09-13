@@ -301,7 +301,7 @@ namespace GrandSluggers.UnityClient
             var itemTargetPos = ItemTargetWorld();
             var showThrow = _itemFlying || (_itemThrown && _phase == Phase.InPlay);
             var flyU = !_itemFlying && _itemThrown ? 1f
-                : _itemFlying ? Mathf.Clamp01(_itemFly / ItemView.FlySeconds) : 0f;
+                : _itemFlying ? Mathf.Clamp01(_itemFly / (float)_content.Rules.Batting.Items.FlySec) : 0f;
             _items?.Present(dt, ItemOffered, _itemPick, itemTargetPos, showThrow, _itemId, flyU);
         }
 

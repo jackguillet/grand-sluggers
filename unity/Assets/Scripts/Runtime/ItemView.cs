@@ -8,8 +8,6 @@ namespace GrandSluggers.UnityClient
     /// </summary>
     public sealed class ItemView : MonoBehaviour
     {
-        public const float FlySeconds = 0.42f;
-
         Transform _root;
         Transform _banana;
         Transform _rocket;

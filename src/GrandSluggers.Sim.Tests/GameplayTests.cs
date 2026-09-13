@@ -78,53 +78,44 @@ public class GameplayTests
     }
 
     [Fact]
-    public void BananaLandsOnTheGloveAsASlipNotAKindConversion()
+    public void BananaIsAFieldEffectNotAKindConversion()
     {
-        // §12: an item is a field effect with seconds; it never turns an out into a caption.
+        // §12: an item is a field effect with seconds; it never turns an out into a caption. The
+        // result records the throw at its body; the live ball lands it by geometry after its flight.
         var field = new FieldingResult(PlayKind.InPlay, _content.Must("frost"), null, 2, 0, 80, false, false);
-        var after = ErrorItems.Apply(field, "banana", new Random(1));
+        var after = ErrorItems.Apply(field, "banana", null);
         Assert.Equal(PlayKind.InPlay, after.Kind);
         Assert.Equal("banana", after.Item);
         Assert.True(after.ItemHit);
         Assert.Equal("frost", after.ItemTarget?.Id);
+        Assert.True(ErrorItems.IsPeel("banana"));
         Assert.Equal(Rules.Default.Batting.Items.SlipSec, ErrorItems.EffectSec("banana"));
         Assert.False(ErrorItems.AffectsEveryGlove("banana"));
     }
 
     [Fact]
-    public void ThrowItemBananaHitsTheBodyItWasAimedAt()
+    public void ThrowItemRecordsTheBodyItWasAimedAtWithoutARoll()
     {
-        var match = Match.Slice(_content, seed: 1);
+        // No roll decides an item (§12): a banana or a rocket aimed at a body is live at that body on
+        // every seed; where it lands, and who slips, is the live ball's geometry.
         var fielder = _content.Must("frost");
         var field = new FieldingResult(PlayKind.InPlay, fielder, null, 2, 0, 80, false, false);
-        var after = match.ThrowItem(field, "banana", fielder);
-        Assert.True(after.ItemHit);
-        Assert.Equal("banana", after.Item);
-        var miss = match.ThrowItem(field, "banana", _content.Must("rio"));
-        Assert.False(miss.ItemHit, "a peel under another body does not slip the glove");
-        Assert.Equal("banana", miss.Item);
-    }
-
-    [Fact]
-    public void ThrowItemRocketTargetsABody()
-    {
-        var body = _content.Must("frost");
-        var other = _content.Must("rio");
-        var field = new FieldingResult(PlayKind.InPlay, body, null, 2, 0, 80, false, false);
-        var miss = Match.Slice(_content, seed: 1).ThrowItem(field, "rocket", other);
-        Assert.False(miss.ItemHit);
-        Assert.Equal("rocket", miss.Item);
-
-        var hits = 0;
-        for (var seed = 0; seed < 40; seed++)
+        for (var seed = 0; seed < 8; seed++)
         {
-            var after = Match.Slice(_content, seed: seed).ThrowItem(field, "rocket", body);
-            Assert.Equal("rocket", after.Item);
-            Assert.Equal(PlayKind.InPlay, after.Kind);
-            if (after.ItemHit) hits++;
+            var match = Match.Slice(_content, seed: seed);
+            var peel = match.ThrowItem(field, "banana", fielder);
+            Assert.True(peel.ItemHit);
+            Assert.Equal("frost", peel.ItemTarget?.Id);
+            var rocket = match.ThrowItem(field, "rocket", _content.Must("rio"));
+            Assert.True(rocket.ItemHit);
+            Assert.Equal("rio", rocket.ItemTarget?.Id);
+            Assert.Equal(PlayKind.InPlay, rocket.Kind);
         }
-        Assert.True(hits is > 0 and < 40, $"rocket body hits {hits}");
         Assert.Equal(Rules.Default.Batting.Items.DazeSec, ErrorItems.EffectSec("rocket"));
+        // A peel is a spot: a body inside its radius is on it, one a step outside is not.
+        var r = Rules.Default.Batting.Items.PeelRadiusFt;
+        Assert.True(ErrorItems.OnPeel(0, 100, r - 0.5, 100));
+        Assert.False(ErrorItems.OnPeel(0, 100, r + 0.5, 100));
     }
 
     [Fact]
@@ -425,7 +416,8 @@ public class GameplayTests
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(pitch, swing, out _, out _));
-        var hit = FlightFixtures.Landing(match.Park, 180, 34, 0);
+        // A routine fly the outfielder reaches after the outfield read (fielding.reaction.outfieldSec): 55 ft in front of CF.
+        var hit = FlightFixtures.Landing(match.Park, 250, 34, 0);
         var preview = match.PreviewHit(hit);
         var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
         var ev = match.FinishAtBat(pitch, swing, hit, field);
@@ -447,7 +439,8 @@ public class GameplayTests
         var pitch = new PitchCommand("fastball", 0, false);
         var swing = new SwingCommand(true, 0, 0, false);
         Assert.True(match.BeginAtBat(pitch, swing, out _, out _));
-        var hit = FlightFixtures.Landing(match.Park, 180, 34, 0);
+        // A routine fly the outfielder reaches after the outfield read (fielding.reaction.outfieldSec): 55 ft in front of CF.
+        var hit = FlightFixtures.Landing(match.Park, 250, 34, 0);
         var preview = match.PreviewHit(hit);
         var field = new FieldingResult(PlayKind.FlyOut, preview.Fielder, null, preview.HangTimeSec, preview.LandingX, preview.LandingZ, false, false);
         var ev = match.FinishAtBat(pitch, swing, hit, field);

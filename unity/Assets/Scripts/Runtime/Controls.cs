@@ -134,6 +134,8 @@ namespace GrandSluggers.UnityClient
             public bool ItemConfirm => Item || (SouthDown && Charge);
             public bool SwapPitcher => KeyDown(Key.R) || Pressed(Device?.selectButton);
             public bool NightToggle => KeyDown(Key.N) || Pressed(Device?.rightStickButton);
+            /// <summary>Title: the difficulty rung next to the innings (easy / normal / hard).</summary>
+            public bool CycleDifficulty => KeyDown(Key.X) || Pressed(Device?.leftShoulder);
 
             public float StickX
             {
@@ -443,6 +445,7 @@ namespace GrandSluggers.UnityClient
         public static bool SlowMo => KeyDown(Key.LeftBracket);
         public static bool FreezeCam => KeyDown(Key.RightBracket);
         public static bool NightToggle => Pad1.NightToggle;
+        public static bool CycleDifficulty => Pad1.CycleDifficulty;
         public static bool ParkHeld => Kb(Key.C);
         public static float StickX => Pad1.StickX;
         public static float StickY => Pad1.StickY;

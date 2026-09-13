@@ -606,7 +606,7 @@ public sealed class AtBatScenarioTests
         return Math.Abs(SweetSpot.WorldCenter(swing.BoxOffsetX).X - cx) > 0.5 ? 1 : 0;
     }
 
-    [Fact(Skip = "S-29 stays open after P4 (#566). The glove is geometric now (radius at the window, reaction lockout, one arm at 100 ft/s, the §8.8 table): 50 seeds give runs 0.88 / 0.40 per side, singles 3.0, doubles 0.7, HR 0.6, fly outs 13.9 per game (P3: 0.42 / 0.54, 1.2, 0.3, 15.4). What holds the band down is the fly-out rate: the stretched hang (flight.timeScale 1.65) lets any outfielder reach a routine fly after its lockout, so the contact mix, not the catch, decides it (§5.9 / §6.1). Nothing here is tuned to pass.")]
+    [Fact]
     public void S29_FiftySeedCpuGamesLandInTheBand()
     {
         // 50 three-inning CPU-vs-CPU games across the captain pairs, each pair played both ways
@@ -616,6 +616,7 @@ public sealed class AtBatScenarioTests
         var games = 0;
         var away = 0;
         var home = 0;
+        var mostRuns = 0;
         var kinds = new Dictionary<PlayKind, int>();
         foreach (var (x, y) in pairs)
         foreach (var (h, a) in new[] { (x, y), (y, x) })
@@ -627,6 +628,7 @@ public sealed class AtBatScenarioTests
             games++;
             away += match.AwayScore;
             home += match.HomeScore;
+            mostRuns = Math.Max(mostRuns, Math.Max(match.AwayScore, match.HomeScore));
             foreach (var ev in match.Log) kinds[ev.Kind] = kinds.GetValueOrDefault(ev.Kind) + 1;
         }
         Assert.Equal(50, games);
@@ -635,11 +637,20 @@ public sealed class AtBatScenarioTests
         var singles = kinds.GetValueOrDefault(PlayKind.Single) / (double)games;
         var doubles = kinds.GetValueOrDefault(PlayKind.Double) / (double)games;
         var homers = kinds.GetValueOrDefault(PlayKind.HomeRun) / (double)games;
-        var line = $"runs {meanAway:0.00} / {meanHome:0.00}, singles {singles:0.00}, doubles {doubles:0.00}, HR {homers:0.00}";
+        var strikeouts = kinds.GetValueOrDefault(PlayKind.Strikeout) / (double)games;
+        var walks = kinds.GetValueOrDefault(PlayKind.Walk) / (double)games;
+        var line = $"runs {meanAway:0.00} / {meanHome:0.00}, singles {singles:0.00}, doubles {doubles:0.00}, HR {homers:0.00}, K {strikeouts:0.00}, BB {walks:0.00}, most {mostRuns}";
+        // The band (§B.1 S-29, P7 #569): a three-inning arcade game that reads like baseball. Tuned in
+        // data/rules only: the liner's own stretch (flight.linerTimeScale), the outfield read
+        // (fielding.reaction.outfieldSec), the bat (batting.exit), the CPU arm's scatter (pitching.cpu).
         Assert.True(meanAway is >= 2 and <= 5, line);
         Assert.True(meanHome is >= 2 and <= 5, line);
         Assert.True(doubles < singles, line);
         Assert.True(homers <= 2, line);
+        Assert.True(strikeouts > 0 && walks > 0, line);
+        // The tail is reported, not gated: a mismatch pair in a bandbox (Konga's lineup at Funfair) still
+        // posts a double-digit half-game on some seeds, and the mercy rule does not run in three innings (§1).
+        Assert.True(mostRuns > 0, line);
     }
 
     // ---------------------------------------------------------------------------------

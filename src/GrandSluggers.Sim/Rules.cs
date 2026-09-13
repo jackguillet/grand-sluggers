@@ -29,6 +29,20 @@ public sealed class RulesTable
     /// <summary>The code-side numbers. Equal to the shipped JSON; a load fallback, not a second table.</summary>
     public static RulesTable Defaults => new();
 
+    /// <summary>
+    /// The same tables played at another difficulty rung (§16 <c>cpu.json</c>): every section is shared,
+    /// only <see cref="Cpu"/>'s active rung changes. The table itself is returned when the rung is already this one.
+    /// </summary>
+    public RulesTable AtLevel(string? level)
+    {
+        if (string.IsNullOrWhiteSpace(level) || CpuRules.Same(level, Cpu.Level)) return this;
+        return new RulesTable
+        {
+            Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
+            Fielding = Fielding, Running = Running, Stars = Stars, Cpu = Cpu.AtLevel(level)
+        };
+    }
+
     public static RulesTable Load(string dataRoot)
     {
         var errors = new List<string>();
@@ -372,7 +386,7 @@ public sealed class CpuPitcherRules
     public CpuPitchRow RunnerTwoOuts { get; init; } = new() { Location = "middle", Normal = 50, Charge = 40, Changeup = 0, Break = 10, StarChance = 0 };
     public CpuPitchLocations Locations { get; init; } = new();
     /// <summary>Aim scatter in feet per Pitch-stat point below 11 (spec §4.8).</summary>
-    public double ScatterFtPerPitchStat { get; init; } = 0.055;
+    public double ScatterFtPerPitchStat { get; init; } = 0.10;
     [Positive] public double TiredScatterMul { get; init; } = 1.6;
     /// <summary>A charged CPU pitch releases inside the Nice! band this often.</summary>
     [Chance] public double NiceChance { get; init; } = 0.3;
@@ -501,7 +515,7 @@ public sealed class ZoneExitRules
 
 public sealed class ExitRules
 {
-    [Positive] public double BaseMph { get; init; } = 57;
+    [Positive] public double BaseMph { get; init; } = 61;
     public double MphPerPower { get; init; } = 3.7;
     [Positive] public double TiredPitcherMul { get; init; } = 1.05;
 }
@@ -622,10 +636,14 @@ public sealed class PitchFactorRules
 /// </summary>
 public sealed class OffenseItemRules
 {
-    [Chance] public double CpuThrowChance { get; init; } = 0.4;
-    [Chance] public double RocketDazeChance { get; init; } = 0.55;
-    /// <summary>Headless flight of the item from the dugout to the body (the client lands its own throw and calls ApplyItem).</summary>
+    /// <summary>Flight of the item from the dugout to its aim, play seconds; it lands by geometry when the clock gets there (§12).</summary>
     [Positive] public double FlySec { get; init; } = 0.9;
+    /// <summary>A peel is a spot on the grass: a body inside this radius of it slips (§12).</summary>
+    [Positive] public double PeelRadiusFt { get; init; } = 5;
+    /// <summary>How long the peel stays on the grass after it lands.</summary>
+    [Positive] public double PeelSec { get; init; } = 6;
+    /// <summary>The CPU offense throws its offered item when the batter's slack at first (§9.9 margin) is under this: the item is thrown when it would matter, never on a roll.</summary>
+    [Signed] public double CpuThrowMarginSec { get; init; } = 0.3;
     /// <summary>A fielder on a peel cannot take the ball for this long.</summary>
     [Positive] public double SlipSec { get; init; } = 0.8;
     /// <summary>A dazed fielder cannot take the ball for this long.</summary>
@@ -716,7 +734,22 @@ public sealed class FlightRules
     /// runners run on (<see cref="LivePlaySystem.ElapsedSeconds"/>) — one clock (§0.3, §6.1).
     /// </summary>
     [Positive] public double TimeScale { get; init; } = 1.65;
+    /// <summary>
+    /// The liner's stretch (§7.6): a rope has the short hang so a dive is possible and a ball
+    /// past the glove falls in. Read off the launch class at the crack (<see cref="BattedBallClasses.ByLaunch"/>).
+    /// </summary>
+    [Positive] public double LinerTimeScale { get; init; } = 1.0;
+    /// <summary>The stretch for a ball on the dirt (topper, grounder, chopper, bunt): the scoop is a race (§7.1).</summary>
+    [Positive] public double DirtTimeScale { get; init; } = 1.65;
     [Positive] public double PlateHeightFt { get; init; } = 2.5;
+
+    /// <summary>The stretch this contact's flight runs on, by its launch class (§6.1, §6.2).</summary>
+    public double TimeScaleFor(double launchDeg, double exitMph, RulesTable table)
+    {
+        var shape = BattedBallClasses.ByLaunch(launchDeg, exitMph, table);
+        if (shape == BattedBallClass.Liner) return LinerTimeScale;
+        return shape.OnTheDirt() ? DirtTimeScale : TimeScale;
+    }
     /// <summary>How much of the flag reading the ball feels at field level (drag is taken relative to the wind).</summary>
     public double WindMul { get; init; } = 0.35;
     [Positive] public int SampleHz { get; init; } = 120;
@@ -788,7 +821,7 @@ public sealed class BattedBallClassRules
     public double ChopperMinExitMph { get; init; } = 70;
     /// <summary>Grounder … this with real exit: liner (a rope).</summary>
     public double LinerMaxLaunchDeg { get; init; } = 22;
-    public double LinerMinExitMph { get; init; } = 78;
+    public double LinerMinExitMph { get; init; } = 74;
     /// <summary>Dirt / grass lip past the rubber. A fly landing inside it is a pop; infielders own the hop inside it.</summary>
     [Positive] public double InfieldLipFt { get; init; } = 155;
 }
@@ -845,7 +878,7 @@ public sealed class ReactionRules
     [Positive] public double SecondSec { get; init; } = 0.25;
     [Positive] public double ThirdSec { get; init; } = 0.30;
     [Positive] public double ShortSec { get; init; } = 0.28;
-    [Positive] public double OutfieldSec { get; init; } = 0.83;
+    [Positive] public double OutfieldSec { get; init; } = 2.4;
     [Positive] public double ThrowBaseSec { get; init; } = 0.35;
     public double ThrowPerFieldSec { get; init; } = 0.02;
     [Positive] public double ThrowMinSec { get; init; } = 0.08;
@@ -1050,7 +1083,6 @@ public sealed class KnockbackRules
 
 public sealed class ParkHazardRules
 {
-    [Positive] public double CrystalNightWindowMul { get; init; } = 0.85;
     [Positive] public double EmberNightFireMul { get; init; } = 1.6;
     public double PipeReachPadFt { get; init; } = 8;
     [Chance] public double ShellWarpChance { get; init; } = 0.6;
@@ -1242,6 +1274,7 @@ public sealed class StarRules
     public StarGainRules Gains { get; init; } = new();
     public StarCostRules Costs { get; init; } = new();
     public StartingStarRules Starting { get; init; } = new();
+    public MvpRules Mvp { get; init; } = new();
 }
 
 public sealed class StarGainRules
@@ -1256,6 +1289,41 @@ public sealed class StarGainRules
     public double LiveOut { get; init; } = 0.4;
     public double StolenBase { get; init; } = 0.35;
     public double Billboard { get; init; } = 1.0;
+    /// <summary>Two or more outs on one live ball (§10.4, §12).</summary>
+    public double DoublePlay { get; init; } = 1.0;
+    /// <summary>A leap that takes a ball clearing the fence (§8.4, §12).</summary>
+    public double RobbedHomer { get; init; } = 1.0;
+}
+
+/// <summary>
+/// The MVP point table (§12, <c>stars.json</c> <c>mvp</c>). A walk-off hit names its hitter ahead of the
+/// points; otherwise the most points on either roster. Read by <see cref="Match.Mvp"/>, never literals.
+/// </summary>
+public sealed class MvpRules
+{
+    public int HomeRun { get; init; } = 10;
+    /// <summary>The arm on the mound for the winner when it took the lead for the last time.</summary>
+    public int WinningPitcher { get; init; } = 5;
+    /// <summary>The run batted in that put the offense ahead, on top of the RBI.</summary>
+    public int GoAheadRbi { get; init; } = 5;
+    /// <summary>A robbed homer, a buddy jump, or a climb at the wall.</summary>
+    public int RobbedHomer { get; init; } = 5;
+    public int Strikeout { get; init; } = 3;
+    public int Rbi { get; init; } = 3;
+    public int Hit { get; init; } = 1;
+    public int Walk { get; init; } = 1;
+    public int HitByPitch { get; init; } = 1;
+    public int StolenBase { get; init; } = 1;
+    /// <summary>The seat that won a close play at the bag (§9.6): the runner safe, or the glove that tagged.</summary>
+    public int ClosePlayWon { get; init; } = 2;
+    /// <summary>A thrown item landed and the batter reached (§12).</summary>
+    public int ItemMattered { get; init; } = 2;
+    /// <summary>A putout made live: the glove that forced, tagged, or caught the runner (also the catcher on a caught stealing).</summary>
+    public int PutOut { get; init; } = 1;
+    /// <summary>The MVP line reads "took over the diamond" at or above this many points.</summary>
+    public int TookOverAt { get; init; } = 8;
+    /// <summary>"kept the line moving" at or above this; under it "did the little things".</summary>
+    public int KeptMovingAt { get; init; } = 4;
 }
 
 public sealed class StarCostRules
@@ -1300,6 +1368,24 @@ public sealed class CpuRules
         "hard" => Hard,
         _ => Normal
     };
+
+    /// <summary>The ladder, in order: the title cycles through it next to the innings.</summary>
+    public static readonly IReadOnlyList<string> Levels = ["easy", "normal", "hard"];
+
+    public static bool IsLevel(string? level) => level is not null && Levels.Contains(level.ToLowerInvariant());
+
+    public static bool Same(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The rung after <paramref name="level"/>, wrapping (easy → normal → hard → easy).</summary>
+    public static string Next(string level)
+    {
+        var i = Levels.ToList().FindIndex(l => Same(l, level));
+        return Levels[(Math.Max(0, i) + 1) % Levels.Count];
+    }
+
+    /// <summary>The same three rungs with another one active (a match's difficulty, §16).</summary>
+    public CpuRules AtLevel(string level) =>
+        new() { Level = IsLevel(level) ? level.ToLowerInvariant() : Level, Easy = Easy, Normal = Normal, Hard = Hard };
 
     internal void Validate(string source, List<string> errors)
     {
