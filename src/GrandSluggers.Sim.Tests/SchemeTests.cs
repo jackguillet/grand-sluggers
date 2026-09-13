@@ -183,8 +183,9 @@ public class SchemeTests
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("catch") && l.Contains("throw"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("45") && l.Contains("fly"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("CF") && l.Contains("top"));
-        // Spec §15: a throw goes to the bag cam; the couch map says so on the fielding page.
-        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("throw") && l.Contains("bag"));
+        // Spec §15, D14: the camera follows the ball; only a close play cuts to the bag. The couch map says so.
+        Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("close play") && l.Contains("bag"));
+        Assert.DoesNotContain(HowToPlay.Must("fielding").Lines, l => l.Contains("throw sits on its bag"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("Select") && l.Contains("pulses"));
         Assert.Contains(HowToPlay.Must("fielding").Lines, l => l.Contains("runs with the ball"));
         var two = HowToPlay.Must("two-pads").Lines;

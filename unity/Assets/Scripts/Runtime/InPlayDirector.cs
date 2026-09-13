@@ -202,6 +202,7 @@ namespace GrandSluggers.UnityClient
             _throwFromPos = "";
             _bobbling = false;
             _recoilT = 0;
+            _camHold.Reset();
             _park.Ball.Release();
             BeginResult();
         }
@@ -220,19 +221,23 @@ namespace GrandSluggers.UnityClient
             return _preview != null ? _preview.Fielder : _match.Pitcher;
         }
 
+        /// <summary>The live camera's target hysteresis (D14): one per director, reset when a play ends.</summary>
+        readonly PlayCamera.CameraHold _camHold = new();
+
         /// <summary>
-        /// The live camera (spec §15): one typed view of this frame into the sim's beat table. Null while
-        /// the SET shot still holds after the crack (<c>contactCutSeconds</c>); the smash rides the batter.
+        /// The live camera (spec §15, D14): one typed view of this frame into the sim's beat table, through the
+        /// hold. Null while the SET shot still holds after the crack (<c>contactCutSeconds</c>); the smash rides
+        /// the batter; an ordinary throw keeps the follow on the ball.
         /// </summary>
         void AimLive()
         {
             var live = _match.LivePlay;
             var batter = SmashLook();
             var view = new PlayCamera.LiveView(
-                LiveTime, _pending, live.RunnerPlay, _throwing, _throwBag, _closePlay, _closeBag,
+                LiveTime, _pending, live.RunnerPlay, _closePlay, _closeBag,
                 live.InRundown, live.RunnerPlayBag, _smash,
                 new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z));
-            var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel);
+            var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel, _camHold);
             if (framed is { } f) _cam.Live(f);
         }
 
@@ -265,6 +270,7 @@ namespace GrandSluggers.UnityClient
             if (pitch != null) _last = pitch;
             _phase = Phase.StealThrow;
             _t = 0;
+            _camHold.Reset();
             _pending = null;
             _preview = null;
             _cpuField = null;

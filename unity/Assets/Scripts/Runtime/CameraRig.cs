@@ -11,6 +11,8 @@ namespace GrandSluggers.UnityClient
         float _fov = 48f;
         float _punch;
         float _blend = 6f;
+        /// <summary>The current target's authored blend rate (shots.json), or 0 to use the feel table's cameraBlend.</summary>
+        float _aimBlend;
 
         public Camera Cam
         {
@@ -54,6 +56,7 @@ namespace GrandSluggers.UnityClient
 
         public void Cut(Vector3 pos, Vector3 look, float fov = 48f)
         {
+            _aimBlend = 0f;
             _pos = pos;
             _look = look;
             _fov = fov;
@@ -69,9 +72,22 @@ namespace GrandSluggers.UnityClient
 
         public void Aim(Vector3 pos, Vector3 look, float fov = 48f)
         {
+            _aimBlend = 0f;
             _pos = pos;
             _look = look;
             _fov = fov;
+        }
+
+        /// <summary>Aim at a named shot's own blend rate (shots.json); a blend of 0 is a cut.</summary>
+        public void Aim(Vector3 pos, Vector3 look, float fov, float blend)
+        {
+            if (blend <= 0f)
+            {
+                Cut(pos, look, fov);
+                return;
+            }
+            Aim(pos, look, fov);
+            _aimBlend = blend;
         }
 
         public void Punch(float amount = 10f) => _punch = amount;
@@ -109,7 +125,7 @@ namespace GrandSluggers.UnityClient
 
         public void Tick(float dt)
         {
-            var k = _blend > 0 ? _blend : 6f;
+            var k = _aimBlend > 0 ? _aimBlend : _blend > 0 ? _blend : 6f;
             var snap = 1f - Mathf.Exp(-k * dt);
             var rotSnap = 1f - Mathf.Exp(-(k + 1f) * dt);
             foreach (var cam in Targets())

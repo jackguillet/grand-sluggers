@@ -91,7 +91,8 @@ public sealed class FeelTable
         double afterCountSeconds,
         double chargeMaxHoldSeconds,
         double chargeOverchargeDecay,
-        double contactCutSeconds)
+        double contactCutSeconds,
+        double cameraHoldSeconds)
     {
         PitchChargeSeconds = pitchChargeSeconds;
         SwingChargeSeconds = swingChargeSeconds;
@@ -106,6 +107,7 @@ public sealed class FeelTable
         ChargeMaxHoldSeconds = chargeMaxHoldSeconds;
         ChargeOverchargeDecay = chargeOverchargeDecay;
         ContactCutSeconds = contactCutSeconds;
+        CameraHoldSeconds = cameraHoldSeconds;
     }
 
     public double PitchChargeSeconds { get; }
@@ -126,6 +128,11 @@ public sealed class FeelTable
     /// §15; the reference cut at 0.42). A home run overrides it with the smash beat at the crack.
     /// </summary>
     public double ContactCutSeconds { get; }
+    /// <summary>
+    /// Play seconds the live camera keeps a target before another may take it (D14, #610): a relay or a
+    /// rundown flicker inside the hold does not re-aim (<see cref="PlayCamera.CameraHold"/>).
+    /// </summary>
+    public double CameraHoldSeconds { get; }
     /// <summary>
     /// How fast a body turns toward its heading, degrees per second of frame time (spec §8.2, #611).
     /// dt-scaled, so a 30 fps and a 60 fps body face the same way at the same moment.
@@ -160,6 +167,7 @@ public sealed class FeelTable
         var maxHold = dto.ChargeMaxHoldSeconds > 0 ? dto.ChargeMaxHoldSeconds : 0.5;
         var over = dto.ChargeOverchargeDecay > 0 ? dto.ChargeOverchargeDecay : 0.8;
         var cut = dto.ContactCutSeconds > 0 ? dto.ContactCutSeconds : 0.42;
+        var hold = dto.CameraHoldSeconds >= 0 ? dto.CameraHoldSeconds : 0.25;
         return new FeelTable(
             dto.PitchChargeSeconds,
             dto.SwingChargeSeconds,
@@ -173,7 +181,8 @@ public sealed class FeelTable
             count,
             maxHold,
             over,
-            cut)
+            cut,
+            hold)
         {
             BodyTurnDegPerSec = dto.BodyTurnDegPerSec > 0 ? dto.BodyTurnDegPerSec : 720,
             HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
@@ -198,6 +207,7 @@ public sealed class FeelTable
         public double ChargeMaxHoldSeconds { get; set; } = 0.5;
         public double ChargeOverchargeDecay { get; set; } = 0.8;
         public double ContactCutSeconds { get; set; } = 0.42;
+        public double CameraHoldSeconds { get; set; } = 0.25;
         public double BodyTurnDegPerSec { get; set; } = 720;
         public double HeadingSmoothSec { get; set; } = 0.08;
         public double HeadingTeleportFtPerSec { get; set; } = 90;

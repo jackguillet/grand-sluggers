@@ -229,7 +229,7 @@ public static class HowToPlay
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
             "West jumps in window; the circle turns red. East dives. North attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. A throw sits on its bag.",
+            "Camera is 45°; a fly pulls back. CF is the top. A close play cuts to bag.",
         ],
         [
             "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
@@ -237,7 +237,7 @@ public static class HowToPlay
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. A throw sits on its bag.",
+            "Camera is 45°; a fly pulls back. CF is the top. A close play cuts to bag.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
@@ -309,7 +309,7 @@ public static class HowToPlay
             "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
-            "SAFE / ERROR pop mid-play. Runners keep it alive.",
+            "SAFE / ERROR pop mid-play. Close play: bag cam.",
         ],
         [
             "Scorebug: inning, runs, stars; B / S / O.",
@@ -317,7 +317,7 @@ public static class HowToPlay
             "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
-            "SAFE / ERROR pop mid-play. Runners keep it alive.",
+            "SAFE / ERROR pop mid-play. Close play: bag cam.",
         ]),
         new("chemistry", "Chemistry", "chemistry",
         [
