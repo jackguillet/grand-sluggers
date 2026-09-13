@@ -27,7 +27,7 @@ public static class HudCallouts
         [
             new("score", "Score / inning", BroadcastHud.Standard.Score),
             new("count", "B / S / O", BroadcastHud.Standard.Count),
-            new("diamond", "On-base", BroadcastHud.Standard.MiniDiamond),
+            new("diamond", "On-base · runners move", BroadcastHud.Standard.MiniDiamond),
             new("batter", "Batter card · AB", BroadcastHud.Standard.BatterCard),
             new("pitcher", "Pitcher · TIRED · SWAP", BroadcastHud.Standard.PitcherCard),
         ]);

@@ -64,6 +64,25 @@ public class BaserunningTests
     }
 
     [Fact]
+    public void DiamondPipInterpolatesTheTwoBagPipsAlongTheSegment()
+    {
+        // #606: a runner between bags is drawn between their pips; the plate (bag 0) is home's pip.
+        Assert.Equal(Baserunning.DiamondPip(1), Baserunning.DiamondPip(1, 2, 0));
+        Assert.Equal(Baserunning.DiamondPip(2), Baserunning.DiamondPip(1, 2, 1));
+        Assert.Equal((0.75, 0.75), Baserunning.DiamondPip(1, 2, 0.5));
+        Assert.Equal((0.25, 0.75), Baserunning.DiamondPip(2, 3, 0.5));
+        Assert.Equal((0.25, 0.25), Baserunning.DiamondPip(3, 4, 0.5));
+        Assert.Equal(Baserunning.DiamondPip(4), Baserunning.DiamondPip(0, 1, 0));
+        Assert.Equal((0.75, 0.25), Baserunning.DiamondPip(0, 1, 0.5));
+        // Past first on the run-through keeps going along home → first, beyond the bag.
+        var through = Baserunning.DiamondPip(0, 1, 1.2);
+        Assert.True(through.U > 1 && through.V > 0.5, $"{through}");
+        // A returning runner is the same segment with the fraction falling: 0.25 of the way is nearer the from bag.
+        var back = Baserunning.DiamondPip(1, 2, 0.25);
+        Assert.True(Math.Abs(back.U - 1) < Math.Abs(back.U - 0.5));
+    }
+
+    [Fact]
     public void SyncKeepsAPickedRunnerUntilTheyLeave()
     {
         Assert.Equal(2, Baserunning.SyncSelected(1, picked: false, true, true, false, leadBag: 2));

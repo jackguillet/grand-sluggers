@@ -180,7 +180,31 @@ public static class BroadcastHud
         int OffenseStars,
         int DefenseStars,
         string AwayName,
-        string HomeName);
+        string HomeName,
+        IReadOnlyList<RunnerPip> Runners);
+
+    /// <summary>
+    /// One live runner on the mini diamond (spec §15, #606): who, the bag they started this play on (0 is the
+    /// batter-runner; the pad names runners by it), and where they stand now as a segment and a fraction
+    /// (<see cref="Runner.Pip"/>). A seated runner is fraction 0 on their bag.
+    /// </summary>
+    public readonly record struct RunnerPip(string Id, int FromBag, int From, int To, double U)
+    {
+        public bool Batter => FromBag == 0;
+    }
+
+    /// <summary>Every live body on the basepaths this frame, the batter-runner included; out and scored runners are gone.</summary>
+    public static IReadOnlyList<RunnerPip> RunnerPips(Match match)
+    {
+        var pips = new List<RunnerPip>();
+        foreach (var r in match.Runners)
+        {
+            if (!r.Live) continue;
+            var (from, to, u) = r.Pip;
+            pips.Add(new RunnerPip(r.Who.Id, r.FromBag, from, to, u));
+        }
+        return pips;
+    }
 
     /// <summary>Banner headline. Kind.ToString() is TAKESTRIKE, not a scorebug.</summary>
     public static string Headline(PlayKind kind) => kind switch
@@ -227,7 +251,8 @@ public static class BroadcastHud
             (int)Math.Floor(match.OffenseStars),
             (int)Math.Floor(match.DefenseStars),
             match.Away.Name,
-            match.Home.Name);
+            match.Home.Name,
+            RunnerPips(match));
     }
 
     /// <summary>Booklet Game Rules spread. Copy a stranger can read without F2.</summary>
