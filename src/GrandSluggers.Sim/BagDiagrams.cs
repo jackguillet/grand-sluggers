@@ -2,7 +2,7 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// The running-booklet diagrams. They deliberately share the named-bag UV map used by
-/// runner leads and the in-play throw tell: right 1B, up 2B, left 3B, down home.
+/// the runner select and the in-play throw tell: right 1B, up 2B, left 3B, down home.
 /// </summary>
 public static class BagDiagrams
 {
@@ -46,7 +46,7 @@ public static class BagDiagrams
         "Close play",
         "FIRST SOUTH",
         "FIRST SPACE / LEFT CLICK",
-        "Camera on 3rd or home. Offense first is safe. Defense first is out.");
+        "3rd or home only, bang-bang. Offense first: safe. Defense first: out.");
 
     public static readonly Callout Tag = new(
         "Tag",

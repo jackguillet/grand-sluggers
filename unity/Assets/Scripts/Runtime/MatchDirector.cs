@@ -118,13 +118,14 @@ namespace GrandSluggers.UnityClient
         bool _caught, _buddy;
         int _throwBag;
         readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
+        /// <summary>The typed outcome's bodies at Time (§10.6, #574): the result beat draws these, not the position table.</summary>
+        IReadOnlyList<FieldBody> _resultBodies;
         string _glovePos = "P";
         string _switchPos = "";
         string _throwFromPos = "";
         string _buddyPos = "";
         bool _buddyWindow;
         float _diveT, _jumpT, _swapLock;
-        bool _catchDive, _catchJump;
         bool _throwing;
         float _throwT, _throwDur;
         bool _closePlay;
@@ -602,15 +603,10 @@ namespace GrandSluggers.UnityClient
                 _sub = _coach.Session.Verb;
                 return;
             }
-            if (_last != null && _last.Kind == PlayKind.FlyOut &&
-                _last.Outcome?.DefensiveFeat == DefensiveFeat.BuddyJump)
-                _banner = "BUDDY JUMP";
-            else if (_last != null && PlayStamp.Shows(_last.Kind))
-            {
-                _banner = PlayStamp.Label(_last.Kind, _last.Outcome?.Outs?.Count ?? _last.OutsOnPlay, _last.RunsScored,
-                    _last.Swing.Bunt, _catchDive, _catchJump, _last.Outcome != null && _last.Outcome.Error,
-                    _last.Outcome != null && _last.Outcome.RunnerResult == RunnerPlayResult.PickedOff);
-            }
+            // The stamp is the typed outcome's (§15): the outs, the feat, the error, the pickoff, the
+            // fielder's choice all ride the PlayEvent. Nothing here reads a mirrored flag or a caption.
+            if (_last != null && PlayStamp.Shows(_last.Kind))
+                _banner = PlayStamp.Label(_last);
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");

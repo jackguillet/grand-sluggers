@@ -7,7 +7,11 @@ namespace GrandSluggers.Sim;
 public static class RoleTables
 {
     public static readonly IReadOnlyList<string> PageIds =
-        ["roles", "roles-batting-2", "roles-pitching", "roles-pitching-2", "roles-fielding", "roles-running"];
+        ["roles", "roles-batting-2", "roles-pitching", "roles-pitching-2", "roles-fielding", "roles-fielding-2", "roles-running", "roles-running-2"];
+
+    /// <summary>Rows per block: four at least, and no more than two couch-size pages of five.</summary>
+    public const int MinRows = 4;
+    public const int MaxRows = 10;
     public sealed record Row(string Verb, string Press);
     public sealed record Block(string Id, string Title, IReadOnlyList<Row> Rows);
 
@@ -23,8 +27,10 @@ public static class RoleTables
             "roles-batting-2" => Half(blocks[0], 1),
             "roles-pitching" => Half(blocks[1], 0),
             "roles-pitching-2" => Half(blocks[1], 1),
-            "roles-fielding" => blocks[2],
-            "roles-running" => blocks[3],
+            "roles-fielding" => Half(blocks[2], 0),
+            "roles-fielding-2" => Half(blocks[2], 1),
+            "roles-running" => Half(blocks[3], 0),
+            "roles-running-2" => Half(blocks[3], 1),
             _ => Half(blocks[0], 0),
         };
     }
@@ -66,15 +72,17 @@ public static class RoleTables
             new("Changeup", "Hold West through the release"),
             new("Star pitch", "North + South"),
             new("Break", "Stick L/R after release"),
-            new("Pickoff", "D-pad + South"),
+            new("Pickoff", "D-pad + South in SET. On the bag is safe; one who broke is caught."),
             new("Swap pitcher", "Select; stick picks any fielder; Select again"),
         ]),
         new("fielding", "Fielding",
         [
             new("Take the glove", "Stick"),
             new("Catch", "South in the window"),
-            new("Throw", "D-pad + South"),
-            new("Relay", "LB"),
+            new("Throw", "D-pad + South. You become the glove at that bag."),
+            new("Cutoff / relay", "LB after the catch. The cutoff sends it on."),
+            new("Tag", "Have the ball. Touch them off a bag."),
+            new("Rundown", "Chase them; throw to the covered bag."),
             new("Jump", "West in the window"),
             new("Dive", "East"),
             new("Attack", "North"),
@@ -86,10 +94,11 @@ public static class RoleTables
             new("All return", "RB. A tap halts a runner going."),
             new("Select runner", "D-pad 1B 2B 3B; down the batter"),
             new("Send", "Stick to the next bag. Back returns."),
-            new("Steal", "L3 in SET or the windup. Home counts."),
+            new("Halt", "Stick at a bag + LB + RB: that runner only"),
+            new("Steal", "Stick to the bag or L3 in SET or the windup. Home counts."),
             new("Dash", "Mash South"),
-            new("Close play", "First South"),
-            new("Tag", "Have the ball. Touch them off a bag."),
+            new("Close play", "First South, at third or home"),
+            new("Rundown", "Stick back or forward turns you"),
         ]),
     ];
 
@@ -112,15 +121,17 @@ public static class RoleTables
             new("Changeup", "Hold V / Ctrl through the release"),
             new("Star pitch", "Q + Space"),
             new("Break", "A/D after release"),
-            new("Pickoff", "1 2 3 + Space"),
+            new("Pickoff", "1 2 3 + Space in SET. On the bag is safe; one who broke is caught."),
             new("Swap pitcher", "R; A/D picks any fielder; R again"),
         ]),
         new("fielding", "Fielding",
         [
             new("Take the glove", "WASD"),
             new("Catch", "Space / left click in the window"),
-            new("Throw", "1 2 3 4 + Space"),
-            new("Relay", "X"),
+            new("Throw", "1 2 3 4 + Space. You become the glove at that bag."),
+            new("Cutoff / relay", "X after the catch. The cutoff sends it on."),
+            new("Tag", "Have the ball. Touch them off a bag."),
+            new("Rundown", "Chase them; throw to the covered bag."),
             new("Jump", "F in the window"),
             new("Dive", "G"),
             new("Attack", "B"),
@@ -132,10 +143,11 @@ public static class RoleTables
             new("All return", ".  A tap halts a runner going."),
             new("Select runner", "1 2 3; 4 the batter"),
             new("Send", "WASD to the next bag. Back returns."),
-            new("Steal", "Z in SET or the windup. Home counts."),
+            new("Halt", "WASD at a bag + /: that runner only"),
+            new("Steal", "WASD to the bag or Z in SET or the windup. Home counts."),
             new("Dash", "Mash Space / left click"),
-            new("Close play", "First Space / left click"),
-            new("Tag", "Have the ball. Touch them off a bag."),
+            new("Close play", "First Space / left click, at third or home"),
+            new("Rundown", "WASD back or forward turns you"),
         ]),
     ];
 

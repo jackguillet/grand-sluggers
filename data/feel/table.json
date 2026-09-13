@@ -10,5 +10,6 @@
   "afterOutSeconds": 1.35,
   "afterCountSeconds": 0.7,
   "chargeMaxHoldSeconds": 0.5,
-  "chargeOverchargeDecay": 0.8
+  "chargeOverchargeDecay": 0.8,
+  "contactCutSeconds": 0.42
 }

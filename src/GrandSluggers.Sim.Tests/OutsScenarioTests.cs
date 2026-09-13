@@ -115,11 +115,11 @@ public sealed class OutsScenarioTests
         }
         else
         {
-            // One out and the batter on first: the fielder's choice (§10.4). Stamp OUT, caption names it.
+            // One out and the batter on first: the fielder's choice (§10.4). The stamp and the caption both name it, from the typed flag.
             Assert.Equal(1, facts.BatterToBag);
             Assert.True(facts.FieldersChoice, $"{row.Id}: one out with the batter at first is the fielder's choice");
             Assert.Contains("Fielder's choice", play.Caption);
-            Assert.Equal("OUT", PlayStamp.Label(play));
+            Assert.Equal(PlayStamp.FieldersChoice, PlayStamp.Label(play));
         }
         // Row-specific shapes.
         switch (row.Id[..4])

@@ -59,7 +59,7 @@ namespace GrandSluggers.UnityClient
             SyncFromLive();
             PlayLiveCues(result);
             if (_smash > 0) _smash -= dt;
-            _cam.HoldInPlay(_ball, FlyCam());
+            AimLive();
 
             if (_ring != null && _preview != null)
             {
@@ -115,8 +115,6 @@ namespace GrandSluggers.UnityClient
             _swapLock = (float)live.SwapLock;
             _recoilT = (float)live.RecoilT;
             _bobbling = live.Bobbling;
-            _catchDive = live.CatchDive;
-            _catchJump = live.CatchJump;
             _closePlay = live.InClosePlay;
             _closeBag = live.CloseBag;
             _closeIcon = live.CloseIcon;
@@ -156,7 +154,7 @@ namespace GrandSluggers.UnityClient
                         _audio?.ThrowPop();
                         break;
                     case LiveEvent.StampSafe:
-                        StampSafe();
+                        StampSmall(PlayStamp.LiveTell(cue));
                         break;
                     case LiveEvent.ItemSmashed:
                         _itemFlying = false;
@@ -169,9 +167,11 @@ namespace GrandSluggers.UnityClient
                         _audio?.Glove();
                         break;
                     case LiveEvent.ThrowSailed:
-                        // The throw skipped past its cover (§8.5): the ball is loose; the ERROR stamp comes at Time.
+                        // The throw skipped past its cover (§8.5, §8.6): the ball is loose, the small ERROR tell
+                        // pops now, and the play's stamp comes at Time from the typed outcome.
                         _park.Ball.Release();
                         _park.Ball.ContactPuff(_ball);
+                        StampSmall(PlayStamp.LiveTell(cue));
                         break;
                     case LiveEvent.Bobble:
                         // The fumble (§8.6): the ball scatters on the dirt; the glove chases it.
@@ -188,6 +188,7 @@ namespace GrandSluggers.UnityClient
         void FinishLive(PlayEvent play, FieldingResult fieldResult)
         {
             _last = play;
+            MirrorBodiesAtTime(play);
             if (fieldResult != null) _coach?.OnField(fieldResult, _match);
             Banner();
             if (_last != null && _last.Kind is PlayKind.HomeRun or PlayKind.Triple or PlayKind.Double)
@@ -205,9 +206,11 @@ namespace GrandSluggers.UnityClient
             BeginResult();
         }
 
-        void StampSafe()
+        /// <summary>The small mid-play tell (SAFE, ERROR): the same sticker, the count's scale and hold.</summary>
+        void StampSmall(string tell)
         {
-            _bagStamp = PlayStamp.Safe;
+            if (string.IsNullOrEmpty(tell)) return;
+            _bagStamp = tell;
             _bagStampT = 0;
         }
 
@@ -217,13 +220,35 @@ namespace GrandSluggers.UnityClient
             return _preview != null ? _preview.Fielder : _match.Pitcher;
         }
 
-        bool FlyCam()
+        /// <summary>
+        /// The live camera (spec §15): one typed view of this frame into the sim's beat table. Null while
+        /// the SET shot still holds after the crack (<c>contactCutSeconds</c>); the smash rides the batter.
+        /// </summary>
+        void AimLive()
         {
-            if (_preview != null) return FlyCatch.IsFly(_preview);
-            if (_pending != null)
-                return BattedBallClasses.ByLaunch(_pending.LaunchDeg, _pending.ExitVeloMph, _content.Rules).IsFlyShape();
-            return _last != null
-                && BattedBallClasses.ByLaunch(_last.AtBat.LaunchDeg, _last.AtBat.ExitVeloMph, _content.Rules).IsFlyShape();
+            var live = _match.LivePlay;
+            var batter = SmashLook();
+            var view = new PlayCamera.LiveView(
+                LiveTime, _pending, live.RunnerPlay, _throwing, _throwBag, _closePlay, _closeBag,
+                live.InRundown, live.RunnerPlayBag, _smash,
+                new Vec3(_ball.x, _ball.y, _ball.z), new Vec3(batter.x, batter.y, batter.z));
+            var framed = PlayCamera.LiveFraming(_content.Shots, view, _feel);
+            if (framed is { } f) _cam.Live(f);
+        }
+
+        /// <summary>
+        /// The play died: the sim has reset its field, so the mirror is re-seated from the typed outcome's
+        /// bodies at Time (§10.6, #574). The catcher stays where the catch happened; on a third out the
+        /// bodies are still the defense that made it, whatever the match flipped to.
+        /// </summary>
+        void MirrorBodiesAtTime(PlayEvent play)
+        {
+            var bodies = play?.Outcome?.BodiesAtTime;
+            if (bodies == null || bodies.Count == 0) { _resultBodies = null; return; }
+            _resultBodies = bodies;
+            _gloveAt.Clear();
+            foreach (var b in bodies)
+                if (!b.IsRunner) _gloveAt[b.Pos] = (b.X, b.Z);
         }
 
         bool BuddySet => _preview != null && FieldingResolver.BuddyJumpOffered(_preview);
@@ -264,10 +289,11 @@ namespace GrandSluggers.UnityClient
             var result = live.Apply(LivePlayCommand.Tick(dt, FieldInput(), RunInput(), false, live.Source));
             SyncFromLive();
             PlayLiveCues(result);
-            _cam.HoldInPlay(_ball);
+            AimLive();
             if (result.CompletedPlay != null)
             {
                 _last = result.CompletedPlay;
+                MirrorBodiesAtTime(_last);
                 Banner();
                 _throwing = false;
                 _caught = false;
@@ -279,6 +305,6 @@ namespace GrandSluggers.UnityClient
             }
         }
 
-        void AimStealThrowCam() => _cam.HoldInPlay(_ball);
+        void AimStealThrowCam() => AimLive();
     }
 }

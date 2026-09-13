@@ -17,9 +17,11 @@ public class HudCalloutsTests
         Assert.Contains(HudCallouts.Set.Marks, m => m.Id == "batter" && m.Anchor == BroadcastHud.Standard.BatterCard);
         Assert.Contains(HudCallouts.Set.Marks, m => m.Id == "pitcher" && m.Label.Contains("TIRED"));
         Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "you" && m.Anchor == BroadcastHud.YouTell);
-        Assert.Contains("stays", HudCallouts.InPlay.Marks.First(m => m.Id == "you").Label, StringComparison.OrdinalIgnoreCase);
+        // §8.5: the YOU ring hands to the receiver at release; the spread says so.
+        Assert.Contains("receiver", HudCallouts.InPlay.Marks.First(m => m.Id == "you").Label, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "item" && m.Anchor == BroadcastHud.ItemTell);
         Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "landing" && m.Label.Contains("Landing"));
+        Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "error" && m.Label.Contains("ERROR"));
         Assert.Contains("YOU", BroadcastHud.ControlDisplay(true, "CF", "Rio Sparks"));
         Assert.Contains("TIRED", BroadcastHud.ArmLine(10));
         Assert.Contains("ITEM", BroadcastHud.ItemPointer(true, "Ashlord"));

@@ -218,12 +218,17 @@ public enum PlayKind
     InPlay
 }
 
+/// <summary>The catch feat on the typed outcome (§8.4): what the glove did to make the catch. The stamp reads it (§15).</summary>
 public enum DefensiveFeat
 {
     None,
     BuddyJump,
     SuperJump,
-    Clamber
+    Clamber,
+    /// <summary>A plain jump catch in the window (West), not a wall rob.</summary>
+    Jump,
+    /// <summary>A dive catch or a dive scoop (East).</summary>
+    Dive
 }
 
 public enum RunnerPlayResult
@@ -264,6 +269,17 @@ public sealed record OutRecord(OutType Type, int Bag, int FromBag, Character Run
 public sealed record RunnerMove(Character Runner, int FromBag, int ToBag);
 
 /// <summary>
+/// A body on the field where it stood when the play died (§10.6, #574). <paramref name="Pos"/> is the
+/// glove ("SS", "CF" …) or <see cref="Runner"/> for a live runner. The result beat is drawn from these;
+/// nothing re-places a body from the position table until the next SET.
+/// </summary>
+public sealed record FieldBody(string Pos, Character Who, double X, double Z)
+{
+    public const string Runner = "runner";
+    public bool IsRunner => Pos == Runner;
+}
+
+/// <summary>
 /// Typed facts from a resolved play. Presentation, highlights, and the scenario harness read
 /// these; the caption is produced from them last and is never read back (spec §15).
 /// </summary>
@@ -278,9 +294,13 @@ public sealed record PlayOutcome(
     int BatterToBag = 0,
     bool Error = false,
     bool FieldersChoice = false,
-    bool GroundRuleDouble = false)
+    bool GroundRuleDouble = false,
+    IReadOnlyList<FieldBody>? Bodies = null)
 {
     public static PlayOutcome Empty { get; } = new();
+
+    /// <summary>Every body on the field at Time, where it stood (§10.6, #574): gloves and live runners.</summary>
+    public IReadOnlyList<FieldBody> BodiesAtTime => Bodies ?? [];
 
     /// <summary>Every out on the play, in the order it was made.</summary>
     public IReadOnlyList<OutRecord> OutsMade => Outs ?? [];

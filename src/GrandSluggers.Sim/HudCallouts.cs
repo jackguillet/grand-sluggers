@@ -38,9 +38,10 @@ public static class HudCallouts
         "how-to-hud-play",
         "diamond-grounder",
         [
-            new("you", "YOU · glove + bag stays up", BroadcastHud.YouTell),
+            new("you", "YOU · glove → the receiver", BroadcastHud.YouTell),
             new("item", "ITEM → name", BroadcastHud.ItemTell),
             new("landing", "Landing ring", null),
+            new("error", "ERROR · a throw got away", null),
             new("score", "Score / inning", BroadcastHud.Standard.Score),
         ]);
 
