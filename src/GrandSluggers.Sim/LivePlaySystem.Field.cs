@@ -206,6 +206,13 @@ public sealed partial class LivePlaySystem
     public ThrowResult? ArmedThrow { get; private set; }
     public Character? ArmedCut { get; private set; }
     public string CoverPos { get; private set; } = "";
+    /// <summary>
+    /// The ball X the cover map is read at for the whole play (§8.7): the landing X of a batted ball,
+    /// the glove's spot when a runner play forms (the rubber on a pickoff, the plate on the catcher's
+    /// throw). Fixed once so the formation, the throw's receiver, the cover walk, the CPU table, and the
+    /// rundown all name the same body for a bag; only the glove exclusion moves with the ball (#640).
+    /// </summary>
+    public double CoverBallX { get; private set; }
     public string ThrowFromPos { get; private set; } = "";
     public string SwitchPos { get; private set; } = "";
     public string BuddyPos { get; private set; } = "";
@@ -334,6 +341,7 @@ public sealed partial class LivePlaySystem
         Seats = command.Seats ?? LiveSeats.CpuOnly;
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
+        CoverBallX = Preview?.LandingX ?? Ball.LandingX;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
         var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
         foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang)) _readyAt[kv.Key] = kv.Value;
@@ -407,6 +415,7 @@ public sealed partial class LivePlaySystem
         ArmedThrow = null;
         ArmedCut = null;
         CoverPos = "";
+        CoverBallX = 0;
         ThrowFromPos = "";
         SwitchPos = "";
         BuddyPos = "";
@@ -1094,33 +1103,53 @@ public sealed partial class LivePlaySystem
     }
 
     /// <summary>
-    /// The CPU glove in a rundown (§9.7): throw to the bag the runner is heading for once they are
-    /// inside running.rundown.throwWithinFt of it and a cover is there; run at them otherwise. When
-    /// every live runner is nearly on a bag the throw is a lazy lob. True when the rundown owned this frame.
+    /// The CPU glove in a rundown (§9.7): the chase keeps the body trapped while the ball is behind them
+    /// (a body that turns runs into the glove), so the glove runs at them until the throw ahead is at its
+    /// last makeable moment — the body's arrival at the covered bag ahead is inside the §8.8 margin of the
+    /// throw's, and the throw still lands inside the close margin — and throws then, at full speed. A body not
+    /// closing on a bag (frozen, §10.6), or one the throw could not beat, is run at until tagged. True when the
+    /// rundown owned this frame.
     /// </summary>
     bool TickCpuRundown(double dt)
     {
         // In range it is the rundown; with nothing makeable on the table a stray body anywhere off the bags is
         // run at the same way (a frozen runner cannot be left standing on the path, §9.7, §10.6).
+        var inRange = RundownRunner is not null;
         var target = RundownRunner ?? (_cpuDecided ? StrayRunner() : null);
         if (target is null || !target.Live || !HoldsBall || Throwing) return false;
-        var rd = R.Running.Rundown;
         var bag = target.DestBag > target.Bag ? target.NextBag : target.Bag;
         if (bag is < 1 or > 4) return false;
-        var at = Diamond.Bag(bag);
         var (x, z) = target.Position;
-        var coverPos = CoverOf(bag);
-        var covered = !string.IsNullOrEmpty(coverPos) && coverPos != GlovePos
-                      && _fielders.TryGetValue(coverPos, out var coverAt)
-                      && Diamond.Dist(coverAt.X, coverAt.Z, at.X, at.Z) <= R.Fielding.Cover.RadiusFt;
-        if (covered && Diamond.Dist(x, z, at.X, at.Z) <= rd.ThrowWithinFt)
+        var closing = target.Moving && !target.Held && (target.DestBag > target.Bag ? target.Velocity > 0 : target.Velocity < 0);
+        var ready = CpuThrowReadySec(bag); // the flight, or the cover's walk to the bag when that is longer; infinite with no cover
+        // The body's feet to the bag it is closing on: ahead by the runner clock, back along the segment on a return.
+        var arrival = target.DestBag > target.Bag
+            ? RunnerSystem.ArrivalSec(target, bag, ElapsedSeconds, Dash01, R)
+            : target.Feet / RunnerSystem.SpeedFtPerSec(target.Who, Dash01, R);
+        var margin = arrival - ready;
+        // The throw ahead is the rundown's (the glove inside running.rundown.rangeFt, §9.7): it goes once the margin is
+        // down to the table's band and while it can still land inside the close margin of the body (§8.8's "worth
+        // it"). A body the throw cannot beat, or a stray body out of range (the table already held), is run at.
+        if (inRange && closing && !double.IsPositiveInfinity(ready) && margin <= R.Cpu.Active.MakeableMarginSec && margin > -R.Running.Close.MarginSec)
         {
-            var lazy = Runners.Where(r => r.Live && r.Moving).All(r => r.SegmentFt <= 0 || Math.Max(r.Feet, r.SegmentFt - r.Feet) / r.SegmentFt >= rd.LazyLobFraction);
-            BeginThrowToBag(bag, lazy ? rd.LazyLobSpeedMul : 1);
+            BeginThrowToBag(bag, LazyLob(bag) ? R.Running.Rundown.LazyLobSpeedMul : 1);
             return true;
         }
         WalkGloveTo((x, z), dt);
         return true;
+    }
+
+    /// <summary>
+    /// The lazy lob (§9.7, reference): every moving body is at least running.rundown.lazyLobFraction of the way to
+    /// a bag and none of them is bound for <paramref name="bag"/>. A throw that races a body to the bag it is
+    /// thrown to is a throw, whatever the fraction: a runner 8 ft short of second is past 80 % of the segment.
+    /// </summary>
+    bool LazyLob(int bag)
+    {
+        var rd = R.Running.Rundown;
+        var moving = Runners.Where(r => r.Live && r.Moving).ToList();
+        if (moving.Any(r => (r.DestBag > r.Bag ? r.NextBag : r.Bag) == bag)) return false;
+        return moving.All(r => r.SegmentFt <= 0 || Math.Max(r.Feet, r.SegmentFt - r.Feet) / r.SegmentFt >= rd.LazyLobFraction);
     }
 
     /// <summary>The CPU glove holds the ball: the throw waits for the reaction delay (§8.8), then the table runs once.</summary>
@@ -1596,18 +1625,21 @@ public sealed partial class LivePlaySystem
         _fielders[of.Position] = FieldingResolver.StepToward(at.X, at.Z, of.Route.X, of.Route.Z, speed, dt, Park, R);
     }
 
-    /// <summary>Who covers <paramref name="bag"/> now (§8.7): the live map with the glove excluded.</summary>
+    /// <summary>
+    /// The one cover map of this play (§8.7): the bunt's while the alignment is on (the middle behind the crash, §7.3),
+    /// else <see cref="InPlay.CoverMap"/> at <see cref="CoverBallX"/>, the body on the ball excluded either way. Every
+    /// read of who covers a bag — the formation, the throw's receiver, the cover walk, the CPU table, the rundown —
+    /// goes through here so they cannot disagree (#640).
+    /// </summary>
+    Dictionary<int, string> CoverMapNow() =>
+        !RunnerPlay && BuntAlignment ? BuntDefense.CoverMap(OnBallPos, R.Fielding.Bunt) : InPlay.CoverMap(OnBallPos, CoverBallX);
+
+    /// <summary>Who covers <paramref name="bag"/> now (§8.7): the play's map with the glove excluded.</summary>
     string CoverOf(int bag)
     {
         if (bag is < 1 or > 4) return "";
-        var ballX = Preview?.LandingX ?? BallX;
-        var map = CoverMapNow(OnBallPos, ballX);
-        return map.TryGetValue(bag, out var pos) ? pos : FieldAssist.CoverKey(bag);
+        return CoverMapNow().TryGetValue(bag, out var pos) ? pos : FieldAssist.CoverKey(bag);
     }
-
-    /// <summary>The cover map for this ball (§8.7): the bunt's (the middle behind the crash, §7.3) while the alignment is on, else the diamond's.</summary>
-    Dictionary<int, string> CoverMapNow(string onBall, double ballX) =>
-        !RunnerPlay && BuntAlignment ? BuntDefense.CoverMap(onBall, R.Fielding.Bunt) : InPlay.CoverMap(onBall, ballX);
 
     /// <summary>
     /// A charge body on a bunt (§7.3) that is free to converge on the ball: in the bunt table, not the glove, and not
@@ -1626,9 +1658,8 @@ public sealed partial class LivePlaySystem
     {
         if (Preview is null && !RunnerPlay) return;
         var cover = R.Fielding.Cover;
-        var ballX = Preview?.LandingX ?? 0;
         var onBall = OnBallPos;
-        var map = CoverMapNow(onBall, ballX);
+        var map = CoverMapNow();
         var squared = !RunnerPlay && BuntDefense.Squared(Swing);
         foreach (var kv in map)
         {
@@ -1657,7 +1688,7 @@ public sealed partial class LivePlaySystem
         if (Ball is not { Shape: BattedBallClass.Bunt } || HoldsBall || Throwing || _loose) return;
         var b = R.Fielding.Bunt;
         var map = Assigned();
-        var covers = CoverMapNow(OnBallPos, Preview.LandingX);
+        var covers = CoverMapNow();
         foreach (var pos in b.Charge)
         {
             if (!map.TryGetValue(pos, out var who) || !BuntChargeBody(pos, covers) || !CanMove(pos)) continue;
@@ -2610,6 +2641,8 @@ public sealed partial class LivePlaySystem
         GloveX = spot.X;
         GloveZ = spot.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
+        // The cover map of a runner play is read where the ball is when it forms; the throw from a bag later reads the same one.
+        CoverBallX = GloveX;
         var bags = new HashSet<int>();
         if (pickoffBag > 0) bags.Add(pickoffBag);
         foreach (var r in Runners)

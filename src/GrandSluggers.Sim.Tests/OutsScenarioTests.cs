@@ -479,7 +479,8 @@ public sealed class OutsScenarioTests
     public void RundownCpuRunnerReversesOnEveryThrow()
     {
         // A CPU body caught between first and second runs away from the ball (§9.7): a throw to the bag ahead turns
-        // them back, a throw to the bag behind sends them on again. Nothing else in the read changes.
+        // them back, a throw to the bag behind sends them on again — while the other bag is reachable ahead of the
+        // ball's next leg. Nothing else in the read changes.
         var who = _content.Must("cinder");
         var runner = new Runner(who, 1);
         runner.BeginPlay(forced: false, tagAndGo: false);
@@ -499,6 +500,14 @@ public sealed class OutsScenarioTests
         // Off the rundown the same throw does not turn a committed body around.
         runner.MarkRundown(false);
         RunnerAi.Decide([runner], Throwing(2), _ => false);
+        Assert.Equal(2, runner.DestBag);
+        // Beaten both ways (#640): the ball lands at second before a body 15 ft short of it could get back to first
+        // (the throw's next leg beats them there too), so it keeps going and takes the tag at the bag.
+        RunnerSystem.Tick([runner], 1.0, new RunnerTickContext(2.5, 0, FlyState.None, 0, _ => false, _ => false));
+        Assert.True(runner.Feet > 70 && runner.DestBag == 2);
+        runner.MarkRundown(true);
+        RunnerAi.Decide([runner], new RunnerAiContext(2.5, 0, int.MinValue, FlyState.None,
+            new BallSituation(false, true, 2, 2.8, second.X, second.Z, 2.5, false, 60, 70, 90), 0), _ => false);
         Assert.Equal(2, runner.DestBag);
     }
 
@@ -722,4 +731,5 @@ public sealed class OutsScenarioTests
         foreach (var bag in bags)
             Assert.True(match.StationRunner(bag, roster[bag + 1]), $"station bag {bag}");
     }
+
 }

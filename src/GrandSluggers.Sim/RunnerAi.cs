@@ -115,11 +115,22 @@ public static class RunnerAi
         }
         if (runner.IsBatter && runner.Bag == 0) return; // first is the batter's bag whatever happens
 
-        // In a rundown the CPU runner runs away from the ball: it reverses on every throw (§9.7).
+        // In a rundown the CPU runner runs away from the ball (§9.7): a throw to the bag ahead turns them back,
+        // a throw to the bag behind sends them on — when the other bag is reachable ahead of the ball's next leg
+        // (the §9.9 margin from where the throw lands). A body the ball beats both ways keeps going and takes the
+        // tag at the bag rather than running into the glove that has it.
         if (runner.InRundown && ball.Throwing && ball.ThrowBag is >= 1 and <= 4)
         {
-            if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag) runner.Return();
-            else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag) runner.Send(next);
+            if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag)
+            {
+                var backSec = runner.Feet / RunnerSystem.SpeedFtPerSec(runner.Who, ctx.Dash01, r);
+                if (ThrowArrivalSec(ball, runner.Bag, ctx.Elapsed, r) - backSec > slack) runner.Return();
+            }
+            else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag && next > runner.Bag
+                     && Margin(runner, next, ctx, r) > slack)
+            {
+                runner.Send(next);
+            }
             return;
         }
 
