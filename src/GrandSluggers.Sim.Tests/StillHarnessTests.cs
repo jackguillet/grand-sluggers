@@ -75,11 +75,71 @@ public class StillHarnessTests
     [Fact]
     public void CharacterTurntableLooksAtTheChestNotTheBrim()
     {
-        Assert.True(StillPose.CharCameraLooksAtChest(StillPose.CharLookY));
-        Assert.True(StillPose.CharCameraIsNotBrim(StillPose.CharLookY, StillPose.CharCamY));
         Assert.Equal(Motion.SwingContact, StillPose.CharPoseT);
-        Assert.True(StillPose.CharCameraIsThreeQuarter(
-            StillPose.CharCamX, StillPose.CharCamZ, StillPose.CharZ),
-            "3/4 on the face — dead-on behind the shell is illegible");
+        Assert.Equal(StillPose.CharUnscaledHeadCenterY, SwingPresentation.HeadCenterAtRest.Y, 2);
+        Assert.Equal(StillPose.CharUnscaledHeadRadius, SwingPresentation.HeadRadius, 2);
+        foreach (var id in Silhouette.Captains)
+        {
+            var shot = StillPose.CharFraming(id);
+            Assert.True(StillPose.CharCameraLooksAtChest(shot.Target.Y, StillPose.CharChestY(id)),
+                id + " look is not the chest from Silhouette.Proportions");
+            Assert.True(StillPose.CharCameraIsNotBrim(shot.Target.Y, shot.Pos.Y),
+                id + " look is the brim");
+            Assert.True(shot.Target.Y < StillPose.CharHeadTopY(id) - 0.5,
+                id + " look sits on the head, not the chest");
+            Assert.True(StillPose.CharCameraIsThreeQuarter(shot.Pos.X, shot.Pos.Z, StillPose.CharZ),
+                id + " 3/4 on the face — dead-on behind the shell is illegible");
+        }
+    }
+
+    [Fact]
+    public void CharacterTurntableKeepsEveryCaptainsHeadInFrame()
+    {
+        Assert.True(StillPose.CharHeadTopY("ashlord") > StillPose.CharHeadTopY("konga"));
+        Assert.True(StillPose.CharHeadTopY("konga") > StillPose.CharHeadTopY("vale"));
+        Assert.True(StillPose.CharHeadTopY("vale") > StillPose.CharHeadTopY("rio"));
+        Assert.True(StillPose.CharHeadTopY("rio") > StillPose.CharHeadTopY("fenn"));
+        Assert.True(StillPose.CharHeadTopY("fenn") > StillPose.CharHeadTopY("zig"));
+
+        var rio = StillPose.CharFraming("rio");
+        var ashlord = StillPose.CharFraming("ashlord");
+        var rioPull = Dist(rio.Pos, new Vec3(StillPose.CharX, rio.Target.Y, StillPose.CharZ));
+        var ashPull = Dist(ashlord.Pos, new Vec3(StillPose.CharX, ashlord.Target.Y, StillPose.CharZ));
+        Assert.True(ashPull > rioPull + 2,
+            $"Ashlord must pull back by extra height rio={rioPull:0.00} ash={ashPull:0.00}");
+
+        var cropped = new CameraShot(
+            "select",
+            "chest",
+            new Vec3(StillPose.CharCamX, 3.4, StillPose.CharCamZ),
+            new Vec3(StillPose.CharX, 2.5, StillPose.CharZ),
+            StillPose.CharFov,
+            0);
+        var croppedHead = PlayCamera.Project(
+            cropped,
+            new Vec3(StillPose.CharX, StillPose.CharHeadTopY("ashlord"), StillPose.CharZ));
+        Assert.False(PlayCamera.InFrame(croppedHead),
+            "the old Rio-sized Y must fail Ashlord — otherwise the test is not a falsifier");
+
+        foreach (var id in Silhouette.Captains)
+        {
+            var shot = StillPose.CharFraming(id);
+            var feet = PlayCamera.Project(shot, new Vec3(StillPose.CharX, 0.05, StillPose.CharZ));
+            var chest = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharChestY(id), StillPose.CharZ));
+            var head = PlayCamera.Project(shot, new Vec3(StillPose.CharX, StillPose.CharHeadTopY(id), StillPose.CharZ));
+            Assert.True(PlayCamera.InFrame(feet), $"{id} feet off turntable {feet}");
+            Assert.True(PlayCamera.InFrame(chest), $"{id} chest off turntable {chest}");
+            Assert.True(StillPose.CharHeadTopInFrame(id), $"{id} head top off turntable {head}");
+            Assert.True(head!.Value.Y - feet!.Value.Y > 0.28,
+                $"{id} toy too small in the turntable h={head.Value.Y - feet.Value.Y:0.000}");
+        }
+    }
+
+    static double Dist(Vec3 a, Vec3 b)
+    {
+        var dx = a.X - b.X;
+        var dy = a.Y - b.Y;
+        var dz = a.Z - b.Z;
+        return Math.Sqrt(dx * dx + dy * dy + dz * dz);
     }
 }

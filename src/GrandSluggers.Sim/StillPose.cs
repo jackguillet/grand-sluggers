@@ -55,22 +55,71 @@ public static class StillPose
     /// <summary>
     /// Character turntable. 3/4 on the face/chest, full toy in frame.
     /// Look-at is a world point (the camera), not a direction.
+    /// XZ is the authored 3/4 at Rio height; <see cref="CharFraming"/> looks at
+    /// the toy's chest and pulls back by extra height from
+    /// <see cref="Silhouette.Proportions"/>. A constant Y cut Ashlord and Konga.
     /// </summary>
     public const double CharX = 0;
     public const double CharZ = 20;
     public const double CharCamX = 8;
-    public const double CharCamY = 3.4;
     public const double CharCamZ = 9;
-    public const double CharLookY = 2.5;
+    /// <summary>Camera sits this above the chest so the look is not the brim.</summary>
+    public const double CharCamLift = 0.9;
     public const double CharFov = 34;
     public const double CharPoseT = Motion.SwingContact;
 
-    public static bool CharCameraLooksAtChest(double lookY) => lookY >= 2.0 && lookY <= 4.0;
+    /// <summary>torsoMesh Z in hero_shared_blockout.py. World chest is this × SharedRootScale.Y.</summary>
+    public const double CharUnscaledChestY = 2.28;
+    /// <summary>HEAD.z — same landmark as <see cref="SwingPresentation.HeadCenterAtRest"/>.</summary>
+    public const double CharUnscaledHeadCenterY = 4.05;
+    /// <summary>Same radius as <see cref="SwingPresentation.HeadRadius"/>.</summary>
+    public const double CharUnscaledHeadRadius = 0.86;
+
+    public static double CharChestY(string bodyType)
+    {
+        var spec = Silhouette.Proportions(bodyType);
+        return CharUnscaledChestY * Silhouette.SharedRootScale(spec).Y;
+    }
+
+    public static double CharHeadTopY(string bodyType)
+    {
+        var spec = Silhouette.Proportions(bodyType);
+        return (CharUnscaledHeadCenterY + CharUnscaledHeadRadius) * Silhouette.SharedRootScale(spec).Y;
+    }
+
+    /// <summary>
+    /// 3/4 on this captain. Look is the chest from <see cref="Silhouette.Proportions"/>;
+    /// the camera pulls back by extra height above the Rio-sized template so a
+    /// taller cut (Ashlord, Konga) keeps its head in the frustum.
+    /// </summary>
+    public static CameraShot CharFraming(string bodyType)
+    {
+        var chestY = CharChestY(bodyType);
+        var height = CharHeadTopY(bodyType);
+        var dx = CharCamX - CharX;
+        var dz = CharCamZ - CharZ;
+        var template = Math.Sqrt(dx * dx + dz * dz);
+        var dist = template + Math.Max(0, height - CharHeadTopY("rio"));
+        var u = dist / template;
+        var pos = new Vec3(CharX + dx * u, chestY + CharCamLift, CharZ + dz * u);
+        var look = new Vec3(CharX, chestY, CharZ);
+        return new CameraShot("select", "chest", pos, look, CharFov, 0);
+    }
+
+    public static bool CharCameraLooksAtChest(double lookY, double chestY) =>
+        Math.Abs(lookY - chestY) < 0.05;
 
     public static bool CharCameraIsNotBrim(double lookY, double camY) => lookY < camY;
 
     public static bool CharCameraIsThreeQuarter(double camX, double camZ, double charZ) =>
         Math.Abs(camX) >= 6 && camZ < charZ && charZ - camZ >= 8;
+
+    public static bool CharHeadTopInFrame(string bodyType, double margin = 0.04)
+    {
+        var shot = CharFraming(bodyType);
+        var top = new Vec3(CharX, CharHeadTopY(bodyType), CharZ);
+        return PlayCamera.InFrame(PlayCamera.Project(shot, top), margin);
+    }
 
     /// <summary>Throwing hand must be on the rubber. Home-plate from was a beach ball in the lens.</summary>
     public static bool PitchReleaseIsOnTheMound(double z) =>
