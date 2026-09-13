@@ -22,7 +22,12 @@ public static class HarborWall
     /// <summary>Round wrap behind the plate. Radius is the offset line’s closest point, not a V to a farther apex.</summary>
     public const float HomeZ = -36f;
     public const float DugoutPad = 18f;
-    public const float OutfieldHeight = 26f;
+    /// <summary>
+    /// The padded outfield wall's top is the park's own fence (spec D15): the same number the flight
+    /// clips against (<see cref="FieldBounds"/>), so a ball that meets the padding you see caroms and a
+    /// homer clears it. No second constant.
+    /// </summary>
+    public static float OutfieldHeight(Park park) => (float)park.FenceHeightFt;
     /// <summary>Hip-high rail around the infield, dugouts, and home.</summary>
     public const float HipHeight = 4.2f;
     public const bool HasNet = false;
@@ -166,15 +171,15 @@ public static class HarborWall
     }
 
     /// <summary>
-    /// Tall in the outfield, tapers to hip height along the foul wrap so the
-    /// side wall is a rail, not a 26-ft fence through the dugouts.
+    /// The park's fence in the outfield, tapering to hip height along the foul wrap so the
+    /// side wall is a rail, not a fence through the dugouts.
     /// </summary>
     public static float Height(Park park, int i)
     {
         var p = LoopPoint(park, i);
         var spray = Math.Atan2(p.X, p.Z) * (180.0 / Math.PI);
         if (Math.Abs(spray) <= AtBatResolver.FoulLineDeg + 0.5)
-            return OutfieldHeight;
+            return OutfieldHeight(park);
         const double hipZ = 95;
         if (p.Z <= hipZ) return HipHeight;
         var poleZ = Math.Cos(AtBatResolver.FoulLineDeg * Math.PI / 180.0)
@@ -182,12 +187,28 @@ public static class HarborWall
         var u = (p.Z - hipZ) / Math.Max(20, poleZ - hipZ);
         u = Math.Clamp(u, 0, 1);
         var s = u * u * (3 - 2 * u);
-        return HipHeight + (OutfieldHeight - HipHeight) * (float)s;
+        return HipHeight + (OutfieldHeight(park) - HipHeight) * (float)s;
     }
 
-    public static bool OutfieldIsTallerThanTheHip() =>
-        OutfieldHeight >= 18f && HipHeight >= 3.2f && HipHeight <= 5.5f
-        && OutfieldHeight > HipHeight * 3f;
+    /// <summary>A loop vertex between the poles (fair), where the drawn wall is the park's fence.</summary>
+    public static bool IsOutfield(Park park, int i)
+    {
+        var p = LoopPoint(park, i);
+        return p.Z > 0 && Math.Abs(Math.Atan2(p.X, p.Z) * (180.0 / Math.PI)) <= AtBatResolver.FoulLineDeg + 0.5;
+    }
+
+    /// <summary>
+    /// D15: every outfield vertex of the drawn wall stands at the park's <c>fenceHeightFt</c>, the rail
+    /// stays hip-high, and the fence is taller than the rail so the wrap ramps up to it.
+    /// </summary>
+    public static bool OutfieldIsTheFence(Park park)
+    {
+        if (!(HipHeight >= 3.2f && HipHeight <= 5.5f && park.FenceHeightFt > HipHeight)) return false;
+        var n = Loop(park).Length;
+        for (var i = 0; i < n; i++)
+            if (IsOutfield(park, i) && Math.Abs(Height(park, i) - park.FenceHeightFt) > 1e-4) return false;
+        return true;
+    }
 
     /// <summary>
     /// Neighboring samples in the hip→outfield blend differ by a little, not a
@@ -202,7 +223,7 @@ public static class HarborWall
             var a = Height(park, i);
             var b = Height(park, i + 1);
             if (Math.Abs(a - b) > HipHeight * 2f) return false;
-            if (a <= HipHeight + 1f || a >= OutfieldHeight - 1f) continue;
+            if (a <= HipHeight + 1f || a >= OutfieldHeight(park) - 1f) continue;
             taper++;
             if (Math.Abs(a - b) > 8f) return false;
         }
@@ -281,7 +302,6 @@ public static class HarborWall
         return WrapStaysInFoul(park) && LoopIsSymmetric(park)
             && HomeWrapIsRound(park)
             && !HasNet && !DropAuthoredRing
-            && OutfieldIsTallerThanTheHip()
-            && Height(park, 0) >= OutfieldHeight - 0.1f;
+            && OutfieldIsTheFence(park);
     }
 }

@@ -92,11 +92,11 @@ Shipped values:
 
 | Park | Fence | Height | Wind |
 | --- | --- | --- | --- |
-| Harbor Diamond | 330 / 400 / 330 | 8 ft | 4 mph toward 20° (a harbor breeze out to right-center) |
+| Harbor Diamond | 330 / 400 / 330 | 12 ft (the padded wall) | 4 mph toward 20° (a harbor breeze out to right-center) |
 | Crystal Rink | 320 / 385 / 320 | 8 ft | 2 mph toward 180° (in) |
 | Funfair Park | 315 / 390 / 340 | 8 ft | 6 mph toward 0° (out) |
 | Rooftop City | 318 / 388 / 322 | 12 ft (billboards) | 9 mph toward 90° (crosswind to right) |
 | Canopy Yard | 312 / 378 / 318 | 12 ft (the climb wall) | 3 mph toward 200° (in, slightly left) |
 | Ember Keep | 338 / 408 / 338 | 10 ft (keep wall) | 1 mph toward 0° |
 
-Harbor's padded-wall mesh (`HarborWall.OutfieldHeight`) is still authored at 26 ft; the rule is 8 ft. Bringing the dressing down to the rule is a look gate, not a sim change.
+**One number (spec D15).** `fenceHeightFt` is both the top the flight clips against and the top of the wall Unity draws: Harbor's padded wall (`HarborKit.DressWall`) reads `HarborWall.OutfieldHeight(park)`, which is the park field, and `HarborWallTests` asserts the drawn top equals the flight's fence on every outfield segment. The foul rail around the dugouts and home stays hip-high (4.2 ft) on both sides. A ball that meets the padding you see caroms off it; a homer clears it. The number is Jack's call; Harbor ships at 12 ft (taller than MLB's 8 so a rob and a carom read, far under the old 26-ft dressing). `fenceHeightFt` must stand over the 4.2 ft rail (`cli art` refuses lower).

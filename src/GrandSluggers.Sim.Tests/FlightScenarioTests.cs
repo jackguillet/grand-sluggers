@@ -260,9 +260,36 @@ public sealed class FlightScenarioTests
     }
 
     [Fact]
+    public void S58b_HalfAFootOverTheDrawnWallIsAHomer_HalfAFootUnderIsACarom()
+    {
+        // D15: the wall you see is the fence the flight clips against. Center field's drawn top is the park's number.
+        var cf = Enumerable.Range(0, HarborWall.Loop(Harbor).Length).First(i => HarborWall.IsOutfield(Harbor, i)
+            && Math.Abs(HarborWall.LoopPoint(Harbor, i).X) < 1);
+        Assert.Equal(Harbor.FenceHeightFt, HarborWall.Height(Harbor, cf), 4);
+
+        var over = FlightFixtures.OverTheFence(Harbor, 0.5, 0);
+        var overBall = BattedBall.Of(over, Harbor);
+        Assert.True(over.HomeRun, $"clears by {overBall.FenceClearFt:0.00} ft");
+        Assert.InRange(overBall.FenceClearFt, 0.2, 0.8);
+        var crossing = overBall.Samples.First(s => s.Event == SampleEvent.Fence);
+        Assert.InRange(crossing.Height, Harbor.FenceHeightFt + 0.2, Harbor.FenceHeightFt + 0.8);
+        Assert.Null(overBall.WallT);
+
+        var under = FlightFixtures.OverTheFence(Harbor, -0.5, 0);
+        var underBall = BattedBall.Of(under, Harbor);
+        Assert.False(under.HomeRun, $"meets the padding {underBall.FenceClearFt:0.00} ft under the top");
+        Assert.Equal(BattedBallClass.Wall, under.Class);
+        Assert.NotNull(underBall.WallT);
+        Assert.InRange(underBall.FenceClearFt, -0.8, -0.2);
+        Assert.All(underBall.Samples.Where(s => s.T > underBall.WallT + 0.3),
+            s => Assert.True(FieldBounds.InPark(Harbor, s.X, s.Z), "the carom comes back off the wall you see"));
+    }
+
+    [Fact]
     public void S59_BounceThenOverTheFenceIsAGroundRuleDouble_EveryRunnerPlusTwo()
     {
-        var hit = FlightFixtures.Hit(Harbor, 104, 30, 0, ContactQuality.Perfect);
+        // A real flight that lands on the warning track and hops Harbor's 12-ft wall (D15, #608).
+        var hit = FlightFixtures.Hit(Harbor, 101, 32, 0, ContactQuality.Perfect);
         var ball = BattedBall.Of(hit, Harbor);
         Assert.True(ball.GroundRule, "lands on the field, hops the fence");
         Assert.False(ball.HomeRun);

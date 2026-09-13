@@ -15,8 +15,8 @@ public class HarborPostcardTests
         Assert.True(_content.Art.TryPark(HarborPostcard.ParkId, out var kit) && kit.Placed);
         var field = _content.Shots.Must("field");
         var harbor = _content.Parks[HarborPostcard.ParkId];
-        Assert.True(HarborPostcard.ReadsFromField(field, harbor.CenterFenceFt),
-            $"field z={field.Pos.Z}->{field.Target.Z} fence={harbor.CenterFenceFt} wall={HarborPostcard.SubtendDeg(field.Pos.Z, harbor.CenterFenceFt, HarborPostcard.WallHeightFt):0.0}deg");
+        Assert.True(HarborPostcard.ReadsFromField(field, harbor),
+            $"field z={field.Pos.Z}->{field.Target.Z} fence={harbor.CenterFenceFt} wall={HarborPostcard.SubtendDeg(field.Pos.Z, harbor.CenterFenceFt, HarborWall.OutfieldHeight(harbor)):0.0}deg");
         Assert.True(field.Target.Z > harbor.CenterFenceFt - 50,
             $"field look {field.Target.Z} should sit on the CF wall/town");
         Assert.True(HarborPostcard.CrowdInsideFt < 40);
@@ -24,7 +24,7 @@ public class HarborPostcardTests
         Assert.False(HarborPostcard.CenterFieldHasBleachers);
         Assert.False(HarborWall.HasNet, "chain-link net is gone; the padded wall wraps home");
         Assert.True(HarborWall.WrapsTheDiamond(harbor));
-        Assert.True(HarborWall.OutfieldIsTallerThanTheHip());
+        Assert.True(HarborWall.OutfieldIsTheFence(harbor));
         Assert.True(HarborWall.TaperIsARamp(harbor), "taper is a ramp, not stairs");
         Assert.False(HarborStands.HasRoofs, "white roof slabs are not the postcard");
         Assert.True(HarborStands.CrowdIsPeople(),
