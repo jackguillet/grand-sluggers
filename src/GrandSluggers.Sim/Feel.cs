@@ -126,6 +126,19 @@ public sealed class FeelTable
     /// §15; the reference cut at 0.42). A home run overrides it with the smash beat at the crack.
     /// </summary>
     public double ContactCutSeconds { get; }
+    /// <summary>
+    /// How fast a body turns toward its heading, degrees per second of frame time (spec §8.2, #611).
+    /// dt-scaled, so a 30 fps and a 60 fps body face the same way at the same moment.
+    /// </summary>
+    public double BodyTurnDegPerSec { get; private init; } = 720;
+    /// <summary>Time constant of the measured ground velocity a running body faces (seconds).</summary>
+    public double HeadingSmoothSec { get; private init; } = 0.08;
+    /// <summary>A body that moves faster than this between two frames was placed, not run: its velocity resets.</summary>
+    public double HeadingTeleportFtPerSec { get; private init; } = 90;
+    /// <summary>The backpedal (§8.2): inside this distance of a fly's plant, a glove moving away from the ball faces the ball.</summary>
+    public double BackpedalFt { get; private init; } = 12;
+    /// <summary>A ball closer than this (horizontally) is overhead or in the glove: the body keeps its heading.</summary>
+    public double FaceBallMinFt { get; private init; } = 3;
 
     public static FeelTable Load(string dataRoot)
     {
@@ -160,7 +173,14 @@ public sealed class FeelTable
             count,
             maxHold,
             over,
-            cut);
+            cut)
+        {
+            BodyTurnDegPerSec = dto.BodyTurnDegPerSec > 0 ? dto.BodyTurnDegPerSec : 720,
+            HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
+            HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
+            BackpedalFt = dto.BackpedalFt >= 0 ? dto.BackpedalFt : 12,
+            FaceBallMinFt = dto.FaceBallMinFt >= 0 ? dto.FaceBallMinFt : 3
+        };
     }
 
     sealed class FeelDto
@@ -178,5 +198,10 @@ public sealed class FeelTable
         public double ChargeMaxHoldSeconds { get; set; } = 0.5;
         public double ChargeOverchargeDecay { get; set; } = 0.8;
         public double ContactCutSeconds { get; set; } = 0.42;
+        public double BodyTurnDegPerSec { get; set; } = 720;
+        public double HeadingSmoothSec { get; set; } = 0.08;
+        public double HeadingTeleportFtPerSec { get; set; } = 90;
+        public double BackpedalFt { get; set; } = 12;
+        public double FaceBallMinFt { get; set; } = 3;
     }
 }
