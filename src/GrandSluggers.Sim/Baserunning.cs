@@ -88,4 +88,30 @@ public static class Baserunning
         4 => (0.5, 0.0),
         _ => (0.5, 0.5)
     };
+
+    /// <summary>
+    /// A runner's pip on the mini diamond (spec §15, #606): the UV <paramref name="u"/> of the way from
+    /// <paramref name="from"/> to <paramref name="to"/>, where bag 0 is the plate. Past 1 keeps going along
+    /// the same line (the run-through past first); 0 is on <paramref name="from"/>.
+    /// </summary>
+    public static (double U, double V) DiamondPip(int from, int to, double u)
+    {
+        var a = DiamondPip(from <= 0 ? 4 : from);
+        var b = DiamondPip(to <= 0 ? 4 : to);
+        return (a.U + (b.U - a.U) * u, a.V + (b.V - a.V) * u);
+    }
+
+    /// <summary>
+    /// Where a body stands on the basepath as the HUD draws it (§9.1, §15): the segment from the last bag
+    /// touched toward the next and the fraction run along it (<paramref name="feet"/> of
+    /// <paramref name="segmentFt"/>). A returning runner is the same segment with the fraction falling. On
+    /// the run-through at first (<paramref name="overrunFt"/> past the bag, on the line from home) the
+    /// fraction runs past 1 on home → first.
+    /// </summary>
+    public static (int From, int To, double U) PathPip(int bag, double feet, double segmentFt, double overrunFt)
+    {
+        if (bag >= 4) return (3, 4, 1);
+        if (overrunFt > 0 && bag == 1 && feet <= 0) return (0, 1, 1 + overrunFt / Diamond.Baseline);
+        return (bag, bag + 1, Math.Clamp(feet / Math.Max(1, segmentFt), 0, 1));
+    }
 }
