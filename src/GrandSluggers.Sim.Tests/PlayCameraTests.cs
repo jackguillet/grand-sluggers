@@ -85,7 +85,6 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Homer));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Wall));
         Assert.Equal(PlayCamera.SmashShot, PlayCamera.Shot(PlayCamera.Beat.Smash));
-        Assert.Equal(PlayCamera.ThrowShot, PlayCamera.Shot(PlayCamera.Beat.Throw));
         Assert.Equal(PlayCamera.ThrowShot, PlayCamera.Shot(PlayCamera.Beat.StealThrow));
         Assert.Equal(PlayCamera.TagShot, PlayCamera.Shot(PlayCamera.Beat.Tag));
         foreach (PlayCamera.Beat beat in Enum.GetValues<PlayCamera.Beat>())
@@ -99,9 +98,9 @@ public class PlayCameraTests
         SprayDeg: 4, Class: BattedBallClass.Grounder);
 
     static PlayCamera.LiveView View(double t = 1.0, AtBatResult? hit = null, bool runnerPlay = false,
-        bool throwing = false, int throwBag = 0, bool closePlay = false, int closeBag = 0, bool rundown = false,
+        bool closePlay = false, int closeBag = 0, bool rundown = false,
         int playBag = 0, double smashLeft = 0) =>
-        new(t, hit ?? Hopper, runnerPlay, throwing, throwBag, closePlay, closeBag, rundown, playBag, smashLeft,
+        new(t, hit ?? Hopper, runnerPlay, closePlay, closeBag, rundown, playBag, smashLeft,
             new Vec3(40, 3, 90), new Vec3(1, 3.2, 0));
 
     [Fact]
@@ -124,11 +123,9 @@ public class PlayCameraTests
         // A home run smashes at the crack, no hold, then pulls back with the ball.
         Assert.Equal(PlayCamera.Beat.Smash, PlayCamera.LiveBeat(View(t: 0, hit: homer, smashLeft: feel.SmashHold), feel));
         Assert.Equal(PlayCamera.Beat.Homer, PlayCamera.LiveBeat(View(t: 0.1, hit: homer, smashLeft: 0), feel));
-        // The bag beats: a throw sits on its bag, a close play on the tag, a runner play on the play's bag.
-        Assert.Equal(PlayCamera.Beat.Throw, PlayCamera.LiveBeat(View(throwing: true, throwBag: 1), feel));
-        Assert.Equal(PlayCamera.Beat.Tag, PlayCamera.LiveBeat(View(throwing: true, throwBag: 4, closePlay: true, closeBag: 4), feel));
+        // The bag beats (D14): only a close play sits on the tag, and a runner play on the play's bag.
+        Assert.Equal(PlayCamera.Beat.Tag, PlayCamera.LiveBeat(View(closePlay: true, closeBag: 4), feel));
         Assert.Equal(PlayCamera.Beat.Rundown, PlayCamera.LiveBeat(View(rundown: true), feel));
-        Assert.Equal(PlayCamera.Beat.Throw, PlayCamera.LiveBeat(View(rundown: true, throwing: true, throwBag: 2), feel));
         Assert.Equal(PlayCamera.Beat.StealThrow, PlayCamera.LiveBeat(View(t: 0, hit: null, runnerPlay: true, playBag: 2) with { Hit = null }, feel));
         Assert.Equal(2, PlayCamera.BeatBag(PlayCamera.Beat.StealThrow, View(runnerPlay: true, playBag: 2)));
         Assert.Equal(3, PlayCamera.BeatBag(PlayCamera.Beat.Tag, View(closePlay: true, closeBag: 3)));
@@ -142,14 +139,14 @@ public class PlayCameraTests
         var feel = content.Feel;
         var shots = content.Shots;
 
-        var toFirst = PlayCamera.LiveFraming(shots, View(throwing: true, throwBag: 1), feel)!.Value;
+        var steal2 = PlayCamera.LiveFraming(shots, View(runnerPlay: true, playBag: 1) with { Hit = null }, feel)!.Value;
         var bag = Diamond.Bag(1);
-        Assert.Equal(PlayCamera.ThrowShot, toFirst.Shot);
-        Assert.Equal(bag.X, toFirst.Look.X, 6);
-        Assert.Equal(bag.Z, toFirst.Look.Z, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Target.Y, toFirst.Look.Y, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Pos.Y, toFirst.Pos.Y, 6);
-        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Fov, toFirst.Fov);
+        Assert.Equal(PlayCamera.ThrowShot, steal2.Shot);
+        Assert.Equal(bag.X, steal2.Look.X, 6);
+        Assert.Equal(bag.Z, steal2.Look.Z, 6);
+        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Target.Y, steal2.Look.Y, 6);
+        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Pos.Y, steal2.Pos.Y, 6);
+        Assert.Equal(shots.Must(PlayCamera.ThrowShot).Fov, steal2.Fov);
 
         var home = PlayCamera.LiveFraming(shots, View(closePlay: true, closeBag: 4), feel)!.Value;
         Assert.Equal(PlayCamera.TagShot, home.Shot);
@@ -174,7 +171,159 @@ public class PlayCameraTests
         Assert.Equal(3.2 + s.Target.Y, smash.Look.Y, 6);
 
         // One pad and two see the same live frame: nothing in the live table reads the seat count.
-        Assert.Equal(PlayCamera.Shot(PlayCamera.Beat.Throw, seats: 1), PlayCamera.Shot(PlayCamera.Beat.Throw, seats: 2));
+        Assert.Equal(PlayCamera.Shot(PlayCamera.Beat.Tag, seats: 1), PlayCamera.Shot(PlayCamera.Beat.Tag, seats: 2));
+    }
+
+    // ---------------------------------------------------------------------------------
+    // D14 (#610): one cut on contact, the follow stays on the ball, the bag cam only on a close play
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void EachLiveFrameCarriesItsShotsAuthoredBlend_TheInPlayViewsAndTheBagCamsAreCuts()
+    {
+        var content = ContentCatalog.Load();
+        var feel = content.Feel;
+        var shots = content.Shots;
+        var fly = Hopper with { LaunchDeg = 32, CarryFt = 280, Class = BattedBallClass.Fly };
+        var homer = Hopper with { HomeRun = true, Class = BattedBallClass.Homer };
+        var frames = new[]
+        {
+            PlayCamera.LiveFraming(shots, View(), feel)!.Value,
+            PlayCamera.LiveFraming(shots, View(hit: fly), feel)!.Value,
+            PlayCamera.LiveFraming(shots, View(closePlay: true, closeBag: 4), feel)!.Value,
+            PlayCamera.LiveFraming(shots, View(runnerPlay: true, playBag: 2) with { Hit = null }, feel)!.Value,
+            PlayCamera.LiveFraming(shots, View(t: 0, hit: homer, smashLeft: 0.1), feel)!.Value,
+        };
+        foreach (var f in frames)
+        {
+            Assert.Equal(shots.Must(f.Shot).Blend, f.Blend);
+            Assert.Equal(f.Blend <= 0, f.Cut);
+        }
+        // The contact transition is a cut to the in-play view, and so are the close play's bag cam and the steal's.
+        foreach (var id in new[] { PlayCamera.InPlay, PlayCamera.InPlayFly, PlayCamera.TagShot, PlayCamera.ThrowShot })
+            Assert.True(shots.Must(id).Blend == 0, $"{id} blend {shots.Must(id).Blend} is a swoop, not a cut");
+        // The authored blend is read, not a constant: a hand-built shot's blend rides the frame.
+        var custom = new CameraShot("custom", "ball", new Vec3(0, 10, -10), new Vec3(0, 0, 0), 50, 7);
+        Assert.Equal(7, PlayCamera.FollowGround(custom, new Vec3(1, 2, 3)).Blend);
+        Assert.False(PlayCamera.FollowGround(custom, new Vec3(1, 2, 3)).Cut);
+    }
+
+    [Fact]
+    public void TheHoldKeepsATargetForCameraHoldSecondsAndABagCamOnItsFirstBag()
+    {
+        var feel = ContentCatalog.Load().Feel;
+        var hold = feel.CameraHoldSeconds;
+        Assert.Equal(0.25, hold, 6);
+        var h = new PlayCamera.CameraHold();
+        Assert.Equal((PlayCamera.Beat.Set, 0), h.Step(PlayCamera.Beat.Set, 0, 0, hold));
+        Assert.Equal((PlayCamera.Beat.Grounder, 0), h.Step(PlayCamera.Beat.Grounder, 0, 0.42, hold));
+        // A rundown that flickers on inside the hold does not re-aim; one that stays takes the camera.
+        Assert.Equal((PlayCamera.Beat.Grounder, 0), h.Step(PlayCamera.Beat.Rundown, 0, 0.42 + hold * 0.5, hold));
+        Assert.Equal((PlayCamera.Beat.Grounder, 0), h.Step(PlayCamera.Beat.Grounder, 0, 0.42 + hold * 0.9, hold));
+        Assert.Equal((PlayCamera.Beat.Rundown, 0), h.Step(PlayCamera.Beat.Rundown, 0, 0.42 + hold, hold));
+        // A close play at home opens the bag cam after the hold, stays on home, and releases after the verdict.
+        Assert.Equal((PlayCamera.Beat.Tag, 4), h.Step(PlayCamera.Beat.Tag, 4, 1.0, hold));
+        Assert.Equal((PlayCamera.Beat.Tag, 4), h.Step(PlayCamera.Beat.Grounder, 0, 1.1, hold));
+        Assert.Equal((PlayCamera.Beat.Grounder, 0), h.Step(PlayCamera.Beat.Grounder, 0, 1.3, hold));
+        // A steal's bag cam keeps the bag it opened on for the whole beat.
+        var s = new PlayCamera.CameraHold();
+        Assert.Equal((PlayCamera.Beat.StealThrow, 2), s.Step(PlayCamera.Beat.StealThrow, 2, 0, hold));
+        Assert.Equal((PlayCamera.Beat.StealThrow, 2), s.Step(PlayCamera.Beat.StealThrow, 3, 1.5, hold));
+        // A new play (the clock starts over) takes its first target at once.
+        Assert.Equal((PlayCamera.Beat.Set, 0), h.Step(PlayCamera.Beat.Set, 0, 0, hold));
+        h.Reset();
+        Assert.True(double.IsNaN(h.Since));
+    }
+
+    [Fact]
+    public void ARoutineSixThreeIsSetThenOneCutThenTheFollow_NoBagCamOnTheThrow()
+    {
+        var content = ContentCatalog.Load();
+        var match = Match.Slice(content, seed: 2);
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("SS", preview.Position);
+        var field = match.ResolveFielding(hit, preview);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu));
+        var hold = new PlayCamera.CameraHold();
+        var beats = new List<PlayCamera.Beat>();
+        var shotsSeen = new HashSet<string>();
+        var threwToFirst = false;
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 30 && play is null; i++)
+        {
+            var view = new PlayCamera.LiveView(live.ElapsedSeconds, hit, live.RunnerPlay, live.InClosePlay, live.CloseBag,
+                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0));
+            var framed = PlayCamera.LiveFraming(content.Shots, view, content.Feel, hold);
+            if (beats.Count == 0 || beats[^1] != hold.Beat) beats.Add(hold.Beat);
+            if (framed is { } f)
+            {
+                shotsSeen.Add(f.Shot);
+                // The follow looks at the dirt under the ball on every frame, the throw included.
+                Assert.Equal(live.BallX, f.Look.X, 6);
+                Assert.Equal(live.BallZ, f.Look.Z, 6);
+            }
+            threwToFirst |= live.Throwing && live.ThrowBag == 1;
+            play = live.Apply(LivePlayCommand.Tick(1.0 / 60.0, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
+        }
+        Assert.NotNull(play);
+        Assert.True(threwToFirst, "the shortstop throws to first");
+        Assert.Contains(play!.Outcome!.OutsMade, o => o.Type == OutType.ThrowOutAtFirst);
+        // The class beat is the hit's own (a pulled grounder here); every dirt class is the one diamond shot.
+        Assert.Equal([PlayCamera.Beat.Set, PlayCamera.BeatFrom(hit)], beats);
+        Assert.True(PlayCamera.BeatFrom(hit) is PlayCamera.Beat.Grounder or PlayCamera.Beat.GrounderPull);
+        Assert.Equal([PlayCamera.InPlay], shotsSeen);
+    }
+
+    [Fact]
+    public void ACloseStealIsOneBagCamOnItsBagForTheWholePlay()
+    {
+        var content = ContentCatalog.Load();
+        var scenario = new Scenario(content, seed: 2).Runner(1, 1);
+        var match = scenario.Match;
+        Assert.True(match.StartSteal());
+        Assert.False(match.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var finished));
+        Assert.True(match.StealThrowPending);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginSteal(finished!, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu));
+        var hold = new PlayCamera.CameraHold();
+        var targets = new List<(PlayCamera.Beat, int)>();
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 30 && play is null && live.Active; i++)
+        {
+            var view = new PlayCamera.LiveView(live.ElapsedSeconds, null, live.RunnerPlay, live.InClosePlay, live.CloseBag,
+                live.InRundown, live.RunnerPlayBag, 0, new Vec3(live.BallX, live.BallY, live.BallZ), new Vec3(0, 3, 0));
+            var framed = PlayCamera.LiveFraming(content.Shots, view, content.Feel, hold);
+            Assert.NotNull(framed);
+            if (targets.Count == 0 || targets[^1] != (hold.Beat, hold.Bag)) targets.Add((hold.Beat, hold.Bag));
+            play = live.Apply(LivePlayCommand.Tick(1.0 / 60.0, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
+        }
+        Assert.NotNull(play);
+        Assert.Equal([(PlayCamera.Beat.StealThrow, 2)], targets);
+    }
+
+    [Fact]
+    public void ACloseRaceAtHomeIsTheTagCamOnThePlate()
+    {
+        var content = ContentCatalog.Load();
+        var shots = content.Shots;
+        var feel = content.Feel;
+        var hold = new PlayCamera.CameraHold();
+        // A tag-up race home: the follow through the catch and the relay, then the bag cam at the plate inside the margin.
+        var ball = new Vec3(-120, 6, 200);
+        PlayCamera.LiveView At(double t, bool close) =>
+            new(t, Hopper with { Class = BattedBallClass.Fly }, false, close, close ? 4 : 0, false, 0, 0, ball, new Vec3(0, 3, 0));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.LiveFraming(shots, At(0.5, false), feel, hold)!.Value.Shot);
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.LiveFraming(shots, At(3.0, false), feel, hold)!.Value.Shot);
+        var tag = PlayCamera.LiveFraming(shots, At(5.0, true), feel, hold)!.Value;
+        Assert.Equal(PlayCamera.TagShot, tag.Shot);
+        Assert.True(tag.Cut);
+        Assert.Equal(0, tag.Look.X, 6);
+        Assert.Equal(0, tag.Look.Z, 6);
+        // The verdict releases the bag cam back to the follow once the hold has passed.
+        Assert.Equal(PlayCamera.TagShot, PlayCamera.LiveFraming(shots, At(5.1, false), feel, hold)!.Value.Shot);
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.LiveFraming(shots, At(5.0 + feel.CameraHoldSeconds, false), feel, hold)!.Value.Shot);
     }
 
     [Fact]

@@ -155,8 +155,6 @@ public class FeelInfraTests
         var fly = _content.Shots.Must(PlayCamera.InPlay);
         var flyPull = _content.Shots.Must(PlayCamera.InPlayFly);
         var hop = _content.Shots.Must("diamond-grounder");
-        var line = _content.Shots.Must("diamond-line");
-        var homer = _content.Shots.Must("diamond-homer");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
         Assert.InRange(fly.Pos.X, -2, 2);
@@ -201,8 +199,9 @@ public class FeelInfraTests
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
         Assert.Equal("bag", tag.Look, ignoreCase: true);
-        _ = line;
-        _ = homer;
+        // D14: the class shots that were never selected are gone; the follow is diamond / diamond-fly by class.
+        foreach (var dead in new[] { "diamond-line", "diamond-homer", "diamond-pull" })
+            Assert.False(_content.Shots.TryGet(dead, out _), dead);
         var smash = _content.Shots.Must("smash");
         Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov} is a nostril");
         Assert.True(smash.Pos.X > 5, $"smash is a 3/4 off the pipe, not through the catcher x={smash.Pos.X}");
@@ -236,7 +235,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-grounder", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);
@@ -376,6 +375,7 @@ public class FeelInfraTests
         Assert.True(feel.ChargeOverchargeDecay > 0);
         // The contact cut (§8.2, §15): the reference's 0.42 s, pinned to data/feel/table.json.
         Assert.Equal(0.42, feel.ContactCutSeconds, 6);
+        Assert.Equal(0.25, feel.CameraHoldSeconds, 6);
         Assert.True(feel.ContactCutSeconds > feel.SolidFreeze);
     }
 
