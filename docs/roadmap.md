@@ -57,7 +57,7 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ### Agentic rails (#647)
 
-Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 / #346. R5 is later and does not block Exhibition.
+Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 / #346. R1–R3 shipped. R5 is later and does not block Exhibition. R7 is unblocked.
 
 | Child | Rail | Status |
 | --- | --- | --- |
