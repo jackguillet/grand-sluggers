@@ -293,6 +293,51 @@ public sealed class FieldingScenarioTests
         Assert.True(caughtAt <= preview.HangTimeSec + c.WindowAfterSec + extra * 0.5 + Frame);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public void Scene78_TheCatchingFielderStaysWhereTheCatchHappened(int outsBefore)
+    {
+        // #574: the body that caught the fly is where the catch was at Complete, on the typed outcome,
+        // and stays there through a third out that flips the half (the sim's field resets; the bodies do not).
+        var scenario = new Scenario(_content, seed: 2).Outs(outsBefore);
+        var match = scenario.Match;
+        var defenseBefore = match.DefenseRoster.Select(c => c.Id).ToHashSet();
+        scenario.Contact();
+        var hit = FlightFixtures.Landing(match.Park, 262, 36, -10);
+        var preview = match.PreviewHit(hit);
+        Assert.True(FieldingResolver.IsOutfield(preview.Position));
+        var catchAt = (X: double.NaN, Z: double.NaN);
+        var catcherPos = "";
+        var catcherId = "";
+        // With nobody on, the catch is Time on the same tick and the sim resets its field inside that Apply
+        // (the very frame the client used to mirror as a snap): the last live frame is the glove a step from the catch.
+        var (play, _, _) = RunCpu(match, hit, preview, out _, live =>
+        {
+            if (!live.Active) return;
+            catcherPos = live.GlovePos;
+            catchAt = (live.GloveX, live.GloveZ);
+            catcherId = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)[catcherPos].Id;
+        });
+        Assert.Equal(PlayKind.FlyOut, play.Kind);
+        Assert.NotEqual("", catcherPos);
+        var bodies = play.Outcome!.BodiesAtTime;
+        Assert.Equal(9, bodies.Count(b => !b.IsRunner));
+        Assert.All(bodies.Where(b => !b.IsRunner), b => Assert.Contains(b.Who.Id, defenseBefore));
+        var catcher = Assert.Single(bodies, b => b.Pos == catcherPos);
+        Assert.Equal(catcherId, catcher.Who.Id);
+        Assert.True(Diamond.Dist(catcher.X, catcher.Z, catchAt.X, catchAt.Z) <= 3,
+            $"{catcherPos} caught at ({catchAt.X:0},{catchAt.Z:0}) but stands at ({catcher.X:0},{catcher.Z:0}) at Time");
+        var table = Diamond.Positions[catcherPos];
+        Assert.True(Diamond.Dist(catcher.X, catcher.Z, table.X, table.Z) > 6,
+            $"the fixture lands away from the table spot so a snap would show: {catcherPos} caught at ({catchAt.X:0},{catchAt.Z:0}), table ({table.X:0},{table.Z:0}), landing ({preview.LandingX:0},{preview.LandingZ:0})");
+        if (outsBefore == 2)
+        {
+            Assert.NotEqual(play.Context!.Top, play.NextState!.Top);
+            Assert.NotEqual(defenseBefore, match.DefenseRoster.Select(c => c.Id).ToHashSet());
+        }
+    }
+
     [Fact]
     public void Scene78_SacFlyIsALiveThrowHomeTheBodyRaces()
     {

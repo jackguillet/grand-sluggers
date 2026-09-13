@@ -118,6 +118,8 @@ namespace GrandSluggers.UnityClient
         bool _caught, _buddy;
         int _throwBag;
         readonly Dictionary<string, (double X, double Z)> _gloveAt = new Dictionary<string, (double X, double Z)>();
+        /// <summary>The typed outcome's bodies at Time (§10.6, #574): the result beat draws these, not the position table.</summary>
+        IReadOnlyList<FieldBody> _resultBodies;
         string _glovePos = "P";
         string _switchPos = "";
         string _throwFromPos = "";

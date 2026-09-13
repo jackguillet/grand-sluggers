@@ -90,7 +90,8 @@ public sealed class FeelTable
         double afterOutSeconds,
         double afterCountSeconds,
         double chargeMaxHoldSeconds,
-        double chargeOverchargeDecay)
+        double chargeOverchargeDecay,
+        double contactCutSeconds)
     {
         PitchChargeSeconds = pitchChargeSeconds;
         SwingChargeSeconds = swingChargeSeconds;
@@ -104,6 +105,7 @@ public sealed class FeelTable
         AfterCountSeconds = afterCountSeconds;
         ChargeMaxHoldSeconds = chargeMaxHoldSeconds;
         ChargeOverchargeDecay = chargeOverchargeDecay;
+        ContactCutSeconds = contactCutSeconds;
     }
 
     public double PitchChargeSeconds { get; }
@@ -119,6 +121,11 @@ public sealed class FeelTable
     public double AfterCountSeconds { get; }
     public double ChargeMaxHoldSeconds { get; }
     public double ChargeOverchargeDecay { get; }
+    /// <summary>
+    /// Play seconds after the crack before the camera leaves the SET shot for the diamond (spec §8.2,
+    /// §15; the reference cut at 0.42). A home run overrides it with the smash beat at the crack.
+    /// </summary>
+    public double ContactCutSeconds { get; }
 
     public static FeelTable Load(string dataRoot)
     {
@@ -139,6 +146,7 @@ public sealed class FeelTable
         var count = dto.AfterCountSeconds > 0 ? dto.AfterCountSeconds : 0.7;
         var maxHold = dto.ChargeMaxHoldSeconds > 0 ? dto.ChargeMaxHoldSeconds : 0.5;
         var over = dto.ChargeOverchargeDecay > 0 ? dto.ChargeOverchargeDecay : 0.8;
+        var cut = dto.ContactCutSeconds > 0 ? dto.ContactCutSeconds : 0.42;
         return new FeelTable(
             dto.PitchChargeSeconds,
             dto.SwingChargeSeconds,
@@ -151,7 +159,8 @@ public sealed class FeelTable
             after,
             count,
             maxHold,
-            over);
+            over,
+            cut);
     }
 
     sealed class FeelDto
@@ -168,5 +177,6 @@ public sealed class FeelTable
         public double AfterCountSeconds { get; set; } = 0.7;
         public double ChargeMaxHoldSeconds { get; set; } = 0.5;
         public double ChargeOverchargeDecay { get; set; } = 0.8;
+        public double ContactCutSeconds { get; set; } = 0.42;
     }
 }

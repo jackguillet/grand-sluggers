@@ -101,6 +101,9 @@ public static class PlayStamp
         var who = last.Batter;
         if (match != null && (match.First == who || match.Second == who || match.Third == who))
             return null;
+        // A batter who is a body on the path at Time (a third out made elsewhere, a runner play) is drawn there, not in the box.
+        if (last.Outcome?.BodiesAtTime.Any(b => b.IsRunner && b.Who.Id == who.Id) == true)
+            return null;
         return who;
     }
 
