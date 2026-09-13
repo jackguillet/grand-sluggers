@@ -6,7 +6,7 @@ The bar is not a one-shot playable demo. The bar is the stack in [AGENTS.md](../
 
 Companion docs: [playbook.md](playbook.md) (how a phase runs), [roadmap.md](roadmap.md) (sequence), [gameplay-spec.md](gameplay-spec.md) (baseball), [art-rails.md](art-rails.md) (slots), [character-motion.md](character-motion.md) (takes), [screenshot-gate.md](screenshot-gate.md) (stills). Feel numbers stay in `data/feel/`. Rule numbers stay in `data/rules/`. Art slots stay in `data/art/`. Agent memory that must survive a session lives in `data/agent/`.
 
-Status tags used throughout, first checked against `f419603` (2026-09-13). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work.
+Status tags used throughout, first checked against `f419603` (2026-09-13) and re-checked against `d013185` (2026-09-13, after R1 #655, R2 #656, R3 #657). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work.
 
 | Tag | Meaning |
 | --- | --- |
@@ -41,9 +41,9 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D3 | Where do meshes live? | **Python scripts that export FBX**, not authored `.blend` as source. | Paper Route item 4; already `tools/blender/*.py`. |
 | D4 | Which pictures falsify art? | **DCC still and in-game still.** Both in the PR. Agents stop. | Paper Route item 6 ("cap doesn't cover the hair"). In-game still-gate already exists; DCC still is not yet a named PR falsifier. |
 | D5 | Can a critic pass look? | **No.** It files. Jack passes. | The Long Silence judge never finished, which is correct for #188. VibeGame's generation/review split is the part we take. |
-| D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). Sittings already file children; they do not yet become a loadable protocol. |
+| D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). ✅ #656: `data/agent/debug-protocol.json`. R7 owns promote-on-second into a test. |
 | D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match --trace` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. `PlayTrace` dumps ball / runner / glove / bag per tick; S-90 and S-01…S-92 stay the replay rail. |
-| D8 | Unity official plugin / CLI / MCP? | **Observation only**, and only after traces exist. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. |
+| D8 | Unity official plugin / CLI / MCP? | **Observation only.** Traces (#657) are the default playtest. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. R5 stays later. |
 | D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). Scripts exist; stages are not a rail. |
 | D10 | Prompt-to-game / Meshy heroes / a second engine? | **No.** | We are not generating a new game or a new skeleton. Unique packages are deferred. |
 | D11 | Shrink or hide a mesh to save a camera? | **No.** Tune the shot. | AGENTS.md. Twitter "keep the engine small" is not permission to starve the toy. |
@@ -156,7 +156,7 @@ Save after each stage. The next prompt names the stage it continues. One-shottin
 
 ## 7. Distill (file *and* remember)
 
-⚠️ **R7 #654.** Cousin: playbook §5 (one issue per sitting finding). Missing: the finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test.
+⚠️ **R7 #654.** Cousin: playbook §5 (one issue per finding + append to the protocol) and R2's catalog. Missing: promote-on-second into a test or skill is not yet the sitting procedure, and `character-art` does not yet grow from a failed still.
 
 After a sitting or a failed still:
 
@@ -198,7 +198,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
 | G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
-| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 still names only the GitHub child (R7) | R2 ✅, R7 |
+| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 files the child and appends a row. Promote-on-second is R7. | R2 ✅, R7 |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
 | G5 | DCC still is not a PR falsifier | Clay/sheets in `character-art`; screenshot-gate is in-game | R4 |
@@ -211,7 +211,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 
 ## Appendix B — Children (acceptance)
 
-Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or beside them; R7 needs R2; R5 later and does not block Exhibition.
+Parent: **#647**. Sequence: R1–R3 shipped; R4 ∥ R6 next; R7 unblocked (R2 is in); R5 later and does not block Exhibition.
 
 | Child | Owns | Exit | Serves | Order |
 | --- | --- | --- | --- | --- |

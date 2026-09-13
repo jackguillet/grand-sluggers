@@ -79,7 +79,7 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Status tags, gap audit with lines, scenario ids, numbered decisions.
 - Epics own sections; prompts are self-contained; one worktree per session.
 - Verify `main`, rebuild the window, name the revision.
-- File findings; never patch from a sitting note. When R2 (#649) ships, append the signature to `data/agent/debug-protocol.json` in the same PR as the fix (R7 #654).
+- File findings; never patch from a sitting note. Append the signature to `data/agent/debug-protocol.json` in the same PR as the fix (`cli protocol`). R7 (#654) still owns promote-on-second into a test or skill.
 - Declare the session kind (gameplay / presentation / art) and stay in its file list ([agent-rails.md](agent-rails.md) §1).
 
 ## What to do better
