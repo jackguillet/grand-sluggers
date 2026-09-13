@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using GrandSluggers.Sim;
+using Motion = GrandSluggers.Sim.Motion;
 using GrandSluggers.UnityClient;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -31,8 +34,14 @@ namespace GrandSluggers.EditorTools
         static AtBatInputGate() { EditorApplication.update += Update; }
 
         [MenuItem("Grand Sluggers/Verify At-Bat Input")]
-        public static void Run()
+        public static void Run() => Start(false);
+
+        [MenuItem("Grand Sluggers/Verify Pitch Motion")]
+        public static void RunPitchMotion() => Start(true);
+
+        static void Start(bool pitchOnly)
         {
+            SessionState.SetBool(Pending + ".pitchOnly", pitchOnly);
             if (EditorApplication.isPlaying)
                 throw new InvalidOperationException("Run this gate from Edit mode in a dedicated validation worktree.");
             EditorSceneManager.OpenScene("Assets/Scenes/HarborDiamond.unity");
@@ -69,41 +78,199 @@ namespace GrandSluggers.EditorTools
                 _keyboard = InputSystem.AddDevice<Keyboard>("AtBatGateKeyboard");
                 _keyboard.MakeCurrent();
                 Neutral();
-                evidence.cases = new[]
-                {
-                    VerifyNormalTap(play),
-                    VerifyHeldRelease(play),
-                    VerifyWindupRelease(play),
-                    VerifyCpuLaunchBoundaryRelease(play),
-                    VerifyTwoSeatLaunchBoundaryRelease(play),
-                    VerifyKeyboardCannotReleasePadTwo(play),
-                    VerifyScreenDirections(play),
-                    VerifyCursorIgnoresCurve(play),
-                    VerifyWestHoldChangeup(play, padTwo: false),
-                    VerifyWestHoldChangeup(play, padTwo: true),
-                    VerifySelectSwapPick(play, padTwo: false),
-                    VerifySelectSwapPick(play, padTwo: true)
-                };
-                evidence.ok = true;
-                Debug.Log("Grand Sluggers at-bat input OK: " + evidence.cases.Length
-                    + " real Controls/TickSet/TickFlight cases.");
+                play.StartCoroutine(ExecuteChecks(play, evidence));
             }
             catch (Exception ex)
             {
                 evidence.error = ex.ToString();
                 Debug.LogException(ex);
+                Finish(evidence);
+            }
+        }
+
+        static IEnumerator ExecuteChecks(MatchDirector play, Evidence evidence)
+        {
+            var checks = Checks(play, evidence);
+            while (true)
+            {
+                object next;
+                try
+                {
+                    if (!checks.MoveNext()) break;
+                    next = checks.Current;
+                }
+                catch (Exception ex)
+                {
+                    evidence.error = ex.ToString();
+                    Debug.LogException(ex);
+                    break;
+                }
+                yield return next;
+            }
+            Finish(evidence);
+        }
+
+        static IEnumerator Checks(MatchDirector play, Evidence evidence)
+        {
+            var cases = new List<GateCase>();
+            foreach (var hand in new[] { Hand.R, Hand.L })
+            foreach (var charged in new[] { false, true })
+            {
+                var motion = VerifyPitchMotion(play, hand, charged, result => cases.Add(result));
+                while (motion.MoveNext()) yield return motion.Current;
+                evidence.cases = cases.ToArray();
+            }
+            if (!SessionState.GetBool(Pending + ".pitchOnly", false))
+            foreach (var check in new Func<GateCase>[]
+            {
+                () => VerifyNormalTap(play),
+                () => VerifyHeldRelease(play),
+                () => VerifyWindupRelease(play),
+                () => VerifyCpuLaunchBoundaryRelease(play),
+                () => VerifyTwoSeatLaunchBoundaryRelease(play),
+                () => VerifyKeyboardCannotReleasePadTwo(play),
+                () => VerifyScreenDirections(play),
+                () => VerifyCursorIgnoresCurve(play),
+                () => VerifyWestHoldChangeup(play, padTwo: false),
+                () => VerifyWestHoldChangeup(play, padTwo: true),
+                () => VerifySelectSwapPick(play, padTwo: false),
+                () => VerifySelectSwapPick(play, padTwo: true)
+            })
+            {
+                cases.Add(check());
+                evidence.cases = cases.ToArray();
+            }
+            evidence.ok = true;
+            Debug.Log("Grand Sluggers at-bat input OK: " + cases.Count + " real Controls/TickSet/TickFlight cases.");
+        }
+
+        static void Finish(Evidence evidence)
+        {
+            Controls.EndMatch();
+            if (_keyboard != null && _keyboard.added) InputSystem.RemoveDevice(_keyboard);
+            if (_pad2 != null && _pad2.added) InputSystem.RemoveDevice(_pad2);
+            if (_pad1 != null && _pad1.added) InputSystem.RemoveDevice(_pad1);
+            _keyboard = null;
+            _pad1 = _pad2 = null;
+            Write(evidence);
+            EditorApplication.isPlaying = false;
+        }
+
+        // Unlike a SnapTick still, this follows the live two-slot mixer from
+        // held load through release and finish. A zero-delta fade must fail here.
+        static IEnumerator VerifyPitchMotion(MatchDirector play, Hand hand, bool charged, Action<GateCase> record)
+        {
+            var match = Setup(play, Seats.One);
+            if (match.Pitcher.Throws != hand)
+            {
+                Require(match.SwapPitcher(match.Defense.Everyone.First(c => c.Throws == hand)), "No pitcher for hand fixture.");
+                Invoke(play, "BeginSet");
+            }
+            for (var settle = 0; settle < 20; settle++)
+            {
+                Invoke(play, "DrawActors", Step);
+                yield return null;
+            }
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + .01f);
+            for (var frame = 0; frame < (charged ? 40 : 1); frame++)
+            {
+                Tick(play, "TickSet", State(south: true), State());
+                Invoke(play, "DrawActors", Step);
+                yield return null;
+            }
+            var hero = Get<Dictionary<string, HeroActor>>(play, "_heroes")[match.Pitcher.Id];
+            var name = "pitch-motion-" + hand + (charged ? "-charge" : "-normal");
+            var files = new List<string> { CapturePitch(hero, name + "-load") };
+            Tick(play, "TickSet", State(), State());
+            Invoke(play, "DrawActors", Step);
+            yield return null;
+            var pitch = Get<PitchCommand>(play, "_pitch");
+            var expected = ArtBinder.LoadClip(Motion.ClipFile(Motion.Verb.ThrowPitch,
+                match.Pitcher.Bats, hand, pitch.Charge01));
+            var clipCorrect = Get<ClipPlayer>(hero, "_player").Current == expected;
+            var released = false;
+            var releasedAt = 0f;
+            var releaseLocal = Vector3.zero;
+            var handAtRelease = Vector3.zero;
+            var heldError = 0f;
+            for (var frame = 0; frame < 42; frame++)
+            {
+                Tick(play, "TickFlight", State(), State());
+                Invoke(play, "DrawActors", Step);
+                // Let Unity's normal skinning/render update run. A tight loop
+                // can move bones while repeatedly capturing cached skinning.
+                yield return null;
+                var air = Get<bool>(play, "_pitchAir");
+                if (!air)
+                {
+                    var ball = Get<Transform>(Get<ParkView>(play, "_park").Ball, "_root");
+                    heldError = Mathf.Max(heldError, Vector3.Distance(ball.position, hero.ThrowHand.position));
+                }
+                else if (!released)
+                {
+                    released = true;
+                    releasedAt = (float)Motion.PitchRelease + Get<float>(play, "_flight");
+                    releaseLocal = hero.transform.InverseTransformPoint(Get<Vector3>(play, "_relFrom"));
+                    handAtRelease = hero.transform.InverseTransformPoint(hero.ThrowHand.position);
+                    files.Add(CapturePitch(hero, name + "-release"));
+                }
+                if (frame == 33) files.Add(CapturePitch(hero, name + "-follow"));
+            }
+            var finish = hero.transform.InverseTransformPoint(hero.ThrowHand.position);
+            files.Add(CapturePitch(hero, name + "-finish"));
+            // Only after observing the live result, sample the authored take as
+            // an oracle. Snapping during the loop would hide a stalled crossfade.
+            hero.SetPose(Motion.Verb.ThrowPitch, (float)pitch.Charge01);
+            hero.SnapTick((float)Motion.PitchDur);
+            var finishError = Vector3.Distance(finish, hero.transform.InverseTransformPoint(hero.ThrowHand.position));
+            hero.SnapTick((float)Motion.PitchRelease);
+            var releaseError = Vector3.Distance(releaseLocal, hero.transform.InverseTransformPoint(hero.ThrowHand.position));
+            var travel = Vector3.Distance(handAtRelease, finish);
+            Require(released && releasedAt >= Motion.PitchRelease && releasedAt < Motion.PitchRelease + Step + .001,
+                name + " ball released outside the authored marker: " + releasedAt);
+            Require(travel > .25f && finishError < .02f,
+                name + " froze or missed its follow-through: travel=" + travel + ", finish error=" + finishError);
+            Require(clipCorrect, name + " discarded the committed charge when selecting its take.");
+            Require(heldError < .001f && releaseError < .02f,
+                name + " ball left the authored palm: hold=" + heldError + ", release=" + releaseError);
+            record(new GateCase { name = name, phase = Phase(play), charge = pitch.Charge01,
+                releaseAt = releasedAt, followTravel = travel, finishError = finishError,
+                releaseError = releaseError, heldError = heldError, images = files.ToArray() });
+        }
+
+        static string CapturePitch(HeroActor hero, string name)
+        {
+            var folder = Environment.GetEnvironmentVariable("GS_PITCH_MOTION_STILLS") ??
+                Path.Combine(Path.GetDirectoryName(Application.dataPath)!, "Temp", "pitch-motion");
+            Directory.CreateDirectory(folder);
+            var path = Path.Combine(folder, name + ".png");
+            var go = new GameObject("Pitch motion review camera");
+            var camera = go.AddComponent<Camera>();
+            camera.transform.position = hero.transform.TransformPoint(new Vector3(-10, 7, 13));
+            camera.transform.LookAt(hero.transform.position + Vector3.up * 3.5f);
+            camera.fieldOfView = 40;
+            var target = new RenderTexture(960, 720, 24);
+            var previous = RenderTexture.active;
+            var texture = new Texture2D(960, 720, TextureFormat.RGB24, false);
+            try
+            {
+                camera.targetTexture = target;
+                camera.Render();
+                RenderTexture.active = target;
+                texture.ReadPixels(new Rect(0, 0, 960, 720), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(path, texture.EncodeToPNG());
             }
             finally
             {
-                Controls.EndMatch();
-                if (_keyboard != null && _keyboard.added) InputSystem.RemoveDevice(_keyboard);
-                if (_pad2 != null && _pad2.added) InputSystem.RemoveDevice(_pad2);
-                if (_pad1 != null && _pad1.added) InputSystem.RemoveDevice(_pad1);
-                _keyboard = null;
-                _pad1 = _pad2 = null;
-                Write(evidence);
-                EditorApplication.isPlaying = false;
+                RenderTexture.active = previous;
+                camera.targetTexture = null;
+                target.Release();
+                UnityEngine.Object.DestroyImmediate(texture);
+                UnityEngine.Object.DestroyImmediate(target);
+                UnityEngine.Object.DestroyImmediate(go);
             }
+            return path;
         }
 
         static GateCase VerifyNormalTap(MatchDirector play)
@@ -423,6 +590,8 @@ namespace GrandSluggers.EditorTools
         {
             public string name;
             public string phase;
+            public float releaseAt, followTravel, finishError, releaseError, heldError;
+            public string[] images;
             public double charge;
             public double timingFrames;
             public double sprayAim;

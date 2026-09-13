@@ -22,7 +22,9 @@ A captain remains body scale, palette and accessories. Role players share the bo
 
 A regular swing starts ready, drives hips before hands, meets the ball at clip second 0.30, follows through at 0.50, and holds a balanced finish at 0.60. The charged swing exaggerates the coil, lead knee and finish. Holding charge samples the load; committing continues from the sample. The sim's existing timing warp still places Contact at the ball's arrival.
 
-Pitch phases are gather, lead-knee balance, separation/stride, arm cock, release and follow-through. Normal and charged pitches share the 0.42 release marker; charge exaggerates the balance and coil, not the ball's rules. The throwing hand must be forward of the chest and above shoulder level at release, with the opposite foot leading. The glove stays on the opposite hand through the whole delivery.
+Pitch phases are gather, lead-knee balance, separation/stride, arm cock, release and follow-through. Normal and charged pitches share the 0.42 release marker; charge exaggerates the balance and coil, not the ball's rules. The throwing hand must be forward of the chest and above shoulder level at release, with the opposite foot leading. The glove stays on the opposite hand through the whole delivery. Committed charge is taken from `PitchCommand.Charge01`, independent of the cleared charge-input meter. After release the body continues through clip second 0.70. Sampling the event clock must also advance the clip crossfade by the elapsed gameplay frame time; a zero-time marker sample must not become the clock for the whole delivery.
+
+Palm and glove-pocket transforms are attachment origins. A held ball and its release trajectory use that socket directly, without the former forearm offset. The ball remains attached until 0.42; delaying that marker is not a substitute for fixing a body stuck in the load pose.
 
 The fielding throw gathers from the glove, steps with the glove-side foot, releases at 0.18, and follows through across the body. It uses the sim's throw clock for every position, including catcher, relay and pitcher covering a bag.
 
@@ -93,3 +95,20 @@ Current Unity rest and swing-contact evidence:
 ![Rio swing contact](images/default-motion/rio-contact.png)
 
 Pending human review: compare the rhythm and poses of all six reference verbs against visible Peach footage, inspect glove seating and palm direction during live catches/throws, and play M-09 with keyboard/mouse and pads. No human gate has been passed by an agent. In particular, this work does not claim a frame-matched Peach reconstruction; recorded reference timestamps are still required before that claim can be made.
+
+## 9. Live pitch regression
+
+The first preview exposed a transition failure which snapped stills did not cover: `SampleMotion` updated take time but evaluated the crossfade with zero elapsed time, leaving the visible body on its preceding load. Committing a charged pitch also selected a normal clip because the input charge meter had been cleared. The revision-2 palm socket was still receiving the old forearm attachment offset.
+
+`AtBatInputGate.RunPitchMotion` exercises the real Controls → TickSet → TickFlight → DrawActors path with virtual pads. It checks normal/charged deliveries for right- and left-handed pitchers, yields Unity frames for skinning, captures load/release/follow/finish, and compares live release and finish positions with the authored take only **after** measuring the live result. The ball must remain at the palm before release, depart at 0.42 ± one frame, and the throwing hand must continue to its 0.70 finish. Snap-only tests cannot certify this transition.
+
+```sh
+GS_AT_BAT_INPUT_EVIDENCE=/tmp/pitch-motion.json GS_PITCH_MOTION_STILLS=/tmp/pitch-motion /Applications/Unity/Hub/Editor/6000.5.9f1/Unity.app/Contents/MacOS/Unity -projectPath "$PWD/unity" -executeMethod GrandSluggers.EditorTools.AtBatInputGate.RunPitchMotion -logFile /tmp/pitch-motion.log
+```
+
+The full input gate remains separately callable with `AtBatInputGate.Run`; selecting pitch-only does not claim the other input scenarios pass. Physical-controller feel and Jack's look approval remain separate from these automated checks.
+
+The corrected rendered run passed all four cases: the first released frame was 0.4333 seconds at 60 Hz, held-ball socket error was zero, and the live release/finish matched their authored positions within 0.000001 units. The hand traveled about 2.63 character-root units after release instead of remaining frozen. [Measured evidence](images/default-motion/pitch-motion.json). The full .NET suite passed 887 tests again.
+
+![Right-handed normal pitch finish](images/default-motion/pitch-R-normal-finish.png)
+![Left-handed charged pitch finish](images/default-motion/pitch-L-charge-finish.png)

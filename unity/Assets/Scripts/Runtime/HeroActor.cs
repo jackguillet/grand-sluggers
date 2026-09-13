@@ -132,11 +132,12 @@ namespace GrandSluggers.UnityClient
             _snap = false;
         }
 
-        /// <summary>Sample a timed verb on the same clock as its ball event.</summary>
-        public void SampleMotion(float poseTime)
+        /// <summary>Use the event clock for the take, and elapsed frame time for its crossfade.</summary>
+        public void SampleMotion(float poseTime, float dt = 0f)
         {
             _poseT = Mathf.Max(0, poseTime);
-            Tick(0f);
+            _t += dt;
+            TickVisual(dt);
         }
 
         /// <summary>
@@ -180,6 +181,11 @@ namespace GrandSluggers.UnityClient
         {
             _t += dt;
             _poseT += dt;
+            TickVisual(dt);
+        }
+
+        void TickVisual(float dt)
+        {
             if (_body != null)
             {
                 var g = (_grow ? 1.45f : 1f) * (_lit ? 1.18f : _hint ? 1.12f : 1f);

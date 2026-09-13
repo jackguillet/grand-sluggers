@@ -357,7 +357,7 @@ namespace GrandSluggers.UnityClient
             }
             var hero = PitcherHero();
             if (hero != null)
-                hero.SetPose(Motion.Verb.ThrowPitch, 0f, pitch.Type);
+                hero.SetPose(Motion.Verb.ThrowPitch, (float)pitch.Charge01, pitch.Type);
             // Cut, do not blend. SET→flight blending looks at dirt while the
             // ball stays in the hand (#301).
             _cam.Cut(AtBatShots.Pitch);

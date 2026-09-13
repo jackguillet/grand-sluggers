@@ -734,7 +734,7 @@ namespace GrandSluggers.UnityClient
             var hero = PitcherHero();
             var hand = hero != null ? hero.ThrowHand : null;
             if (hand != null)
-                _relFrom = hand.TransformPoint(0f, 0.1f, 0.52f);
+                _relFrom = hand.position;
             else
             {
                 var rel = PitchFlight.Release(_pitch != null ? _pitch.RubberX : 0);
