@@ -1,7 +1,8 @@
 {
-  "notes": "The two authored swings on hero-shared (#613), right-handed, in Unity batter-local axes (+X across the plate, +Y up, +Z the pitcher). Hands are the rendered fist centers on the handle, grip is the bat socket at the knob, barrel is the socket's grip-to-barrel direction; legs are the takes script's body terms (flex / abduct / twist degrees, lift in world units). tools/blender/hero_shared_takes.py solves every frame to these and bakes both hands; SwingPresentation.SlapKeys / ChargeKeys carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of docs/research-batting.md and are shared by both takes. The charge take holds its windup at 0 and its ready key at 0.075; the slap starts on that ready key with no windup. Both end on the held finish at 0.60.",
+  "notes": "The two authored swings on hero-shared (#613), right-handed, in Unity batter-local axes (+X across the plate, +Y up, +Z the pitcher). Hands are the rendered fist centers on the handle, grip is the bat socket at the knob, barrel is the socket's grip-to-barrel direction; legs are the takes script's body terms (flex / abduct / twist degrees, lift in world units). tools/blender/hero_shared_takes.py solves every frame to these and bakes both hands; SwingPresentation.SlapKeys / ChargeKeys carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of docs/research-batting.md and are shared by both takes. The charge take holds its windup at 0 and its ready key at 0.075; the slap starts on that ready key with no windup. Both end on the held finish at 0.60. batHeadClearance (#623) is the smallest surface-to-surface distance, in rig units, between the physical bat and the rendered head on every frame of both takes and the whole charge-up; the takes script refuses a take that comes closer.",
   "contactAt": 0.3,
   "finishAt": 0.6,
+  "batHeadClearance": 0.1,
   "takes": [
     {
       "id": "swing-slap",
@@ -10,24 +11,24 @@
         {
           "t": 0.0,
           "leftHand": [
-            0.361,
-            2.5938,
-            -0.5035
+            0.4688,
+            2.4914,
+            -0.6068
           ],
           "rightHand": [
-            0.3855,
-            3.0255,
-            -0.7341
+            0.5108,
+            2.9177,
+            -0.8447
           ],
           "grip": [
-            0.35,
-            2.4,
-            -0.4
+            0.45,
+            2.3,
+            -0.5
           ],
           "barrel": [
-            0.0501,
-            0.881,
-            -0.4705
+            0.0856,
+            0.87,
+            -0.4856
           ],
           "legs": {
             "lThigh": {
@@ -56,14 +57,14 @@
         {
           "t": 0.15,
           "leftHand": [
-            0.143,
-            2.24,
-            0.016
+            0.304,
+            2.1492,
+            0.0776
           ],
           "rightHand": [
-            0.416,
-            2.356,
-            -0.235
+            0.2551,
+            2.4526,
+            -0.304
           ],
           "grip": [
             0.326,
@@ -71,9 +72,9 @@
             0.249
           ],
           "barrel": [
-            -0.1,
-            0.62,
-            -0.78
+            -0.0999,
+            0.6191,
+            -0.7789
           ],
           "legs": {
             "lThigh": {
@@ -102,14 +103,14 @@
         {
           "t": 0.24,
           "leftHand": [
-            0.129,
-            1.798,
-            -0.14
+            0.1439,
+            1.7621,
+            -0.1275
           ],
           "rightHand": [
-            0.366,
-            1.729,
-            -0.547
+            0.3553,
+            1.7645,
+            -0.5695
           ],
           "grip": [
             0.049,
@@ -119,7 +120,7 @@
           "barrel": [
             0.4315,
             0.005,
-            -0.9022
+            -0.9021
           ],
           "legs": {
             "lThigh": {
@@ -148,14 +149,14 @@
         {
           "t": 0.3,
           "leftHand": [
-            0.124,
-            1.914,
-            -0.257
+            0.1024,
+            1.8781,
+            -0.2868
           ],
           "rightHand": [
-            0.458,
-            1.856,
-            -0.622
+            0.4841,
+            1.8915,
+            -0.5937
           ],
           "grip": [
             -0.069,
@@ -240,24 +241,24 @@
         {
           "t": 0.6,
           "leftHand": [
-            -0.1438,
-            2.6267,
-            0.0485
+            -0.1359,
+            2.5752,
+            0.0464
           ],
           "rightHand": [
-            -0.2414,
-            2.7974,
-            -0.4003
+            -0.2159,
+            2.7428,
+            -0.407
           ],
           "grip": [
             -0.1,
-            2.55,
+            2.5,
             0.25
           ],
           "barrel": [
-            -0.1991,
-            0.3485,
-            -0.9159
+            -0.1632,
+            0.342,
+            -0.9254
           ],
           "legs": {
             "lThigh": {
@@ -292,24 +293,24 @@
         {
           "t": 0.0,
           "leftHand": [
-            0.2632,
-            2.8981,
-            -0.5253
+            0.7371,
+            2.7414,
+            -0.4519
           ],
           "rightHand": [
-            0.2926,
-            3.3395,
-            -0.3145
+            0.8197,
+            3.1677,
+            -0.679
           ],
           "grip": [
-            0.25,
-            2.7,
-            -0.62
+            0.7,
+            2.55,
+            -0.35
           ],
           "barrel": [
-            0.06,
-            0.9007,
-            0.4303
+            0.1686,
+            0.87,
+            -0.4633
           ],
           "legs": {
             "lThigh": {
@@ -338,24 +339,24 @@
         {
           "t": 0.075,
           "leftHand": [
-            0.361,
-            2.5938,
-            -0.5035
+            0.4688,
+            2.4914,
+            -0.6068
           ],
           "rightHand": [
-            0.3855,
-            3.0255,
-            -0.7341
+            0.5108,
+            2.9177,
+            -0.8447
           ],
           "grip": [
-            0.35,
-            2.4,
-            -0.4
+            0.45,
+            2.3,
+            -0.5
           ],
           "barrel": [
-            0.0501,
-            0.881,
-            -0.4705
+            0.0856,
+            0.87,
+            -0.4856
           ],
           "legs": {
             "lThigh": {
@@ -384,14 +385,14 @@
         {
           "t": 0.15,
           "leftHand": [
-            0.143,
-            2.24,
-            0.016
+            0.304,
+            2.1492,
+            0.0776
           ],
           "rightHand": [
-            0.416,
-            2.356,
-            -0.235
+            0.2551,
+            2.4526,
+            -0.304
           ],
           "grip": [
             0.326,
@@ -399,9 +400,9 @@
             0.249
           ],
           "barrel": [
-            -0.1,
-            0.62,
-            -0.78
+            -0.0999,
+            0.6191,
+            -0.7789
           ],
           "legs": {
             "lThigh": {
@@ -430,14 +431,14 @@
         {
           "t": 0.24,
           "leftHand": [
-            0.129,
-            1.798,
-            -0.14
+            0.1439,
+            1.7621,
+            -0.1275
           ],
           "rightHand": [
-            0.366,
-            1.729,
-            -0.547
+            0.3553,
+            1.7645,
+            -0.5695
           ],
           "grip": [
             0.049,
@@ -447,7 +448,7 @@
           "barrel": [
             0.4315,
             0.005,
-            -0.9022
+            -0.9021
           ],
           "legs": {
             "lThigh": {
@@ -476,14 +477,14 @@
         {
           "t": 0.3,
           "leftHand": [
-            0.124,
-            1.914,
-            -0.257
+            0.1024,
+            1.8781,
+            -0.2868
           ],
           "rightHand": [
-            0.458,
-            1.856,
-            -0.622
+            0.4841,
+            1.8915,
+            -0.5937
           ],
           "grip": [
             -0.069,
@@ -568,24 +569,24 @@
         {
           "t": 0.6,
           "leftHand": [
-            -0.0948,
-            2.8721,
-            -0.0118
+            -0.1118,
+            2.65,
+            -0.0167
           ],
           "rightHand": [
-            0.028,
-            2.9212,
-            -0.4836
+            -0.0267,
+            2.65,
+            -0.4992
           ],
           "grip": [
             -0.15,
-            2.85,
+            2.65,
             0.2
           ],
           "barrel": [
-            0.2507,
-            0.1003,
-            -0.9628
+            0.1736,
+            0.0,
+            -0.9848
           ],
           "legs": {
             "lThigh": {
