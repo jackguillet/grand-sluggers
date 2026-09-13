@@ -17,28 +17,39 @@ public static class PlayStamp
         or PlayKind.CaughtStealing or PlayKind.StolenBase
         or PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun;
 
-    public static string Label(PlayEvent ev, int outsThisPlay) =>
-        ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
-
-    /// <summary>The stamp from the typed outcome (§15): the outs made on the play name DOUBLE PLAY / TRIPLE PLAY; a runner picked off is PICKED OFF.</summary>
+    /// <summary>
+    /// The stamp from the typed outcome (§15), never from caption text: the outs made name
+    /// DOUBLE PLAY / TRIPLE PLAY (a strikeout plus a caught stealing included, S-62); a runner
+    /// picked off is PICKED OFF; a sailed throw that let the offense take a bag is ERROR; one out
+    /// with the batter safe at first is FIELDER'S CHOICE; the catch feat names BUDDY JUMP / JUMP / DIVE.
+    /// </summary>
     public static string Label(PlayEvent ev) =>
-        ev == null ? "" : Label(ev.Kind, ev.Outcome?.Outs?.Count ?? ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt,
-            error: ev.Outcome?.Error ?? false, pickedOff: ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff);
+        ev == null ? "" : Label(ev.Kind, ev.Outcome?.Outs?.Count ?? ev.OutsOnPlay, ev.RunsScored,
+            feat: ev.Outcome?.DefensiveFeat ?? DefensiveFeat.None,
+            bunt: ev.Swing.Bunt,
+            error: ev.Outcome?.Error ?? false,
+            pickedOff: ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff,
+            fieldersChoice: ev.Outcome?.FieldersChoice ?? false);
 
+    /// <param name="feat">The catch feat on the typed outcome (§8.4): BUDDY JUMP, JUMP, DIVE.</param>
     /// <param name="error">A throw sailed and the offense took what it took (§8.5, §8.6): the stamp is ERROR, not the hit.</param>
     /// <param name="pickedOff">The out was a pickoff play (§11.4): PICKED OFF, not CAUGHT STEALING.</param>
+    /// <param name="fieldersChoice">One out on another body with the batter safe at first (§10.4).</param>
     public static string Label(PlayKind kind, int outsThisPlay, int runs,
-        bool bunt = false, bool dive = false, bool jump = false, bool error = false, bool pickedOff = false)
+        DefensiveFeat feat = DefensiveFeat.None, bool bunt = false, bool error = false,
+        bool pickedOff = false, bool fieldersChoice = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
         if (error && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.StolenBase) return Error;
         if (pickedOff && kind == PlayKind.CaughtStealing) return "PICKED OFF";
+        if (fieldersChoice && outsThisPlay == 1 && kind is PlayKind.GroundOut or PlayKind.FlyOut) return FieldersChoice;
+        if (feat == DefensiveFeat.BuddyJump && kind == PlayKind.FlyOut) return "BUDDY JUMP";
         if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
             return "BUNT";
-        if (jump && kind == PlayKind.FlyOut) return "JUMP";
-        if (dive && kind is PlayKind.GroundOut or PlayKind.FlyOut) return "DIVE";
+        if (feat is DefensiveFeat.Jump or DefensiveFeat.SuperJump or DefensiveFeat.Clamber && kind == PlayKind.FlyOut) return "JUMP";
+        if (feat == DefensiveFeat.Dive && kind is PlayKind.GroundOut or PlayKind.FlyOut) return "DIVE";
         return kind switch
         {
             PlayKind.HomeRun => "HOME RUN",
@@ -57,6 +68,17 @@ public static class PlayStamp
             _ => BroadcastHud.Headline(kind)
         };
     }
+
+    /// <summary>
+    /// The small mid-play tell a live cue pops (§9.6, §8.6): SAFE on the bang-bang body in ahead of
+    /// the ball, ERROR on the throw that skipped past its cover. Empty for every other cue.
+    /// </summary>
+    public static string LiveTell(LiveEvent cue) => cue switch
+    {
+        LiveEvent.StampSafe => Safe,
+        LiveEvent.ThrowSailed => Error,
+        _ => ""
+    };
 
     /// <summary>
     /// Outs this play. Inning flip zeros <see cref="Match.Outs"/>, so snapshot before Finish.
@@ -100,6 +122,7 @@ public static class PlayStamp
 
     public const string Safe = "SAFE";
     public const string Error = "ERROR";
+    public const string FieldersChoice = "FIELDER'S CHOICE";
 
     /// <summary>
     /// Hits and outs stamp on the live field camera. Counts stay on SET.

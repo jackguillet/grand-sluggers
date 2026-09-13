@@ -125,16 +125,23 @@ public sealed class FieldingResolver
     }
 
     /// <summary>The live glove verb the player actually completed on this catch.</summary>
-    public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, bool buddyJump, bool jumped)
+    /// <summary>
+    /// The feat the glove made the catch with (§8.4), typed for the outcome and the stamp (§15):
+    /// the buddy jump, a wall rob by ability, a plain jump in the window, or a dive.
+    /// </summary>
+    public static DefensiveFeat PlayerCatchFeat(FieldingPreview shown, Park park, bool buddyJump, bool jumped, bool dived = false)
     {
         if (buddyJump)
             return DefensiveFeat.BuddyJump;
-        if (!jumped || !shown.HomeRunLikely)
-            return DefensiveFeat.None;
-        if (ParkHazards.CanClamber(park, shown.Fielder))
-            return DefensiveFeat.Clamber;
-        if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
-            return DefensiveFeat.SuperJump;
+        if (jumped && shown.HomeRunLikely)
+        {
+            if (ParkHazards.CanClamber(park, shown.Fielder))
+                return DefensiveFeat.Clamber;
+            if (shown.Fielder.FieldAbility.Equals("super-jump", StringComparison.OrdinalIgnoreCase))
+                return DefensiveFeat.SuperJump;
+        }
+        if (jumped) return DefensiveFeat.Jump;
+        if (dived) return DefensiveFeat.Dive;
         return DefensiveFeat.None;
     }
 

@@ -1422,7 +1422,7 @@ public sealed class Match
                             caption = $"{caption} Sac fly.";
                         if (batterToBag == 1 && !(moment?.NarratesBatterAtFirst ?? false))
                             caption = $"{caption} {Batter.Name} in at first.";
-                        // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp stays OUT.
+                        // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp reads the typed flag.
                         if (FieldersChoiceNow(batterToBag))
                             caption = $"{caption} Fielder's choice.";
                         liveNarrated = true;

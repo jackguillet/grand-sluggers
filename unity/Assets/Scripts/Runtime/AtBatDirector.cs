@@ -63,7 +63,6 @@ namespace GrandSluggers.UnityClient
             _recoilT = 0;
             _bobbling = false;
             _diveT = _jumpT = _swapLock = 0;
-            _catchDive = _catchJump = false;
             _gloveAt.Clear();
             _starPitch = false;
             _starSwing = false;

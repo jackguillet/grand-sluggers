@@ -2028,8 +2028,9 @@ public sealed partial class LivePlaySystem
         var kind = LiveKind();
         var from = _firstGlove ?? GloveChar();
         var knock = pre.Grounder && hit is not null ? InPlay.KnockbackSec(InPlay.Energy(hit, R), from, R) : 0;
-        var feat = kind == PlayKind.FlyOut && _gloved
-            ? FieldingResolver.PlayerCatchFeat(pre, Park, Buddy, CatchJump)
+        // The catch feat is typed on the outcome (§8.4, §15): the stamp reads it, never the client's mirror.
+        var feat = kind is PlayKind.FlyOut or PlayKind.GroundOut && _gloved
+            ? FieldingResolver.PlayerCatchFeat(pre, Park, Buddy, CatchJump, CatchDive)
             : DefensiveFeat.None;
         return new FieldingResult(kind, from, ArmedCut, pre.HangTimeSec, pre.LandingX, pre.LandingZ, pre.Heatball, pre.Furnace,
             ArmedThrow, pre.Buddy, Warped: Field?.Warped ?? pre.Warped, Item: Field?.Item, Chomped: pre.Chomped,
