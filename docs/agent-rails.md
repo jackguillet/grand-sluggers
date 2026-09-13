@@ -68,7 +68,7 @@ End each session with a playable artifact of its kind before the next prompt: ga
 
 ## 2. Debug protocol (remember)
 
-✅ **R2 #649.** OpenGame's Debug Skill, as a catalog.
+✅ **R2 #649 / #656.** OpenGame's Debug Skill, as a catalog.
 
 `data/agent/debug-protocol.json` (name stable) holds entries. Load with `DebugProtocol.Load` or `dotnet run --project src/GrandSluggers.Cli -- protocol`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing.
 
@@ -217,7 +217,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | Child | Owns | Exit | Serves | Order |
 | --- | --- | --- | --- | --- |
 | **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
-| **R2. Debug protocol** #649 | §2, G2, G3 | ✅ `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
+| **R2. Debug protocol** #649 | §2, G2, G3 | ✅ #656. `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
 | **R3. Play traces** #650 | §3, G4 | Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | DCC still + in-game still required in the PR for character / kit changes. Critic files, does not pass. screenshot-gate and character-art skill updated. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
