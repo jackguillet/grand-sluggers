@@ -62,7 +62,7 @@ Buddy Badge (rare gear) treats all pairs as good for one game. Do not put it in 
 
 - 0–5 stars, shared by the team.
 - Spend 1 for the acting player’s star skill. A *guest* captain (not the team’s captain) spends 2.
-- Gain 0.5–1.0 on: hit, extra-base hit, strikeout, double play, robbed homer, park-feature hit.
+- Gain per event from `data/rules/stars.json` (`gains`): single 0.4, extra-base hit 0.8, home run 1, strikeout 0.8, out 0.35 / live out 0.4, stolen base 0.35, double play 1, robbed homer 1, billboard 1. Costs (`costs`) and the MVP point table (`mvp`) live in the same file (spec §12).
 - Star skills **cannot** be a free home run. They change the ball or the field.
 
 ## Batting (arcade)
@@ -116,13 +116,13 @@ Control a **named runner**. Default highlight is the lead runner (furthest along
 
 ## Error items (chemistry batting)
 
-If batter and on-deck are good chemistry, the offense throws a physical item **after contact**, during the fly, aimed at a fielder you can see. An item is a field effect with seconds (spec §12): a peel or a rocket keeps the body it lands on off the ball for 0.8 s, a POW keeps every ball on the dirt hopping for 0.8 s; the geometry then decides the play — no item converts an out into a hit. CPU still rolls banana / rocket / POW about 40% of the time.
+If batter and on-deck are good chemistry, the offense throws a physical item **after contact**, during the fly, aimed at a fielder you can see. An item is a field effect with geometry and seconds (spec §12, `batting.items`): it flies 0.9 s of play time and lands where the geometry says — the live ball then decides the play; no item converts an out into a hit, and no roll decides one. The CPU offense throws its offered item when it would matter: when the batter would be out at first by the glove's throw from the landing (`cpuThrowMarginSec`), a POW with a runner on and the ball on the dirt, a peel at the glove going for a ball on the dirt, a rocket at the body under a ball in the air.
 
-| Item | Effect (this pass) |
+| Item | Effect |
 | --- | --- |
-| Banana | Peel on the grass at the play fielder's feet — a would-be out becomes a single |
-| Rocket | Hit that fielder's body — 55% chance they are dazed and drop |
-| POW | Infield hop — ground outs become singles |
+| Banana | A peel on the grass at the aimed body's feet where it lands; it lies there 6 s and any body inside 5 ft of it slips for 0.8 s (the aimed body first) |
+| Rocket | Dazes the body it was aimed at for 0.8 s when it lands; North smashes it in the air |
+| POW | Every ball on the dirt hops, unscoopable, for 0.8 s |
 
 Aim with the stick, confirm with E / LT+RB / South+LT. Cycle banana / rocket / POW with RB. Pre-pitch E arm is not the product path. Smoke / ghost / paint are still banned as full-screen or queued. See research notes.
 
@@ -138,4 +138,4 @@ A park JSON lists: dimensions (fences), wind, surface (`grass` / `ice` / `deck` 
 
 ## MVP
 
-After the game, score plays not just box stats: robbed homers, buddy jumps, star-skill Ks, chemistry items that matter, stolen runs. Show one highlight. Cheap, do it in the slice.
+After the game, score plays not just box stats (spec §12, `stars.json` `mvp`): a walk-off hit names its hitter; otherwise the most points — HR 10, winning pitcher 5, go-ahead RBI 5, robbed homer / buddy jump 5, K 3, RBI 3, hit / walk / HBP / SB 1, close play won 2, item that mattered 2, putout 1. Show one highlight.

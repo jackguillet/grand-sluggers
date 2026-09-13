@@ -85,29 +85,20 @@ public static class ErrorItems
         return false;
     }
 
-    public static FieldingResult Apply(FieldingResult field, string item, Random rng, RulesTable? rules = null) =>
-        Apply(field, item, rng, null, rules);
-
     /// <summary>
-    /// Banana slips the play fielder (peel on the grass). Rocket has to hit that body
-    /// (batting.items.rocketDazeChance). POW is an infield hop — grounders only. Smoke/ghost/paint
-    /// are not items. The item is a field effect with a duration (§12): <see cref="FieldingResult.ItemHit"/>
-    /// says it landed on the body; the live ball then keeps that glove off the ball for the item's
-    /// seconds. It never converts an out into a caption.
+    /// The offense throws an item at a body (§12). The result records the throw; the live ball lands
+    /// it by geometry after <c>batting.items.flySec</c>: a banana is a peel on the grass where the body
+    /// stood, a rocket dazes the body only if it is still there, a POW hops every ball on the dirt.
+    /// No roll decides it, and it never converts an out into a caption. <see cref="FieldingResult.ItemHit"/>
+    /// says the item is live at <see cref="FieldingResult.ItemTarget"/>.
     /// </summary>
-    public static FieldingResult Apply(FieldingResult field, string item, Random rng, Character? target, RulesTable? rules = null)
+    public static FieldingResult Apply(FieldingResult field, string item, Character? target)
     {
         if (!Known(item)) return field;
         var id = item.Trim().ToLowerInvariant();
-        var onPlay = HitsPlay(field, id, target);
-        var lands = id switch
-        {
-            "banana" => onPlay,
-            "rocket" => onPlay && rng.NextDouble() < Rules.Or(rules).Batting.Items.RocketDazeChance,
-            "pow" => onPlay,
-            _ => false
-        };
-        return field with { Item = id, ItemHit = lands, ItemTarget = target ?? field.Fielder };
+        var who = target ?? field.Fielder;
+        var live = id == "pow" || who is not null;
+        return field with { Item = id, ItemHit = live, ItemTarget = who };
     }
 
     /// <summary>Seconds the item keeps its glove off the ball (batting.items).</summary>
@@ -126,19 +117,26 @@ public static class ErrorItems
     /// <summary>A POW hops every ball on the dirt: no glove scoops while it lasts. A peel or a rocket is one body.</summary>
     public static bool AffectsEveryGlove(string? item) => item?.Trim().ToLowerInvariant() == "pow";
 
+    /// <summary>A peel lies on the grass where it landed; anybody who steps on it slips (§12).</summary>
+    public static bool IsPeel(string? item) => item?.Trim().ToLowerInvariant() == "banana";
+
+    /// <summary>
+    /// The CPU offense's item, when it throws one (§12): a POW with a runner on and the ball on the dirt
+    /// (every glove hops, the runners run), a peel at the glove going for a ball on the dirt, a rocket at
+    /// the body under a ball in the air. A table, not a roll.
+    /// </summary>
+    public static string CpuPick(BattedBallClass shape, bool runnersOn) =>
+        shape.OnTheDirt() ? (runnersOn ? "pow" : "banana") : "rocket";
+
+    /// <summary>A body inside the peel's radius is on the peel.</summary>
+    public static bool OnPeel(double peelX, double peelZ, double bodyX, double bodyZ, RulesTable? rules = null) =>
+        Diamond.Dist(peelX, peelZ, bodyX, bodyZ) <= Rules.Or(rules).Batting.Items.PeelRadiusFt;
+
     /// <summary>Attack smashed the flying item: it never lands.</summary>
     public static FieldingResult Smash(FieldingResult field, bool grounder)
     {
         _ = grounder;
         if (string.IsNullOrEmpty(field.Item)) return field;
         return field with { Item = null, ItemHit = false, ItemTarget = null };
-    }
-
-    static bool HitsPlay(FieldingResult field, string item, Character? target)
-    {
-        if (target is null) return true;
-        if (item == "pow") return true;
-        return field.Fielder is not null
-            && field.Fielder.Id.Equals(target.Id, StringComparison.OrdinalIgnoreCase);
     }
 }

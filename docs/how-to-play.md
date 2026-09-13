@@ -55,6 +55,7 @@ The park is the poster: dirt and the diamond, from in front of the backstop. **G
 - **West / F** — Training drills on Harbor
 - **R3 / N** — night (sky gag)
 - **Tab** — 3 / 6 / 9 innings
+- **X / LB** — CPU difficulty EASY / NORMAL / HARD (the line under PLAY BALL reads both). Normal plays the rules as written; easy hesitates and mistracks more, hard reads faster and steals sharper.
 
 Captains and the field are two screens. The park does not follow the captain.
 
@@ -121,7 +122,7 @@ SET forks **by role in 1P**, and **stays behind home in 1v1**. **One controller,
 - **Take outside the white frame** — ball. Swing and miss outside it — strike.
 - **D-pad / 1 2 3 + South** — pickoff in SET. A runner on the bag is always safe: a beat, no play, no stamp. A runner who armed a steal in SET broke on your first motion and is caught between bags: the fielder at the bag throws ahead or chases, and the tag or the rundown decides. **PICKED OFF**. A throw that sails is live and they take the bag.
 - **Select / R** — opens the pitcher swap in SET: the card reads **SWAP → glove name**, stick / A-D / d-pad picks **any fielder**, Select / R again confirms, East / G closes. The new arm brings its own pool; the old pitcher takes the vacated glove. Once per half-inning. When the card reads TIRED (sweat), that is the moment.
-- **Start / H / Esc** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space / left click ok. Click a row. Wheel turns How to play pages. East / right click / Esc back. Tab on the title cycles 3 / 6 / 9 innings.
+- **Start / H / Esc** during SET or in-play — **call time**: Resume, Restart, How to play, Title. **WASD or arrows** choose. South / Space / left click ok. Click a row. Wheel turns How to play pages. East / right click / Esc back. Tab on the title cycles 3 / 6 / 9 innings; X / LB cycles the CPU difficulty.
 
 Star pitch owns the ball ~2 seconds. Scorebug mutes. Then baseball.
 

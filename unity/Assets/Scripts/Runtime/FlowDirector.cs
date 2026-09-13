@@ -82,6 +82,8 @@ namespace GrandSluggers.UnityClient
             }
             if (Controls.CyclePitch && _mode == PlayMode.Exhibition)
                 Innings = Innings == 3 ? 6 : Innings == 6 ? 9 : 3;
+            if (Controls.CycleDifficulty && _mode == PlayMode.Exhibition)
+                Difficulty = CpuRules.Next(Difficulty);
             if (_mode == PlayMode.Training)
             {
                 if (Key(KeyCode.A) || Key(KeyCode.LeftArrow) || Key(KeyCode.W) || Key(KeyCode.UpArrow))
@@ -452,7 +454,7 @@ namespace GrandSluggers.UnityClient
                     var away = _lineup.Away != null
                         ? _lineup.Away.ToTeam()
                         : PresetTeams.ForCaptain(_content, AwayCaptain);
-                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night);
+                    _match = Match.Exhibition(_content, _lineup.Home.ToTeam(), away, Innings, Seed, ParkId, Night, Difficulty);
                     RestoreGear(homeBat, homeGlove, awayBat, awayGlove);
                 }
             }

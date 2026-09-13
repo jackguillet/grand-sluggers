@@ -12,7 +12,7 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
-        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args));
+        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args));
         break;
     case "challenge":
         RunChallenge(content, CaptainId(args), Seed(args));
@@ -37,7 +37,7 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard]
               challenge [--captain rio] [--seed N]
               art
             """);
@@ -58,6 +58,14 @@ static string ParkId(string[] args)
         if (args[i] is "--park" or "-p")
             return args[i + 1];
     return "";
+}
+
+static string? Difficulty(string[] args)
+{
+    for (var i = 0; i < args.Length - 1; i++)
+        if (args[i] is "--difficulty" or "-d")
+            return args[i + 1];
+    return null;
 }
 
 static string HomeId(string[] args)
@@ -140,12 +148,12 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty)
 {
     var match = string.IsNullOrEmpty(parkId)
-        ? Match.Exhibition(content, home, away, innings: 3, seed: seed)
-        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId);
-    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}");
+        ? Match.Exhibition(content, home, away, innings: 3, seed: seed, difficulty: difficulty)
+        : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, difficulty: difficulty);
+    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
     Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
     while (!match.Over)
     {

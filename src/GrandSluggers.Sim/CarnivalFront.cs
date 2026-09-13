@@ -147,6 +147,12 @@ public static class CarnivalFront
 
     public static string SkyGag(bool night) => night ? "NIGHT" : "DAY";
 
+    /// <summary>The difficulty rung as the title prints it (cpu.json easy / normal / hard).</summary>
+    public static string DifficultyLabel(string level) => (CpuRules.IsLevel(level) ? level : "normal").ToUpperInvariant();
+
+    /// <summary>The two numbers the title owns, side by side: innings and the CPU rung.</summary>
+    public static string TitleSetup(int innings, string level) => $"{innings} INNINGS  ·  {DifficultyLabel(level)}";
+
     public static bool HarborIsTheProduct(string parkId) =>
         parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase);
 

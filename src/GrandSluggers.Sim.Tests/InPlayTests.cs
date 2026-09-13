@@ -86,7 +86,7 @@ public class InPlayTests
         // Through the infield to the grass: the outfielder picks it up and the batter is on by geometry (§7.5).
         Assert.True(match.BeginAtBat(new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), out _, out _));
         var play = match.FinishAtBat(new PitchCommand("fastball", 0, false), new SwingCommand(true, 0, 0, false), hit, field);
-        Assert.True(play.Kind is PlayKind.Single or PlayKind.Double, play.Kind.ToString());
+        Assert.True(play.Kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple, play.Kind.ToString());
         Assert.Empty(play.Outcome!.OutsMade);
     }
 

@@ -59,14 +59,18 @@ public sealed class Match
     public bool Over { get; private set; }
     public IReadOnlyList<PlayEvent> Log => _log;
     public ChemistryTable Chemistry => Content.Chemistry;
-    /// <summary>The rule numbers this match plays by (data/rules).</summary>
-    public RulesTable Rules => Content.Rules;
+    readonly RulesTable _rules;
+    /// <summary>The rule numbers this match plays by (data/rules), at this match's difficulty rung (§16 <c>cpu.json</c>).</summary>
+    public RulesTable Rules => _rules;
+    /// <summary>The difficulty rung in play: easy / normal / hard (<see cref="CpuRules.Levels"/>).</summary>
+    public string Difficulty => Rules.Cpu.Level;
     /// <summary>Portable command boundary for the ball between contact and Time.</summary>
     public LivePlaySystem LivePlay { get; }
 
-    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true)
+    public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null)
     {
         Content = content;
+        _rules = content.Rules.AtLevel(difficulty);
         Mercy = mercy;
         Away = away;
         Home = home;
@@ -132,10 +136,11 @@ public sealed class Match
         int innings = DefaultInnings,
         int seed = 1,
         string? parkId = null,
-        bool night = false)
+        bool night = false,
+        string? difficulty = null)
     {
         var (home, away) = PresetTeams.Pair(content, homeCaptain, awayCaptain);
-        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(homeCaptain), night);
+        return Exhibition(content, home, away, innings, seed, parkId ?? PresetTeams.HomeParkId(homeCaptain), night, difficulty);
     }
 
     public static Match Exhibition(
@@ -145,12 +150,13 @@ public sealed class Match
         int innings = DefaultInnings,
         int seed = 1,
         string? parkId = null,
-        bool night = false)
+        bool night = false,
+        string? difficulty = null)
     {
         parkId ??= PresetTeams.HomeParkId(home.Captain.Id);
         if (!content.Parks.TryGetValue(parkId, out var park))
             park = content.Parks["harbor-diamond"];
-        return new Match(content, away, home, park, innings, seed, night);
+        return new Match(content, away, home, park, innings, seed, night, difficulty: difficulty);
     }
 
     /// <summary>
@@ -458,7 +464,7 @@ public sealed class Match
         var batterShortOfFirst = runner.IsBatter && runner.Bag < 1;
         runner.Retire();
         RecordOut(type, atBag, fromBag, runner.Who, fielder, batterShortOfFirst);
-        AddMvp(fielder?.Id ?? Pitcher.Id, 2);
+        AddMvp(fielder?.Id ?? Pitcher.Id, Rules.Stars.Mvp.PutOut);
         AddStars(defense: true, Rules.Stars.Gains.LiveOut);
         SyncSelection();
         return true;
@@ -583,7 +589,7 @@ public sealed class Match
             error = LivePlay.ThrowSailed;
             foreach (var m in advances)
             {
-                AddMvp(m.Runner.Id, 2);
+                AddMvp(m.Runner.Id, Rules.Stars.Mvp.StolenBase);
                 AddStars(defense: false, Rules.Stars.Gains.StolenBase);
             }
             var named = string.Join(" ", advances.OrderByDescending(m => m.ToBag).Select(m => $"{m.Runner.Name} steals {InPlay.BagName(m.ToBag)}."));
@@ -1003,9 +1009,21 @@ public sealed class Match
         var who = target ?? field.Fielder;
         if (!string.IsNullOrEmpty(playerItem))
             return ThrowItem(field, playerItem, who);
-        if (_rng.NextDouble() < Rules.Batting.Items.CpuThrowChance)
-            return ThrowItem(field, ErrorItems.Pick(_rng), who);
-        return field;
+        return CpuWouldThrowItem(hit, field) ? ThrowItem(field, ErrorItems.CpuPick(hit.Class, RunnersOn().Any()), who) : field;
+    }
+
+    /// <summary>
+    /// The CPU offense reads the play the way its runners do (§9.9): the batter's slack at first against
+    /// the glove's throw from the landing. Under batting.items.cpuThrowMarginSec the item would matter and
+    /// it is thrown; a ball that is already a hit, or a fly it cannot help, keeps the item. No roll.
+    /// </summary>
+    public bool CpuWouldThrowItem(AtBatResult hit, FieldingResult field)
+    {
+        if (field.Fielder is null || hit.HomeRun) return false;
+        var batterAt = Rules.Running.BagSec.BatterStartSec + RunnerSystem.BagSec(Batter, Rules);
+        var throwAt = field.HangTimeSec + InPlay.ThrowReactionSec(field.Fielder, Rules)
+                      + InPlay.ThrowArrivalSec(field.LandingX, field.LandingZ, 1, null, Rules);
+        return throwAt - batterAt < Rules.Batting.Items.CpuThrowMarginSec;
     }
 
     /// <summary>
@@ -1014,7 +1032,7 @@ public sealed class Match
     public FieldingResult ThrowItem(FieldingResult field, string? item, Character? target)
     {
         if (string.IsNullOrEmpty(item)) return field;
-        return ErrorItems.Apply(field, item, _rng, target, Rules);
+        return ErrorItems.Apply(field, item, target);
     }
 
     /// <summary>
@@ -1227,15 +1245,35 @@ public sealed class Match
             AutoPlay();
     }
 
+    /// <summary>
+    /// The MVP (§12, stars.json mvp): a walk-off hit names its hitter; otherwise the most points on
+    /// either roster, the winning pitcher's points included once the game is over.
+    /// </summary>
     public (Character Who, int Points, string Why) Mvp()
     {
-        if (_mvp.Count == 0)
-            return (Home.Captain, 0, "showed up");
-        var id = _mvp.OrderByDescending(kv => kv.Value).First().Key;
+        var m = Rules.Stars.Mvp;
+        var points = new Dictionary<string, int>(_mvp, StringComparer.OrdinalIgnoreCase);
+        if (Over && HomeScore != AwayScore && _leadPitcherId is { } arm)
+            points[arm] = points.GetValueOrDefault(arm) + m.WinningPitcher;
+        var walkOff = WalkOffHitter();
+        string id;
+        if (walkOff is not null) id = walkOff.Id;
+        else if (points.Count == 0) return (Home.Captain, 0, "showed up");
+        else id = points.OrderByDescending(kv => kv.Value).First().Key;
         var who = Away.Roster.Concat(Home.Roster).First(c => c.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
-        var pts = _mvp[id];
-        var why = pts >= 8 ? "took over the diamond" : pts >= 4 ? "kept the line moving" : "did the little things";
+        var pts = points.GetValueOrDefault(id);
+        var why = pts >= m.TookOverAt ? "took over the diamond" : pts >= m.KeptMovingAt ? "kept the line moving" : "did the little things";
         return (who, pts, why);
+    }
+
+    /// <summary>The hitter whose hit ended the game in the home half with the winning run (§12), or null.</summary>
+    Character? WalkOffHitter()
+    {
+        if (!Over || _log.Count == 0) return null;
+        var last = _log[^1];
+        if (last.Context is not { Top: false } ctx || last.RunsScored <= 0) return null;
+        if (last.Kind is not (PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun)) return null;
+        return last.HomeScoreAfter > last.AwayScoreAfter && ctx.HomeScoreBefore <= ctx.AwayScoreBefore ? last.Batter : null;
     }
 
     public string BoxLine() =>
@@ -1266,7 +1304,7 @@ public sealed class Match
             return AfterPitch(Emit(swinging ? PlayKind.SwingMiss : PlayKind.TakeStrike, pitch, swing, hit, cap, 0, []));
         }
         ClearSteal();
-        AddMvp(Pitcher.Id, 2);
+        AddMvp(Pitcher.Id, Rules.Stars.Mvp.Strikeout);
         AddStars(defense: true, Rules.Stars.Gains.Strikeout);
         RecordOut(OutType.Strikeout, 0, 0, Batter, Pitcher);
         how ??= swinging ? "goes down swinging." : "is caught looking.";
@@ -1279,8 +1317,9 @@ public sealed class Match
     PlayEvent FinishWalk(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
         ClearSteal();
+        var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
-        AddMvp(Batter.Id, 1 + runs);
+        CreditBatter(Rules.Stars.Mvp.Walk, runs, ledBefore);
         var ev = Emit(PlayKind.Walk, pitch, swing, hit, $"{Batter.Name} walks.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
@@ -1290,8 +1329,9 @@ public sealed class Match
     PlayEvent FinishHitByPitch(PitchCommand pitch, SwingCommand swing, AtBatResult hit)
     {
         ClearSteal();
+        var ledBefore = OffenseLead;
         var (runs, scorers) = PlaceByWalk(Batter);
-        AddMvp(Batter.Id, 1 + runs);
+        CreditBatter(Rules.Stars.Mvp.HitByPitch, runs, ledBefore);
         var ev = Emit(PlayKind.HitByPitch, pitch, swing, hit, $"{Batter.Name} is hit.", runs, scorers,
             outcome: new PlayOutcome(BatterToBag: 1));
         NextBatter();
@@ -1311,6 +1351,8 @@ public sealed class Match
         var kind = field.Kind;
         var caption = "";
         var runs = 0;
+        var ledBefore = OffenseLead;
+        var mvp = Rules.Stars.Mvp;
         IReadOnlyList<string> scorers = [];
         var batterToBag = 0;
         // True once a branch built its caption from the live ball's own narration; otherwise
@@ -1333,7 +1375,6 @@ public sealed class Match
                 // Dead where it landed, rolled foul, or left the field, or was first touched foul (§5.6).
                 // Fewer than two strikes adds one; runners return; the at-bat continues.
                 if (Strikes < 2) Strikes++;
-                AddMvp(Batter.Id, 0);
                 ResetRunnersToBags();
                 caption = "Foul.";
                 break;
@@ -1342,7 +1383,7 @@ public sealed class Match
                 ChargeArm(Pitcher, Rules.Pitching.Stamina.HomerCost);
                 (runs, scorers) = ScoreEveryone();
                 batterToBag = 4;
-                AddMvp(Batter.Id, 5 + runs);
+                CreditBatter(mvp.HomeRun, runs, ledBefore);
                 AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                 caption = hit.StarSwingUsed is "furnace" or "heat-swing"
                     ? $"{Batter.Name} {hit.StarSwingUsed!.ToUpperInvariant()} - it's gone."
@@ -1356,7 +1397,7 @@ public sealed class Match
                     (runs, scorers) = AwardBases(2);
                     batterToBag = 2;
                     kind = PlayKind.Double;
-                    AddMvp(Batter.Id, 2 + runs);
+                    CreditBatter(mvp.Hit, runs, ledBefore);
                     AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                     caption = $"{Batter.Name} - over the fence on a hop. Ground-rule double.";
                     NextBatter();
@@ -1381,22 +1422,22 @@ public sealed class Match
                 switch (kind)
                 {
                     case PlayKind.HomeRun:
-                        AddMvp(Batter.Id, 5 + runs);
+                        CreditBatter(mvp.HomeRun, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.HomeRun);
                         caption = $"{Batter.Name} - all the way around!";
                         break;
                     case PlayKind.Triple:
-                        AddMvp(Batter.Id, 3 + runs);
+                        CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                         caption = $"{Batter.Name} triples.";
                         break;
                     case PlayKind.Double:
-                        AddMvp(Batter.Id, 2 + runs);
+                        CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.ExtraBaseHit);
                         caption = $"{Batter.Name} doubles.";
                         break;
                     case PlayKind.Single:
-                        AddMvp(Batter.Id, 2 + runs);
+                        CreditBatter(mvp.Hit, runs, ledBefore);
                         AddStars(defense: false, Rules.Stars.Gains.Single);
                         caption = moment is not null
                             ? moment.NarratesBatterAtFirst ? LivePlay.Caption : $"{LivePlay.Caption} {Batter.Name} in at first."
@@ -1406,6 +1447,16 @@ public sealed class Match
                         liveNarrated = true;
                         break;
                     default:
+                        // A run driven in by an out (the sac fly) is still the batter's RBI (§12); a chain of outs is the defense's star gain.
+                        if (runs > 0) CreditBatter(0, runs, ledBefore);
+                        if (_outsThisPlay.Count >= 2) AddStars(defense: true, Rules.Stars.Gains.DoublePlay);
+                        // A leap that took a ball clearing the fence (§8.4): the robbed homer, and the buddy who jumped with them.
+                        if (kind == PlayKind.FlyOut && field.Feat is DefensiveFeat.SuperJump or DefensiveFeat.Clamber or DefensiveFeat.BuddyJump && hit.HomeRun)
+                        {
+                            AddMvp(field.Fielder?.Id, mvp.RobbedHomer);
+                            if (field.Feat == DefensiveFeat.BuddyJump) AddMvp(field.Buddy?.Id, mvp.RobbedHomer);
+                            AddStars(defense: true, Rules.Stars.Gains.RobbedHomer);
+                        }
                         // A chain of outs names the chain (§10.4, §10.7) ahead of the last decision it narrated.
                         var chain = _outsThisPlay.Count >= 3 ? "Triple play! "
                             : _outsThisPlay.Count == 2 && moment is not { Verdict: InPlay.ThrowVerdict.TurnedTwo } ? "Double play. "
@@ -1443,6 +1494,10 @@ public sealed class Match
             AddStars(defense: false, Rules.Stars.Gains.Billboard);
             caption += "  Billboard STAR!";
         }
+
+        // The item that mattered (§12): it landed and the batter reached.
+        if (LivePlay.ItemLanded && batterToBag >= 1 && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.HomeRun)
+            AddMvp(Batter.Id, mvp.ItemMattered);
 
         if (field.Item is { } item)
         {
@@ -1769,12 +1824,36 @@ public sealed class Match
 
     void Score(Character who)
     {
+        _ = who;
+        var ledBefore = OffenseLead;
         if (Top) AwayScore++;
         else HomeScore++;
-        AddMvp(who.Id, 1);
+        // The arm that will be the winning pitcher (§12): the offense's own, whenever the offense takes the lead.
+        if (ledBefore <= 0 && OffenseLead > 0)
+            _leadPitcherId = (Top ? _awayPitcher : _homePitcher).Id;
         // Each run allowed costs the arm on the mound (spec §4.7).
         ChargeArm(Pitcher, Rules.Pitching.Stamina.RunCost);
     }
+
+    /// <summary>The offense's lead in runs (negative when trailing).</summary>
+    int OffenseLead => Top ? AwayScore - HomeScore : HomeScore - AwayScore;
+
+    /// <summary>The pitcher of the side that last took the lead (the winning pitcher if it holds, §12).</summary>
+    string? _leadPitcherId;
+
+    /// <summary>
+    /// The batter's MVP credit for the play (§12, stars.json mvp): the base points of the hit / walk /
+    /// HBP, an RBI per run driven in, and the go-ahead RBI on top when the play put the offense ahead.
+    /// </summary>
+    void CreditBatter(int basePoints, int runs, int ledBefore)
+    {
+        var m = Rules.Stars.Mvp;
+        var goAhead = runs > 0 && ledBefore <= 0 && OffenseLead > 0;
+        AddMvp(Batter.Id, basePoints + runs * m.Rbi + (goAhead ? m.GoAheadRbi : 0));
+    }
+
+    /// <summary>The seat that won a close play at a bag (§9.6, §12): the runner called safe, or the glove that tagged.</summary>
+    internal void CreditClosePlay(Character? who) => AddMvp(who?.Id, Rules.Stars.Mvp.ClosePlayWon);
 
     void SpendPitch(PitchCommand pitch)
     {

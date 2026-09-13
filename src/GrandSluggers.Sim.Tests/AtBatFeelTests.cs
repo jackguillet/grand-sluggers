@@ -403,7 +403,10 @@ public class AtBatFeelTests
         var nine = Match.Slice(_content, innings: 9, seed: 3);
         nine.AutoPlayGame();
         Assert.True(nine.Over);
-        Assert.True(nine.Inning >= 9);
+        // Nine innings, or the mercy rule ended it at the end of a half (spec §1, match.mercy).
+        var mercy = Math.Abs(nine.HomeScore - nine.AwayScore) >= _content.Rules.Match.Mercy.Runs
+                    && nine.Inning >= _content.Rules.Match.Mercy.FromInning;
+        Assert.True(nine.Inning >= 9 || mercy, $"ended {nine.Inning} innings {nine.AwayScore}-{nine.HomeScore}");
     }
 
     [Fact]
