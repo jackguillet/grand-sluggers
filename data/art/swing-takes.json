@@ -1,5 +1,5 @@
 {
-  "notes": "The two authored swings on hero-shared (#613), right-handed, in Unity batter-local axes (+X across the plate, +Y up, +Z the pitcher). Hands are the rendered fist centers on the handle, grip is the bat socket at the knob, barrel is the socket's grip-to-barrel direction; legs are the takes script's body terms (flex / abduct / twist degrees, lift in world units). tools/blender/hero_shared_takes.py solves every frame to these and bakes both hands; SwingPresentation.SlapKeys / ChargeKeys carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of docs/research-batting.md and are shared by both takes. The charge take holds its windup at 0 and its ready key at 0.075; the slap starts on that ready key with no windup. Both end on the held finish at 0.60. batHeadClearance (#623) is the smallest surface-to-surface distance, in rig units, between the physical bat and the rendered head on every frame of both takes and the whole charge-up; the takes script refuses a take that comes closer.",
+  "notes": "The two authored swings on hero-shared (#613), right-handed, in Unity batter-local axes (+X across the plate, +Y up, +Z the pitcher). Hands are the rendered fist centers on the handle, grip is the bat socket at the knob, barrel is the socket's grip-to-barrel direction; legs are the takes script's body terms (flex / abduct / twist degrees, lift in world units). tools/blender/hero_shared_takes.py solves every frame to these and bakes both hands; SwingPresentation.SlapKeys / ChargeKeys carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of docs/research-batting.md and are shared by both takes. The charge take holds its windup at 0 and its ready key at 0.075; the slap starts on that ready key with no windup. Both end on the held finish at 0.60. batHeadClearance (#623) is the smallest surface-to-surface distance, in rig units, between the physical bat and the rendered head on every frame of both takes and the whole charge-up; the takes script refuses a take that comes closer. The ready key leans the barrel out beside the head so the plate SET can see the hover (#560); do not hide it up the back of the skull.",
   "contactAt": 0.3,
   "finishAt": 0.6,
   "batHeadClearance": 0.1,
@@ -11,24 +11,24 @@
         {
           "t": 0.0,
           "leftHand": [
-            0.4688,
-            2.4914,
-            -0.6068
+            0.6485,
+            2.5102,
+            -0.5863
           ],
           "rightHand": [
-            0.5108,
-            2.9177,
-            -0.8447
+            0.8455,
+            2.9338,
+            -0.7341
           ],
           "grip": [
-            0.45,
-            2.3,
-            -0.5
+            0.56,
+            2.32,
+            -0.52
           ],
           "barrel": [
-            0.0856,
-            0.87,
-            -0.4856
+            0.4021,
+            0.86451,
+            -0.30157
           ],
           "legs": {
             "lThigh": {
@@ -339,24 +339,24 @@
         {
           "t": 0.075,
           "leftHand": [
-            0.4688,
-            2.4914,
-            -0.6068
+            0.6485,
+            2.5102,
+            -0.5863
           ],
           "rightHand": [
-            0.5108,
-            2.9177,
-            -0.8447
+            0.8455,
+            2.9338,
+            -0.7341
           ],
           "grip": [
-            0.45,
-            2.3,
-            -0.5
+            0.56,
+            2.32,
+            -0.52
           ],
           "barrel": [
-            0.0856,
-            0.87,
-            -0.4856
+            0.4021,
+            0.86451,
+            -0.30157
           ],
           "legs": {
             "lThigh": {

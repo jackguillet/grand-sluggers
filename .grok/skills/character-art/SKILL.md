@@ -62,3 +62,9 @@ After a sitting or a failed still: **file** the child under the epic that owns t
 The charge windup still `swing-{rio,brondo}-max-load` put the barrel through the skull. The DCC validator checked hands on the handle, not bat versus head. The sim test that required the loaded barrel to rise pushed it upward. The take baked, tested, and captured green with the bat inside the head.
 
 Lesson: **extend the falsifier**, do not loosen it. `BatHeadClearance` refuses a take that misses it; sim samples both takes, both hands, and the whole charge-up (`SwingPresentationTests.TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp`). Do not pose the bat in C#. Tune the windup key in `hero_shared_takes.py` / `data/art/swing-takes.json`. Do not shrink the head to save the still.
+
+### Bat hidden behind the head at ready — `swing-*-normal-ready` (#560, `bat-behind-head-at-ready`)
+
+From the plate SET the ready barrel sat inside the head disk. The take met `SwingPresentation.Keys` and `BatHeadClearance` — 3D-beside is not the same as beside on the plate camera. Tuning `shots.json` cannot pull the barrel out inside the SET constraints (`PlateIsBehindHomeLookingAtThePitcher`).
+
+Lesson: **lean the ready key out**, do not retune the plate camera and do not shrink the head. `PlateLoadedBesideDeg` is the falsifier (`SwingPresentationTests.TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera`). The charge MAX windup already stood beside (#623); ready has to as well.

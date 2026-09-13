@@ -327,6 +327,55 @@ public class SwingPresentationTests
     }
 
     [Fact]
+    public void TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera()
+    {
+        // #560: the plate SET hid the ready barrel in the head disk. Tuning
+        // that shot cannot pull it out inside the SET constraints; the ready
+        // key has to stand the bat beside the head. MAX already did (#623).
+        var plate = ContentCatalog.Load().Shots.Must("plate");
+        Assert.Equal(HomeSet.CamX, plate.Pos.X, 6);
+        Assert.Equal(HomeSet.CamZ, plate.Pos.Z, 6);
+        foreach (var body in SwingPresentation.SharedCaptains)
+        foreach (var hand in new[] { Hand.R, Hand.L })
+        {
+            // Ready only: the sitting was SET at no charge. MAX already stands
+            // beside on Rio (#623); Zig's squat scale still hides that windup.
+            var ready = SwingPresentation.At(
+                SwingPresentation.HeldLoadAt(0), hand, SwingTake.Charge);
+            var beside = SwingPresentation.BarrelBesideHeadDeg(ready, hand, plate, body);
+            Assert.True(
+                beside >= SwingPresentation.PlateLoadedBesideDeg,
+                $"{body} {hand} ready: barrel hides in the plate head disk ({beside:0.00} deg)");
+            var slap = SwingPresentation.At(SwingPresentation.LoadAt, hand, SwingTake.Slap);
+            Assert.True(
+                SwingPresentation.BarrelBesideHeadDeg(slap, hand, plate, body)
+                    >= SwingPresentation.PlateLoadedBesideDeg,
+                $"{body} {hand} slap ready hides in the plate head disk");
+        }
+    }
+
+    [Fact]
+    public void BarrelBesideHeadCatchesTheReadyKeyThatHidInTheSkull()
+    {
+        var plate = ContentCatalog.Load().Shots.Must("plate");
+        // The #560 sitting: barrel up the back of the head, −1.3° from plate.
+        var hidden = new SwingPresentation.Key(
+            0,
+            new Vec3(0.4688, 2.4914, -0.6068),
+            new Vec3(0.5108, 2.9177, -0.8447),
+            new Vec3(0.45, 2.3, -0.5),
+            new Vec3(0.0856, 0.87, -0.4856),
+            -0.2);
+        Assert.True(
+            SwingPresentation.BarrelBesideHeadDeg(hidden, Hand.R, plate) < 0,
+            "the sitting-found ready key must fail the beside-head gate");
+        Assert.True(
+            SwingPresentation.BarrelBesideHeadDeg(
+                SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Slap),
+                Hand.R, plate) >= SwingPresentation.PlateLoadedBesideDeg);
+    }
+
+    [Fact]
     public void TheFinishHoldsThroughTheStampUntilSetOrTheFirstStep()
     {
         var feel = ContentCatalog.Load().Feel;

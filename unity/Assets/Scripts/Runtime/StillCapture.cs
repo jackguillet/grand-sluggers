@@ -531,6 +531,34 @@ namespace GrandSluggers.UnityClient
                 failures.Add(
                     $"{captain} {power} {beat}: the bat passes through the head "
                     + $"(surface clearance {headClearance:0.00})");
+            // #560: the plate SET must see the loaded barrel beside the head.
+            // Measure from HomeSet's plate camera, not this smash diagnostic shot.
+            var besideHeadDeg = 0f;
+            if (headMeasured && (beat == "ready" || (beat == "load" && power == "normal")))
+            {
+                var plateCam = new Vector3(
+                    (float)HomeSet.CamX, (float)HomeSet.CamY, (float)HomeSet.CamZ);
+                var head = renderedHead.Center;
+                var headR = Mathf.Min(renderedHead.Extents.x,
+                    Mathf.Min(renderedHead.Extents.y, renderedHead.Extents.z));
+                var toHead = head - plateCam;
+                var distHead = toHead.magnitude;
+                var angR = distHead > headR
+                    ? Mathf.Asin(Mathf.Clamp01(headR / distHead)) * Mathf.Rad2Deg
+                    : 180f;
+                for (var sample = 0; sample <= 24; sample++)
+                {
+                    var along = sample / 24f;
+                    if (along < (float)SwingPresentation.BesideWoodFrom) continue;
+                    var p = Vector3.Lerp(physicalBat.BarrelStart, physicalBat.BarrelEnd, along);
+                    var sep = Vector3.Angle(toHead, p - plateCam);
+                    besideHeadDeg = Mathf.Max(besideHeadDeg, sep - angR);
+                }
+                if (sharedRigMetrics && besideHeadDeg < (float)SwingPresentation.PlateLoadedBesideDeg)
+                    failures.Add(
+                        $"{captain} {power} {beat}: loaded barrel hides in the head from the plate camera "
+                        + $"(beside {besideHeadDeg:0.00} deg)");
+            }
             var plateMin = new Vector3(
                 (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
                 (float)(SwingPresentation.PlateBandY - 1.2 - physicalBat.BarrelRadius),
@@ -587,6 +615,7 @@ namespace GrandSluggers.UnityClient
                 + ",\"barrelStartRoot\":[" + SwingVector(physicalBat.RootBarrelStart) + "]"
                 + ",\"headMeasured\":" + (headMeasured ? "true" : "false")
                 + ",\"headClearance\":" + SwingNumber(headClearance)
+                + ",\"besideHeadDeg\":" + SwingNumber(besideHeadDeg)
                 + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
                 + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
                 + ",\"leftHandExtents\":[" + SwingVector(renderedLeft.Extents) + "]"
