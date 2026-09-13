@@ -16,6 +16,7 @@ namespace GrandSluggers.UnityClient
 
         SharedRig.Chain _chain;
         Transform _root, _body, _torso, _head, _lArm, _rArm, _lFore, _rFore, _batSocket, _bat, _batModel, _glove, _lThigh, _rThigh, _lShin, _rShin, _ring;
+        Transform _glovePocket;
         ClipPlayer _player;
         Motion.Verb _verb = Motion.Verb.Idle;
         float _charge;
@@ -48,8 +49,8 @@ namespace GrandSluggers.UnityClient
         public string Id => _id;
         public Motion.Verb Current => _verb;
         public float PoseTime => _poseT;
-        public Transform CatchHand => _glove != null ? _glove : (_throwsLeft ? _rFore : _lFore);
-        public Transform ThrowHand => _throwsLeft ? _lFore : _rFore;
+        public Transform CatchHand => _glovePocket != null ? _glovePocket : (_throwsLeft ? _rFore : _lFore);
+        public Transform ThrowHand => _chain == null ? null : (_throwsLeft ? _chain.LRelease : _chain.RRelease);
         /// <summary>Which heading the body is turning toward this frame (spec §8.2, <see cref="BodyFacing"/>).</summary>
         public BodyFacing.Source Facing => _heading.Source;
 
@@ -295,15 +296,16 @@ namespace GrandSluggers.UnityClient
         {
             _gloveVisual = visual ?? "glove-brown";
             if (_glove != null) Destroy(_glove.gameObject);
-            var hand = _throwsLeft ? _rFore : _lFore;
+            var hand = _throwsLeft ? _chain.RGlove : _chain.LGlove;
             if (hand == null) return;
             var go = new GameObject("Glove");
             go.transform.SetParent(hand, false);
-            go.transform.localPosition = new Vector3(0, -0.72f, 0.12f);
-            go.transform.localRotation = Quaternion.Euler(20, 0, 0);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
             var gold = _gloveVisual == "glove-gold";
             go.transform.localScale = Vector3.one * ToyMesh.GloveRootScale(gold);
-            if (!TryDropToy(_gloveVisual, go.transform) && !TryDropToy("glove-brown", go.transform))
+            var mesh = BaseballEquipment.GloveMesh(_throwsLeft ? Hand.L : Hand.R, gold);
+            if (!TryDropToy(mesh, go.transform))
             {
                 var leather = gold
                     ? Look.Lit(new Color(0.92f, 0.74f, 0.18f), smooth: 0.32f)
@@ -311,6 +313,10 @@ namespace GrandSluggers.UnityClient
                 Look.Prim(PrimitiveType.Sphere, "Palm", go.transform, Vector3.zero, Vector3.one * 0.7f, leather);
             }
             _glove = go.transform;
+            _glovePocket = new GameObject("Pocket").transform;
+            _glovePocket.SetParent(_glove, false);
+            var pocket = BaseballEquipment.GlovePocket;
+            _glovePocket.localPosition = new Vector3((float)pocket.X, (float)pocket.Y, (float)pocket.Z);
         }
 
         /// <summary>Which take, at what time. Nothing here rotates a bone.</summary>

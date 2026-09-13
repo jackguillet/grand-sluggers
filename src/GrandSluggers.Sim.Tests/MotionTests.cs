@@ -25,7 +25,7 @@ public class MotionTests
     {
         // The held windup is the charge take a MAX release continues (#613).
         Assert.Equal(Motion.CueFor(Motion.Verb.ChargeSwing).Clip, Motion.CueFor(Motion.Verb.Swing, 1).Clip);
-        Assert.Equal(Motion.CueFor(Motion.Verb.ChargePitch).Clip, Motion.CueFor(Motion.Verb.ThrowPitch).Clip);
+        Assert.Equal(Motion.CueFor(Motion.Verb.ChargePitch).Clip, Motion.CueFor(Motion.Verb.ThrowPitch, 1).Clip);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargeSwing).Clock);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargePitch).Clock);
         Assert.Equal(Motion.Clock.Verb, Motion.CueFor(Motion.Verb.Swing).Clock);
@@ -36,7 +36,7 @@ public class MotionTests
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();
-        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "throw", "checkSwing", "bunt", "miss" }, handed);
+        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "pitch-charge", "throw", "checkSwing", "bunt", "miss" }, handed);
         foreach (var verb in Motion.Verbs)
         {
             var clip = Motion.CueFor(verb).Clip;
@@ -53,7 +53,7 @@ public class MotionTests
         Assert.Equal("swing-charge-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R, charge01: 1));
         Assert.Equal("swing-charge", Motion.ClipFile(Motion.Verb.ChargeSwing, Hand.R, Hand.L));
         Assert.Equal("pitch-L", Motion.ClipFile(Motion.Verb.ThrowPitch, Hand.R, Hand.L));
-        Assert.Equal("pitch", Motion.ClipFile(Motion.Verb.ChargePitch, Hand.L, Hand.R));
+        Assert.Equal("pitch-charge", Motion.ClipFile(Motion.Verb.ChargePitch, Hand.L, Hand.R));
         Assert.Equal("throw-L", Motion.ClipFile(Motion.Verb.Throw, Hand.L, Hand.L));
         Assert.Equal("run", Motion.ClipFile(Motion.Verb.Run, Hand.L, Hand.L));
         Assert.Equal("jump", Motion.ClipFile(Motion.Verb.Clamber, Hand.L, Hand.L));
