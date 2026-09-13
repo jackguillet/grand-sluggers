@@ -50,8 +50,8 @@ public readonly record struct ChargeButtonStep(
     double CommitSecondsPastFull);
 
 /// <summary>
-/// One release-edge swing, captured before a presentation phase can change.
-/// SET and Flight both resolve this same immutable intent exactly once.
+/// One Flight release-edge swing, captured before presentation can change.
+/// SET may build charge state, but its release does not create an intent (spec §3).
 /// </summary>
 public readonly record struct SwingInputIntent(
     bool Committed,
