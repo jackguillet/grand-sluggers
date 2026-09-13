@@ -156,7 +156,7 @@ public sealed class LiveBallScenarioTests
         var who = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher)[pos];
         var lockout = match.Rules.Fielding.Reaction.LockoutSec(pos);
         var moving = Math.Max(0, Frame * 30 - lockout);
-        var expected = FieldingResolver.ChaseSpeedFt(who, preview.Frozen, match.Rules) * moving;
+        var expected = FieldingResolver.ChaseSpeedFt(who, pos, preview, match.Rules) * moving;
         var moved = match.LivePlay.GloveX - before.GloveX;
         Assert.InRange(moved, expected * 0.5, expected * 1.05);
     }
