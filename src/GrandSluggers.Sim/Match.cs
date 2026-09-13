@@ -232,6 +232,9 @@ public sealed class Match
     double _lastAirSec;
     /// <summary>The CPU steal table runs once per at-bat (§11.6).</summary>
     bool _cpuStealDecided;
+    // The CPU batter's square (§5.9, §7.3): read once per pitch at SET, spent at the plate plane.
+    bool _cpuSquareDecided;
+    bool _cpuSquared;
 
     sealed record PlayOrigin(PlayContext Context, Character Batter, Character Pitcher);
     PlayOrigin? _pendingPlay;
@@ -787,7 +790,7 @@ public sealed class Match
         pitch = PreparePitch(pitch);
         if (!BeginAtBat(pitch, swing, out var hit, out var finished))
             return StealThrowPending ? RunStealPlay(finished!) : finished!;
-        var preview = PreviewHit(hit);
+        var preview = PreviewHit(hit, swing);
         var field = ResolveFielding(hit, preview);
         field = ApplyOffenseItem(hit, field, item);
         return RunLive(pitch, swing, hit, preview, field, LiveSeats.CpuOnly);
@@ -906,6 +909,9 @@ public sealed class Match
         finished = null;
         if (Over) throw new InvalidOperationException("game over");
         BeginPlay();
+        // The square was spent on this pitch's swing; the next pitch reads it again at SET (§5.9).
+        _cpuSquareDecided = false;
+        _cpuSquared = false;
 
         pitch = PreparePitch(pitch);
         // One crossing for the umpire, the body, and the bat: the shown pitch is the judged pitch (§3).
@@ -960,15 +966,26 @@ public sealed class Match
     public PlayEvent FinishAtBat(PitchCommand pitch, SwingCommand swing, AtBatResult hit, FieldingResult field)
     {
         if (!LivePlay.Active)
-            return RunLive(pitch, swing, hit, PreviewHit(hit), field, LiveSeats.CpuOnly);
+            return RunLive(pitch, swing, hit, PreviewHit(hit, swing), field, LiveSeats.CpuOnly);
         CurrentPlay();
         var played = FinishInPlay(pitch, swing, hit, field);
         EndIfWalkOff();
         return FinishEvent(played);
     }
 
-    public FieldingPreview PreviewHit(AtBatResult hit) =>
-        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night, Defense.Gloves);
+    /// <summary>
+    /// The defense's read of the batted ball (§8.2). With the batter squared (<paramref name="swing"/>, §7.3) the
+    /// routes start from the bodies the square left — the corners in, the middle on the bags — so the glove picked
+    /// at contact is the crashing corner when it gets there first.
+    /// </summary>
+    public FieldingPreview PreviewHit(AtBatResult hit, SwingCommand? swing = null) =>
+        _fielding.Preview(hit, Park, Defense.Roster, Pitcher, _rng, Night, Defense.Gloves, SquareSpots(swing));
+
+    /// <summary>The defense as the batter's square left it (§7.3), or null with no square.</summary>
+    public Dictionary<string, (double X, double Z)>? SquareSpots(SwingCommand? swing) =>
+        BuntDefense.Squared(swing)
+            ? BuntDefense.Spots(FieldingResolver.Assign(DefenseRoster, Pitcher, Defense.Gloves), swing!.SquareSec, Rules)
+            : null;
 
     public FieldingResult ResolveFielding(AtBatResult hit, FieldingPreview? preview = null) =>
         _fielding.Resolve(hit, Park, Defense.Roster, Pitcher, _rng, DefenseGlove, preview, Night, Defense.Gloves);
@@ -1136,13 +1153,16 @@ public sealed class Match
         var zone = CpuZoneClass(cx, cy, inZone, c);
         var take = new SwingCommand(false, 0, 0, false);
 
-        // Sac bunt: runner on first only, no outs, a light bat, close game.
-        var trailing = (Top ? HomeScore - AwayScore : AwayScore - HomeScore);
-        if (inZone && First is not null && Second is null && Third is null && Outs == 0
-            && bat <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax && _rng.NextDouble() < c.SacBuntChance)
+        // Sac bunt (§5.9, §7.3): the square was read at SET (<see cref="CpuSquaresBunt"/>); in the zone it is the
+        // bunt, out of it the batter pulls back and takes — the corners are in either way, that is the tell's cost.
+        if (CpuSquaresBunt())
+        {
+            var squareSec = c.SacBuntSquareSec;
+            if (!inZone) return take with { SquareSec = squareSec };
             return new SwingCommand(true, 0, Gauss() * c.SacBuntErrorSigma * level.TimingSigmaMul, false,
                 Gauss() * c.SacBuntSpraySigma, Bunt: true, LaunchAim: c.SacBuntLaunchAim,
-                BoxOffsetX: CpuTrackedBox(cx, c, level));
+                BoxOffsetX: CpuTrackedBox(cx, c, level), SquareSec: squareSec);
+        }
 
         var swing = zone switch
         {
@@ -1217,6 +1237,28 @@ public sealed class Match
         return a.Balanced;
     }
 
+    /// <summary>The CPU batter is squared to bunt on this pitch (§7.3): the tell a human pitcher sees before the pitch.</summary>
+    public bool CpuSquared => _cpuSquared;
+
+    /// <summary>
+    /// The CPU batter's sac-bunt read (§5.9's row), once per pitch at SET so the square is a tell the defense
+    /// reads before the pitch (§7.3): runner on first only, no outs, a light bat, a close game, at the table's
+    /// chance, on the one seeded stream. At the plate plane the square is the bunt if the pitch is in the zone
+    /// and a take otherwise (<see cref="CpuSwing"/>). Idempotent for the pitch; <see cref="BeginAtBat"/> clears it.
+    /// </summary>
+    public bool CpuSquaresBunt()
+    {
+        if (_cpuSquareDecided) return _cpuSquared;
+        if (Over || Outs >= 3 || LivePlay.Active) return false;
+        _cpuSquareDecided = true;
+        var c = Rules.Batting.Cpu;
+        var trailing = Top ? HomeScore - AwayScore : AwayScore - HomeScore;
+        _cpuSquared = First is not null && Second is null && Third is null && Outs == 0
+                      && Batter.Stats.Bat <= c.SacBuntBatMax && trailing <= c.SacBuntTrailMax
+                      && _rng.NextDouble() < c.SacBuntChance;
+        return _cpuSquared;
+    }
+
     /// <summary>
     /// The CPU offense's steal decision (§11.6): the runner AI's table, once per at-bat at SET, on
     /// the one seeded stream. A perfect arm is the windup's; the rest are SET's, exposed to the pickoff.
@@ -1240,6 +1282,7 @@ public sealed class Match
     {
         CpuConsidersSwap();
         CpuArmSteal();
+        CpuSquaresBunt();
         var pickoffBag = CpuPickoffBag();
         if (pickoffBag > 0 && Pickoff(pickoffBag) is { } pickoff)
             return pickoff;

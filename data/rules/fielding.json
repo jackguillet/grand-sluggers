@@ -155,5 +155,20 @@
     "emberNightFireMul": 1.6,
     "pipeReachPadFt": 8,
     "shellWarpChance": 0.6
+  },
+  // #625, spec §7.3: the batter squares at the West press and the defense reads it before the pitch. The corners
+  // crash crashFt toward the plate at their own chase speed, coverFirst / coverSecond walk to their bags at the cover
+  // speed, and after contact every charge body converges on the ball (the glove is still the earliest route, §8.2).
+  // The throw follows §8.8 with the bunt's rows: the batter at first by default, the lead force only on a bunt at or
+  // above hardExitMph, home on a squeeze only from inside squeezeHomeFt.
+  "bunt": {
+    "crashFt": 25,
+    "crash": ["1B", "3B"],
+    "coverFirst": "2B",
+    "coverSecond": "SS",
+    "charge": ["P", "C", "1B", "3B"],
+    "chargeStopFt": 6,
+    "squeezeHomeFt": 30,
+    "hardExitMph": 36
   }
 }
