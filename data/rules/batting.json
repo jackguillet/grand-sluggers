@@ -116,6 +116,9 @@
     "sacBuntErrorSigma": 2.2,
     "sacBuntSpraySigma": 10,
     "sacBuntLaunchAim": 0.35,
+    // #625: the headless CPU batter squares this long before the plate time (the square is read at SET, spec §5.9, §7.3):
+    // the client's SET to the plate, feel.pitcherReadySeconds 0.55 + the release at 0.42 + the pitch's air time.
+    "sacBuntSquareSec": 1.8,
     "starChance": 0.2,
     "errorFramesPerBatStat": 0.62,
     "fooledMinFrames": 4,

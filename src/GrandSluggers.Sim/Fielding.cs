@@ -9,14 +9,21 @@ public sealed class FieldingResolver
     public static readonly IReadOnlyList<string> OutfieldPursuitPositions = ["LF", "CF", "RF"];
     /// <summary>A foul flight near the lines (§7.11).</summary>
     public static readonly IReadOnlyList<string> FoulPursuitPositions = ["C", "1B", "3B", "LF", "RF"];
+    /// <summary>A bunt (§7.3): the pitcher, the catcher and the crashing corners; the middle infielders cover first and second (<see cref="BuntDefense"/>).</summary>
+    public static readonly IReadOnlyList<string> BuntPursuitPositions = ["P", "C", "1B", "3B"];
 
-    /// <summary>The pursuit pool for a class (§8.2): dirt and ropes to the infield, pops to the air pool plus the corners, flies to the air pool.</summary>
+    /// <summary>The pursuit pool for a class (§8.2): dirt and ropes to the infield, a bunt to its four, pops to the air pool plus the corners, flies to the air pool.</summary>
     public static IReadOnlyList<string> PursuitPool(BattedBallClass shape, bool foul)
     {
         if (foul) return FoulPursuitPositions;
+        if (shape == BattedBallClass.Bunt) return BuntPursuitPositions;
         if (shape.OnTheDirt() || shape == BattedBallClass.Liner) return InfieldPursuitPositions;
         return shape == BattedBallClass.Pop ? PopPursuitPositions : AirPursuitPositions;
     }
+
+    /// <summary>The infield pool for a ball on the dirt by its shape (§8.2): the bunt's four, else the six.</summary>
+    public static IReadOnlyList<string> InfieldPool(BattedBallClass shape) =>
+        shape == BattedBallClass.Bunt ? BuntPursuitPositions : InfieldPursuitPositions;
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -34,7 +41,8 @@ public sealed class FieldingResolver
         Character pitcher,
         Random rng,
         bool night = false,
-        IReadOnlyDictionary<string, Character>? gloves = null)
+        IReadOnlyDictionary<string, Character>? gloves = null,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null)
     {
         // One flight for the preview, the ring, and the homer call (§5.6): the clipped path in this park.
         var ball = BattedBall.Of(hit, park, _rules);
@@ -53,6 +61,7 @@ public sealed class FieldingResolver
             seed,
             park,
             samples,
+            at,
             readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
