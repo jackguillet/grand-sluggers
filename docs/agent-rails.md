@@ -93,7 +93,7 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ## 3. Play traces (see baseball without Unity)
 
-✅ **R3 #650.** Cousin: S-90 (same seed + commands → identical `PlayEvent` stream), S-01…S-92, `cli match --seed 7`, S-29 over fifty seeds.
+✅ **R3 #650 / #657.** Cousin: S-90 (same seed + commands → identical `PlayEvent` stream), S-01…S-92, `cli match --seed 7`, S-29 over fifty seeds.
 
 A play is still decided by geometry (ball, runner, glove, bag). The dump is how an agent *looks* at that geometry at reasoning speed. The sim still owns the verdict; the JSON is observation.
 
@@ -217,7 +217,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | --- | --- | --- | --- | --- |
 | **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
 | **R2. Debug protocol** #649 | §2, G2, G3 | ✅ #656. `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
-| **R3. Play traces** #650 | §3, G4 | ✅ Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
+| **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | DCC still + in-game still required in the PR for character / kit changes. Critic files, does not pass. screenshot-gate and character-art skill updated. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
