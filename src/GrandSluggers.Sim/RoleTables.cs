@@ -57,7 +57,7 @@ public static class RoleTables
     [
         new("batting", "Batting",
         [
-            new("Move batter", "Stick L/R. Down resets."),
+            new("Move batter", "Stick L/R. Resets each pitch."),
             new("Normal swing", "Tap South"),
             new("Charge swing", "Hold South; release at MAX"),
             new("Star swing", "North + South"),
@@ -106,7 +106,7 @@ public static class RoleTables
     [
         new("batting", "Batting",
         [
-            new("Move batter", "A/D or mouse. S resets."),
+            new("Move batter", "A/D or mouse. Resets each pitch."),
             new("Normal swing", "Tap Space / left click"),
             new("Charge swing", "Hold Space / left click; release at MAX"),
             new("Star swing", "Q + Space"),
