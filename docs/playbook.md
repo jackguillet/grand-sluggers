@@ -1,6 +1,6 @@
 # Playbook — how a phase runs
 
-How Phase P (plays like Sluggers) went from "it works but it is raw" to code-complete in one day, 2026-09-12, so the next phase runs the same way instead of rediscovering it. Companion to [AGENTS.md](../AGENTS.md) (the standing order) and [roadmap.md](roadmap.md) (the sequence). Checkpoint tag: `checkpoint-phase-p` on `main`.
+How Phase P (plays like Sluggers) went from "it works but it is raw" to code-complete in one day, 2026-09-12, so the next phase runs the same way instead of rediscovering it. Companion to [AGENTS.md](../AGENTS.md) (the standing order), [roadmap.md](roadmap.md) (the sequence), and [agent-rails.md](agent-rails.md) (how agents inherit this playbook). Checkpoint tag: `checkpoint-phase-p` on `main`.
 
 ## The shape
 
@@ -79,7 +79,8 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Status tags, gap audit with lines, scenario ids, numbered decisions.
 - Epics own sections; prompts are self-contained; one worktree per session.
 - Verify `main`, rebuild the window, name the revision.
-- File findings; never patch from a sitting note.
+- File findings; never patch from a sitting note. When R2 (#649) ships, append the signature to `data/agent/debug-protocol.json` in the same PR as the fix (R7 #654).
+- Declare the session kind (gameplay / presentation / art) and stay in its file list ([agent-rails.md](agent-rails.md) §1).
 
 ## What to do better
 
