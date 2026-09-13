@@ -46,6 +46,10 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | D9 | Infield fly, balk, dropped third strike, intentional walk, DH | None. | Neither game has them. |
 | D10 | Steal of home | Legal (armed from third). ✅ P6 | Nothing in the reference forbids it; the catcher's zero-length throw makes it rare. |
 | D11 | Flat bag-cover speed | Keep (it is how the reference moves covers), but as a data number. | Superstar datamine: constant cover speed starting 14 frames after the hit. |
+| D12 | Box position between pitches | **Recenters after every pitch.** Down still recenters early in SET. | Jack's call (sitting 2026-09-12, #607). The reference persists the box with a reset button; overridden for readability. |
+| D13 | When you press to swing | **The window is centered on the ball reaching the plate** (minus a small authored lead), and the swing take is time-warped so the bat meets the ball inside the window. Outside the window the take plays at its natural length and misses. | Superstar datamine: "the timing of the contact is constant, the animation is lengthened / shortened to make contact." Replaces the fixed press + 0.30 s plane (#612). |
+| D14 | In-play camera | **One cut on contact** to the in-play view that follows the ball; **the bag camera only for a close play** at third or home (and, optionally, once on a steal throw). No swoop to the bag on ordinary throws. | Both booklets document one cut on contact and a base-locked camera only for the close play (#610). |
+| D15 | Fence height | **One number**: the park's `fenceHeightFt` drives both the flight clip and the drawn wall; a gate asserts they match. The Harbor value is Jack's call (recommended 12 ft). | Sitting 2026-09-12: the drawn Harbor wall was 26 ft over an 8 ft sim fence (#608). |
 
 ---
 
@@ -113,7 +117,7 @@ Rules:
 
 - **The judged pitch is the shown pitch.** The strike/ball/contact verdict is computed from the same trajectory the batter sees, including in-flight break. The CPU batter commits at the decision instant (plate − 0.30 s − `batting.cpu.decideLeadSec`) from the trajectory as it stands then, exactly like a human who has pressed; the judgment reads the final crossing (`AtBatMotion.CpuDecisionTime`, `CommitCpuSwing`). ✅ P1 (S-04)
 - **A swing before release is a swing.** It resolves as an early miss (strike) with the bat arriving 0.30 s after the press. A press during SET is ignored (it is not a swing yet): the hold still builds a charge, the release does not commit (`ChargeButton.Advance(commits: false)`). ✅ P1 (S-14, S-15)
-- **Box and rubber positions persist** across pitches of the same at-bat; Down resets (SET only). The next hitter starts centered. ✅ P1 (S-16)
+- **The box recenters after every pitch** (D12, #607); Down recenters early in SET; the pitcher's rubber persists. ⚠️ Today the box persists across the at-bat (`Match.NextBatter`, P1 S-16) — S-16 is re-expressed under D12.
 - **Nothing advances baseball while a seat is disconnected** (how-to-play.md, two controllers). ✅
 
 ---
@@ -231,7 +235,7 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 
 ### 5.3 Timing — the window and direction
 
-`err` = (bat-plane time − ball-plate time) in frames at 60 Hz, bat plane = press + 0.30 s (`Motion.SwingContact`).
+`err` = (press time − (ball-plate time − `window.leadSec`)) in frames at 60 Hz (D13, #612). The take's `Contact` mark (`Motion.SwingContact`, 0.30 into the take) is warped onto the ball's plate time for any press inside the window; the mark is an animation contract, not the judgment. ⚠️ Today the judgment is press + 0.30 vs the plate time.
 
 - **Window**: slap **9 frames**, charge **7 frames** (reference), + (contact − 5) × 0.4, × skill multipliers (`star-skills.json` `batterWindowMul`) × the park's, **floored at 5 frames** (`batting.window`). The window is a total width: the bat is on the plane when |err| ≤ half of it. Outside it the bat is not on the plane: **miss**, strike. The Charge Bat keeps the slap window. ✅ P1 (S-08, S-09, S-10, S-30; `AtBatResolver.ContactWindowFrames`)
 - Inside the window, timing does **not** change quality (D4). It changes **direction**: early contact **pulls**, late contact **pushes** (opposite field). Linear across the window: earliest frame ≈ 55° toward the pull line (`spray.timingDeg`), center ≈ straight at second, latest ≈ 55° toward the opposite line. Stick L/R at contact shifts the whole range by ±12° (`spray.stickDeg`). The zone adds its spread (`spray.*SpreadDeg`). ✅ P1 (S-07, S-08)
@@ -440,7 +444,7 @@ Common to all live plays:
 
 - On contact the sim plans a route per candidate to the **landing** (fly) or the **first reachable point** (roller) and picks the earliest meet, then shortest travel (`FieldingPursuit.Better`). Ties: CF over corners, SS over 2B, infielder over pitcher. ✅
 - Pools: infield dirt → P, C, 1B, 2B, 3B, SS. Air → LF, CF, RF, SS, 2B (+ C, 1B, 3B on pops in their sector). Grass → LF, CF, RF. ✅
-- **Reaction lockout** after contact before a body moves, by position (reference frames → seconds): P 0.42, C 0.67, 1B 0.27, 2B 0.25, 3B 0.30, SS 0.28, **OF 2.4** (P7: the outfielder's read; 0.83 let the outfield reach every fly and liner on the stretched clock, S-29). The camera cut to the diamond happens at 0.42 (`feel.contactCutSeconds`, ✅ P8). Data (`fielding.reaction`). ✅ P4: every body, the human's stick glove included; the pursuit planner counts the lockout in its routes, so the glove picked at contact is the one whose body gets there first. The infield lockouts, the one glove speed (§8.1) and the CPU throw delay (§8.8) are the numbers the §10.4 double-play rows were tuned on and P7 left them alone.
+- **Reaction lockout** after contact before a body moves, by position (reference frames → seconds): P 0.42, C 0.67, 1B 0.27, 2B 0.25, 3B 0.30, SS 0.28, **OF 2.4** (P7: the outfielder's read; 0.83 let the outfield reach every fly and liner on the stretched clock, S-29). The camera cut to the diamond happens at 0.42 (`feel.contactCutSeconds`, ✅ P8). Data (`fielding.reaction`). ✅ P4: every body, the human's stick glove included; the pursuit planner counts the lockout in its routes, so the glove picked at contact is the one whose body gets there first. The infield lockouts, the one glove speed (§8.1) and the CPU throw delay (§8.8) are the numbers the §10.4 double-play rows were tuned on and P7 left them alone. **Sitting 2026-09-12 (#609): the lockout is real seconds, never longer than the ball's remaining hang, applies to the human glove at the reference length only, and difficulty scales the CPU's; S-29 is held with another lever, not the read.**
 - The **YOU** ring names the glove; Select/R swaps to the pulsing next-nearest. Dead stick = CPU runs that glove. ✅
 
 ### 8.3 Catch
