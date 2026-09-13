@@ -38,7 +38,7 @@
       "pos": { "x": 0, "y": 54, "z": -54 },
       "target": { "x": 0, "y": 0, "z": 0 },
       "fov": 50,
-      "blend": 8
+      "blend": 0
     },
     {
       "id": "diamond-fly",
@@ -46,7 +46,7 @@
       "pos": { "x": 0, "y": 72, "z": -72 },
       "target": { "x": 0, "y": 0, "z": 0 },
       "fov": 56,
-      "blend": 8
+      "blend": 0
     },
     {
       "id": "diamond-grounder",
@@ -57,36 +57,12 @@
       "blend": 7
     },
     {
-      "id": "diamond-pull",
-      "look": "ball",
-      "pos": { "x": -30, "y": 11, "z": 40 },
-      "target": { "x": -8, "y": 2, "z": 80 },
-      "fov": 48,
-      "blend": 7
-    },
-    {
-      "id": "diamond-line",
-      "look": "ball",
-      "pos": { "x": 18, "y": 14, "z": 18 },
-      "target": { "x": 4, "y": 5, "z": 90 },
-      "fov": 46,
-      "blend": 6
-    },
-    {
-      "id": "diamond-homer",
-      "look": "ball",
-      "pos": { "x": 14, "y": 28, "z": 80 },
-      "target": { "x": 0, "y": 22, "z": 340 },
-      "fov": 44,
-      "blend": 7
-    },
-    {
       "id": "tag",
       "look": "bag",
       "pos": { "x": 6, "y": 4.6, "z": -8 },
       "target": { "x": 0, "y": 1.0, "z": 0 },
       "fov": 36,
-      "blend": 4
+      "blend": 0
     },
     {
       "id": "throw",
@@ -94,7 +70,7 @@
       "pos": { "x": 0, "y": 6.2, "z": -14 },
       "target": { "x": 0, "y": 1.4, "z": 0 },
       "fov": 40,
-      "blend": 5
+      "blend": 0
     },
     {
       "id": "smash",

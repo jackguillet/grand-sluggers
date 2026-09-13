@@ -5,10 +5,12 @@ namespace GrandSluggers.Sim;
 /// the pitch: 1P follows the role (mound when pitching, plate when batting), 1v1 stays behind
 /// home. In play the beat is decided from typed live state, never from a caption: a grounder is
 /// the 45° follow on the dirt under the ball (<c>diamond</c>), a liner or fly pulls back
-/// (<c>diamond-fly</c>), a home run is the <c>smash</c> override at the crack, a throw sits on the
-/// bag it is going to (<c>throw</c>), a close play is the bag cam (<c>tag</c>), a steal or pickoff is
-/// <c>throw</c> on the play's bag, a rundown follows the ball between the bags. The same table for
-/// 1P and 1v1; the client owns no Vector3 of its own.
+/// (<c>diamond-fly</c>), a home run is the <c>smash</c> override at the crack. The follow stays on the
+/// ball through every ordinary throw (D14); the only bag cam is the close play (<c>tag</c>, §9.6), and
+/// a steal or pickoff sits once on the play's bag (<c>throw</c>). A rundown follows the ball between the
+/// bags. Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
+/// keeps a target for <c>cameraHoldSeconds</c>. The same table for 1P and 1v1; the client owns no
+/// Vector3 of its own.
 /// </summary>
 public static class PlayCamera
 {
@@ -22,7 +24,6 @@ public static class PlayCamera
         Fly,
         Homer,
         Wall,
-        Throw,
         Tag,
         Smash,
         StealThrow,
@@ -38,7 +39,7 @@ public static class PlayCamera
     /// <summary>Same 45°, farther back and a little more FOV so a fly has grass.</summary>
     public const string InPlayFly = "diamond-fly";
 
-    /// <summary>The bag cam a throw lands on (§15): the ball and the body arrive in one frame.</summary>
+    /// <summary>The steal / pickoff bag cam (§15, D14): once, on the pitch's catch, since the ball's whole trip is to that bag.</summary>
     public const string ThrowShot = "throw";
 
     /// <summary>The close-play bag cam (§9.6, §15): tighter than the throw, on the tag.</summary>
@@ -64,7 +65,7 @@ public static class PlayCamera
             Beat.Set or Beat.PitchFlight => set,
             Beat.Fly or Beat.Line or Beat.Homer or Beat.Wall => InPlayFly,
             Beat.Smash => SmashShot,
-            Beat.Throw or Beat.StealThrow => ThrowShot,
+            Beat.StealThrow => ThrowShot,
             Beat.Tag => TagShot,
             _ => InPlay
         };
@@ -79,8 +80,6 @@ public static class PlayCamera
         double ElapsedSeconds,
         AtBatResult? Hit,
         bool RunnerPlay,
-        bool Throwing,
-        int ThrowBag,
         bool ClosePlay,
         int CloseBag,
         bool Rundown,
@@ -90,9 +89,11 @@ public static class PlayCamera
         Vec3 Batter);
 
     /// <summary>
-    /// Which beat the live ball is in. Priority: the runner play sits on its bag; a home run smashes at
-    /// the crack; every other hit holds the SET shot for <see cref="FeelTable.ContactCutSeconds"/>; then
-    /// the close play, the throw, the rundown, and finally the class read from the typed hit.
+    /// Which beat the live ball is in (§15, D14). Priority: the runner play sits on its bag; a home run
+    /// smashes at the crack; every other hit holds the SET shot for <see cref="FeelTable.ContactCutSeconds"/>;
+    /// then the close play (third or home, inside the margin — the only bag cam on a batted ball), the
+    /// rundown, and finally the class read from the typed hit. An ordinary throw is not a beat: the
+    /// follow stays on the ball, and the receiver is in frame because the ball is going there.
     /// </summary>
     public static Beat LiveBeat(LiveView v, FeelTable feel)
     {
@@ -101,7 +102,6 @@ public static class PlayCamera
         if (hit != null && hit.HomeRun && v.SmashLeft > 0) return Beat.Smash;
         if (hit != null && !hit.HomeRun && v.ElapsedSeconds < feel.ContactCutSeconds) return Beat.Set;
         if (v.ClosePlay && v.CloseBag > 0) return Beat.Tag;
-        if (v.Throwing && v.ThrowBag > 0) return Beat.Throw;
         if (v.Rundown) return Beat.Rundown;
         return hit != null ? BeatFrom(hit) : Beat.Grounder;
     }
@@ -110,10 +110,12 @@ public static class PlayCamera
     public static int BeatBag(Beat beat, LiveView v) => beat switch
     {
         Beat.Tag => v.CloseBag,
-        Beat.Throw => v.ThrowBag,
         Beat.StealThrow => v.PlayBag,
         _ => 0
     };
+
+    /// <summary>A beat whose camera sits on a bag rather than following the ball.</summary>
+    public static bool IsBagBeat(Beat beat) => beat is Beat.Tag or Beat.StealThrow;
 
     /// <summary>
     /// The frame for this beat, from the named shot in <paramref name="shots"/>: null while the SET shot
@@ -123,16 +125,75 @@ public static class PlayCamera
     public static Framing? LiveFraming(CameraShots shots, LiveView v, FeelTable feel)
     {
         var beat = LiveBeat(v, feel);
+        return Frame(shots, v, beat, BeatBag(beat, v));
+    }
+
+    /// <summary>
+    /// The live frame through the hold (§15, D14): the beat this frame wants, kept or changed by
+    /// <paramref name="hold"/> so a target change inside <see cref="FeelTable.CameraHoldSeconds"/> does not re-aim.
+    /// </summary>
+    public static Framing? LiveFraming(CameraShots shots, LiveView v, FeelTable feel, CameraHold hold)
+    {
+        var want = LiveBeat(v, feel);
+        var (beat, bag) = hold.Step(want, BeatBag(want, v), v.ElapsedSeconds, feel.CameraHoldSeconds);
+        return Frame(shots, v, beat, bag);
+    }
+
+    /// <summary>The frame for a given beat and bag: null for SET, the bag cam on the bag, the smash on the batter, else the follow.</summary>
+    public static Framing? Frame(CameraShots shots, LiveView v, Beat beat, int bag)
+    {
         if (beat == Beat.Set) return null;
         var shot = shots.Must(Shot(beat));
-        var bag = BeatBag(beat, v);
-        if (bag > 0)
+        if (IsBagBeat(beat) && bag > 0)
         {
             var at = Diamond.Bag(bag);
             return FollowBag(shot, at.X, at.Z);
         }
         if (beat == Beat.Smash) return Smash(shot, v.Batter);
         return FollowGround(shot, v.Ball);
+    }
+
+    /// <summary>
+    /// Hysteresis on the live camera's target (D14, #610): a beat, and for a bag beat its bag, is kept for at
+    /// least <c>cameraHoldSeconds</c> of play time before another may take the camera. A bag beat keeps the
+    /// bag it opened on until the beat itself ends, so a steal is one shot. The play clock starting over
+    /// (a new play) takes the first target at once.
+    /// </summary>
+    public sealed class CameraHold
+    {
+        /// <summary>A frame edge that lands on the hold by float addition still counts as the hold having passed.</summary>
+        const double HoldEpsilon = 1e-9;
+
+        public Beat Beat { get; private set; } = Beat.Set;
+        public int Bag { get; private set; }
+        public double Since { get; private set; } = double.NaN;
+
+        public (Beat Beat, int Bag) Step(Beat want, int wantBag, double now, double holdSeconds)
+        {
+            if (double.IsNaN(Since) || now < Since)
+                Take(want, wantBag, now);
+            else if (want == Beat && (wantBag == Bag || (IsBagBeat(want) && Bag > 0)))
+            {
+                // Same target: the follow rides the ball; a bag beat stays on its first bag.
+            }
+            else if (now - Since >= holdSeconds - HoldEpsilon)
+                Take(want, wantBag, now);
+            return (Beat, Bag);
+        }
+
+        public void Reset()
+        {
+            Beat = Beat.Set;
+            Bag = 0;
+            Since = double.NaN;
+        }
+
+        void Take(Beat beat, int bag, double now)
+        {
+            Beat = beat;
+            Bag = bag;
+            Since = now;
+        }
     }
 
     /// <summary>
@@ -195,7 +256,12 @@ public static class PlayCamera
     /// Translate a named shot so its authored look sits on <paramref name="subject"/>.
     /// Wall and live fly/homer are follow-cams, not a second JSON park still.
     /// </summary>
-    public readonly record struct Framing(string Shot, Vec3 Pos, Vec3 Look, double Fov);
+    /// <param name="Blend">The shot's authored <c>blend</c> from <c>shots.json</c>: how the rig enters and tracks it. 0 is a cut.</param>
+    public readonly record struct Framing(string Shot, Vec3 Pos, Vec3 Look, double Fov, int Blend)
+    {
+        /// <summary>The rig cuts to this frame instead of blending (blend 0).</summary>
+        public bool Cut => Blend <= 0;
+    }
 
     public static Framing Follow(CameraShot shot, Vec3 subject) =>
         new(
@@ -205,7 +271,8 @@ public static class PlayCamera
                 shot.Pos.Y + subject.Y - shot.Target.Y,
                 shot.Pos.Z + subject.Z - shot.Target.Z),
             subject,
-            shot.Fov);
+            shot.Fov,
+            shot.Blend);
 
     /// <summary>Dirt under the ball. Looking at the airborne ball tilts the grass out of frame.</summary>
     public static Vec3 GroundUnder(double x, double y, double z)
@@ -227,7 +294,8 @@ public static class PlayCamera
             shot.Id,
             new Vec3(at.X + shot.Pos.X, at.Y + shot.Pos.Y, at.Z + shot.Pos.Z),
             new Vec3(at.X + shot.Target.X, at.Y + shot.Target.Y, at.Z + shot.Target.Z),
-            shot.Fov);
+            shot.Fov,
+            shot.Blend);
 
     /// <summary>Degrees below horizontal. 90 is straight down, 45 is the in-play look.</summary>
     public static double LookDownDeg(CameraShot shot)
