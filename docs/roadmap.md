@@ -57,7 +57,7 @@ Large systems: write a design (`docs/` or a GitHub epic), then execute children.
 
 ### Agentic rails (#647)
 
-Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 / #346. R5 is later and does not block Exhibition.
+Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 / #346. R1–R4 and R7 shipped. R6 is in progress. R5 is later and does not block Exhibition.
 
 | Child | Rail | Status |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 
 | R3 #650 | Play traces (tick JSON) | #657 |
 | R4 #651 | Dual stills + critic that files | #659 |
 | R5 #652 | Unity CLI observation only | later |
-| R6 #653 | Stage-save DCC | ❌ |
+| R6 #653 | Stage-save DCC | in progress |
 | R7 #654 | Distill sittings into protocol / tests | #660 |
 
 ---

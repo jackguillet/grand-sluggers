@@ -6,7 +6,7 @@ The bar is not a one-shot playable demo. The bar is the stack in [AGENTS.md](../
 
 Companion docs: [playbook.md](playbook.md) (how a phase runs), [roadmap.md](roadmap.md) (sequence), [gameplay-spec.md](gameplay-spec.md) (baseball), [art-rails.md](art-rails.md) (slots), [character-motion.md](character-motion.md) (takes), [screenshot-gate.md](screenshot-gate.md) (stills). Feel numbers stay in `data/feel/`. Rule numbers stay in `data/rules/`. Art slots stay in `data/art/`. Agent memory that must survive a session lives in `data/agent/`.
 
-Status tags used throughout, first checked against `f419603` (2026-09-13). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work.
+Status tags used throughout, first checked against `f419603` (2026-09-13) and re-checked against `fdd752f` (2026-09-13, after R1–R4 and R7: #655–#657, #659, #660). A ✅ names the PR that closed it. Appendix A keeps the gaps as the work. R6 (#653) is in progress.
 
 | Tag | Meaning |
 | --- | --- |
@@ -41,10 +41,10 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D3 | Where do meshes live? | **Python scripts that export FBX**, not authored `.blend` as source. | Paper Route item 4; already `tools/blender/*.py`. |
 | D4 | Which pictures falsify art? | **DCC still and in-game still.** Both in the PR. Agents stop. | Paper Route item 6 ("cap doesn't cover the hair"). Named paths: `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png`, `tools/still-gate-character.sh` → `char-{id}-rest.png` / `char-{id}-pose.png`. |
 | D5 | Can a critic pass look? | **No.** It files. Jack passes. | The Long Silence judge never finished, which is correct for #188. VibeGame's generation/review split is the part we take. |
-| D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). Sittings already file children; they do not yet become a loadable protocol. |
+| D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). ✅ #656 catalog; ✅ #660 promote-on-second. |
 | D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match --trace` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. `PlayTrace` dumps ball / runner / glove / bag per tick; S-90 and S-01…S-92 stay the replay rail. |
-| D8 | Unity official plugin / CLI / MCP? | **Observation only**, and only after traces exist. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. |
-| D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). Scripts exist; stages are not a rail. |
+| D8 | Unity official plugin / CLI / MCP? | **Observation only.** Traces (#657) are the default playtest. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. R5 stays later. |
+| D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). Scripts exist; R6 #653 is in progress. |
 | D10 | Prompt-to-game / Meshy heroes / a second engine? | **No.** | We are not generating a new game or a new skeleton. Unique packages are deferred. |
 | D11 | Shrink or hide a mesh to save a camera? | **No.** Tune the shot. | AGENTS.md. Twitter "keep the engine small" is not permission to starve the toy. |
 
@@ -126,7 +126,7 @@ Math-only, `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app`
 
 ## 5. Unity observation (later)
 
-❌ **R5 #652.** Later. Does not block R2–R4.
+❌ **R5 #652.** Later. Does not block R6. Dual stills (#659) and traces (#657) already shipped.
 
 If wired: Unity CLI / MCP may inspect hierarchy, read console, and trigger **Grand Sluggers → Capture Still Gate**. That is how an agent *views* presentation when the Editor is up.
 
@@ -142,7 +142,7 @@ Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc ga
 
 ## 6. Stage-save DCC
 
-⚠️ **R6 #653.** Cousin: the Blender scripts already exist. Missing: named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
+⚠️ **R6 #653.** In progress. Cousin: the Blender scripts already exist. Still missing as a rail: named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
 
 | Stage | Harbor kit | Character |
 | --- | --- | --- |
@@ -208,14 +208,14 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
 | G6 | No critic that files look diffs | `.grok/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
-| G8 | DCC stages are not named checkpoints | Scripts exist, one-shot is possible | R6 |
+| G8 | DCC stages are not named checkpoints | Scripts exist, one-shot is possible; #653 in progress | R6 |
 | G9 | Failed stills do not grow the skill | `character-art` grew from `swing-*-max-load` (#623 / `bat-through-head`) | R7 ✅ |
 
 ---
 
 ## Appendix B — Children (acceptance)
 
-Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or beside them; R7 needs R2; R5 later and does not block Exhibition.
+Parent: **#647**. Sequence: R1–R4 and R7 shipped; R6 in progress; R5 later and does not block Exhibition.
 
 | Child | Owns | Exit | Serves | Order |
 | --- | --- | --- | --- | --- |
@@ -224,7 +224,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
-| **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
+| **R6. Stage-save DCC** #653 | §6, G8 | In progress. character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | After R4 |
 | **R7. Distill** #654 | §7, G2, G9 | ✅ #660. Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child
