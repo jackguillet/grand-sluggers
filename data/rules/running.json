@@ -26,12 +26,11 @@
     "cpuReactionPerStat": 0.032
   },
   "steal": {
-    "jumpBaseSec": 0.62,
-    "remainMinSec": 0.58,
-    "returnBaseSec": 0.62,
-    "returnPerRunDeficitSec": 0.06,
-    "returnMinSec": 0.42,
-    "noThrowRemainSec": 1.6
+    "airSpeedMul": 0.6667,
+    "perfectEarlySec": 0.4,
+    "perfectWindowSec": 0.25,
+    "cpuTrailPreferSec": 0.3,
+    "cutInFrontFt": 25
   },
   "stick": {
     "diamondDeadMag2": 0.55
@@ -61,7 +60,14 @@
     "commitFraction": 0.4,
     "tagThirdMinCarryFt": 200,
     "tagSecondMinCarryFt": 250,
-    "stealMinRun": 7,
-    "stealChance": 0.16
+    "stealMinRun": 4,
+    "stealBaseRun6": 0.06,
+    "stealBaseRun8": 0.16,
+    "stealBaseRun10": 0.25,
+    "stealTwoOutsMul": 1.5,
+    "stealCaptainUpMul": 0.5,
+    "stealTrailingRuns": 5,
+    "pickoffSeenArmMul": 3,
+    "pickoffFirstOnCornersChance": 0.66
   }
 }

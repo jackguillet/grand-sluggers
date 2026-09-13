@@ -62,7 +62,7 @@ public sealed class RunnerScenarioTests
 
         var wentAtContact = false;
         var throwsTo = new List<int>();
-        Run(match, hit, preview, GroundOut(match, preview), LiveSeats.CpuOnly, live =>
+        var play = Run(match, hit, preview, GroundOut(match, preview), LiveSeats.CpuOnly, live =>
         {
             Note(live, throwsTo);
             if (live.ElapsedSeconds < Frame * 2 && runner.DestBag == 3) wentAtContact = true;
@@ -70,7 +70,15 @@ public sealed class RunnerScenarioTests
 
         Assert.Equal(margin > threshold, wentAtContact);
         if (wentAtContact) Assert.Contains(3, throwsTo);
-        else Assert.Equal(1, throwsTo[0]);
+        else
+        {
+            // The play is at first: a throw across, or the first baseman's own legs when they beat a throw to a
+            // substitute cover (§8.8). Either way the batter is out there and nothing goes to third.
+            var atFirst = play.Outcome!.OutsMade.FirstOrDefault(o => o.FromBag == 0);
+            Assert.NotNull(atFirst);
+            Assert.Equal(1, atFirst!.Bag);
+            Assert.DoesNotContain(3, throwsTo);
+        }
     }
 
     [Fact]

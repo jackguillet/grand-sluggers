@@ -187,6 +187,7 @@ public static class BroadcastHud
     {
         PlayKind.StolenBase => "STOLEN BASE",
         PlayKind.CaughtStealing => "CAUGHT STEALING",
+        PlayKind.Pickoff => "PICKOFF",
         PlayKind.HomeRun => "HOME RUN",
         PlayKind.Triple => "TRIPLE",
         PlayKind.Double => "DOUBLE",

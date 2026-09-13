@@ -23,8 +23,10 @@ public enum LivePlayCommandKind
     BeginLive,
     /// <summary>One frame of the live ball with both pads.</summary>
     Tick,
-    /// <summary>A steal is armed after a take or a miss: the catcher's throw play.</summary>
+    /// <summary>A runner broke on the pitch and the ball is dead in the catcher's glove: the catcher's throw play (§11.3).</summary>
     BeginSteal,
+    /// <summary>A pickoff throw from the rubber at a runner who broke on the motion (§11.4, D3).</summary>
+    BeginPickoff,
     /// <summary>The offense threw an item at the play glove (client verb; the ball's result changes here).</summary>
     ApplyItem,
     /// <summary>The defense smashed the flying item: an out that became a hit goes back to an out.</summary>
@@ -141,6 +143,13 @@ public sealed record LivePlayCommand(
     public static LivePlayCommand BeginSteal(PlayEvent pitch, LiveSeats seats, LivePlayCommandSource source = LivePlayCommandSource.System) =>
         new(LivePlayCommandKind.BeginSteal, source, Seats: seats, StealPitch: pitch);
 
+    public static LivePlayCommand BeginPickoff(PlayEvent pickoff, int bag, LiveSeats seats, LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.BeginPickoff, source, Bag: bag, Seats: seats, StealPitch: pickoff);
+
+    /// <summary>A runner play that has not reached Time by the headless cap is committed where it stands.</summary>
+    public static LivePlayCommand CompleteRunnerPlay(LivePlayCommandSource source = LivePlayCommandSource.System) =>
+        new(LivePlayCommandKind.Complete, source);
+
     public static LivePlayCommand ApplyItem(string itemId, Character? target, LivePlayCommandSource source = LivePlayCommandSource.System) =>
         new(LivePlayCommandKind.ApplyItem, source, Fielder: target, ItemId: itemId);
 
@@ -161,7 +170,9 @@ public sealed record RunnerView(
     double Z,
     double OnBagSec,
     bool Held,
-    bool StealArmed);
+    bool StealArmed,
+    StealArm StealArm = StealArm.None,
+    bool Broke = false);
 
 public sealed record LivePlaySnapshot(
     bool Active,
@@ -272,7 +283,7 @@ public sealed partial class LivePlaySystem
     static RunnerView View(Runner r)
     {
         var (x, z) = r.Position;
-        return new RunnerView(r.Who, r.FromBag, r.Bag, r.Feet, r.Phase, r.DestBag, r.Forced, x, z, r.OnBagSec, r.Held, r.StealArmed);
+        return new RunnerView(r.Who, r.FromBag, r.Bag, r.Feet, r.Phase, r.DestBag, r.Forced, x, z, r.OnBagSec, r.Held, r.StealArmed, r.StealArm, r.Broke);
     }
 
     public LivePlayCommandResult Apply(LivePlayCommand command)
@@ -290,7 +301,8 @@ public sealed partial class LivePlaySystem
             LivePlayCommandKind.Reset => ResetResult(),
             LivePlayCommandKind.BeginLive => BeginLive(command),
             LivePlayCommandKind.Tick => Tick(command),
-            LivePlayCommandKind.BeginSteal => BeginSteal(command),
+            LivePlayCommandKind.BeginSteal => BeginRunnerPlay(command.StealPitch, 0, command.Seats ?? LiveSeats.CpuOnly),
+            LivePlayCommandKind.BeginPickoff => BeginRunnerPlay(command.StealPitch, command.Bag, command.Seats ?? LiveSeats.CpuOnly),
             LivePlayCommandKind.ApplyItem => ApplyItem(command),
             LivePlayCommandKind.SmashItem => SmashItem(),
             _ => new LivePlayCommandResult(Snapshot)
@@ -300,7 +312,9 @@ public sealed partial class LivePlaySystem
     LivePlayCommandResult Begin(LivePlayCommand command)
     {
         if (Active) return new LivePlayCommandResult(Snapshot);
-        _match.PrepareLivePlay();
+        // A runner play continues the pitch's play (its outs stay on it); a batted ball opens one (§10.6).
+        if (RunnerPlay) _match.BeginRunnerPlay(StealPitch, PickoffBag > 0);
+        else _match.PrepareLivePlay();
         Active = true;
         Paused = _match.Paused;
         ElapsedSeconds = 0;
@@ -308,8 +322,10 @@ public sealed partial class LivePlaySystem
         HasBall = false;
         Throwing = false;
         CatchMade = false;
-        Forces = InPlay.ForceState.FromOccupancy(
-            _match.First is not null, _match.Second is not null, _match.Third is not null);
+        // No batter body on a runner play: nobody is forced anywhere (§11.3).
+        Forces = RunnerPlay
+            ? new InPlay.ForceState(false, false, false, false)
+            : InPlay.ForceState.FromOccupancy(_match.First is not null, _match.Second is not null, _match.Third is not null);
         ForceRecorded = false;
         ForceBag = 0;
         TurnedTwo = false;
@@ -323,7 +339,8 @@ public sealed partial class LivePlaySystem
         _wasThrowing = false;
         _prevRun = LivePadInput.Dead;
         // Contact: the batter is a body in the box, every runner snapshots its force (§9.1).
-        _match.BeginRunners(HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
+        if (!RunnerPlay)
+            _match.BeginRunners(HomeSet.BatterBodyX(_match.Batter.Bats, _match.BatterContactOffsetX), HomeSet.BatterZ);
         Fly = FlyStateNow(command.PlayKind, command.CatchMade);
         _aiPending = true;
         return new LivePlayCommandResult(Snapshot);
@@ -602,6 +619,7 @@ public sealed partial class LivePlaySystem
 
     LivePlayCommandResult Complete(LivePlayCommand command)
     {
+        if (Active && !Paused && RunnerPlay) return CommitRunnerPlay();
         if (!Active || Paused || command.Pitch is null || command.Swing is null || command.Hit is null || command.Field is null)
             return new LivePlayCommandResult(Snapshot);
         var play = _match.FinishAtBat(command.Pitch, command.Swing, command.Hit, command.Field);

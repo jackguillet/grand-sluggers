@@ -8,7 +8,6 @@
     "out": 0.35,
     "liveOut": 0.4,
     "stolenBase": 0.35,
-    "caughtStealing": 0.4,
     "billboard": 1.0
   },
   "costs": {

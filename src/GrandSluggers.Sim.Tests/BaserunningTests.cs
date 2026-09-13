@@ -32,18 +32,21 @@ public class BaserunningTests
     }
 
     [Fact]
-    public void StealTargetNeverHome()
+    public void StealTargetIsTheNextBagHomeIncluded()
     {
+        // D10: the steal of home is legal, armed from third.
         Assert.Equal(2, Baserunning.StealTarget(1));
         Assert.Equal(3, Baserunning.StealTarget(2));
-        Assert.Equal(0, Baserunning.StealTarget(3));
+        Assert.Equal(4, Baserunning.StealTarget(3));
         Assert.Equal(0, Baserunning.StealTarget(4));
         Assert.Equal(0, Baserunning.StealTarget(0));
         Assert.Equal(4, Baserunning.NextBag(3));
         Assert.True(Baserunning.CanSteal(1, true, false, false));
         Assert.False(Baserunning.CanSteal(1, true, true, false));
         Assert.True(Baserunning.CanSteal(2, true, true, false));
-        Assert.False(Baserunning.CanSteal(3, false, false, true));
+        Assert.True(Baserunning.CanSteal(3, false, false, true));
+        // A steal into a body is offered only when that body is armed too (the double steal, §11.1).
+        Assert.True(Baserunning.CanSteal(1, true, true, false, nextRunnerArmed: true));
         Assert.False(Baserunning.CanSelect(4, true, true, true));
         Assert.False(Baserunning.CanSelect(1, false, true, true));
     }

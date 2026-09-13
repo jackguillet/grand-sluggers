@@ -20,18 +20,21 @@ public static class PlayStamp
     public static string Label(PlayEvent ev, int outsThisPlay) =>
         ev == null ? "" : Label(ev.Kind, outsThisPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
 
-    /// <summary>The stamp from the typed outcome (§15): the outs made on the play name DOUBLE PLAY / TRIPLE PLAY.</summary>
+    /// <summary>The stamp from the typed outcome (§15): the outs made on the play name DOUBLE PLAY / TRIPLE PLAY; a runner picked off is PICKED OFF.</summary>
     public static string Label(PlayEvent ev) =>
-        ev == null ? "" : Label(ev.Kind, ev.Outcome?.Outs?.Count ?? ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt, error: ev.Outcome?.Error ?? false);
+        ev == null ? "" : Label(ev.Kind, ev.Outcome?.Outs?.Count ?? ev.OutsOnPlay, ev.RunsScored, ev.Swing.Bunt,
+            error: ev.Outcome?.Error ?? false, pickedOff: ev.Outcome?.RunnerResult == RunnerPlayResult.PickedOff);
 
     /// <param name="error">A throw sailed and the offense took what it took (§8.5, §8.6): the stamp is ERROR, not the hit.</param>
+    /// <param name="pickedOff">The out was a pickoff play (§11.4): PICKED OFF, not CAUGHT STEALING.</param>
     public static string Label(PlayKind kind, int outsThisPlay, int runs,
-        bool bunt = false, bool dive = false, bool jump = false, bool error = false)
+        bool bunt = false, bool dive = false, bool jump = false, bool error = false, bool pickedOff = false)
     {
         if (outsThisPlay >= 3) return "TRIPLE PLAY";
         if (outsThisPlay >= 2) return "DOUBLE PLAY";
         if (kind == PlayKind.HomeRun && runs >= 4) return "GRAND SLAM";
-        if (error && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple) return Error;
+        if (error && kind is PlayKind.Single or PlayKind.Double or PlayKind.Triple or PlayKind.StolenBase) return Error;
+        if (pickedOff && kind == PlayKind.CaughtStealing) return "PICKED OFF";
         if (bunt && kind is PlayKind.GroundOut or PlayKind.Single or PlayKind.FlyOut)
             return "BUNT";
         if (jump && kind == PlayKind.FlyOut) return "JUMP";

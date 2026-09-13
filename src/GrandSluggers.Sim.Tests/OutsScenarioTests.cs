@@ -178,7 +178,10 @@ public sealed class OutsScenarioTests
         var doubled = outs.FirstOrDefault(o => o.FromBag == 1);
         if (doubled is not null)
         {
-            Assert.Equal((OutType.Force, 1, runner.Id), (doubled.Type, doubled.Bag, doubled.Runner.Id));
+            // Off the bag at the catch: the force back at first (§10.5). On the bag with the send: the tag-up, and the
+            // tag at second is the infielder's play on a body going (§8.8).
+            if (doubled.Type == OutType.Force) Assert.Equal((1, runner.Id), (doubled.Bag, doubled.Runner.Id));
+            else Assert.Equal((OutType.Tag, 2, runner.Id), (doubled.Type, doubled.Bag, doubled.Runner.Id));
             Assert.Equal("DOUBLE PLAY", PlayStamp.Label(run.Play));
         }
         else
