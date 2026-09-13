@@ -7,7 +7,12 @@
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
-    "looseScoopFt": 3.5
+    "looseScoopFt": 3.5,
+    // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
+    // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
+    // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
+    // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
+    "outfieldAirMul": 0.6
   },
   "reaction": {
     "pitcherSec": 0.42,
@@ -16,7 +21,9 @@
     "secondSec": 0.25,
     "thirdSec": 0.30,
     "shortSec": 0.28,
-    "outfieldSec": 2.4,
+    // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
+    // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
+    "outfieldSec": 0.83,
     "throwBaseSec": 0.35,
     "throwPerFieldSec": 0.02,
     "throwMinSec": 0.08

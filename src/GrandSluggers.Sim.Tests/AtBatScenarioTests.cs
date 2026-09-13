@@ -717,8 +717,9 @@ public sealed class AtBatScenarioTests
         var walks = kinds.GetValueOrDefault(PlayKind.Walk) / (double)games;
         var line = $"runs {meanAway:0.00} / {meanHome:0.00}, singles {singles:0.00}, doubles {doubles:0.00}, HR {homers:0.00}, K {strikeouts:0.00}, BB {walks:0.00}, most {mostRuns}";
         // The band (§B.1 S-29, P7 #569): a three-inning arcade game that reads like baseball. Tuned in
-        // data/rules only: the liner's own stretch (flight.linerTimeScale), the outfield read
-        // (fielding.reaction.outfieldSec), the bat (batting.exit), the CPU arm's scatter (pitching.cpu).
+        // data/rules only: the liner's own stretch (flight.linerTimeScale), the outfielder's chase on a ball in
+        // the air (fielding.chase.outfieldAirMul, #609; the read itself is the reference 0.83 s), the bat
+        // (batting.exit), the CPU arm's scatter (pitching.cpu).
         Assert.True(meanAway is >= 2 and <= 5, line);
         Assert.True(meanHome is >= 2 and <= 5, line);
         Assert.True(doubles < singles, line);

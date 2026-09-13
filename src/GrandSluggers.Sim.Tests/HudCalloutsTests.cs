@@ -37,5 +37,7 @@ public class HudCalloutsTests
         Assert.Equal("screen", HowToPlay.Must("screen").Id);
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("YOU"));
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("landing ring"));
+        // D14: the game screen names the one bag camera, the close play.
+        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("Close play") && l.Contains("bag cam"));
     }
 }

@@ -105,6 +105,8 @@ public sealed partial class LivePlaySystem
 {
     readonly Dictionary<string, (double X, double Z)> _fielders = new();
     readonly Dictionary<string, double> _readyAt = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The human glove's lockouts (§8.2): the reference numbers at every difficulty rung.</summary>
+    readonly Dictionary<string, double> _readyHuman = new(StringComparer.OrdinalIgnoreCase);
     readonly List<LiveEvent> _events = [];
     bool _gloved;
     bool _recoilArmed;
@@ -290,8 +292,13 @@ public sealed partial class LivePlaySystem
     double Rest => Path is null ? 0 : BallFlight.RestTime(Path);
     /// <summary>The instant a dead ball is decided: a foul at its verdict, anything else at the landing mark.</summary>
     double DeadAt => Ball is not null && LiveKind() == PlayKind.Foul ? Ball.DecidedT : Hang;
-    /// <summary>Play seconds before the body at <paramref name="pos"/> may move (§8.2).</summary>
-    double ReadyAt(string pos) => _readyAt.TryGetValue(pos, out var t) ? t : 0;
+    /// <summary>
+    /// Play seconds before the body at <paramref name="pos"/> may move (§8.2): the human seat's glove waits the
+    /// reference lockout, every CPU-driven body waits it × <c>cpu.reactionMul</c>; a ball in the air caps both at its hang.
+    /// </summary>
+    double ReadyAt(string pos) => (HumanGlove(pos) ? _readyHuman : _readyAt).TryGetValue(pos, out var t) ? t : 0;
+    /// <summary>The body a human defense steers: the play glove (a dead stick lets the CPU run it, and it is still theirs).</summary>
+    bool HumanGlove(string pos) => Seats.HumanFields && string.Equals(pos, GlovePos, StringComparison.OrdinalIgnoreCase);
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
     bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos);
@@ -315,7 +322,9 @@ public sealed partial class LivePlaySystem
         Ball = Preview?.Ball ?? BattedBall.Of(Hit, Park, R);
         Path = Ball.Samples;
         PlayerFielding = FieldAssist.PlayerStartsOnGlove(Seats.PlayerMustField);
-        foreach (var kv in FieldingResolver.ReactionLockouts(R)) _readyAt[kv.Key] = kv.Value;
+        var airHang = Ball.Shape.OnTheDirt() ? (double?)null : Hang;
+        foreach (var kv in FieldingResolver.CpuReactionLockouts(R, airHang)) _readyAt[kv.Key] = kv.Value;
+        foreach (var kv in FieldingResolver.ReactionLockouts(R, 1, airHang)) _readyHuman[kv.Key] = kv.Value;
         InitGloves();
         var kind = LiveKind();
         var result = Begin(command with { PlayKind = kind });
@@ -367,6 +376,7 @@ public sealed partial class LivePlaySystem
         FirstThrowBag = 0;
         _fielders.Clear();
         _readyAt.Clear();
+        _readyHuman.Clear();
         GlovePos = "P";
         GloveX = Diamond.Rubber.X;
         GloveZ = Diamond.Rubber.Z;
@@ -611,7 +621,7 @@ public sealed partial class LivePlaySystem
         // One glove speed for human and CPU (§8.1); the body moves once its reaction lockout is over (§8.2).
         if (steering && map.TryGetValue(GlovePos, out var glove) && stick >= stickTake && CanMove(GlovePos))
         {
-            var speed = FieldingResolver.ChaseSpeedFt(glove, pre.Frozen, R, pad.EastHeld);
+            var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, pre, R, pad.EastHeld);
             GloveX += pad.StickX * speed * dt;
             GloveZ += pad.StickY * speed * dt;
             var feet = FieldBounds.Clamp(Park, GloveX, GloveZ);
@@ -951,7 +961,7 @@ public sealed partial class LivePlaySystem
     {
         if (Throwing || pad.StickMag < Feel.FieldAssistStick || !CanMove(GlovePos)) return;
         if (!map.TryGetValue(GlovePos, out var glove)) return;
-        var speed = FieldingResolver.ChaseSpeedFt(glove, Preview?.Frozen ?? false, R, pad.EastHeld);
+        var speed = FieldingResolver.ChaseSpeedFt(glove, GlovePos, _loose ? null : Preview, R, pad.EastHeld);
         var feet = FieldBounds.Clamp(Park, GloveX + pad.StickX * speed * dt, GloveZ + pad.StickY * speed * dt);
         GloveX = feet.X;
         GloveZ = feet.Z;
@@ -1332,7 +1342,7 @@ public sealed partial class LivePlaySystem
         else
         {
             var who = GloveChar();
-            var speed = FieldingResolver.ChaseSpeedFt(who, Preview.Frozen, R);
+            var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
             var route = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
             var meetAt = route.Reachable ? route.MeetTimeSec : Math.Max(Rest, ElapsedSeconds + route.TravelTimeSec);
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
@@ -1408,7 +1418,7 @@ public sealed partial class LivePlaySystem
         TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z);
         if (!CanMove(GlovePos)) return;
         var who = map.TryGetValue(GlovePos, out var c) ? c : pre.Fielder;
-        var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen, R);
+        var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
         var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
         var next = FieldingResolver.StepToward(GloveX, GloveZ, route.X, route.Z, speed, dt, Park, R);
         GloveX = next.X;
@@ -1470,7 +1480,7 @@ public sealed partial class LivePlaySystem
         if (of.Position == GlovePos) return;
         if (!CanMove(of.Position)) return;
         if (!_fielders.TryGetValue(of.Position, out var at)) return;
-        var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, Preview.Frozen, R);
+        var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, of.Position, Preview, R);
         _fielders[of.Position] = FieldingResolver.StepToward(at.X, at.Z, of.Route.X, of.Route.Z, speed, dt, Park, R);
     }
 
@@ -1572,7 +1582,7 @@ public sealed partial class LivePlaySystem
         {
             var map = Assigned();
             var who = map.TryGetValue(GlovePos, out var fielder) ? fielder : pre.Fielder;
-            var speed = FieldingResolver.ChaseSpeedFt(who, pre.Frozen, R);
+            var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, pre, R);
             var route = FieldingPursuit.Plan(pre, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
             return (route.X, route.Z);
         }

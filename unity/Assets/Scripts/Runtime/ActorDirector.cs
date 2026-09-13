@@ -117,7 +117,7 @@ namespace GrandSluggers.UnityClient
                             fromX = moving.transform.position.x;
                             fromZ = moving.transform.position.z;
                         }
-                        var speed = FieldingResolver.ChaseSpeedFt(who, _preview.Frozen);
+                        var speed = FieldingResolver.ChaseSpeedFt(who, _glovePos, _preview, _match.Rules);
                         var route = FieldingPursuit.Plan(
                             _preview, _match.Park, _path,
                             LiveTime, fromX, fromZ, speed);

@@ -17,7 +17,7 @@ public sealed class StillRequest
     public static readonly HashSet<string> AllowedShots = new(StringComparer.OrdinalIgnoreCase)
     {
         "title", "select", "field", "lineup", "plate", "pitch", "mound",
-        "diamond", "diamond-grounder", "diamond-line", "diamond-homer", "diamond-pull",
+        "diamond", "diamond-fly", "diamond-grounder",
         "throw", "tag", "smash", "replay", "scoop",
         "char-rest", "char-pose", "swing-matrix"
     };

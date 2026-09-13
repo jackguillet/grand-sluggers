@@ -88,8 +88,9 @@ namespace GrandSluggers.UnityClient
 
         /// <summary>
         /// The live ball's frame this beat (spec §15), decided in the sim by <see cref="PlayCamera.LiveFraming"/>
-        /// from typed state: the diamond follow, the bag cam on a throw or a close play, the smash on a homer.
-        /// Blends at the shot's authored rate; the client owns no Vector3 of its own.
+        /// from typed state: the diamond follow, the bag cam on a close play or a steal, the smash on a homer.
+        /// Enters at the shot's authored blend (<see cref="PlayCamera.Framing.Blend"/>; 0 is a cut, D14); the
+        /// client owns no Vector3 of its own.
         /// </summary>
         public void Live(PlayCamera.Framing framed)
         {
@@ -97,7 +98,8 @@ namespace GrandSluggers.UnityClient
             _rig.Aim(
                 new Vector3((float)framed.Pos.X, (float)framed.Pos.Y, (float)framed.Pos.Z),
                 new Vector3((float)framed.Look.X, (float)framed.Look.Y, (float)framed.Look.Z),
-                (float)framed.Fov);
+                (float)framed.Fov,
+                framed.Blend);
         }
 
         public void AimRaw(string name, Vector3 pos, Vector3 look, float fov)

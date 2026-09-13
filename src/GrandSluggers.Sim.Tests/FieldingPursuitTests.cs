@@ -114,7 +114,7 @@ public class FieldingPursuitTests
         Assert.Equal("LF", choice.Position);
         Assert.True(choice.Route.TravelTimeSec
             < FieldingPursuit.Plan(pre, park, path, 0, live["RF"].X, live["RF"].Z,
-                FieldingResolver.ChaseSpeedFt(assigned["RF"], false)).TravelTimeSec);
+                FieldingResolver.ChaseSpeedFt(assigned["RF"], "RF", pre)).TravelTimeSec);
 
         Assert.True(FieldingResolver.HandoffToOutfield("SS", choice.Position));
         Assert.False(FieldingResolver.HandoffToOutfield(choice.Position, "SS"));
