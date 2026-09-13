@@ -126,7 +126,11 @@ public static class FieldingPursuit
             travel <= speed * available + rules.Fielding.Chase.ReachSlackFt, airCatch);
     }
 
-    static bool Better(Route candidate, Route current)
+    /// <summary>
+    /// The one route ordering (§8.2, D16): a reachable route beats an unreachable one, then the earlier meet, then the shorter run;
+    /// unreachable routes rank by the smaller miss. <see cref="Choose"/> picks by it and the hand-off guard (§8.9) compares by it.
+    /// </summary>
+    public static bool Better(Route candidate, Route current)
     {
         if (candidate.Reachable != current.Reachable) return candidate.Reachable;
         if (candidate.Reachable && Math.Abs(candidate.MeetTimeSec - current.MeetTimeSec) > 1e-6)
