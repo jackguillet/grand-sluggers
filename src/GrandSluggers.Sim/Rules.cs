@@ -872,9 +872,11 @@ public sealed class FieldingRules
 }
 
 /// <summary>
-/// Reaction lockout after contact before a body moves, by position (§8.2, reference frames → seconds).
-/// The camera cut to the diamond happens at the pitcher's. The CPU fielder's delay before a throw
-/// is <c>throwBaseSec − Field × throwPerFieldSec</c> (§8.8), × the difficulty's reaction multiplier.
+/// Reaction lockout after contact before a body moves, by position (§8.2, reference frames → seconds:
+/// P 25, C 40, IF 15–18, OF 50). A CPU-driven body waits it × the rung's <c>cpu.reactionMul</c>; the
+/// human glove waits the reference at every rung; a ball in the air caps it at its hang
+/// (<see cref="FieldingResolver.ReactionLockouts"/>). The CPU fielder's delay before a throw is
+/// <c>throwBaseSec − Field × throwPerFieldSec</c> (§8.8), × the difficulty's reaction multiplier.
 /// </summary>
 public sealed class ReactionRules
 {
@@ -884,7 +886,7 @@ public sealed class ReactionRules
     [Positive] public double SecondSec { get; init; } = 0.25;
     [Positive] public double ThirdSec { get; init; } = 0.30;
     [Positive] public double ShortSec { get; init; } = 0.28;
-    [Positive] public double OutfieldSec { get; init; } = 2.4;
+    [Positive] public double OutfieldSec { get; init; } = 0.83;
     [Positive] public double ThrowBaseSec { get; init; } = 0.35;
     public double ThrowPerFieldSec { get; init; } = 0.02;
     [Positive] public double ThrowMinSec { get; init; } = 0.08;
@@ -937,6 +939,11 @@ public sealed class ChaseRules
     public double SwapLockSec { get; init; } = 0.7;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
     [Positive] public double LooseScoopFt { get; init; } = 3.5;
+    /// <summary>
+    /// An outfielder chasing a ball hit in the air runs at the one glove speed × this (§8.1, §8.2). The S-29 lever since the
+    /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
+    /// </summary>
+    [Positive] public double OutfieldAirMul { get; init; } = 0.6;
 }
 
 public sealed class CatchRules
