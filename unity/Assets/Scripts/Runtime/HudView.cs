@@ -22,12 +22,12 @@ namespace GrandSluggers.UnityClient
             bool mutePlay = false, int seats = 1,
             bool humanPitches = true, bool humanBats = false,
             bool starPitch = false, bool starSwing = false, bool pad1Home = true,
-            bool bunt = false)
+            bool bunt = false, string titleSetup = null)
         {
             Ensure();
             if (phase == PhaseUi.Title)
             {
-                Title(challenge, portrait, training, night, hideHelp);
+                Title(challenge, portrait, training, night, hideHelp, titleSetup);
                 return;
             }
             if (phase == PhaseUi.Select)
@@ -61,13 +61,18 @@ namespace GrandSluggers.UnityClient
                 humanPitches, humanBats, starPitch, starSwing, bunt);
         }
 
-        static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp)
+        static void Title(bool challenge, Texture2D portrait, bool training, bool night, bool hideHelp, string setup = null)
         {
             var w = Screen.width;
             Sticker(CarnivalFront.SkyGag(night), w - 168, 36, 140, 32, night ? _gold : _h1);
             var exhibition = !training && !challenge;
             if (exhibition)
+            {
                 Sticker(CarnivalFront.PlayBall, 44, 88, 640, 28, _gold);
+                // Innings and the difficulty rung, next to each other (P7): the two numbers the title owns.
+                if (!string.IsNullOrEmpty(setup))
+                    GUI.Label(new Rect(44, 124, 640, 22), setup, _gold);
+            }
             else
                 Sticker(training ? "TRAINING" : "CHALLENGE", 44, 88, 420, 32, _h1);
             if (training)
@@ -77,7 +82,7 @@ namespace GrandSluggers.UnityClient
             _ = portrait;
             if (hideHelp) return;
             GUI.Label(new Rect(44, Screen.height - 48, w - 80, 22),
-                $"South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings    F6 input: {Controls.Player1InputLabel}", _tiny);
+                $"South pick captain    West / F training    Esc how to play    Start / H mode    Tab innings    X / LB difficulty    F6 input: {Controls.Player1InputLabel}", _tiny);
         }
 
         public static void Select(string homeId, string awayId, bool pad1Home, ContentCatalog content,

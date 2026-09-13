@@ -58,7 +58,8 @@ public sealed record Park(
     double WindMph,
     IReadOnlyList<Hazard> Hazards,
     double WindDeg = 0,
-    double FenceHeightFt = 8)
+    double FenceHeightFt = 8,
+    double NightContactWindowMul = 1.0)
 {
     /// <summary>Where the wind blows toward, in the field frame: 0 out to CF, 90 toward the right-field line, 180 in at the plate.</summary>
     public (double X, double Z) WindDirection

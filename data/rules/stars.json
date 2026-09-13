@@ -8,7 +8,9 @@
     "out": 0.35,
     "liveOut": 0.4,
     "stolenBase": 0.35,
-    "billboard": 1.0
+    "billboard": 1.0,
+    "doublePlay": 1.0,
+    "robbedHomer": 1.0
   },
   "costs": {
     "own": 1,
@@ -22,5 +24,22 @@
     "fourAt": 55,
     "threeAt": 35,
     "twoAt": 15
+  },
+  "mvp": {
+    "homeRun": 10,
+    "winningPitcher": 5,
+    "goAheadRbi": 5,
+    "robbedHomer": 5,
+    "strikeout": 3,
+    "rbi": 3,
+    "hit": 1,
+    "walk": 1,
+    "hitByPitch": 1,
+    "stolenBase": 1,
+    "closePlayWon": 2,
+    "itemMattered": 2,
+    "putOut": 1,
+    "tookOverAt": 8,
+    "keptMovingAt": 4
   }
 }

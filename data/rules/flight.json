@@ -2,6 +2,8 @@
   "gravity": 32.174,
   "drag": 0.0019,
   "timeScale": 1.65,
+  "linerTimeScale": 1.0,
+  "dirtTimeScale": 1.65,
   "plateHeightFt": 2.5,
   "windMul": 0.35,
   "sampleHz": 120,
@@ -37,7 +39,7 @@
     "chopperBounceHeightFt": 3,
     "chopperMinExitMph": 70,
     "linerMaxLaunchDeg": 22,
-    "linerMinExitMph": 78,
+    "linerMinExitMph": 74,
     "infieldLipFt": 155
   },
   "deadBall": {

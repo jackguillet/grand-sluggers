@@ -47,7 +47,8 @@ public class NightTests
     {
         var park = _content.Parks["crystal-rink"];
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(park, false));
-        Assert.Equal(Rules.Default.Fielding.Park.CrystalNightWindowMul, ParkHazards.ContactWindowMul(park, true));
+        Assert.Equal(park.NightContactWindowMul, ParkHazards.ContactWindowMul(park, true));
+        Assert.Equal(0.85, park.NightContactWindowMul);
         Assert.Equal(1.0, ParkHazards.ContactWindowMul(_content.Parks["harbor-diamond"], true));
 
         var rio = _content.Must("rio");

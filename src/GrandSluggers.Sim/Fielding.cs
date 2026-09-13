@@ -462,8 +462,12 @@ public sealed record FieldingPreview(
 
 public static class ParkHazards
 {
-    public static double ContactWindowMul(Park park, bool night, RulesTable? rules = null) =>
-        night && park.Id == "crystal-rink" ? Rules.Or(rules).Fielding.Park.CrystalNightWindowMul : 1.0;
+    /// <summary>The park's contact window at night (§14): a park data field (<c>nightContactWindowMul</c>), never a park id in code.</summary>
+    public static double ContactWindowMul(Park park, bool night, RulesTable? rules = null)
+    {
+        _ = rules;
+        return night ? park.NightContactWindowMul : 1.0;
+    }
 
     public static bool InFreeze(Park park, double x, double z, bool night = false, RulesTable? rules = null) =>
         InSlow(park, x, z, night, rules);
