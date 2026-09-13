@@ -170,7 +170,7 @@ Pitch **type strings** (`"curve"`, `"slider"`) are retired: break is a stick ver
 
 - Defense arms a bag (D-pad / 1–3) and presses South during SET. The pitcher turns and throws to that bag; the covering fielder (1B / SS / 3B) takes it. The pitch clock resets; the count does not change.
 - A runner **on the bag** is safe. Always. No play, a small "back" beat, no stamp. (Reference: a pure pickoff never retires a runner.) ✅ P6 (`PlayKind.Pickoff`: the count stands, `PlayStamp.Shows` is false; `Match.BeginPickoff` never opens a live ball when nobody broke).
-- A runner who has **broken** (an early-armed steal breaks on the pitcher's first motion — a pickoff motion counts, D3) is now between bags: the receiver at the bag throws ahead of them or chases; a **rundown** (§9.7) or a tag at the next bag decides it by geometry. That is the whole point of the pickoff: it punishes arming the steal too early. ✅ P6: the pickoff is a **live runner play** (`LivePlaySystem.RunnerPlay`) — the pitcher's throw to the named bag is the one throw model (§8.5) from the rubber, every runner armed in SET (`StealArm.Set`) has broken toward their next bag at full speed (no head start: the motion is the break), and P5's tag, rundown, and Time rules finish it. A pickoff throw that sails is live and the runner takes the bag (S-71, the ERROR). Stamp PICKED OFF (`RunnerPlayResult.PickedOff`).
+- A runner who has **broken** (an early-armed steal breaks on the pitcher's first motion — a pickoff motion counts, D3) is now between bags: the receiver at the bag throws ahead of them or chases; a **rundown** (§9.7) or a tag at the next bag decides it by geometry. That is the whole point of the pickoff: it punishes arming the steal too early. ✅ P6: the pickoff is a **live runner play** (`LivePlaySystem.RunnerPlay`) — the pitcher's throw to the named bag is the one throw model (§8.5) from the rubber, every runner armed in SET (`StealArm.Set`) has broken toward their next bag at full speed (no head start: the motion is the break), and P5's tag, rundown, and Time rules finish it. A pickoff throw that sails is live and the runner takes the bag (S-71, the ERROR). Stamp PICKED OFF (`RunnerPlayResult.PickedOff`). ⚠️ #640 (#634 skeptic pass): headless, the pickoff at first never retires a runner who broke — `InPlay.CoverMap` names second's cover by the ball's side, the formation reads it at the rubber (2B on the bag) and the first baseman's throw reads it at first (SS, at their station, never walked), so the ball hangs as a lob while the body walks in (S-69, skipped).
 - **No random pickoffs.** A runner is never retired on a pitch by a roll. ✅ P3 / P6 (`ResolvePickoff` is gone; the CPU pickoff is a read at SET, never an out by itself, S-72).
 - CPU pitcher attempts a pickoff 3–10% of SETs with a runner on (by difficulty), lead runner by default, 1B on first-and-third (§4.8). A failed CPU pickoff is a wasted beat, not a base. ✅ P6 (`Match.CpuPickoffBag`: `cpu.*.pickoffChance`, × `running.cpu.pickoffSeenArmMul` (3) when a steal pip armed in SET is showing — a perfect arm is the windup's and is never seen in SET; first on the corners by `running.cpu.pickoffFirstOnCornersChance`).
 
@@ -497,7 +497,7 @@ Common to all live plays:
 
 ### 8.7 Cover, cutoff, relay, backup
 
-- **Cover**: on contact each non-fielding infielder walks to the bag they cover — 1B covers first (2B covers first if 1B is fielding), 2B/SS cover second (whichever is not fielding; with both free, the one away from the ball's side), 3B third, C home, P backfills any bag whose cover is the glove. Cover moves at a **flat cover speed** starting 0.23 s after contact (constant, stat-independent; D11) — `fielding.cover`. ✅ P4 (`InPlay.CoverMap`). Outfielders not on the ball back up the throw 60 ft behind its target.
+- **Cover**: on contact each non-fielding infielder walks to the bag they cover — 1B covers first (2B covers first if 1B is fielding), 2B/SS cover second (whichever is not fielding; with both free, the one away from the ball's side), 3B third, C home, P backfills any bag whose cover is the glove. Cover moves at a **flat cover speed** starting 0.23 s after contact (constant, stat-independent; D11) — `fielding.cover`. ✅ P4 (`InPlay.CoverMap`). ⚠️ #640: on a runner play the formation and the throw read the map with different ball X and can name different middle infielders for second (S-69). Outfielders not on the ball back up the throw 60 ft behind its target.
 - **Cutoff**: on a throw longer than the arm's fly reach (§8.5), the cutoff is the infielder nearest the line between the fielder and the target who is neither the glove nor the bag's cover (SS for LF/CF, 2B or 1B for RF). Geometric. ✅ P4 (`InPlay.CutoffFor`). LB / X with no bag = throw to the cutoff on the line to the armed bag (home by default). ✅ verb.
 - **Relay**: a throw to the cutoff continues automatically to the armed bag (human) or by the decision table from the cutoff's spot (CPU) with the cutoff's own arm. ✅ P4.
 - **Backup**: the pitcher behind first and home, the outfielder nearest the spot behind second and third, runs to the backup spot 60 ft past the target on the throw line (`InPlay.BackupSpot`, `InPlay.BackupPos`). It decides where an overthrow stops: the loose ball rolls on and the nearest body — the backup, when they are there — picks it up. ✅ P4.
@@ -737,7 +737,7 @@ Three outs on one live ball by the rules above (liner, double off, double off; o
 | Double steal 1st & 3rd (delayed) | Runner on 1st goes; catcher throws to 2B → runner on 3rd may break for home when the throw passes the mound (stick); the SS/2B can cut the throw (cutoff verb, `running.steal.cutInFrontFt`) or the cover at 2B returns it home | S-66 ✅ |
 | Steal of home | Catcher receives, walks to the plate, tags; the runner needs a perfect steal and a slow pitch (changeup) to have a chance | S-67 ✅ |
 | Pickoff at 1st, runner not armed | Back, no play, no stamp | S-68 ✅ |
-| Pickoff at 1st, runner armed in SET | Runner broke on the motion; tag at 1B or 2B / rundown by geometry | S-69 ✅ |
+| Pickoff at 1st, runner armed in SET | Runner broke on the motion; tag at 1B or 2B / rundown by geometry | S-69 ⚠️ #640 (the throw from first is addressed to the middle infielder the ball-X at first picks while the formation stood the other one on the bag; the ball hangs and every runner, Run 2 to 9, steals second — the test is skipped naming the issue) |
 | Perfect steal (armed 0.2 s into the windup), average catcher | Runner breaks 0.4 s early; safe at 2B against a Field-5 catcher, out against the roster's best arm (Field 8; the row's Field 9 is not on any roster) with a Nice release | S-70 ✅ |
 | Pickoff throw sails (bad chem) | Ball live; runner advances (ERROR) | S-71 ✅ |
 | CPU never picks off a runner at random | | S-72 ✅ |
@@ -834,7 +834,7 @@ Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommi
 
 ---
 
-## Appendix A — Gap audit (code at `f09cad1`; every row closed by `a15f5f5`)
+## Appendix A — Gap audit (code at `f09cad1`; every row closed by `a15f5f5`; A.9 reopened one row on 2026-09-13)
 
 Kept as the record of what was wrong on the morning of 2026-09-12 and which epic or PR fixed it. The line numbers are the morning's; the ✅ note is the resolution.
 
@@ -965,13 +965,19 @@ The stale close-play verdict (A.5 #52) is gone with `Match.ClosePlaySafe` (the c
 | 76 | #613, #583 | One swing take, no windup, no finish | §5.1 | ✅ #621 (`swing-slap` / `swing-charge`, held finish; look gate open) |
 | 77 | #623 | The new takes put the bat through the head at MAX load | §5.1 | ✅ #624 |
 
+### A.9 Skeptic pass (#634, 2026-09-13) — one row open
+
+| # | Found | What | Spec | Status |
+| --- | --- | --- | --- | --- |
+| 78 | #634 → #640 | `InPlay.CoverMap` picks second's cover by the ball's side; `LivePlaySystem.Field.cs` `InitRunnerGloves` reads it at the rubber and `BeginThrowToBag` / the rundown read it at the thrower, and `TickCoverBags` walks only the first — on a pickoff at first the throw to second hangs as a lob (`fielding.throw.lobMaxSec`) while the runner who broke walks in; no runner, Run 2 to 9, is ever picked off | §4.5, §8.7, §11.4 (S-69) | ⚠️ open, #640 under #568; `StealScenarioTests.S69` skipped naming it |
+
 ---
 
 ## Appendix B — Scenario matrix (acceptance)
 
 Each scenario is a headless sim test: set the state, script the inputs (human seat commands or "CPU"), assert the outcome **and** the reason (which out type, which bag, which runner). A scenario is green only when it passes for the human seat *and* the CPU seat where both exist. Unity's job is to show it; the gate is `dotnet test`, then a sitting.
 
-**Coverage on `a15f5f5`.** Named in the harness (`src/GrandSluggers.Sim.Tests`): S-01, S-03 … S-07, S-09 … S-11, S-13 … S-37, S-39 … S-48, S-50, S-51, S-55 … S-60, S-62, S-64 … S-68, S-72, S-73, S-75 … S-77, S-79, S-80, S-82, S-90 … S-93, plus S-24b and S-58b. S-94 … S-99 are named by `ControlScenarioTests` since #633 (S-97's in-air twin is skipped on #636). **Not yet named by a test:** S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81. Some are covered under scene names without the id; the rule is that a scenario is green only when a test carries its id, so these are the harness's open rows.
+**Coverage on `e474274` + #634.** Every row S-01 … S-93 carries its id in a test name in `src/GrandSluggers.Sim.Tests` (plus S-24b and S-58b), and S-94 … S-99 are named by `ControlScenarioTests` since #633. The #634 skeptic pass re-read the sixteen rows the `a15f5f5` note listed as unnamed (S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81): every one already carried its id; four were not their row and were rewritten or tightened — S-49 (a 2B catch at 63 ft and a tag at second; now a bunt pop the catcher takes and the force back at first), S-38 (a comebacker; now a grounder to SS met inside `running.cpu.infieldBackFt`), S-52 and S-69 (an out only if one happened; now the out and the arrival that made it). **Open:** S-69 ⚠️ #640 — the pickoff never retires the runner who broke (the test is skipped naming the issue); S-97's in-air twin ⚠️ #636 (skipped in `ControlScenarioTests`).
 
 ### B.1 Pitch and swing
 
