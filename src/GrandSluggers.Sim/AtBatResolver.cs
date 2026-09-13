@@ -45,12 +45,12 @@ public sealed class AtBatResolver
         var charged = ChargeFeel.IsCharge(effective);
         var buddies = _chem.BuddiesOnBase(input.Batter, input.RunnersOn);
 
-        // Timing (§5.3): outside the window the bat is not on the plane.
-        var window = ContactWindowFrames(contact, charged && !chargeBat,
-            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, _rules, _skills);
+        // Timing (§5.3, D13): outside the window the bat is not on the plane.
+        var window = SwingWindowFrames(input.Batter, input.Bat, input.Charge01,
+            input.UseStarPitch ? input.Pitcher.StarPitch : null, park, night, input.HumanWindowMul, _rules, _skills);
         var half = window / 2;
         var err = input.TimingErrorFrames;
-        var onPlane = Math.Abs(err) <= half;
+        var onPlane = InWindow(err, window);
 
         // Cursor (§5.2): where the crossing meets the bat.
         var barrel = SweetSpot.BarrelScale(contact, charged, chargeBat, buddies, _rules);
@@ -153,11 +153,30 @@ public sealed class AtBatResolver
     }
 
     /// <summary>
+    /// The window one swing is judged in (spec §5.3): the batter's contact with the bat's mod, a
+    /// charge narrows it unless the Charge Bat carries the charge, the star pitch, the park, and the
+    /// human rung. The resolver and the swing take's warp (<see cref="AtBatMotion.SwingContactSec"/>)
+    /// read this one number.
+    /// </summary>
+    public static double SwingWindowFrames(Character batter, BatItem? bat, double charge01, string? starPitch,
+        Park? park, bool night, double humanWindowMul = 1, RulesTable? rules = null, StarSkillTable? skills = null)
+    {
+        var contact = Math.Clamp(batter.Stats.Bat + (bat?.ContactMod ?? 0), 1, 10);
+        var chargeBat = bat?.ChargeAlwaysFull == true;
+        var charged = !chargeBat && ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1));
+        return ContactWindowFrames(contact, charged, starPitch, park, night, rules, skills, humanWindowMul);
+    }
+
+    /// <summary>The bat is on the plane when the error is inside half the window (spec §5.3).</summary>
+    public static bool InWindow(double errFrames, double windowFrames) =>
+        Math.Abs(errFrames) <= windowFrames / 2;
+
+    /// <summary>
     /// The timing window in frames at 60 Hz (spec §5.3): slap 9 / charge 7, ± (contact − 5) × 0.4,
-    /// × the star pitch's window multiplier × the park's, floored. Inside is ± half of this.
+    /// × the star pitch's window multiplier × the park's × the human rung's, floored. Inside is ± half of this.
     /// </summary>
     public static double ContactWindowFrames(int contact, bool charged, string? starPitch, Park? park, bool night,
-        RulesTable? rules = null, StarSkillTable? skills = null)
+        RulesTable? rules = null, StarSkillTable? skills = null, double humanWindowMul = 1)
     {
         var r = Rules.Or(rules);
         var w = r.Batting.Window;
@@ -166,6 +185,7 @@ public sealed class AtBatResolver
             frames *= StarSkills.BatterWindowMul(starPitch, skills);
         if (park is not null)
             frames *= ParkHazards.ContactWindowMul(park, night, r);
+        frames *= humanWindowMul;
         return Math.Max(w.FloorFrames, frames);
     }
 

@@ -179,13 +179,13 @@ public static class HowToPlay
         ["Running verbs and what you press, continued."]),
         new("pitch-swing", "Pitch and swing", "pitch-swing",
         [
-            "Tap for normal before the gold streak reaches home. Hold/release at MAX for a charge.",
+            "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "One controller: pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
             "Changeup: hold West, then South. Bunt: hold West. Star: North + South. Spray: stick L/R. Past line: foul; Strike unless two.",
         ],
         [
-            "Tap for normal before the gold streak reaches home. Hold/release at MAX for a charge.",
+            "Swing when the ball is on the plate (gold streak). Tap: normal. Hold/release at MAX: charge.",
             "Pitch from the pitcher's shoulder; hit from behind home. The throw does not cut.",
             "Two controllers: SET stays on the plate, behind home.",
             "Changeup: hold V/Ctrl, then Space/left click. Bunt: hold V/Ctrl. Star: Q+Space. Spray: A/D. Past line foul; Strike unless two.",

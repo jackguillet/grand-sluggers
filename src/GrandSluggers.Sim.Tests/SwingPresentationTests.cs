@@ -6,6 +6,100 @@ namespace GrandSluggers.Sim.Tests;
 
 public class SwingPresentationTests
 {
+    // -------------------------------------------------------------------------------------
+    // D13 (#612): inside the window the take is warped so Contact lands on the ball's plate
+    // time; outside it plays at its own 0.50 s and misses. Keys keep their order; never backward.
+    // -------------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.0)]
+    public void PressFourFramesEarlyStillLandsContactOnTheBallsPlateTime(double charge)
+    {
+        var rules = Rules.Default;
+        const double plateAt = 0.98;
+        var press = AtBatMotion.SquarePressAt(plateAt, rules: rules) - 4.0 / 60;
+        var err = AtBatMotion.SwingErrorFrames(press, plateAt, rules: rules);
+        Assert.Equal(-4, err, 8);
+        var window = rules.Batting.Window.SlapFrames;
+        Assert.True(AtBatResolver.InWindow(err, window));
+
+        var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
+        Assert.Equal(plateAt, press + contactSec, 8);
+        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(plateAt - press, charge, contactSec), 8);
+
+        // The committed clock reaches the ball's plate time on the flight and presents Contact there.
+        var takeSec = AtBatMotion.SwingTakeSeconds(contactSec);
+        var clock = AtBatMotion.AdvanceCommittedSwing(AtBatMotion.SwingNotStarted, press, press, 0, takeSec);
+        Assert.Equal(0, clock, 8);
+        clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, press, 1.0 / 60, takeSec);
+        Assert.Equal(Motion.SwingContact,
+            AtBatMotion.SwingClipTime(AtBatMotion.CommittedSwingSample(clock, takeSec), charge, contactSec), 8);
+
+        // Load → launch → approach → contact → follow-through, in order, never backward.
+        var previous = AtBatMotion.SwingClipTime(0, charge, contactSec);
+        Assert.Equal(SwingPresentation.LoadSampleAt(charge), previous, 8);
+        var crossed = new List<double>();
+        var keyIndex = 0;
+        void Cross(double sample)
+        {
+            while (keyIndex < SwingPresentation.Keys.Count && sample >= SwingPresentation.Keys[keyIndex].T - 1e-9)
+                crossed.Add(SwingPresentation.Keys[keyIndex++].T);
+        }
+        Cross(previous);
+        const int steps = 2000;
+        for (var i = 1; i <= steps; i++)
+        {
+            var t = takeSec * i / steps;
+            var sample = AtBatMotion.SwingClipTime(t, charge, contactSec);
+            Assert.True(sample >= previous - 1e-12, $"charge {charge} went backward at {t}: {sample} < {previous}");
+            Cross(sample);
+            previous = sample;
+        }
+        Assert.Equal(SwingPresentation.Keys.Select(k => k.T), crossed);
+        Assert.Equal(Motion.SwingDur, AtBatMotion.SwingClipTime(takeSec, charge, contactSec), 8);
+        // The follow-through after contact is the take's own 0.20 s, not warped.
+        Assert.Equal(Motion.SwingDur - Motion.SwingContact, takeSec - contactSec, 8);
+    }
+
+    [Theory]
+    [InlineData(9.0)]
+    [InlineData(-18.0)]
+    public void PressOutsideTheWindowPlaysTheTakeAtItsOwnLengthAndMisses(double err)
+    {
+        var rules = Rules.Default;
+        var window = rules.Batting.Window.SlapFrames;
+        Assert.False(AtBatResolver.InWindow(err, window));
+        var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
+        Assert.Equal(Motion.SwingContact, contactSec, 8);
+        Assert.Equal(Motion.SwingDur, AtBatMotion.SwingTakeSeconds(contactSec), 8);
+        foreach (var charge in new[] { 0.0, 1.0 })
+        for (var t = 0.0; t <= Motion.SwingDur; t += 0.01)
+            Assert.Equal(AtBatMotion.SwingClipTime(t, charge), AtBatMotion.SwingClipTime(t, charge, contactSec), 8);
+
+        // The bat's Contact mark is not on the ball: early lands after the ball has gone, late before it would arrive.
+        const double plateAt = 0.98;
+        var press = AtBatMotion.SwingStart(plateAt, err, rules: rules);
+        Assert.NotEqual(plateAt, press + contactSec, 3);
+    }
+
+    [Fact]
+    public void AnInWindowPressAfterThePlateLandsContactAtThePressNotBeforeIt()
+    {
+        var rules = Rules.Default;
+        // A wide window (EASY, contact 10) can hold a press after the ball is on the plate.
+        const double window = 14.3;
+        var err = rules.Batting.Window.LeadSec * 60 + 1;
+        Assert.True(AtBatResolver.InWindow(err, window));
+        var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
+        Assert.Equal(0, contactSec, 8);
+        Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
+        Assert.Equal(SwingPresentation.LoadSampleAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
+        // The normal slap window never needs that clamp: its latest press is still before the ball.
+        Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.SlapFrames / 2,
+            "batting.window.leadSec must cover half the slap window so contact meets the ball");
+    }
+
     [Fact]
     public void ReadyAndLoadAreSidewaysToThePlateWithEyesOnThePitcher()
     {
