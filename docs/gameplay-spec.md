@@ -6,7 +6,7 @@ The bar is *Mario Super Sluggers* (Wii, 2008): a play is decided by **where the 
 
 Companion docs: [systems.md](systems.md) (chemistry, stars, gear, parks), [how-to-play.md](how-to-play.md) (couch buttons), [research-sluggers.md](research-sluggers.md) (the reference teardown), [roadmap.md](roadmap.md) (the order we build this in). Feel numbers stay in `data/feel/`. Rule numbers move to `data/rules/` (section 16).
 
-Status tags used throughout, checked against the sim and Unity client at `f09cad1` (2026-09-12):
+Status tags used throughout, first checked against `f09cad1` (2026-09-12 morning) and re-checked against `a15f5f5` (2026-09-12 evening, after Phase P #562–#570 and the sitting batches #606–#613 shipped). A ✅ names the PR that closed it; Appendix A keeps the original audit rows as the record.
 
 | Tag | Meaning |
 | --- | --- |
@@ -21,8 +21,8 @@ Every ❌ and ⚠️ is collected in Appendix A with the file and line. Every ru
 ## 0. Principles
 
 1. **Sim owns baseball. Unity presents.** Every out, safe, strike, ball, foul, and advance is decided in `GrandSluggers.Sim` from positions and times. Unity may animate a verdict; it may not produce one. ✅ P0: `LivePlaySystem` owns the live ball from contact to Time — gloves, catches, throws, the relay chain, the close-play race, the bobble, and the steal phase — from one `Tick` command per frame carrying both pads; `InPlayDirector` translates the pads, mirrors the state, and plays the cues.
-2. **Geometry decides. Rolls only add noise, never outcomes.** A stat changes speed, range, window, or accuracy. It does not roll "out or single" (`Fielding.cs:146-161` ❌). Randomness is allowed on *inputs* (a CPU's timing error, a bad-chemistry throw's lateral error), never on *results*.
-3. **One clock, one body.** A runner has one position and one speed. A throw has one duration used both to fly the ball and to judge the bag. A fielder has one speed whether a human or CPU holds the stick. ⚠️ Today there are two runner speeds, four throw-speed formulas, and two glove speeds (Appendix A).
+2. **Geometry decides. Rolls only add noise, never outcomes.** A stat changes speed, range, window, or accuracy. It does not roll "out or single" (the roll at `Fielding.cs:146` was deleted by P4 #597 ✅). Randomness is allowed on *inputs* (a CPU's timing error, a bad-chemistry throw's lateral error), never on *results*.
+3. **One clock, one body.** A runner has one position and one speed. A throw has one duration used both to fly the ball and to judge the bag. A fielder has one speed whether a human or CPU holds the stick. ✅ P3 #595 (one `bagSec` for every runner), P4 #597 (one `InPlay.ThrowSec`; the catcher's gun and Unity's throw flight read it), P4 (one glove speed for both seats).
 4. **The user owns the verb; CPU covers the rest.** Dead stick means the CPU plays that seat *by these same rules*. A human never gets an auto-out and never gets robbed of one by a script.
 5. **Every play type is a scene with a name.** Grounder, chopper, liner, pop, fly, wall ball, homer, bunt — each has a fielder, a runner rule, a throw rule, a camera, and a stamp (section 7).
 6. **Rails, not patches.** A new rule lives in a named system with a `data/rules/*.json` number and a scenario test. Special-casing one play, one seat, or one captain is a patch (AGENTS.md).
@@ -38,16 +38,16 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | D1 | Lead-offs | **None.** Runners stand on the bag. `Lead01`, the lead stick verb, and the mini-diamond lead pips are retired. ✅ P3 | Neither Sluggers nor Superstar Baseball has leads. Leads are what made random pickoffs "necessary" and what made the steal a time credit instead of a race. |
 | D2 | Steal jump | Armed runner breaks at **release**; armed inside the first 0.25 s of the windup is a **perfect steal** and breaks 0.4 s before release. ✅ P6 | Superstar Baseball frame data (frame 40 vs frame 15 of the windup). |
 | D3 | Pickoff | A runner on the bag is always safe. A pickoff catches an armed runner who **already broke** (an early arm breaks on the pitcher's first motion, including a pickoff motion). ✅ P6 | Reference: "a pure pick-off can never get a runner out". This is the mind game, not a roll. |
-| D4 | Contact quality | **Cursor decides quality, timing decides direction.** Sour / nice / perfect by where the ball meets the cursor; early pulls, late pushes; outside the window is a whiff. | Booklet plus the Superstar datamine (five bat zones, 9-frame slap / 7-frame charge window). |
-| D5 | Close plays | Button prompt at **third and home only**, only when the throw and the runner arrive together. | Sluggers booklet wording. Superstar Baseball used a body-check roll instead; we take the prompt. |
-| D6 | Five-star free homer | **No.** | Superstar Baseball had it; Sluggers dropped it. |
-| D7 | Pitch pace | Keep ≈ 0.85–1.10 s to the plate for now; the reference is closer to 0.6–0.75 s. Human parity gate (#534) decides. | Derived from Superstar speeds, not measured in Sluggers. |
-| D8 | Innings | 3 / 6 / 9 (not 1 / 3 / 5 / 7 / 9). Extra innings up to +3. Mercy 10 at the end of an inning. | Party default; the reference cap and mercy are copied. |
-| D9 | Infield fly, balk, dropped third strike, intentional walk, DH | None. | Neither game has them. |
+| D4 | Contact quality | **Cursor decides quality, timing decides direction.** Sour / nice / perfect by where the ball meets the cursor; early pulls, late pushes; outside the window is a whiff. | Booklet plus the Superstar datamine (five bat zones, 9-frame slap / 7-frame charge window). ✅ P1 #586 |
+| D5 | Close plays | Button prompt at **third and home only**, only when the throw and the runner arrive together. | Sluggers booklet wording. Superstar Baseball used a body-check roll instead; we take the prompt. ✅ P5 #598 |
+| D6 | Five-star free homer | **No.** | Superstar Baseball had it; Sluggers dropped it. ✅ by omission |
+| D7 | Pitch pace | Keep ≈ 0.85–1.10 s to the plate for now; the reference is closer to 0.6–0.75 s. Human parity gate (#534) decides. | Derived from Superstar speeds, not measured in Sluggers. ⏳ open: Jack's call after the #534 parity sitting |
+| D8 | Innings | 3 / 6 / 9 (not 1 / 3 / 5 / 7 / 9). Extra innings up to +3. Mercy 10 at the end of an inning. | Party default; the reference cap and mercy are copied. ✅ P3 #596 |
+| D9 | Infield fly, balk, dropped third strike, intentional walk, DH | None. | Neither game has them. ✅ by omission |
 | D10 | Steal of home | Legal (armed from third). ✅ P6 | Nothing in the reference forbids it; the catcher's zero-length throw makes it rare. |
-| D11 | Flat bag-cover speed | Keep (it is how the reference moves covers), but as a data number. | Superstar datamine: constant cover speed starting 14 frames after the hit. |
-| D12 | Box position between pitches | **Recenters after every pitch.** Down still recenters early in SET. | Jack's call (sitting 2026-09-12, #607). The reference persists the box with a reset button; overridden for readability. |
-| D13 | When you press to swing | **The window is centered on the ball reaching the plate** (minus a small authored lead), and the swing take is time-warped so the bat meets the ball inside the window. Outside the window the take plays at its natural length and misses. | Superstar datamine: "the timing of the contact is constant, the animation is lengthened / shortened to make contact." Replaces the fixed press + 0.30 s plane (#612). |
+| D11 | Flat bag-cover speed | Keep (it is how the reference moves covers), but as a data number. | Superstar datamine: constant cover speed starting 14 frames after the hit. ✅ P0 #571 (`running.json`) |
+| D12 | Box position between pitches | **Recenters after every pitch.** Down still recenters early in SET. | Jack's call (sitting 2026-09-12, #607). The reference persists the box with a reset button; overridden for readability. ✅ #620 |
+| D13 | When you press to swing | **The window is centered on the ball reaching the plate** (minus a small authored lead), and the swing take is time-warped so the bat meets the ball inside the window. Outside the window the take plays at its natural length and misses. | Superstar datamine: "the timing of the contact is constant, the animation is lengthened / shortened to make contact." Replaces the fixed press + 0.30 s plane (#612). ✅ #617 |
 | D14 | In-play camera | **One cut on contact** to the in-play view that follows the ball; **the bag camera only for a close play** at third or home (and, optionally, once on a steal throw). No swoop to the bag on ordinary throws. ✅ #610: `PlayCamera.LiveBeat` has no throw beat; `diamond` / `diamond-fly` / `tag` / `throw` are blend 0 (a cut); `PlayCamera.CameraHold` keeps a target `cameraHoldSeconds` (0.25). | Both booklets document one cut on contact and a base-locked camera only for the close play (#610). |
 | D15 | Fence height | **One number**: the park's `fenceHeightFt` drives both the flight clip and the drawn wall; a gate asserts they match. The Harbor value is Jack's call (recommended 12 ft). ✅ #608: `HarborWall.OutfieldHeight(park)` is the park field; Harbor ships at 12 ft. | Sitting 2026-09-12: the drawn Harbor wall was 26 ft over an 8 ft sim fence (#608). |
 
@@ -297,7 +297,7 @@ A table (`batting.json` `cpu`, `Match.CpuSwing`), evaluated when the ball crosse
 
 **Tracking** (the reference model): the CPU batter's guess is the last crossing this offense saw; after release it re-reads the ball and centers the cursor on it `trackPerfectChance` (0.55) of the time, else the box stays at the guess plus a fixed offset (`mistrackMinFt` 0.11 – 0.41 ft, × the rung's `mistrackMul`, worse on easy). **If the pitcher moved on the rubber since the last pitch, the mistrack chance rises sharply** (`mistrackMovedChance` 0.7 vs `mistrackChance` 0.3). That is why walking the rubber is a real verb against the CPU. Timing error σ = (11 − Bat) × `errorFramesPerBatStat` 0.62 frames × the rung's `timingSigmaMul`; when it did not track, a changeup pulls it `fooledMinFrames` 4–9 frames late and a charged pitch that many early. Zone classes: *middle* is the inner `middleFraction` of the frame; *near* is outside by at most `nearFt`. ✅ P1 (S-28)
 
-**No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ✅ P1 part a: `CpuSwingVsHuman`, its `batting.cpu.vsHuman` numbers, and the `cpuVsHumanTake` / `cpuVsHumanMiss` feel rolls are deleted; one table whoever pitches. ⚠️ `CpuSwing` must not arm steals (side effect, `Match.cs` `CpuSwing`) — that is the runner AI (§11.6, P6).
+**No forced-miss clamp against a human pitcher**: the human's meatball is punished by the same table; difficulty is a σ multiplier and the mistrack table (`data/rules/cpu.json` `difficulty` 0.8 / 1.0 / 1.3). ✅ P1 part a: `CpuSwingVsHuman`, its `batting.cpu.vsHuman` numbers, and the `cpuVsHumanTake` / `cpuVsHumanMiss` feel rolls are deleted; one table whoever pitches. ✅ the steal decision is its own once-per-at-bat read (`_cpuStealDecided`, §11.6), outside `CpuSwing`.
 
 Charge vs slap by archetype (reference, `cpu.archetype`): balanced 50%, power 80%, speed 30%, technique 10% — derived from the character's Bat/Run split (Bat − Run ≥ `splitStat` = power, Run − Bat ≥ `splitStat` = speed, both ≥ `techniqueMin` = technique). ✅ P1
 
@@ -367,7 +367,7 @@ Common to all live plays:
 
 ### 7.3 Bunt
 
-- Defense tell: the batter squares at the West press; 1B and 3B **crash** (charge 25 ft toward the plate), 2B covers 1B, SS covers 2B, P and C charge the triangle. ❌
+- Defense tell: the batter squares at the West press; 1B and 3B **crash** (charge 25 ft toward the plate), 2B covers 1B, SS covers 2B, P and C charge the triangle. ❌ open — #625 (the one ❌ left in the body after Phase P).
 - **Fields**: earliest of P / C / 1B / 3B.
 - **Runners**: batter runs; forced runners go (sac). Runner on 3rd with a squeeze: goes at contact only if the offense sent them (`send 3B`), else holds.
 - **Throw**: 1B (batter) by default. Lead runner if the bunt is popped or too hard and the margin is makeable. Runner from 3rd on a squeeze → home only if inside 30 ft.
@@ -430,7 +430,7 @@ Common to all live plays:
 
 - Strikeout: dead. A runner stealing on the pitch is a **catcher throw play** (strike-em-out-throw-em-out DP, §11.5). ✅ steal throw after a miss.
 - Walk: batter to first; only forced runners advance. ✅
-- HBP: as walk. ✅ placement; ⚠️ geometry.
+- HBP: as walk. ✅ placement; ✅ geometry (P1: `batting.hbp.bodyRadiusFt` 0.45 around the body the box walk moves, S-16 / S-17).
 
 ---
 
@@ -801,7 +801,9 @@ Feel values that were dead or shadowed (`throwEase`, `chargeDecay`, `inPlayCommi
 
 ---
 
-## Appendix A — Gap audit (code at `f09cad1`)
+## Appendix A — Gap audit (code at `f09cad1`; every row closed by `a15f5f5`)
+
+Kept as the record of what was wrong on the morning of 2026-09-12 and which epic or PR fixed it. The line numbers are the morning's; the ✅ note is the resolution.
 
 Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the two code maps taken on 2026-09-12.
 
@@ -818,8 +820,8 @@ Grouped by the epic that fixes them (roadmap.md, Phase P). Line numbers from the
 | 7 | `AtBatResolver.cs:54-55` | Off-center Perfect demotes to Cheap — ✅ P1a (one tier at the rim, never two) | §5.3 |
 | 8 | `AtBatResolver.cs:73-75` | Charge ×1.12 max; Charge Bat pinned to ×1.10 — ✅ P1a (`quality.charge` column, S-11, S-30) | §5.1, §5.5 |
 | 9 | `ChemistryTable.cs:96-105` | Buddies-on-base × applies to every contact — ✅ P1a (charged swings only; slap widen) | §5.5 |
-| 10 | `AtBatResolver.cs:13-23, 151-157` | Foul = spray > 45°; `CheapFoulPull` 40% teleport | §5.6 |
-| 11 | `AtBatResolver.cs:119-122` vs `Fielding.cs:340-346` | Two homer launch bands | §5.6 |
+| 10 | `AtBatResolver.cs:13-23, 151-157` | Foul = spray > 45°; `CheapFoulPull` 40% teleport | §5.6 | ✅ P2 #590 (fair / foul by where the ball lands or is touched; the cheap pull survives as the `batting.foul` spray rule — an input, not an outcome) |
+| 11 | `AtBatResolver.cs:119-122` vs `Fielding.cs:340-346` | Two homer launch bands | §5.6 | ✅ P2 #588 (`BattedBallClass.Homer` from the fence crossing is the one rule; `HomeRunLikely` reads it) |
 | 12 | `AtBatResolver.cs:241-256`, `Match.cs:811-819` | HBP unreachable; `FinishHitByPitch` ignores `inZone` — ✅ P1a body geometry in world feet (S-16, S-17); the rubber-walk reach is P1b | §4.6 |
 | 13 | `AtBatFeel.cs` vs `HomeSet.BatterWalk` | Cursor moves 1.85 ft/unit, body 2.4 ft/unit — ✅ P1a (both `HomeSet.BatterWalk`) | §4.6 |
 | 14 | `AtBatFeel.cs:217-221`, `AtBatResolver.cs:52` | Bunt judged at the press; bypasses the oval — ✅ P1a (S-19) | §5.8 |
@@ -880,45 +882,63 @@ P4 left to the client: the "E" tell on the thrower's body (`LiveEvent.ThrowSaile
 
 | # | Where | What | Spec | Closed |
 | --- | --- | --- | --- | --- |
-| 48 | `Match.cs:870-879` | Synthetic DP from fabricated throws | §10.4 | P3 (Complete reads the bodies) |
-| 49 | `LivePlaySystem.cs:344` | `Retire` result discarded after committing caption/flags | §10.4 | P5 (`ApplyThrow`, the close-play verdict) |
-| 50 | `Match.cs:899-976` | Outcome inferred from bookkeeping deltas; three `goto case Single` | §10.6 | P3 |
-| 51 | `Match.cs:908, 1030-1031` | Control flow on caption text | §15 | P3 |
-| 52 | `Match.cs:44, 932`, `InPlayDirector.cs:1215` | `ClosePlaySafe` stale across plays | §9.6 | P3 / P5 (one verdict, written once) |
-| 53 | `ClosePlay.cs`, `InPlayDirector.cs:1157-1223` | Mash on every unforced 3B/home throw | §9.6 | P5 (`ClosePlay.WithinMargin`) |
-| 54 | `InPlay.cs:402, 416-417` | Tag reach 14 ft; home is a safe bag for the batter | §10.3 | P5 (4 ft + ability, judged through the frame; the batter's plate was closed in P3) |
-| 55 | `LivePlaySystem.cs:307-313` | `ThrowArrived` sets HasBall/CatchMade unconditionally | §10.2 | scripted harness command only (tests); the live ball lands every throw through `OnThrowLanded` |
-| 56 | `InPlayDirector.cs:150-152` | Rest fallback bypasses `CommitInPlay` | §10.6 | P3 (the sim commits every ball) |
-| 57 | `Match.cs:556-559` vs `:575-584` | Walk-off only on the take path | §1 | P3 |
-| 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 | P5 |
-| 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 | P3 / P4 / P5 (rundown) |
+| 48 | `Match.cs:870-879` | Synthetic DP from fabricated throws | §10.4 | ✅ P3 (Complete reads the bodies) |
+| 49 | `LivePlaySystem.cs:344` | `Retire` result discarded after committing caption/flags | §10.4 | ✅ P5 (`ApplyThrow`, the close-play verdict) |
+| 50 | `Match.cs:899-976` | Outcome inferred from bookkeeping deltas; three `goto case Single` | §10.6 | ✅ P3 |
+| 51 | `Match.cs:908, 1030-1031` | Control flow on caption text | §15 | ✅ P3 |
+| 52 | `Match.cs:44, 932`, `InPlayDirector.cs:1215` | `ClosePlaySafe` stale across plays | §9.6 | ✅ P3 / P5 (one verdict, written once) |
+| 53 | `ClosePlay.cs`, `InPlayDirector.cs:1157-1223` | Mash on every unforced 3B/home throw | §9.6 | ✅ P5 (`ClosePlay.WithinMargin`) |
+| 54 | `InPlay.cs:402, 416-417` | Tag reach 14 ft; home is a safe bag for the batter | §10.3 | ✅ P5 (4 ft + ability, judged through the frame; the batter's plate was closed in P3) |
+| 55 | `LivePlaySystem.cs:307-313` | `ThrowArrived` sets HasBall/CatchMade unconditionally | §10.2 | ✅ scripted harness command only (tests); the live ball lands every throw through `OnThrowLanded` |
+| 56 | `InPlayDirector.cs:150-152` | Rest fallback bypasses `CommitInPlay` | §10.6 | ✅ P3 (the sim commits every ball) |
+| 57 | `Match.cs:556-559` vs `:575-584` | Walk-off only on the take path | §1 | ✅ P3 |
+| 58 | `PlayStamp.cs:29` | Triple play is a label only | §10.7 | ✅ P5 |
+| 59 | — | Extra innings, mercy, ground-rule double, foul fly catch, rundown missing (the ERROR stamp landed with P4) | §1, §7.11, §9.7 | ✅ P3 / P4 / P5 (rundown) |
 
 ### A.6 Steals and pickoffs (P6) — ✅ closed by P6
 
 | # | Where | What | Spec | Closed |
 | --- | --- | --- | --- | --- |
-| 60 | `Match.cs:338-350`, `Baserunning.cs:25, 46-49` | Double steal impossible; no steal of home | §11.1 | `StartStealAt` arms one body; `StealTarget(3) == 4` |
-| 61 | `StealThrow.cs:59-64`, `ActorDirector.cs:441-446` | Lead as a time credit; runner leaves at commit; no perfect steal | §11.2 | `StealBreak`: the break at release on the pitch's clock, the perfect arm off the windup clock; `RunnerRemainSec` is gone |
-| 62 | `Match.cs:480-503, 1376-1393` | Pickoff arms a steal; a miss awards the base | §11.4 | `Match.BeginPickoff`: the pickoff is a live runner play; a sailed throw is live |
-| 63 | `Match.cs:1421-1481` | Random pickoffs on every pitch (≤ 72%) | §4.5, D3 | gone with P3; the CPU read (`CpuPickoffBag`) is a rate, never an out |
-| 64 | `Match.cs:1319-1323`, `StealThrow.cs:96-115` | Pickoff resolved with the steal race; real pickoff race unreachable | §11.4 | one live ball for both; `GunSteal` / `ResolveStealThrow` / `ApplySteal` deleted |
-| 65 | `StealThrow.cs:23` | No cover at bags 1 and 4; chem computed defender-vs-runner | §11.4 | `StealThrow.CoverPos` covers every bag; `BeginThrowToBag` rolls the thrower–cover pair |
+| 60 | `Match.cs:338-350`, `Baserunning.cs:25, 46-49` | Double steal impossible; no steal of home | §11.1 | ✅ `StartStealAt` arms one body; `StealTarget(3) == 4` |
+| 61 | `StealThrow.cs:59-64`, `ActorDirector.cs:441-446` | Lead as a time credit; runner leaves at commit; no perfect steal | §11.2 | ✅ `StealBreak`: the break at release on the pitch's clock, the perfect arm off the windup clock; `RunnerRemainSec` is gone |
+| 62 | `Match.cs:480-503, 1376-1393` | Pickoff arms a steal; a miss awards the base | §11.4 | ✅ `Match.BeginPickoff`: the pickoff is a live runner play; a sailed throw is live |
+| 63 | `Match.cs:1421-1481` | Random pickoffs on every pitch (≤ 72%) | §4.5, D3 | ✅ gone with P3; the CPU read (`CpuPickoffBag`) is a rate, never an out |
+| 64 | `Match.cs:1319-1323`, `StealThrow.cs:96-115` | Pickoff resolved with the steal race; real pickoff race unreachable | §11.4 | ✅ one live ball for both; `GunSteal` / `ResolveStealThrow` / `ApplySteal` deleted |
+| 65 | `StealThrow.cs:23` | No cover at bags 1 and 4; chem computed defender-vs-runner | §11.4 | ✅ `StealThrow.CoverPos` covers every bag; `BeginThrowToBag` rolls the thrower–cover pair |
 
 ### A.7 Architecture (P0 / #512) — ✅ closed by P0
 
 | # | Where | What | Now |
 | --- | --- | --- | --- |
-| 66 | `InPlayDirector.cs` (1249 lines) | Relay chain, close play, CPU catch timing, steal phase, glove speeds are Unity-side baseball | `LivePlaySystem.Field.cs` owns them; `InPlayDirector.cs` translates pads, mirrors state, plays cues. The bobble and the CPU catcher's release roll on `Match._rng` (S-92). |
-| 67 | `data/feel/table.json` | `throwEase`, `chargeDecay`, `inPlayCommitSeconds` read only by tests; `runHz` shadowed by `Motion.RunHz` | Removed. |
-| 68 | everywhere in §16 | ~150 rule constants in C# with no data hook | `data/rules/*.json` + `RulesTable` + validator; the rows above name their section. Rule numbers still *shaped* like the old code (the infield roll, the lead credit, the CPU rolls) are tabled as shipped and marked for their epic. |
+| 66 | `InPlayDirector.cs` (1249 lines) | Relay chain, close play, CPU catch timing, steal phase, glove speeds are Unity-side baseball | `LivePlaySystem.Field.cs` owns them; `InPlayDirector.cs` translates pads, mirrors state, plays cues. The bobble and the CPU catcher's release roll on `Match._rng` (S-92). | ✅ |
+| 67 | `data/feel/table.json` | `throwEase`, `chargeDecay`, `inPlayCommitSeconds` read only by tests; `runHz` shadowed by `Motion.RunHz` | Removed. | ✅ |
+| 68 | everywhere in §16 | ~150 rule constants in C# with no data hook | `data/rules/*.json` + `RulesTable` + validator; the rows above name their section. Rule numbers still *shaped* like the old code (the infield roll, the lead credit, the CPU rolls) are tabled as shipped and marked for their epic. | ✅ |
 
 The stale close-play verdict (A.5 #52) is gone with `Match.ClosePlaySafe` (the contest's verdict is applied to the body in the play and nothing else reads it); the wrong-clock arrival inputs (A.5 #55, §9.1) are P3's `RunnerSystem.ArrivalSec`. The mash's ±0.25 s gate (A.5 #53) stays P5's: today the contest runs whenever the ball is at third or home before an unforced runner still coming, and that runner's body waits for the verdict.
+
+---
+
+### A.8 Evening sitting (2026-09-12) — ✅ all closed the same day
+
+| # | Found | What | Spec | Closed by |
+| --- | --- | --- | --- | --- |
+| 69 | #606 | Mini diamond drew three booleans; runner positions were one call away | §15 | ✅ #622 |
+| 70 | #607 | Box persisted across the at-bat (reference) — Jack's call: recenter every pitch | §3, D12 | ✅ #620 |
+| 71 | #608 | Drawn Harbor wall 26 ft over an 8 ft sim fence; carom at an invisible plane | §6.1, §7.9, D15 | ✅ #616 (Harbor 12 ft, one number, gate) |
+| 72 | #609 | 2.4 s outfield read (P7) in real seconds, on the human glove, unscaled | §8.2 | ✅ #619 (0.83 s; S-29 held by `chase.outfieldAirMul` 0.6) |
+| 73 | #610 | Camera swooped to the bag on every throw; reference cuts once on contact, bag cam only on a close play | §15, D14 | ✅ #618 (cuts, per-shot blend, 0.25 s hold) |
+| 74 | #611, #576 | Every glove's yaw pinned to the ball while the run cycle played | §8.2 | ✅ #615 (facing from velocity, dt-scaled, backpedal named) |
+| 75 | #612 | Press judged at press + 0.30 s; reference judges at the plate and warps the take | §5.3, D13 | ✅ #617 (`window.leadSec` 0.10, `humanWindowMul`) |
+| 76 | #613, #583 | One swing take, no windup, no finish | §5.1 | ✅ #621 (`swing-slap` / `swing-charge`, held finish; look gate open) |
+| 77 | #623 | The new takes put the bat through the head at MAX load | §5.1 | ✅ #624 |
 
 ---
 
 ## Appendix B — Scenario matrix (acceptance)
 
 Each scenario is a headless sim test: set the state, script the inputs (human seat commands or "CPU"), assert the outcome **and** the reason (which out type, which bag, which runner). A scenario is green only when it passes for the human seat *and* the CPU seat where both exist. Unity's job is to show it; the gate is `dotnet test`, then a sitting.
+
+**Coverage on `a15f5f5`.** Named in the harness (`src/GrandSluggers.Sim.Tests`): S-01, S-03 … S-07, S-09 … S-11, S-13 … S-37, S-39 … S-48, S-50, S-51, S-55 … S-60, S-62, S-64 … S-68, S-72, S-73, S-75 … S-77, S-79, S-80, S-82, S-90 … S-93, plus S-24b and S-58b. **Not yet named by a test:** S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81. Some are covered under scene names without the id; the rule is that a scenario is green only when a test carries its id, so these are the harness's open rows.
 
 ### B.1 Pitch and swing
 
