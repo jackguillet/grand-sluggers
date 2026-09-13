@@ -50,6 +50,9 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 | D13 | When you press to swing | **The window is centered on the ball reaching the plate** (minus a small authored lead), and the swing take is time-warped so the bat meets the ball inside the window. Outside the window the take plays at its natural length and misses. | Superstar datamine: "the timing of the contact is constant, the animation is lengthened / shortened to make contact." Replaces the fixed press + 0.30 s plane (#612). ✅ #617 |
 | D14 | In-play camera | **One cut on contact** to the in-play view that follows the ball; **the bag camera only for a close play** at third or home (and, optionally, once on a steal throw). No swoop to the bag on ordinary throws. ✅ #610: `PlayCamera.LiveBeat` has no throw beat; `diamond` / `diamond-fly` / `tag` / `throw` are blend 0 (a cut); `PlayCamera.CameraHold` keeps a target `cameraHoldSeconds` (0.25). | Both booklets document one cut on contact and a base-locked camera only for the close play (#610). |
 | D15 | Fence height | **One number**: the park's `fenceHeightFt` drives both the flight clip and the drawn wall; a gate asserts they match. The Harbor value is Jack's call (recommended 12 ft). ✅ #608: `HarborWall.OutfieldHeight(park)` is the park field; Harbor ships at 12 ft. | Sitting 2026-09-12: the drawn Harbor wall was 26 ft over an 8 ft sim fence (#608). |
+| D16 | Who you control on defense | **The play glove is the body with the earliest route to the ball** (landing on a fly, first reachable point on a roller), not the nearest body. **Selection is an event** — contact, the ball reaching the grass, a loose ball, a throw's release, a Select press — never a per-frame re-pick. | Genre: every game says "nearest" and every review complains about mid-run swaps (Sluggers, Super Mega Baseball 4, The Show). Superstar's own rule is by hit class and area with an explicit yield rule. Ours is the route planner (§8.2) plus the event rule (§8.9). ✅ code since P4 / #615 |
+| D17 | Fielder lock | **No lock verb.** A hand-off never takes the human's body while it still has a route to the ball, so a lock has nothing to prevent. Revisit only if a sitting shows a mid-run swap. | Superstar (hold L) and Power Pros (hold R1) needed one because their auto-switch re-evaluates by distance. ✅ by omission |
+| D18 | The human starts on the glove? | **No, in Exhibition.** The CPU runs the play glove until the stick passes the take threshold or Select is pressed; a dead stick catches but never throws. Training scoop drills start you on it. | #83 and #209: a human never gets an auto-out, never gets robbed of one. Sluggers Remote-only mode auto-pursues and auto-throws; with the Nunchuk you move. ✅ code (`FieldAssist`) |
 
 ---
 
@@ -521,6 +524,36 @@ Difficulty (`cpu.json`): margin threshold 0.30 / 0.15 / 0.05 and reaction 1.4× 
 
 ---
 
+### 8.9 Control: who you are on defense
+
+The reference and the genre (research-sluggers.md, "Fielder control across the genre") agree on the shape and share one failure: the game swaps you to another body while you are running. This section is the rule that prevents it. Numbers are `data/rules/fielding.json` (`chase`) and `data/feel/table.json` (`fieldAssistStick`).
+
+**The play glove.** One body owns the ball at any moment: the *play glove*. The YOU ring sits on it for the whole live ball whenever a human is on defense, dead stick included, so a stranger always knows who they are (the reference's "Control Display" / pointing hand; the review complaint "you can't see your player until the last second" is the failure to avoid). ✅
+
+**Selection at contact (D16).** The play glove is the body whose planned route meets the ball earliest — the landing (or wall plant) on a fly, the first reachable point on a roller — from the pursuit pools of §8.2, after each body's reaction lockout. Ties: CF over the corners, SS over 2B, an infielder over the pitcher. Not "nearest to the ball": a liner over the shortstop belongs to the outfielder whose route reaches it, and a slow roller belongs to the charging corner, not the pitcher who is closer but locked out longer. (Superstar assigns by hit class and area and yields to an outfielder who is within 20 frames of the infielder; the route planner subsumes both rules.) ✅ `FieldingPursuit.Choose`, S-31 / S-32.
+
+**Taking the glove (D18).** In Exhibition the CPU runs the play glove until the human *takes* it: the stick passes `fieldAssistStick` (0.35) or Select is pressed. Until then the body chases and catches by the CPU rules and **does not throw**; after the take the stick steers, South catches in the window, and the throw is the human's verb (§8.5). Once taken, the human keeps the seat for the rest of the play; a dead stick after the take still chases (`CpuChases`) and still does not throw. ✅ `FieldAssist.StickTakesGlove`, S-33.
+
+**Hand-offs are events with a reason.** The play glove moves to another body only on one of these, and every body stays where it stands when it does (the ring moves, nobody teleports):
+
+| Event | New glove | Why |
+| --- | --- | --- |
+| Ball reaches the outfield grass past the infield lip and the current glove has no route to it | nearest outfielder by route | the infielder's play is over |
+| Loose ball (fumble, overthrow, carom nobody fielded) | nearest body to the ball | §8.6, §8.7 |
+| Throw released | the receiver at the target bag (or the cutoff) | the ball is going there; the thrower stays put (§8.5) |
+| Select / R pressed (not while holding the ball) | see below | the human's choice |
+| Pitcher swap, half-inning | the assignment resets | §4.7 |
+
+A hand-off is **never** triggered by distance alone, never re-evaluated per frame, and **never takes a body that still has a route to the ball** — the SMB4 complaint ("as you near the ball the game swaps it to CF and your guy runs the wrong way") cannot happen because the infield→outfield hand-off requires the current glove's route to have failed. After a hand-off the previous body keeps its momentum for `chase.handoffCoastSec` (0.2 s, the FIFA "move assistance" idea) so the swap does not jerk; the new body answers the stick at once. ✅ events (`HandGloveTo` call sites); ❌ the "still has a route" guard and the coast are not pinned by a test (S-96, S-97).
+
+**Select / R (the switch).** With the stick pointing at a body: the nearest body in that direction (dot > 0.15 from the current body). With a dead stick: the next-nearest body to the ball (fly: to the landing), falling back to the diamond order. Locked for `chase.swapLockSec` (0.7) after a switch; never while holding the ball or throwing. The HUD pulses the body Select would take (`R → CF`). This is the genre's "one button to nearest" plus direction, so the shortstop can be taken off a liner up the middle without cycling (the Superstar mod added exactly that). ✅ `FieldAssist.SwapGlove`, `SwitchHint`.
+
+**Everyone else.** The eight bodies that are not the play glove run the CPU table whichever seat holds the glove: cover (each bag always covered, the pitcher backfills), cutoff, backup 60 ft behind a throw, support spots for idle outfielders (§8.7). A human holding one body is a cover for the other eight, not their coach. Two pads: the same rules per side. ✅
+
+**No lock (D17), no auto-throw.** There is no hold-to-lock verb (Superstar's L, Power Pros' R1) because nothing auto-switches by distance. There is no auto-throw for the human seat at any difficulty (Sluggers Remote-only mode throws for you; we do not): the CPU throws only for CPU-owned gloves (#579). Difficulty changes the CPU's lockouts and margins, never who you are.
+
+**What is not decided.** Whether the human may *refuse* the receiver hand-off (today the ring goes to the receiver at release; the stick can take another body afterwards) — S-98 pins today's behavior. Whether Sluggers itself hands off mid-play is UNVERIFIED (the booklet only documents the switch button); the emulator study in the research notes is how to find out.
+
 ## 9. Baserunning
 
 ### 9.1 The runner model
@@ -938,7 +971,7 @@ The stale close-play verdict (A.5 #52) is gone with `Match.ClosePlaySafe` (the c
 
 Each scenario is a headless sim test: set the state, script the inputs (human seat commands or "CPU"), assert the outcome **and** the reason (which out type, which bag, which runner). A scenario is green only when it passes for the human seat *and* the CPU seat where both exist. Unity's job is to show it; the gate is `dotnet test`, then a sitting.
 
-**Coverage on `a15f5f5`.** Named in the harness (`src/GrandSluggers.Sim.Tests`): S-01, S-03 … S-07, S-09 … S-11, S-13 … S-37, S-39 … S-48, S-50, S-51, S-55 … S-60, S-62, S-64 … S-68, S-72, S-73, S-75 … S-77, S-79, S-80, S-82, S-90 … S-93, plus S-24b and S-58b. **Not yet named by a test:** S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81. Some are covered under scene names without the id; the rule is that a scenario is green only when a test carries its id, so these are the harness's open rows.
+**Coverage on `a15f5f5`.** Named in the harness (`src/GrandSluggers.Sim.Tests`): S-01, S-03 … S-07, S-09 … S-11, S-13 … S-37, S-39 … S-48, S-50, S-51, S-55 … S-60, S-62, S-64 … S-68, S-72, S-73, S-75 … S-77, S-79, S-80, S-82, S-90 … S-93, plus S-24b and S-58b. **Not yet named by a test:** S-94 … S-99 (§8.9, added 2026-09-13), S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81. Some are covered under scene names without the id; the rule is that a scenario is green only when a test carries its id, so these are the harness's open rows.
 
 ### B.1 Pitch and swing
 
@@ -1027,6 +1060,18 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-80 | Home leads after the top of the last inning | | Bottom skipped; game over |
 | S-81 | Tie after the last inning | | Extra innings to the cap |
 | S-82 | 10-run lead after the trailing side bats in the 3rd of a 6-inning game | | Mercy |
+
+### B.8 Control: who you are (§8.9)
+
+| Id | Setup | Input | Expect |
+| --- | --- | --- | --- |
+| S-94 | Human on defense, grounder to SS | Dead stick throughout | SS is the play glove from contact; CPU chases and scoops; no throw; batter safe at Time (S-33 restated for the ring) |
+| S-95 | Same | Stick past 0.35 at t = 0.5 | Human owns SS; a dead stick afterwards still chases; South throws |
+| S-96 | Human took 2B on a slow roller they can reach | Ball rolls toward the grass | No hand-off while 2B's route still reaches; 2B scoops |
+| S-97 | Human took SS on a liner over their head | Ball lands on the grass past them | Hand-off to the outfielder by route at the moment SS has no route; SS coasts 0.2 s; nobody teleports |
+| S-98 | Human throws from SS to first | — | Ring on 1B at release; SS stays put; the stick now steers 1B; Select can take another body |
+| S-99 | Human presses Select with the stick pointing at CF, then again inside 0.7 s | — | First press takes CF; second is ignored (lock); holding the ball, Select does nothing |
+
 
 ### B.7 Determinism and seats
 
