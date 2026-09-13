@@ -82,6 +82,7 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix. GitHub sitting children stay; they are not the memory.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
