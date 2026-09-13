@@ -3,6 +3,15 @@
 
 Unity Generic, axis_forward -Z, axis_up Y.
 Names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit, home-plate, bag.
+
+Stages (docs/agent-rails.md §6, data/agent/dcc-stages.json). One-shotting a kit
+mesh is a patch. The next prompt names the stage it continues.
+  1 blocking  diamond / wall ring volumes   --clay scratchpad/takes
+  2 fill      kit slots                     --clay
+  3 motion    — (Harbor has no takes)
+  4 export    FBX into the catalog slot     --out
+  5 still     tools/dcc-still.sh harbor + tools/still-gate.sh
+Existing flags --out and --clay still run. This script does not retarget a rig.
 """
 from __future__ import annotations
 

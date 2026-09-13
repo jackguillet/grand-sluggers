@@ -36,6 +36,9 @@ switch (cmd)
     case "stills":
         PrintStills(content);
         break;
+    case "stages":
+        PrintStages(content);
+        break;
     default:
         Console.WriteLine("""
             Grand Sluggers sim
@@ -48,6 +51,7 @@ switch (cmd)
               art
               protocol
               stills
+              stages
             """);
         break;
 }
@@ -125,9 +129,10 @@ static void PrintArt(ContentCatalog content)
     var errors = art.Validate(content)
         .Concat(DebugProtocol.Validate(content.Root))
         .Concat(DualStills.Validate(content.Root))
+        .Concat(DccStages.Validate(content.Root))
         .ToList();
     if (errors.Count == 0)
-        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol, dual stills");
+        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol, dual stills, dcc stages");
     else
     {
         Console.WriteLine("FAIL   " + errors.Count + " errors");
@@ -172,6 +177,29 @@ static void PrintStills(ContentCatalog content)
         foreach (var e in errors) Console.WriteLine("  - " + e);
         Environment.ExitCode = 1;
     }
+}
+
+static void PrintStages(ContentCatalog content)
+{
+    var catalog = DccStages.Load(content.Root, new List<string>());
+    Console.WriteLine($"STAGES {catalog.Stages.Count}  one-shot {catalog.OneShot}");
+    foreach (var stage in catalog.Stages)
+    {
+        Console.WriteLine($"  {stage.N} {stage.Id,-10} {stage.Kind,-6} character {Lane(stage.Character)}");
+        Console.WriteLine($"                     harbor    {Lane(stage.Harbor)}");
+    }
+    var errors = DccStages.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     dcc stages match spec §6; one-shot banned");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+
+    static string Lane(DccStageLane lane) =>
+        lane.Skip ? "—" : $"{lane.Checkpoint}  {lane.Flag}";
 }
 
 static void PrintTeam(ContentCatalog content, string id)

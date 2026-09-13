@@ -1,0 +1,89 @@
+{
+  // Stage-save DCC (#653 / R6). Named checkpoints. One-shot is a patch.
+  // Clay/sheet at 1–3, catalog FBX at 4, dual stills (R4) at 5.
+  "oneShot": "banned",
+  "stages": [
+    {
+      "id": "blocking",
+      "n": 1,
+      "kind": "clay",
+      "character": {
+        "script": "tools/blender/hero_shared_blockout.py",
+        "work": "silhouette",
+        "flag": "--clay",
+        "checkpoint": "scratchpad/takes/body.png"
+      },
+      "harbor": {
+        "script": "tools/blender/harbor_kit.py",
+        "work": "diamond / wall ring volumes",
+        "flag": "--clay",
+        "checkpoint": "scratchpad/takes/harbor-kit.png"
+      }
+    },
+    {
+      "id": "fill",
+      "n": 2,
+      "kind": "clay",
+      "character": {
+        "script": "tools/blender/hero_shared_extras.py",
+        "work": "extras from hero_shared_extras.py + extras.json",
+        "flag": "--clay",
+        "checkpoint": "scratchpad/takes/extras.png"
+      },
+      "harbor": {
+        "script": "tools/blender/harbor_kit.py",
+        "work": "kit slots",
+        "flag": "--clay",
+        "checkpoint": "scratchpad/takes/harbor-kit.png"
+      }
+    },
+    {
+      "id": "motion",
+      "n": 3,
+      "kind": "sheet",
+      "character": {
+        "script": "tools/blender/hero_shared_takes.py",
+        "work": "takes",
+        "flag": "--sheets",
+        "checkpoint": "scratchpad/takes/{clip}.png"
+      },
+      "harbor": {
+        "skip": true
+      }
+    },
+    {
+      "id": "export",
+      "n": 4,
+      "kind": "fbx",
+      "character": {
+        "script": "tools/blender/",
+        "work": "FBX into the catalog slot",
+        "flag": "--out",
+        "checkpoint": "unity/Assets/Art/"
+      },
+      "harbor": {
+        "script": "tools/blender/harbor_kit.py",
+        "work": "FBX into the catalog slot",
+        "flag": "--out",
+        "checkpoint": "unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx"
+      }
+    },
+    {
+      "id": "still",
+      "n": 5,
+      "kind": "dual",
+      "character": {
+        "script": "tools/dcc-still.sh",
+        "work": "DCC still + in-game character still",
+        "flag": "tools/still-gate-character.sh {id}",
+        "checkpoint": "scratchpad/stills/"
+      },
+      "harbor": {
+        "script": "tools/dcc-still.sh harbor",
+        "work": "in-game park still",
+        "flag": "tools/still-gate.sh",
+        "checkpoint": "scratchpad/stills/"
+      }
+    }
+  ]
+}
