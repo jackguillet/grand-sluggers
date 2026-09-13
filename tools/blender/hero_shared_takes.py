@@ -14,6 +14,7 @@ armature-only FBX per clip (and `{clip}-L` for handed clips).
     --sheets scratchpad/takes [--only swing,pitch]
 
 Contract: docs/character-motion.md. Runtime clocks: src/GrandSluggers.Sim/Motion.cs.
+Stage 3 motion (data/agent/dcc-stages.json): --sheets scratchpad/takes/{clip}.png, then --out.
 """
 from __future__ import annotations
 
