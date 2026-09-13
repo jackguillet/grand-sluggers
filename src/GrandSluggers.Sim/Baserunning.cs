@@ -5,9 +5,9 @@ public enum RunStick { None, Steal, Return }
 
 /// <summary>
 /// Named-bag running. Same diamond as throws (right 1B, up 2B, left 3B, down home).
-/// Home is never a steal target. There are no leads (D1): a runner stands on the bag until
-/// contact, a steal break, or a send. After the pitch, a steal is a catcher gun
-/// (<see cref="StealThrow"/>), not a sim roll.
+/// There are no leads (D1): a runner stands on the bag until contact, a steal break, or a send.
+/// A steal is armed toward the next bag, home included (D10); after the pitch it is a live ball
+/// with the catcher's throw and the tag at the bag (§11.3), not a sim roll.
 /// </summary>
 public static class Baserunning
 {
@@ -25,8 +25,8 @@ public static class Baserunning
         _ => 0
     };
 
-    /// <summary>Next bag for a steal. 0 means no steal (home or invalid).</summary>
-    public static int StealTarget(int fromBag) => fromBag is 1 or 2 ? fromBag + 1 : 0;
+    /// <summary>Next bag for a steal: second, third, or home (D10). 0 for an invalid bag.</summary>
+    public static int StealTarget(int fromBag) => fromBag is >= 1 and <= 3 ? fromBag + 1 : 0;
 
     /// <summary>
     /// What the stick says about the selected runner before the ball is in play (spec §9.2, §11.1):
@@ -57,13 +57,18 @@ public static class Baserunning
         {
             2 => second,
             3 => third,
+            4 => false,
             _ => true
         };
 
-    public static bool CanSteal(int fromBag, bool first, bool second, bool third) =>
+    /// <summary>
+    /// A steal is offered from an occupied bag toward an open next bag, or toward a bag whose runner
+    /// is armed too (the double steal, §11.1).
+    /// </summary>
+    public static bool CanSteal(int fromBag, bool first, bool second, bool third, bool nextRunnerArmed = false) =>
         StealTarget(fromBag) > 0
         && Occupied(fromBag, first, second, third)
-        && !NextOccupied(fromBag, first, second, third);
+        && (!NextOccupied(fromBag, first, second, third) || nextRunnerArmed);
 
     /// <summary>
     /// Keep a pad-named runner while they occupy. Otherwise snap to the lead runner.

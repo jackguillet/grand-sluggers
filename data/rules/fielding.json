@@ -107,13 +107,12 @@
     "maxRollFt": 45
   },
   "catcher": {
+    "behindPlateFt": 3,
     "cpuReleaseBaseSec": 0.42,
     "cpuReleasePerField": 0.014,
     "cpuReleaseNoiseSec": 0.2,
     "cpuReleaseMinSec": 0.1,
-    "cpuReleaseMaxSec": 0.58,
-    "tagHoldSec": 0.38,
-    "cpuRemainNoiseSec": 0.28
+    "cpuReleaseMaxSec": 0.58
   },
   "chem": {
     "goodSpeedMul": 1.30,

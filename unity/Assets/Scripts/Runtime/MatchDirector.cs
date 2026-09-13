@@ -139,13 +139,6 @@ namespace GrandSluggers.UnityClient
         ThrowResult _armedThrow;
         Vector3 _throwFrom, _throwTo;
         string _banner, _sub;
-        bool _gun;
-        float _gunT, _gunDur;
-        Vector3 _gunFrom, _gunTo;
-        Character _gunRunner;
-        int _gunFromBag, _gunToBag, _gunThrowToBag;
-        bool _gunSafe, _gunPickoff, _gunThrowFromPitcher;
-        float _stealT;
 
         bool TrainingOn => _coach != null && _coach.Session != null;
         Seats SelectedSeats =>
@@ -284,7 +277,6 @@ namespace GrandSluggers.UnityClient
             }
             if (!_gateHold)
             {
-                TickGun(dt);
                 _flow.Tick();
                 _atBat.Tick(dt);
                 _inPlay.Tick(dt);
@@ -395,8 +387,8 @@ namespace GrandSluggers.UnityClient
                 HudView.ItemPointer(_itemTarget.Name);
             if (!mutePlay && _phase == Phase.InPlay && (_caught || _buddy) && !_throwing)
                 HudView.BagTell(_match.LivePlay.CommitBagFor(FieldInput()));
-            if (!mutePlay && _phase == Phase.StealThrow && !_throwing)
-                HudView.BagTell(_match.LivePlay.StealCommitBagFor(FieldInput()));
+            if (!mutePlay && _phase == Phase.StealThrow && _caught && !_throwing && HumanOwnsThrow)
+                HudView.BagTell(_match.LivePlay.CommitBagFor(FieldInput()));
             if (_feelDebug)
             {
                 var verb = "";
@@ -615,8 +607,9 @@ namespace GrandSluggers.UnityClient
                 _banner = "BUDDY JUMP";
             else if (_last != null && PlayStamp.Shows(_last.Kind))
             {
-                _banner = PlayStamp.Label(_last.Kind, _last.OutsOnPlay, _last.RunsScored,
-                    _last.Swing.Bunt, _catchDive, _catchJump, _last.Outcome != null && _last.Outcome.Error);
+                _banner = PlayStamp.Label(_last.Kind, _last.Outcome?.Outs?.Count ?? _last.OutsOnPlay, _last.RunsScored,
+                    _last.Swing.Bunt, _catchDive, _catchJump, _last.Outcome != null && _last.Outcome.Error,
+                    _last.Outcome != null && _last.Outcome.RunnerResult == RunnerPlayResult.PickedOff);
             }
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
