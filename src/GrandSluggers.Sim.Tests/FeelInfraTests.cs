@@ -157,7 +157,6 @@ public class FeelInfraTests
         var hop = _content.Shots.Must("diamond-grounder");
         var line = _content.Shots.Must("diamond-line");
         var homer = _content.Shots.Must("diamond-homer");
-        var wall = _content.Shots.Must("wall");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
         Assert.InRange(fly.Pos.X, -2, 2);
@@ -194,9 +193,8 @@ public class FeelInfraTests
             new CameraShot(fly.Id, fly.Look, framed.Pos, framed.Look, fly.Fov, fly.Blend),
             new Vec3(Diamond.First.X, 0, Diamond.First.Z));
         Assert.True(PlayCamera.InFrame(dirt, 0.02), $"dirt under the ball off frame {dirt}");
-        Assert.Equal("glove", wall.Look, ignoreCase: true);
-        Assert.True(Math.Abs(wall.Target.X) < 4 && Math.Abs(wall.Target.Z) < 4, "wall is a follow-cam on the glove");
-        Assert.Equal(PlayCamera.Wall, wall.Id);
+        // A wall ball follows the ball on the fly shot (D14); there is no separate glove cam at the wall.
+        Assert.False(_content.Shots.TryGet("wall", out _), "the dead wall shot is gone from the catalog");
         Assert.True(hop.Pos.Y < 9, $"scoop still is a 3/4, not top-down y={hop.Pos.Y}");
         Assert.True(hop.Pos.Y > 4, $"scoop still too low y={hop.Pos.Y}");
         Assert.True(hop.Pos.Y - hop.Target.Y < 8, $"scoop still look is too steep y {hop.Pos.Y} -> {hop.Target.Y}");
@@ -238,7 +236,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-line", "diamond-homer", "wall", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-line", "diamond-homer", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);

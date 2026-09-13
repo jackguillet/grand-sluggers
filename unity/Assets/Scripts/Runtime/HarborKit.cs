@@ -811,7 +811,8 @@ namespace GrandSluggers.UnityClient
         {
             Wipe(WallDress);
             if (_park == null) return;
-            var h = HarborPostcard.WallHeightFt;
+            // D15: the drawn wall is the park's fence, the top the flight clips against.
+            var h = HarborWall.OutfieldHeight(_park);
             var thick = HarborPostcard.WallThickFt;
             var pad = Look.Lit(new Color(0.18f, 0.46f, 0.30f), Look.Grass, 3f, 0.08f);
             var cap = Look.Unlit(Colors.Gold);
@@ -853,15 +854,18 @@ namespace GrandSluggers.UnityClient
                 var hh = (h0 + h1) * 0.5f;
                 var w = Vector3.Distance(a, b);
                 var rot = Quaternion.LookRotation(outward, Vector3.up);
+                var ad = HarborPostcard.OnWallFace(hh, HarborPostcard.AdHeightFt);
                 if (hh > 10f && i % 2 == 0)
-                    Box(WallDress, "Ad" + i, mid - outward * (thick * 0.55f) + Vector3.up * (hh * 0.62f),
-                        new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), HarborPostcard.AdHeightFt, 0.45f), rot, ads[i % ads.Length]);
+                    Box(WallDress, "Ad" + i, mid - outward * (thick * 0.55f) + Vector3.up * ad.Y,
+                        new Vector3(Mathf.Min(HarborPostcard.AdWidthFt, w * 0.72f), ad.Height, 0.45f), rot, ads[i % ads.Length]);
                 if (hh > 10f && i % 3 == 0)
                     Box(WallDress, "Ivy" + i, mid - outward * (thick * 0.6f) + Vector3.up * 3.2f, new Vector3(8.5f, 5.4f, 0.4f), rot, ivy);
                 if (Mathf.Abs(mid.x) < 8f && mid.z > 300f)
                 {
-                    Box(WallDress, "MarkSpark", mid - outward * (thick * 0.7f) + Vector3.up * (h * 0.62f), new Vector3(6.4f, 6.4f, 0.5f), rot, spark);
-                    Box(WallDress, "MarkGold", mid - outward * (thick * 0.82f) + Vector3.up * (h * 0.62f), new Vector3(3.2f, 3.2f, 0.4f), rot, mark);
+                    var big = HarborPostcard.OnWallFace(h, 6.4f);
+                    var small = HarborPostcard.OnWallFace(h, 3.2f);
+                    Box(WallDress, "MarkSpark", mid - outward * (thick * 0.7f) + Vector3.up * big.Y, new Vector3(big.Height, big.Height, 0.5f), rot, spark);
+                    Box(WallDress, "MarkGold", mid - outward * (thick * 0.82f) + Vector3.up * small.Y, new Vector3(small.Height, small.Height, 0.4f), rot, mark);
                 }
             }
         }
@@ -1061,7 +1065,7 @@ namespace GrandSluggers.UnityClient
                     along.y = 0f;
                     if (along.sqrMagnitude < 0.4f) continue;
                     var mid = (a + b) * 0.5f;
-                    mid.y = HarborStands.CornerRowY(row);
+                    mid.y = HarborStands.CornerRowY(_park, row);
                     var radial = mid;
                     radial.y = 0f;
                     if (radial.sqrMagnitude < 1f) continue;

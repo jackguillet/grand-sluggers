@@ -8,7 +8,7 @@
   "rightFenceFt": 330,
   "windMph": 4,
   "windDeg": 20,
-  "fenceHeightFt": 8,
+  "fenceHeightFt": 12,
   "nightOnly": false,
   "dayOnly": false,
   "hazards": [],

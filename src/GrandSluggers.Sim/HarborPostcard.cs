@@ -9,13 +9,14 @@ public static class HarborPostcard
 {
     public const string ParkId = "harbor-diamond";
 
-    public const float WallHeightFt = 26f;
     public const float WallThickFt = 3.4f;
     /// <summary>Full loop: outfield plus the wrap behind dugouts and home.</summary>
     public const int WallSegs = HarborWall.WrapSegs;
     public const float WallOverlapFt = 1.2f;
     public const float AdHeightFt = 12f;
     public const float AdWidthFt = 16f;
+    /// <summary>Padding left above and below an ad or the CF mark so it sits inside the wall face.</summary>
+    public const float FaceMarginFt = 1f;
     public const float CrowdPersonFt = HarborStands.PersonFt;
     public const float CrowdInsideFt = 18f;
     /// <summary>CF decks sit on the wall and flatten the postcard. Home and 1B/3B stands stay.</summary>
@@ -87,16 +88,28 @@ public static class HarborPostcard
     }
 
     /// <summary>
-    /// Field pick looks at CF. Wall, track crowd, and digits must subtend
-    /// enough angle that they are not specks on a 1280 player.
+    /// A panel of <paramref name="wantFt"/> centered on a wall face <paramref name="wallFt"/> tall: its
+    /// center height and the height it may have, shrunk so it never pokes over the cap (D15: the wall
+    /// is the park's fence, whatever number that is).
     /// </summary>
-    public static bool ReadsFromField(CameraShot field, double centerFenceFt)
+    public static (float Y, float Height) OnWallFace(float wallFt, float wantFt) =>
+        (wallFt * 0.5f, Math.Max(0f, Math.Min(wantFt, wallFt - 2f * FaceMarginFt)));
+
+    /// <summary>The smallest angle a thing on the field postcard may subtend and still read: the board digits' floor.</summary>
+    public const double ReadsDeg = 1.5;
+
+    /// <summary>
+    /// Field pick looks at CF. The wall (at the park's own fence height, D15), track crowd, and digits
+    /// must subtend enough angle that they are not specks on a 1280 player.
+    /// </summary>
+    public static bool ReadsFromField(CameraShot field, Park park)
     {
         if (field.Pos.Z < 20 || field.Target.Z < 250) return false;
+        var centerFenceFt = park.CenterFenceFt;
         var wallZ = centerFenceFt;
         var boardZ = centerFenceFt + ScoreboardPastFenceFt;
-        if (SubtendDeg(field.Pos.Z, wallZ, WallHeightFt) < 4) return false;
-        if (SubtendDeg(field.Pos.Z, boardZ, DigitHeightFt) < 1.5) return false;
+        if (SubtendDeg(field.Pos.Z, wallZ, HarborWall.OutfieldHeight(park)) < ReadsDeg) return false;
+        if (SubtendDeg(field.Pos.Z, boardZ, DigitHeightFt) < ReadsDeg) return false;
         if (centerFenceFt + TownPastFenceFt <= wallZ) return false;
         return true;
     }
