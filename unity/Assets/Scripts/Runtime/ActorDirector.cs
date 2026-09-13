@@ -147,8 +147,6 @@ namespace GrandSluggers.UnityClient
                     pose = Motion.Verb.Throw;
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = Motion.Verb.Catch;
-                if (_gun && kv.Key == "C" && !_gunThrowFromPitcher) pose = Motion.Verb.Throw;
-                if (_gun && kv.Key == "P" && _gunThrowFromPitcher) pose = Motion.Verb.Throw;
                 var hero = Hero(who);
                 hero.SetGrow(who.FieldAbility == "grow" && highlighted);
                 hero.SetHighlight(highlighted);
@@ -170,8 +168,6 @@ namespace GrandSluggers.UnityClient
                         : new Vector3((float)-x, 0, (float)-z + 8f);
                 if (_throwing && (highlighted || kv.Key == _throwFromPos))
                     look = _throwTo - new Vector3((float)x, 0, (float)z);
-                if (_gun && ((kv.Key == "C" && !_gunThrowFromPitcher) || (kv.Key == "P" && _gunThrowFromPitcher)))
-                    look = _gunTo - new Vector3((float)x, 0, (float)z);
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
                 if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _flight);
@@ -239,7 +235,6 @@ namespace GrandSluggers.UnityClient
             PlaceRunner(_match.First, Diamond.First, 1);
             PlaceRunner(_match.Second, Diamond.Second, 2);
             PlaceRunner(_match.Third, Diamond.Third, 3);
-            PlaceStealRunner();
 
             foreach (var kv in _heroes)
                 if (!_used.Contains(kv.Key) && kv.Value != null)
@@ -333,15 +328,14 @@ namespace GrandSluggers.UnityClient
         void PlaceRunner(Character who, (double X, double Z) bag, int bagNum)
         {
             if (who == null) return;
-            if (_phase == Phase.StealThrow && _match.ArmedStealBag == bagNum) return;
-            if (_gun && _gunRunner != null && who.Id == _gunRunner.Id) return;
             var state = _match.RunnerAt(bagNum);
+            var live = _phase is Phase.InPlay or Phase.StealThrow;
             // No leads (D1): a runner stands on the bag until contact, a steal break, or a send. Live, the body is the sim's.
-            var spot = state != null && _phase == Phase.InPlay ? state.Position : bag;
+            var spot = state != null && live ? state.Position : bag;
             var next = Diamond.Bag(bagNum >= 3 ? 4 : bagNum + 1);
             var h = Hero(who);
             var pose = Motion.Verb.Idle;
-            if (state != null && _phase == Phase.InPlay && _pending != null)
+            if (state != null && live)
             {
                 next = Diamond.Bag(state.DestBag >= state.Bag + 1 ? Math.Min(state.Bag + 1, 4) : state.Bag);
                 if (state.Phase == RunnerPhase.Returning) next = Diamond.Bag(state.Bag);
@@ -349,7 +343,20 @@ namespace GrandSluggers.UnityClient
                     : state.Moving && !state.Held ? Motion.Verb.Run
                     : Motion.Verb.Idle;
             }
-            else if (state != null && state.StealArmed) pose = Motion.Verb.StealLead;
+            else if (state != null && state.StealArmed && _phase == Phase.Flight)
+            {
+                // The break (§11.2, D2): the armed body runs at the air speed from release (a perfect steal from before it).
+                var feet = StealBreak.FeetAt(who, state.StealArm, _flight, _content.Rules);
+                if (feet > 0)
+                {
+                    var u = feet / Diamond.Baseline;
+                    spot = (bag.X + (next.X - bag.X) * u, bag.Z + (next.Z - bag.Z) * u);
+                    pose = Motion.Verb.Run;
+                }
+                else pose = Motion.Verb.StealLead;
+            }
+            // A perfect arm is the windup's: its pip shows once the windup starts, never in SET (the CPU pitcher cannot read it, §11.6).
+            else if (state != null && state.StealArmed && state.StealArm != StealArm.Perfect) pose = Motion.Verb.StealLead;
             h.SetPose(pose);
             h.SetGear(_match.OffenseBat, _match.DefenseGlove);
             h.SetHeld(false, false);
@@ -357,47 +364,6 @@ namespace GrandSluggers.UnityClient
             h.SetHighlight(HumanBats && selected != null && who.Id == selected.Id && _phase is Phase.Set or Phase.Flight);
             h.Place(new Vector3((float)spot.X, 0, (float)spot.Z),
                 new Vector3((float)(next.X - spot.X), 0, (float)(next.Z - spot.Z)));
-            h.Tick(Time.deltaTime);
-        }
-
-        void PlaceStealRunner()
-        {
-            if (_phase == Phase.StealThrow)
-            {
-                PlaceLiveStealRunner();
-                return;
-            }
-            if (!_gun || _gunRunner == null) return;
-            var u = Mathf.Clamp01(_gunT / Mathf.Max(0.05f, _gunDur));
-            double x, z;
-            if (_gunPickoff)
-            {
-                // An armed runner who broke (D3) is caught coming back: a short way off the bag, back to it.
-                var to = Diamond.Bag(_gunFromBag);
-                var ahead = Diamond.Bag(Baserunning.NextBag(_gunFromBag));
-                var lean = 0.25;
-                var from = (X: to.X + (ahead.X - to.X) * lean, Z: to.Z + (ahead.Z - to.Z) * lean);
-                x = from.X + (to.X - from.X) * u;
-                z = from.Z + (to.Z - from.Z) * u;
-            }
-            else
-            {
-                if (!_gunSafe) u *= 0.7f;
-                var from = Diamond.Bag(_gunFromBag);
-                var to = Diamond.Bag(_gunToBag);
-                var t = 0.2 + 0.8 * u;
-                x = from.X + (to.X - from.X) * t;
-                z = from.Z + (to.Z - from.Z) * t;
-            }
-            var h = Hero(_gunRunner);
-            var pose = u > 0.55f ? Motion.Verb.Slide : Motion.Verb.Run;
-            if (!_gunSafe && u > 0.5f) pose = Motion.Verb.Dive;
-            h.SetPose(pose);
-            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
-            h.SetHeld(false, false);
-            h.SetHighlight(true);
-            var dest = Diamond.Bag(_gunToBag);
-            h.Place(new Vector3((float)x, 0, (float)z), new Vector3((float)dest.X - (float)x, 0, (float)dest.Z - (float)z));
             h.Tick(Time.deltaTime);
         }
 
@@ -419,74 +385,12 @@ namespace GrandSluggers.UnityClient
             var bag = _match.SelectedBag > 0 ? _match.SelectedBag : _match.LeadBag;
             var stick = InPlay.DiamondBag(run.StickX, run.StickY);
             var verb = Baserunning.StickVerb(stick, bag);
-            if (verb == RunStick.Steal && !_match.StealAttempt) _match.StartSteal();
+            // Seconds into the windup (§11.2, D2): SET is before it; the flight clock counts from the release.
+            var windupSec = _phase == Phase.Flight ? _flight + (float)Motion.PitchRelease : -1f;
+            if (verb == RunStick.Steal && !_match.StealAttempt) _match.StartSteal(windupSec);
             else if (verb == RunStick.Return) _match.ReturnToBag();
-            if (run.Steal) _match.ToggleSteal();
+            if (run.Steal) _match.ToggleSteal(windupSec);
             if (TrainingOn) _coach.OnRun(_match);
-        }
-
-        void PlaceLiveStealRunner()
-        {
-            var fromBag = _match.ArmedStealBag;
-            var state = _match.RunnerAt(fromBag);
-            var runner = state?.Who;
-            if (runner == null || fromBag is not 1 and not 2) return;
-            var target = state.StealTarget is 2 or 3 ? state.StealTarget : Baserunning.StealTarget(fromBag);
-            if (target is not 2 and not 3) return;
-            var remain = (float)StealThrow.RunnerRemainSec(runner, _content.Rules);
-            var u = Mathf.Clamp01(_stealT / Mathf.Max(0.2f, remain));
-            var from = Diamond.Bag(fromBag);
-            var to = Diamond.Bag(target);
-            var x = from.X + (to.X - from.X) * u;
-            var z = from.Z + (to.Z - from.Z) * u;
-            var h = Hero(runner);
-            var pose = u > 0.55f ? Motion.Verb.Slide : Motion.Verb.Run;
-            if (_throwing && _throwT >= _throwDur * 0.85f && u < 0.92f) pose = Motion.Verb.Dive;
-            h.SetPose(pose);
-            h.SetGear(_match.OffenseBat, _match.DefenseGlove);
-            h.SetHeld(false, false);
-            h.SetHighlight(true);
-            h.Place(new Vector3((float)x, 0, (float)z), new Vector3((float)(to.X - x), 0, (float)(to.Z - z)));
-            h.Tick(Time.deltaTime);
-        }
-
-        void TickGun(float dt)
-        {
-            if (!_gun) return;
-            _gunT += dt;
-            var u = Mathf.Clamp01(_gunT / Mathf.Max(0.05f, _gunDur));
-            _ball = Vector3.Lerp(_gunFrom, _gunTo, u);
-            _ball.y += Mathf.Sin(u * Mathf.PI) * 3.4f;
-            if (_gunT >= _gunDur) _gun = false;
-        }
-
-        void StartStealGun(Character runner, int fromBag, PlayEvent ev)
-        {
-            _gun = true;
-            _gunT = 0;
-            _gunRunner = runner;
-            _gunFromBag = fromBag;
-            _gunSafe = ev.Kind == PlayKind.StolenBase;
-            var outcome = ev.Outcome;
-            _gunPickoff = outcome?.RunnerResult == RunnerPlayResult.PickedOff;
-            _gunToBag = outcome?.RunnerToBag ?? Baserunning.StealTarget(fromBag);
-            if (_gunToBag <= 0) _gunToBag = fromBag;
-            _gunThrowFromPitcher = outcome?.ThrowEndpoint?.Origin == ThrowOrigin.PitcherRubber;
-            _gunThrowToBag = outcome?.ThrowEndpoint?.DestinationBag ?? _gunToBag;
-            if (_gunThrowToBag <= 0) _gunThrowToBag = _gunToBag;
-            var origin = _gunThrowFromPitcher ? Diamond.Rubber : Diamond.Positions["C"];
-            var dest = Diamond.Bag(_gunThrowToBag);
-            _gunFrom = new Vector3((float)origin.X, 3.4f, (float)origin.Z);
-            _gunTo = new Vector3((float)dest.X, 1.2f, (float)dest.Z);
-            var thr = ev.Throw;
-            if (thr == null)
-                thr = _match.ThrowBetween(_match.Pitcher, runner);
-            _spec.ArmThrow(_gunFrom, _gunTo, thr);
-            _gunDur = Mathf.Max(0.5f, _spec.ThrowSeconds);
-            _audio?.ThrowPop();
-            ConsiderHighlight();
-            _phase = Phase.Result;
-            _t = 0;
         }
 
         void PlaceSelectRoster()

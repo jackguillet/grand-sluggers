@@ -228,13 +228,15 @@ public sealed class ScenarioTests
     [Fact]
     public void CaughtStealingIsATagAndAStolenBaseIsAMove()
     {
-        var caught = RunStealThrowEvent(seed: 3, throwBag: 2);
+        // The CPU catcher's gun beats an ordinary body from the bag (§11.2, §11.3): the tag at second.
+        var caught = RunStealThrowEvent(seed: 3, catcherThrows: true);
         Assert.Equal(PlayKind.CaughtStealing, caught.Kind);
         var tag = Assert.Single(caught.Outcome!.OutsMade);
         Assert.Equal((OutType.Tag, 2, 1), (tag.Type, tag.Bag, tag.FromBag));
         Assert.Equal(RunnerPlayResult.CaughtStealing, caught.Outcome.RunnerResult);
 
-        var stole = RunStealThrowEvent(seed: 3, throwBag: 3);
+        // A human catcher who never throws concedes the bag: Time seats the body on second.
+        var stole = RunStealThrowEvent(seed: 3, catcherThrows: false);
         Assert.Equal(PlayKind.StolenBase, stole.Kind);
         Assert.Empty(stole.Outcome!.OutsMade);
         var move = Assert.Single(stole.Outcome.Moves);
@@ -332,9 +334,9 @@ public sealed class ScenarioTests
         return (scenario.Stream(), play);
     }
 
-    string RunStealThrow(int seed) => Scenario.Fingerprint(RunStealThrowEvent(seed, throwBag: 2));
+    string RunStealThrow(int seed) => Scenario.Fingerprint(RunStealThrowEvent(seed, catcherThrows: true));
 
-    PlayEvent RunStealThrowEvent(int seed, int throwBag)
+    PlayEvent RunStealThrowEvent(int seed, bool catcherThrows)
     {
         var scenario = new Scenario(_content, seed).Runner(1, 1);
         var match = scenario.Match;
@@ -342,8 +344,9 @@ public sealed class ScenarioTests
         Assert.True(match.StartSteal());
         Assert.False(match.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var pitch));
         Assert.True(match.StealThrowPending);
-        var laser = new ThrowResult(Chemistry.Good, 1.6, false);
-        return match.ResolveStealThrow(pitch!, throwBag, releaseSec: 0.1, laser);
+        if (catcherThrows) return match.RunStealPlay(pitch!);
+        var humanCatcher = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: true, Versus: false);
+        return match.RunStealPlay(pitch!, humanCatcher, LivePlayCommandSource.Human);
     }
 
     static FieldingResult Grounder(Match match) => new(

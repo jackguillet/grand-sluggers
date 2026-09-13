@@ -29,7 +29,6 @@ namespace GrandSluggers.UnityClient
 
         void TickResult()
         {
-            if (_gun) return;
             var hold = _last != null
                 ? (float)PlayStamp.HoldSeconds(_last.Kind, _feel)
                 : (float)_feel.AfterOutSeconds;

@@ -212,6 +212,8 @@ public enum PlayKind
     Strikeout,
     StolenBase,
     CaughtStealing,
+    /// <summary>A pickoff throw with every runner on their bag (§4.5, D3): a beat, no play, no count, no stamp.</summary>
+    Pickoff,
     /// <summary>The ball is live and nobody has decided it yet: Complete names the play from the bodies (§10.6). Never stamped.</summary>
     InPlay
 }

@@ -6,7 +6,7 @@ namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
 /// The baseball that used to live in Unity's InPlayDirector — relay chain, close-play race,
-/// CPU catch timing, steal phase, glove speed, bobble — now runs in <see cref="LivePlaySystem"/>
+/// CPU catch timing, the steal play, glove speed, bobble — now runs in <see cref="LivePlaySystem"/>
 /// from one <c>Tick</c> per frame. These rows drive it with dead pads (the CPU seat) or a scripted
 /// pad, with no scene object (S-91), and replay identically for either seat (S-90).
 /// </summary>
@@ -110,7 +110,7 @@ public sealed class LiveBallScenarioTests
     [Theory]
     [InlineData(LivePlayCommandSource.Cpu)]
     [InlineData(LivePlayCommandSource.Human)]
-    public void StealPhaseRunsHeadlesslyWithTheCpuCatcher(LivePlayCommandSource seat)
+    public void StealPlayRunsHeadlesslyWithTheCpuCatcher(LivePlayCommandSource seat)
     {
         var (scenario, play) = RunSteal(seat);
         Assert.True(play.Kind is PlayKind.CaughtStealing or PlayKind.StolenBase, play.Kind.ToString());
@@ -124,12 +124,12 @@ public sealed class LiveBallScenarioTests
             var move = Assert.Single(play.Outcome!.Moves);
             Assert.Equal((1, 2), (move.FromBag, move.ToBag));
         }
-        Assert.False(scenario.Match.LivePlay.StealPhase);
+        Assert.False(scenario.Match.LivePlay.RunnerPlay);
         Assert.False(scenario.Match.LivePlay.Active);
     }
 
     [Fact]
-    public void S90_StealPhaseReplaysIdenticallyForCpuAndHumanSeats()
+    public void S90_StealPlayReplaysIdenticallyForCpuAndHumanSeats()
     {
         var cpu = RunSteal(LivePlayCommandSource.Cpu);
         var human = RunSteal(LivePlayCommandSource.Human);
@@ -202,8 +202,8 @@ public sealed class LiveBallScenarioTests
     public void OnePlayerBattingStealResolvesFromTicksAlone()
     {
         // The one-controller flow as the client drives it: no D-pad (selection syncs to the lead
-        // runner), L3 toggles the steal, the runner stands on the bag through the pitch (D1), the
-        // take arms the catcher, and the CPU catcher guns from ticks with a dead pad.
+        // runner), L3 toggles the steal, the runner breaks at release (D2), the take opens the
+        // catcher's throw play, and the CPU catcher throws from ticks with a dead pad (§11.3).
         var scenario = new Scenario(_content, seed: 3).Runner(1, 1);
         var match = scenario.Match;
         Assert.True(match.ToggleSteal());
@@ -217,7 +217,7 @@ public sealed class LiveBallScenarioTests
             play = match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human)).CompletedPlay;
         Assert.NotNull(play);
         Assert.True(play!.Kind is PlayKind.StolenBase or PlayKind.CaughtStealing, play.Kind.ToString());
-        Assert.False(match.LivePlay.StealPhase);
+        Assert.False(match.LivePlay.RunnerPlay);
     }
 
     // ---------------------------------------------------------------------------------
@@ -243,7 +243,7 @@ public sealed class LiveBallScenarioTests
         Assert.False(match.BeginAtBat(Scenario.Paint, Scenario.Take, out _, out var pitch));
         Assert.True(match.StealThrowPending);
         match.LivePlay.Apply(LivePlayCommand.BeginSteal(pitch!, LiveSeats.CpuOnly, seat));
-        Assert.True(match.LivePlay.StealPhase);
+        Assert.True(match.LivePlay.RunnerPlay);
         PlayEvent? play = null;
         for (var i = 0; i < 60 * 12 && play is null; i++)
             play = match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, seat)).CompletedPlay;
