@@ -63,7 +63,7 @@ Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 
 | --- | --- | --- |
 | R1 #648 | Session split (gameplay / presentation / art) | #655 |
 | R2 #649 | Debug protocol in `data/agent/` | #656 |
-| R3 #650 | Play traces (tick JSON) | this PR |
+| R3 #650 | Play traces (tick JSON) | #657 |
 | R4 #651 | Dual stills + critic that files | ❌ |
 | R5 #652 | Unity CLI observation only | later |
 | R6 #653 | Stage-save DCC | ❌ |
