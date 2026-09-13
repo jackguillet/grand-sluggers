@@ -297,7 +297,7 @@ Who the player controls when the ball is in play, how they switch, and what the 
 7. **The other eight:** every base covered, the pitcher backfills, backups behind a throw, a cutoff off the mound. Ours: §8.7 by geometry.
 8. **CPU throw target:** cutoff by default from the outfield, else a per-runner score gated by game urgency, forces and double plays first, batter last. Ours: §8.8 by makeable margin.
 
-**Open for the emulator study:** whether Sluggers hands off mid-play and on what condition; what its switch button targets (nearest? next?). Method: Dolphin + memory watch on the controlled-fielder index across scripted plays (see the note in the conversation of 2026-09-13).
+**Not pursued:** whether Sluggers hands off mid-play and what its switch button targets could be measured with Dolphin and a memory watch on the controlled-fielder index; skipped by decision on 2026-09-13 — the genre convention and the sitting decide, and spec §8.9 stands on the route rule.
 
 ### Sources (this section)
 
