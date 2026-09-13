@@ -44,7 +44,7 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). Sittings already file children; they do not yet become a loadable protocol. |
 | D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match --trace` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. `PlayTrace` dumps ball / runner / glove / bag per tick; S-90 and S-01…S-92 stay the replay rail. |
 | D8 | Unity official plugin / CLI / MCP? | **Observation only**, and only after traces exist. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. |
-| D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). Scripts exist; stages are not a rail. |
+| D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). `data/agent/dcc-stages.json` / `cli stages`. |
 | D10 | Prompt-to-game / Meshy heroes / a second engine? | **No.** | We are not generating a new game or a new skeleton. Unique packages are deferred. |
 | D11 | Shrink or hide a mesh to save a camera? | **No.** Tune the shot. | AGENTS.md. Twitter "keep the engine small" is not permission to starve the toy. |
 
@@ -142,17 +142,19 @@ Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc ga
 
 ## 6. Stage-save DCC
 
-⚠️ **R6 #653.** Cousin: the Blender scripts already exist. Missing: named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
+✅ **R6 #653.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
 
-| Stage | Harbor kit | Character |
-| --- | --- | --- |
-| 1 Blocking | diamond / wall ring volumes | `hero_shared_blockout.py` silhouette |
-| 2 Fill | kit slots from `harbor_kit.py` | extras from `hero_shared_extras.py` + `extras.json` |
-| 3 Motion | — | takes from `hero_shared_takes.py` |
-| 4 Export | FBX into the catalog slot | FBX into the catalog slot |
-| 5 Still | in-game park still | DCC still + in-game character still (R4) |
+`data/agent/dcc-stages.json` (name stable) holds the five stages. Load with `DccStages.Load` or `dotnet run --project src/GrandSluggers.Cli -- stages`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing. One-shot is `banned`.
 
-Save after each stage. The next prompt names the stage it continues. One-shotting a captain extra or a kit mesh is a patch.
+| Stage | Harbor kit | Character | Still |
+| --- | --- | --- | --- |
+| 1 blocking | diamond / wall ring volumes | `hero_shared_blockout.py` silhouette | `--clay` sheet |
+| 2 fill | kit slots from `harbor_kit.py` | extras from `hero_shared_extras.py` + `extras.json` | `--clay` sheet |
+| 3 motion | — | takes from `hero_shared_takes.py` | `--sheets` |
+| 4 export | FBX into the catalog slot | FBX into the catalog slot | catalog FBX |
+| 5 still | in-game park still | DCC still + in-game character still (R4) | dual stills |
+
+Save after each stage (the script edit + the still). The next prompt names the stage it continues. One-shotting a captain extra or a kit mesh is a patch, banned in `.grok/skills/character-art/` and the Harbor kit header. Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does not retarget the rig or add a take.
 
 ---
 
@@ -187,6 +189,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Play traces | `cli match --trace`, `PlayTrace`, `LivePlaySystem.Recording` |
 | In-game still gate | [screenshot-gate.md](screenshot-gate.md) |
 | Dual stills | `data/agent/dual-stills.json`, `tools/dcc-still.sh`, look-critic |
+| Stage-save DCC | `data/agent/dcc-stages.json`, `cli stages`, character-art + Harbor kit stages |
 | Human gates stay human | #346, #209 sittings, #188 |
 | Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
 | Local standalone window | [local-player.md](local-player.md) |
@@ -208,7 +211,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
 | G6 | No critic that files look diffs | `.grok/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
-| G8 | DCC stages are not named checkpoints | Scripts exist, one-shot is possible | R6 |
+| G8 | DCC stages are not named checkpoints | `data/agent/dcc-stages.json`; skill + Harbor kit name blocking → fill → motion → export → still | R6 ✅ |
 | G9 | Failed stills do not grow the skill | `character-art` grew from `swing-*-max-load` (#623 / `bat-through-head`) | R7 ✅ |
 
 ---
@@ -224,7 +227,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
-| **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
+| **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. `data/agent/dcc-stages.json` + `cli stages`. | #188 | With or after R4 |
 | **R7. Distill** #654 | §7, G2, G9 | ✅ #660. Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child

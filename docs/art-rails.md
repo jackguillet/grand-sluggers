@@ -48,6 +48,7 @@ Role players inherit the faction body type and **must not** grow captain extras 
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** A missing take holds idle, a missing body is a capsule, audio stays a generated tone, VFX stays code — and `cli art` says so.
 7. After a drop: `dotnet test` and `dotnet run --project src/GrandSluggers.Cli -- art` must still print `OK`. Character and Harbor kit drops also need [dual stills](screenshot-gate.md) (DCC + in-game) in `scratchpad/stills/`. A look-critic files; Jack passes.
+8. **Stages, not one-shots.** A body, extra, take, or Harbor kit mesh walks **blocking → fill → motion → export → still** (`data/agent/dcc-stages.json`, `cli stages`). Clay/sheet at 1–3, catalog FBX at 4, dual stills at 5. Harbor skips motion. One-shotting a captain extra or a kit mesh is a patch. Existing bake flags (`--clay`, `--sheets`, `--out`) still run.
 
 The common hitting bat is authored handle-to-barrel along model-local +Y and
 keeps that authored origin when its pieces are joined. The handle spans Y −1.00
