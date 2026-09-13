@@ -138,6 +138,78 @@ public class BroadcastHudTests
     }
 
     [Fact]
+    public void RunnerPipFractionsAreFeetAlongTheSegment_TheBatterRunnerAndTheOverrunIncluded()
+    {
+        // #606: a runner 45 ft from first toward second is half of 1 → 2.
+        Assert.Equal((1, 2, 0.5), Baserunning.PathPip(1, 45, Diamond.Baseline, 0));
+        // The batter-runner 30 ft out of the box on a 90-ft run is a third of home → first.
+        var batter = Baserunning.PathPip(0, 30, Diamond.Baseline, 0);
+        Assert.Equal((0, 1), (batter.From, batter.To));
+        Assert.Equal(1.0 / 3.0, batter.U, 9);
+        // Through first on the run-through: past 1.0 on home → first.
+        var overrun = Baserunning.PathPip(1, 0, Diamond.Baseline, 9);
+        Assert.Equal((0, 1), (overrun.From, overrun.To));
+        Assert.Equal(1.1, overrun.U, 9);
+        // Seated is fraction 0 on the bag; home is the end of 3 → 4.
+        Assert.Equal((2, 3, 0.0), Baserunning.PathPip(2, 0, Diamond.Baseline, 0));
+        Assert.Equal((3, 4, 1.0), Baserunning.PathPip(4, 0, Diamond.Baseline, 0));
+    }
+
+    [Fact]
+    public void MiniDiamondPipsRideEveryLiveRunner_BetweenBagsOnALiveBall_OnTheBagsWhenDead()
+    {
+        var scenario = new Scenario(_content, seed: 2).Runner(1, 1);
+        var match = scenario.Match;
+        var set = BroadcastHud.From(match);
+        var seated = Assert.Single(set.Runners);
+        Assert.Equal((1, 1, 2, 0.0), (seated.FromBag, seated.From, seated.To, seated.U));
+        Assert.DoesNotContain(set.Runners, p => p.Batter);
+
+        // S-40's hopper to short: the runner from first and the batter-runner both run.
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        var preview = match.PreviewHit(hit);
+        var field = match.ResolveFielding(hit, preview);
+        var live = match.LivePlay;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field, LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu));
+        var sawBetween = false;
+        var sawBatterRunning = false;
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 30 && play is null; i++)
+        {
+            var bug = BroadcastHud.From(match);
+            var bodies = match.Runners.Where(r => r.Live).ToList();
+            Assert.Equal(bodies.Count, bug.Runners.Count);
+            foreach (var r in bodies)
+            {
+                var pip = Assert.Single(bug.Runners, p => p.Id == r.Who.Id && p.FromBag == r.FromBag);
+                Assert.Equal(r.Pip, (pip.From, pip.To, pip.U));
+                if (r.FromBag > 0 && !r.Overrunning)
+                {
+                    // The pip is the body's true place: the same fraction between the same two bags.
+                    var a = Diamond.Bag(pip.From);
+                    var b = Diamond.Bag(pip.To);
+                    Assert.Equal(a.X + (b.X - a.X) * pip.U, r.Position.X, 6);
+                    Assert.Equal(a.Z + (b.Z - a.Z) * pip.U, r.Position.Z, 6);
+                    sawBetween |= pip.U is > 0.05 and < 0.95;
+                }
+                if (pip.Batter) sawBatterRunning |= pip.U > 0.1;
+            }
+            play = live.Apply(LivePlayCommand.Tick(1.0 / 60.0, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Cpu)).CompletedPlay;
+        }
+        Assert.NotNull(play);
+        Assert.True(sawBetween, "the runner from first was drawn between first and second");
+        Assert.True(sawBatterRunning, "the batter-runner was drawn on the way to first");
+
+        // The ball is dead: whoever is left sits on a bag, and the pips agree with occupancy.
+        var dead = BroadcastHud.From(match);
+        Assert.All(dead.Runners, p => Assert.Equal(0.0, p.U));
+        Assert.DoesNotContain(dead.Runners, p => p.Batter);
+        Assert.Equal(dead.RunnerFirst, dead.Runners.Any(p => p.From == 1));
+        Assert.Equal(dead.RunnerSecond, dead.Runners.Any(p => p.From == 2));
+        Assert.Equal(dead.RunnerThird, dead.Runners.Any(p => p.From == 3));
+    }
+
+    [Fact]
     public void MiniDiamondCarriesOccupancyAndTheSelectedRunner()
     {
         // D1: no lead pips. The pip is the bag a live runner last touched, and the selected one is marked.
@@ -151,6 +223,8 @@ public class BroadcastHudTests
         Assert.False(bug.RunnerSecond);
         Assert.False(bug.RunnerThird);
         Assert.Equal(1, bug.SelectedBag);
+        var selected = Assert.Single(bug.Runners, p => p.FromBag == bug.SelectedBag);
+        Assert.Equal((1, 2, 0.0), (selected.From, selected.To, selected.U));
         Assert.True(match.Occupied(1));
         Assert.False(match.Occupied(2));
     }

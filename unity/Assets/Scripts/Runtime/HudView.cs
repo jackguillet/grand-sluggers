@@ -962,19 +962,23 @@ namespace GrandSluggers.UnityClient
             var size = Mathf.Min(r.width, r.height) * 0.72f;
             var x = r.x + (r.width - size) * 0.5f;
             var y = r.y + (r.height - size) * 0.15f;
-            BagPip(x, y, size, 1, bug.RunnerFirst, bug.SelectedBag);
-            BagPip(x, y, size, 2, bug.RunnerSecond, bug.SelectedBag);
-            BagPip(x, y, size, 3, bug.RunnerThird, bug.SelectedBag);
+            // The three bags, then every live runner where they stand (§15, #606): between bags on a live ball,
+            // the batter-runner included and past first on the run-through; a seated runner sits on their bag.
+            // The pad-named runner (by the bag they started on) is the larger ink pip, drawn last. No leads (D1).
+            for (var bag = 1; bag <= 3; bag++)
+                Pip(x, y, size, Baserunning.DiamondPip(bag), 14f, _outOff);
+            foreach (var p in bug.Runners)
+                if (p.FromBag != bug.SelectedBag)
+                    Pip(x, y, size, Baserunning.DiamondPip(p.From, p.To, p.U), 14f, _outOn);
+            foreach (var p in bug.Runners)
+                if (p.FromBag == bug.SelectedBag)
+                    Pip(x, y, size, Baserunning.DiamondPip(p.From, p.To, p.U), 16f, _ink);
         }
 
-        /// <summary>Occupied bags only (D1): there are no leads to show.</summary>
-        static void BagPip(float x, float y, float size, int bag, bool on, int selected)
+        static void Pip(float x, float y, float size, (double U, double V) uv, float pip, Texture2D tex)
         {
-            var uv = Baserunning.DiamondPip(bag);
             var px = x + (float)(uv.U * size);
             var py = y + size - (float)(uv.V * size);
-            var pip = on && bag == selected ? 16f : 14f;
-            var tex = !on ? _outOff : bag == selected ? _ink : _outOn;
             GUI.DrawTexture(new Rect(px - pip * 0.5f, py - pip * 0.5f, pip, pip), tex);
         }
 
