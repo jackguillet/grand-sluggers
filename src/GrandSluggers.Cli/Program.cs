@@ -33,6 +33,9 @@ switch (cmd)
     case "protocol":
         PrintProtocol(content);
         break;
+    case "stills":
+        PrintStills(content);
+        break;
     default:
         Console.WriteLine("""
             Grand Sluggers sim
@@ -44,6 +47,7 @@ switch (cmd)
               challenge [--captain rio] [--seed N]
               art
               protocol
+              stills
             """);
         break;
 }
@@ -118,9 +122,12 @@ static void PrintArt(ContentCatalog content)
     Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
     Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
     Console.WriteLine($"FOLDERS {art.Folders.Count}");
-    var errors = art.Validate(content).Concat(DebugProtocol.Validate(content.Root)).ToList();
+    var errors = art.Validate(content)
+        .Concat(DebugProtocol.Validate(content.Root))
+        .Concat(DualStills.Validate(content.Root))
+        .ToList();
     if (errors.Count == 0)
-        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol");
+        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol, dual stills");
     else
     {
         Console.WriteLine("FAIL   " + errors.Count + " errors");
@@ -141,6 +148,24 @@ static void PrintProtocol(ContentCatalog content)
     var errors = DebugProtocol.Validate(content.Root);
     if (errors.Count == 0)
         Console.WriteLine("OK     debug protocol matches spec §2");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+}
+
+static void PrintStills(ContentCatalog content)
+{
+    var catalog = DualStills.Load(content.Root, new List<string>());
+    Console.WriteLine($"STILLS drop {catalog.Drop}  kinds {catalog.Kinds.Count}");
+    foreach (var kind in catalog.Kinds)
+        Console.WriteLine($"  {kind.Id,-12} dcc {kind.Dcc,-22} in-game {string.Join(" ", kind.InGame)}");
+    Console.WriteLine($"  critic {catalog.Critic.Skill}  mayPassLook {catalog.Critic.MayPassLook}  mayClose188 {catalog.Critic.MayClose188}");
+    var errors = DualStills.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     dual stills match spec §4; critic files, does not pass");
     else
     {
         Console.WriteLine("FAIL   " + errors.Count + " errors");

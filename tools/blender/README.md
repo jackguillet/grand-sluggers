@@ -25,12 +25,14 @@ Poses in `hero_shared_takes.py` are written in body terms — `flex` forward, `a
 
 The swing solves both hands to `SwingPresentation.Keys` (analytic two-bone IK, deterministic), aims the stance at `data/art/batting-stance.json`, and keys the `bat` socket from the grip and barrel direction. A left-handed take is the exact reflection of the right-handed one: every rendered landmark must land within a millimetre of its mirror, and the mirrored take is validated against the left-handed contract (lead foot, lead hand at the knob, chest and toes to the plate).
 
-Look before Unity: the clay sheets are the author's own check. Jack's look gate is `docs/screenshot-gate.md`.
+Look before Unity: the clay sheets are the author's own check, and `tools/dcc-still.sh` is the named DCC still in the PR. Jack's look gate is `docs/screenshot-gate.md`.
 
 ## Harbor kit
 
 `harbor_kit.py` authors the sunken dugout, wall panel, crowd, home plate, and bag. Missing file keeps HarborKit primitives.
 
 ```bash
-$B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx
+$B -b --python tools/blender/harbor_kit.py -- --out unity/Assets/Art/Parks/harbor-diamond/harbor-kit.fbx --clay scratchpad/takes
 ```
+
+Named PR stills (dual stills, #651): `tools/dcc-still.sh body|extras|takes [clip]|harbor` copies the clay sheet to `scratchpad/stills/dcc-*.png`. Pair with `tools/still-gate-character.sh` / `tools/still-gate.sh`. A look-critic files; Jack passes.
