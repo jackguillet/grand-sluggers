@@ -552,6 +552,7 @@ public sealed class Match
         CurrentPlay();
         var pickoff = pickoffBag > 0;
         var movesBefore = _movesThisPlay.Count;
+        var bodies = LivePlay.BodiesNow();
         var (runs, scorers) = SettleRunners(out _);
         var outs = _outsThisPlay.Where(o => o.FromBag != 0).ToList();
         var advances = _movesThisPlay.Skip(movesBefore).Where(m => m.FromBag != 0 && m.ToBag > m.FromBag).ToList();
@@ -599,7 +600,8 @@ public sealed class Match
             RunnerFromBag = fromBag,
             RunnerToBag = toBag,
             ThrowEndpoint = new ThrowEndpoint(pickoff ? ThrowOrigin.PitcherRubber : ThrowOrigin.Catcher, firstThrowBag > 0 ? firstThrowBag : pickoffBag),
-            Error = error
+            Error = error,
+            Bodies = bodies
         };
         var ev = pitch with
         {
@@ -1315,6 +1317,8 @@ public sealed class Match
         // an open live moment is prefixed at the end. Typed, so no branch inspects caption text.
         var liveNarrated = false;
         var moment = LivePlay.LastMoment;
+        // The bodies at Time (§10.6, #574), read before any branch seats, flips, or resets the field.
+        var bodies = LivePlay.BodiesNow();
 
         switch (kind)
         {
@@ -1422,7 +1426,7 @@ public sealed class Match
                             caption = $"{caption} Sac fly.";
                         if (batterToBag == 1 && !(moment?.NarratesBatterAtFirst ?? false))
                             caption = $"{caption} {Batter.Name} in at first.";
-                        // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp stays OUT.
+                        // The batter safe at first behind an out on another body is the fielder's choice (§10.4): the stamp reads the typed flag.
                         if (FieldersChoiceNow(batterToBag))
                             caption = $"{caption} Fielder's choice.";
                         liveNarrated = true;
@@ -1463,7 +1467,7 @@ public sealed class Match
             field.Fielder, field.Throw, field.HangTimeSec, field.LandingX, field.LandingZ,
             field.Heatball, field.Furnace,
             new PlayOutcome(DefensiveFeat: field.Feat, BatterToBag: batterToBag, Error: error,
-                GroundRuleDouble: kind == PlayKind.Double && field.GroundRule));
+                GroundRuleDouble: kind == PlayKind.Double && field.GroundRule, Bodies: bodies));
     }
 
     /// <summary>

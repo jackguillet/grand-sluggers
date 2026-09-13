@@ -17,7 +17,7 @@ public class RoleTablesTests
 
         foreach (var block in RoleTables.Pad.Concat(RoleTables.Keys))
         {
-            Assert.InRange(block.Rows.Count, 4, 8);
+            Assert.InRange(block.Rows.Count, RoleTables.MinRows, RoleTables.MaxRows);
             foreach (var row in block.Rows)
             {
                 Assert.False(string.IsNullOrWhiteSpace(row.Verb), block.Id);
@@ -36,11 +36,12 @@ public class RoleTablesTests
         var padRun = RoleTables.Pad.First(b => b.Id == "running").Rows.Select(r => r.Verb);
         Assert.Contains(padRun, v => v.Contains("Steal"));
         Assert.Contains(padRun, v => v.Contains("Close play"));
-        Assert.Contains(padRun, v => v.Equals("Tag", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(padRun, v => v.Equals("Tag", StringComparison.OrdinalIgnoreCase));
         var padField = RoleTables.Pad.First(b => b.Id == "fielding").Rows.Select(r => r.Verb);
         Assert.Contains(padField, v => v.Contains("Jump"));
         Assert.Contains(padField, v => v.Contains("Dive"));
         Assert.Contains(padField, v => v.Contains("Attack"));
+        Assert.Contains(padField, v => v.Equals("Tag", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(RoleTables.Pad.SelectMany(b => b.Rows), r => r.Verb.Contains("Charge"));
         Assert.Contains(RoleTables.Pad.First(b => b.Id == "batting").Rows, r => r.Verb.Contains("Bunt"));
         foreach (var row in RoleTables.Pad.SelectMany(block => block.Rows).Where(row => row.Verb.Contains("Charge")))
@@ -61,11 +62,27 @@ public class RoleTablesTests
         Assert.Equal(3, RoleTables.OnPage(InputScheme.Pad, "roles-batting-2").Rows.Count);
         Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching").Rows.Count);
         Assert.Equal(4, RoleTables.OnPage(InputScheme.Keys, "roles-pitching-2").Rows.Count);
-        Assert.Equal(RoleTables.Pad[3], RoleTables.OnPage(InputScheme.Pad, "roles-running"));
-        var cell = RoleTables.RowCard(0, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        // Fielding and running continue onto a second page like batting and pitching; the halves cover every row.
+        foreach (var (block, first, second) in new[]
+                 {
+                     (RoleTables.Pad[2], "roles-fielding", "roles-fielding-2"),
+                     (RoleTables.Pad[3], "roles-running", "roles-running-2"),
+                     (RoleTables.Keys[2], "roles-fielding", "roles-fielding-2"),
+                     (RoleTables.Keys[3], "roles-running", "roles-running-2"),
+                 })
+        {
+            var scheme = ReferenceEquals(block, RoleTables.Pad[2]) || ReferenceEquals(block, RoleTables.Pad[3]) ? InputScheme.Pad : InputScheme.Keys;
+            var a = RoleTables.OnPage(scheme, first).Rows;
+            var b = RoleTables.OnPage(scheme, second).Rows;
+            Assert.Equal(block.Rows, a.Concat(b));
+            Assert.InRange(a.Count, 4, 5);
+            Assert.InRange(b.Count, 4, 5);
+        }
+        Assert.All(RoleTables.PageIds, id => Assert.Equal(id, HowToPlay.Must(id).Id));
+        var cell = RoleTables.RowCard(0, RoleTables.OnPage(InputScheme.Pad, "roles-running").Rows.Count, 1280, 800);
         Assert.True(cell.W > 1000);
         Assert.True(cell.H > 40);
-        var next = RoleTables.RowCard(1, RoleTables.Pad[3].Rows.Count, 1280, 800);
+        var next = RoleTables.RowCard(1, RoleTables.OnPage(InputScheme.Pad, "roles-running").Rows.Count, 1280, 800);
         Assert.True(next.Y > cell.Y);
     }
 }

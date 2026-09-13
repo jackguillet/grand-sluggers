@@ -102,6 +102,13 @@ public sealed class StealScenarioTests
         var throwToSecond = Assert.Single(run.Throws.Where(t => t.Bag == 2));
         Assert.Equal("C", throwToSecond.FromPos);
         AssertStealRaceAtBag(run, runner, 2);
+        // The bodies at Time ride the outcome (#574): the catcher near the plate, the cover on second.
+        var bodies = run.Play.Outcome!.BodiesAtTime;
+        var catcher = Assert.Single(bodies, b => b.Pos == "C");
+        Assert.True(Diamond.Dist(catcher.X, catcher.Z, 0, 0) < 12, $"catcher at ({catcher.X:0},{catcher.Z:0})");
+        var cover = Assert.Single(bodies, b => b.Pos == StealThrow.CoverPos(2));
+        Assert.True(Diamond.Dist(cover.X, cover.Z, Diamond.Second.X, Diamond.Second.Z) <= match.Rules.Fielding.Cover.RadiusFt + 1,
+            $"cover {StealThrow.CoverPos(2)} at ({cover.X:0},{cover.Z:0})");
     }
 
     [Fact]
