@@ -37,8 +37,9 @@ public static class HarborStands
 
     public static float RowY(int row) => 2.5f + row * RowRise;
 
-    public static float CornerRowY(int row) =>
-        HarborPostcard.WallHeightFt - 2f + row * RowRise;
+    /// <summary>Corner rows start just under the wall cap (the park's fence, D15) and climb away from it.</summary>
+    public static float CornerRowY(Park park, int row) =>
+        HarborWall.OutfieldHeight(park) - 2f + row * RowRise;
 
     public static float BankVisibleFt => CornerRows * RowRise + PersonFt;
 
