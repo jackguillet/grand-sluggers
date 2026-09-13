@@ -1,9 +1,17 @@
 namespace GrandSluggers.Sim;
 
 /// <summary>
+/// The two authored swings on the shared rig (#613). A slap has no windup and a compact arc; a
+/// charge shows its windup during the hold and swings a bigger arc. Both meet the ball at the
+/// same Contact mark (the D13 warp) and end on a held finish (#583).
+/// </summary>
+public enum SwingTake { Slap, Charge }
+
+/// <summary>
 /// Shared-rig bat path in batter-local Unity axes: X crosses the plate, Y is
-/// height, and +Z faces the pitcher. The DCC take is authored against these
-/// keys and baked for both hands; a left-handed swing is the exact reflection.
+/// height, and +Z faces the pitcher. The DCC takes are authored against these
+/// keys (data/art/swing-takes.json) and baked for both hands; a left-handed swing
+/// is the exact reflection.
 /// </summary>
 public static class SwingPresentation
 {
@@ -12,6 +20,7 @@ public static class SwingPresentation
 
     public const double LoadAt = 0.00;
     public const double LaunchAt = 0.15;
+    /// <summary>The charge take's ready key: a held load at no charge. MAX holds the windup at <see cref="LoadAt"/>.</summary>
     public const double NormalLoadAt = LaunchAt * 0.5;
     public const double ApproachAt = 0.24;
     public const double ContactAt = Motion.SwingContact;
@@ -21,6 +30,8 @@ public static class SwingPresentation
     /// </summary>
     public const double PlateBandY = 2.4;
     public const double FollowThroughAt = Motion.SwingDur;
+    /// <summary>The held finish (#583): the takes' last key.</summary>
+    public const double FinishAt = Motion.SwingFinish;
     public const double ContactStretchXZ = 1.14;
     public const double ContactSquashY = 0.84;
     /// <summary>
@@ -66,13 +77,25 @@ public static class SwingPresentation
     public static double BarrelReach =>
         (ModelCenterFromGrip + BarrelFromModelCenter) * Silhouette.BatScale;
 
+    /// <summary>The take a committed swing plays: the resolver's charge test (spec §5.1).</summary>
+    public static SwingTake TakeFor(double charge01) =>
+        ChargeFeel.IsCharge(Math.Clamp(charge01, 0, 1)) ? SwingTake.Charge : SwingTake.Slap;
+
     /// <summary>
-    /// A tap starts from the authored half-load; MAX starts from the full coil.
-    /// Both are frames of the same DCC take, so the hands never blend toward a
-    /// separate runtime pose.
+    /// The held load samples the charge take: no charge holds its ready key, MAX its windup.
+    /// Frames of the same DCC take, so the hands never blend toward a separate runtime pose.
     /// </summary>
-    public static double LoadSampleAt(double charge01) =>
+    public static double HeldLoadAt(double charge01) =>
         Motion.LoadSampleAt(NormalLoadAt, charge01);
+
+    /// <summary>
+    /// Where a committed swing starts in its take: a charge continues from the held windup; a
+    /// slap has no windup and starts on its ready key.
+    /// </summary>
+    public static double CommittedLoadAt(double charge01) =>
+        TakeFor(charge01) == SwingTake.Charge ? HeldLoadAt(charge01) : LoadAt;
+
+    public static IReadOnlyList<Key> KeysFor(SwingTake take) => take == SwingTake.Charge ? ChargeKeys : SlapKeys;
 
     /// <summary>Shared root squash while the barrel accelerates through contact.</summary>
     public static Vec3 RootSquash(double poseT) =>
@@ -92,36 +115,70 @@ public static class SwingPresentation
     // and RightHand are the batter's own hands (the renderer named lHand). The
     // lead hand (BattingStance.LeadSide) holds the knob end: a right-handed
     // batter's LEFT hand sits nearest Grip on every key and under the right
-    // hand in the held load. The DCC take (tools/blender/hero_shared_takes.py
-    // HAND_TARGETS) solves to these points and the Unity swing matrix measures them.
-    public static readonly IReadOnlyList<Key> Keys =
+    // hand in the held load. The DCC takes (tools/blender/hero_shared_takes.py)
+    // read the same numbers from data/art/swing-takes.json and solve to them;
+    // SwingPresentationTests holds the two equal, and the Unity swing matrix
+    // measures the rendered result.
+    // <swing-keys>
+    /// <summary>The slap (#613): starts on the ready key with no windup, a compact arc, the held finish.</summary>
+    public static readonly IReadOnlyList<Key> SlapKeys =
     [
         new(LoadAt,
-            new(0.080, 2.522, 0.326), new(0.300, 2.727, 0.512),
-            new(0.273, 2.215, 0.226), Unit(-0.18, 0.89, 0.42)),
+            new(0.361, 2.5938, -0.5035), new(0.3855, 3.0255, -0.7341),
+            new(0.35, 2.4, -0.4), Unit(0.0501, 0.881, -0.4705)),
         new(LaunchAt,
-            new(0.143, 2.240, 0.016), new(0.416, 2.356, -0.235),
-            new(0.326, 2.013, 0.249), Unit(-0.10, 0.62, -0.78)),
+            new(0.143, 2.24, 0.016), new(0.416, 2.356, -0.235),
+            new(0.326, 2.013, 0.249), Unit(-0.1, 0.62, -0.78)),
         new(ApproachAt,
-            new(0.129, 1.798, -0.140), new(0.366, 1.729, -0.547),
+            new(0.129, 1.798, -0.14), new(0.366, 1.729, -0.547),
             new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
         new(ContactAt,
             new(0.124, 1.914, -0.257), new(0.458, 1.856, -0.622),
-            new(-0.069, 1.872, -0.149), Unit(0.7790, 0.0275, -0.6264)),
+            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264)),
         new(FollowThroughAt,
-            new(-0.134, 2.155, -0.290), new(-0.242, 2.195, -0.576),
-            new(0.060, 2.032, -0.073), Unit(-0.54, 0.31, -0.78))
+            new(-0.0588, 2.1748, -0.2694), new(-0.3234, 2.3414, -0.6467),
+            new(0.06, 2.1, -0.1), Unit(-0.54, 0.34, -0.77)),
+        new(FinishAt,
+            new(-0.1438, 2.6267, 0.0485), new(-0.2414, 2.7974, -0.4003),
+            new(-0.1, 2.55, 0.25), Unit(-0.1991, 0.3485, -0.9159))
     ];
 
-    public static Key At(double poseT, Hand hand = Hand.R)
+    /// <summary>The charge (#613): the windup the hold shows, the ready key, a bigger arc, the held finish.</summary>
+    public static readonly IReadOnlyList<Key> ChargeKeys =
+    [
+        new(LoadAt,
+            new(0.2632, 2.8981, -0.5253), new(0.2926, 3.3395, -0.3145),
+            new(0.25, 2.7, -0.62), Unit(0.06, 0.9007, 0.4303)),
+        new(NormalLoadAt,
+            new(0.361, 2.5938, -0.5035), new(0.3855, 3.0255, -0.7341),
+            new(0.35, 2.4, -0.4), Unit(0.0501, 0.881, -0.4705)),
+        new(LaunchAt,
+            new(0.143, 2.24, 0.016), new(0.416, 2.356, -0.235),
+            new(0.326, 2.013, 0.249), Unit(-0.1, 0.62, -0.78)),
+        new(ApproachAt,
+            new(0.129, 1.798, -0.14), new(0.366, 1.729, -0.547),
+            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
+        new(ContactAt,
+            new(0.124, 1.914, -0.257), new(0.458, 1.856, -0.622),
+            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264)),
+        new(FollowThroughAt,
+            new(-0.1538, 2.4423, -0.2274), new(-0.4963, 2.6478, -0.5112),
+            new(0.0, 2.35, -0.1), Unit(-0.699, 0.4194, -0.5792)),
+        new(FinishAt,
+            new(-0.0948, 2.8721, -0.0118), new(0.028, 2.9212, -0.4836),
+            new(-0.15, 2.85, 0.2), Unit(0.2507, 0.1003, -0.9628))
+    ];
+    // </swing-keys>
+
+    public static Key At(double poseT, Hand hand, SwingTake take)
     {
-        var right = Interpolate(poseT);
+        var right = Interpolate(KeysFor(take), poseT);
         return hand == Hand.L ? Mirror(right) : right;
     }
 
-    public static Vec3 BarrelWorld(string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
+    public static Vec3 BarrelWorld(string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
-        var key = At(poseT, hand);
+        var key = At(poseT, hand, take);
         var scale = Mul(
             Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
             RootSquash(poseT));
@@ -133,9 +190,9 @@ public static class SwingPresentation
     }
 
     public static (Vec3 Start, Vec3 End, double Radius) BarrelSegmentWorld(
-        string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
+        string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
-        var key = At(poseT, hand);
+        var key = At(poseT, hand, take);
         var scale = Mul(
             Silhouette.SharedRootScale(Silhouette.Proportions(bodyType)),
             RootSquash(poseT));
@@ -151,9 +208,9 @@ public static class SwingPresentation
     }
 
     public static bool BarrelCrossesPlate(
-        string bodyType, Hand hand, double poseT, double worldOffsetX = 0)
+        string bodyType, Hand hand, double poseT, SwingTake take, double worldOffsetX = 0)
     {
-        var barrel = BarrelSegmentWorld(bodyType, hand, poseT, worldOffsetX);
+        var barrel = BarrelSegmentWorld(bodyType, hand, poseT, take, worldOffsetX);
         var min = new Vec3(
             -HomeSet.PlateW / 2 - barrel.Radius,
             PlateBandY - 1.2 - barrel.Radius,
@@ -196,10 +253,10 @@ public static class SwingPresentation
             + (point.Z - key.Grip.Z) * axis.Z;
     }
 
-    public static double ContactAttackAngleDeg(Hand hand = Hand.R)
+    public static double ContactAttackAngleDeg(SwingTake take, Hand hand = Hand.R)
     {
-        var from = BarrelPoint(At(ApproachAt, hand));
-        var to = BarrelPoint(At(ContactAt, hand));
+        var from = BarrelPoint(At(ApproachAt, hand, take));
+        var to = BarrelPoint(At(ContactAt, hand, take));
         var horizontal = Math.Sqrt(
             (to.X - from.X) * (to.X - from.X) +
             (to.Z - from.Z) * (to.Z - from.Z));
@@ -209,14 +266,14 @@ public static class SwingPresentation
     public static Vec3 BarrelPoint(Key key) =>
         Add(key.Grip, Mul(key.BarrelDirection, BarrelReach));
 
-    static Key Interpolate(double poseT)
+    static Key Interpolate(IReadOnlyList<Key> keys, double poseT)
     {
-        var t = Math.Clamp(poseT, Keys[0].T, Keys[^1].T);
-        for (var i = 0; i < Keys.Count - 1; i++)
+        var t = Math.Clamp(poseT, keys[0].T, keys[^1].T);
+        for (var i = 0; i < keys.Count - 1; i++)
         {
-            var a = Keys[i];
-            var b = Keys[i + 1];
-            if (t > b.T && i < Keys.Count - 2) continue;
+            var a = keys[i];
+            var b = keys[i + 1];
+            if (t > b.T && i < keys.Count - 2) continue;
             var u = b.T - a.T <= 1e-9 ? 1 : (t - a.T) / (b.T - a.T);
             return new Key(t,
                 Lerp(a.LeftHand, b.LeftHand, u),
@@ -224,7 +281,7 @@ public static class SwingPresentation
                 Lerp(a.Grip, b.Grip, u),
                 Normalize(Lerp(a.BarrelDirection, b.BarrelDirection, u)));
         }
-        return Keys[^1];
+        return keys[^1];
     }
 
     static Key Mirror(Key key) => key with
@@ -335,7 +392,9 @@ public static class BattingStance
         new(SwingPresentation.ContactAt,
             Unit(0.25881905, 0, 0.96592583), Unit(0, 0, 1), Unit(0, 0, 1)),
         new(SwingPresentation.FollowThroughAt,
-            Unit(-0.70710678, 0, 0.70710678), Unit(0, 0, 1), Unit(0, 0, 1))
+            Unit(-0.70710678, 0, 0.70710678), Unit(0, 0, 1), Unit(0, 0, 1)),
+        new(SwingPresentation.FinishAt,
+            Unit(-0.8660254, 0, 0.5), Unit(0, 0, 1), Unit(0, 0, 1))
     ];
 
     public static Vec3 PlateDirection(Hand hand) =>

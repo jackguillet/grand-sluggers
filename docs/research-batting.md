@@ -24,7 +24,10 @@ impact rises about 5–10 degrees from horizontal ([Koizumi et al., *Optimal bat
 orientation and ball-impact point*](https://www.jstage.jst.go.jp/article/jjpehss/advpub/0/advpub_17049/_article/-char/en)).
 The shared approach-to-contact path rises 10.34 degrees. Contact remains at
 0.30 seconds and follow-through at 0.50 seconds; load keeps the barrel above the
-hands rather than sweeping it toward the plate early.
+hands rather than sweeping it toward the plate early. Since #613 the slap and
+the charge take share these approach and contact keys exactly
+(`data/art/swing-takes.json`); they differ in the load (the charge's windup),
+the follow-through arc and the held finish at 0.60 seconds.
 
 Grip research treats the hand-handle contact area as part of the motion, not a
 nearby visual proxy ([Dowling et al., *Swing Type and Batting Grip Affect Peak

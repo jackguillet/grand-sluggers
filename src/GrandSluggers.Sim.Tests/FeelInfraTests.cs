@@ -248,9 +248,10 @@ public class FeelInfraTests
     public void SharedClipListHasIdleRunSwingPitchScoopSlide()
     {
         var names = Motion.ClipIds.Select(c => c.ToLowerInvariant()).ToHashSet();
-        foreach (var need in new[] { "idle", "run", "jump", "swing", "pitch", "scoop", "slide", "throw" })
+        foreach (var need in new[] { "idle", "run", "jump", "swing-slap", "swing-charge", "pitch", "scoop", "slide", "throw" })
             Assert.Contains(need, names);
-        Assert.Contains(Motion.Clips, c => c.Id == "swing" && c.Mark == Motion.ClipEvent.Contact);
+        Assert.Contains(Motion.Clips, c => c.Id == "swing-slap" && c.Mark == Motion.ClipEvent.Contact);
+        Assert.Contains(Motion.Clips, c => c.Id == "swing-charge" && c.Mark == Motion.ClipEvent.Contact);
         Assert.Contains(Motion.Clips, c => c.Id == "pitch" && c.Mark == Motion.ClipEvent.Release);
         Assert.Equal("scoop", Motion.CueFor(Motion.Verb.Scoop).Clip);
         Assert.Equal("slide", Motion.CueFor(Motion.Verb.Slide).Clip);
