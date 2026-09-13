@@ -23,7 +23,8 @@ public class MotionTests
     [Fact]
     public void HeldLoadsShareTheirCommittedTake()
     {
-        Assert.Equal(Motion.CueFor(Motion.Verb.ChargeSwing).Clip, Motion.CueFor(Motion.Verb.Swing).Clip);
+        // The held windup is the charge take a MAX release continues (#613).
+        Assert.Equal(Motion.CueFor(Motion.Verb.ChargeSwing).Clip, Motion.CueFor(Motion.Verb.Swing, 1).Clip);
         Assert.Equal(Motion.CueFor(Motion.Verb.ChargePitch).Clip, Motion.CueFor(Motion.Verb.ThrowPitch).Clip);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargeSwing).Clock);
         Assert.Equal(Motion.Clock.Charge, Motion.CueFor(Motion.Verb.ChargePitch).Clock);
@@ -35,7 +36,7 @@ public class MotionTests
     public void HandedTakesAreExactlyTheHittingAndThrowingOnes()
     {
         var handed = Motion.Clips.Where(c => c.Handed).Select(c => c.Id).ToHashSet();
-        Assert.Equal(new HashSet<string> { "swing", "pitch", "throw", "checkSwing", "bunt", "miss" }, handed);
+        Assert.Equal(new HashSet<string> { "swing-slap", "swing-charge", "pitch", "throw", "checkSwing", "bunt", "miss" }, handed);
         foreach (var verb in Motion.Verbs)
         {
             var clip = Motion.CueFor(verb).Clip;
@@ -47,8 +48,10 @@ public class MotionTests
     [Fact]
     public void LeftHandersPlayTheBakedMirrorNotARuntimeFlip()
     {
-        Assert.Equal("swing-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R));
-        Assert.Equal("swing", Motion.ClipFile(Motion.Verb.Swing, Hand.R, Hand.L));
+        Assert.Equal("swing-slap-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R));
+        Assert.Equal("swing-slap", Motion.ClipFile(Motion.Verb.Swing, Hand.R, Hand.L));
+        Assert.Equal("swing-charge-L", Motion.ClipFile(Motion.Verb.Swing, Hand.L, Hand.R, charge01: 1));
+        Assert.Equal("swing-charge", Motion.ClipFile(Motion.Verb.ChargeSwing, Hand.R, Hand.L));
         Assert.Equal("pitch-L", Motion.ClipFile(Motion.Verb.ThrowPitch, Hand.R, Hand.L));
         Assert.Equal("pitch", Motion.ClipFile(Motion.Verb.ChargePitch, Hand.L, Hand.R));
         Assert.Equal("throw-L", Motion.ClipFile(Motion.Verb.Throw, Hand.L, Hand.L));
@@ -70,6 +73,14 @@ public class MotionTests
         {
             if (clip.Mark == null) continue;
             Assert.InRange(clip.MarkAt, 0, clip.Duration);
+        }
+        // The swings end on their held finish (#583): the last second of the take, after contact.
+        foreach (var id in new[] { Motion.SwingSlapClip, Motion.SwingChargeClip })
+        {
+            Assert.True(Motion.TryClip(id, out var swing));
+            Assert.Equal(Motion.SwingFinish, swing.FinishAt, 8);
+            Assert.Equal(swing.Duration, swing.FinishAt, 8);
+            Assert.True(swing.FinishAt > Motion.SwingDur && Motion.SwingDur > swing.MarkAt);
         }
     }
 

@@ -142,8 +142,9 @@ namespace GrandSluggers.EditorTools
             var previous = startT;
             var sawContact = false;
             var sawFollow = false;
+            var sawFinish = false;
             var resolved = false;
-            var swingToMiss = 0;
+            var leftSwing = 0;
             var lastPose = hero.Current;
             for (var frame = 0; frame < 180; frame++)
             {
@@ -155,8 +156,8 @@ namespace GrandSluggers.EditorTools
                 Require(actionT + 0.0001f >= previous,
                     result.name + ": committed action clock moved backward.");
                 previous = actionT;
-                if (lastPose == Motion.Verb.Swing && hero.Current == Motion.Verb.Miss)
-                    swingToMiss++;
+                if (lastPose == Motion.Verb.Swing && hero.Current != Motion.Verb.Swing)
+                    leftSwing++;
                 lastPose = hero.Current;
                 resolved |= Phase(play) == "Result";
 
@@ -170,7 +171,7 @@ namespace GrandSluggers.EditorTools
                     result.contactPhase = Phase(play);
                     result.contactT = hero.PoseTime;
                 }
-                if (!sawFollow && Math.Abs(actionT - Motion.SwingDur) < 0.0001f)
+                if (!sawFollow && actionT >= Motion.SwingDur - 0.0001f)
                 {
                     Require(hero.Current == Motion.Verb.Swing,
                         result.name + ": left Swing before authored follow-through.");
@@ -179,7 +180,14 @@ namespace GrandSluggers.EditorTools
                     result.followPhase = Phase(play);
                     result.followT = hero.PoseTime;
                 }
-                if (resolved && actionT > Motion.SwingDur + 0.0001f)
+                if (!sawFinish && actionT >= Motion.SwingFinish - 0.0001f)
+                {
+                    Require(hero.Current == Motion.Verb.Swing,
+                        result.name + ": left Swing before the authored finish.");
+                    result.frames.Add(CaptureFrame(play, hero, result.name, "finish", frameDir));
+                    sawFinish = true;
+                }
+                if (resolved && actionT > Motion.SwingFinish + 0.0001f)
                     break;
             }
 
@@ -187,21 +195,24 @@ namespace GrandSluggers.EditorTools
             var expected = strikeout ? PlayKind.Strikeout : PlayKind.SwingMiss;
             Require(last != null && last.Kind == expected,
                 result.name + ": expected " + expected + ", got " + last?.Kind);
-            Require(sawContact && sawFollow,
-                result.name + ": did not present both contact and follow-through.");
+            Require(sawContact && sawFollow && sawFinish,
+                result.name + ": did not present contact, follow-through and finish.");
             Require(Phase(play) == "Result", result.name + ": pitch did not resolve to Result.");
-            Require(hero.Current == Motion.Verb.Miss,
-                result.name + ": completed whiff did not settle on Miss.");
+            // #583: a whiff holds the take's finish through the STRIKE stamp; no ready pose until SET.
+            Require(hero.Current == Motion.Verb.Swing
+                    && Math.Abs(hero.PoseTime - (float)Motion.SwingFinish) < 0.001f,
+                result.name + ": completed whiff did not hold the swing finish (" + hero.Current + " at " + hero.PoseTime + ").");
 
             for (var frame = 0; frame < 6; frame++)
             {
                 Invoke(play, "DrawActors", Step);
                 hero = Hero(play, fixture.Batter.Id);
-                Require(hero.Current == Motion.Verb.Miss,
-                    result.name + ": completed swing restarted during Result.");
+                Require(hero.Current == Motion.Verb.Swing
+                        && Math.Abs(hero.PoseTime - (float)Motion.SwingFinish) < 0.001f,
+                    result.name + ": held finish moved or restarted during Result.");
             }
-            Require(swingToMiss == 1,
-                result.name + ": expected one Swing-to-Miss transition, got " + swingToMiss);
+            Require(leftSwing == 0,
+                result.name + ": expected the batter to stay in the swing through Result, left it " + leftSwing + " times");
             result.eventKind = last.Kind.ToString();
             result.resultPose = hero.Current.ToString();
             result.finalActionT = Get<float>(play, "_committedSwingT");

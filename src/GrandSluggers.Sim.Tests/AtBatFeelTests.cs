@@ -155,12 +155,12 @@ public class AtBatFeelTests
     [Fact]
     public void SharedSwingStartsOnAuthoredLoadsAndStillReachesExactContact()
     {
-        Assert.Equal(SwingPresentation.NormalLoadAt, SwingPresentation.LoadSampleAt(0), 8);
-        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.LoadSampleAt(1), 8);
+        Assert.Equal(SwingPresentation.NormalLoadAt, SwingPresentation.HeldLoadAt(0), 8);
+        Assert.Equal(SwingPresentation.LoadAt, SwingPresentation.HeldLoadAt(1), 8);
         foreach (var charge in new[] { 0.0, 0.5, 1.0 })
         {
             var previous = AtBatMotion.SwingClipTime(0, charge);
-            Assert.Equal(SwingPresentation.LoadSampleAt(charge), previous, 8);
+            Assert.Equal(SwingPresentation.CommittedLoadAt(charge), previous, 8);
             for (var poseT = 0.01; poseT <= Motion.SwingContact; poseT += 0.01)
             {
                 var sampleT = AtBatMotion.SwingClipTime(poseT, charge);
@@ -186,18 +186,18 @@ public class AtBatFeelTests
         Assert.Equal(0.10, clock, 8);
 
         var sawContact = false;
-        while (clock < Motion.SwingDur)
+        while (clock < Motion.SwingFinish)
         {
             clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
             sawContact |= Math.Abs(clock - Motion.SwingContact) < 1e-8;
             Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
         }
         Assert.True(sawContact);
-        Assert.Equal(Motion.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.CommittedSwingSample(clock), 8);
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 0.05);
         Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
-        Assert.Equal(Motion.SwingDur, AtBatMotion.CommittedSwingSample(clock), 8);
+        Assert.Equal(Motion.SwingFinish, AtBatMotion.CommittedSwingSample(clock), 8);
     }
 
     [Fact]
@@ -210,12 +210,12 @@ public class AtBatFeelTests
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, start, start, 0);
         clock = AtBatMotion.AdvanceCommittedSwing(
-            clock, start + Motion.SwingDur, start, Motion.SwingDur);
-        Assert.Equal(Motion.SwingDur, clock, 8);
+            clock, start + Motion.SwingFinish, start, Motion.SwingFinish);
+        Assert.Equal(Motion.SwingFinish, clock, 8);
         Assert.True(AtBatMotion.PresentsCommittedSwing(clock));
 
         clock = AtBatMotion.AdvanceCommittedSwing(clock, plateAt, start, 1.0 / 60);
-        Assert.True(clock > Motion.SwingDur);
+        Assert.True(clock > Motion.SwingFinish);
         Assert.False(AtBatMotion.PresentsCommittedSwing(clock));
     }
 

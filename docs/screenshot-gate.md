@@ -42,11 +42,24 @@ Capture: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Captu
 | **Rest** | Idle take at 0. Painted by faction. Feet on dirt. Silhouette reads; the captain's extras are on the right bones. | Import-white material, a placeholder capsule, an extra floating off its socket |
 | **Pose** | Swing take at contact. Both hands on the handle, bat through the plate line, hips to the plate. | Bat behind the head, one hand off the handle, a bind-pose statue |
 
+### Swing takes (#613) — load, contact, finish
+
+The slap and the charge are two takes on the one rig. Judge them against the reference footage: a slap is a quick swing with no windup; a charge shows a windup during the hold and swings a bigger arc; both end on a held finish (weight forward, bat around) that stays up through the STRIKE stamp. Agents file the PNGs and stop.
+
+Capture with **Grand Sluggers → Capture Request File** and `{"shots":["swing-matrix"],"swingCaptains":["rio","brondo"]}` (Rio is the kid cut, Brondo the brick). Normal is the slap, MAX is the charge; the matrix writes `ready`, `load`, `contact`, `follow` and `finish` for each.
+
+| Still | Must show | Fail if |
+| --- | --- | --- |
+| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat up behind the head, knees bent. Charge at MAX: hands higher and further back, the bat wrapped, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, a standing statue, the charge load identical to the slap |
+| **Contact** (`swing-{id}-normal-contact`, `swing-{id}-max-contact`) | Both hands on the handle, barrel through the plate, hips turned toward the pitcher, back knee driving. | Bat behind the head, a hand off the handle, a stiff upright body |
+| **Finish** (`swing-{id}-normal-finish`, `swing-{id}-max-finish`) | Weight on the front foot, the bat around over the lead shoulder; the charge finish wraps further than the slap. | Snapping back to ready, the bat hidden inside the body, both finishes the same |
+
 Name files:
 
 ```
 char-{id}-rest.png
 char-{id}-pose.png
+swing-{id}-{normal|max}-{ready|load|contact|follow|finish}.png
 ```
 
 Contract: `docs/character-motion.md`.
