@@ -71,7 +71,7 @@
       "fix": "H / Start is Call time. Esc is How to play, including at first pitch. Name each verb in the book, the hardware diagram, and how-to-play.md. Do not change the shortcut.",
       "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
       "issue": "#629",
-      "pr": ""
+      "pr": "#663"
     }
   ]
 }
