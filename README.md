@@ -84,6 +84,7 @@ PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Play
 | [docs/character-package.md](docs/character-package.md) | Unique toys: Blender drop, paint, limb motion |
 | [docs/parks.md](docs/parks.md) | Ballparks and gimmicks |
 | [docs/roadmap.md](docs/roadmap.md) | Now → Nintendo-level Exhibition; how to use coding agents |
+| [docs/playbook.md](docs/playbook.md) | How a phase runs: research → spec → epics → sessions → integrate → sittings |
 
 ## Status
 
