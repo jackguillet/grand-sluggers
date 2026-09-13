@@ -4,6 +4,8 @@ This is the **source of truth for baseball behavior** in Grand Sluggers. When th
 
 The bar is *Mario Super Sluggers* (Wii, 2008): a play is decided by **where the ball is, where the runner is, and what the player pressed** — never by a dice roll that a caption then narrates. The user always owns the verb. CPU fills the seat the human did not take, and it fills it with the same rules the human plays by.
 
+Authored body/motion/equipment contract: [baseball-motion-spec.md](baseball-motion-spec.md). Animation changes preserve this document’s input, contact, release and outcome rules.
+
 Companion docs: [systems.md](systems.md) (chemistry, stars, gear, parks), [how-to-play.md](how-to-play.md) (couch buttons), [research-sluggers.md](research-sluggers.md) (the reference teardown), [roadmap.md](roadmap.md) (the order we build this in). Feel numbers stay in `data/feel/`. Rule numbers move to `data/rules/` (section 16).
 
 Status tags used throughout, checked against the sim and Unity client at `f09cad1` (2026-09-12):

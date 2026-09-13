@@ -80,8 +80,9 @@ namespace GrandSluggers.UnityClient
                 if (StillRequest.IsSwingMatrixShot(shot))
                 {
                     foreach (var captain in swingCaptains)
+                    foreach (var hand in new[] { Hand.R, Hand.L })
                     {
-                        _play.GateStageSwingCaptain(captain);
+                        _play.GateStageSwingCaptain(captain, hand);
                         for (var i = 0; i < 24; i++) yield return null;
                         foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
                         foreach (var beat in new[] { "ready", "load", "contact", "follow", "finish" })
@@ -91,13 +92,13 @@ namespace GrandSluggers.UnityClient
                             // ActorDirector continues drawing SET while simulation is held.
                             // Reapply the exact pose on the capture frame, after those draws.
                             var hero = _play.GatePoseSwing(beat, power.Charge);
-                            var matrixPng = StillRequest.SwingPngPath(outDir, captain, power.Id, beat);
+                            var matrixPng = StillRequest.SwingPngPath(outDir, captain + "-" + hand, power.Id, beat);
                             try
                             {
                                 Capture(_play.GateCam != null ? _play.GateCam : cam, matrixPng, w, h);
                                 files.Add(matrixPng);
                                 swingMetrics.Add(_play.GateMeasureSwing(
-                                    hero, beat, captain, power.Id, out var metricError));
+                                    hero, beat, captain + "-" + hand, power.Id, out var metricError));
                                 if (!string.IsNullOrEmpty(metricError)) swingErrors.Add(metricError);
                             }
                             catch (Exception ex)
@@ -185,6 +186,9 @@ namespace GrandSluggers.UnityClient
 
         internal void GateStage(string shot, StillRequest req)
         {
+            _gateSwingHand = null;
+            foreach (var hero in _heroes.Values)
+                if (hero != null) hero.GateBattingHand(_content.Must(hero.Id).Bats);
             _mode = PlayMode.Exhibition;
             HomeCaptain = req.ResolvedHome();
             AwayCaptain = req.ResolvedAway();
@@ -280,8 +284,11 @@ namespace GrandSluggers.UnityClient
             _cam.Cut(shot);
         }
 
-        internal void GateStageSwingCaptain(string captain)
+        Hand? _gateSwingHand;
+
+        internal void GateStageSwingCaptain(string captain, Hand? hand = null)
         {
+            _gateSwingHand = hand;
             HomeCaptain = captain;
             AwayCaptain = captain.Equals("ashlord", StringComparison.OrdinalIgnoreCase)
                 ? "brondo"
@@ -308,9 +315,10 @@ namespace GrandSluggers.UnityClient
             if (hero == null) return null;
             hero.gameObject.SetActive(true);
             hero.SetChargeRing(0);
+            hero.GateBattingHand(_gateSwingHand ?? _match.Batter.Bats);
             hero.SetHeld(true, false);
             var box = new Vector3(
-                (float)HomeSet.BatterBodyX(_match.Batter.Bats),
+                (float)HomeSet.BatterBodyX((_gateSwingHand ?? _match.Batter.Bats)),
                 0f,
                 (float)HomeSet.BatterZ);
             hero.PlaceStill(box, box + Vector3.forward);
@@ -394,7 +402,7 @@ namespace GrandSluggers.UnityClient
             var failures = new List<string>();
             var stanceMeasured = hero.TryRenderedBattingStance(
                 out var chestForward, out var eyeForward, out var feetLine);
-            var towardPlate = _match.Batter.Bats == Hand.L ? Vector3.left : Vector3.right;
+            var towardPlate = (_gateSwingHand ?? _match.Batter.Bats) == Hand.L ? Vector3.left : Vector3.right;
             var chestTowardPlate = Vector3.Dot(chestForward, towardPlate);
             var eyesTowardPitcher = Vector3.Dot(eyeForward, Vector3.forward);
             // Signed on purpose. feetLine runs from the back foot to the lead
@@ -430,13 +438,13 @@ namespace GrandSluggers.UnityClient
                     // key (a check anchored to the key agreed with its own bug).
                     if (renderedHands)
                     {
-                        var lead = BattingStance.LeadSide(_match.Batter.Bats);
+                        var lead = BattingStance.LeadSide((_gateSwingHand ?? _match.Batter.Bats));
                         var leadY = lead == Hand.L ? left.y : right.y;
                         var topY = lead == Hand.L ? right.y : left.y;
                         if (leadY >= topY)
                             failures.Add($"{captain} {power} {beat}: {(lead == Hand.L ? "left" : "right")} hand "
                                 + $"must ride under the {(lead == Hand.L ? "right" : "left")} on the handle for a "
-                                + $"{_match.Batter.Bats} batter (lead y {leadY:0.000}, top y {topY:0.000})");
+                                + $"{(_gateSwingHand ?? _match.Batter.Bats)} batter (lead y {leadY:0.000}, top y {topY:0.000})");
                     }
                 }
             }

@@ -8,7 +8,7 @@
     },
     {
       "id": "sneakers",
-      "bone": "lShin",
+      "bone": "lFoot",
       "hides": [
         "lShoe",
         "rShoe"

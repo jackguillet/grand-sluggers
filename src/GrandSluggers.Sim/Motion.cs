@@ -38,7 +38,7 @@ public static class Motion
     public const string SwingSlapClip = "swing-slap";
     /// <summary>The charge swing take (#613): the hold shows its windup, then a bigger arc.</summary>
     public const string SwingChargeClip = "swing-charge";
-    public const double PitchDur = 0.50;
+    public const double PitchDur = 0.70;
     public const double SwingContact = 0.30;
     public const double PitchRelease = 0.42;
     public const double ThrowRelease = 0.18;
@@ -69,6 +69,7 @@ public static class Motion
         new("run", true, false, RunDur, ClipEvent.FootPlant, 0),
         new("jump", false, false, JumpDur, ClipEvent.FootPlant, JumpDur),
         new("pitch", false, true, PitchDur, ClipEvent.Release, PitchRelease),
+        new("pitch-charge", false, true, PitchDur, ClipEvent.Release, PitchRelease),
         new("throw", false, true, 0.40, ClipEvent.Release, ThrowRelease),
         new(SwingSlapClip, false, true, SwingFinish, ClipEvent.Contact, SwingContact, SwingFinish),
         new(SwingChargeClip, false, true, SwingFinish, ClipEvent.Contact, SwingContact, SwingFinish),
@@ -115,8 +116,8 @@ public static class Motion
         Verb.Walk => new("walk", Clock.World),
         Verb.Run => new("run", Clock.World),
         Verb.Jump or Verb.Clamber => new("jump", Clock.Verb),
-        Verb.ChargePitch => new("pitch", Clock.Charge),
-        Verb.ThrowPitch => new("pitch", Clock.Verb),
+        Verb.ChargePitch => new("pitch-charge", Clock.Charge),
+        Verb.ThrowPitch => new(ChargeFeel.IsCharge(charge01) ? "pitch-charge" : "pitch", Clock.Verb),
         Verb.Throw => new("throw", Clock.Verb),
         Verb.ChargeSwing => new(SwingChargeClip, Clock.Charge),
         Verb.Swing => new(SwingClipFor(charge01), Clock.Verb),
@@ -166,7 +167,8 @@ public static class Motion
     {
         Verb.ChargeSwing => SwingPresentation.HeldLoadAt(charge01),
         Verb.Swing => SwingPresentation.CommittedLoadAt(charge01),
-        Verb.ChargePitch or Verb.ThrowPitch => PitchLoadSampleAt(charge01),
+        Verb.ChargePitch => PitchLoadSampleAt(charge01),
+        Verb.ThrowPitch => ChargeFeel.IsCharge(charge01) ? PitchLoadSampleAt(charge01) : 0,
         _ => 0
     };
 

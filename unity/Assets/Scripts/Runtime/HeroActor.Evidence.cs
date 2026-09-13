@@ -11,6 +11,9 @@ namespace GrandSluggers.UnityClient
     /// </summary>
     public sealed partial class HeroActor
     {
+        /// <summary>Capture-only matrix override. Uses the ordinary baked clip selector.</summary>
+        internal void GateBattingHand(Hand hand) => _batsLeft = hand == Hand.L;
+
         internal bool TrySwingGeometry(
             out Vector3 leftHand, out Vector3 rightHand,
             out Vector3 grip, out Vector3 barrel,
@@ -19,9 +22,8 @@ namespace GrandSluggers.UnityClient
             leftHand = rightHand = grip = barrel = socketX = socketY = socketZ = Vector3.zero;
             if (_lFore == null || _rFore == null || _batSocket == null || _batModel == null)
                 return false;
-            // hero-shared forearm bones are 0.70 ft head-to-palm.
-            leftHand = _lFore.TransformPoint(Vector3.up * 0.70f);
-            rightHand = _rFore.TransformPoint(Vector3.up * 0.70f);
+            leftHand = _chain.LRelease.position;
+            rightHand = _chain.RRelease.position;
             grip = _batSocket.position;
             barrel = _batModel.TransformPoint(
                 new Vector3(
