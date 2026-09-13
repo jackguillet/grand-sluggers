@@ -16,7 +16,7 @@
     "secondSec": 0.25,
     "thirdSec": 0.30,
     "shortSec": 0.28,
-    "outfieldSec": 0.83,
+    "outfieldSec": 2.4,
     "throwBaseSec": 0.35,
     "throwPerFieldSec": 0.02,
     "throwMinSec": 0.08
@@ -142,7 +142,6 @@
     "minSec": 0.02
   },
   "park": {
-    "crystalNightWindowMul": 0.85,
     "emberNightFireMul": 1.6,
     "pipeReachPadFt": 8,
     "shellWarpChance": 0.6

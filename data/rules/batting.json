@@ -25,7 +25,7 @@
     "sourEnergyMul": 0.55
   },
   "exit": {
-    "baseMph": 57,
+    "baseMph": 61,
     "mphPerPower": 3.7,
     "tiredPitcherMul": 1.05
   },
@@ -93,9 +93,10 @@
     "sourDampPerPitch": 0.05
   },
   "items": {
-    "cpuThrowChance": 0.4,
-    "rocketDazeChance": 0.55,
     "flySec": 0.9,
+    "peelRadiusFt": 5,
+    "peelSec": 6,
+    "cpuThrowMarginSec": 0.3,
     "slipSec": 0.8,
     "dazeSec": 0.8,
     "powHopSec": 0.8

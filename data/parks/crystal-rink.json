@@ -9,6 +9,7 @@
   "windMph": 2,
   "windDeg": 180,
   "fenceHeightFt": 8,
+  "nightContactWindowMul": 0.85,
   "nightOnly": false,
   "dayOnly": false,
   "hazards": [

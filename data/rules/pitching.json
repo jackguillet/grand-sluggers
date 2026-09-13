@@ -102,7 +102,7 @@
       "middleInFt": 0.35,
       "middleYSpreadFt": 0.5
     },
-    "scatterFtPerPitchStat": 0.055,
+    "scatterFtPerPitchStat": 0.10,
     "tiredScatterMul": 1.6,
     "niceChance": 0.3,
     "tapMin": 0.1,

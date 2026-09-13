@@ -260,6 +260,8 @@ public static class ContentDataValidator
         FiniteRange(row.Source, $"park '{p.Id}' windDeg", p.WindDeg, -360, 360, errors);
         if (!(p.FenceHeightFt > 0) || double.IsNaN(p.FenceHeightFt) || double.IsInfinity(p.FenceHeightFt))
             errors.Add($"{row.Source}: park '{p.Id}' fenceHeightFt must be greater than 0; got {p.FenceHeightFt}");
+        if (!(p.NightContactWindowMul > 0 && p.NightContactWindowMul <= 1))
+            errors.Add($"{row.Source}: park '{p.Id}' nightContactWindowMul must be in (0, 1]; got {p.NightContactWindowMul}");
         for (var i = 0; i < (p.Hazards?.Count ?? 0); i++)
         {
             var h = p.Hazards![i];
@@ -426,13 +428,15 @@ internal sealed class ParkDto
     public double WindDeg { get; set; }
     /// <summary>Outfield fence top. Below it the ball caroms; above it between the poles is a home run (§6.1).</summary>
     public double FenceHeightFt { get; set; }
+    /// <summary>The contact window at night as a fraction of the day's (§14): a blackout park shrinks it; 1 (the default) is no change.</summary>
+    public double NightContactWindowMul { get; set; } = 1.0;
     public List<HazardDto?>? Hazards { get; set; }
 
     public Park ToPark() => new(
         Id, Name, Faction, Surface,
         LeftFenceFt, CenterFenceFt, RightFenceFt, WindMph,
         (Hazards ?? []).Select(h => new Hazard(h!.Type, h.X, h.Z, h.Radius, h.Tag)).ToList(),
-        WindDeg, FenceHeightFt);
+        WindDeg, FenceHeightFt, NightContactWindowMul);
 }
 
 internal sealed class HazardDto

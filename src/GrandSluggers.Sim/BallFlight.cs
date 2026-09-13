@@ -51,11 +51,12 @@ public static class BallFlight
         var grounded = false;
         var gone = false;
         var skid = launchDeg >= f.Skid.LaunchMinDeg && launchDeg < f.Skid.LaunchMaxDeg;
+        var scale = f.TimeScaleFor(launchDeg, exitMph, rules);
         var list = new List<Sample>(512) { new(0, 0, y, 0, 0) };
         var steps = (int)(f.SampleHz * f.MaxSeconds);
         for (var i = 0; i < steps; i++)
         {
-            var t = (i + 1) * dt * f.TimeScale;
+            var t = (i + 1) * dt * scale;
             if (rolling)
             {
                 var speed = Math.Sqrt(vx * vx + vz * vz);
