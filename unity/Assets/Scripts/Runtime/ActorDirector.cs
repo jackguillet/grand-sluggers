@@ -17,6 +17,8 @@ namespace GrandSluggers.UnityClient
     public sealed partial class MatchDirector
     {
         float _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+        /// <summary>Seconds from the press to the committed take's Contact mark (D13); NaN until a swing commits.</summary>
+        float _swingContactSec = float.NaN;
 
         internal void DrawBodies(float dt) => DrawActors(dt);
 
@@ -181,16 +183,24 @@ namespace GrandSluggers.UnityClient
                 var committedSwing = _swung && _swing != null && _swing.Swing && !_swing.Bunt;
                 if (committedSwing)
                 {
+                    // A swing staged without a press (a gate, a replay) reads its warp here, once.
+                    if (float.IsNaN(_swingContactSec)) _swingContactSec = SwingContactSec(_swing);
                     _committedSwingT = (float)AtBatMotion.AdvanceCommittedSwing(
                         _committedSwingT,
                         _flight,
-                        AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames),
-                        dt);
+                        AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, rules: _match.Rules),
+                        dt,
+                        AtBatMotion.SwingTakeSeconds(_swingContactSec));
                 }
                 else
+                {
                     _committedSwingT = (float)AtBatMotion.SwingNotStarted;
+                    _swingContactSec = float.NaN;
+                }
+                var swingTakeSec = AtBatMotion.SwingTakeSeconds(
+                    float.IsNaN(_swingContactSec) ? Motion.SwingContact : _swingContactSec);
                 var presentingSwing = committedSwing
-                    && AtBatMotion.PresentsCommittedSwing(_committedSwingT);
+                    && AtBatMotion.PresentsCommittedSwing(_committedSwingT, swingTakeSec);
                 var bPose = presentingSwing
                     ? Motion.Verb.Swing
                     : racing ? Motion.Verb.Run : BatterPose();
@@ -199,6 +209,7 @@ namespace GrandSluggers.UnityClient
                     ? (float)_swing.Charge01
                     : HumanBats ? _charge : 0f;
                 bHero.SetPose(bPose, swingCharge);
+                if (presentingSwing) bHero.SetSwingContact(_swingContactSec);
                 bHero.SetChargeRing((_phase is Phase.Set or Phase.Flight) && HumanBats && _swingButton.Armed
                     ? _charge : 0f);
                 bHero.SetGear(_match.OffenseBat, _match.DefenseGlove);
@@ -227,7 +238,7 @@ namespace GrandSluggers.UnityClient
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1), pinned: true);
                 if (bPose == Motion.Verb.Swing && presentingSwing)
-                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT));
+                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec));
                 else bHero.Tick(dt);
             }
 

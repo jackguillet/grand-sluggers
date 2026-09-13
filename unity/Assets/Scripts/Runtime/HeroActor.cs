@@ -23,6 +23,8 @@ namespace GrandSluggers.UnityClient
         string _pitchType = "fastball";
         float _t;
         float _poseT;
+        /// <summary>When the swing take's Contact mark lands after the press (D13); the take's own mark unless warped.</summary>
+        float _swingContactSec = (float)Motion.SwingContact;
         bool _grow;
         bool _lit;
         bool _hint;
@@ -78,7 +80,11 @@ namespace GrandSluggers.UnityClient
 
         public void SetPose(Motion.Verb verb, float charge = 0f, string pitchType = null)
         {
-            if (verb != _verb) _poseT = 0f;
+            if (verb != _verb)
+            {
+                _poseT = 0f;
+                _swingContactSec = (float)Motion.SwingContact;
+            }
             _verb = verb;
             _charge = Mathf.Clamp01(charge);
             if (!string.IsNullOrEmpty(pitchType)) _pitchType = pitchType;
@@ -108,6 +114,9 @@ namespace GrandSluggers.UnityClient
         public void SetYou(bool on) => _you = on;
 
         public void SetChargeRing(float charge01) => _chargeRing = Mathf.Clamp01(charge01);
+
+        /// <summary>Warp the swing take so its Contact mark lands this many seconds after the press (D13, #612).</summary>
+        public void SetSwingContact(float seconds) => _swingContactSec = Mathf.Max(0f, seconds);
 
         /// <summary>The turn rate and thresholds from data/feel/table.json.</summary>
         public void SetFacing(BodyFacing.Rates rates) => _facing = rates;
@@ -176,7 +185,7 @@ namespace GrandSluggers.UnityClient
                 var squash = Vector3.one;
                 if (_verb == Motion.Verb.Swing)
                 {
-                    var s = SwingPresentation.RootSquash(_poseT);
+                    var s = SwingPresentation.RootSquash(AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec));
                     squash = new Vector3((float)s.X, (float)s.Y, (float)s.Z);
                 }
                 var want = Vector3.Scale(_baseScale * g, squash);
@@ -319,7 +328,7 @@ namespace GrandSluggers.UnityClient
                 Motion.Clock.Charge => Motion.LoadAtFor(verb, _charge),
                 _ => verb switch
                 {
-                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge),
+                    Motion.Verb.Swing => AtBatMotion.SwingClipTime(_poseT, _charge, _swingContactSec),
                     Motion.Verb.ThrowPitch => AtBatMotion.PitchClipTime(_poseT, _charge),
                     _ => (double)_poseT
                 }
