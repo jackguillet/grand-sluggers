@@ -13,6 +13,13 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class RulesTests
 {
+    /// <summary>The loader skips comments in the rules tables (a tuning note sits beside its number); these tests read them the same way.</summary>
+    static readonly System.Text.Json.JsonDocumentOptions JsonComments = new()
+    {
+        CommentHandling = System.Text.Json.JsonCommentHandling.Skip,
+        AllowTrailingCommas = true
+    };
+
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     [Fact]
@@ -45,7 +52,7 @@ public sealed class RulesTests
         var missing = new List<string>();
         foreach (var name in RulesTable.Files)
         {
-            var json = JsonNode.Parse(File.ReadAllText(Path.Combine(dir, name + ".json")))!.AsObject();
+            var json = JsonNode.Parse(File.ReadAllText(Path.Combine(dir, name + ".json")), null, JsonComments)!.AsObject();
             var section = typeof(RulesTable).GetProperty(Capital(name))!.PropertyType;
             MissingFields(json, section, name, missing);
         }
@@ -199,7 +206,7 @@ public sealed class RulesTests
         public void Change(string file, Action<JsonObject> change)
         {
             var path = Path(file);
-            var json = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+            var json = JsonNode.Parse(File.ReadAllText(path), null, JsonComments)!.AsObject();
             change(json);
             File.WriteAllText(path, json.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
