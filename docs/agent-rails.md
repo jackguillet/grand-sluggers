@@ -42,7 +42,7 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D4 | Which pictures falsify art? | **DCC still and in-game still.** Both in the PR. Agents stop. | Paper Route item 6 ("cap doesn't cover the hair"). In-game still-gate already exists; DCC still is not yet a named PR falsifier. |
 | D5 | Can a critic pass look? | **No.** It files. Jack passes. | The Long Silence judge never finished, which is correct for #188. VibeGame's generation/review split is the part we take. |
 | D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). Sittings already file children; they do not yet become a loadable protocol. |
-| D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. We already have S-90 and S-01…S-92. We do not yet dump ball / runner / glove / bag per tick. |
+| D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match --trace` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. `PlayTrace` dumps ball / runner / glove / bag per tick; S-90 and S-01…S-92 stay the replay rail. |
 | D8 | Unity official plugin / CLI / MCP? | **Observation only**, and only after traces exist. Deny-list in §5. | Unity plugin 2026-09-09. PhysX / NavMesh / IAP skills would put baseball in the wrong place. Personal Unity cannot `-batchmode`. |
 | D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). Scripts exist; stages are not a rail. |
 | D10 | Prompt-to-game / Meshy heroes / a second engine? | **No.** | We are not generating a new game or a new skeleton. Unique packages are deferred. |
@@ -93,15 +93,13 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ## 3. Play traces (see baseball without Unity)
 
-⚠️ **R3 #650.** Cousin: S-90 (same seed + commands → identical `PlayEvent` stream), S-01…S-92, `cli match --seed 7`, S-29 over fifty seeds. Missing: a per-tick geometry dump an agent can grep.
+✅ **R3 #650 / #657.** Cousin: S-90 (same seed + commands → identical `PlayEvent` stream), S-01…S-92, `cli match --seed 7`, S-29 over fifty seeds.
 
-A play is still decided by geometry (ball, runner, glove, bag). The dump is how an agent *looks* at that geometry at reasoning speed.
+A play is still decided by geometry (ball, runner, glove, bag). The dump is how an agent *looks* at that geometry at reasoning speed. The sim still owns the verdict; the JSON is observation.
 
-Observable when R3 ships:
-
-- `dotnet run --project src/GrandSluggers.Cli -- match --trace` (or the scenario harness equivalent) writes JSON: one record per tick with ball, each runner, glove, bags, the live `PlayEvent`.
-- A cheap loop can replay or scan N plays without Unity.
-- At least one test asserts a named play's trace contains the geometric reason (a tag, a bag, a catch) — not only the caption.
+- `dotnet run --project src/GrandSluggers.Cli -- match --trace` writes a `PlayTraceLog`: one record per tick with ball, each runner, the glove, bags, and typed `PlayEvent` facts (`PlayTrace`). `--trace file.json` writes the file and keeps the human log on stdout; `--trace` alone writes JSON to stdout and the captions to stderr.
+- `LivePlaySystem.Recording` / `Match.Tracing` is the same dump the scenario harness and `cli match` share. Off by default, so S-29 allocates nothing extra.
+- `PlayTraceTests`: a grounder (glove meets ball; runner vs bag is the out), a fly (catch is a radius at the window), a tag (runner and glove at the bag), a steal (break at release; pickoff only if already broke, D3). Captions are not the reason.
 - S-29 and existing scenarios stay green. This epic does not retune `data/rules/`.
 
 This is VibeGame's "frame-synchronous control" without replacing Unity, and ThePrimeagen's JSON-replay loop without a second engine.
@@ -184,6 +182,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Art catalog | `data/art/`, `cli art`, [art-rails.md](art-rails.md) |
 | One rig + extras | [character-motion.md](character-motion.md), `hero-shared` |
 | Headless baseball | `cli match`, S-01…S-92, S-29 |
+| Play traces | `cli match --trace`, `PlayTrace`, `LivePlaySystem.Recording` |
 | In-game still gate | [screenshot-gate.md](screenshot-gate.md) |
 | Human gates stay human | #346, #209 sittings, #188 |
 | Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
@@ -201,7 +200,7 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
 | G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 still names only the GitHub child (R7) | R2 ✅, R7 |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
-| G4 | Agents cannot grep a play's geometry | `PlayEvent` stream, S-90, no per-tick dump | R3 |
+| G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
 | G5 | DCC still is not a PR falsifier | Clay/sheets in `character-art`; screenshot-gate is in-game | R4 |
 | G6 | No critic that files look diffs | Humans pass #188 | R4 |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
@@ -218,7 +217,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | --- | --- | --- | --- | --- |
 | **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
 | **R2. Debug protocol** #649 | §2, G2, G3 | ✅ #656. `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
-| **R3. Play traces** #650 | §3, G4 | Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
+| **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | DCC still + in-game still required in the PR for character / kit changes. Critic files, does not pass. screenshot-gate and character-art skill updated. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
