@@ -62,6 +62,16 @@
       "promoted": "StillHarnessTests.CharacterTurntableKeepsEveryCaptainsHeadInFrame",
       "issue": "#559",
       "pr": "#664"
+    },
+    {
+      "id": "esc-opens-book-h-calls-time",
+      "signature": "H or Esc opens this instruction booklet; Start / H / Esc opens Call time; H / Esc Call time / this book; first-pitch Esc opens the book and H opens Call time",
+      "stage": "sitting",
+      "cause": "HowToPlay.cs contents KeyLines and ControlDiagram.KeysCallouts lumped H and Esc. docs/how-to-play.md intro and the face table said Esc opens Call time. Scheme and Controls.HowTo already split them (#348): H is Call time, Esc is the book.",
+      "fix": "H / Start is Call time. Esc is How to play, including at first pitch. Name each verb in the book, the hardware diagram, and how-to-play.md. Do not change the shortcut.",
+      "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
+      "issue": "#629",
+      "pr": ""
     }
   ]
 }
