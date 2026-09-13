@@ -168,14 +168,8 @@ namespace GrandSluggers.UnityClient
                 hero.SetHeld(false, true);
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     x += _match.PitcherOffsetX * HomeSet.PitcherWalk;
-                var look = kv.Key == "P" && _phase is not Phase.InPlay and not Phase.StealThrow
-                    ? new Vector3(0, 0, -1)
-                    : _phase is Phase.InPlay or Phase.StealThrow
-                        ? new Vector3(_ball.x - (float)x, 0, _ball.z - (float)z)
-                        : new Vector3((float)-x, 0, (float)-z + 8f);
-                if (_throwing && (highlighted || kv.Key == _throwFromPos))
-                    look = _throwTo - new Vector3((float)x, 0, (float)z);
-                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z), look);
+                hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z),
+                    DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
                     hero.SampleMotion((float)Motion.PitchRelease + _flight);
                 else hero.Tick(dt);
@@ -236,13 +230,13 @@ namespace GrandSluggers.UnityClient
                     if (body != null && body.Sliding) bPose = Motion.Verb.Slide;
                     else if (body != null && (body.Held || body.OnBag) && !presentingSwing) bPose = Motion.Verb.Idle;
                     bHero.SetPose(bPose, swingCharge);
-                    bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z));
+                    bHero.Place(new Vector3((float)hx, 0, (float)hz), new Vector3((float)look.X, 0, (float)look.Z), pinned: presentingSwing);
                 }
                 else
                     bHero.Place(new Vector3(
                         (float)HomeSet.BatterBodyX(batter.Bats, _match.BatterOffsetX),
                         0,
-                        (float)HomeSet.BatterZ), new Vector3(0, 0, 1));
+                        (float)HomeSet.BatterZ), new Vector3(0, 0, 1), pinned: true);
                 if (bPose == Motion.Verb.Swing && presentingSwing)
                     bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec));
                 else bHero.Tick(dt);
@@ -338,6 +332,24 @@ namespace GrandSluggers.UnityClient
             return Motion.Verb.Idle;
         }
 
+        /// <summary>
+        /// Which way a glove faces (§8.2, #611): the run while moving, the ball when planted, the throw target on
+        /// release, the backpedal in the last feet under a fly. Before the ball is live every glove faces home.
+        /// </summary>
+        BodyFacing.Facts DefenseFacing(string pos, double x, double z, bool onBall)
+        {
+            if (_phase is not (Phase.InPlay or Phase.StealThrow))
+                return pos == "P"
+                    ? new BodyFacing.Facts(0, -1, Pinned: true)
+                    : new BodyFacing.Facts(-x, -z + 8, Pinned: true);
+            var releasing = _throwing && pos == _throwFromPos;
+            var fly = onBall && _preview != null && !(_caught || _buddy)
+                      && FieldingResolver.InAir(_preview, _ball.y, LiveTime, _preview.HangTimeSec);
+            var plant = fly ? FlyCatch.ChaseTarget(_preview, _match.Park, _match.Rules) : default;
+            return BodyFacing.Fielder(x, z, _ball.x, _ball.z, releasing, _throwTo.x, _throwTo.z,
+                fly, plant.X, plant.Z, BodyFacing.Rates.Of(_content.Feel));
+        }
+
         static Motion.Verb FieldPose(Character who, FieldingPreview pre, bool caught)
         {
             if (caught) return pre.Grounder ? Motion.Verb.Scoop : Motion.Verb.Catch;
@@ -346,7 +358,6 @@ namespace GrandSluggers.UnityClient
             if (a == "burrow" && pre.Grounder) return Motion.Verb.Dive;
             if (a == "super-jump" && pre.HomeRunLikely) return Motion.Verb.Jump;
             if (a == "clamber" && pre.HomeRunLikely) return Motion.Verb.Clamber;
-            if (a == "spin-check") return Motion.Verb.Spin;
             return Motion.Verb.Field;
         }
 
@@ -456,7 +467,7 @@ namespace GrandSluggers.UnityClient
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f));
+                hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f), pinned: true);
                 hero.Tick(Time.deltaTime);
                 if (!pick && !yours)
                     hero.gameObject.SetActive(false);
@@ -495,6 +506,7 @@ namespace GrandSluggers.UnityClient
             }
             h.gameObject.SetActive(true);
             h.Bind(who);
+            h.SetFacing(BodyFacing.Rates.Of(_content.Feel));
             return h;
         }
 
