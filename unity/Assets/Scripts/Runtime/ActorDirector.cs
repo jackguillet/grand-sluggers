@@ -199,8 +199,22 @@ namespace GrandSluggers.UnityClient
                 }
                 var swingTakeSec = AtBatMotion.SwingTakeSeconds(
                     float.IsNaN(_swingContactSec) ? Motion.SwingContact : _swingContactSec);
+                // The held finish (#583): a dead ball holds it until SET, contact until the runner's first step.
+                var swingContact = _pending != null
+                    || (_last?.AtBat != null && _last.AtBat.Quality != ContactQuality.Miss);
+                var runnerFromBoxFt = 0.0;
+                if (committedSwing && swingContact)
+                {
+                    var runner = _match.BatterRunner;
+                    var boxX = HomeSet.BatterBodyX(batter.Bats, _match.BatterContactOffsetX);
+                    runnerFromBoxFt = racing && runner != null
+                        ? Math.Sqrt((runner.Position.X - boxX) * (runner.Position.X - boxX)
+                            + (runner.Position.Z - HomeSet.BatterZ) * (runner.Position.Z - HomeSet.BatterZ))
+                        : double.PositiveInfinity;
+                }
                 var presentingSwing = committedSwing
-                    && AtBatMotion.PresentsCommittedSwing(_committedSwingT, swingTakeSec);
+                    && AtBatMotion.PresentsSwing(_committedSwingT, swingTakeSec, swingContact,
+                        runnerFromBoxFt, _feel.SwingFinishStepFt);
                 var bPose = presentingSwing
                     ? Motion.Verb.Swing
                     : racing ? Motion.Verb.Run : BatterPose();

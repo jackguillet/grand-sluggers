@@ -27,7 +27,17 @@ public static class Motion
     public const double RunDur = 1 / RunHz;
     public const double JumpDur = 0.55;
     public const double JumpPeak = 4.2;
+    /// <summary>The swing takes' follow-through key: the bat around, still moving (docs/research-batting.md).</summary>
     public const double SwingDur = 0.50;
+    /// <summary>
+    /// The swing takes' last key, the held finish (#613, #583): weight on the front foot, the bat
+    /// around. The take ends here and the batter holds it until the play moves on.
+    /// </summary>
+    public const double SwingFinish = 0.60;
+    /// <summary>The slap swing take (#613): no windup, quick, compact.</summary>
+    public const string SwingSlapClip = "swing-slap";
+    /// <summary>The charge swing take (#613): the hold shows its windup, then a bigger arc.</summary>
+    public const string SwingChargeClip = "swing-charge";
     public const double PitchDur = 0.50;
     public const double SwingContact = 0.30;
     public const double PitchRelease = 0.42;
@@ -43,8 +53,10 @@ public static class Motion
     /// </summary>
     public const double PitchNormalLoadAt = 0.09;
 
+    /// <param name="FinishAt">A held finish: the second of the take's last key, which the batter holds after the take (0 = none).</param>
     public readonly record struct Clip(
-        string Id, bool Loop, bool Handed, double Duration, ClipEvent? Mark = null, double MarkAt = 0);
+        string Id, bool Loop, bool Handed, double Duration, ClipEvent? Mark = null, double MarkAt = 0,
+        double FinishAt = 0);
 
     /// <summary>The file list. data/art/clips.json must match it row for row.</summary>
     public static readonly IReadOnlyList<Clip> Clips =
@@ -58,7 +70,8 @@ public static class Motion
         new("jump", false, false, JumpDur, ClipEvent.FootPlant, JumpDur),
         new("pitch", false, true, PitchDur, ClipEvent.Release, PitchRelease),
         new("throw", false, true, 0.40, ClipEvent.Release, ThrowRelease),
-        new("swing", false, true, SwingDur, ClipEvent.Contact, SwingContact),
+        new(SwingSlapClip, false, true, SwingFinish, ClipEvent.Contact, SwingContact, SwingFinish),
+        new(SwingChargeClip, false, true, SwingFinish, ClipEvent.Contact, SwingContact, SwingFinish),
         new("checkSwing", false, true, HoldDur),
         new("bunt", false, true, HoldDur),
         new("miss", false, true, HoldDur),
@@ -82,7 +95,18 @@ public static class Motion
     /// <summary>Which take a verb plays and which clock samples it.</summary>
     public readonly record struct Cue(string Clip, Clock Clock);
 
-    public static Cue CueFor(Verb verb) => verb switch
+    /// <summary>
+    /// The committed swing's take: the resolver's charge test picks it (ChargeFeel.IsCharge, spec
+    /// §5.1), so the narrow charge window and the charge take are always the same swing.
+    /// </summary>
+    public static string SwingClipFor(double charge01) =>
+        SwingPresentation.TakeFor(charge01) == SwingTake.Charge ? SwingChargeClip : SwingSlapClip;
+
+    /// <summary>
+    /// Which take a verb plays. A held swing load is the charge take's windup; a committed swing
+    /// is the slap or the charge take by <paramref name="charge01"/>.
+    /// </summary>
+    public static Cue CueFor(Verb verb, double charge01 = 0) => verb switch
     {
         Verb.Idle => new("idle", Clock.World),
         Verb.Field => new("field", Clock.World),
@@ -94,8 +118,8 @@ public static class Motion
         Verb.ChargePitch => new("pitch", Clock.Charge),
         Verb.ThrowPitch => new("pitch", Clock.Verb),
         Verb.Throw => new("throw", Clock.Verb),
-        Verb.ChargeSwing => new("swing", Clock.Charge),
-        Verb.Swing => new("swing", Clock.Verb),
+        Verb.ChargeSwing => new(SwingChargeClip, Clock.Charge),
+        Verb.Swing => new(SwingClipFor(charge01), Clock.Verb),
         Verb.CheckSwing => new("checkSwing", Clock.Verb),
         Verb.Bunt => new("bunt", Clock.Verb),
         Verb.Miss => new("miss", Clock.Verb),
@@ -122,8 +146,8 @@ public static class Motion
     public static string ClipFile(string clipId, Hand hand) =>
         IsHanded(clipId) && hand == Hand.L ? clipId + "-L" : clipId;
 
-    public static string ClipFile(Verb verb, Hand bats, Hand throws) =>
-        ClipFile(CueFor(verb).Clip, UsesBattingHand(verb) ? bats : throws);
+    public static string ClipFile(Verb verb, Hand bats, Hand throws, double charge01 = 0) =>
+        ClipFile(CueFor(verb, charge01).Clip, UsesBattingHand(verb) ? bats : throws);
 
     public static double Mark(Verb verb, ClipEvent ev)
     {
@@ -140,7 +164,8 @@ public static class Motion
     /// <summary>The verb's clip time when it was loaded, by charge, before it committed.</summary>
     public static double LoadAtFor(Verb verb, double charge01) => verb switch
     {
-        Verb.ChargeSwing or Verb.Swing => SwingPresentation.LoadSampleAt(charge01),
+        Verb.ChargeSwing => SwingPresentation.HeldLoadAt(charge01),
+        Verb.Swing => SwingPresentation.CommittedLoadAt(charge01),
         Verb.ChargePitch or Verb.ThrowPitch => PitchLoadSampleAt(charge01),
         _ => 0
     };

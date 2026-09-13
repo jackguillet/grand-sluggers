@@ -51,8 +51,8 @@ Mesh landmarks the gates read by name: `torsoMesh`, `Stripe`, `headMesh`, `EyeL`
 | ChargePitch | pitch at `LoadSampleAt(charge)` | charge | yes | |
 | ThrowPitch | pitch at `LoadedClipTime` | verb | yes | Release 0.42 |
 | Throw | throw | verb | yes | Release 0.18 |
-| ChargeSwing | swing at `LoadSampleAt(charge)` | charge | yes | |
-| Swing | swing at `LoadedClipTime` | verb | yes | Contact 0.30 |
+| ChargeSwing | swing-charge at `SwingPresentation.HeldLoadAt(charge)` | charge | yes | |
+| Swing | swing-slap or swing-charge (the resolver's charge test) at `AtBatMotion.SwingClipTime` | verb | yes | Contact 0.30, held finish 0.60 |
 | CheckSwing, Bunt, Miss | checkSwing / bunt / miss | verb (hold) | yes | |
 | Catch, Dive, Crouch, StealLead, Spin | catch / dive / crouch / stealLead / spin | verb (hold) | no | |
 | Scoop | scoop | verb | no | Contact 0.22 |
@@ -60,7 +60,16 @@ Mesh landmarks the gates read by name: `torsoMesh`, `Stripe`, `headMesh`, `EyeL`
 
 A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt · (1 − charge)`: MAX holds the full coil at 0, a tap starts from the half load. The committed verb then samples `LoadedClipTime(poseT, loadAt, eventAt)`, which is monotonic and lands the marker exactly at `eventAt`. One function for pitch and swing.
 
-Handed clips: `swing`, `pitch`, `throw`, `checkSwing`, `bunt`, `miss`. Their left files are `{clip}-L.fbx`. A right-handed batter or thrower plays the unsuffixed file.
+### The two swings (#613)
+
+- **Slap** (`swing-slap`): no windup. It starts on the ready key (hands by the back shoulder, bat up behind the head), a compact arc, the held finish.
+- **Charge** (`swing-charge`): the hold samples its windup (0.00 = MAX: hands high and back, the bat wrapped, the lead knee up; 0.075 = the ready key at no charge), then a bigger arc and a bigger finish.
+- A committed swing plays the charge take when `ChargeFeel.IsCharge(charge)`, the same test that narrows the window, so the take and the judgment are always the same swing. A slap starts at 0; a charge continues from the held windup.
+- The numbers are data: `data/art/swing-takes.json` holds per key the rendered hand centers, the grip socket, the barrel direction (Unity batter-local, right-handed) and the legs in body terms. The takes script solves every frame to it; `SwingPresentation.SlapKeys` / `ChargeKeys` carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of [research-batting.md](research-batting.md) and are shared by both takes.
+- **Held finish (#583).** Both takes end on a finish key at `Motion.SwingFinish` 0.60. The batter keeps it after the take: through the STRIKE stamp until SET on a dead ball, and through the contact freeze until the batter-runner is `feel.swingFinishStepFt` (2.5 ft) out of the box on contact (`AtBatMotion.PresentsSwing`). No blend back to ready in between.
+- `checkSwing` holds the slap at 0.20 and `miss` holds the slap's follow-through.
+
+Handed clips: `swing-slap`, `swing-charge`, `pitch`, `throw`, `checkSwing`, `bunt`, `miss`. Their left files are `{clip}-L.fbx`. A right-handed batter or thrower plays the unsuffixed file.
 
 Clips are exported armature-only (no mesh), one take per file, 60 fps, linear keys, from the same scene as the body. Player copies live under `Assets/Resources/Art/Animation/Clips/` and must be byte-identical to the authoring copy; the test enforces it.
 

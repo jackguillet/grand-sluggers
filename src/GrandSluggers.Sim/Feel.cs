@@ -146,6 +146,11 @@ public sealed class FeelTable
     public double BackpedalFt { get; private init; } = 12;
     /// <summary>A ball closer than this (horizontally) is overhead or in the glove: the body keeps its heading.</summary>
     public double FaceBallMinFt { get; private init; } = 3;
+    /// <summary>
+    /// The held swing finish (#583, #613) lets go on contact once the batter-runner is this far out
+    /// of the box: the finish holds through the contact freeze and the first step of the run.
+    /// </summary>
+    public double SwingFinishStepFt { get; private init; } = 2.5;
 
     public static FeelTable Load(string dataRoot)
     {
@@ -188,7 +193,8 @@ public sealed class FeelTable
             HeadingSmoothSec = dto.HeadingSmoothSec >= 0 ? dto.HeadingSmoothSec : 0.08,
             HeadingTeleportFtPerSec = dto.HeadingTeleportFtPerSec > 0 ? dto.HeadingTeleportFtPerSec : 90,
             BackpedalFt = dto.BackpedalFt >= 0 ? dto.BackpedalFt : 12,
-            FaceBallMinFt = dto.FaceBallMinFt >= 0 ? dto.FaceBallMinFt : 3
+            FaceBallMinFt = dto.FaceBallMinFt >= 0 ? dto.FaceBallMinFt : 3,
+            SwingFinishStepFt = dto.SwingFinishStepFt > 0 ? dto.SwingFinishStepFt : 2.5
         };
     }
 
@@ -213,5 +219,6 @@ public sealed class FeelTable
         public double HeadingTeleportFtPerSec { get; set; } = 90;
         public double BackpedalFt { get; set; } = 12;
         public double FaceBallMinFt { get; set; } = 3;
+        public double SwingFinishStepFt { get; set; } = 2.5;
     }
 }

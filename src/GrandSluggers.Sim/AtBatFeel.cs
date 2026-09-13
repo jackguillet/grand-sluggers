@@ -328,7 +328,7 @@ public static class AtBatMotion
         if (poseTime >= contactSec)
             return Motion.SwingContact + (poseTime - Math.Max(0, contactSec));
         var u = contactSec <= 0 ? 0 : Math.Max(0, poseTime) / contactSec;
-        return LoadedClipTime(u * Motion.SwingContact, SwingPresentation.LoadSampleAt(charge01), Motion.SwingContact);
+        return LoadedClipTime(u * Motion.SwingContact, SwingPresentation.CommittedLoadAt(charge01), Motion.SwingContact);
     }
 
     /// <summary>
@@ -340,9 +340,21 @@ public static class AtBatMotion
             ? Math.Max(0, Rules.Or(rules).Batting.Window.LeadSec - errorFrames / 60)
             : Motion.SwingContact;
 
-    /// <summary>Real seconds the committed take lasts after the press: the warped span to contact plus the authored follow-through.</summary>
+    /// <summary>
+    /// Real seconds the committed take lasts after the press: the warped span to contact plus the
+    /// authored follow-through and finish (#613), which play at the take's own speed.
+    /// </summary>
     public static double SwingTakeSeconds(double contactSec) =>
-        Math.Max(0, contactSec) + (Motion.SwingDur - Motion.SwingContact);
+        Math.Max(0, contactSec) + (Motion.SwingFinish - Motion.SwingContact);
+
+    /// <summary>
+    /// The held finish (#583, #613): the batter shows the committed swing, then keeps its last key.
+    /// A dead ball (a whiff, a strikeout) holds the finish through the stamp until SET clears the
+    /// swing; a ball in play holds it through the contact freeze until the batter-runner is
+    /// <paramref name="stepFt"/> (<c>feel.swingFinishStepFt</c>) out of the box. No ready pose in between.
+    /// </summary>
+    public static bool PresentsSwing(double actionTime, double takeSec, bool contact, double runnerFromBoxFt, double stepFt) =>
+        actionTime >= 0 && (actionTime <= takeSec || !contact || runnerFromBoxFt < stepFt);
 
     public static double PitchClipTime(double poseTime, double charge01) =>
         LoadedClipTime(poseTime, Motion.PitchLoadSampleAt(charge01), Motion.PitchRelease);
@@ -382,11 +394,12 @@ public static class AtBatMotion
     /// Advance one committed action clock, in real seconds after the press. The
     /// flight-derived target keeps the warped contact mark tied to pitch timing;
     /// after the pitch resolves, frame time carries the same action through its
-    /// follow-through. Landing exactly on <paramref name="takeSec"/>
-    /// (<see cref="SwingTakeSeconds"/>) presents the final key once before the clock retires.
+    /// follow-through and finish. Landing exactly on <paramref name="takeSec"/>
+    /// (<see cref="SwingTakeSeconds"/>) presents the finish key; past it the finish is held
+    /// (<see cref="PresentsSwing"/>).
     /// </summary>
     public static double AdvanceCommittedSwing(
-        double current, double flightTime, double swingStart, double dt, double takeSec = Motion.SwingDur)
+        double current, double flightTime, double swingStart, double dt, double takeSec = Motion.SwingFinish)
     {
         var target = Math.Max(0, flightTime - swingStart);
         if (current < 0)
@@ -397,9 +410,10 @@ public static class AtBatMotion
             Math.Max(target, current + Math.Max(0, dt)));
     }
 
-    public static bool PresentsCommittedSwing(double actionTime, double takeSec = Motion.SwingDur) =>
+    public static bool PresentsCommittedSwing(double actionTime, double takeSec = Motion.SwingFinish) =>
         actionTime >= 0 && actionTime <= takeSec;
 
-    public static double CommittedSwingSample(double actionTime, double takeSec = Motion.SwingDur) =>
+    /// <summary>The committed take's sample: past the take it is the held finish.</summary>
+    public static double CommittedSwingSample(double actionTime, double takeSec = Motion.SwingFinish) =>
         Math.Clamp(actionTime, 0, takeSec);
 }

@@ -84,7 +84,7 @@ namespace GrandSluggers.UnityClient
                         _play.GateStageSwingCaptain(captain);
                         for (var i = 0; i < 24; i++) yield return null;
                         foreach (var power in new[] { (Id: "normal", Charge: 0f), (Id: "max", Charge: 1f) })
-                        foreach (var beat in new[] { "ready", "load", "contact", "follow" })
+                        foreach (var beat in new[] { "ready", "load", "contact", "follow", "finish" })
                         {
                             _play.GatePoseSwing(beat, power.Charge);
                             for (var i = 0; i < 4; i++) yield return null;
@@ -334,9 +334,9 @@ namespace GrandSluggers.UnityClient
                 hero.SetPose(Motion.Verb.ChargeSwing, charge);
                 hero.SnapTick(0);
                 hero.SetPose(Motion.Verb.Swing, charge);
-                hero.SnapTick(beat == "contact"
-                    ? (float)Motion.SwingContact
-                    : (float)Motion.SwingDur);
+                hero.SnapTick(beat == "contact" ? (float)Motion.SwingContact
+                    : beat == "follow" ? (float)Motion.SwingDur
+                    : (float)Motion.SwingFinish);
             }
 
             _cam.SmashCut(hero.transform.position + Vector3.up * (float)HomeSet.BatterChestY);
@@ -445,6 +445,7 @@ namespace GrandSluggers.UnityClient
                 : Motion.Verb.Swing;
             var expectedPoseTime = beat == "contact" ? (float)Motion.SwingContact
                 : beat == "follow" ? (float)Motion.SwingDur
+                : beat == "finish" ? (float)Motion.SwingFinish
                 : 0f;
             if (hero.Current != expectedPose || Mathf.Abs(hero.PoseTime - expectedPoseTime) > 0.0001f)
                 failures.Add(
@@ -497,7 +498,7 @@ namespace GrandSluggers.UnityClient
                     + $"right {rightToHandle:0.00}/{rightContact:0.00})");
             var actualDirection = (physicalBat.BarrelEnd - physicalBat.Grip).normalized;
             var directionDot = Vector3.Dot(actualDirection, physicalBat.ExpectedDirection);
-            var exactDirection = beat is "contact" or "follow"
+            var exactDirection = beat is "contact" or "follow" or "finish"
                 || (beat == "load" && power == "max");
             if (sharedRigMetrics && exactDirection && directionDot < 0.97f)
                 failures.Add(

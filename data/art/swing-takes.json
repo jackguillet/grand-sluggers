@@ -1,0 +1,617 @@
+{
+  "notes": "The two authored swings on hero-shared (#613), right-handed, in Unity batter-local axes (+X across the plate, +Y up, +Z the pitcher). Hands are the rendered fist centers on the handle, grip is the bat socket at the knob, barrel is the socket's grip-to-barrel direction; legs are the takes script's body terms (flex / abduct / twist degrees, lift in world units). tools/blender/hero_shared_takes.py solves every frame to these and bakes both hands; SwingPresentation.SlapKeys / ChargeKeys carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of docs/research-batting.md and are shared by both takes. The charge take holds its windup at 0 and its ready key at 0.075; the slap starts on that ready key with no windup. Both end on the held finish at 0.60.",
+  "contactAt": 0.3,
+  "finishAt": 0.6,
+  "takes": [
+    {
+      "id": "swing-slap",
+      "take": "slap",
+      "keys": [
+        {
+          "t": 0.0,
+          "leftHand": [
+            0.361,
+            2.5938,
+            -0.5035
+          ],
+          "rightHand": [
+            0.3855,
+            3.0255,
+            -0.7341
+          ],
+          "grip": [
+            0.35,
+            2.4,
+            -0.4
+          ],
+          "barrel": [
+            0.0501,
+            0.881,
+            -0.4705
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 24,
+              "abduct": 6,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 20,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 44,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.2
+          }
+        },
+        {
+          "t": 0.15,
+          "leftHand": [
+            0.143,
+            2.24,
+            0.016
+          ],
+          "rightHand": [
+            0.416,
+            2.356,
+            -0.235
+          ],
+          "grip": [
+            0.326,
+            2.013,
+            0.249
+          ],
+          "barrel": [
+            -0.1,
+            0.62,
+            -0.78
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 22,
+              "abduct": 16,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 8,
+              "abduct": 14,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 26,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 34,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.2
+          }
+        },
+        {
+          "t": 0.24,
+          "leftHand": [
+            0.129,
+            1.798,
+            -0.14
+          ],
+          "rightHand": [
+            0.366,
+            1.729,
+            -0.547
+          ],
+          "grip": [
+            0.049,
+            1.761,
+            0.071
+          ],
+          "barrel": [
+            0.4315,
+            0.005,
+            -0.9022
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 20,
+              "abduct": 14,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -10,
+              "abduct": 22,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 22,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 36,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.18000000000000002
+          }
+        },
+        {
+          "t": 0.3,
+          "leftHand": [
+            0.124,
+            1.914,
+            -0.257
+          ],
+          "rightHand": [
+            0.458,
+            1.856,
+            -0.622
+          ],
+          "grip": [
+            -0.069,
+            1.872,
+            -0.149
+          ],
+          "barrel": [
+            0.779,
+            0.0275,
+            -0.6264
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 18,
+              "abduct": 12,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -18,
+              "abduct": 26,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 18,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.16
+          }
+        },
+        {
+          "t": 0.5,
+          "leftHand": [
+            -0.0588,
+            2.1748,
+            -0.2694
+          ],
+          "rightHand": [
+            -0.3234,
+            2.3414,
+            -0.6467
+          ],
+          "grip": [
+            0.06,
+            2.1,
+            -0.1
+          ],
+          "barrel": [
+            -0.54,
+            0.34,
+            -0.77
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 12,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -14,
+              "abduct": 24,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.14
+          }
+        },
+        {
+          "t": 0.6,
+          "leftHand": [
+            -0.1438,
+            2.6267,
+            0.0485
+          ],
+          "rightHand": [
+            -0.2414,
+            2.7974,
+            -0.4003
+          ],
+          "grip": [
+            -0.1,
+            2.55,
+            0.25
+          ],
+          "barrel": [
+            -0.1991,
+            0.3485,
+            -0.9159
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 10,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -12,
+              "abduct": 24,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 12,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 42,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.14
+          }
+        }
+      ]
+    },
+    {
+      "id": "swing-charge",
+      "take": "charge",
+      "keys": [
+        {
+          "t": 0.0,
+          "leftHand": [
+            0.2632,
+            2.8981,
+            -0.5253
+          ],
+          "rightHand": [
+            0.2926,
+            3.3395,
+            -0.3145
+          ],
+          "grip": [
+            0.25,
+            2.7,
+            -0.62
+          ],
+          "barrel": [
+            0.06,
+            0.9007,
+            0.4303
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 52,
+              "abduct": 4,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 24,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 72,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 46,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.2
+          }
+        },
+        {
+          "t": 0.075,
+          "leftHand": [
+            0.361,
+            2.5938,
+            -0.5035
+          ],
+          "rightHand": [
+            0.3855,
+            3.0255,
+            -0.7341
+          ],
+          "grip": [
+            0.35,
+            2.4,
+            -0.4
+          ],
+          "barrel": [
+            0.0501,
+            0.881,
+            -0.4705
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 24,
+              "abduct": 6,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 20,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 44,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.2
+          }
+        },
+        {
+          "t": 0.15,
+          "leftHand": [
+            0.143,
+            2.24,
+            0.016
+          ],
+          "rightHand": [
+            0.416,
+            2.356,
+            -0.235
+          ],
+          "grip": [
+            0.326,
+            2.013,
+            0.249
+          ],
+          "barrel": [
+            -0.1,
+            0.62,
+            -0.78
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 22,
+              "abduct": 16,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 8,
+              "abduct": 14,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 26,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 34,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.2
+          }
+        },
+        {
+          "t": 0.24,
+          "leftHand": [
+            0.129,
+            1.798,
+            -0.14
+          ],
+          "rightHand": [
+            0.366,
+            1.729,
+            -0.547
+          ],
+          "grip": [
+            0.049,
+            1.761,
+            0.071
+          ],
+          "barrel": [
+            0.4315,
+            0.005,
+            -0.9022
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 20,
+              "abduct": 14,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -10,
+              "abduct": 22,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 22,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 36,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.18000000000000002
+          }
+        },
+        {
+          "t": 0.3,
+          "leftHand": [
+            0.124,
+            1.914,
+            -0.257
+          ],
+          "rightHand": [
+            0.458,
+            1.856,
+            -0.622
+          ],
+          "grip": [
+            -0.069,
+            1.872,
+            -0.149
+          ],
+          "barrel": [
+            0.779,
+            0.0275,
+            -0.6264
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 18,
+              "abduct": 12,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -18,
+              "abduct": 26,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 18,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.16
+          }
+        },
+        {
+          "t": 0.5,
+          "leftHand": [
+            -0.1538,
+            2.4423,
+            -0.2274
+          ],
+          "rightHand": [
+            -0.4963,
+            2.6478,
+            -0.5112
+          ],
+          "grip": [
+            0.0,
+            2.35,
+            -0.1
+          ],
+          "barrel": [
+            -0.699,
+            0.4194,
+            -0.5792
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 10,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -18,
+              "abduct": 28,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 12,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 46,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.12000000000000001
+          }
+        },
+        {
+          "t": 0.6,
+          "leftHand": [
+            -0.0948,
+            2.8721,
+            -0.0118
+          ],
+          "rightHand": [
+            0.028,
+            2.9212,
+            -0.4836
+          ],
+          "grip": [
+            -0.15,
+            2.85,
+            0.2
+          ],
+          "barrel": [
+            0.2507,
+            0.1003,
+            -0.9628
+          ],
+          "legs": {
+            "lThigh": {
+              "flex": 8,
+              "abduct": 10,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -16,
+              "abduct": 28,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 10,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rShin": {
+              "flex": 48,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lift": -0.12000000000000001
+          }
+        }
+      ]
+    }
+  ]
+}

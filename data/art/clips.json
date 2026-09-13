@@ -88,15 +88,28 @@
       "playerSlot": "Assets/Resources/Art/Animation/Clips/throw"
     },
     {
-      "id": "swing",
+      "id": "swing-slap",
       "loop": false,
       "handed": true,
       "events": [
         "Contact"
       ],
       "contactAt": 0.3,
-      "slot": "Assets/Art/Animation/Clips/swing",
-      "playerSlot": "Assets/Resources/Art/Animation/Clips/swing"
+      "finishAt": 0.6,
+      "slot": "Assets/Art/Animation/Clips/swing-slap",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/swing-slap"
+    },
+    {
+      "id": "swing-charge",
+      "loop": false,
+      "handed": true,
+      "events": [
+        "Contact"
+      ],
+      "contactAt": 0.3,
+      "finishAt": 0.6,
+      "slot": "Assets/Art/Animation/Clips/swing-charge",
+      "playerSlot": "Assets/Resources/Art/Animation/Clips/swing-charge"
     },
     {
       "id": "checkSwing",

@@ -17,5 +17,6 @@
   "headingSmoothSec": 0.08,
   "headingTeleportFtPerSec": 90,
   "backpedalFt": 12,
-  "faceBallMinFt": 3
+  "faceBallMinFt": 3,
+  "swingFinishStepFt": 2.5
 }
