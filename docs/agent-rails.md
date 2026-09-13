@@ -158,7 +158,7 @@ Save after each stage. The next prompt names the stage it continues. One-shottin
 
 ## 7. Distill (file *and* remember)
 
-⚠️ **R7 #654.** Cousin: playbook §5 (one issue per sitting finding). Missing: the finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test.
+✅ **R7 #654.** Cousin: playbook §5 (one issue per sitting finding). The finding also lands in the debug protocol (R2) and, when it repeats, in a skill or test. character-art grew from one real failed still: `swing-*-max-load` (#623 / `bat-through-head`).
 
 After a sitting or a failed still:
 
@@ -191,6 +191,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
 | Local standalone window | [local-player.md](local-player.md) |
 | Debug protocol | `data/agent/debug-protocol.json`, `cli protocol` |
+| Distill | [playbook.md](playbook.md) §5, `.grok/skills/character-art/` from #623, promote-on-second |
 
 ---
 
@@ -201,14 +202,14 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | Id | Gap | Today | Child |
 | --- | --- | --- | --- |
 | G1 | Session kind is not a fail condition | Standing order in AGENTS.md + `.grok/rules/agent-rails.md` (#648 / #655) | R1 ✅ |
-| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 still names only the GitHub child (R7) | R2 ✅, R7 |
+| G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 is file + append + promote-on-second | R2 ✅, R7 ✅ |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
 | G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
 | G6 | No critic that files look diffs | `.grok/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
 | G8 | DCC stages are not named checkpoints | Scripts exist, one-shot is possible | R6 |
-| G9 | Failed stills do not grow the skill | `character-art` is static | R7 |
+| G9 | Failed stills do not grow the skill | `character-art` grew from `swing-*-max-load` (#623 / `bat-through-head`) | R7 ✅ |
 
 ---
 
@@ -224,7 +225,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
-| **R7. Distill** #654 | §7, G2, G9 | Playbook §5 includes protocol append + promote-on-second. character-art grows from one real failed still. | #209, #188 | After R2 |
+| **R7. Distill** #654 | §7, G2, G9 | Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child
 
