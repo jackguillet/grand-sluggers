@@ -46,7 +46,7 @@ Mesh landmarks the gates read by name: `torsoMesh`, `Stripe`, `headMesh`, `EyeL`
 | Verb | Clip | Clock | Handed | Marker |
 | --- | --- | --- | --- | --- |
 | Idle, Field, Cheer, Charm | idle / field / cheer / charm | world (loop) | no | |
-| Walk, Run | walk / run | world (loop) | no | FootPlant 0 |
+| Walk, Run | walk / run | world (loop) | no | FootPlant 0; the root yaw is `BodyFacing` (gameplay-spec §8.2): the run while moving, the walk take on the backpedal |
 | Jump, Clamber | jump | verb | no | FootPlant 0.55 |
 | ChargePitch | pitch at `LoadSampleAt(charge)` | charge | yes | |
 | ThrowPitch | pitch at `LoadedClipTime` | verb | yes | Release 0.42 |
