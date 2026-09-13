@@ -41,7 +41,6 @@
   },
   "rundown": {
     "rangeFt": 20,
-    "throwWithinFt": 8,
     "lazyLobFraction": 0.8,
     "lazyLobSpeedMul": 0.5
   },

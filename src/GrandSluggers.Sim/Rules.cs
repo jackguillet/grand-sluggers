@@ -1164,7 +1164,6 @@ public sealed class RunningRules
         RulesValidation.Order(source, "running.cpu.stealBaseRun8", Cpu.StealBaseRun8, Cpu.StealBaseRun10, errors);
         // A slide narrows the tag window but never closes it: the safe radius stays inside the slid reach (§10.3).
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.TagReachFt - Bags.SlideReachCutFt, errors);
-        RulesValidation.Order(source, "running.rundown.throwWithinFt", Rundown.ThrowWithinFt, Rundown.RangeFt, errors);
     }
 }
 
@@ -1241,14 +1240,13 @@ public sealed class StealRules
 
 /// <summary>
 /// The rundown (§9.7): a runner off the bags with a glove holding the ball inside <see cref="RangeFt"/>.
-/// CPU fielders throw once the runner is inside <see cref="ThrowWithinFt"/> of a covered bag and run at
-/// them otherwise; when every live runner is at least <see cref="LazyLobFraction"/> of the way to a bag
-/// the throw is a lazy lob at <see cref="LazyLobSpeedMul"/> of the arm.
+/// The CPU glove runs at them and throws ahead at the last makeable moment (the §8.8 margin, no fixed
+/// distance); a throw that races nobody to its bag, with every moving body at least
+/// <see cref="LazyLobFraction"/> of the way to a bag, is a lazy lob at <see cref="LazyLobSpeedMul"/> of the arm.
 /// </summary>
 public sealed class RundownRules
 {
     [Positive] public double RangeFt { get; init; } = 20;
-    [Positive] public double ThrowWithinFt { get; init; } = 8;
     [Chance] public double LazyLobFraction { get; init; } = 0.8;
     [Positive] public double LazyLobSpeedMul { get; init; } = 0.5;
 }
