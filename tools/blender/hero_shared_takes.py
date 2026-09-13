@@ -379,6 +379,14 @@ HAND_SOLVE_TOLERANCE = 0.01
 STANCE_LANDMARKS = dict(chest_front="Stripe", chest_center="torsoMesh",
                         eye_left="EyeL", eye_right="EyeR", head_center="headMesh",
                         foot_left="lShoe", foot_right="rShoe")
+# #623: the bat never passes through the head. The physical bat HeroActor draws runs
+# from the knob 0.29 model units behind the grip to the barrel end 2.10 past it, radius
+# 0.12 (SwingPresentation.BatStartFromGrip / BatEndFromGrip / ModelBarrelRadius), all
+# times the shared bat scale. Its surface must stay this far from the rendered head.
+BAT_SCALE = 1.28
+BAT_FROM_GRIP = (-0.29 * BAT_SCALE, 2.10 * BAT_SCALE)
+BAT_RADIUS = 0.12 * BAT_SCALE
+BAT_HEAD_CLEARANCE = float(SWING_DOC["batHeadClearance"])
 
 
 def _interp_table(table, t, times):
@@ -486,6 +494,26 @@ def point_segment_distance(point, start, end):
     return (point - (start + axis * u)).length
 
 
+def head_sphere():
+    """The rendered head as a sphere: its posed mesh center and largest half-extent."""
+    deps = bpy.context.evaluated_depsgraph_get()
+    ob = bpy.data.objects["headMesh"].evaluated_get(deps)
+    mesh = ob.to_mesh()
+    points = [ob.matrix_world @ v.co for v in mesh.vertices]
+    ob.to_mesh_clear()
+    low = Vector(tuple(min(p[i] for p in points) for i in range(3)))
+    high = Vector(tuple(max(p[i] for p in points) for i in range(3)))
+    return (low + high) * 0.5, max(high[i] - low[i] for i in range(3)) * 0.5
+
+
+def bat_head_clearance(grip, axis):
+    """Surface-to-surface distance from the physical bat to the rendered head (negative = inside)."""
+    head, radius = head_sphere()
+    start = grip + axis * BAT_FROM_GRIP[0]
+    end = grip + axis * BAT_FROM_GRIP[1]
+    return point_segment_distance(head, start, end) - radius - BAT_RADIUS
+
+
 def pose_swing_frame(arm, t, clip=SWING_SLAP):
     swing = SWINGS[clip]
     times = swing["times"]
@@ -523,6 +551,10 @@ def validate_swing_frame(arm, t, bats, clip=SWING_SLAP):
     top = "rHand" if lead == "lHand" else "lHand"
     if not 0.0 <= along[lead] < along[top]:
         raise RuntimeError(f"swing {bats}: lead {lead} must hold the knob end at {t:.4f}: {along}")
+    clearance = bat_head_clearance(grip, actual)
+    if clearance < BAT_HEAD_CLEARANCE:
+        raise RuntimeError(f"{clip} {bats}: the bat passes {clearance:+.3f} from the head at {t:.4f}; "
+                           f"it must clear by {BAT_HEAD_CLEARANCE:.2f} (#623)")
     batting_stance.validate_visible_stance(t, bats=bats, arm_ob=arm, **STANCE_LANDMARKS)
 
 
