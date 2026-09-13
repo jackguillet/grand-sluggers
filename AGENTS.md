@@ -2,7 +2,7 @@
 
 Grand Sluggers is a **complete, polished party baseball game** we will still want in five years. The bar is Nintendo-level Exhibition (then local 1v1): Super Sluggers *systems* — cameras, HUD, plays, lineup, juice — with **original toys**. Not a prototype that lucks into a still. Not a Mario clone.
 
-Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
+Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
 
 ## The stack (do this, in order)
 
