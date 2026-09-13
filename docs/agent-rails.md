@@ -39,7 +39,7 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D1 | Who writes the brief? | **Jack / the spec.** Agents execute. | Paper Route: the model cannot decide what is worth keeping. We already have this as gameplay-spec §0. |
 | D2 | Mix logic and visuals in one session? | **No.** Session kinds in §1. | Paper Route item 3. A mixed session patches the toy to hide a play bug, or the play to hide a look bug. |
 | D3 | Where do meshes live? | **Python scripts that export FBX**, not authored `.blend` as source. | Paper Route item 4; already `tools/blender/*.py`. |
-| D4 | Which pictures falsify art? | **DCC still and in-game still.** Both in the PR. Agents stop. | Paper Route item 6 ("cap doesn't cover the hair"). In-game still-gate already exists; DCC still is not yet a named PR falsifier. |
+| D4 | Which pictures falsify art? | **DCC still and in-game still.** Both in the PR. Agents stop. | Paper Route item 6 ("cap doesn't cover the hair"). Named paths: `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png`, `tools/still-gate-character.sh` → `char-{id}-rest.png` / `char-{id}-pose.png`. |
 | D5 | Can a critic pass look? | **No.** It files. Jack passes. | The Long Silence judge never finished, which is correct for #188. VibeGame's generation/review split is the part we take. |
 | D6 | How does the next session start smarter? | **A living debug protocol in data**, not only GitHub issues. Recurring signatures promote to tests. | OpenGame Debug Skill (signature, root cause, verified fix). Sittings already file children; they do not yet become a loadable protocol. |
 | D7 | How do agents playtest baseball? | **Headless geometry traces** from `cli match --trace` / the scenario harness, loopable without Unity. | ThePrimeagen JSON replay; VibeGame frame-sync. `PlayTrace` dumps ball / runner / glove / bag per tick; S-90 and S-01…S-92 stay the replay rail. |
@@ -108,17 +108,19 @@ This is VibeGame's "frame-synchronous control" without replacing Unity, and TheP
 
 ## 4. Dual stills (see the toy)
 
-⚠️ **R4 #651.** Cousin: [screenshot-gate.md](screenshot-gate.md) in-game stills and `tools/still-gate-character.sh`. Missing: the DCC render as a named PR falsifier, and a critic that files instead of passing.
+✅ **R4 #651.** Cousin: [screenshot-gate.md](screenshot-gate.md) in-game stills and `tools/still-gate-character.sh`. The DCC render is a named PR falsifier (`tools/dcc-still.sh`). A critic files instead of passing.
+
+`data/agent/dual-stills.json` (name stable) holds the kinds. Load with `DualStills.Load` or `dotnet run --project src/GrandSluggers.Cli -- stills`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing.
 
 For any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`, or Harbor kit meshes:
 
-1. **DCC still** from the script (`--clay` / `--sheets` / a named stage render). Catches "cap doesn't cover the hair" before import.
-2. **In-game still** from `still-gate-character.sh` / `still-gate.sh`. Catches brim-in-lens, HUD-on, wrong shot.
+1. **DCC still** from `tools/dcc-still.sh` (`--clay` / `--sheets` / Harbor `--clay`). Named files: `scratchpad/stills/dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
+2. **In-game still** from `still-gate-character.sh` / `still-gate.sh`. Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot.
 3. Both PNGs in `scratchpad/stills/` and linked in the PR.
-4. A **read-only critic** (separate session or subagent) compares them to the screenshot-gate table and [silhouette-bible.md](silhouette-bible.md). Output: specific diffs. It **files** a child or a PR comment. It cannot mark #188 done. It cannot edit its own rubric.
+4. A **read-only critic** (`.grok/skills/look-critic/`, separate session or subagent) compares them to the screenshot-gate table and [silhouette-bible.md](silhouette-bible.md). Output: specific diffs. It **files** a child or a PR comment. It cannot mark #188 done. It cannot edit its own rubric.
 5. The builder **stops**. Jack passes look.
 
-Math-only, `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still.
+Math-only, `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. There is no CI image-diff.
 
 ---
 
@@ -184,6 +186,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | Headless baseball | `cli match`, S-01…S-92, S-29 |
 | Play traces | `cli match --trace`, `PlayTrace`, `LivePlaySystem.Recording` |
 | In-game still gate | [screenshot-gate.md](screenshot-gate.md) |
+| Dual stills | `data/agent/dual-stills.json`, `tools/dcc-still.sh`, look-critic |
 | Human gates stay human | #346, #209 sittings, #188 |
 | Blender MCP for Harbor kit | `tools/blender/harbor_kit.py`, `.grok/config.toml` |
 | Local standalone window | [local-player.md](local-player.md) |
@@ -201,8 +204,8 @@ Grouped by the child that owns the fix. Lines are "what exists today," not a hun
 | G2 | Sitting memory is GitHub issues only | `data/agent/debug-protocol.json`; playbook §5 still names only the GitHub child (R7) | R2 ✅, R7 |
 | G3 | No loadable `(signature, cause, fix)` catalog | `data/agent/debug-protocol.json` + `DebugProtocol.Validate` / `cli protocol` | R2 ✅ |
 | G4 | Agents cannot grep a play's geometry | `cli match --trace`, `PlayTrace` per tick | R3 ✅ |
-| G5 | DCC still is not a PR falsifier | Clay/sheets in `character-art`; screenshot-gate is in-game | R4 |
-| G6 | No critic that files look diffs | Humans pass #188 | R4 |
+| G5 | DCC still is not a PR falsifier | `tools/dcc-still.sh` → `scratchpad/stills/dcc-*.png` | R4 ✅ |
+| G6 | No critic that files look diffs | `.grok/skills/look-critic/` files; cannot mark #188 | R4 ✅ |
 | G7 | No Unity observation path | `unity-compile.sh`; personal Editor cannot `-batchmode` | R5 (later) |
 | G8 | DCC stages are not named checkpoints | Scripts exist, one-shot is possible | R6 |
 | G9 | Failed stills do not grow the skill | `character-art` is static | R7 |
@@ -218,7 +221,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R1. Session split** #648 | §1, G1 | AGENTS.md + `.grok/rules/agent-rails.md` name the three kinds and the banned paths. A mixed-session change is a review fail. | all | With the spec PR |
 | **R2. Debug protocol** #649 | §2, G2, G3 | ✅ #656. `data/agent/debug-protocol.json` + validator + five seeded rows. Agents load it. A new repair appends a row. | #209, #188 | After R1 |
 | **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
-| **R4. Dual stills** #651 | §4, G5, G6 | DCC still + in-game still required in the PR for character / kit changes. Critic files, does not pass. screenshot-gate and character-art skill updated. | #188 | After R1; ∥ R6 |
+| **R4. Dual stills** #651 | §4, G5, G6 | ✅ `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
 | **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. | #188 | With or after R4 |
 | **R7. Distill** #654 | §7, G2, G9 | Playbook §5 includes protocol append + promote-on-second. character-art grows from one real failed still. | #209, #188 | After R2 |

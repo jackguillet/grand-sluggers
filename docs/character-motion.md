@@ -19,7 +19,7 @@ That is not a rail. It is five patches that agree by accident.
 5. **The sim owns the clock.** A clip is sampled at a time the sim computes: world time for loops, verb time for one-shots, `LoadSampleAt(charge)` for a held load. Markers (`Contact`, `Release`, `FootPlant`) are at the same seconds the sim uses. The swing is the one take the sim time-warps (D13, #612): for a press inside the timing window `AtBatMotion.SwingClipTime` compresses load → contact so the `Contact` mark lands on the ball's plate time, then plays the follow-through at the take's own speed; outside the window the take plays at its natural 0.50 s. The warp only changes when a key is shown, never its order or its pose. Presentation never advances a clip on its own.
 6. **Bodies are kinematic.** No Rigidbody, no PhysX on a character. The ball is the sim's. Squash and stretch are scale on the presentation wrapper, never on bones. Lift (jump arc, run bob, crouch) is baked into the take's `root` bone.
 7. **Placeholders, not crashes; validators, not hope.** Missing body FBX: a capsule and a validator error. Missing clip: the idle clip, then bind pose, and a validator error. `cli art` fails before a build does.
-8. **Look is Jack's.** DCC falsifiers, Sim tests, and the Unity swing matrix prove the contract. A still in `docs/screenshot-gate.md` passes the look. Agents do not.
+8. **Look is Jack's.** DCC falsifiers, Sim tests, and the Unity swing matrix prove the contract. Dual stills in `docs/screenshot-gate.md` (`tools/dcc-still.sh` + `tools/still-gate-character.sh`) are the pictures. A look-critic files; Jack passes. Agents do not.
 
 ## Axes, stated once
 
@@ -105,11 +105,13 @@ The takes script refuses to export a take that misses its contract: hands off th
 | Lane | Proves | Command |
 | --- | --- | --- |
 | DCC bake | takes meet the contract on every frame, both hands | the takes script exits non-zero otherwise |
+| DCC still | clay/sheet before import (`dcc-*.png`) | `tools/dcc-still.sh` |
 | Sim tests | the contract itself (hand order, feet, plate crossing, clocks, catalog ↔ verbs) | `dotnet test` |
 | Art catalog | every verb has a clip file, both hands where handed, player copies identical, extras resolve | `cli art` |
 | Narrow compile | Runtime and Editor still compile | `tools/unity-compile.sh` |
 | Unity swing matrix | rendered hands on the handle, stance, barrel through the plate, all captains, both hands | `Grand Sluggers → Capture Swing Matrix` / `-executeMethod` (see `docs/screenshot-gate.md`) |
-| Look | it reads as a toy | Jack, from a still |
+| In-game still | rest + pose (and park shots) HUD-off | `tools/still-gate-character.sh` / `still-gate.sh` |
+| Look | it reads as a toy | Jack, from both stills. A look-critic files; it cannot mark #188 done. |
 
 ## What is gone
 

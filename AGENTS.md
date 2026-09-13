@@ -25,7 +25,7 @@ Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a 
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
 - A menu still is not a half. HID Space is confirm, not baseball.
 - Human gates (#346 and screenshot gates) stay human. Note what stuck. File children. Do not declare pass because CI is green.
-- Look / character work is a human gate. A still in `docs/screenshot-gate.md` (character rest + swing contact) is the falsifier. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
+- Look / character work is a human gate. Dual stills in `docs/screenshot-gate.md` (DCC `dcc-*.png` + in-game `char-{id}-rest.png` / `char-{id}-pose.png`) are the falsifier. A critic files; Jack passes. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
 - Fail if a stranger would need Slack, F2, or `docs/how-to-play.md` on disk to finish the path you touched.
 - Ask before coding: *will this still be right with two pads, a pop fly instead of a hopper, Ashlord as well as Rio, and a friend on the couch?* If not, put the system in the right place.
 
@@ -82,12 +82,12 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
-- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix. GitHub sitting children stay; they are not the memory.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`): DCC still + in-game still in `scratchpad/stills/`; a look-critic files; Jack passes.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
-- Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: still-gate PNG in the PR. Personal Unity cannot `-batchmode`.
+- Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: DCC still + in-game still in `scratchpad/stills/` in the PR (`tools/dcc-still.sh`, `tools/still-gate-character.sh`). A critic files; Jack passes. Personal Unity cannot `-batchmode`.
 - After a feel or look merge: a skeptic pass plays the named path. A still that only works because of a one-off is not done.
 
 ## Local standalone delivery (Jack's default)

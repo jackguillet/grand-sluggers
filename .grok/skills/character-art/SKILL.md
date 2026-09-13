@@ -5,11 +5,11 @@ description: Change the shared body, a captain's extras, or a take (Blender scri
 
 # Character art
 
-Contract: `docs/character-motion.md`. Stills: `docs/screenshot-gate.md`.
+Contract: `docs/character-motion.md`. Stills: `docs/screenshot-gate.md`. Dual stills: `data/agent/dual-stills.json` (#651).
 
 ## Stop
 
-Do not add a bone, a second rig, a procedural pose in C#, a runtime mirror, a cap, or a per-captain branch. Do not declare look done from tests, the DCC bake, or a rebuilt `.app`.
+Do not add a bone, a second rig, a procedural pose in C#, a runtime mirror, a cap, or a per-captain branch. Do not declare look done from tests, the DCC bake, or a rebuilt `.app`. File both stills, spawn look-critic, **stop**. Jack passes look.
 
 ## Where a change goes
 
@@ -24,7 +24,9 @@ Do not add a bone, a second rig, a procedural pose in C#, a runtime mirror, a ca
 
 ## Loop
 
-1. Edit the script or table. Bake with `--clay` / `--sheets` and look at the sheet yourself.
-2. `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK.
-3. Swing or stance change: run the Unity swing matrix (`docs/screenshot-gate.md`, `-executeMethod`), both hands.
-4. Capture `tools/still-gate-character.sh {id}`; copy PNGs to `scratchpad/`; assemble before/after side by side; **stop**. Jack passes look.
+1. Edit the script or table.
+2. Capture the **DCC still**: `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named PNG: `scratchpad/stills/dcc-body.png` (or `dcc-extras.png` / `dcc-{clip}.png` / `dcc-harbor-kit.png`).
+3. `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `tools/unity-compile.sh` print OK. These are not a still.
+4. Capture the **in-game still**: `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named PNGs: `scratchpad/stills/char-{id}-rest.png` and `char-{id}-pose.png`.
+5. Swing or stance change: also run the Unity swing matrix (`docs/screenshot-gate.md`).
+6. Link both PNGs in the PR. Spawn **look-critic** (read-only). It files diffs; it cannot mark #188 done. **Stop**.

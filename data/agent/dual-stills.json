@@ -1,0 +1,52 @@
+{
+  // Dual stills (#651 / R4). DCC + in-game PNGs in scratchpad/stills/.
+  // A read-only critic files diffs; Jack passes look. No CI image-diff.
+  "drop": "scratchpad/stills",
+  "triggers": [
+    "unity/Assets/Art/Characters/",
+    "unity/Assets/Art/Animation/Clips/",
+    "unity/Assets/Art/Parks/harbor-diamond/",
+    "tools/blender/"
+  ],
+  "kinds": [
+    {
+      "id": "body",
+      "dcc": "dcc-body.png",
+      "dccCommand": "tools/dcc-still.sh body",
+      "inGame": ["char-{id}-rest.png", "char-{id}-pose.png"],
+      "inGameCommand": "tools/still-gate-character.sh {id}"
+    },
+    {
+      "id": "extras",
+      "dcc": "dcc-extras.png",
+      "dccCommand": "tools/dcc-still.sh extras",
+      "inGame": ["char-{id}-rest.png", "char-{id}-pose.png"],
+      "inGameCommand": "tools/still-gate-character.sh {id}"
+    },
+    {
+      "id": "takes",
+      "dcc": "dcc-{clip}.png",
+      "dccCommand": "tools/dcc-still.sh takes {clip}",
+      "inGame": [
+        "char-{id}-rest.png",
+        "char-{id}-pose.png",
+        "swing-{id}-{normal|max}-{ready|load|contact|follow|finish}.png"
+      ],
+      "inGameCommand": "tools/still-gate-character.sh {id}"
+    },
+    {
+      "id": "harbor-kit",
+      "dcc": "dcc-harbor-kit.png",
+      "dccCommand": "tools/dcc-still.sh harbor",
+      "inGame": ["plate.png", "mound.png", "diamond-grounder.png"],
+      "inGameCommand": "tools/still-gate.sh"
+    }
+  ],
+  "critic": {
+    "skill": ".grok/skills/look-critic/SKILL.md",
+    "rubric": ["docs/screenshot-gate.md", "docs/silhouette-bible.md"],
+    "mayPassLook": false,
+    "mayClose188": false,
+    "mayEditRubric": false
+  }
+}
