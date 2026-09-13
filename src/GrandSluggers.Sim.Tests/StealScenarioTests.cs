@@ -326,6 +326,163 @@ public sealed class StealScenarioTests
         Assert.Contains(run.Throws, t => t.Bag == 0);
     }
 
+    // ---------------------------------------------------------------------------------
+    // S-99 on the runner play (§11.3, §8.9, #637): Select is one rule for every play
+    // ---------------------------------------------------------------------------------
+
+    [Fact]
+    public void S99_OnAStealSelectWithTheBallInTheCatchersGloveMovesNothingAndTheThrowGoesWhereTheDPadSays()
+    {
+        // The human catcher holds the ball; Select with the stick at the pitcher (and dead) for twelve frames is refused:
+        // the ring stays on the catcher and the ball in their glove. The throw then goes to the armed bag and the race is
+        // decided exactly as it is without the presses — the same match, seed, stick and script, Select the only difference.
+        const int presses = 12;
+        var catcherSpot = StealThrow.CatcherSpot(_content.Rules);
+
+        (RunResult Run, List<(string Pos, double GX, double GZ, double BX, double BZ)> Trace, int Presses) Play(bool select)
+        {
+            var match = Defense();
+            Station(match, [1]);
+            Assert.True(match.StartSteal());
+            var script = new DefenseScript([2]);
+            var trace = new List<(string, double, double, double, double)>();
+            var pressed = 0;
+            var run = RunSteal(match, Scenario.Paint, Scenario.Take, HumanCatcher, LivePlayCommandSource.Human,
+                fieldPad: (i, live) =>
+                {
+                    if (i >= presses) return script.Next(live, match);
+                    Assert.True(live.HoldsBall && !live.Throwing && live.GlovePos == "C", "the catcher holds the ball for every press");
+                    if (select) pressed++;
+                    // Even frames point the stick at the pitcher (the stick walks the catcher too, §8.1); odd frames are a dead stick.
+                    return i % 2 == 0 ? Toward(live, Diamond.Rubber.X, Diamond.Rubber.Z, swap: select) : new LivePadInput(Swap: select);
+                },
+                observe: live =>
+                {
+                    if (live.Active && live.HoldsBall && !live.Throwing)
+                        trace.Add((live.GlovePos, live.GloveX, live.GloveZ, live.BallX, live.BallZ));
+                });
+            return (run, trace, pressed);
+        }
+
+        var without = Play(select: false);
+        var with = Play(select: true);
+        Assert.Equal(presses, with.Presses);
+        // The catcher's frames: the ball held behind the plate until the release (the receiver's frames at second follow).
+        var catcher = with.Trace.TakeWhile(f => f.Pos == "C").ToList();
+        Assert.True(catcher.Count >= presses, $"the catcher held the ball through the presses; held {catcher.Count} frames");
+
+        // Nothing moves on a press: the ring on the catcher, the ball in their glove (the held ball is placed at the top of the
+        // tick and the stick walks the glove after it, so it trails by one frame's step at most), the body within a walk of the plate.
+        foreach (var (_, gx, gz, bx, bz) in catcher)
+        {
+            Assert.True(Diamond.Dist(gx, gz, bx, bz) < 1, $"the ball is in the catcher's glove; glove ({gx:0.0}, {gz:0.0}), ball ({bx:0.0}, {bz:0.0})");
+            Assert.True(Diamond.Dist(bx, bz, catcherSpot.X, catcherSpot.Z) < 6, $"the ball stayed at the plate; got ({bx:0.0}, {bz:0.0})");
+        }
+        // A dead-stick press leaves the glove exactly where the last frame left it.
+        for (var i = 1; i < presses; i += 2)
+            Assert.Equal((catcher[i - 1].GX, catcher[i - 1].GZ), (catcher[i].GX, catcher[i].GZ));
+
+        // Select the only difference: frame for frame the same glove and ball, the same throw, the same play.
+        Assert.Equal(without.Trace, with.Trace);
+        var throwWith = Assert.Single(with.Run.Throws);
+        var throwWithout = Assert.Single(without.Run.Throws);
+        Assert.Equal(2, throwWith.Bag);
+        Assert.Equal("C", throwWith.FromPos);
+        Assert.Equal((throwWithout.Bag, throwWithout.FromPos, throwWithout.ReleaseSec), (throwWith.Bag, throwWith.FromPos, throwWith.ReleaseSec));
+        Assert.True(throwWith.ReleaseSec >= presses * Frame - 1e-9, "the throw came after the presses");
+        Assert.Equal(without.Run.Play.Kind, with.Run.Play.Kind);
+        Assert.Equal(PlayStamp.Label(without.Run.Play), PlayStamp.Label(with.Run.Play));
+        var factsWithout = without.Run.Play.Outcome!;
+        var factsWith = with.Run.Play.Outcome!;
+        Assert.Equal(
+            factsWithout.OutsMade.Select(o => (o.Type, o.Bag, o.FromBag, o.Runner.Id)),
+            factsWith.OutsMade.Select(o => (o.Type, o.Bag, o.FromBag, o.Runner.Id)));
+        Assert.Equal(
+            factsWithout.Moves.Select(m => (m.Runner.Id, m.FromBag, m.ToBag)),
+            factsWith.Moves.Select(m => (m.Runner.Id, m.FromBag, m.ToBag)));
+        Assert.Equal(ThrowOrigin.Catcher, factsWith.ThrowEndpoint?.Origin);
+    }
+
+    [Fact]
+    public void S99_OnAPickoffThatSailsSelectIsDeadInFlightThenTakesTheBodyTheStickNamesAndHoldsItForTheLock()
+    {
+        // The verb is not dead on a runner play: while the throw flies Select does nothing (§8.9, the ring rides the
+        // receiver); once the ball is loose the press takes the body the stick names, the lock holds that ring for
+        // chase.swapLockSec (a dead stick stands them still and the nearest-body hand-off waits), the ball rolls on by
+        // itself, and the play still resolves as S-71.
+        var lock_ = _content.Rules.Fielding.Chase.SwapLockSec;
+        RunResult? sailed = null;
+        var inFlightRing = new List<string>();
+        var before = "";
+        var expected = "";
+        var pressed = false;
+        var lockOnPress = double.NaN;
+        var underLock = new List<(string Pos, double GX, double GZ, double BX, double BZ)>();
+        var looseFrames = 0;
+        for (var seed = 1; seed <= 60 && sailed is null; seed++)
+        {
+            inFlightRing.Clear();
+            underLock.Clear();
+            before = expected = "";
+            pressed = false;
+            lockOnPress = double.NaN;
+            looseFrames = 0;
+            // Ashlord at first: bad chemistry with the pitcher, the slant is the pair's (§8.5, S-71).
+            var match = Defense(seed: seed, first: "ashlord");
+            Station(match, [1]);
+            Assert.True(match.StartSteal());
+            var run = RunPickoff(match, 1, HumanCatcher, LivePlayCommandSource.Human,
+                fieldPad: (i, live) =>
+                {
+                    var atPitcher = Toward(live, Diamond.Rubber.X, Diamond.Rubber.Z, swap: true);
+                    if (live.Throwing)
+                    {
+                        inFlightRing.Add(live.GlovePos);
+                        return atPitcher;
+                    }
+                    if (live.LooseBall && !pressed)
+                    {
+                        // The first loose frame: the ring is the nearest body's; Select points at another one.
+                        pressed = true;
+                        before = live.GlovePos;
+                        expected = FieldAssist.NearestInDirection(before, live.Fielders, atPitcher.StickX, atPitcher.StickY);
+                        return atPitcher;
+                    }
+                    return LivePadInput.Dead;
+                },
+                observe: live =>
+                {
+                    if (!live.Active || !live.LooseBall) return;
+                    looseFrames++;
+                    if (!pressed) return;
+                    if (double.IsNaN(lockOnPress)) lockOnPress = live.SwapLock;
+                    if (live.SwapLock > 0) underLock.Add((live.GlovePos, live.GloveX, live.GloveZ, live.BallX, live.BallZ));
+                });
+            if (run.Sailed) sailed = run;
+        }
+        Assert.NotNull(sailed);
+        Assert.NotEmpty(inFlightRing);
+        Assert.All(inFlightRing, pos => Assert.Equal("1B", pos)); // the ring rides the receiver; Select is dead in flight
+        Assert.True(pressed, "the ball came loose after the flight");
+        Assert.NotEqual(before, expected);
+
+        // The press takes the body the stick names and arms the one lock.
+        Assert.Equal(lock_, lockOnPress, 3);
+        Assert.NotEmpty(underLock);
+        Assert.All(underLock, f => Assert.Equal(expected, f.Pos));
+        Assert.True(underLock.Count >= (int)Math.Round(lock_ / Frame) - 2, $"the lock held the ring {underLock.Count} frames");
+        // Under the lock with a dead stick the body stands still, and the ball is loose, not in its glove.
+        var at = (underLock[0].GX, underLock[0].GZ);
+        Assert.All(underLock, f => Assert.Equal(at, (f.GX, f.GZ)));
+        Assert.All(underLock, f => Assert.True(Diamond.Dist(f.GX, f.GZ, f.BX, f.BZ) > 1, "the ball is loose, not in the glove"));
+        Assert.True(looseFrames > underLock.Count, "the chase went on after the lock lifted");
+        // Still S-71: the sail is the ERROR and the runner who broke takes second.
+        var facts = sailed!.Play.Outcome!;
+        Assert.Contains(facts.Moves, m => m.FromBag == 1 && m.ToBag >= 2);
+        Assert.Equal(PlayKind.StolenBase, sailed.Play.Kind);
+        Assert.True(facts.Error, "the sail is the ERROR, not the steal");
+    }
+
     [Fact]
     public void S67_StealOfHomeIsACatcherTagAtThePlateAndNeedsAPerfectStealOnAChangeup()
     {
@@ -651,7 +808,8 @@ public sealed class StealScenarioTests
     }
 
     RunResult RunPickoff(Match match, int bag, LiveSeats seats, LivePlayCommandSource seat,
-        Func<int, LivePlaySystem, LivePadInput>? fieldPad = null, Func<int, LivePlaySystem, LivePadInput>? runPad = null)
+        Func<int, LivePlaySystem, LivePadInput>? fieldPad = null, Func<int, LivePlaySystem, LivePadInput>? runPad = null,
+        Action<LivePlaySystem>? observe = null)
     {
         var result = new RunResult();
         if (!match.BeginPickoff(bag, seats, out var dead, seat))
@@ -663,7 +821,7 @@ public sealed class StealScenarioTests
         }
         result.PitchKind = PlayKind.Pickoff;
         result.Broke = match.Runners.Any(r => r.Live && r.Broke);
-        return Drive(match, result, seats, seat, fieldPad, runPad, null);
+        return Drive(match, result, seats, seat, fieldPad, runPad, observe);
     }
 
     static RunResult Drive(Match match, RunResult result, LiveSeats seats, LivePlayCommandSource seat,
@@ -703,6 +861,15 @@ public sealed class StealScenarioTests
         result.Play = play!;
         _ = seats;
         return result;
+    }
+
+    /// <summary>A full stick from the glove toward (x, z), with Select pressed or not.</summary>
+    static LivePadInput Toward(LivePlaySystem live, double x, double z, bool swap = false)
+    {
+        var dx = x - live.GloveX;
+        var dz = z - live.GloveZ;
+        var len = Math.Max(1e-6, Math.Sqrt(dx * dx + dz * dz));
+        return new LivePadInput(StickX: dx / len, StickY: dz / len, Swap: swap);
     }
 
     /// <summary>The human catcher's script: a throw to a bag per press, once the ball is held.</summary>
