@@ -466,9 +466,10 @@ public sealed class BattingRules
 }
 
 /// <summary>
-/// The timing window (spec §5.3, D4): slap 9 frames, charge 7, ± (contact − 5) × framesPerContact,
-/// × skill and park multipliers, floored. Inside the window timing decides direction only; the
-/// outermost (1 − squareFraction) of each half demotes the cursor zone by one tier, never two.
+/// The timing window (spec §5.3, D4, D13): slap 9 frames, charge 7, ± (contact − 5) × framesPerContact,
+/// × skill, park and the human rung's multipliers, floored. It is centered on the ball's plate time
+/// minus <see cref="LeadSec"/>. Inside the window timing decides direction only; the outermost
+/// (1 − squareFraction) of each half demotes the cursor zone by one tier, never two.
 /// </summary>
 public sealed class ContactWindowRules
 {
@@ -477,6 +478,11 @@ public sealed class ContactWindowRules
     public double FramesPerContact { get; init; } = 0.4;
     [Positive] public double FloorFrames { get; init; } = 5.0;
     [Chance] public double SquareFraction { get; init; } = 0.9;
+    /// <summary>
+    /// The square press is this long before the ball reaches the plate (D13, #612): a human's eye
+    /// times the ball at the plate, and the take is warped so its Contact mark meets the ball.
+    /// </summary>
+    [Positive] public double LeadSec { get; init; } = 0.10;
 }
 
 /// <summary>Charge adds loft; its power is the charge column of <see cref="QualityRules"/> (spec §5.5).</summary>
@@ -701,8 +707,8 @@ public sealed class CpuBatterRules
     public double LaunchAimSigma { get; init; } = 0.45;
     public CpuArchetypeRules Archetype { get; init; } = new();
     /// <summary>
-    /// The CPU batter commits this long before the latest square press (plate − 0.30 s), from the
-    /// trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
+    /// The CPU batter commits this long before the square press (plate − batting.window.leadSec),
+    /// from the trajectory as it stands then (spec §3, §5.9). Its earliest error is −decideLeadSec × 60 frames.
     /// </summary>
     [Positive] public double DecideLeadSec { get; init; } = 0.12;
 }
@@ -1354,12 +1360,12 @@ public sealed class CpuRules
     public string Level { get; init; } = "normal";
     public CpuLevelRules Easy { get; init; } = new()
     {
-        TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03, RunnerMarginSec = 0.15
+        HumanWindowMul = 1.3, TimingSigmaMul = 1.3, ReactionMul = 1.4, MistrackMul = 1.3, MakeableMarginSec = 0.30, PerfectStealChance = 0, PickoffChance = 0.03, RunnerMarginSec = 0.15
     };
     public CpuLevelRules Normal { get; init; } = new();
     public CpuLevelRules Hard { get; init; } = new()
     {
-        TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10, RunnerMarginSec = -0.15
+        HumanWindowMul = 0.9, TimingSigmaMul = 0.8, ReactionMul = 0.8, MistrackMul = 0.8, MakeableMarginSec = 0.05, PerfectStealChance = 0.4, PickoffChance = 0.10, RunnerMarginSec = -0.15
     };
 
     public CpuLevelRules Active => Level.ToLowerInvariant() switch
@@ -1396,6 +1402,11 @@ public sealed class CpuRules
 
 public sealed class CpuLevelRules
 {
+    /// <summary>
+    /// Multiplies a human batter's timing window before the floor (spec §5.3, #612): the ladder
+    /// is also a swing-timing ladder for the player. The CPU batter's window is never scaled.
+    /// </summary>
+    [Positive] public double HumanWindowMul { get; init; } = 1.0;
     /// <summary>Multiplies the CPU batter's timing-error σ (§5.9).</summary>
     [Positive] public double TimingSigmaMul { get; init; } = 1.0;
     /// <summary>Multiplies CPU reaction and release delays (§8.8, §9.6, §11.3).</summary>

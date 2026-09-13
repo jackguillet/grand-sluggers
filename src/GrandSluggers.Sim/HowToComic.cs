@@ -38,8 +38,8 @@ public static class HowToComic
         new("how-to-swing-2", "smash", "Swing through the ball"),
         new("Hold South", "Release South"),
         new("Hold Space / left click", "Release"),
-        "Tap South for a slap. Hold, then release so the bat meets the ball at MAX.",
-        "Tap Space / left click for a slap. Hold, then release so the bat meets the ball at MAX.");
+        "Swing when the ball is on the plate: tap South, or hold to MAX.",
+        "Swing when the ball is on the plate: tap Space / left click, or hold to MAX.");
 
     public static readonly IReadOnlyList<Strip> OnPitchSwingPage = [Pitch, Swing];
 
