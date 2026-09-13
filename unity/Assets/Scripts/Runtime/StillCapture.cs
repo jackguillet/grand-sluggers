@@ -518,6 +518,19 @@ namespace GrandSluggers.UnityClient
                         $"{captain} {power} {beat}: hands separated along the handle "
                         + $"(gap {gap:0.00}, authored max {maxGap:0.00})");
             }
+            // #623: the bat never passes through the drawn head, at any beat, on any captain.
+            // Root space: the head is a sphere there (its smallest half-extent is the radius).
+            var headMeasured = hero.TryRenderedHead(out var renderedHead);
+            var headClearance = headMeasured
+                ? PointSegmentDistance(renderedHead.RootCenter, physicalBat.RootGrip, physicalBat.RootBarrelEnd)
+                    - Mathf.Min(renderedHead.RootExtents.x,
+                        Mathf.Min(renderedHead.RootExtents.y, renderedHead.RootExtents.z))
+                    - physicalBat.RootBarrelRadius
+                : float.PositiveInfinity;
+            if (sharedRigMetrics && headMeasured && headClearance < 0f)
+                failures.Add(
+                    $"{captain} {power} {beat}: the bat passes through the head "
+                    + $"(surface clearance {headClearance:0.00})");
             var plateMin = new Vector3(
                 (float)(-HomeSet.PlateW / 2 - physicalBat.BarrelRadius),
                 (float)(SwingPresentation.PlateBandY - 1.2 - physicalBat.BarrelRadius),
@@ -572,6 +585,8 @@ namespace GrandSluggers.UnityClient
                 + ",\"physicalGripRoot\":[" + SwingVector(physicalBat.RootGrip) + "]"
                 + ",\"handleEndRoot\":[" + SwingVector(physicalBat.RootHandleEnd) + "]"
                 + ",\"barrelStartRoot\":[" + SwingVector(physicalBat.RootBarrelStart) + "]"
+                + ",\"headMeasured\":" + (headMeasured ? "true" : "false")
+                + ",\"headClearance\":" + SwingNumber(headClearance)
                 + ",\"leftToHandle\":" + SwingNumber(leftToHandle)
                 + ",\"rightToHandle\":" + SwingNumber(rightToHandle)
                 + ",\"leftHandExtents\":[" + SwingVector(renderedLeft.Extents) + "]"

@@ -222,6 +222,23 @@ namespace GrandSluggers.UnityClient
             return foundLeft && foundRight;
         }
 
+        /// <summary>
+        /// The drawn head for the bat clearance check (#623): the posed bounds of headMesh while it
+        /// is shown. A captain whose extras kit hides the head draws its own and is not measured.
+        /// </summary>
+        internal bool TryRenderedHead(out SwingHandEvidence head)
+        {
+            head = default;
+            if (_root == null) return false;
+            foreach (var renderer in _root.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.name.Equals("headMesh", System.StringComparison.OrdinalIgnoreCase)) continue;
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) return false;
+                return TryPosedBounds(renderer, out head);
+            }
+            return false;
+        }
+
         bool TryPosedBounds(Renderer renderer, out SwingHandEvidence evidence)
         {
             evidence = default;

@@ -41,6 +41,49 @@ public static class SwingPresentation
     /// </summary>
     public const double LoadedBarrelRise = 0.70;
 
+    /// <summary>
+    /// The shared rig's head mesh at rest, rig units, batter-local (hero_shared_blockout.py HEAD,
+    /// a sphere of radius <see cref="HeadRadius"/>). The crouch in a take's legs lowers it by the
+    /// key's <see cref="Key.Lift"/>.
+    /// </summary>
+    public static readonly Vec3 HeadCenterAtRest = new(0, 4.05, 0.08);
+    public const double HeadRadius = 0.86;
+    /// <summary>
+    /// How far the head's center can wander from the vertical axis as the stance yaws the root,
+    /// torso and head (measured at most 0.08 across both takes). The contract treats the head as
+    /// this much bigger so the check never depends on the exact yaw.
+    /// </summary>
+    public const double HeadYawSlack = 0.10;
+    /// <summary>
+    /// #623: the bat never passes through the head. The smallest surface-to-surface distance, rig
+    /// units, between the physical bat and the head on every sample of both takes and the whole
+    /// charge-up (data/art/swing-takes.json <c>batHeadClearance</c>). The DCC bake measures it
+    /// exactly on the rendered head; <see cref="HeadClearance"/> is the conservative contract.
+    /// Body proportions scale the bat and the head together, so rig-space clearance holds for
+    /// every captain; the Unity swing matrix measures the drawn result.
+    /// </summary>
+    public const double BatHeadClearance = 0.10;
+    /// <summary>The physical bat along its axis from the grip socket, model units: the knob behind, the barrel end ahead.</summary>
+    public const double BatStartFromGrip = -0.29;
+    public const double BatEndFromGrip = ModelCenterFromGrip + BarrelFromModelCenter;
+
+    /// <summary>
+    /// Surface-to-surface distance from the physical bat to the head for one key (negative =
+    /// through the head), with the head grown by <see cref="HeadYawSlack"/>.
+    /// </summary>
+    public static double HeadClearance(Key key)
+    {
+        var center = new Vec3(0, HeadCenterAtRest.Y + key.Lift, 0);
+        var axis = Normalize(key.BarrelDirection);
+        var start = Add(key.Grip, Mul(axis, BatStartFromGrip * Silhouette.BatScale));
+        var end = Add(key.Grip, Mul(axis, BatEndFromGrip * Silhouette.BatScale));
+        var along = new Vec3(end.X - start.X, end.Y - start.Y, end.Z - start.Z);
+        var toCenter = new Vec3(center.X - start.X, center.Y - start.Y, center.Z - start.Z);
+        var lengthSq = along.X * along.X + along.Y * along.Y + along.Z * along.Z;
+        var u = Math.Clamp((toCenter.X * along.X + toCenter.Y * along.Y + toCenter.Z * along.Z) / lengthSq, 0, 1);
+        return Distance(center, Add(start, Mul(along, u))) - HeadRadius - HeadYawSlack - BarrelRadius;
+    }
+
     /// <summary>Canonical bat-wood center sits this far above the grip socket.</summary>
     public const double ModelCenterFromGrip = 0.85;
     /// <summary>Authored bat-wood barrel begins below its model origin.</summary>
@@ -103,12 +146,14 @@ public static class SwingPresentation
             ? new Vec3(ContactStretchXZ, ContactSquashY, ContactStretchXZ)
             : new Vec3(1, 1, 1);
 
+    /// <param name="Lift">The root lift (crouch) the take's legs carry at this key, rig units: it moves the head.</param>
     public readonly record struct Key(
         double T,
         Vec3 LeftHand,
         Vec3 RightHand,
         Vec3 Grip,
-        Vec3 BarrelDirection);
+        Vec3 BarrelDirection,
+        double Lift = 0);
 
     // Rendered-hand centers and the grip socket in batter-local space for a
     // right-handed batter; Mirror() derives the left-handed contract. LeftHand
@@ -124,49 +169,49 @@ public static class SwingPresentation
     public static readonly IReadOnlyList<Key> SlapKeys =
     [
         new(LoadAt,
-            new(0.361, 2.5938, -0.5035), new(0.3855, 3.0255, -0.7341),
-            new(0.35, 2.4, -0.4), Unit(0.0501, 0.881, -0.4705)),
+            new(0.4688, 2.4914, -0.6068), new(0.5108, 2.9177, -0.8447),
+            new(0.45, 2.3, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
         new(LaunchAt,
-            new(0.143, 2.24, 0.016), new(0.416, 2.356, -0.235),
-            new(0.326, 2.013, 0.249), Unit(-0.1, 0.62, -0.78)),
+            new(0.304, 2.1492, 0.0776), new(0.2551, 2.4526, -0.304),
+            new(0.326, 2.013, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
         new(ApproachAt,
-            new(0.129, 1.798, -0.14), new(0.366, 1.729, -0.547),
-            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
+            new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695),
+            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
         new(ContactAt,
-            new(0.124, 1.914, -0.257), new(0.458, 1.856, -0.622),
-            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264)),
+            new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937),
+            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
         new(FollowThroughAt,
             new(-0.0588, 2.1748, -0.2694), new(-0.3234, 2.3414, -0.6467),
-            new(0.06, 2.1, -0.1), Unit(-0.54, 0.34, -0.77)),
+            new(0.06, 2.1, -0.1), Unit(-0.54, 0.34, -0.77), -0.14),
         new(FinishAt,
-            new(-0.1438, 2.6267, 0.0485), new(-0.2414, 2.7974, -0.4003),
-            new(-0.1, 2.55, 0.25), Unit(-0.1991, 0.3485, -0.9159))
+            new(-0.1359, 2.5752, 0.0464), new(-0.2159, 2.7428, -0.407),
+            new(-0.1, 2.5, 0.25), Unit(-0.1632, 0.342, -0.9254), -0.14)
     ];
 
-    /// <summary>The charge (#613): the windup the hold shows, the ready key, a bigger arc, the held finish.</summary>
+    /// <summary>The charge (#613): the windup the hold shows, the ready key, a bigger arc, the held finish. The bat clears the head throughout (#623).</summary>
     public static readonly IReadOnlyList<Key> ChargeKeys =
     [
         new(LoadAt,
-            new(0.2632, 2.8981, -0.5253), new(0.2926, 3.3395, -0.3145),
-            new(0.25, 2.7, -0.62), Unit(0.06, 0.9007, 0.4303)),
+            new(0.7371, 2.7414, -0.4519), new(0.8197, 3.1677, -0.679),
+            new(0.7, 2.55, -0.35), Unit(0.1686, 0.87, -0.4633), -0.2),
         new(NormalLoadAt,
-            new(0.361, 2.5938, -0.5035), new(0.3855, 3.0255, -0.7341),
-            new(0.35, 2.4, -0.4), Unit(0.0501, 0.881, -0.4705)),
+            new(0.4688, 2.4914, -0.6068), new(0.5108, 2.9177, -0.8447),
+            new(0.45, 2.3, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
         new(LaunchAt,
-            new(0.143, 2.24, 0.016), new(0.416, 2.356, -0.235),
-            new(0.326, 2.013, 0.249), Unit(-0.1, 0.62, -0.78)),
+            new(0.304, 2.1492, 0.0776), new(0.2551, 2.4526, -0.304),
+            new(0.326, 2.013, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
         new(ApproachAt,
-            new(0.129, 1.798, -0.14), new(0.366, 1.729, -0.547),
-            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9022)),
+            new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695),
+            new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
         new(ContactAt,
-            new(0.124, 1.914, -0.257), new(0.458, 1.856, -0.622),
-            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264)),
+            new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937),
+            new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
         new(FollowThroughAt,
             new(-0.1538, 2.4423, -0.2274), new(-0.4963, 2.6478, -0.5112),
-            new(0.0, 2.35, -0.1), Unit(-0.699, 0.4194, -0.5792)),
+            new(0.0, 2.35, -0.1), Unit(-0.699, 0.4194, -0.5792), -0.12),
         new(FinishAt,
-            new(-0.0948, 2.8721, -0.0118), new(0.028, 2.9212, -0.4836),
-            new(-0.15, 2.85, 0.2), Unit(0.2507, 0.1003, -0.9628))
+            new(-0.1118, 2.65, -0.0167), new(-0.0267, 2.65, -0.4992),
+            new(-0.15, 2.65, 0.2), Unit(0.1736, 0.0, -0.9848), -0.12)
     ];
     // </swing-keys>
 
@@ -279,7 +324,8 @@ public static class SwingPresentation
                 Lerp(a.LeftHand, b.LeftHand, u),
                 Lerp(a.RightHand, b.RightHand, u),
                 Lerp(a.Grip, b.Grip, u),
-                Normalize(Lerp(a.BarrelDirection, b.BarrelDirection, u)));
+                Normalize(Lerp(a.BarrelDirection, b.BarrelDirection, u)),
+                a.Lift + (b.Lift - a.Lift) * u);
         }
         return keys[^1];
     }

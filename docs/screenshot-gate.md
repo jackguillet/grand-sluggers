@@ -50,7 +50,7 @@ Capture with **Grand Sluggers → Capture Request File** and `{"shots":["swing-m
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
-| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat up behind the head, knees bent. Charge at MAX: hands higher and further back, the bat wrapped, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, a standing statue, the charge load identical to the slap |
+| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat standing up beside the head, knees bent. Charge at MAX: hands higher, the bat taller, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, **the bat through the head (#623)**, a standing statue, the charge load identical to the slap |
 | **Contact** (`swing-{id}-normal-contact`, `swing-{id}-max-contact`) | Both hands on the handle, barrel through the plate, hips turned toward the pitcher, back knee driving. | Bat behind the head, a hand off the handle, a stiff upright body |
 | **Finish** (`swing-{id}-normal-finish`, `swing-{id}-max-finish`) | Weight on the front foot, the bat around over the lead shoulder; the charge finish wraps further than the slap. | Snapping back to ready, the bat hidden inside the body, both finishes the same |
 
@@ -247,6 +247,6 @@ measures the pose, so a failure still leaves a PNG. The JSON records posed hand
 mesh centers/extents, physical grip/handle/barrel endpoints, imported bat mesh
 bounds, and the authored-direction dot product. Shared-rig rows pass only when
 both rendered hands meet the physical handle in shared-root space, MAX load and
-the two swing keys preserve their authored direction, the loaded barrel rises,
-and the physical barrel segment crosses the plate volume. Normal and MAX each
+the two swing keys preserve their authored direction, the loaded barrel rises, the physical bat stays outside
+the drawn head on every beat (#623), and the physical barrel segment crosses the plate volume. Normal and MAX each
 run for every selected captain in one editor launch.
