@@ -121,10 +121,10 @@ public static class HowToPlay
     [
         new("contents", "Contents", "contents",
         [
-            "Call time or Esc opens this instruction booklet.",
+            "Call time has How to play. Esc this book from title too.",
         ],
         [
-            "H or Esc opens this instruction booklet. F6 cycles input.",
+            "H calls time. Esc this book. F6 cycles input.",
         ]),
         new("controls", "Controls", "controls",
         [
@@ -370,12 +370,12 @@ public static class HowToPlay
         ]),
         new("pause-practice", "Pause and Practice", "pause-practice",
         [
-            "Start    call time. Esc    this book from title too.",
+            "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
             "Title West    Training. F1 F2 F3 stay debug, not this page.",
         ],
         [
-            "H    call time. Esc    this book from title too.",
+            "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
             "Title F    Training. F1 F2 F3 stay debug, not this page.",
         ]),
