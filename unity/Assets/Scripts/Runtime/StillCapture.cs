@@ -834,9 +834,10 @@ namespace GrandSluggers.UnityClient
             hero.gameObject.SetActive(true);
             hero.SetHeld(false, false);
             hero.SetChargeRing(0);
+            var shot = StillPose.CharFraming(HomeCaptain);
             hero.PlaceStill(
                 new Vector3((float)StillPose.CharX, 0f, (float)StillPose.CharZ),
-                new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ));
+                new Vector3((float)shot.Pos.X, (float)shot.Pos.Y, (float)shot.Pos.Z));
             if (pose)
             {
                 hero.SetPose(Motion.Verb.Swing, 1);
@@ -848,9 +849,9 @@ namespace GrandSluggers.UnityClient
                 hero.SnapTick(0f);
             }
             _cam.CutRaw("select",
-                new Vector3((float)StillPose.CharCamX, (float)StillPose.CharCamY, (float)StillPose.CharCamZ),
-                new Vector3((float)StillPose.CharX, (float)StillPose.CharLookY, (float)StillPose.CharZ),
-                (float)StillPose.CharFov);
+                new Vector3((float)shot.Pos.X, (float)shot.Pos.Y, (float)shot.Pos.Z),
+                new Vector3((float)shot.Target.X, (float)shot.Target.Y, (float)shot.Target.Z),
+                (float)shot.Fov);
         }
 
         void HideCatcher()
