@@ -79,16 +79,18 @@ public readonly record struct SwingInputIntent(
                 boxOffsetX)
             : default;
 
-    public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star) =>
+    public SwingCommand Resolve(double releaseAt, double plateAt, double effectiveCharge, bool star,
+        RulesTable? rules = null) =>
         new(
             true,
             effectiveCharge,
-            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, Bunt),
+            AtBatMotion.SwingErrorFrames(releaseAt, plateAt, Bunt, rules),
             star,
             SprayAimDeg,
             Bunt,
             LaunchAim,
-            BoxOffsetX);
+            BoxOffsetX,
+            Human: true);
 }
 
 /// <summary>
@@ -285,8 +287,10 @@ public static class FieldDash
         attack && itemFlying && distFt < Rules.Or(rules).Fielding.Dash.ItemSmashFt;
 }
 
-/// <summary>The button starts the swing; the contact mark is what meets the pitch.
-/// Timing errors remain in the resolver's 60 Hz frames, independent of render rate.</summary>
+/// <summary>The button starts the swing; the ball at the plate is what the press is judged against
+/// (D13, #612). Inside the window the take is warped so its Contact mark meets the ball; outside it
+/// plays at its own length and misses. Timing errors remain in the resolver's 60 Hz frames,
+/// independent of render rate.</summary>
 public static class AtBatMotion
 {
     /// <summary>Sentinel before a committed swing has entered presentation.</summary>
@@ -311,55 +315,91 @@ public static class AtBatMotion
     public static double LoadedClipTime(double poseTime, double loadAt, double eventAt) =>
         poseTime + loadAt * (1 - LoadBlend01(poseTime, eventAt));
 
-    public static double SwingClipTime(double poseTime, double charge01) =>
-        LoadedClipTime(poseTime, SwingPresentation.LoadSampleAt(charge01), Motion.SwingContact);
+    /// <summary>
+    /// The swing take's clip time <paramref name="poseTime"/> seconds after the press (D13, #612).
+    /// <paramref name="contactSec"/> is when the take's Contact mark lands after the press
+    /// (<see cref="SwingContactSec"/>): the ball's plate time inside the window, the take's own
+    /// <see cref="Motion.SwingContact"/> outside it. Load → contact is warped onto that span; the
+    /// follow-through and finish play at the take's own speed. Monotonic for every span, so the
+    /// authored keys keep their order and the take never plays backward.
+    /// </summary>
+    public static double SwingClipTime(double poseTime, double charge01, double contactSec = Motion.SwingContact)
+    {
+        if (poseTime >= contactSec)
+            return Motion.SwingContact + (poseTime - Math.Max(0, contactSec));
+        var u = contactSec <= 0 ? 0 : Math.Max(0, poseTime) / contactSec;
+        return LoadedClipTime(u * Motion.SwingContact, SwingPresentation.LoadSampleAt(charge01), Motion.SwingContact);
+    }
+
+    /// <summary>
+    /// Seconds from the press to the take's Contact mark (D13): inside the window the ball's plate
+    /// time (never before the press), outside it the take's own mark, so the bat misses honestly.
+    /// </summary>
+    public static double SwingContactSec(double errorFrames, double windowFrames, RulesTable? rules = null) =>
+        AtBatResolver.InWindow(errorFrames, windowFrames)
+            ? Math.Max(0, Rules.Or(rules).Batting.Window.LeadSec - errorFrames / 60)
+            : Motion.SwingContact;
+
+    /// <summary>Real seconds the committed take lasts after the press: the warped span to contact plus the authored follow-through.</summary>
+    public static double SwingTakeSeconds(double contactSec) =>
+        Math.Max(0, contactSec) + (Motion.SwingDur - Motion.SwingContact);
 
     public static double PitchClipTime(double poseTime, double charge01) =>
         LoadedClipTime(poseTime, Motion.PitchLoadSampleAt(charge01), Motion.PitchRelease);
 
-    public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false) =>
-        (pressAt + (bunt ? 0 : Motion.SwingContact) - plateAt) * 60;
+    /// <summary>
+    /// The press against the square press, the ball's plate time less batting.window.leadSec (D13),
+    /// in 60 Hz frames: negative is early. A bunt is already on the plane, so it has no lead (§5.8).
+    /// </summary>
+    public static double SwingErrorFrames(double pressAt, double plateAt, bool bunt = false, RulesTable? rules = null) =>
+        (pressAt - SquarePressAt(plateAt, bunt, rules)) * 60;
+
+    /// <summary>The press that is square: the ball's plate time less the authored lead (none for a bunt).</summary>
+    public static double SquarePressAt(double plateAt, bool bunt = false, RulesTable? rules = null) =>
+        plateAt - (bunt ? 0 : Rules.Or(rules).Batting.Window.LeadSec);
 
     /// <summary>
-    /// When the CPU batter commits (spec §3, §5.9): the latest square press (plate − contact)
-    /// less batting.cpu.decideLeadSec, from the trajectory as it stands then. A human who has
-    /// already pressed is in the same position: the judgment still reads the final crossing.
+    /// When the CPU batter commits (spec §3, §5.9): the square press less batting.cpu.decideLeadSec,
+    /// from the trajectory as it stands then. A human who has already pressed is in the same
+    /// position: the judgment still reads the final crossing.
     /// </summary>
     public static double CpuDecisionTime(double plateAt, RulesTable? rules = null) =>
-        plateAt - Motion.SwingContact - Rules.Or(rules).Batting.Cpu.DecideLeadSec;
+        SquarePressAt(plateAt, rules: rules) - Rules.Or(rules).Batting.Cpu.DecideLeadSec;
 
     /// <summary>A CPU swing cannot start before the decision: the judged error is clamped to what the bat can show.</summary>
     public static SwingCommand CommitCpuSwing(SwingCommand swing, double plateAt, RulesTable? rules = null)
     {
         if (!swing.Swing) return swing;
-        var earliest = SwingErrorFrames(CpuDecisionTime(plateAt, rules), plateAt, swing.Bunt);
+        var earliest = SwingErrorFrames(CpuDecisionTime(plateAt, rules), plateAt, swing.Bunt, rules);
         return swing.TimingErrorFrames < earliest ? swing with { TimingErrorFrames = earliest } : swing;
     }
 
-    public static double SwingStart(double plateAt, double errorFrames, bool bunt = false) =>
-        plateAt + errorFrames / 60 - (bunt ? 0 : Motion.SwingContact);
+    /// <summary>The press, recovered from its error: the square press plus the error.</summary>
+    public static double SwingStart(double plateAt, double errorFrames, bool bunt = false, RulesTable? rules = null) =>
+        SquarePressAt(plateAt, bunt, rules) + errorFrames / 60;
 
     /// <summary>
-    /// Advance one committed action clock. The flight-derived target keeps the
-    /// authored contact mark tied to pitch timing; after the pitch resolves,
-    /// frame time carries the same action through its follow-through. Landing
-    /// exactly on SwingDur presents the final key once before the clock retires.
+    /// Advance one committed action clock, in real seconds after the press. The
+    /// flight-derived target keeps the warped contact mark tied to pitch timing;
+    /// after the pitch resolves, frame time carries the same action through its
+    /// follow-through. Landing exactly on <paramref name="takeSec"/>
+    /// (<see cref="SwingTakeSeconds"/>) presents the final key once before the clock retires.
     /// </summary>
     public static double AdvanceCommittedSwing(
-        double current, double flightTime, double swingStart, double dt)
+        double current, double flightTime, double swingStart, double dt, double takeSec = Motion.SwingDur)
     {
         var target = Math.Max(0, flightTime - swingStart);
         if (current < 0)
-            return Math.Min(target, Motion.SwingDur);
-        if (current >= Motion.SwingDur)
+            return Math.Min(target, takeSec);
+        if (current >= takeSec)
             return current + Math.Max(0, dt);
-        return Math.Min(Motion.SwingDur,
+        return Math.Min(takeSec,
             Math.Max(target, current + Math.Max(0, dt)));
     }
 
-    public static bool PresentsCommittedSwing(double actionTime) =>
-        actionTime >= 0 && actionTime <= Motion.SwingDur;
+    public static bool PresentsCommittedSwing(double actionTime, double takeSec = Motion.SwingDur) =>
+        actionTime >= 0 && actionTime <= takeSec;
 
-    public static double CommittedSwingSample(double actionTime) =>
-        Math.Clamp(actionTime, 0, Motion.SwingDur);
+    public static double CommittedSwingSample(double actionTime, double takeSec = Motion.SwingDur) =>
+        Math.Clamp(actionTime, 0, takeSec);
 }

@@ -153,6 +153,14 @@ public static class CarnivalFront
     /// <summary>The two numbers the title owns, side by side: innings and the CPU rung.</summary>
     public static string TitleSetup(int innings, string level) => $"{innings} INNINGS  ·  {DifficultyLabel(level)}";
 
+    /// <summary>
+    /// The title's difficulty line with what the rung does to the player's own swing
+    /// (cpu.json <c>humanWindowMul</c>, spec §5.3): EASY widens the window, HARD narrows it.
+    /// </summary>
+    public static string TitleSetup(int innings, string level, RulesTable rules) =>
+        TitleSetup(innings, level) + "  ·  SWING WINDOW ×"
+        + rules.AtLevel(level).Cpu.Active.HumanWindowMul.ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
+
     public static bool HarborIsTheProduct(string parkId) =>
         parkId.Equals("harbor-diamond", StringComparison.OrdinalIgnoreCase);
 

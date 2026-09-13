@@ -49,6 +49,38 @@ public sealed class BalanceTests
         Assert.Equal("3 INNINGS  ·  NORMAL", CarnivalFront.TitleSetup(3, "normal"));
         Assert.Equal("9 INNINGS  ·  HARD", CarnivalFront.TitleSetup(9, "hard"));
         Assert.Equal("NORMAL", CarnivalFront.DifficultyLabel("nope"));
+        // The rung says what it does to the player's own swing (#612).
+        Assert.Equal("3 INNINGS  ·  EASY  ·  SWING WINDOW ×1.3", CarnivalFront.TitleSetup(3, "easy", _content.Rules));
+        Assert.Equal("3 INNINGS  ·  NORMAL  ·  SWING WINDOW ×1.0", CarnivalFront.TitleSetup(3, "normal", _content.Rules));
+        Assert.Equal("9 INNINGS  ·  HARD  ·  SWING WINDOW ×0.9", CarnivalFront.TitleSetup(9, "hard", _content.Rules));
+    }
+
+    [Theory]
+    [InlineData("easy", 1.3)]
+    [InlineData("normal", 1.0)]
+    [InlineData("hard", 0.9)]
+    public void TheRungWidensOnlyAPadsSwingWindow(string level, double mul)
+    {
+        var match = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
+        Assert.Equal(mul, match.Rules.Cpu.Active.HumanWindowMul, 8);
+        var pitch = new PitchCommand("fastball", 0, false);
+        var cpu = new SwingCommand(true, 0, 0, false);
+        var human = cpu with { Human = true };
+        var floor = _content.Rules.Batting.Window.FloorFrames;
+        var table = match.SwingWindowFrames(pitch, cpu);
+        Assert.Equal(AtBatResolver.SwingWindowFrames(match.Batter, match.OffenseBat, 0, null, match.Park, match.Night,
+            rules: _content.Rules, skills: _content.StarSkills), table, 8);
+        Assert.Equal(Math.Max(floor, table * mul), match.SwingWindowFrames(pitch, human), 8);
+
+        // The same press, just past the table's half window, is a whiff for the CPU and on the bat
+        // for a pad on EASY (spec §5.3).
+        var err = table / 2 + 0.3;
+        var edge = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
+        var cpuEv = edge.Play(pitch, cpu with { TimingErrorFrames = err });
+        Assert.Equal(PlayKind.SwingMiss, cpuEv.Kind);
+        var pad = Match.Exhibition(_content, "rio", "ashlord", innings: 3, seed: 1, difficulty: level);
+        var padInWindow = AtBatResolver.InWindow(err, pad.SwingWindowFrames(pitch, human));
+        Assert.Equal(mul > 1.0, padInWindow);
     }
 
     [Fact]

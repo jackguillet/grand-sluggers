@@ -889,6 +889,17 @@ public sealed class Match
         _stamina[who.Id] = StaminaOf(who) - cost;
     }
 
+    /// <summary>
+    /// The window this swing is judged in, from the batter at the plate now (spec §5.3, D13): the
+    /// resolver's number, read at the press so the take can warp its Contact mark onto the ball.
+    /// </summary>
+    public double SwingWindowFrames(PitchCommand pitch, SwingCommand swing) =>
+        AtBatResolver.SwingWindowFrames(Batter, OffenseBat, swing.Charge01,
+            pitch.Star ? Pitcher.StarPitch : null, Park, Night, HumanWindowMul(swing), Content.Rules, Content.StarSkills);
+
+    /// <summary>The rung widens a pad's window only (cpu.json <c>humanWindowMul</c>); the CPU batter's is the table's.</summary>
+    double HumanWindowMul(SwingCommand swing) => swing.Human ? Rules.Cpu.Active.HumanWindowMul : 1;
+
     public bool BeginAtBat(PitchCommand pitch, SwingCommand swing, out AtBatResult hit, out PlayEvent? finished)
     {
         hit = EmptyHit(true);
@@ -927,7 +938,7 @@ public sealed class Match
             swing.TimingErrorFrames, pitch.Star, swing.Star, bat,
             PitcherStamina,
             swing.SprayAimDeg, inZone, swing.Bunt, swing.LaunchAim,
-            swing.Charge01, box, crossing.X, crossing.Y);
+            swing.Charge01, box, crossing.X, crossing.Y, HumanWindowMul(swing));
 
         hit = _atBat.Resolve(input, Park, _rng, Night);
         if (hit.Quality == ContactQuality.Miss)
