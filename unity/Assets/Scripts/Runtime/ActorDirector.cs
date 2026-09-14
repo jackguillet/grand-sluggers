@@ -302,14 +302,14 @@ namespace GrandSluggers.UnityClient
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
-            if (_throwing && _armedThrow != null)
-                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
             var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
             var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
             if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat, inFlight, inPlay);
             else
                 _park.Ball.Hide();
+            if (_throwing && _armedThrow != null)
+                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
             if (SetTells.ZoneOn(setOrFlight)) ShowCursor();
