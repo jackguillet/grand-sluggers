@@ -107,6 +107,8 @@ The design implication is to measure **trajectory shape and phase timings**: fir
 
 For Wii these numerical flight relationships are unresolved. Do not cite the GameCube wiki as evidence that Wii uses them.
 
+Jack accepted F693-04’s direction on September 14, 2026: a hard liner may reward the fielder’s existing position over post-contact reaction while remaining readable. Grounders and flies must retain different defensive opportunities. This establishes intent, not approval of Harbor’s current fast-liner clock or an unmeasured Nintendo coefficient; exact trajectory/timing bounds still require the comparison.
+
 ## 5. Throws, runners, and the race budget
 
 ### Harbor's current throw formula

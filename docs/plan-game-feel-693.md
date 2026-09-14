@@ -44,7 +44,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-04 — Contact-class motion
 
-**State:** unresolved. Compare hopper/liner/pop/fly flight, bounce, roll, wall carom, and carry separately. Current 1.0/1.65 clock split and 74-mph class threshold make an exit change nonlinear in the player experience.
+**State:** design intent accepted by Jack on September 14, 2026: **hard liners may reward existing positioning over post-contact reaction**. A well-struck liner may pass before a fielder can reposition, while its path remains readable. Grounders retain the pickup-and-throw sequence; flies allow pursuit and catch judgment. Do not flatten all contact speeds to provide a recovery opportunity on every hit.
+
+**Still pending:** Wii/GameCube-informed bounds for hopper/liner/pop/fly flight, bounce, roll, wall carom, and carry. No current speed, time scale, class threshold, or guaranteed catch/miss is approved. Judge catchability from the shared trajectory and the fielder’s position/reach. This does not add a defensive-positioning control or change D18 assistance. The current 1.0/1.65 clock split and 74-mph class threshold remain baseline observations, not accepted targets.
 
 **Acceptance:** fixed-input trajectories and tactical fixtures both pass. Contact-to-scoop, apex/hang, class separation, and wall behavior are within accepted intervals. Do not solve the complaint by hiding a rope with a fly camera or trading a physics change for an opaque CPU delay.
 

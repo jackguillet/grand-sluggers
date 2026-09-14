@@ -70,6 +70,8 @@ Under F693-05, Jack accepted **reliable routine defense** on September 14, 2026:
 
 Under F693-03, Jack accepted **quick release and readable travel, with a visibly registering transfer/release** on September 14, 2026. Quick does not mean instant: possession, transfer, release, and follow-through must remain recognizable at ordinary gameplay speed and couch distance. Compare ordinary Wii and GameCube throws to set the timing; special quick-transfer or boosted throws cannot define the ordinary baseline. No release duration, travel interval, curve, or reference winner is approved yet.
 
+Under F693-04, Jack accepted **hard liners rewarding existing positioning over post-contact reaction** on September 14, 2026. A readable hard liner may pass before a fielder can reposition; grounders and flies retain their distinct pickup/throw and pursuit/catch opportunities. Do not make every contact uniformly forgiving. Catchability remains geometric, with no new positioning verb or change to D18 assistance. Reference-informed speed, trajectory, and timing bounds remain pending.
+
 This section adds a decision/evidence rail, **not** new gameplay coefficients. The current-code baseline and unimplemented measurement work are listed in the plan.
 
 ## 1. Match rules
