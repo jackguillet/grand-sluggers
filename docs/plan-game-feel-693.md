@@ -48,7 +48,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-05 — Runner and defensive opportunity
 
-**State:** unresolved; no runner slowdown selected. Record startup, acceleration, bag intervals, handedness, dash, pursuit, read, legal bag coverage, and decision time.
+**State:** design intent accepted by Jack on September 14, 2026: **reliable routine defense**. On an ordinary grounder with a clean pickup, an average runner, and an ordinary arm, reasonably prompt correct execution should normally retire the runner with a readable margin. Tight races arise from fast runners, deep pickups, weak arms, bobbles, or hesitation. Outcomes still follow ball/runner/glove geometry; this is not a guaranteed-out rule.
+
+**Still pending:** reference-informed timing intervals and human validation of “reasonably prompt” and “readable.” No runner slowdown or other coefficient is selected. Record startup, acceleration, bag intervals, handedness, dash, pursuit, read, legal bag coverage, and decision time. A direction decision does not close the measurement or play gate.
 
 **Acceptance:** a Run-5 routine grounder can be retired by geometry and is readable; fast/weak-arm variants remain meaningful; an unthrown human ball never becomes an automatic out. The human owns both legs of a double play. Throws and runs are assessed against the same live clock.
 

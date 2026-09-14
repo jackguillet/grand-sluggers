@@ -66,6 +66,8 @@ Calibration must name the whole race: contact → reachable possession → playe
 
 Preserve D1–D18, including D7's pitch-pace hold, until a numbered decision explicitly supersedes them. S-31/32/33, the double-play/relay/tag/sac-fly families, fixed-input trajectories, and the scoring cohorts must be assessed together. Under F693-06, Jack accepted retaining S-29's **1.8–5 mean runs per side** regression guardrail on September 14, 2026. Apply it separately to the home and away means across the existing cohort; individual games may fall outside the band. It does not establish reference fidelity or human acceptance. Jack accepts target relationships and the standalone race; agents do not pass #693 or its linked human gates.
 
+Under F693-05, Jack accepted **reliable routine defense** on September 14, 2026: a clean ordinary grounder against an average runner and ordinary arm should normally become an out after reasonably prompt correct execution, with a readable margin. Fast runners, deep pickups, weak arms, bobbles, and hesitation create the tight races. This is calibration intent, never an automatic out or a permission to slow runners to rescue a fixture. Numeric opportunity/margin bounds and human validation remain pending.
+
 This section adds a decision/evidence rail, **not** new gameplay coefficients. The current-code baseline and unimplemented measurement work are listed in the plan.
 
 ## 1. Match rules
