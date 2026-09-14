@@ -45,9 +45,9 @@ The initial accepted record preserves F693-06: **1.8–5 mean runs per side**, s
 - `harbor-calibration`: the same pairs/orders/seeds, all at Harbor Diamond.
 - `harbor-validation`: the same pairs/orders at Harbor, seeds **1001–1005**, disjoint from calibration.
 
-The Harbor cohorts report observations, not a newly accepted scoring band. Once inspected, a validation cohort is a fixed regression cohort rather than fresh unseen evidence; reserve additional unseen seeds before evaluating future candidates. Reports retain each game's identity, score, outcome counts (including doubles and triples), and multiple-out plays. Those outcome counts do not establish relay opportunity rates or player enjoyment; the live fixtures and subsequent sitting own those questions.
+Jack accepted F693-06-H on September 14, 2026: each Harbor cohort now has the same 1.8–5 mean-runs target, separately home and away, in addition to S-29. This is a calibration acceptance target; the baseline has documented misses and does not pass it. Once inspected, a validation cohort is a fixed regression cohort rather than fresh unseen evidence; reserve additional unseen seeds before evaluating future candidates. Reports retain each game's identity, score, outcome counts (including doubles and triples), and multiple-out plays. Those outcome counts do not establish relay opportunity rates or player enjoyment; the live fixtures and subsequent sitting own those questions.
 
-The measured results, verification revisions, and next pending human decision are in [the #702 report](research-game-feel-702.md); its [dataset](research/game-feel-702-baseline.json) is derived by `tools/race-report.py`.
+The measured results, verification revisions, and subsequent accepted Harbor scoring decision are in [the #702 report](research-game-feel-702.md); its [dataset](research/game-feel-702-baseline.json) is derived by `tools/race-report.py`.
 
 ## Reproduce
 

@@ -26,7 +26,7 @@ public static class RaceCohort
                 match.Log.Count(p => (p.Outcome?.OutsMade.Count ?? 0) >= 2)));
         }
         return new(1, name, seeds.ToArray(), games, games.Average(g => g.HomeRuns), games.Average(g => g.AwayRuns),
-            name == "s29" ? "accepted F693-06: home and away means separately 1.8–5" : "observation only; no Harbor scoring band accepted",
+            name == "s29" ? "accepted F693-06: home and away means separately 1.8–5" : "accepted F693-06-H: home and away means separately 1.8–5; baseline misses remain calibration work",
             "Outcome counts are not opportunity rates. Relay opportunities require the separate live-play traces. Human feel gate remains open.");
     }
 }
