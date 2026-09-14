@@ -149,9 +149,9 @@
       "stage": "dcc",
       "cause": "Restricted macOS background process sees no Metal device. Blender 5.2.0 GPU startup reaches strstr with a null GPU-name string; the latest crash is a Codex child, not the long-running interactive window.",
       "fix": "Use tools/blender-run.sh, which checks Metal availability before Blender starts. Run the intended bake with approved GPU access outside the sandbox. Do not repeatedly retry the restricted launch or terminate the user window.",
-      "promoted": "tools/blender-run.sh Metal preflight",
+      "promoted": "tools/blender-run.sh",
       "issue": "#681",
-      "pr": ""
+      "pr": "#682"
     },
     {
       "id": "unity-imports-dotnet-generated-assemblies",
@@ -161,7 +161,7 @@
       "fix": "Directory.Build.props moves all .NET outputs to root .artifacts. Move legacy Sim bin/obj to an external backup before refreshing Unity. Quit validation editors normally and preserve scene recovery data.",
       "promoted": "DotnetOutputPathsTests.test_both_configurations_keep_generated_files_outside_unity_package",
       "issue": "#681",
-      "pr": ""
+      "pr": "#682"
     },
     {
       "id": "unity-recovery-after-delivery-termination",
@@ -170,6 +170,16 @@
       "cause": "tools/local-player.py previously called process.terminate in its finally block after a successful build; agent SIGTERM cleanup similarly bypassed a normal editor quit. The prompt alone does not establish a Unity crash.",
       "fix": "Owned build editors write GS_BUILD_EVIDENCE outside Temp and opt into GS_BUILD_QUIT_WHEN_DONE, then PlayerBuildGate requests EditorApplication.Exit. The supervisor waits without terminating; preserve recovery scenes and quit stuck editors normally.",
       "promoted": "EditorShutdownTests.test_slow_editor_is_left_for_normal_shutdown",
+      "issue": "#681",
+      "pr": "#682"
+    },
+    {
+      "id": "protocol-promotion-assumes-csharp",
+      "signature": "DistillTests.PromotedSignaturesNameARealTest fails for Python tooling tests or a shell validator",
+      "stage": "sim",
+      "cause": "The promotion reference check searched only C# test sources although the protocol permits tests and validators. Editor startup rails introduced Python tests and a shell entry point.",
+      "fix": "Resolve C# and Python Type.Method references and repository-relative tools shell entry points. Reject missing methods, types, files, and prose instead of clearing the promotion.",
+      "promoted": "DistillTests.PromotionReferencesResolveAcrossTestLanguages",
       "issue": "#681",
       "pr": "#682"
     }
