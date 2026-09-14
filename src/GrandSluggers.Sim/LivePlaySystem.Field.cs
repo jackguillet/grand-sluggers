@@ -564,12 +564,12 @@ public sealed partial class LivePlaySystem
         {
             var traceBeforeFlightT = ThrowT;
             ThrowT += dt;
-            if (traceBeforeFlightT < ThrowDur && ThrowT >= ThrowDur)
-                _trace?.Mark(PlayTraceMarkKind.ThrowTargetReached, ElapsedSeconds, CoverPos, ThrowBag);
             var u = Math.Clamp(ThrowT / Math.Max(0.05, ThrowDur), 0, 1);
             BallX = ThrowFrom.X + (ThrowTo.X - ThrowFrom.X) * u;
             BallY = ThrowFrom.Y + (ThrowTo.Y - ThrowFrom.Y) * u;
             BallZ = ThrowFrom.Z + (ThrowTo.Z - ThrowFrom.Z) * u;
+            if (traceBeforeFlightT < ThrowDur && ThrowT >= ThrowDur)
+                _trace?.Mark(PlayTraceMarkKind.ThrowTargetReached, ElapsedSeconds, CoverPos, ThrowBag);
             if (ThrowT >= ThrowDur && !command.EffectInFlight)
             {
                 if (OnThrowLanded(dt, out var arrived)) return arrived;
@@ -2148,7 +2148,6 @@ public sealed partial class LivePlaySystem
 
     void SetLoose(double x, double z, double vx, double vz)
     {
-        _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
         _loose = true;
         _heldSince = -1;
         BallX = x;
@@ -2157,6 +2156,7 @@ public sealed partial class LivePlaySystem
         _looseVX = vx;
         _looseVZ = vz;
         _looseRestAt = vx == 0 && vz == 0 ? ElapsedSeconds : -1;
+        _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
     }
 
     /// <summary>A loose ball rolls to a stop (fielding.overthrow) inside the park.</summary>
@@ -2335,7 +2335,6 @@ public sealed partial class LivePlaySystem
 
     void CatchGlove()
     {
-        _trace?.Mark(PlayTraceMarkKind.Possession, ElapsedSeconds, GlovePos);
         if (!Caught && !_gloved) _events.Add(LiveEvent.Glove);
         _heldSince = ElapsedSeconds;
         Caught = true;
@@ -2344,6 +2343,7 @@ public sealed partial class LivePlaySystem
         _looseVX = _looseVZ = 0;
         _looseRestAt = -1;
         _firstGlove ??= GloveChar();
+        _trace?.Mark(PlayTraceMarkKind.Possession, ElapsedSeconds, GlovePos);
     }
 
     /// <summary>A glove takes a thrown or loose ball: no fair / foul call, no bobble roll.</summary>
@@ -2585,7 +2585,11 @@ public sealed partial class LivePlaySystem
         if (_closeRunner is { Live: true } body)
         {
             // The verdict is written once (§9.6): the body is on the bag, or the out is recorded; the caption follows the record.
-            if (safe) body.Arrive(CloseBag, ElapsedSeconds);
+            if (safe)
+            {
+                body.Arrive(CloseBag, ElapsedSeconds);
+                _trace?.Mark(PlayTraceMarkKind.RunnerAward, ElapsedSeconds, GlovePos, CloseBag, PlayTraceRunner.Of(body));
+            }
             else if (!Retire(body.FromBag, CloseBag, OutType.Tag, PlayFielder())) safe = true;
             if (!safe) LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagOut, CloseBag, PlayFielder(), body.Who);
             Throws++;

@@ -28,6 +28,10 @@ public sealed class RaceTraceTests
             var reception = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.Reception);
             var retired = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.Out);
             Assert.True(possession.T < release.T && release.T < reception.T);
+            Assert.True(possession.Geometry!.HoldsUnthrownBall);
+            var target = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.ThrowTargetReached);
+            Assert.Equal(release.Flight!.ToX, target.Geometry!.BallX, 9);
+            Assert.Equal(release.Flight.ToZ, target.Geometry.BallZ, 9);
             Assert.InRange(reception.T - release.T - release.Flight!.DurationSec, -1e-8, Frame + 1e-8);
             Assert.Equal(OutType.ThrowOutAtFirst, retired.OutType);
             Assert.NotNull(retired.Runner);
@@ -78,6 +82,7 @@ public sealed class RaceTraceTests
         var normal = Match.Exhibition(_content, "rio", "ashlord", difficulty: "normal");
         Assert.NotEqual(PlayTraceIdentity.Capture(normal).Sha256, PlayTraceIdentity.Capture(changed).Sha256);
         Assert.Equal(1, PlayTrace.Parse("{\"ticks\":[]}").SchemaVersion);
+        Assert.Throws<System.Text.Json.JsonException>(() => PlayTrace.Parse("{\"schemaVersion\":999,\"ticks\":[]}"));
     }
 
     [Fact]
@@ -130,6 +135,35 @@ public sealed class RaceTraceTests
         foreach (var leg in throws)
             Assert.Single(cpu.Marks!, m => m.Kind == PlayTraceMarkKind.Reception && m.Leg == leg.Leg);
         Write("relay", cpu);
+    }
+
+    [Fact]
+    public void InputReadGateDisplacementAndReversalRemainDistinctAcrossPause()
+    {
+        var match = Defense("cinder");
+        var live = match.LivePlay;
+        var hit = FlightFixtures.Landing(match.Park, 118, 4, -18);
+        live.Recording = true;
+        live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, match.PreviewHit(hit), null,
+            new LiveSeats(false, true, true, false)));
+        for (var i = 0; i < 60; i++) live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: 1)));
+        var x = live.GloveX;
+        var t = live.ElapsedSeconds;
+        live.Apply(LivePlayCommand.Pause());
+        live.Apply(LivePlayCommand.Tick(.2, new LivePadInput(StickX: -1)));
+        Assert.Equal(t, live.ElapsedSeconds);
+        Assert.Equal(x, live.GloveX);
+        live.Apply(LivePlayCommand.Resume());
+        for (var i = 0; i < 10; i++) live.Apply(LivePlayCommand.Tick(Frame, new LivePadInput(StickX: -1)));
+        var trace = live.TakeTrace();
+        var first = trace.Ticks[0].Fielders!.First(f => f.Selected);
+        var motion = trace.Ticks.Where(tick => tick.T < t).SelectMany(tick => tick.Fielders!.Where(f => f.Pos == first.Pos));
+        Assert.Contains(motion, f => !f.ReadEligible && f.ObservedVx == 0);
+        Assert.Contains(motion, f => f.ReadEligible && f.ObservedVx > 0);
+        Assert.Contains(trace.Ticks.Where(tick => tick.T > t).SelectMany(tick => tick.Fielders!), f => f.Selected && f.ObservedVx < 0);
+        Assert.Contains(trace.Commands!, c => c.Input.Kind == LivePlayCommandKind.Pause);
+        Assert.Null(trace.Completed); // a measured movement prefix, not a fabricated finished play
+        Write("movement-prefix", trace);
     }
 
     [Theory]

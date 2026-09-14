@@ -37,7 +37,7 @@ public sealed record PlayTraceCommand(int I, double T, LivePlayCommand Input);
 public enum PlayTraceMarkKind
 {
     Contact, RunnerPlayStart, Possession, ThrowRelease, ThrowTargetReached, UncoveredWait,
-    Reception, LooseBall, RunnerArrival, Out, Verdict
+    Reception, LooseBall, RunnerArrival, RunnerAward, Out, Verdict
 }
 
 /// <summary>T is the simulation execution clock. LowerT bounds sampled runner arrivals; animation release is unobserved.</summary>
