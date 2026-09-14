@@ -76,7 +76,7 @@ public sealed class PlayTraceTests
         AssertMonotonic(trace);
 
         var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
-        var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, false, false, match.Rules);
+        var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, true, false, match.Rules);
         var catchTick = trace.Ticks.FirstOrDefault(t => t.Ball.Caught || t.Glove.HasBall);
         Assert.NotNull(catchTick);
         Assert.True(

@@ -32,7 +32,7 @@ namespace GrandSluggers.UnityClient
             if (_root == null) return;
             _root.gameObject.SetActive(true);
             _root.position = new Vector3((float)x, (float)LandingMark.WorldY, (float)z);
-            var r = Mathf.Max((float)LandingMark.MinRadiusFt, radius);
+            var r = Mathf.Max(0.01f, radius);
             _root.localScale = Vector3.one * r;
             if (_ring != null)
                 Look.Paint(_ring.gameObject, catchWindow ? _hot : _gold);

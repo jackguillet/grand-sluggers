@@ -306,7 +306,7 @@ public static class HowToPlay
         [
             "Scorebug: inning, runs, stars; B / S / O.",
             "Cards: batter AB, pitcher ARM and TIRED. Select swaps.",
-            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
             "SAFE / ERROR pop mid-play. Close play: bag cam.",
@@ -314,7 +314,7 @@ public static class HowToPlay
         [
             "Scorebug: inning, runs, stars; B / S / O.",
             "Cards: batter AB, pitcher ARM and TIRED. R swaps.",
-            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
             "SAFE / ERROR pop mid-play. Close play: bag cam.",
