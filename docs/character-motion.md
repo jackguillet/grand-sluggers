@@ -62,7 +62,7 @@ A held load samples the one-shot at `LoadSampleAt(charge) = NormalLoadAt Â· (1 â
 
 ### The two swings (#613)
 
-- **Slap** (`swing-slap`): no windup. It starts on the ready key (hands by the back shoulder, bat up behind the head), a compact arc, the held finish.
+- **Slap** (`swing-slap`): no windup. It starts on the ready key (hands by the back shoulder, bat standing up beside the head so the plate SET can see the hover, #560), a compact arc, the held finish.
 - **Charge** (`swing-charge`): the hold samples its windup (0.00 = MAX: hands high and back, the bat wrapped, the lead knee up; 0.075 = the ready key at no charge), then a bigger arc and a bigger finish.
 - A committed swing plays the charge take when `ChargeFeel.IsCharge(charge)`, the same test that narrows the window, so the take and the judgment are always the same swing. A slap starts at 0; a charge continues from the held windup.
 - The numbers are data: `data/art/swing-takes.json` holds per key the rendered hand centers, the grip socket, the barrel direction (Unity batter-local, right-handed) and the legs in body terms. The takes script solves every frame to it; `SwingPresentation.SlapKeys` / `ChargeKeys` carry the same numbers and a test holds them equal. Approach (0.24) and contact (0.30) are the measured contract of [research-batting.md](research-batting.md) and are shared by both takes.

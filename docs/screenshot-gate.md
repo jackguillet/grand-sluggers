@@ -57,7 +57,7 @@ Capture with **Grand Sluggers → Capture Request File** and `{"shots":["swing-m
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
-| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat standing up beside the head, knees bent. Charge at MAX: hands higher, the bat taller, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, **the bat through the head (#623)**, a standing statue, the charge load identical to the slap |
+| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat standing up beside the head, knees bent. Charge at MAX: hands higher, the bat taller, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, **the bat through the head (#623)**, **the bat hidden behind the head at ready (#560)**, a standing statue, the charge load identical to the slap |
 | **Contact** (`swing-{id}-normal-contact`, `swing-{id}-max-contact`) | Both hands on the handle, barrel through the plate, hips turned toward the pitcher, back knee driving. | Bat behind the head, a hand off the handle, a stiff upright body |
 | **Finish** (`swing-{id}-normal-finish`, `swing-{id}-max-finish`) | Weight on the front foot, the bat around over the lead shoulder; the charge finish wraps further than the slap. | Snapping back to ready, the bat hidden inside the body, both finishes the same |
 
