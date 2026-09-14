@@ -16,6 +16,10 @@ Named checkpoints. Save after each (script + still). The next prompt names the s
 
 Existing bake flags (`--clay`, `--sheets`, `--out`) still run. A `.blend` is a cache, not the source.
 
+## macOS startup
+
+Use `tools/blender-run.sh` for background Blender commands. It checks Metal device access before starting Blender and exits safely when the caller cannot see a GPU. Agents must run with approved GPU access outside the sandbox; `-b` still initializes Metal. `--factory-startup` does not fix missing GPU access. Do not retry a restricted launch or terminate the user's existing Blender window. See [editor startup diagnostics](../../docs/editor-startup.md).
+
 ## Scripts
 
 | Script | Makes | Check |
@@ -25,7 +29,7 @@ Existing bake flags (`--clay`, `--sheets`, `--out`) still run. A `.blend` is a c
 | `hero_shared_takes.py` | every take, both hands, `Clips/*.fbx` | refuses to export a take that misses its contract; `--sheets` renders a clay contact sheet per clip |
 
 ```bash
-B=/opt/homebrew/bin/blender
+B=tools/blender-run.sh
 $B -b --python tools/blender/hero_shared_blockout.py -- --out unity/Assets/Art/Characters/SharedRig/hero-shared.fbx --resources unity/Assets/Resources/Art/Characters/SharedRig --clay scratchpad/takes
 $B -b --python tools/blender/hero_shared_extras.py -- --out unity/Assets/Art/Characters/SharedRig/extras.fbx --resources unity/Assets/Resources/Art/Characters/SharedRig --clay scratchpad/takes
 $B -b --python tools/blender/hero_shared_takes.py -- --out unity/Assets/Art/Animation/Clips --resources unity/Assets/Resources/Art/Animation/Clips --sheets scratchpad/takes [--only swing,pitch]

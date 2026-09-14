@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using GrandSluggers.Sim;
 using Xunit;
 
@@ -62,25 +63,57 @@ public sealed class DistillTests
     [Fact]
     public void PromotedSignaturesNameARealTest()
     {
-        var sources = Directory.GetFiles(
-                Path.Combine(Repo, "src", "GrandSluggers.Sim.Tests"),
-                "*Tests.cs")
-            .Select(File.ReadAllText)
-            .ToList();
         var protocol = DebugProtocol.Load(_root);
         Assert.Contains(protocol.Entries, e => !string.IsNullOrWhiteSpace(e.Promoted));
         foreach (var row in protocol.Entries)
         {
             if (string.IsNullOrWhiteSpace(row.Promoted)) continue;
-            var dot = row.Promoted.IndexOf('.');
-            Assert.True(dot > 0, $"{row.Id}: promoted must be Type.Method, got '{row.Promoted}'");
-            var type = row.Promoted[..dot];
-            var method = row.Promoted[(dot + 1)..];
-            Assert.Contains(
-                sources,
-                src => src.Contains($"class {type}", StringComparison.Ordinal)
-                    && src.Contains($"void {method}(", StringComparison.Ordinal));
+            Assert.True(PromotionExists(row.Promoted),
+                $"{row.Id}: promoted test or validator '{row.Promoted}' does not exist");
         }
+    }
+
+    [Theory]
+    [InlineData("SwingPresentationTests.TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp", true)]
+    [InlineData("DotnetOutputPathsTests.test_both_configurations_keep_generated_files_outside_unity_package", true)]
+    [InlineData("EditorShutdownTests.test_slow_editor_is_left_for_normal_shutdown", true)]
+    [InlineData("tools/blender-run.sh", true)]
+    [InlineData("SwingPresentationTests.MissingTest", false)]
+    [InlineData("DotnetOutputPathsTests.test_missing_test", false)]
+    [InlineData("MissingTests.test_slow_editor_is_left_for_normal_shutdown", false)]
+    [InlineData("tools/missing-validator.sh", false)]
+    [InlineData("tools/blender-run.sh Metal preflight", false)]
+    [InlineData("tools/../tools/blender-run.sh", false)]
+    [InlineData("docs/editor-startup.md", false)]
+    public void PromotionReferencesResolveAcrossTestLanguages(string reference, bool expected)
+    {
+        Assert.Equal(expected, PromotionExists(reference));
+    }
+
+    bool PromotionExists(string reference)
+    {
+        // A validator is a repository-relative shell entry point, not prose.
+        if (Regex.IsMatch(reference, @"^tools/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.sh$"))
+        {
+            var path = Path.Combine(Repo, reference);
+            return File.Exists(path) && File.ReadLines(path).FirstOrDefault()?.StartsWith("#!") == true;
+        }
+        var match = Regex.Match(reference, @"^([A-Za-z_]\w*)\.([A-Za-z_]\w*)$");
+        if (!match.Success) return false;
+        var type = Regex.Escape(match.Groups[1].Value);
+        var method = Regex.Escape(match.Groups[2].Value);
+        var csharp = Directory.GetFiles(Path.Combine(Repo, "src/GrandSluggers.Sim.Tests"), "*Tests.cs");
+        if (csharp.Select(File.ReadAllText).Any(src =>
+            Regex.IsMatch(src, $@"(?m)^\s*public (?:sealed )?class {type}\b") &&
+            Regex.IsMatch(src, $@"(?m)^\s*public void {method}\("))) return true;
+
+        // Python tooling checks run in the same portable CI job as these tests.
+        var python = Directory.GetFiles(Path.Combine(Repo, "tools/tests"), "test_*.py");
+        return python.Select(File.ReadAllText).Any(src =>
+        {
+            var body = Regex.Match(src, $@"(?ms)^class {type}\(unittest\.TestCase\):\r?\n(.*?)(?=^\S|\z)");
+            return body.Success && Regex.IsMatch(body.Groups[1].Value, $@"(?m)^    def {method}\(self\)");
+        });
     }
 
     [Fact]

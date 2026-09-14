@@ -79,7 +79,7 @@ End each session with a playable artifact of its kind before the next prompt: ga
 | `stage` | `sim` / `cli-match` / `unity-console` / `still-gate` / `dcc` / `sitting` |
 | `cause` | Root cause from the code map, with `file:line` when known |
 | `fix` | The rail, not the patch |
-| `promoted` | Test or validator name once it is a gate, else empty |
+| `promoted` | C# or Python `Type.Method`, or repository-relative shell validator entry point (`tools/name.sh`), once it is a gate; else empty. CI verifies the reference exists. |
 | `issue` | Sitting child or epic that found it |
 | `pr` | PR that verified the fix, once closed |
 
@@ -135,6 +135,8 @@ Deny-list (never enable as a baseball rail):
 - `/physics-3d-collision`, `/initialize-ai-navigation`
 - `/new-unity-project`, `/implement-in-app-purchases`, `/setup-multiplayer-services`, `/build-live-game`
 - Any skill that would decide an out, a safe, or a throw in PhysX or NavMesh
+
+Before launching editors, load [editor-startup.md](editor-startup.md): Blender requires Metal access even in background mode; .NET outputs stay outside the Unity local package. Quit owned validation editors normally; never routinely kill them or discard scene recovery backups.
 
 Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc gate. `python3 tools/local-player.py` stays Jack's window. Do not poll or restart while he is playing.
 
