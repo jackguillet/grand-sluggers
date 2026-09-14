@@ -121,7 +121,7 @@
       "fix": "Stand-up / the yellow ring is CatchRadius (StandUpCatchFt). At the rim (past the ring, inside diveReachFt, ballY < diveMaxBallY) AutoDive / PlayerDiveCatch: CatchDive, DiveT, lunge. Past that is a drop. windowPadFt stays dirt scoop slack. Do not retune S-29 by shrinking until one seed passes.",
       "promoted": "FlyCatchTests.CatchAtThePlantIsStandUpARimCatchIsADive",
       "issue": "#669",
-      "pr": ""
+      "pr": "#679"
     },
     {
       "id": "liner-shares-fly-shot",
