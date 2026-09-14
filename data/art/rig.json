@@ -1,21 +1,424 @@
 {
   "id": "hero-shared",
   "slot": "Assets/Art/Characters/SharedRig/hero-shared.fbx",
-  "notes": "Named sockets. Unique captains are packages with this bone list; Rio six stay on this chain.",
+  "notes": "One shared articulated body. Entire clip set must be rebaked with this rest hierarchy.",
   "bones": [
     "root",
+    "pelvis",
+    "spine",
     "torso",
+    "neck",
     "head",
+    "lClavicle",
     "lUpper",
     "lFore",
-    "rUpper",
-    "rFore",
+    "lWrist",
     "lThigh",
     "lShin",
+    "lFoot",
+    "lGlove",
+    "rClavicle",
+    "rUpper",
+    "rFore",
+    "rWrist",
     "rThigh",
     "rShin",
+    "rFoot",
+    "rGlove",
+    "lRelease",
+    "rRelease",
     "bat",
     "glove"
   ],
-  "events": ["Contact", "Release", "FootPlant"]
+  "events": [
+    "Contact",
+    "Release",
+    "FootPlant"
+  ],
+  "revision": 2,
+  "joints": [
+    {
+      "name": "root",
+      "head": [
+        0,
+        0,
+        0
+      ],
+      "tail": [
+        0,
+        0,
+        0.25
+      ],
+      "parent": null
+    },
+    {
+      "name": "pelvis",
+      "head": [
+        0,
+        0,
+        2.13
+      ],
+      "tail": [
+        0,
+        0,
+        2.45
+      ],
+      "parent": "root"
+    },
+    {
+      "name": "spine",
+      "head": [
+        0,
+        0,
+        2.45
+      ],
+      "tail": [
+        0,
+        0,
+        2.95
+      ],
+      "parent": "pelvis"
+    },
+    {
+      "name": "torso",
+      "head": [
+        0,
+        0,
+        2.95
+      ],
+      "tail": [
+        0,
+        0,
+        3.65
+      ],
+      "parent": "spine"
+    },
+    {
+      "name": "neck",
+      "head": [
+        0,
+        -0.05,
+        3.65
+      ],
+      "tail": [
+        0,
+        -0.05,
+        3.99
+      ],
+      "parent": "torso"
+    },
+    {
+      "name": "head",
+      "head": [
+        0,
+        -0.05,
+        3.99
+      ],
+      "tail": [
+        0,
+        -0.05,
+        4.65
+      ],
+      "parent": "neck"
+    },
+    {
+      "name": "lClavicle",
+      "head": [
+        0.12,
+        0,
+        3.5
+      ],
+      "tail": [
+        0.72,
+        0,
+        3.5
+      ],
+      "parent": "torso"
+    },
+    {
+      "name": "lUpper",
+      "head": [
+        0.72,
+        0,
+        3.5
+      ],
+      "tail": [
+        0.72,
+        0,
+        2.48
+      ],
+      "parent": "lClavicle"
+    },
+    {
+      "name": "lFore",
+      "head": [
+        0.72,
+        0,
+        2.48
+      ],
+      "tail": [
+        0.72,
+        0,
+        1.6
+      ],
+      "parent": "lUpper"
+    },
+    {
+      "name": "lWrist",
+      "head": [
+        0.72,
+        0,
+        1.6
+      ],
+      "tail": [
+        0.72,
+        0,
+        1.35
+      ],
+      "parent": "lFore"
+    },
+    {
+      "name": "lThigh",
+      "head": [
+        0.36,
+        0,
+        2.13
+      ],
+      "tail": [
+        0.36,
+        0,
+        1.16
+      ],
+      "parent": "pelvis"
+    },
+    {
+      "name": "lShin",
+      "head": [
+        0.36,
+        0,
+        1.16
+      ],
+      "tail": [
+        0.36,
+        0,
+        0.24
+      ],
+      "parent": "lThigh"
+    },
+    {
+      "name": "lFoot",
+      "head": [
+        0.36,
+        0,
+        0.24
+      ],
+      "tail": [
+        0.36,
+        0,
+        0.06
+      ],
+      "parent": "lShin"
+    },
+    {
+      "name": "lGlove",
+      "head": [
+        0.72,
+        0,
+        1.6
+      ],
+      "tail": [
+        0.72,
+        0,
+        1.35
+      ],
+      "parent": "lWrist"
+    },
+    {
+      "name": "rClavicle",
+      "head": [
+        -0.12,
+        0,
+        3.5
+      ],
+      "tail": [
+        -0.72,
+        0,
+        3.5
+      ],
+      "parent": "torso"
+    },
+    {
+      "name": "rUpper",
+      "head": [
+        -0.72,
+        0,
+        3.5
+      ],
+      "tail": [
+        -0.72,
+        0,
+        2.48
+      ],
+      "parent": "rClavicle"
+    },
+    {
+      "name": "rFore",
+      "head": [
+        -0.72,
+        0,
+        2.48
+      ],
+      "tail": [
+        -0.72,
+        0,
+        1.6
+      ],
+      "parent": "rUpper"
+    },
+    {
+      "name": "rWrist",
+      "head": [
+        -0.72,
+        0,
+        1.6
+      ],
+      "tail": [
+        -0.72,
+        0,
+        1.35
+      ],
+      "parent": "rFore"
+    },
+    {
+      "name": "rThigh",
+      "head": [
+        -0.36,
+        0,
+        2.13
+      ],
+      "tail": [
+        -0.36,
+        0,
+        1.16
+      ],
+      "parent": "pelvis"
+    },
+    {
+      "name": "rShin",
+      "head": [
+        -0.36,
+        0,
+        1.16
+      ],
+      "tail": [
+        -0.36,
+        0,
+        0.24
+      ],
+      "parent": "rThigh"
+    },
+    {
+      "name": "rFoot",
+      "head": [
+        -0.36,
+        0,
+        0.24
+      ],
+      "tail": [
+        -0.36,
+        0,
+        0.06
+      ],
+      "parent": "rShin"
+    },
+    {
+      "name": "rGlove",
+      "head": [
+        -0.72,
+        0,
+        1.6
+      ],
+      "tail": [
+        -0.72,
+        0,
+        1.35
+      ],
+      "parent": "rWrist"
+    },
+    {
+      "name": "lRelease",
+      "head": [
+        0.72,
+        -0.08,
+        1.47
+      ],
+      "tail": [
+        0.72,
+        -0.08,
+        1.37
+      ],
+      "parent": "lWrist"
+    },
+    {
+      "name": "rRelease",
+      "head": [
+        -0.72,
+        -0.08,
+        1.47
+      ],
+      "tail": [
+        -0.72,
+        -0.08,
+        1.37
+      ],
+      "parent": "rWrist"
+    },
+    {
+      "name": "bat",
+      "head": [
+        -0.72,
+        -0.08,
+        1.47
+      ],
+      "tail": [
+        -0.72,
+        -0.08,
+        0.77
+      ],
+      "parent": "rWrist"
+    },
+    {
+      "name": "glove",
+      "head": [
+        0.72,
+        0,
+        1.6
+      ],
+      "tail": [
+        0.72,
+        0,
+        1.35
+      ],
+      "parent": "lWrist"
+    }
+  ],
+  "anatomy": {
+    "height": 4.81,
+    "headCenter": [
+      0,
+      -0.05,
+      4.36
+    ],
+    "headDiameter": 0.9,
+    "handCenter": [
+      0.72,
+      -0.08,
+      1.47
+    ],
+    "shoeCenter": [
+      0.36,
+      -0.23,
+      0.16
+    ]
+  }
 }

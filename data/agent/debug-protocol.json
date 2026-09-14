@@ -58,7 +58,7 @@
       "signature": "char-ashlord-rest.png cuts Ashlord's head off; Rio and Fenn frame fine; StillPose.CharCamY/CharLookY are fixed numbers",
       "stage": "still-gate",
       "cause": "StillPose.cs CharCamY=3.4 CharLookY=2.5 — a Rio-sized turntable. Ashlord Height 1.44 and Konga 1.30 leave the frustum.",
-      "fix": "CharFraming looks at Silhouette chest height and pulls back by extra height. Every captain's head top is inside the frustum. Do not raise a constant until the tallest fits.",
+      "fix": "CharFraming looks at the rig chest height scaled by Silhouette, pulls back by extra height, then fits both head and feet with the same margin. Head dimensions share SwingPresentation landmarks; revision-2 chest height matches rig.json. Do not raise a constant until the tallest fits.",
       "promoted": "StillHarnessTests.CharacterTurntableKeepsEveryCaptainsHeadInFrame",
       "issue": "#559",
       "pr": "#664"

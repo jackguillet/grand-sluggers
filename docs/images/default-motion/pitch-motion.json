@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "cases": [
+    {
+      "name": "pitch-motion-R-normal",
+      "charge": 0.03030303120613098,
+      "releaseAt": 0.43333345651626587,
+      "followTravel": 2.6289286613464355,
+      "finishError": 7.251218221426825e-07,
+      "releaseError": 9.702932857180713e-07,
+      "heldError": 0.0
+    },
+    {
+      "name": "pitch-motion-R-charge",
+      "charge": 1.0,
+      "releaseAt": 0.43333345651626587,
+      "followTravel": 2.6247568130493164,
+      "finishError": 2.384185791015625e-07,
+      "releaseError": 0.0,
+      "heldError": 0.0
+    },
+    {
+      "name": "pitch-motion-L-normal",
+      "charge": 0.03030303120613098,
+      "releaseAt": 0.43333345651626587,
+      "followTravel": 2.628927707672119,
+      "finishError": 2.980232238769531e-07,
+      "releaseError": 0.0,
+      "heldError": 0.0
+    },
+    {
+      "name": "pitch-motion-L-charge",
+      "charge": 1.0,
+      "releaseAt": 0.43333345651626587,
+      "followTravel": 2.6247575283050537,
+      "finishError": 5.78656454308657e-07,
+      "releaseError": 0.0,
+      "heldError": 0.0
+    }
+  ]
+}
