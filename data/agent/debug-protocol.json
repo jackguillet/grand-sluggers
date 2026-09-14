@@ -182,6 +182,16 @@
       "promoted": "DistillTests.PromotionReferencesResolveAcrossTestLanguages",
       "issue": "#681",
       "pr": "#682"
+    },
+    {
+      "id": "select-bobs-through-dirt",
+      "signature": "captain select bobs through the dirt; featured cheer / stealLead put a foot or extra under the mesh",
+      "stage": "sitting",
+      "cause": "ActorDirector.PlaceSelectRoster played Cheer (home pick) and StealLead (away pick) on CarnivalFront.CaptainSpot at Y=0. Cheer #628 bobs root lift 0→0.35; stealLead lift −0.35. Look.md had Highlight + cheer.",
+      "fix": "SelectPose is Idle. Featured is the step-forward + highlight. SelectDirtY is the plant. SelectExtraMinY ≥ dirt for every captain extra. Cheer stays a field take. Do not shrink a body or per-captain Y-hack.",
+      "promoted": "CarnivalFrontTests.SelectCaptainsStayOnTheDirt",
+      "issue": "#686",
+      "pr": ""
     }
   ]
 }
