@@ -1,0 +1,472 @@
+{
+  "issue": 693,
+  "status": "descriptive-baseline-not-approved-targets",
+  "baselineRevision": "eff10d90d1b19ba0ab4f66d471163eb89a8f7db2",
+  "measuredOn": "2026-09-14",
+  "sourceSha256": {
+    "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
+    "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136",
+    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108",
+    "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
+    "src/GrandSluggers.Sim/InPlay.cs": "b3b6a0a11e080f1ccf21f2970eb1bf35497766378bdfc08cfd9fb9b5618b1ce3",
+    "src/GrandSluggers.Sim/Runner.cs": "b1a54a4b7dd73d354ee81ef91a574940f235f7739592ec65bea149f5d53ba0bf",
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+    "src/GrandSluggers.Sim/PlayTrace.cs": "e43639edf6765cb7115592e8e3e364d99772390bef7d1babd8d8865c85907a77",
+    "src/GrandSluggers.Sim.Tests/AtBatScenarioTests.cs": "158d86e376db37594225039a4699b7e969e0ef0d88eddf9dbdf7260a98c17ccf",
+    "src/GrandSluggers.Sim.Tests/FieldingScenarioTests.cs": "4773846837e1143607b2a5c00b18457cdbf6e3b45261042d7f2aa22654bc7be8",
+    "src/GrandSluggers.Sim/Teams.cs": "1f2d0e3e1b8a22794050dd3a289c2f4eb40a8caf678db03acc854bbbdf2d1537",
+    "src/GrandSluggers.Sim/Match.cs": "f7efd1d3671fd3252beaf4270bbcef5bd899b3039ef9a9220164c4b2a140bab9",
+    "src/GrandSluggers.Sim.Tests/FlightFixtures.cs": "e98fbc2636f9ca0de212cd867c4a69f0e18f275cc54a5b7abbc39588aebcb86d",
+    "data/parks/crystal-rink.json": "52036c7dc16bb6c3046a0d653e9da6c7f7000ad964421fed4b8c2a77b5581384"
+  },
+  "geometryCodeDerived": {
+    "units": "ft",
+    "baseline": 90,
+    "mound": 60.5,
+    "leftFence": 330,
+    "centerFence": 400,
+    "rightFence": 330,
+    "moundOverBaseline": 0.6722222222222223,
+    "centerFenceOverBaseline": 4.444444444444445,
+    "foulFenceOverBaseline": 3.6666666666666665
+  },
+  "neutralFieldFiveThrowFormula": {
+    "formula": "0.22 + distanceFt / 100",
+    "condition": "SpeedMul=1; excludes CPU decision delay and subsequent uncovered-bag wait",
+    "sampling": "linear over entire formula duration; releaseSec is not a separate stationary phase",
+    "samples": [
+      {
+        "distanceFt": 45,
+        "totalSec": 0.67,
+        "sampledHorizontalFtPerSec": 67.164179
+      },
+      {
+        "distanceFt": 90,
+        "totalSec": 1.12,
+        "sampledHorizontalFtPerSec": 80.357143
+      },
+      {
+        "distanceFt": 127.28,
+        "totalSec": 1.4928,
+        "sampledHorizontalFtPerSec": 85.262594
+      },
+      {
+        "distanceFt": 200,
+        "totalSec": 2.22,
+        "sampledHorizontalFtPerSec": 90.09009
+      },
+      {
+        "distanceFt": 300,
+        "totalSec": 3.22,
+        "sampledHorizontalFtPerSec": 93.167702
+      }
+    ]
+  },
+  "runnerCodeDerived": {
+    "formula": "clamp(3.55 - 0.12 * Run, 2.45, 3.65)",
+    "runFiveBagSec": 2.95,
+    "fullDashSpeedMultiplier": 1.12,
+    "batterStartSec": 0.5,
+    "homeToFirstCaveat": "Actual distance includes handed box start; bagSec + start is not an exact batter arrival."
+  },
+  "trace": {
+    "command": "dotnet run --project src/GrandSluggers.Cli -- match --home rio --away ashlord --park harbor-diamond --seed 7 --trace /tmp/gs693-harbor-seed7.json",
+    "sha256": "8771d57bcf4beb5128bc7949937f5eccd54c41f16837e4d6267635505427e0c8",
+    "home": "rio",
+    "away": "ashlord",
+    "park": "harbor-diamond",
+    "seed": 7,
+    "scheduledInnings": 3,
+    "finishedInning": 5,
+    "finalAway": 6,
+    "finalHome": 3,
+    "plays": 171,
+    "playsWithTicks": 39,
+    "timeUnits": "live-play seconds from each play start, rounded to 6 decimal places",
+    "observationResolutionSec": 0.016666666666666666,
+    "method": "First tick with ball.held; first with ball.throwing; first later tick without ball.throwing; last tick. Flags, not inferred animation markers. Null means no matching flag observed. Summary retains every live play; no selection by outcome.",
+    "limitations": [
+      "Not S-31 or S-29; one CPU game does not establish a target band.",
+      "A throwing flag is not proof of a separate hand-release animation event.",
+      "The trace does not carry every input, difficulty, build, and content fact needed for future calibration.",
+      "No Wii/GameCube timing measurements are represented."
+    ],
+    "livePlays": [
+      {
+        "playIndexZeroBased": 6,
+        "completedKind": "GroundOut",
+        "firstHeldSec": 0.85,
+        "firstThrowFlagSec": 1.083333,
+        "firstThrowEndSec": 1.833333,
+        "lastTickSec": 3.933333
+      },
+      {
+        "playIndexZeroBased": 16,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 2.3,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 2.3
+      },
+      {
+        "playIndexZeroBased": 20,
+        "completedKind": "Foul",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 1.133333
+      },
+      {
+        "playIndexZeroBased": 21,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 4.816667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 4.816667
+      },
+      {
+        "playIndexZeroBased": 28,
+        "completedKind": "Single",
+        "firstHeldSec": 1.966667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 4.75
+      },
+      {
+        "playIndexZeroBased": 33,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.083333,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.083333
+      },
+      {
+        "playIndexZeroBased": 35,
+        "completedKind": "Foul",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 1.9
+      },
+      {
+        "playIndexZeroBased": 36,
+        "completedKind": "Single",
+        "firstHeldSec": 2.733333,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.366667
+      },
+      {
+        "playIndexZeroBased": 37,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 3.3,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 3.3
+      },
+      {
+        "playIndexZeroBased": 38,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.05,
+        "firstThrowFlagSec": 5.283333,
+        "firstThrowEndSec": 6.983333,
+        "lastTickSec": 6.983333
+      },
+      {
+        "playIndexZeroBased": 39,
+        "completedKind": "Single",
+        "firstHeldSec": 3.166667,
+        "firstThrowFlagSec": 3.366667,
+        "firstThrowEndSec": 5.266667,
+        "lastTickSec": 5.866667
+      },
+      {
+        "playIndexZeroBased": 40,
+        "completedKind": "HomeRun",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 4.883333
+      },
+      {
+        "playIndexZeroBased": 42,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 4.816667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 4.816667
+      },
+      {
+        "playIndexZeroBased": 48,
+        "completedKind": "Double",
+        "firstHeldSec": 4.416667,
+        "firstThrowFlagSec": 4.683333,
+        "firstThrowEndSec": 7.233333,
+        "lastTickSec": 7.233333
+      },
+      {
+        "playIndexZeroBased": 57,
+        "completedKind": "GroundOut",
+        "firstHeldSec": 2.033333,
+        "firstThrowFlagSec": 2.316667,
+        "firstThrowEndSec": 2.966667,
+        "lastTickSec": 3.8
+      },
+      {
+        "playIndexZeroBased": 66,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 4.383333,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 4.383333
+      },
+      {
+        "playIndexZeroBased": 67,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.2,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.2
+      },
+      {
+        "playIndexZeroBased": 69,
+        "completedKind": "Single",
+        "firstHeldSec": 2.383333,
+        "firstThrowFlagSec": 2.616667,
+        "firstThrowEndSec": 3.883333,
+        "lastTickSec": 4.933333
+      },
+      {
+        "playIndexZeroBased": 74,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.833333,
+        "firstThrowFlagSec": 6.066667,
+        "firstThrowEndSec": 8.683333,
+        "lastTickSec": 8.683333
+      },
+      {
+        "playIndexZeroBased": 77,
+        "completedKind": "GroundOut",
+        "firstHeldSec": 2.483333,
+        "firstThrowFlagSec": 2.716667,
+        "firstThrowEndSec": 3.916667,
+        "lastTickSec": 3.916667
+      },
+      {
+        "playIndexZeroBased": 80,
+        "completedKind": "Foul",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 2.416667
+      },
+      {
+        "playIndexZeroBased": 81,
+        "completedKind": "Single",
+        "firstHeldSec": 2.966667,
+        "firstThrowFlagSec": 3.233333,
+        "firstThrowEndSec": 4.933333,
+        "lastTickSec": 5.25
+      },
+      {
+        "playIndexZeroBased": 87,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 3.733333,
+        "firstThrowFlagSec": 4.05,
+        "firstThrowEndSec": 5.066667,
+        "lastTickSec": 5.066667
+      },
+      {
+        "playIndexZeroBased": 91,
+        "completedKind": "Foul",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 1.233333
+      },
+      {
+        "playIndexZeroBased": 95,
+        "completedKind": "Double",
+        "firstHeldSec": 6.566667,
+        "firstThrowFlagSec": 6.833333,
+        "firstThrowEndSec": 8.766667,
+        "lastTickSec": 8.766667
+      },
+      {
+        "playIndexZeroBased": 115,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.916667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.916667
+      },
+      {
+        "playIndexZeroBased": 126,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.15,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.15
+      },
+      {
+        "playIndexZeroBased": 128,
+        "completedKind": "GroundOut",
+        "firstHeldSec": 2.116667,
+        "firstThrowFlagSec": 2.483333,
+        "firstThrowEndSec": 3.2,
+        "lastTickSec": 3.2
+      },
+      {
+        "playIndexZeroBased": 130,
+        "completedKind": "Single",
+        "firstHeldSec": 2.566667,
+        "firstThrowFlagSec": 2.883333,
+        "firstThrowEndSec": 4.366667,
+        "lastTickSec": 4.366667
+      },
+      {
+        "playIndexZeroBased": 133,
+        "completedKind": "GroundOut",
+        "firstHeldSec": 1.7,
+        "firstThrowFlagSec": 1.916667,
+        "firstThrowEndSec": 2.383333,
+        "lastTickSec": 2.383333
+      },
+      {
+        "playIndexZeroBased": 134,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 2.05,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 2.05
+      },
+      {
+        "playIndexZeroBased": 136,
+        "completedKind": "HomeRun",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 6.55
+      },
+      {
+        "playIndexZeroBased": 142,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 5.55,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.55
+      },
+      {
+        "playIndexZeroBased": 147,
+        "completedKind": "Single",
+        "firstHeldSec": 2.1,
+        "firstThrowFlagSec": 2.333333,
+        "firstThrowEndSec": 3.6,
+        "lastTickSec": 4.933333
+      },
+      {
+        "playIndexZeroBased": 151,
+        "completedKind": "HomeRun",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 5.9
+      },
+      {
+        "playIndexZeroBased": 160,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 1.066667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 1.066667
+      },
+      {
+        "playIndexZeroBased": 162,
+        "completedKind": "FlyOut",
+        "firstHeldSec": 2.416667,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 2.416667
+      },
+      {
+        "playIndexZeroBased": 163,
+        "completedKind": "Foul",
+        "firstHeldSec": null,
+        "firstThrowFlagSec": null,
+        "firstThrowEndSec": null,
+        "lastTickSec": 2.416667
+      },
+      {
+        "playIndexZeroBased": 164,
+        "completedKind": "Single",
+        "firstHeldSec": 3.0,
+        "firstThrowFlagSec": 3.216667,
+        "firstThrowEndSec": 4.916667,
+        "lastTickSec": 5.083333
+      }
+    ]
+  },
+  "referenceTargets": {
+    "wii": null,
+    "gamecube": null,
+    "harborApproved": null
+  },
+  "validation": {
+    "protocolEntries": 23,
+    "simTestsPassed": 1030,
+    "simTestsFailed": 0,
+    "simTestsSkipped": 0,
+    "humanGate": "pending"
+  },
+  "fixtureObservation": {
+    "method": "Existing FieldingScenarioTests Defense/RunCpu helper with read-only callback; see game-feel-693-reproduce.md",
+    "seed": 1,
+    "firstBaseman": "lace",
+    "shortstop": "ashlord",
+    "tickSec": 0.016666666666666666,
+    "requestedCarryFt": 118,
+    "scope": "Crystal Rink, not Harbor; inverse-solved contact; CPU only",
+    "limitations": [
+      "State flags sampled after each tick, not separate command/release/receiver events",
+      "Runner arrival uses existing predictor; counterfactual for the retired batter",
+      "Margin is descriptive, not an approved acceptance band",
+      "null throwEndSec means no throw; raw helper uses -1 sentinel"
+    ],
+    "rows": [
+      {
+        "batter": "cinder",
+        "run": 5,
+        "park": "crystal-rink",
+        "exitMph": 106.9,
+        "launchDeg": 4,
+        "sprayDeg": -18,
+        "kind": "GroundOut",
+        "possessionSec": 1.0333333333333345,
+        "firstThrowFlagSec": 1.483333333333333,
+        "throwEndSec": 2.8,
+        "runnerArrivalPredictedSec": 3.458348208983784,
+        "marginSec": 0.6583482089837842,
+        "speedMul": 0.94,
+        "scenario": "S31"
+      },
+      {
+        "batter": "dart",
+        "run": 9,
+        "park": "crystal-rink",
+        "exitMph": 106.9,
+        "launchDeg": 4,
+        "sprayDeg": -18,
+        "kind": "Single",
+        "possessionSec": 1.0333333333333345,
+        "firstThrowFlagSec": null,
+        "throwEndSec": null,
+        "runnerArrivalPredictedSec": 2.8495387381992234,
+        "marginSec": null,
+        "speedMul": null,
+        "scenario": "S32"
+      }
+    ]
+  }
+}
