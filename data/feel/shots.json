@@ -49,6 +49,14 @@
       "blend": 0
     },
     {
+      "id": "diamond-line",
+      "look": "ball",
+      "pos": { "x": 0, "y": 63, "z": -63 },
+      "target": { "x": 0, "y": 0, "z": 0 },
+      "fov": 52,
+      "blend": 0
+    },
+    {
       "id": "diamond-grounder",
       "look": "ball",
       "pos": { "x": 42, "y": 6.2, "z": 20 },

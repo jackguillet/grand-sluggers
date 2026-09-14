@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Timed fly / wall catch. CPU dead-stick still uses <see cref="FieldingResolver.Resolve"/>.
 /// Player with the glove owns the jump. Super Jump / Grow / Clamber widen the window,
-/// they do not skip it. Camera: <see cref="PlayCamera.Beat.Fly"/> / Homer / Wall.
+/// they do not skip it. Camera: <see cref="PlayCamera.Beat.Line"/> / Fly / Homer / Wall.
 /// Harbor wall only — no extra parks, no Nintendo mesh.
 /// </summary>
 public static class FlyCatch
