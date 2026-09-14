@@ -280,5 +280,17 @@
         1.11
       ]
     }
+  ],
+  "acceptedDirections": [
+    {
+      "decisionId": "F693-01",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "status": "provisional-visual-lead",
+      "visualLead": "Mario Super Sluggers (Wii)",
+      "mechanicsCrossCheck": "Mario Superstar Baseball (GameCube)",
+      "scope": "Default reference for on-screen readability; existing controls and presentation restrictions preserved. No numerical target, geometry change, or blanket hybrid approved.",
+      "basis": "Jack answered yes to the provisional Wii-led direction after the first comparison packet."
+    }
   ]
 }
