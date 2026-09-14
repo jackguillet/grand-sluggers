@@ -131,7 +131,7 @@
       "fix": "Plan uses the plant for a fly, and for a liner this body can take in the air. A liner still up that this body cannot catch uses Rolling — first reachable point on the roll. Choose among LF/CF/RF at the grass hand-off is that route. Do not re-pick per frame (D16).",
       "promoted": "FieldingPursuitTests.ALinerThatBouncesInTheGapAndRollsToTheWallIsTheOutfielderWhoMeetsTheRoll",
       "issue": "#667",
-      "pr": ""
+      "pr": "#678"
     }
   ]
 }
