@@ -126,6 +126,10 @@ public class FlyCatchTests
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true), "dead-stick does not rob");
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: false), "the CPU leap needs the rob height");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: true), "the CPU leap at the wall is geometric (§8.3)");
+        Assert.True(FlyCatch.AutoCatch(under: true, inWindow: false, needsJump: false, linerInAir: true),
+            "a liner on the glove before the bounce is a catch, not a hang-window plant");
+        Assert.False(FlyCatch.AutoCatch(under: true, inWindow: false, needsJump: false, linerInAir: false),
+            "a fly still needs the window");
 
         var start = Diamond.Positions[pre.Position];
         var hang = Math.Max(0.8, pre.HangTimeSec);
@@ -152,6 +156,39 @@ public class FlyCatchTests
         Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: 18),
             "a fly still up is not a pickup");
         Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: Rules.Default.Fielding.Catch.TouchScoopY));
+    }
+
+    [Fact]
+    public void ALinerOnTheGloveBeforeTheBounceIsACatchTheDirtIsAScoop()
+    {
+        var rio = _content.Must("rio");
+        var liner = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, hang: 1.4, x: -48, z: 150, radius: 14);
+        const double window = 16;
+        var plantX = liner.LandingX;
+        var plantZ = liner.LandingZ;
+        var minY = Rules.Default.Fielding.Catch.InAirMinY;
+        // On the rope, short of the bounce: South / AutoCatch. Not the landing ring.
+        Assert.True(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
+            plantX, plantZ, window, hitT: 0.7, hangSec: liner.HangTimeSec, needsJump: false),
+            "a liner is held on the live ball (§7.6), not only under the bounce");
+        Assert.False(FlyCatch.Under(4, 90, 5, 92, plantX, plantZ, window, needsJump: false),
+            "the plant is the bounce; the intercept is not there");
+        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, liner, inAir: true));
+        Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
+            "a straight-at-you liner is a South catch");
+        // Already bounced: a scoop, never a silent catch.
+        Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
+            plantX, plantZ, window, hitT: liner.HangTimeSec + 0.05, hangSec: liner.HangTimeSec, needsJump: false));
+        Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: minY,
+            plantX, plantZ, window, hitT: 0.7, hangSec: liner.HangTimeSec, needsJump: false),
+            "at or below inAirMinY the hop is a scoop");
+        Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(true, liner, inAir: false));
+        var fly = Routine(rio);
+        Assert.False(FlyCatch.InPosition(fly, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 18,
+            fly.LandingX, fly.LandingZ, window, hitT: 0.4, hangSec: fly.HangTimeSec, needsJump: false),
+            "a fly is still the landing ring, not the live ball");
+        Assert.True(FlyCatch.InPosition(fly, gloveX: fly.LandingX, gloveZ: fly.LandingZ, ballX: 0, ballZ: 40, ballY: 18,
+            fly.LandingX, fly.LandingZ, window, hitT: fly.HangTimeSec - 0.2, hangSec: fly.HangTimeSec, needsJump: false));
     }
 
     [Fact]

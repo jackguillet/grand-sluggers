@@ -393,8 +393,8 @@ Common to all live plays:
 
 ### 7.6 Line drive
 
-- **Fields**: the infielder or outfielder on the line if a route meets the ball above 0.75 ft before the first bounce (catch window ≈ hang − 0.25). Liners are a **jump or dive** verb inside the window; a straight-at-you liner is a South catch.
-- **Caught**: out. Runners who left the bag are **doubled off** if the fielder throws to that bag (or steps on it) before they return (§10.5). Runners at the read step are safe if they return in time — that is the tension.
+- **Fields**: the infielder or outfielder on the line if a route meets the ball above `catch.inAirMinY` (0.75 ft) before the first bounce (catch window ≈ hang − 0.25). Liners are a **jump or dive** verb inside the window; a straight-at-you liner is a South catch.
+- **Caught**: out. The glove on the live ball before the bounce is the catch, not a scoop at the landing ring (#666). Runners who left the bag are **doubled off** if the fielder throws to that bag (or steps on it) before they return (§10.5). Runners at the read step are safe if they return in time — that is the tension.
 - **Not caught**: it skids; the nearest fielder chases the live ball; runners as §7.5.
 - Presentation: `solidFreeze` on the crack; the liner has the short hang so a dive is possible (Super Mega Baseball's rule; ours via the liner's own stretch, `flight.linerTimeScale` 1.0 — ✅ P7). Before P7 every liner was stretched like a fly and the outfield reached four of five of them (S-29 read 0.7 runs a side).
 
@@ -462,7 +462,7 @@ Common to all live plays:
 - **Fly**: catch if the glove is inside the catch radius of the landing (or plant) when the ball is in the window `[hang − 0.48 − extra, hang + 0.14 + extra/2]`. Human presses South in the window; CPU catches automatically at the ball's arrival. Outside the window or radius = drop / falls in. ✅ (`FlyCatch`)
 - Catch radius = 10 + Field × 0.6 (+ ability). A jump adds 8 ft of reach and a window bonus; a dive adds 8 ft along the lunge (10 ft) and only below 7.5 ft ball height. ✅
 - **Roller**: standing on the ball scoops it, no button. ✅ Bobble check on scoop (§8.6).
-- **Liner**: same as fly with the short window.
+- **Liner**: held if the glove is on the live ball above `catch.inAirMinY` (0.75 ft) before the first bounce (§7.6), or inside the catch radius of the landing before hang (the body that ran the plant). A straight-at-you liner is a South catch; jump and dive are the window verbs. A ball that has already touched the dirt is a scoop and a race, never a silent catch. ✅ #666 (`FlyCatch.InPosition`)
 - **CPU catch is geometric**: the glove must be inside the radius at the window. It is **never force-fed at hang because a roll said out**. ✅ P4: the CPU glove takes a fly only by `FlyCatch.AutoCatch` (under the plant, in the window, and at the wall only inside its rob height, §8.4) and a roller only by touching it; a drop is rolled only for a star effect (heatball, phony swing, frozen) on the one seeded stream.
 - **Loose ball**: a fumble, an overthrow, or a lob nobody came for leaves the ball on the ground in nobody's glove; it rolls to a stop (`fielding.overthrow`) and the nearest body chases it. A loose ball is picked up by touching it (`fielding.chase.looseScoopFt`), never by the catch radius.
 
@@ -1079,7 +1079,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-94 | Human on defense, grounder to SS | Dead stick throughout | SS is the play glove from contact; CPU chases and scoops; no throw; batter safe at Time (S-33 restated for the ring) |
 | S-95 | Same | Stick past 0.35 at t = 0.5 | Human owns SS; a dead stick afterwards still chases; South throws |
 | S-96 | Human took 2B on a roller they can reach | Ball reaches the grass before 2B meets it | No hand-off while 2B's route still reaches (or the ball is inside their reach); 2B scoops on the grass |
-| S-97 | Human took SS (Select) on a liner over their head that nobody catches; and, on both seats, a liner SS reaches whose plant is 2 ft past the lip | Ball lands on the grass past them; the stick goes dead. The reachable liner: dead stick throughout | Hand-off to the outfielder by route the first frame the chase runs with SS having no route; SS coasts 0.2 s; nobody teleports. The reachable liner: the ring never leaves SS, SS catches it, FlyOut (#636) |
+| S-97 | Human took SS (Select) on a liner over their head that nobody catches; and, on both seats, a liner SS reaches whose plant is 2 ft past the lip; and a liner on the glove in the air (SS intercept, CF that reaches) | Ball lands on the grass past them; the stick goes dead. The reachable liner: dead stick throughout. The intercept: South on the rope | Hand-off to the outfielder by route the first frame the chase runs with SS having no route; SS coasts 0.2 s; nobody teleports. The reachable liner: the ring never leaves SS, SS catches it, FlyOut (#636). The intercept and the CF rope: FlyOut; a liner that has touched the dirt is a scoop, never FlyOut (#666) |
 | S-98 | Human throws from SS to first | — | Ring on 1B at release; SS stays put; once 1B has the ball the stick steers 1B; Select does nothing while they hold it (today's behavior) |
 | S-99 | Human presses Select with the stick pointing at CF, then again inside 0.7 s | — | First press takes CF; second is ignored (lock); holding the ball, Select does nothing — on the runner play too: the catcher on a steal keeps the ring and the ball and the throw goes to the armed bag; a sailed pickoff's loose ball takes Select under the lock (#637, PR #642) |
 

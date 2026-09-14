@@ -1002,6 +1002,11 @@ public sealed class CatchRules
     public double ClamberRobFt { get; init; } = 28;
     public double BuddyJumpRobFt { get; init; } = 18;
     public double TouchScoopY { get; init; } = 3.2;
+    /// <summary>
+    /// Still in the air for a catch (§7.6): a route that meets the ball above this before the first
+    /// bounce is a catch; at or below it the hop is a scoop. Chase targeting uses the same floor.
+    /// </summary>
+    [Positive] public double InAirMinY { get; init; } = 0.75;
     public double JumpBallY { get; init; } = 2.2;
     public double WallBallY { get; init; } = 4.5;
     public double WindowBeforeSec { get; init; } = 0.48;

@@ -297,6 +297,101 @@ public sealed class ControlScenarioTests
         Assert.Equal(map["SS"].Id, only.Fielder?.Id);
     }
 
+    // #666: a liner is held on the live ball before the bounce (§7.6), not only under the landing ring at hang.
+    [Fact]
+    public void S97_SouthOnALinerAtTheInterceptIsACatchNotAScoop()
+    {
+        var (match, seats) = HumanDefense(true);
+        var hit = FlightFixtures.Hit(match.Park, 88, 10, -18);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Line);
+        Assert.Equal("SS", preview.Position);
+        var start = Diamond.Positions["SS"];
+        var intercept = LinerIntercept(preview, start, match.Rules);
+        var plant = FlyCatch.ChaseTarget(preview, match.Park, match.Rules);
+        Assert.True(Diamond.Dist(intercept.X, intercept.Z, plant.X, plant.Z) > match.Rules.Fielding.Catch.RadiusBaseFt,
+            "the fixture: the intercept is short of the bounce, so a plant-only catch would miss it");
+
+        var onTheBall = false;
+        var play = Run(match, seats, hit,
+            (live, _) =>
+            {
+                if (live.HoldsBall && !live.Throwing) return new LivePadInput(KeysBag: 1, SouthDown: true);
+                return Toward(live, intercept.X, intercept.Z) with { SouthDown = true };
+            },
+            (live, _) =>
+            {
+                if (!live.Active) return;
+                var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, false, false, match.Rules);
+                if (live.ElapsedSeconds < preview.HangTimeSec && live.BallY > match.Rules.Fielding.Catch.InAirMinY
+                    && Diamond.Dist(live.GloveX, live.GloveZ, live.BallX, live.BallZ) < window)
+                    onTheBall = true;
+            });
+
+        Assert.True(onTheBall, "SS met the rope in the air");
+        Assert.NotNull(play);
+        Assert.Equal(PlayKind.FlyOut, play!.Kind);
+        var only = Assert.Single(play.Outcome!.OutsMade);
+        Assert.Equal(OutType.Catch, only.Type);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void S97_ALinerCenterReachesIsFlyOut(bool human)
+    {
+        var (match, seats) = human ? HumanDefense(true) : CpuDefense();
+        var hit = FlightFixtures.Hit(match.Park, 100, 16, 0);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Line);
+        var cfStart = Diamond.Positions["CF"];
+        var cf = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves)["CF"];
+        var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, cfStart.X, cfStart.Z,
+            FieldingResolver.ChaseSpeedFt(cf, "CF", preview, match.Rules), match.Rules,
+            match.Rules.Fielding.Reaction.LockoutSec("CF"));
+        var window = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), false, false, match.Rules);
+        Assert.True(route.MissFt < window, $"the fixture: CF reaches the plant (miss {route.MissFt:0.0} < window {window:0.0})");
+
+        var catcher = "";
+        var play = Run(match, seats, hit, (_, _) => LivePadInput.Dead, (live, _) =>
+        {
+            if (live.Active && catcher == "" && (live.Caught || live.Events.Contains(LiveEvent.Glove)))
+                catcher = live.GlovePos;
+        });
+        Assert.NotNull(play);
+        Assert.Equal(PlayKind.FlyOut, play!.Kind);
+        var only = Assert.Single(play.Outcome!.OutsMade);
+        Assert.Equal(OutType.Catch, only.Type);
+        Assert.Equal(cf.Id, only.Fielder?.Id);
+        if (catcher != "")
+            Assert.True(FieldingResolver.IsOutfield(catcher), $"CF holds it, not {catcher}");
+    }
+
+    [Fact]
+    public void S97_ALinerThatHasTouchedTheDirtIsAScoopNotAFlyOut()
+    {
+        var (match, seats) = CpuDefense();
+        var hit = FlightFixtures.Hit(match.Park, 95, 16, -8);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Line);
+        var start = Diamond.Positions[preview.Position];
+        var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
+        var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, start.X, start.Z,
+            FieldingResolver.ChaseSpeedFt(map[preview.Position], preview.Position, preview, match.Rules), match.Rules,
+            match.Rules.Fielding.Reaction.LockoutSec(preview.Position));
+        Assert.False(route.Reachable, "the fixture: nobody holds it before the bounce");
+
+        var bounced = false;
+        var play = Run(match, seats, hit, (_, _) => LivePadInput.Dead, (live, _) =>
+        {
+            if (live.ElapsedSeconds >= preview.HangTimeSec && !live.Caught) bounced = true;
+        });
+        Assert.True(bounced, "the ball touched the dirt");
+        Assert.NotNull(play);
+        Assert.NotEqual(PlayKind.FlyOut, play!.Kind);
+        Assert.DoesNotContain(play.Outcome!.OutsMade, o => o.Type == OutType.Catch);
+    }
+
     // ---------------------------------------------------------------------------------
     // S-98  The throw from SS to first: the ring is on 1B at release, SS stays put, the stick steers 1B, Select does nothing with the ball
     // ---------------------------------------------------------------------------------
@@ -453,6 +548,26 @@ public sealed class ControlScenarioTests
     }
 
     // ---------------------------------------------------------------------------------
+
+    /// <summary>The flight sample nearest <paramref name="from"/> that is still above the hop — the intercept, not the bounce.</summary>
+    static (double X, double Z) LinerIntercept(FieldingPreview preview, (double X, double Z) from, RulesTable rules)
+    {
+        var minY = rules.Fielding.Catch.InAirMinY;
+        Sample? best = null;
+        var bestD = double.MaxValue;
+        foreach (var sample in preview.Ball!.Samples)
+        {
+            if (sample.Height <= minY) continue;
+            var d = Diamond.Dist(from.X, from.Z, sample.X, sample.Z);
+            if (d < bestD)
+            {
+                bestD = d;
+                best = sample;
+            }
+        }
+        Assert.NotNull(best);
+        return (best.Value.X, best.Value.Z);
+    }
 
     static bool Near(double t, double at) => Math.Abs(t - at) < Frame / 2;
 
