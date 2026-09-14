@@ -37,13 +37,13 @@ What was still a prototype skin: portraits in `Resources/Art`, bodies as capsule
 | Materials | `data/art/materials.json` | `Assets/Art/Materials/{id}` | `Look.Toon` / `ToonFill` |
 | Park kits | `data/art/parks.json` | `Assets/Art/Parks/{id}` | `harbor-kit.fbx` bind; else `HarborKit` primitive dress; `ParkView` elsewhere |
 
-Role players inherit the faction body type and **must not** grow captain extras (crown, horns, snout). That is how 18 bodies stay cheap.
+Role players inherit the faction body type. **No skin lists extras** until they read as toys (#687). Catalog slots stay. That is how 18 bodies stay cheap.
 
 ## Drop rules (when art is ready)
 
-1. **One rig, one body.** Bone **names** stay in `data/art/rig.json`. Every captain is `hero-shared` plus extras; unique packages are [deferred](character-package.md). Contract: [character-motion.md](character-motion.md).
+1. **One rig, one body.** Bone **names** stay in `data/art/rig.json`. Every captain is `hero-shared` (palette + `Silhouette.Proportions`); unique packages are [deferred](character-package.md). Contract: [character-motion.md](character-motion.md).
 2. **One take file per catalog id, per hand.** `tools/blender/hero_shared_takes.py` bakes `swing.fbx` and `swing-L.fbx` from one pose table. Markers on the clip: `Contact`, `Release`, `FootPlant` — the same seconds the sim uses.
-3. **Captains are data.** Palette, extras from `data/art/extras.json`, portrait, `Silhouette.Proportions`. No per-captain code.
+3. **Captains are data.** Palette, portrait, `Silhouette.Proportions`. `extras.json` slots stay; skins list none until extras read as toys (#687). No per-captain code.
 4. **Parks are kits**, not new `ParkView` methods. Harbor is the template (`placed: true`). Other parks wait until Exhibition is the reason people stay (#37).
 5. **Original tones / original pictures.** No Nintendo samples, no Mario meshes.
 6. **Missing files are placeholders, not crashes.** A missing take holds idle, a missing body is a capsule, audio stays a generated tone, VFX stays code — and `cli art` says so.
