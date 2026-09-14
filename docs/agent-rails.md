@@ -136,6 +136,8 @@ Deny-list (never enable as a baseball rail):
 - `/new-unity-project`, `/implement-in-app-purchases`, `/setup-multiplayer-services`, `/build-live-game`
 - Any skill that would decide an out, a safe, or a throw in PhysX or NavMesh
 
+Before launching editors, load [editor-startup.md](editor-startup.md): Blender requires Metal access even in background mode; .NET outputs stay outside the Unity local package. Quit owned validation editors normally; never routinely kill them or discard scene recovery backups.
+
 Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc gate. `python3 tools/local-player.py` stays Jack's window. Do not poll or restart while he is playing.
 
 ---

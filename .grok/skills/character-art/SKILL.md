@@ -13,6 +13,10 @@ Do not add a bone, a second rig, a procedural pose in C#, a runtime mirror, a ca
 
 **One-shotting a captain extra or a Harbor kit mesh is banned.** Walk the stages. The next prompt names the stage it continues.
 
+## Process startup
+
+Use `tools/blender-run.sh` (also used by `tools/dcc-still.sh`). On macOS, the agent sandbox can return no Metal devices and Blender can crash before Python starts. Run with approved GPU access outside the sandbox; a failed preflight means stop and change execution permissions, not retry. Preserve the user's existing Blender window. See `docs/editor-startup.md`.
+
 ## Stages
 
 Art sessions walk named checkpoints. Save after each (the script edit + the still). Do not jump to export or still to "just make the still pass."
