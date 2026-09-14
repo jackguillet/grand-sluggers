@@ -112,6 +112,7 @@ public class HowToPlayTests
         Assert.Contains("receiver", you.Label);
         var error = HudCallouts.InPlay.Marks.First(m => m.Id == "error");
         Assert.Contains(PlayStamp.Error, error.Label);
+        Assert.Equal(BroadcastHud.StampDirt, error.Anchor);
         Assert.Equal(BroadcastHud.YouTell, you.Anchor);
     }
 
