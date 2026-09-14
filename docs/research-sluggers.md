@@ -6,6 +6,10 @@ This doc is a systems teardown so Grand Sluggers can steal the *shape* of the ga
 
 Sources: Super Mario Wiki (game, Chemistry, Star Skill, stadium pages), instruction booklet summaries, contemporary and retrospective reviews.
 
+## Scale and pace provenance (#693)
+
+For field dimensions, body proportions, flight, throws, and runner timing, read [the #693 research](research-game-feel-693.md) and [decision register](plan-game-feel-693.md). The teardown below combines Wii booklet behavior and GameCube community research; those are different evidence sources. Its raw exit/throw values are not Harbor mph, and GameCube numbers are not measured Wii numbers. The community sources retain unresolved units, formulas, and estimated frame ranges. Jack's current direction is to compare both games before choosing a numeric reference. New scale/pace targets require explicit provenance and whole-race validation under gameplay-spec D19.
+
 ## What made it feel like itself
 
 Five systems stacked on top of ordinary baseball:

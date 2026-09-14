@@ -58,6 +58,16 @@ The reference teardown ([research-sluggers.md](research-sluggers.md), "Mechanics
 
 ---
 
+### 0.2 Field proportions and race calibration — D19 (#693)
+
+**Research gate; target numbers pending.** Before changing field dimensions, ordinary throw/exit speeds, flight time scales, runner clocks, or catch/pursuit distances to match Sluggers, load [the #693 research](research-game-feel-693.md) and [decision plan](plan-game-feel-693.md). Jack's direction is to compare **Wii and GameCube before choosing**. Identify each value as primary documented, community reported, Harbor measured/code-derived, proposed, or unresolved. GameCube raw engine values are not Wii measurements or Harbor mph.
+
+Calibration must name the whole race: contact → reachable possession → player command → release → reception/coverage → runner arrival or tag. Read and pursuit overlap with ball flight. One sim model supplies both displayed positions and judgments. Record dimensionless field/body ratios separately from shot-dependent projected proportions. A park-only shrink, camera-only slowdown, runner slowdown to rescue one out, or one-seed retune does not satisfy this rule.
+
+Preserve D1–D18, including D7's pitch-pace hold, until a numbered decision explicitly supersedes them. S-31/32/33, the double-play/relay/tag/sac-fly families, fixed-input trajectories, and the scoring cohorts must be assessed together. S-29 currently has an explicit discrepancy: its headline says 2–5, while the test and #667 note permit 1.8–5; resolve F693-06 before calibration rather than silently changing the band. Jack accepts target relationships and the standalone race; agents do not pass #693 or its linked human gates.
+
+This section adds a decision/evidence rail, **not** new gameplay coefficients. The current-code baseline and unimplemented measurement work are listed in the plan.
+
 ## 1. Match rules
 
 | Rule | Spec | Status |

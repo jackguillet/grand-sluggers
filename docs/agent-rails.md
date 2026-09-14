@@ -91,6 +91,14 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 ---
 
+### 2.1 Scale and pace decisions (#693)
+
+Before a session changes gameplay distances or clocks, read [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693), [the reference research](research-game-feel-693.md), and [the decision register](plan-game-feel-693.md). Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
+
+Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the measurement extensions in the plan are **pending**, not a shipped validator. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
+
+Gameplay, presentation, and art implementation stay separate and serial for shared feel. Coordinate #558 takes, #691 body scaling, and the book/stamp owners. A research PR may establish evidence and procedure; it cannot claim that a math check, test suite, or rebuilt player passes the human race/look gate.
+
 ## 3. Play traces (see baseball without Unity)
 
 ✅ **R3 #650 / #657.** Cousin: S-90 (same seed + commands → identical `PlayEvent` stream), S-01…S-92, `cli match --seed 7`, S-29 over fifty seeds.
