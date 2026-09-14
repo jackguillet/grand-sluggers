@@ -26,6 +26,8 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **State:** open; Jack decides. Compare stock Wii Mario Stadium and stock GameCube Mario Stadium, recording mode, hands, stats, chemistry, stars, and capture cadence. Numerical coverage in a wiki is not sufficient to choose the game's feel. Deliver the comparable play clips and event intervals before recommending Wii-led, GameCube-led, or a named hybrid.
 
+**First observation packet:** [Wii / GameCube comparison](research-game-feel-701-comparison.md), with a [source and event dataset](research/game-feel-701-observations.json). One Wii direct grounder out and one GameCube force/return attempt support a provisional **visual-lead** discussion; they are not a matched stock-calibration sample. The recommendation to use Wii for on-screen readability and GameCube as a mechanics cross-check awaits Jack. It selects no dimensions or coefficients, and does not complete this row or #701.
+
 **Acceptance:** each selected relationship identifies its game and source; deliberate Harbor deviations have reasons and a named human decision. Existing D1–D18 are either preserved or explicitly superseded one by one.
 
 ### F693-02 — Playable geometry versus visible proportions

@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "issue": 701,
+  "parentIssue": 693,
+  "status": "exploratory-observations-not-calibration",
+  "observedOn": "2026-09-14",
+  "foundationRevision": "67dac68d52ff4d1fd20e26a977089c8a274e5441",
+  "units": "recording seconds",
+  "method": "Browser video UI seek and frame step; inspect settled images and read DOM media currentTime. Rounded outward to 0.01 second; bounds are observation brackets, not statistical confidence intervals. No video download, hidden input inference, engine-frame claim, or gameplay target.",
+  "sources": [
+    {
+      "id": "wii-t4p-2016",
+      "title": "Mario Super Sluggers - Exhibition Mode - Mario Stadium",
+      "uploader": "Typhlosion4President",
+      "published": "2016-08-27",
+      "url": "https://www.youtube.com/watch?v=3-5aQh-fxZk",
+      "game": "Mario Super Sluggers (Wii)",
+      "park": "Mario Stadium, daytime",
+      "observedPlaybackRate": 1,
+      "observedMediaStepSeconds": 0.033333,
+      "apparentGameAspectRatio": "16:9",
+      "uniqueSimulationFramesPerSecond": null,
+      "hardwareRegionRevisionModsAndRecordedSpeed": "unknown",
+      "controlMode": "Wii Remote gesture prompt visible; exact controller combination unknown",
+      "difficultyStatsSuperstarAndChemistry": "unknown",
+      "eligibility": "qualitative comparison and explicitly labeled recording-time observation only; excluded from verified stock timing calibration"
+    },
+    {
+      "id": "gc-stp-2015",
+      "title": "Mario Superstar Baseball - Mario Stadium",
+      "uploader": "Sage & Tsuko Play",
+      "published": "2015-10-13",
+      "url": "https://www.youtube.com/watch?v=fdtUfRUjyAY",
+      "game": "Mario Superstar Baseball (GameCube)",
+      "park": "Mario Stadium",
+      "modeFromDescription": "Peach Monarchs vs Wario Garlics, five-inning Exhibition",
+      "observedPlaybackRate": 1,
+      "observedMediaStepSeconds": [
+        0.016667,
+        0.033333
+      ],
+      "apparentGameAspectRatio": "4:3 inside a wider uploaded frame",
+      "uniqueSimulationFramesPerSecond": null,
+      "hardwareRegionRevisionModsAndRecordedSpeed": "unknown",
+      "controlMode": "P1 Peach team versus CPU Wario team; input events unavailable",
+      "difficultyStatsSuperstarAndChemistry": "unknown; star meters and chemistry indicators visible",
+      "eligibility": "qualitative comparison and explicitly labeled recording-time observation only; excluded from verified stock timing calibration",
+      "mediaStepCaution": "Step increments changed during inspection, consistent with adaptive media cadence. All timestamps read from the DOM media clock; no step-count-to-engine-frame conversion."
+    }
+  ],
+  "plays": [
+    {
+      "id": "wii-grounder-01",
+      "sourceId": "wii-t4p-2016",
+      "clipStartSeconds": 57,
+      "clipEndSeconds": 67,
+      "classification": "low infield hit to shortstop, throw to first, non-inning-ending out",
+      "state": "top first, bases empty, zero outs before play",
+      "participants": "CPU green Toad bats; P1 Mario pitches, Boo fields at shortstop, green Paratroopa receives at first",
+      "events": [
+        {
+          "id": "contact",
+          "bounds": [
+            58.23,
+            58.5
+          ],
+          "evidence": "Pitch approaching at 58.233240; blue contact flash and runner indicator at 58.499906."
+        },
+        {
+          "id": "possession",
+          "bounds": [
+            60.03,
+            60.54
+          ],
+          "evidence": "Low ball still approaching Boo at 60.033; possession/Throw prompt at 60.533."
+        },
+        {
+          "id": "release",
+          "bounds": [
+            61.09,
+            61.2
+          ],
+          "evidence": "Boo still holding at 61.099949; ball separated with short blue trail at 61.199949."
+        },
+        {
+          "id": "reception-result",
+          "bounds": [
+            62.19,
+            62.3
+          ],
+          "evidence": "Ball approaching glove at 62.199948; receiving P1 marker and emerging OUT at 62.299947. The visual bracket does not separate the hidden catch event from result recognition."
+        },
+        {
+          "id": "next-ready",
+          "bounds": [
+            65.53,
+            66.04
+          ],
+          "evidence": "Black transition at 65.533252; Daisy at bat, Mario ready and Pull up/Time prompts at 66.033249. Visual readiness is not a verified input-unlock event."
+        }
+      ],
+      "unobservedEvents": [
+        "input-command",
+        "authored-windup-onset",
+        "exact-runner-departure",
+        "exact-runner-bag-contact"
+      ],
+      "cautions": [
+        "Possession-to-release contains player choice and cannot be labeled animation latency.",
+        "No obvious special throw activation; unknown stats and passive abilities prevent a neutral-arm claim.",
+        "This single out does not establish routine-out probability or the target runner margin."
+      ]
+    },
+    {
+      "id": "gc-force-return-01",
+      "sourceId": "gc-stp-2015",
+      "clipStartSeconds": 190,
+      "clipEndSeconds": 199,
+      "classification": "grounder, force at second, attempted double-play return, safe at first, run scores",
+      "state": "bottom first, zero outs, runners at first and third before contact; Peach team leads 3-0",
+      "participants": "P1 Luigi bats left-handed; CPU Wario pitches, Koopa fields near shortstop, Donkey Kong receives at second and throws to Waluigi at first; Daisy forced out, Peach scores",
+      "events": [
+        {
+          "id": "contact",
+          "bounds": [
+            190.49,
+            191.0
+          ],
+          "evidence": "Pitch approaching at 190.499949; Luigi swing follow-through and departing ball trail at 190.999949."
+        },
+        {
+          "id": "second-base-reception-result",
+          "bounds": [
+            192.49,
+            193.0
+          ],
+          "evidence": "Koopa possesses/feeds toward Donkey Kong at 192.499975; second-base receiving pose and OUT by 192.999970. Feed release is not separately bounded."
+        },
+        {
+          "id": "return-release",
+          "bounds": [
+            193.19,
+            193.6
+          ],
+          "evidence": "Donkey Kong still gathers at 193.199968; throw motion at 193.499967; clearly separated ball at 193.599966."
+        },
+        {
+          "id": "first-base-safe",
+          "bounds": [
+            193.99,
+            194.2
+          ],
+          "evidence": "Ball approaching and no SAFE at 193.999965; emerging SAFE at 194.199965. This event is runner/result recognition, not ball reception."
+        },
+        {
+          "id": "first-base-reception",
+          "bounds": [
+            193.99,
+            194.3
+          ],
+          "evidence": "Ball still approaching at 193.999965; receiving follow-through at 194.299965. Conservative visual bound; no hidden possession state available."
+        }
+      ],
+      "unobservedEvents": [
+        "input-command",
+        "exact-pickup",
+        "first-feed-release",
+        "exact-runner-departure",
+        "exact-runner-bag-contact",
+        "next-input-unlock"
+      ],
+      "cautions": [
+        "Different distance, arm, batter, hand, ownership and baserunner situation from the Wii case; not a matched timing comparison.",
+        "CPU gather/transfer time cannot be equated with a human input delay or pure animation duration.",
+        "Run-scoring and ongoing return throw make the second-base OUT unsuitable as the beginning of a dead-ball reset interval.",
+        "SAFE must not substitute for reception."
+      ]
+    }
+  ],
+  "screening": [
+    {
+      "sourceId": "gc-stp-2015",
+      "seconds": [
+        73.5,
+        77.5
+      ],
+      "observation": "Toad hit reaches deep center, bounces before Boo possession. At 77.5 Boo holds the ball and the runner is at first.",
+      "use": "outfield shape example; not a counterpart to a shortstop grounder"
+    },
+    {
+      "sourceId": "gc-stp-2015",
+      "seconds": [
+        82.5,
+        90
+      ],
+      "observation": "Toadette batting at 82.5; ball on low bounces between Boo and Magikoopa at 87.5 and 88.5, Boo near wall at 90.",
+      "use": "separate deep-hit class; not an ordinary infield race"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=_4s4TDm_n_o",
+      "seconds": [
+        180,
+        360
+      ],
+      "observation": "Opening cinematic at 180; flower-decorated park at 360.",
+      "use": "inspected samples excluded from ordinary Mario Stadium set"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=oPw0jyBEBdI",
+      "seconds": [
+        180,
+        240
+      ],
+      "observation": "Wario Palace selection screen at 180; Mario Stadium introduction at 240.",
+      "use": "backup lead; selected park is not evidence of the park subsequently played"
+    },
+    {
+      "sourceId": "gc-stp-2015",
+      "seconds": [
+        169.999976,
+        174.999976
+      ],
+      "observation": "REPLAY label visible in both inspected samples.",
+      "use": "excluded from live event timing"
+    }
+  ],
+  "acceptedTargets": [],
+  "remaining": [
+    "Matched ordinary infield examples across both titles; this packet has one direct out and one force/return scoring play",
+    "Verified recorded speed and configuration",
+    "Weak/middle/strong throw and slow/middle/fast run strata",
+    "Long throws and received-ball transfers",
+    "Contact-class and exceptional-play coverage",
+    "Ground-plane and projected proportions",
+    "Jack's reference and geometry decisions"
+  ],
+  "derivedIntervals": [
+    {
+      "playId": "wii-grounder-01",
+      "fromEvent": "contact",
+      "toEvent": "possession",
+      "bounds": [
+        1.53,
+        2.31
+      ]
+    },
+    {
+      "playId": "wii-grounder-01",
+      "fromEvent": "release",
+      "toEvent": "reception-result",
+      "bounds": [
+        0.99,
+        1.21
+      ]
+    },
+    {
+      "playId": "wii-grounder-01",
+      "fromEvent": "reception-result",
+      "toEvent": "next-ready",
+      "bounds": [
+        3.23,
+        3.85
+      ]
+    },
+    {
+      "playId": "wii-grounder-01",
+      "fromEvent": "contact",
+      "toEvent": "next-ready",
+      "bounds": [
+        7.03,
+        7.81
+      ]
+    },
+    {
+      "playId": "gc-force-return-01",
+      "fromEvent": "return-release",
+      "toEvent": "first-base-reception",
+      "bounds": [
+        0.39,
+        1.11
+      ]
+    }
+  ]
+}

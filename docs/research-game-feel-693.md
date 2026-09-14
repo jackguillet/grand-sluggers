@@ -28,6 +28,8 @@ The source register in §10 distinguishes the two games. The existing [reference
 
 No matched frame-count dataset for the Wii and GameCube games has yet been produced for #693. The Wii video in §10 was visually inspected at approximately 01:00, where a close infield view shows the player-controlled fielder, ball, dirt, and bags. That is qualitative framing evidence, not a world-space or timing calibration. The GameCube longplay is a candidate source; its introductory/cinematic material is excluded from measurement. Neither a video seek bar nor a single screenshot supplies simulation frames.
 
+The follow-on [#701 observation packet](research-game-feel-701-comparison.md) adds explicitly bounded recording-time observations from Wii and GameCube Mario Stadium plays. It preserves unknown capture configuration, distinguishes a direct out from a force/return scoring play, and remains outside the verified stock-calibration set. It does not supersede the sampling or evidence rules below.
+
 ## 2. Comparing the references
 
 ### Nintendo Wii: Mario Super Sluggers
