@@ -91,7 +91,7 @@
       "fix": "changeupMph is 0.80× the meat (68.8). hangRate keeps Y at or above the fastball until hangUntil; dumpRate is the rest of the drop to changeupDropFt and finishes in flight. HUD-off test: air time, crossing Y, hang then dump (not a fade). CHANGE stays a card, not the product tell.",
       "promoted": "PitchTests.ChangeupNamesItselfWithoutTheCard",
       "issue": "#668",
-      "pr": ""
+      "pr": "#672"
     }
   ]
 }
