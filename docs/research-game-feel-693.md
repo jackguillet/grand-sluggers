@@ -127,6 +127,8 @@ GameCube's community research separates arm power, situational throw type, chemi
 
 The Wii booklet documents relays and high-speed buddy tosses, but does not establish release or deceleration coefficients. [^1] Preserve distinct ordinary/boosted/relay observations for both games. A highlight featuring a special throw cannot set ordinary throw speed.
 
+Jack's F693-03 direction, accepted September 14, 2026, is **quick release and readable travel**, qualified by “but not too quick” and a requirement for the throw to visibly register. The Wii/GameCube comparison must establish a readable ordinary transfer/release and follow-through as well as travel time. This is not permission to use an instant launch, adopt a special Quick Throw frame count, or approve a duration without the comparison.
+
 ### Harbor's runners
 
 `RunnerSystem.BagSec` is `clamp(3.55 − 0.12 × Run, 2.45, 3.65)`. Bag-to-bag time without dash is **3.43 s at Run 1**, **2.95 s at Run 5**, and **2.45 s at Run 10**. Full dash multiplies speed by **1.12**, making the Run-5 bag interval approximately **2.634 s**. The batter has a **0.5-second** start delay. Actual home-to-first time includes the handed batter's box position and path; `0.5 + 2.95` is only a 90-ft reference calculation.
