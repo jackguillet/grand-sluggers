@@ -59,7 +59,7 @@ The next numerical packet must compare the unchanged control with coherent compa
 
 Track extra-base opportunities, relays, and home-run frequency separately from S-29's scoring mean using a declared Harbor cohort and held-out seeds. No reference home-run frequency or statistical target has been established. The accepted compact/deep-hit direction does not relax reliable routine infield defense, hard-liner positioning, visible throws, or the scoring guardrail. Exact dimensions and Jack's standalone acceptance remain open.
 
-The next one-at-a-time decision is [pursuit consistency](research-game-feel-701-movement.md): whether the same character should retain an ordinary movement profile across hit classes and fielding positions. The audit documents existing modifiers and their scoring lineage; the recommendation remains pending.
+Jack subsequently accepted [pursuit consistency](research-game-feel-701-movement.md): the same character retains one ordinary pursuit movement profile across hit classes and assigned fielding positions, with explicit dash/ability/status modifiers and separate baserunning tuning. The audit preserves existing modifiers and their scoring lineage. Numerical profiles and coordinated implementation remain pending.
 
 ## Validation
 

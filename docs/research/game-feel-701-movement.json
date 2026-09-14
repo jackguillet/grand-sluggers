@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "issue": 701,
   "parentIssue": 693,
-  "status": "code-audit-and-pending-design-decision",
+  "status": "code-audit-and-accepted-design-direction",
   "auditedOn": "2026-09-14",
   "auditedRevision": "dc86fb94b63915dd0b70b16eee0f5a050f8cf6ba",
   "sourceSha256": {
@@ -76,17 +76,22 @@
       "supports": "Baserunning has separately described acceleration, stamina, and dash. Inconsistent prose/equations preclude importing full formula."
     }
   ],
-  "pendingDecision": {
-    "id": "F693-02-pursuit-consistency",
-    "status": "awaiting-Jack",
-    "recommended": "One ordinary pursuit movement profile per character, independent of hit class or assigned fielding position, retaining explicit dash/status/ability modifiers",
-    "alternative": "Retain hit-class/position movement modifiers as deliberate calibration tools",
-    "scope": "Pursuit movement contract only. Does not equate baserunning with fielding or select speed, acceleration, reaction delay, reach, or dimensions.",
-    "existingSpecAffected": [
-      "8.1 outfieldAirMul and infieldAirMul",
-      "8.2 historical scoring calibration"
-    ],
-    "implementationGate": "If accepted, replace modifiers only within a coherent compact geometry/flight/pursuit profile with gameplay validation; do not set both to 1 on current geometry."
-  },
-  "acceptedTargets": []
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-pursuit-consistency",
+      "status": "accepted-design-intent",
+      "scope": "Pursuit movement contract only. Does not equate baserunning with fielding or select speed, acceleration, reaction delay, reach, or dimensions.",
+      "existingSpecAffected": [
+        "8.1 outfieldAirMul and infieldAirMul",
+        "8.2 historical scoring calibration"
+      ],
+      "implementationGate": "Replace modifiers only within a coherent compact geometry/flight/pursuit profile with gameplay validation; do not set both to 1 on current geometry.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "One ordinary pursuit movement profile per character, independent of hit class or assigned fielding position, retaining explicit dash/status/ability modifiers",
+      "alternativeConsideredNotSelected": "Retain hit-class/position movement modifiers as deliberate calibration tools",
+      "basis": "Jack answered yes to the consistent ordinary movement direction after the movement audit and tradeoff review."
+    }
+  ]
 }
