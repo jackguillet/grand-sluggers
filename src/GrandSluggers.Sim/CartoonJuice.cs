@@ -34,7 +34,7 @@ public static class CartoonJuice
     /// <summary>Limb stride follows feet. Waiting under a fly is standing.</summary>
     public static bool StandingStill(double speedFtPerSec) => speedFtPerSec <= WalkFtPerSec;
 
-    /// <summary>Gold/purple laser vs muddy. RGB 0–1.</summary>
+    /// <summary>Gold/purple ball trail vs muddy. RGB 0–1. Not a destination line.</summary>
     public static (double R, double G, double B) ThrowRgb(Chemistry rel) => rel switch
     {
         Chemistry.Good => (0.82, 0.42, 0.95),
