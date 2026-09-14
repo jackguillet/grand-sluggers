@@ -181,7 +181,7 @@
       "fix": "TitleShowsCaptain is false. Title is wordmark + dirt + UI. No featured hero. Captains wait for select. Do not pose cheer in C#; do not shrink the body to hide the X.",
       "promoted": "CarnivalFrontTests.TitleShowsNoCaptain",
       "issue": "#685",
-      "pr": ""
+      "pr": "#694"
     },
     {
       "id": "protocol-promotion-assumes-csharp",
