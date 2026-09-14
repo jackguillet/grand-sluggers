@@ -39,7 +39,7 @@ public static class FieldingPursuit
         var hang = BallFlight.HangTime(path, r);
         var live = BallFlight.PointAt(path, nowSec, r);
         var startSec = Math.Max(nowSec, readySec);
-        if (FieldingResolver.InAir(preview, live.Y, nowSec, hang))
+        if (FieldingResolver.InAir(preview, live.Y, nowSec, hang, r))
         {
             var plant = FlyCatch.ChaseTarget(preview, park, r);
             return Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
