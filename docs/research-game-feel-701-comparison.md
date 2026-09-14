@@ -6,7 +6,7 @@ Research child [#701](https://github.com/jackguillet/grand-sluggers/issues/701) 
 
 Both inspected games make possession, a throw, and the receiving play legible as separate actions. The first Wii example is a direct grounder-to-first out; the GameCube example is a grounder with a force at second and an unsuccessful second throw to first. These are useful side-by-side examples of action vocabulary. They are **not matched experiments** from which to declare one game faster, more forgiving, or correctly scaled.
 
-Jack accepted the packet's **provisional visual-lead recommendation** on September 14, 2026: Wii for on-screen readability, GameCube as a mechanics cross-check. It does not complete #701 or supply the full numerical contract required by F693-01/02. The [decision register](plan-game-feel-693.md) retains the five earlier accepted directions and this provisional visual lead; numerical reference selection and playable geometry remain open. The [annotation dataset](research/game-feel-701-observations.json) preserves event brackets, source identities, exclusions, and explicit unknowns.
+Jack accepted the packet's **provisional visual-lead recommendation** on September 14, 2026: Wii for on-screen readability, GameCube as a mechanics cross-check. It does not complete #701 or supply the full numerical contract required by F693-01/02. The [decision register](plan-game-feel-693.md) retains the five earlier accepted directions and this provisional visual lead; numerical reference selection and exact playable geometry remain open. The [annotation dataset](research/game-feel-701-observations.json) preserves event brackets, source identities, exclusions, and explicit unknowns.
 
 ## Watch these two plays
 
@@ -39,7 +39,7 @@ All seconds above are **recording time**. Browser playback rate was 1, but the o
 
 The alternative is to make GameCube the visual lead and use its inspected throw/result treatment as the starting reference. An explicit hybrid remains possible, but each borrowed relationship must name its source; averaging unrelated timings would leave no coherent reference to test.
 
-The accepted **visual lead** sets the default reference for readability reviews. It approves no Nintendo dimensions, release seconds, throw curves, runner speeds, or blanket cross-game hybrid. Those parts of F693-01 and F693-02 still require the broader measurement packet and subsequent human decisions. The next decision concerns which playable dimensions may change to achieve the intended proportions.
+The accepted **visual lead** sets the default reference for readability reviews. It approves no Nintendo dimensions, release seconds, throw curves, runner speeds, or blanket cross-game hybrid. Those parts of F693-01 and F693-02 still require the broader measurement packet and subsequent human decisions. Jack subsequently accepted under F693-02 that both infield and outfield dimensions may change independently. Exact dimensions and a coherent race budget are the next geometry review; flexibility does not require a shrink.
 
 The Wii recording's black transition is descriptive evidence, not a proposal to add one. The project's existing restriction on full-screen interruptions remains in force; an approved result beat must use the project's presentation rules.
 
