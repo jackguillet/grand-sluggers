@@ -68,6 +68,8 @@ Preserve D1–D18, including D7's pitch-pace hold, until a numbered decision exp
 
 Under F693-05, Jack accepted **reliable routine defense** on September 14, 2026: a clean ordinary grounder against an average runner and ordinary arm should normally become an out after reasonably prompt correct execution, with a readable margin. Fast runners, deep pickups, weak arms, bobbles, and hesitation create the tight races. This is calibration intent, never an automatic out or a permission to slow runners to rescue a fixture. Numeric opportunity/margin bounds and human validation remain pending.
 
+Under F693-03, Jack accepted **quick release and readable travel, with a visibly registering transfer/release** on September 14, 2026. Quick does not mean instant: possession, transfer, release, and follow-through must remain recognizable at ordinary gameplay speed and couch distance. Compare ordinary Wii and GameCube throws to set the timing; special quick-transfer or boosted throws cannot define the ordinary baseline. No release duration, travel interval, curve, or reference winner is approved yet.
+
 This section adds a decision/evidence rail, **not** new gameplay coefficients. The current-code baseline and unimplemented measurement work are listed in the plan.
 
 ## 1. Match rules

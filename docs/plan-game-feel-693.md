@@ -36,9 +36,11 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-03 — Ordinary throw shape and transfer
 
-**State:** unresolved. Harbor's `releaseSec` is part of a linearly sampled total duration, not a stationary release segment. Compare real transfer, flight, deceleration, and reception. Ordinary, chemistry, ability, lob, and relay behavior need separate observations.
+**State:** design intent accepted by Jack on September 14, 2026: **quick release and readable travel, with enough transfer/release motion for the throw to visibly register**. Jack's qualification is explicit: “but not too quick … let's refer to mario for this.” Responsiveness must preserve recognizable possession, transfer, release, and follow-through rather than imply an instant launch.
 
-**Acceptance:** one sim model samples and predicts the same throw; tests distinguish command/release/reception; third/home tags and uncovered bags remain live geometry. #558 owns authored takes; it must coordinate any marker change after the sim event is decided.
+**Still pending:** compare ordinary throws in Wii Super Sluggers and GameCube Superstar Baseball before choosing transfer/release durations, travel intervals, or motion curves. Include short infield throws, long outfield throws, and ground-ball pickup versus received-ball transfer. Keep chemistry, abilities, lobs, and relays separate. This direction selects neither game as the numerical reference and approves no new coefficient. Harbor's current `releaseSec` is part of a linearly sampled total duration, not a stationary release segment.
+
+**Acceptance:** at ordinary gameplay speed and couch distance, the transfer/release visibly registers and ball travel can be followed, assessed against the annotated Mario comparison. One sim model samples and predicts the same throw; tests distinguish command/release/reception; third/home tags and uncovered bags remain live geometry. #558 owns authored takes; it must coordinate any marker change after the sim event is decided.
 
 ### F693-04 — Contact-class motion
 
