@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- Sim is also a Unity local package: generated C# and DLLs must stay outside src/. -->
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory).artifacts</ArtifactsPath>
+    <!-- Keep legacy outputs excluded until an existing checkout has been cleaned. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

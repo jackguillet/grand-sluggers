@@ -5,7 +5,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 drop="$root/scratchpad/stills"
 takes="$root/scratchpad/takes"
-B="${BLENDER:-/opt/homebrew/bin/blender}"
+B="$root/tools/blender-run.sh"
 kind=""
 clip="swing"
 print_only=0
@@ -46,7 +46,7 @@ if [[ $print_only -eq 1 ]]; then
 fi
 
 if [[ ! -x "$B" ]]; then
-  echo "Blender not found at $B. Set BLENDER or install /opt/homebrew/bin/blender."
+  echo "Blender not found at $B. Restore tools/blender-run.sh; set BLENDER to override its Blender executable."
   echo "Then re-run this script so $drop/$named exists before the in-game pair."
   exit 1
 fi
