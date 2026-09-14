@@ -201,7 +201,7 @@
       "fix": "HarborKitPaint.For(slot, material). Chalk meshes (bag, home-plate) paint chalk, navy piping stays navy. Unknown names never fall through to wood/dirt. PrimitiveBag is chalk. Do not shrink the bag.",
       "promoted": "HarborKitPaintTests.ChalkMeshesPaintChalkNotDirtOrWood",
       "issue": "#683",
-      "pr": ""
+      "pr": "#697"
     }
   ]
 }
