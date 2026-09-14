@@ -121,7 +121,7 @@
       "fix": "Beat.Line is diamond-line: same 45° family, between diamond and diamond-fly, blend 0. Never diamond-grounder. Tune the shot; do not caption the class; do not fork 1P vs 2P.",
       "promoted": "PlayCameraTests.ALinerAndAHopperDoNotShareAShot",
       "issue": "#665",
-      "pr": ""
+      "pr": "#675"
     }
   ]
 }
