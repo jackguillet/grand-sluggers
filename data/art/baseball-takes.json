@@ -1,0 +1,1569 @@
+{
+  "schema": 1,
+  "id": "default",
+  "rigRevision": 2,
+  "notes": "Right-authored default; mirrored in Blender. Seconds are Grand Sluggers clocks. Reference matching awaits human gate.",
+  "takes": [
+    {
+      "id": "pitch",
+      "duration": 0.7,
+      "releaseAt": 0.42,
+      "keys": [
+        {
+          "t": 0,
+          "pose": {
+            "rShin": {
+              "flex": 10.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lFore": {
+              "flex": 48.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "torso": {
+              "lean": -8.25,
+              "turn": -16.8,
+              "tilt": -5.0
+            },
+            "head": {
+              "lean": 5.0,
+              "turn": 21.0,
+              "tilt": 0.0
+            },
+            "lThigh": {
+              "flex": 34,
+              "abduct": 14.0,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rFore": {
+              "flex": 56.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lUpper": {
+              "flex": 45.0,
+              "abduct": 27.0,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -7.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "spine": {
+              "lean": -2.75,
+              "turn": 0.0,
+              "tilt": 0.0
+            },
+            "rUpper": {
+              "flex": -55.0,
+              "abduct": 53.0,
+              "twist": 0.0
+            },
+            "pelvis": {
+              "lean": 0.0,
+              "turn": -7.199999999999999,
+              "tilt": 0.0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.665,
+              0.702
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.135,
+            "rootLift": -0.23099999999999998
+          }
+        },
+        {
+          "t": 0.18,
+          "pose": {
+            "torso": {
+              "lean": -6.0,
+              "turn": -12.6,
+              "tilt": -4
+            },
+            "head": {
+              "lean": 4,
+              "turn": 14,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 56,
+              "abduct": 24,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": -70,
+              "abduct": 82,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 36,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 92,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 52,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 26,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": -5.3999999999999995,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": -2.0,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.98,
+              0.504
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.27,
+            "rootLift": -0.28200000000000003
+          }
+        },
+        {
+          "t": 0.3,
+          "pose": {
+            "torso": {
+              "lean": 1.5,
+              "turn": 2.8,
+              "tilt": 0
+            },
+            "head": {
+              "lean": 4,
+              "turn": 2,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 28,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 150,
+              "abduct": 46,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 46,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 46,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 18,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 1.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 0.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": -12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.42,
+          "pose": {
+            "torso": {
+              "lean": 13.5,
+              "turn": 18.2,
+              "tilt": 6
+            },
+            "head": {
+              "lean": 6,
+              "turn": -6,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -12,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 136,
+              "abduct": 22,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 50,
+              "abduct": 20,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -32,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 7.8,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 4.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.5,
+          "pose": {
+            "torso": {
+              "lean": 22.5,
+              "turn": 23.799999999999997,
+              "tilt": 8
+            },
+            "head": {
+              "lean": 14,
+              "turn": -10,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -22,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 70,
+              "abduct": -18,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 44,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 10.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 7.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.7,
+          "pose": {
+            "torso": {
+              "lean": 22.5,
+              "turn": 23.799999999999997,
+              "tilt": 8
+            },
+            "head": {
+              "lean": 14,
+              "turn": -10,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -22,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 42,
+              "abduct": -25,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 38,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 44,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 10.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 7.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        }
+      ]
+    },
+    {
+      "id": "pitch-charge",
+      "duration": 0.7,
+      "releaseAt": 0.42,
+      "keys": [
+        {
+          "t": 0.0,
+          "pose": {
+            "torso": {
+              "lean": -10.5,
+              "turn": -21.0,
+              "tilt": -6
+            },
+            "head": {
+              "lean": 6,
+              "turn": 28,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 34,
+              "abduct": 30,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": -40,
+              "abduct": 24,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 60,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 72,
+              "abduct": 12,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -4,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 62,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 8,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": -9.0,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": -3.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.35,
+              0.9
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.0,
+            "rootLift": -0.18
+          }
+        },
+        {
+          "t": 0.09,
+          "pose": {
+            "rShin": {
+              "flex": 10.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lFore": {
+              "flex": 48.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "torso": {
+              "lean": -8.25,
+              "turn": -16.8,
+              "tilt": -5.0
+            },
+            "head": {
+              "lean": 5.0,
+              "turn": 21.0,
+              "tilt": 0.0
+            },
+            "lThigh": {
+              "flex": 34,
+              "abduct": 14.0,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 40,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rFore": {
+              "flex": 56.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lUpper": {
+              "flex": 45.0,
+              "abduct": 27.0,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": -7.0,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "spine": {
+              "lean": -2.75,
+              "turn": 0.0,
+              "tilt": 0.0
+            },
+            "rUpper": {
+              "flex": -55.0,
+              "abduct": 53.0,
+              "twist": 0.0
+            },
+            "pelvis": {
+              "lean": 0.0,
+              "turn": -7.199999999999999,
+              "tilt": 0.0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.665,
+              0.702
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.135,
+            "rootLift": -0.23099999999999998
+          }
+        },
+        {
+          "t": 0.18,
+          "pose": {
+            "torso": {
+              "lean": -6.0,
+              "turn": -12.6,
+              "tilt": -4
+            },
+            "head": {
+              "lean": 4,
+              "turn": 14,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 56,
+              "abduct": 24,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": -70,
+              "abduct": 82,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 36,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 92,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 52,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 26,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": -5.3999999999999995,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": -2.0,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.98,
+              0.504
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.27,
+            "rootLift": -0.28200000000000003
+          }
+        },
+        {
+          "t": 0.3,
+          "pose": {
+            "torso": {
+              "lean": 1.5,
+              "turn": 2.8,
+              "tilt": 0
+            },
+            "head": {
+              "lean": 4,
+              "turn": 2,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 28,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 150,
+              "abduct": 46,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 46,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 46,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 18,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 1.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 0.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": -12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.42,
+          "pose": {
+            "torso": {
+              "lean": 13.5,
+              "turn": 18.2,
+              "tilt": 6
+            },
+            "head": {
+              "lean": 6,
+              "turn": -6,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -12,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 136,
+              "abduct": 22,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 50,
+              "abduct": 20,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -32,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 7.8,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 4.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.5,
+          "pose": {
+            "torso": {
+              "lean": 22.5,
+              "turn": 23.799999999999997,
+              "tilt": 8
+            },
+            "head": {
+              "lean": 14,
+              "turn": -10,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -22,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 70,
+              "abduct": -18,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 44,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 10.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 7.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.7,
+          "pose": {
+            "torso": {
+              "lean": 22.5,
+              "turn": 23.799999999999997,
+              "tilt": 8
+            },
+            "head": {
+              "lean": 14,
+              "turn": -10,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -22,
+              "abduct": 16,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 42,
+              "abduct": -25,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 38,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 44,
+              "abduct": 18,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": -28,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 10.2,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 7.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lWrist": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -1.4,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        }
+      ]
+    },
+    {
+      "id": "throw",
+      "duration": 0.4,
+      "releaseAt": 0.18,
+      "keys": [
+        {
+          "t": 0.0,
+          "pose": {
+            "torso": {
+              "lean": 7.5,
+              "turn": -15.399999999999999,
+              "tilt": 0
+            },
+            "head": {
+              "lean": 4,
+              "turn": 16,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 40,
+              "abduct": 24,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": -40,
+              "abduct": 80,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 30,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 90,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 26,
+              "abduct": 8,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": 6,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 22,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": -6.6,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 2.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": -10,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.3,
+              0.4
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.0,
+            "rootLift": -0.18
+          }
+        },
+        {
+          "t": 0.09,
+          "pose": {
+            "rShin": {
+              "flex": 14.900000000000002,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lFore": {
+              "flex": 27.3,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "torso": {
+              "lean": 8.850000000000001,
+              "turn": -6.580000000000001,
+              "tilt": 0.0
+            },
+            "head": {
+              "lean": 4.9,
+              "turn": 8.8,
+              "tilt": 0.0
+            },
+            "lThigh": {
+              "flex": 25.1,
+              "abduct": 8.0,
+              "twist": 0.0
+            },
+            "lShin": {
+              "flex": 21.1,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rFore": {
+              "flex": 54.900000000000006,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "lUpper": {
+              "flex": 26.5,
+              "abduct": 23.1,
+              "twist": 0.0
+            },
+            "rThigh": {
+              "flex": 7.800000000000001,
+              "abduct": 0.0,
+              "twist": 0.0
+            },
+            "rUpper": {
+              "flex": 23.0,
+              "abduct": 64.25,
+              "twist": 0.0
+            },
+            "pelvis": {
+              "lean": 0.0,
+              "turn": -2.82,
+              "tilt": 0.0
+            },
+            "spine": {
+              "lean": 2.95,
+              "turn": 0.0,
+              "tilt": 0.0
+            },
+            "rWrist": {
+              "flex": -10,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.625,
+              0.32
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.225,
+            "rootLift": -0.265
+          }
+        },
+        {
+          "t": 0.18,
+          "pose": {
+            "torso": {
+              "lean": 10.5,
+              "turn": 4.199999999999999,
+              "tilt": 0
+            },
+            "head": {
+              "lean": 6,
+              "turn": 0,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": 10,
+              "abduct": 22,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 100,
+              "abduct": 45,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 24,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 12,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 24,
+              "abduct": 8,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 16,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 1.7999999999999998,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 3.5,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.95,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        },
+        {
+          "t": 0.4,
+          "pose": {
+            "torso": {
+              "lean": 12.0,
+              "turn": 15.399999999999999,
+              "tilt": 0
+            },
+            "head": {
+              "lean": 8,
+              "turn": -6,
+              "tilt": 0
+            },
+            "lUpper": {
+              "flex": -6,
+              "abduct": 20,
+              "twist": 0
+            },
+            "rUpper": {
+              "flex": 120,
+              "abduct": -10,
+              "twist": 0
+            },
+            "lFore": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rFore": {
+              "flex": 8,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lThigh": {
+              "flex": 18,
+              "abduct": 8,
+              "twist": 0
+            },
+            "rThigh": {
+              "flex": 10,
+              "abduct": 0,
+              "twist": 0
+            },
+            "lShin": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            },
+            "rShin": {
+              "flex": 14,
+              "abduct": 0,
+              "twist": 0
+            },
+            "pelvis": {
+              "lean": 0,
+              "turn": 6.6,
+              "tilt": 0
+            },
+            "spine": {
+              "lean": 4.0,
+              "turn": 0,
+              "tilt": 0
+            },
+            "rWrist": {
+              "flex": 20,
+              "abduct": 0,
+              "twist": 0
+            }
+          },
+          "feet": {
+            "left": [
+              0.36,
+              -0.95,
+              0.24
+            ],
+            "right": [
+              -0.36,
+              0,
+              0.24
+            ],
+            "travel": 0.45,
+            "rootLift": -0.35
+          }
+        }
+      ]
+    }
+  ],
+  "bunt": {
+    "grip": [
+      0.02,
+      2.2,
+      0.1
+    ],
+    "barrel": [
+      1,
+      0,
+      0
+    ],
+    "leadAlong": 0.2,
+    "topAlong": 1.1,
+    "pose": {
+      "torso": {
+        "lean": 8,
+        "turn": 40,
+        "tilt": 0
+      },
+      "head": {
+        "lean": 0,
+        "turn": 30,
+        "tilt": 0
+      },
+      "lThigh": {
+        "flex": 20,
+        "abduct": 10,
+        "twist": 0
+      },
+      "rThigh": {
+        "flex": 18,
+        "abduct": 10,
+        "twist": 0
+      },
+      "lShin": {
+        "flex": 26,
+        "abduct": 0,
+        "twist": 0
+      },
+      "rShin": {
+        "flex": 24,
+        "abduct": 0,
+        "twist": 0
+      },
+      "lift": -0.12
+    }
+  }
+}

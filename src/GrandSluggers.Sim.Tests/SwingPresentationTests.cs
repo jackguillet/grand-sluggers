@@ -362,20 +362,27 @@ public class SwingPresentationTests
     }
 
     [Fact]
-    public void BarrelBesideHeadCatchesTheReadyKeyThatHidInTheSkull()
+    public void BarrelBesideHeadRejectsABarrelHiddenByTheCurrentRigHead()
     {
         var plate = ContentCatalog.Load().Shots.Must("plate");
-        // The #560 sitting: barrel up the back of the head, −1.3° from plate.
+        // #560 remains a projection falsifier after the rig revision: place the
+        // barrel along the camera-to-head ray so the current head hides it.
+        // The historical revision-1 key is no longer hidden by the smaller head.
+        var scale = Silhouette.SharedRootScale(Silhouette.Proportions("rio"));
+        var head = SwingPresentation.HeadCenterAtRest with
+        {
+            Y = SwingPresentation.HeadCenterAtRest.Y - 0.2
+        };
         var hidden = new SwingPresentation.Key(
-            0,
-            new Vec3(0.4688, 2.4914, -0.6068),
-            new Vec3(0.5108, 2.9177, -0.8447),
-            new Vec3(0.45, 2.3, -0.5),
-            new Vec3(0.0856, 0.87, -0.4856),
+            0, head, head, head,
+            new Vec3(
+                (HomeSet.BatterBodyX(Hand.R) + head.X * scale.X - plate.Pos.X) / scale.X,
+                (head.Y * scale.Y - plate.Pos.Y) / scale.Y,
+                (HomeSet.BatterZ + head.Z * scale.Z - plate.Pos.Z) / scale.Z),
             -0.2);
         Assert.True(
             SwingPresentation.BarrelBesideHeadDeg(hidden, Hand.R, plate) < 0,
-            "the sitting-found ready key must fail the beside-head gate");
+            "a barrel behind the current head must fail the beside-head gate");
         Assert.True(
             SwingPresentation.BarrelBesideHeadDeg(
                 SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Slap),
