@@ -227,6 +227,17 @@ public class FlyCatchTests
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, 0.1, hang, false));
+        // #665: a liner is not OnTheDirt and not the fly pull-back.
+        var linerHit = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 180, false, false, null, null,
+            SprayDeg: 6, Class: BattedBallClass.Liner);
+        var linerPre = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, 1.1, 20, 110);
+        Assert.Equal(PlayCamera.Beat.Line, FlyCatch.LiveBeat(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.Equal(PlayCamera.InPlayLine, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.NotEqual(PlayCamera.InPlay, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.NotEqual(PlayCamera.InPlayFly, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.Equal(
+            FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false, seats: 1),
+            FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false, seats: 2));
         // A star swing follows its class (§15): the smash beat is the home run's, timed by the client's smashHold.
         var smash = hr with { StarSwingUsed = "heat-swing" };
         Assert.Equal(PlayCamera.BeatFrom(hr), PlayCamera.BeatFrom(smash));

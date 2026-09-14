@@ -50,6 +50,7 @@ public class StillRequestTests
         Assert.Contains("pitch", StillRequest.AllowedShots);
         Assert.Contains("mound", StillRequest.AllowedShots);
         Assert.Contains("diamond-grounder", StillRequest.AllowedShots);
+        Assert.Contains("diamond-line", StillRequest.AllowedShots);
         Assert.Equal(new[] { "diamond-grounder" }, StillRequest.Parse("""{"shots":["scoop"]}""").ResolvedShots());
     }
 
