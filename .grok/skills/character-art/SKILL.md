@@ -37,7 +37,7 @@ Existing bake flags (`--clay`, `--sheets`, `--out`) still run. This rail does no
 | --- | --- |
 | a body proportion | `Silhouette.Proportions` (root scale) or `tools/blender/hero_shared_blockout.py` |
 | a face, toe, landmark | `hero_shared_blockout.py` |
-| a captain's hat, snout, cape | `hero_shared_extras.py` + `data/art/extras.json` + `data/art/skins.json` |
+| a captain's hat, snout, cape | catalog slot in `extras.json` / `hero_shared_extras.py`. Do not list it on a skin until it reads as a toy (#687) |
 | a pose or timing | `hero_shared_takes.py` pose table; markers in `Motion.Clips` and `data/art/clips.json` |
 | the swing grip or stance | `SwingPresentation.Keys` / `data/art/batting-stance.json`, then re-bake |
 | which hand plays which file | `Motion.ClipFile` (do not special-case a captain) |
@@ -72,3 +72,9 @@ Lesson: **extend the falsifier**, do not loosen it. `BatHeadClearance` refuses a
 From the plate SET the ready barrel sat inside the head disk. The take met `SwingPresentation.Keys` and `BatHeadClearance` — 3D-beside is not the same as beside on the plate camera. Tuning `shots.json` cannot pull the barrel out inside the SET constraints (`PlateIsBehindHomeLookingAtThePitcher`).
 
 Lesson: **lean the ready key out**, do not retune the plate camera and do not shrink the head. `PlateLoadedBesideDeg` is the falsifier (`SwingPresentationTests.TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera`). The charge MAX windup already stood beside (#623); ready has to as well.
+
+### Extras that read as geometry junk — skins list none (#687, `extras-are-geometry-junk`)
+
+Brondo and Konga grew huge circles/squares at their feet (`cube-chest`, `snout`, `belly` on oversized `extras.fbx`). Ashlord's cape was an orange rectangle on his back. Jack's sitting: identity is palette + `Silhouette.Proportions` only.
+
+Lesson: **leave extras off the skin** until they read as toys. Catalog slots stay. Do not shrink Ashlord to hide the cape. Do not bring caps back as geometry (#557). `cli art` fails any skin that lists an extra (`ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys`).

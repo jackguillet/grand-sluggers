@@ -232,6 +232,16 @@
       "promoted": "ThrowTrailTests.CatalogThrowVfxNeverDrawADestinationLine",
       "issue": "#689",
       "pr": "#699"
+    },
+    {
+      "id": "extras-are-geometry-junk",
+      "signature": "huge circles/squares at feet; orange rectangle on the back; snout/cape/cube/belly disc on the field or on select",
+      "stage": "sitting",
+      "cause": "data/art/skins.json attached extras: Brondo cube-chest+brick-jaw, Konga snout+belly, Ashlord horns+cape+ember-eyes. extras.fbx from #628 is larger; a foot-parented extra reads as a circle on the dirt; Ashlord's cape is the orange back plate.",
+      "fix": "Skins list no extras. Identity is palette + Silhouette.Proportions. extras.json slots stay. Do not shrink Ashlord to hide the cape. Do not bring caps back as geometry (#557).",
+      "promoted": "ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys",
+      "issue": "#687",
+      "pr": "#698"
     }
   ]
 }

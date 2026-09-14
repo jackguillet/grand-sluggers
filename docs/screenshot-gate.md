@@ -47,7 +47,7 @@ Capture in-game: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers â
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
-| **Rest** | Idle take at 0. Painted by faction. Feet on dirt. Silhouette reads; the captain's extras are on the right bones. | Import-white material, a placeholder capsule, an extra floating off its socket |
+| **Rest** | Idle take at 0. Painted by faction. Feet on dirt. Silhouette reads by palette and scale. No extra mesh in bounds. | Import-white material, a placeholder capsule, a snout / cape / cube / belly disc / horns / staff / crown / goggles on the body |
 | **Pose** | Swing take at contact. Both hands on the handle, bat through the plate line, hips to the plate. | Bat behind the head, one hand off the handle, a bind-pose statue |
 
 ### Swing takes (#613) â€” load, contact, finish

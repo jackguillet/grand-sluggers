@@ -1,6 +1,6 @@
 # Character packages (deferred)
 
-Unique-anatomy captains as their own Generic FBX packages are **not** part of the game right now. Every captain, Fenn included, is the shared rig plus extras: [character-motion.md](character-motion.md).
+Unique-anatomy captains as their own Generic FBX packages are **not** part of the game right now. Every captain, Fenn included, is the shared rig: [character-motion.md](character-motion.md).
 
 The package path was removed in the character simplification of 2026-09 because it was a second pipeline (own mesh, controller, manifest, validator, bind capture, a second procedural motion set) for one captain whose look gate failed. Its last full state is in git history before that change (`git log -- data/art/character-packages.json`).
 
@@ -13,4 +13,4 @@ Bring it back as a slot on the same rig, not a second rig:
 - Do not drop a posed GLB, heat-weight it, freeze a SkinnedMeshRenderer, or write a per-captain procedural motion set.
 - Look is Jack's gate: rest and posed stills in [screenshot-gate.md](screenshot-gate.md).
 
-Until then, identity is proportions (`Silhouette`), palette, and extras (`data/art/extras.json`).
+Until then, identity is proportions (`Silhouette`) and palette. `extras.json` slots stay; skins list none until extras read as toys (#687).
