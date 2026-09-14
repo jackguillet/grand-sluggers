@@ -58,6 +58,28 @@ Before numeric acceptance, compare starting from rest, a 90-degree correction, a
 
 Jack approved the recommended lighter, responsive movement direction. Top speeds, acceleration/braking numbers, field dimensions, reaction rules, and all human play gates remain open. No runtime values change in this packet.
 
+## Next human choice — F693-02 post-contact read
+
+**Recommendation, awaiting Jack:** retain a brief, visibly communicated read of the hit before ordinary pursuit becomes available, then use the accepted quick course corrections and brief acceleration. This is a proposed reference-informed beat, not approval of Harbor's current durations. Do not extend a frozen interval to manufacture doubles or triples; use the compact geometry, pursuit, and ball-path calibration for those opportunities. A future presentation task must make the read understandable rather than leave the selected body apparently ignoring input.
+
+**Alternative:** remove the deliberate read interval for the player's selected fielder, allowing movement from contact subject to existing action/state constraints. This gives earlier physical response and potentially more recovery distance, but changes the reference-style contact handoff and the pursuit budget. Movement before the fielding view appears and automatic pursuit must be reviewed explicitly; tying sim eligibility to whether a camera finished moving is not an acceptable shortcut.
+
+### Reference and current-code evidence
+
+The community [GameCube Fielding Mechanics, revision 410](https://mariobaseball.miraheze.org/wiki/Fielding_Mechanics?oldid=410) explicitly describes its table as the time after contact before a fielder can be controlled. It reports **50 frames for human and CPU outfielders**, with the batting-to-fielding scene change at **25 frames**. The other human entries are pitcher 25, catcher 40, first 16, second 15, third 18, and shortstop 17. Thus some infield eligibility precedes the view change; this is not a universal pause added after the camera cut. At an explicitly assumed 60 simulation frames/s, the outfield entries would correspond to about 0.833 seconds after contact and 0.417 seconds beyond the view-change mark. These are community-reported timings, not independently verified stock captures. Wii's corresponding interval remains unresolved. The previously retrieved source cache was re-inspected; fresh web retrieval failed this turn.
+
+Harbor's [reaction table](../data/rules/fielding.json), [FieldingResolver](../src/GrandSluggers.Sim/Fielding.cs), and [live system](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs) currently gate movement from the contact clock. Human outfield eligibility is **0.83 s**; [PlayCamera](../src/GrandSluggers.Sim/PlayCamera.cs) normally leaves the SET shot at **0.42 s** for non-home-run hits. Their difference is **0.41 s** when the hang cap does not shorten eligibility. This is a nominal sim-clock comparison, not a measured wall-clock input delay or guarantee that the new camera has settled. Infield gates are mostly earlier than that view-change mark; catcher eligibility is later. Home-run camera treatment is separate.
+
+The current live initialization caps reaction by hang for hits whose ball shape is not on the dirt. Human glove eligibility is independent of difficulty; CPU-driven bodies use the existing difficulty multiplier. Neutral-stick assistance on the human-owned glove still uses its human eligibility. Changing selection does not start a new full delay: eligibility is recorded against the play's contact clock. These distinctions must survive annotation and any later change. Existing [OutfieldReadTests](../src/GrandSluggers.Sim.Tests/OutfieldReadTests.cs) document the baseline values, cap, and difficulty separation; they were inspected, not rerun for this document change.
+
+### Scope of this decision
+
+This asks whether to retain a deliberate post-contact read as part of the intended feel. It does **not** select 0.83 seconds, require the same delay at every position, add a second delay after the view appears, change difficulty, or reopen D7 pitch pacing. Ordinary pursuit consistency describes how a character moves once eligible; it does not by itself eliminate the separately documented eligibility rules. No runtime or camera change is made here.
+
+If accepted, #702 must expose contact, scheduled/actual movement eligibility, accepted directional input, first displacement, and the existing ball/possession/runner events. A presentation follow-up aligns the visible read, view transition, and player indicator to those sim events. Compare grounders, hard liners, short pops, long flies, and early/late fielder switches in both seats. Record what happens to an already-held stick and action presses during the read; do not infer or introduce a new input-buffering policy without documenting the existing behavior. Player-owned throwing stays player-owned.
+
+Numeric review must consider the remaining playable reaction window and reachable distance, not only the read duration. The human decision and a continuous standalone check remain required before this can be called readable or responsive.
+
 ## Validation
 
 Recompute the audit rows from the retained rule inputs, check source-file hashes and parity with `eff10d9`, verify local links, and verify the accepted design direction remains separate from the empty accepted numerical targets. This packet is documentation only; no runtime test rerun, standalone build, or human gate pass is claimed.
