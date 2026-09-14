@@ -100,7 +100,8 @@
       "cause": "FlyCatch.Under is the landing ring (§8.3 fly). A liner is intercepted on the live ball above catch.inAirMinY before the bounce (§7.6). Once hitT >= hang or ballY <= 0.75, InAir is false and TouchScoop treats the same meeting as a pickup.",
       "fix": "InPosition for a liner is the live ball above inAirMinY before the bounce, or the plant before hang. AutoCatch and South use it. A ball that has touched the dirt is a scoop. Do not award the out as a caption.",
       "promoted": "ControlScenarioTests.S97_SouthOnALinerAtTheInterceptIsACatchNotAScoop",
-      "issue": "#666"
+      "issue": "#666",
+      "pr": "#674"
     }
   ]
 }
