@@ -54,7 +54,7 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-06 — Scoring regression band
 
-**State:** open discrepancy. S-29's spec headline says 2–5 runs; the current test and #667 note use 1.8–5. Record the intended authoritative band explicitly before calibration. Do not silently retune the game or rewrite the band to fit a candidate.
+**State:** accepted by Jack on September 14, 2026: retain **1.8–5 mean runs per side** as the S-29 regression guardrail. This applies separately to the home and away averages over the existing 50-game cohort, not to each game's score. The earlier 2–5 spec headline is reconciled to the existing test; no runtime coefficient or test threshold changes. This is a regression tolerance, not proof of reference fidelity or an accepted final scoring experience.
 
 **Acceptance:** preserve the existing 50-game mixed-park cohort; add a Harbor-only cohort and predeclared disjoint validation seeds. Report per-side means and play kinds, fixture event budgets, and seat parity. Score alone cannot pass feel.
 
