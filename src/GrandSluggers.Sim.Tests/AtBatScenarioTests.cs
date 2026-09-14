@@ -724,9 +724,11 @@ public sealed class AtBatScenarioTests
         // the air (fielding.chase.outfieldAirMul, #609; the read itself is the reference 0.83 s), the infielder's
         // under a fly or a pop (fielding.chase.infieldAirMul, #636: the hand-off honours the infielder's route in
         // the air, so the infield's reach back under a short fly is the lever, never the liner it can reach), the bat
-        // (batting.exit), the CPU arm's scatter (pitching.cpu).
-        Assert.True(meanAway is >= 2 and <= 5, line);
-        Assert.True(meanHome is >= 2 and <= 5, line);
+        // (batting.exit), the CPU arm's scatter (pitching.cpu). #667: CF meeting the wall instead of RF chasing
+        // the bounce converted doubles to singles (1.94 / 1.88 on these seeds). Do not send RF the bounce or
+        // give the liner away to hold 2.2; the floor is 1.8 so the sitting stays the lever.
+        Assert.True(meanAway is >= 1.8 and <= 5, line);
+        Assert.True(meanHome is >= 1.8 and <= 5, line);
         Assert.True(doubles < singles, line);
         Assert.True(homers <= 2, line);
         Assert.True(strikeouts > 0 && walks > 0, line);

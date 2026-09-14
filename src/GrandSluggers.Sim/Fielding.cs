@@ -255,8 +255,10 @@ public sealed class FieldingResolver
         inAir || !OutfieldGrass(ballX, ballZ, rules) ? (landingX, landingZ) : (ballX, ballZ);
 
     /// <summary>
-    /// Live glove: IF while the ball is on the dirt, nearest OF once it reaches the grass.
-    /// One-way handoff — the infielder who first ran it does not keep the play in the outfield.
+    /// Live glove when the path is missing: IF while the ball is on the dirt, nearest OF once it
+    /// reaches the grass. The live ball with a path uses <see cref="FieldingPursuit.Choose"/> (D16,
+    /// #667) — nearest is not the play glove. One-way handoff — the infielder who first ran it does
+    /// not keep the play in the outfield.
     /// </summary>
     public static (Character Fielder, string Pos) PlayGlove(
         IReadOnlyDictionary<string, Character> assigned,
