@@ -32,9 +32,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-02 — Playable geometry versus visible proportions
 
-**State:** unresolved. Candidates: current geometry; independently compressed outfield; coherent full playable-space rescale. Measure fence/basepath, mound/basepath, body/basepath, and projected body/ball sizes. Current Harbor fences are larger than the GameCube survey; the same reduction of the basepaths is not established.
+**State:** geometry flexibility accepted by Jack on September 14, 2026: **both infield and outfield dimensions may change independently** to achieve the intended reference-informed proportions. The current 90-foot basepaths and existing fence depths are not locked. Exact dimensions, ratios, and calibration remain pending.
 
-**Next human decision:** may both infield and outfield distances change independently when supported by the reference comparison, or must current infield/all playable distances remain fixed? The recommendation awaiting Jack is to keep both adjustable in pursuit of the intended proportions. This is permission to select a supported geometry later, not approval of a shrink factor or proof that the Wii infield is smaller. Shorter basepaths affect both running and throwing; outfield depth affects pursuit, long throws, and carry. Preserve the accepted reliable-defense intent and D7 pitch pace when evaluating any candidate.
+**Still pending:** measure fence/basepath, mound/basepath, body/basepath, and projected body/ball sizes, then present a coherent geometry proposal for Jack’s review. Compare the unchanged baseline with independently adjusted infield/outfield candidates. Current Harbor fences are larger than the GameCube survey; a basepath reduction is not yet established. This direction approves no shrink factor, does not require either area to shrink, and is not proof that the Wii infield is smaller. Shorter basepaths affect both running and throwing; outfield depth affects pursuit, long throws, and carry. Preserve reliable routine defense, D7 pitch pace, and shared geometry across sim and presentation.
 
 **Acceptance:** one geometry owner feeds sim and kit; bags, cover, fair/foul, paths, wall collisions, and shots agree. Separate approved toy exaggerations from distances that decide plays. Do not choose a scale to accommodate one captain or one camera. Coordinate the #691 hold-ball scaling correction before collecting the final visual baseline.
 
@@ -75,6 +75,10 @@ The first six items are a research foundation, not completion of #693. A docs me
 **Still pending:** compare Wii and GameCube result-to-next-ready intervals at normal speed, distinguishing routine plays from home runs, great catches, and inning-ending plays. Selected durations and the standalone human gate remain open. Record simulation time separately from hit freeze, camera cut/settle, possession readability, decision time, stamps, and next-ready delay. This direction concerns completed plays; it does not shorten live player decisions, introduce full-screen interruptions, or reopen D7’s separate pitch-pace hold.
 
 **Acceptance:** continuous standalone play with keyboard/mouse, one pad, and two pads; both halves and ownership roles; representative small and large captains; HUD-off diagnostic clips as well as the actual HUD. Jack watches the race and finishes the book-to-half path. No agent can sign this row off.
+
+## Human review handoff
+
+All seven initial decision areas now have a recorded direction or constraint. This does not accept their numerical targets or pass their human gates. The next human review should present measured field/body proportions and a coherent candidate race budget, with sources, uncertainties, and alternatives. Continue #701 measurement and #702 trace work under the existing authorization; do not ask Jack to choose unsupported dimensions or repeat an accepted direction. Present each remaining substantive choice one at a time with context.
 
 ## Execution sequence
 

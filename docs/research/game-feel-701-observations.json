@@ -232,7 +232,7 @@
     "Long throws and received-ball transfers",
     "Contact-class and exceptional-play coverage",
     "Ground-plane and projected proportions",
-    "Jack's reference and geometry decisions"
+    "Numerical reference selection, exact geometry proposal, and Jack's target/human acceptance"
   ],
   "derivedIntervals": [
     {
@@ -291,6 +291,14 @@
       "mechanicsCrossCheck": "Mario Superstar Baseball (GameCube)",
       "scope": "Default reference for on-screen readability; existing controls and presentation restrictions preserved. No numerical target, geometry change, or blanket hybrid approved.",
       "basis": "Jack answered yes to the provisional Wii-led direction after the first comparison packet."
+    },
+    {
+      "decisionId": "F693-02",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "status": "geometry-flexibility",
+      "scope": "Both infield and outfield dimensions may change independently to achieve reference-informed proportions. Existing basepaths and fence depths are not fixed constraints. No numerical dimension, uniform shrink factor, or required reduction approved; preserve D7 pitch pace and reliable routine defense.",
+      "basis": "Jack answered: yes allow both to change."
     }
   ]
 }
