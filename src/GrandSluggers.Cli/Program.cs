@@ -12,6 +12,14 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
+        var cohortAt = Array.IndexOf(args, "--cohort");
+        if (cohortAt >= 0)
+        {
+            if (cohortAt + 1 >= args.Length || args.Contains("--trace"))
+                throw new ArgumentException("match --cohort requires a name and does not accept --trace; use individual matches for traces");
+            Console.WriteLine(RaceCohort.Run(content, args[cohortAt + 1]).ToJson());
+            break;
+        }
         RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args));
         break;
     case "challenge":
@@ -47,6 +55,7 @@ switch (cmd)
               chem <character-id>
               at-bat [ember|spark] [--seed N]
               match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard] [--trace [file]]
+              match --cohort s29|harbor-calibration|harbor-validation
               challenge [--captain rio] [--seed N]
               art
               protocol

@@ -86,7 +86,7 @@ public sealed class Match
         }
     }
     public IReadOnlyList<PlayTrace> Traces => _traces;
-    public PlayTraceLog TraceLog() => new(Seed, Home.Captain.Id, Away.Captain.Id, Park.Id, _traces);
+    public PlayTraceLog TraceLog() => new(Seed, Home.Captain.Id, Away.Captain.Id, Park.Id, _traces.ToArray(), 2, PlayTraceIdentity.Capture(this));
 
     public Match(ContentCatalog content, Team away, Team home, Park park, int innings = DefaultInnings, int seed = 1, bool night = false, bool mercy = true, string? difficulty = null)
     {

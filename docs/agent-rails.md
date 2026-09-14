@@ -95,7 +95,7 @@ A sitting note is still **one GitHub issue per finding** under the epic that own
 
 Before a session changes gameplay distances or clocks, read [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693), [the reference research](research-game-feel-693.md), and [the decision register](plan-game-feel-693.md). Compare reference versions explicitly; carry source status, units, uncertainty, and the accepting decision with every target. A proposed or unresolved number cannot become an active default or a verified debug-protocol fix.
 
-Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the measurement extensions in the plan are **pending**, not a shipped validator. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
+Measure full races, not only outcomes: contact, pursuit/possession, command/release, receiver/coverage, runner/tag. Keep field/body proportions separate from camera projection. Use the existing trace/scenario/catalog paths; the versioned #702 extensions and evidence validation are specified in [race-traces.md](race-traces.md); their draft/merge state remains in the #693 plan. Preserve both fixed-input and fixed-tactical fixtures so an inverse carry solver cannot conceal a changed flight.
 
 Gameplay, presentation, and art implementation stay separate and serial for shared feel. Coordinate #558 takes, #691 body scaling, and the book/stamp owners. A research PR may establish evidence and procedure; it cannot claim that a math check, test suite, or rebuilt player passes the human race/look gate.
 
@@ -108,6 +108,7 @@ A play is still decided by geometry (ball, runner, glove, bag). The dump is how 
 - `dotnet run --project src/GrandSluggers.Cli -- match --trace` writes a `PlayTraceLog`: one record per tick with ball, each runner, the glove, bags, and typed `PlayEvent` facts (`PlayTrace`). `--trace file.json` writes the file and keeps the human log on stdout; `--trace` alone writes JSON to stdout and the captions to stderr.
 - `LivePlaySystem.Recording` / `Match.Tracing` is the same dump the scenario harness and `cli match` share. Off by default, so S-29 allocates nothing extra.
 - `PlayTraceTests`: a grounder (glove meets ball; runner vs bag is the out), a fly (catch is a radius at the window), a tag (runner and glove at the bag), a steal (break at release; pickoff only if already broke, D3). Captions are not the reason.
+- [Race trace version 2](race-traces.md) adds effective-input identity, submitted commands, ordered possession/throw/receiver/runner marks, all fielders, and coverage. `RaceEvidence` validates source-and-budget records through `ContentDataValidator`. #702 is instrumentation, not calibration.
 - S-29 and existing scenarios stay green. This epic does not retune `data/rules/`.
 
 This is VibeGame's "frame-synchronous control" without replacing Unity, and ThePrimeagen's JSON-replay loop without a second engine.

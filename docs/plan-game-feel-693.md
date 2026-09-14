@@ -100,6 +100,8 @@ Deliver a small version-controlled annotation dataset, exact clip locators, sour
 
 ### R2 — Make Harbor's race measurable (#702)
 
+The #702 implementation and reproduction contract is [race-traces.md](race-traces.md). Its version 2 observations preserve full throw/receiver chains and runner retirement evidence; the evidence catalog rejects unresolved active defaults. This is draft instrumentation until its PR merges. Numeric design choices and human acceptance remain open.
+
 [#702](https://github.com/jackguillet/grand-sluggers/issues/702), gameplay child of #693 under #209. Extend the existing `PlayTrace`/`cli match` observation path with revision/profile hashes, contact inputs, seats, difficulty, character/hand information, commands, release/possession/receiver events, and per-leg timing. Version the trace format and preserve deterministic replay. Do not change gameplay coefficients in this step.
 
 Add a small budget/annotation contract with source status, units, bounds, uncertainty, fixture, decision ID, and acceptance state. Its validator rejects an accepted target with missing provenance/bounds, reversed intervals, mixed units, unknown references, duplicate IDs, or a pending record treated as an active default. Use existing catalog/validation conventions; do not add a second sim or game configuration pipeline.
