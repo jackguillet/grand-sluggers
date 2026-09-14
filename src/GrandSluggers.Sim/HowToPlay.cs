@@ -243,14 +243,14 @@ public static class HowToPlay
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield.",
             "Your captain is the toy in front. North you are HOME or AWAY. HOME bats the bottom.",
-            "Captains are the toys. Stick L/R your team. U/D the other. Camera looks at the toy, not the brim, not the dirt.",
+            "Captains are the toys on the dirt. Stick L/R your team. U/D the other. Camera looks at the toy, not the brim, not the dirt.",
             "LB 1 PLAYER. RB 2 PLAYERS. Two players needs controller 2.",
             "South    the field — a postcard with a crowd and a padded wall. Harbor is the slice. The park does not follow the captain.",
         ],
         [
             "Title is the park (dirt + diamond). GRAND SLUGGERS is a sticker over the infield.",
             "Your captain is the toy in front. Q you are HOME or AWAY. HOME bats the bottom.",
-            "Captains are the toys. A/D your team. W/S the other. Camera looks at the toy, not the brim, not the dirt.",
+            "Captains are the toys on the dirt. A/D your team. W/S the other. Camera looks at the toy, not the brim, not the dirt.",
             "Comma 1 PLAYER. Tab 2 PLAYERS. Two players needs controller 2.",
             "Space / left click    the field — a postcard with a crowd and a padded wall. Harbor is the slice. The park does not follow the captain.",
         ]),
