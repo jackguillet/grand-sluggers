@@ -28,6 +28,7 @@ Bonus stills that save a later sitting (same rules):
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
 | Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
 | Throw | `diamond` | 45° on the dirt under the ball. CF at the top, home under second. No behind-the-thrower cut. |
+| Liner | `diamond-line` | Same 45°, between hopper and fly. Rope in the air, not a bounce on the dirt. CF at the top |
 | Fly | `diamond-fly` | Same 45°, pulled back, more FOV. CF at the top. Fielder reads, ball is a baseball |
 | Homer | `diamond-fly` | Same pulled-back 45°. The ball flies toward CF at the top of the frame |
 
