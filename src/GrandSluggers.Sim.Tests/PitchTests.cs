@@ -47,9 +47,10 @@ public class PitchTests
     [Fact]
     public void AirSecondsIsSluggersPaceNotMlbNinety()
     {
-        var meat = PitchFlight.AirSeconds(86);
-        var gas = PitchFlight.AirSeconds(100);
-        var change = PitchFlight.AirSeconds(72);
+        var sp = Rules.Default.Pitching.Speed;
+        var meat = PitchFlight.AirSeconds(sp.FastballMph);
+        var gas = PitchFlight.AirSeconds(sp.FastballMph + sp.ChargeMph);
+        var change = PitchFlight.AirSeconds(sp.ChangeupMph);
         Assert.InRange(meat, 0.85, 1.15);
         Assert.True(gas < meat, $"charged FB {gas} vs meat {meat}");
         Assert.True(change > meat, $"changeup {change} vs meat {meat}");
@@ -87,10 +88,11 @@ public class PitchTests
     [Fact]
     public void ChangeupHangsThenDumps()
     {
-        var hang = PitchFlight.Point("changeup", 0.5).Y;
-        var fb = PitchFlight.Point("fastball", 0.5).Y;
+        var hangU = Rules.Default.Pitching.Shapes.ChangeupHangUntil;
+        var hang = PitchFlight.Point("changeup", hangU).Y;
+        var fb = PitchFlight.Point("fastball", hangU).Y;
         var plate = PitchFlight.Point("changeup", 1).Y;
-        Assert.True(hang >= fb - 0.2, $"changeup should hang, hang {hang} vs fb {fb}");
+        Assert.True(hang >= fb, $"changeup should hang, hang {hang} vs fb {fb}");
         Assert.True(hang - plate > 1.0, $"then dump, hang {hang} plate {plate}");
     }
 
@@ -185,11 +187,51 @@ public class PitchTests
     [Fact]
     public void ChangeupModifierHangsThenDumps()
     {
-        var hang = PitchFlight.Point("fastball", 0.5, changeup: true).Y;
-        var fb = PitchFlight.Point("fastball", 0.5).Y;
+        var hangU = Rules.Default.Pitching.Shapes.ChangeupHangUntil;
+        var hang = PitchFlight.Point("fastball", hangU, changeup: true).Y;
+        var fb = PitchFlight.Point("fastball", hangU).Y;
         var plate = PitchFlight.Point("fastball", 1, changeup: true).Y;
-        Assert.True(hang >= fb - 0.2, $"changeup hang {hang} vs fb {fb}");
+        Assert.True(hang >= fb, $"changeup hang {hang} vs fb {fb}");
         Assert.True(hang - plate > 1.0, $"changeup dump hang {hang} plate {plate}");
+    }
+
+    [Fact]
+    public void ChangeupNamesItselfWithoutTheCard()
+    {
+        // #668 / spec §4.1–§4.3: HUD-off the changeup is slower, hangs, then dumps below the
+        // fastball. CHANGE on the card is not the tell. A fade (hangRate near 1, hang below the
+        // fastball mid-flight) would pass S-06's plate Y and still read as a slow fastball.
+        var r = Rules.Default.Pitching;
+        var sh = r.Shapes;
+        var fb = new PitchCommand("fastball", 0, false);
+        var ch = fb with { Changeup = true };
+
+        Assert.Equal(0.80, r.Speed.ChangeupMph / r.Speed.FastballMph, 2);
+        var fbAir = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(fb, 5));
+        var chAir = PitchFlight.AirSeconds(AtBatResolver.PitchSpeedMph(ch, 5));
+        Assert.True(chAir > fbAir + 0.18, $"changeup {chAir:0.000}s vs fastball {fbAir:0.000}s");
+
+        var fbPlate = PitchFlight.Point(fb, 1);
+        var chPlate = PitchFlight.Point(ch, 1);
+        Assert.Equal(sh.ChangeupDropFt, fbPlate.Y - chPlate.Y, 6);
+        Assert.True(chPlate.Y > StrikeZoneGeometry.Bottom);
+
+        var hangU = sh.ChangeupHangUntil;
+        var chRel = PitchFlight.Point(ch, 0).Y;
+        var chHang = PitchFlight.Point(ch, hangU).Y;
+        var fbHang = PitchFlight.Point(fb, hangU).Y;
+        Assert.True(chHang >= fbHang, $"hang {chHang:0.00} vs fastball {fbHang:0.00} at u={hangU}");
+        var hangDrop = chRel - chHang;
+        var dumpDrop = chHang - chPlate.Y;
+        Assert.True(dumpDrop > hangDrop * 2,
+            $"dump {dumpDrop:0.00} vs hang-drop {hangDrop:0.00} — a fade drops evenly");
+        Assert.True(sh.ChangeupDumpRate > sh.ChangeupHangRate * 4,
+            $"dumpRate {sh.ChangeupDumpRate} vs hangRate {sh.ChangeupHangRate}");
+        var hangT = hangU * sh.ChangeupHangRate + (1 - hangU) * sh.ChangeupDumpRate;
+        Assert.True(hangT >= 1, $"dump must reach the aim in flight, hang(1)={hangT}");
+        var almost = PitchFlight.Point(ch, 0.99).Y;
+        Assert.True(Math.Abs(almost - chPlate.Y) < 0.15,
+            $"dump finishes before the plate, not a snap: u=0.99 Y={almost:0.00} plate={chPlate.Y:0.00}");
     }
 
     [Fact]

@@ -29,7 +29,7 @@ public static class PitchFlight
     }
 
     /// <summary>
-    /// Super Sluggers air time, not MLB 90 (pitching.flight.arcadeScale, airMin/MaxSec). Charged FB still beats a changeup.
+    /// Super Sluggers air time, not MLB 90 (pitching.flight.arcadeScale, airMin/MaxSec). A changeup is 0.80× the meat and ~0.25 s longer.
     /// </summary>
     public static double AirSeconds(double mph, RulesTable? rules = null)
     {
@@ -170,7 +170,10 @@ public static class PitchFlight
         return (x, y, z);
     }
 
-    /// <summary>Hangs until <c>changeupHangUntil</c>, then dumps to its (lower) aim.</summary>
+    /// <summary>
+    /// Flat until <c>changeupHangUntil</c> (hangRate keeps Y at or above the fastball), then dumps
+    /// to the lower aim. A hangRate near 1 is a fade, not a changeup (spec §4.3, #668).
+    /// </summary>
     static (double X, double Y, double Z) Changeup(double u, double tx, double ty, double z, (double X, double Y, double Z) rel, PitchShapeRules sh)
     {
         var hang = u < sh.ChangeupHangUntil
