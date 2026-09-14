@@ -68,7 +68,7 @@ Eight actual `TickLive` cases cover low/high grounders to three directions, a ro
 
 Launch the pinned GUI editor with `-executeMethod GrandSluggers.EditorTools.AtBatInputGate.Run` (menu **Grand Sluggers → Verify At-Bat Input**), from a dedicated worktree. Set `GS_VALIDATION_REVISION` and optionally `GS_AT_BAT_INPUT_EVIDENCE`; no batch or quit flag. The gate creates temporary InputSystem gamepads and a keyboard, drives actual Controls and director SET/Flight methods, then removes the devices and restores input state.
 
-Cases cover normal tap, charged release, early release during the pitcher's windup, keyboard-release isolation from seat two, camera-relative horizontal pitching, and the batter cursor remaining independent of pitch curve. This verifies routed synthetic input, not physical controllers, perceived feel, or a full human half.
+Cases cover normal tap, charged release, release after entering the pitcher's windup, ignored SET releases on the SET-to-Flight frame in both one-seat and two-seat play, keyboard-release isolation from seat two, camera-relative horizontal pitching, and the batter cursor remaining independent of pitch curve. This verifies routed synthetic input, not physical controllers, perceived feel, or a full human half.
 
 ## Opt-in swing outcome gate
 
