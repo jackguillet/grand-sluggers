@@ -184,7 +184,10 @@ public sealed class FieldingResolver
         return (best ?? assigned.Values.First(), bestPos);
     }
 
-    /// <summary>Catch radius plus dive/jump window (fielding.catch). Body verbs buy you the extra feet.</summary>
+    /// <summary>
+    /// Dirt scoop / armed-verb window (fielding.catch). A fly stand-up is the catch radius
+    /// itself (#669); <c>windowPadFt</c> is scoop slack, not a stand-up fly out.
+    /// </summary>
     public static double CatchWindowFt(double catchRadius, bool dive, bool jump, RulesTable? rules = null)
     {
         var c = Rules.Or(rules).Fielding.Catch;
@@ -193,6 +196,13 @@ public sealed class FieldingResolver
         if (jump) w += c.JumpReachFt;
         return w;
     }
+
+    /// <summary>The yellow ring / stand-up fly catch (#669): catch radius, no pad.</summary>
+    public static double StandUpCatchFt(double catchRadius) => catchRadius;
+
+    /// <summary>Stand-up plus <c>diveReachFt</c> — the rim. Past this is a drop.</summary>
+    public static double DiveCatchFt(double catchRadius, RulesTable? rules = null) =>
+        StandUpCatchFt(catchRadius) + Rules.Or(rules).Fielding.Catch.DiveReachFt;
 
     /// <summary>Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks).</summary>
     public static double CatchRadiusFt(Character fielder, Park? park, RulesTable? rules = null)

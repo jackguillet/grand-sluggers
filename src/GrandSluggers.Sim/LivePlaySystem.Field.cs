@@ -715,30 +715,29 @@ public sealed partial class LivePlaySystem
             JumpT = needsJump || buddyOn ? catchRules.WallJumpArmSec : catchRules.JumpArmSec;
         if (pad.EastDown && CanMove(GlovePos))
         {
-            var toX = pre.Grounder || pre.Line || _loose ? BallX : plant.X;
-            var toZ = pre.Grounder || pre.Line || _loose ? BallZ : plant.Z;
-            var lunged = FieldDash.Lunge(GloveX, GloveZ, toX, toZ, R.Fielding.Dash.DiveLungeFt);
-            GloveX = lunged.X;
-            GloveZ = lunged.Z;
-            _fielders[GlovePos] = (GloveX, GloveZ);
+            LungeToward(pre, plant);
             DiveT = catchRules.DiveArmSec;
         }
 
-        var window = CatchWindow(map);
+        var radius = CatchRadius(map);
+        var standUp = FieldingResolver.StandUpCatchFt(radius);
+        var diveWin = FieldingResolver.DiveCatchFt(radius, R);
+        var scoopStand = FieldingResolver.CatchWindowFt(radius, dive: false, jump: false, R);
         var d = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
         if (!HoldsBall && GloveMayTake(GlovePos))
         {
             if (pre.Grounder || onTheGround)
             {
                 // A loose ball (a fumble, an overthrow) is picked up by touching it (fielding.chase.looseScoopFt), never by the catch radius.
-                var scoopReach = _loose ? R.Fielding.Chase.LooseScoopFt : window;
-                if (_loose ? FlyCatch.TouchScoop(d, scoopReach, BallY, R)
-                    : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, window, R))
+                var dirtStand = _loose ? R.Fielding.Chase.LooseScoopFt : scoopStand;
+                var dirtDive = _loose ? R.Fielding.Chase.LooseScoopFt : FieldingResolver.CatchWindowFt(radius, dive: true, jump: false, R);
+                if (_loose ? FlyCatch.TouchScoop(d, dirtStand, BallY, R)
+                    : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, d, dirtStand, R))
                     TakeBattedBall();
                 var pickupInPlay = _loose || FlyCatch.PickupInPlay(pre, Park, BallX, BallZ, ElapsedSeconds, hang, R);
-                if (pickupInPlay && pad.SouthDown && d < scoopReach)
+                if (pickupInPlay && pad.SouthDown && d < dirtStand)
                     TakeBattedBall();
-                if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, scoopReach, BallY, R))
+                if (pickupInPlay && FlyCatch.PlayerDiveCatch(DiveT > 0, d, dirtStand, dirtDive, BallY, R))
                 {
                     CatchDive = true;
                     TakeBattedBall();
@@ -747,17 +746,30 @@ public sealed partial class LivePlaySystem
             else
             {
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var under = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, window,
+                var linerInAir = pre.Line && ElapsedSeconds < hang;
+                var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, standUp,
                     ElapsedSeconds, hang, needsJump, R);
+                var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, diveWin,
+                    ElapsedSeconds, hang, needsJump, R);
+                var distPlant = Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z);
+                var diveDist = pre.Line ? d : distPlant;
                 var jumpTry = JumpT > 0 && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
-                var buddyRob = buddyOn && Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z) < catchRules.BuddyPlantFt;
+                var buddyRob = buddyOn && distPlant < catchRules.BuddyPlantFt;
                 var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
-                if (stick < stickTake && FlyCatch.AutoCatch(under, inWin, needsJump, canRob: false, linerInAir: pre.Line && ElapsedSeconds < hang))
+                // Dead stick = CPU runs the glove (§8.2): stand-up under the ring, dive at the rim (#669).
+                if (stick < stickTake && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
-                if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, under, inWin, needsJump, canRob))
+                if (stick < stickTake && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
+                {
+                    LungeToward(pre, plant);
+                    DiveT = catchRules.DiveArmSec;
+                    CatchDive = true;
+                    TakeBattedBall();
+                }
+                if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, underStand, inWin, needsJump, canRob))
                 {
                     if (jumpTry) CatchJump = true;
-                    if (buddyOn && inWin && Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z) < catchRules.BuddyPlantFt)
+                    if (buddyOn && inWin && distPlant < catchRules.BuddyPlantFt)
                     {
                         Buddy = true;
                         GloveX = plant.X;
@@ -767,7 +779,7 @@ public sealed partial class LivePlaySystem
                     }
                     TakeBattedBall();
                 }
-                if (!needsJump && FlyCatch.PlayerDiveCatch(DiveT > 0, d, window, BallY, R))
+                if (!needsJump && FlyCatch.PlayerDiveCatch(DiveT > 0, diveDist, standUp, diveWin, BallY, R))
                 {
                     CatchDive = true;
                     TakeBattedBall();
@@ -846,14 +858,17 @@ public sealed partial class LivePlaySystem
             ChaseGlove(dt, pre);
         _fielders[GlovePos] = (GloveX, GloveZ);
         var cpuMap = Assigned();
-        var cpuWindow = CatchWindow(cpuMap);
+        var cpuRadius = CatchRadius(cpuMap);
+        var cpuStandUp = FieldingResolver.StandUpCatchFt(cpuRadius);
+        var cpuDiveWin = FieldingResolver.DiveCatchFt(cpuRadius, R);
+        var cpuScoop = FieldingResolver.CatchWindowFt(cpuRadius, dive: false, jump: false, R);
         var cpuDist = Diamond.Dist(GloveX, GloveZ, BallX, BallZ);
-        // The CPU catch is geometric (§8.3): the glove touching a ball on the ground scoops it; under a
-        // fly inside the radius in the window catches it. Nothing is force-fed at hang.
+        // The CPU catch is geometric (§8.3): stand-up under the ring; at the rim they dive (#669).
+        // Nothing is force-fed at hang. Dirt scoops keep windowPadFt (the double-play rows).
         if (!HoldsBall && GloveMayTake(GlovePos))
         {
             if (_loose ? FlyCatch.TouchScoop(cpuDist, R.Fielding.Chase.LooseScoopFt, BallY, R)
-                : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuWindow, R))
+                : FlyCatch.TouchScoop(pre, Park, BallX, BallZ, BallY, ElapsedSeconds, hang, cpuDist, cpuScoop, R))
                 TakeBattedBall();
             else if (!grounder && !_loose && !_dropped)
             {
@@ -861,13 +876,18 @@ public sealed partial class LivePlaySystem
                 var needsJump = FlyCatch.NeedsJump(pre);
                 var who = PlayFielder();
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var under = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuWindow,
+                var linerInAir = pre.Line && ElapsedSeconds < hang;
+                var underStand = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuStandUp,
+                    ElapsedSeconds, hang, needsJump, R);
+                var underDive = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuDiveWin,
                     ElapsedSeconds, hang, needsJump, R);
                 var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
                 var buddyAt = buddyOn && !string.IsNullOrEmpty(BuddyPos) && _fielders.TryGetValue(BuddyPos, out var buddySpot)
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
-                if (FlyCatch.AutoCatch(under, inWin, needsJump, canRob, linerInAir: pre.Line && ElapsedSeconds < hang))
+                var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
+                var autoDive = FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R);
+                if (autoStand || autoDive)
                 {
                     // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream.
                     if (!_dropRolled)
@@ -882,6 +902,12 @@ public sealed partial class LivePlaySystem
                         {
                             Buddy = true;
                             _events.Add(LiveEvent.BuddyJump);
+                        }
+                        if (autoDive)
+                        {
+                            LungeToward(pre, plant);
+                            DiveT = catchRules.DiveArmSec;
+                            CatchDive = true;
                         }
                         TakeBattedBall();
                     }
@@ -1801,7 +1827,7 @@ public sealed partial class LivePlaySystem
         HandGloveTo(next);
     }
 
-    double CatchWindow(Dictionary<string, Character> map)
+    double CatchRadius(Dictionary<string, Character> map)
     {
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview!.Fielder;
         var radius = FieldingResolver.CatchRadiusFt(who, Preview is not null ? Park : null, R);
@@ -1810,7 +1836,21 @@ public sealed partial class LivePlaySystem
             radius += FieldAbilities.FlyRangeBonus(who, R);
         if (Preview is { Grounder: true })
             radius += FieldAbilities.GroundRangeBonus(who, R);
-        return FieldingResolver.CatchWindowFt(radius, DiveT > 0, JumpT > 0, R);
+        return radius;
+    }
+
+    double CatchWindow(Dictionary<string, Character> map) =>
+        FieldingResolver.CatchWindowFt(CatchRadius(map), DiveT > 0, JumpT > 0, R);
+
+    /// <summary>East / CPU rim dive: the body lunges toward the ball (liner, hopper, loose) or the plant (fly).</summary>
+    void LungeToward(FieldingPreview pre, (double X, double Z) plant)
+    {
+        var toX = pre.Grounder || pre.Line || _loose ? BallX : plant.X;
+        var toZ = pre.Grounder || pre.Line || _loose ? BallZ : plant.Z;
+        var lunged = FieldDash.Lunge(GloveX, GloveZ, toX, toZ, R.Fielding.Dash.DiveLungeFt);
+        GloveX = lunged.X;
+        GloveZ = lunged.Z;
+        _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
     static string PosOf(Dictionary<string, Character> map, Character who)
