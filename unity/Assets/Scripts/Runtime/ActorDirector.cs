@@ -182,7 +182,9 @@ namespace GrandSluggers.UnityClient
                 if (_pending != null && _pending.StarSwingUsed == "heart-swing" && highlighted)
                     pose = Motion.Verb.Charm;
                 var pType = ShownPitchType;
-                hero.SetPose(pose, kv.Key == "P" ? _pitchCharge : 0, kv.Key == "P" ? pType : null);
+                var motionCharge = pose == Motion.Verb.ThrowPitch && _pitch != null
+                    ? (float)_pitch.Charge01 : _pitchCharge;
+                hero.SetPose(pose, kv.Key == "P" ? motionCharge : 0, kv.Key == "P" ? pType : null);
                 hero.SetChargeRing(kv.Key == "P" && (_phase is Phase.Set or Phase.Flight) && HumanPitches ? _pitchCharge : 0f);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.SetHeld(false, true);
@@ -191,7 +193,7 @@ namespace GrandSluggers.UnityClient
                 hero.Place(new Vector3((float)x, ParkDiamond.StandY(x, z), (float)z),
                     DefenseFacing(kv.Key, x, z, highlighted && !buddyPartner));
                 if (pose == Motion.Verb.ThrowPitch && _phase == Phase.Flight)
-                    hero.SampleMotion((float)Motion.PitchRelease + _flight);
+                    hero.SampleMotion((float)Motion.PitchRelease + _flight, dt);
                 else hero.Tick(dt);
             }
 
@@ -272,7 +274,7 @@ namespace GrandSluggers.UnityClient
                         0,
                         (float)HomeSet.BatterZ), new Vector3(0, 0, 1), pinned: true);
                 if (bPose == Motion.Verb.Swing && presentingSwing)
-                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec));
+                    bHero.SampleMotion((float)AtBatMotion.CommittedSwingSample(_committedSwingT, swingTakeSec), dt);
                 else bHero.Tick(dt);
             }
 

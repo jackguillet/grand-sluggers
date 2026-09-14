@@ -102,7 +102,7 @@ public sealed class ArtCatalog
     public IReadOnlyList<string> Validate(ContentCatalog content)
     {
         var errors = new List<string>();
-        foreach (var bone in new[] { "root", "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
+        foreach (var bone in new[] { "root", "pelvis", "spine", "torso", "neck", "head", "lClavicle", "rClavicle", "lUpper", "lFore", "lWrist", "rUpper", "rFore", "rWrist", "lThigh", "lShin", "lFoot", "rThigh", "rShin", "rFoot", "lGlove", "rGlove", "lRelease", "rRelease", "bat", "glove" })
         {
             if (!Rig.Bones.Any(b => b.Equals(bone, StringComparison.OrdinalIgnoreCase)))
                 errors.Add("rig missing bone " + bone);
@@ -158,8 +158,17 @@ public sealed class ArtCatalog
                 var player = Unity(content.Root, playerSlot);
                 if (!File.Exists(file) || new FileInfo(file).Length < 4096)
                     errors.Add("clip take missing " + slot);
-                else if (!File.Exists(player) || !SameBytes(file, player))
-                    errors.Add("clip player copy missing or different " + playerSlot);
+                else
+                {
+                    if (!File.Exists(player) || !SameBytes(file, player))
+                        errors.Add("clip player copy missing or different " + playerSlot);
+                    // FBX node names are uncompressed strings. Refuse an older
+                    // skeleton even if its authoring/player copies agree.
+                    var nodes = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(file));
+                    foreach (var bone in Rig.Bones)
+                        if (!nodes.Contains(bone, StringComparison.Ordinal))
+                            errors.Add("clip " + slot + " was not baked for rig joint " + bone);
+                }
             }
         }
         foreach (var clip in Clips)
@@ -218,7 +227,7 @@ public sealed class ArtCatalog
             if (kitNames.Length > 0 && !kitNames.Contains(extra.Id, StringComparison.Ordinal))
                 errors.Add("extra " + extra.Id + " is not a mesh in " + ExtrasKitSlot);
         }
-        foreach (var prop in new[] { GearMesh.HittingBatVisual(), "glove-brown", "baseball" })
+        foreach (var prop in new[] { GearMesh.HittingBatVisual(), "glove-brown", "glove-brown-R", "glove-gold", "glove-gold-R", "baseball" })
             if (kitNames.Length > 0 && !kitNames.Contains(prop, StringComparison.Ordinal))
                 errors.Add("prop " + prop + " is not a mesh in " + ExtrasKitSlot);
 

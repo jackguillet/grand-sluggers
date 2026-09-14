@@ -19,9 +19,10 @@ namespace GrandSluggers.UnityClient
             public Transform Body;
             /// <summary>The FBX root: the Animator and the clip curve paths.</summary>
             public Transform Root;
-            public Transform Torso, Head;
-            public Transform LUpper, LFore, RUpper, RFore;
+            public Transform Pelvis, Spine, Torso, Neck, Head;
+            public Transform LUpper, LFore, LWrist, RUpper, RFore, RWrist;
             public Transform LThigh, LShin, RThigh, RShin;
+            public Transform LFoot, RFoot, LGlove, RGlove, LRelease, RRelease;
             public Transform Bat, Glove;
             public Transform Ring;
             public Animator Animator;
@@ -30,7 +31,7 @@ namespace GrandSluggers.UnityClient
         }
 
         static readonly string[] Bones =
-            { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin" };
+            { "root", "pelvis", "spine", "torso", "neck", "head", "lClavicle", "rClavicle", "lUpper", "lFore", "lWrist", "rUpper", "rFore", "rWrist", "lThigh", "lShin", "lFoot", "rThigh", "rShin", "rFoot", "lGlove", "rGlove", "lRelease", "rRelease", "bat", "glove" };
 
         static bool _missingReported;
 
@@ -74,6 +75,17 @@ namespace GrandSluggers.UnityClient
                 found[name] = bone;
             }
             chain.Root = go.transform;
+            chain.LRelease = found["lRelease"];
+            chain.RRelease = found["rRelease"];
+            chain.Pelvis = found["pelvis"];
+            chain.Spine = found["spine"];
+            chain.Neck = found["neck"];
+            chain.LWrist = found["lWrist"];
+            chain.RWrist = found["rWrist"];
+            chain.LFoot = found["lFoot"];
+            chain.RFoot = found["rFoot"];
+            chain.LGlove = found["lGlove"];
+            chain.RGlove = found["rGlove"];
             chain.Torso = found["torso"];
             chain.Head = found["head"];
             chain.LUpper = found["lUpper"];
@@ -92,9 +104,7 @@ namespace GrandSluggers.UnityClient
             // The body FBX has mesh siblings and gets a wrapper root above the
             // same armature node. Drive the Animator from that node so both
             // agree on paths.
-            var armatureNode = found["torso"].parent != null && found["torso"].parent.parent != null
-                ? found["torso"].parent.parent
-                : go.transform;
+            var armatureNode = found["root"].parent ?? go.transform;
             foreach (var other in go.GetComponentsInChildren<Animator>(true))
                 other.enabled = false;
             var animator = armatureNode.GetComponent<Animator>();
@@ -180,8 +190,8 @@ namespace GrandSluggers.UnityClient
                     continue;
                 }
                 Hang(id, src, chain.Root, bone, who.Faction, mirror: false);
-                if (id.Equals("sneakers", StringComparison.OrdinalIgnoreCase) && chain.RShin != null)
-                    Hang(id, src, chain.Root, chain.RShin, who.Faction, mirror: true);
+                if (id.Equals("sneakers", StringComparison.OrdinalIgnoreCase) && chain.RFoot != null)
+                    Hang(id, src, chain.Root, chain.RFoot, who.Faction, mirror: true);
                 foreach (var hidden in extra.Hides)
                     HideNamed(chain.Root, hidden);
             }
@@ -208,6 +218,15 @@ namespace GrandSluggers.UnityClient
 
         public static Transform BoneOf(Chain c, string name)
         {
+            if (name.Equals("pelvis", StringComparison.OrdinalIgnoreCase)) return c.Pelvis;
+            if (name.Equals("spine", StringComparison.OrdinalIgnoreCase)) return c.Spine;
+            if (name.Equals("neck", StringComparison.OrdinalIgnoreCase)) return c.Neck;
+            if (name.Equals("lWrist", StringComparison.OrdinalIgnoreCase)) return c.LWrist;
+            if (name.Equals("rWrist", StringComparison.OrdinalIgnoreCase)) return c.RWrist;
+            if (name.Equals("lFoot", StringComparison.OrdinalIgnoreCase)) return c.LFoot;
+            if (name.Equals("rFoot", StringComparison.OrdinalIgnoreCase)) return c.RFoot;
+            if (name.Equals("lGlove", StringComparison.OrdinalIgnoreCase)) return c.LGlove;
+            if (name.Equals("rGlove", StringComparison.OrdinalIgnoreCase)) return c.RGlove;
             if (name.Equals("torso", StringComparison.OrdinalIgnoreCase)) return c.Torso;
             if (name.Equals("head", StringComparison.OrdinalIgnoreCase)) return c.Head;
             if (name.Equals("lUpper", StringComparison.OrdinalIgnoreCase)) return c.LUpper;
@@ -250,6 +269,14 @@ namespace GrandSluggers.UnityClient
             chain.RShin = EnsureBone(chain.RThigh, "rShin", new Vector3(0, -0.6f, 0));
             chain.Bat = EnsureBone(chain.RFore, "bat", new Vector3(0, -0.68f, 0.12f));
             chain.Glove = EnsureBone(chain.LFore, "glove", new Vector3(0, -0.68f, 0.12f));
+            chain.LWrist = EnsureBone(chain.LFore, "lWrist", new Vector3(0, -0.68f, 0));
+            chain.RWrist = EnsureBone(chain.RFore, "rWrist", new Vector3(0, -0.68f, 0));
+            chain.LGlove = EnsureBone(chain.LWrist, "lGlove", Vector3.zero);
+            chain.RGlove = EnsureBone(chain.RWrist, "rGlove", Vector3.zero);
+            chain.LRelease = chain.LWrist;
+            chain.RRelease = chain.RWrist;
+            chain.LFoot = chain.LShin;
+            chain.RFoot = chain.RShin;
             chain.Animator = null;
         }
 
