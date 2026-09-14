@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 2,
+  "issue": 701,
+  "parentIssue": 693,
+  "status": "exploratory-proportions-and-accepted-ball-readability",
+  "observedOn": "2026-09-14",
+  "auditedRevision": "63abc97c0369bcd3f48c28448cca205f8b54c582",
+  "sourceSha256": {
+    "data/art/rig.json": "54577722c26352dad15bef32b7810c9c3952c95573004d65411f750be7bcbc43",
+    "src/GrandSluggers.Sim/Silhouette.cs": "2630ed7d8a90fd9655e3cd6bc7e185d93ef1fe884abaef22d43800f61c9cfeb8",
+    "src/GrandSluggers.Sim/Baseball.cs": "79eace7da235f3f8e8788a0f4ea8c64e62a95b08aa7dabffecb3dbdd032ba12e",
+    "src/GrandSluggers.Sim/ToyMesh.cs": "ce0ebc7b5f67d2cba191050bcd7836deac342a7377d7aa8a81fc6a772cf8cac0",
+    "unity/Assets/Scripts/Runtime/SharedRig.cs": "2a8ef3d1eb9bca6feb7de1c5d06b6b2871651fb83818712b8e1b12df63aee5da",
+    "unity/Assets/Scripts/Runtime/BallView.cs": "62105f7985fc021c43c4baab87171dc3c4d85308e4263c0f1e636d84ee9014ba"
+  },
+  "authoredReference": {
+    "headCenterY": 4.36,
+    "headRadius": 0.45,
+    "headTop": 4.8100000000000005,
+    "toyScale": 1.18,
+    "baselineFeet": 90,
+    "exclusions": "Nominal rest head-top marker, not live mesh bounds. Excludes extras, animation poses and status/highlight scale. Research branch predates possession-scale correction."
+  },
+  "characterRows": [
+    {
+      "character": "rio",
+      "statureMultiplier": 0.9,
+      "nominalRestHeadTopFeet": 5.10822,
+      "headTopPerBasepath": 0.056758
+    },
+    {
+      "character": "vale",
+      "statureMultiplier": 1.24,
+      "nominalRestHeadTopFeet": 7.037992,
+      "headTopPerBasepath": 0.07819991111111112
+    },
+    {
+      "character": "zig",
+      "statureMultiplier": 0.56,
+      "nominalRestHeadTopFeet": 3.1784480000000004,
+      "headTopPerBasepath": 0.035316088888888895
+    },
+    {
+      "character": "brondo",
+      "statureMultiplier": 0.96,
+      "nominalRestHeadTopFeet": 5.448768,
+      "headTopPerBasepath": 0.06054186666666667
+    },
+    {
+      "character": "konga",
+      "statureMultiplier": 1.3,
+      "nominalRestHeadTopFeet": 7.378540000000001,
+      "headTopPerBasepath": 0.0819837777777778
+    },
+    {
+      "character": "ashlord",
+      "statureMultiplier": 1.44,
+      "nominalRestHeadTopFeet": 8.173152,
+      "headTopPerBasepath": 0.0908128
+    },
+    {
+      "character": "fenn",
+      "statureMultiplier": 0.78,
+      "nominalRestHeadTopFeet": 4.427124000000001,
+      "headTopPerBasepath": 0.04919026666666668
+    }
+  ],
+  "referenceFrames": [
+    {
+      "id": "wii-fielding-60-sizing",
+      "url": "https://www.youtube.com/watch?v=3-5aQh-fxZk&t=60s",
+      "sourceId": "wii-t4p-2016",
+      "mediaSeconds": 60,
+      "decodedVideoPixels": [
+        1280,
+        720
+      ],
+      "screenshotPixels": [
+        1512,
+        949
+      ],
+      "activeGameRectPixels": [
+        0,
+        33,
+        1512,
+        851
+      ],
+      "measurements": [
+        {
+          "character": "Boo",
+          "topPixelBounds": [
+            243,
+            249
+          ],
+          "bottomPixelBounds": [
+            309,
+            316
+          ],
+          "verticalExtentOverActiveHeightBounds": [
+            0.07050528789659224,
+            0.08578143360752057
+          ],
+          "kind": "manual silhouette extent excluding shadow/HUD; pose-dependent, not world height"
+        },
+        {
+          "character": "Mario",
+          "topPixelBounds": [
+            676,
+            687
+          ],
+          "bottomPixelBounds": [
+            801,
+            812
+          ],
+          "verticalExtentOverActiveHeightBounds": [
+            0.13396004700352526,
+            0.1598119858989424
+          ],
+          "kind": "manual silhouette extent excluding shadow/HUD; pose-dependent, not world height"
+        }
+      ],
+      "scope": "Screen-space silhouette extent only; no world/basepath ratio or reference target",
+      "ballCoreDiameterPixels": null,
+      "ballCoreCaution": "Ball core, trail and glow not reliably separated in this sample; no diameter estimate."
+    },
+    {
+      "id": "gc-contact-191-sizing",
+      "url": "https://www.youtube.com/watch?v=fdtUfRUjyAY&t=191s",
+      "sourceId": "gc-stp-2015",
+      "mediaSeconds": 191.125513,
+      "decodedVideoPixels": [
+        256,
+        144
+      ],
+      "screenshotPixels": [
+        1512,
+        949
+      ],
+      "status": "excluded-from-numerical-proportion-calibration-low-resolution-and-unmatched-camera",
+      "observation": "Luigi foreground batter and Wario pitcher during contact; different camera phase from Wii fielding frame."
+    },
+    {
+      "id": "gc-transition-196-sizing",
+      "sourceId": "gc-stp-2015",
+      "mediaSeconds": 196.234431,
+      "status": "excluded-black-transition"
+    },
+    {
+      "id": "wii-intro-30-sizing",
+      "sourceId": "wii-t4p-2016",
+      "mediaSeconds": 30,
+      "status": "excluded-ground-homography-incomplete-diamond",
+      "observation": "Intro overview crops home and near infield; cannot resolve four bag centers."
+    }
+  ],
+  "ballBaseline": {
+    "heldDiameterFeet": 0.62,
+    "pitchFarDiameterFeet": 1.42,
+    "inPlayDiameterFeet": 1.12,
+    "formula": "Held: .62; ordinary pitch: .62 + .80*clamp((z-8)/40,0,1); ordinary in-play flight:1.12",
+    "scope": "Drawn diameter in nominal game feet, not physical catch radius; pitch helper uses world Z, not measured camera depth. Special visuals and parent transforms require separate review."
+  },
+  "possessionScaleCorrection": {
+    "issue": 691,
+    "state": "closed",
+    "pr": 700,
+    "mergeRevision": "08eab5bba940f8ec5c5f020afac772ed16b8a367",
+    "mergedAt": "2026-09-14T19:07:34Z",
+    "scope": "Stable character silhouette on possession; not a baseball-size correction. New visual baseline must name build revision and include this fix."
+  },
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-ball-readability",
+      "status": "accepted-design-intent",
+      "scope": "Readability intent only; no size coefficient, camera-dependent physics, catch-radius change or giant-ball effect. Preserve sim positions and timing; smooth the visual transition into possession.",
+      "referenceDistanceScalingAlgorithm": "unverified for both games",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Allow moderate bounded visual size assistance for distant moving balls, with glove-fitting held size and readable trails/contrast",
+      "alternativeConsideredNotSelected": "Use one fixed drawn world-space ball diameter and rely on framing/contrast/trails for distance readability",
+      "userQualification": "approve, but make it moderate.",
+      "moderationConstraint": "Tracking assistance should not read as a prominent growth effect, dominate the character, or cause distracting size changes into possession. Numerical limits remain pending."
+    }
+  ]
+}
