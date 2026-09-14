@@ -22,17 +22,17 @@ Gameplay: pitcher 3/4, batter over-shoulder, fly follow. Those cameras must stil
 
 ## Six body types
 
-Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso). Role players copy the faction captain. Captains keep the extra bits (crown, snout, horns).
+Root scale in `Silhouette.Proportions` (Height × Width × Head × Arms × Torso). Role players copy the faction captain. Identity on the field is palette + these numbers (#687). Extra bits (crown, snout, horns) stay catalog slots, not on skins.
 
 | Type | Who | Height | Width | Head | Arms | Torso | Read |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Harbor kid | Rio, Spark | 0.90 | 1.00 | 1.38 | 1.02 | 0.94 | Short, round head, chunky shoes, big brim |
-| Pageant pitcher | Vale, Royal | 1.24 | 0.70 | 1.24 | 0.88 | 0.74 | Tall, slim, long neck, sash, ice crown — head still reads |
-| Speed | Zig, Carnival | 0.56 | 1.18 | 1.62 | 0.82 | 0.68 | Tiny body, huge head, stubby legs, goggles |
+| Harbor kid | Rio, Spark | 0.90 | 1.00 | 1.38 | 1.02 | 0.94 | Short, round head |
+| Pageant pitcher | Vale, Royal | 1.24 | 0.70 | 1.24 | 0.88 | 0.74 | Tall, slim, long neck — head still reads |
+| Speed | Zig, Carnival | 0.56 | 1.18 | 1.62 | 0.82 | 0.68 | Tiny body, huge head, stubby legs |
 | Brick | Brondo, Goldrush | 0.96 | 1.58 | 1.16 | 1.28 | 1.48 | Rio-height, cube torso, thick neck, square jaw |
-| Ape | Konga, Canopy | 1.30 | 1.36 | 1.34 | 1.72 | 1.20 | Hunched, snout, longest arms, barrel belly |
-| Villain slug | Ashlord, Ember | 1.44 | 1.28 | 1.48 | 1.18 | 1.38 | Tallest, horns, cape, furnace eyes, heavy boots |
-| Turtle elder | Fenn, Fen | 0.78 | 1.48 | 1.70 | 0.96 | 1.12 | Short, wide shell-brim, cane, cream plastron |
+| Ape | Konga, Canopy | 1.30 | 1.36 | 1.34 | 1.72 | 1.20 | Hunched, longest arms, barrel torso |
+| Villain slug | Ashlord, Ember | 1.44 | 1.28 | 1.48 | 1.18 | 1.38 | Tallest, heavy boots |
+| Turtle elder | Fenn, Fen | 0.78 | 1.48 | 1.70 | 0.96 | 1.12 | Short, wide, big head |
 
 SMS research ladder (outlines only, not IP): Baby < Mario ≈ Wario < Peach < DK < Bowser. Head/Height ≥ 1.0 so the face still reads.
 
@@ -42,9 +42,11 @@ Numbers live in `src/GrandSluggers.Sim/Silhouette.cs`. Role players do not get a
 
 ## Role players
 
-Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey, stripe, and skin from `Colors`. No horns, crown, snout, goggles, or cape on role players.
+Faction variants, not 18 new skeletons. Same proportions as the captain. Jersey, stripe, and skin from `Colors`. No extras on role players. No extras on captains until they read as toys (#687).
 
-## Signature extras (captains only)
+## Signature extras (catalog only)
+
+Slots in `data/art/extras.json`. Skins list none until extras read as toys, not geometry junk (#687). Do not attach them to pass a still. Caps stay off (#557).
 
 - **Rio** — round cheeks, fat sneakers (the brim returns when caps come back as accessories)
 - **Vale** — neck cylinder, pageant sash, ice crown instead of a ballcap

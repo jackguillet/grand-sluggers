@@ -61,6 +61,21 @@ public sealed class DistillTests
     }
 
     [Fact]
+    public void CharacterArtGrewFromExtrasAsGeometryJunk()
+    {
+        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        Assert.Contains("#687", skill, StringComparison.Ordinal);
+        Assert.Contains("extras-are-geometry-junk", skill, StringComparison.Ordinal);
+        Assert.Contains("leave extras off the skin", skill, StringComparison.Ordinal);
+        Assert.Contains("NoSkinListsAnExtraUntilTheyReadAsToys", skill, StringComparison.Ordinal);
+
+        var row = Assert.Single(DebugProtocol.Load(_root).Entries, e => e.Id == "extras-are-geometry-junk");
+        Assert.Equal("#687", row.Issue);
+        Assert.Equal("ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys", row.Promoted);
+        Assert.Contains("circles/squares", row.Signature, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void PromotedSignaturesNameARealTest()
     {
         var protocol = DebugProtocol.Load(_root);

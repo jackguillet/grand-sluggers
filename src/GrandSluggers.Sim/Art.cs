@@ -194,7 +194,6 @@ public sealed class ArtCatalog
             if (!skin.Captain) errors.Add("skin " + id + " should be captain");
             if (!skin.BodyType.Equals(id, StringComparison.OrdinalIgnoreCase))
                 errors.Add("skin " + id + " bodyType should be self");
-            if (skin.Extras.Count == 0) errors.Add("captain skin " + id + " needs extras");
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
         }
 
@@ -204,8 +203,8 @@ public sealed class ArtCatalog
             var expected = Silhouette.BodyType(who);
             if (!skin.BodyType.Equals(expected, StringComparison.OrdinalIgnoreCase))
                 errors.Add("skin " + who.Id + " bodyType " + skin.BodyType + " != " + expected);
-            if (!who.Captain && skin.Extras.Count > 0)
-                errors.Add("role skin " + who.Id + " must not grow captain extras");
+            if (skin.Extras.Count > 0)
+                errors.Add("skin " + who.Id + " must not list extras until they read as toys");
             foreach (var extra in skin.Extras)
                 if (!Extras.ContainsKey(extra))
                     errors.Add("skin " + who.Id + " extra " + extra + " is not in extras.json");

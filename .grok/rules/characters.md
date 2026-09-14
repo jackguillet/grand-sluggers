@@ -8,7 +8,7 @@ alwaysApply: false
 
 Contract: `docs/character-motion.md`. Procedure: `.grok/skills/character-art/`. Stills: `docs/screenshot-gate.md`.
 
-- Every captain is `hero-shared` + extras from `data/art/extras.json`. Unique packages are deferred.
+- Every captain is `hero-shared`. Unique packages are deferred. Extras catalog slots stay; skins list none until extras read as toys (#687).
 - Every verb is a take from `tools/blender/hero_shared_takes.py`. Do not put an Euler angle for a body part in C#.
 - A left-handed batter or thrower plays `{clip}-L.fbx`, the baked reflection. Do not mirror a bone, socket, or sample at runtime.
 - The takes script must refuse a take that misses its contract. Extend the falsifier, do not loosen it.
