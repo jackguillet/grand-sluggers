@@ -192,6 +192,16 @@
       "promoted": "CarnivalFrontTests.SelectCaptainsStayOnTheDirt",
       "issue": "#686",
       "pr": "#695"
+    },
+    {
+      "id": "harbor-bags-paint-brown",
+      "signature": "bases are brown instead of white; authored Harbor bag mesh is dirt-brown, missing-file primitive is chalk",
+      "stage": "sitting",
+      "cause": "HarborKit.PaintKit mapped unknown FBX material names to wood (0.42, 0.26, 0.12) or dirt. Unity BasedOnTextureName drops Blender chalk/navy; DressBag still called paint: true. Primitive fallback was already Colors.Chalk.",
+      "fix": "HarborKitPaint.For(slot, material). Chalk meshes (bag, home-plate) paint chalk, navy piping stays navy. Unknown names never fall through to wood/dirt. PrimitiveBag is chalk. Do not shrink the bag.",
+      "promoted": "HarborKitPaintTests.ChalkMeshesPaintChalkNotDirtOrWood",
+      "issue": "#683",
+      "pr": ""
     }
   ]
 }
