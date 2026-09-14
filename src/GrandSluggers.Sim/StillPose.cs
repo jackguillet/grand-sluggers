@@ -68,12 +68,12 @@ public static class StillPose
     public const double CharFov = 34;
     public const double CharPoseT = Motion.SwingContact;
 
-    /// <summary>torsoMesh Z in hero_shared_blockout.py. World chest is this × SharedRootScale.Y.</summary>
-    public const double CharUnscaledChestY = 2.28;
+    /// <summary>Torso joint origin in data/art/rig.json. World chest is this × SharedRootScale.Y.</summary>
+    public const double CharUnscaledChestY = 2.95;
     /// <summary>HEAD.z — same landmark as <see cref="SwingPresentation.HeadCenterAtRest"/>.</summary>
-    public const double CharUnscaledHeadCenterY = 4.05;
+    public static readonly double CharUnscaledHeadCenterY = SwingPresentation.HeadCenterAtRest.Y;
     /// <summary>Same radius as <see cref="SwingPresentation.HeadRadius"/>.</summary>
-    public const double CharUnscaledHeadRadius = 0.86;
+    public const double CharUnscaledHeadRadius = SwingPresentation.HeadRadius;
 
     public static double CharChestY(string bodyType)
     {
@@ -100,10 +100,34 @@ public static class StillPose
         var dz = CharCamZ - CharZ;
         var template = Math.Sqrt(dx * dx + dz * dz);
         var dist = template + Math.Max(0, height - CharHeadTopY("rio"));
-        var u = dist / template;
-        var pos = new Vec3(CharX + dx * u, chestY + CharCamLift, CharZ + dz * u);
-        var look = new Vec3(CharX, chestY, CharZ);
-        return new CameraShot("select", "chest", pos, look, CharFov, 0);
+        CameraShot AtDistance(double distance)
+        {
+            var u = distance / template;
+            var pos = new Vec3(CharX + dx * u, chestY + CharCamLift, CharZ + dz * u);
+            return new CameraShot("select", "chest", pos, new Vec3(CharX, chestY, CharZ), CharFov, 0);
+        }
+        bool Fits(double distance)
+        {
+            var shot = AtDistance(distance);
+            return PlayCamera.InFrame(PlayCamera.Project(shot, new Vec3(CharX, 0, CharZ)), 0.04)
+                && PlayCamera.InFrame(PlayCamera.Project(shot, new Vec3(CharX, height, CharZ)), 0.04);
+        }
+        // The taller rig raises the chest. Fit feet as well as head while
+        // preserving the same chest target and 3/4 direction for every captain.
+        if (!Fits(dist))
+        {
+            var near = dist;
+            var far = dist * 2;
+            while (!Fits(far)) far *= 2;
+            for (var i = 0; i < 32; i++)
+            {
+                var mid = (near + far) / 2;
+                if (Fits(mid)) far = mid;
+                else near = mid;
+            }
+            dist = far;
+        }
+        return AtDistance(dist);
     }
 
     public static bool CharCameraLooksAtChest(double lookY, double chestY) =>

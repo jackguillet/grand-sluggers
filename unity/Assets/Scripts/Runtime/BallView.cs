@@ -179,7 +179,8 @@ namespace GrandSluggers.UnityClient
             }
             else
             {
-                _root.localPosition = new Vector3(0f, 0.1f, 0.52f);
+                // Hold targets are authored palm/pocket sockets, not forearm origins.
+                _root.localPosition = Vector3.zero;
                 _root.localRotation = Quaternion.identity;
                 if (_shadow != null) _shadow.gameObject.SetActive(false);
                 _hadPlace = false;
@@ -201,7 +202,8 @@ namespace GrandSluggers.UnityClient
             if (_root == null || glove == null) return;
             _held = glove;
             _root.SetParent(glove, false);
-            _root.localPosition = new Vector3(0f, 0.1f, 0.52f);
+            // Hold targets are authored palm/pocket sockets, not forearm origins.
+            _root.localPosition = Vector3.zero;
             _root.localRotation = Quaternion.identity;
             // Bones and grow scale the hand. World-size baseball, not a seed in the palm.
             var ls = glove.lossyScale;
