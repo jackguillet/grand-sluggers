@@ -61,6 +61,8 @@ Track extra-base opportunities, relays, and home-run frequency separately from S
 
 Jack subsequently accepted [pursuit consistency](research-game-feel-701-movement.md): the same character retains one ordinary pursuit movement profile across hit classes and assigned fielding positions, with explicit dash/ability/status modifiers and separate baserunning tuning. The audit preserves existing modifiers and their scoring lineage. Numerical profiles and coordinated implementation remain pending.
 
+The [character/ball sizing audit](research-game-feel-701-proportions.md) adds a Wii screen-space observation, nominal Harbor head-top/basepath ratios, and the updated #691 baseline dependency. It does not yet establish reference world-space character proportions or accept C1 dimensions.
+
 ## Validation
 
 The dataset preserves raw reported times, derived dimensionless ratios, assumed sensitivity cases, source revisions, and pending candidate status. Recompute all ratios and stress cases from those inputs; verify reference ids and that accepted targets remain empty. These are documentation checks, not runtime or human feel validation. No new gameplay test run or standalone build is claimed.
