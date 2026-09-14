@@ -325,7 +325,7 @@ public class InPlayTests
     [Fact]
     public void TheaterShotIsOneHighDiamond()
     {
-        // The class is typed on the hit (§6.2); a liner pulls back with the flies (§15).
+        // The class is typed on the hit (§6.2); a liner has its own 45° shot between hopper and fly (§15, #665).
         var hopper = new AtBatResult(ContactQuality.Nice, true, false, 90, 8, 40, false, false, null, null, SprayDeg: 4, Class: BattedBallClass.Grounder);
         var pull = hopper with { SprayDeg = -20 };
         var fly = hopper with { LaunchDeg = 32, CarryFt = 280, Class = BattedBallClass.Fly };
@@ -334,7 +334,7 @@ public class InPlayTests
         var star = hopper with { LaunchDeg = 28, StarSwingUsed = "heat-swing" };
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(hopper));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(pull));
-        Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(line));
+        Assert.Equal(PlayCamera.InPlayLine, InPlay.TheaterShot(line));
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(fly));
         Assert.Equal(PlayCamera.InPlayFly, InPlay.TheaterShot(homer));
         Assert.Equal(PlayCamera.InPlay, InPlay.TheaterShot(star));

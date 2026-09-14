@@ -80,7 +80,10 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Grounder));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.GrounderPull));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.Shot(PlayCamera.Beat.Rundown));
-        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Line));
+        Assert.Equal(PlayCamera.InPlayLine, PlayCamera.Shot(PlayCamera.Beat.Line));
+        Assert.NotEqual(PlayCamera.Shot(PlayCamera.Beat.Grounder), PlayCamera.Shot(PlayCamera.Beat.Line));
+        Assert.NotEqual(PlayCamera.Shot(PlayCamera.Beat.Fly), PlayCamera.Shot(PlayCamera.Beat.Line));
+        Assert.NotEqual("diamond-grounder", PlayCamera.Shot(PlayCamera.Beat.Line));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Fly));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Homer));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.Shot(PlayCamera.Beat.Wall));
@@ -200,7 +203,7 @@ public class PlayCameraTests
             Assert.Equal(f.Blend <= 0, f.Cut);
         }
         // The contact transition is a cut to the in-play view, and so are the close play's bag cam and the steal's.
-        foreach (var id in new[] { PlayCamera.InPlay, PlayCamera.InPlayFly, PlayCamera.TagShot, PlayCamera.ThrowShot })
+        foreach (var id in new[] { PlayCamera.InPlay, PlayCamera.InPlayLine, PlayCamera.InPlayFly, PlayCamera.TagShot, PlayCamera.ThrowShot })
             Assert.True(shots.Must(id).Blend == 0, $"{id} blend {shots.Must(id).Blend} is a swoop, not a cut");
         // The authored blend is read, not a constant: a hand-built shot's blend rides the frame.
         var custom = new CameraShot("custom", "ball", new Vec3(0, 10, -10), new Vec3(0, 0, 0), 50, 7);
@@ -340,7 +343,7 @@ public class PlayCameraTests
         Assert.Equal(InPlay.TheaterShot(hopper), PlayCamera.FromHit(hopper));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(hopper));
         Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(pull));
-        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(line));
+        Assert.Equal(PlayCamera.InPlayLine, PlayCamera.FromHit(line));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(fly));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(pop));
         Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(homer));
@@ -349,6 +352,48 @@ public class PlayCameraTests
         Assert.Equal(PlayCamera.Beat.Fly, PlayCamera.BeatFrom(fly));
         Assert.Equal(PlayCamera.Beat.GrounderPull, PlayCamera.BeatFrom(pull));
         Assert.Equal(PlayCamera.Beat.Line, PlayCamera.BeatFrom(line));
+    }
+
+    [Fact]
+    public void ALinerAndAHopperDoNotShareAShot()
+    {
+        // #665: hopper vs rope name themselves HUD-off. Beat.Line is diamond-line, never
+        // diamond (hopper) or diamond-grounder (the scoop still). A fly still pulls back further.
+        var content = ContentCatalog.Load();
+        var shots = content.Shots;
+        var feel = content.Feel;
+        var match = Match.Slice(content, seed: 2);
+        var hopper = FlightFixtures.Hit(match.Park, 90, 8, 4);
+        var liner = FlightFixtures.Hit(match.Park, 95, 16, 6);
+        var fly = FlightFixtures.Hit(match.Park, 95, 32, 0);
+        Assert.True(hopper.Class.OnTheDirt(), hopper.Class.ToString());
+        Assert.Equal(BattedBallClass.Liner, liner.Class);
+        Assert.False(liner.Class.OnTheDirt());
+        Assert.Equal(BattedBallClass.Fly, fly.Class);
+
+        Assert.Equal(PlayCamera.Beat.Grounder, PlayCamera.BeatFrom(hopper));
+        Assert.Equal(PlayCamera.Beat.Line, PlayCamera.BeatFrom(liner));
+        Assert.Equal(PlayCamera.Beat.Fly, PlayCamera.BeatFrom(fly));
+        Assert.Equal(PlayCamera.InPlay, PlayCamera.FromHit(hopper));
+        Assert.Equal(PlayCamera.InPlayLine, PlayCamera.FromHit(liner));
+        Assert.Equal(PlayCamera.InPlayFly, PlayCamera.FromHit(fly));
+        Assert.Equal(PlayCamera.FromHit(liner), InPlay.TheaterShot(liner));
+        Assert.NotEqual(PlayCamera.FromHit(hopper), PlayCamera.FromHit(liner));
+        Assert.NotEqual(PlayCamera.FromHit(fly), PlayCamera.FromHit(liner));
+        Assert.NotEqual("diamond-grounder", PlayCamera.FromHit(liner));
+        Assert.Equal(
+            PlayCamera.Shot(PlayCamera.Beat.Line, seats: 1),
+            PlayCamera.Shot(PlayCamera.Beat.Line, seats: 2));
+
+        var lineView = View(hit: liner);
+        Assert.Equal(PlayCamera.Beat.Line, PlayCamera.LiveBeat(lineView, feel));
+        var framed = PlayCamera.LiveFraming(shots, lineView, feel)!.Value;
+        Assert.Equal(PlayCamera.InPlayLine, framed.Shot);
+        Assert.True(framed.Cut);
+        Assert.Equal(0, framed.Look.Y);
+        var authored = shots.Must(PlayCamera.InPlayLine);
+        Assert.Equal(0, authored.Blend);
+        Assert.InRange(PlayCamera.LookDownDeg(authored), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
     }
 
     [Fact]

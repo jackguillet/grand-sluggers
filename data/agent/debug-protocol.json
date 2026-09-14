@@ -112,6 +112,16 @@
       "promoted": "AtBatScenarioTests.S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter",
       "issue": "#670",
       "pr": "#673"
+    },
+    {
+      "id": "liner-shares-fly-shot",
+      "signature": "line drive vs ground ball does not read HUD-off; hopper vs rope look like cousins; PlayCamera.Shot maps Line, Fly, Homer, and Wall all to diamond-fly",
+      "stage": "sitting",
+      "cause": "PlayCamera.cs Shot: Beat.Line grouped with Fly/Homer/Wall onto diamond-fly. A liner is a rope (flight.linerTimeScale 1.0), not a stretched fly; from the fly pull-back a 10-ft rope sits on the dirt like a hopper. diamond-line had been killed as an unused 3/4 (#610).",
+      "fix": "Beat.Line is diamond-line: same 45° family, between diamond and diamond-fly, blend 0. Never diamond-grounder. Tune the shot; do not caption the class; do not fork 1P vs 2P.",
+      "promoted": "PlayCameraTests.ALinerAndAHopperDoNotShareAShot",
+      "issue": "#665",
+      "pr": ""
     }
   ]
 }
