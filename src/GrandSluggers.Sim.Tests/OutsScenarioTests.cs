@@ -158,35 +158,33 @@ public sealed class OutsScenarioTests
     }
 
     [Fact]
-    public void S49_BuntPoppedUpWithTheRunnerSentIsCaughtThenDoubledOffFirst()
+    public void S49_BuntPoppedUpIsTheCatchersAndTheThrowBackDoublesTheRunnerOffFirst()
     {
-        // The runner on first goes at contact (LB); the pop is caught in front of the plate and the
-        // throw back to first is a force back (§10.5): out if the ball beats the body to the bag.
+        // §10.4 S-49: runner on first, bunt popped up — C / P catch, then 1B (double off). The runner is sent with
+        // the stick at contact, so they are off the bag at the catch and owe a retouch (§10.5); the pop is a bunt's
+        // (§5.8, S-19) that lands in the triangle in front of the plate, the catcher takes it, and the throw back to
+        // first is a force back — an out only because the ball beat the body to the bag (§10.2). The crash and the
+        // charge of #625 (§7.3) move where the gloves start; the row's facts do not change.
         var match = Defense("cinder");
         Station(match, [1]);
         var runner = match.First!;
-        var hit = FlightFixtures.Hit(match.Park, 34, 58, 2) with { Foul = false, InPlay = true };
+        var hit = FlightFixtures.Hit(match.Park, 22, 60, 0, bunt: true) with { Foul = false, InPlay = true };
         var preview = match.PreviewHit(hit);
-        Assert.False(preview.Grounder);
-        Assert.False(FieldingResolver.IsOutfield(preview.Position), preview.Position);
+        Assert.Equal(BattedBallClass.Pop, preview.Class);
+        Assert.True(preview.LandingZ < Diamond.Rubber.Z, $"a bunt pop lands in the triangle: {preview.LandingZ:0} ft out");
+        Assert.True(preview.Position is "C" or "P", preview.Position);
         var run = Run(match, hit, preview, HumanRunners, LivePlayCommandSource.Human,
-            runPad: (i, _) => i < 3 ? new LivePadInput(AllAdvance: true) : LivePadInput.Dead);
+            runPad: (i, _) => i < 3 ? new LivePadInput(KeysBag: 1, StickBag: 2) : LivePadInput.Dead);
+        Assert.True(run.LeftEarlySeen, "the stick send at contact leaves the bag early and owes a retouch (§10.5)");
         var outs = run.Play.Outcome!.OutsMade;
-        Assert.Equal(OutType.Catch, outs[0].Type);
-        Assert.Equal(0, outs[0].FromBag);
-        var back = run.Throws.FirstOrDefault(t => t.Bag == 1 && t.Landed);
-        var doubled = outs.FirstOrDefault(o => o.FromBag == 1);
-        if (doubled is not null)
-        {
-            // Off the bag at the catch: the force back at first (§10.5). On the bag with the send: the tag-up, and the
-            // tag at second is the infielder's play on a body going (§8.8).
-            if (doubled.Type == OutType.Force) Assert.Equal((1, runner.Id), (doubled.Bag, doubled.Runner.Id));
-            else Assert.Equal((OutType.Tag, 2, runner.Id), (doubled.Type, doubled.Bag, doubled.Runner.Id));
-            Assert.Equal("DOUBLE PLAY", PlayStamp.Label(run.Play));
-        }
-        else
-            Assert.Equal(1, match.Runners.Count(r => r.Who.Id == runner.Id));
-        _ = back;
+        Assert.Equal(2, outs.Count);
+        Assert.Equal((OutType.Catch, 0, preview.Fielder.Id), (outs[0].Type, outs[0].FromBag, outs[0].Fielder!.Id));
+        var back = Assert.Single(run.Throws, t => t.Bag == 1 && t.Landed);
+        Assert.Equal(runner.Id, back.TargetId);
+        Assert.True(back.TargetArrivalBeforeLanding > 0, $"the force back is an out only because the ball beat the body: {back.TargetArrivalBeforeLanding:0.00} s");
+        Assert.Equal((OutType.Force, 1, 1, runner.Id), (outs[1].Type, outs[1].Bag, outs[1].FromBag, outs[1].Runner.Id));
+        Assert.Equal("DOUBLE PLAY", PlayStamp.Label(run.Play));
+        Assert.Null(match.First);
     }
 
     // ---------------------------------------------------------------------------------
@@ -235,15 +233,15 @@ public sealed class OutsScenarioTests
         var outs = run.Play.Outcome!.OutsMade;
         Assert.Equal((OutType.Catch, 0), (outs[0].Type, outs[0].FromBag));
         Assert.True(run.LeftEarlySeen);
-        Assert.Contains(run.Throws, t => t.Bag == 2 || t.Bag == 0);
-        var doubled = outs.FirstOrDefault(o => o.Runner.Id == runner.Id);
-        if (doubled is not null)
-        {
-            Assert.Equal((OutType.Force, 2, 2), (doubled.Type, doubled.Bag, doubled.FromBag));
-            Assert.Equal("DOUBLE PLAY", PlayStamp.Label(run.Play));
-        }
-        else
-            Assert.NotNull(match.Second);
+        // Doubled off / safe by arrival (§10.5): the force back at second is an out only because the ball beat the
+        // body's return; on this fixture the throw from center is on the bag about half a second ahead of it.
+        var back = Assert.Single(run.Throws, t => t.Bag == 2 && t.Landed);
+        Assert.Equal(runner.Id, back.TargetId);
+        Assert.True(back.TargetArrivalBeforeLanding > 0, $"the ball landed {back.TargetArrivalBeforeLanding:0.00} s ahead of the return");
+        var doubled = Assert.Single(outs, o => o.Runner.Id == runner.Id);
+        Assert.Equal((OutType.Force, 2, 2), (doubled.Type, doubled.Bag, doubled.FromBag));
+        Assert.Equal("DOUBLE PLAY", PlayStamp.Label(run.Play));
+        Assert.Null(match.Second);
     }
 
     [Fact]
@@ -481,7 +479,8 @@ public sealed class OutsScenarioTests
     public void RundownCpuRunnerReversesOnEveryThrow()
     {
         // A CPU body caught between first and second runs away from the ball (§9.7): a throw to the bag ahead turns
-        // them back, a throw to the bag behind sends them on again. Nothing else in the read changes.
+        // them back, a throw to the bag behind sends them on again — while the other bag is reachable ahead of the
+        // ball's next leg. Nothing else in the read changes.
         var who = _content.Must("cinder");
         var runner = new Runner(who, 1);
         runner.BeginPlay(forced: false, tagAndGo: false);
@@ -501,6 +500,14 @@ public sealed class OutsScenarioTests
         // Off the rundown the same throw does not turn a committed body around.
         runner.MarkRundown(false);
         RunnerAi.Decide([runner], Throwing(2), _ => false);
+        Assert.Equal(2, runner.DestBag);
+        // Beaten both ways (#640): the ball lands at second before a body 15 ft short of it could get back to first
+        // (the throw's next leg beats them there too), so it keeps going and takes the tag at the bag.
+        RunnerSystem.Tick([runner], 1.0, new RunnerTickContext(2.5, 0, FlyState.None, 0, _ => false, _ => false));
+        Assert.True(runner.Feet > 70 && runner.DestBag == 2);
+        runner.MarkRundown(true);
+        RunnerAi.Decide([runner], new RunnerAiContext(2.5, 0, int.MinValue, FlyState.None,
+            new BallSituation(false, true, 2, 2.8, second.X, second.Z, 2.5, false, 60, 70, 90), 0), _ => false);
         Assert.Equal(2, runner.DestBag);
     }
 
@@ -724,4 +731,5 @@ public sealed class OutsScenarioTests
         foreach (var bag in bags)
             Assert.True(match.StationRunner(bag, roster[bag + 1]), $"station bag {bag}");
     }
+
 }

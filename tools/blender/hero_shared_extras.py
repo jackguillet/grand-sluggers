@@ -9,6 +9,8 @@ here assumes how the importer orients a bone's local frame. Props (bat-wood,
 glove-brown, baseball) keep their authored model origins.
 
 No caps. Hats return later as accessories on the head socket.
+Stage 2 fill (data/agent/dcc-stages.json): extras.json + --clay scratchpad/takes/extras.png, then --out.
+One-shotting a captain extra is a patch.
 """
 from __future__ import annotations
 

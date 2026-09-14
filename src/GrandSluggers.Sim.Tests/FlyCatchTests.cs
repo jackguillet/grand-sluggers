@@ -82,9 +82,11 @@ public class FlyCatchTests
             "South still scoops a routine fly you are under");
         Assert.True(FlyCatch.PlayerCaught(jumpDown: true, southDown: false, under: true, inWindow: true, needsJump: false),
             "the leap stays armed after the press");
-        Assert.True(FlyCatch.PlayerDiveCatch(true, distFt: 16, windowFt: 20, ballY: 2));
-        Assert.False(FlyCatch.PlayerDiveCatch(false, distFt: 16, windowFt: 20, ballY: 2));
-        Assert.False(FlyCatch.PlayerDiveCatch(true, distFt: 30, windowFt: 20, ballY: 2));
+        Assert.True(FlyCatch.PlayerDiveCatch(true, distFt: 16, standUpFt: 10, diveWindowFt: 20, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(false, distFt: 16, standUpFt: 10, diveWindowFt: 20, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(true, distFt: 30, standUpFt: 10, diveWindowFt: 20, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(true, distFt: 9, standUpFt: 10, diveWindowFt: 20, ballY: 2),
+            "a plant catch is stand-up even if East is armed");
     }
 
     [Fact]
@@ -102,6 +104,58 @@ public class FlyCatchTests
             "jump late is a homer");
         Assert.Equal(PlayKind.HomeRun, FlyCatch.PlayerKind(false, pre));
         _ = hr;
+    }
+
+    [Fact]
+    public void CatchAtThePlantIsStandUpARimCatchIsADive()
+    {
+        var c = Rules.Default.Fielding.Catch;
+        Assert.Equal(10, c.RadiusBaseFt);
+        Assert.Equal(0.6, c.RadiusPerField);
+        Assert.Equal(4, c.WindowPadFt);
+        Assert.Equal(8, c.DiveReachFt);
+        Assert.Equal(7.5, c.DiveMaxBallY);
+        var rio = _content.Must("rio");
+        var ashlord = _content.Must("ashlord");
+        var park = Harbor;
+        var rioRadius = FieldingResolver.CatchRadiusFt(rio, park);
+        var ashRadius = FieldingResolver.CatchRadiusFt(ashlord, park);
+        Assert.Equal(c.RadiusBaseFt + rio.Stats.Field * c.RadiusPerField + FieldAbilities.CatchBonus(rio), rioRadius);
+        Assert.Equal(c.RadiusBaseFt + ashlord.Stats.Field * c.RadiusPerField, ashRadius);
+        var standUp = FieldingResolver.StandUpCatchFt(rioRadius);
+        var diveWin = FieldingResolver.DiveCatchFt(rioRadius);
+        Assert.Equal(rioRadius, standUp);
+        Assert.Equal(rioRadius + c.DiveReachFt, diveWin);
+        Assert.True(FieldingResolver.CatchWindowFt(rioRadius, false, false) > standUp,
+            "windowPad is dirt scoop slack, not a stand-up fly out");
+
+        var plant = 0.0;
+        Assert.True(FlyCatch.AutoCatch(under: plant < standUp, inWindow: true, needsJump: false));
+        Assert.False(FlyCatch.AutoDive(underDive: plant < diveWin, underStandUp: plant < standUp, inWindow: true,
+            needsJump: false, ballY: 2));
+        Assert.Equal(DefensiveFeat.None, FieldingResolver.PlayerCatchFeat(
+            FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 2.8, 0, 240), park, false, false, dived: false));
+
+        var rim = standUp + c.DiveReachFt * 0.5;
+        Assert.True(rim >= standUp && rim < diveWin);
+        Assert.False(FlyCatch.AutoCatch(under: rim < standUp, inWindow: true, needsJump: false),
+            "past the ring is not a stand-up");
+        Assert.True(FlyCatch.AutoDive(underDive: rim < diveWin, underStandUp: rim < standUp, inWindow: true,
+            needsJump: false, ballY: 2));
+        Assert.False(FlyCatch.AutoDive(underDive: rim < diveWin, underStandUp: rim < standUp, inWindow: true,
+            needsJump: false, ballY: c.DiveMaxBallY), "dive is only below diveMaxBallY");
+        Assert.True(FlyCatch.PlayerDiveCatch(true, rim, standUp, diveWin, ballY: 2));
+        Assert.False(FlyCatch.PlayerDiveCatch(true, rim, standUp, diveWin, ballY: 8));
+        var fly = FlightFixtures.Preview(rio, "CF", BattedBallClass.Fly, 2.8, 0, 240);
+        Assert.Equal(DefensiveFeat.Dive, FieldingResolver.PlayerCatchFeat(fly, park, false, false, dived: true));
+        Assert.Equal("DIVE", PlayStamp.Label(PlayKind.FlyOut, 1, 0, feat: DefensiveFeat.Dive));
+
+        var past = diveWin + 0.1;
+        Assert.False(FlyCatch.AutoCatch(under: past < standUp, inWindow: true, needsJump: false));
+        Assert.False(FlyCatch.AutoDive(underDive: past < diveWin, underStandUp: past < standUp, inWindow: true,
+            needsJump: false, ballY: 2), "past the rim is a drop");
+        Assert.False(FlyCatch.NeedsDive(past, standUp, diveWin, ballY: 2));
+        Assert.Equal(fly.CatchRadius, LandingMark.RadiusFt(fly));
     }
 
     [Fact]
@@ -123,9 +177,15 @@ public class FlyCatchTests
         Assert.True(FlyCatch.Under(plant.X, plant.Z, ballX: 0, ballZ: plant.Z - 40, plant.X, plant.Z, 22, needsJump: false),
             "standing in the landing ring is under — live XZ still short is not a drop");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: false));
+        Assert.False(FlyCatch.AutoDive(underDive: true, underStandUp: true, inWindow: true, needsJump: false, ballY: 2),
+            "under the ring is stand-up, not a dive");
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true), "dead-stick does not rob");
         Assert.False(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: false), "the CPU leap needs the rob height");
         Assert.True(FlyCatch.AutoCatch(under: true, inWindow: true, needsJump: true, canRob: true), "the CPU leap at the wall is geometric (§8.3)");
+        Assert.True(FlyCatch.AutoCatch(under: true, inWindow: false, needsJump: false, linerInAir: true),
+            "a liner on the glove before the bounce is a catch, not a hang-window plant");
+        Assert.False(FlyCatch.AutoCatch(under: true, inWindow: false, needsJump: false, linerInAir: false),
+            "a fly still needs the window");
 
         var start = Diamond.Positions[pre.Position];
         var hang = Math.Max(0.8, pre.HangTimeSec);
@@ -152,6 +212,39 @@ public class FlyCatchTests
         Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: 18),
             "a fly still up is not a pickup");
         Assert.False(FlyCatch.TouchScoop(distFt: 2, windowFt: window, ballY: Rules.Default.Fielding.Catch.TouchScoopY));
+    }
+
+    [Fact]
+    public void ALinerOnTheGloveBeforeTheBounceIsACatchTheDirtIsAScoop()
+    {
+        var rio = _content.Must("rio");
+        var liner = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, hang: 1.4, x: -48, z: 150, radius: 14);
+        const double window = 16;
+        var plantX = liner.LandingX;
+        var plantZ = liner.LandingZ;
+        var minY = Rules.Default.Fielding.Catch.InAirMinY;
+        // On the rope, short of the bounce: South / AutoCatch. Not the landing ring.
+        Assert.True(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
+            plantX, plantZ, window, hitT: 0.7, hangSec: liner.HangTimeSec, needsJump: false),
+            "a liner is held on the live ball (§7.6), not only under the bounce");
+        Assert.False(FlyCatch.Under(4, 90, 5, 92, plantX, plantZ, window, needsJump: false),
+            "the plant is the bounce; the intercept is not there");
+        Assert.Equal(PlayKind.FlyOut, FlyCatch.PlayerKind(true, liner, inAir: true));
+        Assert.True(FlyCatch.PlayerCaught(jumpDown: false, southDown: true, under: true, inWindow: false, needsJump: false),
+            "a straight-at-you liner is a South catch");
+        // Already bounced: a scoop, never a silent catch.
+        Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 6,
+            plantX, plantZ, window, hitT: liner.HangTimeSec + 0.05, hangSec: liner.HangTimeSec, needsJump: false));
+        Assert.False(FlyCatch.InPosition(liner, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: minY,
+            plantX, plantZ, window, hitT: 0.7, hangSec: liner.HangTimeSec, needsJump: false),
+            "at or below inAirMinY the hop is a scoop");
+        Assert.Equal(PlayKind.InPlay, FlyCatch.PlayerKind(true, liner, inAir: false));
+        var fly = Routine(rio);
+        Assert.False(FlyCatch.InPosition(fly, gloveX: 4, gloveZ: 90, ballX: 5, ballZ: 92, ballY: 18,
+            fly.LandingX, fly.LandingZ, window, hitT: 0.4, hangSec: fly.HangTimeSec, needsJump: false),
+            "a fly is still the landing ring, not the live ball");
+        Assert.True(FlyCatch.InPosition(fly, gloveX: fly.LandingX, gloveZ: fly.LandingZ, ballX: 0, ballZ: 40, ballY: 18,
+            fly.LandingX, fly.LandingZ, window, hitT: fly.HangTimeSec - 0.2, hangSec: fly.HangTimeSec, needsJump: false));
     }
 
     [Fact]
@@ -190,6 +283,17 @@ public class FlyCatchTests
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.InPlayFly, FlyCatch.LiveShot(pop, routine, hang - 0.4, hang, false));
         Assert.Equal(PlayCamera.Beat.Fly, FlyCatch.LiveBeat(pop, routine, 0.1, hang, false));
+        // #665: a liner is not OnTheDirt and not the fly pull-back.
+        var linerHit = new AtBatResult(ContactQuality.Nice, true, false, 95, 16, 180, false, false, null, null,
+            SprayDeg: 6, Class: BattedBallClass.Liner);
+        var linerPre = FlightFixtures.Preview(rio, "SS", BattedBallClass.Liner, 1.1, 20, 110);
+        Assert.Equal(PlayCamera.Beat.Line, FlyCatch.LiveBeat(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.Equal(PlayCamera.InPlayLine, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.NotEqual(PlayCamera.InPlay, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.NotEqual(PlayCamera.InPlayFly, FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false));
+        Assert.Equal(
+            FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false, seats: 1),
+            FlyCatch.LiveShot(linerHit, linerPre, 0.2, 1.1, false, seats: 2));
         // A star swing follows its class (§15): the smash beat is the home run's, timed by the client's smashHold.
         var smash = hr with { StarSwingUsed = "heat-swing" };
         Assert.Equal(PlayCamera.BeatFrom(hr), PlayCamera.BeatFrom(smash));
@@ -238,7 +342,8 @@ public class FlyCatchTests
         Assert.False(LandingMark.On(fly, ballY: 0.2, hitT: fly.HangTimeSec + 0.3, caught: false, buddy: false));
         var plant = LandingMark.At(fly, Harbor);
         Assert.Equal((fly.LandingX, fly.LandingZ), plant);
-        Assert.True(LandingMark.RadiusFt(fly) >= LandingMark.MinRadiusFt);
+        Assert.Equal(fly.CatchRadius, LandingMark.RadiusFt(fly));
+        Assert.True(LandingMark.RadiusFt(fly) >= Rules.Default.Fielding.Catch.RadiusBaseFt);
         Assert.True(LandingMark.WorldY > LandingMark.DirtY);
         Assert.True(LandingMark.ThickFt > 0.4, "tube must read from the fly 3/4, not a pancake");
         Assert.False(LandingMark.Hot(0.2, fly.HangTimeSec, rio, Harbor));

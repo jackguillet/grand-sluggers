@@ -116,15 +116,22 @@ public sealed class OutfieldReadTests
     }
 
     [Fact]
-    public void AnOutfielderOnABallInTheAirChasesAtTheAirMultiplierAndTheInfieldDoesNot()
+    public void AnOutfielderOnABallInTheAirChasesAtTheAirMultiplierAndAnInfielderAtItsOwnUnderAFlyButNotALiner()
     {
         var rules = _content.Rules;
         var who = _content.Must("rio");
         var fly = FlightFixtures.Preview(who, "CF", BattedBallClass.Fly, 4, 0, 250);
         var grounder = FlightFixtures.Preview(who, "SS", BattedBallClass.Grounder, 1, -40, 100);
+        var liner = FlightFixtures.Preview(who, "SS", BattedBallClass.Liner, 1.4, -48, 150);
+        var pop = FlightFixtures.Preview(who, "SS", BattedBallClass.Pop, 4, -40, 120);
         var one = FieldingResolver.ChaseSpeedFt(who, false, rules);
         Assert.Equal(one * rules.Fielding.Chase.OutfieldAirMul, FieldingResolver.ChaseSpeedFt(who, "CF", fly, rules), 9);
-        Assert.Equal(one, FieldingResolver.ChaseSpeedFt(who, "SS", fly, rules), 9);
+        // #636: an infielder runs its own multiplier under the stretched clock (a fly, a pop) and the one speed at a liner (§8.1).
+        Assert.Equal(one * rules.Fielding.Chase.InfieldAirMul, FieldingResolver.ChaseSpeedFt(who, "SS", fly, rules), 9);
+        Assert.Equal(one * rules.Fielding.Chase.InfieldAirMul, FieldingResolver.ChaseSpeedFt(who, "SS", pop, rules), 9);
+        Assert.Equal(one, FieldingResolver.ChaseSpeedFt(who, "SS", liner, rules), 9);
+        Assert.Equal(one * rules.Fielding.Chase.OutfieldAirMul, FieldingResolver.ChaseSpeedFt(who, "LF", liner with { Position = "LF" }, rules), 9);
+        Assert.Equal(one, FieldingResolver.ChaseSpeedFt(who, "SS", grounder, rules), 9);
         Assert.Equal(one, FieldingResolver.ChaseSpeedFt(who, "LF", grounder with { Position = "LF" }, rules), 9);
         Assert.Equal(one, FieldingResolver.ChaseSpeedFt(who, "CF", null, rules), 9);
     }

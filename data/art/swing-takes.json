@@ -1,5 +1,5 @@
 {
-  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract.",
+  "notes": "Shared human-proportion default. Shoulder-height ready and finish, measured contact band, independent wrist flex. Data drives the DCC; C# keys mirror the measured bat contract. The ready barrel retains the beside-head lean from #560, with hands and grip raised 0.65 units for the revision-2 body.",
   "contactAt": 0.3,
   "finishAt": 0.6,
   "batHeadClearance": 0.1,
@@ -11,24 +11,24 @@
         {
           "t": 0.0,
           "leftHand": [
-            0.4688,
-            3.1414,
-            -0.6068
+            0.6485,
+            3.1602,
+            -0.5863
           ],
           "rightHand": [
-            0.5108,
-            3.5677,
-            -0.8447
+            0.8455,
+            3.5838,
+            -0.7341
           ],
           "grip": [
-            0.45,
-            2.95,
-            -0.5
+            0.56,
+            2.97,
+            -0.52
           ],
           "barrel": [
-            0.0856,
-            0.87,
-            -0.4856
+            0.4021,
+            0.86451,
+            -0.30157
           ],
           "legs": {
             "lThigh": {
@@ -409,24 +409,24 @@
         {
           "t": 0.075,
           "leftHand": [
-            0.4688,
-            3.1414,
-            -0.6068
+            0.6485,
+            3.1602,
+            -0.5863
           ],
           "rightHand": [
-            0.5108,
-            3.5677,
-            -0.8447
+            0.8455,
+            3.5838,
+            -0.7341
           ],
           "grip": [
-            0.45,
-            2.95,
-            -0.5
+            0.56,
+            2.97,
+            -0.52
           ],
           "barrel": [
-            0.0856,
-            0.87,
-            -0.4856
+            0.4021,
+            0.86451,
+            -0.30157
           ],
           "legs": {
             "lThigh": {

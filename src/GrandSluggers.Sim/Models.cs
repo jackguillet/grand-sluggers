@@ -199,7 +199,14 @@ public sealed record SwingCommand(
     double LaunchAim = 0,
     double BoxOffsetX = 0,
     /// <summary>A seat's pad pressed it: the rung's <see cref="CpuLevelRules.HumanWindowMul"/> applies.</summary>
-    bool Human = false);
+    bool Human = false,
+    /// <summary>
+    /// The square clock at the plate time (§5.8, §7.3): play seconds the batter had been squared (West held), wound back
+    /// down if they let go; 0 is no square. The defense reads the square as a tell before the pitch: the corners crash and
+    /// the middle covers for this long (<see cref="BuntDefense.Spots"/>). It is independent of <see cref="Bunt"/>: a
+    /// square pulled back into a swing still left the corners in, and a late press with no square is a bunt nobody read.
+    /// </summary>
+    double SquareSec = 0);
 
 public enum PlayKind
 {

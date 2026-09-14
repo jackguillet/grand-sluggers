@@ -40,6 +40,18 @@ public static class SwingPresentation
     /// counts against it: the ready/load barrel must clear this on every body.
     /// </summary>
     public const double LoadedBarrelRise = 0.70;
+    /// <summary>
+    /// #560: from the plate SET the loaded barrel sits beside the head, not
+    /// inside the head disk. Degrees of angular clearance of the hovering
+    /// barrel-wood (not the handle) beyond the head's silhouette. The ready
+    /// key that hid the bat up the back of the skull measured −1.3°.
+    /// </summary>
+    public const double PlateLoadedBesideDeg = 0.5;
+    /// <summary>
+    /// First sample of the barrel wood used for <see cref="BarrelBesideHeadDeg"/>.
+    /// The handle-adjacent end can sit on the torso and still hide the hover.
+    /// </summary>
+    public const double BesideWoodFrom = 0.35;
 
     /// <summary>
     /// The shared rig's head mesh at rest, rig units, batter-local (hero_shared_blockout.py HEAD,
@@ -82,6 +94,47 @@ public static class SwingPresentation
         var lengthSq = along.X * along.X + along.Y * along.Y + along.Z * along.Z;
         var u = Math.Clamp((toCenter.X * along.X + toCenter.Y * along.Y + toCenter.Z * along.Z) / lengthSq, 0, 1);
         return Distance(center, Add(start, Mul(along, u))) - HeadRadius - HeadYawSlack - BarrelRadius;
+    }
+
+    /// <summary>
+    /// Angular clearance in degrees of the hovering barrel from the head
+    /// silhouette as seen from <paramref name="shot"/>. Positive = beside.
+    /// The key is already handed; <paramref name="hand"/> only places the body.
+    /// </summary>
+    public static double BarrelBesideHeadDeg(
+        Key key, Hand hand, CameraShot shot, string bodyType = "rio")
+    {
+        var scale = Silhouette.SharedRootScale(Silhouette.Proportions(bodyType));
+        Vec3 World(Vec3 local) => new(
+            HomeSet.BatterBodyX(hand) + local.X * scale.X,
+            local.Y * scale.Y,
+            HomeSet.BatterZ + local.Z * scale.Z);
+        var head = World(new Vec3(0, HeadCenterAtRest.Y + key.Lift, HeadCenterAtRest.Z));
+        var radius = HeadRadius * Math.Max(scale.X, Math.Max(scale.Y, scale.Z));
+        var cam = shot.Pos;
+        var toHead = new Vec3(head.X - cam.X, head.Y - cam.Y, head.Z - cam.Z);
+        var distHead = Math.Sqrt(toHead.X * toHead.X + toHead.Y * toHead.Y + toHead.Z * toHead.Z);
+        if (distHead <= radius) return -180;
+        var angRadius = Math.Asin(Math.Min(1, radius / distHead)) * 180 / Math.PI;
+        var axis = Normalize(key.BarrelDirection);
+        var startReach = (BarrelStartFromModelCenter + ModelCenterFromGrip) * Silhouette.BatScale;
+        var wood0 = Add(key.Grip, Mul(axis, startReach));
+        var wood1 = Add(key.Grip, Mul(axis, BarrelReach));
+        var best = -180.0;
+        const int samples = 24;
+        for (var i = 0; i <= samples; i++)
+        {
+            var u = i / (double)samples;
+            if (u < BesideWoodFrom) continue;
+            var p = World(Lerp(wood0, wood1, u));
+            var toP = new Vec3(p.X - cam.X, p.Y - cam.Y, p.Z - cam.Z);
+            var distP = Math.Sqrt(toP.X * toP.X + toP.Y * toP.Y + toP.Z * toP.Z);
+            if (distP < 1e-6 || distHead < 1e-6) continue;
+            var cos = (toHead.X * toP.X + toHead.Y * toP.Y + toHead.Z * toP.Z) / (distHead * distP);
+            var sep = Math.Acos(Math.Clamp(cos, -1, 1)) * 180 / Math.PI;
+            best = Math.Max(best, sep - angRadius);
+        }
+        return best;
     }
 
     /// <summary>Canonical bat-wood center sits this far above the grip socket.</summary>
@@ -168,7 +221,7 @@ public static class SwingPresentation
     // Generated from data/art/swing-takes.json by tools/blender/sync_swing_contract.py.
     public static readonly IReadOnlyList<Key> SlapKeys =
     [
-        new(0, new(0.4688, 3.1414, -0.6068), new(0.5108, 3.5677, -0.8447), new(0.45, 2.95, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
+        new(0, new(0.6485, 3.1602, -0.5863), new(0.8455, 3.5838, -0.7341), new(0.56, 2.97, -0.52), Unit(0.4021, 0.86451, -0.30157), -0.2),
         new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
         new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
         new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),
@@ -179,7 +232,7 @@ public static class SwingPresentation
     public static readonly IReadOnlyList<Key> ChargeKeys =
     [
         new(0, new(0.7371, 3.3914, -0.4519), new(0.8197, 3.8177, -0.679), new(0.7, 3.2, -0.35), Unit(0.1686, 0.87, -0.4633), -0.2),
-        new(0.075, new(0.4688, 3.1414, -0.6068), new(0.5108, 3.5677, -0.8447), new(0.45, 2.95, -0.5), Unit(0.0856, 0.87, -0.4856), -0.2),
+        new(0.075, new(0.6485, 3.1602, -0.5863), new(0.8455, 3.5838, -0.7341), new(0.56, 2.97, -0.52), Unit(0.4021, 0.86451, -0.30157), -0.2),
         new(0.15, new(0.304, 2.4492, 0.0776), new(0.2551, 2.7526, -0.304), new(0.326, 2.313, 0.249), Unit(-0.0999, 0.6191, -0.7789), -0.2),
         new(0.24, new(0.1439, 1.7621, -0.1275), new(0.3553, 1.7645, -0.5695), new(0.049, 1.761, 0.071), Unit(0.4315, 0.005, -0.9021), -0.18),
         new(0.3, new(0.1024, 1.8781, -0.2868), new(0.4841, 1.8915, -0.5937), new(-0.069, 1.872, -0.149), Unit(0.779, 0.0275, -0.6264), -0.16),

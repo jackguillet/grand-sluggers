@@ -82,6 +82,12 @@ namespace GrandSluggers.UnityClient
         bool _starPitch;
         bool _starSwing;
         bool _bunt;
+        /// <summary>The square clock (§7.3): up while the batter is squared (West held, or the CPU batter's square read at SET), back down when released — the bunt tell the defense reads.</summary>
+        float _squareSec;
+        /// <summary>The bodies are off their spots on the square (crashing in, or walking back after a release).</summary>
+        bool Squared => _squareSec > 0f;
+        /// <summary>The batter is squared right now: West held (a human), or the CPU batter's square read at SET.</summary>
+        bool SquaredNow => HumanBats ? _bunt : _match != null && _match.CpuSquared;
         float _charge;
         float _chargePast;
         float _pitchCharge;
@@ -188,7 +194,7 @@ namespace GrandSluggers.UnityClient
             _coach = gameObject.AddComponent<TrainingDirector>();
             _match = NewMatch();
             _park = gameObject.AddComponent<ParkView>();
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec = gameObject.AddComponent<SpecialFx>();
             _spec.Build(transform);
             _items = gameObject.AddComponent<ItemView>();
@@ -359,7 +365,7 @@ namespace GrandSluggers.UnityClient
                 _mode == PlayMode.Training, TrainingOn ? _coach.Session.Progress : null,
                 _phase == Phase.Title ? Night : _match.Night,
                 HideHelp(), HighlightCaption(), _replaying && _phase == Phase.GameOver, mutePlay,
-                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, _bunt,
+                LiveSeats.Count, HumanPitches, HumanBats, _starPitch, _starSwing, Pad1Home, SquaredNow,
                 CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
@@ -502,7 +508,7 @@ namespace GrandSluggers.UnityClient
         {
             Seed++;
             _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
             _items.Build(transform);
             _stars?.Build(transform);

@@ -9,6 +9,7 @@ here; nothing rebuilds them at runtime. No caps: hats come later as accessories.
 
 Silhouette.ToyScale and the per-captain root scale are applied in Unity.
 Do not scale the FBX. Contract: docs/character-motion.md.
+Stage 1 blocking (data/agent/dcc-stages.json): --clay scratchpad/takes/body.png, then --out.
 """
 from __future__ import annotations
 

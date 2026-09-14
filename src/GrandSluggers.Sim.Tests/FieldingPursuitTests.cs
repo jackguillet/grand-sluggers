@@ -119,4 +119,72 @@ public class FieldingPursuitTests
         Assert.True(FieldingResolver.HandoffToOutfield("SS", choice.Position));
         Assert.False(FieldingResolver.HandoffToOutfield(choice.Position, "SS"));
     }
+
+    // #667: a liner that bounces in the gap (the corner starts closer) and rolls to the wall is CF's
+    // when CF's roll meets it first — not nearest to the bounce. Harbor RC is the sitting; both gaps
+    // and every park where that relationship holds are the rail.
+    [Fact]
+    public void ALinerThatBouncesInTheGapAndRollsToTheWallIsTheOutfielderWhoMeetsTheRoll()
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var spray in new[] { 14d, -14d, 10d, -10d, 18d, -18d })
+        foreach (var park in _content.Parks.Values)
+        {
+            var corner = spray > 0 ? "RF" : "LF";
+            var match = Match.Slice(_content, parkId: park.Id, seed: 1);
+            var hit = FlightFixtures.Hit(park, 90, 16, spray);
+            var pre = match.PreviewHit(hit);
+            if (!pre.Line) continue;
+            var path = pre.Ball!.Samples;
+            var live = BallFlight.PointAt(path, 0, match.Rules);
+            if (!FieldingResolver.InAir(pre, live.Y, 0, pre.HangTimeSec, match.Rules)) continue;
+            var atCorner = Diamond.Positions[corner];
+            var atCf = Diamond.Positions["CF"];
+            if (Diamond.Dist(atCorner.X, atCorner.Z, pre.LandingX, pre.LandingZ) + 8
+                >= Diamond.Dist(atCf.X, atCf.Z, pre.LandingX, pre.LandingZ))
+                continue;
+            var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+            var ready = FieldingResolver.CpuReactionLockouts(match.Rules, pre.HangTimeSec);
+            var cornerRoute = FieldingPursuit.Plan(pre, park, path, 0, atCorner.X, atCorner.Z,
+                FieldingResolver.ChaseSpeedFt(assigned[corner], corner, pre, match.Rules), match.Rules, ready[corner]);
+            if (cornerRoute.AirCatch) continue;
+            var cfRoute = FieldingPursuit.Plan(pre, park, path, 0, atCf.X, atCf.Z,
+                FieldingResolver.ChaseSpeedFt(assigned["CF"], "CF", pre, match.Rules), match.Rules, ready["CF"]);
+            if (!FieldingPursuit.Better(cfRoute, cornerRoute)) continue;
+            var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
+                pre, park, path, null, 0, match.Rules, ready);
+            Assert.Equal("CF", choice.Position);
+            Assert.False(choice.Route.AirCatch);
+            Assert.True(choice.Route.Reachable, $"{park.Id} {spray}°: CF reaches the roll");
+            Assert.True(FieldBounds.DistHome(choice.Route.X, choice.Route.Z)
+                        > FieldBounds.DistHome(pre.LandingX, pre.LandingZ) + 20,
+                $"{park.Id} {spray}°: the meet is the wall, not the bounce");
+            seen.Add($"{park.Id}:{spray:0}");
+        }
+        Assert.Contains("harbor-diamond:14", seen);
+    }
+
+    [Fact]
+    public void ACatchableFlyToRightCenterPicksByTheLandingNotTheRoll()
+    {
+        var match = Match.Slice(_content, seed: 1);
+        var park = match.Park;
+        var hit = FlightFixtures.Hit(park, 104, 30, 20);
+        var pre = match.PreviewHit(hit);
+        Assert.Equal(BattedBallClass.Fly, pre.Class);
+        var plant = FlyCatch.ChaseTarget(pre, park);
+        var rf = Diamond.Positions["RF"];
+        var cf = Diamond.Positions["CF"];
+        Assert.True(Diamond.Dist(rf.X, rf.Z, plant.X, plant.Z) + 8
+                    < Diamond.Dist(cf.X, cf.Z, plant.X, plant.Z),
+            "the fixture: RF starts closer to the landing");
+        var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
+        var ready = FieldingResolver.CpuReactionLockouts(match.Rules, pre.HangTimeSec);
+        var choice = FieldingPursuit.Choose(assigned, FieldingResolver.OutfieldPursuitPositions,
+            pre, park, pre.Ball!.Samples, null, 0, match.Rules, ready);
+        Assert.Equal("RF", choice.Position);
+        Assert.True(choice.Route.AirCatch);
+        Assert.Equal(plant.X, choice.Route.X, 6);
+        Assert.Equal(plant.Z, choice.Route.Z, 6);
+    }
 }

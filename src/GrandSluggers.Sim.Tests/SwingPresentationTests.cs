@@ -89,15 +89,22 @@ public class SwingPresentationTests
     public void AnInWindowPressAfterThePlateLandsContactAtThePressNotBeforeIt()
     {
         var rules = Rules.Default;
-        // A wide window (EASY, contact 10) can hold a press after the ball is on the plate.
-        const double window = 14.3;
-        var err = rules.Batting.Window.LeadSec * 60 + 1;
+        Assert.Equal(0.18, rules.Batting.Window.LeadSec, 8);
+        var platePress = rules.Batting.Window.LeadSec * 60;
+        // EASY ×1.3 at contact 10 is 14.3 frames (half 7.15). A press on the plate is 10.8
+        // frames late — outside every shipped slap window. Release has to lead the ball (#670).
+        const double easyContactTen = 14.3;
+        Assert.False(AtBatResolver.InWindow(platePress, easyContactTen));
+        Assert.False(AtBatResolver.InWindow(platePress, rules.Batting.Window.SlapFrames));
+        // A window wide enough to hold a press after the plate still clamps Contact to the
+        // press (never before it).
+        const double window = 24;
+        var err = platePress + 1;
         Assert.True(AtBatResolver.InWindow(err, window));
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(0, contactSec, 8);
         Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
         Assert.Equal(SwingPresentation.CommittedLoadAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
-        // The normal slap window never needs that clamp: its latest press is still before the ball.
         Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.SlapFrames / 2,
             "batting.window.leadSec must cover half the slap window so contact meets the ball");
     }
@@ -324,6 +331,62 @@ public class SwingPresentationTests
         Assert.True(SwingPresentation.HeadClearance(through) < 0);
         var beside = through with { Grip = new Vec3(1.6, 2.70, 0) };
         Assert.True(SwingPresentation.HeadClearance(beside) > SwingPresentation.BatHeadClearance);
+    }
+
+    [Fact]
+    public void TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera()
+    {
+        // #560: the plate SET hid the ready barrel in the head disk. Tuning
+        // that shot cannot pull it out inside the SET constraints; the ready
+        // key has to stand the bat beside the head. MAX already did (#623).
+        var plate = ContentCatalog.Load().Shots.Must("plate");
+        Assert.Equal(HomeSet.CamX, plate.Pos.X, 6);
+        Assert.Equal(HomeSet.CamZ, plate.Pos.Z, 6);
+        foreach (var body in SwingPresentation.SharedCaptains)
+        foreach (var hand in new[] { Hand.R, Hand.L })
+        {
+            // Ready only: the sitting was SET at no charge. MAX already stands
+            // beside on Rio (#623); Zig's squat scale still hides that windup.
+            var ready = SwingPresentation.At(
+                SwingPresentation.HeldLoadAt(0), hand, SwingTake.Charge);
+            var beside = SwingPresentation.BarrelBesideHeadDeg(ready, hand, plate, body);
+            Assert.True(
+                beside >= SwingPresentation.PlateLoadedBesideDeg,
+                $"{body} {hand} ready: barrel hides in the plate head disk ({beside:0.00} deg)");
+            var slap = SwingPresentation.At(SwingPresentation.LoadAt, hand, SwingTake.Slap);
+            Assert.True(
+                SwingPresentation.BarrelBesideHeadDeg(slap, hand, plate, body)
+                    >= SwingPresentation.PlateLoadedBesideDeg,
+                $"{body} {hand} slap ready hides in the plate head disk");
+        }
+    }
+
+    [Fact]
+    public void BarrelBesideHeadRejectsABarrelHiddenByTheCurrentRigHead()
+    {
+        var plate = ContentCatalog.Load().Shots.Must("plate");
+        // #560 remains a projection falsifier after the rig revision: place the
+        // barrel along the camera-to-head ray so the current head hides it.
+        // The historical revision-1 key is no longer hidden by the smaller head.
+        var scale = Silhouette.SharedRootScale(Silhouette.Proportions("rio"));
+        var head = SwingPresentation.HeadCenterAtRest with
+        {
+            Y = SwingPresentation.HeadCenterAtRest.Y - 0.2
+        };
+        var hidden = new SwingPresentation.Key(
+            0, head, head, head,
+            new Vec3(
+                (HomeSet.BatterBodyX(Hand.R) + head.X * scale.X - plate.Pos.X) / scale.X,
+                (head.Y * scale.Y - plate.Pos.Y) / scale.Y,
+                (HomeSet.BatterZ + head.Z * scale.Z - plate.Pos.Z) / scale.Z),
+            -0.2);
+        Assert.True(
+            SwingPresentation.BarrelBesideHeadDeg(hidden, Hand.R, plate) < 0,
+            "a barrel behind the current head must fail the beside-head gate");
+        Assert.True(
+            SwingPresentation.BarrelBesideHeadDeg(
+                SwingPresentation.At(SwingPresentation.LoadAt, Hand.R, SwingTake.Slap),
+                Hand.R, plate) >= SwingPresentation.PlateLoadedBesideDeg);
     }
 
     [Fact]

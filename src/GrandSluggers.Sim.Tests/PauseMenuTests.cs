@@ -47,7 +47,9 @@ public class PauseMenuTests
         Assert.True(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: true, t: 0.21f));
         Assert.False(PauseMenu.OpenHowTo(paused: false, allowed: false, howTo: true, t: 1f));
         Assert.False(PauseMenu.OpenHowTo(paused: true, allowed: true, howTo: true, t: 1f));
+        Assert.False(PauseMenu.OpenHowTo(paused: false, allowed: true, howTo: false, t: 1f));
         Assert.True(PauseMenu.Open(paused: false, allowed: true, start: true, t: 1f));
+        Assert.False(PauseMenu.Open(paused: false, allowed: true, start: false, t: 1f));
     }
 
     [Theory]

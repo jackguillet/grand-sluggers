@@ -13,6 +13,11 @@ namespace GrandSluggers.UnityClient
         TrailRenderer _trail;
         Light _glow;
         Transform _shadow;
+        Mesh _shadowMesh;
+        Material _shadowMaterial;
+        BallShadowFeel _shadowFeel;
+        const int ShadowSegments = 48;
+        readonly Vector3[] _shadowVertices = new Vector3[ShadowSegments + 1];
         Transform _puff;
         Transform _cloud;
         readonly Transform[] _bits = new Transform[5];
@@ -46,11 +51,14 @@ namespace GrandSluggers.UnityClient
 
         public void ContactPuff(Vector3 p) => BurstPuff(p);
 
-        public void Build(Transform parent)
+        public void Build(Transform parent, BallShadowFeel shadowFeel)
         {
             if (_root != null) Destroy(_root.gameObject);
             if (_shadow != null) Destroy(_shadow.gameObject);
             if (_puff != null) Destroy(_puff.gameObject);
+            if (_shadowMesh != null) Destroy(_shadowMesh);
+            if (_shadowMaterial != null) Destroy(_shadowMaterial);
+            _shadowFeel = shadowFeel;
             _home = parent;
             _held = null;
             _hadY = false;
@@ -121,9 +129,25 @@ namespace GrandSluggers.UnityClient
             _glow.intensity = 0f;
             _glow.color = Colors.EmberFire;
 
-            var dirt = Look.Unlit(new Color(0.12f, 0.1f, 0.08f, 0.55f));
-            _shadow = Look.Prim(PrimitiveType.Cylinder, "BallShadow", parent,
-                new Vector3(0, 0.04f, 0), new Vector3(Diameter * 1.15f, 0.04f, Diameter * 1.15f), dirt).transform;
+            // A transparent ground disk, with depth testing but no depth writes or cast shadow.
+            _shadowMaterial = Look.Unlit(new Color(0.08f, 0.07f, 0.06f, (float)_shadowFeel.Opacity));
+            _shadowMaterial.SetFloat("_Surface", 1f);
+            _shadowMaterial.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            _shadowMaterial.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            _shadowMaterial.SetFloat("_ZWrite", 0f);
+            _shadowMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            _shadowMaterial.SetOverrideTag("RenderType", "Transparent");
+            _shadowMaterial.renderQueue = (int)RenderQueue.Transparent;
+            var triangles = new int[ShadowSegments * 3];
+            for (var i = 0; i < ShadowSegments; i++)
+            {
+                triangles[i * 3] = 0;
+                triangles[i * 3 + 1] = (i + 1) % ShadowSegments + 1;
+                triangles[i * 3 + 2] = i + 1;
+            }
+            _shadow = Look.Solid("BallShadow", parent, _shadowVertices, triangles, _shadowMaterial).transform;
+            _shadowMesh = _shadow.GetComponent<MeshFilter>().sharedMesh;
+            _shadowMesh.MarkDynamic();
             _shadow.gameObject.SetActive(false);
 
             _puff = new GameObject("HopPuff").transform;
@@ -372,11 +396,20 @@ namespace GrandSluggers.UnityClient
         void StampShadow(Vector3 p)
         {
             if (_shadow == null) return;
-            var h = Mathf.Max(0f, p.y);
-            var d = (float)Baseball.ApparentScale(_inFlight, p.z, _inPlay);
-            var s = Mathf.Lerp(d * 1.2f, d * 0.5f, Mathf.Clamp01(h / 38f));
-            _shadow.position = new Vector3(p.x, 0.04f, p.z);
-            _shadow.localScale = new Vector3(s, 0.04f, s);
+            // World X/Z is always the live ball, never its predicted landing position.
+            var radius = _inPlay ? BallShadow.Diameter(p.y, _shadowFeel) * 0.5
+                : Baseball.ApparentScale(_inFlight, p.z) * 0.6;
+            for (var i = 0; i <= ShadowSegments; i++)
+            {
+                var angle = (i - 1) * Mathf.PI * 2 / ShadowSegments;
+                var x = p.x + (i == 0 ? 0 : System.Math.Cos(angle) * radius);
+                var z = p.z + (i == 0 ? 0 : System.Math.Sin(angle) * radius);
+                var ground = BallShadow.Project(x, z, _shadowFeel);
+                _shadowVertices[i] = _shadow.InverseTransformPoint(
+                    new Vector3((float)ground.X, (float)ground.Y, (float)ground.Z));
+            }
+            _shadowMesh.vertices = _shadowVertices;
+            _shadowMesh.RecalculateBounds();
             _shadow.gameObject.SetActive(true);
         }
 
