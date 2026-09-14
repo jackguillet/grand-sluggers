@@ -37,7 +37,7 @@ Do not unique-sculpt a role player. Unique captains are packages (same bone name
 
 Gameplay shots (`data/feel/shots.json`, `CarnivalFront` looks) aim at **chest, dirt, or the bag**. A tall extra (Ashlord brim, Vale crown, Zig goggles) that fills the lens is a **framing bug**. Tune look Y / distance / FOV. Do not shrink the toy to save one camera.
 
-Select: the pick **steps forward**. Highlight, not cheer — cheer bobs a foot through the dirt (#686). Grow is a field verb, not a menu scale. They stand on the dirt. Camera sits at **chest height** and looks at the face/body — the plate dirt is the floor, not the picture. A world-space name placard is not the card; HUD is.
+Select: the pick **steps forward**. Highlight, not cheer — cheer bobs a foot through the dirt (#686). Grow is a field verb, not a menu scale. A glove with the ball is rest scale; YOU is the ring, not a size-up. They stand on the dirt. Camera sits at **chest height** and looks at the face/body — the plate dirt is the floor, not the picture. A world-space name placard is not the card; HUD is.
 
 Plate / scoop / star HUD-off stills: `docs/screenshot-gate.md`. If you would not show the still to a friend, the look epic is open.
 

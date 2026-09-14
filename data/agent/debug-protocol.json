@@ -242,6 +242,16 @@
       "promoted": "ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys",
       "issue": "#687",
       "pr": "#698"
+    },
+    {
+      "id": "hold-ball-scales-up",
+      "signature": "infielders get bigger when they hold the ball; Grow ×1.45 and YOU/ball ×1.18 on the highlighted glove",
+      "stage": "sitting",
+      "cause": "HeroActor.TickVisual: scale × 1.45 if _grow, × 1.18 if _lit, × 1.12 if _hint. ActorDirector SetGrow on the grow ability when highlighted and lights the YOU / ball body. Holding the ball is enough to look like a size-up.",
+      "fix": "BodyScale: rest unless GrowOn (grow ability, play glove, not holding). YOU / hint / hold stay rest. Grow is the field verb; do not scale the toy to sell the glove.",
+      "promoted": "BodyScaleTests.AGloveWithTheBallIsRestScaleForEveryCaptain",
+      "issue": "#691",
+      "pr": ""
     }
   ]
 }
