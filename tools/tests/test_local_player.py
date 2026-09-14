@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 spec = importlib.util.spec_from_file_location("local_player", Path(__file__).parents[1] / "local-player.py")
 player = importlib.util.module_from_spec(spec)
@@ -89,6 +90,30 @@ class MainDeliveryTests(unittest.TestCase):
                 "revision": revision,
                 "scene": "Assets/Scenes/Other.unity"
             }, revision)
+
+
+
+
+
+class EditorShutdownTests(unittest.TestCase):
+    def test_completed_editor_is_not_signaled(self):
+        process = Mock()
+        process.poll.return_value = 0
+        player.wait_for_editor_shutdown(process)
+        process.wait.assert_not_called()
+        process.terminate.assert_not_called()
+        process.kill.assert_not_called()
+
+    def test_slow_editor_is_left_for_normal_shutdown(self):
+        process = Mock()
+        process.poll.return_value = None
+        process.wait.side_effect = subprocess.TimeoutExpired("Unity", 20)
+        with patch.object(player, "log") as log:
+            player.wait_for_editor_shutdown(process)
+        process.wait.assert_called_once_with(timeout=20)
+        process.terminate.assert_not_called()
+        process.kill.assert_not_called()
+        self.assertIn("quit it normally", log.call_args.args[0])
 
 
 if __name__ == "__main__":

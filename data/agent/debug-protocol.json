@@ -162,6 +162,16 @@
       "promoted": "DotnetOutputPathsTests.test_both_configurations_keep_generated_files_outside_unity_package",
       "issue": "#681",
       "pr": ""
+    },
+    {
+      "id": "unity-recovery-after-delivery-termination",
+      "signature": "Recovering Scene Backups on next editor open after standalone delivery; Temp/__Backupscenes remains",
+      "stage": "unity-console",
+      "cause": "tools/local-player.py previously called process.terminate in its finally block after a successful build; agent SIGTERM cleanup similarly bypassed a normal editor quit. The prompt alone does not establish a Unity crash.",
+      "fix": "Owned build editors write GS_BUILD_EVIDENCE outside Temp and opt into GS_BUILD_QUIT_WHEN_DONE, then PlayerBuildGate requests EditorApplication.Exit. The supervisor waits without terminating; preserve recovery scenes and quit stuck editors normally.",
+      "promoted": "EditorShutdownTests.test_slow_editor_is_left_for_normal_shutdown",
+      "issue": "#681",
+      "pr": "#682"
     }
   ]
 }
