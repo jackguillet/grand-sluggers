@@ -47,6 +47,8 @@ The initial accepted record preserves F693-06: **1.8–5 mean runs per side**, s
 
 The Harbor cohorts report observations, not a newly accepted scoring band. Once inspected, a validation cohort is a fixed regression cohort rather than fresh unseen evidence; reserve additional unseen seeds before evaluating future candidates. Reports retain each game's identity, score, outcome counts (including doubles and triples), and multiple-out plays. Those outcome counts do not establish relay opportunity rates or player enjoyment; the live fixtures and subsequent sitting own those questions.
 
+The measured results, verification revisions, and next pending human decision are in [the #702 report](research-game-feel-702.md); its [dataset](research/game-feel-702-baseline.json) is derived by `tools/race-report.py`.
+
 ## Reproduce
 
 Run from the #702 worktree at the revision named by the measurement report:
