@@ -48,7 +48,7 @@ Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): co
 
 ### Title
 
-The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — readable without F2, not a board through the toy. The home captain is the toy in front. Other captains wait for select.
+The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — readable without F2. No captain on the title. Captains wait for select.
 
 - **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)
@@ -70,7 +70,7 @@ The toys are the UI. Highlighted captain **steps forward**. Camera looks at the 
 - **North / Q** — you are **HOME** or **AWAY**. HOME bats the bottom. AWAY bats the top.
 - **South / Space** — pick the field
 - **West / F** — title
-- Camera looks at the home captain. The title shot sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture.
+- Camera looks at the home captain. The title shot (West) sits **in front of the backstop** and looks into the diamond — the cage grid is not the picture. No body on that shot.
 
 ### Pick the field
 
