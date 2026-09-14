@@ -119,7 +119,7 @@ public class ArtCatalogTests
             var skin = _content.Art.SkinOf(who);
             Assert.True(skin.Captain);
             Assert.Equal(id, skin.BodyType, ignoreCase: true);
-            Assert.NotEmpty(skin.Extras);
+            Assert.Empty(skin.Extras);
             Assert.False(string.IsNullOrWhiteSpace(skin.Portrait));
         }
         var nico = _content.Art.SkinOf(_content.Must("nico"));
@@ -129,11 +129,6 @@ public class ArtCatalogTests
         var frost = _content.Art.SkinOf(_content.Must("frost"));
         Assert.Equal("vale", frost.BodyType, ignoreCase: true);
         Assert.Empty(frost.Extras);
-        foreach (var id in Silhouette.Captains)
-        {
-            foreach (var e in _content.Art.SkinOf(_content.Must(id)).Extras)
-                Assert.True(_content.Art.TryExtra(e, out _), id + " extra " + e);
-        }
         var repo = Directory.GetParent(_content.Root)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var extrasFbx = Path.GetFullPath(Path.Combine(repo, "unity",
@@ -165,9 +160,9 @@ public class ArtCatalogTests
         Assert.Contains(GearMesh.HittingBatVisual(), resourcesAscii);
         var fennSkin = _content.Art.SkinOf(_content.Must("fenn"));
         Assert.Equal("fenn", fennSkin.BodyType, ignoreCase: true);
-        Assert.Contains("shell", fennSkin.Extras);
+        Assert.Empty(fennSkin.Extras);
         Assert.False(Directory.Exists(Path.Combine(repo, "unity", "Assets", "Art", "Characters", "fenn")),
-            "Fenn is the shared rig plus extras, not a package");
+            "Fenn is the shared rig, not a package");
         foreach (var bone in new[] { "torso", "head", "lUpper", "lFore", "rUpper", "rFore", "lThigh", "lShin", "rThigh", "rShin", "bat", "glove" })
             Assert.Contains(bone, _content.Art.Rig.Bones, StringComparer.OrdinalIgnoreCase);
     }
@@ -197,7 +192,28 @@ public class ArtCatalogTests
         Assert.True(Math.Abs(brondo.Height - rio.Height) < 0.12f, "brondo is rio-height, not a giant");
         var fenn = Silhouette.Proportions("fenn");
         Assert.True(fenn.Height < rio.Height && fenn.Height > zig.Height, "fenn is a short turtle, not the baby");
-        Assert.True(fenn.Width > rio.Width && fenn.Head > rio.Head, "fenn shell reads as the brim");
+        Assert.True(fenn.Width > rio.Width && fenn.Head > rio.Head, "fenn is short and wide, not rio-shaped");
+    }
+
+    [Fact]
+    public void NoSkinListsAnExtraUntilTheyReadAsToys()
+    {
+        Assert.NotEmpty(_content.Art.Extras);
+        foreach (var id in new[]
+        {
+            "cheeks", "sneakers", "sash", "crown", "neck", "goggles",
+            "cube-chest", "brick-jaw", "snout", "belly", "horns", "cape",
+            "ember-eyes", "shell", "staff"
+        })
+            Assert.True(_content.Art.TryExtra(id, out _), "extras.json keeps slot " + id);
+
+        foreach (var skin in _content.Art.Skins.Values)
+            Assert.True(skin.Extras.Count == 0, "skin " + skin.Id + " lists extras " + string.Join(",", skin.Extras));
+        foreach (var who in _content.Characters.Values)
+        {
+            var extras = _content.Art.SkinOf(who).Extras;
+            Assert.True(extras.Count == 0, who.Id + " lists extras " + string.Join(",", extras));
+        }
     }
 
     [Fact]

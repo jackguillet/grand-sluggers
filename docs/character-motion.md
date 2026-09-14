@@ -13,7 +13,7 @@ That is not a rail. It is five patches that agree by accident.
 ## The rules
 
 1. **One rig.** `hero-shared` from `tools/blender/hero_shared_blockout.py`. Bone names in `data/art/rig.json` are the contract. There is no second skeleton and no unique package. Every captain, Fenn included, is this rig.
-2. **A captain is data.** `Silhouette.Proportions` (root scale), a faction palette, and a list of extras from `data/art/extras.json` placed on named bones. No per-captain geometry in C#.
+2. **A captain is data.** `Silhouette.Proportions` (root scale) and a faction palette. `data/art/extras.json` slots stay; skins list none until extras read as toys (#687). No per-captain geometry in C#.
 3. **One motion source: Blender takes.** Every `Motion.Verb` plays an FBX clip baked by `tools/blender/hero_shared_takes.py` from one pose table. C# contains no Euler angles for any body part. `SwingPresentation` and `BattingStance` remain the *contract* the swing take is authored against and measured by; they never drive bones.
 4. **Handedness is baked.** A handed take is authored right-handed and reflected across the sagittal plane in Blender, exactly, into `{clip}-L.fbx`. Both files are validated per frame against the same handed contract. Runtime picks the file by `Character.Bats` or `Character.Throws`. There is no runtime mirroring of any bone, socket, or sample.
 5. **The sim owns the clock.** A clip is sampled at a time the sim computes: world time for loops, verb time for one-shots, `LoadSampleAt(charge)` for a held load. Markers (`Contact`, `Release`, `FootPlant`) are at the same seconds the sim uses. The swing is the one take the sim time-warps (D13, #612): for a press inside the timing window `AtBatMotion.SwingClipTime` compresses load → contact so the `Contact` mark lands on the ball's plate time, then plays the follow-through at the take's own speed; outside the window the take plays at its natural 0.50 s. The warp only changes when a key is shown, never its order or its pose. Presentation never advances a clip on its own.
@@ -93,7 +93,7 @@ Clips are exported armature-only (no mesh), one take per file, 60 fps, linear ke
 
 `HeroActor` is a thin player:
 
-- `SharedRig.Spawn` instantiates the body FBX, applies the palette by material name, hangs extras from `extras.json`, and returns the bone chain. No primitives except the missing-file capsule.
+- `SharedRig.Spawn` instantiates the body FBX, applies the palette by material name, hangs extras listed on the skin (none until they read as toys), and returns the bone chain. No primitives except the missing-file capsule.
 - Hierarchy: `HeroActor` (position, yaw) → `body` wrapper (`Silhouette.SharedRootScale`, bounce, squash) → FBX root → armature node (`Animator`, no controller). Takes are armature-only files, so their curve paths start at the armature node; the Animator sits there. Scale and bounce live on the wrapper.
 - `ClipPlayer` is a two-slot `AnimationMixerPlayable` in manual update. Each tick: resolve `(clip, time)` from `(verb, hand, clocks)`, crossfade if the clip changed, `SetTime`, `Evaluate(0)`. `SnapTick` is the same call with a zero fade. Nothing slerps toward a target.
 - Props: the common bat under the `bat` socket with the one authored model-to-socket bind; the appropriate baked glove under `lGlove` / `rGlove`, selected only by the throwing hand. Ball attachment uses the glove pocket or bare-palm release socket.
@@ -101,7 +101,7 @@ Clips are exported armature-only (no mesh), one take per file, 60 fps, linear ke
 
 ## Extras
 
-`data/art/extras.json` rows: `id`, `bone`, `hides`. Meshes are named pieces in `Assets/Art/Characters/SharedRig/extras.fbx` from `tools/blender/hero_shared_extras.py`, authored on the body in rig space; Unity drops each piece at the rig root and reparents it to its bone keeping the world pose. Attaching is one loop. A captain skin lists extra ids; role players list none. A missing piece draws nothing and the validator says so. There are no caps: heads are bare until hats return as accessories.
+`data/art/extras.json` rows: `id`, `bone`, `hides`. Meshes are named pieces in `Assets/Art/Characters/SharedRig/extras.fbx` from `tools/blender/hero_shared_extras.py`, authored on the body in rig space; Unity drops each piece at the rig root and reparents it to its bone keeping the world pose. Attaching is one loop. **Skins list none** until extras read as toys, not geometry junk (#687). Role players already listed none. A missing piece draws nothing and the validator says so. There are no caps: heads are bare until hats return as accessories.
 
 ## Pitch, throw and bunt authoring
 

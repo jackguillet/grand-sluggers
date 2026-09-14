@@ -4,10 +4,7 @@
       "id": "rio",
       "bodyType": "rio",
       "captain": true,
-      "extras": [
-        "cheeks",
-        "sneakers"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/rio-hero",
       "palette": "spark"
     },
@@ -15,11 +12,7 @@
       "id": "vale",
       "bodyType": "vale",
       "captain": true,
-      "extras": [
-        "sash",
-        "crown",
-        "neck"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/vale-hero",
       "palette": "royal"
     },
@@ -27,9 +20,7 @@
       "id": "zig",
       "bodyType": "zig",
       "captain": true,
-      "extras": [
-        "goggles"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/zig-hero",
       "palette": "carnival"
     },
@@ -37,10 +28,7 @@
       "id": "brondo",
       "bodyType": "brondo",
       "captain": true,
-      "extras": [
-        "cube-chest",
-        "brick-jaw"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/brondo-hero",
       "palette": "goldrush"
     },
@@ -48,10 +36,7 @@
       "id": "konga",
       "bodyType": "konga",
       "captain": true,
-      "extras": [
-        "snout",
-        "belly"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/konga-hero",
       "palette": "canopy"
     },
@@ -59,11 +44,7 @@
       "id": "ashlord",
       "bodyType": "ashlord",
       "captain": true,
-      "extras": [
-        "horns",
-        "cape",
-        "ember-eyes"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/ashlord-hero",
       "palette": "ember"
     },
@@ -71,10 +52,7 @@
       "id": "fenn",
       "bodyType": "fenn",
       "captain": true,
-      "extras": [
-        "shell",
-        "staff"
-      ],
+      "extras": [],
       "portrait": "Resources/Art/fenn-hero",
       "palette": "fen"
     }
