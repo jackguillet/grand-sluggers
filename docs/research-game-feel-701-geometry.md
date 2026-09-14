@@ -36,18 +36,28 @@ Project Rio's public [GameData.h at revision 6b9748a](https://github.com/Project
 
 The already cataloged Wii recording at **00:05** is a park-selection miniature, not an eligible gameplay geometry view. At **00:35**, the stadium introduction has obstructing team graphics and an incomplete diamond; at **00:40**, the view is low and centered on the pitcher. The GameCube introduction at **00:10** lacks all four bag centers; **00:15** is the pitching setup. None supplies the four same-plane landmarks needed for the intended square-diamond homography. No pixel-derived field or body ratio is claimed from these frames. Intros remain excluded from live event timing.
 
-## Candidate experiment and the next human decision
+## Candidate experiment and accepted deep-hit direction
 
 **Proposed research candidate C1, not accepted:** rounded wall/basepath ratios **2.9 / 3.5 / 2.9**, against control C0 **3.6667 / 4.4444 / 3.6667**. C1 is a Harbor-authored trial motivated by the Wii report, not a claim of exact Wii geometry. Basepath/body scale, mound placement, wall height, wall shape between sampled directions, fielding starts, carry, and every clock remain unresolved. This partial candidate must not enter runtime data as a complete profile. For orientation only, retaining 90-foot basepaths would express C1 as 261 / 315 / 261 feet; that illustration does not select 90 feet.
 
-Before completing C1, Jack needs to decide the **deep-hit experience** under F693-02:
+**Accepted by Jack, September 14, 2026 — F693-02 deep-hit experience:** preserve doubles, triples, and relays in a **compact, cartoon-feeling outfield**. Jack explicitly prefers the smaller spatial feel associated with the Mario references. A large outfield is not the solution to preserving extra-base opportunities. Strong contact should retain meaningful live deep-field plays; outcomes and earned bases remain geometric, not guaranteed.
 
-- **Recommended: preserve playable deep hits and extra-base decisions.** Strong ordinary contact can reach gaps or the wall and create doubles, triples, relay choices, and throws home; home runs remain distinct rewards for especially good power/contact combinations. This names opportunities, not guaranteed bases or a per-hit result. A compact field may require coordinated carry and pursuit calibration to preserve them.
-- **Alternative: emphasize home-run opportunities.** More strong deep contact is intended to clear the wall, accepting fewer live deep-field races. This still must satisfy the retained scoring guardrail; the same runs-per-side average can conceal very different hit distributions.
+Jack's implementation qualification is central: a shorter pursuit distance with slower fielders can preserve the chase time of a larger field with faster fielders. The accepted direction is to coordinate space and time, not to lock movement speeds and expand the park around them. C1's exact ratios remain unaccepted, and the absolute infield/body scale is still unresolved. No per-position speed penalty or particular acceleration curve has been selected.
 
-This is a pending taste decision, not a measured finding about either Mario game's home-run frequency. The inspected samples cannot estimate that frequency. Reliable routine infield defense, hard-liner positioning, visible throws, and D7 remain accepted constraints under either choice.
+### Implementation constraints from that decision
 
-After that choice, complete the geometry/body comparison and #702 race budget before requesting dimensions or coefficients. Compare identical fixed exit/launch inputs for fence crossings and catch opportunities, then matched tactical fixtures for gap retrieval, a wall carom, relay, and a throw home. Record extra-base opportunity and home-run frequency separately from S-29's scoring mean, using a declared Harbor cohort and held-out seeds. Do not hide a fence change by using only carry-preserving fixtures. Exact dimensions and Jack's standalone acceptance remain open.
+For a straight chase at constant speed, `time = distance / speed`: reducing both distance and speed by the same factor preserves time. This is a design relationship, not evidence that either Mario game uses a particular speed. Actual interception also depends on acceleration, route, starting position, ball motion, and reach. Equal chase duration alone cannot preserve catches, wall crossings, throws, or the runner's opportunity.
+
+Calibrate the complete play within the compact space:
+
+- **Pursuit:** consider speed, acceleration, fielding starts, and reach together. Preserve prompt player response and meaningful fast/slow character differences. Do not substitute a hidden input delay or an arbitrary outfielder-only penalty for a measured pursuit model.
+- **Ball:** coordinate carry, hang, bounce, and roll so a smaller park still permits gap retrieval and wall plays. Preserve the accepted distinction between hard liners, grounders, and flies; do not slow all contact uniformly.
+- **Race:** balance retrieval, visible transfer/release, short/long throws and relays against runner startup and bag intervals. A shorter throw path with unchanged speed would shorten readable travel, contrary to F693-03. Existing D7 pitch pace remains a separate constraint.
+- **Presentation handoff:** evaluate character size relative to the field as well as elapsed time. Later motion work must match ground speed and footfalls; compact space must not be achieved through miniature characters or sliding run cycles. This research session changes no camera, rig, or animation.
+
+The next numerical packet must compare the unchanged control with coherent compact candidates, naming the whole geometry/body and event budget. Under #702, record first movement, interception/possession, command, release, reception/coverage, and runner arrivals. Use identical fixed exit/launch inputs to expose changed fence crossings and catch opportunities, then tactical fixtures for gap retrieval, a wall carom, relay, and a throw home. Include representative slow/middle/fast fielders and runners, both seats, and pad/keyboard presentation in the eventual standalone gate. Do not hide a fence change with only carry-preserving fixtures.
+
+Track extra-base opportunities, relays, and home-run frequency separately from S-29's scoring mean using a declared Harbor cohort and held-out seeds. No reference home-run frequency or statistical target has been established. The accepted compact/deep-hit direction does not relax reliable routine infield defense, hard-liner positioning, visible throws, or the scoring guardrail. Exact dimensions and Jack's standalone acceptance remain open.
 
 ## Validation
 
