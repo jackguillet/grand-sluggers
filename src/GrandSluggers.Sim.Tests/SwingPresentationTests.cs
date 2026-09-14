@@ -89,15 +89,22 @@ public class SwingPresentationTests
     public void AnInWindowPressAfterThePlateLandsContactAtThePressNotBeforeIt()
     {
         var rules = Rules.Default;
-        // A wide window (EASY, contact 10) can hold a press after the ball is on the plate.
-        const double window = 14.3;
-        var err = rules.Batting.Window.LeadSec * 60 + 1;
+        Assert.Equal(0.18, rules.Batting.Window.LeadSec, 8);
+        var platePress = rules.Batting.Window.LeadSec * 60;
+        // EASY ×1.3 at contact 10 is 14.3 frames (half 7.15). A press on the plate is 10.8
+        // frames late — outside every shipped slap window. Release has to lead the ball (#670).
+        const double easyContactTen = 14.3;
+        Assert.False(AtBatResolver.InWindow(platePress, easyContactTen));
+        Assert.False(AtBatResolver.InWindow(platePress, rules.Batting.Window.SlapFrames));
+        // A window wide enough to hold a press after the plate still clamps Contact to the
+        // press (never before it).
+        const double window = 24;
+        var err = platePress + 1;
         Assert.True(AtBatResolver.InWindow(err, window));
         var contactSec = AtBatMotion.SwingContactSec(err, window, rules);
         Assert.Equal(0, contactSec, 8);
         Assert.Equal(Motion.SwingContact, AtBatMotion.SwingClipTime(0, 0, contactSec), 8);
         Assert.Equal(SwingPresentation.CommittedLoadAt(0), AtBatMotion.SwingClipTime(-0.01, 0, contactSec), 8);
-        // The normal slap window never needs that clamp: its latest press is still before the ball.
         Assert.True(rules.Batting.Window.LeadSec * 60 > rules.Batting.Window.SlapFrames / 2,
             "batting.window.leadSec must cover half the slap window so contact meets the ball");
     }

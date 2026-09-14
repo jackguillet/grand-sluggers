@@ -238,7 +238,7 @@ The two columns are `batting.quality.slap` / `.charge`, interpolated by the effe
 
 ### 5.3 Timing — the window and direction
 
-`err` = (press time − (ball-plate time − `window.leadSec`)) in frames at 60 Hz (D13, #612; `leadSec` 0.10, `AtBatMotion.SwingErrorFrames`). The take's `Contact` mark (`Motion.SwingContact`, 0.30 into the take) is an animation contract, not the judgment: for a press inside the window the take is warped so the mark lands on the ball's plate time (`AtBatMotion.SwingContactSec`, `SwingClipTime`) — load → contact is compressed onto the span from the press to the plate, the follow-through plays at the take's own speed, the keys keep their order and the take never plays backward; a press inside the window but after the ball is on the plate (only a widened window) lands Contact at the press. Outside the window the take plays at its natural 0.50 s and the bat misses the ball honestly. The warp is read at the press from the same window number the resolver judges (`Match.SwingWindowFrames`). ✅ #612 (S-07, S-08, S-09; `SwingPresentationTests`)
+`err` = (press time − (ball-plate time − `window.leadSec`)) in frames at 60 Hz (D13, #612 / #670; `leadSec` 0.18, `AtBatMotion.SwingErrorFrames`). The take's `Contact` mark (`Motion.SwingContact`, 0.30 into the take) is an animation contract, not the judgment: for a press inside the window the take is warped so the mark lands on the ball's plate time (`AtBatMotion.SwingContactSec`, `SwingClipTime`) — load → contact is compressed onto the span from the press to the plate, the follow-through plays at the take's own speed, the keys keep their order and the take never plays backward; a press inside the window but after the ball is on the plate (only a widened window) lands Contact at the press. Outside the window the take plays at its natural 0.50 s and the bat misses the ball honestly. The warp is read at the press from the same window number the resolver judges (`Match.SwingWindowFrames`). ✅ #612 (S-07, S-08, S-09; `SwingPresentationTests`)
 
 The take is the swing that is judged (#613): a charge (`ChargeFeel.IsCharge`, the same test that narrows the window) plays `swing-charge`, anything else `swing-slap`; both share the Contact mark and the measured approach and contact keys, so the warp above is one rule for both. Both end on a held finish at 0.60 that stays up through the STRIKE stamp until SET, or through the contact freeze until the batter-runner is `feel.swingFinishStepFt` out of the box (#583). ✅ #613 (`SwingPresentationTests`, `MotionTests`, the swing matrix `finish` beat)
 
@@ -994,9 +994,9 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-04 | Human pitcher steers full break | CPU batter | CPU decision uses the final crossing; a pitch steered out of the zone is a take at (100 − chase)% |
 | S-05 | Charged fastball high in the zone (Y 3.4) | Perfect timing, box centered | Contact (not an automatic miss) with reduced quality |
 | S-06 | Changeup dumps to Y 1.6 | Perfect timing | Contact, grounder bias |
-| S-07 | Bat 5 slap, ball at the cursor center, press at plate − 0.10 s (err 0, D13) | | Perfect, straight to CF ± 8° |
-| S-08 | Bat 5 slap, cursor center, press 4 frames before plate − 0.10 (inside the 9-frame window); press at plate − 0.17 / plate − 0.03 (±4.2 frames, the rim) | | Perfect, pulled ≈ 45°; the rim pulls / pushes at Nice |
-| S-09 | Bat 5 slap, cursor center, err +5 frames; press at plate + 0.05 (+9) or plate − 0.02 (+4.8, past the 4.5-frame half) | | Miss |
+| S-07 | Bat 5 slap, ball at the cursor center, press at plate − 0.18 s (err 0, D13 / #670) | | Perfect, straight to CF ± 8° |
+| S-08 | Bat 5 slap, cursor center, press 4 frames before plate − 0.18 (inside the 9-frame window); press at plate − 0.25 / plate − 0.11 (±4.2 frames, the rim) | | Perfect, pulled ≈ 45°; the rim pulls / pushes at Nice |
+| S-09 | Bat 5 slap, cursor center, err +5 frames; press at plate + 0.05 (+13.8) or plate − 0.10 (+4.8, past the 4.5-frame half; the old 0.10 s square) | | Miss |
 | S-10 | Bat 1 charged + charmball | | Window ≥ 5 frames |
 | S-11 | Bat 5 charge, ball 0.4 ft toward the bat tip from center | | Nice, charge exit ≈ ×1.12 |
 | S-12 | Sour slap on a changeup | | Pop-up band forced |

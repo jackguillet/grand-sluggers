@@ -481,10 +481,11 @@ public sealed class ContactWindowRules
     [Positive] public double FloorFrames { get; init; } = 5.0;
     [Chance] public double SquareFraction { get; init; } = 0.9;
     /// <summary>
-    /// The square press is this long before the ball reaches the plate (D13, #612): a human's eye
-    /// times the ball at the plate, and the take is warped so its Contact mark meets the ball.
+    /// The square press is this long before the ball reaches the plate (D13, #612 / #670): a
+    /// human's eye times the ball meeting the bat, so the press leads the plate; the take is
+    /// warped so its Contact mark meets the ball. 0.18 s, not the old press + 0.30 plane.
     /// </summary>
-    [Positive] public double LeadSec { get; init; } = 0.10;
+    [Positive] public double LeadSec { get; init; } = 0.18;
 }
 
 /// <summary>Charge adds loft; its power is the charge column of <see cref="QualityRules"/> (spec §5.5).</summary>
