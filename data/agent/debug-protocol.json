@@ -72,6 +72,16 @@
       "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
       "issue": "#629",
       "pr": "#663"
+    },
+    {
+      "id": "bat-behind-head-at-ready",
+      "signature": "plate / swing-*-normal-ready loaded bat hidden behind the head; hovering barrel only visible at launch",
+      "stage": "still-gate",
+      "cause": "SwingPresentation ready key barrel (0.09, 0.87, −0.49) sat inside the plate camera's head disk (−1.3°). Tuning the plate shot cannot pull it out inside the SET constraints (FeelInfraTests.PlateIsBehindHomeLookingAtThePitcher).",
+      "fix": "Lean the ready barrel out beside the head — the same language as #623. PlateLoadedBesideDeg is the falsifier. Do not shrink the head. Do not retune the plate camera to hide a load that sits in the skull.",
+      "promoted": "SwingPresentationTests.TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera",
+      "issue": "#560",
+      "pr": "#671"
     }
   ]
 }

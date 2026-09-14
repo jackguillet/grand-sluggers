@@ -14,7 +14,8 @@ public sealed class DebugProtocolTests
         "boxes-kiss-plate",
         "nice-hit-on-whiff",
         "cpu-defense-waits-for-batter",
-        "bat-through-head"
+        "bat-through-head",
+        "bat-behind-head-at-ready"
     ];
 
     readonly string _root = ContentCatalog.Load().Root;
