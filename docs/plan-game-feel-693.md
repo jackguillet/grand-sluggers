@@ -66,7 +66,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-07 — Spectator pacing and couch acceptance
 
-**State:** pending gameplay candidates. Record simulation time separately from hit freeze, camera cut/settle, possession readability, decision time, stamps, and next-ready delay. Preserve D7 until Jack's separate pitch re-sit resolves it.
+**State:** design intent accepted by Jack on September 14, 2026: **brisk routine beats, on the slower/more deliberate side**, with additional emphasis for big moments. After a routine dead-ball result, give the result and a brief character reaction enough time to register before returning to play. Jack explicitly requires comparison with Mario; do not interpret brisk as an immediate reset.
+
+**Still pending:** compare Wii and GameCube result-to-next-ready intervals at normal speed, distinguishing routine plays from home runs, great catches, and inning-ending plays. Selected durations and the standalone human gate remain open. Record simulation time separately from hit freeze, camera cut/settle, possession readability, decision time, stamps, and next-ready delay. This direction concerns completed plays; it does not shorten live player decisions, introduce full-screen interruptions, or reopen D7’s separate pitch-pace hold.
 
 **Acceptance:** continuous standalone play with keyboard/mouse, one pad, and two pads; both halves and ownership roles; representative small and large captains; HUD-off diagnostic clips as well as the actual HUD. Jack watches the race and finishes the book-to-half path. No agent can sign this row off.
 
@@ -76,7 +78,7 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 [#701](https://github.com/jackguillet/grand-sluggers/issues/701), research/documentation child of #693 under #209. No runtime or art edits. Follow research §7's capture manifest, event definitions, uncertainty, exclusions, and proposed screening sample. Prefer ordinary plays in comparable parks; label any special or modded footage. Get the raw frame/coordinate evidence behind the GameCube stadium claims where possible. Independently check throw units and motion; preserve unknowns if the evidence does not resolve them.
 
-Deliver a small version-controlled annotation dataset, exact clip locators, source revisions, a comparison for F693-01–05, and a recommendation with tradeoffs. A screenshot does not count as elapsed-time evidence. Existing retrospective clips may lack enough metadata and must be marked accordingly. Exit is a reviewable comparison, not Jack's approval.
+Deliver a small version-controlled annotation dataset, exact clip locators, source revisions, a comparison for F693-01–05 and F693-07, and a recommendation with tradeoffs. A screenshot does not count as elapsed-time evidence. Existing retrospective clips may lack enough metadata and must be marked accordingly. Exit is a reviewable comparison, not Jack's approval.
 
 ### R2 — Make Harbor's race measurable (#702)
 
