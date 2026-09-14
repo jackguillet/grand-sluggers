@@ -12,7 +12,7 @@ public class SchemeTests
         {
             "confirm", "charge", "star", "aim-run", "bags",
             "all-advance", "all-return", "steal", "changeup", "swap", "bunt",
-            "call-time", "dash", "pickoff", "skip"
+            "call-time", "how-to", "dash", "pickoff", "skip"
         })
         {
             var v = Scheme.Must(id);
@@ -33,6 +33,7 @@ public class SchemeTests
         Assert.Equal("R", Scheme.Keys("swap"));
         Assert.Equal("V", Scheme.Keys("bunt"));
         Assert.Equal("H", Scheme.Keys("call-time"));
+        Assert.Equal("H", Scheme.Mouse("call-time"));
         Assert.Equal("Esc", Scheme.Keys("how-to"));
         Assert.Equal("Esc", Scheme.Mouse("how-to"));
         Assert.Equal("Left click", Scheme.Mouse("confirm"));
@@ -43,6 +44,39 @@ public class SchemeTests
         Assert.Equal("LB", Scheme.Pad("all-advance"));
         Assert.Equal("RB", Scheme.Pad("all-return"));
         Assert.Equal("Stick to the next bag / L3", Scheme.Pad("steal"));
+    }
+
+    [Fact]
+    public void HCallsTimeAndEscOpensTheBook()
+    {
+        // #629: first-pitch Esc is the book, H is Call time. Copy must name each verb.
+        Assert.Equal("Start", Scheme.Pad("call-time"));
+        Assert.Equal("H", Scheme.Keys("call-time"));
+        Assert.Equal("H", Scheme.Mouse("call-time"));
+        Assert.Equal("Esc", Scheme.Pad("how-to"));
+        Assert.Equal("Esc", Scheme.Keys("how-to"));
+        Assert.Equal("Esc", Scheme.Mouse("how-to"));
+        Assert.DoesNotContain("Esc", Scheme.Keys("call-time"));
+        Assert.DoesNotContain("H", Scheme.Keys("how-to"));
+
+        var contentsKeys = HowToPlay.Must("contents").KeyLines!;
+        Assert.Contains(contentsKeys, l => l.Contains("H") && l.Contains("time"));
+        Assert.Contains(contentsKeys, l => l.Contains("Esc") && l.Contains("book"));
+        Assert.DoesNotContain(contentsKeys, l => l.Contains("H or Esc"));
+        Assert.DoesNotContain(contentsKeys, l => l.Contains("opens this instruction booklet"));
+
+        var controlsKeys = HowToPlay.Must("controls").KeyLines!;
+        Assert.Contains(controlsKeys, l => l.Contains("H") && l.Contains("time"));
+        Assert.Contains(controlsKeys, l => l.Contains("Esc") && l.Contains("book"));
+
+        var pauseKeys = HowToPlay.Must("pause-practice").KeyLines!;
+        Assert.Contains(pauseKeys, l => l.Contains("H") && l.Contains("call time"));
+        Assert.Contains(pauseKeys, l => l.Contains("Esc") && l.Contains("book") && l.Contains("pitch"));
+
+        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "H" && c.Always == "Call time");
+        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "Esc" && c.Always.Contains("book", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("H") && c.Hardware.Contains("Esc"));
+        Assert.Contains(ControlDiagram.PadCallouts, c => c.Hardware == "Start" && c.Always == "Call time");
     }
 
     [Fact]
@@ -117,7 +151,8 @@ public class SchemeTests
         foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
             Assert.Contains(HowToPlay.Must("pitch-swing").Shown(scheme),
                 line => line.Contains("charge", StringComparison.OrdinalIgnoreCase) && line.Contains("MAX"));
-        Assert.True(HowToPlay.Mentions("puffs dirt"));
+        foreach (var scheme in new[] { InputScheme.Pad, InputScheme.Keys })
+            Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("Shadow tracks ball"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));

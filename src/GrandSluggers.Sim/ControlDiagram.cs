@@ -124,7 +124,8 @@ public static class ControlDiagram
         new("jump", "F / G", "", "Jump / dive", "Back", 0.72f, 0.44f),
         new("steal", "Z", "Steal", "", "", 0.72f, 0.54f),
         new("run", ", / .", "All advance / return", "", "", 0.72f, 0.64f),
-        new("esc", "H / Esc", "", "", "Call time / this book", 0.72f, 0.74f),
+        new("h", "H", "", "", "Call time", 0.72f, 0.72f),
+        new("esc", "Esc", "", "", "This book", 0.72f, 0.80f),
         new("aim", "Right-drag", "", "", "Aim / run", 0.56f, 0.62f),
     ];
 

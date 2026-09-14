@@ -2,7 +2,7 @@
 
 Grand Sluggers is a **complete, polished party baseball game** we will still want in five years. The bar is Nintendo-level Exhibition (then local 1v1): Super Sluggers *systems* — cameras, HUD, plays, lineup, juice — with **original toys**. Not a prototype that lucks into a still. Not a Mario clone.
 
-Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
+Vision: `docs/vision.md`. Look: `docs/look.md`. Couch map: `docs/how-to-play.md`. **Rules of play: `docs/gameplay-spec.md`** (when code and spec disagree, the code is wrong). Sequence: `docs/roadmap.md`. How a phase runs: `docs/playbook.md`. **How agents work: `docs/agent-rails.md`** (when a session and that document disagree, the session is wrong). Silhouettes: `docs/silhouette-bible.md`. Art slots: `docs/art-rails.md`. Characters and motion: `docs/character-motion.md`.
 
 ## The stack (do this, in order)
 
@@ -13,7 +13,7 @@ Agents start here. Do not pick a lower row because it is easier.
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
 
-**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system. Every captain is the one rig plus extras; unique packages are deferred (`docs/character-package.md`).
+**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig plus extras; unique packages are deferred (`docs/character-package.md`).
 
 ## Done means you played it
 
@@ -25,7 +25,7 @@ Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a 
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
 - A menu still is not a half. HID Space is confirm, not baseball.
 - Human gates (#346 and screenshot gates) stay human. Note what stuck. File children. Do not declare pass because CI is green.
-- Look / character work is a human gate. A still in `docs/screenshot-gate.md` (character rest + swing contact) is the falsifier. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
+- Look / character work is a human gate. Dual stills in `docs/screenshot-gate.md` (DCC `dcc-*.png` + in-game `char-{id}-rest.png` / `char-{id}-pose.png`) are the falsifier. A critic files; Jack passes. `dotnet test`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. Agents do not pass look.
 - Fail if a stranger would need Slack, F2, or `docs/how-to-play.md` on disk to finish the path you touched.
 - Ask before coding: *will this still be right with two pads, a pop fly instead of a hopper, Ashlord as well as Rio, and a friend on the couch?* If not, put the system in the right place.
 
@@ -53,6 +53,18 @@ A change is a **rail** — do this:
 
 Catalog first, files second. New clip / VFX / audio / skin = JSON slot + validator + empty folder, then the asset. Serial for feel (cameras, timing, in-play verbs). Parallel only for filling slots after the shared rig exists.
 
+## Session kind
+
+Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a camera, putting an out in Unity, posing in C#). Contract: `docs/agent-rails.md` §1. Tracker: #647.
+
+| Kind | Owns | Banned |
+| --- | --- | --- |
+| **Gameplay** | `data/rules/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
+| **Presentation** | cameras, HUD, `HowToPlay` / `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
+| **Art** | one `data/art/` slot, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
+
+End the session with the artifact of its kind: gameplay → `dotnet test` + `cli match`; presentation → named shot or book page; art → still PNGs in `scratchpad/stills/`. Do not rebuild the `.app` as proof of look.
+
 ## Art — Super Sluggers weight, original toys
 
 Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
@@ -70,11 +82,12 @@ If you generate or drop art, fill an existing slot and keep identity across a se
 ## Operating
 
 - One GitHub child issue = one worktree. Never share the main working copy. Never `git add -A`.
+- Load `data/agent/debug-protocol.json` at session start for the kind you are in (`cli protocol`). A novel repair appends a row in the same PR as the fix. If the signature has fired twice, promote it to a validator or a scenario. If the lesson is procedural, grow `.grok/skills/character-art/` or `docs/agent-rails.md`. GitHub sitting children stay; they are not the memory. Art sessions also load `data/agent/dual-stills.json` (`cli stills`) and `data/agent/dcc-stages.json` (`cli stages`): walk blocking → fill → motion → export → still; DCC still + in-game still in `scratchpad/stills/`; a look-critic files; Jack passes. One-shotting a captain extra or a kit mesh is a patch.
 - Sim owns baseball. Unity presents. `unity/` Play `HarborDiamond` **is the game**. `GrandSluggers.Play` is a debug sandbox.
 - Gamepad is the couch product. Keyboard + mouse are the same scheme, player 1 only. Pad 2 is a second gamepad.
 - Couch copy lives in `HowToPlay` / `CarnivalFront` / `BroadcastHud`, not scattered strings.
 - Content ids in `data/` stay stable. Feel numbers live in `data/feel/`. Do not grow `MatchDirector`.
-- Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: still-gate PNG in the PR. Personal Unity cannot `-batchmode`.
+- Falsify with `dotnet test`, `dotnet run --project src/GrandSluggers.Cli -- art`, `cli match`, `tools/unity-compile.sh`. Look/character: DCC still + in-game still in `scratchpad/stills/` in the PR (`tools/dcc-still.sh`, `tools/still-gate-character.sh`). A critic files; Jack passes. Personal Unity cannot `-batchmode`.
 - After a feel or look merge: a skeptic pass plays the named path. A still that only works because of a one-off is not done.
 
 ## Local standalone delivery (Jack's default)

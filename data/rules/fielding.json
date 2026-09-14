@@ -7,12 +7,24 @@
     "stepStopFt": 0.35,
     "reachSlackFt": 0.35,
     "swapLockSec": 0.7,
+    // #633 (S-97): after a hand-off the body the ring left keeps its velocity for this long, then stops (the FIFA
+    // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
+    "handoffCoastSec": 0.2,
     "looseScoopFt": 3.5,
     // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
     // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
     // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
-    "outfieldAirMul": 0.6
+    "outfieldAirMul": 0.6,
+    // #636: the other half of the lever. Once the infield -> outfield hand-off honours the infielder's route in the air
+    // (D17, S-97), an infielder under a ball on the stretched clock (a fly or a pop, flight.timeScale 1.65) runs at the
+    // one glove speed x this; on a liner (its own clock, 1.0) an infielder runs the one speed, so the rope SS reaches
+    // past the lip is SS's. S-29 seeds 1-5 (main at #642: 2.62 / 2.58): D17 in the air at 1.0 reads 1.92 / 1.76, the
+    // infield running back under every short fly past the lip; 0.6 (the real clock) 2.18 / 1.94; 0.5 2.38 / 2.18;
+    // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
+    // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
+    // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
+    "infieldAirMul": 0.45
   },
   "reaction": {
     "pitcherSec": 0.42,
@@ -46,6 +58,8 @@
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
     "clamberRadiusFt": 6,
+    // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
+    // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 4,
     "diveReachFt": 8,
     "jumpReachFt": 8,
@@ -56,6 +70,8 @@
     "clamberRobFt": 28,
     "buddyJumpRobFt": 18,
     "touchScoopY": 3.2,
+    // §7.6: a liner (or fly) held above this before the first bounce is a catch; at or below it the hop is a scoop.
+    "inAirMinY": 0.75,
     "jumpBallY": 2.2,
     "wallBallY": 4.5,
     "windowBeforeSec": 0.48,
@@ -152,5 +168,20 @@
     "emberNightFireMul": 1.6,
     "pipeReachPadFt": 8,
     "shellWarpChance": 0.6
+  },
+  // #625, spec §7.3: the batter squares at the West press and the defense reads it before the pitch. The corners
+  // crash crashFt toward the plate at their own chase speed, coverFirst / coverSecond walk to their bags at the cover
+  // speed, and after contact every charge body converges on the ball (the glove is still the earliest route, §8.2).
+  // The throw follows §8.8 with the bunt's rows: the batter at first by default, the lead force only on a bunt at or
+  // above hardExitMph, home on a squeeze only from inside squeezeHomeFt.
+  "bunt": {
+    "crashFt": 25,
+    "crash": ["1B", "3B"],
+    "coverFirst": "2B",
+    "coverSecond": "SS",
+    "charge": ["P", "C", "1B", "3B"],
+    "chargeStopFt": 6,
+    "squeezeHomeFt": 30,
+    "hardExitMph": 36
   }
 }

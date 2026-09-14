@@ -4,8 +4,9 @@ namespace GrandSluggers.Sim;
 /// One named shot per play beat (spec §15), every id from <c>data/feel/shots.json</c>. SET and
 /// the pitch: 1P follows the role (mound when pitching, plate when batting), 1v1 stays behind
 /// home. In play the beat is decided from typed live state, never from a caption: a grounder is
-/// the 45° follow on the dirt under the ball (<c>diamond</c>), a liner or fly pulls back
-/// (<c>diamond-fly</c>), a home run is the <c>smash</c> override at the crack. The follow stays on the
+/// the 45° follow on the dirt under the ball (<c>diamond</c>), a liner sits between that and
+/// the fly pull-back (<c>diamond-line</c>), a fly or wall pulls back (<c>diamond-fly</c>), a home run
+/// is the <c>smash</c> override at the crack. The follow stays on the
 /// ball through every ordinary throw (D14); the only bag cam is the close play (<c>tag</c>, §9.6), and
 /// a steal or pickoff sits once on the play's bag (<c>throw</c>). A rundown follows the ball between the
 /// bags. Each shot's <c>blend</c> is how the rig enters it (0 is a cut), and <see cref="CameraHold"/>
@@ -39,6 +40,12 @@ public static class PlayCamera
     /// <summary>Same 45°, farther back and a little more FOV so a fly has grass.</summary>
     public const string InPlayFly = "diamond-fly";
 
+    /// <summary>
+    /// Same 45° family as the hopper, between <see cref="InPlay"/> and <see cref="InPlayFly"/>
+    /// so a rope reads vs a bounce (#665). Not the scoop still (<c>diamond-grounder</c>).
+    /// </summary>
+    public const string InPlayLine = "diamond-line";
+
     /// <summary>The steal / pickoff bag cam (§15, D14): once, on the pitch's catch, since the ball's whole trip is to that bag.</summary>
     public const string ThrowShot = "throw";
 
@@ -63,7 +70,8 @@ public static class PlayCamera
         return beat switch
         {
             Beat.Set or Beat.PitchFlight => set,
-            Beat.Fly or Beat.Line or Beat.Homer or Beat.Wall => InPlayFly,
+            Beat.Line => InPlayLine,
+            Beat.Fly or Beat.Homer or Beat.Wall => InPlayFly,
             Beat.Smash => SmashShot,
             Beat.StealThrow => ThrowShot,
             Beat.Tag => TagShot,
@@ -250,6 +258,7 @@ public static class PlayCamera
 
     public static string FromHit(AtBatResult hit) => Shot(BeatFrom(hit));
 
+    /// <summary>Dirt follow vs fly pull-back. A liner is neither — use <see cref="FromHit"/>.</summary>
     public static string FollowShot(bool fly) => fly ? InPlayFly : InPlay;
 
     /// <summary>

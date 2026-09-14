@@ -154,6 +154,7 @@ public class FeelInfraTests
     {
         var fly = _content.Shots.Must(PlayCamera.InPlay);
         var flyPull = _content.Shots.Must(PlayCamera.InPlayFly);
+        var line = _content.Shots.Must(PlayCamera.InPlayLine);
         var hop = _content.Shots.Must("diamond-grounder");
         var tag = _content.Shots.Must("tag");
         var thr = _content.Shots.Must("throw");
@@ -167,6 +168,15 @@ public class FeelInfraTests
         Assert.InRange(PlayCamera.LookDownDeg(flyPull), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
         Assert.True(Math.Abs(flyPull.Pos.Z) > Math.Abs(fly.Pos.Z) + 8, "fly shot pulls back");
         Assert.True(flyPull.Fov > fly.Fov, $"fly fov {flyPull.Fov} vs hopper {fly.Fov}");
+        // #665: a liner is the 45° family, between hopper and fly — not the old 3/4, not the scoop still.
+        Assert.InRange(PlayCamera.LookDownDeg(line), PlayCamera.InPlayLookDownDeg - 3, PlayCamera.InPlayLookDownDeg + 3);
+        Assert.InRange(line.Pos.Y, Math.Abs(line.Pos.Z) - 2, Math.Abs(line.Pos.Z) + 2);
+        Assert.True(line.Pos.Z < 0, $"liner offset looks toward CF z={line.Pos.Z}");
+        Assert.Equal(0, line.Blend);
+        Assert.True(Math.Abs(line.Pos.Z) > Math.Abs(fly.Pos.Z) + 4, "liner sits off the hopper");
+        Assert.True(Math.Abs(flyPull.Pos.Z) > Math.Abs(line.Pos.Z) + 4, "fly pulls back past the liner");
+        Assert.InRange(line.Fov, fly.Fov + 0.5, flyPull.Fov - 0.5);
+        Assert.NotEqual(hop.Id, line.Id, StringComparer.OrdinalIgnoreCase);
         var air = new Vec3(Diamond.First.X, 18, Diamond.First.Z);
         var framed = PlayCamera.FollowGround(fly, air);
         Assert.Equal(0, framed.Look.Y);
@@ -199,9 +209,10 @@ public class FeelInfraTests
         Assert.True(tag.Fov < thr.Fov || tag.Pos.Y < thr.Pos.Y,
             $"tag fov/y {tag.Fov}/{tag.Pos.Y} vs throw {thr.Fov}/{thr.Pos.Y}");
         Assert.Equal("bag", tag.Look, ignoreCase: true);
-        // D14: the class shots that were never selected are gone; the follow is diamond / diamond-fly by class.
-        foreach (var dead in new[] { "diamond-line", "diamond-homer", "diamond-pull" })
+        // D14: the unused 3/4 class shots stay gone. diamond-line is the 45° liner follow (#665).
+        foreach (var dead in new[] { "diamond-homer", "diamond-pull" })
             Assert.False(_content.Shots.TryGet(dead, out _), dead);
+        Assert.True(_content.Shots.TryGet(PlayCamera.InPlayLine, out _), PlayCamera.InPlayLine);
         var smash = _content.Shots.Must("smash");
         Assert.True(smash.Fov >= 40, $"smash fov {smash.Fov} is a nostril");
         Assert.True(smash.Pos.X > 5, $"smash is a 3/4 off the pipe, not through the catcher x={smash.Pos.X}");
@@ -235,7 +246,7 @@ public class FeelInfraTests
     [Fact]
     public void NamedShotsCoverPlateMoundDiamondThrow()
     {
-        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-fly", "diamond-grounder", "tag", "throw", "replay" })
+        foreach (var id in new[] { "plate", "pitch", "mound", "diamond", "diamond-line", "diamond-fly", "diamond-grounder", "tag", "throw", "replay" })
         {
             var shot = _content.Shots.Must(id);
             Assert.Equal(id, shot.Id, ignoreCase: true);

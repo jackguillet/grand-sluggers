@@ -250,3 +250,61 @@ What the two games actually do moment to moment, gathered for [gameplay-spec.md]
 - SR-MSS — speedrun.com MSS guide (search snippet only)
 - TVT-MSB — TV Tropes, *Mario Superstar Baseball* (search snippet only)
 - NWR — Nintendo World Report review of MSS
+
+---
+
+## Fielder control across the genre (2026-09-13)
+
+Who the player controls when the ball is in play, how they switch, and what the other eight do — gathered for spec §8.9. Same labels as above; "SNIPPET" means the fact came from a search snippet of a page that refused to load.
+
+### Superstar Baseball (GC) and Super Sluggers (Wii)
+
+- "The game will automatically determine which fielder is in control, which is indicated by a hand pointing down toward the character." Rule: "It will usually select the closest fielder to the ball, but it has somewhat irregular behaviour." The datamine shows assignment is by **hit type and area**, not distance: liners and grounders under 6° go to 1B / 3B with RF / LF as backup; flies by landing area. Per-position lockouts before control is granted: P 25, C 40, 1B 16, 2B 15, 3B 18, SS 17, OF 50 frames. Known failure: the "glitch bunt" — a bunt between pitcher and catcher assigned to neither. [MH-FLD][MH-AUTO][MH-GLOSS]
+- **Hand-off rule (AI side):** an infielder abandons the chase if the ball will land more than 40 m from home or is more than 10 m behind them **and** an outfielder reaches it sooner or within 20 frames. [MH-AUTO]
+- **Manual switch:** none in the GC base game; the community mod added R = nearest fielder, Y/X = cycle, Z+Y / Z+X = shortstop / second "for when the game auto selects an outfielder for a line-drive up the middle", calling the base game's selection "poor fielder select logic". Sluggers has one: "Press [button] before picking up the ball to take control of a different nearby player" (the same button as the pickoff / relay throw; glyph lost in extraction). [MH-FLD][MAN-W]
+- **Lock:** GC base game, hold L locks the current fielder (only when no manual select is used). [MH-GLOSS]
+- **Tell:** the pointing hand; the drop spot turns red when you are in position. Wii: "Control Display — This shows the character currently being controlled." [MH-FLD][MAN-W]
+- **Assist tiers:** GC options Fielding AUTO / Running AUTO / Drop Spot. Wii: Remote-only "fielders will automatically pursue the ball" and a throw "will automatically go to the correct base"; Nunchuk: you move them; no base named = "whatever base the fielder deems necessary". [MAN-GC][MAN-W]
+- **The other eight:** every base always covered, the pitcher backfills; cover movement starts 14 frames after the hit at a constant 3 cm/frame regardless of the speed stat; the catcher stays if a runner threatens to score; a loose ball pulls a cover off the bag; idle outfielders drift toward center / a preset spot and back up throws 20 m behind the destination; the mound cutoff stands 2 m off the mound. [MH-FLD][MH-AUTO]
+- **CPU throw target:** per-runner "desperation" 0–9 and an "urgency" 0–3 by inning and score; outfield: tag-ups within 45 m first, then home / third / second by distance and desperation, else the cutoff; infield branches for two outs, batter-only, double plays, loaded bases; leftovers R3 → R2 → R1; cancel if the receiver is burned / knocked out; short cutoff throws skipped. [MH-FAI][MH-THR]
+- **Complaints:** "When I go to run after a ball with one character, it turns out the game had me locked onto another character" (Sluggers forum); fielders "either too automatic or not responsive enough" (metareview, SNIPPET).
+
+### Super Mega Baseball (Extra Innings → 4)
+
+- "Players field the ball automatically, but the higher your Ego setting, the more you'll need to help them." Developer: "The game will pick the fielder closest to the ball, you run that fielder right under the ball and they'll automatically catch it." L2 / LT rotates fielders; RT throws to the cutoff; "Infielders will set up to relay or cut off throws from the outfield." [SMB-MAN][SMB-DEV]
+- **Complaint:** "balls hit in between fielders, so you run toward it with say LF and then as you near the ball the game swaps it to CF and your guy runs in the wrong direction"; "the game will only let you jump or slide when it deems necessary". [SMB-FORUM]
+
+### MLB The Show (22–26)
+
+- Official manual lists move, throw-to-base, throw-to-cutoff, jump, dive and **no switch control**; third-party guides list L2 / LT "switch to the closest player" (UNVERIFIED for current versions). Settings: Auto Fielding / Auto Throwing / Auto Baserunning / Auto Sliding (off by default); catch interfaces Drifting Ball (landing icon shrinks), Track Ball, Catch Indicator Off. [SHOW-MAN][SHOW-GUIDES]
+- **Complaint:** "the outfielder is the initial guy they give you so when you think you can get to a ground ball with say SS, you pull the outfielder off"; wrong fielder on shallow pops, foul territory behind first, bunts. [SHOW-FORUM]
+
+### Others
+
+- **Backyard Baseball ('97 and 2024):** no controlled fielder; point where to run, click who to throw to; the nearest kid moves. [BYB]
+- **Ken Griffey Jr. (SNES):** auto-selects the closest fielder (a blue dot on the radar); "auto fielding" exists "but you'll suffer from fielders making bad throwing decisions". [KGJ]
+- **MVP Baseball 2005:** L1 switches fielders (SNIPPET). **MLB 2K11:** "when a ball is popped up, you take control of the nearest fielder"; Auto Fielding added (SNIPPET). **Power Pros:** "L1 switches to the closest player to the ball. Holding R1 locks the cursor onto the current fielder" (SNIPPET); Pro Spirit 2026: Auto / Assisted (the game moves your fielder to the ball) / Manual. [MVP][2K][PP]
+- **General switching (patents, other sports):** Konami US8827785 — switch order by distance to the ball, re-determined as the ball moves, with positional restrictions; Nintendo US7785199 (soccer) — the closest player is the switch target; FIFA 21 — Auto Switching modes, "Auto Switching Move Assistance … keep the player you AUTO switch to moving in his current direction for a short period", Next Player Switch Indicator, Player Lock; NHL 20 — hold + right-stick flick to a direction. No GDC talk or developer blog specifically on baseball fielding AI was found; the Superstar datamine is the only decoded implementation. [PAT][FIFA][NHL]
+
+### Conventions, and what we take
+
+1. **Initial pick is "nearest", computed against the predicted ball.** Every game says nearest; Superstar actually assigns by hit class and landing area with lockouts. Ours is the route planner (earliest arrival at the landing or first reachable point), which subsumes both.
+2. **Auto hand-off is the default and hysteresis is rare** — and that is the source of the one complaint every game shares. Ours: hand-offs are events with a reason (spec §8.9, D16); a body that still has a route is never taken; a short coast after a swap (the FIFA idea).
+3. **Manual switch is one button to the nearest**, sometimes plus a cycle; direction + button exists only in soccer / hockey. Ours has both (direction if the stick points, next-nearest if dead).
+4. **Lock** exists where auto-switching is by distance (Superstar L, Power Pros R1). Ours needs none (D17).
+5. **Tell:** a marker on the body plus a landing marker that changes colour in range. Ours: the YOU ring all play, the landing ring turning red in the window.
+6. **Assist tiers:** Auto (catch and throw for you), Assisted, Manual. Ours: the CPU runs the glove until taken and never throws for the human (D18, #83, #579).
+7. **The other eight:** every base covered, the pitcher backfills, backups behind a throw, a cutoff off the mound. Ours: §8.7 by geometry.
+8. **CPU throw target:** cutoff by default from the outfield, else a per-runner score gated by game urgency, forces and double plays first, batter last. Ours: §8.8 by makeable margin.
+
+**Not pursued:** whether Sluggers hands off mid-play and what its switch button targets could be measured with Dolphin and a memory watch on the controlled-fielder index; skipped by decision on 2026-09-13 — the genre convention and the sitting decide, and spec §8.9 stands on the route rule.
+
+### Sources (this section)
+
+- MH-FLD / MH-AUTO / MH-FAI / MH-THR / MH-GLOSS — https://mariobaseball.miraheze.org/wiki/ Fielding_Mechanics, Fielding_Auto_Movement, Fielding_AI_Logic, Throwing_Mechanics, Glossary
+- MAN-W / MAN-GC — the Sluggers and Superstar booklets (links above); StrategyWiki https://strategywiki.org/wiki/Mario_Superstar_Baseball/Controls
+- SMB-MAN — Super Mega Baseball: Extra Innings Xbox manual (dlassets-ssl.xboxlive.com); SMB-DEV — https://steamcommunity.com/app/314070/discussions/0/1327844097107971857/; SMB-FORUM — https://steamcommunity.com/app/1487210/discussions/0/4356747155437807320/
+- SHOW-MAN — https://mlb26.manual.theshow.com/en/controls-throwing-and-fielding.html; SHOW-GUIDES — realsport101.com, gamerant.com, thegamer.com, seekingtech.com fielding guides; SHOW-FORUM — https://forums.theshow.com/topic/79045/help-with-fielding
+- BYB — steamcommunity.com/app/3170540, inverse.com; KGJ — sportsvideogamereviews.com, GameFAQs 76466 (snippet); MVP — GameFAQs review 98116 (snippet); 2K — digitaltrends.com MLB 2K11 review (snippet); PP — operationsports.com Power Pros tips (snippet), walawala.gg Pro Spirit 2026 guide, konami.com FAQ
+- PAT — https://patents.google.com/patent/US8827785B2/en, US7785199; FIFA — https://www.ea.com/able/resources/fifa/fifa-21/pc/controller-settings; NHL — EA NHL 20 manual PDF
+- Forum complaint — https://www.marioboards.com/threads/23223/

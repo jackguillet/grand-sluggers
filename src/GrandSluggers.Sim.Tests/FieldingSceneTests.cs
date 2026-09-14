@@ -93,13 +93,21 @@ public class FieldingSceneTests
     [Fact]
     public void DiveAndJumpExtendTheCatchWindow()
     {
-        var plain = FieldingResolver.CatchWindowFt(10, false, false);
-        var dive = FieldingResolver.CatchWindowFt(10, true, false);
-        var jump = FieldingResolver.CatchWindowFt(10, false, true);
-        var both = FieldingResolver.CatchWindowFt(10, true, true);
-        Assert.Equal(14, plain);
-        Assert.True(dive > plain);
-        Assert.True(jump > plain);
+        var c = Rules.Default.Fielding.Catch;
+        Assert.Equal(10, c.RadiusBaseFt);
+        Assert.Equal(0.6, c.RadiusPerField);
+        Assert.Equal(4, c.WindowPadFt);
+        Assert.Equal(8, c.DiveReachFt);
+        Assert.Equal(8, c.JumpReachFt);
+        Assert.Equal(c.RadiusBaseFt, FieldingResolver.StandUpCatchFt(c.RadiusBaseFt));
+        Assert.Equal(c.RadiusBaseFt + c.DiveReachFt, FieldingResolver.DiveCatchFt(c.RadiusBaseFt));
+        var plain = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, false);
+        var dive = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, false);
+        var jump = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, true);
+        var both = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, true, true);
+        Assert.Equal(c.RadiusBaseFt + c.WindowPadFt, plain);
+        Assert.Equal(plain + c.DiveReachFt, dive);
+        Assert.Equal(plain + c.JumpReachFt, jump);
         Assert.True(both > dive);
         Assert.True(both > jump);
         var lunged = FieldDash.Lunge(0, 0, 30, 0, 10);

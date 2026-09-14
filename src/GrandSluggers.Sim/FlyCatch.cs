@@ -3,7 +3,7 @@ namespace GrandSluggers.Sim;
 /// <summary>
 /// Timed fly / wall catch. CPU dead-stick still uses <see cref="FieldingResolver.Resolve"/>.
 /// Player with the glove owns the jump. Super Jump / Grow / Clamber widen the window,
-/// they do not skip it. Camera: <see cref="PlayCamera.Beat.Fly"/> / Homer / Wall.
+/// they do not skip it. Camera: <see cref="PlayCamera.Beat.Line"/> / Fly / Homer / Wall.
 /// Harbor wall only — no extra parks, no Nintendo mesh.
 /// </summary>
 public static class FlyCatch
@@ -89,8 +89,8 @@ public static class FlyCatch
     {
         _ = ballX;
         _ = ballZ;
-        // The landing ring is the catch. Live XZ while the ball is still up
-        // is the home-first miss — standing in the circle was a drop.
+        // The landing ring is the stand-up catch (§8.3, #669). Live XZ while the
+        // ball is still up is the home-first miss — standing in the circle was a drop.
         var reach = needsJump ? Math.Max(windowFt, Rules.Or(rules).Fielding.Catch.NeedsJumpReachFt) : windowFt;
         return Diamond.Dist(gloveX, gloveZ, plantX, plantZ) < reach;
     }
@@ -108,16 +108,86 @@ public static class FlyCatch
         bool canRob = true) =>
         (jumpDown && inWindow && under && (!needsJump || canRob)) || (southDown && under && !needsJump);
 
-    public static bool PlayerDiveCatch(bool diveArmed, double distFt, double windowFt, double ballY, RulesTable? rules = null) =>
-        diveArmed && distFt < windowFt && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
+    /// <summary>
+    /// East dive at the rim (#669): past the stand-up ring, inside dive reach, ball low
+    /// enough. A plant catch is stand-up even if East is armed.
+    /// </summary>
+    public static bool PlayerDiveCatch(
+        bool diveArmed,
+        double distFt,
+        double standUpFt,
+        double diveWindowFt,
+        double ballY,
+        RulesTable? rules = null) =>
+        diveArmed && NeedsDive(distFt, standUpFt, diveWindowFt, ballY, rules);
 
-    /// <summary>Dead-stick / CPU: under a routine fly in the window is a catch. Not a rob.</summary>
-    public static bool AutoCatch(bool under, bool inWindow, bool needsJump) =>
-        under && inWindow && !needsJump;
+    /// <summary>Past the stand-up ring, inside dive reach, ball below <c>diveMaxBallY</c>.</summary>
+    public static bool NeedsDive(
+        double distFt,
+        double standUpFt,
+        double diveWindowFt,
+        double ballY,
+        RulesTable? rules = null) =>
+        distFt >= standUpFt
+        && distFt < diveWindowFt
+        && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
-    /// <summary>The CPU glove at the wall (§8.3, §8.4): under the plant in the window, and its leap reaches the ball's clearance.</summary>
-    public static bool AutoCatch(bool under, bool inWindow, bool needsJump, bool canRob) =>
-        under && inWindow && (!needsJump || canRob);
+    /// <summary>
+    /// Dead-stick / CPU: under a routine fly in the window is a stand-up catch. Not a rob unless
+    /// <paramref name="canRob"/>. A liner on the glove before the bounce is a catch even
+    /// outside the hang window (§7.6): the intercept is the window. The rim is
+    /// <see cref="AutoDive"/>, not this.
+    /// </summary>
+    public static bool AutoCatch(bool under, bool inWindow, bool needsJump, bool canRob = false, bool linerInAir = false) =>
+        under && (!needsJump || canRob) && (inWindow || linerInAir);
+
+    /// <summary>
+    /// Dead-stick / CPU at the rim (#669): inside dive reach, past the stand-up ring, ball
+    /// low enough. Not a rob. The body dives; it does not stand-up catch from off the plant.
+    /// </summary>
+    public static bool AutoDive(
+        bool underDive,
+        bool underStandUp,
+        bool inWindow,
+        bool needsJump,
+        double ballY,
+        bool linerInAir = false,
+        RulesTable? rules = null) =>
+        !underStandUp
+        && underDive
+        && !needsJump
+        && (inWindow || linerInAir)
+        && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
+
+    /// <summary>
+    /// Where the glove has to be to hold this ball. A fly is the landing ring (§8.3). A liner is
+    /// the live ball above <c>catch.inAirMinY</c> before the bounce (§7.6) — a straight-at-you
+    /// rope is a South catch — or the plant in the hang window so a body that ran the landing
+    /// route still takes it. Standing at the bounce after the ball has touched the dirt is a scoop.
+    /// </summary>
+    public static bool InPosition(
+        FieldingPreview pre,
+        double gloveX,
+        double gloveZ,
+        double ballX,
+        double ballZ,
+        double ballY,
+        double plantX,
+        double plantZ,
+        double windowFt,
+        double hitT,
+        double hangSec,
+        bool needsJump,
+        RulesTable? rules = null)
+    {
+        var atPlant = Under(gloveX, gloveZ, ballX, ballZ, plantX, plantZ, windowFt, needsJump, rules);
+        if (!pre.Line) return atPlant;
+        // A liner held after the bounce is a scoop, even if the glove is standing on the plant.
+        if (hitT >= hangSec) return false;
+        if (atPlant) return true;
+        var minY = Rules.Or(rules).Fielding.Catch.InAirMinY;
+        return ballY > minY && Diamond.Dist(gloveX, gloveZ, ballX, ballZ) < windowFt;
+    }
 
     /// <summary>
     /// Hopper on the dirt: if the glove can touch the ball, they scoop.
@@ -143,9 +213,11 @@ public static class FlyCatch
 
     /// <summary>
     /// What the ball has decided so far. <paramref name="foul"/> is the fair / foul call: the
-    /// untouched path's verdict until a touch decides it (§5.6). A fly caught in the air is an out
-    /// wherever it was (§7.11); an uncaught homer flight is a home run at the crossing; a foul is
-    /// dead; anything else is <see cref="PlayKind.InPlay"/> until the bodies name it at Complete.
+    /// untouched path's verdict until a touch decides it (§5.6). <paramref name="inAir"/> is
+    /// before the first ground contact (the landing mark), not the chase-height flag. A fly or
+    /// liner held then is an out wherever it was (§7.6, §7.11); an uncaught homer flight is a
+    /// home run at the crossing; a foul is dead; anything else is <see cref="PlayKind.InPlay"/>
+    /// until the bodies name it at Complete.
     /// </summary>
     public static PlayKind PlayerKind(bool caught, FieldingPreview pre, bool inAir = true, bool? foul = null)
     {

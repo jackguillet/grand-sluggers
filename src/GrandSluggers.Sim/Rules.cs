@@ -281,7 +281,7 @@ public sealed class PitchingRules
 public sealed class PitchSpeedRules
 {
     [Positive] public double FastballMph { get; init; } = 86;
-    [Positive] public double ChangeupMph { get; init; } = 72;
+    [Positive] public double ChangeupMph { get; init; } = 68.8;
     public double MphPerPitchStat { get; init; } = 0.9;
     public double ChargeMph { get; init; } = 8;
     public double ChangeupChargeMph { get; init; } = 3;
@@ -325,8 +325,10 @@ public sealed class PitchShapeRules
     /// <summary>The fastball rides above the straight line mid-flight and settles on its aim.</summary>
     public double FastballHump { get; init; } = 0.35;
     [Chance] public double ChangeupHangUntil { get; init; } = 0.62;
-    public double ChangeupHangRate { get; init; } = 0.72;
-    public double ChangeupDumpRate { get; init; } = 1.55;
+    /// <summary>How fast Y interpolates toward the (lower) aim during the hang. Well below 1 keeps the ball up; 1 is a fade.</summary>
+    public double ChangeupHangRate { get; init; } = 0.22;
+    /// <summary>How fast Y interpolates after <see cref="ChangeupHangUntil"/>. Must finish the drop in flight (spec §4.3).</summary>
+    public double ChangeupDumpRate { get; init; } = 2.4;
     /// <summary>The changeup crosses this far below a fastball's height (up to one zone-half).</summary>
     public double ChangeupDropFt { get; init; } = 0.9;
 }
@@ -479,10 +481,11 @@ public sealed class ContactWindowRules
     [Positive] public double FloorFrames { get; init; } = 5.0;
     [Chance] public double SquareFraction { get; init; } = 0.9;
     /// <summary>
-    /// The square press is this long before the ball reaches the plate (D13, #612): a human's eye
-    /// times the ball at the plate, and the take is warped so its Contact mark meets the ball.
+    /// The square press is this long before the ball reaches the plate (D13, #612 / #670): a
+    /// human's eye times the ball meeting the bat, so the press leads the plate; the take is
+    /// warped so its Contact mark meets the ball. 0.18 s, not the old press + 0.30 plane.
     /// </summary>
-    [Positive] public double LeadSec { get; init; } = 0.10;
+    [Positive] public double LeadSec { get; init; } = 0.18;
 }
 
 /// <summary>Charge adds loft; its power is the charge column of <see cref="QualityRules"/> (spec §5.5).</summary>
@@ -685,6 +688,8 @@ public sealed class CpuBatterRules
     public double SacBuntErrorSigma { get; init; } = 2.2;
     public double SacBuntSpraySigma { get; init; } = 10;
     public double SacBuntLaunchAim { get; init; } = 0.35;
+    /// <summary>The headless CPU batter has been squared this long at the plate time (§7.3); the client's clock replaces it when there is one.</summary>
+    [Positive] public double SacBuntSquareSec { get; init; } = 1.8;
     /// <summary>A captain with a star, a runner on or two strikes.</summary>
     [Chance] public double StarChance { get; init; } = 0.2;
     /// <summary>Timing σ = (11 − Bat) × this, frames.</summary>
@@ -862,6 +867,7 @@ public sealed class FieldingRules
     public BobbleRules Bobble { get; init; } = new();
     public KnockbackRules Knockback { get; init; } = new();
     public ParkHazardRules Park { get; init; } = new();
+    public BuntDefenseRules Bunt { get; init; } = new();
 
     internal void Validate(string source, List<string> errors)
     {
@@ -917,6 +923,32 @@ public sealed class CoverRules
     [Positive] public double BackupFt { get; init; } = 60;
 }
 
+/// <summary>
+/// The bunt defense (§7.3, <c>fielding.bunt</c>): who crashes and how far when the batter squares, who covers
+/// first and second behind the crash, who charges the triangle after contact, and the throw rule's numbers
+/// (a bunt too hard for the sac is played at the lead force; the squeeze runner is thrown for only from
+/// inside the plate distance). Positions are the diamond's keys; <see cref="BuntDefense"/> reads them.
+/// </summary>
+public sealed class BuntDefenseRules
+{
+    /// <summary>The crash bodies run this far toward the plate from their spots (25 in the reference).</summary>
+    [Positive] public double CrashFt { get; init; } = 25;
+    /// <summary>Who crashes at the square.</summary>
+    public string[] Crash { get; init; } = ["1B", "3B"];
+    /// <summary>Who covers first behind the crash.</summary>
+    public string CoverFirst { get; init; } = "2B";
+    /// <summary>Who covers second behind the crash.</summary>
+    public string CoverSecond { get; init; } = "SS";
+    /// <summary>Who converges on a bunt after contact (the triangle); the glove among them is the pursuit planner's.</summary>
+    public string[] Charge { get; init; } = ["P", "C", "1B", "3B"];
+    /// <summary>A charging body that is not the glove stops this far from the ball.</summary>
+    [Positive] public double ChargeStopFt { get; init; } = 6;
+    /// <summary>On a squeeze the glove throws home only from inside this distance to the plate.</summary>
+    [Positive] public double SqueezeHomeFt { get; init; } = 30;
+    /// <summary>A bunt leaving the bat at or above this is too hard for the sac: the lead force is played if makeable.</summary>
+    [Positive] public double HardExitMph { get; init; } = 36;
+}
+
 /// <summary>A throw that misses its cover, or drops at an uncovered bag, rolls on from where it landed.</summary>
 public sealed class OverthrowRules
 {
@@ -935,8 +967,10 @@ public sealed class ChaseRules
     public double StepStopFt { get; init; } = 0.35;
     /// <summary>A route counts as reachable when the glove lands within this of the meet point.</summary>
     public double ReachSlackFt { get; init; } = 0.35;
-    /// <summary>After Select / R swaps the glove, the stick does not re-take it for this long.</summary>
+    /// <summary>After Select / R swaps the glove, another press is ignored and the CPU chase waits for this long (§8.9).</summary>
     public double SwapLockSec { get; init; } = 0.7;
+    /// <summary>After a hand-off the body the ring left keeps its velocity for this long, then stops (§8.9): the swap does not jerk.</summary>
+    public double HandoffCoastSec { get; init; } = 0.2;
     /// <summary>The nearest body to a loose ball chases it; a throw's receiver steps to a ball inside this of them.</summary>
     [Positive] public double LooseScoopFt { get; init; } = 3.5;
     /// <summary>
@@ -944,6 +978,13 @@ public sealed class ChaseRules
     /// outfield read went back to the reference (#609): the read is when a body starts, this is how much ground it covers.
     /// </summary>
     [Positive] public double OutfieldAirMul { get; init; } = 0.6;
+    /// <summary>
+    /// An infielder (P, C, 1B, 2B, 3B, SS) under a ball on the stretched clock (a fly or a pop, §6.1) runs at the one glove speed × this
+    /// (§8.1). The other half of the S-29 lever (#636): once the hand-off honours the infielder's route in the air (D17), this is how far
+    /// the infield reaches back under a short fly past the lip. A liner runs on its own clock and an infielder runs the one speed at it;
+    /// balls on the dirt run the one speed the §10.4 double-play rows were tuned on.
+    /// </summary>
+    [Positive] public double InfieldAirMul { get; init; } = 0.45;
 }
 
 public sealed class CatchRules
@@ -962,6 +1003,11 @@ public sealed class CatchRules
     public double ClamberRobFt { get; init; } = 28;
     public double BuddyJumpRobFt { get; init; } = 18;
     public double TouchScoopY { get; init; } = 3.2;
+    /// <summary>
+    /// Still in the air for a catch (§7.6): a route that meets the ball above this before the first
+    /// bounce is a catch; at or below it the hop is a scoop. Chase targeting uses the same floor.
+    /// </summary>
+    [Positive] public double InAirMinY { get; init; } = 0.75;
     public double JumpBallY { get; init; } = 2.2;
     public double WallBallY { get; init; } = 4.5;
     public double WindowBeforeSec { get; init; } = 0.48;
@@ -1126,7 +1172,6 @@ public sealed class RunningRules
         RulesValidation.Order(source, "running.cpu.stealBaseRun8", Cpu.StealBaseRun8, Cpu.StealBaseRun10, errors);
         // A slide narrows the tag window but never closes it: the safe radius stays inside the slid reach (§10.3).
         RulesValidation.Order(source, "running.bags.tagSafeRadiusFt", Bags.TagSafeRadiusFt, Bags.TagReachFt - Bags.SlideReachCutFt, errors);
-        RulesValidation.Order(source, "running.rundown.throwWithinFt", Rundown.ThrowWithinFt, Rundown.RangeFt, errors);
     }
 }
 
@@ -1203,14 +1248,13 @@ public sealed class StealRules
 
 /// <summary>
 /// The rundown (§9.7): a runner off the bags with a glove holding the ball inside <see cref="RangeFt"/>.
-/// CPU fielders throw once the runner is inside <see cref="ThrowWithinFt"/> of a covered bag and run at
-/// them otherwise; when every live runner is at least <see cref="LazyLobFraction"/> of the way to a bag
-/// the throw is a lazy lob at <see cref="LazyLobSpeedMul"/> of the arm.
+/// The CPU glove runs at them and throws ahead at the last makeable moment (the §8.8 margin, no fixed
+/// distance); a throw that races nobody to its bag, with every moving body at least
+/// <see cref="LazyLobFraction"/> of the way to a bag, is a lazy lob at <see cref="LazyLobSpeedMul"/> of the arm.
 /// </summary>
 public sealed class RundownRules
 {
     [Positive] public double RangeFt { get; init; } = 20;
-    [Positive] public double ThrowWithinFt { get; init; } = 8;
     [Chance] public double LazyLobFraction { get; init; } = 0.8;
     [Positive] public double LazyLobSpeedMul { get; init; } = 0.5;
 }

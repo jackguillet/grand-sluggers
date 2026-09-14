@@ -9,14 +9,21 @@ public sealed class FieldingResolver
     public static readonly IReadOnlyList<string> OutfieldPursuitPositions = ["LF", "CF", "RF"];
     /// <summary>A foul flight near the lines (§7.11).</summary>
     public static readonly IReadOnlyList<string> FoulPursuitPositions = ["C", "1B", "3B", "LF", "RF"];
+    /// <summary>A bunt (§7.3): the pitcher, the catcher and the crashing corners; the middle infielders cover first and second (<see cref="BuntDefense"/>).</summary>
+    public static readonly IReadOnlyList<string> BuntPursuitPositions = ["P", "C", "1B", "3B"];
 
-    /// <summary>The pursuit pool for a class (§8.2): dirt and ropes to the infield, pops to the air pool plus the corners, flies to the air pool.</summary>
+    /// <summary>The pursuit pool for a class (§8.2): dirt and ropes to the infield, a bunt to its four, pops to the air pool plus the corners, flies to the air pool.</summary>
     public static IReadOnlyList<string> PursuitPool(BattedBallClass shape, bool foul)
     {
         if (foul) return FoulPursuitPositions;
+        if (shape == BattedBallClass.Bunt) return BuntPursuitPositions;
         if (shape.OnTheDirt() || shape == BattedBallClass.Liner) return InfieldPursuitPositions;
         return shape == BattedBallClass.Pop ? PopPursuitPositions : AirPursuitPositions;
     }
+
+    /// <summary>The infield pool for a ball on the dirt by its shape (§8.2): the bunt's four, else the six.</summary>
+    public static IReadOnlyList<string> InfieldPool(BattedBallClass shape) =>
+        shape == BattedBallClass.Bunt ? BuntPursuitPositions : InfieldPursuitPositions;
 
     readonly ChemistryTable _chem;
     readonly RulesTable _rules;
@@ -34,7 +41,8 @@ public sealed class FieldingResolver
         Character pitcher,
         Random rng,
         bool night = false,
-        IReadOnlyDictionary<string, Character>? gloves = null)
+        IReadOnlyDictionary<string, Character>? gloves = null,
+        IReadOnlyDictionary<string, (double X, double Z)>? at = null)
     {
         // One flight for the preview, the ring, and the homer call (§5.6): the clipped path in this park.
         var ball = BattedBall.Of(hit, park, _rules);
@@ -53,6 +61,7 @@ public sealed class FieldingResolver
             seed,
             park,
             samples,
+            at,
             readyAt: CpuReactionLockouts(_rules, grounder ? null : hang));
         var fielder = pursuit.Fielder;
         var pos = pursuit.Position;
@@ -175,7 +184,10 @@ public sealed class FieldingResolver
         return (best ?? assigned.Values.First(), bestPos);
     }
 
-    /// <summary>Catch radius plus dive/jump window (fielding.catch). Body verbs buy you the extra feet.</summary>
+    /// <summary>
+    /// Dirt scoop / armed-verb window (fielding.catch). A fly stand-up is the catch radius
+    /// itself (#669); <c>windowPadFt</c> is scoop slack, not a stand-up fly out.
+    /// </summary>
     public static double CatchWindowFt(double catchRadius, bool dive, bool jump, RulesTable? rules = null)
     {
         var c = Rules.Or(rules).Fielding.Catch;
@@ -184,6 +196,13 @@ public sealed class FieldingResolver
         if (jump) w += c.JumpReachFt;
         return w;
     }
+
+    /// <summary>The yellow ring / stand-up fly catch (#669): catch radius, no pad.</summary>
+    public static double StandUpCatchFt(double catchRadius) => catchRadius;
+
+    /// <summary>Stand-up plus <c>diveReachFt</c> — the rim. Past this is a drop.</summary>
+    public static double DiveCatchFt(double catchRadius, RulesTable? rules = null) =>
+        StandUpCatchFt(catchRadius) + Rules.Or(rules).Fielding.Catch.DiveReachFt;
 
     /// <summary>Base catch radius for a glove (fielding.catch.radius*, abilities, clamber parks).</summary>
     public static double CatchRadiusFt(Character fielder, Park? park, RulesTable? rules = null)
@@ -209,14 +228,14 @@ public sealed class FieldingResolver
         OutfieldGrass(ballX, ballZ, rules) || OutfieldGrass(landingX, landingZ, rules);
 
     /// <summary>
-    /// Still up: fly or liner, hang not due, height above a hop.
+    /// Still up: fly or liner, hang not due, height above a hop (<c>catch.inAirMinY</c>).
     /// A hopper is never in the air for chase — they charge the live ball.
     /// </summary>
-    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null)
+    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null, RulesTable? rules = null)
     {
         if (pre.Grounder) return false;
         var hang = hangSec ?? pre.HangTimeSec;
-        return hitT < hang && ballY > 0.75;
+        return hitT < hang && ballY > Rules.Or(rules).Fielding.Catch.InAirMinY;
     }
 
     /// <summary>
@@ -246,8 +265,10 @@ public sealed class FieldingResolver
         inAir || !OutfieldGrass(ballX, ballZ, rules) ? (landingX, landingZ) : (ballX, ballZ);
 
     /// <summary>
-    /// Live glove: IF while the ball is on the dirt, nearest OF once it reaches the grass.
-    /// One-way handoff — the infielder who first ran it does not keep the play in the outfield.
+    /// Live glove when the path is missing: IF while the ball is on the dirt, nearest OF once it
+    /// reaches the grass. The live ball with a path uses <see cref="FieldingPursuit.Choose"/> (D16,
+    /// #667) — nearest is not the play glove. One-way handoff — the infielder who first ran it does
+    /// not keep the play in the outfield.
     /// </summary>
     public static (Character Fielder, string Pos) PlayGlove(
         IReadOnlyDictionary<string, Character> assigned,
@@ -279,12 +300,21 @@ public sealed class FieldingResolver
 
     /// <summary>
     /// The chase speed of the body at <paramref name="pos"/> on this ball (§8.1, §8.2): the one glove speed, × <c>fielding.chase.outfieldAirMul</c>
-    /// for an outfielder on a ball hit in the air (a fly, a liner, a pop, a wall ball). Human stick and CPU chase share it. A ball on the
-    /// dirt, an infielder, a carry, and a loose ball run at the one speed.
+    /// for an outfielder on a ball hit in the air (a fly, a liner, a pop, a wall ball), × <c>fielding.chase.infieldAirMul</c> for an
+    /// infielder under a ball on the stretched clock (a fly or a pop, §6.1: the hang is the watcher's, the reach under it is real). Human
+    /// stick and CPU chase share it. A ball on the dirt, an infielder on a liner (a rope gets past the glove or it does not, §7.6), a carry,
+    /// and a loose ball run at the one speed.
     /// </summary>
     public static double ChaseSpeedFt(Character fielder, string pos, FieldingPreview? pre, RulesTable? rules = null, bool dash = false) =>
-        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash)
-        * (IsOutfield(pos) && pre is { Grounder: false } ? Rules.Or(rules).Fielding.Chase.OutfieldAirMul : 1);
+        ChaseSpeedFt(fielder, pre?.Frozen ?? false, rules, dash) * AirMul(pos, pre, rules);
+
+    static double AirMul(string pos, FieldingPreview? pre, RulesTable? rules)
+    {
+        if (pre is not { Grounder: false }) return 1;
+        var c = Rules.Or(rules).Fielding.Chase;
+        if (IsOutfield(pos)) return c.OutfieldAirMul;
+        return pre.Line ? 1 : c.InfieldAirMul;
+    }
 
     /// <summary>
     /// The reaction lockout per position (§8.2, fielding.reaction): play seconds before each body may move,
