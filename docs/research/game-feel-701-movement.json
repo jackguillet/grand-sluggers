@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "issue": 701,
+  "parentIssue": 693,
+  "status": "code-audit-and-pending-design-decision",
+  "auditedOn": "2026-09-14",
+  "auditedRevision": "dc86fb94b63915dd0b70b16eee0f5a050f8cf6ba",
+  "sourceSha256": {
+    "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+    "src/GrandSluggers.Sim/FieldingPursuit.cs": "c61cd009609e921faa032dbdc34dc45daa701fca2ea25dfe283fb5f0be4be9d7",
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+    "src/GrandSluggers.Sim/Runner.cs": "b1a54a4b7dd73d354ee81ef91a574940f235f7739592ec65bea149f5d53ba0bf",
+    "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136"
+  },
+  "conditions": "No dash, frozen status, or ability; full stick for field movement. Formula values, not measured play averages.",
+  "fieldingParameters": {
+    "baseFtPerSec": 21,
+    "ftPerSecPerRun": 1.9,
+    "outfieldAirMul": 0.6,
+    "infieldAirMul": 0.45
+  },
+  "runningParameters": {
+    "baseSec": 3.55,
+    "secPerRun": 0.12,
+    "minSec": 2.45,
+    "maxSec": 3.65,
+    "dashMul": 0.12,
+    "batterStartSec": 0.5,
+    "noPassFt": 27
+  },
+  "baselineFeet": 90,
+  "rows": [
+    {
+      "run": 1,
+      "baseFieldingFtPerSec": 22.9,
+      "outfieldNonGrounderPreviewFtPerSec": 13.739999999999998,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 10.305,
+      "baseRunningBagSec": 3.4299999999999997,
+      "baseRunningFtPerSec": 26.239067055393587
+    },
+    {
+      "run": 5,
+      "baseFieldingFtPerSec": 30.5,
+      "outfieldNonGrounderPreviewFtPerSec": 18.3,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 13.725,
+      "baseRunningBagSec": 2.9499999999999997,
+      "baseRunningFtPerSec": 30.50847457627119
+    },
+    {
+      "run": 10,
+      "baseFieldingFtPerSec": 40.0,
+      "outfieldNonGrounderPreviewFtPerSec": 24.0,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 18.0,
+      "baseRunningBagSec": 2.45,
+      "baseRunningFtPerSec": 36.73469387755102
+    }
+  ],
+  "selector": "FieldingResolver.AirMul uses preview.Grounder, preview.Line and fielding position, not current ball height. A bounce alone does not remove this multiplier at call sites retaining the preview.",
+  "fieldingAndRunningCalibration": "Separate formulas use the same Run stat. No requirement that offense and defense have identical ft/s.",
+  "motionImplementation": "Ordinary stick and StepToward integrate speed * dt after eligibility/lockout; no ordinary pursuit acceleration ramp. Special moves and handoff coast are separate.",
+  "references": [
+    {
+      "id": "gc-fielding-410",
+      "url": "https://mariobaseball.miraheze.org/wiki/Fielding_Mechanics?oldid=410",
+      "status": "community-reverse-engineering",
+      "access": "Previously retrieved local source cache re-inspected; web retrieval failed this turn.",
+      "supports": "Reported ordinary fielding formula is normal character speed times sprint and Ball Dash modifiers; no contact-class factor listed. Not proof all movement states lack further modifiers."
+    },
+    {
+      "id": "gc-running-426",
+      "url": "https://mariobaseball.miraheze.org/wiki/Running_Mechanics?oldid=426",
+      "status": "community-reverse-engineering",
+      "access": "Previously retrieved local source cache re-inspected; web retrieval failed this turn.",
+      "supports": "Baserunning has separately described acceleration, stamina, and dash. Inconsistent prose/equations preclude importing full formula."
+    }
+  ],
+  "pendingDecision": {
+    "id": "F693-02-pursuit-consistency",
+    "status": "awaiting-Jack",
+    "recommended": "One ordinary pursuit movement profile per character, independent of hit class or assigned fielding position, retaining explicit dash/status/ability modifiers",
+    "alternative": "Retain hit-class/position movement modifiers as deliberate calibration tools",
+    "scope": "Pursuit movement contract only. Does not equate baserunning with fielding or select speed, acceleration, reaction delay, reach, or dimensions.",
+    "existingSpecAffected": [
+      "8.1 outfieldAirMul and infieldAirMul",
+      "8.2 historical scoring calibration"
+    ],
+    "implementationGate": "If accepted, replace modifiers only within a coherent compact geometry/flight/pursuit profile with gameplay validation; do not set both to 1 on current geometry."
+  },
+  "acceptedTargets": []
+}
