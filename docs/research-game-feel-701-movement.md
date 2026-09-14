@@ -58,11 +58,11 @@ Before numeric acceptance, compare starting from rest, a 90-degree correction, a
 
 Jack approved the recommended lighter, responsive movement direction. Top speeds, acceleration/braking numbers, field dimensions, reaction rules, and all human play gates remain open. No runtime values change in this packet.
 
-## Next human choice — F693-02 post-contact read
+## Accepted direction — F693-02 post-contact read
 
-**Recommendation, awaiting Jack:** retain a brief, visibly communicated read of the hit before ordinary pursuit becomes available, then use the accepted quick course corrections and brief acceleration. This is a proposed reference-informed beat, not approval of Harbor's current durations. Do not extend a frozen interval to manufacture doubles or triples; use the compact geometry, pursuit, and ball-path calibration for those opportunities. A future presentation task must make the read understandable rather than leave the selected body apparently ignoring input.
+**Accepted by Jack, September 14, 2026:** retain a brief, visibly communicated read of the hit before ordinary pursuit becomes available, then use the accepted quick course corrections and brief acceleration. This accepts the reference-informed beat, not Harbor's current durations. Do not extend a frozen interval to manufacture doubles or triples; use the compact geometry, pursuit, and ball-path calibration for those opportunities. A future presentation task must make the read understandable rather than leave the selected body apparently ignoring input.
 
-**Alternative:** remove the deliberate read interval for the player's selected fielder, allowing movement from contact subject to existing action/state constraints. This gives earlier physical response and potentially more recovery distance, but changes the reference-style contact handoff and the pursuit budget. Movement before the fielding view appears and automatic pursuit must be reviewed explicitly; tying sim eligibility to whether a camera finished moving is not an acceptable shortcut.
+**Alternative considered, not selected:** remove the deliberate read interval for the player's selected fielder, allowing movement from contact subject to existing action/state constraints. This gives earlier physical response and potentially more recovery distance, but changes the reference-style contact handoff and the pursuit budget. Movement before the fielding view appears and automatic pursuit must be reviewed explicitly; tying sim eligibility to whether a camera finished moving is not an acceptable shortcut.
 
 ### Reference and current-code evidence
 
@@ -74,11 +74,11 @@ The current live initialization caps reaction by hang for hits whose ball shape 
 
 ### Scope of this decision
 
-This asks whether to retain a deliberate post-contact read as part of the intended feel. It does **not** select 0.83 seconds, require the same delay at every position, add a second delay after the view appears, change difficulty, or reopen D7 pitch pacing. Ordinary pursuit consistency describes how a character moves once eligible; it does not by itself eliminate the separately documented eligibility rules. No runtime or camera change is made here.
+Jack accepted retaining a deliberate, brief and visibly communicated post-contact read as part of the intended feel. It does **not** select 0.83 seconds, require the same delay at every position, add a second delay after the view appears, change difficulty, or reopen D7 pitch pacing. Ordinary pursuit consistency describes how a character moves once eligible; it does not by itself eliminate the separately documented eligibility rules. No runtime or camera change is made here.
 
-If accepted, #702 must expose contact, scheduled/actual movement eligibility, accepted directional input, first displacement, and the existing ball/possession/runner events. A presentation follow-up aligns the visible read, view transition, and player indicator to those sim events. Compare grounders, hard liners, short pops, long flies, and early/late fielder switches in both seats. Record what happens to an already-held stick and action presses during the read; do not infer or introduce a new input-buffering policy without documenting the existing behavior. Player-owned throwing stays player-owned.
+With the direction accepted, #702 must expose contact, scheduled/actual movement eligibility, accepted directional input, first displacement, and the existing ball/possession/runner events. A presentation follow-up aligns the visible read, view transition, and player indicator to those sim events. Compare grounders, hard liners, short pops, long flies, and early/late fielder switches in both seats. Record what happens to an already-held stick and action presses during the read; do not infer or introduce a new input-buffering policy without documenting the existing behavior. Player-owned throwing stays player-owned.
 
-Numeric review must consider the remaining playable reaction window and reachable distance, not only the read duration. The human decision and a continuous standalone check remain required before this can be called readable or responsive.
+Numeric review must consider the remaining playable reaction window and reachable distance, not only the read duration. Numerical target acceptance and a continuous standalone check remain required before the implementation can be called readable or responsive.
 
 ## Validation
 

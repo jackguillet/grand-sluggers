@@ -103,6 +103,17 @@
       "direction": "Brief build-up to running speed, quick course corrections, little residual drift when movement intent changes",
       "alternativeConsideredNotSelected": "Heavier momentum with greater acceleration/braking/reversal commitment",
       "basis": "Jack said: i approve of your recommendation."
+    },
+    {
+      "id": "F693-02-post-contact-read",
+      "status": "accepted-design-intent",
+      "scope": "Read-beat intent only; no numerical or per-position schedule, difficulty change, camera-dependent sim gate, D7 change, or new input-buffering policy.",
+      "implementationConstraint": "Do not lengthen a freeze to manufacture extra bases. Calibrate read and remaining reachable distance with ball motion, compact geometry and the separate presentation handoff.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Retain a brief visibly communicated post-contact read before pursuit, followed by accepted responsive movement",
+      "alternativeConsideredNotSelected": "Remove the deliberate selected-fielder read, allowing movement from contact subject to existing action/state constraints",
+      "basis": "Jack answered yes to retaining the brief, visible read beat after the reference and current-code comparison."
     }
   ],
   "responseAudit": {
@@ -159,15 +170,5 @@
     "wiiReadInterval": "unverified",
     "switching": "Eligibility uses the contact clock; selection does not start a new full lockout.",
     "humanDifficulty": "Human-owned glove uses the same eligibility across difficulty, including neutral-stick assistance."
-  },
-  "pendingDecisions": [
-    {
-      "id": "F693-02-post-contact-read",
-      "status": "awaiting-Jack",
-      "recommended": "Retain a brief visibly communicated post-contact read before pursuit, followed by accepted responsive movement",
-      "alternative": "Remove the deliberate selected-fielder read, allowing movement from contact subject to existing action/state constraints",
-      "scope": "Read-beat intent only; no numerical or per-position schedule, difficulty change, camera-dependent sim gate, D7 change, or new input-buffering policy.",
-      "implementationConstraint": "Do not lengthen a freeze to manufacture extra bases. Calibrate read and remaining reachable distance with ball motion, compact geometry and the separate presentation handoff."
-    }
-  ]
+  }
 }
