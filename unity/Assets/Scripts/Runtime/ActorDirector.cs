@@ -499,12 +499,16 @@ namespace GrandSluggers.UnityClient
                 var yours = ids[i] == CurrentPick().Yours;
                 var theirs = ids[i] == CurrentPick().Theirs;
                 var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, yours);
-                hero.SetPose(yours ? Motion.Verb.Cheer : theirs ? Motion.Verb.StealLead : Motion.Verb.Idle);
+                hero.SetPose(pick
+                    ? CarnivalFront.SelectPose(yours, theirs)
+                    : yours ? Motion.Verb.Cheer : theirs ? Motion.Verb.StealLead : Motion.Verb.Idle);
                 hero.SetHighlight(yours);
                 hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
                 hero.SetHeld(false, false);
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f), pinned: true);
+                hero.Place(
+                    new Vector3(spot.X, pick ? CarnivalFront.SelectDirtY : 0f, spot.Z),
+                    new Vector3(0f, 0f, -1f), pinned: true);
                 hero.Tick(Time.deltaTime);
                 if (!pick && !yours)
                     hero.gameObject.SetActive(false);
