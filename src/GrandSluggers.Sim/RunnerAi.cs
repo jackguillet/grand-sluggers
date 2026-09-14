@@ -18,7 +18,9 @@ public sealed record BallSituation(
     /// <summary>The ball's landing / current spot, for "in front of the runner" and the infield-in read.</summary>
     double BallX,
     double BallZ,
-    double CarryFt);
+    double CarryFt,
+    /// <summary>The batted ball is a bunt (§7.3): the runner from third holds at contact unless the offense sent them.</summary>
+    bool Bunt = false);
 
 /// <summary>Everything the CPU runner reads at a decision event (§9.9).</summary>
 public sealed record RunnerAiContext(
@@ -113,11 +115,22 @@ public static class RunnerAi
         }
         if (runner.IsBatter && runner.Bag == 0) return; // first is the batter's bag whatever happens
 
-        // In a rundown the CPU runner runs away from the ball: it reverses on every throw (§9.7).
+        // In a rundown the CPU runner runs away from the ball (§9.7): a throw to the bag ahead turns them back,
+        // a throw to the bag behind sends them on — when the other bag is reachable ahead of the ball's next leg
+        // (the §9.9 margin from where the throw lands). A body the ball beats both ways keeps going and takes the
+        // tag at the bag rather than running into the glove that has it.
         if (runner.InRundown && ball.Throwing && ball.ThrowBag is >= 1 and <= 4)
         {
-            if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag) runner.Return();
-            else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag) runner.Send(next);
+            if (runner.DestBag > runner.Bag && ball.ThrowBag == runner.DestBag)
+            {
+                var backSec = runner.Feet / RunnerSystem.SpeedFtPerSec(runner.Who, ctx.Dash01, r);
+                if (ThrowArrivalSec(ball, runner.Bag, ctx.Elapsed, r) - backSec > slack) runner.Return();
+            }
+            else if (runner.DestBag <= runner.Bag && ball.ThrowBag == runner.Bag && next > runner.Bag
+                     && Margin(runner, next, ctx, r) > slack)
+            {
+                runner.Send(next);
+            }
             return;
         }
 
@@ -147,6 +160,8 @@ public static class RunnerAi
             // A grounder in the infield.
             if (runner.Bag == 3)
             {
+                // A bunt is not the squeeze (§7.3): the runner from third holds until a glove has it; the send is the human's stick.
+                if (ball.Bunt && !ball.Held && !ball.Throwing) return;
                 // The infield-back read is the contact read (where the fielder will field it); once the ball is in a glove the margin decides.
                 var infieldBack = !ball.Held && !ball.Throwing
                                   && Diamond.Dist(ball.GloveX, ball.GloveZ, Diamond.Home.X, Diamond.Home.Z) >= cpu.InfieldBackFt;

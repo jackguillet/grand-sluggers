@@ -3,6 +3,15 @@
 
 Unity Generic, axis_forward -Z, axis_up Y.
 Names: dugout-1b, dugout-3b, wall-panel, fan-stand, fan-sit, home-plate, bag.
+
+Stages (docs/agent-rails.md §6, data/agent/dcc-stages.json). One-shotting a kit
+mesh is a patch. The next prompt names the stage it continues.
+  1 blocking  diamond / wall ring volumes   --clay scratchpad/takes
+  2 fill      kit slots                     --clay
+  3 motion    — (Harbor has no takes)
+  4 export    FBX into the catalog slot     --out
+  5 still     tools/dcc-still.sh harbor + tools/still-gate.sh
+Existing flags --out and --clay still run. This script does not retarget a rig.
 """
 from __future__ import annotations
 
@@ -50,6 +59,7 @@ PATH_CORNER = 14.0
 PATH_Y = 0.26
 PATH_THICK = 0.24
 HOME_PACKED_R = 16.0
+KIT_CLAY = ("home-plate", "bag", "mound", "fan-stand")
 MOUND_R = 9.2
 MOUND_H = 0.98
 MOUND_TABLE_R = 2.2
@@ -609,6 +619,28 @@ def build():
     build_infield_dirt(dirt)
 
 
+def clay_check(folder: Path):
+    """Named DCC still of origin-centered kit pieces (docs/agent-rails.md §4)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import clay
+    folder = folder.resolve()
+    folder.mkdir(parents=True, exist_ok=True)
+    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
+    missing = [name for name in KIT_CLAY if name not in bpy.data.objects]
+    if missing:
+        raise SystemExit("harbor clay: missing " + ",".join(missing))
+    tiles = []
+    for name in KIT_CLAY:
+        for o in meshes:
+            o.hide_render = o.name != name
+        tiles.append(clay.render(folder / f"kit-{name}.png", "three-quarter", 360, 480))
+    for o in meshes:
+        o.hide_render = False
+    out = clay.sheet(tiles, folder / "harbor-kit.png", columns=4)
+    print("clay", out)
+    return out
+
+
 def export_fbx(out: Path):
     out.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.object.select_all(action="SELECT")
@@ -632,8 +664,11 @@ def export_fbx(out: Path):
 def main(argv):
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
+    p.add_argument("--clay", default="", help="Folder for the named DCC kit still.")
     args = p.parse_args(argv)
     build()
+    if args.clay:
+        clay_check(Path(args.clay))
     export_fbx(Path(args.out).resolve())
 
 

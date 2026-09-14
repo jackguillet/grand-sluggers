@@ -58,6 +58,9 @@ public class BookSchemeTests : IDisposable
         Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("Space"));
         Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("WASD"));
         Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("left click", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "H" && c.Always == "Call time");
+        Assert.Contains(ControlDiagram.KeysCallouts, c => c.Hardware == "Esc" && c.Always.Contains("book", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(ControlDiagram.KeysCallouts, c => c.Hardware.Contains("H") && c.Hardware.Contains("Esc"));
         foreach (var c in ControlDiagram.PadCallouts.Concat(ControlDiagram.KeysCallouts))
         {
             Assert.False(ControlDiagram.MixesSchemes(c), c.Id);

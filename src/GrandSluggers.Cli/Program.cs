@@ -12,7 +12,7 @@ switch (cmd)
         SimAtBat(content, args.ElementAtOrDefault(1) ?? "ember", Seed(args));
         break;
     case "match":
-        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args));
+        RunMatch(content, Seed(args), ParkId(args), HomeId(args), AwayId(args), Difficulty(args), TraceArg(args));
         break;
     case "challenge":
         RunChallenge(content, CaptainId(args), Seed(args));
@@ -30,6 +30,15 @@ switch (cmd)
     case "art":
         PrintArt(content);
         break;
+    case "protocol":
+        PrintProtocol(content);
+        break;
+    case "stills":
+        PrintStills(content);
+        break;
+    case "stages":
+        PrintStages(content);
+        break;
     default:
         Console.WriteLine("""
             Grand Sluggers sim
@@ -37,9 +46,12 @@ switch (cmd)
               team [spark-allstars|ember-court|mixed-rivals|rio|vale|zig|brondo|konga|ashlord]
               chem <character-id>
               at-bat [ember|spark] [--seed N]
-              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard]
+              match [--home rio] [--away ashlord] [--park harbor-diamond] [--seed N] [--difficulty easy|normal|hard] [--trace [file]]
               challenge [--captain rio] [--seed N]
               art
+              protocol
+              stills
+              stages
             """);
         break;
 }
@@ -84,6 +96,18 @@ static string AwayId(string[] args)
     return "ashlord";
 }
 
+static string? TraceArg(string[] args)
+{
+    for (var i = 0; i < args.Length; i++)
+    {
+        if (args[i] != "--trace") continue;
+        if (i + 1 < args.Length && !args[i + 1].StartsWith('-'))
+            return args[i + 1];
+        return "-";
+    }
+    return null;
+}
+
 static string CaptainId(string[] args)
 {
     for (var i = 0; i < args.Length - 1; i++)
@@ -102,15 +126,80 @@ static void PrintArt(ContentCatalog content)
     Console.WriteLine($"AUDIO  {art.Audio.Count} events ({art.Audio.Count(e => e.Authored)} authored)");
     Console.WriteLine($"PARKS  {art.Parks.Count} kit slots ({art.Parks.Count(p => p.Placed)} placed)");
     Console.WriteLine($"FOLDERS {art.Folders.Count}");
-    var errors = art.Validate(content);
+    var errors = art.Validate(content)
+        .Concat(DebugProtocol.Validate(content.Root))
+        .Concat(DualStills.Validate(content.Root))
+        .Concat(DccStages.Validate(content.Root))
+        .ToList();
     if (errors.Count == 0)
-        Console.WriteLine("OK     catalog matches roster, clips, parks");
+        Console.WriteLine("OK     catalog matches roster, clips, parks, debug protocol, dual stills, dcc stages");
     else
     {
         Console.WriteLine("FAIL   " + errors.Count + " errors");
         foreach (var e in errors) Console.WriteLine("  - " + e);
         Environment.ExitCode = 1;
     }
+}
+
+static void PrintProtocol(ContentCatalog content)
+{
+    var protocol = DebugProtocol.Load(content.Root, new List<string>());
+    Console.WriteLine($"PROTOCOL {protocol.Entries.Count} entries");
+    foreach (var row in protocol.Entries)
+    {
+        var promoted = string.IsNullOrWhiteSpace(row.Promoted) ? "-" : row.Promoted;
+        Console.WriteLine($"  {row.Id,-32} {row.Stage,-14} {row.Issue,-8} {promoted}");
+    }
+    var errors = DebugProtocol.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     debug protocol matches spec §2");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+}
+
+static void PrintStills(ContentCatalog content)
+{
+    var catalog = DualStills.Load(content.Root, new List<string>());
+    Console.WriteLine($"STILLS drop {catalog.Drop}  kinds {catalog.Kinds.Count}");
+    foreach (var kind in catalog.Kinds)
+        Console.WriteLine($"  {kind.Id,-12} dcc {kind.Dcc,-22} in-game {string.Join(" ", kind.InGame)}");
+    Console.WriteLine($"  critic {catalog.Critic.Skill}  mayPassLook {catalog.Critic.MayPassLook}  mayClose188 {catalog.Critic.MayClose188}");
+    var errors = DualStills.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     dual stills match spec §4; critic files, does not pass");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+}
+
+static void PrintStages(ContentCatalog content)
+{
+    var catalog = DccStages.Load(content.Root, new List<string>());
+    Console.WriteLine($"STAGES {catalog.Stages.Count}  one-shot {catalog.OneShot}");
+    foreach (var stage in catalog.Stages)
+    {
+        Console.WriteLine($"  {stage.N} {stage.Id,-10} {stage.Kind,-6} character {Lane(stage.Character)}");
+        Console.WriteLine($"                     harbor    {Lane(stage.Harbor)}");
+    }
+    var errors = DccStages.Validate(content.Root);
+    if (errors.Count == 0)
+        Console.WriteLine("OK     dcc stages match spec §6; one-shot banned");
+    else
+    {
+        Console.WriteLine("FAIL   " + errors.Count + " errors");
+        foreach (var e in errors) Console.WriteLine("  - " + e);
+        Environment.ExitCode = 1;
+    }
+
+    static string Lane(DccStageLane lane) =>
+        lane.Skip ? "—" : $"{lane.Checkpoint}  {lane.Flag}";
 }
 
 static void PrintTeam(ContentCatalog content, string id)
@@ -148,22 +237,36 @@ static void DumpChem(ContentCatalog content, string id)
     }
 }
 
-static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty)
+static void RunMatch(ContentCatalog content, int seed, string parkId, string home, string away, string? difficulty, string? trace)
 {
     var match = string.IsNullOrEmpty(parkId)
         ? Match.Exhibition(content, home, away, innings: 3, seed: seed, difficulty: difficulty)
         : Match.Exhibition(content, home, away, innings: 3, seed: seed, parkId: parkId, difficulty: difficulty);
-    Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
-    Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
-    while (!match.Over)
+    if (trace is not null) match.Tracing = true;
+    var log = Console.Out;
+    if (trace == "-") Console.SetOut(Console.Error);
+    try
     {
-        var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
-        var ev = match.AutoPlay();
-        Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+        Console.WriteLine($"{match.Away.Name} at {match.Home.Name}  {match.Park.Name}  seed {seed}  {match.Difficulty}");
+        Console.WriteLine($"stars  away {match.AwayStars:0.#}  home {match.HomeStars:0.#}");
+        while (!match.Over)
+        {
+            var half = $"{(match.Top ? "T" : "B")}{match.Inning}";
+            var ev = match.AutoPlay();
+            Console.WriteLine($"{half,-3} {match.AwayScore}-{match.HomeScore}  {ev.Kind,-11}  {ev.Caption}");
+        }
+        var mvp = match.Mvp();
+        Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
+        Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
     }
-    var mvp = match.Mvp();
-    Console.WriteLine($"Final  {match.Away.Name} {match.AwayScore}  {match.Home.Name} {match.HomeScore}");
-    Console.WriteLine($"MVP  {mvp.Who.Name} ({mvp.Points}) — {mvp.Why}");
+    finally
+    {
+        if (trace == "-") Console.SetOut(log);
+    }
+    if (trace is null) return;
+    var json = match.TraceLog().ToJson();
+    if (trace == "-") log.WriteLine(json);
+    else File.WriteAllText(trace, json);
 }
 
 static void RunChallenge(ContentCatalog content, string captainId, int seed)

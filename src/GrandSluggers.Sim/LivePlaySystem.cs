@@ -232,8 +232,31 @@ public sealed partial class LivePlaySystem
     readonly Dictionary<Runner, (double X, double Z)> _prevPos = new();
     (double X, double Z) _prevGlove;
     double _prevAt = -1;
+    PlayTraceRecorder? _trace;
 
     internal LivePlaySystem(Match match) => _match = match;
+
+    /// <summary>
+    /// Opt-in geometry dump. Off by default so S-29 and the scenario harness allocate nothing extra.
+    /// The recorder never feeds a <see cref="PlayEvent"/>; it only copies positions after the tick.
+    /// </summary>
+    public bool Recording
+    {
+        get => _trace is not null;
+        set
+        {
+            if (value) _trace ??= new PlayTraceRecorder();
+            else _trace = null;
+        }
+    }
+
+    public PlayTrace TakeTrace(PlayEvent? completed = null)
+    {
+        if (completed is not null) _trace?.Complete(completed);
+        var frozen = (_trace?.Freeze() ?? PlayTrace.Empty);
+        if (_trace is not null) _trace = new PlayTraceRecorder();
+        return frozen;
+    }
 
     public bool Active { get; private set; }
     public bool Paused { get; private set; }
@@ -288,7 +311,7 @@ public sealed partial class LivePlaySystem
 
     public LivePlayCommandResult Apply(LivePlayCommand command)
     {
-        return command.Kind switch
+        var result = command.Kind switch
         {
             LivePlayCommandKind.Begin => Begin(command),
             LivePlayCommandKind.Advance => Advance(command),
@@ -307,6 +330,24 @@ public sealed partial class LivePlaySystem
             LivePlayCommandKind.SmashItem => SmashItem(),
             _ => new LivePlayCommandResult(Snapshot)
         };
+        Observe(command, result);
+        return result;
+    }
+
+    void Observe(LivePlayCommand command, LivePlayCommandResult result)
+    {
+        if (_trace is null) return;
+        if (command.Kind is LivePlayCommandKind.BeginLive or LivePlayCommandKind.BeginSteal
+            or LivePlayCommandKind.BeginPickoff)
+        {
+            _trace.Clear();
+            if (Active) _trace.Record(this);
+            return;
+        }
+        if (command.Kind == LivePlayCommandKind.Tick && command.DeltaSeconds > 0 && Active)
+            _trace.Record(this, result.CompletedPlay);
+        if (result.CompletedPlay is not null)
+            _trace.Complete(result.CompletedPlay);
     }
 
     LivePlayCommandResult Begin(LivePlayCommand command)
@@ -665,6 +706,10 @@ public sealed partial class LivePlaySystem
 
     internal void Reset()
     {
+        // Last live frame: FinishInPlay / FinishRunnerPlay reset after Time, so the completing
+        // tick would otherwise dump an empty field. Observation only; baseball already decided.
+        if (_trace is not null && Active)
+            _trace.Record(this);
         ResetField();
         Active = false;
         Paused = false;

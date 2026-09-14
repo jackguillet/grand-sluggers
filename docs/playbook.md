@@ -1,6 +1,6 @@
 # Playbook — how a phase runs
 
-How Phase P (plays like Sluggers) went from "it works but it is raw" to code-complete in one day, 2026-09-12, so the next phase runs the same way instead of rediscovering it. Companion to [AGENTS.md](../AGENTS.md) (the standing order) and [roadmap.md](roadmap.md) (the sequence). Checkpoint tag: `checkpoint-phase-p` on `main`.
+How Phase P (plays like Sluggers) went from "it works but it is raw" to code-complete in one day, 2026-09-12, so the next phase runs the same way instead of rediscovering it. Companion to [AGENTS.md](../AGENTS.md) (the standing order), [roadmap.md](roadmap.md) (the sequence), and [agent-rails.md](agent-rails.md) (how agents inherit this playbook). Checkpoint tag: `checkpoint-phase-p` on `main`.
 
 ## The shape
 
@@ -59,8 +59,13 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 ## 5. Sittings are the exit; findings are children
 
 - Agents do not pass human gates. Each PR body ends with "what a sitting should check". The phase ends with a consolidated checklist on the parent epic (#209) that says what each block closes.
-- A sitting note becomes **one issue per finding** with observed / likely cause (from the code map) / observable when fixed / files / tests, filed under the epic that owns the lie. Ten such children were filed from one sitting and routed to P1, P2, P4, P8, and the rig epic; three were closed by the epics without a dedicated PR.
+- A sitting note or a failed still becomes **one issue per finding** with observed / likely cause (from the code map) / observable when fixed / files / tests, filed under the epic that owns the lie. Ten such children were filed from one sitting and routed to P1, P2, P4, P8, and the rig epic; three were closed by the epics without a dedicated PR.
 - "Do not silently patch" held: every sitting finding has an issue number and a PR number.
+- File *and* remember (R7 #654). After a sitting or a failed still:
+  1. **File** the child issue under the epic that owns the lie (#342 book, #209 play, #188 toy).
+  2. **Append** a row to `data/agent/debug-protocol.json` in the same PR as the fix, or in the sitting-child PR. GitHub children stay; they are not the memory (`cli protocol`).
+  3. **Promote on the second firing** to a validator or a scenario (`BagIsInsideTheFoulLine` shape). Do not wait for a third. The protocol `promoted` field names the test that would catch the *next* captain or play, not only the screenshot that found it.
+  4. If the lesson is procedural (how to look, how to bake), add it to `.grok/skills/character-art/` or [agent-rails.md](agent-rails.md), not only the PR body. character-art grew from `swing-*-max-load` (#623 / `bat-through-head`).
 
 ## What it produced (2026-09-12)
 
@@ -79,7 +84,8 @@ The spec outranks the code. If a session needs a rule the spec lacks, it adds th
 - Status tags, gap audit with lines, scenario ids, numbered decisions.
 - Epics own sections; prompts are self-contained; one worktree per session.
 - Verify `main`, rebuild the window, name the revision.
-- File findings; never patch from a sitting note.
+- File findings; never patch from a sitting note. Append the signature to `data/agent/debug-protocol.json` in the same PR as the fix; promote on the second firing; grow the skill from a failed still (R7 #654).
+- Declare the session kind (gameplay / presentation / art) and stay in its file list ([agent-rails.md](agent-rails.md) §1).
 
 ## What to do better
 

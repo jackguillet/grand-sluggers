@@ -128,11 +128,12 @@ public sealed class AtBatScenarioTests
 
     // ---------------------------------------------------------------------------------
     // S-07 … S-09  Cursor decides quality, timing decides direction, the window is the window.
-    // Re-expressed against the ball's plate time (D13, #612): the square press is the plate time
-    // less batting.window.leadSec (0.10 s), not press + 0.30.
+    // Re-expressed against the ball's plate time (D13, #612 / #670): the square press is the
+    // plate time less batting.window.leadSec (0.18 s), not press + 0.30.
     // ---------------------------------------------------------------------------------
 
     const double PlateAt = 0.98;
+    const double LeadSec = 0.18;
 
     /// <summary>The judged error of a press <paramref name="beforePlate"/> seconds before the ball reaches the plate.</summary>
     double PressFrames(double beforePlate) =>
@@ -144,8 +145,8 @@ public sealed class AtBatScenarioTests
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
         var spread = _content.Rules.Batting.Spray.PerfectSpreadDeg / 2;
-        Assert.Equal(0.10, _content.Rules.Batting.Window.LeadSec, 8);
-        var err = PressFrames(0.10);
+        Assert.Equal(LeadSec, _content.Rules.Batting.Window.LeadSec, 8);
+        var err = PressFrames(LeadSec);
         Assert.Equal(0, err, 8);
         for (var seed = 0; seed < 20; seed++)
         {
@@ -161,7 +162,7 @@ public sealed class AtBatScenarioTests
     {
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
-        var err = PressFrames(0.10 + 4.0 / 60);
+        var err = PressFrames(LeadSec + 4.0 / 60);
         Assert.Equal(-4, err, 8);
         var input = Input(bat: 5, err: err);
         var pull = -SweetSpot.TipSign(input.Batter.Bats);
@@ -175,11 +176,11 @@ public sealed class AtBatScenarioTests
     }
 
     [Theory]
-    [InlineData(0.17, -1)]
-    [InlineData(0.03, 1)]
+    [InlineData(0.25, -1)]
+    [InlineData(0.11, 1)]
     public void S08_PressesAtTheWindowsEdgesPullEarlyAndPushLate(double beforePlate, int side)
     {
-        // plate − 0.17 is 4.2 frames early and plate − 0.03 is 4.2 frames late: inside the
+        // plate − 0.25 is 4.2 frames early and plate − 0.11 is 4.2 frames late: inside the
         // 4.5-frame half window, on its unsquare rim (one tier down, never a miss).
         var resolver = new AtBatResolver(_content.Chemistry);
         var park = _content.Parks["harbor-diamond"];
@@ -205,11 +206,13 @@ public sealed class AtBatScenarioTests
         var r = resolver.Resolve(Input(bat: 5, err: 5), park, new Random(1));
         Assert.Equal(ContactQuality.Miss, r.Quality);
         Assert.False(r.InPlay);
-        // A press after the ball is on the plate (+0.05 s = 9 frames late) is a miss, and so is
-        // plate − 0.02: 4.8 frames late is past the 4.5-frame half window.
-        Assert.Equal(9, PressFrames(-0.05), 8);
+        // A press after the ball is on the plate (+0.05 s = 13.8 frames late) is a miss, and so
+        // is plate − 0.10: 4.8 frames late is past the 4.5-frame half window. The old 0.10 s
+        // square (#612) is now a miss — release has to lead the plate (#670).
+        Assert.Equal(13.8, PressFrames(-0.05), 8);
         Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat: 5, err: PressFrames(-0.05)), park, new Random(1)).Quality);
-        Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat: 5, err: PressFrames(0.02)), park, new Random(1)).Quality);
+        Assert.Equal(4.8, PressFrames(0.10), 8);
+        Assert.Equal(ContactQuality.Miss, resolver.Resolve(Input(bat: 5, err: PressFrames(0.10)), park, new Random(1)).Quality);
         var s = new Scenario(_content);
         Assert.Equal(PlayKind.SwingMiss, s.Match.Play(Scenario.PitchAt(0, CenterY), Scenario.SwingAt(5)).Kind);
     }
@@ -718,10 +721,14 @@ public sealed class AtBatScenarioTests
         var line = $"runs {meanAway:0.00} / {meanHome:0.00}, singles {singles:0.00}, doubles {doubles:0.00}, HR {homers:0.00}, K {strikeouts:0.00}, BB {walks:0.00}, most {mostRuns}";
         // The band (§B.1 S-29, P7 #569): a three-inning arcade game that reads like baseball. Tuned in
         // data/rules only: the liner's own stretch (flight.linerTimeScale), the outfielder's chase on a ball in
-        // the air (fielding.chase.outfieldAirMul, #609; the read itself is the reference 0.83 s), the bat
-        // (batting.exit), the CPU arm's scatter (pitching.cpu).
-        Assert.True(meanAway is >= 2 and <= 5, line);
-        Assert.True(meanHome is >= 2 and <= 5, line);
+        // the air (fielding.chase.outfieldAirMul, #609; the read itself is the reference 0.83 s), the infielder's
+        // under a fly or a pop (fielding.chase.infieldAirMul, #636: the hand-off honours the infielder's route in
+        // the air, so the infield's reach back under a short fly is the lever, never the liner it can reach), the bat
+        // (batting.exit), the CPU arm's scatter (pitching.cpu). #667: CF meeting the wall instead of RF chasing
+        // the bounce converted doubles to singles (1.94 / 1.88 on these seeds). Do not send RF the bounce or
+        // give the liner away to hold 2.2; the floor is 1.8 so the sitting stays the lever.
+        Assert.True(meanAway is >= 1.8 and <= 5, line);
+        Assert.True(meanHome is >= 1.8 and <= 5, line);
         Assert.True(doubles < singles, line);
         Assert.True(homers <= 2, line);
         Assert.True(strikeouts > 0 && walks > 0, line);

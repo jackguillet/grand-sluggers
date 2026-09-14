@@ -48,6 +48,7 @@ namespace GrandSluggers.UnityClient
             _match?.LivePlay.Apply(LivePlayCommand.Reset());
             _swung = false;
             _bunt = false;
+            _squareSec = 0f;
             _swing = null;
             _pitch = null;
             _last = null;
@@ -149,6 +150,8 @@ namespace GrandSluggers.UnityClient
             // The CPU seats' SET verbs (spec §4.7, §11.6): a tired arm swaps; the runner AI's steal table runs once per at-bat.
             if (!HumanPitches && _t < dt) _match.CpuConsidersSwap();
             if (!HumanBats && _t < dt) _match.CpuArmSteal();
+            // The CPU batter's square is read at SET (§5.9, §7.3) so a human pitcher sees it before the pitch.
+            if (!HumanBats && _t < dt) _match.CpuSquaresBunt();
             if (HumanPitches && mound.NorthDown && _match.CanStarPitch) _starPitch = !_starPitch;
             if (HumanBats && box.NorthDown && _match.CanStarSwing) _starSwing = !_starSwing;
             TickBaserunning(dt);
@@ -159,6 +162,8 @@ namespace GrandSluggers.UnityClient
                 if (box.StickY < -0.7f) _match.ResetBatter();
                 else _match.WalkBatter(box.StickX * dt * 1.6f);
             }
+            // The square is a clock (§7.3): the defense crashes for as long as it has been held; released, it winds back.
+            TickSquare(dt, HumanBats ? box.WestHeld : _match.CpuSquared);
             if (HumanPitches)
             {
                 if (_swapPick != null) { }
@@ -384,6 +389,8 @@ namespace GrandSluggers.UnityClient
                         swingButton, box.StickX, box.StickY,
                         _bunt || box.WestHeld, _match.BatterOffsetX));
             }
+            // West through the pitch keeps the square (§5.8); the CPU's square holds from SET.
+            TickSquare(dt, HumanBats ? _bunt || (!_swung && BatPad.WestHeld) : _match.CpuSquared);
             if (!_pitchAir)
             {
                 HoldPitchInHand();
@@ -411,9 +418,9 @@ namespace GrandSluggers.UnityClient
             TickBaserunning(dt);
             // The CPU batter commits at the decision instant from the trajectory as it stands (spec §3, §5.9).
             if (!HumanBats && _swing == null && _flight >= AtBatMotion.CpuDecisionTime(_pitchDur, _match.Rules))
-                _swing = AtBatMotion.CommitCpuSwing(
+                _swing = WithSquare(AtBatMotion.CommitCpuSwing(
                     _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)),
-                    _pitchDur, _match.Rules);
+                    _pitchDur, _match.Rules));
             if (!HumanBats && _swing != null && _swing.Swing && !_swung
                 && _flight >= AtBatMotion.SwingStart(_pitchDur, _swing.TimingErrorFrames, _swing.Bunt, _match.Rules))
             {
@@ -421,11 +428,20 @@ namespace GrandSluggers.UnityClient
                 _swingContactSec = SwingContactSec(_swing);
             }
             if (u < 1) return;
-            _swing ??= HumanBats
+            _swing ??= WithSquare(HumanBats
                 ? new SwingCommand(false, _charge, 12, false)
-                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch));
+                : _match.CpuSwing(_pitch, AtBatResolver.PitchInZone(_pitch, _match.Pitcher.Stats.Pitch, _match.Pitcher.StarPitch)));
             Resolve();
         }
+
+        /// <summary>
+        /// The square clock (§7.3): held, it counts up and the corners crash; released, it counts back down so the
+        /// bodies walk back along the same line instead of snapping to their spots (BuntDefense.Spots is a function of it).
+        /// </summary>
+        void TickSquare(float dt, bool squared) => _squareSec = squared ? _squareSec + dt : Mathf.Max(0f, _squareSec - dt);
+
+        /// <summary>The swing carries how long the batter had been squared (§7.3): this client's clock, for either seat.</summary>
+        SwingCommand WithSquare(SwingCommand swing) => swing.SquareSec == _squareSec ? swing : swing with { SquareSec = _squareSec };
 
         void CommitSwing(SwingInputIntent intent)
         {
@@ -436,8 +452,8 @@ namespace GrandSluggers.UnityClient
             var nice = ChargeFeel.NiceCopy(false, intent.Fill01,
                 intent.SecondsPastFull, _feel.ChargeMaxHoldSeconds);
             if (!string.IsNullOrEmpty(nice)) _banner = nice;
-            _swing = intent.Resolve(
-                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing, _match.Rules);
+            _swing = WithSquare(intent.Resolve(
+                _flight, _pitchDur, effective, _starSwing && _match.CanStarSwing, _match.Rules));
             _swingContactSec = SwingContactSec(_swing);
         }
 
@@ -478,7 +494,7 @@ namespace GrandSluggers.UnityClient
             NoteTrainingPitch();
             if (HumanBats) _coach?.OnSwing(_swing, hit);
             _pending = hit;
-            _preview = _match.PreviewHit(hit);
+            _preview = _match.PreviewHit(hit, _swing);
             _cpuField = null;
             var playerStarts = FieldAssist.PlayerStartsOnGlove(PlayerMustField);
             _itemThrown = false;

@@ -28,14 +28,22 @@ Bonus stills that save a later sitting (same rules):
 | Lineup | `lineup` | Team Setup: home bar on top, away bar on the bottom, head grid in the center. Hearts / scribbles vs the captain. No AVAILABLE list, no white rays. |
 | Captain card | `select` | Home captain face/body. HUD card (P/B/F/R). Dirt is the floor, not the picture. No second world-space name sign. |
 | Throw | `diamond` | 45° on the dirt under the ball. CF at the top, home under second. No behind-the-thrower cut. |
+| Liner | `diamond-line` | Same 45°, between hopper and fly. Rope in the air, not a bounce on the dirt. CF at the top |
 | Fly | `diamond-fly` | Same 45°, pulled back, more FOV. CF at the top. Fielder reads, ball is a baseball |
 | Homer | `diamond-fly` | Same pulled-back 45°. The ball flies toward CF at the top of the frame |
 
-## Character stills (look gate)
+## Dual stills (look gate)
 
-Any change under `Art/Characters/`, `Art/Animation/Clips/`, or `tools/blender/` needs these two stills **before** a player rebuild. HUD off. Named captain. Agents file the PNGs and **stop**. Humans pass or fail.
+Any change under `Art/Characters/`, `Art/Animation/Clips/`, `tools/blender/`, or Harbor kit meshes needs **both** PNGs in `scratchpad/stills/` and linked in the PR **before** a player rebuild. HUD off. Named captain. Catalog: `data/agent/dual-stills.json`.
 
-Capture: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Capture Character Stills**). PNGs land in `unity/Temp/gs-stills/`. Copy into `scratchpad/stills/` for the PR. Do not rebuild the Mac player as proof.
+1. **DCC still** — `tools/dcc-still.sh body|extras|takes [clip]|harbor`. Named files: `dcc-body.png`, `dcc-extras.png`, `dcc-{clip}.png`, `dcc-harbor-kit.png`. Catches "cap doesn't cover the hair" before import.
+2. **In-game still** — `tools/still-gate-character.sh {id}` (Harbor kit: `tools/still-gate.sh`). Named files: `char-{id}-rest.png`, `char-{id}-pose.png` (park shots from still-gate). Catches brim-in-lens, HUD-on, wrong shot.
+
+A read-only **look-critic** (`.grok/skills/look-critic/`) compares the PNGs to this table and `docs/silhouette-bible.md`. It files a child or a PR comment. It cannot mark #188 done. It cannot edit this rubric. Agents file both PNGs, spawn the critic, and **stop**. Humans pass or fail.
+
+`dotnet test`, `cli art`, `unity-compile.sh`, the DCC bake, and a rebuilt `.app` are not a still. There is no CI image-diff. Do not rebuild the Mac player as proof.
+
+Capture in-game: `tools/still-gate-character.sh rio` (or menu **Grand Sluggers → Capture Character Stills**). The script copies into `scratchpad/stills/` when the PNGs exist.
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
@@ -50,13 +58,17 @@ Capture with **Grand Sluggers → Capture Request File** and `{"shots":["swing-m
 
 | Still | Must show | Fail if |
 | --- | --- | --- |
-| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat standing up beside the head, knees bent. Charge at MAX: hands higher, the bat taller, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, **the bat through the head (#623)**, a standing statue, the charge load identical to the slap |
+| **Load** (`swing-{id}-normal-ready`, `swing-{id}-max-load`) | Slap: hands by the back shoulder, bat standing up beside the head, knees bent. Charge at MAX: hands higher, the bat taller, the lead knee up — a windup you can see from the plate camera. | Bat in front of the face, **the bat through the head (#623)**, **the bat hidden behind the head at ready (#560)**, a standing statue, the charge load identical to the slap |
 | **Contact** (`swing-{id}-normal-contact`, `swing-{id}-max-contact`) | Both hands on the handle, barrel through the plate, hips turned toward the pitcher, back knee driving. | Bat behind the head, a hand off the handle, a stiff upright body |
 | **Finish** (`swing-{id}-normal-finish`, `swing-{id}-max-finish`) | Weight on the front foot, the bat around over the lead shoulder; the charge finish wraps further than the slap. | Snapping back to ready, the bat hidden inside the body, both finishes the same |
 
 Name files:
 
 ```
+dcc-body.png
+dcc-extras.png
+dcc-{clip}.png
+dcc-harbor-kit.png
 char-{id}-rest.png
 char-{id}-pose.png
 swing-{id}-{normal|max}-{ready|load|contact|follow|finish}.png

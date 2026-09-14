@@ -1,0 +1,147 @@
+{
+  // Recurring signatures promote to a test on the second firing (BagIsInsideTheFoulLine shape).
+  // Playbook §5: file the GitHub child, append a row, promote on the second firing (R7 #654).
+  // GitHub sitting children stay; they are not the memory.
+  "entries": [
+    {
+      "id": "brim-in-plate-lens",
+      "signature": "hat/brim as the picture; SelectCamIsTheToy y=4.4 at z=4 is Ashlord's brim; camera looks at the brim, not the chest",
+      "stage": "still-gate",
+      "cause": "CarnivalFront.cs:67 SelectLookY; :104 SelectCamIsTheToy — a look at Y=4.4 / Z=4 is Ashlord's brim. Gameplay cameras that aim at the hat are a framing bug, not a scale bug.",
+      "fix": "Look at the chest (SelectLookY = 2.6). SelectCamIsTheToy rejects brim and berm. Tune the shot; do not shrink the hat to save a camera.",
+      "promoted": "CarnivalFrontTests.SelectLookIsTheChestNotTheBrim",
+      "issue": "#352",
+      "pr": "#353"
+    },
+    {
+      "id": "boxes-kiss-plate",
+      "signature": "boxes kissing the plate; boxes 1.4 ft from the plate when the spec is 6 in; screenshot-gate batting SET fail",
+      "stage": "still-gate",
+      "cause": "HomeSet.cs:35 BoxGap; :98 BoxesClearThePlate — an invented or Minkowski gap instead of OBR Diagram 2's 6 inches.",
+      "fix": "BoxGap is 6 inches; BoxesClearThePlate encodes that gap. Cartoon fat is allowed; wrong topology is not.",
+      "promoted": "HomeSetTests.OfficialHomeLayout",
+      "issue": "#470",
+      "pr": "#471"
+    },
+    {
+      "id": "nice-hit-on-whiff",
+      "signature": "Nice Hit! on a swing that did not make contact; MAX release stamps a hit word",
+      "stage": "sitting",
+      "cause": "PlayStamp.cs:110-120 — the tell fired on the charge release at MAX, before the bat reached the ball. Spec §5.1–§5.3: MAX is a charge tell; PERFECT / NICE / SOUR are contact tells.",
+      "fix": "ContactTell reads only the typed contact zone. A miss shows STRIKE through the stamp; the release tell (MAX) never claims a hit.",
+      "promoted": "PlayStampTests.ContactWordsComeOnlyFromTheTypedZoneNeverTheRelease",
+      "issue": "#578",
+      "pr": "#600"
+    },
+    {
+      "id": "cpu-defense-waits-for-batter",
+      "signature": "CPU fielder scoops and waits for the batting human to throw; FieldPad falls back to pad 1 whenever the match is not 1v1",
+      "stage": "sitting",
+      "cause": "LivePlaySystem.Field.cs:35-42 — PlayerFields was true whenever you pitched, so the batting human's stick owned the glove (spec §0.4).",
+      "fix": "LiveSeats.For(seats, top): seat ownership is (half, side, pads). The batting human never owns a glove. A press from any other controller is dead.",
+      "promoted": "SeatOwnershipTests.S93_CpuDefenseThrowsOutTheBatterWithoutTheBattingHumansPad",
+      "issue": "#579",
+      "pr": "#585"
+    },
+    {
+      "id": "bat-through-head",
+      "signature": "swing-*-max-load barrel through the head; charge windup bat inside the skull; still-gate load fail",
+      "stage": "dcc",
+      "cause": "SwingPresentation.cs:60-74 HeadClearance; data/art/swing-takes.json charge windup key — barrel direction nearly straight up ran through the head. The DCC validator checked hands on the handle, not bat versus skull.",
+      "fix": "BatHeadClearance contract. The DCC bake refuses a take that misses it; sim samples both takes and the whole charge-up. Do not pose the bat in C#.",
+      "promoted": "SwingPresentationTests.TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp",
+      "issue": "#623",
+      "pr": "#624"
+    },
+    {
+      "id": "tall-captain-turntable-crop",
+      "signature": "char-ashlord-rest.png cuts Ashlord's head off; Rio and Fenn frame fine; StillPose.CharCamY/CharLookY are fixed numbers",
+      "stage": "still-gate",
+      "cause": "StillPose.cs CharCamY=3.4 CharLookY=2.5 — a Rio-sized turntable. Ashlord Height 1.44 and Konga 1.30 leave the frustum.",
+      "fix": "CharFraming looks at Silhouette chest height and pulls back by extra height. Every captain's head top is inside the frustum. Do not raise a constant until the tallest fits.",
+      "promoted": "StillHarnessTests.CharacterTurntableKeepsEveryCaptainsHeadInFrame",
+      "issue": "#559",
+      "pr": "#664"
+    },
+    {
+      "id": "esc-opens-book-h-calls-time",
+      "signature": "H or Esc opens this instruction booklet; Start / H / Esc opens Call time; H / Esc Call time / this book; first-pitch Esc opens the book and H opens Call time",
+      "stage": "sitting",
+      "cause": "HowToPlay.cs contents KeyLines and ControlDiagram.KeysCallouts lumped H and Esc. docs/how-to-play.md intro and the face table said Esc opens Call time. Scheme and Controls.HowTo already split them (#348): H is Call time, Esc is the book.",
+      "fix": "H / Start is Call time. Esc is How to play, including at first pitch. Name each verb in the book, the hardware diagram, and how-to-play.md. Do not change the shortcut.",
+      "promoted": "SchemeTests.HCallsTimeAndEscOpensTheBook",
+      "issue": "#629",
+      "pr": "#663"
+    },
+    {
+      "id": "bat-behind-head-at-ready",
+      "signature": "plate / swing-*-normal-ready loaded bat hidden behind the head; hovering barrel only visible at launch",
+      "stage": "still-gate",
+      "cause": "SwingPresentation ready key barrel (0.09, 0.87, −0.49) sat inside the plate camera's head disk (−1.3°). Tuning the plate shot cannot pull it out inside the SET constraints (FeelInfraTests.PlateIsBehindHomeLookingAtThePitcher).",
+      "fix": "Lean the ready barrel out beside the head — the same language as #623. PlateLoadedBesideDeg is the falsifier. Do not shrink the head. Do not retune the plate camera to hide a load that sits in the skull.",
+      "promoted": "SwingPresentationTests.TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera",
+      "issue": "#560",
+      "pr": "#671"
+    },
+    {
+      "id": "changeup-reads-as-fastball",
+      "signature": "changeup is not noticeably different from a normal pitch; hang/dump and extra ~0.25 s do not read HUD-off; CHANGE on the card is the only tell",
+      "stage": "sitting",
+      "cause": "PitchFlight.Changeup hangRate 0.72 interpolated Y almost with the fastball (u=0.5 sat 0.16 ft below it); dumpRate 1.55 was a two-piece fade. ChangeupMph 72 was 0.837× the 86 meat, not 0.80×, so air time was ~0.19 s extra instead of ~0.25. Tests allowed hang >= fb - 0.2 and S-06 only sampled plate Y.",
+      "fix": "changeupMph is 0.80× the meat (68.8). hangRate keeps Y at or above the fastball until hangUntil; dumpRate is the rest of the drop to changeupDropFt and finishes in flight. HUD-off test: air time, crossing Y, hang then dump (not a fade). CHANGE stays a card, not the product tell.",
+      "promoted": "PitchTests.ChangeupNamesItselfWithoutTheCard",
+      "issue": "#668",
+      "pr": "#672"
+    },
+    {
+      "id": "liner-in-air-is-a-scoop",
+      "signature": "line drive looked caught, stamp SINGLE / Triple not OUT; glove on the ball before the bounce; AutoCatch only under the landing ring; PlayerKind FlyOut only when InAir",
+      "stage": "cli-match",
+      "cause": "FlyCatch.Under is the landing ring (§8.3 fly). A liner is intercepted on the live ball above catch.inAirMinY before the bounce (§7.6). Once hitT >= hang or ballY <= 0.75, InAir is false and TouchScoop treats the same meeting as a pickup.",
+      "fix": "InPosition for a liner is the live ball above inAirMinY before the bounce, or the plant before hang. AutoCatch and South use it. A ball that has touched the dirt is a scoop. Do not award the out as a caption.",
+      "promoted": "ControlScenarioTests.S97_SouthOnALinerAtTheInterceptIsACatchNotAScoop",
+      "issue": "#666",
+      "pr": "#674"
+    },
+    {
+      "id": "swing-lead-too-late",
+      "signature": "release feels like ball on the plate; timing the ball over the plate at release; leadSec 0.10 not enough lead; let go a little sooner",
+      "stage": "sitting",
+      "cause": "batting.json window.leadSec 0.10 — square press is plate − 0.10; the late edge of the 9-frame slap window is plate − 0.025, so release and the ball on the plate are the same beat. D13's warp still puts Contact on the ball; the authored lead was too small (#670).",
+      "fix": "Raise batting.window.leadSec to 0.18. Square is plate − 0.18; late edge plate − 0.105. The window stays 9 / 7; the take still warps Contact onto the plate. Do not revert to press + 0.30 as the judgment.",
+      "promoted": "AtBatScenarioTests.S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter",
+      "issue": "#670",
+      "pr": "#673"
+    },
+    {
+      "id": "rim-catch-is-stand-up",
+      "signature": "out circle too wide; outfielder stands at the rim; AutoCatch never a dive; CPU at the rim stands and catches",
+      "stage": "sitting",
+      "cause": "FlyCatch.AutoCatch is stand-up under CatchWindow (radius + windowPadFt 4). CPU never sets CatchDive. LandingMark.RadiusFt floored to MinRadiusFt 16, so the ring was a generous out from well off the plant (#669).",
+      "fix": "Stand-up / the yellow ring is CatchRadius (StandUpCatchFt). At the rim (past the ring, inside diveReachFt, ballY < diveMaxBallY) AutoDive / PlayerDiveCatch: CatchDive, DiveT, lunge. Past that is a drop. windowPadFt stays dirt scoop slack. Do not retune S-29 by shrinking until one seed passes.",
+      "promoted": "FlyCatchTests.CatchAtThePlantIsStandUpARimCatchIsADive",
+      "issue": "#669",
+      "pr": "#679"
+    },
+    {
+      "id": "liner-shares-fly-shot",
+      "signature": "line drive vs ground ball does not read HUD-off; hopper vs rope look like cousins; PlayCamera.Shot maps Line, Fly, Homer, and Wall all to diamond-fly",
+      "stage": "sitting",
+      "cause": "PlayCamera.cs Shot: Beat.Line grouped with Fly/Homer/Wall onto diamond-fly. A liner is a rope (flight.linerTimeScale 1.0), not a stretched fly; from the fly pull-back a 10-ft rope sits on the dirt like a hopper. diamond-line had been killed as an unused 3/4 (#610).",
+      "fix": "Beat.Line is diamond-line: same 45° family, between diamond and diamond-fly, blend 0. Never diamond-grounder. Tune the shot; do not caption the class; do not fork 1P vs 2P.",
+      "promoted": "PlayCameraTests.ALinerAndAHopperDoNotShareAShot",
+      "issue": "#665",
+      "pr": "#675"
+    },
+    {
+      "id": "of-glove-nearest-at-bounce",
+      "signature": "outfielders take a bad line; a ball to right-center activates RF because he starts closer; the ball rolls to the wall and CF would have gotten there quicker",
+      "stage": "sitting",
+      "cause": "FieldingPursuit.cs:42-47 Plan: while InAir the route is FlyCatch.ChaseTarget — the landing, not the roll after the hop. A liner/hopper that bounces in RC is still InAir at contact (!Grounder && hitT < hang && ballY > 0.75), so RF wins the bounce. D17 then keeps RF while his route meets a sample, even if CF reaches the wall first. PlayGlove nearest-OF is only the no-path fallback.",
+      "fix": "Plan uses the plant for a fly, and for a liner this body can take in the air. A liner still up that this body cannot catch uses Rolling — first reachable point on the roll. Choose among LF/CF/RF at the grass hand-off is that route. Do not re-pick per frame (D16).",
+      "promoted": "FieldingPursuitTests.ALinerThatBouncesInTheGapAndRollsToTheWallIsTheOutfielderWhoMeetsTheRoll",
+      "issue": "#667",
+      "pr": "#678"
+    }
+  ]
+}

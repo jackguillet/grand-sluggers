@@ -5,7 +5,10 @@
     "framesPerContact": 0.4,
     "floorFrames": 5.0,
     "squareFraction": 0.9,
-    "leadSec": 0.1
+    // #670: square press is this long before the ball's plate time (D13). 0.10 left
+    // release on the plate (late edge plate − 0.025 s). 0.18 is let-go-then-meet
+    // (late edge plate − 0.105 s). Not press + 0.30 (the old judgment plane).
+    "leadSec": 0.18
   },
   "charge": {
     "loftDeg": 2.5
@@ -116,6 +119,9 @@
     "sacBuntErrorSigma": 2.2,
     "sacBuntSpraySigma": 10,
     "sacBuntLaunchAim": 0.35,
+    // #625: the headless CPU batter squares this long before the plate time (the square is read at SET, spec §5.9, §7.3):
+    // the client's SET to the plate, feel.pitcherReadySeconds 0.55 + the release at 0.42 + the pitch's air time.
+    "sacBuntSquareSec": 1.8,
     "starChance": 0.2,
     "errorFramesPerBatStat": 0.62,
     "fooledMinFrames": 4,
