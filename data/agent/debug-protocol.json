@@ -184,6 +184,16 @@
       "pr": "#694"
     },
     {
+      "id": "title-wordmark-mirrored",
+      "signature": "GRAND SLUGGERS black and yellow wording facing backwards; title sticker mirrored; wordmark unreadable",
+      "stage": "sitting",
+      "cause": "LogoToy.Show used Quaternion.LookRotation(camera − logo). Unity LookRotation then puts local +X on the camera's left. Glyphs sat at local +Z, so the letters faced the lens but read mirrored.",
+      "fix": "TitleLogoForward looks into the park with the title camera. Ink and glyphs sit on local −Z (CarnivalFront.TitleLogoGlyphZ). Do not LookRotation(toCam). Do not flip a texture to hide the facing.",
+      "promoted": "CarnivalFrontTests.TitleLogoReadsLeftToRightFromTheTitleCamera",
+      "issue": "#696",
+      "pr": "#694"
+    },
+    {
       "id": "protocol-promotion-assumes-csharp",
       "signature": "DistillTests.PromotedSignaturesNameARealTest fails for Python tooling tests or a shell validator",
       "stage": "sim",
