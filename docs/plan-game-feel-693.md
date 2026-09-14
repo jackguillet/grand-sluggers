@@ -80,9 +80,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-06-H — Harbor-specific scoring scope
 
-**State: pending human decision.** [The #702 report](research-game-feel-702.md) finds the mixed-park S-29 cohort at 1.90 home / 1.92 away, Harbor calibration at 1.90 / 1.38, and Harbor validation at 1.60 / 2.30. The existing accepted 1.8–5 band applies only to S-29's mixed-park cohort.
+**State: accepted by Jack on September 14, 2026.** Apply **1.8–5 mean runs per side** independently to Harbor-specific calibration and validation cohorts, checking home and away separately, while retaining the existing mixed-park S-29 guardrail. Individual games may fall outside the band.
 
-**Recommendation:** apply the same mean-runs target to Harbor-specific calibration and validation cohorts, separately home and away, while retaining S-29. This is a scope proposal, not an accepted gate or tuning change. Keep cohort results and extra-base/relay opportunity visible; geometry still decides outcomes. Jack's approval remains pending.
+[The #702 baseline report](research-game-feel-702.md) remains unchanged evidence: mixed parks 1.90 home / 1.92 away, Harbor calibration 1.90 / 1.38, Harbor validation 1.60 / 2.30. Harbor calibration's away mean and validation's home mean fall below the newly accepted target. They remain calibration work; approval of the target does not pass the baseline or select a gameplay coefficient. Preserve compact proportions, reliable routine defense, readable throws, and extra-base/relay opportunity. Geometry decides outcomes, and Jack retains the standalone feel gate.
 
 ### F693-07 — Spectator pacing and couch acceptance
 

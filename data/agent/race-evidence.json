@@ -33,8 +33,8 @@
     },
     {
       "id": "F693-06-H",
-      "state": "pending",
-      "locator": "docs/research-game-feel-702.md#next-human-decision--f693-06-h-harbor-scoring-scope"
+      "state": "accepted",
+      "locator": "docs/research-game-feel-702.md#accepted-human-decision--f693-06-h-harbor-scoring-scope"
     }
   ],
   "fixtures": [
@@ -99,9 +99,9 @@
       "unit": "runs/side/game",
       "lower": 1.8,
       "upper": 5,
-      "uncertainty": "Proposed scope extension of S29; Jack has not accepted a Harbor-specific band",
-      "state": "pending",
-      "purpose": "target",
+      "uncertainty": "Accepted by Jack September 14, 2026; applies separately to home and away cohort means, not individual games. Baseline misses remain calibration work.",
+      "state": "accepted",
+      "purpose": "guardrail",
       "activeDefault": false
     },
     {
@@ -112,9 +112,9 @@
       "unit": "runs/side/game",
       "lower": 1.8,
       "upper": 5,
-      "uncertainty": "Proposed scope extension of S29; Jack has not accepted a Harbor-specific band",
-      "state": "pending",
-      "purpose": "target",
+      "uncertainty": "Accepted by Jack September 14, 2026; applies separately to home and away cohort means, not individual games. Baseline misses remain calibration work.",
+      "state": "accepted",
+      "purpose": "guardrail",
       "activeDefault": false
     }
   ]

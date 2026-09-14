@@ -26,15 +26,15 @@ Every cohort contains the same five captain pairs, both home/away orders, and 50
 
 The two Harbor cohorts together average **1.75 home / 1.84 away**, but the individual cohorts show substantial variation. These are observations from predeclared seeds, not confidence intervals, a causal explanation, or an excuse to tune outcomes directly. Both sets have now been inspected; they are fixed regression sets, not future unseen evidence. The raw game rows preserve roster/order/park identity so later analysis can distinguish matchups from field effects.
 
-Passing the mixed-park S-29 check does not establish Harbor's own scoring pace. The existing accepted F693-06 decision explicitly applies to the mixed-park cohort. **No Harbor-specific scoring band is currently accepted**, so the lower Harbor means are a design-review finding, not a newly declared failing gate. Doubles/triples counts also do not establish the quality of their opportunities: compact-field proposals still need the full retrieval/throw/runner races and Jack's sitting.
+Passing the mixed-park S-29 check does not establish Harbor's own scoring pace. Jack subsequently accepted the Harbor-specific target below. Calibration's **1.38 away** and validation's **1.60 home** are below its 1.8 floor. Those are outstanding calibration gaps, not evidence of a passed Harbor gate. Doubles/triples counts also do not establish the quality of their opportunities: compact-field proposals still need the full retrieval/throw/runner races and Jack's sitting.
 
-## Next human decision — F693-06-H, Harbor scoring scope
+## Accepted human decision — F693-06-H, Harbor scoring scope
 
-**Pending; recommendation only:** apply the same **1.8–5 mean runs per side** target to Harbor-specific calibration and validation cohorts, checking home and away separately while retaining the existing mixed-park S-29 guardrail. Continue reporting each cohort and the kinds of plays; do not meet the target through forced outcomes or by expanding the outfield against the accepted direction.
+**Accepted by Jack on September 14, 2026:** apply the same **1.8–5 mean runs per side** target to Harbor-specific calibration and validation cohorts, checking home and away separately while retaining the existing mixed-park S-29 guardrail. Continue reporting each cohort and the kinds of plays; do not meet the target through forced outcomes or by expanding the outfield against the accepted direction.
 
-Why ask now: the mixed-park pass can hide a different pace in the park Jack actually plays. This recommendation adds a Harbor-specific design target; it does not authorize any particular tuning value or declare the current game human-approved. The alternative is to retain the band only for mixed parks and leave Harbor's scoring reports diagnostic. Jack has not selected between these scopes yet.
+The mixed-park pass can hide a different pace in the park Jack actually plays. This acceptance adds a Harbor-specific calibration target. It selects no particular tuning value and does not declare the current game human-approved. The snapshot dataset retains the acceptance text from when it was measured; this section and the live evidence catalog record the subsequent decision. Both Harbor cohorts must meet the target as part of the complete calibrated profile; no scoring repair is authorized in isolation from the accepted field/race constraints.
 
-No next numerical geometry, running, release/travel, or visual target is approved by this report. The full compact geometry/body/race proposal remains R3. The accepted moderate ball assistance remains a separate presentation decision.
+Geometry, running, release/travel, and visual numerical targets remain open. The full compact geometry/body/race proposal remains R3. The accepted moderate ball assistance remains a separate presentation decision.
 
 ## Verification and reproduction
 
