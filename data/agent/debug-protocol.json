@@ -251,7 +251,7 @@
       "fix": "BodyScale: rest unless GrowOn (grow ability, play glove, not holding). YOU / hint / hold stay rest. Grow is the field verb; do not scale the toy to sell the glove.",
       "promoted": "BodyScaleTests.AGloveWithTheBallIsRestScaleForEveryCaptain",
       "issue": "#691",
-      "pr": ""
+      "pr": "#700"
     }
   ]
 }
