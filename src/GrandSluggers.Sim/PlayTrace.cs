@@ -4,13 +4,16 @@ namespace GrandSluggers.Sim;
 /// Frozen per-tick geometry of one play (agent-rails D7 / G4). Observation only: the sim
 /// still owns the verdict. A cheap loop greps ball / runner / glove / bag without Unity.
 /// </summary>
-public sealed record PlayTrace(IReadOnlyList<PlayTraceTick> Ticks, PlayTraceEvent? Completed = null)
+public sealed record PlayTrace(IReadOnlyList<PlayTraceTick> Ticks, PlayTraceEvent? Completed = null,
+    int SchemaVersion = 1, PlayTraceContext? Context = null,
+    IReadOnlyList<PlayTraceCommand>? Commands = null, IReadOnlyList<PlayTraceMark>? Marks = null)
 {
     public static PlayTrace Empty { get; } = new([], null);
 
     public static JsonSerializerOptions Json { get; } = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new JsonStringEnumConverter() }
     };
@@ -18,12 +21,22 @@ public sealed record PlayTrace(IReadOnlyList<PlayTraceTick> Ticks, PlayTraceEven
     public string ToJson(bool indented = false) =>
         JsonSerializer.Serialize(this, indented ? IndentedJson : Json);
 
-    public static PlayTrace Parse(string json) =>
-        JsonSerializer.Deserialize<PlayTrace>(json, Json) ?? Empty;
+    public static PlayTrace Parse(string json)
+    {
+        var trace = JsonSerializer.Deserialize<PlayTrace>(json, Json) ?? throw new JsonException("Trace must be an object");
+        CheckVersion(trace.SchemaVersion);
+        return trace;
+    }
+
+    internal static void CheckVersion(int version)
+    {
+        if (version is not (1 or 2)) throw new JsonException($"Unsupported play trace schema {version}");
+    }
 
     internal static readonly JsonSerializerOptions IndentedJson = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter() }
@@ -36,14 +49,18 @@ public sealed record PlayTraceLog(
     string Home,
     string Away,
     string Park,
-    IReadOnlyList<PlayTrace> Plays)
+    IReadOnlyList<PlayTrace> Plays, int SchemaVersion = 1, PlayTraceIdentity? Identity = null)
 {
     public string ToJson(bool indented = false) =>
         JsonSerializer.Serialize(this, indented ? PlayTrace.IndentedJson : PlayTrace.Json);
 
-    public static PlayTraceLog Parse(string json) =>
-        JsonSerializer.Deserialize<PlayTraceLog>(json, PlayTrace.Json)
-        ?? new PlayTraceLog(0, "", "", "", []);
+    public static PlayTraceLog Parse(string json)
+    {
+        var log = JsonSerializer.Deserialize<PlayTraceLog>(json, PlayTrace.Json) ?? throw new JsonException("Trace log must be an object");
+        PlayTrace.CheckVersion(log.SchemaVersion);
+        foreach (var play in log.Plays) PlayTrace.CheckVersion(play.SchemaVersion);
+        return log;
+    }
 }
 
 /// <summary>One live-ball frame. Bags are the diamond; the play is typed facts, never a caption to branch on.</summary>
@@ -54,7 +71,8 @@ public sealed record PlayTraceTick(
     PlayTraceGlove Glove,
     IReadOnlyList<PlayTraceRunner> Runners,
     IReadOnlyList<PlayTraceBag> Bags,
-    PlayTracePlay Play)
+    PlayTracePlay Play, IReadOnlyList<PlayTraceFielder>? Fielders = null,
+    IReadOnlyList<PlayTraceCoverage>? Coverage = null, bool Paused = false)
 {
     public static IReadOnlyList<PlayTraceBag> DiamondBags { get; } =
     [
@@ -67,12 +85,13 @@ public sealed record PlayTraceTick(
     public static PlayTraceTick Capture(LivePlaySystem live, int i, PlayEvent? completed = null) => new(
         i,
         live.ElapsedSeconds,
-        new PlayTraceBall(live.BallX, live.BallY, live.BallZ, live.HasBall, live.Throwing, live.CatchMade || live.Caught, live.Fly,
-            live.Throwing ? live.ThrowBag : null),
-        new PlayTraceGlove(live.GlovePos, live.GloveX, live.GloveZ, live.HasBall),
-        live.Runners.Where(r => r.Live).Select(PlayTraceRunner.Of).ToArray(),
+        new PlayTraceBall(live.BallX, live.BallY, live.BallZ, live.TraceHoldsBall, live.Throwing, live.CatchMade || live.Caught, live.Fly,
+            live.Throwing ? live.ThrowBag : null, live.LooseBall, live.Lobbing,
+            live.Throwing ? live.ThrowT : null, live.Throwing ? live.ThrowDur : null),
+        new PlayTraceGlove(live.GlovePos, live.GloveX, live.GloveZ, live.TraceHoldsBall),
+        live.Runners.Select(PlayTraceRunner.Of).ToArray(),
         DiamondBags,
-        PlayTracePlay.Capture(live, completed));
+        PlayTracePlay.Capture(live, completed), live.TraceFielders(), live.TraceCoverage(), live.Paused);
 }
 
 public sealed record PlayTraceBall(
@@ -83,7 +102,7 @@ public sealed record PlayTraceBall(
     bool Throwing,
     bool Caught,
     FlyState Fly,
-    int? ThrowBag = null);
+    int? ThrowBag = null, bool Loose = false, bool WaitingForCover = false, double? ThrowElapsedSec = null, double? ThrowDurationSec = null);
 
 public sealed record PlayTraceGlove(string Pos, double X, double Z, bool HasBall);
 
@@ -98,12 +117,12 @@ public sealed record PlayTraceRunner(
     RunnerPhase Phase,
     bool Broke,
     bool Forced,
-    bool Armed)
+    bool Armed, bool Live = true, double? LastTouchAt = null, double Velocity = 0, bool Held = false)
 {
     public static PlayTraceRunner Of(Runner r)
     {
         var (x, z) = r.Position;
-        return new(r.Who.Id, r.FromBag, r.Bag, r.DestBag, x, z, r.Feet, r.Phase, r.Broke, r.Forced, r.StealArmed);
+        return new(r.Who.Id, r.FromBag, r.Bag, r.DestBag, x, z, r.Feet, r.Phase, r.Broke, r.Forced, r.StealArmed, r.Live, double.IsNaN(r.LastTouchAt) ? null : r.LastTouchAt, r.Velocity, r.Held);
     }
 }
 
@@ -166,6 +185,37 @@ public sealed class PlayTraceRecorder
 {
     readonly List<PlayTraceTick> _ticks = [];
     PlayTraceEvent? _completed;
+    PlayTraceContext? _context;
+    readonly List<PlayTraceCommand> _commands = [];
+    readonly List<PlayTraceMark> _marks = [];
+    int _leg;
+    double _commandStart;
+    internal LivePlaySystem? Source { get; set; }
+    public int Leg => _leg;
+    public LivePlayCommand? CurrentCommand => _commands.Count == 0 ? null : _commands[^1].Input;
+    public double CommandStart => _commandStart;
+
+    public void Begin(PlayTraceContext context)
+    {
+        Clear();
+        _context = context;
+    }
+
+    public void Command(LivePlayCommand command, double t)
+    {
+        _commandStart = t;
+        _commands.Add(new(_commands.Count, t, command));
+    }
+
+    public void Mark(PlayTraceMarkKind kind, double t, string? fielder = null, int? bag = null,
+        PlayTraceRunner? runner = null, OutType? outType = null, double? predictedRunnerAt = null,
+        PlayTraceThrow? flight = null, InPlay.ThrowVerdict? verdict = null)
+    {
+        if (kind == PlayTraceMarkKind.ThrowRelease) _leg++;
+        _marks.Add(new(_marks.Count, _commands.Count - 1, kind, t,
+            kind is PlayTraceMarkKind.RunnerArrival ? _commandStart : t,
+            _leg == 0 ? null : _leg, fielder, bag, runner, outType, predictedRunnerAt, flight, verdict, Source?.TraceMarkGeometry()));
+    }
 
     public int Count => _ticks.Count;
 
@@ -173,11 +223,27 @@ public sealed class PlayTraceRecorder
     {
         _ticks.Clear();
         _completed = null;
+        _context = null;
+        _commands.Clear();
+        _marks.Clear();
+        _leg = 0;
+        _commandStart = 0;
     }
 
     public void Record(LivePlaySystem live, PlayEvent? completed = null)
     {
-        _ticks.Add(PlayTraceTick.Capture(live, _ticks.Count, completed));
+        var tick = PlayTraceTick.Capture(live, _ticks.Count, completed);
+        if (_ticks.Count > 0 && tick.T > _ticks[^1].T && tick.Fielders is not null)
+        {
+            var previous = _ticks[^1];
+            var dt = tick.T - previous.T;
+            tick = tick with { Fielders = tick.Fielders.Select(f =>
+            {
+                var old = previous.Fielders?.FirstOrDefault(p => p.Pos == f.Pos);
+                return old is null ? f : f with { ObservedVx = (f.X - old.X) / dt, ObservedVz = (f.Z - old.Z) / dt };
+            }).ToArray() };
+        }
+        _ticks.Add(tick);
         if (completed is not null) Complete(completed);
     }
 
@@ -190,5 +256,5 @@ public sealed class PlayTraceRecorder
             _ticks[^1] = last with { Play = last.Play with { Completed = _completed } };
     }
 
-    public PlayTrace Freeze() => new(_ticks.ToArray(), _completed);
+    public PlayTrace Freeze() => new(_ticks.ToArray(), _completed, 2, _context, _commands.ToArray(), _marks.ToArray());
 }

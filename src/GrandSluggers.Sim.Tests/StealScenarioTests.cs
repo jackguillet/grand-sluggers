@@ -314,6 +314,7 @@ public sealed class StealScenarioTests
         Assert.True(match.SelectRunner(1));
         Assert.True(match.StartSteal());
         var cutPos = "";
+        match.LivePlay.Recording = true;
         var run = RunSteal(match, Scenario.Paint, Scenario.Take, HumanCatcher, LivePlayCommandSource.Human,
             fieldPad: (i, live) => live.HoldsBall && !live.Throwing && live.GlovePos == "C" && live.Throws == 0 && !live.Throwing
                 ? new LivePadInput(Cutoff: true)
@@ -324,6 +325,12 @@ public sealed class StealScenarioTests
             });
         Assert.True(cutPos is "SS" or "2B", $"the free middle infielder cuts in front of second (S-66); got '{cutPos}'");
         Assert.Contains(run.Throws, t => t.Bag == 0);
+        var trace = match.LivePlay.TakeTrace(run.Play);
+        var release = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.ThrowRelease && m.Bag == 0);
+        var reception = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.Reception && m.Leg == release.Leg);
+        Assert.True(reception.T > release.T);
+        Assert.True(reception.Geometry!.ReceiverInReach);
+        Assert.Equal(cutPos, release.Flight!.ReceiverPos);
     }
 
     // ---------------------------------------------------------------------------------

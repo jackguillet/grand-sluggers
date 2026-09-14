@@ -562,7 +562,10 @@ public sealed partial class LivePlaySystem
 
         if (Throwing)
         {
+            var traceBeforeFlightT = ThrowT;
             ThrowT += dt;
+            if (traceBeforeFlightT < ThrowDur && ThrowT >= ThrowDur)
+                _trace?.Mark(PlayTraceMarkKind.ThrowTargetReached, ElapsedSeconds, CoverPos, ThrowBag);
             var u = Math.Clamp(ThrowT / Math.Max(0.05, ThrowDur), 0, 1);
             BallX = ThrowFrom.X + (ThrowTo.X - ThrowFrom.X) * u;
             BallY = ThrowFrom.Y + (ThrowTo.Y - ThrowFrom.Y) * u;
@@ -2031,6 +2034,9 @@ public sealed partial class LivePlaySystem
         _fielders[_throwerPos] = (GloveX, GloveZ);
         if (!string.IsNullOrEmpty(receiverPos) && receiverPos != GlovePos)
             HandGloveTo(receiverPos, coast: false);
+        _trace?.Mark(PlayTraceMarkKind.ThrowRelease, ElapsedSeconds, _throwerPos, bag,
+            flight: new PlayTraceThrow(_throwerPos, receiverPos, bag, ThrowFrom.X, ThrowFrom.Y, ThrowFrom.Z,
+                ThrowTo.X, ThrowTo.Y, ThrowTo.Z, ThrowDur, thr.SpeedMul, thr.Relation.ToString()));
         _events.Add(LiveEvent.ThrowPop);
     }
 
@@ -2060,12 +2066,14 @@ public sealed partial class LivePlaySystem
         if (!covered)
         {
             // Nobody at the bag: the ball hangs as a lob for the cover, then drops there, live (§8.5).
+            if (_lobT == 0) _trace?.Mark(PlayTraceMarkKind.UncoveredWait, ElapsedSeconds, receiverPos, ThrowBag);
             _lobT += dt;
             (BallX, BallY, BallZ) = ThrowTo;
             if (_lobT < R.Fielding.Throw.LobMaxSec) return false;
             DropThrowAtBag();
             return false;
         }
+        _trace?.Mark(PlayTraceMarkKind.Reception, ElapsedSeconds, receiverPos, ThrowBag);
         (BallX, BallY, BallZ) = ThrowTo;
         if (ThrowBag is >= 1 and <= 4)
         {
@@ -2140,6 +2148,7 @@ public sealed partial class LivePlaySystem
 
     void SetLoose(double x, double z, double vx, double vz)
     {
+        _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
         _loose = true;
         _heldSince = -1;
         BallX = x;
@@ -2326,6 +2335,7 @@ public sealed partial class LivePlaySystem
 
     void CatchGlove()
     {
+        _trace?.Mark(PlayTraceMarkKind.Possession, ElapsedSeconds, GlovePos);
         if (!Caught && !_gloved) _events.Add(LiveEvent.Glove);
         _heldSince = ElapsedSeconds;
         Caught = true;
