@@ -48,7 +48,7 @@ Three innings at Harbor. Home bats in the bottom. **1 PLAYER** (the default): co
 
 ### Title
 
-The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — readable without F2. No captain on the title. Captains wait for select.
+The park is the poster: dirt and the diamond, from in front of the backstop. **GRAND SLUGGERS** is a sticker over the infield — reads left to right, readable without F2. No captain on the title. Captains wait for select.
 
 - **South / Space** — play ball (pick captain)
 - **Start / H** — cycle Exhibition / Challenge / Training (Challenge stays later)

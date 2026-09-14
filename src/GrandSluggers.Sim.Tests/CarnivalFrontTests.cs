@@ -97,6 +97,21 @@ public class CarnivalFrontTests
     }
 
     [Fact]
+    public void TitleLogoReadsLeftToRightFromTheTitleCamera()
+    {
+        var title = ContentCatalog.Load().Shots.Must("title");
+        var logo = CarnivalFront.TitleLogoAt;
+        var fwd = CarnivalFront.TitleLogoForward(title.Pos, logo);
+        Assert.True(fwd.Z > 0, $"sticker looks back at home z={fwd.Z}");
+        Assert.True(CarnivalFront.TitleLogoReads(title.Pos, logo));
+        Assert.True(CarnivalFront.TitleLogoInkZ < 0);
+        Assert.True(CarnivalFront.TitleLogoGlyphZ < CarnivalFront.TitleLogoInkZ);
+        var atCam = CarnivalFront.TitleLogoForward(logo, title.Pos);
+        Assert.True(atCam.Z < 0, "LookRotation(toCam) is the mirrored-wordmark facing");
+        Assert.False(CarnivalFront.TitleLogoReads(logo, title.Pos));
+    }
+
+    [Fact]
     public void SelectLookIsTheChestNotTheBrim()
     {
         var look = CarnivalFront.SelectLook(5, 6);

@@ -116,15 +116,43 @@ public static class CarnivalFront
     }
 
     public static Vec3 TitleLogoAt => new(LogoX, LogoY, LogoZ);
+    /// <summary>Ink on local −Z, the camera side of a board that looks into the park (#696).</summary>
+    public const float TitleLogoInkZ = -0.05f;
+    public const float TitleLogoGlyphZ = -0.11f;
 
     /// <summary>
-    /// Title is a sticker over the diamond. Fail if the board is a menu wall
-    /// or a featured cheer is back without a spec decision (#685).
+    /// The board looks into the park with the title camera, not at the camera.
+    /// LookRotation(camera − logo) puts local +X on the camera's left and mirrors
+    /// GRAND SLUGGERS (#696).
+    /// </summary>
+    public static Vec3 TitleLogoForward(Vec3 cam, Vec3 logo)
+    {
+        var dx = logo.X - cam.X;
+        var dz = logo.Z - cam.Z;
+        var n = Math.Sqrt(dx * dx + dz * dz);
+        if (n < 1e-6) return new Vec3(0, 0, 1);
+        return new Vec3(dx / n, 0, dz / n);
+    }
+
+    public static bool TitleLogoReads(Vec3 cam, Vec3 logo)
+    {
+        var fwd = TitleLogoForward(cam, logo);
+        if (fwd.Z <= 0) return false;
+        var atCamX = cam.X - logo.X;
+        var atCamZ = cam.Z - logo.Z;
+        return fwd.X * atCamX + fwd.Z * atCamZ < 0;
+    }
+
+    /// <summary>
+    /// Title is a sticker over the diamond. Fail if the board is a menu wall,
+    /// a featured cheer is back without a spec decision (#685), or the wordmark
+    /// is mirrored (#696).
     /// </summary>
     public static bool TitlePoster(Vec3 cam, Vec3 look)
     {
         var logo = TitleLogoAt;
         return !TitleShowsCaptain
+            && TitleLogoReads(cam, logo)
             && OffLook(cam, look, logo) < 20
             && LogoY > 10
             && Math.Abs(LogoX) < 8
