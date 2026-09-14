@@ -211,7 +211,7 @@
       "fix": "Skins list no extras. Identity is palette + Silhouette.Proportions. extras.json slots stay. Do not shrink Ashlord to hide the cape. Do not bring caps back as geometry (#557).",
       "promoted": "ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys",
       "issue": "#687",
-      "pr": ""
+      "pr": "#698"
     }
   ]
 }
