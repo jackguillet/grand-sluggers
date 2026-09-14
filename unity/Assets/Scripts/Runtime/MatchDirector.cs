@@ -139,6 +139,8 @@ namespace GrandSluggers.UnityClient
         bool _closePlay;
         string _bagStamp = "";
         float _bagStampT;
+        float _bagStampHold;
+        StampAnchor _bagStampAnchor = StampAnchor.Dirt;
         bool _closeIcon;
         int _closeBag;
         string _coverPos = "";
@@ -255,7 +257,8 @@ namespace GrandSluggers.UnityClient
             if (!string.IsNullOrEmpty(_bagStamp))
             {
                 _bagStampT += dt;
-                if (_bagStampT > (float)PlayStamp.SafeHoldSeconds(_feel))
+                var hold = _bagStampHold > 0 ? _bagStampHold : (float)PlayStamp.SafeHoldSeconds(_feel);
+                if (_bagStampT > hold)
                     _bagStamp = "";
             }
             Controls.NoteInput();
@@ -348,7 +351,7 @@ namespace GrandSluggers.UnityClient
                 banner = _coach.Session.Caption;
                 sub = _coach.Session.Verb;
             }
-            var stamp = _phase == Phase.Result && _last != null && PlayStamp.Shows(_last.Kind)
+            var stamp = _phase == Phase.Result && _last != null && PlayStamp.ShowsAtTime(_last)
                 ? banner : "";
             if (!string.IsNullOrEmpty(stamp)) banner = "";
             var mutePlay = BroadcastHud.MutePlay(
@@ -369,11 +372,13 @@ namespace GrandSluggers.UnityClient
                 CarnivalFront.TitleSetup(Innings, Difficulty, _content.Rules));
             if (!mutePlay && !string.IsNullOrEmpty(_bagStamp))
                 HudView.PlayStamp(_bagStamp, _bagStampT,
-                    (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds);
+                    (float)PlayStamp.SafeScale, (float)PlayStamp.SafePopSeconds,
+                    BroadcastHud.Stamp(_bagStampAnchor));
             else if (!string.IsNullOrEmpty(stamp) && !mutePlay)
                 HudView.PlayStamp(stamp, _t,
                     (float)PlayStamp.Scale(_last.Kind),
-                    (float)PlayStamp.PopSeconds(_last.Kind));
+                    (float)PlayStamp.PopSeconds(_last.Kind),
+                    BroadcastHud.Stamp(StampAnchor.Dirt));
             if (_match.Paused)
             {
                 HudView.Pause(_pauseItem, _pauseHowTo, _pausePage);
@@ -612,10 +617,13 @@ namespace GrandSluggers.UnityClient
                 _sub = _coach.Session.Verb;
                 return;
             }
-            // The stamp is the typed outcome's (§15): the outs, the feat, the error, the pickoff, the
-            // fielder's choice all ride the PlayEvent. Nothing here reads a mirrored flag or a caption.
-            if (_last != null && PlayStamp.Shows(_last.Kind))
+            // The stamp is the typed outcome's (§15): live outs and scores already named themselves
+            // at the glove or bag. Counts, hits, and homers still ride the Time card. Nothing here
+            // reads a mirrored flag or a caption.
+            if (_last != null && PlayStamp.ShowsAtTime(_last))
                 _banner = PlayStamp.Label(_last);
+            else if (_last != null && PlayStamp.Shows(_last.Kind))
+                _banner = "";
             else
                 _banner = _last != null ? BroadcastHud.Headline(_last.Kind) : (_coach != null && _coach.Session != null ? _coach.Session.Caption : "");
             _sub = _last != null ? _last.Caption : (_coach != null && _coach.Session != null ? _coach.Session.Verb : "");

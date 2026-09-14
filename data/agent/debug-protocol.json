@@ -252,6 +252,16 @@
       "promoted": "BodyScaleTests.AGloveWithTheBallIsRestScaleForEveryCaptain",
       "issue": "#691",
       "pr": "#700"
+    },
+    {
+      "id": "one-stamp-at-time",
+      "signature": "the result of the play shows at the end of the play, in the middle of the screen; fly with a runner at third stamps once and reads wrong; two events on one live ball",
+      "stage": "sitting",
+      "cause": "PlayStamp.Label(PlayEvent) at Time (Complete). LiveTell only SAFE and ERROR. Catch, tag, and score wait for the final PlayKind. HudView.PlayStamp sits at screen center (0.50, 0.40).",
+      "fix": "One tell per live event when it happens, at a named BroadcastHud anchor (glove, bag, plate, dirt). Retire raises StampOut; a runner who scores raises StampScore. ShowsAtTime skips FlyOut / GroundOut / CaughtStealing / live ERROR. Do not overlay a center card.",
+      "promoted": "PlayStampTests.ASacFlyEmitsACatchTellThenAScoreOrTagTellNotASingleEndOfPlayOut",
+      "issue": "#690",
+      "pr": "#705"
     }
   ]
 }

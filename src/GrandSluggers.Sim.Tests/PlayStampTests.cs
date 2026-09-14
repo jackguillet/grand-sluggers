@@ -138,14 +138,122 @@ public class PlayStampTests
     {
         Assert.Equal(PlayStamp.Safe, PlayStamp.LiveTell(LiveEvent.StampSafe));
         Assert.Equal(PlayStamp.Error, PlayStamp.LiveTell(LiveEvent.ThrowSailed));
+        Assert.Equal(PlayStamp.Out, PlayStamp.LiveTell(LiveEvent.StampOut));
+        Assert.Equal(PlayStamp.Score, PlayStamp.LiveTell(LiveEvent.StampScore));
         foreach (var cue in Enum.GetValues<LiveEvent>())
         {
-            if (cue is LiveEvent.StampSafe or LiveEvent.ThrowSailed) continue;
+            if (cue is LiveEvent.StampSafe or LiveEvent.ThrowSailed or LiveEvent.StampOut or LiveEvent.StampScore)
+                continue;
             Assert.Equal("", PlayStamp.LiveTell(cue));
         }
-        Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "error" && m.Label.Contains(PlayStamp.Error));
+        Assert.Contains(HudCallouts.InPlay.Marks, m => m.Id == "error" && m.Label.Contains(PlayStamp.Error)
+            && m.Anchor == BroadcastHud.StampDirt);
         Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("stamp") && l.Contains("ERROR"));
-        Assert.Contains(HowToPlay.Must("screen").Lines, l => l.Contains("SAFE") && l.Contains("ERROR") && l.Contains("mid-play"));
+        Assert.Contains(HowToPlay.Must("screen").Lines, l =>
+            l.Contains("OUT") && l.Contains("SCORE") && l.Contains("mid-play"));
+    }
+
+    [Fact]
+    public void LiveOutAndScoreTellsNameTheEventAndTheAnchor()
+    {
+        var catchOut = PlayStamp.OutTell(OutType.Catch, 0);
+        Assert.Equal(PlayStamp.Out, catchOut.Word);
+        Assert.Equal(StampAnchor.Glove, catchOut.Anchor);
+        Assert.Equal("DIVE", PlayStamp.OutTell(OutType.Catch, 0, DefensiveFeat.Dive).Word);
+        Assert.Equal("JUMP", PlayStamp.OutTell(OutType.Catch, 0, DefensiveFeat.Jump).Word);
+        Assert.Equal("BUDDY JUMP", PlayStamp.OutTell(OutType.Catch, 0, DefensiveFeat.BuddyJump).Word);
+        var force = PlayStamp.OutTell(OutType.Force, 2);
+        Assert.Equal(PlayStamp.Out, force.Word);
+        Assert.Equal(StampAnchor.Bag, force.Anchor);
+        Assert.Equal(2, force.Bag);
+        var tagHome = PlayStamp.OutTell(OutType.Tag, 4);
+        Assert.Equal(StampAnchor.Plate, tagHome.Anchor);
+        Assert.Equal(PlayStamp.Score, PlayStamp.ScoreTell().Word);
+        Assert.Equal(StampAnchor.Plate, PlayStamp.ScoreTell().Anchor);
+        Assert.Equal(StampAnchor.Dirt, PlayStamp.ErrorTell().Anchor);
+        Assert.Equal(LiveEvent.StampOut, PlayStamp.Cue(catchOut));
+        Assert.Equal(LiveEvent.StampScore, PlayStamp.Cue(PlayStamp.ScoreTell()));
+    }
+
+    [Fact]
+    public void ShowsAtTimeSkipsPlaysThatAlreadyNamedThemselvesLive()
+    {
+        Assert.False(PlayStamp.ShowsAtTime(PlayKind.FlyOut));
+        Assert.False(PlayStamp.ShowsAtTime(PlayKind.GroundOut));
+        Assert.False(PlayStamp.ShowsAtTime(PlayKind.CaughtStealing));
+        Assert.True(PlayStamp.ShowsAtTime(PlayKind.Single));
+        Assert.True(PlayStamp.ShowsAtTime(PlayKind.HomeRun));
+        Assert.True(PlayStamp.ShowsAtTime(PlayKind.TakeBall));
+        Assert.True(PlayStamp.ShowsAtTime(PlayKind.Strikeout));
+        Assert.True(PlayStamp.ShowsAtTime(PlayKind.StolenBase));
+        var errorHit = Ev(PlayKind.Single, "Caption lies: a banana peel on the mound.", error: true, batterToBag: 1);
+        Assert.False(PlayStamp.ShowsAtTime(errorHit));
+        Assert.Equal(PlayStamp.Error, PlayStamp.Label(errorHit));
+        Assert.False(PlayStamp.ShowsAtTime((PlayEvent?)null));
+    }
+
+    [Fact]
+    public void ASacFlyEmitsACatchTellThenAScoreOrTagTellNotASingleEndOfPlayOut()
+    {
+        var scenario = new Scenario(Content, seed: 1).Runner(3, 2);
+        var match = scenario.Match;
+        var runner = match.Third!;
+        scenario.Contact();
+        var hit = FlightFixtures.Landing(match.Park, 245, 34, -14);
+        var preview = match.PreviewHit(hit);
+        Assert.True(FieldingResolver.IsOutfield(preview.Position));
+        var stamps = RunLiveStamps(match, hit, preview);
+        Assert.Equal(PlayKind.FlyOut, stamps.Play.Kind);
+        Assert.False(PlayStamp.ShowsAtTime(stamps.Play));
+        Assert.NotEmpty(stamps.Tells);
+        Assert.True(PlayStamp.IsOutWord(stamps.Tells[0].Word), $"first tell is the catch: {stamps.Tells[0].Word}");
+        Assert.Equal(StampAnchor.Glove, stamps.Tells[0].Anchor);
+        var scored = stamps.Play.Outcome!.Moves.Any(m => m.Runner.Id == runner.Id && m.ToBag == 4);
+        var outAtHome = stamps.Play.Outcome.OutsMade.Any(o => o.Runner.Id == runner.Id && o.Type == OutType.Tag);
+        Assert.True(scored ^ outAtHome, "the sac fly is a race: the run or the tag at the plate");
+        if (scored)
+        {
+            Assert.Contains(stamps.Tells, t => t.Word == PlayStamp.Score && t.Anchor == StampAnchor.Plate);
+            Assert.True(stamps.Tells.FindIndex(t => t.Word == PlayStamp.Score)
+                > stamps.Tells.FindIndex(t => PlayStamp.IsOutWord(t.Word)));
+        }
+        else
+        {
+            Assert.True(stamps.Tells.Count(t => PlayStamp.IsOutWord(t.Word)) >= 2,
+                "catch then the tag, not one OUT at Time");
+            Assert.Contains(stamps.Tells.Skip(1), t => t.Anchor is StampAnchor.Plate or StampAnchor.Bag);
+        }
+        Assert.NotEqual(PlayStamp.Label(stamps.Play), string.Join("+", stamps.Tells.Select(t => t.Word)));
+    }
+
+    [Fact]
+    public void ASixFourThreeEmitsTwoOutTellsAsTheyHappen()
+    {
+        // Same occupancy and ball as S-40 (OutsScenarioTests): the DP matrix already turns two;
+        // this pins that each out stamped when it was recorded, not as one Time card.
+        var tests = new OutsScenarioTests();
+        tests.DoublePlayMatrix_CpuSeat(new OutsScenarioTests.DpRow("S-40 6-4-3", 118, 4, -18, [1], 0, [2, 1], "SS"));
+    }
+
+    sealed record LiveStampRun(PlayEvent Play, List<LiveStamp> Tells);
+
+    static LiveStampRun RunLiveStamps(Match match, AtBatResult hit, FieldingPreview preview,
+        FieldingResult? field = null)
+    {
+        var live = match.LivePlay;
+        Assert.True(live.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, field,
+            LiveSeats.CpuOnly, 0, LivePlayCommandSource.Cpu)).Snapshot.Active);
+        var tells = new List<LiveStamp>();
+        PlayEvent? play = null;
+        for (var i = 0; i < 60 * 30 && play is null; i++)
+        {
+            var r = live.Apply(LivePlayCommand.Tick(1.0 / 60.0, LivePadInput.Dead, LivePadInput.Dead, false,
+                LivePlayCommandSource.Cpu));
+            tells.AddRange(live.Stamps);
+            play = r.CompletedPlay;
+        }
+        Assert.NotNull(play);
+        return new LiveStampRun(play!, tells);
     }
 
     static object[] Row(string row, string expected, PlayKind kind, int outs, int runs,
