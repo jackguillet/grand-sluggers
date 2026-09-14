@@ -261,7 +261,7 @@
       "fix": "One tell per live event when it happens, at a named BroadcastHud anchor (glove, bag, plate, dirt). Retire raises StampOut; a runner who scores raises StampScore. ShowsAtTime skips FlyOut / GroundOut / CaughtStealing / live ERROR. Do not overlay a center card.",
       "promoted": "PlayStampTests.ASacFlyEmitsACatchTellThenAScoreOrTagTellNotASingleEndOfPlayOut",
       "issue": "#690",
-      "pr": ""
+      "pr": "#705"
     }
   ]
 }
