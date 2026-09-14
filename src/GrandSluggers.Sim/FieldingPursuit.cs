@@ -2,8 +2,9 @@ namespace GrandSluggers.Sim;
 
 /// <summary>
 /// A glove runs to where it can meet the ball, rather than following the ball's
-/// current position. Air balls use their legal catch plant; hops and rolls use
-/// the first future trajectory sample the glove can reach at its rated speed.
+/// current position. Flies (and a liner this body can take in the air) use the
+/// legal catch plant; hops, rolls, and a liner that will bounce use the first
+/// future trajectory sample the glove can reach at its rated speed (D16, #667).
 /// </summary>
 public static class FieldingPursuit
 {
@@ -42,9 +43,21 @@ public static class FieldingPursuit
         if (FieldingResolver.InAir(preview, live.Y, nowSec, hang, r))
         {
             var plant = FlyCatch.ChaseTarget(preview, park, r);
-            return Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
+            var air = Fixed(plant.X, plant.Z, hang, startSec, fromX, fromZ, speedFtPerSec, airCatch: true, r);
+            // A fly always runs the plant. A liner this body can take in the air is the same catch.
+            // A liner still up that this body cannot catch: first reachable point on the roll, not the bounce (#667).
+            if (preview.Class.IsFlyShape() || CanTakeInAir(air, preview, r))
+                return air;
         }
         return Rolling(path, park, nowSec, startSec, fromX, fromZ, speedFtPerSec, r);
+    }
+
+    /// <summary>Inside the catch window of the plant at hang: the body holds it in the air, so the plant is the route.</summary>
+    static bool CanTakeInAir(Route air, FieldingPreview preview, RulesTable rules)
+    {
+        if (air.Reachable) return true;
+        var window = FieldingResolver.CatchWindowFt(preview.CatchRadius, false, false, rules);
+        return air.MissFt < window;
     }
 
     /// <param name="readyAt">Per position, the play seconds each body may start moving (the reaction lockout, §8.2).</param>
