@@ -20,6 +20,16 @@ def log(message):
     print(message, flush=True)
 
 
+def wait_for_editor_shutdown(process):
+    """Owned build editors request their own exit; never turn cleanup into a crash."""
+    if process.poll() is not None:
+        return
+    try:
+        process.wait(timeout=20)
+    except subprocess.TimeoutExpired:
+        log('Build editor is still open for inspection; quit it normally. It has not been terminated.')
+
+
 def validate_build_evidence(result, revision):
     if not result.get('ok'):
         raise RuntimeError('Build failed; existing game is unchanged: ' + result.get('error', 'unknown error'))
@@ -82,13 +92,16 @@ def deliver(args):
                 raise RuntimeError('Close the Unity editor on this build worktree first: ' + str(project))
         temp = project / 'Temp'
         temp.mkdir(exist_ok=True)
-        done = temp / 'gs-player-done.json'
+        # Keep evidence outside Temp: a normal editor exit may remove Temp.
+        done = state / 'build-result.json'
         done.unlink(missing_ok=True)
         # Unity clears Temp at startup: write the request through executeMethod after load.
         build_log = state / 'build.log'
         log('Building ' + label + ' ' + revision[:10] + ' in an isolated worktree…')
         build_env = os.environ.copy()
         build_env['GS_BUILD_REVISION'] = revision
+        build_env['GS_BUILD_EVIDENCE'] = str(done)
+        build_env['GS_BUILD_QUIT_WHEN_DONE'] = '1'
         process = subprocess.Popen([str(editor), '-projectPath', str(project),
                                     '-executeMethod', 'GrandSluggers.EditorTools.PlayerBuildGate.MenuBuildMac',
                                     '-logFile', str(build_log)],
@@ -98,6 +111,8 @@ def deliver(args):
             next_status = time.monotonic() + 30
             while not done.exists():
                 if process.poll() is not None:
+                    if done.exists():
+                        break
                     raise RuntimeError('Unity exited before finishing. See ' + str(build_log))
                 if time.monotonic() >= deadline:
                     raise RuntimeError('Build timed out; existing game is unchanged. See ' + str(build_log))
@@ -111,12 +126,7 @@ def deliver(args):
             if built != project / 'Builds/osx/GrandSluggers.app' or not (built / 'Contents/MacOS/Grand Sluggers').is_file():
                 raise RuntimeError('Build result does not contain the expected Mac player.')
         finally:
-            if process.poll() is None:
-                process.terminate()
-                try:
-                    process.wait(timeout=20)
-                except subprocess.TimeoutExpired:
-                    log('Build editor is still shutting down; it has not been force-killed.')
+            wait_for_editor_shutdown(process)
 
         release = state / 'releases' / (label + '-' + revision[:10] + '-' + str(time.time_ns()))
         release.mkdir(parents=True)

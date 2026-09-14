@@ -184,7 +184,14 @@ namespace GrandSluggers.EditorTools
                 error = error ?? "",
                 utc = DateTime.UtcNow.ToString("O")
             };
-            File.WriteAllText(Path.Combine(temp, DoneFile), JsonUtility.ToJson(evidence, true));
+            var destination = Environment.GetEnvironmentVariable("GS_BUILD_EVIDENCE");
+            if (string.IsNullOrWhiteSpace(destination)) destination = Path.Combine(temp, DoneFile);
+            destination = Path.GetFullPath(destination);
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.WriteAllText(destination, JsonUtility.ToJson(evidence, true));
+            // Only the owned delivery editor opts in; manual menu builds stay open.
+            if (Environment.GetEnvironmentVariable("GS_BUILD_QUIT_WHEN_DONE") == "1")
+                EditorApplication.delayCall += () => EditorApplication.Exit(ok ? 0 : 1);
         }
 
         [Serializable]
