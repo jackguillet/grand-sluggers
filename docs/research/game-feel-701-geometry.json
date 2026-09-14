@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "issue": 701,
   "parentIssue": 693,
   "observedOn": "2026-09-14",
@@ -208,13 +208,18 @@
       ]
     }
   ],
-  "pendingDecision": {
-    "id": "F693-02-deep-hit-experience",
-    "status": "awaiting-Jack",
-    "recommended": "Preserve playable deep hits and extra-base decisions",
-    "alternative": "Emphasize home-run opportunities",
-    "scope": "Contact/carry and compact-field tradeoff, not dimensions or coefficients",
-    "referenceHomeRunFrequency": "unknown"
-  },
-  "acceptedTargets": []
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-deep-hit-experience",
+      "status": "accepted-design-intent",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Preserve doubles, triples, and relays within a compact, cartoon-feeling outfield",
+      "implementationConstraint": "Coordinate pursuit movement, fielding starts, ball carry/bounce/roll, baserunning, and throw timing; do not enlarge the outfield merely to preserve pursuit time.",
+      "userQualification": "A smaller outfield with slower outfielders can preserve the chase time of a larger outfield with faster fielders.",
+      "scope": "Spatial and tactical intent; no dimensions, movement coefficients, per-position penalty, or hit frequencies approved.",
+      "referenceHomeRunFrequency": "unknown"
+    }
+  ]
 }
