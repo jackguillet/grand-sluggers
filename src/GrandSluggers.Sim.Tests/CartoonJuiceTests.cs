@@ -35,7 +35,7 @@ public class CartoonJuiceTests
     {
         var good = CartoonJuice.ThrowRgb(Chemistry.Good);
         var bad = CartoonJuice.ThrowRgb(Chemistry.Bad);
-        Assert.True(good.B > good.G, "good chem is a purple laser");
+        Assert.True(good.B > good.G, "good chem is a purple ball trail");
         Assert.True(bad.R > bad.B && bad.G >= bad.B * 0.5, "bad chem is muddy");
     }
 }
