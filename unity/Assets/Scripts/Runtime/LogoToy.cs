@@ -1,3 +1,4 @@
+using GrandSluggers.Sim;
 using UnityEngine;
 
 namespace GrandSluggers.UnityClient
@@ -5,7 +6,8 @@ namespace GrandSluggers.UnityClient
     /// <summary>
     /// World-space title sticker. Block letters so the player and still-gate
     /// both read GRAND SLUGGERS — TextMesh is editor-only on this URP path.
-    /// Faces the title camera, not the park.
+    /// Board looks into the park with the title camera; ink is on local −Z.
+    /// LookRotation(toCam) mirrors the wordmark (#696).
     /// </summary>
     public sealed class LogoToy : MonoBehaviour
     {
@@ -22,10 +24,11 @@ namespace GrandSluggers.UnityClient
         {
             if (!_built) Build(copy);
             transform.position = at;
-            var toCam = cameraAt - at;
-            toCam.y = 0f;
-            if (toCam.sqrMagnitude < 0.01f) toCam = Vector3.back;
-            transform.rotation = Quaternion.LookRotation(toCam.normalized, Vector3.up);
+            var fwd = CarnivalFront.TitleLogoForward(
+                new Vec3(cameraAt.x, cameraAt.y, cameraAt.z),
+                new Vec3(at.x, at.y, at.z));
+            transform.rotation = Quaternion.LookRotation(
+                new Vector3((float)fwd.X, 0f, (float)fwd.Z), Vector3.up);
             gameObject.SetActive(true);
         }
 
@@ -40,8 +43,10 @@ namespace GrandSluggers.UnityClient
             var gold = Look.Unlit(Colors.Gold);
             var ink = Look.Unlit(new Color(0.12f, 0.08f, 0.04f));
             Look.Prim(PrimitiveType.Cube, "Board", transform, Vector3.zero, new Vector3(7.2f, 2.55f, 0.14f), gold);
-            Look.Prim(PrimitiveType.Cube, "Ink", transform, new Vector3(0f, 0f, 0.05f), new Vector3(6.8f, 2.2f, 0.08f), ink);
-            Look.Prim(PrimitiveType.Cube, "Star", transform, new Vector3(-3.15f, 0.55f, 0.11f), new Vector3(0.42f, 0.42f, 0.1f), gold);
+            Look.Prim(PrimitiveType.Cube, "Ink", transform,
+                new Vector3(0f, 0f, CarnivalFront.TitleLogoInkZ), new Vector3(6.8f, 2.2f, 0.08f), ink);
+            Look.Prim(PrimitiveType.Cube, "Star", transform,
+                new Vector3(-3.15f, 0.55f, CarnivalFront.TitleLogoGlyphZ), new Vector3(0.42f, 0.42f, 0.1f), gold);
             Stamp(copy ?? "", gold);
         }
 
@@ -61,7 +66,7 @@ namespace GrandSluggers.UnityClient
                 var x0 = -w * 0.5f + 2f * px;
                 var y = top - li * lineH;
                 for (var i = 0; i < line.Length; i++)
-                    Glyph(line[i], new Vector3(x0 + i * step, y, 0.11f), px, gold);
+                    Glyph(line[i], new Vector3(x0 + i * step, y, CarnivalFront.TitleLogoGlyphZ), px, gold);
             }
         }
 
