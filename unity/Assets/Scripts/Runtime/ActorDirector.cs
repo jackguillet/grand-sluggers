@@ -79,6 +79,14 @@ namespace GrandSluggers.UnityClient
             var boxBatter = _phase == Phase.Result && _last != null
                 ? PlayStamp.BoxBatter(_last, _match)
                 : _match.Batter;
+            // The bunt tell (§7.3): while the batter is squared through SET and the pitch, the corners crash and the
+            // middle covers, drawn from the function the live ball seeds from at contact (BuntDefense.Spots).
+            var squareSpots = _phase is Phase.Set or Phase.Flight && Squared
+                ? BuntDefense.Spots(defense, _squareSec, _match.Rules)
+                : null;
+            var squareWas = squareSpots != null
+                ? BuntDefense.Spots(defense, Mathf.Max(0f, _squareSec - dt), _match.Rules)
+                : null;
             foreach (var kv in defense)
             {
                 var who = kv.Value;
@@ -90,6 +98,14 @@ namespace GrandSluggers.UnityClient
                 {
                     x = live.X;
                     z = live.Z;
+                }
+                var crashing = false;
+                if (squareSpots != null && squareSpots.TryGetValue(kv.Key, out var squareAt))
+                {
+                    x = squareAt.X;
+                    z = squareAt.Z;
+                    crashing = squareWas != null && squareWas.TryGetValue(kv.Key, out var was)
+                               && Diamond.Dist(was.X, was.Z, squareAt.X, squareAt.Z) > 1e-3;
                 }
                 var pose = Motion.Verb.Idle;
                 var buddyPartner = _phase == Phase.InPlay && BuddySet && _preview.Buddy != null && who.Id == _preview.Buddy.Id;
@@ -146,6 +162,10 @@ namespace GrandSluggers.UnityClient
                 }
                 else if ((_phase is Phase.InPlay or Phase.StealThrow) && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
                     pose = Motion.Verb.Run;
+                else if (crashing)
+                    pose = Motion.Verb.Run;
+                else if (squareSpots != null && Diamond.Dist(x, z, pos.X, pos.Z) > 6)
+                    pose = Motion.Verb.Field;
                 if (kv.Key == "P" && _phase is Phase.Set or Phase.Flight)
                     pose = _phase == Phase.Flight ? Motion.Verb.ThrowPitch : Motion.Verb.ChargePitch;
                 if (kv.Key == "C" && _phase is Phase.Set or Phase.Flight)
@@ -344,7 +364,8 @@ namespace GrandSluggers.UnityClient
                 if (_swing != null && _swing.Bunt) return Motion.Verb.Bunt;
                 return Motion.Verb.Swing;
             }
-            if (_phase is Phase.Set or Phase.Flight) return Motion.Verb.ChargeSwing;
+            // Squared (§5.8, §7.3): the bat is on the plane before the pitch — the tell the defense and the pitcher read.
+            if (_phase is Phase.Set or Phase.Flight) return SquaredNow ? Motion.Verb.Bunt : Motion.Verb.ChargeSwing;
             return Motion.Verb.Idle;
         }
 

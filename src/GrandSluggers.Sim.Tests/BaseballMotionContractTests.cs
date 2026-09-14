@@ -46,6 +46,7 @@ public class BaseballMotionContractTests
         Assert.InRange(joints["pelvis"]["head"]![2]!.GetValue<double>()/height, .42, .50);
         Assert.Equal(anatomy["headDiameter"]!.GetValue<double>()/2, SwingPresentation.HeadRadius, 8);
         Assert.Equal(anatomy["headCenter"]![2]!.GetValue<double>(), SwingPresentation.HeadCenterAtRest.Y, 8);
+        Assert.Equal(joints["torso"]["head"]![2]!.GetValue<double>(), StillPose.CharUnscaledChestY, 8);
     }
 
     [Theory]

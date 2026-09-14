@@ -112,3 +112,7 @@ The corrected rendered run passed all four cases: the first released frame was 0
 
 ![Right-handed normal pitch finish](images/default-motion/pitch-R-normal-finish.png)
 ![Left-handed charged pitch finish](images/default-motion/pitch-L-charge-finish.png)
+
+## Main integration evidence
+
+[PR 628 conflict resolution](../scratchpad/validation/pr628-conflicts/README.md) records the combined ready key, current-rig turntable bounds, fresh dual stills, rendered matrix, and remaining human-review concerns. Earlier evidence above predates this merge.

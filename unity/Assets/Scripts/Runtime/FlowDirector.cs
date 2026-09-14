@@ -112,7 +112,7 @@ namespace GrandSluggers.UnityClient
                     return;
                 }
                 _match = NewMatch();
-                _park.Build(_match.Park, _match.Night, _content.Rules);
+                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
                 _spec.Build(transform);
                 _items.Build(transform);
                 _stars?.Build(transform);
@@ -127,7 +127,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_park == null || _content == null) return;
             if (!_content.Parks.TryGetValue(ParkId, out var park)) return;
-            _park.Build(park, Night, _content.Rules);
+            _park.Build(park, Night, _content.Rules, _content.Feel);
             if (_phase == Phase.Title)
                 _cam?.Cut("title");
         }
@@ -278,7 +278,7 @@ namespace GrandSluggers.UnityClient
             if (_coach == null) _coach = gameObject.AddComponent<TrainingDirector>();
             _coach.Begin(_content, PracticePick);
             _match = _coach.MakeMatch(_content, Seed);
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
             _items.Build(transform);
             _stars?.Build(transform);
@@ -315,7 +315,7 @@ namespace GrandSluggers.UnityClient
             if (_campaign != null && !_campaign.AllBeaten)
             {
                 _match = _campaign.MakeMatch(_content, Innings, Seed);
-                _park.Build(_match.Park, _match.Night, _content.Rules);
+                _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
                 _spec.Build(transform);
                 _items.Build(transform);
                 _stars?.Build(transform);
@@ -325,7 +325,7 @@ namespace GrandSluggers.UnityClient
                 return;
             }
             _match = NewMatch();
-            _park.Build(_match.Park, _match.Night, _content.Rules);
+            _park.Build(_match.Park, _match.Night, _content.Rules, _content.Feel);
             _spec.Build(transform);
             _items.Build(transform);
             _stars?.Build(transform);

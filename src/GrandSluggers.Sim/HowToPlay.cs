@@ -121,10 +121,10 @@ public static class HowToPlay
     [
         new("contents", "Contents", "contents",
         [
-            "Call time or Esc opens this instruction booklet.",
+            "Call time has How to play. Esc this book from title too.",
         ],
         [
-            "H or Esc opens this instruction booklet. F6 cycles input.",
+            "H calls time. Esc this book. F6 cycles input.",
         ]),
         new("controls", "Controls", "controls",
         [
@@ -224,20 +224,20 @@ public static class HowToPlay
         ]),
         new("fielding", "Fielding", "fielding",
         [
-            "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
+            "On fly: outfielder runs to landing; ball hangs. Shadow tracks ball.",
             "The throw is yours. Bag + South; stick runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Dead stick auto-runs; stick steers. Stand on ball to scoop. Select swaps; next glove pulses. Pickup stays live.",
             "West jumps in window; the circle turns red. East dives. North attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. A close play cuts to bag.",
+            "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ],
         [
-            "On fly: outfielder runs to landing; ball hangs. Contact puffs dirt.",
+            "On fly: outfielder runs to landing; ball hangs. Shadow tracks ball.",
             "The throw is yours. Bag + Space; WASD runs with the ball; catch, throw, or tag: out. Force: 2B with first; 3B with first + second; home loaded.",
             "After a throw, you are the glove at that bag. Runner on first: throw both to turn two.",
             "YOU names glove. Don't move: they auto-run; WASD steers. Stand on ball to scoop. R swaps; next glove pulses. Pickup stays live.",
             "F jumps in window; the circle turns red. G dives. B attack. A homer sits on wall.",
-            "Camera is 45°; a fly pulls back. CF is the top. A close play cuts to bag.",
+            "Camera is 45°; liner vs fly. CF is the top. A close play cuts to bag.",
         ]),
         new("exhibition", "Captain and field", "exhibition",
         [
@@ -306,7 +306,7 @@ public static class HowToPlay
         [
             "Scorebug: inning, runs, stars; B / S / O.",
             "Cards: batter AB, pitcher ARM and TIRED. Select swaps.",
-            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
             "SAFE / ERROR pop mid-play. Close play: bag cam.",
@@ -314,7 +314,7 @@ public static class HowToPlay
         [
             "Scorebug: inning, runs, stars; B / S / O.",
             "Cards: batter AB, pitcher ARM and TIRED. R swaps.",
-            "Yellow circle: landing ring. Red: jump window. YOU: the glove.",
+            "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
             "SAFE / ERROR pop mid-play. Close play: bag cam.",
@@ -370,12 +370,12 @@ public static class HowToPlay
         ]),
         new("pause-practice", "Pause and Practice", "pause-practice",
         [
-            "Start    call time. Esc    this book from title too.",
+            "Start    call time. Esc    this book from title and a pitch.",
             "South ok. East resume.",
             "Title West    Training. F1 F2 F3 stay debug, not this page.",
         ],
         [
-            "H    call time. Esc    this book from title too.",
+            "H    call time. Esc    this book from title and a pitch.",
             "Space / left click ok. G / right click resume.",
             "Title F    Training. F1 F2 F3 stay debug, not this page.",
         ]),

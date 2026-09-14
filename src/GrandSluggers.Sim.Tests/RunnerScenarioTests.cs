@@ -82,31 +82,37 @@ public sealed class RunnerScenarioTests
     }
 
     [Fact]
-    public void S38_RunnerOnThirdHoldsOnAComebackerWithTheInfieldInAndFewerThanTwoOuts()
+    public void S38_RunnerOnThirdHoldsOnAGrounderToShortWithTheInfieldInAndFewerThanTwoOuts()
     {
+        // §9.9: with fewer than two outs the runner on third goes only when the infield is back — the glove meets
+        // the ball at or beyond running.cpu.infieldBackFt (110) from home — or the margin home is there. A grounder
+        // the shortstop charges is met inside that line: the infield is in, the runner holds, the throw goes to first.
         var scenario = new Scenario(_content, seed: 1).Runner(3, 2).Outs(1);
         var match = scenario.Match;
         var runner = match.Third!;
         scenario.Contact();
-        var hit = FlightFixtures.Landing(match.Park, 40, 4, 0);
+        var hit = FlightFixtures.Landing(match.Park, 100, 4, -22);
         var preview = match.PreviewHit(hit);
-        var fielderFromHome = Diamond.Dist(Diamond.Positions[preview.Position].X, Diamond.Positions[preview.Position].Z, 0, 0);
-        Assert.True(fielderFromHome < match.Rules.Running.Cpu.InfieldBackFt, $"{preview.Position} is in: {fielderFromHome:0} ft");
+        Assert.Equal("SS", preview.Position);
         var throwsTo = new List<int>();
         var wentBeforeTheThrow = false;
+        var metFromHome = double.NaN;
         Run(match, hit, preview, GroundOut(match, preview), LiveSeats.CpuOnly, live =>
         {
             Note(live, throwsTo);
+            if (double.IsNaN(metFromHome) && live.HoldsBall)
+                metFromHome = Diamond.Dist(live.GloveX, live.GloveZ, Diamond.Home.X, Diamond.Home.Z);
             var third = match.RunnerAt(3);
-            // Until the ball is thrown to first the runner reads a hold: the fielder is in and the margin home is not there.
+            // Until the ball is thrown to first the runner reads a hold: the glove is in and the margin home is not there.
             if (throwsTo.Count == 0 && third is { Live: true } && (third.DestBag == 4 || third.Feet > 0)) wentBeforeTheThrow = true;
         });
 
+        Assert.True(metFromHome < match.Rules.Running.Cpu.InfieldBackFt, $"the shortstop met the ball {metFromHome:0} ft from home: the infield is in");
         Assert.False(wentBeforeTheThrow, "the runner on third held at contact and at the pickup (§9.9)");
-        Assert.NotEmpty(throwsTo);
-        Assert.Equal(1, throwsTo[0]);
-        // What they do once the ball is on its way to first is the margin again, with the arm table as it stands (P4's).
-        _ = runner;
+        Assert.Equal(1, Assert.Single(throwsTo));
+        Assert.Equal(2, match.Outs);
+        Assert.Equal(runner.Id, match.Third?.Id);
+        Assert.Equal(0, match.AwayScore);
     }
 
     [Fact]

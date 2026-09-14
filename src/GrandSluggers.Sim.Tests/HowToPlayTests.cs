@@ -75,6 +75,7 @@ public class HowToPlayTests
         Row(fielding, "Jump");
         Row(fielding, "Dive");
         Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("close play") && l.Contains("bag"));
+        Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("liner") && l.Contains("fly"));
     }
 
     [Theory]

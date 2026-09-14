@@ -2,7 +2,7 @@
 
 The sim is a product. Unity is still a prototype skin on Harbor. Super Sluggers sells **bodies, tells, and two-second illegal physics** — and underneath that, **baseball that is decided by where the ball and the runner are**. We do not get there by more JSON captains, and we do not get there by polishing a toy on top of plays that a dice roll decides.
 
-This is the production plan **after** feel infrastructure (#107) and art rails (#118). Living specs: `data/feel/`, `data/art/`, `dotnet run --project src/GrandSluggers.Cli -- art`. Play: Unity `HarborDiamond.unity`. **Rules: [gameplay-spec.md](gameplay-spec.md).**
+This is the production plan **after** feel infrastructure (#107) and art rails (#118). Living specs: `data/feel/`, `data/art/`, `dotnet run --project src/GrandSluggers.Cli -- art`. Play: Unity `HarborDiamond.unity`. **Rules: [gameplay-spec.md](gameplay-spec.md).** **Agents: [agent-rails.md](agent-rails.md)** (#647).
 
 ## Where we actually are (2026-09)
 
@@ -26,7 +26,7 @@ Agents are the production line. You are the director. They are fast at systems, 
 
 ### Operating rules
 
-Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)** (stack, sitting, rails, look). Long-term product, not the current still. **No quick fixes.** If a hack would close the issue and a rail would serve 1P, 1v1, and the next play type, build the rail. Look: **[docs/look.md](look.md)**. Rules: **[docs/gameplay-spec.md](gameplay-spec.md)**.
+Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)** (stack, sitting, rails, look). Long-term product, not the current still. **No quick fixes.** If a hack would close the issue and a rail would serve 1P, 1v1, and the next play type, build the rail. Look: **[docs/look.md](look.md)**. Rules: **[docs/gameplay-spec.md](gameplay-spec.md)**. How agents work: **[docs/agent-rails.md](agent-rails.md)** (#647). Session kind is gameplay / presentation / art — do not mix.
 
 1. **One GitHub child issue = one worktree = one agent.** Never share `/Users/jack/repos/grand-sluggers` except a final ff-only pull. Never `git add -A`.
 2. **Acceptance is the prompt.** Every issue lists: observable, files, tests, banned. For a Phase P child the observable is a list of spec scenario ids (`S-xx`) and the test is the headless scenario harness. If an agent cannot falsify the work with `dotnet test`, `cli art` / `cli match`, `tools/unity-compile.sh`, or a named Hierarchy object, the issue is too vague — rewrite it before launching. Personal Unity cannot `-batchmode`; the compile script is the Unity csc gate.
@@ -54,6 +54,20 @@ Standing order for every agent, every ticket: **[AGENTS.md](../AGENTS.md)** (sta
 Issue body already has acceptance. Prompt the agent with: **AGENTS.md (rails, not patches)**, parent epic, worktree slug, banned list, `cli art` must stay OK, Unity Play path, "no new skeleton, no new park, no MatchDirector god-file", and for Phase P: **the spec sections and scenario ids the child owns**. After merge: skeptic agent with the scenario list and the screenshot checklist.
 
 Large systems: write a design (`docs/` or a GitHub epic), then execute children. Small children: one agent.
+
+### Agentic rails (#647)
+
+Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 / #346. R5 is later and does not block Exhibition.
+
+| Child | Rail | Status |
+| --- | --- | --- |
+| R1 #648 | Session split (gameplay / presentation / art) | #655 |
+| R2 #649 | Debug protocol in `data/agent/` | #656 |
+| R3 #650 | Play traces (tick JSON) | #657 |
+| R4 #651 | Dual stills + critic that files | #659 |
+| R5 #652 | Unity CLI observation only | later |
+| R6 #653 | Stage-save DCC | ❌ |
+| R7 #654 | Distill sittings into protocol / tests | #660 |
 
 ---
 

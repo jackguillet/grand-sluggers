@@ -7,7 +7,10 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class LandingMark
 {
-    /// <summary>Major radius. Smaller vanished from the fly 3/4.</summary>
+    /// <summary>
+    /// Torus construction scale (tube thickness). Not the catch ring: the ring is
+    /// <see cref="RadiusFt"/>, the stand-up catch radius (#669).
+    /// </summary>
     public const double MinRadiusFt = 16;
 
     /// <summary>Torus tube. Thin discs z-fight the grass.</summary>
@@ -33,8 +36,8 @@ public static class LandingMark
     public static (double X, double Z) At(FieldingPreview pre, Park? park = null) =>
         FlyCatch.ChaseTarget(pre, park);
 
-    public static double RadiusFt(FieldingPreview pre) =>
-        Math.Max(MinRadiusFt, pre.CatchRadius);
+    /// <summary>The yellow ring is the stand-up catch (§8.3, #669), not a 16 ft floor.</summary>
+    public static double RadiusFt(FieldingPreview pre) => pre.CatchRadius;
 
     public static bool Hot(double hitT, double hangSec, Character? fielder = null, Park? park = null) =>
         FlyCatch.JumpWindow(hitT, hangSec, fielder, park);
