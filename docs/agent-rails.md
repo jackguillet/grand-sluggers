@@ -79,7 +79,7 @@ End each session with a playable artifact of its kind before the next prompt: ga
 | `stage` | `sim` / `cli-match` / `unity-console` / `still-gate` / `dcc` / `sitting` |
 | `cause` | Root cause from the code map, with `file:line` when known |
 | `fix` | The rail, not the patch |
-| `promoted` | Test or validator name once it is a gate, else empty |
+| `promoted` | C# or Python `Type.Method`, or repository-relative shell validator entry point (`tools/name.sh`), once it is a gate; else empty. CI verifies the reference exists. |
 | `issue` | Sitting child or epic that found it |
 | `pr` | PR that verified the fix, once closed |
 
