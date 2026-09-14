@@ -82,6 +82,16 @@
       "promoted": "SwingPresentationTests.TheLoadedBarrelSitsBesideTheHeadOnThePlateCamera",
       "issue": "#560",
       "pr": "#671"
+    },
+    {
+      "id": "changeup-reads-as-fastball",
+      "signature": "changeup is not noticeably different from a normal pitch; hang/dump and extra ~0.25 s do not read HUD-off; CHANGE on the card is the only tell",
+      "stage": "sitting",
+      "cause": "PitchFlight.Changeup hangRate 0.72 interpolated Y almost with the fastball (u=0.5 sat 0.16 ft below it); dumpRate 1.55 was a two-piece fade. ChangeupMph 72 was 0.837× the 86 meat, not 0.80×, so air time was ~0.19 s extra instead of ~0.25. Tests allowed hang >= fb - 0.2 and S-06 only sampled plate Y.",
+      "fix": "changeupMph is 0.80× the meat (68.8). hangRate keeps Y at or above the fastball until hangUntil; dumpRate is the rest of the drop to changeupDropFt and finishes in flight. HUD-off test: air time, crossing Y, hang then dump (not a fade). CHANGE stays a card, not the product tell.",
+      "promoted": "PitchTests.ChangeupNamesItselfWithoutTheCard",
+      "issue": "#668",
+      "pr": ""
     }
   ]
 }
