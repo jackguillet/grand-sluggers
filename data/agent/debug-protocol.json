@@ -102,6 +102,16 @@
       "promoted": "ControlScenarioTests.S97_SouthOnALinerAtTheInterceptIsACatchNotAScoop",
       "issue": "#666",
       "pr": "#674"
+    },
+    {
+      "id": "swing-lead-too-late",
+      "signature": "release feels like ball on the plate; timing the ball over the plate at release; leadSec 0.10 not enough lead; let go a little sooner",
+      "stage": "sitting",
+      "cause": "batting.json window.leadSec 0.10 — square press is plate − 0.10; the late edge of the 9-frame slap window is plate − 0.025, so release and the ball on the plate are the same beat. D13's warp still puts Contact on the ball; the authored lead was too small (#670).",
+      "fix": "Raise batting.window.leadSec to 0.18. Square is plate − 0.18; late edge plate − 0.105. The window stays 9 / 7; the take still warps Contact onto the plate. Do not revert to press + 0.30 as the judgment.",
+      "promoted": "AtBatScenarioTests.S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter",
+      "issue": "#670",
+      "pr": "#673"
     }
   ]
 }
