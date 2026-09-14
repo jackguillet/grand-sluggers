@@ -4,7 +4,7 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// Spec §8.9 (control: who you are on defense, D16–D18) as scenarios, Appendix B.8: S-94 … S-99 (#633). Who wears the YOU
+/// Spec §8.9 (control: who you are on defense, D16–D18) as scenarios, Appendix B.8: S-94 … S-100 (#633, #667). Who wears the YOU
 /// ring is an event — contact, the ball on the grass, a loose ball, a release, a Select press — never a per-frame re-pick;
 /// a hand-off never takes a body that still has a route to the ball; the body the ring left coasts
 /// <c>chase.handoffCoastSec</c> and nobody teleports; Select is locked for <c>chase.swapLockSec</c> and dead while
@@ -404,6 +404,65 @@ public sealed class ControlScenarioTests
             if (live.ElapsedSeconds >= preview.HangTimeSec && !live.Caught) bounced = true;
         });
         Assert.True(bounced, "the ball touched the dirt");
+        Assert.NotNull(play);
+        Assert.NotEqual(PlayKind.FlyOut, play!.Kind);
+        Assert.DoesNotContain(play.Outcome!.OutsMade, o => o.Type == OutType.Catch);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // S-100  A liner that lands in RC (RF starts closer) and rolls to the wall is CF's, both seats (#667)
+    // ---------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void S100_ALinerThatBouncesInRightCenterAndRollsToTheWallIsCenters(bool human)
+    {
+        var (match, seats) = human ? HumanDefense(true) : CpuDefense();
+        var hit = FlightFixtures.Hit(match.Park, 90, 16, 14);
+        var preview = match.PreviewHit(hit);
+        Assert.True(preview.Line);
+        var rules = match.Rules;
+        var live0 = BallFlight.PointAt(preview.Ball!.Samples, 0, rules);
+        Assert.True(FieldingResolver.InAir(preview, live0.Y, 0, preview.HangTimeSec, rules),
+            "the fixture: still up at contact, where Plan used to hand RF the bounce");
+        var rf = Diamond.Positions["RF"];
+        var cf = Diamond.Positions["CF"];
+        Assert.True(Diamond.Dist(rf.X, rf.Z, preview.LandingX, preview.LandingZ) + 8
+                    < Diamond.Dist(cf.X, cf.Z, preview.LandingX, preview.LandingZ),
+            "the fixture: RF starts closer to the bounce");
+        var map = FieldingResolver.Assign(match.DefenseRoster, match.Pitcher, match.Defense.Gloves);
+        var ready = FieldingResolver.CpuReactionLockouts(rules, preview.HangTimeSec);
+        var byRoute = FieldingPursuit.Choose(map, FieldingResolver.OutfieldPursuitPositions, preview, match.Park,
+            preview.Ball.Samples, null, 0, rules, ready);
+        Assert.Equal("CF", byRoute.Position);
+
+        var ring = new List<string>();
+        var scoopedBy = "";
+        var scoopDist = 0.0;
+        var play = Run(match, seats, hit,
+            (live, _) =>
+            {
+                // Dead stick until the scoop; then South so Time can come (D18: the CPU does not throw for you).
+                if (live.HoldsBall && !live.Throwing) return new LivePadInput(KeysBag: 2, SouthDown: true);
+                return LivePadInput.Dead;
+            },
+            (live, _) =>
+            {
+                if (!live.Active) return;
+                if (FieldingResolver.IsOutfield(live.GlovePos) && scoopedBy == "") ring.Add(live.GlovePos);
+                if (scoopedBy == "" && live.HoldsBall)
+                {
+                    scoopedBy = live.GlovePos;
+                    scoopDist = Diamond.Dist(0, 0, live.BallX, live.BallZ);
+                }
+            });
+
+        Assert.NotEmpty(ring);
+        Assert.All(ring, pos => Assert.Equal("CF", pos));
+        Assert.Equal("CF", scoopedBy);
+        Assert.True(scoopDist > FieldBounds.DistHome(preview.LandingX, preview.LandingZ) + 20,
+            $"the scoop is the wall ({scoopDist:0} ft), not the bounce ({FieldBounds.DistHome(preview.LandingX, preview.LandingZ):0} ft)");
         Assert.NotNull(play);
         Assert.NotEqual(PlayKind.FlyOut, play!.Kind);
         Assert.DoesNotContain(play.Outcome!.OutsMade, o => o.Type == OutType.Catch);
