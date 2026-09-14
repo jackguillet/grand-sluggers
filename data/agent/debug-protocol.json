@@ -191,7 +191,7 @@
       "fix": "SelectPose is Idle. Featured is the step-forward + highlight. SelectDirtY is the plant. SelectExtraMinY ≥ dirt for every captain extra. Cheer stays a field take. Do not shrink a body or per-captain Y-hack.",
       "promoted": "CarnivalFrontTests.SelectCaptainsStayOnTheDirt",
       "issue": "#686",
-      "pr": ""
+      "pr": "#695"
     }
   ]
 }
