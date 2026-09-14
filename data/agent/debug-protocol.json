@@ -111,7 +111,7 @@
       "fix": "Raise batting.window.leadSec to 0.18. Square is plate − 0.18; late edge plate − 0.105. The window stays 9 / 7; the take still warps Contact onto the plate. Do not revert to press + 0.30 as the judgment.",
       "promoted": "AtBatScenarioTests.S07_SquareBatFiveSlapAtTheCenterIsPerfectStraightToCenter",
       "issue": "#670",
-      "pr": ""
+      "pr": "#673"
     }
   ]
 }
