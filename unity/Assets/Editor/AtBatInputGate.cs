@@ -125,9 +125,10 @@ namespace GrandSluggers.EditorTools
             {
                 () => VerifyNormalTap(play),
                 () => VerifyHeldRelease(play),
-                () => VerifyWindupRelease(play),
-                () => VerifyCpuLaunchBoundaryRelease(play),
-                () => VerifyTwoSeatLaunchBoundaryRelease(play),
+                () => VerifyCpuFlightRelease(play),
+                () => VerifyTwoSeatFlightRelease(play),
+                () => VerifyCpuSetReleaseIgnored(play),
+                () => VerifyTwoSeatSetReleaseIgnored(play),
                 () => VerifyKeyboardCannotReleasePadTwo(play),
                 () => VerifyScreenDirections(play),
                 () => VerifyCursorIgnoresCurve(play),
@@ -301,19 +302,57 @@ namespace GrandSluggers.EditorTools
             return new GateCase { name = "held-charge-release", phase = Phase(play), charge = pitch.Charge01 };
         }
 
-        static GateCase VerifyWindupRelease(MatchDirector play)
+        static GateCase VerifyCpuFlightRelease(MatchDirector play)
         {
-            var match = Setup(play, Seats.One, homeAtBat: true);
+            Setup(play, Seats.One, homeAtBat: true);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             Tick(play, "TickSet", State(south: true), State());
-            Invoke(play, "Launch", match.CpuPitch());
-            var releaseAt = Get<float>(play, "_flight");
-            Require(releaseAt < 0, "Fixture did not start inside pitcher windup.");
+            Require(Phase(play) == "Flight" && Get<float>(play, "_flight") < 0,
+                "CPU pitch did not enter its windup while the batter held South.");
+            Require(Get<ChargeButtonState>(play, "_swingButton").Armed && Get<SwingCommand>(play, "_swing") == null,
+                "Batter hold did not carry from SET into the CPU pitch windup.");
             Tick(play, "TickFlight", State(), State());
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
-                "Swing release during pitcher windup was discarded.");
+                "Batter release after entering the CPU pitch windup was discarded.");
             Require(swing.TimingErrorFrames < 0, "Windup release was not recorded as an early swing.");
-            return new GateCase { name = "windup-release", phase = Phase(play), timingFrames = swing.TimingErrorFrames };
+            return new GateCase { name = "cpu-flight-release", phase = Phase(play), timingFrames = swing.TimingErrorFrames };
+        }
+
+        static GateCase VerifyTwoSeatFlightRelease(MatchDirector play)
+        {
+            var match = Setup(play, Seats.Versus);
+            Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
+            Tick(play, "TickSet", State(south: true), State(south: true, stickX: -0.8f));
+            Tick(play, "TickSet", State(), State(south: true, stickX: -0.8f));
+            Require(Phase(play) == "Flight" && Get<float>(play, "_flight") < 0,
+                "Player 1 pitch did not enter its windup while Player 2 held South.");
+            Require(Get<ChargeButtonState>(play, "_swingButton").Armed && Get<SwingCommand>(play, "_swing") == null,
+                "Player 2 hold did not carry from SET into the pitch windup.");
+            var input = Tick(play, "TickFlight", State(), State(west: true, stickX: -0.8f, stickY: 0.6f));
+            var swing = Get<SwingCommand>(play, "_swing");
+            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
+                "Player 2 release after entering Flight was discarded.");
+            Require(swing.TimingErrorFrames < 0, "Player 2 Flight release was not recorded as an early swing.");
+            Require(Math.Abs(input.Pad2X) > StickPlay.Dead && Math.Abs(input.Pad2Y) > StickPlay.Dead,
+                "Player 2 Flight fixture did not produce live release-frame stick input.");
+            Require(input.Pad2Bunt && swing.Bunt && Math.Abs(swing.LaunchAim - input.Pad2Y) < 0.001,
+                "Player 2 Flight release lost its release-frame bunt or launch intent.");
+            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
+                "Player 2 Flight release lost its release-frame spray intent.");
+            Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
+                "Player 2 Flight release captured the prior frame's batter box position.");
+            return new GateCase
+            {
+                name = "two-seat-flight-release",
+                phase = Phase(play),
+                charge = swing.Charge01,
+                timingFrames = swing.TimingErrorFrames,
+                sprayAim = swing.SprayAimDeg,
+                launchAim = swing.LaunchAim,
+                boxOffset = swing.BoxOffsetX,
+                bunt = swing.Bunt
+            };
         }
 
         static GateCase VerifyKeyboardCannotReleasePadTwo(MatchDirector play)
@@ -330,7 +369,7 @@ namespace GrandSluggers.EditorTools
             return new GateCase { name = "keyboard-seat-isolation", phase = Phase(play) };
         }
 
-        static GateCase VerifyCpuLaunchBoundaryRelease(MatchDirector play)
+        static GateCase VerifyCpuSetReleaseIgnored(MatchDirector play)
         {
             var match = Setup(play, Seats.One, homeAtBat: true);
             Tick(play, "TickSet", State(south: true, west: true, stickX: 0.6f, stickY: 0.6f), State());
@@ -339,60 +378,51 @@ namespace GrandSluggers.EditorTools
 
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Phase(play) == "Flight", "CPU pitch did not launch on the batter release frame.");
-            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
-                "Batter release was discarded on the CPU SET-to-Flight frame.");
-            Require(swing.TimingErrorFrames < 0,
-                "CPU-boundary release was not recorded inside the pitcher windup.");
             Require(Math.Abs(input.Pad1X) > StickPlay.Dead && Math.Abs(input.Pad1Y) > StickPlay.Dead,
                 "CPU-boundary fixture did not produce live release-frame stick input.");
-            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad1X)) < 0.001,
-                "CPU-boundary release lost the release-frame spray intent.");
-            Require(input.Pad1Bunt && swing.Bunt && Math.Abs(swing.LaunchAim - input.Pad1Y) < 0.001,
-                "CPU-boundary release lost the release-frame bunt or launch intent.");
-            Require(Math.Abs(swing.BoxOffsetX - match.BatterOffsetX) < 0.001,
-                "CPU-boundary release captured the prior frame's batter box position.");
+            Require(input.Pad1Bunt && match.BatterOffsetX > 0,
+                "CPU-boundary fixture did not exercise the batter's live SET verbs.");
+            Require(!Get<bool>(play, "_swung") && swing == null,
+                "Batter release committed on the CPU SET-to-Flight frame; SET releases are not swings.");
+            Require(!Get<ChargeButtonState>(play, "_swingButton").Armed,
+                "Ignored CPU-boundary SET release remained armed after entering Flight.");
+            Tick(play, "TickFlight", State(west: true, stickX: 0.6f, stickY: 0.6f), State());
+            Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
+                "Ignored CPU-boundary SET release committed one frame late in Flight.");
             return new GateCase
             {
-                name = "cpu-launch-boundary-release",
+                name = "cpu-set-release-ignored",
                 phase = Phase(play),
-                charge = swing.Charge01,
-                timingFrames = swing.TimingErrorFrames,
-                sprayAim = swing.SprayAimDeg,
-                launchAim = swing.LaunchAim,
-                boxOffset = swing.BoxOffsetX,
-                bunt = swing.Bunt
+                boxOffset = match.BatterOffsetX,
+                bunt = input.Pad1Bunt
             };
         }
 
-        static GateCase VerifyTwoSeatLaunchBoundaryRelease(MatchDirector play)
+        static GateCase VerifyTwoSeatSetReleaseIgnored(MatchDirector play)
         {
-            Setup(play, Seats.Versus);
+            var match = Setup(play, Seats.Versus);
             Set(play, "_t", (float)Get<FeelTable>(play, "_feel").PitcherReadySeconds + 0.01f);
             Tick(play, "TickSet", State(south: true), State(south: true, stickX: -0.8f));
             var input = Tick(play, "TickSet", State(), State(stickX: -0.8f));
 
             var swing = Get<SwingCommand>(play, "_swing");
             Require(Phase(play) == "Flight", "Player 1 pitch did not launch on the simultaneous release frame.");
-            Require(Get<bool>(play, "_swung") && swing != null && swing.Swing,
-                "Player 2 batter release was discarded on the shared SET-to-Flight frame.");
-            Require(swing.TimingErrorFrames < 0,
-                "Two-seat boundary release was not recorded inside the pitcher windup.");
             Require(Math.Abs(input.Pad2X) > StickPlay.Dead,
                 "Two-seat fixture did not produce live Player 2 release-frame stick input.");
-            Require(Math.Abs(swing.SprayAimDeg - AtBatResolver.SprayAimDeg(input.Pad2X)) < 0.001,
-                "Two-seat boundary release lost Player 2's release-frame spray intent.");
-            Require(Math.Abs(swing.BoxOffsetX - Get<Match>(play, "_match").BatterOffsetX) < 0.001,
-                "Two-seat boundary release captured the prior frame's batter box position.");
+            Require(match.BatterOffsetX < 0,
+                "Two-seat boundary fixture did not exercise Player 2's live SET walk.");
+            Require(!Get<bool>(play, "_swung") && swing == null,
+                "Player 2 release committed on the shared SET-to-Flight frame; SET releases are not swings.");
+            Require(!Get<ChargeButtonState>(play, "_swingButton").Armed,
+                "Ignored Player 2 SET release remained armed after entering Flight.");
+            Tick(play, "TickFlight", State(), State(stickX: -0.8f));
+            Require(!Get<bool>(play, "_swung") && Get<SwingCommand>(play, "_swing") == null,
+                "Ignored Player 2 SET release committed one frame late in Flight.");
             return new GateCase
             {
-                name = "two-seat-launch-boundary-release",
+                name = "two-seat-set-release-ignored",
                 phase = Phase(play),
-                charge = swing.Charge01,
-                timingFrames = swing.TimingErrorFrames,
-                sprayAim = swing.SprayAimDeg,
-                launchAim = swing.LaunchAim,
-                boxOffset = swing.BoxOffsetX,
-                bunt = swing.Bunt
+                boxOffset = match.BatterOffsetX
             };
         }
 
@@ -455,7 +485,7 @@ namespace GrandSluggers.EditorTools
             for (var frame = 0; frame < 6; frame++)
                 Tick(play, "TickSet", padTwo ? State() : hold, padTwo ? hold : State());
             Require(Phase(play) == "Set", "Held South launched before release.");
-            Require(Get<string>(play, "ShownPitchType") == "changeup" || Get<object>(play, "_swapPick") == null,
+            Require(GetProperty<string>(play, "ShownPitchType") == "changeup" || Get<object>(play, "_swapPick") == null,
                 "West hold did not read CHANGE on the card.");
             Tick(play, "TickSet", padTwo ? State() : release, padTwo ? release : State());
             var pitch = Get<PitchCommand>(play, "_pitch");
@@ -564,6 +594,8 @@ namespace GrandSluggers.EditorTools
         static string Phase(MatchDirector play) => Get<object>(play, "_phase").ToString();
         static T Get<T>(object owner, string name) =>
             (T)owner.GetType().GetField(name, Hidden)!.GetValue(owner);
+        static T GetProperty<T>(object owner, string name) =>
+            (T)owner.GetType().GetProperty(name, Hidden)!.GetValue(owner);
         static void Set(object owner, string name, object value) =>
             owner.GetType().GetField(name, Hidden)!.SetValue(owner, value);
         static void SetStatic(Type owner, string name, object value) =>

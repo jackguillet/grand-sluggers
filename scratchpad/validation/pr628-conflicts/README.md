@@ -24,3 +24,7 @@ Stills:
 Read-only look critic: the body and ready barrel survive import, with the full toy inside the turntable. Left ready has weaker grip visibility. Contact appears upright with hands near the pelvis, relating to the screenshot gate's “a stiff upright body” rejection. Ready shoes appear partly sunk into dirt; static sheets cannot establish motion rhythm. These observations are not attributed to the conflict resolution and remain part of the draft PR's human review. No human gate was passed.
 
 The Unity capture completed successfully; its log also contains AnimationEvent receiver warnings and an editor UI ArgumentOutOfRangeException. The rendered matrix is a geometry check, not a claim that the editor log or gameplay acceptance is clean.
+
+## Follow-up after PR 631 merged
+
+Merged main `0b1340b`. Kept PR 628's coroutine runner and four live pitch-motion cases; registered all 13 corrected SET/Flight cases from PR 631 inside that runner. GUI Unity completed **17/17 cases**, including both hands and charge levels. [Input/motion evidence](at-bat-input-after-631.json). Narrow Unity compile passed.
