@@ -626,8 +626,6 @@ public sealed partial class LivePlaySystem
         var step = InPlay.ThrowToBag(
             bag, Forces, present, runnerBeats, _match.Outs, ForceRecorded,
             fielder?.Name ?? "", _match.Batter.Name);
-        _trace?.Mark(PlayTraceMarkKind.Verdict, ElapsedSeconds, fielder?.Id, bag,
-            target is null ? null : PlayTraceRunner.Of(target), verdict: step.Verdict);
         Throws++;
         // The out is recorded first (§10.4, A.5 #49): a retire that fails (nobody to retire, three outs already)
         // narrates nothing and flags nothing.
@@ -647,7 +645,12 @@ public sealed partial class LivePlaySystem
         }
         if (step.TurnedTwo) TurnedTwo = true;
         if (!step.Out && runnerBeats && target is not null && step.Verdict is not InPlay.ThrowVerdict.None)
+        {
             target.Arrive(bag, ElapsedSeconds); // beat the throw: the bag is theirs
+            _trace?.Mark(PlayTraceMarkKind.RunnerAward, ElapsedSeconds, fielder?.Id, bag, PlayTraceRunner.Of(target));
+        }
+        _trace?.Mark(PlayTraceMarkKind.Verdict, ElapsedSeconds, fielder?.Id, bag,
+            target is null ? null : PlayTraceRunner.Of(target), verdict: step.Verdict);
         return new LivePlayCommandResult(Snapshot, step);
     }
 
