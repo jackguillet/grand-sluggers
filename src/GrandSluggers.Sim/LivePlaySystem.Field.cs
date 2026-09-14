@@ -90,7 +90,11 @@ public enum LiveEvent
     /// <summary>The glove fumbled the ball (§8.6): it is loose on the ground.</summary>
     Bobble,
     /// <summary>A runner is caught between bags with the ball in range (§9.7): the rundown began.</summary>
-    Rundown
+    Rundown,
+    /// <summary>An out was recorded this frame (§15, #690): OUT / DIVE / JUMP at the glove or bag.</summary>
+    StampOut,
+    /// <summary>A runner crossed the plate this frame (§15, #690): SCORE at home.</summary>
+    StampScore
 }
 
 /// <summary>
@@ -108,6 +112,9 @@ public sealed partial class LivePlaySystem
     /// <summary>The human glove's lockouts (§8.2): the reference numbers at every difficulty rung.</summary>
     readonly Dictionary<string, double> _readyHuman = new(StringComparer.OrdinalIgnoreCase);
     readonly List<LiveEvent> _events = [];
+    readonly List<LiveStamp> _stamps = [];
+    readonly List<LiveStamp> _stampsThisPlay = [];
+    readonly HashSet<Runner> _scoreTold = [];
     bool _gloved;
     bool _recoilArmed;
     bool _wallCued;
@@ -250,6 +257,12 @@ public sealed partial class LivePlaySystem
     /// <summary>Cues raised by the most recent command.</summary>
     public IReadOnlyList<LiveEvent> Events => _events;
 
+    /// <summary>Live tells raised by the most recent command (§15, #690).</summary>
+    public IReadOnlyList<LiveStamp> Stamps => _stamps;
+
+    /// <summary>Every live tell this play, in order. Cleared on the next Begin, not at Time.</summary>
+    public IReadOnlyList<LiveStamp> StampsThisPlay => _stampsThisPlay;
+
     /// <summary>The glove owns the ball (a catch or a buddy jump).</summary>
     public bool HoldsBall => Caught || Buddy;
 
@@ -333,6 +346,9 @@ public sealed partial class LivePlaySystem
             return new LivePlayCommandResult(Snapshot);
         ResetField();
         _events.Clear();
+        _stamps.Clear();
+        _stampsThisPlay.Clear();
+        _scoreTold.Clear();
         Pitch = command.Pitch;
         Swing = command.Swing;
         Hit = command.Hit;
@@ -481,6 +497,7 @@ public sealed partial class LivePlaySystem
     LivePlayCommandResult Tick(LivePlayCommand command)
     {
         _events.Clear();
+        _stamps.Clear();
         var dt = command.DeltaSeconds;
         // Ownership of a press is decided here, once, from the seats: the offense pad never
         // reaches the gloves and the defense pad never reaches the runners (spec §0.4, #579).
@@ -2115,7 +2132,7 @@ public sealed partial class LivePlaySystem
         var map = Assigned();
         var who = map.TryGetValue(receiverPos, out var r) ? r.Name : "the cover";
         Sub = $"It sails past {who}!";
-        _events.Add(LiveEvent.ThrowSailed);
+        RaiseStamp(PlayStamp.ErrorTell());
         var dx = ThrowTo.X - ThrowFrom.X;
         var dz = ThrowTo.Z - ThrowFrom.Z;
         var len = Math.Sqrt(dx * dx + dz * dz);
@@ -2247,6 +2264,25 @@ public sealed partial class LivePlaySystem
         return (false, false);
     }
 
+    /// <summary>A live tell this frame and this play (§15, #690). Geometry already decided; this is the sticker.</summary>
+    void RaiseStamp(LiveStamp stamp)
+    {
+        if (string.IsNullOrEmpty(stamp.Word)) return;
+        _stamps.Add(stamp);
+        _stampsThisPlay.Add(stamp);
+        _events.Add(PlayStamp.Cue(stamp));
+    }
+
+    /// <summary>A body that just crossed home: SCORE at the plate, once per runner.</summary>
+    void StampNewScores()
+    {
+        foreach (var runner in Runners)
+        {
+            if (!runner.Scored || !_scoreTold.Add(runner)) continue;
+            RaiseStamp(PlayStamp.ScoreTell());
+        }
+    }
+
     /// <summary>The runner in ahead of the throw by no more than the margin (§9.6): the small SAFE, at a bag or across the plate.</summary>
     void MaybeStampCloseSafe(int bag)
     {
@@ -2254,8 +2290,8 @@ public sealed partial class LivePlaySystem
             ? Runners.FirstOrDefault(r => r.Scored && !double.IsNaN(r.ScoredAt))
             : Runners.FirstOrDefault(r => r.Live && r.IsOn(bag));
         if (runner is null || double.IsNaN(runner.LastTouchAt)) return;
-        if (InPlay.CloseSafe(ElapsedSeconds, runner.LastTouchAt, R))
-            _events.Add(LiveEvent.StampSafe);
+        if (InPlay.CloseSafe(ElapsedSeconds, runner.LastTouchAt, R) && bag != 4)
+            RaiseStamp(PlayStamp.SafeTell(bag));
     }
 
     /// <summary>The body on the ball: the glove that holds or chases it.</summary>
@@ -2583,7 +2619,8 @@ public sealed partial class LivePlaySystem
         else
             ApplyThrow(CloseBag, safe, PlayFielder());
         Sub = ClosePlay.Caption(CloseBag, safe);
-        if (safe) _events.Add(LiveEvent.StampSafe);
+        StampNewScores();
+        if (safe && CloseBag != 4) RaiseStamp(PlayStamp.SafeTell(CloseBag));
         _match.CreditClosePlay(safe ? runner : fielder);
         _closeRunner = null;
         InClosePlay = false;
@@ -2635,6 +2672,9 @@ public sealed partial class LivePlaySystem
         if (pitch is null) return new LivePlayCommandResult(Snapshot);
         Reset();
         _events.Clear();
+        _stamps.Clear();
+        _stampsThisPlay.Clear();
+        _scoreTold.Clear();
         RunnerPlay = true;
         PickoffBag = pickoffBag;
         StealPitch = pitch;
