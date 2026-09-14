@@ -78,6 +78,12 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **Acceptance:** preserve the existing 50-game mixed-park cohort; add a Harbor-only cohort and predeclared disjoint validation seeds. Report per-side means and play kinds, fixture event budgets, and seat parity. Score alone cannot pass feel.
 
+### F693-06-H — Harbor-specific scoring scope
+
+**State: pending human decision.** [The #702 report](research-game-feel-702.md) finds the mixed-park S-29 cohort at 1.90 home / 1.92 away, Harbor calibration at 1.90 / 1.38, and Harbor validation at 1.60 / 2.30. The existing accepted 1.8–5 band applies only to S-29's mixed-park cohort.
+
+**Recommendation:** apply the same mean-runs target to Harbor-specific calibration and validation cohorts, separately home and away, while retaining S-29. This is a scope proposal, not an accepted gate or tuning change. Keep cohort results and extra-base/relay opportunity visible; geometry still decides outcomes. Jack's approval remains pending.
+
 ### F693-07 — Spectator pacing and couch acceptance
 
 **State:** design intent accepted by Jack on September 14, 2026: **brisk routine beats, on the slower/more deliberate side**, with additional emphasis for big moments. After a routine dead-ball result, give the result and a brief character reaction enough time to register before returning to play. Jack explicitly requires comparison with Mario; do not interpret brisk as an immediate reset.

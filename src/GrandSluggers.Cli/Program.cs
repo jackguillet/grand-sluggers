@@ -15,8 +15,12 @@ switch (cmd)
         var cohortAt = Array.IndexOf(args, "--cohort");
         if (cohortAt >= 0)
         {
-            if (cohortAt + 1 >= args.Length || args.Contains("--trace"))
-                throw new ArgumentException("match --cohort requires a name and does not accept --trace; use individual matches for traces");
+            if (cohortAt != 1 || args.Length != 3 || !RaceCohort.Names.Contains(args[2]))
+            {
+                Console.Error.WriteLine("Use match --cohort s29|harbor-calibration|harbor-validation without overrides; each cohort fixes its seeds, parks and matchups.");
+                Environment.ExitCode = 2;
+                break;
+            }
             Console.WriteLine(RaceCohort.Run(content, args[cohortAt + 1]).ToJson());
             break;
         }
