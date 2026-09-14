@@ -58,6 +58,8 @@
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
     "clamberRadiusFt": 6,
+    // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
+    // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 4,
     "diveReachFt": 8,
     "jumpReachFt": 8,

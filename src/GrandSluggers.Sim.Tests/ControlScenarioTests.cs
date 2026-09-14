@@ -349,8 +349,9 @@ public sealed class ControlScenarioTests
         var route = FieldingPursuit.Plan(preview, match.Park, preview.Ball!.Samples, 0, cfStart.X, cfStart.Z,
             FieldingResolver.ChaseSpeedFt(cf, "CF", preview, match.Rules), match.Rules,
             match.Rules.Fielding.Reaction.LockoutSec("CF"));
-        var window = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), false, false, match.Rules);
-        Assert.True(route.MissFt < window, $"the fixture: CF reaches the plant (miss {route.MissFt:0.0} < window {window:0.0})");
+        var standUp = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), false, false, match.Rules);
+        var diveWin = FieldingResolver.CatchWindowFt(FieldingResolver.CatchRadiusFt(cf, match.Park, match.Rules), true, false, match.Rules);
+        Assert.True(route.MissFt < diveWin, $"the fixture: CF reaches standing or diving (miss {route.MissFt:0.0} < dive {diveWin:0.0}, stand-up {standUp:0.0})");
 
         var catcher = "";
         var play = Run(match, seats, hit, (_, _) => LivePadInput.Dead, (live, _) =>
@@ -365,6 +366,22 @@ public sealed class ControlScenarioTests
         Assert.Equal(cf.Id, only.Fielder?.Id);
         if (catcher != "")
             Assert.True(FieldingResolver.IsOutfield(catcher), $"CF holds it, not {catcher}");
+    }
+
+    // #669: a routine fly the glove plants under is stand-up (not DIVE). Same 1P / CPU.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ARoutineFlyTheGlovePlantsUnderIsStandUpNotADive(bool human)
+    {
+        var (match, seats) = human ? HumanDefense(true) : CpuDefense();
+        var hit = FlightFixtures.Hit(match.Park, 88, 32, 0);
+        Assert.Equal(BattedBallClass.Fly, hit.Class);
+        var play = Run(match, seats, hit, (_, _) => LivePadInput.Dead, null);
+        Assert.NotNull(play);
+        Assert.Equal(PlayKind.FlyOut, play!.Kind);
+        Assert.Equal(DefensiveFeat.None, play.Outcome!.DefensiveFeat);
+        Assert.Equal("OUT", PlayStamp.Label(play.Kind, 1, 0, feat: play.Outcome.DefensiveFeat));
     }
 
     [Fact]
