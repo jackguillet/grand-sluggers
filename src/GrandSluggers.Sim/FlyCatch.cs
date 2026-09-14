@@ -89,8 +89,8 @@ public static class FlyCatch
     {
         _ = ballX;
         _ = ballZ;
-        // The landing ring is the catch. Live XZ while the ball is still up
-        // is the home-first miss — standing in the circle was a drop.
+        // The landing ring is the stand-up catch (§8.3, #669). Live XZ while the
+        // ball is still up is the home-first miss — standing in the circle was a drop.
         var reach = needsJump ? Math.Max(windowFt, Rules.Or(rules).Fielding.Catch.NeedsJumpReachFt) : windowFt;
         return Diamond.Dist(gloveX, gloveZ, plantX, plantZ) < reach;
     }
@@ -108,16 +108,56 @@ public static class FlyCatch
         bool canRob = true) =>
         (jumpDown && inWindow && under && (!needsJump || canRob)) || (southDown && under && !needsJump);
 
-    public static bool PlayerDiveCatch(bool diveArmed, double distFt, double windowFt, double ballY, RulesTable? rules = null) =>
-        diveArmed && distFt < windowFt && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
+    /// <summary>
+    /// East dive at the rim (#669): past the stand-up ring, inside dive reach, ball low
+    /// enough. A plant catch is stand-up even if East is armed.
+    /// </summary>
+    public static bool PlayerDiveCatch(
+        bool diveArmed,
+        double distFt,
+        double standUpFt,
+        double diveWindowFt,
+        double ballY,
+        RulesTable? rules = null) =>
+        diveArmed && NeedsDive(distFt, standUpFt, diveWindowFt, ballY, rules);
+
+    /// <summary>Past the stand-up ring, inside dive reach, ball below <c>diveMaxBallY</c>.</summary>
+    public static bool NeedsDive(
+        double distFt,
+        double standUpFt,
+        double diveWindowFt,
+        double ballY,
+        RulesTable? rules = null) =>
+        distFt >= standUpFt
+        && distFt < diveWindowFt
+        && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
     /// <summary>
-    /// Dead-stick / CPU: under a routine fly in the window is a catch. Not a rob unless
+    /// Dead-stick / CPU: under a routine fly in the window is a stand-up catch. Not a rob unless
     /// <paramref name="canRob"/>. A liner on the glove before the bounce is a catch even
-    /// outside the hang window (§7.6): the intercept is the window.
+    /// outside the hang window (§7.6): the intercept is the window. The rim is
+    /// <see cref="AutoDive"/>, not this.
     /// </summary>
     public static bool AutoCatch(bool under, bool inWindow, bool needsJump, bool canRob = false, bool linerInAir = false) =>
         under && (!needsJump || canRob) && (inWindow || linerInAir);
+
+    /// <summary>
+    /// Dead-stick / CPU at the rim (#669): inside dive reach, past the stand-up ring, ball
+    /// low enough. Not a rob. The body dives; it does not stand-up catch from off the plant.
+    /// </summary>
+    public static bool AutoDive(
+        bool underDive,
+        bool underStandUp,
+        bool inWindow,
+        bool needsJump,
+        double ballY,
+        bool linerInAir = false,
+        RulesTable? rules = null) =>
+        !underStandUp
+        && underDive
+        && !needsJump
+        && (inWindow || linerInAir)
+        && ballY < Rules.Or(rules).Fielding.Catch.DiveMaxBallY;
 
     /// <summary>
     /// Where the glove has to be to hold this ball. A fly is the landing ring (§8.3). A liner is
