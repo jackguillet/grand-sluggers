@@ -211,7 +211,7 @@
       "fix": "ThrowTrail.DestinationLine is false for every catalog kind=throw slot. Chemistry tints the ball trail (ThrowTrail.BallRgb / BallView.SetTrailColor after Place). Keep the VFX slots; do not draw a line through the dirt.",
       "promoted": "ThrowTrailTests.CatalogThrowVfxNeverDrawADestinationLine",
       "issue": "#689",
-      "pr": ""
+      "pr": "#699"
     }
   ]
 }
