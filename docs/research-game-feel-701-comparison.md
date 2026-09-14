@@ -49,6 +49,8 @@ The Wii sample displays wide gameplay content. The GameCube upload contains a na
 
 The two throwers differ in body, pose, position, and camera phase. Pixel size here cannot establish world-space body/basepath or fence/basepath ratios. No ratio is selected from these screenshots. The existing GameCube stadium survey remains **community-reported evidence for a shallower outfield**, with basepath shrink still unestablished; see [foundation §3](research-game-feel-693.md#3-geometry-and-proportions).
 
+The [field-proportion follow-up](research-game-feel-701-geometry.md) adds an original Wii running survey, a GameCube coordinate-report lead, and explicit sensitivity calculations. Its compact-field candidate is pending and incomplete; it supplies no accepted dimensions or verified stock timing sample.
+
 ## Reproduction and coverage
 
 Open each timestamped source, verify the title and play, set normal playback, and use the visible seek/frame-step controls. Read the media timestamp, allow the new image to settle, then identify the event. Do not record a loading spinner, old frame, or recommendation panel as the sought game state. Keep the last clearly-before and first clearly-after observation and round bounds outward. For duration A→B use `[B.low − A.high, B.high − A.low]`.
