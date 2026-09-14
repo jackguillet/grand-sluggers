@@ -218,14 +218,14 @@ public sealed class FieldingResolver
         OutfieldGrass(ballX, ballZ, rules) || OutfieldGrass(landingX, landingZ, rules);
 
     /// <summary>
-    /// Still up: fly or liner, hang not due, height above a hop.
+    /// Still up: fly or liner, hang not due, height above a hop (<c>catch.inAirMinY</c>).
     /// A hopper is never in the air for chase — they charge the live ball.
     /// </summary>
-    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null)
+    public static bool InAir(FieldingPreview pre, double ballY, double hitT, double? hangSec = null, RulesTable? rules = null)
     {
         if (pre.Grounder) return false;
         var hang = hangSec ?? pre.HangTimeSec;
-        return hitT < hang && ballY > 0.75;
+        return hitT < hang && ballY > Rules.Or(rules).Fielding.Catch.InAirMinY;
     }
 
     /// <summary>

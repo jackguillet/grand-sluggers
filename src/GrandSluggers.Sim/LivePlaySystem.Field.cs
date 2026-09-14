@@ -747,11 +747,12 @@ public sealed partial class LivePlaySystem
             else
             {
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var under = FlyCatch.Under(GloveX, GloveZ, BallX, BallZ, plant.X, plant.Z, window, needsJump, R);
+                var under = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, window,
+                    ElapsedSeconds, hang, needsJump, R);
                 var jumpTry = JumpT > 0 && FlyCatch.HighEnough(BallY, needsJump || buddyOn, R);
                 var buddyRob = buddyOn && Diamond.Dist(GloveX, GloveZ, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = !needsJump || FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyRob, R);
-                if (stick < stickTake && FlyCatch.AutoCatch(under, inWin, needsJump))
+                if (stick < stickTake && FlyCatch.AutoCatch(under, inWin, needsJump, canRob: false, linerInAir: pre.Line && ElapsedSeconds < hang))
                     TakeBattedBall();
                 if (FlyCatch.PlayerCaught(jumpTry, pad.SouthDown, under, inWin, needsJump, canRob))
                 {
@@ -860,12 +861,13 @@ public sealed partial class LivePlaySystem
                 var needsJump = FlyCatch.NeedsJump(pre);
                 var who = PlayFielder();
                 var inWin = FlyCatch.JumpWindow(ElapsedSeconds, hang, who, Park, R);
-                var under = FlyCatch.Under(GloveX, GloveZ, BallX, BallZ, plant.X, plant.Z, cpuWindow, needsJump, R);
+                var under = FlyCatch.InPosition(pre, GloveX, GloveZ, BallX, BallZ, BallY, plant.X, plant.Z, cpuWindow,
+                    ElapsedSeconds, hang, needsJump, R);
                 var buddyOn = FieldingResolver.BuddyJumpOffered(pre);
                 var buddyAt = buddyOn && !string.IsNullOrEmpty(BuddyPos) && _fielders.TryGetValue(BuddyPos, out var buddySpot)
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
-                if (FlyCatch.AutoCatch(under, inWin, needsJump, canRob))
+                if (FlyCatch.AutoCatch(under, inWin, needsJump, canRob, linerInAir: pre.Line && ElapsedSeconds < hang))
                 {
                     // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream.
                     if (!_dropRolled)
@@ -1503,7 +1505,7 @@ public sealed partial class LivePlaySystem
         }
         var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
         var hang = Hang;
-        var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, hang);
+        var airborne = FieldingResolver.InAir(pre, live.Y, ElapsedSeconds, hang, R);
         var airTarget = FlyCatch.ChaseTarget(pre, Park, R);
         TryHandoffOutfield(map, airborne ? airTarget.X : live.X, airborne ? airTarget.Z : live.Z, airborne);
         if (!CanMove(GlovePos)) return;
@@ -1608,7 +1610,7 @@ public sealed partial class LivePlaySystem
         if (HoldsBall || Throwing || _loose) return;
         var live = BallFlight.PointAt(Path, ElapsedSeconds, R);
         var hang = Hang;
-        var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, hang);
+        var inAir = FieldingResolver.InAir(Preview, live.Y, ElapsedSeconds, hang, R);
         var plant = FlyCatch.ChaseTarget(Preview, Park, R);
         if (!FieldingResolver.OutfieldShouldCharge(live.X, live.Z, plant.X, plant.Z, R))
             return;
