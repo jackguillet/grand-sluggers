@@ -29,3 +29,5 @@ Process termination can leave `Temp/__Backupscenes` behind. Do not routinely sto
 If recovery appears, preserve the backup through the dialog before continuing. The observed backup was retained as `unity/Assets/_Recovery/0.unity` in the PR 628 worktree. Do not delete recovery data to suppress the dialog or overwrite the authored Harbor scene with a captured test scene.
 
 The earlier validation editor was stopped with SIGTERM; this is a likely contributor to that worktree's recovery prompt. A subsequent normal Quit completed cleanup and package-manager shutdown. A recovery prompt by itself does not establish a Unity crash.
+
+The delivery script also previously sent SIGTERM after every build. It now opts its owned editor into `GS_BUILD_QUIT_WHEN_DONE`; PlayerBuildGate writes durable `GS_BUILD_EVIDENCE` outside Temp and calls `EditorApplication.Exit` after reporting success or failure. Manual menu builds remain open. A stalled editor is left for inspection instead of being terminated.
