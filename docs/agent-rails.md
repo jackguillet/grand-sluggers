@@ -142,7 +142,7 @@ Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc ga
 
 ## 6. Stage-save DCC
 
-✅ **R6 #653.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
+✅ **R6 #653 / #662.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
 
 `data/agent/dcc-stages.json` (name stable) holds the five stages. Load with `DccStages.Load` or `dotnet run --project src/GrandSluggers.Cli -- stages`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing. One-shot is `banned`.
 
@@ -227,7 +227,7 @@ Parent: **#647**. Sequence: R1 with the spec PR; R2 ∥ R3; R4 ∥ R6 after or b
 | **R3. Play traces** #650 | §3, G4 | ✅ #657. Tick JSON of ball / runner / glove / bag. One test per a grounder, a fly, a tag, a steal. S-29 unchanged. | #209 | After R1; ∥ R2 |
 | **R4. Dual stills** #651 | §4, G5, G6 | ✅ #659. `data/agent/dual-stills.json` + `tools/dcc-still.sh` + look-critic. DCC still + in-game still required in the PR. Critic files, does not pass. | #188 | After R1; ∥ R6 |
 | **R5. Unity observation** #652 | §5, G7 | CLI/MCP can capture stills and read console. Deny-list documented and enforced. No PhysX outs. | #188, presentation | Later; after R3/R4 |
-| **R6. Stage-save DCC** #653 | §6, G8 | character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. `data/agent/dcc-stages.json` + `cli stages`. | #188 | With or after R4 |
+| **R6. Stage-save DCC** #653 | §6, G8 | ✅ #662. character-art skill + harbor kit name the stages. A still at each. One-shot banned in the skill. `data/agent/dcc-stages.json` + `cli stages`. | #188 | With or after R4 |
 | **R7. Distill** #654 | §7, G2, G9 | ✅ #660. Playbook §5 is file + append + promote-on-second. character-art grew from `swing-*-max-load` (#623). Promoted signatures name a real test. | #209, #188 | After R2 |
 
 ### Banned on every child
