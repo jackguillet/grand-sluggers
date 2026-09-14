@@ -122,6 +122,16 @@
       "promoted": "PlayCameraTests.ALinerAndAHopperDoNotShareAShot",
       "issue": "#665",
       "pr": "#675"
+    },
+    {
+      "id": "of-glove-nearest-at-bounce",
+      "signature": "outfielders take a bad line; a ball to right-center activates RF because he starts closer; the ball rolls to the wall and CF would have gotten there quicker",
+      "stage": "sitting",
+      "cause": "FieldingPursuit.cs:42-47 Plan: while InAir the route is FlyCatch.ChaseTarget — the landing, not the roll after the hop. A liner/hopper that bounces in RC is still InAir at contact (!Grounder && hitT < hang && ballY > 0.75), so RF wins the bounce. D17 then keeps RF while his route meets a sample, even if CF reaches the wall first. PlayGlove nearest-OF is only the no-path fallback.",
+      "fix": "Plan uses the plant for a fly, and for a liner this body can take in the air. A liner still up that this body cannot catch uses Rolling — first reachable point on the roll. Choose among LF/CF/RF at the grass hand-off is that route. Do not re-pick per frame (D16).",
+      "promoted": "FieldingPursuitTests.ALinerThatBouncesInTheGapAndRollsToTheWallIsTheOutfielderWhoMeetsTheRoll",
+      "issue": "#667",
+      "pr": ""
     }
   ]
 }

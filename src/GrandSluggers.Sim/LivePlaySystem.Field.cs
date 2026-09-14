@@ -1519,10 +1519,11 @@ public sealed partial class LivePlaySystem
     }
 
     /// <summary>
-    /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air) is on the outfield grass, the play glove moves
-    /// to the outfielder whose route meets it earliest (D16) — and never while the current glove still has a route to it (D17, S-96 on
-    /// the ground, S-97 in the air, #636): the body keeps the ball as long as its own route reaches it no later than that outfielder's,
-    /// or the ball is inside its reach. Never by the ball's position alone; one way only. The infield's reach on a ball in the air is
+    /// The infield → outfield hand-off (§8.9): once the ball (its plant while in the air, or the first reachable point on a liner
+    /// that will bounce, #667) is on the outfield grass, the play glove moves to the outfielder whose route meets it earliest
+    /// (D16) — and never while the current glove still has a route to it (D17, S-96 on the ground, S-97 in the air, #636): the
+    /// body keeps the ball as long as its own route reaches it no later than that outfielder's, or the ball is inside its reach.
+    /// Never by the ball's position alone; one way only. The infield's reach on a ball in the air is
     /// <c>fielding.chase.infieldAirMul</c> (§8.1): the S-29 band is held there, not by giving the liner away.
     /// </summary>
     void TryHandoffOutfield(Dictionary<string, Character> map, double ballX, double ballZ, bool airborne)
@@ -1537,7 +1538,7 @@ public sealed partial class LivePlaySystem
         var of = FieldingPursuit.Choose(
             map, FieldingResolver.OutfieldPursuitPositions, Preview, Park, Path, _fielders, ElapsedSeconds, R, _readyAt);
         // D17, in the air and on the ground alike: the glove keeps the ball while its own route still meets it no later than the
-        // outfielder's (the plant on a ball in the air, the first reachable sample on a roller).
+        // outfielder's (the plant on a fly, the first reachable sample on a roller or a liner that will bounce).
         var who = map.TryGetValue(GlovePos, out var c) ? c : Preview.Fielder;
         var speed = FieldingResolver.ChaseSpeedFt(who, GlovePos, Preview, R);
         var mine = FieldingPursuit.Plan(Preview, Park, Path, ElapsedSeconds, GloveX, GloveZ, speed, R, ReadyAt(GlovePos));
