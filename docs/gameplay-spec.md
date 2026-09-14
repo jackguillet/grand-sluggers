@@ -72,6 +72,8 @@ Under F693-03, Jack accepted **quick release and readable travel, with a visibly
 
 Under F693-04, Jack accepted **hard liners rewarding existing positioning over post-contact reaction** on September 14, 2026. A readable hard liner may pass before a fielder can reposition; grounders and flies retain their distinct pickup/throw and pursuit/catch opportunities. Do not make every contact uniformly forgiving. Catchability remains geometric, with no new positioning verb or change to D18 assistance. Reference-informed speed, trajectory, and timing bounds remain pending.
 
+Under F693-07, Jack accepted **brisk routine dead-ball beats on the slower/more deliberate side**, with more emphasis for big moments, on September 14, 2026. The result and a brief reaction must register before the reset. Compare Wii and GameCube pacing before selecting durations. This applies after a play ends; live player decisions, D7’s pitch-pace hold, and the existing on-field presentation contract remain in force. Timing targets and human acceptance remain pending.
+
 This section adds a decision/evidence rail, **not** new gameplay coefficients. The current-code baseline and unimplemented measurement work are listed in the plan.
 
 ## 1. Match rules
