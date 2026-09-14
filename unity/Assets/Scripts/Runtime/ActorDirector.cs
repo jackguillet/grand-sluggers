@@ -492,6 +492,18 @@ namespace GrandSluggers.UnityClient
         {
             var ids = PresetTeams.CaptainIds;
             var pick = _phase == Phase.Select;
+            if (!CarnivalFront.TitlePlacesBody(pick))
+            {
+                // Title is wordmark + dirt. Unused heroes go inactive in DrawActors (#685).
+                _card?.Hide();
+                if (_logo == null) _logo = LogoToy.Attach(transform);
+                var titleShot = _content.Shots.Must("title");
+                _logo.Show(
+                    CarnivalFront.Logo,
+                    new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
+                    new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
+                return;
+            }
             for (var i = 0; i < ids.Length; i++)
             {
                 var who = _content.Must(ids[i]);
@@ -506,25 +518,10 @@ namespace GrandSluggers.UnityClient
                 hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
                 hero.Place(new Vector3(spot.X, 0f, spot.Z), new Vector3(0f, 0f, -1f), pinned: true);
                 hero.Tick(Time.deltaTime);
-                if (!pick && !yours)
-                    hero.gameObject.SetActive(false);
             }
-            if (pick)
-            {
-                _logo?.Hide();
-                // HUD is the select card. World placard covered the toys (#354).
-                _card?.Hide();
-            }
-            else
-            {
-                _card?.Hide();
-                if (_logo == null) _logo = LogoToy.Attach(transform);
-                var titleShot = _content.Shots.Must("title");
-                _logo.Show(
-                    CarnivalFront.Logo,
-                    new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
-                    new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
-            }
+            _logo?.Hide();
+            // HUD is the select card. World placard covered the toys (#354).
+            _card?.Hide();
         }
 
         void PlaceLineupBoard()

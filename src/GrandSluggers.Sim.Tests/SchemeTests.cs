@@ -155,6 +155,7 @@ public class SchemeTests
             Assert.Contains(HowToPlay.Must("fielding").Shown(scheme), l => l.Contains("Shadow tracks ball"));
         Assert.True(HowToPlay.Mentions("does not follow"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("sticker") && l.Contains("over the infield"));
+        Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("No captain on the title"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("postcard"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("toys"));
         Assert.Contains(HowToPlay.Must("exhibition").Lines, l => l.Contains("brim"));
