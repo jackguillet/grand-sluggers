@@ -38,6 +38,26 @@ Do not simply set the existing multipliers to 1. That would speed current airbor
 
 The #702 trace contract should distinguish input, movement eligibility, first displacement, movement mode/modifiers, actual velocity, possession, and the remaining throw/runner events. Compare the same character/input across grounder, liner, fly, post-bounce, loose-ball, and possession transitions, plus infield/outfield assignments and both seats. Gameplay fixtures must retain hard-liner positioning, short-pop catches, ordinary infield outs, and live gap/wall/relay opportunities. The standalone review must check control response and footfalls as well as race duration.
 
+## Next human choice — F693-02 movement weight
+
+**Recommendation, awaiting Jack:** ordinary pursuit should have a brief build-up to running speed and quick course corrections, with little residual drift when the desired movement changes. Slower sustained speed can preserve chase time in the compact field while the character responds promptly once movement is allowed. This is a proposed feel direction, not a measured Nintendo acceleration curve or an approved duration.
+
+**Alternative:** heavier momentum, with more time required to build speed, brake, and reverse. Routes become more committed, and a wrong first step costs more recovery time. That can express weight, but also reduces the player's ability to adjust under a fly or recover toward a rolling ball. Neither option guarantees an interception or changes the accepted hard-liner positioning requirement.
+
+The current implementation separates several things that this decision must not conflate:
+
+- **Physical movement:** ordinary stick integration directly applies `stick × speed × dt`; `StepToward` directly applies speed toward the target. There is no ordinary pursuit acceleration/braking ramp in these paths. Changing the intended direction changes the displacement direction immediately after movement eligibility.
+- **Visible facing:** [BodyFacing.cs](../src/GrandSluggers.Sim/BodyFacing.cs) smooths observed velocity and turns the rendered heading at a bounded rate. That presentation behavior does not slow or steer the sim's ground position. A new physical acceleration model must be shared by prediction and stepping, then represented faithfully by the authored motion.
+- **Reaction eligibility:** the existing position-based post-contact lockout is separate from acceleration after movement begins. This choice does not remove it, extend it, or approve using extra lockout to imitate weight.
+- **Neutral stick:** [FieldAssist.cs](../src/GrandSluggers.Sim/FieldAssist.cs) permits automatic pursuit when the glove has no ball and the stick is neutral. Releasing the stick therefore is not a universal stop command. Judge braking when the active movement intent actually requests a stop or changes direction; do not silently change the assistance contract.
+- **Handoff and special actions:** the previous glove's existing 0.2-second handoff coast, dives, dashes, and other named actions are separate states. This recommendation selects neither new timings for those states nor a new movement verb.
+
+The ordinary physical response should follow the accepted per-character consistency rule across hit classes and assigned positions. Do not introduce hidden per-hit acceleration penalties after removing per-hit speed modifiers. Character differentiation remains; no new agility stat, heavyweight exception, or second movement system is selected here.
+
+Before numeric acceptance, compare starting from rest, a 90-degree correction, a reversal, arrival at a catch plant, and transition into/out of assisted pursuit. Keep initial position, stat, input, and target equal while varying the response profile; then include actual grounder/liner/fly/wall plays and fast/slow characters. Record command/eligibility, first displacement, velocity, correction time/distance, possession, and the runner/throw budget. Track physical motion separately from rendered facing and footfalls. Unknown controller input in retrospective Mario videos cannot establish input-to-motion latency; verified input captures or an explicitly Harbor-authored response target will be needed.
+
+This is the next pending taste choice only. Top speeds, acceleration/braking numbers, field dimensions, reaction rules, and all human play gates remain open. No runtime values change in this packet.
+
 ## Validation
 
 Recompute the audit rows from the retained rule inputs, check source-file hashes and parity with `eff10d9`, verify local links, and verify the accepted design direction remains separate from the empty accepted numerical targets. This packet is documentation only; no runtime test rerun, standalone build, or human gate pass is claimed.

@@ -93,5 +93,31 @@
       "alternativeConsideredNotSelected": "Retain hit-class/position movement modifiers as deliberate calibration tools",
       "basis": "Jack answered yes to the consistent ordinary movement direction after the movement audit and tradeoff review."
     }
+  ],
+  "responseAudit": {
+    "auditedRevision": "9a442a23c17b47466ebe384263ed41996fa6e89a",
+    "sourceSha256": {
+      "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+      "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+      "src/GrandSluggers.Sim/FieldAssist.cs": "8aa56d8c6677c064ef6198aabf4350e94da09f20382858307f17d84b73727b6c",
+      "src/GrandSluggers.Sim/BodyFacing.cs": "c2b715ea80796a97bf9086010ec92226472360f19738b72290b281b523dfda64",
+      "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a"
+    },
+    "ordinaryPhysicalAccelerationRamp": false,
+    "visualFacingSmoothingControlsSimPosition": false,
+    "neutralStickWithoutBall": "Automatic pursuit may move the glove; neutral is not a universal stop command.",
+    "reactionEligibility": "Separate existing post-contact lockout; not changed by the proposed movement-weight decision.",
+    "handoffCoastSec": 0.2,
+    "referenceInputToMotionLatency": "unverified"
+  },
+  "pendingDecisions": [
+    {
+      "id": "F693-02-movement-weight",
+      "status": "awaiting-Jack",
+      "recommended": "Brief build-up to running speed, quick course corrections, little residual drift when movement intent changes",
+      "alternative": "Heavier momentum with greater acceleration/braking/reversal commitment",
+      "scope": "Ordinary pursuit response after movement eligibility; no numerical timing, new stat, special-action change, assistance change, or reaction-lockout decision.",
+      "implementationRequirement": "Shared physical prediction and stepping with matching authored presentation; follow accepted consistency across hit types and assigned positions."
+    }
   ]
 }
