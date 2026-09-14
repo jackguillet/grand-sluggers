@@ -53,15 +53,9 @@ public class CarnivalFrontTests
         Assert.True(home.Z < row.Z, $"home {home.Z} should be closer to camera than row {row.Z}");
         Assert.Equal(0f, home.X);
         Assert.NotEqual(row.X, home.X);
-        var titleHome = CarnivalFront.CaptainSpot(0, 6, select: false, home: true);
-        Assert.Equal(0f, titleHome.X);
-        Assert.True(titleHome.Z < CarnivalFront.TitleRowZ);
-        Assert.True(CarnivalFront.HomeStepSelectFt > CarnivalFront.HomeStepTitleFt);
+        Assert.Equal(CarnivalFront.SelectRowZ - CarnivalFront.FeaturedSelectZ, CarnivalFront.HomeStepSelectFt);
         Assert.True(CarnivalFront.CardX > 4);
         Assert.True(CarnivalFront.CardY > 2);
-        Assert.True(titleHome.Z < 16, $"title captain too far z={titleHome.Z}");
-        Assert.True(CarnivalFront.LogoZ > CarnivalFront.FeaturedTitleZ,
-            $"logo on the toy z={CarnivalFront.LogoZ} hero={CarnivalFront.FeaturedTitleZ}");
         Assert.InRange(CarnivalFront.LogoZ, -10, 16);
         Assert.True(Math.Abs(CarnivalFront.LogoX) < 8, $"logo off-frame x={CarnivalFront.LogoX}");
         Assert.True(CarnivalFront.LogoY > 10, $"logo through the hat y={CarnivalFront.LogoY}");
@@ -69,17 +63,52 @@ public class CarnivalFrontTests
     }
 
     [Fact]
-    public void TitleIsOneToyAndAStickerOverTheInfield()
+    public void TitleShowsNoCaptain()
+    {
+        Assert.False(CarnivalFront.TitleShowsCaptain);
+        Assert.False(CarnivalFront.TitlePlacesBody(select: false));
+        Assert.True(CarnivalFront.TitlePlacesBody(select: true));
+        var titleHome = CarnivalFront.CaptainSpot(0, 6, select: false, home: true);
+        var titleRow = CarnivalFront.CaptainSpot(0, 6, select: false, home: false);
+        Assert.Equal(titleRow.Z, titleHome.Z);
+        Assert.Equal(CarnivalFront.TitleRowZ, titleHome.Z);
+        var xs = new HashSet<float>();
+        for (var i = 0; i < 6; i++)
+        {
+            var spot = CarnivalFront.CaptainSpot(i, 6, select: true, home: false);
+            Assert.Equal(CarnivalFront.SelectRowZ, spot.Z);
+            xs.Add(spot.X);
+        }
+        Assert.Equal(6, xs.Count);
+        var pick = CarnivalFront.CaptainSpot(2, 6, select: true, home: true);
+        Assert.Equal(0f, pick.X);
+        Assert.Equal(CarnivalFront.FeaturedSelectZ, pick.Z);
+    }
+
+    [Fact]
+    public void TitleIsAStickerOverTheInfield()
     {
         var title = ContentCatalog.Load().Shots.Must("title");
         Assert.True(CarnivalFront.TitlePoster(title.Pos, title.Target),
             $"title is not a sticker poster cam={title.Pos} look={title.Target} " +
-            $"heroDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleHeroChest):0.0} " +
-            $"logoDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleLogoAt):0.0} " +
-            $"sep={CarnivalFront.OffLook(title.Pos, CarnivalFront.TitleHeroChest, CarnivalFront.TitleLogoAt):0.0}");
+            $"logoDeg={CarnivalFront.OffLook(title.Pos, title.Target, CarnivalFront.TitleLogoAt):0.0}");
         var row = CarnivalFront.CaptainSpot(1, 6, select: false, home: false);
-        Assert.True(row.Z > CarnivalFront.FeaturedTitleZ + 8,
-            $"title row should wait off-frame z={row.Z}");
+        Assert.True(row.Z > 16, $"title row should wait off-frame z={row.Z}");
+    }
+
+    [Fact]
+    public void TitleLogoReadsLeftToRightFromTheTitleCamera()
+    {
+        var title = ContentCatalog.Load().Shots.Must("title");
+        var logo = CarnivalFront.TitleLogoAt;
+        var fwd = CarnivalFront.TitleLogoForward(title.Pos, logo);
+        Assert.True(fwd.Z > 0, $"sticker looks back at home z={fwd.Z}");
+        Assert.True(CarnivalFront.TitleLogoReads(title.Pos, logo));
+        Assert.True(CarnivalFront.TitleLogoInkZ < 0);
+        Assert.True(CarnivalFront.TitleLogoGlyphZ < CarnivalFront.TitleLogoInkZ);
+        var atCam = CarnivalFront.TitleLogoForward(logo, title.Pos);
+        Assert.True(atCam.Z < 0, "LookRotation(toCam) is the mirrored-wordmark facing");
+        Assert.False(CarnivalFront.TitleLogoReads(logo, title.Pos));
     }
 
     [Fact]

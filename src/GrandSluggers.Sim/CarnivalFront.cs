@@ -61,9 +61,12 @@ public static class CarnivalFront
     public const float TitleRowZ = 26f;
     public const float SelectRowZ = 12f;
     public const float HomeStepSelectFt = 4f;
-    public const float HomeStepTitleFt = 2.4f;
-    public const float FeaturedTitleZ = 9f;
     public const float FeaturedSelectZ = 8f;
+    /// <summary>
+    /// Title is wordmark + dirt + UI. Cheer does not read as a poster (#685).
+    /// Flip this only with a spec decision to put a body back.
+    /// </summary>
+    public const bool TitleShowsCaptain = false;
     /// <summary>Chest. Y=4.4 at Z=4 is Ashlord's brim.</summary>
     public const float SelectLookY = 2.6f;
     /// <summary>Chest-height. Y=7.8 looking at Z=8 from Z=-12 is the plate berm.</summary>
@@ -71,11 +74,10 @@ public static class CarnivalFront
     public const float SelectCamMaxY = 6.0f;
     /// <summary>Downward slope (ΔY/ΔZ). 5.2/20 from the berm shot.</summary>
     public const float SelectMaxDown = 0.18f;
-    /// <summary>Over the infield, above the home toy. Z=7 Y=8.8 sat on Rio's hat.</summary>
+    /// <summary>Over the infield. Z=7 Y=8.8 sat on Rio's hat when the title had a toy.</summary>
     public const float LogoX = 0.8f;
     public const float LogoY = 12.2f;
     public const float LogoZ = 15.6f;
-    public const float TitleHeroChestY = 1.8f;
     public const float SelectSpacing = 7.6f;
     public const float TitleSpacing = 13.4f;
     public const float CardX = 5.6f;
@@ -118,9 +120,12 @@ public static class CarnivalFront
         var spacing = select ? SelectSpacing : TitleSpacing;
         var x = (index - (count - 1) * 0.5f) * spacing;
         var z = select ? SelectRowZ : TitleRowZ;
-        if (home) return (0f, select ? FeaturedSelectZ : FeaturedTitleZ);
+        if (select && home) return (0f, FeaturedSelectZ);
         return (x, z);
     }
+
+    /// <summary>Select places the row. Title places no body while TitleShowsCaptain is false.</summary>
+    public static bool TitlePlacesBody(bool select) => select || TitleShowsCaptain;
 
     public static (float X, float Y, float Z) SelectLook(int index, int count)
     {
@@ -141,24 +146,49 @@ public static class CarnivalFront
         return dz > 0 && dy / dz < SelectMaxDown;
     }
 
-    public static Vec3 TitleHeroChest => new(0, TitleHeroChestY, FeaturedTitleZ);
-
     public static Vec3 TitleLogoAt => new(LogoX, LogoY, LogoZ);
+    /// <summary>Ink on local −Z, the camera side of a board that looks into the park (#696).</summary>
+    public const float TitleLogoInkZ = -0.05f;
+    public const float TitleLogoGlyphZ = -0.11f;
 
     /// <summary>
-    /// Title is one toy + a sticker over the diamond. Fail if the board
-    /// sits on the hat or the hero is a corner crop.
+    /// The board looks into the park with the title camera, not at the camera.
+    /// LookRotation(camera − logo) puts local +X on the camera's left and mirrors
+    /// GRAND SLUGGERS (#696).
+    /// </summary>
+    public static Vec3 TitleLogoForward(Vec3 cam, Vec3 logo)
+    {
+        var dx = logo.X - cam.X;
+        var dz = logo.Z - cam.Z;
+        var n = Math.Sqrt(dx * dx + dz * dz);
+        if (n < 1e-6) return new Vec3(0, 0, 1);
+        return new Vec3(dx / n, 0, dz / n);
+    }
+
+    public static bool TitleLogoReads(Vec3 cam, Vec3 logo)
+    {
+        var fwd = TitleLogoForward(cam, logo);
+        if (fwd.Z <= 0) return false;
+        var atCamX = cam.X - logo.X;
+        var atCamZ = cam.Z - logo.Z;
+        return fwd.X * atCamX + fwd.Z * atCamZ < 0;
+    }
+
+    /// <summary>
+    /// Title is a sticker over the diamond. Fail if the board is a menu wall,
+    /// a featured cheer is back without a spec decision (#685), or the wordmark
+    /// is mirrored (#696).
     /// </summary>
     public static bool TitlePoster(Vec3 cam, Vec3 look)
     {
-        var hero = TitleHeroChest;
         var logo = TitleLogoAt;
-        return OffLook(cam, look, hero) < 22
+        return !TitleShowsCaptain
+            && TitleLogoReads(cam, logo)
             && OffLook(cam, look, logo) < 20
-            && OffLook(cam, hero, logo) > 12
-            && LogoZ > FeaturedTitleZ
             && LogoY > 10
-            && Math.Abs(LogoX) < 8;
+            && Math.Abs(LogoX) < 8
+            && LogoZ > 0
+            && LogoZ < 20;
     }
 
     public static double OffLook(Vec3 pos, Vec3 target, Vec3 p)
