@@ -148,7 +148,7 @@ For a force, the useful comparison is runner arrival against the instant both po
 
 The read delay and ball flight overlap. Do not add `flight + reaction + pursuit` as if they were all sequential. Find the first reachable interception on the timestamped path. After possession, decision, transfer, flight, cover, and tag readiness determine the rest of the play.
 
-For S-31 the out must remain geometric, but the test also needs a measurable visible opportunity. Define the permissible margin band only after reference annotation and the human comparison. Pair it with S-32 (fast runner/weak arm), S-33 (human never throws), the double-play chain, sac fly, and the outfield throw home. A fixed outcome for one fixture is insufficient.
+For S-31 the out must remain geometric, but the test also needs a measurable visible opportunity. Jack accepted the F693-05 direction of **reliable routine defense** on September 14, 2026: clean, reasonably prompt ordinary execution should normally win, while difficult circumstances create tight races. Define the permissible margin band only after reference annotation and the human comparison; the direction does not establish numerical bounds. Pair it with S-32 (fast runner/weak arm), S-33 (human never throws), the double-play chain, sac fly, and the outfield throw home. A fixed outcome for one fixture is insufficient.
 
 ## 6. Three experiments and what each would prove
 
