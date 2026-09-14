@@ -256,7 +256,7 @@ public sealed class ArtCatalog
                 errors.Add("authored audio missing wav " + ev.Id);
         }
 
-        foreach (var need in new[] { "puff", "fireworks", "buddy-flash", "throw-trail-good" })
+        foreach (var need in new[] { "puff", "fireworks", "buddy-flash", "throw-trail-good", "throw-trail-bad" })
         {
             if (!TryVfx(need, out _)) errors.Add("vfx missing " + need);
         }

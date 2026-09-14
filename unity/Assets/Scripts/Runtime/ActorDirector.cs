@@ -302,14 +302,14 @@ namespace GrandSluggers.UnityClient
             var heat = _last != null && _last.Heatball;
             if ((_caught || _buddy) && !_throwing && _phase is Phase.InPlay or Phase.StealThrow)
                 HoldBallInGlove();
-            if (_throwing && _armedThrow != null)
-                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
             var inFlight = _phase is Phase.Flight or Phase.InPlay or Phase.StealThrow;
             var inPlay = _phase is Phase.InPlay or Phase.StealThrow;
             if (_replaying || inFlight || _phase is Phase.Set || _spec.Active)
                 _park.Ball.Place(_ball, starPitch, ptype, heat, inFlight, inPlay);
             else
                 _park.Ball.Hide();
+            if (_throwing && _armedThrow != null)
+                _park.Ball.SetTrailColor(SpecialFx.ThrowColor(_armedThrow.Relation));
 
             var setOrFlight = _phase is Phase.Set or Phase.Flight;
             if (SetTells.ZoneOn(setOrFlight)) ShowCursor();
@@ -492,35 +492,9 @@ namespace GrandSluggers.UnityClient
         {
             var ids = PresetTeams.CaptainIds;
             var pick = _phase == Phase.Select;
-            for (var i = 0; i < ids.Length; i++)
+            if (!CarnivalFront.TitlePlacesBody(pick))
             {
-                var who = _content.Must(ids[i]);
-                var hero = Hero(who);
-                var yours = ids[i] == CurrentPick().Yours;
-                var theirs = ids[i] == CurrentPick().Theirs;
-                var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, yours);
-                hero.SetPose(pick
-                    ? CarnivalFront.SelectPose(yours, theirs)
-                    : yours ? Motion.Verb.Cheer : theirs ? Motion.Verb.StealLead : Motion.Verb.Idle);
-                hero.SetHighlight(yours);
-                hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
-                hero.SetHeld(false, false);
-                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
-                hero.Place(
-                    new Vector3(spot.X, pick ? CarnivalFront.SelectDirtY : 0f, spot.Z),
-                    new Vector3(0f, 0f, -1f), pinned: true);
-                hero.Tick(Time.deltaTime);
-                if (!pick && !yours)
-                    hero.gameObject.SetActive(false);
-            }
-            if (pick)
-            {
-                _logo?.Hide();
-                // HUD is the select card. World placard covered the toys (#354).
-                _card?.Hide();
-            }
-            else
-            {
+                // Title is wordmark + dirt. Unused heroes go inactive in DrawActors (#685).
                 _card?.Hide();
                 if (_logo == null) _logo = LogoToy.Attach(transform);
                 var titleShot = _content.Shots.Must("title");
@@ -528,7 +502,28 @@ namespace GrandSluggers.UnityClient
                     CarnivalFront.Logo,
                     new Vector3(CarnivalFront.LogoX, CarnivalFront.LogoY, CarnivalFront.LogoZ),
                     new Vector3((float)titleShot.Pos.X, (float)titleShot.Pos.Y, (float)titleShot.Pos.Z));
+                return;
             }
+            for (var i = 0; i < ids.Length; i++)
+            {
+                var who = _content.Must(ids[i]);
+                var hero = Hero(who);
+                var yours = ids[i] == CurrentPick().Yours;
+                var theirs = ids[i] == CurrentPick().Theirs;
+                var spot = CarnivalFront.CaptainSpot(i, ids.Length, pick, yours);
+                hero.SetPose(CarnivalFront.SelectPose(yours, theirs));
+                hero.SetHighlight(yours);
+                hero.SetGrow(false); // Grow is a field verb. Menu 1.71x at Z=4 is Ashlord's hat.
+                hero.SetHeld(false, false);
+                hero.SetGear(_match.OffenseBat, _match.DefenseGlove);
+                hero.Place(
+                    new Vector3(spot.X, CarnivalFront.SelectDirtY, spot.Z),
+                    new Vector3(0f, 0f, -1f), pinned: true);
+                hero.Tick(Time.deltaTime);
+            }
+            _logo?.Hide();
+            // HUD is the select card. World placard covered the toys (#354).
+            _card?.Hide();
         }
 
         void PlaceLineupBoard()
