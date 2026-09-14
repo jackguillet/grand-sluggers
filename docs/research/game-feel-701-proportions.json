@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "issue": 701,
   "parentIssue": 693,
-  "status": "exploratory-proportions-and-pending-ball-readability",
+  "status": "exploratory-proportions-and-accepted-ball-readability",
   "observedOn": "2026-09-14",
   "auditedRevision": "63abc97c0369bcd3f48c28448cca205f8b54c582",
   "sourceSha256": {
@@ -168,13 +168,19 @@
     "mergedAt": "2026-09-14T19:07:34Z",
     "scope": "Stable character silhouette on possession; not a baseball-size correction. New visual baseline must name build revision and include this fix."
   },
-  "pendingDecision": {
-    "id": "F693-02-ball-readability",
-    "status": "awaiting-Jack",
-    "recommended": "Allow modest bounded visual size assistance for distant moving balls, with glove-fitting held size and readable trails/contrast",
-    "alternative": "Use one fixed drawn world-space ball diameter and rely on framing/contrast/trails for distance readability",
-    "scope": "Readability intent only; no size coefficient, camera-dependent physics, catch-radius change or giant-ball effect. Preserve sim positions and timing; smooth the visual transition into possession.",
-    "referenceDistanceScalingAlgorithm": "unverified for both games"
-  },
-  "acceptedTargets": []
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-ball-readability",
+      "status": "accepted-design-intent",
+      "scope": "Readability intent only; no size coefficient, camera-dependent physics, catch-radius change or giant-ball effect. Preserve sim positions and timing; smooth the visual transition into possession.",
+      "referenceDistanceScalingAlgorithm": "unverified for both games",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Allow moderate bounded visual size assistance for distant moving balls, with glove-fitting held size and readable trails/contrast",
+      "alternativeConsideredNotSelected": "Use one fixed drawn world-space ball diameter and rely on framing/contrast/trails for distance readability",
+      "userQualification": "approve, but make it moderate.",
+      "moderationConstraint": "Tracking assistance should not read as a prominent growth effect, dominate the character, or cause distracting size changes into possession. Numerical limits remain pending."
+    }
+  ]
 }
