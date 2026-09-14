@@ -132,4 +132,44 @@ public class CarnivalFrontTests
         Assert.False(CarnivalFront.SelectCamIsTheToy(2.0, -10), "cam in the dirt");
         Assert.False(CarnivalFront.SelectCamIsTheToy(4.6, -22), "through the backstop cage");
     }
+
+    [Fact]
+    public void SelectCaptainsStayOnTheDirt()
+    {
+        var content = ContentCatalog.Load();
+        Assert.Equal(0f, CarnivalFront.SelectDirtY);
+        Assert.Equal(Motion.Verb.Idle, CarnivalFront.SelectPose(true, false));
+        Assert.Equal(Motion.Verb.Idle, CarnivalFront.SelectPose(false, true));
+        Assert.Equal(Motion.Verb.Idle, CarnivalFront.SelectPose(false, false));
+        Assert.True(CarnivalFront.SelectStaysOnDirt(Motion.Verb.Idle));
+        Assert.False(CarnivalFront.SelectStaysOnDirt(Motion.Verb.Cheer), "cheer bob goes through the dirt");
+        Assert.False(CarnivalFront.SelectStaysOnDirt(Motion.Verb.StealLead), "steal lead is a crouch");
+
+        foreach (var id in Silhouette.Captains)
+        {
+            var who = content.Must(id);
+            var skin = content.Art.SkinOf(who);
+            var scale = Silhouette.SharedRootScale(Silhouette.Proportions(who)).Y;
+            foreach (var yours in new[] { true, false })
+            {
+                var pose = CarnivalFront.SelectPose(yours, theirs: false);
+                Assert.True(CarnivalFront.SelectStaysOnDirt(pose), id + " select pose sinks");
+                foreach (var extraId in skin.Extras)
+                {
+                    Assert.True(content.Art.TryExtra(extraId, out var extra), id + " " + extraId);
+                    var y = CarnivalFront.SelectExtraMinY(extra, scale, yours, pose);
+                    Assert.True(y >= CarnivalFront.SelectDirtY,
+                        $"{id} {extraId} yours={yours} y={y} under the dirt");
+                    Assert.True(
+                        CarnivalFront.SelectExtraMinY(extra, scale, yours, Motion.Verb.Cheer)
+                            < CarnivalFront.SelectDirtY,
+                        id + " " + extraId + " cheer must fail the dirt bound");
+                    Assert.True(
+                        CarnivalFront.SelectExtraMinY(extra, scale, yours, Motion.Verb.StealLead)
+                            < CarnivalFront.SelectDirtY,
+                        id + " " + extraId + " stealLead must fail the dirt bound");
+                }
+            }
+        }
+    }
 }

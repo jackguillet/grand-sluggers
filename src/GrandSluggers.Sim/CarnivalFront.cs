@@ -83,6 +83,37 @@ public static class CarnivalFront
     public const float CardX = 5.6f;
     public const float CardY = 2.9f;
     public const float CardZ = 0.2f;
+    /// <summary>Dirt under the select toys. Cheer bob and steal-lead crouch are field takes.</summary>
+    public const float SelectDirtY = 0f;
+
+    /// <summary>
+    /// Select stands. Featured is the step-forward + highlight, not a field verb.
+    /// Cheer (#628) bobs the root; stealLead sinks. Both put a foot under the mesh.
+    /// </summary>
+    public static Motion.Verb SelectPose(bool yours, bool theirs)
+    {
+        _ = yours;
+        _ = theirs;
+        return Motion.Verb.Idle;
+    }
+
+    public static bool SelectStaysOnDirt(Motion.Verb verb) => verb == Motion.Verb.Idle;
+
+    /// <summary>
+    /// World Y of an extra at the select plant. Foot extras share the dirt.
+    /// A sinking take puts them under. Highlight scale is around the feet, so it
+    /// does not push a planted extra through the mesh.
+    /// </summary>
+    public static double SelectExtraMinY(ExtraSlot extra, double rootScaleY, bool highlighted, Motion.Verb pose)
+    {
+        var plant = SelectStaysOnDirt(pose) ? SelectDirtY : SelectDirtY - Math.Max(rootScaleY, 1);
+        if (FootExtra(extra)) return plant;
+        return plant + (highlighted ? 0.5 : 0.4);
+    }
+
+    static bool FootExtra(ExtraSlot extra) =>
+        extra.Bone.Equals("lFoot", StringComparison.OrdinalIgnoreCase)
+        || extra.Bone.Equals("rFoot", StringComparison.OrdinalIgnoreCase);
 
     public static (float X, float Z) CaptainSpot(int index, int count, bool select, bool home)
     {

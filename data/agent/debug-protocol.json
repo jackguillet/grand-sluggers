@@ -202,6 +202,26 @@
       "promoted": "DistillTests.PromotionReferencesResolveAcrossTestLanguages",
       "issue": "#681",
       "pr": "#682"
+    },
+    {
+      "id": "select-bobs-through-dirt",
+      "signature": "captain select bobs through the dirt; featured cheer / stealLead put a foot or extra under the mesh",
+      "stage": "sitting",
+      "cause": "ActorDirector.PlaceSelectRoster played Cheer (home pick) and StealLead (away pick) on CarnivalFront.CaptainSpot at Y=0. Cheer #628 bobs root lift 0→0.35; stealLead lift −0.35. Look.md had Highlight + cheer.",
+      "fix": "SelectPose is Idle. Featured is the step-forward + highlight. SelectDirtY is the plant. SelectExtraMinY ≥ dirt for every captain extra. Cheer stays a field take. Do not shrink a body or per-captain Y-hack.",
+      "promoted": "CarnivalFrontTests.SelectCaptainsStayOnTheDirt",
+      "issue": "#686",
+      "pr": "#695"
+    },
+    {
+      "id": "harbor-bags-paint-brown",
+      "signature": "bases are brown instead of white; authored Harbor bag mesh is dirt-brown, missing-file primitive is chalk",
+      "stage": "sitting",
+      "cause": "HarborKit.PaintKit mapped unknown FBX material names to wood (0.42, 0.26, 0.12) or dirt. Unity BasedOnTextureName drops Blender chalk/navy; DressBag still called paint: true. Primitive fallback was already Colors.Chalk.",
+      "fix": "HarborKitPaint.For(slot, material). Chalk meshes (bag, home-plate) paint chalk, navy piping stays navy. Unknown names never fall through to wood/dirt. PrimitiveBag is chalk. Do not shrink the bag.",
+      "promoted": "HarborKitPaintTests.ChalkMeshesPaintChalkNotDirtOrWood",
+      "issue": "#683",
+      "pr": "#697"
     }
   ]
 }

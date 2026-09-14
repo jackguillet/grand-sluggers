@@ -220,7 +220,8 @@ namespace GrandSluggers.UnityClient
             var bagSize = HarborInfield.BagSize;
             Place(anchor, new Vector3((float)at.X, HarborInfield.BagY, (float)at.Z),
                 new Vector3(bagSize, 0.28f, bagSize), Quaternion.Euler(0f, 45f, 0f));
-            Mesh(anchor, PrimitiveType.Cube, Look.Unlit(Colors.Chalk));
+            EnsureKitMats();
+            Mesh(anchor, PrimitiveType.Cube, KitMat(HarborKitPaint.PrimitiveBag));
         }
 
         void DressPlate(Material chalk)
@@ -1363,7 +1364,7 @@ namespace GrandSluggers.UnityClient
                 UnityEngine.Object.Destroy(go);
                 return null;
             }
-            if (paint) PaintKit(go.transform);
+            if (paint) PaintKit(go.transform, meshName);
             return go.transform;
         }
 
@@ -1381,7 +1382,20 @@ namespace GrandSluggers.UnityClient
             _kitDirt = Look.Lit(new Color(0.70f, 0.48f, 0.28f), Look.Dirt, 8f, 0.1f);
         }
 
-        void PaintKit(Transform t)
+        Material KitMat(HarborKitPaint.Fill fill) => fill switch
+        {
+            HarborKitPaint.Fill.Roof => _kitRoof,
+            HarborKitPaint.Fill.Gold => _kitGold,
+            HarborKitPaint.Fill.Pad => _kitPad,
+            HarborKitPaint.Fill.Post => _kitPost,
+            HarborKitPaint.Fill.Flesh => _kitFlesh,
+            HarborKitPaint.Fill.Chalk => _kitChalk,
+            HarborKitPaint.Fill.Navy => _kitNavy,
+            HarborKitPaint.Fill.Dirt => _kitDirt,
+            _ => _kitWood,
+        };
+
+        void PaintKit(Transform t, string slot)
         {
             EnsureKitMats();
             foreach (var r in t.GetComponentsInChildren<Renderer>(true))
@@ -1389,25 +1403,12 @@ namespace GrandSluggers.UnityClient
                 var mats = r.sharedMaterials;
                 if (mats == null || mats.Length == 0)
                 {
-                    r.sharedMaterial = _kitWood;
+                    r.sharedMaterial = KitMat(HarborKitPaint.For(slot, ""));
                     continue;
                 }
                 var next = new Material[mats.Length];
                 for (var i = 0; i < mats.Length; i++)
-                {
-                    var n = mats[i] != null ? mats[i].name.ToLowerInvariant() : "";
-                    if (n.Contains("gold") || n.Contains("cap") || n.Contains("fascia"))
-                        next[i] = _kitGold;
-                    else if (n.Contains("mesh") || n.Contains("screen")) next[i] = _kitPost;
-                    else if (n.Contains("roof")) next[i] = _kitRoof;
-                    else if (n.Contains("pad") || n.Contains("rail")) next[i] = _kitPad;
-                    else if (n.Contains("post")) next[i] = _kitPost;
-                    else if (n.Contains("flesh") || n.Contains("head")) next[i] = _kitFlesh;
-                    else if (n.Contains("chalk") || n.Contains("cream")) next[i] = _kitChalk;
-                    else if (n.Contains("navy")) next[i] = _kitNavy;
-                    else if (n.Contains("dirt") || n.Contains("hill")) next[i] = _kitDirt;
-                    else next[i] = _kitWood;
-                }
+                    next[i] = KitMat(HarborKitPaint.For(slot, mats[i] != null ? mats[i].name : ""));
                 r.sharedMaterials = next;
             }
         }

@@ -62,7 +62,7 @@ Captains and the field are two screens. The park does not follow the captain.
 
 ### Pick captain
 
-The toys are the UI. Highlighted captain **steps forward**. Camera looks at the **toy** (face and body), not the brim and not the plate dirt. The **HUD card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
+The toys are the UI. Highlighted captain **steps forward**. They stand on the dirt. Camera looks at the **toy** (face and body), not the brim and not the plate dirt. The **HUD card** (P / B / F / R, star pitch, star swing, field verb) is the only panel.
 
 - **1 PLAYER / 2 PLAYERS** at the top — one controller vs CPU, or two controllers. Default is one player even if controller 2 is plugged in.
 - **LB / `,`** — 1 player · **RB / Tab** — 2 players. Click the tabs. Two players needs controller 2.
