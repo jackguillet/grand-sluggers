@@ -92,6 +92,17 @@
       "direction": "One ordinary pursuit movement profile per character, independent of hit class or assigned fielding position, retaining explicit dash/status/ability modifiers",
       "alternativeConsideredNotSelected": "Retain hit-class/position movement modifiers as deliberate calibration tools",
       "basis": "Jack answered yes to the consistent ordinary movement direction after the movement audit and tradeoff review."
+    },
+    {
+      "id": "F693-02-movement-weight",
+      "status": "accepted-design-intent",
+      "scope": "Ordinary pursuit response after movement eligibility; no numerical timing, new stat, special-action change, assistance change, or reaction-lockout decision.",
+      "implementationRequirement": "Shared physical prediction and stepping with matching authored presentation; follow accepted consistency across hit types and assigned positions.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Brief build-up to running speed, quick course corrections, little residual drift when movement intent changes",
+      "alternativeConsideredNotSelected": "Heavier momentum with greater acceleration/braking/reversal commitment",
+      "basis": "Jack said: i approve of your recommendation."
     }
   ],
   "responseAudit": {
@@ -106,18 +117,8 @@
     "ordinaryPhysicalAccelerationRamp": false,
     "visualFacingSmoothingControlsSimPosition": false,
     "neutralStickWithoutBall": "Automatic pursuit may move the glove; neutral is not a universal stop command.",
-    "reactionEligibility": "Separate existing post-contact lockout; not changed by the proposed movement-weight decision.",
+    "reactionEligibility": "Separate existing post-contact lockout; not changed by the accepted movement-weight direction.",
     "handoffCoastSec": 0.2,
     "referenceInputToMotionLatency": "unverified"
-  },
-  "pendingDecisions": [
-    {
-      "id": "F693-02-movement-weight",
-      "status": "awaiting-Jack",
-      "recommended": "Brief build-up to running speed, quick course corrections, little residual drift when movement intent changes",
-      "alternative": "Heavier momentum with greater acceleration/braking/reversal commitment",
-      "scope": "Ordinary pursuit response after movement eligibility; no numerical timing, new stat, special-action change, assistance change, or reaction-lockout decision.",
-      "implementationRequirement": "Shared physical prediction and stepping with matching authored presentation; follow accepted consistency across hit types and assigned positions."
-    }
-  ]
+  }
 }

@@ -38,11 +38,11 @@ Do not simply set the existing multipliers to 1. That would speed current airbor
 
 The #702 trace contract should distinguish input, movement eligibility, first displacement, movement mode/modifiers, actual velocity, possession, and the remaining throw/runner events. Compare the same character/input across grounder, liner, fly, post-bounce, loose-ball, and possession transitions, plus infield/outfield assignments and both seats. Gameplay fixtures must retain hard-liner positioning, short-pop catches, ordinary infield outs, and live gap/wall/relay opportunities. The standalone review must check control response and footfalls as well as race duration.
 
-## Next human choice — F693-02 movement weight
+## Accepted direction — F693-02 movement weight
 
-**Recommendation, awaiting Jack:** ordinary pursuit should have a brief build-up to running speed and quick course corrections, with little residual drift when the desired movement changes. Slower sustained speed can preserve chase time in the compact field while the character responds promptly once movement is allowed. This is a proposed feel direction, not a measured Nintendo acceleration curve or an approved duration.
+**Accepted by Jack, September 14, 2026:** ordinary pursuit should have a brief build-up to running speed and quick course corrections, with little residual drift when the desired movement changes. Slower sustained speed can preserve chase time in the compact field while the character responds promptly once movement is allowed. This accepts the feel direction, not a measured Nintendo acceleration curve or a numerical duration.
 
-**Alternative:** heavier momentum, with more time required to build speed, brake, and reverse. Routes become more committed, and a wrong first step costs more recovery time. That can express weight, but also reduces the player's ability to adjust under a fly or recover toward a rolling ball. Neither option guarantees an interception or changes the accepted hard-liner positioning requirement.
+**Alternative considered, not selected:** heavier momentum, with more time required to build speed, brake, and reverse. Routes become more committed, and a wrong first step costs more recovery time. That can express weight, but also reduces the player's ability to adjust under a fly or recover toward a rolling ball. Neither option guarantees an interception or changes the accepted hard-liner positioning requirement.
 
 The current implementation separates several things that this decision must not conflate:
 
@@ -56,7 +56,7 @@ The ordinary physical response should follow the accepted per-character consiste
 
 Before numeric acceptance, compare starting from rest, a 90-degree correction, a reversal, arrival at a catch plant, and transition into/out of assisted pursuit. Keep initial position, stat, input, and target equal while varying the response profile; then include actual grounder/liner/fly/wall plays and fast/slow characters. Record command/eligibility, first displacement, velocity, correction time/distance, possession, and the runner/throw budget. Track physical motion separately from rendered facing and footfalls. Unknown controller input in retrospective Mario videos cannot establish input-to-motion latency; verified input captures or an explicitly Harbor-authored response target will be needed.
 
-This is the next pending taste choice only. Top speeds, acceleration/braking numbers, field dimensions, reaction rules, and all human play gates remain open. No runtime values change in this packet.
+Jack approved the recommended lighter, responsive movement direction. Top speeds, acceleration/braking numbers, field dimensions, reaction rules, and all human play gates remain open. No runtime values change in this packet.
 
 ## Validation
 
