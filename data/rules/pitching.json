@@ -1,7 +1,7 @@
 {
   "speed": {
     "fastballMph": 86,
-    "changeupMph": 72,
+    "changeupMph": 68.8,
     "mphPerPitchStat": 0.9,
     "chargeMph": 8,
     "changeupChargeMph": 3
@@ -29,8 +29,8 @@
   "shapes": {
     "fastballHump": 0.35,
     "changeupHangUntil": 0.62,
-    "changeupHangRate": 0.72,
-    "changeupDumpRate": 1.55,
+    "changeupHangRate": 0.22,
+    "changeupDumpRate": 2.4,
     "changeupDropFt": 0.9
   },
   "starShapes": {

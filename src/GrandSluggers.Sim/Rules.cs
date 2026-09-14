@@ -281,7 +281,7 @@ public sealed class PitchingRules
 public sealed class PitchSpeedRules
 {
     [Positive] public double FastballMph { get; init; } = 86;
-    [Positive] public double ChangeupMph { get; init; } = 72;
+    [Positive] public double ChangeupMph { get; init; } = 68.8;
     public double MphPerPitchStat { get; init; } = 0.9;
     public double ChargeMph { get; init; } = 8;
     public double ChangeupChargeMph { get; init; } = 3;
@@ -325,8 +325,10 @@ public sealed class PitchShapeRules
     /// <summary>The fastball rides above the straight line mid-flight and settles on its aim.</summary>
     public double FastballHump { get; init; } = 0.35;
     [Chance] public double ChangeupHangUntil { get; init; } = 0.62;
-    public double ChangeupHangRate { get; init; } = 0.72;
-    public double ChangeupDumpRate { get; init; } = 1.55;
+    /// <summary>How fast Y interpolates toward the (lower) aim during the hang. Well below 1 keeps the ball up; 1 is a fade.</summary>
+    public double ChangeupHangRate { get; init; } = 0.22;
+    /// <summary>How fast Y interpolates after <see cref="ChangeupHangUntil"/>. Must finish the drop in flight (spec §4.3).</summary>
+    public double ChangeupDumpRate { get; init; } = 2.4;
     /// <summary>The changeup crosses this far below a fastball's height (up to one zone-half).</summary>
     public double ChangeupDropFt { get; init; } = 0.9;
 }

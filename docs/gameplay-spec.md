@@ -148,7 +148,7 @@ Same shape as the swing: tap / charge / modifier / star. Booklet-confirmed contr
 
 ### 4.3 Pitch shapes
 
-All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Point(u)`; the strike zone, the aim tell, the cursor, and the CPU batter read the u=1 sample (`PitchFlight.Crossing`, `SetTells.Locator`). Time to plate `AirSeconds(mph)` ≈ 0.85 (charged) – 1.10 (changeup), Sluggers pace.
+All shapes are `data/rules/pitching.json` curves, evaluated by `PitchFlight.Point(u)`; the strike zone, the aim tell, the cursor, and the CPU batter read the u=1 sample (`PitchFlight.Crossing`, `SetTells.Locator`). Time to plate `AirSeconds(mph)` ≈ 0.85 (charged) – 1.23 (changeup, 0.80× the 86 mph meat, ~0.25 s extra), Sluggers pace. The hang is `shapes.changeupHangRate` (well below 1 so Y stays at or above the fastball until `changeupHangUntil`); the dump is `changeupDumpRate` (the rest of the drop to `changeupDropFt`). A hangRate near 1 is a fade and is not a changeup (#668).
 
 | Shape | Speed | Path |
 | --- | --- | --- |
