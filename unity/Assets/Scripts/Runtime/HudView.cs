@@ -175,8 +175,9 @@ namespace GrandSluggers.UnityClient
             GUI.Label(new Rect(x, y, w, h), text, style);
         }
 
-        /// <summary>End-of-play cartoon stamp. Only after the play is dead. Counts are smaller and quicker.</summary>
-        public static void PlayStamp(string text, float t, float size = 1f, float popSeconds = 0.16f)
+        /// <summary>Cartoon stamp at a named BroadcastHud rect. Never the screen-center card.</summary>
+        public static void PlayStamp(string text, float t, float size = 1f, float popSeconds = 0.16f,
+            BroadcastHud.HudRect? anchor = null)
         {
             Ensure();
             if (string.IsNullOrEmpty(text)) return;
@@ -187,12 +188,12 @@ namespace GrandSluggers.UnityClient
             if (pop >= 1f)
                 scale = size < 1f ? 1f : 1.06f + 0.04f * Mathf.Sin(t * 5.5f);
             scale *= size;
-            var w = Screen.width;
-            var h = Screen.height;
-            var cx = w * 0.5f;
-            var cy = h * 0.40f;
-            var rw = w * (size < 1f ? 0.70f : 0.92f);
-            var rh = h * (size < 1f ? 0.20f : 0.28f);
+            var rect = anchor ?? BroadcastHud.StampDirt;
+            var (x, y, w, h) = rect.Pixel(Screen.width, Screen.height);
+            var cx = (float)(x + w * 0.5);
+            var cy = (float)(y + h * 0.5);
+            var rw = (float)w;
+            var rh = (float)h;
             var matrix = GUI.matrix;
             GUIUtility.RotateAroundPivot(size < 1f ? -5f : -7f, new Vector2(cx, cy));
             GUIUtility.ScaleAroundPivot(new Vector2(scale, scale), new Vector2(cx, cy));

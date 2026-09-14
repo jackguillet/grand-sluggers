@@ -1,9 +1,24 @@
 namespace GrandSluggers.Sim;
 
+/// <summary>Where a live tell sits. Named <see cref="BroadcastHud"/> rects, never the screen-center card.</summary>
+public enum StampAnchor
+{
+    Glove,
+    Bag,
+    Plate,
+    Dirt
+}
+
 /// <summary>
-/// End-of-play callout. Only after the play is dead — not while runners
-/// still own the bags. Copy lives here so Unity and tests share one string.
-/// Counts (ball / strike / foul / walk) are smaller and quicker than outs and hits.
+/// One live-event tell (§15, #690): the word, the named anchor, the bag (0 = the glove / dirt).
+/// Typed facts only; the caption is never read.
+/// </summary>
+public sealed record LiveStamp(string Word, StampAnchor Anchor, int Bag = 0);
+
+/// <summary>
+/// Play callouts. Live outs, scores, SAFE, and ERROR fire when they happen at a named
+/// anchor. Counts, hits, and homers still name the dead play. Copy lives here so Unity
+/// and tests share one string. Counts are smaller and quicker than outs and hits.
 /// </summary>
 public static class PlayStamp
 {
@@ -70,15 +85,63 @@ public static class PlayStamp
     }
 
     /// <summary>
-    /// The small mid-play tell a live cue pops (§9.6, §8.6): SAFE on the bang-bang body in ahead of
-    /// the ball, ERROR on the throw that skipped past its cover. Empty for every other cue.
+    /// The live tell a cue pops (§15, #690): SAFE on the bang-bang body, ERROR on the sail,
+    /// OUT (or the catch word) at the glove or bag, SCORE at the plate. Empty for every other cue.
     /// </summary>
     public static string LiveTell(LiveEvent cue) => cue switch
     {
         LiveEvent.StampSafe => Safe,
         LiveEvent.ThrowSailed => Error,
+        LiveEvent.StampOut => Out,
+        LiveEvent.StampScore => Score,
         _ => ""
     };
+
+    /// <summary>The catch word (OUT / DIVE / JUMP / BUDDY JUMP) or OUT at the bag the out was made.</summary>
+    public static LiveStamp OutTell(OutType type, int bag, DefensiveFeat feat = DefensiveFeat.None, bool bunt = false)
+    {
+        var word = type == OutType.Catch
+            ? Label(PlayKind.FlyOut, 1, 0, feat: feat, bunt: bunt)
+            : Out;
+        var anchor = type == OutType.Catch ? StampAnchor.Glove
+            : bag == 4 ? StampAnchor.Plate
+            : bag is >= 1 and <= 3 ? StampAnchor.Bag
+            : StampAnchor.Dirt;
+        return new LiveStamp(word, anchor, bag);
+    }
+
+    public static LiveStamp ScoreTell() => new(Score, StampAnchor.Plate, 4);
+
+    public static LiveStamp SafeTell(int bag) =>
+        new(Safe, bag == 4 ? StampAnchor.Plate : StampAnchor.Bag, bag);
+
+    public static LiveStamp ErrorTell() => new(Error, StampAnchor.Dirt);
+
+    public static LiveEvent Cue(LiveStamp stamp) => stamp.Word switch
+    {
+        Safe => LiveEvent.StampSafe,
+        Error => LiveEvent.ThrowSailed,
+        Score => LiveEvent.StampScore,
+        _ => LiveEvent.StampOut
+    };
+
+    public static bool IsOutWord(string word) =>
+        word is Out or "DIVE" or "JUMP" or "BUDDY JUMP" or "BUNT";
+
+    /// <summary>
+    /// The dead-play card. Live outs and scores already named themselves at the glove or bag;
+    /// a hit, homer, walk, or count still stamps at Time. The live ERROR is the sail — do not
+    /// overlay a second ERROR card.
+    /// </summary>
+    public static bool ShowsAtTime(PlayEvent? ev)
+    {
+        if (ev == null || !Shows(ev.Kind)) return false;
+        if (ev.Outcome?.Error == true) return false;
+        return ShowsAtTime(ev.Kind);
+    }
+
+    public static bool ShowsAtTime(PlayKind kind) =>
+        Shows(kind) && kind is not (PlayKind.FlyOut or PlayKind.GroundOut or PlayKind.CaughtStealing);
 
     /// <summary>
     /// Outs this play. Inning flip zeros <see cref="Match.Outs"/>, so snapshot before Finish.
@@ -123,7 +186,9 @@ public static class PlayStamp
 
     public static double PopSeconds(PlayKind kind) => IsCount(kind) ? 0.10 : 0.16;
 
+    public const string Out = "OUT";
     public const string Safe = "SAFE";
+    public const string Score = "SCORE";
     public const string Error = "ERROR";
     public const string FieldersChoice = "FIELDER'S CHOICE";
 

@@ -41,7 +41,7 @@ public static class HudCallouts
             new("you", "YOU · glove → the receiver", BroadcastHud.YouTell),
             new("item", "ITEM → name", BroadcastHud.ItemTell),
             new("landing", "Landing ring", null),
-            new("error", "ERROR · a throw got away", null),
+            new("error", "ERROR · a throw got away", BroadcastHud.StampDirt),
             new("score", "Score / inning", BroadcastHud.Standard.Score),
         ]);
 
