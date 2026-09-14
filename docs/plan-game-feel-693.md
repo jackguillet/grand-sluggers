@@ -24,15 +24,17 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 ### F693-01 — Reference selection
 
-**State:** open; Jack decides. Compare stock Wii Mario Stadium and stock GameCube Mario Stadium, recording mode, hands, stats, chemistry, stars, and capture cadence. Numerical coverage in a wiki is not sufficient to choose the game's feel. Deliver the comparable play clips and event intervals before recommending Wii-led, GameCube-led, or a named hybrid.
+**State:** provisional visual lead accepted by Jack on September 14, 2026: **Wii Super Sluggers leads on-screen readability; GameCube Superstar Baseball remains a mechanics cross-check**. This follows review of the first two reference clips. Numerical reference selection and target intervals remain open. Compare stock Mario Stadium conditions in both titles, recording mode, hands, stats, chemistry, stars, and capture cadence before numerical calibration.
 
-**First observation packet:** [Wii / GameCube comparison](research-game-feel-701-comparison.md), with a [source and event dataset](research/game-feel-701-observations.json). One Wii direct grounder out and one GameCube force/return attempt support a provisional **visual-lead** discussion; they are not a matched stock-calibration sample. The recommendation to use Wii for on-screen readability and GameCube as a mechanics cross-check awaits Jack. It selects no dimensions or coefficients, and does not complete this row or #701.
+**First observation packet:** [Wii / GameCube comparison](research-game-feel-701-comparison.md), with a [source and event dataset](research/game-feel-701-observations.json). One Wii direct grounder out and one GameCube force/return attempt support a provisional **visual-lead** discussion; they are not a matched stock-calibration sample. Jack accepted the provisional visual-lead recommendation. This selects the default reference for readability reviews, with existing controls and presentation restrictions preserved. It selects no dimensions or coefficients, and does not complete this row or #701.
 
 **Acceptance:** each selected relationship identifies its game and source; deliberate Harbor deviations have reasons and a named human decision. Existing D1–D18 are either preserved or explicitly superseded one by one.
 
 ### F693-02 — Playable geometry versus visible proportions
 
 **State:** unresolved. Candidates: current geometry; independently compressed outfield; coherent full playable-space rescale. Measure fence/basepath, mound/basepath, body/basepath, and projected body/ball sizes. Current Harbor fences are larger than the GameCube survey; the same reduction of the basepaths is not established.
+
+**Next human decision:** may both infield and outfield distances change independently when supported by the reference comparison, or must current infield/all playable distances remain fixed? The recommendation awaiting Jack is to keep both adjustable in pursuit of the intended proportions. This is permission to select a supported geometry later, not approval of a shrink factor or proof that the Wii infield is smaller. Shorter basepaths affect both running and throwing; outfield depth affects pursuit, long throws, and carry. Preserve the accepted reliable-defense intent and D7 pitch pace when evaluating any candidate.
 
 **Acceptance:** one geometry owner feeds sim and kit; bags, cover, fair/foul, paths, wall collisions, and shots agree. Separate approved toy exaggerations from distances that decide plays. Do not choose a scale to accommodate one captain or one camera. Coordinate the #691 hold-ball scaling correction before collecting the final visual baseline.
 
