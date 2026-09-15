@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "carry-movement-response-accepted; clean-ground-pickup-readiness-pending; incomplete-runtime-contract",
+  "status": "clean-ground-pickup-readiness-accepted; retained-ground-pickup-recoil-basis-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -276,8 +276,13 @@
     },
     {
       "id": "F693-02-clean-ground-pickup-readiness",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use no added pause after a routine clean ground pickup is securely possessed: movement continues and a valid throw command can begin ordinary release immediately, with exceptional recovery separate?"
+    },
+    {
+      "id": "F693-02-ground-pickup-recoil-basis",
+      "state": "next-human-decision",
+      "question": "Base exceptional retained-ball ground-pickup recoil deterministically on actual incoming ball speed at the glove and the fielder\u2019s Field rating, rather than original exit speed/contact quality, keeping routine slowed pickups free of added recovery?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2492,7 +2497,7 @@
   },
   "cleanGroundPickupReadinessProposal": {
     "decisionId": "F693-02-clean-ground-pickup-readiness",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "addedRecoverySeconds": 0.0,
     "recommendation": "For a routine clean ground pickup with secure possession and no active exceptional recovery, add zero generic post-possession recovery time. Continue eligible carrying response from actual velocity; a valid deliberate or buffered throw may begin its ordinary release at readiness.",
     "scope": "Routine clean grounded-ball pickup, including clean live loose-ball scoops, after fair/foul and authoritative possession are resolved. No automatic throw, extra catch reach, guaranteed scoop, invisible acquisition or new control mapping. Airborne catches/landings, teammate reception, dives, bobbles, recoil, slips and throws while moving remain separate.",
@@ -2540,6 +2545,48 @@
       "Authored pickup/possession/release agreement; no hidden animation tail or invisible pickup",
       "Complete routine grounder, unassisted force and relay races, independent scoring and human standalone acceptance"
     ],
-    "implementationBoundary": "Pending clean-pickup readiness policy; no runtime/recovery thresholds, motion/book changes, simulation or human gate pass."
+    "implementationBoundary": "Accepted routine clean ground-pickup readiness policy. Exceptional recovery, acquisition/motion timing and full-race validation remain open. No runtime, recovery thresholds, motion/book, candidate simulation or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to routine clean ground pickups flowing directly into carrying or the normal throw motion without an extra post-possession pause."
+  },
+  "groundPickupRecoilBasisProposal": {
+    "decisionId": "F693-02-ground-pickup-recoil-basis",
+    "state": "pending",
+    "recommendation": "Retain exceptional recoil for a securely held hot grounded-ball pickup, but determine it from actual incoming ball speed at the pickup plus Field rating. Routine slower arrivals have no added recovery. Same arrival speed and Field give the same recoil regardless of original hitter/contact quality or control seat.",
+    "speedBasis": "Magnitude of incoming world-space ball velocity in feet per active simulation second at the actual pickup event, immediately before secure possession stops/attaches the ball. Use the authoritative live ball path, including bounce/roll/wall effects, and the same clock as races. This proposal does not subtract fielder speed or use animated glove motion, mesh size, body weight or launch-quality labels.",
+    "scope": "Ordinary grounded batted-ball/loose-ball pickup with secure retained possession and no overriding special effect. This selects the recoil basis/determinism only; exact onset, curve, cap, Field scaling, displaced motion and movement/throw lock permissions remain separate. Airborne catches, teammate receptions, slides/dives, bobbles and authored special attacks remain separate.",
+    "invariants": [
+      "At fixed Field, a slower arrival cannot produce more ordinary recoil than a faster arrival",
+      "At fixed arrival speed, higher Field cannot produce more ordinary recoil",
+      "Identical arrival and Field yield identical ordinary recoil independent of original exit speed/contact quality, assigned position or human/CPU seat",
+      "The routine arrival region has zero recoil, preserving the accepted clean-pickup flow; numerical boundary pending",
+      "No second random roll for retained-ball recoil; bobble rules remain separately unresolved and are not removed by this proposal"
+    ],
+    "currentAudit": "InPlay.Energy uses original ExitVeloMph multiplied by ContactQuality energy factor. KnockbackSec derives a clamped time from that value and Field, and ArmRecoil assigns RecoilT only above its threshold. It does not read current incoming ball velocity. BallFlight sampled paths and PointAt must be audited for event-sided velocity on the real gameplay clock; positions alone do not supply a safe across-bounce velocity estimate.",
+    "eventRail": "Record authoritative pre-possession speed at the pickup event and use it in both prediction and live resolution. Do not read zero after attaching the ball, differentiate across a bounce/wall discontinuity, or substitute pre-timeScale physical speed while presentation/races use stretched time. A pickup at a bounce must use the same event ordering and correct incoming segment as the actual scoop. Units and provenance belong in traces.",
+    "recoveryRail": "When recoil is selected, preserve actual secure ownership but expose a named recovery state with later-approved physical motion and action permissions; it must be visible and must not decide an out by caption. Grounded geometric tags/forces must be explicitly reconciled rather than globally disabled through HoldsBall. Ball Dash and input buffering cannot bypass recovery. Bobble/loss invalidates possession separately; avoid stacking two reactions to one acquisition without an explicit rule.",
+    "references": [
+      {
+        "url": "https://mario-superstar-baseball.fandom.com/wiki/Fielding_Mechanics",
+        "scope": "Community GameCube description says hard-hit catches can slide a fielder backward; not independent measurement of arrival-speed formula or duration."
+      },
+      {
+        "url": "https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143",
+        "scope": "Community character guide discusses differences in being pushed back by hard line drives; not the proposed ground-pickup function."
+      }
+    ],
+    "referenceLimit": "GameCube descriptions support a readable hard-hit reaction, not this exact ground-pickup speed basis, Field curve or timer. Comparable ordinary Wii recovery measurement was not established by the search. Current source supports original-strength behavior as an alternative, not permission to label actual-arrival rules as Nintendo-exact.",
+    "alternative": "Keep original hit-strength input: a ball retaining the same launch/contact label can still trigger the same recovery after long slowing travel. Recommend actual arrival to match the player-visible pickup and compact-field ball-motion calibration.",
+    "requiredChecks": [
+      "Same launch, different roll/wall slowing changes eligibility only with resulting arrival speed",
+      "Different launch/contact quality, same incoming speed and Field gives equal recoil",
+      "Routine speed region yields zero extra recovery; increasing Field never worsens recoil",
+      "Actual pre-possession velocity and correct event side at bounce/wall; gameplay-clock units and predictor/stepper agreement",
+      "Both seats/CPU and position/character coverage; no Ball Dash/queue bypass, extra random recoil or hidden mesh-weight modifier",
+      "Separate bobble/retained-ball/special-state ordering and actual force/tag eligibility",
+      "After selecting thresholds/duration/response, complete grounder, short force and relay races, independent scoring cohorts and standalone human gate"
+    ],
+    "implementationBoundary": "Pending recoil-basis decision only. No numeric onset/duration/Field mapping, recoil motion, bobble RNG change, runtime, animation or human acceptance selected here."
   }
 }
