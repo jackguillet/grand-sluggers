@@ -336,8 +336,13 @@
     },
     {
       "id": "F693-02-special-impact-field-resistance",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Let Fielding moderately reduce the special physical impact itself: linearly from no reduction at Field1 to 20 percent shorter special displacement and impact recovery at Field10, keeping non-impact statuses separate?"
+    },
+    {
+      "id": "F693-02-special-pushback-possession",
+      "state": "next-human-decision",
+      "question": "Have pure special pushback preserve an already-secured ball, with no extra drop roll, while permitting specifically authored ball-dislodging attacks to create real loose-ball outcomes?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3451,13 +3456,13 @@
   },
   "specialImpactFieldResistanceProposal": {
     "decisionId": "F693-02-special-impact-field-resistance",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Fielding also moderately reduces the special physical impact contribution: scale its displacement and associated impact-recovery durations linearly from 1.0 at Field1 to .80 at Field10. Preserve separate ordinary recoil and individually authored special identity; this is not universal magic/status resistance.",
     "minField": 1,
     "maxField": 10,
     "maxReduction": 0.2,
     "factorFormula": "R(Field)=1-.20*(Field-1)/9",
-    "scope": "Proposed shared resistance rule for authored special-hit physical knockback on the affected fielder and the recovery explicitly attributed to that impact. Does not automatically shorten burn, charm, freeze, visual obstruction, terrain hazards, ball-path effects, bobbles or unrelated ability states. Each special must identify its physical-impact contribution and associated action restrictions.",
+    "scope": "Accepted shared resistance rule for authored special-hit physical knockback on the affected fielder and the recovery explicitly attributed to that impact. Does not automatically shorten burn, charm, freeze, visual obstruction, terrain hazards, ball-path effects, bobbles or unrelated ability states. Each special must identify its physical-impact contribution and associated action restrictions.",
     "application": "Evaluate validated Field at the authoritative impact event. Apply R once to the special contribution before composing with ordinary motion/recovery. Ordinary T=.20*S*F and D=(S*F)^2 retain their own accepted factor; never scale the combined total or apply ordinary F to the special. Do not infer extra resistance from Run, body size or Ball Dash.",
     "motionMapping": "For a finite authored special velocity profile v_base(t) with duration M, use v_resisted(t)=v_base(t/R) for 0<=t<=R*M. This preserves its directional sequence and peak velocity, compresses its duration by R, and scales integrated displacement by R. Strong fielders brace sooner rather than receiving a faster initial kick. Acceleration/braking magnitudes can increase by 1/R, at most 1.25 here; inspect that reaction in play. This is the proposed mapping for physical pushback, not a way to retime an arbitrary multi-stage special script.",
     "recoveryMapping": "Multiply each declared special-impact recovery duration by R; keep other status clocks unchanged. Then apply accepted same-event per-action ordinary-plus-special recovery composition. A special whose motion and action windows do not fit this shared mapping must receive a reviewed coherent contract, not a silent exception or a runtime retiming of its whole script.",
@@ -3507,6 +3512,53 @@
       "Compare low/high Field against the same actual authored attack, across seats/CPU, ordinary severities and collision cases; do not claim a universal out advantage.",
       "Review each special strength and identity, exceptions/abilities and repeated-effect behavior before runtime or human feel acceptance."
     ],
-    "implementationBoundary": "Pending special physical-impact resistance only. No individual attack numbers, non-impact status resistance, runtime changes or human gate selected."
+    "implementationBoundary": "Accepted special physical-impact resistance only; individual effects remain pending. No individual attack numbers, non-impact status resistance, runtime changes or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to up to 20 percent Fielding resistance to special physical pushback and its impact recovery."
+  },
+  "specialPushbackPossessionProposal": {
+    "decisionId": "F693-02-special-pushback-possession",
+    "state": "pending",
+    "recommendation": "Pure special pushback does not itself dislodge an already-secured ball or add a random drop roll. A special intended to knock the ball loose must declare a separately reviewed dislodging effect with explicit trigger, possession transition and live-ball outcome.",
+    "scope": "Possession consequence of special physical pushback after acquisition outcome is resolved. Does not guarantee every initial catch, remove existing bobble checks, decide airborne catch validity, or make a fielder immune to separately authored loss effects.",
+    "retention": "A successfully secured ball remains attached to the authoritative owner through pure pushback. Large distance, high combined speed, short recovery, Field rating and recoil animation do not silently become new drop conditions. Actual movement can remove bag/glove contact without removing possession.",
+    "exceptions": "An explicitly authored dislodging attack may create a real loose ball through the shared sim state. Its conditions, any Field/ability resistance, ball trajectory, recovery and action permissions require their own reviewed contract. This proposal assigns no such effect to an existing special and selects no drop probability.",
+    "ordering": "Resolve acquisition and any same-event authored possession-loss outcome before exposing secure possession, Ball Dash eligibility or a possession-dependent out. If a distinct later event dislodges an already-held ball, end possession then, without reversing an out legally completed earlier. No transient force/tag from a ball that was never securely retained.",
+    "contactBoundary": "Possession alone is not an out. Existing actual bag/glove/runner geometry and the individually applicable special action/contact permissions remain authoritative. This possession policy does not grant a blanket tag permission during every stun or other special status.",
+    "commands": "On actual possession loss, invalidate possession-bound pending throws and carrying-ability eligibility through existing ownership rules; do not emit a throw from the wrong owner or replay an invalidated command after reacquisition. Pure pushback retains the accepted buffer/expiry rules and never refreshes the command age.",
+    "fieldingBoundary": "Accepted special resistance scales physical displacement and impact recovery only. It does not automatically reduce a dislodging probability or grant immunity. Ordinary bobble rules remain unchanged by this decision.",
+    "cases": [
+      {
+        "name": "secure-pure-pushback",
+        "secureBefore": true,
+        "authoredDislodgeOccurs": false,
+        "secureAfter": true
+      },
+      {
+        "name": "secure-explicit-dislodge",
+        "secureBefore": true,
+        "authoredDislodgeOccurs": true,
+        "secureAfter": false
+      },
+      {
+        "name": "acquisition-failed",
+        "secureBefore": false,
+        "authoredDislodgeOccurs": false,
+        "secureAfter": false
+      }
+    ],
+    "caseScope": "Abstract possession-policy examples only. They do not evaluate catch geometry, drop triggers, ball flight, event ordering or actual runtime state.",
+    "rationale": "Reliable defense means the player can distinguish being moved while holding the ball from losing it. Make a ball-dislodging special a deliberate attack identity, rather than an invisible extra consequence of all physical reactions.",
+    "referenceLimit": "Authored possession policy. No verified universal Wii/GameCube special-hit retention or drop rule is claimed.",
+    "requiredChecks": [
+      "Pure pushback retains valid secure ownership at every ordinary/special strength with no new RNG or animation-driven drop.",
+      "Existing failed acquisition/bobble outcomes still produce no secure possession; no transient Ball Dash, release or out before the outcome is authoritative.",
+      "Explicit dislodging effects transition to a real loose ball once, invalidate ownership-bound commands, and preserve previously completed legal outs.",
+      "Moving off a bag changes contact, not possession; special-specific contact restrictions remain separately respected.",
+      "Both seats/CPU share ownership and event ordering, duplicate effects do not create duplicate loose balls.",
+      "Validate actual acquisition/loss traces and standalone readability after each special effect is defined."
+    ],
+    "implementationBoundary": "Pending default retention policy and explicit exception boundary only. No new attack, drop rate, runtime change or human gate selected."
   }
 }

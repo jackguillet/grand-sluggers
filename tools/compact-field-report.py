@@ -782,7 +782,8 @@ def derive(data):
             assert math.isclose(row["combinedInitialImpactFeetPerSecond"], 10*w+2*row["specialDistanceFeet"]/.40)
     resistance = data.get("specialImpactFieldResistanceProposal")
     if resistance:
-        assert resistance["state"] == "pending"
+        if resistance["state"] == "accepted-calibration-anchor":
+            assert resistance["acceptedBy"] and resistance["acceptedOn"] and resistance["acceptanceEvidence"]
         for row in resistance["examples"]:
             factor = 1-resistance["maxReduction"]*(row["field"]-resistance["minField"])/(resistance["maxField"]-resistance["minField"])
             w = 1-.05*(row["field"]-1)
@@ -794,9 +795,15 @@ def derive(data):
             assert math.isclose(row["combinedRecoverySeconds"], .2*w+.4*factor)
             # Illustrative triangular profile keeps its initial 10 ft/s speed.
             assert math.isclose(10*row["specialMotionSeconds"]/2, row["specialDistanceFeet"])
+    special_possession = data.get("specialPushbackPossessionProposal")
+    if special_possession:
+        assert special_possession["state"] == "pending"
+        for case in special_possession["cases"]:
+            assert case["secureAfter"] == (case["secureBefore"] and not case["authoredDislodgeOccurs"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialPushbackPossessionState": special_possession["state"] if special_possession else None,
             "specialImpactFieldResistanceState": resistance["state"] if resistance else None,
             "specialImpactMotionCompositionState": special_motion["state"] if special_motion else None,
             "ordinaryRecoilMotionProfileState": motion["state"] if motion else None,

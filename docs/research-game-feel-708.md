@@ -802,9 +802,9 @@ This is an authored physical response, not measured Mario motion. The report che
 
 The proposal does not yet decide whether Fielding also reduces the special's own strength. It is an authored composition policy, not a verified Mario stacking equation. The report checks the aligned illustration arithmetically; no special race, actual contact path or standalone feel is simulated. Validate source identity, individual motion endpoints, action deadlines, vector opposition, collision constraints and both seats/CPU before implementation.
 
-## Next decision — Fielding resistance to special impacts
+## Accepted decision — Fielding resistance to special impacts
 
-**F693-02-special-impact-field-resistance — pending, September 15, 2026.** Recommend **a modest Fielding reduction of the special's own physical pushback and associated impact recovery**, in addition to the ordinary benefit already preserved. Use `R(Field)=1-.20*(Field-1)/9` for validated ratings 1–10: Field1 receives 100% of the authored effect, Field5 about 91.1%, and Field10 **80%**. This chooses a 20% maximum reduction, not immunity.
+**F693-02-special-impact-field-resistance — accepted by Jack on September 15, 2026.** Jack approved **a modest Fielding reduction of the special's own physical pushback and associated impact recovery**, in addition to the ordinary benefit already preserved. Use `R(Field)=1-.20*(Field-1)/9` for validated ratings 1–10: Field1 receives 100% of the authored effect, Field5 about 91.1%, and Field10 **80%**. This chooses a 20% maximum reduction, not immunity.
 
 **Why add this benefit:** ordinary Field differences survive the approved composition, but a powerful special can dominate the reaction. Letting Fielding modestly resist the special itself keeps a strong defender valuable in that encounter. Reusing the ordinary factor would reduce a special by as much as 45%; the proposed separate 20% maximum leaves most of the attack intact. This is an authored trial, not a measured Mario formula.
 
@@ -816,7 +816,21 @@ The proposal does not yet decide whether Fielding also reduces the special's own
 
 Field10 still receives 80% of the special's physical effect. Dedicated immunity/resistance abilities, named attack exceptions, individual strengths and earlier/repeated-effect behavior remain separate. Validate per-source factors, velocity-profile integration, non-impact status isolation, action readiness, both seats/CPU and the same real attacks against weak/strong fielders before standalone feel acceptance. No runtime or human gate changes here.
 
-**Question for Jack:** let Fielding also reduce special physical pushback and impact recovery, reaching a modest 20% reduction at Fielding 10?
+## Next decision — possession during special pushback
+
+**F693-02-special-pushback-possession — pending, September 15, 2026.** Recommend **retaining an already-secured ball through pure special pushback**, with no extra random drop roll. A special deliberately designed to knock the ball loose can do so through an explicitly authored dislodging effect, reviewed separately.
+
+**Why it matters:** a fielder sliding backward with the ball creates a different race from a ball escaping the glove. Keeping these outcomes explicit preserves reliable ordinary defense and gives dislodging attacks a clear identity. A large shove or dramatic reaction animation does not silently mean the ball was dropped. Moving off a bag can prevent a force while the fielder still holds the ball.
+
+**This starts after the acquisition outcome:** existing failed catches and bobbles remain possible under their own rules. This is not guaranteed catching or immunity to attacks. Resolve acquisition and any same-event declared loss before exposing secure possession, a carrying bonus or a possession-dependent out. A later distinct loss ends ownership without reversing an out already legally completed.
+
+**Authored exceptions:** a ball-dislodging special must define its trigger, any Field/ability resistance, actual loose-ball trajectory, recovery and permissions before implementation. No attack or drop chance is assigned here. The accepted 20% physical-impact resistance does not automatically modify a dislodging chance. On actual loss, possession-bound throw commands and carrying eligibility must be invalidated; reacquisition does not revive an invalidated throw.
+
+**Contact and control:** pure pushback preserves ownership, not an automatic out. Actual bag/glove/runner contact and applicable special restrictions still govern; this does not give every stunned fielder blanket tagging permission. The existing buffer/cancel/expiry rules remain in effect when ownership is retained, without age refresh.
+
+This is an authored reliability/attack-identity rule, not a verified universal Mario retention rule. Abstract policy checks are not gameplay simulation. Validate real possession events, failed acquisition, duplicate effects, loose-ball transitions, legal-out ordering, both seats/CPU and visible distinctions between retained-ball recoil and a dislodged ball once individual effects are defined.
+
+**Question for Jack:** keep the ball secured through pure special pushback, with ball loss reserved for existing bobbles or explicitly designed dislodging effects?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
