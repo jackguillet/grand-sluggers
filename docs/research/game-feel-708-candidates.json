@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-chemistry-long-range-relay-and-snap-throw-accepted; laser-throw-pending; incomplete-runtime-contract",
+  "status": "C80-throw-abilities-and-relay-direction-accepted; input-buffer-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -166,13 +166,18 @@
     },
     {
       "id": "F693-03-laser-throw",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Make Laser a 1.25x travel-speed bonus only on actual throws home with a live runner on third or between third and home, stacking once with pair chemistry and retaining ordinary release?"
     },
     {
       "id": "F693-03-input-buffer",
+      "state": "next-human-decision",
+      "question": "Remember an early onward-throw press for 0.25 seconds of active play, executing only when the intended receiver is ready within that window?"
+    },
+    {
+      "id": "F693-03-throw-cancel",
       "state": "pending",
-      "question": "Choose the early-input window and exact cancel/retarget controls individually, including receiver recovery cases."
+      "question": "Choose the exact cancel/retarget control and queued-target feedback, preserving the accepted ownership boundary."
     },
     {
       "id": "F693-02-movement-budget",
@@ -655,7 +660,7 @@
   },
   "laserThrowProposal": {
     "decisionId": "F693-03-laser-throw",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "abilityId": "laser",
     "travelSpeedMultiplier": 1.25,
     "ordinaryReleaseSeconds": 0.3,
@@ -774,6 +779,74 @@
       "Sacrifice fly/tag-up and close-play geometry; doubles/triples and independently gated scoring cohorts",
       "One shared forecast/trajectory calculation for CPU and both human defensive seats"
     ],
-    "implementationBoundary": "Pending research proposal. Keep stable ability ids/roster. Implement data, shared throw context, deterministic CPU forecast and spec/catalog together; presentation supplies readable feedback without changing the physics or creating a second clock."
+    "implementationBoundary": "Accepted trial ability definition; runtime migration pending. Keep stable ability ids/roster. Implement data, shared throw context, deterministic CPU forecast and spec/catalog together; presentation supplies readable feedback without changing the physics or creating a second clock.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to the situational 25% Laser travel-speed bonus for throws home with a runner on third or between third and home, retaining ordinary release and chemistry stacking."
+  },
+  "throwBufferProposal": {
+    "decisionId": "F693-03-input-buffer",
+    "state": "pending",
+    "windowSeconds": 0.25,
+    "recommendation": "An early deliberate onward-throw press remains valid for up to 0.25 seconds of active simulation time. Begin release as soon as the intended receiver has secure possession and has completed required recovery within that window; otherwise expire the command.",
+    "scope": "The accepted relay/double-play onward-throw buffer, including short receiver recovery. This does not rebind catch/dive/batting buttons or authorize pre-contact throws. Any broader batted-ball input overlap needs explicit control review.",
+    "timing": "The window runs from command press until release-motion eligibility, not until ball release. A ready player begins immediately. Once release starts, command consumption is complete and buffer expiry cannot interrupt the 0.30-second ordinary or 0.22-second Snap Throw motion. Pause does not age the buffer; actual play-time recovery does.",
+    "ownership": "One pending command per defensive seat, tied to expected receiver, current play and target. A new deliberate throw press replaces the pending command and timestamp; held buttons and target-only changes do not refresh it. Retarget/cancel is allowed before release motion, per accepted ownership direction; exact controls remain pending.",
+    "invalidation": "Cancel, missed reception, lost possession, receiver change, defensive seat change or play end clears the command. Do not carry a command through a bobble or into an unrelated fielder/play. No prediction grants possession.",
+    "boundary": "Eligible at age exactly 0.25 seconds is valid; later is expired. Resolve invalidation/cancel before release eligibility. Timestamp inputs and evaluate the boundary in simulation seconds, not a fixed count of rendered frames.",
+    "examples": [
+      {
+        "pressAtSeconds": 0.0,
+        "readyAtSeconds": 0.2,
+        "valid": true,
+        "releaseStartsAtSeconds": 0.2
+      },
+      {
+        "pressAtSeconds": 0.0,
+        "readyAtSeconds": 0.25,
+        "valid": true,
+        "releaseStartsAtSeconds": 0.25
+      },
+      {
+        "pressAtSeconds": 0.0,
+        "readyAtSeconds": 0.3,
+        "valid": false,
+        "releaseStartsAtSeconds": null
+      },
+      {
+        "pressAtSeconds": 0.1,
+        "readyAtSeconds": 0.0,
+        "valid": true,
+        "releaseStartsAtSeconds": 0.1
+      }
+    ],
+    "recoveryExample": "A press 0.20 seconds before reception with another 0.10 seconds of mandatory recovery expires at 0.25 seconds. The fielder does not release at 0.30 from that stale input; a fresh press is required. A miss/bobble clears the buffer outright.",
+    "tradeoff": "Quarter-second tolerance supports an intentional catch-and-throw rhythm without storing an entire relay route. Shorter windows demand more precise timing; much longer windows make stale commands more likely to outlive a changed tactical intention.",
+    "alternatives": [
+      {
+        "seconds": 0.15,
+        "effect": "Tighter timing, less early-command retention."
+      },
+      {
+        "seconds": 0.4,
+        "effect": "More forgiving early timing, longer-lived queued intent."
+      }
+    ],
+    "referenceLimits": "The cited Wii and GameCube booklet passages document throws and cutoff selection, not an input-buffer duration. 0.25 seconds is an authored trial value, not measured Nintendo timing. No reference claim is made from nominal frame equivalents.",
+    "references": [
+      "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
+      "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf"
+    ],
+    "currentAudit": "LivePlaySystem.Field TickInPlay advances an active throw and returns before normal possession command dispatch; the human cutoff reception branch can immediately begin an armed onward throw. The inspected path has no duration-based onward-command queue. Existing SouthDown/Cutoff commands and bag arming are not evidence of this proposed buffer.",
+    "requiredChecks": [
+      "Before/at/after expiry at different render and simulation step sizes",
+      "Already-ready command has no buffer delay; buffer expiry cannot truncate release",
+      "Clean reception versus recovery beyond expiry and outright missed catch/bobble",
+      "Fresh press replaces one queued intent; button hold and target change do not refresh age",
+      "Cancel/invalidation wins at the eligibility boundary",
+      "Both human defensive seats, both schemes, CPU defense unaffected",
+      "Record press, queue/replace/cancel/expire, possession, eligibility and release times in the existing trace rail"
+    ],
+    "implementationBoundary": "Pending numerical buffer trial. Implement within the shared live input/throw system with data-owned timing and existing traces. Review cancel mapping and couch feedback next; update the book and HowToPlay together through the presentation owner. No runtime edits in this research step."
   }
 }

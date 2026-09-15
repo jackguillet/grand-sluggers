@@ -233,6 +233,8 @@ def derive(data):
             assert math.isclose(example["snapTotalSeconds"], expected + snap["eligibleReleaseSeconds"])
     laser = data.get("laserThrowProposal")
     if laser:
+        if laser["state"] == "accepted-calibration-anchor":
+            assert laser["acceptedBy"] and laser["acceptedOn"] and laser["acceptanceEvidence"]
         assert laser["travelSpeedMultiplier"] > 1
         assert math.isclose(laser["ordinaryReleaseSeconds"], release["releaseSeconds"])
         for example in laser["examples"]:
@@ -243,8 +245,20 @@ def derive(data):
             assert math.isclose(example["laserFlightSeconds"], fast)
             assert math.isclose(example["ordinaryTotalSeconds"], release["releaseSeconds"] + ordinary)
             assert math.isclose(example["laserTotalSeconds"], release["releaseSeconds"] + fast)
+    buffer = data.get("throwBufferProposal")
+    if buffer:
+        assert buffer["windowSeconds"] > 0
+        for example in buffer["examples"]:
+            start = max(example["pressAtSeconds"], example["readyAtSeconds"])
+            valid = start - example["pressAtSeconds"] <= buffer["windowSeconds"]
+            assert valid == example["valid"]
+            if valid:
+                assert math.isclose(example["releaseStartsAtSeconds"], start)
+            else:
+                assert example["releaseStartsAtSeconds"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "laserThrowState": laser["state"] if laser else None,
             "snapThrowState": snap["state"] if snap else None,
             "relayOwnershipState": relay_control["state"] if relay_control else None,
             "negativeChemistryState": negative["state"] if negative else None,
