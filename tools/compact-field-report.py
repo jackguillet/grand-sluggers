@@ -90,7 +90,8 @@ def derive(data):
                ROOT / "src/GrandSluggers.Sim/ChemistryTable.cs",
                ROOT / "src/GrandSluggers.Sim/Match.cs",
                ROOT / "src/GrandSluggers.Sim/FieldAbilities.cs",
-               ROOT / "data/characters/vale.json", ROOT / "data/characters/role-players.json"]
+               ROOT / "data/characters/vale.json", ROOT / "data/characters/brondo.json",
+               ROOT / "data/characters/role-players.json"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -219,6 +220,8 @@ def derive(data):
         assert relay_control["acceptedBy"] and relay_control["acceptedOn"] and relay_control["acceptanceEvidence"]
     snap = data.get("snapThrowProposal")
     if snap:
+        if snap["state"] == "accepted-calibration-anchor":
+            assert snap["acceptedBy"] and snap["acceptedOn"] and snap["acceptanceEvidence"]
         assert 0 < snap["eligibleReleaseSeconds"] < snap["ordinaryReleaseSeconds"]
         assert math.isclose(snap["ordinaryReleaseSeconds"], release["releaseSeconds"])
         assert snap["flightSpeedMultiplier"] == 1.0
@@ -228,8 +231,21 @@ def derive(data):
             assert math.isclose(example["flightSeconds"], expected)
             assert math.isclose(example["ordinaryTotalSeconds"], expected + snap["ordinaryReleaseSeconds"])
             assert math.isclose(example["snapTotalSeconds"], expected + snap["eligibleReleaseSeconds"])
+    laser = data.get("laserThrowProposal")
+    if laser:
+        assert laser["travelSpeedMultiplier"] > 1
+        assert math.isclose(laser["ordinaryReleaseSeconds"], release["releaseSeconds"])
+        for example in laser["examples"]:
+            pair_factor = {"neutral": 1.0, "good": 1.3, "bad": 0.9}[example["pair"]]
+            ordinary = flight(example["distanceFeet"], example["fieldStat"]) / pair_factor
+            fast = ordinary / laser["travelSpeedMultiplier"]
+            assert math.isclose(example["ordinaryFlightSeconds"], ordinary)
+            assert math.isclose(example["laserFlightSeconds"], fast)
+            assert math.isclose(example["ordinaryTotalSeconds"], release["releaseSeconds"] + ordinary)
+            assert math.isclose(example["laserTotalSeconds"], release["releaseSeconds"] + fast)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "snapThrowState": snap["state"] if snap else None,
             "relayOwnershipState": relay_control["state"] if relay_control else None,
             "negativeChemistryState": negative["state"] if negative else None,
             "longRangeProfileState": long_range["state"] if long_range else None,
