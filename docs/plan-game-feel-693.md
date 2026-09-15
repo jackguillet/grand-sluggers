@@ -116,6 +116,8 @@ Tests must cover both force and tag timelines, overlapping read/pursuit, multipl
 
 ### R3 — Choose the contract, then calibrate serially
 
+**In progress — #708:** the [compact-field decision packet](research-game-feel-708.md) proposes C80 (80-ft paths, 232/280/232-ft fences) and C70 (70-ft paths, 203/245/203-ft fences), with unchanged bodies and coordinated spatial conventions. C80 is recommended as the lead trial; **neither is accepted**. The packet records existing race evidence, incompatible IF/OF time-preserving speed sensitivities, and the remaining one-at-a-time numerical decisions. It is not yet a complete runtime contract; no candidate has been simulated. First review: F693-02-spatial-trial. Subsequent running, throwing, pursuit/coverage, ball-motion and presentation values stay pending.
+
 Decision review on #693 first. Jack resolves F693-01–06 from the evidence. The review artifact contains the candidate profile's complete quantities, intervals, invariants, and deviations, so approval concerns a concrete game contract.
 
 Then create one gameplay implementation child per coherent change. If geometry moves, first migrate existing values into the shared data owner and prove parity. Implement the accepted clock/path relationships in named sim systems and `data/rules/`, leaving presentation and Blender to their owners. Compare unchanged control A against each candidate with identical declared inputs and seeds. Report effects instead of repairing each failed fixture with a private exception.
