@@ -386,8 +386,13 @@
     },
     {
       "id": "F693-02-normal-jump-input-profile",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use one consistent normal-jump vertical profile per eligible press, with no hold-for-height, release-to-cut-short, catch reset or automatic repeat from holding the button?"
+    },
+    {
+      "id": "F693-02-normal-jump-takeoff-ownership",
+      "state": "next-human-decision",
+      "question": "Have an eligible press start the normal jump promptly, without waiting for or retiming to the ball/catch window, so the player owns takeoff timing?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4047,7 +4052,7 @@
   },
   "normalJumpInputProfileProposal": {
     "decisionId": "F693-02-normal-jump-input-profile",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "One eligible normal-jump press commits to one consistent vertical profile for the selected jump type under the same starting conditions. Holding longer does not increase height or airtime; releasing early does not cut it short. Holding through landing does not automatically start another jump.",
     "holdChangesHeightOrAirtime": false,
     "releaseCutsJumpShort": false,
@@ -4088,6 +4093,37 @@
       "Pause and landing/throw-readiness ordering remain coherent; numerical jump parameters and early-input semantics remain explicitly unselected.",
       "Review character/ability reach and exceptional jump variants, then compare actual timing/coverage and standalone control readability before implementation acceptance."
     ],
-    "implementationBoundary": "Pending normal-jump press/hold policy only. No numeric jump profile, new input mapping, physical implementation, book change or human gate selected."
+    "implementationBoundary": "Accepted normal-jump press/hold policy only; numerical profile and takeoff timing remain pending. No numeric jump profile, new input mapping, physical implementation, book change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to a consistent normal jump per eligible press, without hold-for-height, early-release shortening, catch reset or automatic held-button repeat."
+  },
+  "normalJumpTakeoffOwnershipProposal": {
+    "decisionId": "F693-02-normal-jump-takeoff-ownership",
+    "state": "pending",
+    "ballScheduledTakeoff": false,
+    "ballDependentExtraWaitSeconds": 0.0,
+    "pressToTakeoffSeconds": null,
+    "recommendation": "An eligible normal-jump press starts the jump response promptly from that input event. Do not hold it for the predicted catch window or choose a takeoff time that aligns the apex with the ball. The player owns timing; a jump can be too early or too late.",
+    "scope": "Ownership and scheduling of normal-jump initiation. No numerical input-to-takeoff latency, anticipation duration, height/airtime, catch window tolerance or ineligible-input buffer is selected here. Prompt response is not a claim of zero hardware/frame latency.",
+    "timing": "Any subsequently reviewed short takeoff anticipation is part of a fixed input-relative profile and independent of ball prediction. Normal jump timing cannot stretch or shift as the ball trajectory changes. The simulation input time, authored takeoff and physical landing must share an explicit timeline, not a presentation-only scheduled leap.",
+    "eligibility": "A grounded fielder with control and no applicable jump/movement restriction may initiate under the reviewed normal-jump eligibility rules. A catch-window hint is not a prerequisite to execute an otherwise valid jump. This does not allow a read/recovery/throw lock to be bypassed or a midair second jump. Any buffering of an ineligible early press requires a separate reviewed bound and cannot become an unlimited ball-scheduled command.",
+    "catching": "Success comes from actual ball/glove geometry over the chosen trajectory. Pressing jump is not a catch reservation, enlarged glove, teleport to the landing ring or guarantee of a future catch. Preserve already accepted positional/read and catch-assistance contracts without letting assistance retime a manually initiated jump or overwrite its path outside approved control bounds.",
+    "ballChanges": "If the ball deflects, changes target or is caught by someone else after takeoff, the active jump follows its reviewed physical profile until landing unless an actual external effect changes motion. Do not silently cancel the leap, reset its clock or transfer the initiating command to another fielder.",
+    "humanCpu": "Human timing remains user-owned. CPU and existing assisted behavior may choose when to issue their own eligible jump intent under their reviewed ownership/decision rules, but must execute the same takeoff/air-control/landing constraints. This proposal grants no new automatic jump takeover for a human-controlled fielder.",
+    "controls": "Retain the existing jump button mapping and the accepted press/hold behavior. Another jump requires another eligible press; holding does not create perfect-timing auto-repeats. Throw buffering after a catch remains governed by its independent .25-second window and landing readiness.",
+    "currentAudit": "WestDown currently assigns JumpT from JumpArmSec/WallJumpArmSec; jumpTry later uses JumpT>0 and HighEnough before PlayerCaught. The book describes arming through a catch window. These define a catch-eligibility window, not a proved physical takeoff schedule. Future actual jump simulation must not treat that arming period as permission to schedule a later perfect takeoff. The current code audit does not establish when the rendered body leaves the ground.",
+    "referenceLimit": "Previously rechecked Wii and GameCube manuals describe press-oriented jump actions but do not establish frame-accurate input latency or automatic timing assistance. Player-owned takeoff is an authored control choice; measured reference startup and airtime remain pending.",
+    "tradeoff": "Direct timing is predictable and gives the player ownership, but permits a miss from a premature or late jump. Ball-scheduled takeoff would be more forgiving but could make the jump button feel like a request to auto-catch rather than an immediate movement verb.",
+    "requiredChecks": [
+      "With the same eligible input and starting state, changing predicted ball arrival does not reschedule takeoff or change input-relative anticipation.",
+      "Early and late valid jumps actually occur and can miss by geometry; no hidden waiting for a catch window or catch reservation.",
+      "Existing control ownership and movement/read/recovery restrictions remain intact; no new assisted takeover or midair repeat.",
+      "Ball deflection, another fielder catch and target changes do not retime/cancel an already active jump absent a real reviewed external effect.",
+      "Sim prediction, stepper, input trace and animation share start/takeoff/landing events; arming timers are not substituted for airtime.",
+      "Update docs/how-to-play.md and HowToPlay.cs together when this future input behavior is implemented, and validate both schemes/seats and CPU execution.",
+      "Measure numerical startup, jump profile and catch tolerance before gameplay and standalone acceptance."
+    ],
+    "implementationBoundary": "Pending normal-jump takeoff ownership only. No numerical jump/latency/buffer change, live control/book edit, runtime implementation or human gate selected."
   }
 }
