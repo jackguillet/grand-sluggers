@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-chemistry-and-long-range-profile-accepted; relay-ownership-pending; incomplete-runtime-contract",
+  "status": "C80-ordinary-chemistry-long-range-and-relay-direction-accepted; snap-throw-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay controls remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Special stacking remains pending.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with exact buffer/cancel details pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Special stacking remains pending.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -156,13 +156,23 @@
     },
     {
       "id": "F693-03-relay-ownership",
-      "state": "next-human-decision",
+      "state": "accepted-design-direction",
       "question": "Require a separate player throw command for each relay leg, allowing an early buffered command for the next receiver, with hold and retarget before commitment?"
     },
     {
-      "id": "F693-03-special-throws",
+      "id": "F693-03-snap-throw",
+      "state": "next-human-decision",
+      "question": "Make Snap Throw a 0.22-second release after cleanly receiving a teammate throw, replacing its 1.22x flight-speed boost?"
+    },
+    {
+      "id": "F693-03-laser-throw",
       "state": "pending",
-      "question": "Review special-ability speed/release effects and stacking with chemistry and the long-range curve."
+      "question": "Review Laser activation and travel-speed effect, including chemistry and long-range stacking."
+    },
+    {
+      "id": "F693-03-input-buffer",
+      "state": "pending",
+      "question": "Choose the early-input window and exact cancel/retarget controls individually, including receiver recovery cases."
     },
     {
       "id": "F693-02-movement-budget",
@@ -523,7 +533,7 @@
   },
   "relayOwnershipProposal": {
     "decisionId": "F693-03-relay-ownership",
-    "state": "pending",
+    "state": "accepted-design-direction",
     "recommendation": "Each human relay leg requires its own deliberate throw command. Permit an early command buffered for the next intended receiver; selecting a bag alone does not authorize throwing.",
     "currentBehavior": "An explicitly armed ThrowBag is copied into _relayBag on a cutoff throw; after successful reception the human branch calls BeginThrowToBag automatically when _relayBag is valid. With no explicitly armed bag it holds. CPU re-evaluates its decision table.",
     "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md §8.7",
@@ -556,6 +566,88 @@
       "Both human defensive seats, both input schemes, CPU defense and double-play continuation",
       "Full direct/relay race with actual per-leg release, movement and chemistry"
     ],
-    "implementationBoundary": "Design proposal only; reconcile §8.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit."
+    "implementationBoundary": "Accepted control direction only; reconcile §8.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to a separate command for each relay leg, with early-input buffering."
+  },
+  "snapThrowProposal": {
+    "decisionId": "F693-03-snap-throw",
+    "state": "pending",
+    "abilityId": "snap-throw",
+    "recommendation": "Replace the universal 1.22x flight-speed boost with a 0.22-second release after a cleanly received teammate throw. Retain 0.30 seconds for ordinary batted-ball catches, ground pickups and loose-ball recovery. Flight uses the ordinary arm, long-range and pair-chemistry rules.",
+    "ordinaryReleaseSeconds": 0.3,
+    "eligibleReleaseSeconds": 0.22,
+    "flightSpeedMultiplier": 1.0,
+    "eligibility": "The current uninterrupted possession began with a clean teammate-throw reception. A delayed command may use the benefit while that possession continues; dropping, bobbling or losing possession clears it. Required catch/tag/slide recovery is paid before release eligibility; no recovery bypass.",
+    "currentRule": {
+      "flightSpeedMultiplier": 1.22,
+      "source": "src/GrandSluggers.Sim/FieldAbilities.cs::ThrowMul; data/rules/fielding.json::abilities.snapThrowMul",
+      "scope": "Applied to throws from the ability holder regardless of possession source, multiplying arm and pair chemistry."
+    },
+    "roster": [
+      "vale",
+      "frost",
+      "pip",
+      "pewter"
+    ],
+    "stacking": "Chemistry modifies flight once, not release. Snap Throw does not boost range, accuracy or travel speed. Separate command per leg remains required; a buffered command starts release only after secure possession and required recovery.",
+    "examples": [
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "neutral",
+        "flightSeconds": 0.9,
+        "ordinaryTotalSeconds": 1.2,
+        "snapTotalSeconds": 1.12
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "good",
+        "flightSeconds": 0.6923076923076923,
+        "ordinaryTotalSeconds": 0.9923076923076923,
+        "snapTotalSeconds": 0.9123076923076923
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "bad",
+        "flightSeconds": 1.0,
+        "ordinaryTotalSeconds": 1.3,
+        "snapTotalSeconds": 1.22
+      },
+      {
+        "fieldStat": 8,
+        "distanceFeet": 80,
+        "pair": "neutral",
+        "flightSeconds": 0.8256880733944953,
+        "ordinaryTotalSeconds": 1.1256880733944954,
+        "snapTotalSeconds": 1.0456880733944953
+      }
+    ],
+    "exampleScope": "Analytical clean-reception command-to-target times. Field 5 rows isolate ability effect; Vale has Field 8. No simulation or guaranteed catch/out.",
+    "tradeoff": "A fixed 0.08-second release advantage gives a recognizable relay/double-play role while preserving readable flight. It is a substantial reduction of the old universal speed advantage, particularly on long throws and initial ground pickups; character balance needs review.",
+    "alternative": "Retain a universal flight-speed boost and calibrate its size; this preserves a broader arm advantage but overlaps the long-throw role.",
+    "references": [
+      {
+        "url": "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "scope": "Nintendo names Quick Throw for Peach and Daisy; the cited roster text does not supply trigger/timing coefficients."
+      },
+      {
+        "url": "https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143",
+        "scope": "Original player guide by k_pflipsen describes quick fielding-to-throw action and relay/double-play usefulness; no measured 0.22-second value or definitive received-only trigger in that passage."
+      }
+    ],
+    "referenceLimits": "Mario-inspired role, authored scope and timing. The received-throw-only trigger is an explicit proposed Harbor rule here, not verified from the cited primary passages. No matched Wii/GameCube ability timing capture is available.",
+    "requiredChecks": [
+      "Clean relay and double-play receptions versus grounders, flies and loose pickups",
+      "Neutral/good/bad pairs and Field 1/5/8/9",
+      "Buffered and delayed commands; one input per leg; either defensive seat",
+      "Recovery and bobble cannot be skipped; possession-source state cannot leak across plays",
+      "Direct/relay comparisons and character-specific regression cohorts after removing the old universal multiplier",
+      "Visible transfer and release marker agree with the sim; no C# pose or independent presentation clock"
+    ],
+    "implementationBoundary": "Pending proposal. Update the shared throw model, ability data, gameplay spec and systems catalog together during coherent gameplay implementation; synchronize the existing authored motion and book through their owners. No runtime or roster edits in this research step."
   }
 }
