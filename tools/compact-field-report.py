@@ -100,12 +100,29 @@ def derive(data):
             assert proposal["acceptedBy"] and proposal["acceptedOn"] and proposal["acceptanceEvidence"]
     release = data.get("throwReleaseProposal")
     if release:
+        if release["state"] == "accepted-calibration-anchor":
+            assert release["acceptedBy"] and release["acceptedOn"] and release["acceptanceEvidence"]
         example = release["arithmeticOnlyExample"]
         reception = sum(example[k] for k in ("possessionSeconds", "humanDecisionSeconds",
                                              "releaseSeconds", "assumedFlightSeconds"))
         assert math.isclose(reception, example["assumedCoveredReceptionSeconds"])
         assert math.isclose(example["runnerNominalArrivalSeconds"] - reception, example["marginSeconds"])
         assert math.isclose(example["releaseSeconds"], release["releaseSeconds"])
+    travel = data.get("throwTravelProposal")
+    if travel:
+        seconds_per_foot = travel["referenceFlightSeconds"] / travel["referenceDistanceFeet"]
+        assert math.isclose(travel["baselineHorizontalFeetPerSecond"], 1 / seconds_per_foot)
+        for sample in travel["samples"]:
+            flight = sample["distanceFeet"] * seconds_per_foot
+            assert math.isclose(flight, sample["flightSeconds"])
+            assert math.isclose(flight + release["releaseSeconds"], sample["commandToTargetSeconds"])
+        example = travel["raceExample"]
+        assert math.isclose(example["throwDistanceFeet"] * seconds_per_foot, example["flightSeconds"])
+        assert math.isclose(example["releaseSeconds"], release["releaseSeconds"])
+        reception = sum(example[k] for k in ("possessionSeconds", "humanDecisionSeconds",
+                                             "releaseSeconds", "flightSeconds"))
+        assert math.isclose(reception, example["coveredReceptionSeconds"])
+        assert math.isclose(example["runnerNominalArrivalSeconds"] - reception, example["marginSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
