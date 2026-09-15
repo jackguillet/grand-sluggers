@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-spatial-trial-and-runner-clock-accepted; throw-release-decision-pending; incomplete-runtime-contract",
+  "status": "C80-spatial-runner-and-release-anchors-accepted; throw-travel-decision-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Release and travel must be separate observable phases. Do not reinterpret the current .22 s duration intercept as an existing stationary windup. Numerical release/travel targets pending.",
+    "throw": "Accepted F693-03-release-clock: 0.30 seconds from accepted ordinary command in clean possession to actual release, immediate motion onset. Ball travel remains pending. Do not reinterpret the old .22 s total-duration intercept as an existing stationary windup or add an extra .22 s hold.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -126,13 +126,18 @@
     },
     {
       "id": "F693-03-release-clock",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use 0.30 seconds from accepted ordinary throw command in clean possession to release as the trial baseline?"
     },
     {
       "id": "F693-03-travel-clock",
+      "state": "next-human-decision",
+      "question": "Use 0.90 seconds of ordinary infield flight over 80 feet, proportional to distance, as the trial anchor?"
+    },
+    {
+      "id": "F693-03-long-throws",
       "state": "pending",
-      "question": "Choose distance-dependent ball travel after release against the accepted runner and release clocks."
+      "question": "Choose long-throw reach and direct-versus-relay behavior that preserves meaningful relays inside the compact outfield."
     },
     {
       "id": "F693-02-movement-budget",
@@ -176,7 +181,7 @@
   "runtimeChangesAuthorizedByThisPacket": false,
   "throwReleaseProposal": {
     "decisionId": "F693-03-release-clock",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "releaseSeconds": 0.3,
     "scope": "Clean ordinary throw with ball possessed, baseline Field-5 character: accepted throw command starts motion immediately; ball separates at 0.30 s. Human thinking time, pickup/read, recovery, follow-through duration and flight excluded. Stat/ability adjustments and buffering rules not selected by this scalar.",
     "existingAuthoredReleaseSeconds": 0.18,
@@ -197,7 +202,69 @@
       "assumedCoveredReceptionSeconds": 2.95,
       "runnerNominalArrivalSeconds": 3.45,
       "marginSeconds": 0.5,
-      "status": "Feasibility arithmetic only; possession, decision, flight and margin are not accepted targets or simulated results."
-    }
+      "status": "Feasibility arithmetic only; runner and release anchors accepted; possession, human decision, flight and margin are not accepted targets or simulated results."
+    },
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to 0.30 seconds as ordinary release timing for the trial, with immediate motion onset and ball travel reviewed separately."
+  },
+  "throwTravelProposal": {
+    "decisionId": "F693-03-travel-clock",
+    "state": "pending",
+    "referenceDistanceFeet": 80,
+    "referenceFlightSeconds": 0.9,
+    "baselineHorizontalFeetPerSecond": 88.88888888888889,
+    "scope": "Ordinary infield throw, Field-5 neutral arm without ability/chemistry/lob modifiers; flight from actual release to target arrival, followed by actual eligible reception. Proportional to horizontal distance in this regime. Example distances are not hard regime boundaries. Longer throws/relay range and exact modifiers require the next review.",
+    "armPolicy": "Preserve meaningful character arm differences; examples use the ordinary neutral arm. No new Field-to-release adjustment or ability change is selected.",
+    "samples": [
+      {
+        "distanceFeet": 40,
+        "flightSeconds": 0.45,
+        "commandToTargetSeconds": 0.75
+      },
+      {
+        "distanceFeet": 80,
+        "flightSeconds": 0.9,
+        "commandToTargetSeconds": 1.2
+      },
+      {
+        "distanceFeet": 100,
+        "flightSeconds": 1.125,
+        "commandToTargetSeconds": 1.425
+      },
+      {
+        "distanceFeet": 120,
+        "flightSeconds": 1.35,
+        "commandToTargetSeconds": 1.6500000000000001
+      }
+    ],
+    "sourceStatus": "Authored trial timing. #701 Wii release-to-reception observation 0.99–1.21 s has unmatched distance/stats; GC return has wider release/reception uncertainty. No reference feet-per-second measured.",
+    "baselineComparison": {
+      "old90FootTotalSampledTravelSeconds": 1.12,
+      "new80FootReleasePlusFlightSeconds": 1.2,
+      "scope": "Neutral middle arm only. Historical .22 intercept was sampled travel; proposed .30 is a distinct held-ball release phase."
+    },
+    "raceExample": {
+      "possessionSeconds": 1.3,
+      "humanDecisionSeconds": 0.25,
+      "releaseSeconds": 0.3,
+      "throwDistanceFeet": 100,
+      "flightSeconds": 1.125,
+      "coveredReceptionSeconds": 2.975,
+      "runnerNominalArrivalSeconds": 3.45,
+      "marginSeconds": 0.475,
+      "status": "Illustrative arithmetic, not simulation; possession, human decision and margin are unapproved examples; travel proposal pending."
+    },
+    "alternatives": [
+      {
+        "flightOver80FeetSeconds": 0.7,
+        "effect": "More defensive time and a sharper ball, but less time to follow travel."
+      },
+      {
+        "flightOver80FeetSeconds": 1.1,
+        "effect": "More deliberate flight, but spends another 0.20 seconds per 80 feet of the defensive race."
+      }
+    ],
+    "relayConstraint": "Do not extrapolate the near-field rate as an accepted whole-field curve. Two equal-arm collinear relay legs at one constant speed add a second release and cannot beat a direct throw purely on flight time. Review existing reach/cutoff rules at compact dimensions before selecting the long-range contract."
   }
 }
