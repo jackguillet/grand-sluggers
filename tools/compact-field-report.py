@@ -588,6 +588,8 @@ def derive(data):
             assert math.isclose(alt["run5BallDashCarryFeetPerSecond"], alt["run5OrdinaryCarryFeetPerSecond"]*boost)
     carry_response = data.get("carryMovementResponseProposal")
     if carry_response:
+        if carry_response["state"] == "accepted-calibration-anchor":
+            assert carry_response["acceptedBy"] and carry_response["acceptedOn"] and carry_response["acceptanceEvidence"]
         assert carry_response["rateBasis"] == "unboosted-ordinary-character-speed"
         assert carry_response["response"] == turning["response"]
         ta = acceleration["restToFullSeconds"]
@@ -614,9 +616,25 @@ def derive(data):
             angle = math.radians(row["angleDegrees"]/2)
             assert math.isclose(row["completionSeconds"], carrier["speedMultiplier"]*(ta+tb)*math.sin(angle))
             assert math.isclose(row["minimumSpeedFraction"], math.cos(angle), abs_tol=1e-12)
+    pickup = data.get("cleanGroundPickupReadinessProposal")
+    if pickup:
+        assert pickup["addedRecoverySeconds"] == 0
+        for row in pickup["examples"]:
+            ready = row["securePossessionSeconds"]+pickup["addedRecoverySeconds"]
+            start = max(ready, row["commandSeconds"])
+            age = start-row["commandSeconds"]
+            assert math.isclose(row["bufferAgeAtReadinessSeconds"], age, abs_tol=1e-12)
+            valid = age <= .25+1e-12
+            assert row["bufferValid"] == valid
+            if valid:
+                assert math.isclose(row["releaseStartSeconds"], start)
+                assert math.isclose(row["ballReleaseSeconds"], start+.30)
+            else:
+                assert row["releaseStartSeconds"] is None and row["ballReleaseSeconds"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "cleanGroundPickupReadinessState": pickup["state"] if pickup else None,
             "carryMovementResponseState": carry_response["state"] if carry_response else None,
             "ordinaryCarrySpeedState": carry["state"] if carry else None,
             "ballDashCarrierState": data.get("ballDashCarrierProposal", {}).get("state"),
