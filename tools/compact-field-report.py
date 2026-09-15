@@ -202,6 +202,8 @@ def derive(data):
                                   "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"})
     negative = data.get("negativeChemistryProposal")
     if negative:
+        if negative["state"] == "accepted-calibration-anchor":
+            assert negative["acceptedBy"] and negative["acceptedOn"] and negative["acceptanceEvidence"]
         factor = negative["badPairTravelSpeedMultiplier"]
         assert 0 < factor < 1
         assert math.isclose(negative["ordinaryReleaseSeconds"], release["releaseSeconds"])
@@ -213,6 +215,7 @@ def derive(data):
             assert math.isclose(example["badCommandToTargetSeconds"], release["releaseSeconds"] + example["badFlightSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "negativeChemistryState": negative["state"] if negative else None,
             "longRangeProfileState": long_range["state"] if long_range else None,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
             "profiles": records, "proposedLongRangeComparisons": long_rows}
