@@ -470,6 +470,10 @@ def derive(data):
                 assert math.isclose((magnitude-z)/(1-z), fraction, abs_tol=1e-12)
     neutral = data.get("pursuitNeutralProposal")
     if neutral:
+        if neutral["state"] == "accepted-calibration-anchor":
+            assert neutral["acceptedBy"] and neutral["acceptedOn"] and neutral["acceptanceEvidence"]
+            assert math.isclose(analog["neutralRadius"], neutral["manualSpeedZeroRadius"])
+            assert analog["neutralRadiusDecision"] == neutral["decisionId"]
         enter, leave = neutral["manualEnterRadius"], neutral["manualExitRadius"]
         z = neutral["manualSpeedZeroRadius"]
         assert 0 <= leave < enter < 1 and z == leave
@@ -490,6 +494,7 @@ def derive(data):
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitCalibrationState": data.get("pursuitCalibrationProposal", {}).get("state"),
             "pursuitNeutralState": neutral["state"] if neutral else None,
             "pursuitAnalogState": analog["state"] if analog else None,
             "pursuitAngledTurnState": turning["state"] if turning else None,
