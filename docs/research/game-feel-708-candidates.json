@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "ground-pickup-recoil-basis-accepted; retained-ball-recovery-cap-pending; incomplete-runtime-contract",
+  "status": "ordinary-recoil-cap-accepted-with-special-hit-exceptions; special-recovery-composition-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -286,8 +286,13 @@
     },
     {
       "id": "F693-02-ground-pickup-recoil-cap",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Cap ordinary retained-ball ground-pickup recoil at .20 seconds after secure acquisition, with routine pickups at zero and weaker qualifying impacts below the cap, keeping onset/curve/Field mapping and physical permissions separate?"
+    },
+    {
+      "id": "F693-02-special-recovery-composition",
+      "state": "next-human-decision",
+      "question": "Let ordinary recoil and authored special recovery run on their own timelines, allowing each action when its applicable restrictions clear instead of automatically adding recovery durations?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2599,7 +2604,7 @@
   },
   "groundPickupRecoilCapProposal": {
     "decisionId": "F693-02-ground-pickup-recoil-cap",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maxRecoverySeconds": 0.2,
     "recommendation": "Cap the required recovery from an ordinary grounded-ball impact with retained secure possession at .20 seconds. This is a ceiling, not a fixed pause on every hard pickup; routine pickups remain zero and the eventual speed/Field curve yields intermediate values.",
     "scope": "The ordinary retained-ball ground/loose-pickup recoil selected by the accepted actual-arrival-speed/Field basis. Excludes bobbles, dives/landings, slips/items and authored special attacks. Does not select onset speed, curve, Field scaling, physical displacement, braking or which actions are blocked.",
@@ -2660,6 +2665,110 @@
       "No accidental cap on bobble/dive/special recovery; action permissions and geometric tag/force behavior reviewed before implementation",
       "Complete short-force, grounder and relay races with both seats/CPU and varied Field/Run, independent scoring and standalone readability"
     ],
-    "implementationBoundary": "Pending recoil ceiling only. Trigger/curve/Field mapping, physical recovery and action permissions remain incomplete; no runtime, animation, simulation or human gate changes."
+    "implementationBoundary": "Accepted ordinary recoil ceiling with Jack\u2019s explicit special-hit exception. No individual special duration, onset/curve/Field mapping, physical reaction or action permissions selected; no runtime/motion/simulation/human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack said the .20-second ordinary recoil cap is fine as long as special hits can circumvent it. Accepted with explicit authored special-hit exceptions.",
+    "specialHitException": "The .20 cap belongs only to ordinary retained-ball recoil. An explicitly authored special-hit recovery/status effect may exceed it through its own duration and conditions; do not globally clamp special effects to .20. Ordinary Perfect/Nice/charged contact is not automatically an uncapped special. Per-special values, affected actions and composition remain separate."
+  },
+  "specialRecoveryCompositionProposal": {
+    "decisionId": "F693-02-special-recovery-composition",
+    "state": "pending",
+    "recommendation": "Ordinary recoil and authored special recovery run on their own event-timed intervals. An action remains unavailable until all restrictions affecting that action have ended; use the latest applicable ready deadline rather than sum durations or restart an earlier effect at pickup.",
+    "scope": "Default composition of overlapping ordinary retained-ball recoil and an authored special-hit restriction on the same fielder. Special duration/trigger/targets/affected actions remain individually authored. No global .20 clamp on specials, universal all-action stun, automatic effect refresh or arbitrary new stacking.",
+    "math": "For a given action and actual fielder at time t, readyAt=max(t, endTime of every active restriction that blocks that action). Each endTime comes from its own triggering event and duration. Do not add full historical durations at acquisition. Future independent events may create new intervals from their own event times. Explicit multi-stage specials must author their stages; no accidental ordinary-recoil tail.",
+    "examples": [
+      {
+        "name": "same-event-long-special",
+        "atSeconds": 1.0,
+        "action": "throw",
+        "restrictions": [
+          {
+            "source": "ordinary-recoil",
+            "start": 1.0,
+            "duration": 0.15,
+            "blocks": [
+              "throw",
+              "move"
+            ]
+          },
+          {
+            "source": "illustrative-special",
+            "start": 1.0,
+            "duration": 0.6,
+            "blocks": [
+              "throw",
+              "move"
+            ]
+          }
+        ],
+        "readySeconds": 1.6
+      },
+      {
+        "name": "earlier-special-nearly-finished",
+        "atSeconds": 1.0,
+        "action": "throw",
+        "restrictions": [
+          {
+            "source": "ordinary-recoil",
+            "start": 1.0,
+            "duration": 0.15,
+            "blocks": [
+              "throw",
+              "move"
+            ]
+          },
+          {
+            "source": "illustrative-special",
+            "start": 0.5,
+            "duration": 0.6,
+            "blocks": [
+              "throw",
+              "move"
+            ]
+          }
+        ],
+        "readySeconds": 1.15
+      },
+      {
+        "name": "special-blocks-movement-only",
+        "atSeconds": 1.0,
+        "action": "throw",
+        "restrictions": [
+          {
+            "source": "ordinary-recoil",
+            "start": 1.0,
+            "duration": 0.15,
+            "blocks": [
+              "throw",
+              "move"
+            ]
+          },
+          {
+            "source": "illustrative-special",
+            "start": 1.0,
+            "duration": 0.6,
+            "blocks": [
+              "move"
+            ]
+          }
+        ],
+        "readySeconds": 1.15
+      }
+    ],
+    "exampleScope": "Synthetic overlap examples, not approved special durations or assignments of blocked actions. .60 is illustrative; no current special is assigned it. Actual ordinary recoil permissions and special-effect action sets remain pending.",
+    "ownershipAndControls": "Track source, real fielder, trigger timestamp, duration and affected action per restriction in a shared sim-owned state consumed by motion/CPU/input readiness/traces. Possession, force/tag geometry and movement/release permissions stay distinct. Ball Dash cannot remove a lock; throw buffer still ages over live recovery and can expire. No automatic throw once restrictions end.",
+    "currentAudit": "star-skills.json already declares separate pitches/swings and effect metadata: Heart Swing fielderPauseSec .8, Caskball pitch onCatch knockback, Heatball pitch burn-hop. These are baseline data entries, not newly approved timings or proof of live execution. StarSkillTable/ContentValidation load metadata; inspected Fielding preview represents heart-swing as Frozen. Do not mislabel Caskball as a special hit or claim all declared effects already implement typed timed recovery.",
+    "requiredChecks": [
+      "Same-trigger overlap uses latest applicable deadline, not summed ordinary/special durations",
+      "Earlier special keeps its own start and can finish before ordinary recoil; pickup cannot refresh it",
+      "Action-specific locks: a movement-only effect does not silently become a throw/tag ban",
+      "Long special duration survives ordinary .20 cap; ordinary Perfect/charged hits do not gain unconfigured exceptions",
+      "Both seats/CPU and fielder identity; possession/bobble/cancel event ordering and unchanged buffer expiry",
+      "Independent later triggers and explicitly authored stages are represented, not erased or globally accumulated",
+      "No runtime or special-balance claims until actual metadata/runtime parity, physical reaction and complete races are verified"
+    ],
+    "referenceLimit": "Authored shared-recovery rule. No Mario source was used to establish concurrent versus additive recovery or the illustrative .60 duration. Each special effect still needs its own researched review.",
+    "implementationBoundary": "Pending composition policy only. No special duration, action permission, active runtime effect, content allocation, control/motion/book edit, simulation or human gate pass."
   }
 }

@@ -3,7 +3,8 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "catcherReadState": "accepted-calibration-anchor",
-  "groundPickupRecoilCapState": "pending",
+  "specialRecoveryCompositionState": "pending",
+  "groundPickupRecoilCapState": "accepted-calibration-anchor",
   "groundPickupRecoilBasisState": "accepted-calibration-anchor",
   "cleanGroundPickupReadinessState": "accepted-calibration-anchor",
   "carryMovementResponseState": "accepted-calibration-anchor",
@@ -32,7 +33,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "0d864d86b64e7a39ed6130f0cb1d23120cd3e3e1fbf64cecd4f5f39bee2c2fcf",
+    "docs/research/game-feel-708-candidates.json": "3ab1dd26c5d9bbfeec5f3d6935ec202339c5690d6103b91badc69050758587e8",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -63,7 +64,10 @@
     "unity/Assets/Scripts/Runtime/MatchDirector.cs": "41f36ab86ff8f10fc67a2a2624903840ed8606f0da4125686f731cb60a290bcd",
     "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77",
     "src/GrandSluggers.Sim/AtBatFeel.cs": "11afd94ea43a4ec4044a486723cacfc5ae9e94c173d8b7459462c6f359b738c1",
-    "src/GrandSluggers.Sim/Rules.cs": "332ec5300c7ec28c45f3c3f001366ba0025b7ea594e44e7fbc37075fbbc960a3"
+    "src/GrandSluggers.Sim/Rules.cs": "332ec5300c7ec28c45f3c3f001366ba0025b7ea594e44e7fbc37075fbbc960a3",
+    "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
+    "src/GrandSluggers.Sim/StarSkillTable.cs": "bebc9d52ba662a3149d29da3ad429f1cd06f47e44f56e630177dfc4598eaa66b",
+    "src/GrandSluggers.Sim/ContentValidation.cs": "d7676753b610c293154953a67d7d1b5613176c12d570ba85cb89e228941ca4cc"
   },
   "profiles": [
     {
