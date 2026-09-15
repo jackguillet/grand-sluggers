@@ -835,7 +835,8 @@ def derive(data):
                 seen_impacts.add(key)
     air_catch = data.get("cleanAirCatchReadinessProposal")
     if air_catch:
-        assert air_catch["state"] == "pending"
+        if air_catch["state"] == "accepted-calibration-anchor":
+            assert air_catch["acceptedBy"] and air_catch["acceptedOn"] and air_catch["acceptanceEvidence"]
         assert air_catch["extraPostSecurePauseSeconds"] == 0
         for row in air_catch["examples"]:
             ready = row["secureSeconds"] + air_catch["extraPostSecurePauseSeconds"]
@@ -845,9 +846,18 @@ def derive(data):
                 assert row["releaseSeconds"] is None
             else:
                 assert math.isclose(row["releaseSeconds"], start+.30)
+    air_recoil = data.get("groundedAirCatchRecoilProposal")
+    if air_recoil:
+        assert air_recoil["state"] == "pending"
+        assert all(air_recoil[key] is None for key in ("airOnsetFeetPerSecond", "airFullSeverityFeetPerSecond", "sharesNumericalGroundAnchors"))
+        for row in air_recoil["examples"]:
+            w = row["severity"]*(1-.05*(row["field"]-1))
+            assert math.isclose(row["recoverySeconds"], .20*w)
+            assert math.isclose(row["impactDistanceFeet"], w*w)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "groundedAirCatchRecoilState": air_recoil["state"] if air_recoil else None,
             "cleanAirCatchReadinessState": air_catch["state"] if air_catch else None,
             "specialImpactRepeatEligibilityState": repeat_eligibility["state"] if repeat_eligibility else None,
             "repeatedImpactRecoveryState": repeated_recovery["state"] if repeated_recovery else None,

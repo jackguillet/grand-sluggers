@@ -366,8 +366,13 @@
     },
     {
       "id": "F693-02-clean-air-catch-readiness",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Add no generic pause after a clean routine airborne batted-ball catch by a grounded fielder, allowing eligible movement or the ordinary .30-second throw release to begin once possession is secure?"
+    },
+    {
+      "id": "F693-02-grounded-air-catch-recoil",
+      "state": "next-human-decision",
+      "question": "Use the accepted ordinary recoil response and Fielding benefits for qualifying hard airborne batted-ball catches by a grounded fielder, while keeping routine catches at zero recoil and calibrating airborne trigger speeds from evidence?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -3823,7 +3828,7 @@
   },
   "cleanAirCatchReadinessProposal": {
     "decisionId": "F693-02-clean-air-catch-readiness",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "extraPostSecurePauseSeconds": 0.0,
     "recommendation": "A clean routine airborne batted-ball catch by a fielder whose feet are grounded adds no generic pause after authoritative secure possession. If no applicable recovery/status blocks the action and the play remains live, eligible movement or a valid ordinary throw release may begin immediately.",
     "scope": "Baseline readiness after a clean standing catch of an airborne batted ball. Not a jumping/diving/landing recovery, teammate throw reception, catcher pitch reception or decision to apply the ground-pickup recoil law to hard airborne catches. Exceptional catch impact and special statuses remain explicit separate conditions.",
@@ -3866,6 +3871,67 @@
       "Jump/dive/special/hard-impact exceptions cannot be bypassed through this baseline; committed-throw movement remains separately reviewed.",
       "Compare actual clean fly catches into return throws, tag plays and carry choices in complete traces and the standalone game before human acceptance."
     ],
-    "implementationBoundary": "Pending clean standing-air-catch readiness only. No catch success/reach, exceptional recoil, ball flight, runtime coefficient, animation asset or human gate changed."
+    "implementationBoundary": "Accepted clean standing-air-catch readiness only; exceptional catches remain pending. No catch success/reach, exceptional recoil, ball flight, runtime coefficient, animation asset or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yep to zero additional pause after a clean standing fly catch, allowing eligible movement or the normal .30-second throw release once possession is secure."
+  },
+  "groundedAirCatchRecoilProposal": {
+    "decisionId": "F693-02-grounded-air-catch-recoil",
+    "state": "pending",
+    "recommendation": "Qualifying hard airborne batted-ball catches by a grounded fielder use the same ordinary retained-ball recoil response, limits and Fielding benefits as hard ground pickups. Routine clean fly catches remain zero extra pause; being airborne or labeled a liner does not itself create recoil.",
+    "scope": "Ordinary physical impact after a secure batted-ball catch while the fielder is grounded. Not catch success/reach, jumping/diving/landing recovery, teammate throw reception, pitch reception or a new special effect.",
+    "response": "Use w=S_air(actual incoming world-speed)*F(Field), the accepted F=1-.05*(Field-1), T=.20w seconds, initial horizontal impact speed K=10w ft/s and D=w squared feet for a valid horizontal arrival direction. The kick slows linearly to zero over T. Preserve actual locomotion with accepted braking and one integrated body/glove path. At equal severity and Field the ordinary response matches the ground-pickup response.",
+    "severity": "Use the accepted bounded linear incoming-speed severity structure, zero through onset and full at the upper anchor. Numerical airborne anchors remain null. Whether the same speed anchors can serve both ground and air catches must be tested with arrival evidence; no separate anchor values or guaranteed shared pair is selected here. A distinct airborne pair would require explicit review.",
+    "airOnsetFeetPerSecond": null,
+    "airFullSeverityFeetPerSecond": null,
+    "sharesNumericalGroundAnchors": null,
+    "evidenceGate": "Measure event-sided incoming speed on the active gameplay clock for hard liners and routine shallow/deep/high flies, including vertical descent and catch height. A high fly can have substantial vertical arrival speed, so do not copy ground thresholds or assume all flies are slow. Routine catch control fixtures must remain zero-recoil under the chosen calibration; if evidence cannot separate intended routine/hard cases with this speed structure, return the unresolved trigger design for review rather than silently special-casing a hit label or accepting widespread fly penalties.",
+    "direction": "Use actual incoming horizontal ball travel for horizontal impact. Pure vertical arrival does not invent a sideways shove; with no horizontal direction the horizontal kick is zero, while any qualifying recovery follows the selected speed severity. No upward launch, body-mass resistance or camera-facing direction is added.",
+    "possessionAndOut": "Recoil occurs after valid secure acquisition and retains the ball. A legally completed catch out is not undone by the recoil or delayed until it ends. Existing runner retouch/tag-up, force-removal, live-play and inning-end rules remain authoritative. No new random drop roll or catch forgiveness.",
+    "actions": "Apply accepted ordinary recoil permissions: delay commanded steering and throw starts through ordinary recovery, preserve legal held-ball force/tag geometry and responsive .25-second buffer/cancel rules. No mandatory second pause, animation tail, Ball Dash bypass or Snap Throw eligibility from a batted catch.",
+    "specialComposition": "Where a special impact actually applies, use the accepted source-specific resistance, same-impact motion/recovery composition and possession rules. Reuse does not restart a once-applied special or multiply its effect with the ordinary Field factor.",
+    "referenceEvidence": {
+      "source": "https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143",
+      "status": "previously reviewed community qualitative account",
+      "finding": "The GameCube guide describes backward sliding from hard line drives in its Super Catch discussion. It does not establish this response equation, ordinary air-catch speed thresholds or matched Wii behavior."
+    },
+    "examples": [
+      {
+        "field": 1,
+        "severity": 1,
+        "recoverySeconds": 0.2,
+        "impactDistanceFeet": 1.0
+      },
+      {
+        "field": 5,
+        "severity": 1,
+        "recoverySeconds": 0.16,
+        "impactDistanceFeet": 0.64
+      },
+      {
+        "field": 10,
+        "severity": 1,
+        "recoverySeconds": 0.11,
+        "impactDistanceFeet": 0.3025
+      },
+      {
+        "field": 5,
+        "severity": 0,
+        "recoverySeconds": 0.0,
+        "impactDistanceFeet": 0.0
+      }
+    ],
+    "exampleScope": "Response arithmetic at specified normalized severity with a valid incoming horizontal direction in unobstructed space. It neither assigns severity to any real fly/liner nor simulates the catch, out or runner play.",
+    "currentAudit": "The inspected ArmRecoil returns for !Preview.Grounder, so this would deliberately extend ordinary response eligibility beyond the current ground-only path. TakeBattedBall already distinguishes an airborne catch outcome; do not use its outcome label as a replacement for actual impact measurements.",
+    "requiredChecks": [
+      "At equal severity/Field, grounded hard-air and ground-pickup response math agrees; routine air severity zero preserves approved immediate readiness.",
+      "Observe actual vertical and horizontal incoming speeds before choosing air anchors; do not transfer original exit mph, ground energy or a hit-class label as the trigger.",
+      "Grounded hard-liner catch out remains valid while recovery affects the next action; retouch/tag-up/force removal and inning end preserve event order.",
+      "Zero horizontal direction gives no fabricated lateral kick; acquired possession and actual locomotion remain coherent.",
+      "No extra bobble roll, catch radius, repeated-special activation, animation tail or Snap Throw qualification.",
+      "Validate routine fly control fixtures plus hard liners, both seats/CPU, Field extremes and actual runner races before standalone feel approval."
+    ],
+    "implementationBoundary": "Pending response reuse for grounded hard airborne catches. Numeric trigger calibration and exceptional airborne fielder recovery remain incomplete; no runtime, ball-flight change or human gate selected."
   }
 }
