@@ -904,9 +904,9 @@ Verify actual clean catches into throws/carries, buffer expiry, multiple runners
 
 **Special work still tracked:** individual attack values/lifetimes, repeated-impulse composition, dislodging/multi-hit exceptions and independent-attack control-loss chains remain pending under F693-02-special-attack-contracts before implementation. Returning to routine fielding does not approve or discard those choices.
 
-## Next decision — impact recoil on grounded airborne catches
+## Accepted decision — impact recoil on grounded airborne catches
 
-**F693-02-grounded-air-catch-recoil — pending, September 15, 2026.** Recommend **reusing the ordinary recoil response for qualifying hard airborne batted-ball catches when the fielder is grounded**. A sharply arriving liner can produce a brief brace/skid after a secure catch, while routine flies retain the approved zero added pause. Neither the airborne flag nor the liner label alone triggers recoil.
+**F693-02-grounded-air-catch-recoil — accepted by Jack on September 15, 2026.** Jack approved **reusing the ordinary recoil response for qualifying hard airborne batted-ball catches when the fielder is grounded**. A sharply arriving liner can produce a brief brace/skid after a secure catch, while routine flies retain the approved zero added pause. Neither the airborne flag nor the liner label alone triggers recoil.
 
 **What carries over:** use actual incoming speed and Fielding to determine normalized severity; then reuse `w=S_air*F(Field)`, recovery `.20w`, initial added horizontal speed `10w` and displacement `w²`. At full severity, Field1/5/10 retain .20/.16/.11-second recovery and 12/7.68/3.63-inch free-space skids when a horizontal arrival direction exists. Better Fielding retains the same benefit, and no new catch/drop chance or generic air-catch delay is added. Equal severity and Field produce equal ordinary responses across ground and air acquisitions.
 
@@ -918,7 +918,23 @@ Verify actual clean catches into throws/carries, buffer expiry, multiple runners
 
 This applies to a grounded fielder catching an airborne batted ball. Jumping, diving, landing, teammate throws and pitch receptions remain separate. Validate actual catch/possession ordering, routine fly controls, hard liners, buffer expiry, both seats/CPU and complete runner plays before standalone acceptance. The report checks response arithmetic only; arrival thresholds and runtime remain unselected.
 
-**Question for Jack:** use the same ordinary recoil response for hard standing catches of airborne batted balls, while preserving zero added delay on routine flies?
+## Next decision — throwing after a jumping catch
+
+**F693-02-jump-catch-throw-readiness — pending, September 15, 2026.** Recommend **landing before beginning the ordinary throw release after a normal jumping catch**, with **zero generic extra pause after a clean landing**. Possession must be secure, play live and every other applicable throw restriction finished. A valid command can then begin the normal .30-second release.
+
+**Player-facing tradeoff:** a jump gives the fielder access to a higher ball but commits them through the landing before the return throw. This keeps a meaningful cost without adding a second unexplained settling delay. A midair throw would be faster and more acrobatic; it would require an explicitly selected move/ability and motion contract. None is introduced here.
+
+**Commands remain responsive:** a throw can enter the existing .25-second buffer during the jump. It must still be valid at readiness; no special extension or frozen command age. For illustration, a catch at 1.00, landing at 1.20 and command at 1.00 allow release to start at 1.20 and ball separation at 1.50. A command at .90 would expire before that landing. These times illustrate readiness, not a selected jump airtime. No command means no throw.
+
+**Other recovery:** readiness is the latest of secure possession, actual landing and all applicable throw restrictions. If a special still blocks throwing after landing, wait for it; landing does not restart a recovery already running from impact. Do not begin the throw windup in the air or count airtime toward the .30 release. A batted-ball catch remains ineligible for Snap Throw.
+
+**A real landing state:** use authoritative sim ground support, shared with prediction, traces and animation. Landing does not require horizontal velocity to reach zero; preserve actual motion and do not snap to a bag. Current `JumpT` is assigned from `JumpArmSec`/`WallJumpArmSec` on input and used in catch eligibility; its .55/.70-second rule values are arming windows, not verified physical landing times. `CatchJump` records the catch type. These existing fields do not establish the complete landing-readiness contract.
+
+**Scope:** normal clean jumping catches only. Jump height/airtime, air steering, impact physics while airborne, wall/buddy/dive recovery and any aerial-throw exception remain separate. Preserve legal catch validity, completed outs, retouch/tag-up and inning-end rules; throw readiness does not postpone a legally completed catch out or grant new airborne force/tag reach.
+
+This is an authored readiness proposal, not a measured Mario aerial-throw rule. Validate valid/expired/cancelled commands, landing before/after other recovery, actual possession loss, horizontal velocity, sub-tick event boundaries, both seats/CPU and jump abilities before runtime/standalone acceptance. The report checks illustrative timing only.
+
+**Question for Jack:** require landing before starting a normal throw after a jumping catch, with no extra generic pause after a clean landing?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

@@ -371,8 +371,13 @@
     },
     {
       "id": "F693-02-grounded-air-catch-recoil",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use the accepted ordinary recoil response and Fielding benefits for qualifying hard airborne batted-ball catches by a grounded fielder, while keeping routine catches at zero recoil and calibrating airborne trigger speeds from evidence?"
+    },
+    {
+      "id": "F693-02-jump-catch-throw-readiness",
+      "state": "next-human-decision",
+      "question": "After a normal jumping catch, wait for actual landing before starting the ordinary throw release, with no generic extra pause after a clean landing and existing buffer/other recovery rules preserved?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -3878,7 +3883,7 @@
   },
   "groundedAirCatchRecoilProposal": {
     "decisionId": "F693-02-grounded-air-catch-recoil",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Qualifying hard airborne batted-ball catches by a grounded fielder use the same ordinary retained-ball recoil response, limits and Fielding benefits as hard ground pickups. Routine clean fly catches remain zero extra pause; being airborne or labeled a liner does not itself create recoil.",
     "scope": "Ordinary physical impact after a secure batted-ball catch while the fielder is grounded. Not catch success/reach, jumping/diving/landing recovery, teammate throw reception, pitch reception or a new special effect.",
     "response": "Use w=S_air(actual incoming world-speed)*F(Field), the accepted F=1-.05*(Field-1), T=.20w seconds, initial horizontal impact speed K=10w ft/s and D=w squared feet for a valid horizontal arrival direction. The kick slows linearly to zero over T. Preserve actual locomotion with accepted braking and one integrated body/glove path. At equal severity and Field the ordinary response matches the ground-pickup response.",
@@ -3932,6 +3937,65 @@
       "No extra bobble roll, catch radius, repeated-special activation, animation tail or Snap Throw qualification.",
       "Validate routine fly control fixtures plus hard liners, both seats/CPU, Field extremes and actual runner races before standalone feel approval."
     ],
-    "implementationBoundary": "Pending response reuse for grounded hard airborne catches. Numeric trigger calibration and exceptional airborne fielder recovery remain incomplete; no runtime, ball-flight change or human gate selected."
+    "implementationBoundary": "Accepted response reuse for grounded hard airborne catches. Numeric trigger calibration and exceptional airborne fielder recovery remain incomplete; no runtime, ball-flight change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to reusing ordinary recoil for qualifying hard airborne catches by grounded fielders while preserving immediate readiness on routine flies."
+  },
+  "jumpCatchThrowReadinessProposal": {
+    "decisionId": "F693-02-jump-catch-throw-readiness",
+    "state": "pending",
+    "requiresLandingBeforeReleaseStart": true,
+    "extraCleanLandingPauseSeconds": 0.0,
+    "recommendation": "After a normal jumping catch, begin a throw release only after the fielder has actually landed and all other applicable throw restrictions have ended. A clean normal landing adds no generic extra pause; a still-valid deliberate command can start the ordinary .30-second release then.",
+    "scope": "Throw-start eligibility after an ordinary clean jumping catch of a batted ball. Does not choose jump height/airtime, air steering, jump impact physics, wall/buddy/dive landing recovery, catcher or teammate reception rules, or any aerial-throw ability.",
+    "landing": "Use an authoritative sim landing/ground-support transition shared with prediction, traces and animation. Do not equate a catch-input arming timer ending, a camera cut or an animation-only event with grounded support. Horizontal motion may remain at landing; do not demand a complete stop, reset velocity or snap to a bag.",
+    "readiness": "Throw readiness is the later of secure possession, actual landing and the end of every applicable throw restriction. Landing does not restart a recovery already running from impact; it also cannot cancel a longer recovery. If play has ended or possession is lost, normal throw prerequisites still fail.",
+    "release": "Start the ordinary .30-second release after readiness, without winding it up in midair or counting airborne time as part of that release. A caught batted ball still does not qualify for Snap Throw. Future deliberate aerial-throw abilities would need explicit review; none is added here.",
+    "commands": "Accept the existing .25-second buffered command while airborne with normal cancel/retarget behavior. It must still be valid at actual readiness; early commands can expire during airtime. Do not freeze/extend its age until landing, replay it automatically or require a fresh press when a valid command remains. No command means no throw.",
+    "baseball": "Preserve existing secure-catch validity, out, runner retouch/tag-up and live-play rules. Throw readiness does not itself delay a legally completed catch out. Actual possession and physical geometry remain authoritative for other contacts; this proposal does not grant airborne force/tag reach or immunity.",
+    "examples": [
+      {
+        "name": "buffer-valid-at-clean-landing",
+        "secureSeconds": 1.0,
+        "landingSeconds": 1.2,
+        "otherThrowReadySeconds": 1.0,
+        "commandSeconds": 1.0,
+        "readySeconds": 1.2,
+        "releaseSeconds": 1.5
+      },
+      {
+        "name": "early-command-expires-in-air",
+        "secureSeconds": 1.0,
+        "landingSeconds": 1.2,
+        "otherThrowReadySeconds": 1.0,
+        "commandSeconds": 0.9,
+        "readySeconds": 1.2,
+        "releaseSeconds": null
+      },
+      {
+        "name": "other-recovery-outlasts-landing",
+        "secureSeconds": 1.0,
+        "landingSeconds": 1.2,
+        "otherThrowReadySeconds": 1.4,
+        "commandSeconds": 1.2,
+        "readySeconds": 1.4,
+        "releaseSeconds": 1.7
+      }
+    ],
+    "exampleScope": "Illustrative readiness times with live play, retained possession and valid targets. These are not approved jump airtimes or special durations and do not simulate catch/landing motion.",
+    "currentAudit": "LivePlaySystem sets JumpT from JumpArmSec/WallJumpArmSec on the jump input and decrements it each tick. JumpT participates in jump-catch eligibility; CatchJump records a jumping catch. Rules currently name .55/.70-second arming values, which are not verified physical landing timestamps. Do not repurpose those constants as the proposed airtime or claim the existing code has a complete landing readiness state.",
+    "rationale": "Jumping provides access to a higher catch but commits the fielder through the landing before a return throw. Removing an additional generic landing pause keeps that cost readable rather than adding an invisible wait. Allowing a midair throw would be faster and more acrobatic but requires its own selected move and animation contract.",
+    "referenceLimit": "Authored normal-jump throw-readiness proposal. No matched Wii/GameCube landing-to-release timing or universal aerial-throw rule is claimed.",
+    "requiredChecks": [
+      "No ordinary throw windup/release starts before actual landing; a valid command at clean landing starts the .30-second release with no generic extra pause.",
+      "Secure possession, landing and other throw restrictions combine by actual prerequisite readiness without restarting impact timers.",
+      "Early buffered command can expire during airtime; valid command, cancel/retarget and actual loss follow existing rules across the landing boundary.",
+      "Horizontal landing velocity remains actual; no forced full stop, bag snap or animation/camera-owned readiness.",
+      "Jump input arming and physical landing are distinct shared states, with exact sub-tick prediction/stepper/animation agreement.",
+      "Catch-out validity, retouch/tag-up and inning end retain their legal ordering; no new airborne contact privilege.",
+      "Both seats/CPU and relevant jump abilities; wall/buddy/dive variants and actual airtimes reviewed before runtime/standalone gates."
+    ],
+    "implementationBoundary": "Pending normal jumping-catch throw readiness only. No jump duration, air control, special landing motion, new ability, runtime change or human gate selected."
   }
 }
