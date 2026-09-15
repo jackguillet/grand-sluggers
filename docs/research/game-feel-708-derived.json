@@ -3,14 +3,17 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "4caba13e565fee3d172877f321feceec578147e99e92cbfd76dc7e68b159c9a4",
+    "docs/research/game-feel-708-candidates.json": "825e5682994a0a77cd8f3e053ebf051bc588642149c16651af8b8edf12a9ea4a",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
     "src/GrandSluggers.Sim/ParkDiamond.cs": "93992c60661fe4d8b0ac818841c7093809b8dcd9bba378ab59d97fd56841f4af",
     "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136",
     "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
-    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108"
+    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108",
+    "data/art/clips.json": "204c3ec5effacb462a72f7f518cf117d21141645498e7c83244b31ebc4c293ff",
+    "data/art/baseball-takes.json": "0686b49e4b9721a39801b4d89f37f6911992b29a5060e5558df8b7708643e7e0",
+    "src/GrandSluggers.Sim/InPlay.cs": "b3b6a0a11e080f1ccf21f2970eb1bf35497766378bdfc08cfd9fb9b5618b1ce3"
   },
   "profiles": [
     {
