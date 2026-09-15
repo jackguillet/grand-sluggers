@@ -888,9 +888,9 @@ This is an authored timing proposal, not a verified Mario repeat-hit rule. Check
 
 This is an authored default, not a verified Mario repeat-hit rule. Abstract sequence checks cover near miss, first hit, repeat on the same fielder, another fielder and a new activation. They do not simulate attack geometry. Validate real re-entry/ricochet/loose-ball paths, stable source identity, pause/control switching and both seats/CPU before standalone feel acceptance.
 
-## Next decision — readiness after a clean standing fly catch
+## Accepted decision — readiness after a clean standing fly catch
 
-**F693-02-clean-air-catch-readiness — pending, September 15, 2026.** Recommend **zero generic added pause after a clean routine airborne batted-ball catch by a grounded fielder**. Once possession is securely established, and no applicable recovery blocks the action, the player can continue eligible movement or begin an ordinary throw release while play remains live.
+**F693-02-clean-air-catch-readiness — accepted by Jack on September 15, 2026.** Jack approved **zero generic added pause after a clean routine airborne batted-ball catch by a grounded fielder**. Once possession is securely established, and no applicable recovery blocks the action, the player can continue eligible movement or begin an ordinary throw release while play remains live.
 
 **How it should feel:** get under a routine fly, visibly secure it, then respond to the runners without another compulsory settling beat. The throw still has the accepted **.30-second release** before the ball leaves the glove. Catch acquisition itself is not instantaneous, and the animation must clearly establish secure control before movement/throw readiness; this does not enlarge catch reach or let the player throw before possession.
 
@@ -904,7 +904,21 @@ Verify actual clean catches into throws/carries, buffer expiry, multiple runners
 
 **Special work still tracked:** individual attack values/lifetimes, repeated-impulse composition, dislodging/multi-hit exceptions and independent-attack control-loss chains remain pending under F693-02-special-attack-contracts before implementation. Returning to routine fielding does not approve or discard those choices.
 
-**Question for Jack:** add no extra pause after a clean standing fly catch, allowing eligible movement or the normal throw release to begin once the ball is secured?
+## Next decision — impact recoil on grounded airborne catches
+
+**F693-02-grounded-air-catch-recoil — pending, September 15, 2026.** Recommend **reusing the ordinary recoil response for qualifying hard airborne batted-ball catches when the fielder is grounded**. A sharply arriving liner can produce a brief brace/skid after a secure catch, while routine flies retain the approved zero added pause. Neither the airborne flag nor the liner label alone triggers recoil.
+
+**What carries over:** use actual incoming speed and Fielding to determine normalized severity; then reuse `w=S_air*F(Field)`, recovery `.20w`, initial added horizontal speed `10w` and displacement `w²`. At full severity, Field1/5/10 retain .20/.16/.11-second recovery and 12/7.68/3.63-inch free-space skids when a horizontal arrival direction exists. Better Fielding retains the same benefit, and no new catch/drop chance or generic air-catch delay is added. Equal severity and Field produce equal ordinary responses across ground and air acquisitions.
+
+**Trigger speeds still need evidence:** preserve the bounded linear severity structure, but leave airborne onset/full-severity speeds unselected. Whether one numerical pair works for both ground and air catches needs measurement. High flies can arrive with substantial downward velocity; copying ground thresholds could wrongly make routine flies recoil. Compare routine shallow/deep/high flies and hard liners using event-sided incoming speed, vertical descent and catch height. Keep routine-catch fixtures at zero recoil. If the intended cases cannot be separated with this structure, return the trigger design for review instead of hiding a hit-label exception. Any distinct airborne anchor pair also requires review.
+
+**Direction and baseball:** incoming horizontal travel supplies the skid direction; a purely vertical arrival gives no invented sideways kick. Secure possession and a legally completed catch out remain valid during recovery. Preserve retouch/tag-up, force-removal, legal held-ball contact and inning-end rules. The impact delays the next commanded action under the accepted ordinary permissions; it does not wait to award the catch out until recovery finishes. Special impacts retain their own reviewed composition and resistance.
+
+**Reference and current audit:** the previously reviewed [GameCube community guide](https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143) describes backward sliding from hard line drives. It supplies no measured threshold/response equation or matched Wii rule. Current `ArmRecoil` returns for non-grounders, so this proposal deliberately extends ordinary response eligibility. Numerical response reuse is an authored choice, not evidence that ground thresholds transfer unchanged.
+
+This applies to a grounded fielder catching an airborne batted ball. Jumping, diving, landing, teammate throws and pitch receptions remain separate. Validate actual catch/possession ordering, routine fly controls, hard liners, buffer expiry, both seats/CPU and complete runner plays before standalone acceptance. The report checks response arithmetic only; arrival thresholds and runtime remain unselected.
+
+**Question for Jack:** use the same ordinary recoil response for hard standing catches of airborne batted balls, while preserving zero added delay on routine flies?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
