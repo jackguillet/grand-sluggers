@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-acceleration-accepted; pursuit-braking-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-braking-accepted; pursuit-reversal-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -211,13 +211,18 @@
     },
     {
       "id": "F693-02-pursuit-braking",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use linear ordinary braking that stops full speed in .10 seconds, with a shorter stop from partial speed and target-aware assisted arrival?"
+    },
+    {
+      "id": "F693-02-pursuit-reversal",
+      "state": "next-human-decision",
+      "question": "On a full opposite-direction command, use the accepted .10-second brake followed immediately by the .20-second acceleration, with no extra pivot pause?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose direction-change response, partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Choose angled course-correction response, partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1334,7 +1339,7 @@
   },
   "pursuitBrakingProposal": {
     "decisionId": "F693-02-pursuit-braking",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "fullSpeedToStopSeconds": 0.1,
     "curve": "constant-deceleration-to-zero",
     "recommendation": "Stop from ordinary full speed in .10 seconds with linear speed reduction. Each character uses braking magnitude equal to their accepted ordinary top speed divided by .10, so partial speed stops sooner. Start braking immediately when the active ordinary movement intent requests rest.",
@@ -1403,6 +1408,76 @@
       "Both human seats, pad/keyboard and CPU; routine grounders, bunts, short pops and gap/wall races retain full timeline/scoring checks",
       "Standalone footfall/settling and actual geometry review; Jack passes the human gate"
     ],
-    "implementationBoundary": "Pending braking trial. Complete turn/transition, coverage and ball contract before runtime implementation. No simulation, production rule or animation changes in this documentation step."
+    "implementationBoundary": "Accepted braking trial; runtime migration pending. Complete turn/transition, coverage and ball contract before runtime implementation. No simulation, production rule or animation changes in this documentation step.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to stopping from ordinary full speed in .10 seconds, with shorter stops at lower speed and assisted routes planning braking before arrival."
+  },
+  "pursuitReversalProposal": {
+    "decisionId": "F693-02-pursuit-reversal",
+    "state": "pending",
+    "usesAcceptedBrakingSeconds": 0.1,
+    "usesAcceptedAccelerationSeconds": 0.2,
+    "recommendation": "For a sustained full-intent 180-degree reversal from ordinary full speed, brake using the accepted .10-second full-speed stop, then immediately accelerate in the requested direction using the accepted .20-second ramp. No extra pivot pause, repeated read or instantaneous velocity flip.",
+    "scope": "Collinear opposite-direction ordinary pursuit response, same physical rule for every character, fielding position and hit class and manual/assisted/CPU pursuit. This is one reversal decision; angled turns and their continuous interpolation follow separately, rather than assuming every course correction requires stopping.",
+    "inputAndState": "React to the new active movement intent immediately by braking. The temporary wrong-way displacement follows real momentum, not a locked input animation. Re-evaluate changed intent from current physical velocity; do not queue an uninterruptible .30-second sequence, restart a read, or reset velocity on selection. Partial stick and other transition details remain separately reviewed. Neutral stick still resolves through existing assistance.",
+    "math": "Choose the old direction as positive. For initial full speed V, brake time Tb and acceleration time Ta, velocity is V*(1-t/Tb) until Tb, then -V*(t-Tb)/Ta until Tb+Ta, then -V. Position during braking is V*t - V*t*t/(2*Tb); afterward through the acceleration phase it is V*Tb/2 - V*(t-Tb)^2/(2*Ta). For an initial opposite-directed speed u below V, stop in u/(V/Tb), then accelerate to -V in Ta. Do not infer angled-turn thresholds from this collinear boundary.",
+    "run5Arithmetic": {
+      "speedFeetPerSecond": 18.0,
+      "oppositeMotionBeginsSeconds": 0.1,
+      "oppositeFullSpeedSeconds": 0.30000000000000004,
+      "wrongWayExcursionFeet": 0.9,
+      "newDirectionTravelDuringAccelerationFeet": 1.8,
+      "positionAtOppositeFullSpeedFeet": -0.9,
+      "returnsToCommandPositionSeconds": 0.24142135623730954,
+      "halfInitialSpeedFullReversalSeconds": 0.25,
+      "halfInitialSpeedWrongWayFeet": 0.225
+    },
+    "characterArithmetic": [
+      {
+        "run": 1,
+        "speedFeetPerSecond": 13.514754098360655,
+        "wrongWayExcursionFeet": 0.6757377049180328
+      },
+      {
+        "run": 5,
+        "speedFeetPerSecond": 18.0,
+        "wrongWayExcursionFeet": 0.9
+      },
+      {
+        "run": 9,
+        "speedFeetPerSecond": 22.485245901639342,
+        "wrongWayExcursionFeet": 1.1242622950819672
+      }
+    ],
+    "arithmeticScope": "Sustained exact opposite full intent, straight unobstructed ordinary movement; no dash, collision, read delay, reach, ball motion or catch outcome. Initial full speed except the explicitly named half-speed example. Times are elapsed from the reversal command, not contact or camera change.",
+    "implementationRail": "Prediction and stepping must share the current velocity and the same response, integrating the zero crossing and acceleration endpoint within a step. Authored feet/facing must portray the reversal without becoming an additional sim delay. Catch and pickup geometry remain active during movement; no new stationary-catch requirement. A body turn rate in BodyFacing is presentation, not physical momentum.",
+    "alternatives": [
+      {
+        "choice": "Immediate direction flip",
+        "effect": "Most immediate reversal but discards wrong-way momentum and removes this cost of a wrong first step."
+      },
+      {
+        "choice": "Additional planted pivot pause",
+        "effect": "More committed reversal, with an extra delay beyond the approved stop and start; not recommended for the selected light movement weight."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "sourceReport": "docs/research-game-feel-701-movement.md",
+      "limit": "The retained official GameCube/Wii fielding passages establish controls, not a measured reversal curve. No independently timed matched 180-degree reversal is established for either title. .30 is derived from the accepted Harbor brake/start trials, not a Nintendo timing claim. Rendered body yaw or footage without known input does not establish physical input response."
+    },
+    "requiredChecks": [
+      "Full/half/near-zero initial speed, both world axes and diagonals, all representative speed stats",
+      "Continuous velocity/position through zero crossing and full opposite speed; predictor and stepping agree across step sizes",
+      "A changed command mid-brake or mid-acceleration takes effect from current state; no fixed pivot lock or repeated read",
+      "Both human seats and schemes, CPU/manual/assisted route changes, selection without velocity reset",
+      "Wrong first step under a short pop, a liner misread, bunt correction and rolling-ball replan; actual geometry still decides catches",
+      "Standalone feet/facing and response agree; angled corrections must be reviewed before a complete movement implementation"
+    ],
+    "implementationBoundary": "Pending reversal trial; angled turning and remaining movement/coverage/ball contract are unresolved. No runtime or animation edits in this research step; all candidate/human validation remains open."
   }
 }
