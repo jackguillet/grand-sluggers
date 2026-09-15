@@ -3,7 +3,8 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "catcherReadState": "accepted-calibration-anchor",
-  "pursuitReversalState": "pending",
+  "pursuitAngledTurnState": "pending",
+  "pursuitReversalState": "accepted-calibration-anchor",
   "pursuitBrakingState": "accepted-calibration-anchor",
   "pursuitAccelerationState": "accepted-calibration-anchor",
   "pitcherReadState": "accepted-calibration-anchor",
@@ -18,7 +19,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "9bf976bf90e72a8f806d3490c9030d41256799cbe7334ddaf973aa84946f0ca4",
+    "docs/research/game-feel-708-candidates.json": "6d19ba90f9d324ffc2271f3fa4cc1aa3d67f5d7ed4f8416688433e92f44a0ccb",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
