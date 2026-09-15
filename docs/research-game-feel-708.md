@@ -1034,9 +1034,9 @@ These are root-motion examples, not added glove reach or a guaranteed catch. Neu
 
 Validate one shared event timeline in prediction, stepping and animation, including different ball arrivals, frame partitions, both seats/schemes, CPU and short/tall bodies. Preserve the independent throw buffer and actual landing requirement; no new automatic throw follows. Future implementation must update both couch-book surfaces together. No runtime, motion asset or human gate changes here.
 
-## Next decision — slightly early normal-jump input
+## Accepted decision — slightly early normal-jump input
 
-**F693-02-normal-jump-input-buffer — pending, September 15, 2026.** Recommend remembering a fresh **grounded** normal-jump press for up to **.10 seconds** while a temporary read/recovery restriction finishes. Jump once at the first fully eligible instant within that limit. Already eligible presses still start immediately.
+**F693-02-normal-jump-input-buffer — accepted by Jack on September 15, 2026.** Jack approved remembering a fresh **grounded** normal-jump press for up to **.10 seconds** while a temporary read/recovery restriction finishes. Jump once at the first fully eligible instant within that limit. Already eligible presses still start immediately.
 
 **Concrete behavior:** press .08 seconds before all restrictions end and the jump begins at readiness; press exactly .10 seconds early and it still works. A press .100001 or .15 seconds early expires. Takeoff uses the actual position/velocity at readiness, followed by the full .60-second arc. Waiting for eligibility does not shorten recovery, become an added startup delay, or schedule the leap to the ball. You can still jump too early or late to make a catch.
 
@@ -1050,7 +1050,21 @@ Validate one shared event timeline in prediction, stepping and animation, includ
 
 The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Measure input-synchronized near-ready presses in both references and the eventual standalone game. Validate inclusive expiry, overlapping restrictions, fresh versus held input, cancellation/conflicting actions, support/possession/ownership changes and both seats/schemes. Future implementation must reconcile the physical jump and both couch-book surfaces. No runtime or human gate changes here.
 
-**Question for Jack:** allow this .10-second grace for a grounded jump press made just before a temporary restriction ends, while discarding airborne presses?
+## Next decision — ordinary jump differences between characters
+
+**F693-02-normal-jump-character-profile — pending, September 15, 2026.** Recommend the **same 2-foot root rise and .60-second ordinary jump for every character**, with the apex at .30 seconds. Do not add an ordinary jump-height stat or scale the vertical arc by body size, Field or Run. Exceptional jump abilities remain separately reviewed.
+
+**What stays different:** equal lift does not mean equal absolute glove height. Body proportions and the authored glove pose still determine where the glove travels relative to the root. A higher glove can reach a higher ball, all else equal; do not pull all characters' gloves to one world height or secretly boost a short character's root. Actual glove trajectories and catch allowances still need a separate geometry decision, so this does not establish a numerical catch height or rank the current roster's reach.
+
+**Stats keep their roles:** Run still changes horizontal movement and the approved air-response rates. Field retains the recoil/resistance benefits already approved and its other separately reviewed fielding roles. This proposal only declines to make vertical lift/airtime another Field benefit; it does not remove fielding skill or rubber-stamp the old catch-radius/window numbers. Those must be reconciled with physical catching before implementation.
+
+**Why a shared ordinary arc:** switching characters preserves the timing you learned. Character expression can vary on the shared rig while the physical rise and airborne commitment stay predictable. Individual vertical profiles could add personality, but also create more timing differences and could multiply the reach of already tall or strong fielders. Start with a common ordinary arc and judge roster balance using actual catch coverage.
+
+**Special abilities stay distinct:** Super Jump, Grow, Clamber and Buddy Jump still need their own physical and eligibility contracts. If a reviewed ability replaces the ordinary jump, its explicit profile can differ. This does not convert current `JumpRobFt`/`SuperJumpRobFt` fence-clearance allowances into root heights, assign new abilities, or grant every high-Field character a special leap. `FlyCatch.RobHeightFt` and `ExtraWindowSec` currently express rob/ability windows, not measured ordinary character arcs.
+
+**Reference and implementation boundary:** no matched Wii/GC per-character root-rise/airtime table has been established. This is an authored roster-control choice. Compare short/tall and slow/fast ordinary jumps in both games, separating root motion, arm reach and special abilities. Then inspect the eventual standalone glove paths across the roster. Author character expression without extra hidden root lift, clip startup, airtime or a body resize; preserve the one-rig system. No runtime, character asset or human gate changes here.
+
+**Question for Jack:** keep the same ordinary lift and airtime across characters, with differences coming from their body/glove reach, movement stats and separately reviewed jump abilities?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
