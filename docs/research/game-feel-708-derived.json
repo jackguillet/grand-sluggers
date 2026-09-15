@@ -3,7 +3,8 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "catcherReadState": "accepted-calibration-anchor",
-  "normalJumpCatchInputState": "pending",
+  "normalJumpGloveTrackingState": "pending",
+  "normalJumpCatchInputState": "accepted-calibration-anchor",
   "normalJumpCharacterProfileState": "accepted-calibration-anchor",
   "normalJumpInputBufferState": "accepted-calibration-anchor",
   "normalJumpStartupTrialState": "accepted-calibration-anchor",
@@ -59,7 +60,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "0362d5816a9d5adc5cef296d1fc98cae72a063a3cf0ca0dc94116cfbdd474d31",
+    "docs/research/game-feel-708-candidates.json": "3514bb7f7ec2b6559690744b26167637f53b17e48915210eda2c97cd803f6e30",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",

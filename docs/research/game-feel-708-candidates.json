@@ -421,8 +421,13 @@
     },
     {
       "id": "F693-02-normal-jump-catch-input",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Retain jump as the only required action press for a normal jumping catch, completing eligible actual ball/glove contact without a second catch press?"
+    },
+    {
+      "id": "F693-02-normal-jump-glove-tracking",
+      "state": "next-human-decision",
+      "question": "Allow a small automatic arm/glove adjustment during a normal jump, with better Fielding improving responsiveness within physical reach rather than adding root motion or invisible reach?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4445,7 +4450,7 @@
   },
   "normalJumpCatchInputProposal": {
     "decisionId": "F693-02-normal-jump-catch-input",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "requiresSecondCatchPress": false,
     "jumpPressGuaranteesPossession": false,
     "recommendation": "Retain one action press for a normal jumping catch: the eligible jump input initiates the jump and catch attempt; eligible actual ball/glove contact during that jump can secure the ball without a separate South/catch press. Positioning, takeoff timing and limited steering remain player-owned.",
@@ -4467,6 +4472,36 @@
       "Selected, deselected, CPU and assisted fielders share physical eligibility and single-owner ball acquisition, across both seats/input schemes.",
       "Review actual glove volume/pose and collision ordering before runtime implementation, update both couch-book surfaces, and inspect standalone catches/misses; docs do not pass a human gate."
     ],
-    "implementationBoundary": "Pending normal-jump catch-input contract only. No runtime, controller mapping, catch geometry, motion asset or human gate changes."
+    "implementationBoundary": "Accepted normal-jump catch-input contract only. No runtime, controller mapping, catch geometry, motion asset or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to jumping catches completing on eligible actual contact without a second catch-button press."
+  },
+  "normalJumpGloveTrackingProposal": {
+    "decisionId": "F693-02-normal-jump-glove-tracking",
+    "state": "pending",
+    "maximumGloveAdjustmentFeet": null,
+    "responseSecondsByField": null,
+    "gloveCatchGeometry": null,
+    "recommendation": "Allow modest automatic arm/glove adjustment toward an interceptable nearby airborne batted ball during a normal jump. Better Fielding should make that adjustment more responsive within the same character physical reach, without changing root trajectory or adding invisible catch radius. The player still owns positioning, takeoff and bounded horizontal steering.",
+    "scope": "Direction for normal-jump local glove assistance and a physical expression of Fielding skill. Numerical reach, response latency/speed, Field curve, glove volume and event ordering remain unselected. Grounded catches, teammate reception and exceptional abilities require separate scope review.",
+    "physicalReach": "Use bounded, authored arm/glove motion on the existing body/rig. It may redirect the glove locally but may not lengthen limbs, grow the catch volume with Field, translate the root, add jump height/airtime or introduce an automatic whole-body lunge/turn to rescue the catch. Different bodies may have different anatomical envelopes. For the same body and pose family, higher Field improves response within that envelope, not its maximum extent.",
+    "interception": "The authoritative glove must actually reach the legal ball trajectory before acquisition. Prediction may select a reachable local catch response but cannot reserve possession, pull the ball to the glove, snap the glove at contact or change an earlier event with future information. If the ball changes direction, the glove response remains continuous and obeys its reviewed bounds; if it cannot arrive, the ball misses.",
+    "fieldValue": "Field-dependent response is a proposed additional physical skill expression, separate from accepted recoil/resistance and other fielding benefits. A more responsive fielder can adjust to a late nearby ball within reach; neither a high nor low rating adds random ordinary drops after a legal catch. A lower-rated fielder already in the right physical pose is not forced to miss. Actual body reach and Run-driven coverage still matter.",
+    "numericalBoundary": "Do not reuse RadiusBaseFt=10 plus .6 per Field as an anatomical arm envelope or pick new inches from head height. Existing catch-radius/window and ability bonuses need a deliberate migration to actual glove geometry. This proposal does not approve their current numerical values or remove all benefits they represented. Measure shared-rig glove paths and nearby-ball cases before proposing the response and tolerance numbers.",
+    "motionRail": "Preserve docs/character-motion.md: one shared rig, Blender-authored takes, baked handedness and simulation-owned clocks. Simulation must consume deterministic authored glove-path/reach data matching the visible take and root path; it cannot depend on Unity bones, camera or frame rate to decide catches. Do not add procedural C# poses, a second IK/motion system or unreviewed non-swing clip time-warp. The exact authored response/transition representation and any necessary motion-contract amendment require review before implementation. Catalog first for any future new take; no asset work in this session.",
+    "eligibility": "The jump input still supplies the catch attempt without a second button. Local glove assistance grants no auto-jump, root steering takeover, extension of a restriction, or special-hit immunity. Existing movement ownership and special acquisition/possession restrictions remain authoritative; individual effect interactions still require their reviewed contracts.",
+    "tradeoff": "A fixed glove pose makes a physically correct-looking catch sensitive to small aim differences and weakens the connection between Fielding and visible handling. Bounded local adjustment offers readable forgiveness, but too much adjustment would erase positioning mistakes and compact-field gaps. Greater responsiveness, rather than longer arms or a larger invisible sphere, gives Fielding a benefit that can be shown on the body.",
+    "currentAudit": "FieldingResolver.CatchRadiusFt currently computes base radius plus Field times RadiusPerField and ability bonuses. FlyCatch checks coarse spatial/window predicates. Neither establishes the proposed authored glove adjustment or its latency. The character-motion contract forbids procedural body poses and currently reserves clip time-warp for swings, so this direction needs an explicit compatible motion design before runtime work.",
+    "referenceLimit": "Authored direction, not measured Mario glove assistance or a verified Field-to-response formula. Compare Wii/GC near-edge normal jump catches and visible hand/arm adjustment, separating player movement, root motion and glove reach. Existing manuals and current repository radius formulas cannot establish those motion measurements.",
+    "requiredChecks": [
+      "For the same body and starting state, Field can change reviewed glove response but cannot change ordinary root arc, anatomical maximum reach or catch-volume size.",
+      "A ball already meeting the legal glove can be caught by a low-Field character; no forced miss or new random drop substitutes for geometry.",
+      "Misses beyond physical reach stay misses, including after late deflections; no glove/ball snap, auto-lunge or root takeover.",
+      "Shared authored glove-path data and visible animation agree across short/tall bodies, handedness, both seats, CPU/assistance and variable frame partitions.",
+      "Select numerical adjustment, response curve, collision volume and motion representation before implementation; reconcile legacy radius/window/ability benefits explicitly.",
+      "Respect special acquisition/possession effects and accepted jump/throw lifecycle; compare reference and standalone near-edge catches before human acceptance."
+    ],
+    "implementationBoundary": "Pending glove-assistance and Fielding-response direction only. No numerical reach, stat curve, animation architecture change, runtime code, asset or human gate selected."
   }
 }
