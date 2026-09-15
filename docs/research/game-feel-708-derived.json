@@ -3,7 +3,7 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "e4379d665ded3a11d771b430ed8a6c75e83dd4bf8578bcac56607ad1b174426d",
+    "docs/research/game-feel-708-candidates.json": "70bcfc85e58fe67a00f7aba98790b92ecec376a9851e4baa90362b9f988f5161",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -14,7 +14,10 @@
     "data/art/clips.json": "204c3ec5effacb462a72f7f518cf117d21141645498e7c83244b31ebc4c293ff",
     "data/art/baseball-takes.json": "0686b49e4b9721a39801b4d89f37f6911992b29a5060e5558df8b7708643e7e0",
     "src/GrandSluggers.Sim/InPlay.cs": "b3b6a0a11e080f1ccf21f2970eb1bf35497766378bdfc08cfd9fb9b5618b1ce3",
-    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "bfa793749e569340f7bb7aafbe50f79b700fc18f5a40b80432c481b4bdb8c782"
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "bfa793749e569340f7bb7aafbe50f79b700fc18f5a40b80432c481b4bdb8c782",
+    "src/GrandSluggers.Sim/ChemistryTable.cs": "f4d577afb857d6b7fc167428fea2a78120c8d4fec70775604329ab311d3fcf84",
+    "src/GrandSluggers.Sim/Match.cs": "00c4cceed0eb773c80e6cc1c12d9fd96f84531d3e3a5c5b83b717f0bb9e187e0",
+    "src/GrandSluggers.Sim/FieldAbilities.cs": "f26840e98252220d1eff2943f5de4d71451eafd71972f929ffb564169d5fa398"
   },
   "profiles": [
     {

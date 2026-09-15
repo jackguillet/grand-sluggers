@@ -86,7 +86,10 @@ def derive(data):
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json",
                ROOT / "data/art/clips.json", ROOT / "data/art/baseball-takes.json",
                ROOT / "src/GrandSluggers.Sim/InPlay.cs",
-               ROOT / "src/GrandSluggers.Sim/LivePlaySystem.Field.cs"]
+               ROOT / "src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
+               ROOT / "src/GrandSluggers.Sim/ChemistryTable.cs",
+               ROOT / "src/GrandSluggers.Sim/Match.cs",
+               ROOT / "src/GrandSluggers.Sim/FieldAbilities.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -128,6 +131,9 @@ def derive(data):
         assert math.isclose(example["runnerNominalArrivalSeconds"] - reception, example["marginSeconds"])
     long_throw = data.get("longThrowProposal")
     if long_throw:
+        if long_throw["state"] == "accepted-design-direction":
+            assert long_throw["acceptedBy"] and long_throw["acceptedOn"] and long_throw["acceptanceEvidence"]
+            assert long_throw["chemistryQualification"]
         example = long_throw["breakEvenExample"]
         assert math.isclose(sum(example["relayLegFeet"]), example["totalDistanceFeet"])
         speed = example["assumedEqualArmHorizontalFeetPerSecond"]
@@ -138,6 +144,23 @@ def derive(data):
         assert math.isclose(direct, example["directAtConstantSpeedSeconds"])
         assert math.isclose(relay, example["relayAtConstantSpeedSeconds"])
         assert math.isclose(relay - direct, example["minimumExtraDirectFlightSecondsToTie"])
+    chemistry = data.get("goodChemistryProposal")
+    if chemistry:
+        boost = chemistry["speedMultiplier"]
+        release_sec = chemistry["ordinaryReleaseSeconds"]
+        assert math.isclose(release_sec, release["releaseSeconds"])
+        simple = chemistry["ordinary80FootExample"]
+        assert math.isclose(simple["neutralFlightSeconds"], travel["referenceFlightSeconds"])
+        assert math.isclose(simple["goodFlightSeconds"], simple["neutralFlightSeconds"] / boost)
+        assert math.isclose(simple["goodCommandToTargetSeconds"], release_sec + simple["goodFlightSeconds"])
+        example = chemistry["relayExample"]
+        leg = example["neutralFlightEachSeconds"]
+        overhead = 2 * release_sec + example["assumedExtraDecisionSeconds"]
+        assert math.isclose(example["neutralDirectSeconds"], release_sec + 2 * leg)
+        assert math.isclose(example["goodDirectSeconds"], release_sec + 2 * leg / boost)
+        assert math.isclose(example["neutralRelaySeconds"], overhead + 2 * leg)
+        assert math.isclose(example["oneGoodLegRelaySeconds"], overhead + leg + leg / boost)
+        assert math.isclose(example["twoGoodLegsRelaySeconds"], overhead + 2 * leg / boost)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
