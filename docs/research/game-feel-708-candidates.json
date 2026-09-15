@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-angled-turn-accepted; pursuit-analog-response-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-analog-response-accepted; pursuit-neutral-boundary-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -226,13 +226,18 @@
     },
     {
       "id": "F693-02-pursuit-analog-response",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use linear proportional pursuit speed across the active radial stick range, from fine movement just beyond neutral to full speed at full tilt, through the accepted physical response?"
+    },
+    {
+      "id": "F693-02-pursuit-neutral-boundary",
+      "state": "next-human-decision",
+      "question": "Use calibrated radial stick thresholds of .20 to enter manual pursuit and .15 to return to assistance, retaining current ownership between them and mapping manual speed from .15 to full tilt?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose numerical neutral/assistance boundaries and drift handling, then dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Review controller drift/calibration and held-at-SET behavior, then dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1611,7 +1616,7 @@
   },
   "pursuitAnalogProposal": {
     "decisionId": "F693-02-pursuit-analog-response",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "curve": "linear-active-radial-travel",
     "neutralRadius": null,
     "recommendation": "Map usable stick travel beyond the neutral region linearly to requested ordinary speed: half active travel requests half speed, full active travel full speed, with fine movement near its start. Use radial direction/magnitude so the same tilt works consistently around the stick. Feed requested velocity through the accepted physical response, not directly into displacement.",
@@ -1669,6 +1674,103 @@
       "Both pads and player-1 keyboard/mouse, mixed devices and bag/throw/pitch controls regression; held-at-SET protections retained contextually",
       "Slow placement under flies/short pops, grounder approaches and pickup/catch geometry in actual races; no new catch assist or human gate pass"
     ],
-    "implementationBoundary": "Pending analog-shape trial with numerical neutral boundary and drift handling unresolved. No runtime or global input change here; finish combined control/movement/coverage/ball contract before implementing."
+    "implementationBoundary": "Accepted analog-shape trial; runtime migration pending with numerical neutral boundary and drift handling unresolved. No runtime or global input change here; finish combined control/movement/coverage/ball contract before implementing.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to proportional stick speed from gentle positioning to full running speed, with the numerical neutral boundary reviewed next."
+  },
+  "pursuitNeutralProposal": {
+    "decisionId": "F693-02-pursuit-neutral-boundary",
+    "state": "pending",
+    "manualEnterRadius": 0.2,
+    "manualExitRadius": 0.15,
+    "manualSpeedZeroRadius": 0.15,
+    "recommendation": "On an armed calibrated gamepad pursuit vector, enter manual movement when radial tilt reaches .20; release manual movement to existing assistance at or below .15. In the open band between them retain the current owner. Apply accepted linear manual speed shaping from .15 to 1. No added time debounce.",
+    "scope": "Gamepad ordinary pursuit intent ownership and numeric speed-remap origin, per defensive seat and bound device. Calibration/arming policy, held-at-SET behavior and device-reset handling are the next review. This does not remap bag aim, throwing/pitch controls, keyboard or mouse thresholds, or add a stop button. Pad 2 follows the same rule.",
+    "coordinateContract": "Use the magnitude of the calibrated, centered, normalized two-dimensional pursuit vector before the intentional neutral/speed remap. Device range normalization is necessary but cannot silently include another deadzone curve. .20/.15 are fractions in that documented coordinate, not assumed raw ADC or literal thumb displacement; audit upstream Unity/device processors. Apply the pursuit radial remap once and keep both owners on the same coordinate.",
+    "stateRule": "Once the pursuit input is armed: if magnitude >= enter, manual=true; else if magnitude <= exit, manual=false; otherwise retain manual. Exact .20 enters and exact .15 exits. With no prior pursuit ownership and magnitude in the band, default to assistance. Keep this intent state when changing fielders on the same seat/device, while preserving the selected fielder's actual velocity; never share it between seats. New binding/arming lifecycle remains an explicit calibration review.",
+    "speedRule": "While manual owns pursuit, f=clamp((m-.15)/.85,0,1), requestedVelocity=direction*f*V. The band retains manual ownership on the return from larger tilt and permits very low target speed. In assisted ownership the analog fraction does not cap assisted pursuit: use its existing route/intent policy. At exit, assistance may continue running; zero stick is not a guaranteed stop. All target changes use the accepted physical response rather than resetting velocity.",
+    "run5Arithmetic": {
+      "topSpeedFeetPerSecond": 18.0,
+      "ownershipBandWidth": 0.05000000000000002,
+      "manualTargetFractionAtEntry": 0.058823529411764726,
+      "manualTargetSpeedAtEntryFeetPerSecond": 1.0588235294117652,
+      "halfActiveRangeMagnitude": 0.575,
+      "halfActiveTargetFeetPerSecond": 9.0,
+      "manualTargetAtMagnitude018FeetPerSecond": 0.6352941176470589,
+      "manualTargetAtMagnitude050FeetPerSecond": 7.411764705882353
+    },
+    "ownershipExamples": [
+      {
+        "manualBefore": false,
+        "magnitude": 0.19,
+        "manualAfter": false
+      },
+      {
+        "manualBefore": false,
+        "magnitude": 0.2,
+        "manualAfter": true
+      },
+      {
+        "manualBefore": true,
+        "magnitude": 0.18,
+        "manualAfter": true
+      },
+      {
+        "manualBefore": true,
+        "magnitude": 0.15,
+        "manualAfter": false
+      },
+      {
+        "manualBefore": false,
+        "magnitude": 0.18,
+        "manualAfter": false
+      },
+      {
+        "manualBefore": false,
+        "magnitude": 1.0,
+        "manualAfter": true
+      },
+      {
+        "manualBefore": true,
+        "magnitude": 0.0,
+        "manualAfter": false
+      }
+    ],
+    "arithmeticScope": "Control-state examples on an already armed calibrated input, not measured hardware drift or gameplay traces. Entry target is about 5.88% ordinary speed, not an instantaneous physical-speed jump. Target at .18 applies only while manual ownership is retained; the same .18 after exit remains assisted.",
+    "driftBoundary": "Do not relearn deliberate manual tilt as center or use the old per-axis .32 filter to erase this active range. Existing Pad.Tick recentering and held-at-SET protection need contextual reconciliation next; this boundary approval does not select their timing or claim drifting hardware below .20 is proven safe. Preserve global protections for other verbs.",
+    "implementationRail": "Use the existing input owner and one pursuit-vector/state contract. Keep threshold decisions and target magnitude consistent across live controls, assistance, predictor/stepping and both seats. Switching glove retains intent state and each body's velocity. No repeated .20-entry wait, hidden timed assist switch, stacked remap or global change to aiming. Audit realistic noisy inputs and frame/substep timing; no production edits here.",
+    "alternatives": [
+      {
+        "enter": 0.15,
+        "exit": 0.1,
+        "effect": "Earlier fine control but less cushion against controller drift."
+      },
+      {
+        "enter": 0.25,
+        "exit": 0.2,
+        "effect": "More neutral travel and noise cushion, requiring more tilt to take control."
+      }
+    ],
+    "reference": {
+      "marioSources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "technicalSource": "https://docs.unity3d.com/Packages/com.unity.inputsystem@1.11/manual/Processors.html",
+      "checkedOn": "2026-09-14",
+      "limit": "No matched Mario stick-threshold or hysteresis measurement exists in the evidence. .20/.15 are authored controller trials. Unity Input System 1.11 documentation states control ReadValue applies processors, ReadUnprocessedValue bypasses them, and gamepad sticks can have a stick-deadzone processor; this supports auditing the actual input path, not assuming those docs prove the current per-axis effective curve."
+    },
+    "requiredChecks": [
+      "Exact .15/.20 boundaries and repeated jitter within the band; no frame-by-frame ownership chatter",
+      "Same radial thresholds on cardinals/diagonals and both seats; independent device state",
+      "Fine manual .18 after entry remains manual, while .18 after release stays assisted; entry/remap target math matches",
+      "Neutral release continues assistance when its existing policy requests pursuit, without resetting velocity or changing throw ownership",
+      "Glove switches preserve seat intent and body movement; calibration/binding lifecycle tested after its next decision",
+      "Single remap from measured input coordinate; compare upstream processors, legacy axis filters and sustained tilt/drift behavior",
+      "Actual pad noise/steady tilt, player-1 keyboard/mouse parity and bag/pitch/throw regressions",
+      "Fly/short-pop fine alignment and live catches, grounder/pickup races, standalone readability and human acceptance"
+    ],
+    "implementationBoundary": "Pending neutral-boundary trial. Accepted analog proposal keeps neutralRadius null until this decision is approved. Calibration/arming lifecycle remains unresolved; no runtime/input change or human gate pass."
   }
 }

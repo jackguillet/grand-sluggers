@@ -446,6 +446,8 @@ def derive(data):
         assert math.isclose(a["newDirectionFeetAtCompletion"], v*(.25*t1+.75*t2))
     analog = data.get("pursuitAnalogProposal")
     if analog:
+        if analog["state"] == "accepted-calibration-anchor":
+            assert analog["acceptedBy"] and analog["acceptedOn"] and analog["acceptanceEvidence"]
         assert analog["curve"] == "linear-active-radial-travel"
         a = analog["run5Arithmetic"]
         v = pursuit["run5FeetPerSecond"]
@@ -466,9 +468,29 @@ def derive(data):
             for fraction in (0, .25, .5, 1):
                 magnitude = z+(1-z)*fraction
                 assert math.isclose((magnitude-z)/(1-z), fraction, abs_tol=1e-12)
+    neutral = data.get("pursuitNeutralProposal")
+    if neutral:
+        enter, leave = neutral["manualEnterRadius"], neutral["manualExitRadius"]
+        z = neutral["manualSpeedZeroRadius"]
+        assert 0 <= leave < enter < 1 and z == leave
+        a = neutral["run5Arithmetic"]
+        v = pursuit["run5FeetPerSecond"]
+        assert math.isclose(a["topSpeedFeetPerSecond"], v)
+        assert math.isclose(a["ownershipBandWidth"], enter-leave)
+        assert math.isclose(a["manualTargetFractionAtEntry"], (enter-z)/(1-z))
+        assert math.isclose(a["manualTargetSpeedAtEntryFeetPerSecond"], v*(enter-z)/(1-z))
+        assert math.isclose(a["halfActiveRangeMagnitude"], z+(1-z)/2)
+        assert math.isclose(a["halfActiveTargetFeetPerSecond"], v/2)
+        assert math.isclose(a["manualTargetAtMagnitude018FeetPerSecond"], v*(.18-z)/(1-z))
+        assert math.isclose(a["manualTargetAtMagnitude050FeetPerSecond"], v*(.50-z)/(1-z))
+        for row in neutral["ownershipExamples"]:
+            magnitude = row["magnitude"]
+            after = True if magnitude >= enter else False if magnitude <= leave else row["manualBefore"]
+            assert after == row["manualAfter"]
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitNeutralState": neutral["state"] if neutral else None,
             "pursuitAnalogState": analog["state"] if analog else None,
             "pursuitAngledTurnState": turning["state"] if turning else None,
             "pursuitReversalState": reversal["state"] if reversal else None,
