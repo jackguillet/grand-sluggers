@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "issue": 708,
+  "parentIssue": 693,
+  "date": "2026-09-14",
+  "status": "spatial-decision-pending; incomplete-runtime-contract",
+  "baselineRevision": "59f3762",
+  "decisionId": "F693-02-spatial-trial",
+  "acceptedCandidate": null,
+  "recommendation": "C80",
+  "acceptanceScope": "Select the lead spatial trial only. Timing, physical coefficients, radius tuning, rendered appearance and final shipping dimensions require subsequent review and validation.",
+  "provenance": {
+    "wallRatios": "Authored 2.9/3.5/2.9 trial, motivated by the conditional Wii survey; not measured Nintendo coordinates.",
+    "basepaths": "Authored 80 and 70 ft comparison, not measured Mario basepaths.",
+    "mound": "Preserve audited Harbor mound/basepath ratio for these trials.",
+    "bodies": "Preserve all seven nominal body markers from #701; not live mesh bounds.",
+    "clocks": "Historical #702 measurements and analytical sensitivities only. No compact candidate has been simulated."
+  },
+  "sources": [
+    {"id": "wii-survey", "url": "https://www.reddit.com/r/MarioSuperSluggers/comments/xdvwn9", "scope": "Pianta travel times; equal effective speed assumption required for ratios", "baseRunSeconds": 3.65, "wallRunSeconds": [10.49, 12.86, 10.51]},
+    {"id": "gc-coordinates", "url": "https://www.reddit.com/r/MarioBaseball/comments/nt2n3v", "scope": "Original community coordinate report; not a matched Wii measurement or world body/basepath scale"},
+    {"id": "wii-clip", "url": "https://www.youtube.com/watch?v=3-5aQh-fxZk&t=58s", "scope": "Previously annotated throw flight 0.99–1.21 s; distance/stats/abilities not matched"},
+    {"id": "gc-clip", "url": "https://www.youtube.com/watch?v=fdtUfRUjyAY&t=190s", "scope": "Previously annotated force/return attempt; SAFE and reception are separate events"}
+  ],
+  "profiles": [
+    {"id": "C0", "label": "Historical control", "status": "observed-geometry", "basepathFt": 90, "fencesFt": [330, 400, 330], "moundFt": 60.5},
+    {"id": "C80", "label": "Moderate compact", "status": "proposed-not-accepted", "basepathFt": 80, "fencesFt": [232, 280, 232], "moundFt": 53.77777777777778},
+    {"id": "C70", "label": "Stronger compact", "status": "proposed-not-accepted", "basepathFt": 70, "fencesFt": [203, 245, 203], "moundFt": 47.05555555555556}
+  ],
+  "spatialPolicy": {
+    "units": "feet; home=(0,0), +Z=center, +X=first",
+    "fence": "Circular arc through LF/CF/RF posts at -45/0/+45 degrees, matching the existing RoundFence construction; no linear chevron",
+    "bags": "Trial bag centers scale the audited rounded coordinates by basepath/90; migrate control exactly before considering coordinate precision separately",
+    "infieldStarts": "Scale 1B/2B/3B/SS XZ-plane coordinates by basepath/90; pitcher uses candidate mound",
+    "outfieldStarts": "Preserve bearing and starting radius/fence-at-bearing fraction; evaluate gap and wall retrieval before accepting final starts",
+    "bodyAndEquipment": "Preserve character stature, equipment, bag size, home/stance/catcher group and wall height for trial comparison",
+    "groundDress": "Scale InnerHalf and BackR by basepath/90; preserve path width, bag pads, home pad, mound shape, warning-track width and foul apron in feet for initial trial",
+    "catchAndTagRadii": "Not selected by this geometry decision; report unchanged-radius coverage inflation and compare body-related reach separately from assist radii before implementation",
+    "wallHeightFt": 12,
+    "catcherZFt": -15,
+    "bagSizeFt": 4,
+    "warningTrackWidthFt": 15,
+    "foulApronFt": 36,
+    "pathWidthFt": 10,
+    "bagPadRadiusFt": 12,
+    "homePadRadiusFt": 18
+  },
+  "clockComparisonPolicy": {
+    "runner": "Propose comparing candidates at the same current stat-to-bag time, startup and dash schedule; approval pending. Derive linear speeds from candidate distance, never shorten both space and elapsed time by accident.",
+    "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
+    "throw": "Release and travel must be separate observable phases. Do not reinterpret the current .22 s duration intercept as an existing stationary windup. Numerical release/travel targets pending.",
+    "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
+    "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
+    "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
+    "scoring": "Accepted 1.8–5 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
+    "presentation": "D7 unchanged. Dead-ball duration and moderate ball assistance remain pending numerical presentation decisions."
+  },
+  "decisionQueue": [
+    {"id": "F693-02-spatial-trial", "state": "next-human-decision", "question": "Which spatial trial leads: C80 or C70?"},
+    {"id": "F693-05-runner-clock", "state": "pending", "question": "Preserve current runner elapsed pace as the compact comparison anchor, or change it?"},
+    {"id": "F693-03-throw-budget", "state": "pending", "question": "Choose visible command-to-release and distance-dependent travel intervals from a concrete race budget."},
+    {"id": "F693-02-movement-budget", "state": "pending", "question": "Review a common pursuit profile with read, acceleration and coverage against both routine defense and deep-hit races."},
+    {"id": "F693-04-flight-budget", "state": "pending", "question": "Review contact-class flight, bounce/roll and wall-play tradeoffs within the selected space."},
+    {"id": "F693-07-presentation-budget", "state": "pending", "question": "Review result pacing and numerical readability aids individually after the sim contract is coherent."}
+  ],
+  "humanGameplayGate": "open",
+  "runtimeChangesAuthorizedByThisPacket": false
+}

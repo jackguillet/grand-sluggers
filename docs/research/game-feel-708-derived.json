@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "status": "derived-design-arithmetic-not-simulation",
+  "sourceSha256": {
+    "docs/research/game-feel-708-candidates.json": "8c42fd5bbc0af068031f094a3c74a1b7a6f51a9d2297f4f904f0d63eafb08838",
+    "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
+    "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
+    "src/GrandSluggers.Sim/ParkDiamond.cs": "93992c60661fe4d8b0ac818841c7093809b8dcd9bba378ab59d97fd56841f4af",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108"
+  },
+  "profiles": [
+    {
+      "id": "C0",
+      "basepathFt": 90,
+      "fencesFt": [
+        330,
+        400,
+        330
+      ],
+      "wallPerBasepath": [
+        3.6666666666666665,
+        4.444444444444445,
+        3.6666666666666665
+      ],
+      "relativeBodyIncreasePercent": 0.0,
+      "centerDepthReductionPercent": 0.0,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          63.64,
+          63.64
+        ],
+        [
+          0.0,
+          127.28
+        ],
+        [
+          -63.64,
+          63.64
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          60.5
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          78.0,
+          72.0
+        ],
+        "2B": [
+          42.0,
+          118.0
+        ],
+        "3B": [
+          -78.0,
+          72.0
+        ],
+        "SS": [
+          -42.0,
+          118.0
+        ],
+        "LF": [
+          -110.0,
+          250.0
+        ],
+        "CF": [
+          0.0,
+          305.0
+        ],
+        "RF": [
+          110.0,
+          250.0
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 50.0,
+        "backArcRadius": 92.0
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.056758
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.07819991111111112
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.035316088888888895
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.06054186666666667
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.0819837777777778
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.0908128
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.04919026666666668
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 26.239067055393587,
+        "5": 30.50847457627119,
+        "9": 36.43724696356276
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 30.5,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 18.3,
+        "centerStartToWallFt": 95.0,
+        "rearChaseTimeSec": 5.191256830601093,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 1.6666666666666665,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.14444444444444443,
+      "simulated": false
+    },
+    {
+      "id": "C80",
+      "basepathFt": 80,
+      "fencesFt": [
+        232,
+        280,
+        232
+      ],
+      "wallPerBasepath": [
+        2.9,
+        3.5,
+        2.9
+      ],
+      "relativeBodyIncreasePercent": 12.5,
+      "centerDepthReductionPercent": 30.000000000000004,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          56.568888888888885,
+          56.568888888888885
+        ],
+        [
+          0.0,
+          113.13777777777777
+        ],
+        [
+          -56.568888888888885,
+          56.568888888888885
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          53.77777777777777
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          69.33333333333333,
+          64.0
+        ],
+        "2B": [
+          37.33333333333333,
+          104.88888888888889
+        ],
+        "3B": [
+          -69.33333333333333,
+          64.0
+        ],
+        "SS": [
+          -37.33333333333333,
+          104.88888888888889
+        ],
+        "LF": [
+          -77.08560550305882,
+          175.1945579614973
+        ],
+        "CF": [
+          0.0,
+          213.5
+        ],
+        "RF": [
+          77.08560550305882,
+          175.1945579614973
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 44.44444444444444,
+        "backArcRadius": 81.77777777777777
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.06385275
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.0879749
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.039730600000000005
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.0681096
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.09223175000000002
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.1021644
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.055339050000000015
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 23.323615160349856,
+        "5": 27.118644067796613,
+        "9": 32.388663967611336
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 27.11111111111111,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 12.81,
+        "centerStartToWallFt": 66.5,
+        "rearChaseTimeSec": 5.191256830601093,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 2.1164021164021163,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.1625,
+      "simulated": false
+    },
+    {
+      "id": "C70",
+      "basepathFt": 70,
+      "fencesFt": [
+        203,
+        245,
+        203
+      ],
+      "wallPerBasepath": [
+        2.9,
+        3.5,
+        2.9
+      ],
+      "relativeBodyIncreasePercent": 28.57142857142858,
+      "centerDepthReductionPercent": 38.74999999999999,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          49.49777777777778,
+          49.49777777777778
+        ],
+        [
+          0.0,
+          98.99555555555555
+        ],
+        [
+          -49.49777777777778,
+          49.49777777777778
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          47.05555555555556
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          60.666666666666664,
+          56.0
+        ],
+        "2B": [
+          32.666666666666664,
+          91.77777777777779
+        ],
+        "3B": [
+          -60.666666666666664,
+          56.0
+        ],
+        "SS": [
+          -32.666666666666664,
+          91.77777777777779
+        ],
+        "LF": [
+          -67.44990481517645,
+          153.2952382163101
+        ],
+        "CF": [
+          0.0,
+          186.8125
+        ],
+        "RF": [
+          67.44990481517645,
+          153.2952382163101
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 38.88888888888889,
+        "backArcRadius": 71.55555555555556
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.07297457142857143
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.10054274285714286
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.045406400000000006
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.07783954285714285
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.1054077142857143
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.11675931428571429
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.06324462857142858
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 20.408163265306126,
+        "5": 23.728813559322035,
+        "9": 28.340080971659923
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 23.72222222222222,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 11.208750000000002,
+        "centerStartToWallFt": 58.1875,
+        "rearChaseTimeSec": 5.191256830601092,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 2.116402116402116,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.18571428571428572,
+      "simulated": false
+    }
+  ]
+}
