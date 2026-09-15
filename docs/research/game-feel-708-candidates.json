@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-calibration-policy-accepted; pursuit-arming-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-arming-accepted; calibration-samples-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -241,13 +241,18 @@
     },
     {
       "id": "F693-02-pursuit-arming",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Require neutral once on defensive-role entry, controller recovery or recalibration, then retain pursuit readiness through the half so held direction works at contact?"
+    },
+    {
+      "id": "F693-02-pursuit-calibration-samples",
+      "state": "next-human-decision",
+      "question": "Use a .50-second released-stick calibration window with at most .10 radial center offset and .02 maximum radial variation, retaining prior calibration if sampling fails?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Review calibration sample protocol, then dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Review dash/status and special movement, then reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1855,7 +1860,7 @@
   },
   "pursuitArmingProposal": {
     "decisionId": "F693-02-pursuit-arming",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "neutralRadius": 0.15,
     "extraNeutralDwellSeconds": 0,
     "recommendation": "Require a valid profile and one observed calibrated neutral sample at or below .15 when a controller enters a defensive role, is newly bound/reconnected/replaced, or completes recalibration. Then retain pursuit readiness through that defensive half: no new release requirement between pitches, on contact, camera cuts or glove selection.",
@@ -1938,6 +1943,240 @@
       "Pitch/batting/aim CatchPlay protections and keyboard/mouse behavior regressions; no replayed confirm as live action",
       "Standalone path from role/device recovery to fielding requires no external explanation; book and in-game help updated with implementation"
     ],
-    "implementationBoundary": "Pending arming policy. No runtime/input/UI changes or new human gate pass. Calibration sample protocol and remaining movement/coverage/ball contract must be completed before implementation."
+    "implementationBoundary": "Accepted arming policy; runtime migration pending. No runtime/input/UI changes or new human gate pass. Calibration sample protocol and remaining movement/coverage/ball contract must be completed before implementation.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied sure to neutral checks at defensive-role/device/calibration boundaries, with uninterrupted pursuit readiness through the defensive half."
+  },
+  "pursuitCalibrationSamplesProposal": {
+    "decisionId": "F693-02-pursuit-calibration-samples",
+    "state": "pending",
+    "windowSeconds": 0.5,
+    "maxCenterOffsetRadius": 0.1,
+    "maxSampleDeviationRadius": 0.02,
+    "limitsInclusive": true,
+    "recommendation": "For a requested non-live calibration, accept a full .50-second window of valid released-stick observations only when the mean center is within .10 radial units of nominal device center and every sample is within .02 radial units of that mean. Stable modest offsets are correctable; excessive offset or variation rejects the window. Retain a prior valid profile on failure.",
+    "scope": "Numerical center-sampling acceptance preset for the already approved fixed calibration policy. Applies to establishing or explicitly updating calibration only, not each ordinary neutral/arming check. No new .50-second gameplay read, reconnect delay with an existing valid profile, live center learning or widened .20/.15 boundary.",
+    "coordinateAndEstimator": "Collect normalized device-coordinate vectors before learned-center subtraction and the intentional pursuit deadzone/remap. Use the documented consistent vector/axis processor path and existing device range normalization. Arithmetic mean of samples is the proposed center c; require norm(c)<=.10 and max(norm(sample-c))<=.02. Bounds are radial, not independent axis limits. Evaluate a complete window, not just consecutive sample deltas; do not trim away excursions to make an unstable window pass. This learns center only, not axis endpoint/range scale from resting samples.",
+    "clockAndFreshness": "The .50-second window uses monotonic input/non-live time while the match is paused, not the paused baseball simulation clock. Collect valid observations spanning the full duration from active input updates; a stalled input pump or copied cached observations must not manufacture the elapsed sample window. Identical values from genuinely active sampling can be valid. Interrupted sampling restarts the candidate window without changing the last valid profile.",
+    "failureAndAdoption": "The player sees a release-stick instruction during the non-live calibration. A valid window atomically installs the candidate center for that actual device; subsequent arming still uses the accepted calibrated <=.15 rule. Invalid offset, variation or freshness does not install a partial center. Show retry guidance; retain the old valid profile if one exists, and keep a first-time invalid device out of live readiness until a valid profile is established. Offer existing device recovery options rather than silently accepting or widening thresholds. Mere stillness cannot prove the thumb is released.",
+    "relationships": {
+      "maxSampleRadiusByTriangleBound": 0.12,
+      "calibratedSampleDeviationBound": 0.02,
+      "armingNeutralRadius": 0.15,
+      "deviationMarginBelowArmingRadius": 0.13
+    },
+    "syntheticWindows": [
+      {
+        "name": "stable modest offset",
+        "samples": [
+          {
+            "t": 0.0,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.1,
+            "x": 0.07,
+            "y": 0.0
+          },
+          {
+            "t": 0.2,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.3,
+            "x": 0.07,
+            "y": 0.0
+          },
+          {
+            "t": 0.4,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.5,
+            "x": 0.07,
+            "y": 0.0
+          }
+        ],
+        "accepted": true
+      },
+      {
+        "name": "large held or resting offset",
+        "samples": [
+          {
+            "t": 0.0,
+            "x": 0.11,
+            "y": 0.0
+          },
+          {
+            "t": 0.1,
+            "x": 0.11,
+            "y": 0.0
+          },
+          {
+            "t": 0.2,
+            "x": 0.11,
+            "y": 0.0
+          },
+          {
+            "t": 0.3,
+            "x": 0.11,
+            "y": 0.0
+          },
+          {
+            "t": 0.4,
+            "x": 0.11,
+            "y": 0.0
+          },
+          {
+            "t": 0.5,
+            "x": 0.11,
+            "y": 0.0
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "name": "too much variation",
+        "samples": [
+          {
+            "t": 0.0,
+            "x": 0.03,
+            "y": 0.0
+          },
+          {
+            "t": 0.1,
+            "x": 0.09,
+            "y": 0.0
+          },
+          {
+            "t": 0.2,
+            "x": 0.03,
+            "y": 0.0
+          },
+          {
+            "t": 0.3,
+            "x": 0.09,
+            "y": 0.0
+          },
+          {
+            "t": 0.4,
+            "x": 0.03,
+            "y": 0.0
+          },
+          {
+            "t": 0.5,
+            "x": 0.09,
+            "y": 0.0
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "name": "insufficient elapsed window",
+        "samples": [
+          {
+            "t": 0.0,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.08,
+            "x": 0.07,
+            "y": 0.0
+          },
+          {
+            "t": 0.16,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.24000000000000005,
+            "x": 0.07,
+            "y": 0.0
+          },
+          {
+            "t": 0.32,
+            "x": 0.05,
+            "y": 0.0
+          },
+          {
+            "t": 0.4,
+            "x": 0.07,
+            "y": 0.0
+          }
+        ],
+        "accepted": false
+      },
+      {
+        "name": "inclusive offset and variation limits",
+        "samples": [
+          {
+            "t": 0.0,
+            "x": 0.08,
+            "y": 0.0
+          },
+          {
+            "t": 0.1,
+            "x": 0.12,
+            "y": 0.0
+          },
+          {
+            "t": 0.2,
+            "x": 0.08,
+            "y": 0.0
+          },
+          {
+            "t": 0.3,
+            "x": 0.12,
+            "y": 0.0
+          },
+          {
+            "t": 0.4,
+            "x": 0.08,
+            "y": 0.0
+          },
+          {
+            "t": 0.5,
+            "x": 0.12,
+            "y": 0.0
+          }
+        ],
+        "accepted": true
+      }
+    ],
+    "evidenceScope": "Synthetic six-observation arithmetic examples verify only the window/mean/radial-deviation predicates, not an approved polling frequency, actual controller drift or gameplay. No measured distribution from Jack's controllers is yet available; bounds must be exercised on real supported pads.",
+    "alternatives": [
+      {
+        "windowSeconds": 0.25,
+        "effect": "Less waiting during setup, but less elapsed evidence of a stable center."
+      },
+      {
+        "windowSeconds": 1.0,
+        "effect": "More stability evidence at the cost of a longer requested calibration."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "technicalSource": "https://docs.unity3d.com/Packages/com.unity.inputsystem@1.11/manual/Processors.html",
+      "limit": "GameCube manual recommends released controls for neutral reset but its hardware reset gesture is not a measurement of an appropriate modern sampling duration. No Wii/GameCube source establishes .50/.10/.02; these are authored calibration bounds. Unity processor docs justify coordinate/freshness auditing, not these acceptance values."
+    },
+    "requiredChecks": [
+      "Inclusive .50 duration/.10 center/.02 sample deviation boundaries, just-outside cases and diagonal offsets",
+      "Window mean/deviation catches slow wandering as well as jitter; no last-sample-only or adjacent-delta shortcut",
+      "Valid identical samples versus stalled input processing; non-live input clock advances while match sim remains paused",
+      "Failed/restarted calibration preserves prior profile, while initial invalid calibration cannot arm live pursuit",
+      "No extra calibration window for an already-valid neutral arming check, every pitch or camera/glove change",
+      "Per-device identity, both seats, actual resting/held/noisy pad samples and existing keyboard/mouse recovery limits",
+      "After adoption, verify fine movement, neutral ownership, endpoint reach/normalization and unchanged non-pursuit aiming safeguards",
+      "Couch-visible retry/success and named standalone validation remain required before accepting hardware feel"
+    ],
+    "implementationBoundary": "Pending numerical sampling preset. No controller capture, runtime calibration/UI edit, gameplay tuning or human gate pass. Remaining movement/coverage/ball contract and implementation children stay open."
   }
 }
