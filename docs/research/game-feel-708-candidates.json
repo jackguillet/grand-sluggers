@@ -406,8 +406,13 @@
     },
     {
       "id": "F693-02-normal-jump-startup-trial",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial zero added gameplay startup before an eligible normal jump: begin the physical arc when simulation accepts the eligible press, without an extra crouch/windup timer?"
+    },
+    {
+      "id": "F693-02-normal-jump-input-buffer",
+      "state": "next-human-decision",
+      "question": "Remember a grounded normal-jump press for up to .10 seconds across a temporary read/recovery restriction, but never queue a jump from airborne input or wait for the ball?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4296,7 +4301,7 @@
   },
   "normalJumpStartupTrialProposal": {
     "decisionId": "F693-02-normal-jump-startup-trial",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "addedGameplayStartupSeconds": 0.0,
     "airtimeSeconds": 0.6,
     "apexAfterAcceptedInputSeconds": 0.3,
@@ -4330,6 +4335,67 @@
       "No generic extra clean-landing pause or airborne throw start; existing .25-second throw buffer still expires independently.",
       "Compare input-synchronized reference footage and actual standalone response; zero added delay is not human feel acceptance."
     ],
-    "implementationBoundary": "Pending baseline startup trial only. No runtime, animation, controller mapping or couch-book edit. Future implementation must reconcile the physical jump and both HowToPlay surfaces; reference measurement and human standalone acceptance remain open."
+    "implementationBoundary": "Accepted baseline startup trial only. No runtime, animation, controller mapping or couch-book edit. Future implementation must reconcile the physical jump and both HowToPlay surfaces; reference measurement and human standalone acceptance remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied agree to normal jumps starting without an added crouch or windup delay once an eligible press is accepted."
+  },
+  "normalJumpInputBufferProposal": {
+    "decisionId": "F693-02-normal-jump-input-buffer",
+    "state": "pending",
+    "maxAgeSeconds": 0.1,
+    "expiryBoundary": "inclusive",
+    "airborneInputMayQueue": false,
+    "recommendation": "Trial a .10-second buffer for a fresh normal-jump press made while grounded during live play, with valid control ownership, when only applicable temporary read/recovery restrictions prevent jumping. Start once at the first fully eligible instant while the command remains valid; already eligible presses retain zero added startup.",
+    "eligibility": "Grounded at submission and execution, same controlled fielder and owner, live ball, no conflicting pending or committed throw/dive/other exclusive action. Temporary read/recovery restrictions must all end before execution. Do not accept airborne, dead-ball, unowned, paused or disconnected input into the queue, and do not turn wall/buddy/dive commands into normal jumps.",
+    "clock": "Age from the simulation timestamp of the fresh press using active baseball time. Valid while 0<=age<=.10 inclusive, expired immediately after; pause freezes age but accepts no new gameplay command. At eligibility/expiry boundaries, use event timestamps rather than extending the buffer by a frame or shortening it through late sampling. A new distinct eligible-to-buffer press replaces the previous request and timestamp; holding, retargeting, ball prediction or changing restrictions cannot refresh it.",
+    "execution": "Consume the one request at the first actual fully eligible instant within its age limit, then begin the accepted zero-startup normal arc with the actual position and velocity at that instant. Buffer waiting is time spent ineligible, not new startup or a reduction of the .60-second airborne period. Do not wait for ball proximity, catch window or a better apex alignment. A bad-timed buffered jump can miss.",
+    "invalidation": "Clear on ground-support loss before execution, fielder selection/control-owner change, possession change, play/role end or device disconnection. A fresh defensive cancel clears the request; releasing jump alone does not cancel a tap. Accepting a conflicting throw/dive/other exclusive action cancels the pending jump, including a conflicting accepted action at the same execution timestamp. An already pending/committed such action prevents new jump buffering. This arbitration concerns the queued jump only and does not redesign unrelated simultaneous commands.",
+    "repeat": "A queued jump fires once. Holding does not enqueue again; input made while airborne is discarded rather than saved for landing. Another normal jump requires a new press made grounded and eligible or within this reviewed grounded restriction buffer. No coyote time, automatic landing hop or double jump.",
+    "ownership": "Bind the request to its fielder and controlling owner; do not transfer it to a new glove or execute it for the other seat. CPU and assistance may issue intents only under existing ownership rules and share physical eligibility; this creates no automatic human-side jump intent.",
+    "examples": [
+      {
+        "pressSeconds": 0.0,
+        "fullyEligibleSeconds": 0.08,
+        "executes": true,
+        "takeoffSeconds": 0.08,
+        "landingSeconds": 0.6799999999999999
+      },
+      {
+        "pressSeconds": 0.0,
+        "fullyEligibleSeconds": 0.1,
+        "executes": true,
+        "takeoffSeconds": 0.1,
+        "landingSeconds": 0.7
+      },
+      {
+        "pressSeconds": 0.0,
+        "fullyEligibleSeconds": 0.100001,
+        "executes": false,
+        "takeoffSeconds": null,
+        "landingSeconds": null
+      },
+      {
+        "pressSeconds": 0.0,
+        "fullyEligibleSeconds": 0.15,
+        "executes": false,
+        "takeoffSeconds": null,
+        "landingSeconds": null
+      }
+    ],
+    "exampleScope": "All examples assume valid grounded ownership and no invalidation, conflicting action or new press. Eligibility is the end of all applicable restrictions, not merely the first one. Delaying or refreshing a restriction does not refresh the request age.",
+    "tradeoff": "A .10-second grace catches slightly early taps without a long delayed jump. No buffer is stricter and may swallow a near-ready input; copying the .25-second throw buffer would permit a more stale movement command. The jump and throw buffers remain independent.",
+    "currentAudit": "Current WestDown assigns JumpT from .55/.70-second catch-arming windows. Those windows are not a physical grounded recovery-input buffer. Do not reuse them as this .10-second queue or authorize ball-scheduled takeoff through that existing code.",
+    "referenceLimit": "Authored input-forgiveness trial. Existing Wii/GC manual evidence does not establish this buffer or its duration; input-synchronized recovery/early-press observations remain needed. No claim that either Mario game uses .10 seconds.",
+    "requiredChecks": [
+      "At full eligibility .08/.10 seconds after a valid grounded press execute once; at .100001/.15 expire, including variable frame splits and multiple overlapping restrictions.",
+      "Preserve immediate eligible takeoff; buffered takeoff uses actual position/velocity at readiness and then the full .60-second arc, with no ball-dependent timing.",
+      "Held input and changed ball/lock/target do not refresh age; a distinct new valid press replaces the one request.",
+      "Airborne input cannot cause an automatic landing hop; losing support, possession or control invalidates the pending grounded request.",
+      "Cancel and conflicting accepted actions invalidate the queue before it executes; an existing pending throw cannot be displaced by a buffered jump.",
+      "Pause freezes existing age but accepts no new gameplay intent; device/role/play boundaries invalidate stale ownership across both seats and schemes.",
+      "Trace reference and standalone near-ready inputs; arithmetic checks do not establish runtime correctness or human acceptance."
+    ],
+    "implementationBoundary": "Pending normal-jump input-buffer contract. No runtime or input mapping change, no human gate passed. Future implementation must reconcile the physical jump and update both couch-book surfaces; exceptional jumps and reach remain separately reviewed."
   }
 }

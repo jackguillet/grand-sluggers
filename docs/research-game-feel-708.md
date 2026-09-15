@@ -1018,9 +1018,9 @@ These are root-motion examples, not added glove reach or a guaranteed catch. Neu
 
 **Evidence and validation:** this is an authored coefficient, not measured Mario steering. The previously reviewed official manuals establish inputs, not midair acceleration. Comparable Wii/GC neutral, perpendicular and opposite-input jumps still need observation, followed by standalone checks of actual body/glove paths. Verify exact integration and frame splitting, partial/changing intents, short/tall and slow/fast characters, both seats/schemes, CPU/assistance, possession transitions and restrictions. Runtime and human gates remain open.
 
-## Next decision — normal-jump startup timing
+## Accepted decision — normal-jump startup timing
 
-**F693-02-normal-jump-startup-trial — pending, September 15, 2026.** Recommend **zero added gameplay startup**: begin the physical normal jump when the simulation accepts an eligible new press, without an extra crouch/windup timer. This makes the previously approved prompt, player-owned takeoff concrete.
+**F693-02-normal-jump-startup-trial — accepted by Jack on September 15, 2026.** Jack approved **zero added gameplay startup**: begin the physical normal jump when the simulation accepts an eligible new press, without an extra crouch/windup timer. This makes the previously approved prompt, player-owned takeoff concrete.
 
 **Timeline:** if the eligible press is accepted at `t0`, takeoff and airborne steering begin at `t0`, the 2-foot apex occurs at `t0+.30`, and uninterrupted level-ground landing occurs at `t0+.60`. This is not a promise of zero hardware, input polling, rendering or display latency, and it cannot backdate the jump before input consumption. A .05-second grounded preparation would move the apex/landing to .35/.65 after acceptance; .10 would move them to .40/.70. Those are unselected alternatives, with the same .60 seconds in the air.
 
@@ -1034,7 +1034,23 @@ These are root-motion examples, not added glove reach or a guaranteed catch. Neu
 
 Validate one shared event timeline in prediction, stepping and animation, including different ball arrivals, frame partitions, both seats/schemes, CPU and short/tall bodies. Preserve the independent throw buffer and actual landing requirement; no new automatic throw follows. Future implementation must update both couch-book surfaces together. No runtime, motion asset or human gate changes here.
 
-**Question for Jack:** start the normal jump with no added crouch/windup delay once an eligible press is accepted?
+## Next decision — slightly early normal-jump input
+
+**F693-02-normal-jump-input-buffer — pending, September 15, 2026.** Recommend remembering a fresh **grounded** normal-jump press for up to **.10 seconds** while a temporary read/recovery restriction finishes. Jump once at the first fully eligible instant within that limit. Already eligible presses still start immediately.
+
+**Concrete behavior:** press .08 seconds before all restrictions end and the jump begins at readiness; press exactly .10 seconds early and it still works. A press .100001 or .15 seconds early expires. Takeoff uses the actual position/velocity at readiness, followed by the full .60-second arc. Waiting for eligibility does not shorten recovery, become an added startup delay, or schedule the leap to the ball. You can still jump too early or late to make a catch.
+
+**Why this amount:** a short grace window helps a near-ready tap register. No buffer requires another press even if the character becomes ready almost immediately; a longer buffer could launch an unexpectedly late jump after the player has moved on. Keep this shorter than the independently approved .25-second throw buffer. The proposed .10 is an authored trial, not a measured Mario value.
+
+**Bounded ownership and cancellation:** accept only a live, grounded press with valid fielder/control ownership and temporary read/recovery restrictions as the reason it cannot execute. Store one request for that fielder and owner. Clear it if support, possession or ownership changes, the play/role ends, or the device disconnects. A fresh defensive cancel clears it. An accepted conflicting throw/dive/other exclusive action clears it before execution, including at the same timestamp; an existing pending/committed such action prevents buffering a new jump. This only arbitrates the queued jump, not every simultaneous command in the game. Release alone does not cancel a tap; direction changes do not refresh its age.
+
+**No landing hop:** presses made while airborne are discarded, so this cannot queue another jump on landing. Holding never repeats or refreshes the request. A new distinct grounded press can replace it; no double jump or coyote time is added. Existing CPU/assist ownership stays intact, and no automated human-side jump intent is introduced.
+
+**Exact clock:** age in active baseball time, valid through .10 inclusive. Pause freezes an existing request but accepts no new gameplay input. Evaluate full eligibility and expiry at event timestamps so frame size does not extend or erase the boundary. A later restriction or ball deflection does not restart the age. This queue must not reuse the existing .55/.70-second `JumpT` catch-arming windows, which serve a different purpose.
+
+The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Measure input-synchronized near-ready presses in both references and the eventual standalone game. Validate inclusive expiry, overlapping restrictions, fresh versus held input, cancellation/conflicting actions, support/possession/ownership changes and both seats/schemes. Future implementation must reconcile the physical jump and both couch-book surfaces. No runtime or human gate changes here.
+
+**Question for Jack:** allow this .10-second grace for a grounded jump press made just before a temporary restriction ends, while discarding airborne presses?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
