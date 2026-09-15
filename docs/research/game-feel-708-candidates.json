@@ -396,8 +396,13 @@
     },
     {
       "id": "F693-02-normal-jump-arc-trial",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a first normal-jump trial of 2 feet body rise over .60 seconds airborne, with one symmetric parabolic arc peaking at .30 seconds, while actual glove reach and special jump variants remain separately reviewed?"
+    },
+    {
+      "id": "F693-02-normal-jump-air-response-trial",
+      "state": "next-human-decision",
+      "question": "Trial active horizontal air correction at 10% of ordinary ground acceleration/braking rates, preserving neutral drift and actual velocity, over the accepted .60-second jump?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4136,7 +4141,7 @@
   },
   "normalJumpArcTrialProposal": {
     "decisionId": "F693-02-normal-jump-arc-trial",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "peakBodyRiseFeet": 2.0,
     "airtimeSeconds": 0.6,
     "apexSeconds": 0.3,
@@ -4214,6 +4219,71 @@
       "Keep ball physics unchanged; wall/buddy/ability, slopes and exceptional airborne impacts need their own reviewed contracts.",
       "Compare reference jump footage and actual standalone body/glove motion before human feel acceptance; design arithmetic alone does not pass the gate."
     ],
-    "implementationBoundary": "Pending baseline numerical normal-jump trial. Full input latency, air-control limits, glove reach and character/ability/exceptional contracts remain incomplete; no runtime coefficient, rig, motion asset or human gate changed."
+    "implementationBoundary": "Accepted baseline numerical normal-jump trial. Full input latency, air-control limits, glove reach and character/ability/exceptional contracts remain incomplete; no runtime coefficient, rig, motion asset or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to the baseline normal-jump trial: 2-foot body-root rise, .60 seconds airborne and apex at .30 seconds."
+  },
+  "normalJumpAirResponseTrialProposal": {
+    "decisionId": "F693-02-normal-jump-air-response-trial",
+    "state": "pending",
+    "airAccelerationScale": 0.1,
+    "airBrakingScale": 0.1,
+    "airtimeSeconds": 0.6,
+    "recommendation": "Trial active horizontal correction at 10% of ordinary ground acceleration and braking rates during the accepted .60-second normal jump. Preserve takeoff velocity and neutral coasting. This limits correction while keeping pre-jump positioning important.",
+    "response": "For ordinary character speed V=(21+1.9*Run)*18/30.5, use a_air=.10*(V/.20) and b_air=.10*(V/.10). With eligible non-neutral movement intent, use the accepted velocity-segment turning law toward q at these reduced rates, integrating position continuously and not overshooting q. Braking and acceleration are phases along one velocity segment, not summed independent forces or axes. Neutral intent coasts instead of requesting q=0. A movement restriction suppresses commanded correction, not existing physical drift.",
+    "target": "Retain accepted analog shaping and ordinary/carry target-speed context: ordinary maximum V, or 1.20V only for a secure live-ball carrier with Ball Dash. These are requested speed caps, not instantaneous clamps on inherited actual velocity. Ball Dash does not multiply a_air or b_air; secure possession or loss changes the eligible target without resetting velocity, air clock or control strength. Catch-related external impacts remain separately reviewed.",
+    "bounds": "No independent position clamp or per-jump refillable distance budget. For free-space motion without external effects, commanded acceleration magnitude never exceeds b_air. Thus displacement from the neutral takeoff-velocity path is at most .5*b_air*T*T over duration T, even for changing input. This is a conservative derived bound, not a teleport radius or guaranteed correction distance; catch radius and glove reach are unchanged.",
+    "timing": "Air coefficients apply only from actual takeoff to actual landing. At landing preserve actual horizontal velocity and use the eligible ground response without an extra generic pause. Correction cannot alter the vertical arc or airtime. Both coefficients and any active movement restrictions use the same simulation timeline as prediction and stepping.",
+    "ownership": "Manual, CPU and assistance movement intents share the same physical bounds. Neutral means the resolved movement intent is neutral, not merely that a human released the stick while assistance owns movement. No new assisted takeover, automatic jump, catch reservation or pre-landing throw start.",
+    "examples": [
+      {
+        "run": 1,
+        "ordinarySpeedFeetPerSecond": 13.514754098360655,
+        "airAccelerationFeetPerSecondSquared": 6.757377049180327,
+        "airBrakingFeetPerSecondSquared": 13.514754098360655,
+        "neutralRunningDriftFeet": 8.108852459016392,
+        "stationaryFullInputTravelFeet": 1.2163278688524588,
+        "stationaryLandingSpeedFeetPerSecond": 4.054426229508196,
+        "oppositeInputTravelFeet": 5.676196721311474,
+        "oppositeInputLandingForwardSpeedFeetPerSecond": 5.405901639344263,
+        "maxCorrectionFromNeutralPathFeet": 2.4326557377049176
+      },
+      {
+        "run": 5,
+        "ordinarySpeedFeetPerSecond": 18.0,
+        "airAccelerationFeetPerSecondSquared": 9.0,
+        "airBrakingFeetPerSecondSquared": 18.0,
+        "neutralRunningDriftFeet": 10.799999999999999,
+        "stationaryFullInputTravelFeet": 1.6199999999999999,
+        "stationaryLandingSpeedFeetPerSecond": 5.3999999999999995,
+        "oppositeInputTravelFeet": 7.559999999999999,
+        "oppositeInputLandingForwardSpeedFeetPerSecond": 7.200000000000001,
+        "maxCorrectionFromNeutralPathFeet": 3.2399999999999998
+      },
+      {
+        "run": 9,
+        "ordinarySpeedFeetPerSecond": 22.485245901639342,
+        "airAccelerationFeetPerSecondSquared": 11.242622950819671,
+        "airBrakingFeetPerSecondSquared": 22.485245901639342,
+        "neutralRunningDriftFeet": 13.491147540983604,
+        "stationaryFullInputTravelFeet": 2.0236721311475407,
+        "stationaryLandingSpeedFeetPerSecond": 6.745573770491802,
+        "oppositeInputTravelFeet": 9.443803278688524,
+        "oppositeInputLandingForwardSpeedFeetPerSecond": 8.994098360655737,
+        "maxCorrectionFromNeutralPathFeet": 4.0473442622950815
+      }
+    ],
+    "referenceLimit": "Authored numerical trial, not measured Wii or GameCube air control. The existing manual evidence establishes jump controls but no steering coefficient. Compare matched standing/running jumps with neutral, perpendicular and opposite input in both references and the eventual standalone game before accepting feel similarity.",
+    "tradeoff": "Ten percent makes a small correction useful without allowing a full-speed wrong-way takeoff to reverse during .60 seconds. At Run5, a 5% alternative gives .81 feet from rest and 1.62 feet maximum correction from neutral drift; 15% gives 2.43 and 4.86 feet respectively. Larger rates recover more positioning errors and can reduce compact-field gaps.",
+    "requiredChecks": [
+      "Check continuous position/velocity, rate bounds and frame-split invariance for neutral, full/partial, opposite, perpendicular and changing intents; no ground-strength steering during an airborne phase.",
+      "Check exact .60-second examples and the derived displacement envelope across Run ratings; the envelope is not extra catch reach.",
+      "A catch, ownership switch, target change or Ball Dash acquisition/loss cannot reset physical velocity or the vertical clock; external impacts must be handled by their separately reviewed contract.",
+      "Human seats, keyboard/pad, CPU and assistance share limits; active movement restrictions suppress only commanded correction.",
+      "Landing retains actual velocity and transitions to ground response at the actual support event, without extra pause or a velocity snap.",
+      "Compare reference footage and live short/tall-character glove paths, routine catches and gaps; arithmetic is not simulation or human acceptance."
+    ],
+    "implementationBoundary": "Pending air-response numerical trial only. No runtime tuning or reference/standalone gate passed. Startup, reach/ability variants and exceptional airborne impacts remain separately reviewed."
   }
 }
