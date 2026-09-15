@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-analog-response-accepted; pursuit-neutral-boundary-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-neutral-boundary-accepted; pursuit-calibration-policy-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -231,13 +231,18 @@
     },
     {
       "id": "F693-02-pursuit-neutral-boundary",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use calibrated radial stick thresholds of .20 to enter manual pursuit and .15 to return to assistance, retaining current ownership between them and mapping manual speed from .15 to full tilt?"
+    },
+    {
+      "id": "F693-02-pursuit-calibration-policy",
+      "state": "next-human-decision",
+      "question": "Establish a released-stick center outside live play and keep it fixed through the match, with explicit paused recalibration instead of silent live recentering?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Review controller drift/calibration and held-at-SET behavior, then dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Review held-at-SET and reconnect/arming behavior and calibration sample protocol, then dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1618,9 +1623,9 @@
     "decisionId": "F693-02-pursuit-analog-response",
     "state": "accepted-calibration-anchor",
     "curve": "linear-active-radial-travel",
-    "neutralRadius": null,
+    "neutralRadius": 0.15,
     "recommendation": "Map usable stick travel beyond the neutral region linearly to requested ordinary speed: half active travel requests half speed, full active travel full speed, with fine movement near its start. Use radial direction/magnitude so the same tilt works consistently around the stick. Feed requested velocity through the accepted physical response, not directly into displacement.",
-    "scope": "Ordinary manual pursuit analog shaping and partial-speed transitions. Numerical neutral radius, hysteresis, drift calibration and assistance ownership boundary follow next. This does not select a new stop button, keyboard walk modifier, changed throwing/base-selector aim or a global input rewrite. Dash/status, carrying and coverage remain separate.",
+    "scope": "Ordinary manual pursuit analog shaping and partial-speed transitions. Numerical neutral radius and ownership band are separately accepted in F693-02-pursuit-neutral-boundary; drift calibration and arming follow next. This does not select a new stop button, keyboard walk modifier, changed throwing/base-selector aim or a global input rewrite. Dash/status, carrying and coverage remain separate.",
     "math": "Given calibrated pursuit vector w, radial magnitude m=min(|w|,1), and separately reviewed neutral radius z in [0,1), active fraction f=clamp((m-z)/(1-z),0,1). Outside neutral, requested velocity is normalize(w)*f*V. Inside neutral, resolve the existing assistance policy rather than interpreting zero stick as a universal stop. V is the accepted ordinary character top speed. Half active travel is m=z+(1-z)/2, not a claim that raw half tilt produces half speed.",
     "ownershipAndResponse": "Once manual pursuit owns the intent, a steady gentle tilt must retain the requested small movement rather than be relearned as drift. Current velocity carries across target-speed changes and manual/assist transitions. Retain the accepted start/brake/turn response at character rates V/.20 and V/.10; do not multiply physical velocity instantly by the new stick fraction or restart a whole .20-second ramp on each change. Numerical ownership/hysteresis remains pending.",
     "run5Arithmetic": {
@@ -1635,7 +1640,7 @@
       "halfToFullSeconds": 0.1,
       "halfToFullDistanceFeet": 1.35
     },
-    "arithmeticScope": "Target fraction examples describe the usable range beyond the still-unselected neutral radius, not raw hardware tilt. Transition examples hold direction fixed on open ground with no dash/read/action/collision. These are consequences of the proposed target and accepted response rates, not simulated pursuit or Mario measurements.",
+    "arithmeticScope": "Target fraction examples describe the usable range beyond the separately accepted .15 neutral radius, not raw hardware tilt. Transition examples hold direction fixed on open ground with no dash/read/action/collision. These are consequences of the proposed target and accepted response rates, not simulated pursuit or Mario measurements.",
     "currentAudit": {
       "paths": [
         "src/GrandSluggers.Sim/StickPlay.cs",
@@ -1644,7 +1649,7 @@
         "unity/Assets/Scripts/Runtime/Controls.cs",
         "data/feel/table.json"
       ],
-      "details": "StickPlay.Live and Mix discard per-axis magnitudes below .32; Pad.Tick can relearn a steady input inside its .45 L1 recenter region after .12 seconds. FieldAssist uses |x|+|y| with fieldAssistStick=.35, and live manual pursuit multiplies separate axes by speed. These existing layers do not supply the proposed continuous active radial range. Their values are baselines, not approved thresholds. Unity/device processing upstream must also be audited; do not assume raw means unprocessed."
+      "details": "StickPlay.Live and Mix discard per-axis magnitudes below .32; Pad.Tick can relearn a steady input inside its .45 radial (Euclidean) recenter region after .12 seconds. FieldAssist uses |x|+|y| with fieldAssistStick=.35, and live manual pursuit multiplies separate axes by speed. These existing layers do not supply the proposed continuous active radial range. Their values are baselines, not approved thresholds. Unity/device processing upstream must also be audited; do not assume raw means unprocessed."
     },
     "implementationRail": "Use the existing input ownership/calibration architecture with an explicit ordinary-pursuit vector path retaining intentional analog detail before destructive per-axis filtering. Do not apply a second deadzone remap to already-remapped data or globally remove the held-at-SET/drift protections. Numerical neutral and drift handling require review before implementation. Compose direction and magnitude once, cap total ordinary target speed, and preserve keyboard cardinal/diagonal full-intent parity. Mouse vector shaping belongs to the same pursuit path and needs input-specific validation; bag aim and other verbs keep their own semantics.",
     "alternatives": [
@@ -1674,14 +1679,15 @@
       "Both pads and player-1 keyboard/mouse, mixed devices and bag/throw/pitch controls regression; held-at-SET protections retained contextually",
       "Slow placement under flies/short pops, grounder approaches and pickup/catch geometry in actual races; no new catch assist or human gate pass"
     ],
-    "implementationBoundary": "Accepted analog-shape trial; runtime migration pending with numerical neutral boundary and drift handling unresolved. No runtime or global input change here; finish combined control/movement/coverage/ball contract before implementing.",
+    "implementationBoundary": "Accepted analog-shape and .15 neutral-origin trials; runtime migration pending with calibration and arming unresolved. No runtime or global input change here; finish the combined contract before implementing.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
-    "acceptanceEvidence": "Jack replied approve to proportional stick speed from gentle positioning to full running speed, with the numerical neutral boundary reviewed next."
+    "acceptanceEvidence": "Jack replied approve to proportional stick speed from gentle positioning to full running speed, with the numerical neutral boundary reviewed next.",
+    "neutralRadiusDecision": "F693-02-pursuit-neutral-boundary"
   },
   "pursuitNeutralProposal": {
     "decisionId": "F693-02-pursuit-neutral-boundary",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "manualEnterRadius": 0.2,
     "manualExitRadius": 0.15,
     "manualSpeedZeroRadius": 0.15,
@@ -1771,6 +1777,72 @@
       "Actual pad noise/steady tilt, player-1 keyboard/mouse parity and bag/pitch/throw regressions",
       "Fly/short-pop fine alignment and live catches, grounder/pickup races, standalone readability and human acceptance"
     ],
-    "implementationBoundary": "Pending neutral-boundary trial. Accepted analog proposal keeps neutralRadius null until this decision is approved. Calibration/arming lifecycle remains unresolved; no runtime/input change or human gate pass."
+    "implementationBoundary": "Accepted neutral-boundary trial; analog neutralRadius is now .15. Calibration/arming lifecycle remains unresolved; no runtime/input change or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to .20 calibrated radial tilt for manual pursuit and .15 for returning to assistance, retaining current ownership between them."
+  },
+  "pursuitCalibrationProposal": {
+    "decisionId": "F693-02-pursuit-calibration-policy",
+    "state": "pending",
+    "policy": "explicit-nonlive-calibration-and-fixed-match-center",
+    "recommendation": "Establish a valid released-stick center for each bound controller outside live baseball, then freeze that pursuit calibration through the match. If recalibration is needed, make it an explicit player-requested action while paused. Never silently relearn center from steady live input, including neutral-assisted play.",
+    "scope": "Pursuit center-learning policy and its player-visible ownership, for both pads through the existing input architecture. Exact stable-sample duration, admissible offset/noise bounds and neutral-arming rules remain unresolved. No claim that a stationary sample alone proves a released stick. Held-at-SET/scene and reconnect arming are reviewed next.",
+    "lifecycle": "Before a controller first drives live pursuit, use a validated device calibration or a clear non-live release-stick calibration step. Retain that profile per actual bound device through pitches, side changes, glove selection and pauses. Do not erase it at every SET, copy it to another controller or relearn merely because a stick holds still. Reconnecting the same identified device may retain its center but must pass the separately reviewed arming policy; a replacement needs its own valid profile. Do not infer identity from reordered gamepad indices.",
+    "recalibration": "A player explicitly requests calibration while paused; show a release-stick instruction, validate samples, then atomically replace the device profile only on success. Keep the previous valid profile if sampling fails; never silently widen accepted .20/.15 boundaries or consume large offsets as center. The match is already paused; no automatic live pause or gameplay-triggered calibration is introduced. Exact UI placement and sample acceptance numbers follow before implementation.",
+    "liveInvariant": "For an established profile, its center and calibration scale do not change during live baseball regardless of steady .18/.20/.40 tilt, assistance ownership, elapsed hold time or fielding camera changes. Intent and physical velocity continue through the accepted input/movement systems. Live noise uses the accepted ownership band; extra adaptive filters require explicit design review.",
+    "coordinateRail": "Center acquisition and pursuit reads must use the same documented input coordinate, with device processing and range normalization audited once. Controls.RawStick currently reads leftStick as a vector for Catch/Tick, whereas Seat.RawX/RawY read child axes for movement; do not assume these processor paths are numerically interchangeable. Use the existing input owner and contextual pursuit path, preserving unrelated pitch/aim protections.",
+    "currentAuditCorrection": "StickPlay.Mag uses sqrt(x*x+y*y): the .32/.45 center/recenter regions are radial, not L1 as earlier packet prose incorrectly stated. StillDelta uses an axis-sum sample difference; FieldAssist separately uses |x|+|y| for the .35 takeover threshold. Correcting that description changes no accepted design value. Pad.Tick can update center continuously inside Dead and after .12 seconds of stillness inside RecenterRadius; CatchPlay calls Catch for each pad at SET/new-verb boundaries.",
+    "reference": {
+      "marioSources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "technicalSource": "https://docs.unity3d.com/Packages/com.unity.inputsystem@1.11/manual/Processors.html",
+      "limit": "GameCube booklet neutral-position reset guidance warns against displaced controls at power-on and describes an explicit released-control reset, supporting the released-center principle. It does not establish our match-long scope or modern sample protocol; Wii live center-learning behavior is unverified. Unity processor documentation supports auditing coordinate consistency, not choosing calibration thresholds. This remains an authored policy."
+    },
+    "exampleCases": [
+      {
+        "event": "steady manual tilt during live ball",
+        "centerMayChange": false
+      },
+      {
+        "event": "neutral-assisted pursuit during live ball",
+        "centerMayChange": false
+      },
+      {
+        "event": "new pitch with same controller",
+        "centerMayChange": false
+      },
+      {
+        "event": "explicit paused recalibration succeeds",
+        "centerMayChange": true
+      },
+      {
+        "event": "explicit paused recalibration fails",
+        "centerMayChange": false
+      }
+    ],
+    "alternatives": [
+      {
+        "choice": "Continual automatic center adaptation",
+        "effect": "Can hide some new drift, but risks consuming intended low-speed input or changing the effective control range during a play."
+      },
+      {
+        "choice": "Never permit center recalibration",
+        "effect": "Avoids learning mistakes but leaves offset hardware without a recovery path."
+      }
+    ],
+    "requiredChecks": [
+      "Long steady active and neutral-band inputs do not change a live center or erase fine pursuit",
+      "Pitches, pauses and fielding selection preserve the per-device profile; reorder/replacement never copies another controller's calibration",
+      "Explicit calibration only while paused/non-live and atomically adopted on valid released-stick evidence; failed sampling preserves prior profile",
+      "Measure vector versus child-axis processing on actual supported pads and prove one consistent calibrated coordinate",
+      "Keep .20/.15 boundaries and radial linear map fixed; do not use auto-widened neutral or extra live recentering to pass noisy cases",
+      "Both human seats and player-1 keyboard/mouse coexist; pitch/aim/held-at-SET safeguards get explicit regression coverage",
+      "Couch instructions and recovery can be completed without external docs; add HowToPlay/book presentation work before implementation handoff",
+      "Full fine-positioning/catch paths and human standalone review remain required"
+    ],
+    "implementationBoundary": "Pending calibration-policy decision. No sample-duration/noise/offset numbers or arming lifecycle are accepted here. Any new calibration couch action needs presentation/book implementation in its own scope. No runtime/input edits, simulation or human gate pass."
   }
 }
