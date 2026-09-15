@@ -772,13 +772,13 @@ Validate force/tag during recovery, misses and lost possession, recovery displac
 
 Validate the ordinary component and total body path separately for stationary, moving and opposite-direction acquisitions; include bag/contact event order, both seats/CPU, all character speeds, walls and special combinations. Numerical arrival thresholds remain pending evidence. Report arithmetic checks spatial ratios only; no candidate simulation or human feel gate is passed.
 
-## Next decision — ordinary skid response
+## Accepted decision — ordinary skid response
 
-**F693-02-ordinary-recoil-motion-profile — pending, September 15, 2026.** Recommend a **brief impact kick that slows steadily to rest within ordinary recovery**, with weaker impacts and better Fielding reducing both initial kick speed and skid distance. This explicitly gives Fielding a positional benefit in addition to its accepted recovery benefit.
+**F693-02-ordinary-recoil-motion-profile — accepted by Jack on September 15, 2026.** Jack approved a **brief impact kick that slows steadily to rest within ordinary recovery**, with weaker impacts and better Fielding reducing both initial kick speed and skid distance. This explicitly gives Fielding a positional benefit in addition to its accepted recovery benefit.
 
 **The coupled profile:** let `w=S(arrivalSpeed)*F(Field)`, using the accepted severity and Field factors. Ordinary recovery remains `T=.20*w` seconds. Added impact distance is `D=1.0*w²` feet; initial added impact speed is `K=10*w` ft/s along actual incoming horizontal ball travel. For `T>0`, that component slows linearly as `K*(1-t/T)` until it reaches zero at `T`. Its integrated distance is `K*(t-t²/(2*T))`, reaching exactly `D`; deceleration is 50 ft/s². At `w=0`, no impact motion or division occurs. An impact changes velocity at acquisition, never position.
 
-**Player-facing examples at full severity:** Field1 skids **12 inches over .20 seconds**; Field5 **7.68 inches over .16 seconds**; Field10 **3.63 inches over .11 seconds**. At half severity, Field5 adds **1.92 inches over .08 seconds**. These describe the ordinary impact component in free space, not total travel from a running catch. Field10's initial kick is 45% smaller and its added distance 69.75% smaller than Field1's: this extra positional reward is part of the proposal, not a previously approved stat effect.
+**Player-facing examples at full severity:** Field1 skids **12 inches over .20 seconds**; Field5 **7.68 inches over .16 seconds**; Field10 **3.63 inches over .11 seconds**. At half severity, Field5 adds **1.92 inches over .08 seconds**. These describe the ordinary impact component in free space, not total travel from a running catch. Field10's initial kick is 45% smaller and its added distance 69.75% smaller than Field1's: Jack explicitly accepted this positional reward alongside shorter recovery.
 
 **Why distance falls faster than recovery time:** keeping the full distance while shortening the timer would shove better fielders faster. Making distance merely proportional to time with this triangular speed profile would retain the same initial kick even as severity approached zero. Squaring `w` makes both initial speed and distance fade continuously at the routine-pickup boundary while respecting the one-foot maximum.
 
@@ -788,7 +788,21 @@ Validate the ordinary component and total body path separately for stationary, m
 
 This is an authored physical response, not measured Mario motion. The report checks integration, monotonicity and exact endpoints analytically, not actual runtime contacts or collision behavior. Validate sub-tick readiness and equivalent split integration, stationary/moving/opposing pickups, acquisition-time outs, actual bag departure, both seats/CPU and character extremes before full races and standalone feel. Arrival-speed thresholds remain unselected.
 
-**Question for Jack:** use this brief kick-and-settle response, with better Fielding producing a smaller skid as well as faster recovery?
+## Next decision — combining ordinary and special impact motion
+
+**F693-02-special-impact-motion-composition — pending, September 15, 2026.** Recommend **combining ordinary recoil and an authored special impact concurrently from the same pickup/impact**. Each contributes motion once to one actual body/glove path. The special adds its authored effect without replacing the ordinary Field-dependent response or waiting for a second shove animation.
+
+**Why this follows the approved direction:** ordinary recoil already rewards Fielding with less displacement and shorter recovery. Retaining that contribution when a special hits preserves its value. With an aligned special in free space, adding the same special displacement preserves the ordinary distance difference between fielders. Different directions, running momentum and actual collisions can change net travel and outcomes; this does not promise a better fielder always ends nearer a bag or gets an out.
+
+**Motion and recovery use different clocks:** integrate `v_locomotion + v_ordinary + v_special` as vectors, with each impact contribution's own direction, duration and bounds. Both begin at the same authoritative event. Ordinary motion ends at its accepted `.20*S*F` deadline. Action readiness still follows the accepted sum of ordinary and special recovery for actions both restrict; finishing the physical skid earlier does not remove that already approved recovery. While special recovery still blocks steering, continue neutral locomotion braking; do not restore held intent at the shorter ordinary deadline. Resume eligible intent at action readiness from actual velocity. Add no animation-tail delay. A special must define its motion end/return conditions and action permissions before it is implementable.
+
+**Illustration only:** suppose a same-direction special adds **2 feet over .40 seconds** and blocks the relevant actions for .40 seconds. With full ordinary severity, stationary Field1/5/10 fielders receive **3.00/2.64/2.3025 feet** of combined free-space impact movement. Both components finish by .40 seconds; actions become ready at **.60/.56/.51 seconds**. If that illustrative special also slows linearly from 10 ft/s, combined initial impact speeds are **20/18/15.5 ft/s**. These special values are placeholders, not an approved attack. The example exposes why each special must be tuned against combined peak speed, distance and recovery.
+
+**Bounds and event identity:** keep the ordinary one-foot ceiling on its own component; special motion gets separate finite authored bounds. Do not apply an unreviewed global clamp that erases Field differences. Real collisions and bag/tag contacts use the single body path; no snap-back, stored blocked displacement or contact after separation. Duplicate callbacks and continued possession cannot restart contributions. This proposal covers one ordinary response plus one special from the same impact; earlier, repeated or multiple distinct effects remain separate decisions. A special with no authored motion adds no pushback.
+
+The proposal does not yet decide whether Fielding also reduces the special's own strength. It is an authored composition policy, not a verified Mario stacking equation. The report checks the aligned illustration arithmetically; no special race, actual contact path or standalone feel is simulated. Validate source identity, individual motion endpoints, action deadlines, vector opposition, collision constraints and both seats/CPU before implementation.
+
+**Question for Jack:** combine ordinary and special pushback together from the impact, keeping the ordinary Fielding benefit and each effect's own motion limits?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

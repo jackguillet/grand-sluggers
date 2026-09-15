@@ -326,8 +326,13 @@
     },
     {
       "id": "F693-02-ordinary-recoil-motion-profile",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use an impact kick that slows linearly to rest over ordinary recovery, with kick speed proportional to severity times Field factor and displacement proportional to its square, while separately braking existing motion? Strong fielders slide less as well as recover sooner."
+    },
+    {
+      "id": "F693-02-special-impact-motion-composition",
+      "state": "next-human-decision",
+      "question": "For the same retained-ball pickup/impact, combine ordinary Field-dependent recoil and an authored special motion contribution concurrently in one body path, each counted once, preserving their own motion clocks and the accepted additive action recovery?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3265,7 +3270,7 @@
   },
   "ordinaryRecoilMotionProfileProposal": {
     "decisionId": "F693-02-ordinary-recoil-motion-profile",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "A brief physical impact kick followed by linear slowing to zero over the ordinary recovery interval. Weaker arrivals and stronger Fielding produce a smaller initial kick and a shorter skid, not the same distance squeezed into less time.",
     "normalizedWeight": "w = accepted speed severity S(v) * accepted Field factor F(Field)",
     "recoverySecondsFormula": "T = .20*w",
@@ -3348,7 +3353,7 @@
         "impactDistanceInches": 0.0
       }
     ],
-    "fieldingTradeoff": "At full severity, Field1/5/10 slide 12/7.68/3.63 inches and recover in .20/.16/.11 seconds. Field10 has 45 percent lower initial impact speed and 69.75 percent less added displacement than Field1. This intentionally makes Fielding resist displacement as well as shorten recovery; it is a new proposed benefit, not already implied by the accepted timer.",
+    "fieldingTradeoff": "At full severity, Field1/5/10 slide 12/7.68/3.63 inches and recover in .20/.16/.11 seconds. Field10 has 45 percent lower initial impact speed and 69.75 percent less added displacement than Field1. This intentionally makes Fielding resist displacement as well as shorten recovery; Jack explicitly accepted this positional benefit alongside the earlier recovery-time benefit.",
     "momentumComposition": "Start with actual pre-acquisition locomotion velocity, not a zero reset. During ordinary steering lock, brake that component toward zero using accepted unboosted b=V/.10; independently integrate the impact component above. Add the two velocities for one authoritative body/glove path. The impact changes velocity at contact, never position. Opposing components may reduce net displacement; do not infer impact budget from net distance alone. At ordinary recovery end the impact component is zero, while any residual locomotion velocity continues through the accepted carrying response and current eligible intent. No extra wait for full stop.",
     "scope": "Ordinary retained-ball ground-pickup motion in unobstructed space. Resolve actual collisions/bounds without teleport or automatic bag return; do not bank blocked impact travel and release it later. Existing body/contact geometry is not changed. Degenerate zero horizontal arrival direction supplies no horizontal kick, rather than inventing a facing/home direction; recovery severity still follows accepted total incoming speed.",
     "specialBoundary": "Use ordinary T, not the longer ordinary-plus-special action lock, to integrate the ordinary kick. Do not stretch ordinary displacement over a special timer or scale it with special severity. Author special displacement and its interaction with locomotion/ordinary kick separately; no inferred sum of impulses or universal special effect.",
@@ -3368,6 +3373,72 @@
       "Both seats/CPU, Run/Field extremes and eligible Ball Dash share stepping and prediction; special composition remains explicitly pending.",
       "Full race traces, independent scoring and human standalone readability after speed anchors and special motion are reviewed."
     ],
-    "implementationBoundary": "Pending coherent ordinary response law only. Analytical examples do not implement or validate runtime collisions, contacts or animation; no gameplay coefficients or human gates changed."
+    "implementationBoundary": "Accepted ordinary response law; incoming-speed anchors and special physical composition remain pending. Analytical examples do not implement or validate runtime collisions, contacts or animation; no gameplay coefficients or human gates changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to the brief kick-and-settle response, with better Fielding producing a smaller skid as well as faster recovery."
+  },
+  "specialImpactMotionCompositionProposal": {
+    "decisionId": "F693-02-special-impact-motion-composition",
+    "state": "pending",
+    "recommendation": "For the same retained-ball pickup/impact, apply ordinary Field-dependent recoil and the authored special impact motion concurrently from that event, combining their velocity contributions into one authoritative body/glove path. Count each contribution once; do not replace ordinary recoil with the special or play two sequential shove animations.",
+    "scope": "Same pickup/impact, one ordinary response and one authored special motion contribution. Does not decide earlier/unrelated impacts, repeated strikes, multiple specials, loose-ball/bobble effects, or special motion following a later distinct impact event.",
+    "composition": "v_total(t)=v_locomotion(t)+v_ordinary(t)+v_special(t) in unobstructed space, with each authored contribution using its own event-relative clock, direction, bounds and end condition. Integrate one body position and evaluate contacts on that path. Do not add distances as unsigned scalars for different directions. The ordinary component retains its one-foot maximum and T=.20*S*F; special motion never stretches ordinary T.",
+    "recovery": "Keep the accepted ordinary-plus-special recovery sum for each action actually restricted by both. Physical motions overlap; their durations are not the action-lock sum. An impact component can finish before actions become ready, leaving an already authorized recovery interval. Do not append any new animation tail. A special must state its action permissions and motion end/return conditions; reject undeclared physical movement beyond its reviewed action readiness. While a special still blocks steering, keep locomotion under neutral braking and do not resume held intent at the shorter ordinary deadline. Resume eligible intent only at the applicable action-ready deadline, from actual remaining velocity.",
+    "fielding": "The ordinary component retains its accepted Field-dependent kick, displacement and recovery. At equal incoming severity with the same aligned special response in free space, the ordinary distance difference survives addition. This does not yet grant Field reduction of the special itself. Different directions, existing momentum or collisions can alter net travel and play outcomes; do not promise a universal final-distance or out advantage.",
+    "bounds": "Special motion has its own finite authored bounds; there is no global one-foot clamp on the combined effect. Tune special strength against the combined peak speed, displacement and action recovery before approving an individual attack. Do not introduce an unreviewed shared saturation that flattens Field differences. Actual world bounds/collisions remain authoritative, without teleport, banked blocked displacement or automatic bag return.",
+    "identity": "Use authoritative acquisition/impact identity and source contribution identity so duplicate callbacks or continued possession cannot restart either component. This count-once requirement does not choose repeated-distinct-impact stacking rules.",
+    "examples": [
+      {
+        "field": 1,
+        "ordinaryDistanceFeet": 1.0,
+        "specialDistanceFeet": 2.0,
+        "combinedImpactDistanceFeet": 3.0,
+        "ordinaryRecoverySeconds": 0.2,
+        "specialRecoverySeconds": 0.4,
+        "actionReadyAfterSeconds": 0.6000000000000001,
+        "impactMotionEndsAfterSeconds": 0.4,
+        "combinedInitialImpactFeetPerSecond": 20.0
+      },
+      {
+        "field": 5,
+        "ordinaryDistanceFeet": 0.6400000000000001,
+        "specialDistanceFeet": 2.0,
+        "combinedImpactDistanceFeet": 2.64,
+        "ordinaryRecoverySeconds": 0.16000000000000003,
+        "specialRecoverySeconds": 0.4,
+        "actionReadyAfterSeconds": 0.56,
+        "impactMotionEndsAfterSeconds": 0.4,
+        "combinedInitialImpactFeetPerSecond": 18.0
+      },
+      {
+        "field": 10,
+        "ordinaryDistanceFeet": 0.30250000000000005,
+        "specialDistanceFeet": 2.0,
+        "combinedImpactDistanceFeet": 2.3025,
+        "ordinaryRecoverySeconds": 0.11000000000000001,
+        "specialRecoverySeconds": 0.4,
+        "actionReadyAfterSeconds": 0.51,
+        "impactMotionEndsAfterSeconds": 0.4,
+        "combinedInitialImpactFeetPerSecond": 15.5
+      }
+    ],
+    "exampleScope": "Illustrative stationary free-space acquisition with full ordinary severity and an aligned special that adds 2 feet over .40 seconds using a triangular 10-ft/s initial velocity and blocks the same actions for .40 seconds. These special quantities are arithmetic placeholders, not approved attack data. Ordinary and special motion start together; physical impact motion ends at .40, action readiness is .60/.56/.51 at Field1/5/10. No collision or tag outcome is simulated.",
+    "alternatives": [
+      "Replacing ordinary motion with the special can erase the Field-dependent ordinary displacement benefit when the special dominates.",
+      "Running ordinary and special shoves sequentially delays the special visual and changes the actual contact path; it is not implied by additive action recovery."
+    ],
+    "referenceLimit": "Authored composition policy following Jack\u2019s accepted Fielding and special-impact goals. No verified Wii/GameCube component-stacking equation or matched special magnitude is claimed.",
+    "requiredChecks": [
+      "Ordinary alone and special-with-zero-motion retain their reviewed behavior; no special creates knockback without authored motion.",
+      "One impact starts both contributions once, and duplicate event delivery cannot refresh either clock.",
+      "Integrate overlapping motion with individual endpoints; ordinary kick ends at its own T while action recovery still sums only applicable contributions.",
+      "Aligned free-space Field differences survive addition; angled/opposed motion combines vectors rather than scalar travel budgets.",
+      "Bound each source and inspect combined peaks; collisions/contact ordering use one authoritative body path and do not preserve invalid bag contact.",
+      "No extra animation recovery tail, ordinary component stretch, global one-foot clamp or automatic bag return.",
+      "Same stepping/prediction across seats/CPU; special strength, Field resistance and earlier/repeated/multiple-effect rules remain separately reviewed.",
+      "Validate real special-plus-ordinary races and standalone impact readability after attack values and arrival-speed thresholds are selected."
+    ],
+    "implementationBoundary": "Pending same-impact physical composition only. No individual special strengths, special Field resistance or runtime motion selected; examples are analytical, not candidate simulation or human acceptance."
   }
 }
