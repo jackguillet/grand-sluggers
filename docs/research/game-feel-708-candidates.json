@@ -311,8 +311,13 @@
     },
     {
       "id": "F693-02-ordinary-recoil-actions",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "During ordinary retained-ball recoil, delay player/CPU steering and throw starts while still allowing valid geometric forces/tags with secure possession, keeping buffer/cancel responsive and physical recovery motion separate?"
+    },
+    {
+      "id": "F693-02-ordinary-recoil-displacement",
+      "state": "next-human-decision",
+      "question": "Allow a modest physical skid on qualifying ordinary retained-ball ground pickups, following incoming ball travel and able to remove bag/tag contact, with precise displacement and velocity response reviewed separately?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3101,7 +3106,7 @@
   },
   "ordinaryRecoilActionsProposal": {
     "decisionId": "F693-02-ordinary-recoil-actions",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Ordinary retained-ball recoil temporarily blocks commanded locomotion/steering and starting a throw, but does not invalidate secure possession or valid geometric forces/tags. Physical recoil/settling can still move the body and glove under a shared recovery motion model reviewed separately.",
     "blocksDuringRecovery": [
       "commanded-locomotion-steering",
@@ -3163,6 +3168,45 @@
       "Event ordering for possession/recoil/contact and special-specific restrictions, with exact readiness across frame subdivisions",
       "Implement shared action state and physical motion before full scenarios, independent scoring and standalone feel gates"
     ],
-    "implementationBoundary": "Pending ordinary action-permission policy. Physical recoil motion and numerical speed thresholds remain incomplete; no runtime, special permissions, motion/book, candidate simulation or human gate changes."
+    "implementationBoundary": "Accepted ordinary action-permission policy only. Physical recoil motion and numerical speed thresholds remain incomplete; no runtime, special permissions, motion/book, candidate simulation or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes approve to delaying commanded steering and throw starts during ordinary retained-ball recoil while preserving valid held-ball force/tag contacts and input management."
+  },
+  "ordinaryRecoilDisplacementProposal": {
+    "decisionId": "F693-02-ordinary-recoil-displacement",
+    "state": "pending",
+    "recommendation": "Qualifying ordinary retained-ball ground pickups may cause a short, modest physical skid in the incoming ball travel direction, rather than only an in-place brace animation. Routine zero-recoil pickups receive no added impact displacement.",
+    "scope": "Choose whether ordinary recoil can physically displace the fielder. Precise impulse, distance cap, speed profile and interaction with existing velocity remain unselected. This is not a completed physical response law or a runtime authorization.",
+    "direction": "Use the actual incoming horizontal ball direction at acquisition, respecting bounce/wall event order, not body facing, camera direction or a ray from home plate. Degenerate horizontal direction handling remains part of the numerical response contract.",
+    "geometry": "Actual simulation body/glove motion determines bag and tag contact. A fielder can leave a bag during the skid; there is no bag magnet, snap-back or preserved contact after separation. An out legally completed before separation remains completed. Do not skip valid acquisition-time contacts by applying the entire displacement before evaluating the event.",
+    "movement": "Integrate a shared physical response from actual acquisition position and velocity. Do not replace existing motion with an arbitrary reset, teleport or animation-only displacement. The response must finish its ordinary impact contribution within the accepted Field-dependent recovery interval without a second recovery tail; any remaining ordinary locomotion velocity uses the accepted carrying response at readiness.",
+    "fielding": "Preserve accepted shorter recovery for better Fielding. This decision does not grant another numerical resistance factor or use body size, Run or Ball Dash as hidden impact resistance. Displacement severity/Field mapping and how to avoid a shorter timer producing a harsher impulse require the subsequent response proposal.",
+    "specials": "Special hits may author stronger displacement and longer recovery under their own reviewed rules. Additive recovery durations do not imply summing displacement vectors or speeds; ordinary/special physical composition remains separate.",
+    "maxDisplacementFeet": null,
+    "impulseFeetPerSecond": null,
+    "velocityResponse": null,
+    "alternatives": [
+      "In-place brace with braking of existing motion: protects a planted fielder from an added ordinary shove, but gives hard pickups less positional consequence.",
+      "Large ordinary knockback: makes impact obvious but risks turning routine defense and compact-field races into frequent displacement penalties; not recommended."
+    ],
+    "currentAudit": "ArmRecoil assigns retained-ball RecoilT but does not establish a displacement response. RecoilFtPerSec=14 occurs only as a BobbleRules declaration in the inspected src/unity search; it is not evidence of an active retained-ball skid speed and is not adopted.",
+    "referenceEvidence": {
+      "source": "https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143",
+      "author": "Kristopher Pflipsen",
+      "version": "1.30, 2007-03-13",
+      "checkedOn": "2026-09-15",
+      "status": "community qualitative observation, not measured reference",
+      "finding": "The Super Catch section describes preventing backward sliding on hard line drives. This supports a physical impact vocabulary; it does not measure ordinary ground-pickup displacement, establish this direction formula, or verify Wii parity."
+    },
+    "requiredChecks": [
+      "Routine zero recoil adds no shove; qualifying impact uses event-sided incoming direction including wall deflections.",
+      "Actual contact at acquisition can count; later loss of bag/tag contact matters without reversing completed outs.",
+      "Stationary and moving acquisitions preserve coherent velocity, no teleport, automatic bag return or extra recovery tail.",
+      "Higher Field keeps its recovery advantage without an unintended harsher shove; ordinary response and special physical composition reviewed explicitly.",
+      "Same response in prediction, stepping and presentation for both seats/CPU, all body types and Ball Dash eligibility.",
+      "After numeric response and arrival thresholds are selected, validate full races and standalone impact readability; arithmetic cannot pass feel."
+    ],
+    "implementationBoundary": "Pending physical-displacement direction decision only. No runtime, roster, motion asset, candidate simulation or human gate change."
   }
 }
