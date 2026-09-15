@@ -918,9 +918,9 @@ Verify actual clean catches into throws/carries, buffer expiry, multiple runners
 
 This applies to a grounded fielder catching an airborne batted ball. Jumping, diving, landing, teammate throws and pitch receptions remain separate. Validate actual catch/possession ordering, routine fly controls, hard liners, buffer expiry, both seats/CPU and complete runner plays before standalone acceptance. The report checks response arithmetic only; arrival thresholds and runtime remain unselected.
 
-## Next decision — throwing after a jumping catch
+## Accepted decision — throwing after a jumping catch
 
-**F693-02-jump-catch-throw-readiness — pending, September 15, 2026.** Recommend **landing before beginning the ordinary throw release after a normal jumping catch**, with **zero generic extra pause after a clean landing**. Possession must be secure, play live and every other applicable throw restriction finished. A valid command can then begin the normal .30-second release.
+**F693-02-jump-catch-throw-readiness — accepted by Jack on September 15, 2026.** Jack approved **landing before beginning the ordinary throw release after a normal jumping catch**, with **zero generic extra pause after a clean landing**. Possession must be secure, play live and every other applicable throw restriction finished. A valid command can then begin the normal .30-second release.
 
 **Player-facing tradeoff:** a jump gives the fielder access to a higher ball but commits them through the landing before the return throw. This keeps a meaningful cost without adding a second unexplained settling delay. A midair throw would be faster and more acrobatic; it would require an explicitly selected move/ability and motion contract. None is introduced here.
 
@@ -934,7 +934,23 @@ This applies to a grounded fielder catching an airborne batted ball. Jumping, di
 
 This is an authored readiness proposal, not a measured Mario aerial-throw rule. Validate valid/expired/cancelled commands, landing before/after other recovery, actual possession loss, horizontal velocity, sub-tick event boundaries, both seats/CPU and jump abilities before runtime/standalone acceptance. The report checks illustrative timing only.
 
-**Question for Jack:** require landing before starting a normal throw after a jumping catch, with no extra generic pause after a clean landing?
+## Next decision — control during a normal jump
+
+**F693-02-jump-air-control — pending, September 15, 2026.** Recommend **limited horizontal steering during a normal jump**, preserving actual takeoff momentum. Neutral intent keeps the horizontal drift in free space; deliberate input can gradually correct the path through a bounded air-control response. Use the same policy before and after catching the ball, unless an applicable status blocks steering.
+
+**Why this balance:** a fully locked path makes the initial position and direction matter most, but offers no correction for a small takeoff error. Full ground steering can let the player change course too freely and expand defensive coverage. Limited adjustment should retain the commitment of jumping while making a slightly imperfect takeoff recoverable. Exact correction strength still needs review against jump airtime; this proposal does not claim that a particular distance is already proven fun.
+
+**Momentum and neutral input:** start from actual horizontal velocity, not a free lunge or a reset to the stick direction. A stationary jump with neutral intent stays horizontally stationary. Releasing the stick does not invoke the ordinary ground brake while airborne. Active opposite input can slow or redirect the fielder only at the selected air-control rates; no instantaneous stops/reversals. Steering cannot add height, hover, extend airtime or create a second jump.
+
+**Catching and landing:** securing the ball neither resets motion nor replenishes a correction allowance. Carrying abilities must obey the same air-control limits and cannot produce an instant midair boost or bypass a restriction. Throwing still waits for actual landing. On landing, preserve actual horizontal velocity and return to the accepted ground/carry response when eligible, with no forced stop or additional generic settling delay.
+
+**Shared movement rail:** manual control, assistance and CPU use the same physical correction limits. If assistance supplies steering intent, it must use those limits rather than snapping or pulling the body to the ball through a separate movement path. Switching control does not reset airborne state. The inspected manual path currently steps GloveX/GloveZ using ground ChaseSpeedFt, without a separate air response in that block; the jump arming timer is not a full motion model.
+
+**Numbers remain coupled to jump design:** leave air acceleration, braking, speed limits and maximum correction distance unselected until the vertical profile/airtime is reviewed. Measure the reachable correction envelope from stationary, slow and fast takeoffs, angled/opposite input and catches mid-jump across Run ratings. A control percentage alone cannot establish a modest adjustment, and steering reach must not become an invisible increase in glove radius. Wall/buddy/dive and special airborne impact motion remain separate.
+
+This is an authored control direction, not a measured Mario air-control curve. Direct jump comparison, numerical calibration, real catch coverage and standalone feel remain pending. No runtime or human gate changes here.
+
+**Question for Jack:** allow limited midair correction while preserving takeoff momentum, rather than fully locking the jump or allowing full ground steering?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
