@@ -1064,9 +1064,9 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Reference and implementation boundary:** no matched Wii/GC per-character root-rise/airtime table has been established. This is an authored roster-control choice. Compare short/tall and slow/fast ordinary jumps in both games, separating root motion, arm reach and special abilities. Then inspect the eventual standalone glove paths across the roster. Author character expression without extra hidden root lift, clip startup, airtime or a body resize; preserve the one-rig system. No runtime, character asset or human gate changes here.
 
-## Next decision — catching during a normal jump
+## Accepted decision — catching during a normal jump
 
-**F693-02-normal-jump-catch-input — pending, September 15, 2026.** Recommend **retaining one action press for a normal jumping catch**: jump, position the glove, and secure the ball on eligible actual contact without pressing a second catch button. The player owns takeoff timing and the limited midair correction.
+**F693-02-normal-jump-catch-input — accepted by Jack on September 15, 2026.** Jack approved **retaining one action press for a normal jumping catch**: jump, position the glove, and secure the ball on eligible actual contact without pressing a second catch button. The player owns takeoff timing and the limited midair correction.
 
 **Why:** requiring another press would add a separate timing challenge after the player has already positioned and timed the leap. A visible, otherwise legal glove interception could fail solely because that extra press was missing. Keep the challenge on reaching the ball with the actual glove. A premature, late or badly positioned jump can still miss; pressing jump is not a reservation of possession.
 
@@ -1080,7 +1080,23 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Scope and evidence:** normal jumping catches of airborne batted balls only. Grounded fly input, teammate throws, pickups and exceptional jumps remain separate. The repository establishes the existing one-press path; reviewed Mario manuals do not establish exact collision geometry or all input edge cases. Compare ordinary jump catches in both reference games and the eventual standalone before claiming feel parity. Validate catches and near misses with no South input, hold/release, both seats/schemes, CPU/assistance and special effects, using one authoritative acquisition event. Future implementation must reconcile the physical catch and both couch-book surfaces. No runtime or human gate changes here.
 
-**Question for Jack:** keep jump as the only required action press, with a normal jumping catch completing on eligible actual ball–glove contact?
+## Next decision — glove adjustment during a normal jump
+
+**F693-02-normal-jump-glove-tracking — pending, September 15, 2026.** Recommend **a small automatic arm/glove adjustment toward a reachable nearby ball**, with **better Fielding improving adjustment responsiveness within physical reach**. Keep the root on its approved jump/movement path. This chooses a direction; numerical adjustment limits, response times, Field curve and catch volume remain pending.
+
+**Player-facing effect:** after you position and time the jump, the fielder can make a modest local reach to meet the ball. A stronger fielder can adjust more promptly to a late nearby ball. A weaker fielder whose glove is already in the right place still catches it; do not manufacture a miss or add an ordinary drop roll. If the ball is too far away or the glove cannot arrive in time, it passes.
+
+**Physical boundary:** the arm/glove follows bounded authored motion within that body's reach. Field does not lengthen limbs, inflate catch volume or increase the anatomical limit. Different bodies can retain different envelopes. Glove assistance cannot add root translation, height, airtime, a whole-body lunge/turn or extra air steering. Prediction may choose a local response, but actual ball/glove contact still decides acquisition; neither object snaps to create it. Deflections must respect continuous response rather than instantly retargeting a catch.
+
+**Why this direction:** a completely fixed glove pose makes small aim differences decisive even when a plausible arm adjustment could reach the ball. Modest adjustment gives readable forgiveness and a visible role for Fielding. Excessive tracking would erase positioning mistakes and shrink the gaps we want in a compact park, so physical coverage and response limits must be measured before numerical approval. Previously accepted Fielding recoil/resistance benefits remain independent.
+
+**Legacy reconciliation:** `FieldingResolver.CatchRadiusFt` currently adds `.6*Field` to a 10-foot base plus ability bonuses. That broad allowance is not a measured anatomical arm envelope. Do not copy it into this physical reach or infer arm length from head-height markers. Reconcile existing catch-radius/window and ability benefits deliberately with actual glove geometry; this direction does not approve those old values or silently remove all the benefits they represented.
+
+**Motion implementation matters:** [the motion contract](character-motion.md) requires one rig, Blender-authored takes, baked handedness and simulation-owned clocks; it currently reserves clip time-warp for swings. Future work must define a compatible authored response/transition representation and any needed contract amendment before implementation. The simulation needs deterministic authored glove-path data agreeing with the visible pose; Unity bones or camera state cannot decide baseball. This proposal does not authorize procedural C# arm poses, a second IK/motion system or unreviewed animation time-warp. Any future take starts with a catalog slot.
+
+**Scope and evidence:** normal jumping catches of airborne batted balls only; no new auto-jump or movement takeover, and special acquisition/possession effects still apply. The numeric envelope, response curve, collision volume and special interactions remain required work. No measured Wii/GC glove-adjustment or Field-response formula is established. Compare near-edge catches and visible arm movement in both games, separating root movement from glove reach, then inspect the actual standalone character paths. No runtime, asset or human gate changes here.
+
+**Question for Jack:** allow modest automatic glove adjustment during a jump, with better Fielding making the adjustment more responsive within the character's physical reach?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

@@ -961,10 +961,17 @@ def derive(data):
             assert math.isclose(jump_characters[jc_key], jump_arc[jc_key])
     jump_catch_input = data.get("normalJumpCatchInputProposal")
     if jump_catch_input:
-        assert jump_catch_input["state"] == "pending"
+        if jump_catch_input["state"] == "accepted-calibration-anchor":
+            assert jump_catch_input["acceptedBy"] and jump_catch_input["acceptedOn"] and jump_catch_input["acceptanceEvidence"]
+    jump_glove_tracking = data.get("normalJumpGloveTrackingProposal")
+    if jump_glove_tracking:
+        assert jump_glove_tracking["state"] == "pending"
+        assert all(jump_glove_tracking[key] is None for key in
+                   ("maximumGloveAdjustmentFeet", "responseSecondsByField", "gloveCatchGeometry"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpGloveTrackingState": jump_glove_tracking["state"] if jump_glove_tracking else None,
             "normalJumpCatchInputState": jump_catch_input["state"] if jump_catch_input else None,
             "normalJumpCharacterProfileState": jump_characters["state"] if jump_characters else None,
             "normalJumpInputBufferState": jump_buffer["state"] if jump_buffer else None,
