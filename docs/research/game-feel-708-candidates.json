@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "ordinary-carry-speed-accepted; carry-movement-response-pending; incomplete-runtime-contract",
+  "status": "carry-movement-response-accepted; clean-ground-pickup-readiness-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -271,13 +271,18 @@
     },
     {
       "id": "F693-02-carry-movement-response",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use the accepted ordinary acceleration/braking/angled-turn law while carrying, keeping rates based on unboosted character speed when Ball Dash raises the target cap by 20%, with continuous actual velocity through eligible possession changes?"
+    },
+    {
+      "id": "F693-02-clean-ground-pickup-readiness",
+      "state": "next-human-decision",
+      "question": "Use no added pause after a routine clean ground pickup is securely possessed: movement continues and a valid throw command can begin ordinary release immediately, with exceptional recovery separate?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "After carrying/ability response, review pickup/release recovery and movement eligibility, coverage and handoff, roster allocation and status. Universal sprint and burst/recharge remain superseded."
+      "question": "After clean ground-pickup readiness, review exceptional recovery, caught-ball/throw movement eligibility, coverage/handoff, roster and status. Carry response is accepted; universal sprint remains superseded."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -2422,7 +2427,7 @@
   },
   "carryMovementResponseProposal": {
     "decisionId": "F693-02-carry-movement-response",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "response": "straight-segment-in-velocity-space-with-speed-decreasing-and-increasing-phases",
     "rateBasis": "unboosted-ordinary-character-speed",
     "ordinaryAccelerationSeconds": 0.2,
@@ -2480,6 +2485,61 @@
       "Tags/rundowns, short bag carries, moving catches, relays and interrupted throws validated geometrically; roster/status/coverage decisions remain open",
       "Independent scoring cohorts and human standalone handling acceptance; no candidate simulations here"
     ],
-    "implementationBoundary": "Pending carrying-response policy. No runtime, control/book, roster, test-game or human gate changes; complete movement/recovery contract before implementation."
+    "implementationBoundary": "Accepted carrying-response policy. Runtime, recovery/eligibility, coverage, roster and human validation remain open; no runtime/control/book/roster changes or candidate simulation.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied agree to carrying with ordinary acceleration/braking rates, including Ball Dash, preserving the shared continuous physical response."
+  },
+  "cleanGroundPickupReadinessProposal": {
+    "decisionId": "F693-02-clean-ground-pickup-readiness",
+    "state": "pending",
+    "addedRecoverySeconds": 0.0,
+    "recommendation": "For a routine clean ground pickup with secure possession and no active exceptional recovery, add zero generic post-possession recovery time. Continue eligible carrying response from actual velocity; a valid deliberate or buffered throw may begin its ordinary release at readiness.",
+    "scope": "Routine clean grounded-ball pickup, including clean live loose-ball scoops, after fair/foul and authoritative possession are resolved. No automatic throw, extra catch reach, guaranteed scoop, invisible acquisition or new control mapping. Airborne catches/landings, teammate reception, dives, bobbles, recoil, slips and throws while moving remain separate.",
+    "readiness": "Ready time is securePossessionTime when the routine-clean case has no active recovery; otherwise use the actual applicable recovery gate and this proposal supplies no shortcut. At a shared boundary process bobble/loss/cancel/invalidation before consuming a throw command or activating Ball Dash. Do not move the secure-possession mark earlier to hide a recovery interval.",
+    "movement": "Possession alone does not stop or reset the fielder, rearm contact read, or precharge a ramp. Actual carrying response still handles changed intent and Ball Dash target changes. Existing movement constraints remain explicit; zero generic pickup pause is not authorization to carry during a committed throw.",
+    "presentation": "Glove/ball contact and secure-possession event must visually agree with sim; a clean scoop must register. The pickup take can flow into carrying or the approved visible release. Zero extra post-possession pause does not mean zero-time acquisition or omitting authored scoop motion. No generic animation tail may secretly add a second wait after gameplay readiness.",
+    "examples": [
+      {
+        "name": "valid-early-command",
+        "securePossessionSeconds": 1.0,
+        "commandSeconds": 0.8,
+        "bufferAgeAtReadinessSeconds": 0.2,
+        "bufferValid": true,
+        "releaseStartSeconds": 1.0,
+        "ballReleaseSeconds": 1.3
+      },
+      {
+        "name": "expired-early-command",
+        "securePossessionSeconds": 1.0,
+        "commandSeconds": 0.7,
+        "bufferAgeAtReadinessSeconds": 0.3,
+        "bufferValid": false,
+        "releaseStartSeconds": null,
+        "ballReleaseSeconds": null
+      },
+      {
+        "name": "fresh-ready-command",
+        "securePossessionSeconds": 1.0,
+        "commandSeconds": 1.05,
+        "bufferAgeAtReadinessSeconds": 0.0,
+        "bufferValid": true,
+        "releaseStartSeconds": 1.05,
+        "ballReleaseSeconds": 1.35
+      }
+    ],
+    "exampleScope": "Synthetic timestamps for a routine pickup with no other recovery. Use accepted .25 buffer and .30 ordinary release; not candidate play traces. Snap Throw does not apply to ground/loose pickups. No command means possession is held; movement remains player-owned.",
+    "currentAudit": "TakeBall calls CatchGlove and resets CPU decision bookkeeping; TakeBattedBall can also ArmRecoil. ArmRecoil can scatter a bobble or set retained-ball knockback recovery, and the live RecoilT gate delays further play. InPlay.KnockbackSec depends on energy and Field; fielding.json currently has minEnergy72, maxSec.55 and minSec.02; bobble minEnergy78/fumbleSec.58 are baseline values, not newly accepted. A retained ball is not necessarily a routine no-recovery pickup.",
+    "referenceLimit": "This zero-added-wait trial follows the accepted responsive/reliable routine-defense and visible-release direction. No matched Mario measurement establishes a zero post-possession wait, secure acquisition timing or exceptional recovery thresholds; those must not be inferred from a clean animation.",
+    "requiredChecks": [
+      "Routine secure pickup continues actual movement with zero generic pause and no new read/ramp reset",
+      "Valid .25 buffered command begins .30 ordinary release at readiness; expired/canceled/no command cannot auto-throw",
+      "Fair/foul, bobble/loss and secure ownership processed before ability/queue eligibility at same event time",
+      "Bobbles, hard-hit recoil, dives and other real recovery remain distinct; mere HoldsBall is not sufficient readiness",
+      "Grounder and loose pickup for both seats and CPU, slow/fast characters and Ball Dash eligibility; no Snap Throw pickup bonus",
+      "Authored pickup/possession/release agreement; no hidden animation tail or invisible pickup",
+      "Complete routine grounder, unassisted force and relay races, independent scoring and human standalone acceptance"
+    ],
+    "implementationBoundary": "Pending clean-pickup readiness policy; no runtime/recovery thresholds, motion/book changes, simulation or human gate pass."
   }
 }
