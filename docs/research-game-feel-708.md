@@ -966,9 +966,9 @@ This is an authored control direction, not a measured Mario air-control curve. D
 
 Validate equal uninterrupted trajectories for tap/hold/early release, no held-button auto-repeat or catch reset, pause and actual landing, horizontal/vertical separation, and jump ability variants after numerical profiles are reviewed. Numerical Mario comparison and standalone control feel remain open; no runtime or human gate is passed.
 
-## Next decision — who determines normal-jump takeoff timing
+## Accepted decision — who determines normal-jump takeoff timing
 
-**F693-02-normal-jump-takeoff-ownership — pending, September 15, 2026.** Recommend **starting the normal jump promptly from an eligible press**, without holding it until the ball reaches a preferred catch window. The player owns takeoff timing. A jump may be too early or too late, and success follows actual ball/glove geometry rather than a reserved catch.
+**F693-02-normal-jump-takeoff-ownership — accepted by Jack on September 15, 2026.** Jack approved **starting the normal jump promptly from an eligible press**, without holding it until the ball reaches a preferred catch window. The player owns takeoff timing. A jump may be too early or too late, and success follows actual ball/glove geometry rather than a reserved catch.
 
 **Why it matters:** direct timing makes jump an immediate movement choice. Automatically scheduling takeoff to meet the ball would be more forgiving, but could turn the button into a request for an automatically timed catch. Limited midair correction remains available; it does not move the vertical clock or make the catch guaranteed.
 
@@ -982,7 +982,23 @@ Validate equal uninterrupted trajectories for tap/hold/early release, no held-bu
 
 The previously checked Wii/GC manuals establish press-oriented actions, not measured input latency or automatic timing assistance. This is an authored ownership choice. Validate the same press against different ball arrival times, early/late misses, changes in the ball path, existing locks, both input schemes/seats and CPU execution. Numerical startup/airtime and real catch coverage remain open; no runtime or human gate is passed.
 
-**Question for Jack:** have an eligible press start the jump promptly, with you responsible for timing it rather than the game waiting for the ball?
+## Next decision — normal-jump height and airtime trial
+
+**F693-02-normal-jump-arc-trial — pending, September 15, 2026.** Recommend a first normal-jump trial of **2 feet of body rise and .60 seconds airborne**, with a symmetric arc reaching its peak after **.30 seconds**. No apex hold or generic extra clean-landing pause. These are a coupled starting profile, not measured Mario values or final feel acceptance.
+
+**Physical definition:** on level ground, let `H=2 ft`, `T=.60 s`, and `u=t/T`. Root height above takeoff is `h=4H*u*(1-u)`: 0 feet at takeoff, 1.5 at .15 seconds, 2 at .30, 1.5 at .45 and 0 at .60. Initial vertical speed is about **13.33 ft/s** and vertical acceleration **-44.44 ft/s²**. This governs the character's jump, not the ball's gravity or time scale. A real collision/ground-support transition owns landing; do not force this uninterrupted level-ground arc through a wall or slope.
+
+**What the player feels:** a short, visible hop with time to make the approved small horizontal correction. The .60 seconds starts when the feet leave the ground; it does not include any separately reviewed input anticipation or the .30-second release after landing. At the same 2-foot rise, a .50-second arc would be sharper and shorter; .70 would commit the fielder longer and allow more correction time.
+
+**Movement budget:** with ordinary Run5 takeoff speed of 18 ft/s and neutral horizontal intent, the fielder travels **10.8 feet** during the hop. That is preserved momentum, exactly the distance at the same speed on the ground, not a free lunge. The .50/.70 alternatives give 9/12.6 feet before steering. This makes numerical air-control limits an important next calibration, not an independent percentage to choose without airtime. Other valid inherited velocities and active assistance/correction need their own actual path calculation.
+
+**Body scale and reach:** historical #701 nominal rest head-top markers are about 3.18 feet for Zig, 5.11 for Rio and 8.17 for Ashlord; these exclude extras/pose and are not current live mesh bounds. A 2-foot root rise is a visible trial relative to that scale, not the absolute glove height or a promise of identical catch reach. Preserve character bodies and author the actual glove path. Do not add the existing `JumpReachFt=8` catch-window allowance or `JumpRobFt=4` over-fence clearance as another vertical boost. Their geometry must be reconciled separately before implementation.
+
+**Current audit and reference limits:** `JumpArmSec=.55` and `WallJumpArmSec=.70` are input windows. `Fielding.CatchWindowFt` consumes the jump reach allowance; `FlyCatch.RobHeightFt` supplies over-fence clearance. None measures an existing body arc. The reviewed Nintendo manuals establish controls, not this height/airtime. Comparable Wii/GC ordinary standing and running jump footage still needs takeoff/apex/landing measurement and body/glove-scale comparison before claiming reference similarity.
+
+This is the shared baseline normal-jump trial on level ground. Character/ability variation, wall/buddy/diving profiles, slopes, exceptional impacts, input startup and actual glove reach remain separate. Check arc endpoints and peak, exact integration, neutral drift, early/late catches, short/tall characters, both seats/CPU and animation agreement, then inspect the standalone game. No runtime, rig or human gate changes here.
+
+**Question for Jack:** trial a normal jump with a 2-foot body rise and .60 seconds of airtime, peaking halfway through?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
