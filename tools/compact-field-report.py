@@ -744,7 +744,8 @@ def derive(data):
             assert math.isclose(row["percentOfC80Basepath"], 100*row["capFeet"]/basepath)
     motion = data.get("ordinaryRecoilMotionProfileProposal")
     if motion:
-        assert motion["state"] == "pending"
+        if motion["state"] == "accepted-calibration-anchor":
+            assert motion["acceptedBy"] and motion["acceptedOn"] and motion["acceptanceEvidence"]
         for row in motion["examples"]:
             w = row["severity"]*(1-.05*(row["field"]-1))
             t, k = .20*w, 10*w
@@ -767,9 +768,21 @@ def derive(data):
                 distance = (severity*factor)**2
                 assert distance >= previous
                 previous = distance
+    special_motion = data.get("specialImpactMotionCompositionProposal")
+    if special_motion:
+        assert special_motion["state"] == "pending"
+        for row in special_motion["examples"]:
+            w = 1-.05*(row["field"]-1)
+            assert math.isclose(row["ordinaryDistanceFeet"], w*w)
+            assert math.isclose(row["ordinaryRecoverySeconds"], .20*w)
+            assert math.isclose(row["combinedImpactDistanceFeet"], w*w+row["specialDistanceFeet"])
+            assert math.isclose(row["actionReadyAfterSeconds"], .20*w+row["specialRecoverySeconds"])
+            assert math.isclose(row["impactMotionEndsAfterSeconds"], max(.20*w, .40))
+            assert math.isclose(row["combinedInitialImpactFeetPerSecond"], 10*w+2*row["specialDistanceFeet"]/.40)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialImpactMotionCompositionState": special_motion["state"] if special_motion else None,
             "ordinaryRecoilMotionProfileState": motion["state"] if motion else None,
             "ordinaryRecoilDistanceCapState": displacement_cap["state"] if displacement_cap else None,
             "ordinaryRecoilDisplacementState": displacement["state"] if displacement else None,
