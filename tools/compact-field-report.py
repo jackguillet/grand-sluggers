@@ -815,15 +815,27 @@ def derive(data):
             assert case["eligible"] == (case["normalPrerequisites"] and not case["activeRestrictionsBlockingAction"])
     repeated_recovery = data.get("repeatedImpactRecoveryProposal")
     if repeated_recovery:
-        assert repeated_recovery["state"] == "pending"
+        if repeated_recovery["state"] == "accepted-calibration-anchor":
+            assert repeated_recovery["acceptedBy"] and repeated_recovery["acceptedOn"] and repeated_recovery["acceptanceEvidence"]
         for row in repeated_recovery["examples"]:
             new_end = row["newImpactSeconds"] + row["newDurationSeconds"]
             assert math.isclose(row["newEndSeconds"], new_end)
             assert math.isclose(row["combinedEndSeconds"], max(row["firstEndSeconds"], new_end))
             assert math.isclose(row["unselectedQueuedEndSeconds"], max(row["firstEndSeconds"], row["newImpactSeconds"])+row["newDurationSeconds"])
+    repeat_eligibility = data.get("specialImpactRepeatEligibilityProposal")
+    if repeat_eligibility:
+        assert repeat_eligibility["state"] == "pending"
+        seen_impacts = set()
+        for case in repeat_eligibility["examples"]:
+            key = (case["activation"], case["fielder"])
+            applies = case["qualifyingContact"] and key not in seen_impacts
+            assert case["applySpecialImpact"] == applies
+            if applies:
+                seen_impacts.add(key)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialImpactRepeatEligibilityState": repeat_eligibility["state"] if repeat_eligibility else None,
             "repeatedImpactRecoveryState": repeated_recovery["state"] if repeated_recovery else None,
             "mixedStatusActionReadinessState": mixed_status["state"] if mixed_status else None,
             "specialPushbackActionsState": special_actions["state"] if special_actions else None,

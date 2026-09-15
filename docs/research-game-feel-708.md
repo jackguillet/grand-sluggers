@@ -858,9 +858,9 @@ This is an authored permission contract, not a measured Mario special-status mat
 
 This is an authored interaction policy, not a measured Mario status matrix. Abstract examples verify eligibility only; they do not implement any status. Validate update-order independence, source expiration, simultaneous boundaries, unchanged additive impact recovery, normal possession/contact rules and buffered-input expiry. Actual status definitions, repeated-effect lifetimes and standalone combinations remain pending.
 
-## Next decision — recovery from repeated physical impacts
+## Accepted decision — recovery from repeated physical impacts
 
-**F693-02-repeated-impact-recovery — pending, September 15, 2026.** Recommend **starting each distinct impact's recovery when that hit actually lands**, with an action unavailable until all applicable intervals have ended. A new hit can extend the deadline from its arrival; it does not add its entire duration after the remaining wait. A weaker hit cannot shorten an older restriction.
+**F693-02-repeated-impact-recovery — accepted by Jack on September 15, 2026.** Jack approved **starting each distinct impact's recovery when that hit actually lands**, with an action unavailable until all applicable intervals have ended. A new hit can extend the deadline from its arrival; it does not add its entire duration after the remaining wait. A weaker hit cannot shorten an older restriction.
 
 **Concrete example:** the first hit blocks an action until **.60 seconds**. A second hit lands at **.40 seconds** and independently causes **.50 seconds** of recovery. The proposed deadline is **.90 seconds**: .40 plus .50. Queuing the new recovery after the old wait would instead hold the action until **1.10 seconds**. Conversely, a .10-second hit arriving at .20 cannot shorten the existing .60 deadline. These are illustrative timings, not approved attack values.
 
@@ -874,7 +874,21 @@ Use active gameplay time, preserve pause behavior, and evaluate exact impact/exp
 
 This is an authored timing proposal, not a verified Mario repeat-hit rule. Check same-event addition versus distinct-event overlap, duplicate identity, stronger/weaker later hits, per-action deadlines, source clearing, pause, sub-tick boundaries and both seats/CPU. Real multi-impact motion and standalone behavior remain untested.
 
-**Question for Jack:** let new physical hits extend recovery from when they land, rather than queue their full duration after the unfinished wait?
+## Next decision — repeat hits from the same special
+
+**F693-02-special-impact-repeat-eligibility — pending, September 15, 2026.** Recommend **one special physical-impact application per fielder per attack activation by default**. The same activation cannot repeatedly shove that fielder or restart its special recovery through continued contact, a bounce, leaving/re-entering contact, or a drop and reacquisition. A deliberately multi-hit attack would need explicit, separately reviewed limits.
+
+**Why this is a gameplay choice:** duplicate callbacks already must not count twice. This goes further: even a genuine later contact from the same still-active special would not repeat its physical hit on the same fielder by default. It prevents one lingering or bouncing ball from accidentally trapping that defender. The tradeoff is that a ricocheting special cannot repeatedly punish the same defender unless repeated hits are an intentional part of its design.
+
+**Other fielders and new attacks:** another fielder may receive a first impact if the special remains active and its authored path actually reaches them. This does not grant area damage, extra reach, continuation after a catch or a longer attack lifetime. A genuinely new attack activation can hit the original fielder again, using the accepted arrival-based recovery rule. This is not a global invulnerability window and does not prevent every chain of independent attacks.
+
+**Identity and scope:** track the actual attack activation and fielder, not the selected glove, controller seat or contact callback. A near miss does not consume the application; the first qualifying impact does. Bounces, possession changes and camera/control switches cannot fabricate a new activation. Count the special physical motion and its associated impact recovery once, without suppressing ordinary recoil from a separately qualifying acquisition or unrelated reviewed effect components.
+
+**Multi-hit exceptions:** before an attack can opt into repeated hits, review its distinct-contact trigger, maximum applications per fielder, minimum spacing or equivalent cadence, and continuous-control-loss budget/counterplay. No existing attack is assigned this exception or numerical limits here. Generic burn/charm/terrain refresh and repeated physical-impulse composition remain separate.
+
+This is an authored default, not a verified Mario repeat-hit rule. Abstract sequence checks cover near miss, first hit, repeat on the same fielder, another fielder and a new activation. They do not simulate attack geometry. Validate real re-entry/ricochet/loose-ball paths, stable source identity, pause/control switching and both seats/CPU before standalone feel acceptance.
+
+**Question for Jack:** default to one physical hit per fielder from each special activation, with repeated hits reserved for deliberately designed multi-hit specials?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

@@ -356,8 +356,13 @@
     },
     {
       "id": "F693-02-repeated-impact-recovery",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For distinct physical impacts, start each applicable recovery at its own hit time and keep actions blocked until all relevant intervals end, rather than adding each new hit after the remaining recovery? Same-impact ordinary plus special recovery still adds."
+    },
+    {
+      "id": "F693-02-special-impact-repeat-eligibility",
+      "state": "next-human-decision",
+      "question": "Default to one special physical-impact application per fielder per attack activation, even if the same ball contacts that fielder again, with deliberately multi-hit attacks requiring explicit limits?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3700,7 +3705,7 @@
   },
   "repeatedImpactRecoveryProposal": {
     "decisionId": "F693-02-repeated-impact-recovery",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Each distinct physical impact starts its own applicable recovery interval at the actual impact time. For an action blocked by several such impacts, its impact-related readiness is the latest end among the active intervals. Do not queue a new full recovery after the unfinished wait or shorten an older restriction when a weaker hit arrives.",
     "scope": "Recovery timing for distinct physical-impact events affecting the same fielder. Does not choose repeated-motion impulse composition, generic burn/charm/freeze refresh rules, attack hit frequency, immunity windows, anti-chain limits, or a forced break-free mechanic.",
     "sameImpactBoundary": "Within a single qualifying retained-ball pickup/impact, retain the approved sum of ordinary and Field-resisted special contributions for each action actually restricted by both. Only after computing that event duration does this proposal start its interval at that event time and overlap it with intervals from distinct events. Never replace the approved same-event sum with max.",
@@ -3742,6 +3747,65 @@
       "Track potential repeated-hit chains explicitly; no claim that this alone prevents continuous loss of control.",
       "Validate real multi-impact paths and both seats/CPU after impact eligibility, motion composition and attack values are reviewed."
     ],
-    "implementationBoundary": "Pending distinct-impact recovery timing only. No repeated impulse rule, new status, immunity window, attack duration, runtime change or human gate selected."
+    "implementationBoundary": "Accepted distinct-impact recovery timing only; impact eligibility and physical composition remain pending. No repeated impulse rule, new status, immunity window, attack duration, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to counting each distinct physical hit recovery from its arrival, keeping the latest applicable end rather than queuing its duration after the unfinished wait. Same-impact ordinary and special recovery still add."
+  },
+  "specialImpactRepeatEligibilityProposal": {
+    "decisionId": "F693-02-special-impact-repeat-eligibility",
+    "state": "pending",
+    "recommendation": "By default, one special attack activation can apply its physical impact to each fielder once. Continued contact, leaving/re-entering contact, a wall bounce, a drop/reacquisition or a control switch cannot make the same activation repeatedly shove and restart special recovery on that fielder. Deliberately multi-hit attacks require their own reviewed limits.",
+    "scope": "Default repeat eligibility for the physical-impact component of a special attack, keyed by stable attack activation and affected fielder identity. Not a blanket immunity to all attacks, not a limit on all ordinary pickups, and not a decision about repeated burn/charm/terrain effects.",
+    "identity": "One activation persists through its own authored lifetime and deflections; a bounce, possession change or new callback cannot mint a fresh activation to evade the rule. The first qualifying authoritative impact records the activation/fielder pair. A mere near miss or an overlap that never satisfies the authored impact trigger does not consume the application. Seat/selected-glove identity is not fielder identity.",
+    "bundle": "Apply the reviewed special physical motion and associated impact recovery once as one impact response. Do not deduplicate away the ordinary recoil contribution from a separately qualifying acquisition or remove other explicitly authored components of the attack. The rule does not retroactively cancel the first response when contact ends.",
+    "otherTargets": "A different fielder can receive that activation\u2019s own first qualifying impact only if the authored attack remains active and its real geometry reaches that fielder. This grants no extra reach, area effect, continuation through a catch, or extension of attack lifetime.",
+    "newAttacks": "A genuinely new attack activation may affect the same fielder again and uses the accepted arrival-based recovery rule. There is no global invulnerability period or guaranteed break in control loss between independent attacks. Repeated physical-motion composition remains separately reviewed.",
+    "multiHitException": "An intentionally multi-hit special must explicitly declare qualifying distinct contacts, maximum applications per fielder, minimum separation or equivalent authored cadence, and its continuous-control-loss budget/counterplay. Values and any exception require human review before use; no existing special is designated multi-hit here.",
+    "examples": [
+      {
+        "activation": "attack-A",
+        "fielder": "fielder-1",
+        "qualifyingContact": false,
+        "applySpecialImpact": false
+      },
+      {
+        "activation": "attack-A",
+        "fielder": "fielder-1",
+        "qualifyingContact": true,
+        "applySpecialImpact": true
+      },
+      {
+        "activation": "attack-A",
+        "fielder": "fielder-1",
+        "qualifyingContact": true,
+        "applySpecialImpact": false
+      },
+      {
+        "activation": "attack-A",
+        "fielder": "fielder-2",
+        "qualifyingContact": true,
+        "applySpecialImpact": true
+      },
+      {
+        "activation": "attack-B",
+        "fielder": "fielder-1",
+        "qualifyingContact": true,
+        "applySpecialImpact": true
+      }
+    ],
+    "exampleScope": "Ordered abstract eligibility cases for active attacks whose authored contact conditions are already resolved. The second contact with fielder-1 includes a possible genuine re-entry, not only a duplicated callback. No geometry, attack lifetime, impulse or actual play is simulated.",
+    "rationale": "One lingering or bouncing special should not accidentally trap the same defender in repeated pushback. This makes a deliberate multi-hit attack an explicit design choice while allowing attacks to affect other fielders through their actual authored paths.",
+    "referenceLimit": "Authored default hit-eligibility policy, not a verified Wii/GameCube once-per-activation rule. No new reference measurement or candidate simulation.",
+    "requiredChecks": [
+      "A near miss does not consume eligibility; first qualifying contact does; duplicate/continuous contact and later re-entry from the same activation cannot retrigger by default.",
+      "Wall bounce, drop/reacquisition, pause and switching control seats do not reset activation/fielder history.",
+      "A different actual fielder can receive its first hit if the attack is still active and geometry qualifies; no invented continuation or area effect.",
+      "A genuinely new activation may hit the original fielder and extends recovery under the accepted per-event timing rule.",
+      "Qualifying ordinary acquisition recoil and other reviewed effect components are not accidentally suppressed by special-impact deduplication.",
+      "Explicit multi-hit exceptions require reviewed finite limits and cadence; no silent bypass via new callback/phase identifiers.",
+      "Replay/source identity and both seats/CPU agree; validate actual special paths and control-loss chains after individual attacks and motion rules are selected."
+    ],
+    "implementationBoundary": "Pending default special-impact repeat eligibility only. No attack lifetime, multi-hit exception, global immunity, repeated impulse rule, runtime change or human gate selected."
   }
 }
