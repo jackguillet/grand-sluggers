@@ -568,6 +568,8 @@ def derive(data):
         assert carrier["acceptedBy"] and carrier["acceptedOn"] and carrier["acceptanceEvidence"]
     carry = data.get("ordinaryCarrySpeedProposal")
     if carry:
+        if carry["state"] == "accepted-calibration-anchor":
+            assert carry["acceptedBy"] and carry["acceptedOn"] and carry["acceptanceEvidence"]
         ratio = carry["ordinaryPursuitMultiplier"]
         boost = carrier["speedMultiplier"]
         for row in carry["characterArithmetic"]:
@@ -584,9 +586,38 @@ def derive(data):
         for alt in carry["alternatives"]:
             assert math.isclose(alt["run5OrdinaryCarryFeetPerSecond"], pursuit["run5FeetPerSecond"]*alt["ordinaryPursuitMultiplier"])
             assert math.isclose(alt["run5BallDashCarryFeetPerSecond"], alt["run5OrdinaryCarryFeetPerSecond"]*boost)
+    carry_response = data.get("carryMovementResponseProposal")
+    if carry_response:
+        assert carry_response["rateBasis"] == "unboosted-ordinary-character-speed"
+        assert carry_response["response"] == turning["response"]
+        ta = acceleration["restToFullSeconds"]
+        tb = braking["fullSpeedToStopSeconds"]
+        assert carry_response["ordinaryAccelerationSeconds"] == ta
+        assert carry_response["ordinaryBrakingSeconds"] == tb
+        v = pursuit["run5FeetPerSecond"]
+        peak = v*carrier["speedMultiplier"]
+        a, b = v/ta, v/tb
+        expected = dict(ordinarySpeedFeetPerSecond=v, ballDashSpeedFeetPerSecond=peak,
+            accelerationFeetPerSecondSquared=a, brakingFeetPerSecondSquared=b,
+            ordinaryRestToFullSeconds=ta, ordinaryFullStopSeconds=tb, ordinaryFullReverseSeconds=ta+tb,
+            ballDashRestToFullSeconds=peak/a, ballDashStartDistanceFeet=peak*peak/(2*a),
+            ballDashFullStopSeconds=peak/b, ballDashStopDistanceFeet=peak*peak/(2*b),
+            ballDashFullReverseSeconds=peak/b+peak/a,
+            ordinaryToBallDashSameDirectionSeconds=(peak-v)/a,
+            ordinaryToBallDashDistanceFeet=(peak+v)/2*(peak-v)/a,
+            ballDashToOrdinarySameDirectionSeconds=(peak-v)/b,
+            ballDashToOrdinaryDistanceFeet=(peak+v)/2*(peak-v)/b,
+            ballDashExitExcessDistanceFeet=(peak-v)**2/(2*b))
+        for key, value in expected.items():
+            assert math.isclose(carry_response["run5Arithmetic"][key], value), key
+        for row in carry_response["boostedTurnArithmetic"]:
+            angle = math.radians(row["angleDegrees"]/2)
+            assert math.isclose(row["completionSeconds"], carrier["speedMultiplier"]*(ta+tb)*math.sin(angle))
+            assert math.isclose(row["minimumSpeedFraction"], math.cos(angle), abs_tol=1e-12)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "carryMovementResponseState": carry_response["state"] if carry_response else None,
             "ordinaryCarrySpeedState": carry["state"] if carry else None,
             "ballDashCarrierState": data.get("ballDashCarrierProposal", {}).get("state"),
             "fieldDashDurationState": duration["state"] if duration else None,
