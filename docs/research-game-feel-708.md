@@ -1164,9 +1164,9 @@ Higher difficulty raises risk; better relevant underlying defensive traits lower
 
 No probability cap, difficulty metric, trait curve, floor or failure profile is selected by Jack's direction. The current hit-energy/Field bobble formula is not automatically accepted. Reference comparison, event exposure measurements and explicit trait/RNG migration remain required.
 
-## Next decision — maximum ordinary handling-error chance
+## Accepted decision — maximum ordinary handling-error chance
 
-**F693-02-ordinary-handling-error-cap — pending, September 15, 2026.** Recommend a first ceiling of **10% per qualifying difficult ordinary acquisition attempt**. Routine legal catches/pickups remain at zero. Easier qualifying situations and better defenders should have lower chances through the separately reviewed curves.
+**F693-02-ordinary-handling-error-cap — accepted by Jack on September 15, 2026.** Jack approved a first ceiling of **10% per qualifying difficult ordinary acquisition attempt**. Routine legal catches/pickups remain at zero. Easier qualifying situations and better defenders should have lower chances through the separately reviewed curves.
 
 **What 10% means:** even at the ceiling, the handling check succeeds 90% of the time. It does not mean every difficult play gets a 10% chance, that all catches succeed 90% of the time, or that errors occur in 10% of plays. Position/range/legality and special effects are separate. Across 100 attempts all evaluated at the ceiling, the expected count is 10 errors; that is probability arithmetic, not a guaranteed count or simulated game result.
 
@@ -1176,7 +1176,21 @@ No probability cap, difficulty metric, trait curve, floor or failure profile is 
 
 **Current evidence and validation:** `BobbleRules.MaxChance` defaults to .5, but that is neither an observed game-wide rate nor an approved future curve. A 10% ceiling deliberately differs from that maximum without adopting the old original-hit-energy formula. Validate probability bounds, routine zero risk, monotonic difficulty/defense effects, attempt deduplication and replay. Measure how often qualifying opportunities actually occur before judging errors per game, and compare Wii/GC contexts and visible error frequency. No runtime, probability table or human gate changes here.
 
-**Question for Jack:** start with a 10% maximum error chance on qualifying difficult ordinary acquisitions, with lower odds for easier plays and better defenders?
+## Next decision — difficulty and handling probability curve
+
+**F693-02-ordinary-handling-chance-curve — pending, September 15, 2026.** Recommend a linear first trial: **10% / 6% / 2% risk at maximum ordinary difficulty for weak / middle / strong handling**, falling proportionally with difficulty. At half difficulty, those chances are **5% / 3% / 1%**. Routine legal plays stay at zero.
+
+**Exact definition:** for a qualified ordinary opportunity, `p=.10*D*(1-.80*H)`, where `D` is a normalized difficulty coordinate from 0 to 1 and `H` is normalized underlying handling quality from weakest 0 to strongest 1. These are calibration coordinates, not displayed Fielding values, new roster ratings or measured Mario data. `H=.5` means the middle of the chosen handling scale, not Fielding=5 or the average character.
+
+**What is being chosen:** a linear shape and an 80% maximum relative risk reduction from handling. At equal positive difficulty, strong handling has one fifth of weak handling's risk; at maximum difficulty, that is 2% versus 10%, an 8-percentage-point difference. Strong handling is not immune. The 2% is only its risk at full difficulty, not a floor: at quarter difficulty it is .5%, and at routine zero it is zero.
+
+**What remains separate:** define qualifying conditions and map actual acquisition events to `D`; map named handling traits and any approved equipment effects to `H`. No original-hit-energy shortcut, universal dive difficulty or direct displayed-Fielding input is approved. Modifier composition must avoid counting the same benefit twice and preserve the final 10% ordinary cap. Attempt identity, roll implementation and physical error outcomes also remain required work.
+
+**Why linear:** it makes difficulty and handling contributions easy to inspect while we calibrate the real events. A squared difficulty response would reduce moderate-play risk and concentrate failures near the maximum; a flat chance would barely express difficulty. This proposed handling strength gives specialists a clear advantage without granting all high-quality defenders immunity. Actual errors per game still depend on how often qualifying situations occur.
+
+The curve never changes glove positioning, catch range or jump behavior, and it cannot introduce a post-catch drop roll during retained-ball recoil or pure pushback. Specials retain separate contracts. Validate bounds and monotonicity, log actual `D`, `H`, probability, acquisition identity and outcome in the future event traces, and compare roster/cohort exposure and reference play before accepting feel. No matched Wii/GC formula is established; this remains an authored trial with no runtime or human gate changes.
+
+**Question for Jack:** trial that linear curve, with 10% / 6% / 2% risk for weak / middle / strong handling at the hardest eligible ordinary difficulty?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

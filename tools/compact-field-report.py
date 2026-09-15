@@ -998,7 +998,8 @@ def derive(data):
         assert handling_chance["acceptedBy"] and handling_chance["acceptedOn"] and handling_chance["acceptanceEvidence"]
     handling_cap = data.get("ordinaryHandlingErrorCapProposal")
     if handling_cap:
-        assert handling_cap["state"] == "pending"
+        if handling_cap["state"] == "accepted-calibration-anchor":
+            assert handling_cap["acceptedBy"] and handling_cap["acceptedOn"] and handling_cap["acceptanceEvidence"]
         assert 0 < handling_cap["maximumOrdinaryErrorChance"] < 1
         assert handling_cap["routineErrorChance"] == 0
         assert all(handling_cap[key] is None for key in
@@ -1007,9 +1008,25 @@ def derive(data):
         assert math.isclose(hc_example["expectedErrors"], hc_example["qualifyingAttemptsAtCap"]*handling_cap["maximumOrdinaryErrorChance"])
         for hc_row in handling_cap["alternatives"]:
             assert math.isclose(hc_row["expectedErrorsPer100AtCap"], 100*hc_row["maximumOrdinaryErrorChance"])
+    handling_curve = data.get("ordinaryHandlingChanceCurveProposal")
+    if handling_curve:
+        assert handling_curve["state"] == "pending"
+        assert handling_curve["difficultyMapping"] is None and handling_curve["handlingTraitMapping"] is None
+        hcurve_cap = handling_curve["maximumOrdinaryErrorChance"]
+        hcurve_reduction = handling_curve["maximumRelativeRiskReduction"]
+        assert math.isclose(hcurve_cap, handling_cap["maximumOrdinaryErrorChance"])
+        assert 0 <= hcurve_reduction <= 1
+        assert math.isclose(handling_curve["strongestResidualRiskFactor"], 1-hcurve_reduction)
+        for hcurve_row in handling_curve["examples"]:
+            hcurve_d, hcurve_h = hcurve_row["difficulty"], hcurve_row["handlingQuality"]
+            assert 0 <= hcurve_d <= 1 and 0 <= hcurve_h <= 1
+            hcurve_p = hcurve_cap*hcurve_d*(1-hcurve_reduction*hcurve_h)
+            assert 0 <= hcurve_p <= hcurve_cap
+            assert math.isclose(hcurve_row["errorChance"], hcurve_p, abs_tol=1e-12)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryHandlingChanceCurveState": handling_curve["state"] if handling_curve else None,
             "ordinaryHandlingErrorChanceState": handling_chance["state"] if handling_chance else None,
             "ordinaryHandlingErrorCapState": handling_cap["state"] if handling_cap else None,
             "ordinaryHandlingResolutionState": handling_resolution["state"] if handling_resolution else None,
