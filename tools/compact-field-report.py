@@ -529,6 +529,8 @@ def derive(data):
             assert valid == case["accepted"], case["name"]
     dash = data.get("fieldDashPeakProposal")
     if dash:
+        if dash["state"] == "accepted-calibration-anchor":
+            assert dash["acceptedBy"] and dash["acceptedOn"] and dash["acceptanceEvidence"]
         mul = dash["peakSpeedMultiplier"]
         a = dash["run5Arithmetic"]
         v = pursuit["run5FeetPerSecond"]
@@ -547,9 +549,24 @@ def derive(data):
             assert math.isclose(row["dashPeakFeetPerSecond"], speed*mul)
         for row in dash["alternatives"]:
             assert math.isclose(row["run5PeakFeetPerSecond"], v*row["multiplier"])
+    duration = data.get("fieldDashDurationProposal")
+    if duration:
+        seconds = duration["maxBurstSeconds"]
+        row = duration["run5Arithmetic"]
+        v = pursuit["run5FeetPerSecond"]
+        peak = v*dash["peakSpeedMultiplier"]
+        assert seconds > 0 and row["windowSeconds"] == seconds
+        assert math.isclose(row["ordinaryFeetPerSecond"], v)
+        assert math.isclose(row["peakFeetPerSecond"], peak)
+        assert math.isclose(row["ordinaryConstantSpeedDistanceFeet"], v*seconds)
+        assert math.isclose(row["peakConstantSpeedDistanceFeet"], peak*seconds)
+        assert math.isclose(row["extraDistanceWithinWindowFeet"], (peak-v)*seconds)
+        for alternative in duration["alternatives"]:
+            assert math.isclose(alternative["run5IdealExtraDistanceFeet"], (peak-v)*alternative["seconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "fieldDashDurationState": duration["state"] if duration else None,
             "fieldDashPeakState": dash["state"] if dash else None,
             "pursuitCalibrationSamplesState": samples["state"] if samples else None,
             "pursuitArmingState": arming["state"] if arming else None,
