@@ -381,8 +381,13 @@
     },
     {
       "id": "F693-02-jump-air-control",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Allow limited horizontal correction during a normal jump, preserving takeoff momentum and neutral drift, with the same bounded control before and after a catch rather than full ground steering or a fully locked trajectory?"
+    },
+    {
+      "id": "F693-02-normal-jump-input-profile",
+      "state": "next-human-decision",
+      "question": "Use one consistent normal-jump vertical profile per eligible press, with no hold-for-height, release-to-cut-short, catch reset or automatic repeat from holding the button?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4008,7 +4013,7 @@
   },
   "jumpAirControlProposal": {
     "decisionId": "F693-02-jump-air-control",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Normal jumps preserve actual takeoff horizontal velocity and allow limited horizontal correction while airborne. Neutral intent keeps that horizontal drift in unobstructed space; active steering changes it gradually through a shared bounded air-control response. Use the same correction policy before and after secure possession, subject to applicable action restrictions.",
     "scope": "Qualitative air-control policy for a normal fielding jump. Does not choose jump height/airtime, takeoff impulse, numerical air acceleration/braking/speed limits, wall/buddy/dive motion, collisions or special airborne knockback. Those quantities must be reviewed together before implementation.",
     "airAccelerationScale": null,
@@ -4035,6 +4040,54 @@
       "Landing preserves actual velocity and obeys accepted throw readiness; status-blocked steering does not erase physical motion.",
       "Measure correction envelope against jump airtime across Run ratings and incoming speeds before choosing numbers; verify routine flies and wrong takeoff direction in the standalone game."
     ],
-    "implementationBoundary": "Pending qualitative normal-jump air-control policy only. Numerical jump/control contract, exceptional motion, runtime changes and human gates remain open."
+    "implementationBoundary": "Accepted qualitative normal-jump air-control policy only. Numerical jump/control contract, exceptional motion, runtime changes and human gates remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied sure to limited midair steering with preserved takeoff momentum, with numerical correction limits to be reviewed alongside jump airtime."
+  },
+  "normalJumpInputProfileProposal": {
+    "decisionId": "F693-02-normal-jump-input-profile",
+    "state": "pending",
+    "recommendation": "One eligible normal-jump press commits to one consistent vertical profile for the selected jump type under the same starting conditions. Holding longer does not increase height or airtime; releasing early does not cut it short. Holding through landing does not automatically start another jump.",
+    "holdChangesHeightOrAirtime": false,
+    "releaseCutsJumpShort": false,
+    "catchResetsVerticalProfile": false,
+    "heldButtonRepeatsOnLanding": false,
+    "peakRiseFeet": null,
+    "airtimeSeconds": null,
+    "verticalCurve": null,
+    "scope": "Normal-jump input and vertical commitment policy only. Does not select numerical height/airtime, ascent/descent curve, character/body/ability variation, takeoff latency, early jump buffering, repeat cooldown or wall/buddy/dive variants.",
+    "input": "Each activation requires its own deliberate press and normal eligibility. Additional input while airborne cannot reset the current arc or create a second jump. Input buffering/early arming and precise press-to-takeoff timing need their own coherent review; this choice does not equate the current arming window to physical airtime.",
+    "trajectory": "For an uninterrupted normal jump, the selected vertical profile advances on active gameplay time through actual landing. Catching or missing the ball does not restart it, extend it or snap the body to the ground. Pause freezes it. External authored impacts/world collisions may affect motion only under their own reviewed rules; fixed input response does not imply immunity to those events.",
+    "horizontal": "Keep the accepted takeoff momentum and limited horizontal correction as separate inputs to the shared motion model. Horizontal steering cannot change vertical profile duration or height. Actual landing remains authoritative for the accepted throw-start rule.",
+    "variation": "Consistency means the same selected jump type and starting conditions produce the same normal arc. It does not silently give every character identical glove reach, erase authored jump abilities, or select per-character height differences. Those parameters must be reviewed rather than inferred from body mesh size.",
+    "rationale": "A predictable jump is easier to time against the ball shadow and catch window, and keeps the player focused on takeoff timing and positioning. Variable-height control would add another skill axis but also another control to learn and a variable commitment before the return throw. Limited horizontal correction already supplies room to recover small positioning mistakes.",
+    "referenceEvidence": [
+      {
+        "source": "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "kind": "Nintendo GameCube manual, 2005, mirrored PDF",
+        "checkedOn": "2026-09-15",
+        "pdfPageIndex": 3,
+        "finding": "The Special Actions section describes a press for a jump or diving catch. It does not specify a measured arc, height/airtime or prove that button duration cannot affect height."
+      },
+      {
+        "source": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
+        "kind": "Nintendo Wii manual, 2008, mirrored PDF",
+        "checkedOn": "2026-09-15",
+        "pdfPageIndex": 5,
+        "finding": "Jump Actions / Special Actions describes a press for a jump or diving catch. It does not establish exact hold/release behavior, a vertical equation or numerical timing."
+      }
+    ],
+    "referenceLimit": "The manuals support a simple press-oriented jump vocabulary, not proof of the proposed fixed-arc rule. This is an authored trial; direct footage/play measurements are still needed for numerical Mario comparisons.",
+    "currentAudit": "The local book says West/F arms jump through the catch window; LivePlaySystem assigns JumpT on WestDown. That is an input-arming contract rather than a selected physical arc. This research adds no new button mapping or runtime/book behavior; eventual implementation must reconcile the arming window, actual takeoff and visible trajectory and update both book surfaces together if their behavior changes.",
+    "requiredChecks": [
+      "Tap, long hold and release after takeoff produce the same uninterrupted vertical path under the same selected profile and starting conditions.",
+      "A held button cannot create another jump at landing; presses during flight cannot reset the active arc or double-jump.",
+      "Catch and miss retain the vertical clock with no snap-down, hover or hidden airtime extension.",
+      "Limited horizontal correction cannot modify vertical height/time and uses the same path in stepping, prediction and presentation.",
+      "Pause and landing/throw-readiness ordering remain coherent; numerical jump parameters and early-input semantics remain explicitly unselected.",
+      "Review character/ability reach and exceptional jump variants, then compare actual timing/coverage and standalone control readability before implementation acceptance."
+    ],
+    "implementationBoundary": "Pending normal-jump press/hold policy only. No numeric jump profile, new input mapping, physical implementation, book change or human gate selected."
   }
 }

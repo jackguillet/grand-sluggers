@@ -934,9 +934,9 @@ This applies to a grounded fielder catching an airborne batted ball. Jumping, di
 
 This is an authored readiness proposal, not a measured Mario aerial-throw rule. Validate valid/expired/cancelled commands, landing before/after other recovery, actual possession loss, horizontal velocity, sub-tick event boundaries, both seats/CPU and jump abilities before runtime/standalone acceptance. The report checks illustrative timing only.
 
-## Next decision — control during a normal jump
+## Accepted decision — control during a normal jump
 
-**F693-02-jump-air-control — pending, September 15, 2026.** Recommend **limited horizontal steering during a normal jump**, preserving actual takeoff momentum. Neutral intent keeps the horizontal drift in free space; deliberate input can gradually correct the path through a bounded air-control response. Use the same policy before and after catching the ball, unless an applicable status blocks steering.
+**F693-02-jump-air-control — accepted by Jack on September 15, 2026.** Jack approved **limited horizontal steering during a normal jump**, preserving actual takeoff momentum. Neutral intent keeps the horizontal drift in free space; deliberate input can gradually correct the path through a bounded air-control response. Use the same policy before and after catching the ball, unless an applicable status blocks steering.
 
 **Why this balance:** a fully locked path makes the initial position and direction matter most, but offers no correction for a small takeoff error. Full ground steering can let the player change course too freely and expand defensive coverage. Limited adjustment should retain the commitment of jumping while making a slightly imperfect takeoff recoverable. Exact correction strength still needs review against jump airtime; this proposal does not claim that a particular distance is already proven fun.
 
@@ -950,7 +950,23 @@ This is an authored readiness proposal, not a measured Mario aerial-throw rule. 
 
 This is an authored control direction, not a measured Mario air-control curve. Direct jump comparison, numerical calibration, real catch coverage and standalone feel remain pending. No runtime or human gate changes here.
 
-**Question for Jack:** allow limited midair correction while preserving takeoff momentum, rather than fully locking the jump or allowing full ground steering?
+## Next decision — normal-jump press and hold behavior
+
+**F693-02-normal-jump-input-profile — pending, September 15, 2026.** Recommend **one consistent vertical jump profile per eligible press**. Holding longer does not increase height or airtime, and releasing early does not cut the jump short. Holding the button through landing does not automatically trigger another jump. The approved limited steering adjusts the horizontal path only.
+
+**Why this choice:** the player learns one takeoff-and-landing rhythm for the selected jump type and concentrates on positioning and timing. Variable-height jumps would add another control dimension and make the wait before a return throw depend on button duration. The simpler commitment pairs with the limited horizontal correction already approved. This does not select height, airtime or a particular ascent/descent curve yet.
+
+**Catch, miss and repeat:** once an uninterrupted normal jump starts, catching or missing the ball does not restart the vertical clock, extend airtime or snap the fielder down. A new jump needs a new press and normal eligibility; another airborne press cannot reset the active arc or create a double jump. Precise press-to-takeoff latency, early-input buffering/arming and any repeat cooldown remain unselected. External impacts or collisions follow separately reviewed motion rules; this is not immunity to those events.
+
+**Character scope:** consistency refers to the same selected jump type and starting conditions. It does not give every body identical glove reach, erase jump abilities or silently establish per-character height bonuses. Character/ability variation and wall/buddy/dive profiles require their own reviewed parameters.
+
+**Mario comparison, rechecked September 15:** the [GameCube manual](https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf) describes a press for jump/diving actions in its Special Actions section (PDF page index 3); the [Wii manual](https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf) does so under Jump Actions / Special Actions (PDF page index 5). Both support a simple press-oriented control vocabulary. Neither inspected section establishes exact hold/release effects, jump height, airtime or a vertical equation. The fixed-profile choice remains an authored proposal, not a claim that both games have been frame-measured.
+
+**Current project boundary:** the book describes West/F arming the jump through the catch window, and `WestDown` assigns `JumpT`. That does not supply an actual vertical trajectory. This proposal leaves early arming and physical takeoff timing unresolved; do not reuse the .55/.70 arming constants as airtime. Eventual implementation must reconcile simulation, prediction and animation, and update both couch-book surfaces if their behavior changes. No new button is introduced here.
+
+Validate equal uninterrupted trajectories for tap/hold/early release, no held-button auto-repeat or catch reset, pause and actual landing, horizontal/vertical separation, and jump ability variants after numerical profiles are reviewed. Numerical Mario comparison and standalone control feel remain open; no runtime or human gate is passed.
+
+**Question for Jack:** use a consistent jump per press, with no hold-for-height or early-release shortening?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
