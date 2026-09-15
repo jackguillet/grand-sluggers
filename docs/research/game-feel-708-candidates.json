@@ -456,8 +456,13 @@
     },
     {
       "id": "F693-02-ordinary-handling-error-cap",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial a 10% maximum error chance per qualifying difficult ordinary acquisition attempt, with routine plays at zero and specials reviewed separately?"
+    },
+    {
+      "id": "F693-02-ordinary-handling-chance-curve",
+      "state": "next-human-decision",
+      "question": "Trial linear difficulty scaling with weak/middle/strong handling producing 10%/6%/2% error risk at maximum ordinary difficulty, halving at half difficulty?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4676,7 +4681,7 @@
   },
   "ordinaryHandlingErrorCapProposal": {
     "decisionId": "F693-02-ordinary-handling-error-cap",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maximumOrdinaryErrorChance": 0.1,
     "routineErrorChance": 0.0,
     "difficultyCurve": null,
@@ -4713,6 +4718,98 @@
       "Measure how often qualifying attempts occur and resulting errors per game/cohort, not only the per-attempt cap.",
       "Specials retain separate authored contracts and secure-ball recoil cannot trigger a new ordinary roll."
     ],
-    "implementationBoundary": "Pending numerical ceiling only. No current chance table, curve, attempt definition, error outcome, runtime or human gate changed."
+    "implementationBoundary": "Accepted numerical ceiling only; chance curves and attempt/outcome definitions remain pending. No current chance table, curve, attempt definition, error outcome, runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied good to the 10% maximum ordinary handling-error chance per qualifying difficult acquisition attempt."
+  },
+  "ordinaryHandlingChanceCurveProposal": {
+    "decisionId": "F693-02-ordinary-handling-chance-curve",
+    "state": "pending",
+    "maximumOrdinaryErrorChance": 0.1,
+    "maximumRelativeRiskReduction": 0.8,
+    "strongestResidualRiskFactor": 0.2,
+    "formula": "p=.10*D*(1-.80*H) for qualified ordinary acquisition; p=0 for routine/unqualified cases",
+    "difficultyMapping": null,
+    "handlingTraitMapping": null,
+    "recommendation": "Use a linear first trial: risk rises proportionally with normalized acquisition difficulty and is reduced linearly by underlying handling quality, up to an 80% relative reduction at the strongest handling endpoint. At maximum ordinary difficulty, weak/middle/strong handling has 10%/6%/2% risk. At half difficulty those risks are 5%/3%/1%.",
+    "coordinates": "D in [0,1] is the separately reviewed difficulty coordinate, with zero at no qualifying difficulty and one at the selected maximum ordinary difficulty anchor. H in [0,1] is the separately reviewed effective handling-quality coordinate, weakest to strongest. H=.5 is a mathematical midpoint, not a roster average or displayed Fielding=5. These normalized coordinates do not assign roster values or select a new user-facing stat scale.",
+    "scope": "Probability response shape and endpoint effect only. The eligibility catalog, actual physical-to-D mapping, character/trait-to-H mapping, equipment/effect composition, event identity and failure profile are still unselected. D is not original exit energy or an arbitrary label attached to every dive/special.",
+    "probability": "After qualifying the ordinary opportunity, evaluate p=.10*D*(1-.80*H). With inputs in [0,1], p stays in [0,.10], increases with difficulty and decreases with handling. There is no additive error floor: strong handling gives p=.02*D, not a minimum 2% on every catch. Routine legal opportunities remain zero regardless of traits. Ordinary modifiers must respect the accepted final .10 cap and be explicitly mapped without counting the same handling benefit twice.",
+    "qualityBenefit": "For otherwise identical positive difficulty, strongest handling has one fifth the weakest handling risk; at full difficulty this is an 8-percentage-point difference, not an 80-percentage-point subtraction. The strongest endpoint is not automatically error-proof. No immunity ability or per-character exception is selected by this trial.",
+    "separation": "Handling quality affects qualified secure-control chance, not glove positioning, range size, jump motion or the displayed Fielding summary. Catch reach and visible glove motion remain coherent independently. Retained-ball recoil and pure pushback cannot trigger this acquisition roll after control is already secured.",
+    "examples": [
+      {
+        "difficulty": 0,
+        "handlingQuality": 0,
+        "errorChance": 0.0
+      },
+      {
+        "difficulty": 0,
+        "handlingQuality": 0.5,
+        "errorChance": 0.0
+      },
+      {
+        "difficulty": 0,
+        "handlingQuality": 1,
+        "errorChance": 0.0
+      },
+      {
+        "difficulty": 0.25,
+        "handlingQuality": 0,
+        "errorChance": 0.025
+      },
+      {
+        "difficulty": 0.25,
+        "handlingQuality": 0.5,
+        "errorChance": 0.015
+      },
+      {
+        "difficulty": 0.25,
+        "handlingQuality": 1,
+        "errorChance": 0.004999999999999999
+      },
+      {
+        "difficulty": 0.5,
+        "handlingQuality": 0,
+        "errorChance": 0.05
+      },
+      {
+        "difficulty": 0.5,
+        "handlingQuality": 0.5,
+        "errorChance": 0.03
+      },
+      {
+        "difficulty": 0.5,
+        "handlingQuality": 1,
+        "errorChance": 0.009999999999999998
+      },
+      {
+        "difficulty": 1,
+        "handlingQuality": 0,
+        "errorChance": 0.1
+      },
+      {
+        "difficulty": 1,
+        "handlingQuality": 0.5,
+        "errorChance": 0.06
+      },
+      {
+        "difficulty": 1,
+        "handlingQuality": 1,
+        "errorChance": 0.019999999999999997
+      }
+    ],
+    "tradeoff": "Linear response makes each difficulty/handling step straightforward to explain and calibrate. A squared difficulty curve would make moderate difficulties less risky and concentrate errors near the maximum; a flat chance would hide degree of difficulty. An 80% handling reduction gives a visible specialization benefit at low absolute rates without universal immunity. Exposure frequency must still be measured before judging actual game error rates.",
+    "referenceLimit": "Authored first curve, not measured Mario probabilities. No matched Wii/GC difficulty or defense-to-error mapping has been established. Compare qualifying contexts and observed error frequency separately from internal formula claims.",
+    "requiredChecks": [
+      "Routine/unqualified cases stay zero and the entire ordinary curve remains within [0,.10]; do not add a baseline error floor.",
+      "For fixed H, p scales linearly with D; for fixed D, increasing H never raises risk. Check 10/6/2% full difficulty and 5/3/1% half difficulty anchors.",
+      "Do not use displayed Fielding or original hit energy as an unreviewed substitute for the pending H/D mappings.",
+      "Trait/equipment migration preserves independent catch geometry, approved recoil/throw behavior and final chance cap without double application.",
+      "Use one authoritative roll per qualified attempt; record D, H, p, event/random identity and physical outcome for replay and calibration.",
+      "Measure qualifying attempt frequency and actual error outcomes across roster/cohorts; illustrative percentages are not simulation or human acceptance."
+    ],
+    "implementationBoundary": "Pending numerical probability curve only. No actual difficulty/trait mapping, roster allocation, random draw implementation, physical error outcome, runtime or human gate changed."
   }
 }
