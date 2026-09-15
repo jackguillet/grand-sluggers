@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "ordinary-recoil-cap-accepted-with-special-hit-exceptions; special-recovery-composition-pending; incomplete-runtime-contract",
+  "status": "ordinary-recoil-cap-accepted-with-special-hit-exceptions; additive-same-impact-recovery-proposed-after-fielding-value-feedback; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -292,7 +292,7 @@
     {
       "id": "F693-02-special-recovery-composition",
       "state": "next-human-decision",
-      "question": "Let ordinary recoil and authored special recovery run on their own timelines, allowing each action when its applicable restrictions clear instead of automatically adding recovery durations?"
+      "question": "For the same pickup/impact, add ordinary Field-dependent recoil and special recovery so better Fielding retains its recovery advantage, with unrelated/repeated effects and per-action permissions reviewed separately?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2674,101 +2674,166 @@
   "specialRecoveryCompositionProposal": {
     "decisionId": "F693-02-special-recovery-composition",
     "state": "pending",
-    "recommendation": "Ordinary recoil and authored special recovery run on their own event-timed intervals. An action remains unavailable until all restrictions affecting that action have ended; use the latest applicable ready deadline rather than sum durations or restart an earlier effect at pickup.",
-    "scope": "Default composition of overlapping ordinary retained-ball recoil and an authored special-hit restriction on the same fielder. Special duration/trigger/targets/affected actions remain individually authored. No global .20 clamp on specials, universal all-action stun, automatic effect refresh or arbitrary new stacking.",
-    "math": "For a given action and actual fielder at time t, readyAt=max(t, endTime of every active restriction that blocks that action). Each endTime comes from its own triggering event and duration. Do not add full historical durations at acquisition. Future independent events may create new intervals from their own event times. Explicit multi-stage specials must author their stages; no accidental ordinary-recoil tail.",
+    "revisionOn": "2026-09-15",
+    "userFeedback": "Jack noted that concurrent recovery can mask the value of higher Fielding when both characters receive the same dominant special effect; he suggested stacking.",
+    "recommendation": "For ordinary retained-ball recoil and an authored special recovery triggered by the same pickup/impact, add their applicable recovery contributions. Preserve the Field-dependent ordinary recoil difference instead of masking it behind a longer special.",
+    "math": "For each affected action at the same acquisition event: totalRecovery=ordinaryContribution+specialContribution; readyAt=eventTime+totalRecovery. OrdinaryContribution is within [0,.20] and is zero when the action is not restricted by ordinary recoil. SpecialContribution is that special\u2019s authored restriction for this event/action and is not globally capped to .20. Add each contribution once.",
+    "scope": "Same-event ordinary retained-ball recoil plus one authored special recovery on the same fielder. This does not choose blanket accumulation of unrelated effects, reapplication/refresh of earlier statuses, multiple-special stacking, action permissions or special durations. Those need separate explicit rules. A special that does not restrict an action contributes zero to that action.",
     "examples": [
       {
-        "name": "same-event-long-special",
-        "atSeconds": 1.0,
-        "action": "throw",
-        "restrictions": [
-          {
-            "source": "ordinary-recoil",
-            "start": 1.0,
-            "duration": 0.15,
-            "blocks": [
-              "throw",
-              "move"
-            ]
-          },
-          {
-            "source": "illustrative-special",
-            "start": 1.0,
-            "duration": 0.6,
-            "blocks": [
-              "throw",
-              "move"
-            ]
-          }
-        ],
+        "name": "shorter-ordinary-recoil",
+        "eventSeconds": 1.0,
+        "ordinarySeconds": 0.05,
+        "specialSeconds": 0.6,
+        "totalSeconds": 0.65,
+        "readySeconds": 1.65
+      },
+      {
+        "name": "longer-ordinary-recoil",
+        "eventSeconds": 1.0,
+        "ordinarySeconds": 0.18,
+        "specialSeconds": 0.6,
+        "totalSeconds": 0.78,
+        "readySeconds": 1.78
+      },
+      {
+        "name": "routine-base-special-only",
+        "eventSeconds": 1.0,
+        "ordinarySeconds": 0.0,
+        "specialSeconds": 0.6,
+        "totalSeconds": 0.6,
         "readySeconds": 1.6
       },
       {
-        "name": "earlier-special-nearly-finished",
-        "atSeconds": 1.0,
-        "action": "throw",
-        "restrictions": [
-          {
-            "source": "ordinary-recoil",
-            "start": 1.0,
-            "duration": 0.15,
-            "blocks": [
-              "throw",
-              "move"
-            ]
-          },
-          {
-            "source": "illustrative-special",
-            "start": 0.5,
-            "duration": 0.6,
-            "blocks": [
-              "throw",
-              "move"
-            ]
-          }
-        ],
-        "readySeconds": 1.15
-      },
-      {
-        "name": "special-blocks-movement-only",
-        "atSeconds": 1.0,
-        "action": "throw",
-        "restrictions": [
-          {
-            "source": "ordinary-recoil",
-            "start": 1.0,
-            "duration": 0.15,
-            "blocks": [
-              "throw",
-              "move"
-            ]
-          },
-          {
-            "source": "illustrative-special",
-            "start": 1.0,
-            "duration": 0.6,
-            "blocks": [
-              "move"
-            ]
-          }
-        ],
+        "name": "ordinary-only-for-this-action",
+        "eventSeconds": 1.0,
+        "ordinarySeconds": 0.15,
+        "specialSeconds": 0.0,
+        "totalSeconds": 0.15,
         "readySeconds": 1.15
       }
     ],
-    "exampleScope": "Synthetic overlap examples, not approved special durations or assignments of blocked actions. .60 is illustrative; no current special is assigned it. Actual ordinary recoil permissions and special-effect action sets remain pending.",
-    "ownershipAndControls": "Track source, real fielder, trigger timestamp, duration and affected action per restriction in a shared sim-owned state consumed by motion/CPU/input readiness/traces. Possession, force/tag geometry and movement/release permissions stay distinct. Ball Dash cannot remove a lock; throw buffer still ages over live recovery and can expire. No automatic throw once restrictions end.",
+    "fieldingValue": {
+      "ordinaryDifferenceSeconds": 0.13,
+      "totalDifferenceSeconds": 0.13,
+      "previousOverlapDifferenceSeconds": 0.0
+    },
+    "exampleScope": "Illustrative recoil outputs and special duration only, not numerical Field ratings, a chosen Field curve, approved special timings or declared action permissions. A character with lower ordinary recoil retains exactly that time advantage under an equal added special contribution.",
+    "ownershipAndControls": "Use one sim-owned recovery budget with separately traceable ordinary/special contributions, source/target/event identity and affected actions; input readiness, movement restrictions and CPU forecasts share it. Do not then add another animation-tail wait or count one special twice via metadata and runtime flags. Buffer remains .25 and can expire; ordinary release remains .30 after readiness. Possession and geometric force/tag rules are not replaced by the timer.",
     "currentAudit": "star-skills.json already declares separate pitches/swings and effect metadata: Heart Swing fielderPauseSec .8, Caskball pitch onCatch knockback, Heatball pitch burn-hop. These are baseline data entries, not newly approved timings or proof of live execution. StarSkillTable/ContentValidation load metadata; inspected Fielding preview represents heart-swing as Frozen. Do not mislabel Caskball as a special hit or claim all declared effects already implement typed timed recovery.",
+    "tradeoff": "Special pickups can interrupt longer than overlap; author and review each special against total ordinary-plus-special recovery, including weak Field values up to the .20 ordinary cap. The total may exceed .20 by design. Normal zero-recoil pickups remain immediate when no special applies. No claim that Fielding must alter every special status itself.",
     "requiredChecks": [
-      "Same-trigger overlap uses latest applicable deadline, not summed ordinary/special durations",
-      "Earlier special keeps its own start and can finish before ordinary recoil; pickup cannot refresh it",
-      "Action-specific locks: a movement-only effect does not silently become a throw/tag ban",
-      "Long special duration survives ordinary .20 cap; ordinary Perfect/charged hits do not gain unconfigured exceptions",
-      "Both seats/CPU and fielder identity; possession/bobble/cancel event ordering and unchanged buffer expiry",
-      "Independent later triggers and explicitly authored stages are represented, not erased or globally accumulated",
-      "No runtime or special-balance claims until actual metadata/runtime parity, physical reaction and complete races are verified"
+      "At equal special contribution, total recovery difference exactly preserves ordinary recoil difference",
+      "Zero ordinary contribution gives special only; zero special contribution gives ordinary only",
+      "Cap ordinary contribution at .20 without truncating the special or total",
+      "Apply only to actions each effect actually restricts; no invented global move/throw/tag stun",
+      "Each source/event contribution counted once, shared across seats/CPU/traces and visible authored response",
+      "Earlier/unrelated effects, repeated hits and multiple specials do not acquire unspecified additive/refresh rules",
+      "No animation tail added again; buffer expiry/cancel and actual possession/force geometry remain authoritative",
+      "Review special balance against full recovery and real races, then human standalone validation"
     ],
-    "referenceLimit": "Authored shared-recovery rule. No Mario source was used to establish concurrent versus additive recovery or the illustrative .60 duration. Each special effect still needs its own researched review.",
-    "implementationBoundary": "Pending composition policy only. No special duration, action permission, active runtime effect, content allocation, control/motion/book edit, simulation or human gate pass."
+    "referenceLimit": "Authored revised policy responding to Jack\u2019s Fielding-value priority; no measured Mario recovery-stacking claim. Special durations, action scope and prior-event composition remain open.",
+    "implementationBoundary": "Revised pending proposal, not final approval or runtime change. Preserve the previous unaccepted overlap proposal in history; no content, roster, motion, control or human gate changes.",
+    "previousProposal": {
+      "decisionId": "F693-02-special-recovery-composition",
+      "state": "unaccepted-proposal-revised-after-user-feedback",
+      "recommendation": "Ordinary recoil and authored special recovery run on their own event-timed intervals. An action remains unavailable until all restrictions affecting that action have ended; use the latest applicable ready deadline rather than sum durations or restart an earlier effect at pickup.",
+      "scope": "Default composition of overlapping ordinary retained-ball recoil and an authored special-hit restriction on the same fielder. Special duration/trigger/targets/affected actions remain individually authored. No global .20 clamp on specials, universal all-action stun, automatic effect refresh or arbitrary new stacking.",
+      "math": "For a given action and actual fielder at time t, readyAt=max(t, endTime of every active restriction that blocks that action). Each endTime comes from its own triggering event and duration. Do not add full historical durations at acquisition. Future independent events may create new intervals from their own event times. Explicit multi-stage specials must author their stages; no accidental ordinary-recoil tail.",
+      "examples": [
+        {
+          "name": "same-event-long-special",
+          "atSeconds": 1.0,
+          "action": "throw",
+          "restrictions": [
+            {
+              "source": "ordinary-recoil",
+              "start": 1.0,
+              "duration": 0.15,
+              "blocks": [
+                "throw",
+                "move"
+              ]
+            },
+            {
+              "source": "illustrative-special",
+              "start": 1.0,
+              "duration": 0.6,
+              "blocks": [
+                "throw",
+                "move"
+              ]
+            }
+          ],
+          "readySeconds": 1.6
+        },
+        {
+          "name": "earlier-special-nearly-finished",
+          "atSeconds": 1.0,
+          "action": "throw",
+          "restrictions": [
+            {
+              "source": "ordinary-recoil",
+              "start": 1.0,
+              "duration": 0.15,
+              "blocks": [
+                "throw",
+                "move"
+              ]
+            },
+            {
+              "source": "illustrative-special",
+              "start": 0.5,
+              "duration": 0.6,
+              "blocks": [
+                "throw",
+                "move"
+              ]
+            }
+          ],
+          "readySeconds": 1.15
+        },
+        {
+          "name": "special-blocks-movement-only",
+          "atSeconds": 1.0,
+          "action": "throw",
+          "restrictions": [
+            {
+              "source": "ordinary-recoil",
+              "start": 1.0,
+              "duration": 0.15,
+              "blocks": [
+                "throw",
+                "move"
+              ]
+            },
+            {
+              "source": "illustrative-special",
+              "start": 1.0,
+              "duration": 0.6,
+              "blocks": [
+                "move"
+              ]
+            }
+          ],
+          "readySeconds": 1.15
+        }
+      ],
+      "exampleScope": "Synthetic overlap examples, not approved special durations or assignments of blocked actions. .60 is illustrative; no current special is assigned it. Actual ordinary recoil permissions and special-effect action sets remain pending.",
+      "ownershipAndControls": "Track source, real fielder, trigger timestamp, duration and affected action per restriction in a shared sim-owned state consumed by motion/CPU/input readiness/traces. Possession, force/tag geometry and movement/release permissions stay distinct. Ball Dash cannot remove a lock; throw buffer still ages over live recovery and can expire. No automatic throw once restrictions end.",
+      "currentAudit": "star-skills.json already declares separate pitches/swings and effect metadata: Heart Swing fielderPauseSec .8, Caskball pitch onCatch knockback, Heatball pitch burn-hop. These are baseline data entries, not newly approved timings or proof of live execution. StarSkillTable/ContentValidation load metadata; inspected Fielding preview represents heart-swing as Frozen. Do not mislabel Caskball as a special hit or claim all declared effects already implement typed timed recovery.",
+      "requiredChecks": [
+        "Same-trigger overlap uses latest applicable deadline, not summed ordinary/special durations",
+        "Earlier special keeps its own start and can finish before ordinary recoil; pickup cannot refresh it",
+        "Action-specific locks: a movement-only effect does not silently become a throw/tag ban",
+        "Long special duration survives ordinary .20 cap; ordinary Perfect/charged hits do not gain unconfigured exceptions",
+        "Both seats/CPU and fielder identity; possession/bobble/cancel event ordering and unchanged buffer expiry",
+        "Independent later triggers and explicitly authored stages are represented, not erased or globally accumulated",
+        "No runtime or special-balance claims until actual metadata/runtime parity, physical reaction and complete races are verified"
+      ],
+      "referenceLimit": "Authored shared-recovery rule. No Mario source was used to establish concurrent versus additive recovery or the illustrative .60 duration. Each special effect still needs its own researched review.",
+      "implementationBoundary": "Pending composition policy only. No special duration, action permission, active runtime effect, content allocation, control/motion/book edit, simulation or human gate pass.",
+      "revisionReason": "Jack objected that a dominant special stun hides the better fielder\u2019s shorter ordinary recoil under max-deadline overlap and suggested stacking."
+    }
   }
 }
