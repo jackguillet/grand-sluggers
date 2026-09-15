@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-spatial-runner-and-release-anchors-accepted; throw-travel-decision-pending; incomplete-runtime-contract",
+  "status": "C80-spatial-runner-release-and-infield-travel-anchors-accepted; long-throw-behavior-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted F693-03-release-clock: 0.30 seconds from accepted ordinary command in clean possession to actual release, immediate motion onset. Ball travel remains pending. Do not reinterpret the old .22 s total-duration intercept as an existing stationary windup or add an extra .22 s hold.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -131,13 +131,23 @@
     },
     {
       "id": "F693-03-travel-clock",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use 0.90 seconds of ordinary infield flight over 80 feet, proportional to distance, as the trial anchor?"
     },
     {
       "id": "F693-03-long-throws",
+      "state": "next-human-decision",
+      "question": "Keep direct throws available, with moderate arm-dependent pace loss at long range so a well-positioned relay can beat a very long direct throw?"
+    },
+    {
+      "id": "F693-03-long-throw-numbers",
       "state": "pending",
-      "question": "Choose long-throw reach and direct-versus-relay behavior that preserves meaningful relays inside the compact outfield."
+      "question": "Review the comfortable range and smooth long-throw timing profile against direct, relay and strong/weak-arm race examples."
+    },
+    {
+      "id": "F693-03-relay-ownership",
+      "state": "pending",
+      "question": "Specify whether the armed route authorizes continuation or needs a new press, and how hold/retarget works at the cutoff, while preserving human play ownership."
     },
     {
       "id": "F693-02-movement-budget",
@@ -210,7 +220,7 @@
   },
   "throwTravelProposal": {
     "decisionId": "F693-03-travel-clock",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "referenceDistanceFeet": 80,
     "referenceFlightSeconds": 0.9,
     "baselineHorizontalFeetPerSecond": 88.88888888888889,
@@ -253,7 +263,7 @@
       "coveredReceptionSeconds": 2.975,
       "runnerNominalArrivalSeconds": 3.45,
       "marginSeconds": 0.475,
-      "status": "Illustrative arithmetic, not simulation; possession, human decision and margin are unapproved examples; travel proposal pending."
+      "status": "Illustrative arithmetic, not simulation; runner, release and infield travel anchors accepted; possession, human decision and margin remain unapproved examples."
     },
     "alternatives": [
       {
@@ -265,6 +275,61 @@
         "effect": "More deliberate flight, but spends another 0.20 seconds per 80 feet of the defensive race."
       }
     ],
-    "relayConstraint": "Do not extrapolate the near-field rate as an accepted whole-field curve. Two equal-arm collinear relay legs at one constant speed add a second release and cannot beat a direct throw purely on flight time. Review existing reach/cutoff rules at compact dimensions before selecting the long-range contract."
+    "relayConstraint": "Do not extrapolate the near-field rate as an accepted whole-field curve. Two equal-arm collinear relay legs at one constant speed add a second release and cannot beat a direct throw purely on flight time. Review existing reach/cutoff rules at compact dimensions before selecting the long-range contract.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to 0.90 seconds over 80 feet as the ordinary infield travel baseline, with proportional infield travel times and long throws/relays reviewed separately."
+  },
+  "longThrowProposal": {
+    "decisionId": "F693-03-long-throws",
+    "state": "pending",
+    "recommendation": "Retain direct throws as a player choice; add moderate smooth arm-dependent long-range pace loss, so a well-positioned relay can sometimes win after its real catch/decision/release cost. Strong arms remain useful for direct throws; short and medium direct throws remain efficient.",
+    "comfortableRangeFeet": null,
+    "longRangeTimingCurve": null,
+    "relayAdvantageTargetSeconds": null,
+    "scope": "Behavior choice only. Range, rate of pace loss, exact arm/ability/chemistry interactions, arc/velocity shape, receiving delays and input buffering remain to be specified. No universal relay advantage or automatic outcome.",
+    "currentCodeAudit": {
+      "onTheFlyFeet": 200,
+      "owner": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::CutoffFor",
+      "scope": "Flat distance threshold in CPU route and forecast; it does not multiply range by arm stat. Human BeginPlayerThrowOrCommit has an explicit cutoff branch and otherwise permits direct bag throws. Do not claim every human throw over 200 feet is already forced through a cutoff."
+    },
+    "sources": [
+      {
+        "id": "wii-manual-cutoff",
+        "url": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
+        "page": "printed 10 / PDF page index 5",
+        "kind": "Nintendo primary booklet hosted by mirror",
+        "supports": "Player-selected cutoff with Nunchuk and separate high-speed buddy toss; no ordinary range/falloff coefficient."
+      },
+      {
+        "id": "gc-manual-cutoff",
+        "url": "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "kind": "Nintendo primary booklet hosted by mirror; indexed text",
+        "supports": "A with L selects cutoff; no measured direct-versus-relay time curve."
+      }
+    ],
+    "referenceLimit": "Manuals support the cutoff verb, not the proposed long-throw slowdown mechanism. This is an original Harbor design proposal; matched long-throw measurements for both titles remain outstanding.",
+    "breakEvenExample": {
+      "totalDistanceFeet": 240,
+      "relayLegFeet": [
+        120,
+        120
+      ],
+      "assumedEqualArmHorizontalFeetPerSecond": 88.88888888888889,
+      "releasePerLegSeconds": 0.3,
+      "assumedExtraRelayDecisionSeconds": 0.2,
+      "directAtConstantSpeedSeconds": 3.0,
+      "relayAtConstantSpeedSeconds": 3.5,
+      "minimumExtraDirectFlightSecondsToTie": 0.5,
+      "status": "Counterfactual constant-speed arithmetic only; 240-ft extrapolation is not an accepted long-throw curve, relay decision .20 s is not approved, receivers assumed ready with perfect alignment. A beneficial long-throw model must beat actual additional relay time, not invent a free second release."
+    },
+    "acceptanceChecks": [
+      "Direct throw remains selectable; CPU evaluates the same actual model and receiver coverage.",
+      "No speed discontinuity at a distance threshold or hidden forced redirection.",
+      "A clean deep relay can beat a sufficiently long ordinary direct throw; a poor or unnecessary relay can lose.",
+      "Strong and weak arms differ meaningfully; explicit special throws remain separately identified.",
+      "The 0.30-second ordinary release occurs on each actual commanded leg; relay continuation control is reviewed separately from this physics decision.",
+      "No coefficients enter runtime before the complete contract, shared-geometry parity and full-race validation."
+    ]
   }
 }
