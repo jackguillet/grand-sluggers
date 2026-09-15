@@ -401,8 +401,13 @@
     },
     {
       "id": "F693-02-normal-jump-air-response-trial",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial active horizontal air correction at 10% of ordinary ground acceleration/braking rates, preserving neutral drift and actual velocity, over the accepted .60-second jump?"
+    },
+    {
+      "id": "F693-02-normal-jump-startup-trial",
+      "state": "next-human-decision",
+      "question": "Trial zero added gameplay startup before an eligible normal jump: begin the physical arc when simulation accepts the eligible press, without an extra crouch/windup timer?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4226,7 +4231,7 @@
   },
   "normalJumpAirResponseTrialProposal": {
     "decisionId": "F693-02-normal-jump-air-response-trial",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "airAccelerationScale": 0.1,
     "airBrakingScale": 0.1,
     "airtimeSeconds": 0.6,
@@ -4284,6 +4289,47 @@
       "Landing retains actual velocity and transitions to ground response at the actual support event, without extra pause or a velocity snap.",
       "Compare reference footage and live short/tall-character glove paths, routine catches and gaps; arithmetic is not simulation or human acceptance."
     ],
-    "implementationBoundary": "Pending air-response numerical trial only. No runtime tuning or reference/standalone gate passed. Startup, reach/ability variants and exceptional airborne impacts remain separately reviewed."
+    "implementationBoundary": "Accepted air-response numerical trial only. No runtime tuning or reference/standalone gate passed. Startup, reach/ability variants and exceptional airborne impacts remain separately reviewed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to the restrained 10% ordinary ground acceleration/braking rates for normal-jump midair correction."
+  },
+  "normalJumpStartupTrialProposal": {
+    "decisionId": "F693-02-normal-jump-startup-trial",
+    "state": "pending",
+    "addedGameplayStartupSeconds": 0.0,
+    "airtimeSeconds": 0.6,
+    "apexAfterAcceptedInputSeconds": 0.3,
+    "landingAfterAcceptedInputSeconds": 0.6,
+    "recommendation": "Trial zero added gameplay startup for an eligible normal jump. At the simulation event that accepts the eligible press, begin the physical jump arc and airborne control together; do not insert a pre-takeoff crouch or windup timer.",
+    "clock": "t0 is the authoritative simulation input event at which a new press is accepted while grounded, owned and eligible. It is not the physical hardware switch time or a promise of zero device, polling, scheduling, rendering or display latency. No retroactive jump before input consumption and no extra gameplay wait after eligibility. The uninterrupted level-ground arc peaks at t0+.30 and lands at t0+.60.",
+    "eligibility": "Respect existing control ownership, contact-read and applicable movement/jump/recovery/committed-throw restrictions before accepting the event. Zero startup cannot erase those restrictions, imply coyote time, grant a second midair jump or cause a held button to repeat. Buffering a press made while ineligible remains separately reviewed; this proposal does not queue an early press until the ball or a lock becomes convenient.",
+    "motion": "Take off from the actual root position and current horizontal velocity at t0. Apply the accepted 2-foot/.60-second vertical profile and 10% air-control response from the same event, with no ground-speed refill, bonus lunge or extra grounded integration after takeoff. Preserve actual support/collision transitions and review exceptional effects separately.",
+    "presentationContract": "The authored jump response must begin with the accepted simulation event and visibly agree with physical takeoff. Author launch/body compression within the response without delaying the feet leaving the ground while the simulation already grants airborne reach. Do not secretly hold the root on the ground, move a gameplay glove ahead of its visible pose or add a per-character clip lead-in. If readable launch needs a genuine grounded anticipation phase, return that timing tradeoff for review instead of hiding a delay. This research decision does not edit a clip, rig or presentation system.",
+    "scope": "Shared baseline normal-jump startup only, for human/CPU/assisted intents under their existing ownership rules. Other jump abilities, wall/buddy/dive startup and individual exceptional actions require separate contracts. It does not change actual glove reach, catch windows, throw buffering or landing readiness.",
+    "referenceLimit": "Nintendo Wii and GameCube manuals re-opened September 15, 2026 describe jump actions but do not measure button-to-takeoff latency. Zero added startup is an authored responsiveness trial, not a verified Mario timing. Compare input-synchronized ordinary standing/running jumps in both references; measure input consumption, first visible response, physical takeoff, apex and landing separately.",
+    "tradeoff": "Immediate takeoff supports late deliberate reactions and a direct button response. A brief grounded anticipation could communicate weight more clearly, but delays reaching height and extends the input-to-landing timeline. Compare .05/.10 seconds only as unselected alternatives; actual device latency is independent of that authored choice.",
+    "alternatives": [
+      {
+        "addedGameplayStartupSeconds": 0.05,
+        "apexAfterAcceptedInputSeconds": 0.35,
+        "landingAfterAcceptedInputSeconds": 0.65
+      },
+      {
+        "addedGameplayStartupSeconds": 0.1,
+        "apexAfterAcceptedInputSeconds": 0.4,
+        "landingAfterAcceptedInputSeconds": 0.7
+      }
+    ],
+    "requiredChecks": [
+      "On an eligible accepted input event, physical takeoff and the air-control phase begin without an extra startup timer or ball-dependent scheduling.",
+      "Separate hardware/input-consumption/render timings in traces; do not claim zero end-to-end latency from a zero gameplay parameter.",
+      "The same eligible press with different ball predictions has identical takeoff/arc timing, and an early/late jump can miss by actual geometry.",
+      "Existing restrictions remain authoritative; holding, midair input, selection or a catch cannot restart the arc or bypass a lock. Early-input buffering needs its own reviewed bounds.",
+      "Prediction, stepping and animation agree on takeoff/apex/landing across frame partitions, both seats/schemes, CPU and short/tall characters; no invisible airborne catch reach while the body remains grounded.",
+      "No generic extra clean-landing pause or airborne throw start; existing .25-second throw buffer still expires independently.",
+      "Compare input-synchronized reference footage and actual standalone response; zero added delay is not human feel acceptance."
+    ],
+    "implementationBoundary": "Pending baseline startup trial only. No runtime, animation, controller mapping or couch-book edit. Future implementation must reconcile the physical jump and both HowToPlay surfaces; reference measurement and human standalone acceptance remain open."
   }
 }

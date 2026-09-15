@@ -905,7 +905,8 @@ def derive(data):
             assert math.isclose(row["run5NeutralDriftFeet"], 18*row["airtimeSeconds"])
     jump_response = data.get("normalJumpAirResponseTrialProposal")
     if jump_response:
-        assert jump_response["state"] == "pending"
+        if jump_response["state"] == "accepted-calibration-anchor":
+            assert jump_response["acceptedBy"] and jump_response["acceptedOn"] and jump_response["acceptanceEvidence"]
         assert math.isclose(jump_response["airtimeSeconds"], jump_arc["airtimeSeconds"])
         for row in jump_response["examples"]:
             jr_v = (21+1.9*row["run"])*18/30.5
@@ -925,9 +926,20 @@ def derive(data):
                 "maxCorrectionFromNeutralPathFeet": .5*jr_b*jr_t**2,
             }.items():
                 assert math.isclose(row[key], value)
+    jump_startup = data.get("normalJumpStartupTrialProposal")
+    if jump_startup:
+        assert jump_startup["state"] == "pending"
+        assert jump_startup["addedGameplayStartupSeconds"] == 0
+        assert math.isclose(jump_startup["airtimeSeconds"], jump_arc["airtimeSeconds"])
+        for js_row in [jump_startup] + jump_startup["alternatives"]:
+            js_delay = js_row["addedGameplayStartupSeconds"]
+            assert js_delay >= 0
+            assert math.isclose(js_row["apexAfterAcceptedInputSeconds"], js_delay+jump_arc["apexSeconds"])
+            assert math.isclose(js_row["landingAfterAcceptedInputSeconds"], js_delay+jump_arc["airtimeSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpStartupTrialState": jump_startup["state"] if jump_startup else None,
             "normalJumpAirResponseTrialState": jump_response["state"] if jump_response else None,
             "normalJumpArcTrialState": jump_arc["state"] if jump_arc else None,
             "normalJumpTakeoffOwnershipState": takeoff["state"] if takeoff else None,
