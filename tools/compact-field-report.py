@@ -82,6 +82,7 @@ def derive(data):
         })
     tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
+               ROOT / "src/GrandSluggers.Sim/BallFlight.cs", ROOT / "src/GrandSluggers.Sim/BattedBall.cs",
                ROOT / "src/GrandSluggers.Sim/Fielding.cs", ROOT / "src/GrandSluggers.Sim/FlyCatch.cs", ROOT / "src/GrandSluggers.Sim/BuntDefense.cs",
                ROOT / "src/GrandSluggers.Sim/ParkDiamond.cs", ROOT / "data/rules/running.json",
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json",
@@ -1010,7 +1011,8 @@ def derive(data):
             assert math.isclose(hc_row["expectedErrorsPer100AtCap"], 100*hc_row["maximumOrdinaryErrorChance"])
     handling_curve = data.get("ordinaryHandlingChanceCurveProposal")
     if handling_curve:
-        assert handling_curve["state"] == "pending"
+        if handling_curve["state"] == "accepted-calibration-anchor":
+            assert handling_curve["acceptedBy"] and handling_curve["acceptedOn"] and handling_curve["acceptanceEvidence"]
         assert handling_curve["difficultyMapping"] is None and handling_curve["handlingTraitMapping"] is None
         hcurve_cap = handling_curve["maximumOrdinaryErrorChance"]
         hcurve_reduction = handling_curve["maximumRelativeRiskReduction"]
@@ -1023,9 +1025,15 @@ def derive(data):
             hcurve_p = hcurve_cap*hcurve_d*(1-hcurve_reduction*hcurve_h)
             assert 0 <= hcurve_p <= hcurve_cap
             assert math.isclose(hcurve_row["errorChance"], hcurve_p, abs_tol=1e-12)
+    awkward_hop = data.get("awkwardHopDifficultySourceProposal")
+    if awkward_hop:
+        assert awkward_hop["state"] == "pending"
+        assert all(awkward_hop[key] is None for key in
+                   ("difficultyMapping", "hopPhaseBounds", "heightBounds", "speedBounds"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "awkwardHopDifficultySourceState": awkward_hop["state"] if awkward_hop else None,
             "ordinaryHandlingChanceCurveState": handling_curve["state"] if handling_curve else None,
             "ordinaryHandlingErrorChanceState": handling_chance["state"] if handling_chance else None,
             "ordinaryHandlingErrorCapState": handling_cap["state"] if handling_cap else None,

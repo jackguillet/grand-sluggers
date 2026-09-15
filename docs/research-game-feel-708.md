@@ -1176,9 +1176,9 @@ No probability cap, difficulty metric, trait curve, floor or failure profile is 
 
 **Current evidence and validation:** `BobbleRules.MaxChance` defaults to .5, but that is neither an observed game-wide rate nor an approved future curve. A 10% ceiling deliberately differs from that maximum without adopting the old original-hit-energy formula. Validate probability bounds, routine zero risk, monotonic difficulty/defense effects, attempt deduplication and replay. Measure how often qualifying opportunities actually occur before judging errors per game, and compare Wii/GC contexts and visible error frequency. No runtime, probability table or human gate changes here.
 
-## Next decision — difficulty and handling probability curve
+## Accepted decision — difficulty and handling probability curve
 
-**F693-02-ordinary-handling-chance-curve — pending, September 15, 2026.** Recommend a linear first trial: **10% / 6% / 2% risk at maximum ordinary difficulty for weak / middle / strong handling**, falling proportionally with difficulty. At half difficulty, those chances are **5% / 3% / 1%**. Routine legal plays stay at zero.
+**F693-02-ordinary-handling-chance-curve — accepted by Jack on September 15, 2026.** Jack approved a linear first trial: **10% / 6% / 2% risk at maximum ordinary difficulty for weak / middle / strong handling**, falling proportionally with difficulty. At half difficulty, those chances are **5% / 3% / 1%**. Routine legal plays stay at zero.
 
 **Exact definition:** for a qualified ordinary opportunity, `p=.10*D*(1-.80*H)`, where `D` is a normalized difficulty coordinate from 0 to 1 and `H` is normalized underlying handling quality from weakest 0 to strongest 1. These are calibration coordinates, not displayed Fielding values, new roster ratings or measured Mario data. `H=.5` means the middle of the chosen handling scale, not Fielding=5 or the average character.
 
@@ -1190,7 +1190,23 @@ No probability cap, difficulty metric, trait curve, floor or failure profile is 
 
 The curve never changes glove positioning, catch range or jump behavior, and it cannot introduce a post-catch drop roll during retained-ball recoil or pure pushback. Specials retain separate contracts. Validate bounds and monotonicity, log actual `D`, `H`, probability, acquisition identity and outcome in the future event traces, and compare roster/cohort exposure and reference play before accepting feel. No matched Wii/GC formula is established; this remains an authored trial with no runtime or human gate changes.
 
-**Question for Jack:** trial that linear curve, with 10% / 6% / 2% risk for weak / middle / strong handling at the hardest eligible ordinary difficulty?
+## Next decision — awkward hop as the first difficulty source
+
+**F693-02-awkward-hop-difficulty-source — pending, September 15, 2026.** Recommend **an awkward in-between hop at actual ground-ball acquisition** as the first ordinary source of difficulty. The ball reaches the fielder during an uncomfortable part of its bounce, rather than a routine roll or a clean short/long hop. This selects the first context to calibrate, not the complete difficulty catalog or its numerical bands.
+
+**Baseball rationale:** the publisher's [Coaching Youth Baseball excerpt](https://us.humankinetics.com/blogs/excerpt/fielding-ground-balls) distinguishes a low hop near the glove from a harder-to-gauge in-between hop. [Trent Mongero's attributed coaching material](https://wrssba.com/coaches/skills-and-drills/infield-ground-ball-mechanics/) also describes choosing a descending long hop or immediate short hop. Both were checked September 15, 2026. This supports distinguishing the awkward middle of a bounce from every short hop; it does not establish Mario rules or our numbers.
+
+**What the player sees:** a visibly awkward bounce can create some handling risk, reduced by the character's handling quality through the accepted curve. A clean roll or comfortable hop remains reliable under this source. Existing positioning can change where you meet the bounce; no new glove button, stance control or perfect-hop input is added. The eventual bands must be broad and readable at gameplay distance, not a hidden timing trap.
+
+**Measure the encounter:** identify a real prior bounce and record its location/time, current ball height and velocity, body position and authored catch-range/pose context at prospective acquisition. Choose the normalized difficulty mapping from those observations. Numerical phase/height/speed bounds remain pending; being on the rising side of any tiny hop is not enough. Do not substitute original exit velocity, hit quality, camera state or the Grounder/Chopper label. Keep physical difficulty `D` separate from handling quality `H` to avoid counting defense twice.
+
+**Current trajectory audit:** `BallFlight` marks ground impacts and also emits Ground events during ordinary rolling. It bounces or begins rolling based on incoming vertical motion and restitution/minimum-velocity rules. `BattedBall.Shape` summarizes a trajectory; it does not describe the exact pickup encounter. A bare Ground flag or hit-class branch therefore cannot implement this source. Record actual bounce transitions and use the shared gameplay clock; do not infer impact speed from untimed position samples or a visual animation frame.
+
+**Scope:** any legally live ordinary batted ball after a real ground bounce, including one initially classified as a liner or fly. Grounded-ball acquisition is not an airborne catch-out. Wall caroms, teammate throws, special hits and additional recovery/dive-specific difficulty remain separately reviewed. Neither high speed, diving nor low handling alone qualifies a play. Manual, CPU and assisted acquisition use the same physical test without a new movement takeover.
+
+Before implementation, compare clean rolls, clean short/long hops and awkward middle-hop cases across the roster and both reference games. Baseball coaching is qualitative rationale, not proof of Wii/GC internal logic. Numerical bands, error outcomes, ball calibration and standalone gates remain open; no runtime or physics changes here.
+
+**Question for Jack:** use an awkward in-between hop as our first ordinary handling-difficulty source, while keeping clean rolls and clean short/long hops reliable?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

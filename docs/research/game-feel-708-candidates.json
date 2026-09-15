@@ -461,8 +461,13 @@
     },
     {
       "id": "F693-02-ordinary-handling-chance-curve",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial linear difficulty scaling with weak/middle/strong handling producing 10%/6%/2% error risk at maximum ordinary difficulty, halving at half difficulty?"
+    },
+    {
+      "id": "F693-02-awkward-hop-difficulty-source",
+      "state": "next-human-decision",
+      "question": "Use an awkward in-between hop at actual ground-ball acquisition as the first ordinary difficulty source, keeping routine rolls and clean short/long hops outside this trigger?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4725,7 +4730,7 @@
   },
   "ordinaryHandlingChanceCurveProposal": {
     "decisionId": "F693-02-ordinary-handling-chance-curve",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maximumOrdinaryErrorChance": 0.1,
     "maximumRelativeRiskReduction": 0.8,
     "strongestResidualRiskFactor": 0.2,
@@ -4810,6 +4815,49 @@
       "Use one authoritative roll per qualified attempt; record D, H, p, event/random identity and physical outcome for replay and calibration.",
       "Measure qualifying attempt frequency and actual error outcomes across roster/cohorts; illustrative percentages are not simulation or human acceptance."
     ],
-    "implementationBoundary": "Pending numerical probability curve only. No actual difficulty/trait mapping, roster allocation, random draw implementation, physical error outcome, runtime or human gate changed."
+    "implementationBoundary": "Accepted numerical probability curve only; physical difficulty and trait mappings remain pending. No actual difficulty/trait mapping, roster allocation, random draw implementation, physical error outcome, runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied good to the linear difficulty-and-handling curve: full-difficulty risk 10%/6%/2% for weak/middle/strong handling, halved at half difficulty."
+  },
+  "awkwardHopDifficultySourceProposal": {
+    "decisionId": "F693-02-awkward-hop-difficulty-source",
+    "state": "pending",
+    "sourceKind": "awkward-in-between-ground-hop",
+    "difficultyMapping": null,
+    "hopPhaseBounds": null,
+    "heightBounds": null,
+    "speedBounds": null,
+    "recommendation": "Use an awkward in-between hop at actual ground-ball acquisition as the first ordinary handling-difficulty source. The ball reaches the fielder in an uncomfortable part of its bounce, rather than as a routine roll, clean low short hop or manageable long hop. Degree of difficulty must come from that actual encounter, not the original hit label or displayed Fielding.",
+    "scope": "First ordinary source to calibrate, not the complete difficulty catalog. Applies to a legally live non-special batted ball acquired after a real ground bounce, regardless of whether its original class was grounder, liner or fly. Teammate throws, wall caroms, recovery/dive-specific difficulty and special hits remain separate. Do not apply an ordinary airborne-catch error merely because this bounced-ball context is accepted.",
+    "definition": "An awkward middle portion of the hop, beyond the immediate low short-hop opportunity and distinct from a comfortable long-hop interception. Numerical phase, body-relative acquisition height, approach and current-speed bounds still need measurement and review. Rising motion or a recent Ground sample alone is insufficient; low micro-bounces and ordinary rolling must not qualify. Handling quality is not part of D, so it cannot be counted again in the H factor.",
+    "measurement": "At the prospective acquisition, record the last actual bounce event, its location/time, ball height and velocity, current body/root position and authored catch-range/pose context on the authoritative gameplay clock. Use these to distinguish physically different hops before choosing a normalized D mapping. Never use original exit velocity/contact quality as a substitute for current acquisition conditions, or a visual animation frame as the cause.",
+    "playerControl": "Existing movement can change where on the hop the fielder meets the ball. Do not introduce a manual glove-placement button, perfect-hop timing press or a new stance control. Use broad readable cartoon categories rather than an invisible tiny timing trap. CPU/assisted and manually controlled acquisition share the same event classification; no separate error budget or forced route penalty.",
+    "ordinaryReliability": "A routine roll, clean short hop or manageable long hop receives no risk from this source. Being a weak defender, diving, receiving a fast ball or fielding a ball labeled Grounder/Chopper does not automatically qualify it. Other future contexts need explicit review; this is not blanket immunity from special effects or every future difficult-play rule.",
+    "currentAudit": "BallFlight emits Ground events both at impact and repeatedly while rolling. It changes vertical velocity via bounce/skid restitution or transitions to rolling below MinVy. BattedBall.Shape is a contact/trajectory classification. These offer trajectory evidence but neither a Ground flag nor a Shape value identifies an awkward acquisition. The future shared event trace needs actual bounce transitions and encounter conditions; no current difficulty detector has been validated.",
+    "baseballEvidence": [
+      {
+        "title": "Fielding ground balls \u2014 Coaching Youth Baseball excerpt, Human Kinetics",
+        "url": "https://us.humankinetics.com/blogs/excerpt/fielding-ground-balls",
+        "accessedOn": "2026-09-15",
+        "supports": "The publisher's coaching excerpt distinguishes a low hop near the glove from a harder-to-gauge in-between hop. This supports the qualitative distinction, not a game threshold or probability."
+      },
+      {
+        "title": "Infield Ground Ball Mechanics \u2014 Trent Mongero / Winning Baseball material hosted by White Rock South Surrey Baseball",
+        "url": "https://wrssba.com/coaches/skills-and-drills/infield-ground-ball-mechanics/",
+        "accessedOn": "2026-09-15",
+        "supports": "The attributed coaching material discusses selecting a descending long hop or immediate short hop and avoiding the intermediate hop. No Mario measurements or game coefficients are supplied."
+      }
+    ],
+    "referenceLimit": "Real-baseball coaching gives qualitative rationale only. It does not establish Wii/GC mechanics, matched cartoon bounce dimensions or Mario error rates. Compare visibly different reference ground-ball acquisitions and the eventual calibrated ball trajectory before choosing numerical bands.",
+    "requiredChecks": [
+      "Routine rolling Ground samples and tiny skips cannot be mistaken for a real qualifying awkward hop.",
+      "Two physically equivalent acquisition encounters classify the same despite different initial hit labels, Fielding summaries, seats or frame partitions.",
+      "Clean short/long-hop cases remain outside this source; visibly awkward middle-hop cases can receive reviewed positive D only after numerical bands are selected.",
+      "D measures the physical encounter separately from H; improving handling does not resize range, alter the glove path or change difficulty classification for an otherwise identical encounter.",
+      "A ground bounce means ground acquisition rather than an airborne catch-out; preserve actual possession/error ordering and retained-ball rules.",
+      "Compare event-side bounce/height/speed evidence, readable motion and actual errors across roster and matched reference contexts before implementation/human acceptance."
+    ],
+    "implementationBoundary": "Pending first difficulty-source choice only. No numerical D mapping, new input, bounce/ball-physics tuning, acquisition detector, runtime or human gate selected."
   }
 }
