@@ -82,6 +82,7 @@ def derive(data):
         })
     tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
+               ROOT / "src/GrandSluggers.Sim/Fielding.cs",
                ROOT / "src/GrandSluggers.Sim/ParkDiamond.cs", ROOT / "data/rules/running.json",
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json",
                ROOT / "data/art/clips.json", ROOT / "data/art/baseball-takes.json",
@@ -260,8 +261,31 @@ def derive(data):
                 assert math.isclose(example["releaseStartsAtSeconds"], start)
             else:
                 assert example["releaseStartsAtSeconds"] is None
+    cancel = data.get("throwCancelProposal")
+    if cancel and cancel["state"] == "accepted-design-direction":
+        assert cancel["acceptedBy"] and cancel["acceptedOn"] and cancel["acceptanceEvidence"]
+    pursuit = data.get("pursuitSpeedProposal")
+    if pursuit:
+        v = pursuit["run5FeetPerSecond"]
+        scale = v / pursuit["baselineRun5FeetPerSecond"]
+        for row in pursuit["statRows"]:
+            assert math.isclose(row["feetPerSecond"], (pursuit["baselineBaseFeetPerSecond"] + row["run"] * pursuit["baselineFeetPerSecondPerRun"]) * scale)
+        for row in pursuit["distanceRows"]:
+            assert math.isclose(row["secondsAtRun5TopSpeed"], row["distanceFeet"] / v)
+        rear = pursuit["rearChase"]
+        assert math.isclose(rear["controlTravelSeconds"], rear["controlGapFeet"] / rear["controlOfAirSpeedFeetPerSecond"])
+        assert math.isclose(rear["trialTravelSeconds"], rear["c80GapFeet"] / v)
+        assert math.isclose(rear["timePreservingSpeedFeetPerSecond"], rear["c80GapFeet"] / rear["controlTravelSeconds"])
+        inside = pursuit["infieldSensitivity"]
+        assert math.isclose(inside["controlGroundTravelSeconds"], inside["controlDistanceFeet"] / pursuit["baselineRun5FeetPerSecond"])
+        assert math.isclose(inside["trialTravelSeconds"], inside["c80DistanceFeet"] / v)
+        assert math.isclose(inside["timePreservingSpeedFeetPerSecond"], inside["c80DistanceFeet"] / inside["controlGroundTravelSeconds"])
+        for alt in pursuit["alternatives"]:
+            assert math.isclose(alt["thirtyFeetSeconds"], 30 / alt["run5FeetPerSecond"])
+            assert math.isclose(alt["rearChaseSeconds"], rear["c80GapFeet"] / alt["run5FeetPerSecond"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "throwCancelState": cancel["state"] if cancel else None,
             "throwBufferState": buffer["state"] if buffer else None,
             "laserThrowState": laser["state"] if laser else None,
             "snapThrowState": snap["state"] if snap else None,

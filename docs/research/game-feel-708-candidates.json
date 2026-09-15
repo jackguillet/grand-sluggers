@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-throw-abilities-relay-and-input-buffer-accepted; throw-cancel-pending; incomplete-runtime-contract",
+  "status": "C80-throw-and-relay-controls-accepted; pursuit-speed-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with exact buffer/cancel details pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Special stacking remains pending.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with the 0.25-second buffer and contextual RB/period cancel accepted; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Snap Throw and situational Laser trial definitions are accepted below; remaining recovery and geometry interactions need validation.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -176,13 +176,28 @@
     },
     {
       "id": "F693-03-throw-cancel",
-      "state": "next-human-decision",
+      "state": "accepted-design-direction",
       "question": "Use RB / period to cancel a queued defensive throw, and existing bag-selection controls to retarget before release motion, with distinct selected versus queued target feedback?"
     },
     {
-      "id": "F693-02-movement-budget",
+      "id": "F693-02-pursuit-speed",
+      "state": "next-human-decision",
+      "question": "Use 18 ft/s as the ordinary Run-5 pursuit top speed for C80, preserving the relative character-speed curve and using one profile across positions and hit classes?"
+    },
+    {
+      "id": "F693-02-read-clock",
       "state": "pending",
-      "question": "Review a common pursuit profile with read, acceleration and coverage against both routine defense and deep-hit races."
+      "question": "Choose the brief post-contact read durations and eligibility rules without adding camera-dependent lockout."
+    },
+    {
+      "id": "F693-02-movement-response",
+      "state": "pending",
+      "question": "Choose ordinary acceleration, braking and direction-change response individually; review dash and special movement modifiers."
+    },
+    {
+      "id": "F693-02-coverage-budget",
+      "state": "pending",
+      "question": "Review cover/cutoff movement, receiver readiness, catch reach and pickup/recovery against complete races."
     },
     {
       "id": "F693-04-flight-budget",
@@ -854,7 +869,7 @@
   },
   "throwCancelProposal": {
     "decisionId": "F693-03-throw-cancel",
-    "state": "pending",
+    "state": "accepted-design-direction",
     "recommendation": "While a defensive throw is queued, a fresh RB / period press cancels it. Existing bag selectors retarget it before release motion begins, without refreshing the 0.25-second buffer.",
     "gamepad": "Right shoulder (RB / R equivalent by controller family), fresh press",
     "keyboard": "Period (.), fresh press; keyboard+mouse remain player 1 only",
@@ -884,6 +899,101 @@
       "After release-motion commitment, no undo or redirect",
       "Both gamepad seats and keyboard/mouse player 1 follow the same contract"
     ],
-    "implementationBoundary": "Pending control proposal. Create a typed defensive cancel command in the existing shared input/throw path; do not reuse runner AllReturn as a simulation command. Update docs/how-to-play.md and HowToPlay.cs together with the implementation through the presentation owner. Research edits do not activate the verb."
+    "implementationBoundary": "Accepted control direction; runtime migration pending. Create a typed defensive cancel command in the existing shared input/throw path; do not reuse runner AllReturn as a simulation command. Update docs/how-to-play.md and HowToPlay.cs together with the implementation through the presentation owner. Research edits do not activate the verb.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to RB / period cancel and existing bag controls for retargeting, including the presented queued-target feedback and commitment boundary."
+  },
+  "pursuitSpeedProposal": {
+    "decisionId": "F693-02-pursuit-speed",
+    "state": "pending",
+    "run5FeetPerSecond": 18.0,
+    "formula": "speed(Run) = (21 + 1.9*Run) * (18/30.5)",
+    "baselineBaseFeetPerSecond": 21.0,
+    "baselineFeetPerSecondPerRun": 1.9,
+    "baselineRun5FeetPerSecond": 30.5,
+    "recommendation": "Ordinary no-dash pursuit top speed is 18 ft/s at Run 5. Scale the existing Run curve uniformly by 18/30.5, retaining relative character speed differences. Use the same profile for a character across positions and hit classes; remove the old IF/OF hit-class speed multipliers only within coherent calibration.",
+    "scope": "Ordinary eligible pursuit top speed, not post-contact read, acceleration, braking, stopping distance, dash or special/status coefficients. Baserunning elapsed anchors remain unchanged. Coverage/cutoff/backup and carrying-ball interactions need their own explicit budget review, not accidental inheritance.",
+    "basis": "A trial compromise between incompatible time-preserving sensitivities: C80 infield-distance scaling suggests 30.5*(80/90)=27.111 ft/s; CF-to-wall scaling at old OF air speed suggests 18.3*(280/400)=12.81 ft/s. 18 is near current Run-5 OF non-grounder speed 18.3 but far below current ground/loose base 30.5. Neither sensitivity alone is a complete interception or race model.",
+    "statRows": [
+      {
+        "run": 1,
+        "feetPerSecond": 13.514754098360655
+      },
+      {
+        "run": 3,
+        "feetPerSecond": 15.757377049180327
+      },
+      {
+        "run": 5,
+        "feetPerSecond": 18.0
+      },
+      {
+        "run": 7,
+        "feetPerSecond": 20.242622950819673
+      },
+      {
+        "run": 9,
+        "feetPerSecond": 22.485245901639342
+      }
+    ],
+    "distanceRows": [
+      {
+        "distanceFeet": 16,
+        "secondsAtRun5TopSpeed": 0.8888888888888888
+      },
+      {
+        "distanceFeet": 30,
+        "secondsAtRun5TopSpeed": 1.6666666666666667
+      },
+      {
+        "distanceFeet": 60,
+        "secondsAtRun5TopSpeed": 3.3333333333333335
+      }
+    ],
+    "rearChase": {
+      "controlGapFeet": 95.0,
+      "controlOfAirSpeedFeetPerSecond": 18.3,
+      "controlTravelSeconds": 5.191256830601093,
+      "c80GapFeet": 66.5,
+      "trialTravelSeconds": 3.6944444444444446,
+      "timePreservingSpeedFeetPerSecond": 12.81
+    },
+    "infieldSensitivity": {
+      "controlDistanceFeet": 18.0,
+      "c80DistanceFeet": 16.0,
+      "controlGroundTravelSeconds": 0.5901639344262295,
+      "trialTravelSeconds": 0.8888888888888888,
+      "timePreservingSpeedFeetPerSecond": 27.11111111111111
+    },
+    "arithmeticScope": "Straight-line constant-top-speed sensitivities excluding read, acceleration, interception, reach, pickup, dash and throw. CF gaps use accepted initial geometry/starts, not an actual traced chase. None of these rows is a simulated candidate outcome.",
+    "alternatives": [
+      {
+        "run5FeetPerSecond": 16.0,
+        "thirtyFeetSeconds": 1.875,
+        "rearChaseSeconds": 4.15625,
+        "effect": "More room for deep hits, larger cost to routine infield pursuit."
+      },
+      {
+        "run5FeetPerSecond": 20.0,
+        "thirtyFeetSeconds": 1.5,
+        "rearChaseSeconds": 3.325,
+        "effect": "Easier routine coverage, more pressure on deep-hit opportunities in the compact field."
+      }
+    ],
+    "referenceLimits": "Wii Pianta timing survey constrains conditional field ratios, not matched absolute pursuit speed; its 90-foot assumption and fielding/running equivalence are unverified. Existing GameCube timing/geometry evidence has no matched stock Run-to-world-speed calibration. 18 ft/s is an authored trial, not a Mario measurement.",
+    "reference": "https://www.reddit.com/r/MarioSuperSluggers/comments/xdvwn9",
+    "tradeoff": "Slows ordinary ground pursuit substantially while making compact OF air travel quicker than the old larger-field chase. It cannot by itself preserve both routine outs and doubles/triples; ball paths, read, pickup and real coverage must be calibrated together. Do not enlarge the outfield, add hidden positional speed penalties or change accepted baserunning solely to rescue a fixture.",
+    "requiredChecks": [
+      "Common speed for same character/inputs across grounder/liner/fly/pop, IF/OF and loose-ball classification changes",
+      "Current relative stat ordering and scale retained; Run 1/5/9 and actual captains",
+      "Complete routine infield race with prompt human command and all accepted release/travel rules",
+      "Deep gap, wall, short fly and hard liner opportunities with real interception",
+      "Read/acceleration/stopping and manual/assisted transition measured separately",
+      "Explicit dash/status and carrying/coverage consumer audit",
+      "Both human seats and deterministic CPU routes use matching movement predictions",
+      "Named mixed-park and separate Harbor home/away scoring gates, extra-base/relay counts and standalone feel"
+    ],
+    "implementationBoundary": "Pending speed trial. No runtime coefficients change until the shared movement/geometry/ball contract is complete and implementation children exist. Record failures against accepted intent; numerical arithmetic is not gameplay acceptance."
   }
 }
