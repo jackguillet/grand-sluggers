@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-calibration-samples-accepted; field-dash-peak-pending; incomplete-runtime-contract",
+  "status": "C80-through-field-dash-peak-accepted; field-dash-duration-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -251,13 +251,18 @@
     },
     {
       "id": "F693-02-field-dash-peak",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a 1.20x peak ordinary fielding dash speed, preserving character ratios, with duration/availability and dash response reviewed next?"
+    },
+    {
+      "id": "F693-02-field-dash-duration",
+      "state": "next-human-decision",
+      "question": "Use a maximum two-second continuous fielding dash window, including build-up, then return toward ordinary running, with recovery/re-arming and physical response reviewed separately?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Review fielding dash duration/availability and response/ownership, then status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Review field dash recovery/re-arming and physical response/ownership, then status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -2189,7 +2194,7 @@
   },
   "fieldDashPeakProposal": {
     "decisionId": "F693-02-field-dash-peak",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "peakSpeedMultiplier": 1.2,
     "currentHeldMultiplier": 1.35,
     "recommendation": "Use 1.20x ordinary pursuit top speed while a fielding dash is fully active: a 20% peak boost. Preserve accepted relative character speed differences and the same profile across assigned fielding positions/hit classes. Select peak speed only; duration, availability, fatigue/cooldown, response and CPU/assist ownership follow separately.",
@@ -2253,6 +2258,57 @@
       "Peak/ordinary changes do not jump velocity or inflate reach; status/abilities/carry explicitly reconciled later",
       "Independent scoring cohorts and actual standalone speed/footfall readability; no duration inferred from 60-foot arithmetic"
     ],
-    "implementationBoundary": "Pending dash-peak trial. No runtime or spec section 8.1 baseline coefficient is changed here; timed-fade mismatch remains an explicit follow-up for the dash schedule. No candidate simulation or human gate pass."
+    "implementationBoundary": "Accepted dash-peak trial only. Runtime and spec section 8.1 baseline coefficient remain unchanged; duration, recovery, response and ownership remain separate decisions. No candidate simulation or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied sure to the proposed 20% peak fielding dash boost, taking Run-5 from 18 to 21.6 ft/s, with duration and availability reviewed next."
+  },
+  "fieldDashDurationProposal": {
+    "decisionId": "F693-02-field-dash-duration",
+    "state": "pending",
+    "maxBurstSeconds": 2.0,
+    "recommendation": "Allow up to two seconds of continuous fielding dash eligibility, including build-up, then request ordinary running even if dash remains held. Return smoothly, with no below-ordinary exhaustion penalty from this choice.",
+    "scope": "One continuous ordinary fielding pursuit burst, same duration across characters. Recovery time, fresh-press/re-arming rules, per-play reset policy, CPU/assisted activation, status/carry and numerical build-up/fade remain separate. No baserunning change.",
+    "clock": "Active baseball simulation time. Start only when an available dash has eligible pursuit and movement intent; holding during SET or the contact read neither consumes nor precharges a burst. Once started, the deadline advances during active play even if the fielder stops or turns. Pause/device-recovery freezes it. Releasing dash ends its requested boost early. It does not establish an instant refill.",
+    "boundary": "At elapsed >=2.0 request the ordinary target. This is a boost-window endpoint, not an instantaneous physical velocity clamp: exact acceleration/fade is pending and any residual travel must be counted later. Keep burst state on the actual fielder/play, not the selected camera or seat; selection cannot reset that fielder. Switching, re-arming and recharge need a complete shared availability contract before implementation.",
+    "audit": "Spec 8.1 already says two seconds then fades, while inspected FieldDashRules/ChaseMul and EastHeld paths have no corresponding timer/fade. Proposed finite-window direction reconciles the intended duration only; recovery/fade and runtime compliance remain unresolved.",
+    "run5Arithmetic": {
+      "ordinaryFeetPerSecond": 18.0,
+      "peakFeetPerSecond": 21.599999999999998,
+      "windowSeconds": 2.0,
+      "ordinaryConstantSpeedDistanceFeet": 36.0,
+      "peakConstantSpeedDistanceFeet": 43.199999999999996,
+      "extraDistanceWithinWindowFeet": 7.199999999999998
+    },
+    "arithmeticScope": "Illustrative straight travel at full ordinary or peak speed throughout the two-second window, excluding read, entry ramp, turns and reach. 7.2 feet is the ideal peak-versus-ordinary distance difference within that window, not a guaranteed catch or a bound on complete start/fade/recovery travel.",
+    "alternatives": [
+      {
+        "seconds": 1.5,
+        "run5IdealExtraDistanceFeet": 5.399999999999999,
+        "effect": "Shorter correction; less time to visibly sustain the boost."
+      },
+      {
+        "seconds": 2.5,
+        "run5IdealExtraDistanceFeet": 8.999999999999998,
+        "effect": "Longer recovery reach; more risk of erasing compact-field gaps."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "checkedOn": "2026-09-14",
+      "limit": "Official manuals describe deliberate fielding dash controls but do not establish a two-second limit or a recovery schedule. The proposed two seconds is an authored Harbor trial with an existing spec precedent, not measured Mario behavior."
+    },
+    "requiredChecks": [
+      "Frame-split parity at exact two-second deadline and early release; pause and device-recovery time do not drain burst",
+      "Read eligibility and held-at-contact behavior; no precharge or read bypass",
+      "Selection does not reset actual fielder state; recovery and re-arming cannot be inferred or bypassed by release/repress",
+      "Shared predictor/stepping integrate actual entry and exit response; count residual fade distance",
+      "Same duration across characters, both seats/schemes; CPU/assist activation and status reviewed before implementation",
+      "Grounders, wrong steps, short pops, gaps, walls and relays with complete races, independent scoring cohorts and human standalone acceptance"
+    ],
+    "implementationBoundary": "Pending duration trial; not a complete availability or physical-response contract. No runtime timer, coefficient, couch control, build, simulated candidate result or human acceptance changes here."
   }
 }
