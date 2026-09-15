@@ -376,8 +376,13 @@
     },
     {
       "id": "F693-02-jump-catch-throw-readiness",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "After a normal jumping catch, wait for actual landing before starting the ordinary throw release, with no generic extra pause after a clean landing and existing buffer/other recovery rules preserved?"
+    },
+    {
+      "id": "F693-02-jump-air-control",
+      "state": "next-human-decision",
+      "question": "Allow limited horizontal correction during a normal jump, preserving takeoff momentum and neutral drift, with the same bounded control before and after a catch rather than full ground steering or a fully locked trajectory?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -3944,7 +3949,7 @@
   },
   "jumpCatchThrowReadinessProposal": {
     "decisionId": "F693-02-jump-catch-throw-readiness",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "requiresLandingBeforeReleaseStart": true,
     "extraCleanLandingPauseSeconds": 0.0,
     "recommendation": "After a normal jumping catch, begin a throw release only after the fielder has actually landed and all other applicable throw restrictions have ended. A clean normal landing adds no generic extra pause; a still-valid deliberate command can start the ordinary .30-second release then.",
@@ -3996,6 +4001,40 @@
       "Catch-out validity, retouch/tag-up and inning end retain their legal ordering; no new airborne contact privilege.",
       "Both seats/CPU and relevant jump abilities; wall/buddy/dive variants and actual airtimes reviewed before runtime/standalone gates."
     ],
-    "implementationBoundary": "Pending normal jumping-catch throw readiness only. No jump duration, air control, special landing motion, new ability, runtime change or human gate selected."
+    "implementationBoundary": "Accepted normal jumping-catch throw readiness only; jump motion and exceptional variants remain pending. No jump duration, air control, special landing motion, new ability, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to landing before starting a normal throw after a jumping catch, with no additional generic pause after a clean landing."
+  },
+  "jumpAirControlProposal": {
+    "decisionId": "F693-02-jump-air-control",
+    "state": "pending",
+    "recommendation": "Normal jumps preserve actual takeoff horizontal velocity and allow limited horizontal correction while airborne. Neutral intent keeps that horizontal drift in unobstructed space; active steering changes it gradually through a shared bounded air-control response. Use the same correction policy before and after secure possession, subject to applicable action restrictions.",
+    "scope": "Qualitative air-control policy for a normal fielding jump. Does not choose jump height/airtime, takeoff impulse, numerical air acceleration/braking/speed limits, wall/buddy/dive motion, collisions or special airborne knockback. Those quantities must be reviewed together before implementation.",
+    "airAccelerationScale": null,
+    "airBrakingScale": null,
+    "airSpeedLimitFeetPerSecond": null,
+    "maxCorrectionDistanceFeet": null,
+    "takeoff": "Carry actual horizontal velocity into the jump without a free forward lunge, reset to zero or instant change to the facing/stick direction. A stationary jump with neutral intent stays horizontally stationary in free space. Height and airtime follow the separately selected vertical jump profile, not ball gravity or the control stick.",
+    "control": "Allow a small deliberate horizontal correction rather than a fully locked trajectory or ground-strength steering. Neutral input does not apply ordinary ground braking in the air. Active opposite intent may slow or redirect velocity only through the reviewed bounded response; no instant stop/reverse. Steering cannot hover, add lift, extend airtime or cause a second jump.",
+    "possession": "A clean catch does not reset velocity, replenish a correction budget or start a new air-control window. The same bounds apply before and after acquisition. Carrying abilities must respect them and cannot grant an instant midair velocity boost or bypass a movement restriction. Ordinary throw release still waits for actual landing under the accepted rule.",
+    "ownership": "Manual, assisted and CPU movement must consume the same air-control limits. Any neutral-assist pursuit policy is a distinct source of steering intent and must not bypass those limits through hidden position snaps or unrestricted attraction to the ball. Switching control/selected fielder does not reset motion or the airborne correction state. Existing assist ownership policy is not redesigned here.",
+    "statusAndLanding": "A status that blocks commanded movement also blocks steering corrections while active, without erasing physical drift/impact motion. At landing preserve actual horizontal velocity and return to the accepted ground/carry response when movement is eligible; no mandatory stop, free speed refill or extra clean-landing pause.",
+    "calibrationGate": "Choose numerical control strength and any cap together with the vertical jump profile and resulting airtime. Measure reachable correction distances for stationary/slow/fast takeoffs, angled/opposite intent, catching mid-jump and different Run ratings. Do not select a control percentage in isolation and call it modest without seeing how far it moves the catch envelope. Extra steering is not extra glove radius.",
+    "alternatives": [
+      "Fully committed horizontal trajectory preserves the strongest positioning cost but gives no correction for a small takeoff error.",
+      "Ground-strength steering makes midair course changes easier and can substantially enlarge catch coverage or encourage jumping as a travel shortcut."
+    ],
+    "currentAudit": "The inspected manual steering path updates GloveX/GloveZ with ground ChaseSpeedFt under CanMove, without a distinct airborne response in that block. JumpT is an input arming window. These paths do not establish a shared takeoff/drift/landing trajectory or justify reusing full ground steering for the proposed jump.",
+    "referenceLimit": "Authored control-direction proposal, not a measured Wii/GameCube air-control curve. Numerical calibration and direct jump comparison remain pending.",
+    "requiredChecks": [
+      "Actual moving takeoff preserves velocity, stationary neutral takeoff remains horizontally stationary, and neutral drift does not apply hidden ground braking.",
+      "Active corrections obey the shared bounded response without instantaneous reversal, hover, extra airtime or an added jump impulse.",
+      "Catch, selection and possession transitions do not reset velocity or restore air-control budget; Ball Dash cannot bypass restrictions.",
+      "Both seats/CPU/assist share reachability limits and real catch geometry; no hidden ball magnet or enlarged glove radius.",
+      "Landing preserves actual velocity and obeys accepted throw readiness; status-blocked steering does not erase physical motion.",
+      "Measure correction envelope against jump airtime across Run ratings and incoming speeds before choosing numbers; verify routine flies and wrong takeoff direction in the standalone game."
+    ],
+    "implementationBoundary": "Pending qualitative normal-jump air-control policy only. Numerical jump/control contract, exceptional motion, runtime changes and human gates remain open."
   }
 }

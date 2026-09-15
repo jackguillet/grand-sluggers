@@ -857,7 +857,8 @@ def derive(data):
             assert math.isclose(row["impactDistanceFeet"], w*w)
     jump_ready = data.get("jumpCatchThrowReadinessProposal")
     if jump_ready:
-        assert jump_ready["state"] == "pending"
+        if jump_ready["state"] == "accepted-calibration-anchor":
+            assert jump_ready["acceptedBy"] and jump_ready["acceptedOn"] and jump_ready["acceptanceEvidence"]
         assert jump_ready["requiresLandingBeforeReleaseStart"]
         assert jump_ready["extraCleanLandingPauseSeconds"] == 0
         for row in jump_ready["examples"]:
@@ -868,9 +869,14 @@ def derive(data):
                 assert row["releaseSeconds"] is None
             else:
                 assert math.isclose(row["releaseSeconds"], start+.30)
+    air_control = data.get("jumpAirControlProposal")
+    if air_control:
+        assert air_control["state"] == "pending"
+        assert all(air_control[key] is None for key in ("airAccelerationScale", "airBrakingScale", "airSpeedLimitFeetPerSecond", "maxCorrectionDistanceFeet"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "jumpAirControlState": air_control["state"] if air_control else None,
             "jumpCatchThrowReadinessState": jump_ready["state"] if jump_ready else None,
             "groundedAirCatchRecoilState": air_recoil["state"] if air_recoil else None,
             "cleanAirCatchReadinessState": air_catch["state"] if air_catch else None,
