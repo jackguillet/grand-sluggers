@@ -1080,9 +1080,9 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Scope and evidence:** normal jumping catches of airborne batted balls only. Grounded fly input, teammate throws, pickups and exceptional jumps remain separate. The repository establishes the existing one-press path; reviewed Mario manuals do not establish exact collision geometry or all input edge cases. Compare ordinary jump catches in both reference games and the eventual standalone before claiming feel parity. Validate catches and near misses with no South input, hold/release, both seats/schemes, CPU/assistance and special effects, using one authoritative acquisition event. Future implementation must reconcile the physical catch and both couch-book surfaces. No runtime or human gate changes here.
 
-## Next decision — glove adjustment during a normal jump
+## Historical proposal — Field-dependent glove adjustment (superseded)
 
-**F693-02-normal-jump-glove-tracking — pending, September 15, 2026.** Recommend **a small automatic arm/glove adjustment toward a reachable nearby ball**, with **better Fielding improving adjustment responsiveness within physical reach**. Keep the root on its approved jump/movement path. This chooses a direction; numerical adjustment limits, response times, Field curve and catch volume remain pending.
+**F693-02-normal-jump-glove-tracking — unaccepted and superseded by Jack on September 15, 2026.** The following records the earlier proposal, not the current target. It recommended **a small automatic arm/glove adjustment toward a reachable nearby ball**, with **better Fielding improving adjustment responsiveness within physical reach**. Keep the root on its approved jump/movement path. This chooses a direction; numerical adjustment limits, response times, Field curve and catch volume remain pending.
 
 **Player-facing effect:** after you position and time the jump, the fielder can make a modest local reach to meet the ball. A stronger fielder can adjust more promptly to a late nearby ball. A weaker fielder whose glove is already in the right place still catches it; do not manufacture a miss or add an ordinary drop roll. If the ball is too far away or the glove cannot arrive in time, it passes.
 
@@ -1096,7 +1096,31 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Scope and evidence:** normal jumping catches of airborne batted balls only; no new auto-jump or movement takeover, and special acquisition/possession effects still apply. The numeric envelope, response curve, collision volume and special interactions remain required work. No measured Wii/GC glove-adjustment or Field-response formula is established. Compare near-edge catches and visible arm movement in both games, separating root movement from glove reach, then inspect the actual standalone character paths. No runtime, asset or human gate changes here.
 
-**Question for Jack:** allow modest automatic glove adjustment during a jump, with better Fielding making the adjustment more responsive within the character's physical reach?
+## Accepted direction — character catch range without Field-driven glove positioning
+
+**F693-02-character-catch-range — directed by Jack on September 15, 2026.** Characters should have a **catch range within which they can move their glove to get the ball**. Fielding should not determine glove positioning or response. This replaces the unaccepted Field-dependent responsiveness proposal above.
+
+**What changes:** use an explicit character catch range rather than converting Field into faster hand adjustment or an extra chance of reaching the ball. An ordinary legal in-range opportunity should be supported by visible glove placement. A lower displayed Fielding score must not manufacture an otherwise avoidable hand-positioning miss. Root positioning and jump timing remain player-owned, and special acquisition/possession restrictions still apply.
+
+**Do not overinterpret range:** Jack has not selected its shape, size, facing/pose dependence or how ordinary versus dive/ability ranges differ. This is not approval of the old `10+.6*Field` radius, a tiny literal hand sphere, unlimited limb stretch or a universal 360-degree catch bubble. Author readable cartoon range and matching glove motion together. Simulation and visible interception must agree; exact pose selection, time-dependent evaluation and collision ordering remain work before implementation.
+
+**Fielding suggestion:** Jack proposed that Fielding could be a broader indication of defensive abilities, such as a unique dive, or fewer errors. That is a stat-design discussion, not approval of new error rolls or automatic ability unlocks. Keep prior reliable-defense, throwing and recoil decisions intact until their explicit migration is reviewed. The next decision addresses the summary rating's role; error situations and individual abilities remain separate.
+
+## Next decision — what the Fielding rating represents
+
+**F693-02-fielding-rating-role — pending, September 15, 2026.** Recommend that **displayed Fielding summarize explicit defensive traits and abilities**, rather than serve as one universal multiplier. Underlying definitions could cover catch range, handling/error resistance, arm/transfer behavior and special defensive abilities. The score describes the character; changing only that displayed score would not change gameplay.
+
+**Example:** two characters could have similar Fielding scores, but one offers a distinctive dive while another has steadier handling. Their named traits determine those differences. A high summary score does not automatically grant a dive ability, longer arms or faster glove adjustment. These are illustrative identities, not new roster assignments.
+
+**Why this matters:** it lets the card communicate overall defensive strength while allowing characters to excel in different ways. A single score can obscure those differences, so meaningful abilities/strengths should also be visible on the eventual card; the exact presentation is separate. Final trait categories and summary weights are not selected here.
+
+**Existing decisions need an explicit migration:** accepted recoil factors, special-impact resistance and throw range/speed currently use Field. Inventory each current and approved consumer, map it to a named underlying trait and compare the resulting behavior before implementation. Their approved numerical anchors and intended behavior remain the baseline. Do not silently discard them, bind them to a new aggregate score or invent replacement coefficients. Any substantive behavior change returns for review.
+
+**Errors remain a separate decision:** handling/error resistance names a possible skill, not a new random drop on routine catches. Decide which situations can produce errors and how character traits affect them before choosing probabilities. Jack's suggestion does not itself reverse reliable ordinary defense or approve a new error system.
+
+This is an authored architecture proposal, not a verified Mario aggregation formula. Range dimensions, individual abilities, error rules, summary formula and migration remain tracked before runtime work. No gameplay, roster, card or human gate changes here.
+
+**Question for Jack:** make displayed Fielding a summary of explicit defensive traits and abilities, with those underlying traits determining gameplay?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

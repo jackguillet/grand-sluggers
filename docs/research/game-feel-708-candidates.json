@@ -426,8 +426,18 @@
     },
     {
       "id": "F693-02-normal-jump-glove-tracking",
-      "state": "next-human-decision",
+      "state": "superseded-by-user-direction",
       "question": "Allow a small automatic arm/glove adjustment during a normal jump, with better Fielding improving responsiveness within physical reach rather than adding root motion or invisible reach?"
+    },
+    {
+      "id": "F693-02-character-catch-range",
+      "state": "accepted-calibration-anchor",
+      "question": "User direction: character catch range supports glove placement; Fielding does not control glove positioning or response."
+    },
+    {
+      "id": "F693-02-fielding-rating-role",
+      "state": "next-human-decision",
+      "question": "Should displayed Fielding summarize explicit defensive traits/abilities rather than act as one universal gameplay multiplier, with prior throw/recoil formulas reviewed before migration?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4479,7 +4489,7 @@
   },
   "normalJumpGloveTrackingProposal": {
     "decisionId": "F693-02-normal-jump-glove-tracking",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "maximumGloveAdjustmentFeet": null,
     "responseSecondsByField": null,
     "gloveCatchGeometry": null,
@@ -4502,6 +4512,52 @@
       "Select numerical adjustment, response curve, collision volume and motion representation before implementation; reconcile legacy radius/window/ability benefits explicitly.",
       "Respect special acquisition/possession effects and accepted jump/throw lifecycle; compare reference and standalone near-edge catches before human acceptance."
     ],
-    "implementationBoundary": "Pending glove-assistance and Fielding-response direction only. No numerical reach, stat curve, animation architecture change, runtime code, asset or human gate selected."
+    "implementationBoundary": "Historical unaccepted proposal superseded by Jack. Do not implement Field-dependent glove response from this record.",
+    "supersededBy": "F693-02-character-catch-range",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack rejected Fielding affecting glove positioning and proposed a character catch range within which the glove can meet the ball. Fielding could summarize defensive abilities or fewer errors."
+  },
+  "characterCatchRangeDirection": {
+    "decisionId": "F693-02-character-catch-range",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack: I don't think we should have the fielding stat impact glove positioning. I think that characters should essentially have a 'range' where if the ball is within that range, they can move their glove to get the ball. fielding statistic could be a larger encompassing statistic to indicate players have a unique dive ability, or make less errors.",
+    "direction": "Author a character catch range within which the fielder can move the glove to meet a legally catchable ball. Do not make Fielding determine glove positioning, adjustment latency/speed, or a hidden extra chance of reaching that ball. Range and its visible glove motion should agree.",
+    "range": "Treat catch range as an explicit gameplay property, not the result of the displayed Field number or the previous proposed Field-dependent tracking. Character-specific shape, dimensions, facing/pose dependence and exceptional modifiers are still unselected. Do not equate this direction with a newly approved tiny anatomical sphere, a legacy 10+.6*Field radius, a fixed 360-degree volume or permission to stretch limbs. Review a readable cartoon reach envelope and matching authored poses.",
+    "ordinaryCatch": "For an ordinary legal in-range opportunity, glove placement should support the catch reliably without a second hand-positioning challenge or a Field-based response race. Existing player-owned jump timing/root positioning still determines whether the ball enters the appropriate range. This does not guarantee a catch regardless of acquisition restrictions, special hits, obstruction or other reviewed legality.",
+    "physicalContract": "Make the range, simulation interception and visible glove path agree. Do not award an out while the visible glove cannot meet the ball, teleport the ball, add unreviewed root motion or let an animation failure invent a low-Field miss. Exact range evaluation over time, pose selection and collision ordering remain implementation/design work. Preserve the one rig, authored takes and simulation clock contract; no procedural pose system is selected here.",
+    "fieldingSuggestion": "Jack suggested Fielding could be an encompassing indication of abilities such as a unique dive or fewer errors. Record that as a direction to discuss, not approval of a derived-rating formula, new ability assignment or random error system. Previous throw/recoil/chemistry and reliable ordinary-defense decisions are not silently canceled.",
+    "scope": "Character catch-range direction arising from normal jumping catches. Different grounded/jump/dive/ability envelopes and their input contracts still need review. No numerical range, range ownership implementation or ability/error balancing selected.",
+    "requiredChecks": [
+      "Changing only displayed Fielding cannot change glove positioning/response or secretly resize the explicit catch range.",
+      "Ordinary legal in-range opportunities have a corresponding authored glove interception without a second input or low-Field timing gate.",
+      "Out-of-range opportunities remain misses unless a separately reviewed action/ability makes them reachable; no unapproved root snap.",
+      "Range, authoritative event and visible glove path agree across characters, handedness, seats/CPU, ball directions and frame partitions.",
+      "Preserve special-hit eligibility and existing accepted throw/recoil rules until an explicit stat migration is reviewed."
+    ],
+    "referenceLimit": "User-authored correction. No measured Mario catch-range dimensions or composite Fielding formula established.",
+    "implementationBoundary": "Accepted direction only. No numerical range, new error probability, roster/stat migration, runtime or asset change; standalone gates remain open."
+  },
+  "fieldingRatingRoleProposal": {
+    "decisionId": "F693-02-fielding-rating-role",
+    "state": "pending",
+    "displayRole": "summary-of-explicit-defensive-traits",
+    "summaryFormula": null,
+    "errorModel": null,
+    "recommendation": "Treat displayed Fielding as a summary of explicit defensive traits and abilities, not a universal input multiplied into every defensive action. Give catch range, handling/error resistance, arm/transfer behavior and special defensive abilities named underlying definitions. The displayed score describes those traits; changing only the score does not change gameplay.",
+    "scope": "Stat architecture direction, not selection of a final trait list, weights, error model, dive design or character ratings. Catch range follows the accepted independent-range direction. A unique dive is an explicit ability, not automatically unlocked by a high summary score.",
+    "examples": "Two characters can have similar displayed Fielding with different strengths: one may offer a distinctive dive, another steadier handling. Their actual traits decide the behavior; an equal summary score does not imply identical catch range, arm or ability set. These are illustrative archetypes, not assigned roster changes.",
+    "migration": "If approved, inventory every current or approved Field consumer and explicitly map it to a named underlying trait before implementing the new architecture. That includes accepted ordinary recoil factors, special-impact resistance, throw range/speed and existing accuracy/handling/window rules. Preserve their approved intended behavior and numeric anchors as the migration baseline; do not rewire them to an invented new score, discard them or claim the migration is complete. Any substantive behavior change returns for decision.",
+    "errors": "Handling/error resistance is a possible trait category, not a new ordinary random-drop roll. Jack mentioning fewer errors reopens discussion of what situations count as error opportunities; ordinary reliability and existing special-hit restrictions remain in force until that separate decision. No error probabilities are selected.",
+    "tradeoff": "Separate traits express distinct defensive identities and make exceptions explicit. A summary alone hides tradeoffs, so the future character card should expose the meaningful named abilities/strengths; exact card presentation remains separate. Keeping one universal scalar is simpler but couples unrelated skills and would recreate Field-driven glove behavior Jack rejected.",
+    "requiredChecks": [
+      "Changing only the display summary cannot alter runtime behavior; named traits/abilities are the gameplay source.",
+      "Every old or approved Field consumer has an explicit migration mapping with behavioral/numerical comparisons before implementation.",
+      "Same summary can represent different trait combinations without granting an unowned ability or changing catch range.",
+      "Error situations/probabilities and summary weights remain unselected until separately reviewed; no silent ordinary reliability regression."
+    ],
+    "referenceLimit": "Authored architecture recommendation based on Jack's suggestion, not a verified Mario stat aggregation formula.",
+    "implementationBoundary": "Pending architecture choice. No current Field calculation, card, roster, error model or runtime changed."
   }
 }
