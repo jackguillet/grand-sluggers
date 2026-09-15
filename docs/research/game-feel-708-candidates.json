@@ -316,8 +316,13 @@
     },
     {
       "id": "F693-02-ordinary-recoil-displacement",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Allow a modest physical skid on qualifying ordinary retained-ball ground pickups, following incoming ball travel and able to remove bag/tag contact, with precise displacement and velocity response reviewed separately?"
+    },
+    {
+      "id": "F693-02-ordinary-recoil-distance-cap",
+      "state": "next-human-decision",
+      "question": "Use a one-foot maximum added ordinary impact displacement as the initial trial, with routine pickups at zero, lesser impacts below the cap and authored special impacts allowed beyond it? It caps impact displacement, not total travel from existing movement."
     },
     {
       "id": "F693-02-movement-response",
@@ -3175,14 +3180,14 @@
   },
   "ordinaryRecoilDisplacementProposal": {
     "decisionId": "F693-02-ordinary-recoil-displacement",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Qualifying ordinary retained-ball ground pickups may cause a short, modest physical skid in the incoming ball travel direction, rather than only an in-place brace animation. Routine zero-recoil pickups receive no added impact displacement.",
     "scope": "Choose whether ordinary recoil can physically displace the fielder. Precise impulse, distance cap, speed profile and interaction with existing velocity remain unselected. This is not a completed physical response law or a runtime authorization.",
     "direction": "Use the actual incoming horizontal ball direction at acquisition, respecting bounce/wall event order, not body facing, camera direction or a ray from home plate. Degenerate horizontal direction handling remains part of the numerical response contract.",
     "geometry": "Actual simulation body/glove motion determines bag and tag contact. A fielder can leave a bag during the skid; there is no bag magnet, snap-back or preserved contact after separation. An out legally completed before separation remains completed. Do not skip valid acquisition-time contacts by applying the entire displacement before evaluating the event.",
     "movement": "Integrate a shared physical response from actual acquisition position and velocity. Do not replace existing motion with an arbitrary reset, teleport or animation-only displacement. The response must finish its ordinary impact contribution within the accepted Field-dependent recovery interval without a second recovery tail; any remaining ordinary locomotion velocity uses the accepted carrying response at readiness.",
     "fielding": "Preserve accepted shorter recovery for better Fielding. This decision does not grant another numerical resistance factor or use body size, Run or Ball Dash as hidden impact resistance. Displacement severity/Field mapping and how to avoid a shorter timer producing a harsher impulse require the subsequent response proposal.",
-    "specials": "Special hits may author stronger displacement and longer recovery under their own reviewed rules. Additive recovery durations do not imply summing displacement vectors or speeds; ordinary/special physical composition remains separate.",
+    "specials": "Jack specifically emphasized special hits that impact the fielder. Their authored impact should be allowed to produce stronger displacement and longer recovery than ordinary pickups; this does not make every special hit a knockback attack or choose an unbounded force. Additive recovery durations do not imply summing displacement vectors or speeds; each special response and ordinary/special physical composition remain separately reviewed.",
     "maxDisplacementFeet": null,
     "impulseFeetPerSecond": null,
     "velocityResponse": null,
@@ -3207,6 +3212,47 @@
       "Same response in prediction, stepping and presentation for both seats/CPU, all body types and Ball Dash eligibility.",
       "After numeric response and arrival thresholds are selected, validate full races and standalone impact readability; arithmetic cannot pass feel."
     ],
-    "implementationBoundary": "Pending physical-displacement direction decision only. No runtime, roster, motion asset, candidate simulation or human gate change."
+    "implementationBoundary": "Accepted physical-displacement direction only; exact distance and response remain pending. No runtime, roster, motion asset, candidate simulation or human gate change.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes. especially on special hits that impact the fielder. to modest physical pushback on qualifying hard pickups, including possible departure from a bag."
+  },
+  "ordinaryRecoilDistanceCapProposal": {
+    "decisionId": "F693-02-ordinary-recoil-distance-cap",
+    "state": "pending",
+    "maxAddedImpactDisplacementFeet": 1.0,
+    "recommendation": "Use a one-foot maximum for the added ordinary impact displacement as the initial trial. Routine zero-recoil pickups add zero; lesser qualifying impacts stay below the ceiling. Special hits that impact the fielder may exceed this ordinary ceiling under their own authored bounds.",
+    "scope": "A ceiling for the ordinary impact contribution in unobstructed space, not a mandatory distance for every hard pickup, a cap on total body movement, or a completed velocity law. Exact severity/Field-to-distance mapping, impulse and combined motion response remain pending.",
+    "rationale": "One foot is 1.25 percent of the selected 80-foot basepath. It provides a modest initial positional budget without committing ordinary catches to several-foot slides; special impact attacks retain room for stronger effects. Readability at gameplay distance is unverified and must be shown in the standalone game.",
+    "momentumBoundary": "Preserve actual acquisition velocity. Pre-existing running and its physical braking can add travel beyond the one-foot impact budget. Track ordinary impact contribution separately from locomotion for budgeting, while one integrated body/glove path determines contacts. Do not clamp the body to a one-foot radius or let cancellation of opposing velocity hide an oversized impact contribution.",
+    "recoveryBoundary": "The ordinary impact response must fit the accepted Field-dependent recovery window without a second tail. Do not force the full one foot into every short recovery: lesser severity and stronger Field must not acquire a harsher response merely because time is shorter. Specific mapping and velocity shape need review before implementation.",
+    "specialBoundary": "One foot is not a global clamp on special impact displacement or combined travel. Specials receive explicit finite distance/force and recovery rules later; no unlimited default, universal special knockback, or inferred additive impulse composition.",
+    "comparisons": [
+      {
+        "capFeet": 0.5,
+        "percentOfC80Basepath": 0.625,
+        "tradeoff": "More restrained positional effect; may be harder to read."
+      },
+      {
+        "capFeet": 1.0,
+        "percentOfC80Basepath": 1.25,
+        "tradeoff": "Recommended moderate initial ceiling."
+      },
+      {
+        "capFeet": 1.5,
+        "percentOfC80Basepath": 1.875,
+        "tradeoff": "More positional disruption for ordinary pickups."
+      }
+    ],
+    "referenceLimit": "Authored spatial budget, not a measured Mario distance. Prior GameCube community evidence supports physical hard-catch sliding qualitatively; no matched Wii/GameCube magnitude is available. No new reference measurement or candidate simulation for this proposal.",
+    "requiredChecks": [
+      "No ordinary impact contribution for routine zero-recoil pickup; lesser severities do not jump to the maximum.",
+      "Measure the added impact component independently of incoming locomotion; integrated position/glove contacts remain authoritative.",
+      "No bag magnet, snap-back, contact persistence after separation, or reversal of a legally completed out.",
+      "Continuous severity/Field response without excessive peak speed at brief recoveries; no extra recovery tail.",
+      "Special impact bounds remain distinct and explicit; no accidental ordinary cap on their total effect.",
+      "After response and speed thresholds are selected, trace stationary/moving/opposing-motion pickups and wall cases across seats/CPU and characters; verify actual standalone readability and complete races."
+    ],
+    "implementationBoundary": "Pending ordinary displacement ceiling only. No runtime, roster, simulation, motion assets or human gate changes."
   }
 }

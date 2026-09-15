@@ -731,11 +731,20 @@ def derive(data):
             assert case["contactEligible"] == eligible
     displacement = data.get("ordinaryRecoilDisplacementProposal")
     if displacement:
-        assert displacement["state"] == "pending"
+        if displacement["state"] == "accepted-calibration-anchor":
+            assert displacement["acceptedBy"] and displacement["acceptedOn"] and displacement["acceptanceEvidence"]
         assert all(displacement[key] is None for key in ("maxDisplacementFeet", "impulseFeetPerSecond", "velocityResponse"))
+    displacement_cap = data.get("ordinaryRecoilDistanceCapProposal")
+    if displacement_cap:
+        assert displacement_cap["state"] == "pending"
+        assert displacement_cap["maxAddedImpactDisplacementFeet"] > 0
+        basepath = next(p["basepathFt"] for p in data["profiles"] if p["id"] == selected)
+        for row in displacement_cap["comparisons"]:
+            assert math.isclose(row["percentOfC80Basepath"], 100*row["capFeet"]/basepath)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryRecoilDistanceCapState": displacement_cap["state"] if displacement_cap else None,
             "ordinaryRecoilDisplacementState": displacement["state"] if displacement else None,
             "ordinaryRecoilActionsState": recoil_actions["state"] if recoil_actions else None,
             "recoilSeverityCurveState": severity_curve["state"] if severity_curve else None,
