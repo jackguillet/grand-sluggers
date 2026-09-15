@@ -965,12 +965,24 @@ def derive(data):
             assert jump_catch_input["acceptedBy"] and jump_catch_input["acceptedOn"] and jump_catch_input["acceptanceEvidence"]
     jump_glove_tracking = data.get("normalJumpGloveTrackingProposal")
     if jump_glove_tracking:
-        assert jump_glove_tracking["state"] == "pending"
+        assert jump_glove_tracking["state"] == "superseded-by-user-direction"
+        assert jump_glove_tracking["supersededBy"] == "F693-02-character-catch-range"
+        assert jump_glove_tracking["supersessionEvidence"]
         assert all(jump_glove_tracking[key] is None for key in
                    ("maximumGloveAdjustmentFeet", "responseSecondsByField", "gloveCatchGeometry"))
+    catch_range_direction = data.get("characterCatchRangeDirection")
+    if catch_range_direction:
+        assert catch_range_direction["state"] == "accepted-calibration-anchor"
+        assert catch_range_direction["acceptedBy"] and catch_range_direction["acceptedOn"] and catch_range_direction["acceptanceEvidence"]
+    fielding_role = data.get("fieldingRatingRoleProposal")
+    if fielding_role:
+        assert fielding_role["state"] == "pending"
+        assert fielding_role["summaryFormula"] is None and fielding_role["errorModel"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "characterCatchRangeDirectionState": catch_range_direction["state"] if catch_range_direction else None,
+            "fieldingRatingRoleState": fielding_role["state"] if fielding_role else None,
             "normalJumpGloveTrackingState": jump_glove_tracking["state"] if jump_glove_tracking else None,
             "normalJumpCatchInputState": jump_catch_input["state"] if jump_catch_input else None,
             "normalJumpCharacterProfileState": jump_characters["state"] if jump_characters else None,
