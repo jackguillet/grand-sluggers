@@ -166,6 +166,8 @@ def derive(data):
     long_range = data.get("longRangeProfileProposal")
     long_rows = []
     if long_range:
+        if long_range["state"] == "accepted-calibration-anchor":
+            assert long_range["acceptedBy"] and long_range["acceptedOn"] and long_range["acceptanceEvidence"]
         def flight(distance, field, good=False):
             comfortable = long_range["middleComfortableRangeFeet"] + long_range["rangeFeetPerFieldPoint"] * (field - long_range["middleFieldStat"])
             arm = long_range["armSpeedBase"] + long_range["armSpeedPerFieldPoint"] * field
@@ -197,9 +199,21 @@ def derive(data):
                                   "goodDirectCommandToTargetSeconds": release_sec + flight(distance, field, True),
                                   "idealRelayCommandToTargetSeconds": times,
                                   "neutralRelayAdvantageSeconds": release_sec + ordinary - times["neutral"],
-                                  "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"})
+                                  "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"})
+    negative = data.get("negativeChemistryProposal")
+    if negative:
+        factor = negative["badPairTravelSpeedMultiplier"]
+        assert 0 < factor < 1
+        assert math.isclose(negative["ordinaryReleaseSeconds"], release["releaseSeconds"])
+        old = negative["currentRule"]
+        assert math.isclose(1 - (1 - old["slantChance"]) ** 2, old["twoBadLegsAtLeastOneSlantProbability"])
+        for example in negative["examples"]:
+            assert math.isclose(example["neutralFlightSeconds"], flight(example["distanceFeet"], 5))
+            assert math.isclose(example["badFlightSeconds"], example["neutralFlightSeconds"] / factor)
+            assert math.isclose(example["badCommandToTargetSeconds"], release["releaseSeconds"] + example["badFlightSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "longRangeProfileState": long_range["state"] if long_range else None,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
             "profiles": records, "proposedLongRangeComparisons": long_rows}
 

@@ -2,8 +2,9 @@
   "schemaVersion": 1,
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
+  "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "31962222fad4aeb36decbdfb8ddcb3791f45a7aa0ee74e5834c8b5b4a665546c",
+    "docs/research/game-feel-708-candidates.json": "894ca3498013ccafb4698af0b6f385c959d8d295dbe25635646764ebe0374bbc",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -420,7 +421,7 @@
         "bothLegsGood": 1.5395104895104899
       },
       "neutralRelayAdvantageSeconds": -0.4386363636363635,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 120,
@@ -436,7 +437,7 @@
         "bothLegsGood": 1.9092657342657344
       },
       "neutralRelayAdvantageSeconds": -0.40795454545454546,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 140,
@@ -452,7 +453,7 @@
         "bothLegsGood": 2.094143356643357
       },
       "neutralRelayAdvantageSeconds": -0.39261363636363633,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 160,
@@ -468,7 +469,7 @@
         "bothLegsGood": 2.279020979020979
       },
       "neutralRelayAdvantageSeconds": -0.33977272727272734,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 180,
@@ -484,7 +485,7 @@
         "bothLegsGood": 2.4638986013986015
       },
       "neutralRelayAdvantageSeconds": -0.21193181818181817,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 200,
@@ -500,7 +501,7 @@
         "bothLegsGood": 2.648776223776224
       },
       "neutralRelayAdvantageSeconds": -0.00909090909090926,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 220,
@@ -516,7 +517,7 @@
         "bothLegsGood": 2.8336538461538465
       },
       "neutralRelayAdvantageSeconds": 0.2687499999999998,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 240,
@@ -532,7 +533,7 @@
         "bothLegsGood": 3.0185314685314686
       },
       "neutralRelayAdvantageSeconds": 0.6215909090909091,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 260,
@@ -548,7 +549,7 @@
         "bothLegsGood": 3.203409090909091
       },
       "neutralRelayAdvantageSeconds": 1.0494318181818176,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 280,
@@ -564,7 +565,7 @@
         "bothLegsGood": 3.388286713286713
       },
       "neutralRelayAdvantageSeconds": 1.5522727272727277,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 80,
@@ -580,7 +581,7 @@
         "bothLegsGood": 1.4923076923076923
       },
       "neutralRelayAdvantageSeconds": -0.5,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 120,
@@ -596,7 +597,7 @@
         "bothLegsGood": 1.8384615384615386
       },
       "neutralRelayAdvantageSeconds": -0.5000000000000002,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 140,
@@ -612,7 +613,7 @@
         "bothLegsGood": 2.0115384615384615
       },
       "neutralRelayAdvantageSeconds": -0.5,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 160,
@@ -628,7 +629,7 @@
         "bothLegsGood": 2.184615384615385
       },
       "neutralRelayAdvantageSeconds": -0.5,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 180,
@@ -644,7 +645,7 @@
         "bothLegsGood": 2.3576923076923073
       },
       "neutralRelayAdvantageSeconds": -0.46250000000000036,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 200,
@@ -660,7 +661,7 @@
         "bothLegsGood": 2.5307692307692307
       },
       "neutralRelayAdvantageSeconds": -0.3500000000000001,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 220,
@@ -676,7 +677,7 @@
         "bothLegsGood": 2.703846153846154
       },
       "neutralRelayAdvantageSeconds": -0.16250000000000053,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 240,
@@ -692,7 +693,7 @@
         "bothLegsGood": 2.8769230769230774
       },
       "neutralRelayAdvantageSeconds": 0.09999999999999964,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 260,
@@ -708,7 +709,7 @@
         "bothLegsGood": 3.05
       },
       "neutralRelayAdvantageSeconds": 0.4375,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 280,
@@ -724,7 +725,7 @@
         "bothLegsGood": 3.223076923076923
       },
       "neutralRelayAdvantageSeconds": 0.8499999999999996,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 80,
@@ -740,7 +741,7 @@
         "bothLegsGood": 1.4552197802197804
       },
       "neutralRelayAdvantageSeconds": -0.5482142857142855,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 120,
@@ -756,7 +757,7 @@
         "bothLegsGood": 1.7828296703296704
       },
       "neutralRelayAdvantageSeconds": -0.5723214285714289,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 140,
@@ -772,7 +773,7 @@
         "bothLegsGood": 1.9466346153846152
       },
       "neutralRelayAdvantageSeconds": -0.5843749999999999,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 160,
@@ -788,7 +789,7 @@
         "bothLegsGood": 2.1104395604395605
       },
       "neutralRelayAdvantageSeconds": -0.5964285714285713,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 180,
@@ -804,7 +805,7 @@
         "bothLegsGood": 2.2742445054945053
       },
       "neutralRelayAdvantageSeconds": -0.6084821428571425,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 200,
@@ -820,7 +821,7 @@
         "bothLegsGood": 2.4380494505494505
       },
       "neutralRelayAdvantageSeconds": -0.5830357142857143,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 220,
@@ -836,7 +837,7 @@
         "bothLegsGood": 2.601854395604396
       },
       "neutralRelayAdvantageSeconds": -0.48258928571428594,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 240,
@@ -852,7 +853,7 @@
         "bothLegsGood": 2.765659340659341
       },
       "neutralRelayAdvantageSeconds": -0.30714285714285783,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 260,
@@ -868,7 +869,7 @@
         "bothLegsGood": 2.9294642857142854
       },
       "neutralRelayAdvantageSeconds": -0.05669642857142865,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     },
     {
       "distanceFeet": 280,
@@ -884,7 +885,7 @@
         "bothLegsGood": 3.0932692307692307
       },
       "neutralRelayAdvantageSeconds": 0.2687499999999998,
-      "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
     }
   ]
 }
