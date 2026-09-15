@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
   "status": "derived-design-arithmetic-not-simulation",
+  "acceptedLeadSpatialTrial": "C80",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "8c42fd5bbc0af068031f094a3c74a1b7a6f51a9d2297f4f904f0d63eafb08838",
+    "docs/research/game-feel-708-candidates.json": "4caba13e565fee3d172877f321feceec578147e99e92cbfd76dc7e68b159c9a4",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",

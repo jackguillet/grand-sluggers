@@ -3,10 +3,13 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "spatial-decision-pending; incomplete-runtime-contract",
+  "status": "C80-spatial-trial-accepted; runner-clock-decision-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
-  "acceptedCandidate": null,
+  "acceptedCandidate": "C80",
+  "acceptedBy": "Jack",
+  "acceptedOn": "2026-09-14",
+  "acceptanceEvidence": "Jack replied 'approve.' to selecting the 80-foot diamond as the first trial, with running and throwing times reviewed separately next.",
   "recommendation": "C80",
   "acceptanceScope": "Select the lead spatial trial only. Timing, physical coefficients, radius tuning, rendered appearance and final shipping dimensions require subsequent review and validation.",
   "provenance": {
@@ -24,7 +27,7 @@
   ],
   "profiles": [
     {"id": "C0", "label": "Historical control", "status": "observed-geometry", "basepathFt": 90, "fencesFt": [330, 400, 330], "moundFt": 60.5},
-    {"id": "C80", "label": "Moderate compact", "status": "proposed-not-accepted", "basepathFt": 80, "fencesFt": [232, 280, 232], "moundFt": 53.77777777777778},
+    {"id": "C80", "label": "Moderate compact", "status": "accepted-lead-spatial-trial-not-shipping-contract", "basepathFt": 80, "fencesFt": [232, 280, 232], "moundFt": 53.77777777777778},
     {"id": "C70", "label": "Stronger compact", "status": "proposed-not-accepted", "basepathFt": 70, "fencesFt": [203, 245, 203], "moundFt": 47.05555555555556}
   ],
   "spatialPolicy": {
@@ -56,13 +59,27 @@
     "presentation": "D7 unchanged. Dead-ball duration and moderate ball assistance remain pending numerical presentation decisions."
   },
   "decisionQueue": [
-    {"id": "F693-02-spatial-trial", "state": "next-human-decision", "question": "Which spatial trial leads: C80 or C70?"},
-    {"id": "F693-05-runner-clock", "state": "pending", "question": "Preserve current runner elapsed pace as the compact comparison anchor, or change it?"},
+    {"id": "F693-02-spatial-trial", "state": "accepted-C80", "question": "Which spatial trial leads: C80 or C70?"},
+    {"id": "F693-05-runner-clock", "state": "next-human-decision", "question": "Preserve current runner elapsed pace as the compact comparison anchor, or change it?"},
     {"id": "F693-03-throw-budget", "state": "pending", "question": "Choose visible command-to-release and distance-dependent travel intervals from a concrete race budget."},
     {"id": "F693-02-movement-budget", "state": "pending", "question": "Review a common pursuit profile with read, acceleration and coverage against both routine defense and deep-hit races."},
     {"id": "F693-04-flight-budget", "state": "pending", "question": "Review contact-class flight, bounce/roll and wall-play tradeoffs within the selected space."},
     {"id": "F693-07-presentation-budget", "state": "pending", "question": "Review result pacing and numerical readability aids individually after the sim contract is coherent."}
   ],
+  "runnerClockProposal": {
+    "decisionId": "F693-05-runner-clock",
+    "state": "pending",
+    "recommendation": "Preserve current stat-to-bag elapsed times, batter startup and explicit dash schedule for the C80 calibration anchor; derive ordinary linear speed from the shorter path.",
+    "bagSeconds": {"base": 3.55, "perRunSubtracted": 0.12, "min": 2.45, "max": 3.65},
+    "batterStartupSeconds": 0.5,
+    "run5NominalBagSeconds": 2.95,
+    "run5NominalFirstSeconds": 3.45,
+    "run5ControlLinearFeetPerSecond": 30.508474576271187,
+    "run5C80LinearFeetPerSecond": 27.11864406779661,
+    "alternativeKeepWorldSpeedNominalFirstSeconds": 3.1222222222222222,
+    "scope": "Elapsed calibration anchor, not acceptance of every rounded/slide/reversal path, exact first-base arrival, visual run-cycle cadence, or fielding speed. No compact simulation yet.",
+    "referenceLimit": "Wii survey reports Pianta third-to-home 3.65 s without a matched stock speed/input/start protocol. GameCube running mechanics include acceleration/dash/stamina; no matched average-runner elapsed target is established. This is a Harbor trial anchor, not measured Mario equivalence."
+  },
   "humanGameplayGate": "open",
   "runtimeChangesAuthorizedByThisPacket": false
 }
