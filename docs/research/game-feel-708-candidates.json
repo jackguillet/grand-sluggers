@@ -351,8 +351,13 @@
     },
     {
       "id": "F693-02-mixed-status-action-readiness",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Restore each action as soon as all active restrictions on that action end, keeping unrelated lingering effects active without a blanket full-character lock?"
+    },
+    {
+      "id": "F693-02-repeated-impact-recovery",
+      "state": "next-human-decision",
+      "question": "For distinct physical impacts, start each applicable recovery at its own hit time and keep actions blocked until all relevant intervals end, rather than adding each new hit after the remaining recovery? Same-impact ordinary plus special recovery still adds."
     },
     {
       "id": "F693-02-movement-response",
@@ -3633,7 +3638,7 @@
   },
   "mixedStatusActionReadinessProposal": {
     "decisionId": "F693-02-mixed-status-action-readiness",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Recover action by action: an action is eligible only when its normal prerequisites hold and no active effect still blocks that action. Unrelated lingering effects do not keep the entire fielder locked. An effect ending clears only its own restrictions.",
     "scope": "Composition of already-defined action permissions across active effects. Does not define any individual burn/freeze/charm/vision status, choose their durations, or decide refresh/add/max rules for earlier/repeated/multiple impacts. Those effects must supply their own reviewed active windows.",
     "rule": "eligible(action)=normalPrerequisites(action) AND NOT any(activeRestrictionBlocks(action)). A permissive effect cannot override another active restriction. Eligibility is not execution: throws still require a valid deliberate command, movement uses current eligible intent, and outs require actual legal geometry.",
@@ -3688,6 +3693,55 @@
       "Same rules for both seats/CPU, pause and sub-tick effect boundaries; effect visuals cannot own simulation readiness.",
       "Implement and validate actual combinations only after individual status permissions, lifetimes and repeated-impact rules are reviewed."
     ],
-    "implementationBoundary": "Pending action-composition policy only. No individual status, timer-stacking rule, immunity ability, runtime change or human gate selected."
+    "implementationBoundary": "Accepted action-composition policy only; individual status and repeated-impact lifetime contracts remain pending. No individual status, timer-stacking rule, immunity ability, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to restoring actions individually as their restrictions end, preserving other active effects and the accepted same-impact recovery sum."
+  },
+  "repeatedImpactRecoveryProposal": {
+    "decisionId": "F693-02-repeated-impact-recovery",
+    "state": "pending",
+    "recommendation": "Each distinct physical impact starts its own applicable recovery interval at the actual impact time. For an action blocked by several such impacts, its impact-related readiness is the latest end among the active intervals. Do not queue a new full recovery after the unfinished wait or shorten an older restriction when a weaker hit arrives.",
+    "scope": "Recovery timing for distinct physical-impact events affecting the same fielder. Does not choose repeated-motion impulse composition, generic burn/charm/freeze refresh rules, attack hit frequency, immunity windows, anti-chain limits, or a forced break-free mechanic.",
+    "sameImpactBoundary": "Within a single qualifying retained-ball pickup/impact, retain the approved sum of ordinary and Field-resisted special contributions for each action actually restricted by both. Only after computing that event duration does this proposal start its interval at that event time and overlap it with intervals from distinct events. Never replace the approved same-event sum with max.",
+    "eventDuration": "For event i and action a, compute reviewed applicable duration D_i,a once, then E_i,a=impactTime_i+D_i,a. Impact-only readiness is max(E_i,a) over active relevant events; other statuses still apply their own reviewed intervals. An ordinary pickup contribution exists only for a qualifying acquisition, not automatically for every subsequent attack on a ball carrier.",
+    "sourceIdentity": "Preserve event/source identity and individual restrictions even when the current deadline is their maximum. A new hit must not reset old start times or clone old ordinary contributions. Duplicate callbacks from the same event add nothing. Whether a multi-contact attack produces another real hit must be explicitly authored, not inferred from per-frame overlap.",
+    "examples": [
+      {
+        "name": "later-hit-extends-from-its-arrival",
+        "firstEndSeconds": 0.6,
+        "newImpactSeconds": 0.4,
+        "newDurationSeconds": 0.5,
+        "newEndSeconds": 0.9,
+        "combinedEndSeconds": 0.9,
+        "unselectedQueuedEndSeconds": 1.1
+      },
+      {
+        "name": "shorter-hit-does-not-cut-old-recovery",
+        "firstEndSeconds": 0.6,
+        "newImpactSeconds": 0.2,
+        "newDurationSeconds": 0.1,
+        "newEndSeconds": 0.3,
+        "combinedEndSeconds": 0.6,
+        "unselectedQueuedEndSeconds": 0.7
+      }
+    ],
+    "exampleScope": "Illustrative active-simulation seconds and per-event durations, not selected special values or an actual impact sequence. First example leaves .50 seconds after the second hit instead of .70 queued; second leaves the older deadline intact. No ball/contact/motion outcome is simulated.",
+    "fielding": "Each event retains its approved Field-dependent duration and source provenance. An independently longer active restriction can temporarily determine readiness, so shortening one event need not always advance final control return. This is normal overlap between separate impacts, not erasure of ordinary Field benefit by taking max inside a single impact.",
+    "chainBoundary": "Repeated real hits may still keep control blocked while new intervals continue extending the deadline. This proposal avoids accumulating all durations into a long queue after attacks stop; it does not guarantee freedom from continuous hit chains. Any cooldown, invulnerability or maximum continuous lock needs its own reviewed gameplay rule.",
+    "controls": "Continue normal command age and ownership checks while any restriction remains; a new impact does not refresh the .25-second buffer, preserve an expired command or grant an automatic throw. Effects use active gameplay time and pause consistently. Exact event-time ordering must not expose an intermediate control window before an already-arrived impact is applied.",
+    "motionBoundary": "New recovery intervals do not themselves restart earlier motion, replay an animation, reset velocity or define addition/replacement of physical impulses. Repeated-impact physical response remains a separate decision and must preserve one actual body/glove path.",
+    "referenceLimit": "Authored repeated-impact timing proposal, not a verified Wii/GameCube stun-refresh rule. No new reference measurement or candidate simulation.",
+    "requiredChecks": [
+      "Compute ordinary-plus-special same-event sums before overlapping distinct event intervals; Field factors applied once per applicable source.",
+      "Later hits extend from their own arrival; shorter hits never truncate an older restriction; duplicate callbacks never refresh recovery.",
+      "Retain source identities under latest-deadline evaluation and clearing, with only qualifying acquisitions creating ordinary pickup recoil.",
+      "Actions with different source restrictions become ready independently; unrelated status lifetime rules are not changed.",
+      "Pause and sub-tick event/expiry ordering preserve exact deadlines and cannot briefly permit a throw before an already-arrived hit.",
+      "Buffer expiry and possession/cancel precedence remain unchanged through new impacts.",
+      "Track potential repeated-hit chains explicitly; no claim that this alone prevents continuous loss of control.",
+      "Validate real multi-impact paths and both seats/CPU after impact eligibility, motion composition and attack values are reviewed."
+    ],
+    "implementationBoundary": "Pending distinct-impact recovery timing only. No repeated impulse rule, new status, immunity window, attack duration, runtime change or human gate selected."
   }
 }

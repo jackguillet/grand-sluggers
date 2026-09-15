@@ -809,12 +809,22 @@ def derive(data):
             assert case["contactEligible"] == (case["secure"] and case["legalContact"])
     mixed_status = data.get("mixedStatusActionReadinessProposal")
     if mixed_status:
-        assert mixed_status["state"] == "pending"
+        if mixed_status["state"] == "accepted-calibration-anchor":
+            assert mixed_status["acceptedBy"] and mixed_status["acceptedOn"] and mixed_status["acceptanceEvidence"]
         for case in mixed_status["examples"]:
             assert case["eligible"] == (case["normalPrerequisites"] and not case["activeRestrictionsBlockingAction"])
+    repeated_recovery = data.get("repeatedImpactRecoveryProposal")
+    if repeated_recovery:
+        assert repeated_recovery["state"] == "pending"
+        for row in repeated_recovery["examples"]:
+            new_end = row["newImpactSeconds"] + row["newDurationSeconds"]
+            assert math.isclose(row["newEndSeconds"], new_end)
+            assert math.isclose(row["combinedEndSeconds"], max(row["firstEndSeconds"], new_end))
+            assert math.isclose(row["unselectedQueuedEndSeconds"], max(row["firstEndSeconds"], row["newImpactSeconds"])+row["newDurationSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "repeatedImpactRecoveryState": repeated_recovery["state"] if repeated_recovery else None,
             "mixedStatusActionReadinessState": mixed_status["state"] if mixed_status else None,
             "specialPushbackActionsState": special_actions["state"] if special_actions else None,
             "specialPushbackPossessionState": special_possession["state"] if special_possession else None,
