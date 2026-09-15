@@ -874,9 +874,9 @@ Use active gameplay time, preserve pause behavior, and evaluate exact impact/exp
 
 This is an authored timing proposal, not a verified Mario repeat-hit rule. Check same-event addition versus distinct-event overlap, duplicate identity, stronger/weaker later hits, per-action deadlines, source clearing, pause, sub-tick boundaries and both seats/CPU. Real multi-impact motion and standalone behavior remain untested.
 
-## Next decision — repeat hits from the same special
+## Accepted decision — repeat hits from the same special
 
-**F693-02-special-impact-repeat-eligibility — pending, September 15, 2026.** Recommend **one special physical-impact application per fielder per attack activation by default**. The same activation cannot repeatedly shove that fielder or restart its special recovery through continued contact, a bounce, leaving/re-entering contact, or a drop and reacquisition. A deliberately multi-hit attack would need explicit, separately reviewed limits.
+**F693-02-special-impact-repeat-eligibility — accepted by Jack on September 15, 2026.** Jack approved **one special physical-impact application per fielder per attack activation by default**. The same activation cannot repeatedly shove that fielder or restart its special recovery through continued contact, a bounce, leaving/re-entering contact, or a drop and reacquisition. A deliberately multi-hit attack would need explicit, separately reviewed limits.
 
 **Why this is a gameplay choice:** duplicate callbacks already must not count twice. This goes further: even a genuine later contact from the same still-active special would not repeat its physical hit on the same fielder by default. It prevents one lingering or bouncing ball from accidentally trapping that defender. The tradeoff is that a ricocheting special cannot repeatedly punish the same defender unless repeated hits are an intentional part of its design.
 
@@ -888,7 +888,23 @@ This is an authored timing proposal, not a verified Mario repeat-hit rule. Check
 
 This is an authored default, not a verified Mario repeat-hit rule. Abstract sequence checks cover near miss, first hit, repeat on the same fielder, another fielder and a new activation. They do not simulate attack geometry. Validate real re-entry/ricochet/loose-ball paths, stable source identity, pause/control switching and both seats/CPU before standalone feel acceptance.
 
-**Question for Jack:** default to one physical hit per fielder from each special activation, with repeated hits reserved for deliberately designed multi-hit specials?
+## Next decision — readiness after a clean standing fly catch
+
+**F693-02-clean-air-catch-readiness — pending, September 15, 2026.** Recommend **zero generic added pause after a clean routine airborne batted-ball catch by a grounded fielder**. Once possession is securely established, and no applicable recovery blocks the action, the player can continue eligible movement or begin an ordinary throw release while play remains live.
+
+**How it should feel:** get under a routine fly, visibly secure it, then respond to the runners without another compulsory settling beat. The throw still has the accepted **.30-second release** before the ball leaves the glove. Catch acquisition itself is not instantaneous, and the animation must clearly establish secure control before movement/throw readiness; this does not enlarge catch reach or let the player throw before possession.
+
+**Input and abilities:** retain the .25-second buffer, cancel/target behavior and command expiry. A command at .80 with a secure catch at 1.00 can start release at 1.00 and separate the ball at 1.30; a command at .70 has expired. These are synthetic timing examples. No command means no automatic throw. A batted-ball catch does not qualify for Snap Throw; that ability remains scoped to clean teammate throw receptions. Carrying continues from actual velocity, including the accepted eligibility/response for Ball Dash.
+
+**Scope and baseball:** the fielder is standing/grounded, even though the caught ball was airborne. Jumping, diving, landing, hard-impact recovery and special effects remain separate. This does not apply the ground-pickup recoil formula to every airborne catch or exempt hard airborne catches from a later reviewed impact rule. Existing caught-ball, retouch/tag-up, force-removal and inning/play-end rules remain authoritative; the catch out does not insert a new generic wait during an otherwise live runner play. Movement during a committed throw also remains separately reviewed.
+
+**Current audit:** `TakeBattedBall` calls `CatchGlove`, resets CPU decision bookkeeping, resolves catch/fair-foul state and calls `ArmRecoil`; the inspected ordinary recoil helper returns for non-grounders. That identifies the current ground-only recoil scope, not proof that all input/CPU/animation readiness paths already satisfy this proposal. No matched Mario post-secure catch dwell is established; zero added delay is an authored trial aligned with the accepted clean-ground-pickup policy.
+
+Verify actual clean catches into throws/carries, buffer expiry, multiple runners, retouch/tag-up and inning-ending catches, both seats/CPU and character abilities. Exceptional catches remain blocked by their own applicable rules. The report checks timing arithmetic only; no runtime or standalone gate is passed.
+
+**Special work still tracked:** individual attack values/lifetimes, repeated-impulse composition, dislodging/multi-hit exceptions and independent-attack control-loss chains remain pending under F693-02-special-attack-contracts before implementation. Returning to routine fielding does not approve or discard those choices.
+
+**Question for Jack:** add no extra pause after a clean standing fly catch, allowing eligible movement or the normal throw release to begin once the ball is secured?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

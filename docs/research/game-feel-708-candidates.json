@@ -361,8 +361,18 @@
     },
     {
       "id": "F693-02-special-impact-repeat-eligibility",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Default to one special physical-impact application per fielder per attack activation, even if the same ball contacts that fielder again, with deliberately multi-hit attacks requiring explicit limits?"
+    },
+    {
+      "id": "F693-02-clean-air-catch-readiness",
+      "state": "next-human-decision",
+      "question": "Add no generic pause after a clean routine airborne batted-ball catch by a grounded fielder, allowing eligible movement or the ordinary .30-second throw release to begin once possession is secure?"
+    },
+    {
+      "id": "F693-02-special-attack-contracts",
+      "state": "pending",
+      "question": "Before implementation, review individual special lifetimes, geometry, motion/permissions, repeated-impulse composition, dislodging and multi-hit exceptions, and independent-attack chains. Do not infer these from approved shared recovery rails."
     },
     {
       "id": "F693-02-movement-response",
@@ -3754,7 +3764,7 @@
   },
   "specialImpactRepeatEligibilityProposal": {
     "decisionId": "F693-02-special-impact-repeat-eligibility",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "By default, one special attack activation can apply its physical impact to each fielder once. Continued contact, leaving/re-entering contact, a wall bounce, a drop/reacquisition or a control switch cannot make the same activation repeatedly shove and restart special recovery on that fielder. Deliberately multi-hit attacks require their own reviewed limits.",
     "scope": "Default repeat eligibility for the physical-impact component of a special attack, keyed by stable attack activation and affected fielder identity. Not a blanket immunity to all attacks, not a limit on all ordinary pickups, and not a decision about repeated burn/charm/terrain effects.",
     "identity": "One activation persists through its own authored lifetime and deflections; a bounce, possession change or new callback cannot mint a fresh activation to evade the rule. The first qualifying authoritative impact records the activation/fielder pair. A mere near miss or an overlap that never satisfies the authored impact trigger does not consume the application. Seat/selected-glove identity is not fielder identity.",
@@ -3806,6 +3816,56 @@
       "Explicit multi-hit exceptions require reviewed finite limits and cadence; no silent bypass via new callback/phase identifiers.",
       "Replay/source identity and both seats/CPU agree; validate actual special paths and control-loss chains after individual attacks and motion rules are selected."
     ],
-    "implementationBoundary": "Pending default special-impact repeat eligibility only. No attack lifetime, multi-hit exception, global immunity, repeated impulse rule, runtime change or human gate selected."
+    "implementationBoundary": "Accepted default special-impact repeat eligibility only; individual exceptions and repeated motion remain pending. No attack lifetime, multi-hit exception, global immunity, repeated impulse rule, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to one physical hit per fielder per special activation by default, with explicit exceptions for deliberately designed multi-hit specials."
+  },
+  "cleanAirCatchReadinessProposal": {
+    "decisionId": "F693-02-clean-air-catch-readiness",
+    "state": "pending",
+    "extraPostSecurePauseSeconds": 0.0,
+    "recommendation": "A clean routine airborne batted-ball catch by a fielder whose feet are grounded adds no generic pause after authoritative secure possession. If no applicable recovery/status blocks the action and the play remains live, eligible movement or a valid ordinary throw release may begin immediately.",
+    "scope": "Baseline readiness after a clean standing catch of an airborne batted ball. Not a jumping/diving/landing recovery, teammate throw reception, catcher pitch reception or decision to apply the ground-pickup recoil law to hard airborne catches. Exceptional catch impact and special statuses remain explicit separate conditions.",
+    "acquisition": "The ball must reach the valid glove/catch geometry and be securely controlled at the authoritative acquisition event. Visible catching and required acquisition motion remain; zero additional pause is not instant acquisition, bigger reach or permission to throw before the ball is secured. Animation and sim must agree on the secure moment without a hidden second settling delay.",
+    "movement": "Continue from actual acquisition velocity through the accepted carrying response, respecting normal control ownership and any applicable restriction. Eligible Ball Dash may change the requested carrying cap only after secure possession; no velocity snap, read reset, fresh steering press or acceleration precharge.",
+    "throw": "A valid deliberate command can start the accepted .30-second ordinary release at readiness. The .25-second input buffer, expiry/cancel/target rules still apply; no command means no throw. A caught batted ball does not qualify for Snap Throw, whose accepted scope is a clean teammate throw reception. This does not select movement during a committed throw.",
+    "livePlay": "The catch out does not add a new generic fielder pause while runners can still legally advance or be played on. Preserve existing caught-ball, retouch/tag-up, force-removal and inning/play-end rules; no automatic runner advance, appeal, relay or throw. If play has ended, ordinary live-action eligibility is unavailable.",
+    "exceptions": "Existing applicable special impact/recovery and possession-loss outcomes remain authoritative. Jumping/diving catches and hard airborne impact recovery need their own reviewed contracts. Do not assume the currently ground-only ordinary recoil law either applies to all air catches or grants all hard air catches immunity.",
+    "examples": [
+      {
+        "name": "valid-buffer-at-secure-catch",
+        "secureSeconds": 1.0,
+        "commandSeconds": 0.8,
+        "readySeconds": 1.0,
+        "releaseSeconds": 1.3
+      },
+      {
+        "name": "early-command-expired",
+        "secureSeconds": 1.0,
+        "commandSeconds": 0.7,
+        "readySeconds": 1.0,
+        "releaseSeconds": null
+      },
+      {
+        "name": "fresh-command-after-catch",
+        "secureSeconds": 1.0,
+        "commandSeconds": 1.05,
+        "readySeconds": 1.0,
+        "releaseSeconds": 1.35
+      }
+    ],
+    "exampleScope": "Synthetic readiness arithmetic assuming a clean grounded catch, live play, no exceptional locks and a valid target/ownership. The examples do not simulate catching, runner retouch, command processing or the actual .30-second release animation.",
+    "currentAudit": "TakeBattedBall calls CatchGlove, resets CPU decision bookkeeping and resolves the batted-ball catch/fair-foul state before calling ArmRecoil. The inspected ArmRecoil returns for !Preview.Grounder. That shows the current ordinary recoil path is ground-only; it is not proof of complete grounded-air-catch readiness across every input, CPU, animation or play-end path.",
+    "referenceLimit": "Authored baseline readiness consistent with the accepted clean-ground-pickup direction. No matched Wii/GameCube post-secure standing-catch dwell has been measured or claimed.",
+    "requiredChecks": [
+      "Clean standing catch, secure ownership and no exceptional lock give zero extra post-secure wait; acquisition geometry and animation remain visible and authoritative.",
+      "Buffered valid/expired/cancelled commands and fresh commands respect .25 expiry and .30 ordinary release; no Snap Throw eligibility from a batted fly.",
+      "Movement preserves actual velocity and carrying response with both seats/CPU and Ball Dash eligibility.",
+      "Tag-up/retouch, caught-ball force removal, multiple runners and inning-ending catches keep their existing legal event ordering.",
+      "Jump/dive/special/hard-impact exceptions cannot be bypassed through this baseline; committed-throw movement remains separately reviewed.",
+      "Compare actual clean fly catches into return throws, tag plays and carry choices in complete traces and the standalone game before human acceptance."
+    ],
+    "implementationBoundary": "Pending clean standing-air-catch readiness only. No catch success/reach, exceptional recoil, ball flight, runtime coefficient, animation asset or human gate changed."
   }
 }

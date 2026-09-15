@@ -824,7 +824,8 @@ def derive(data):
             assert math.isclose(row["unselectedQueuedEndSeconds"], max(row["firstEndSeconds"], row["newImpactSeconds"])+row["newDurationSeconds"])
     repeat_eligibility = data.get("specialImpactRepeatEligibilityProposal")
     if repeat_eligibility:
-        assert repeat_eligibility["state"] == "pending"
+        if repeat_eligibility["state"] == "accepted-calibration-anchor":
+            assert repeat_eligibility["acceptedBy"] and repeat_eligibility["acceptedOn"] and repeat_eligibility["acceptanceEvidence"]
         seen_impacts = set()
         for case in repeat_eligibility["examples"]:
             key = (case["activation"], case["fielder"])
@@ -832,9 +833,22 @@ def derive(data):
             assert case["applySpecialImpact"] == applies
             if applies:
                 seen_impacts.add(key)
+    air_catch = data.get("cleanAirCatchReadinessProposal")
+    if air_catch:
+        assert air_catch["state"] == "pending"
+        assert air_catch["extraPostSecurePauseSeconds"] == 0
+        for row in air_catch["examples"]:
+            ready = row["secureSeconds"] + air_catch["extraPostSecurePauseSeconds"]
+            assert math.isclose(row["readySeconds"], ready)
+            start = max(ready, row["commandSeconds"])
+            if start-row["commandSeconds"] > .25+1e-9:
+                assert row["releaseSeconds"] is None
+            else:
+                assert math.isclose(row["releaseSeconds"], start+.30)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "cleanAirCatchReadinessState": air_catch["state"] if air_catch else None,
             "specialImpactRepeatEligibilityState": repeat_eligibility["state"] if repeat_eligibility else None,
             "repeatedImpactRecoveryState": repeated_recovery["state"] if repeated_recovery else None,
             "mixedStatusActionReadinessState": mixed_status["state"] if mixed_status else None,
