@@ -3,7 +3,8 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "catcherReadState": "accepted-calibration-anchor",
-  "cleanGroundPickupReadinessState": "pending",
+  "groundPickupRecoilBasisState": "pending",
+  "cleanGroundPickupReadinessState": "accepted-calibration-anchor",
   "carryMovementResponseState": "accepted-calibration-anchor",
   "ordinaryCarrySpeedState": "accepted-calibration-anchor",
   "ballDashCarrierState": "accepted-calibration-anchor",
@@ -30,7 +31,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "37ba30c70233b2a586d7d20c5be6fd19eafc6066dd28ff8ffe39a80228d4c865",
+    "docs/research/game-feel-708-candidates.json": "6e209e37620a89ea81ca27ed03f3f31678d0f7f07d5bd16b78cb1983c7912ee9",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",

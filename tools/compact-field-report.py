@@ -618,6 +618,8 @@ def derive(data):
             assert math.isclose(row["minimumSpeedFraction"], math.cos(angle), abs_tol=1e-12)
     pickup = data.get("cleanGroundPickupReadinessProposal")
     if pickup:
+        if pickup["state"] == "accepted-calibration-anchor":
+            assert pickup["acceptedBy"] and pickup["acceptedOn"] and pickup["acceptanceEvidence"]
         assert pickup["addedRecoverySeconds"] == 0
         for row in pickup["examples"]:
             ready = row["securePossessionSeconds"]+pickup["addedRecoverySeconds"]
@@ -634,6 +636,7 @@ def derive(data):
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "groundPickupRecoilBasisState": data.get("groundPickupRecoilBasisProposal", {}).get("state"),
             "cleanGroundPickupReadinessState": pickup["state"] if pickup else None,
             "carryMovementResponseState": carry_response["state"] if carry_response else None,
             "ordinaryCarrySpeedState": carry["state"] if carry else None,
