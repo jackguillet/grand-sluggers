@@ -28,7 +28,10 @@ def fence(profile, angle):
 
 
 def derive(data):
-    assert data["acceptedCandidate"] is None
+    selected = data["acceptedCandidate"]
+    assert selected is None or selected in {p["id"] for p in data["profiles"]}
+    if selected is not None:
+        assert data["acceptedBy"] and data["acceptedOn"] and data["acceptanceEvidence"]
     assert not data["runtimeChangesAuthorizedByThisPacket"]
     proportions = json.loads((ROOT / "docs/research/game-feel-701-proportions.json").read_text())
     control = data["profiles"][0]
@@ -81,7 +84,18 @@ def derive(data):
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
                ROOT / "src/GrandSluggers.Sim/ParkDiamond.cs", ROOT / "data/rules/running.json",
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json"]
+    proposal = data.get("runnerClockProposal")
+    if proposal:
+        bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
+                  proposal["bagSeconds"]["base"] - 5 * proposal["bagSeconds"]["perRunSubtracted"]))
+        assert math.isclose(proposal["run5NominalBagSeconds"], bag)
+        assert math.isclose(proposal["run5NominalFirstSeconds"], bag + proposal["batterStartupSeconds"])
+        assert math.isclose(proposal["run5ControlLinearFeetPerSecond"], 90 / bag)
+        assert math.isclose(proposal["run5C80LinearFeetPerSecond"], 80 / bag)
+        assert math.isclose(proposal["alternativeKeepWorldSpeedNominalFirstSeconds"],
+                            80 / (90 / bag) + proposal["batterStartupSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
+            "acceptedLeadSpatialTrial": selected,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
             "profiles": records}
 
@@ -153,4 +167,4 @@ if __name__ == "__main__":
         OUTPUT.write_text(payload)
     if args.figure:
         plot(data, result)
-    print("#708: three spatial profiles verified; all compact values remain proposed; no simulation performed")
+    print(f"#708: three spatial profiles verified; selected spatial trial={data['acceptedCandidate']}; no simulation performed")

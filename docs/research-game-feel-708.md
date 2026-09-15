@@ -2,7 +2,7 @@
 
 September 14, 2026. [#708](https://github.com/jackguillet/grand-sluggers/issues/708), under [#693](https://github.com/jackguillet/grand-sluggers/issues/693). **Gameplay research/documentation. No runtime tuning.** Stacked after the #702 measurement work at `59f3762` / draft [#707](https://github.com/jackguillet/grand-sluggers/pull/707).
 
-**Recommendation: lead with C80, an 80-foot diamond and 232 / 280 / 232-foot fences.** Compare C70, a 70-foot diamond with 203 / 245 / 203-foot fences, as the stronger alternative. Preserve character stature in both. These are proposed original dimensions for a trial, not measured Nintendo dimensions or approved shipping defaults.
+**Accepted first trial: C80, an 80-foot diamond and 232 / 280 / 232-foot fences. Jack approved on September 14, 2026.** Compare C70, a 70-foot diamond with 203 / 245 / 203-foot fences, as the stronger alternative. Preserve character stature in both. C80 is an approved original spatial trial; C70 remains an unselected alternative. Neither is measured Nintendo geometry or approved shipping defaults.
 
 This packet starts R3's numerical review. It supplies the coordinated spatial proposal, its race dependencies, analytical sensitivities and outstanding decisions. **It is not yet a complete implementable game contract.** Jack chooses one decision at a time; selecting a spatial trial does not approve its future movement, throwing, flight or presentation coefficients. R3 stays open until those quantities have also been reviewed together and validated.
 
@@ -10,9 +10,9 @@ Machine-readable [candidate inputs](research/game-feel-708-candidates.json), [de
 
 ![Same-scale ground plans and nominal character proportions](research/game-feel-708-comparison.png)
 
-## The decision Jack makes now
+## Accepted decision — lead spatial trial
 
-**F693-02-spatial-trial — pending:** which spatial candidate should lead the subsequent numerical design and prototype?
+**F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.
 
 - **C80, recommended:** 80-foot basepaths, 53.78-foot mound distance, 232 / 280 / 232-foot fences. The basepath is 11.1% shorter and center field 30% closer than the historical control. Unchanged bodies are 12.5% larger relative to the basepath. This makes a substantial outfield change while making the smaller of the two infield changes.
 - **C70, stronger compact alternative:** 70-foot basepaths, 47.06-foot mound distance, 203 / 245 / 203-foot fences. The basepath is 22.2% shorter and center field 38.75% closer. Unchanged bodies are 28.6% larger relative to the basepath. This offers a stronger toy-like proportion, with more pressure on infield spacing, catch coverage, footwork and short-throw readability.
@@ -47,6 +47,18 @@ Preserve the **12-foot wall height** initially. Lowering both wall height and wa
 Preserving toy-related lengths while reducing field distances is deliberate: uniformly shrinking everything would leave the desired proportions unchanged. In C80, Rio's nominal 5.108-foot head-top is **6.39%** of a basepath; in C70 it is **7.30%**, versus **5.68%** in C0. Ashlord is **10.22% / 11.68%**, versus **9.08%**. The dataset includes every captain. These are rest markers from the [#701 proportions audit](research-game-feel-701-proportions.md), not measured animated bounds or projected screen heights.
 
 **Reach needs its own accounting.** For example, leaving a 13-foot catch-assist radius unchanged changes its basepath fraction from 14.44% to 16.25% or 18.57%. That can erase gaps even with slower pursuit. Separate physical body/glove reach, catch assistance, scoop thresholds, tag reach, cover eligibility and bag occupancy. Neither multiplying all radii by `B/90` nor leaving them all untouched is approved by this spatial choice. Record the coverage change before accepting the complete runtime contract. Moderate drawn-ball assistance must not enlarge those judgments.
+
+## Next decision — runner elapsed pace
+
+**F693-05-runner-clock — pending.** Recommend preserving the existing runner elapsed pace as the C80 calibration anchor. For a middle-speed Run-5 character without dash, that means a nominal **2.95 seconds per straight basepath**, plus the existing **0.5-second batter startup**: approximately **3.45 seconds from contact to first** in the simplified model. The historical S-31 projection is 3.458 seconds because actual paths and starting geometry matter. These are not measured C80 results.
+
+On an 80-foot path, maintaining that interval reduces ordinary linear speed from 30.51 to **27.12 ft/s**. The alternative is keeping current feet per second: the same simplified first-base race drops to **3.12 seconds**, removing about **0.33 seconds** from the defense's total opportunity. That may feel more hectic and leaves less time for the visibly registering release/travel Jack wants. Preserving elapsed time gives us a stable starting race while shrinking the field; it does not prove defense is balanced or guarantee extra bases.
+
+Preserve current stat differences and the explicit dash schedule for this comparison. Rounding, slide/reversal geometry and resulting multi-base arrival times still require full traces. This decision does not select fielding speed, slow a runner to rescue one out, introduce a new stamina mechanic or approve exact animation cadence. Later runner changes must return with evidence and a named decision.
+
+The [Wii survey](https://www.reddit.com/r/MarioSuperSluggers/comments/xdvwn9) reports **3.65 seconds for Pianta from third to home**, but its starting/input protocol is not a matched ordinary Run-5 first-base test. GameCube's community running-mechanics research describes acceleration, dash and stamina; the inspected evidence does not establish a matched middle-speed elapsed target for both titles. We should not label 3.45 seconds a measured Mario match. The recommendation is a provisional Harbor calibration anchor to compare with stronger reference and standalone evidence.
+
+**Question for Jack:** retain this approximately 3.45-second ordinary first-base pace for the compact trial? Running and throw/fielding budgets remain separate decisions.
 
 ## Coordinate time with space
 
@@ -109,4 +121,4 @@ Jack's final acceptance is a named standalone preview, not this schematic or a g
 
 Run `python3 tools/compact-field-report.py --check` to compare committed arithmetic with the candidate inputs and source hashes. Use `MPLCONFIGDIR=/tmp/gs708-mpl python3 tools/compact-field-report.py --figure` to regenerate the diagram. It is an analytical schematic with identical world scale, not an in-game camera or art mockup. The lower bars compare nominal head-top/basepath ratios; they do not predict screen pixels.
 
-Validation for this documentation step checks fence endpoints, preserved mound ratio, derived candidate geometry/body/time sensitivities, pending-acceptance status and repository links. No new runtime coefficient, simulation result, Unity build or human acceptance is claimed. The #702 tests and 150-game measurements remain historical evidence at their named revisions, not tests of C80/C70.
+Validation for this documentation step checks fence endpoints, preserved mound ratio, derived candidate geometry/body/time sensitivities, accepted spatial-trial scope, pending runner-clock status and repository links. No new runtime coefficient, simulation result, Unity build or human acceptance is claimed. The #702 tests and 150-game measurements remain historical evidence at their named revisions, not tests of C80/C70.
