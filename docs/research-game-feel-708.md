@@ -1106,9 +1106,9 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Fielding suggestion:** Jack proposed that Fielding could be a broader indication of defensive abilities, such as a unique dive, or fewer errors. That is a stat-design discussion, not approval of new error rolls or automatic ability unlocks. Keep prior reliable-defense, throwing and recoil decisions intact until their explicit migration is reviewed. The next decision addresses the summary rating's role; error situations and individual abilities remain separate.
 
-## Next decision — what the Fielding rating represents
+## Accepted decision — what the Fielding rating represents
 
-**F693-02-fielding-rating-role — pending, September 15, 2026.** Recommend that **displayed Fielding summarize explicit defensive traits and abilities**, rather than serve as one universal multiplier. Underlying definitions could cover catch range, handling/error resistance, arm/transfer behavior and special defensive abilities. The score describes the character; changing only that displayed score would not change gameplay.
+**F693-02-fielding-rating-role — accepted by Jack on September 15, 2026.** Jack approved **displayed Fielding as a summary of explicit defensive traits and abilities**, rather than serve as one universal multiplier. Underlying definitions could cover catch range, handling/error resistance, arm/transfer behavior and special defensive abilities. The score describes the character; changing only that displayed score would not change gameplay.
 
 **Example:** two characters could have similar Fielding scores, but one offers a distinctive dive while another has steadier handling. Their named traits determine those differences. A high summary score does not automatically grant a dive ability, longer arms or faster glove adjustment. These are illustrative identities, not new roster assignments.
 
@@ -1120,7 +1120,23 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 This is an authored architecture proposal, not a verified Mario aggregation formula. Range dimensions, individual abilities, error rules, summary formula and migration remain tracked before runtime work. No gameplay, roster, card or human gate changes here.
 
-**Question for Jack:** make displayed Fielding a summary of explicit defensive traits and abilities, with those underlying traits determining gameplay?
+## Next decision — when handling errors can happen
+
+**F693-02-handling-error-opportunities — pending, September 15, 2026.** Recommend **reliable routine catches/pickups, with handling errors limited to specifically defined difficult or disrupted acquisition opportunities**. A low handling trait alone should not add a random failure to an otherwise ordinary legal catch. The underlying handling trait can improve resistance when a reviewed difficulty actually applies; displayed Fielding does not drive the outcome.
+
+**What this feels like:** execute a routine in-range catch or pickup correctly and the ball is secured. A bad route, late jump, out-of-range ball or special acquisition restriction can still defeat the play; reliability is not a guaranteed out. Character handling differences matter when there is a visible reason the ball is difficult to secure.
+
+**Candidate situations to research:** an awkward ground hop, a compromised acquisition during a recovery action, or an explicitly disruptive special hit. These examples are not approved triggers. Diving, high ball speed or being a special hit cannot by itself silently create an error roll. Each future opportunity must name its actual cause and visible tell. Trigger thresholds, error frequency, seeded versus deterministic resolution, and whether failure means bobble, delayed control or a loose ball are separate decisions.
+
+**Protect possession decisions already made:** ordinary retained-ball recoil and pure special pushback keep the secured ball. Do not add a drop after a valid secure catch just because the hit was hard or the body recoils. Evaluate acquisition-error eligibility before secure possession; resolve same-event acquisition/loss before temporary outs or carrier bonuses. A later distinct dislodging effect needs its reviewed contract and cannot undo an earlier completed out. Throw accuracy/errors remain a separate subject.
+
+**Current audit:** `InPlay.Bobbles` uses original hit-derived energy and a threshold, then Field plus glove equipment to compute a seeded chance. `LivePlaySystem.ArmRecoil` invokes it on initial grounder acquisition; a bobble scatters the ball loose. Named special drop chances also exist in `DropRules`. None automatically supplies an approved future error context or trait coefficient. In particular, original exit-energy arithmetic is not a measurement of the ball's current condition at acquisition. The explicit defensive-trait migration must account for these paths and their outcomes before changing them.
+
+**Tradeoff:** a small universal error chance creates occasional baseball surprises but can punish a routine correctly executed play. No errors anywhere removes a potential source of handling identity. Context-limited errors give reliability traits a role while keeping ordinary defense dependable. Handling must not reintroduce Field-driven glove positioning, catch-range size or jump behavior.
+
+No matched Wii/GC error-rate distribution has been established. Research routine and difficult acquisitions separately, including visible causes and special effects, then choose the eligible contexts and resolution model before numerical tuning. This proposal selects neither new error odds nor a current code change. Standalone and scoring gates remain open.
+
+**Question for Jack:** keep routine catches and pickups reliable, with handling differences affecting errors only in clearly defined difficult or disrupted situations?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

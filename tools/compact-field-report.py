@@ -976,11 +976,18 @@ def derive(data):
         assert catch_range_direction["acceptedBy"] and catch_range_direction["acceptedOn"] and catch_range_direction["acceptanceEvidence"]
     fielding_role = data.get("fieldingRatingRoleProposal")
     if fielding_role:
-        assert fielding_role["state"] == "pending"
+        if fielding_role["state"] == "accepted-calibration-anchor":
+            assert fielding_role["acceptedBy"] and fielding_role["acceptedOn"] and fielding_role["acceptanceEvidence"]
         assert fielding_role["summaryFormula"] is None and fielding_role["errorModel"] is None
+    handling_errors = data.get("handlingErrorOpportunitiesProposal")
+    if handling_errors:
+        assert handling_errors["state"] == "pending"
+        assert all(handling_errors[key] is None for key in
+                   ("difficultyThresholds", "handlingResponseCurve", "errorResolutionModel"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "handlingErrorOpportunitiesState": handling_errors["state"] if handling_errors else None,
             "characterCatchRangeDirectionState": catch_range_direction["state"] if catch_range_direction else None,
             "fieldingRatingRoleState": fielding_role["state"] if fielding_role else None,
             "normalJumpGloveTrackingState": jump_glove_tracking["state"] if jump_glove_tracking else None,

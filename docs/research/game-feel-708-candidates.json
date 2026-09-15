@@ -436,8 +436,18 @@
     },
     {
       "id": "F693-02-fielding-rating-role",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Should displayed Fielding summarize explicit defensive traits/abilities rather than act as one universal gameplay multiplier, with prior throw/recoil formulas reviewed before migration?"
+    },
+    {
+      "id": "F693-02-handling-error-opportunities",
+      "state": "next-human-decision",
+      "question": "Keep routine legal catches/pickups free of a generic error roll, and let handling differences matter only in explicitly defined difficult/disrupted acquisition situations?"
+    },
+    {
+      "id": "F693-02-defensive-trait-migration",
+      "state": "pending",
+      "question": "Inventory and map every approved/current Field consumer to explicit underlying traits, preserving accepted anchors or seeking review for behavioral changes before implementation."
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4541,14 +4551,14 @@
   },
   "fieldingRatingRoleProposal": {
     "decisionId": "F693-02-fielding-rating-role",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "displayRole": "summary-of-explicit-defensive-traits",
     "summaryFormula": null,
     "errorModel": null,
     "recommendation": "Treat displayed Fielding as a summary of explicit defensive traits and abilities, not a universal input multiplied into every defensive action. Give catch range, handling/error resistance, arm/transfer behavior and special defensive abilities named underlying definitions. The displayed score describes those traits; changing only the score does not change gameplay.",
     "scope": "Stat architecture direction, not selection of a final trait list, weights, error model, dive design or character ratings. Catch range follows the accepted independent-range direction. A unique dive is an explicit ability, not automatically unlocked by a high summary score.",
     "examples": "Two characters can have similar displayed Fielding with different strengths: one may offer a distinctive dive, another steadier handling. Their actual traits decide the behavior; an equal summary score does not imply identical catch range, arm or ability set. These are illustrative archetypes, not assigned roster changes.",
-    "migration": "If approved, inventory every current or approved Field consumer and explicitly map it to a named underlying trait before implementing the new architecture. That includes accepted ordinary recoil factors, special-impact resistance, throw range/speed and existing accuracy/handling/window rules. Preserve their approved intended behavior and numeric anchors as the migration baseline; do not rewire them to an invented new score, discard them or claim the migration is complete. Any substantive behavior change returns for decision.",
+    "migration": "Inventory every current or approved Field consumer and explicitly map it to a named underlying trait before implementing the new architecture. That includes accepted ordinary recoil factors, special-impact resistance, throw range/speed and existing accuracy/handling/window rules. Preserve their approved intended behavior and numeric anchors as the migration baseline; do not rewire them to an invented new score, discard them or claim the migration is complete. Any substantive behavior change returns for decision.",
     "errors": "Handling/error resistance is a possible trait category, not a new ordinary random-drop roll. Jack mentioning fewer errors reopens discussion of what situations count as error opportunities; ordinary reliability and existing special-hit restrictions remain in force until that separate decision. No error probabilities are selected.",
     "tradeoff": "Separate traits express distinct defensive identities and make exceptions explicit. A summary alone hides tradeoffs, so the future character card should expose the meaningful named abilities/strengths; exact card presentation remains separate. Keeping one universal scalar is simpler but couples unrelated skills and would recreate Field-driven glove behavior Jack rejected.",
     "requiredChecks": [
@@ -4558,6 +4568,36 @@
       "Error situations/probabilities and summary weights remain unselected until separately reviewed; no silent ordinary reliability regression."
     ],
     "referenceLimit": "Authored architecture recommendation based on Jack's suggestion, not a verified Mario stat aggregation formula.",
-    "implementationBoundary": "Pending architecture choice. No current Field calculation, card, roster, error model or runtime changed."
+    "implementationBoundary": "Accepted architecture direction; consumer migration and trait definitions remain pending. No current Field calculation, card, roster, error model or runtime changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to displayed Fielding summarizing separate defensive traits, with the underlying traits determining gameplay."
+  },
+  "handlingErrorOpportunitiesProposal": {
+    "decisionId": "F693-02-handling-error-opportunities",
+    "state": "pending",
+    "routineStatOnlyErrorChance": 0.0,
+    "difficultyThresholds": null,
+    "handlingResponseCurve": null,
+    "errorResolutionModel": null,
+    "recommendation": "Keep routine, correctly positioned, otherwise legal catches and pickups free of a generic stat-only error roll. Allow handling differences to matter only at explicitly reviewed difficult/disrupted acquisition opportunities with a visible baseball cause. Better underlying handling improves resistance to those errors; the displayed Fielding summary is not an input.",
+    "scope": "Where handling-error opportunities can exist, not the exact trigger catalog, probabilities, deterministic versus seeded resolution, miss/bobble/recovery outcomes or character ratings. Throw accuracy/errors and special post-possession dislodging remain separately governed.",
+    "routine": "A routine legal in-range opportunity should be secured reliably with matching visible glove motion. A low handling trait does not randomly fail it just to differentiate the roster. Incorrect position, an out-of-range ball, late jump or applicable acquisition restriction can still prevent a catch; those are not generic handling rolls and do not guarantee an out on the bases.",
+    "difficult": "Examples to investigate include an awkward ground hop, a compromised acquisition during a recovery action, or a specifically authored disruptive special hit. These are candidate contexts, not approved triggers. A dive, high ball speed, low trait rating or special-hit label alone cannot silently enable errors. Define the physical/event cause and visible tell of each eligible opportunity before adding it to gameplay.",
+    "handling": "A named handling/reliability trait may improve resistance within a qualifying opportunity; its mechanism and curve remain pending. It must not control glove positioning, catch-range size, jump response or an unowned dive ability. An ordinary clean interception by a low-rated character stays valid. Recovery-only differences and actual loss of possession must be distinguished when defining outcomes.",
+    "retainedPossession": "Respect accepted retained-ball recoil and pure special-pushback possession rules. Do not turn a secured catch into a drop merely because it was hard, produced recoil, or occurred during a dive. Review acquisition error eligibility before secure possession; same-event acquisition/loss must resolve before transient outs or carrier bonuses. A later distinct dislodging effect needs its explicit contract and cannot reverse an earlier completed out.",
+    "currentAudit": "InPlay.Bobbles uses original hit-derived energy, a MinEnergy threshold and Field plus glove equipment to compute a seeded chance. LivePlaySystem.ArmRecoil invokes it on initial grounder acquisition and scatters the ball on a bobble. Special DropRules also contain named chances. These are legacy behavior, not automatically accepted context definitions or coefficients for the new trait architecture. Error trigger measurements must describe actual acquisition conditions; this proposal does not reinterpret old exit energy as current ball/glove impact speed.",
+    "migration": "Inventory existing grounder bobbles, special drops, accuracy and retained-possession paths in the explicit Field-consumer migration. Identify which satisfy the reviewed future opportunity catalog and which need redesign. Do not silently remove legacy behaviors or claim their current chances are approved. Previously accepted throw/recoil numeric anchors remain the baseline for their own traits.",
+    "tradeoff": "Context-limited errors make handling reliability meaningful without frustrating a player who executed an uncomplicated play correctly. A small universal error chance would create more spontaneous baseball mistakes, but also allow low-odds failures on routine successful inputs. Zero errors anywhere would simplify reliability but remove an intended source of defensive character identity.",
+    "referenceLimit": "Authored error-eligibility recommendation informed by Jack's reliable-defense goal and request for distinct defensive traits. No measured Wii/GC error-rate distribution or handling formula established. Compare routine and visibly difficult acquisitions separately in both references before tuning outcomes.",
+    "requiredChecks": [
+      "Routine legal in-range acquisition has no generic stat-only error trial, across low/high handling and both seats/CPU.",
+      "Every non-routine error opportunity names a reviewed cause and visible tell; merely being a dive, fast ball or special cannot activate an unreviewed roll.",
+      "Handling trait and displayed summary are separate; no Field-based glove-positioning or hidden catch-range modifier returns.",
+      "Retained-ball recoil/pure-pushback rules remain intact, with acquisition outcomes resolved before temporary outs and later losses unable to undo completed outs.",
+      "Audit legacy bobble/drop/accuracy consumers before migration; choose triggers, resolution model and outcomes separately before runtime implementation.",
+      "Test real routine and difficult acquisition traces and inspect visible error causes in standalone; no statistical or human gate is passed by this document."
+    ],
+    "implementationBoundary": "Pending handling-error eligibility direction. No error probability table, trigger threshold, RNG model, current bobble/drop behavior, runtime or human gate changed."
   }
 }
