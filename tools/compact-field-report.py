@@ -633,9 +633,38 @@ def derive(data):
                 assert math.isclose(row["ballReleaseSeconds"], start+.30)
             else:
                 assert row["releaseStartSeconds"] is None and row["ballReleaseSeconds"] is None
+    recoil_basis = data.get("groundPickupRecoilBasisProposal")
+    if recoil_basis and recoil_basis["state"] == "accepted-calibration-anchor":
+        assert recoil_basis["acceptedBy"] and recoil_basis["acceptedOn"] and recoil_basis["acceptanceEvidence"]
+    recoil_cap = data.get("groundPickupRecoilCapProposal")
+    if recoil_cap:
+        cap = recoil_cap["maxRecoverySeconds"]
+        row = recoil_cap["run5Arithmetic"]
+        assert cap > 0
+        assert row["nominalBagSeconds"] == proposal["run5NominalBagSeconds"]
+        speed = row["basepathFeet"]/row["nominalBagSeconds"]
+        assert math.isclose(row["ordinaryRunnerFeetPerSecond"], speed)
+        assert math.isclose(row["runnerAdvanceDuringMaxRecoveryFeet"], speed*cap)
+        assert math.isclose(row["recoilPlusOrdinaryReleaseSeconds"], cap+.30)
+        assert math.isclose(row["runnerAdvanceDuringOldCapFeet"], speed*row["baselineOldRecoveryCapSeconds"])
+        for alt in recoil_cap["alternatives"]:
+            assert math.isclose(alt["run5RunnerAdvanceFeet"], speed*alt["maxRecoverySeconds"])
+        for ex in recoil_cap["commandExamples"]:
+            assert ex["recoverySeconds"] <= cap
+            assert math.isclose(ex["readySeconds"], ex["possessionSeconds"]+ex["recoverySeconds"])
+            age = max(0, ex["readySeconds"]-ex["commandSeconds"])
+            assert math.isclose(ex["ageAtReadinessSeconds"], age)
+            valid = age <= buffer["windowSeconds"]+1e-12
+            assert ex["valid"] == valid
+            if valid:
+                assert math.isclose(ex["releaseStartSeconds"], max(ex["readySeconds"], ex["commandSeconds"]))
+                assert math.isclose(ex["ballReleaseSeconds"], ex["releaseStartSeconds"]+.30)
+            else:
+                assert ex["releaseStartSeconds"] is None and ex["ballReleaseSeconds"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "groundPickupRecoilCapState": recoil_cap["state"] if recoil_cap else None,
             "groundPickupRecoilBasisState": data.get("groundPickupRecoilBasisProposal", {}).get("state"),
             "cleanGroundPickupReadinessState": pickup["state"] if pickup else None,
             "carryMovementResponseState": carry_response["state"] if carry_response else None,
