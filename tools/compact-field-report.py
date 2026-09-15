@@ -797,12 +797,19 @@ def derive(data):
             assert math.isclose(10*row["specialMotionSeconds"]/2, row["specialDistanceFeet"])
     special_possession = data.get("specialPushbackPossessionProposal")
     if special_possession:
-        assert special_possession["state"] == "pending"
+        if special_possession["state"] == "accepted-calibration-anchor":
+            assert special_possession["acceptedBy"] and special_possession["acceptedOn"] and special_possession["acceptanceEvidence"]
         for case in special_possession["cases"]:
             assert case["secureAfter"] == (case["secureBefore"] and not case["authoredDislodgeOccurs"])
+    special_actions = data.get("specialPushbackActionsProposal")
+    if special_actions:
+        assert special_actions["state"] == "pending"
+        for case in special_actions["cases"]:
+            assert case["contactEligible"] == (case["secure"] and case["legalContact"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialPushbackActionsState": special_actions["state"] if special_actions else None,
             "specialPushbackPossessionState": special_possession["state"] if special_possession else None,
             "specialImpactFieldResistanceState": resistance["state"] if resistance else None,
             "specialImpactMotionCompositionState": special_motion["state"] if special_motion else None,

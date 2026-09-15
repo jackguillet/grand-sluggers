@@ -816,9 +816,9 @@ The proposal does not yet decide whether Fielding also reduces the special's own
 
 Field10 still receives 80% of the special's physical effect. Dedicated immunity/resistance abilities, named attack exceptions, individual strengths and earlier/repeated-effect behavior remain separate. Validate per-source factors, velocity-profile integration, non-impact status isolation, action readiness, both seats/CPU and the same real attacks against weak/strong fielders before standalone feel acceptance. No runtime or human gate changes here.
 
-## Next decision — possession during special pushback
+## Accepted decision — possession during special pushback
 
-**F693-02-special-pushback-possession — pending, September 15, 2026.** Recommend **retaining an already-secured ball through pure special pushback**, with no extra random drop roll. A special deliberately designed to knock the ball loose can do so through an explicitly authored dislodging effect, reviewed separately.
+**F693-02-special-pushback-possession — accepted by Jack on September 15, 2026.** Jack approved **retaining an already-secured ball through pure special pushback**, with no extra random drop roll. A special deliberately designed to knock the ball loose can do so through an explicitly authored dislodging effect, reviewed separately.
 
 **Why it matters:** a fielder sliding backward with the ball creates a different race from a ball escaping the glove. Keeping these outcomes explicit preserves reliable ordinary defense and gives dislodging attacks a clear identity. A large shove or dramatic reaction animation does not silently mean the ball was dropped. Moving off a bag can prevent a force while the fielder still holds the ball.
 
@@ -830,7 +830,21 @@ Field10 still receives 80% of the special's physical effect. Dedicated immunity/
 
 This is an authored reliability/attack-identity rule, not a verified universal Mario retention rule. Abstract policy checks are not gameplay simulation. Validate real possession events, failed acquisition, duplicate effects, loose-ball transitions, legal-out ordering, both seats/CPU and visible distinctions between retained-ball recoil and a dislodged ball once individual effects are defined.
 
-**Question for Jack:** keep the ball secured through pure special pushback, with ball loss reserved for existing bobbles or explicitly designed dislodging effects?
+## Next decision — actions during pure special pushback
+
+**F693-02-special-pushback-actions — pending, September 15, 2026.** Recommend **the same action policy as ordinary recoil for pure special pushback**: delay commanded steering and starting a throw through the applicable recovery; preserve valid held-ball forces/tags and responsive input management. This explicitly extends the earlier ordinary-recoil decision to special physical pushback, not every special status.
+
+**Player consequence:** a fielder with secure possession and legal contact on the required bag can complete a force during recovery. The force resolves at that contact event, without waiting for the runner to arrive; later pushback cannot undo the completed out. If the shove prevents the fielder from ever establishing required contact before the runner is safe, there is no out. An actual held-glove tag can likewise count; there is no extra reach or automatic lunge. The special disrupts position and throw timing without silently making the runner immune to a ball still held in valid contact.
+
+**Recovery and controls:** use the accepted ordinary plus Field-resisted special recovery for actions both restrict. Their physical motion remains concurrent; a skid finishing before recovery does not restore control early. Keep neutral locomotion braking and permitted impact movement during the steering lock, with runners and other fielders live. Current eligible direction resumes through actual velocity at readiness; no acceleration precharge or Ball Dash bypass.
+
+A throw may enter the existing **.25-second buffer** during recovery, but an early command can expire during a long special reaction. Do not lengthen the buffer or refresh its age because a special is active. Cancel and target management keep their accepted rules; a later deliberate press can queue normally. No command means no automatic throw, and no extra animation-tail wait is added.
+
+**Scope:** pure physical pushback with retained possession. Burn, charm, freeze, dislodging effects and other statuses still need their own permissions; an attack with another reviewed restriction must honor it. This is not blanket tagging permission for all stunned fielders or a choice about movement during an already committed throw. Actual contact/loss ordering remains authoritative.
+
+This is an authored permission contract, not a measured Mario special-status matrix. The abstract policy checks do not simulate contact geometry. Validate actual forces/tags, off-bag arrival, lost possession, exact combined readiness, buffer expiry, current intent, both seats/CPU and mixed-status restrictions after their contracts are defined. No runtime or human gate changes here.
+
+**Question for Jack:** have pure special pushback delay steering and throws while still allowing outs from valid held-ball contact?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

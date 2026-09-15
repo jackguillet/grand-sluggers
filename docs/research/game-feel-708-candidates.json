@@ -341,8 +341,13 @@
     },
     {
       "id": "F693-02-special-pushback-possession",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Have pure special pushback preserve an already-secured ball, with no extra drop roll, while permitting specifically authored ball-dislodging attacks to create real loose-ball outcomes?"
+    },
+    {
+      "id": "F693-02-special-pushback-actions",
+      "state": "next-human-decision",
+      "question": "For pure special pushback, use the ordinary recoil action policy: block steering and throw starts through the applicable recovery, preserve valid held-ball forces/tags and input management, and review other statuses separately?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3519,7 +3524,7 @@
   },
   "specialPushbackPossessionProposal": {
     "decisionId": "F693-02-special-pushback-possession",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Pure special pushback does not itself dislodge an already-secured ball or add a random drop roll. A special intended to knock the ball loose must declare a separately reviewed dislodging effect with explicit trigger, possession transition and live-ball outcome.",
     "scope": "Possession consequence of special physical pushback after acquisition outcome is resolved. Does not guarantee every initial catch, remove existing bobble checks, decide airborne catch validity, or make a fielder immune to separately authored loss effects.",
     "retention": "A successfully secured ball remains attached to the authoritative owner through pure pushback. Large distance, high combined speed, short recovery, Field rating and recoil animation do not silently become new drop conditions. Actual movement can remove bag/glove contact without removing possession.",
@@ -3559,6 +3564,63 @@
       "Both seats/CPU share ownership and event ordering, duplicate effects do not create duplicate loose balls.",
       "Validate actual acquisition/loss traces and standalone readability after each special effect is defined."
     ],
-    "implementationBoundary": "Pending default retention policy and explicit exception boundary only. No new attack, drop rate, runtime change or human gate selected."
+    "implementationBoundary": "Accepted default retention policy and explicit exception boundary only; individual special effects remain pending. No new attack, drop rate, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied agreed to retaining possession through pure pushback, with ball loss reserved for existing bobbles or explicitly designed dislodging effects."
+  },
+  "specialPushbackActionsProposal": {
+    "decisionId": "F693-02-special-pushback-actions",
+    "state": "pending",
+    "recommendation": "Pure special physical pushback uses the same action policy as ordinary recoil: block commanded locomotion/steering and throw-release starts until the applicable recovery deadline; preserve valid geometric held-ball forces/tags and responsive buffer/cancel/target management.",
+    "scope": "Pure special physical pushback with secure possession. Extends the ordinary permission policy to this named special component only. Does not assign permissions to burn, charm, freeze, visual obstruction, bobbles, dives, dislodging effects or a special that explicitly adds another reviewed status.",
+    "blocks": [
+      "commanded-locomotion-steering",
+      "throw-release-start"
+    ],
+    "preserves": [
+      "secure-possession-unless-actual-loss",
+      "geometric-force-and-tag-evaluation",
+      "time-stamped-throw-buffer-with-normal-expiry",
+      "cancel-and-target-management"
+    ],
+    "readiness": "For the same event, use ordinary recovery plus the Field-resisted special impact recovery for actions restricted by both. Their physical motion still runs concurrently on each component\u2019s own clock. Do not unlock steering/throwing merely because the visible skid ends; do not append a new animation tail. Pause freezes the active gameplay clocks.",
+    "contacts": "A legally held ball and actual valid bag/glove/runner contact can complete the existing force/tag during pure pushback recovery. A force is resolved at the legal possession-and-bag contact event; it does not wait for the runner to arrive. Once legally completed, later separation does not reverse it. If pushback prevents any required contact before the runner is safe, or possession is lost, the force removed or another safe rule applies before the out, no out is granted. No increased contact radius, automatic tag animation lunge, extra commanded tag reach or temporary runner immunity.",
+    "input": "Keep the accepted .25-second throw buffer, expiry, cancel precedence and target management. A long special recovery can outlast an early command; do not extend or refresh its age because a special is active. A later deliberate press may queue normally. Current eligible direction resumes at readiness from actual velocity; no fresh directional press, acceleration precharge, Ball Dash bypass or automatic throw.",
+    "movement": "During the applicable steering lock, maintain neutral braking of locomotion and integrate allowed physical impact motion. Runners, ball and other fielders remain live. Existing movement during an already committed throw is not selected here.",
+    "statusComposition": "If an attack also applies a separately reviewed status, that status\u2019s restrictions must still be honored; pure pushback permission cannot override a contact prohibition or restore possession. Mixed-status precedence, prior/repeated effects and individual attack permissions still need their own contracts.",
+    "cases": [
+      {
+        "name": "held-on-bag-during-pure-pushback",
+        "secure": true,
+        "legalContact": true,
+        "contactEligible": true
+      },
+      {
+        "name": "pushed-off-bag-before-runner",
+        "secure": true,
+        "legalContact": false,
+        "contactEligible": false
+      },
+      {
+        "name": "actual-possession-loss",
+        "secure": false,
+        "legalContact": true,
+        "contactEligible": false
+      }
+    ],
+    "caseScope": "Abstract policy examples for pure pushback alone with all existing legal force/tag criteria represented by legalContact. No runtime geometry, contact event or special status is simulated.",
+    "rationale": "Pure pushback changes position and readiness while leaving the meaning of a securely held ball consistent. The attack still disrupts throws and can move the fielder out of contact; it does not silently add runner immunity or arbitrary contact invalidation.",
+    "referenceLimit": "Authored permission contract, not a verified Wii/GameCube special-status permission matrix. No new reference measurement.",
+    "requiredChecks": [
+      "Actual legal force/tag during pure pushback and retained possession; misses, off-bag arrival, removed force and actual loss remain safe under existing rules.",
+      "Both seats/CPU cannot steer or start release before the combined applicable deadline; visible skid completion alone does not unlock actions.",
+      "World motion, allowed impact movement and other fielders continue; current intent resumes through actual velocity without Ball Dash bypass.",
+      "Existing .25-second buffer can expire during special recovery; cancel/retarget precedence remains intact with no hidden age refresh.",
+      "Acquisition/contact event ordering preserves completed legal outs and creates no transient out on failed acquisition.",
+      "Mixed statuses retain their own restrictions and cannot be bypassed by pure pushback permissions; test after those contracts are reviewed.",
+      "Verify full special races and standalone readability after individual attack values and arrival-speed anchors are selected."
+    ],
+    "implementationBoundary": "Pending pure-special-pushback permissions only. No individual special values, unrelated status permissions, runtime changes or human gate selected."
   }
 }
