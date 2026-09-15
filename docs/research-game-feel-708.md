@@ -982,9 +982,9 @@ Validate equal uninterrupted trajectories for tap/hold/early release, no held-bu
 
 The previously checked Wii/GC manuals establish press-oriented actions, not measured input latency or automatic timing assistance. This is an authored ownership choice. Validate the same press against different ball arrival times, early/late misses, changes in the ball path, existing locks, both input schemes/seats and CPU execution. Numerical startup/airtime and real catch coverage remain open; no runtime or human gate is passed.
 
-## Next decision — normal-jump height and airtime trial
+## Accepted decision — normal-jump height and airtime trial
 
-**F693-02-normal-jump-arc-trial — pending, September 15, 2026.** Recommend a first normal-jump trial of **2 feet of body rise and .60 seconds airborne**, with a symmetric arc reaching its peak after **.30 seconds**. No apex hold or generic extra clean-landing pause. These are a coupled starting profile, not measured Mario values or final feel acceptance.
+**F693-02-normal-jump-arc-trial — accepted by Jack on September 15, 2026.** Jack approved a first normal-jump trial of **2 feet of body rise and .60 seconds airborne**, with a symmetric arc reaching its peak after **.30 seconds**. No apex hold or generic extra clean-landing pause. These are a coupled starting profile, not measured Mario values or final feel acceptance.
 
 **Physical definition:** on level ground, let `H=2 ft`, `T=.60 s`, and `u=t/T`. Root height above takeoff is `h=4H*u*(1-u)`: 0 feet at takeoff, 1.5 at .15 seconds, 2 at .30, 1.5 at .45 and 0 at .60. Initial vertical speed is about **13.33 ft/s** and vertical acceleration **-44.44 ft/s²**. This governs the character's jump, not the ball's gravity or time scale. A real collision/ground-support transition owns landing; do not force this uninterrupted level-ground arc through a wall or slope.
 
@@ -998,7 +998,27 @@ The previously checked Wii/GC manuals establish press-oriented actions, not meas
 
 This is the shared baseline normal-jump trial on level ground. Character/ability variation, wall/buddy/diving profiles, slopes, exceptional impacts, input startup and actual glove reach remain separate. Check arc endpoints and peak, exact integration, neutral drift, early/late catches, short/tall characters, both seats/CPU and animation agreement, then inspect the standalone game. No runtime, rig or human gate changes here.
 
-**Question for Jack:** trial a normal jump with a 2-foot body rise and .60 seconds of airtime, peaking halfway through?
+## Next decision — normal-jump air-response strength
+
+**F693-02-normal-jump-air-response-trial — pending, September 15, 2026.** Recommend **10% of ordinary ground acceleration and braking rates** for active horizontal correction during the accepted .60-second jump. Keep the approved neutral coasting and takeoff momentum. This gives a numerical meaning to small corrections while preserving the importance of positioning before jumping.
+
+**Shared response:** with ordinary character speed `V`, use `a_air=.10*(V/.20)` and `b_air=.10*(V/.10)`. Eligible active intent uses the previously accepted velocity-segment turn law at those rates, with the same analog shaping and appropriate ordinary/carry requested speed cap. Braking and acceleration are sequential phases, not independent forces to add. Neutral intent retains velocity; it does not brake toward zero. Integrate actual velocity into the physical root path with no overshoot or instant speed clamp.
+
+**Concrete Run5 examples:** `V=18 ft/s`, so air acceleration is **9 ft/s²** and air braking **18 ft/s²**. Over the full .60 seconds, without external effects:
+
+- Jump from rest, then hold one direction: travel **1.62 feet**, landing at **5.4 ft/s**.
+- Jump while running at 18 ft/s with neutral intent: travel **10.8 feet**, still at 18 ft/s.
+- Jump at that speed and hold directly backward throughout: travel **7.56 feet forward**, landing at **7.2 ft/s forward**. You shorten the leap by **3.24 feet** without reversing it.
+
+These are root-motion examples, not added glove reach or a guaranteed catch. Neutral means the resolved movement intent; releasing the human stick may still allow an already authorized assistance intent.
+
+**Coverage bound:** since commanded acceleration magnitude cannot exceed `b_air`, correction from the neutral takeoff-velocity path is at most `.5*b_air*T²`. At Run5 and `T=.60`, that is **3.24 feet** even with changing input; Run1/9 bounds are about **2.43/4.05 feet**. This bound excludes collisions and external impacts, which need their own contracts. It is derived from continuous motion, not a hard position clamp, catch radius or refillable allowance. A 5% alternative yields .81 feet from rest and a 1.62-foot Run5 bound; 15% yields 2.43 and 4.86 feet. The proposed middle trial leaves meaningful correction without letting a full-speed wrong-way jump reverse before landing.
+
+**Carry, landing and restrictions:** Ball Dash changes the eligible carrier's requested cap to 1.20V but leaves these unboosted response rates intact. Catching, losing the ball or switching control cannot reset velocity, air time or correction strength. Preserve inherited speed even when the requested cap changes, then approach the eligible target gradually. Movement restrictions suppress commanded correction; physical drift persists. Landing preserves actual velocity and restores eligible ground response without extra generic delay. None of this alters vertical motion, throw readiness or special impact rules.
+
+**Evidence and validation:** this is an authored coefficient, not measured Mario steering. The previously reviewed official manuals establish inputs, not midair acceleration. Comparable Wii/GC neutral, perpendicular and opposite-input jumps still need observation, followed by standalone checks of actual body/glove paths. Verify exact integration and frame splitting, partial/changing intents, short/tall and slow/fast characters, both seats/schemes, CPU/assistance, possession transitions and restrictions. Runtime and human gates remain open.
+
+**Question for Jack:** use this restrained 10% air-steering trial, allowing small corrections while keeping the takeoff direction important?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

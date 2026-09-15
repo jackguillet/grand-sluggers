@@ -886,7 +886,8 @@ def derive(data):
         assert takeoff["pressToTakeoffSeconds"] is None
     jump_arc = data.get("normalJumpArcTrialProposal")
     if jump_arc:
-        assert jump_arc["state"] == "pending"
+        if jump_arc["state"] == "accepted-calibration-anchor":
+            assert jump_arc["acceptedBy"] and jump_arc["acceptedOn"] and jump_arc["acceptanceEvidence"]
         jump_peak, jump_duration = jump_arc["peakBodyRiseFeet"], jump_arc["airtimeSeconds"]
         assert jump_peak > 0 and jump_duration > 0
         assert math.isclose(jump_arc["apexSeconds"], jump_duration/2)
@@ -902,9 +903,32 @@ def derive(data):
             assert math.isclose(row["neutralDriftFeet"], speed*jump_duration)
         for row in jump_arc["alternatives"]:
             assert math.isclose(row["run5NeutralDriftFeet"], 18*row["airtimeSeconds"])
+    jump_response = data.get("normalJumpAirResponseTrialProposal")
+    if jump_response:
+        assert jump_response["state"] == "pending"
+        assert math.isclose(jump_response["airtimeSeconds"], jump_arc["airtimeSeconds"])
+        for row in jump_response["examples"]:
+            jr_v = (21+1.9*row["run"])*18/30.5
+            jr_a = jump_response["airAccelerationScale"]*jr_v/.20
+            jr_b = jump_response["airBrakingScale"]*jr_v/.10
+            jr_t = jump_response["airtimeSeconds"]
+            assert jr_a*jr_t < jr_v and jr_b*jr_t < jr_v
+            for key, value in {
+                "ordinarySpeedFeetPerSecond": jr_v,
+                "airAccelerationFeetPerSecondSquared": jr_a,
+                "airBrakingFeetPerSecondSquared": jr_b,
+                "neutralRunningDriftFeet": jr_v*jr_t,
+                "stationaryFullInputTravelFeet": .5*jr_a*jr_t**2,
+                "stationaryLandingSpeedFeetPerSecond": jr_a*jr_t,
+                "oppositeInputTravelFeet": jr_v*jr_t-.5*jr_b*jr_t**2,
+                "oppositeInputLandingForwardSpeedFeetPerSecond": jr_v-jr_b*jr_t,
+                "maxCorrectionFromNeutralPathFeet": .5*jr_b*jr_t**2,
+            }.items():
+                assert math.isclose(row[key], value)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpAirResponseTrialState": jump_response["state"] if jump_response else None,
             "normalJumpArcTrialState": jump_arc["state"] if jump_arc else None,
             "normalJumpTakeoffOwnershipState": takeoff["state"] if takeoff else None,
             "normalJumpInputProfileState": jump_input["state"] if jump_input else None,
