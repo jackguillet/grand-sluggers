@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pitcher-read-accepted; catcher-read-pending; incomplete-runtime-contract",
+  "status": "C80-through-catcher-read-accepted; pursuit-acceleration-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -39,7 +39,7 @@
     {
       "id": "wii-clip",
       "url": "https://www.youtube.com/watch?v=3-5aQh-fxZk&t=58s",
-      "scope": "Previously annotated throw flight 0.99–1.21 s; distance/stats/abilities not matched"
+      "scope": "Previously annotated throw flight 0.99\u20131.21 s; distance/stats/abilities not matched"
     },
     {
       "id": "gc-clip",
@@ -110,7 +110,7 @@
     "read": "Base contact-clock reads accepted: LF/CF/RF .40 seconds, 1B/2B/SS/3B .25, P .35. Preserve ownership, existing airborne cap and no additional camera gate. Catcher and numerical movement response remain pending.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
-    "scoring": "Accepted 1.8–5 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
+    "scoring": "Accepted 1.8\u20135 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
     "presentation": "D7 unchanged. Dead-ball duration and moderate ball assistance remain pending numerical presentation decisions."
   },
   "decisionQueue": [
@@ -152,7 +152,7 @@
     {
       "id": "F693-03-negative-chemistry",
       "state": "accepted-calibration-anchor",
-      "question": "Replace bad chemistry’s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
+      "question": "Replace bad chemistry\u2019s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
     },
     {
       "id": "F693-03-relay-ownership",
@@ -201,13 +201,18 @@
     },
     {
       "id": "F693-02-catcher-read-clock",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a 0.45-second base catcher pursuit read after batted contact, without adding it to received throws or steal attempts, as the first trial?"
+    },
+    {
+      "id": "F693-02-pursuit-acceleration",
+      "state": "next-human-decision",
+      "question": "Use a linear 0.20-second ordinary pursuit build-up from rest to full speed, beginning movement immediately when eligible, with the same duration across characters?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose ordinary acceleration, braking and direction-change response individually; review dash and special movement modifiers."
+      "question": "Choose braking and direction-change response individually; review partial-stick transitions, dash/status, special movement and assistance handoffs."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -308,7 +313,7 @@
         "commandToTargetSeconds": 1.6500000000000001
       }
     ],
-    "sourceStatus": "Authored trial timing. #701 Wii release-to-reception observation 0.99–1.21 s has unmatched distance/stats; GC return has wider release/reception uncertainty. No reference feet-per-second measured.",
+    "sourceStatus": "Authored trial timing. #701 Wii release-to-reception observation 0.99\u20131.21 s has unmatched distance/stats; GC return has wider release/reception uncertainty. No reference feet-per-second measured.",
     "baselineComparison": {
       "old90FootTotalSampledTravelSeconds": 1.12,
       "new80FootReleasePlusFlightSeconds": 1.2,
@@ -519,7 +524,7 @@
     "badPairTravelSpeedMultiplier": 0.9,
     "chemistrySpecificSlantChance": 0.0,
     "ordinaryReleaseSeconds": 0.3,
-    "recommendation": "Replace bad chemistry’s additional random slant branch with a predictable 10% travel-speed reduction for the actual bad thrower-receiver pair, applied once to full otherwise-calibrated flight. Preserve ordinary release; do not add a recovery pause or chemistry-only lateral miss.",
+    "recommendation": "Replace bad chemistry\u2019s additional random slant branch with a predictable 10% travel-speed reduction for the actual bad thrower-receiver pair, applied once to full otherwise-calibrated flight. Preserve ordinary release; do not add a recovery pause or chemistry-only lateral miss.",
     "scope": "Bad-pair chemistry only. This does not remove normal Field-dependent accuracy, bobbles, uncovered-receiver consequences, star effects or other errors; their calibration remains separate. Good and neutral pair anchors unchanged. Runtime and full scoring validation pending.",
     "currentRule": {
       "slantChance": 0.2,
@@ -549,7 +554,7 @@
     "reference": {
       "url": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
       "page": "printed 14 / PDF index 7",
-      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is an accepted deliberate Harbor deviation; 20%/0.70/10–14ft are audited Harbor values, not confirmed Wii parameters."
+      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is an accepted deliberate Harbor deviation; 20%/0.70/10\u201314ft are audited Harbor values, not confirmed Wii parameters."
     },
     "tradeoff": "Predictable lineup/routing cost supports attribution to player choices and more consistent routine races, at the cost of some Mario-like surprise/party volatility. Accepted reliable defense does not itself prohibit occasional bad-pair errors; Jack explicitly selected this deviation on September 14, 2026.",
     "alternative": "Retain current occasional slower/off-target chemistry throws, then review probability and severity against ordinary defense. This keeps the reference-style surprise but permits a correctly commanded bad-pair throw to go astray.",
@@ -571,7 +576,7 @@
     "state": "accepted-design-direction",
     "recommendation": "Each human relay leg requires its own deliberate throw command. Permit an early command buffered for the next intended receiver; selecting a bag alone does not authorize throwing.",
     "currentBehavior": "An explicitly armed ThrowBag is copied into _relayBag on a cutoff throw; after successful reception the human branch calls BeginThrowToBag automatically when _relayBag is valid. With no explicitly armed bag it holds. CPU re-evaluates its decision table.",
-    "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md §8.7",
+    "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md \u00a78.7",
     "interactionContract": [
       "The cutoff command authorizes the first leg only. A separate throw press authorizes the onward leg; merely holding the original button must not create another command.",
       "Allow a deliberate early press for the intended incoming receiver so onward throwing need not require catch-frame timing. Numeric buffer window remains pending.",
@@ -601,7 +606,7 @@
       "Both human defensive seats, both input schemes, CPU defense and double-play continuation",
       "Full direct/relay race with actual per-leg release, movement and chemistry"
     ],
-    "implementationBoundary": "Accepted control direction only; reconcile §8.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit.",
+    "implementationBoundary": "Accepted control direction only; reconcile \u00a78.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
     "acceptanceEvidence": "Jack replied approve to a separate command for each relay leg, with early-input buffering."
@@ -1190,7 +1195,7 @@
   },
   "catcherReadProposal": {
     "decisionId": "F693-02-catcher-read-clock",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "position": "C",
     "secondsFromContact": 0.45,
     "currentSecondsFromContact": 0.67,
@@ -1237,6 +1242,86 @@
       "Actual readiness/displacement/pickup and full runner/throw race",
       "Both human seats and independently gated scoring cohorts"
     ],
-    "implementationBoundary": "Pending catcher-read trial. No runtime, camera or animation changes in this research step. Finish the combined response/coverage/ball contract and audit separate steal-release timing before implementing and human validation."
+    "implementationBoundary": "Accepted catcher-read trial; runtime migration pending. No runtime, camera or animation changes in this research step. Finish the combined response/coverage/ball contract and audit separate steal-release timing before implementing and human validation.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to the proposed 0.45-second catcher read after batted contact, without a new delay on pitch receiving, steal throws or home receptions."
+  },
+  "pursuitAccelerationProposal": {
+    "decisionId": "F693-02-pursuit-acceleration",
+    "state": "pending",
+    "restToFullSeconds": 0.2,
+    "curve": "linear-speed-ramp",
+    "recommendation": "From rest under sustained full movement intent, rise linearly to ordinary top speed in .20 seconds. Movement begins on the first eligible step; this is not .20 seconds of additional standstill.",
+    "scope": "Ordinary pursuit starts for manual, assisted and CPU fielders. One .20-second duration across characters, positions and hit classes, reaching each character's accepted ordinary top speed. No new agility stat or heavy-character penalty. Partial-stick target mapping remains existing input policy; detailed transitions, braking, direction changes, dash/status, possession/carry and coverage are separately reviewed.",
+    "clockAndState": "Start when movement is both eligible and requested by the active intent. Do not precharge while read-gated or while stationary with no movement intent. Continue the physical movement state of an already moving fielder across selection or manual/assist ownership changes; switching does not restart the ramp or grant full speed. Full transition rules remain in the combined response contract.",
+    "math": "For straight full-intent travel from rest: v(t)=V*min(t/T,1); x(t)=V*t*t/(2*T) for 0<=t<=T, then V*(t-T/2). T=.20. For distance d<=V*T/2, arrival=sqrt(2*d*T/V); otherwise arrival=d/V+T/2. This excludes read, turns, reach, interception and recovery.",
+    "run5Arithmetic": {
+      "topSpeedFeetPerSecond": 18.0,
+      "accelerationFeetPerSecondSquared": 90.0,
+      "halfRampSeconds": 0.1,
+      "halfRampSpeedFeetPerSecond": 9.0,
+      "halfRampDistanceFeet": 0.45,
+      "rampDistanceFeet": 1.8,
+      "instantStartDistanceFeet": 3.6,
+      "distanceDeficitFeet": 1.8,
+      "longStraightDelaySeconds": 0.1,
+      "illustrativeChaseFeet": 16.0,
+      "instantStartTravelSeconds": 0.8888888888888888,
+      "rampedTravelSeconds": 0.9888888888888888
+    },
+    "characterArithmetic": [
+      {
+        "run": 1,
+        "speedFeetPerSecond": 13.514754098360655,
+        "rampDistanceFeet": 1.3514754098360655
+      },
+      {
+        "run": 5,
+        "speedFeetPerSecond": 18.0,
+        "rampDistanceFeet": 1.8
+      },
+      {
+        "run": 9,
+        "speedFeetPerSecond": 22.485245901639342,
+        "rampDistanceFeet": 2.2485245901639344
+      }
+    ],
+    "uncappedContactToFullSpeedSeconds": {
+      "baseInfield": 0.45,
+      "pitcher": 0.55,
+      "outfield": 0.6,
+      "catcher": 0.65
+    },
+    "arithmeticScope": "Analytical start from rest at full intent, no dash, with uncapped reads for the contact examples. Airborne caps, actual later input, moving initial states, paths, pickup and ball timing change real outcomes. No simulated candidate race.",
+    "alternatives": [
+      {
+        "seconds": 0.1,
+        "effect": "Sharper launch; half the straight-line start cost."
+      },
+      {
+        "seconds": 0.3,
+        "effect": "More pronounced build-up; increases straight-line start cost to .15 seconds once past the ramp distance."
+      }
+    ],
+    "reference": {
+      "sourceReport": "docs/research-game-feel-701-movement.md",
+      "checkedOn": "2026-09-14",
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "limit": "Official fielding-control passages distinguish movement and dash but supply no calibrated ordinary acceleration curve. Retained community fielding/running reports do not establish a matched stock fielding ramp for both games. .20 and the linear shape are authored, not measured Mario values. Unknown controller timing in ordinary footage cannot establish input latency."
+    },
+    "implementationRail": "A shared sim response model must drive actual stepping and pursuit/intercept prediction from current physical velocity. Do not keep constant-speed route selection with accelerated stepping or imitate weight only through BodyFacing. Integrate within-step read/ramp boundaries consistently; authored motion follows physical movement, without another camera or clip wait.",
+    "requiredChecks": [
+      "From-rest short and long routes for Run 1/5/9 across IF/OF and grounder/liner/fly/post-bounce pursuit",
+      "Step-size consistency at read expiry and ramp completion; predictor and actual arrival agree for moving and stationary initial states",
+      "Held input versus late input, keyboard/gamepad, both human seats and CPU; no selection-based ramp reset or precharge",
+      "Manual/assist transitions retain motion state; neutral stick can still request assisted pursuit and is not a universal stop",
+      "Routine grounder margins, short pops, bunts, gap/wall chases and full relay races; no hidden runner or field-size rescue",
+      "Actual first displacement, velocity, pickup and authored footfalls are legible in standalone; independent scoring cohorts and Jack gate"
+    ],
+    "implementationBoundary": "Pending authored acceleration trial. Braking/turning and remaining response/coverage/ball quantities must complete the contract before runtime implementation. No production rules, Unity or motion edits here."
   }
 }

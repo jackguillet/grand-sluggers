@@ -322,6 +322,8 @@ def derive(data):
         assert math.isclose(a["potentialExtraFeetAtRun5TopSpeed"], a["earlierThanCurrentSeconds"] * a["speedFeetPerSecond"])
     catcher_read = data.get("catcherReadProposal")
     if catcher_read:
+        if catcher_read["state"] == "accepted-calibration-anchor":
+            assert catcher_read["acceptedBy"] and catcher_read["acceptedOn"] and catcher_read["acceptanceEvidence"]
         a = catcher_read["arithmetic"]
         assert catcher_read["position"] == "C"
         assert math.isclose(a["earlierThanCurrentSeconds"], catcher_read["currentSecondsFromContact"] - catcher_read["secondsFromContact"])
@@ -331,8 +333,35 @@ def derive(data):
         assert math.isclose(a["potentialExtraFeetAtRun5TopSpeed"], a["earlierThanCurrentSeconds"] * a["speedFeetPerSecond"])
         assert math.isclose(a["controlReadPlusTravelSeconds"], catcher_read["currentSecondsFromContact"] + a["illustrativeChaseFeet"] / pursuit["baselineRun5FeetPerSecond"])
         assert math.isclose(a["trialReadPlusTravelSeconds"], catcher_read["secondsFromContact"] + a["illustrativeChaseFeet"] / pursuit["run5FeetPerSecond"])
+    acceleration = data.get("pursuitAccelerationProposal")
+    if acceleration:
+        t = acceleration["restToFullSeconds"]
+        a = acceleration["run5Arithmetic"]
+        v = pursuit["run5FeetPerSecond"]
+        assert t > 0 and acceleration["curve"] == "linear-speed-ramp"
+        assert math.isclose(a["topSpeedFeetPerSecond"], v)
+        assert math.isclose(a["accelerationFeetPerSecondSquared"], v / t)
+        half = a["halfRampSeconds"]
+        assert math.isclose(half, t / 2)
+        assert math.isclose(a["halfRampSpeedFeetPerSecond"], v * half / t)
+        assert math.isclose(a["halfRampDistanceFeet"], v * half * half / (2*t))
+        assert math.isclose(a["rampDistanceFeet"], v*t/2)
+        assert math.isclose(a["instantStartDistanceFeet"], v*t)
+        assert math.isclose(a["distanceDeficitFeet"], a["instantStartDistanceFeet"] - a["rampDistanceFeet"])
+        assert math.isclose(a["longStraightDelaySeconds"], t/2)
+        assert a["illustrativeChaseFeet"] > a["rampDistanceFeet"]
+        assert math.isclose(a["instantStartTravelSeconds"], a["illustrativeChaseFeet"]/v)
+        assert math.isclose(a["rampedTravelSeconds"], a["illustrativeChaseFeet"]/v+t/2)
+        for row in acceleration["characterArithmetic"]:
+            speed = (21+1.9*row["run"])*v/pursuit["baselineRun5FeetPerSecond"]
+            assert math.isclose(row["speedFeetPerSecond"], speed)
+            assert math.isclose(row["rampDistanceFeet"], speed*t/2)
+        for name, read in (("baseInfield", infield_read), ("pitcher", pitcher_read), ("outfield", outfield_read), ("catcher", catcher_read)):
+            assert math.isclose(acceleration["uncappedContactToFullSpeedSeconds"][name], read["secondsFromContact"]+t)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitAccelerationState": acceleration["state"] if acceleration else None,
             "pitcherReadState": pitcher_read["state"] if pitcher_read else None,
             "infieldReadState": infield_read["state"] if infield_read else None,
             "outfieldReadState": outfield_read["state"] if outfield_read else None,
