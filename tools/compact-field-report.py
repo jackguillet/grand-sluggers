@@ -848,15 +848,30 @@ def derive(data):
                 assert math.isclose(row["releaseSeconds"], start+.30)
     air_recoil = data.get("groundedAirCatchRecoilProposal")
     if air_recoil:
-        assert air_recoil["state"] == "pending"
+        if air_recoil["state"] == "accepted-calibration-anchor":
+            assert air_recoil["acceptedBy"] and air_recoil["acceptedOn"] and air_recoil["acceptanceEvidence"]
         assert all(air_recoil[key] is None for key in ("airOnsetFeetPerSecond", "airFullSeverityFeetPerSecond", "sharesNumericalGroundAnchors"))
         for row in air_recoil["examples"]:
             w = row["severity"]*(1-.05*(row["field"]-1))
             assert math.isclose(row["recoverySeconds"], .20*w)
             assert math.isclose(row["impactDistanceFeet"], w*w)
+    jump_ready = data.get("jumpCatchThrowReadinessProposal")
+    if jump_ready:
+        assert jump_ready["state"] == "pending"
+        assert jump_ready["requiresLandingBeforeReleaseStart"]
+        assert jump_ready["extraCleanLandingPauseSeconds"] == 0
+        for row in jump_ready["examples"]:
+            ready = max(row["secureSeconds"], row["landingSeconds"], row["otherThrowReadySeconds"])
+            assert math.isclose(row["readySeconds"], ready)
+            start = max(ready, row["commandSeconds"])
+            if start-row["commandSeconds"] > .25+1e-9:
+                assert row["releaseSeconds"] is None
+            else:
+                assert math.isclose(row["releaseSeconds"], start+.30)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "jumpCatchThrowReadinessState": jump_ready["state"] if jump_ready else None,
             "groundedAirCatchRecoilState": air_recoil["state"] if air_recoil else None,
             "cleanAirCatchReadinessState": air_catch["state"] if air_catch else None,
             "specialImpactRepeatEligibilityState": repeat_eligibility["state"] if repeat_eligibility else None,
