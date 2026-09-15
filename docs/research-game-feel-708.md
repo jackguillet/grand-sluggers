@@ -48,9 +48,9 @@ Preserving toy-related lengths while reducing field distances is deliberate: uni
 
 **Reach needs its own accounting.** For example, leaving a 13-foot catch-assist radius unchanged changes its basepath fraction from 14.44% to 16.25% or 18.57%. That can erase gaps even with slower pursuit. Separate physical body/glove reach, catch assistance, scoop thresholds, tag reach, cover eligibility and bag occupancy. Neither multiplying all radii by `B/90` nor leaving them all untouched is approved by this spatial choice. Record the coverage change before accepting the complete runtime contract. Moderate drawn-ball assistance must not enlarge those judgments.
 
-## Next decision — runner elapsed pace
+## Accepted decision — runner elapsed pace
 
-**F693-05-runner-clock — pending.** Recommend preserving the existing runner elapsed pace as the C80 calibration anchor. For a middle-speed Run-5 character without dash, that means a nominal **2.95 seconds per straight basepath**, plus the existing **0.5-second batter startup**: approximately **3.45 seconds from contact to first** in the simplified model. The historical S-31 projection is 3.458 seconds because actual paths and starting geometry matter. These are not measured C80 results.
+**F693-05-runner-clock — accepted by Jack on September 14, 2026.** Preserve the existing runner elapsed pace as the C80 calibration anchor. Jack replied “approve.” to the approximately 3.45-second ordinary first-base pace, with current stat differences and dash. For a middle-speed Run-5 character without dash, that means a nominal **2.95 seconds per straight basepath**, plus the existing **0.5-second batter startup**: approximately **3.45 seconds from contact to first** in the simplified model. The historical S-31 projection is 3.458 seconds because actual paths and starting geometry matter. These are not measured C80 results.
 
 On an 80-foot path, maintaining that interval reduces ordinary linear speed from 30.51 to **27.12 ft/s**. The alternative is keeping current feet per second: the same simplified first-base race drops to **3.12 seconds**, removing about **0.33 seconds** from the defense's total opportunity. That may feel more hectic and leaves less time for the visibly registering release/travel Jack wants. Preserving elapsed time gives us a stable starting race while shrinking the field; it does not prove defense is balanced or guarantee extra bases.
 
@@ -58,11 +58,11 @@ Preserve current stat differences and the explicit dash schedule for this compar
 
 The [Wii survey](https://www.reddit.com/r/MarioSuperSluggers/comments/xdvwn9) reports **3.65 seconds for Pianta from third to home**, but its starting/input protocol is not a matched ordinary Run-5 first-base test. GameCube's community running-mechanics research describes acceleration, dash and stamina; the inspected evidence does not establish a matched middle-speed elapsed target for both titles. We should not label 3.45 seconds a measured Mario match. The recommendation is a provisional Harbor calibration anchor to compare with stronger reference and standalone evidence.
 
-**Question for Jack:** retain this approximately 3.45-second ordinary first-base pace for the compact trial? Running and throw/fielding budgets remain separate decisions.
+**Accepted scope:** the running timing anchor only. Throw and fielding budgets remain separate decisions; exact path arrivals and standalone acceptance remain open.
 
 ## Coordinate time with space
 
-The two compact candidates should be compared against the **same intended elapsed pace**, so the spatial preference does not accidentally become a choice between a fast and slow game. The next decision will propose whether today's runner elapsed pace should anchor that comparison. It is pending; current values are observations, not newly accepted targets.
+The two compact candidates should be compared against the **same intended elapsed pace**, so the spatial preference does not accidentally become a choice between a fast and slow game. Jack has accepted today's runner elapsed pace as that calibration anchor. The compact game has not yet been simulated; actual path arrivals remain to be validated.
 
 At present, a Run-5 runner has a nominal 2.95-second bag interval, before batter startup, rounding and other path effects. Keeping that interval makes straight running speed **30.51 / 27.12 / 23.73 feet per second** across C0 / C80 / C70. That preserves the distance/time relation without making a smaller diamond automatically faster. The observed S-31 projected first arrival is 3.458 seconds, not exactly `2.95 + 0.5`; use actual runner paths and contact/arrival marks. Preserve character differences and explicit dash behavior during comparison, then review any proposed change openly.
 
@@ -71,6 +71,22 @@ At present, a Run-5 runner has a nominal 2.95-second bag interval, before batter
 Those speeds are **sensitivities, not selected profiles**. To preserve an equally scaled routine infield chase instead, the control's 30.5 ft/s would become **27.11 / 23.72 ft/s**. Applying the outfield-derived sensitivity to the infield would make the same proportionally scaled infield chase about **2.116 times as long**. The control currently gets two different responses through its class/position modifiers; Jack's accepted common-profile direction removes that shortcut. Read, starting position, ball arrival, reach and speed must be solved together. Acceleration and moving interception make the actual problem more complex. No constant-speed arithmetic here proves the new game will work.
 
 This is why the next implementation cannot simply shrink the park and slow every character. It must expose the routine-grounder and deep-gap races at once. Preserve responsive control; do not manufacture a triple through extra frozen time, automatic awards or a hidden outfielder-only speed rule.
+
+## Next decision — ordinary throw release
+
+**F693-03-release-clock — pending.** Recommend **0.30 seconds from an accepted ordinary throw command to ball release** as the trial baseline for a clean possession with an ordinary Field-5 character. The throwing motion begins immediately; the interval is visible transfer/throw motion, not an idle input delay. Ball flight starts at release and will be reviewed in the next decision. A quarter-to-third-second action is a design exploration, not evidence of proven couch readability; the proposed baseline is specifically 0.30 seconds.
+
+The current authored [throw clip](../data/art/clips.json) and [baseball take](../data/art/baseball-takes.json) place Release at **0.18 seconds** in a **0.40-second take**. Those are asset timings, not a measured command-to-live-release delay. The simulation currently begins a throw without a distinct release phase and linearly samples the ball over the `.22 + distance/speed` duration. Increasing the take marker alone would make the body and live ball disagree. The sim must own the release event; the existing animation pipeline must map to it. Do not implement a C# pose or bake a new take in this gameplay research task.
+
+The [Wii grounder clip](https://www.youtube.com/watch?v=3-5aQh-fxZk&t=60s) and [GameCube return throw](https://www.youtube.com/watch?v=fdtUfRUjyAY&t=193s) show a useful gather/release action in the retained #701 annotations. Neither gives a known controller-command timestamp. Wii possession-to-release includes unknown human hesitation; GameCube's broad gather/release bracket is not a measured windup. Re-fetching those video pages failed during this update; no new frame measurement is claimed. **0.30 seconds is an authored Harbor trial informed by the desired readable action, not a measured Mario duration.**
+
+Compared with the authored 0.18-second release marker, 0.30 seconds gives the ordinary action 0.12 seconds more time to register. Keeping the shorter marker is the more immediate alternative; extending toward a half second is the more deliberate alternative but consumes more of the defensive race. This decision selects only the baseline release interval: character/ability adjustments, input buffering before possession, pickup recovery, movement planting and follow-through lockouts remain separately specified work, not implicitly approved penalties. Human deliberation before pressing is also separate.
+
+For context, an **illustrative, unimplemented** routine race could be possession at 1.30 s + 0.25 s player decision + 0.30 s release + 1.10 s flight = covered reception at **2.95 s**, leaving **0.50 s** against a nominal 3.45-second runner. Only the runner anchor is already accepted; the other illustrative quantities are not targets. A receiver must actually cover and receive. This sum excludes overlapping read/pursuit by starting at possession and proves arithmetic only.
+
+Conversely, naively adding 0.30 s to the historical Harbor fixed-grounder's 3.217-second reception gives **3.517 s**, beyond the nominal runner anchor. That is a warning against adding delays in isolation, not a prediction for the new geometry. Complete pickup/release/travel/coverage calibration must satisfy reliable routine defense without changing the accepted runner anchor to rescue one fixture. A relay pays the appropriate release on each actual throw, and therefore requires its own full-race check.
+
+**Question for Jack:** use a visible 0.30-second ordinary release as the trial baseline, then review ball travel separately?
 
 ## Race budget and remaining numerical choices
 
@@ -109,7 +125,7 @@ Retain the accepted **1.8–5 home and away mean runs**, independently for S-29,
 
 ## Implementation order and review boundary
 
-Continue Jack's decisions in the order recorded in the candidate JSON: spatial lead, runner elapsed anchor, throw budget, common movement/coverage budget, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
+Continue Jack's decisions in the order recorded in the candidate JSON: accepted spatial lead and runner elapsed anchor, ordinary release, ball travel, common movement/coverage budget, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
 
 Before runtime calibration, finish this packet's pending quantities and review the combined contract. Create separate implementation children. **First migrate existing geometry into the shared data owner at unchanged values and prove parity.** Audit consumers across sim bags/paths, cover, classifications/CPU thresholds, fair/foul and wall geometry, plus kit/presentation adapters. Preserve control behavior before tuning. A separate presentation/kit owner must consume the same geometry; this research session does not edit their assets or cameras.
 
@@ -121,4 +137,4 @@ Jack's final acceptance is a named standalone preview, not this schematic or a g
 
 Run `python3 tools/compact-field-report.py --check` to compare committed arithmetic with the candidate inputs and source hashes. Use `MPLCONFIGDIR=/tmp/gs708-mpl python3 tools/compact-field-report.py --figure` to regenerate the diagram. It is an analytical schematic with identical world scale, not an in-game camera or art mockup. The lower bars compare nominal head-top/basepath ratios; they do not predict screen pixels.
 
-Validation for this documentation step checks fence endpoints, preserved mound ratio, derived candidate geometry/body/time sensitivities, accepted spatial-trial scope, pending runner-clock status and repository links. No new runtime coefficient, simulation result, Unity build or human acceptance is claimed. The #702 tests and 150-game measurements remain historical evidence at their named revisions, not tests of C80/C70.
+Validation for this documentation step checks fence endpoints, preserved mound ratio, derived candidate geometry/body/time sensitivities, accepted spatial-trial scope, accepted runner-clock scope and pending release-clock status and repository links. No new runtime coefficient, simulation result, Unity build or human acceptance is claimed. The #702 tests and 150-game measurements remain historical evidence at their named revisions, not tests of C80/C70.

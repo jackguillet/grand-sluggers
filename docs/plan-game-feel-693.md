@@ -58,6 +58,8 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **Acceptance:** at ordinary gameplay speed and couch distance, the transfer/release visibly registers and ball travel can be followed, assessed against the annotated Mario comparison. One sim model samples and predicts the same throw; tests distinguish command/release/reception; third/home tags and uncovered bags remain live geometry. #558 owns authored takes; it must coordinate any marker change after the sim event is decided.
 
+**Next numerical review — F693-03-release-clock:** [0.30-second ordinary command-to-release trial](research-game-feel-708.md#next-decision--ordinary-throw-release), immediate motion onset with a visible transfer, excluding human decision time and subsequent ball flight. Pending; not a measured Mario duration. The next travel decision must fit the same runner/possession/coverage race.
+
 ### F693-04 — Contact-class motion
 
 **State:** design intent accepted by Jack on September 14, 2026: **hard liners may reward existing positioning over post-contact reaction**. A well-struck liner may pass before a fielder can reposition, while its path remains readable. Grounders retain the pickup-and-throw sequence; flies allow pursuit and catch judgment. Do not flatten all contact speeds to provide a recovery opportunity on every hit.
@@ -70,9 +72,9 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **State:** design intent accepted by Jack on September 14, 2026: **reliable routine defense**. On an ordinary grounder with a clean pickup, an average runner, and an ordinary arm, reasonably prompt correct execution should normally retire the runner with a readable margin. Tight races arise from fast runners, deep pickups, weak arms, bobbles, or hesitation. Outcomes still follow ball/runner/glove geometry; this is not a guaranteed-out rule.
 
-**Next numerical review — F693-05-runner-clock:** [preserve the existing runner elapsed pace as C80’s calibration anchor](research-game-feel-708.md#next-decision--runner-elapsed-pace): nominal Run-5 2.95-second straight bag interval plus 0.5-second batter startup, with current stat differences and dash schedule. This recommendation is pending, not a measured Mario target.
+**Accepted numerical trial anchor — F693-05-runner-clock, September 14, 2026:** [preserve the existing runner elapsed pace for C80](research-game-feel-708.md#accepted-decision--runner-elapsed-pace): nominal Run-5 2.95-second straight bag interval plus 0.5-second batter startup (about 3.45 seconds to first without dash), with current stat differences and dash schedule. Derive movement speed from the shorter path. Exact path/rounding/slide arrivals still require validation. This is a Harbor trial anchor, not a measured Mario target.
 
-**Still pending:** reference-informed timing intervals and human validation of “reasonably prompt” and “readable.” No runner slowdown or other coefficient is selected. Record startup, acceleration, bag intervals, handedness, dash, pursuit, read, legal bag coverage, and decision time. A direction decision does not close the measurement or play gate.
+**Still pending:** reference-informed timing intervals and human validation of “reasonably prompt” and “readable.” The accepted running anchor preserves elapsed pace on the shorter field; it does not approve slowing the runner clock to rescue an out. Other race coefficients remain pending. Record startup, acceleration, bag intervals, handedness, dash, pursuit, read, legal bag coverage, and decision time. A direction decision does not close the measurement or play gate.
 
 **Acceptance:** a Run-5 routine grounder can be retired by geometry and is readable; fast/weak-arm variants remain meaningful; an unthrown human ball never becomes an automatic out. The human owns both legs of a double play. Throws and runs are assessed against the same live clock.
 
@@ -120,7 +122,7 @@ Tests must cover both force and tag timelines, overlapping read/pursuit, multipl
 
 ### R3 — Choose the contract, then calibrate serially
 
-**In progress — #708:** the [compact-field decision packet](research-game-feel-708.md) proposes C80 (80-ft paths, 232/280/232-ft fences) and C70 (70-ft paths, 203/245/203-ft fences), with unchanged bodies and coordinated spatial conventions. **Jack accepted C80 as the lead spatial trial on September 14, 2026**; C70 remains unselected. The packet records existing race evidence, incompatible IF/OF time-preserving speed sensitivities, and the remaining one-at-a-time numerical decisions. It is not yet a complete runtime contract; no candidate has been simulated. F693-02-spatial-trial is accepted; next review is F693-05-runner-clock. Subsequent running, throwing, pursuit/coverage, ball-motion and presentation values stay pending.
+**In progress — #708:** the [compact-field decision packet](research-game-feel-708.md) proposes C80 (80-ft paths, 232/280/232-ft fences) and C70 (70-ft paths, 203/245/203-ft fences), with unchanged bodies and coordinated spatial conventions. **Jack accepted C80 as the lead spatial trial on September 14, 2026**; C70 remains unselected. The packet records existing race evidence, incompatible IF/OF time-preserving speed sensitivities, and the remaining one-at-a-time numerical decisions. It is not yet a complete runtime contract; no candidate has been simulated. F693-02-spatial-trial and F693-05-runner-clock are accepted. Next review is F693-03-release-clock (proposed 0.30-second ordinary command-to-release), then separate ball-travel timing. Throwing, pursuit/coverage, ball-motion and presentation values stay pending.
 
 Decision review on #693 first. Jack resolves F693-01–06 from the evidence. The review artifact contains the candidate profile's complete quantities, intervals, invariants, and deviations, so approval concerns a concrete game contract.
 
