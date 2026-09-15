@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "clean-ground-pickup-readiness-accepted; retained-ground-pickup-recoil-basis-pending; incomplete-runtime-contract",
+  "status": "ground-pickup-recoil-basis-accepted; retained-ball-recovery-cap-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -281,8 +281,13 @@
     },
     {
       "id": "F693-02-ground-pickup-recoil-basis",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Base exceptional retained-ball ground-pickup recoil deterministically on actual incoming ball speed at the glove and the fielder\u2019s Field rating, rather than original exit speed/contact quality, keeping routine slowed pickups free of added recovery?"
+    },
+    {
+      "id": "F693-02-ground-pickup-recoil-cap",
+      "state": "next-human-decision",
+      "question": "Cap ordinary retained-ball ground-pickup recoil at .20 seconds after secure acquisition, with routine pickups at zero and weaker qualifying impacts below the cap, keeping onset/curve/Field mapping and physical permissions separate?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2552,7 +2557,7 @@
   },
   "groundPickupRecoilBasisProposal": {
     "decisionId": "F693-02-ground-pickup-recoil-basis",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Retain exceptional recoil for a securely held hot grounded-ball pickup, but determine it from actual incoming ball speed at the pickup plus Field rating. Routine slower arrivals have no added recovery. Same arrival speed and Field give the same recoil regardless of original hitter/contact quality or control seat.",
     "speedBasis": "Magnitude of incoming world-space ball velocity in feet per active simulation second at the actual pickup event, immediately before secure possession stops/attaches the ball. Use the authoritative live ball path, including bounce/roll/wall effects, and the same clock as races. This proposal does not subtract fielder speed or use animated glove motion, mesh size, body weight or launch-quality labels.",
     "scope": "Ordinary grounded batted-ball/loose-ball pickup with secure retained possession and no overriding special effect. This selects the recoil basis/determinism only; exact onset, curve, cap, Field scaling, displaced motion and movement/throw lock permissions remain separate. Airborne catches, teammate receptions, slides/dives, bobbles and authored special attacks remain separate.",
@@ -2587,6 +2592,74 @@
       "Separate bobble/retained-ball/special-state ordering and actual force/tag eligibility",
       "After selecting thresholds/duration/response, complete grounder, short force and relay races, independent scoring cohorts and standalone human gate"
     ],
-    "implementationBoundary": "Pending recoil-basis decision only. No numeric onset/duration/Field mapping, recoil motion, bobble RNG change, runtime, animation or human acceptance selected here."
+    "implementationBoundary": "Accepted deterministic recoil basis. Numeric onset/duration/Field mapping, recoil motion and action permissions remain separate; no bobble RNG, runtime, animation or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve. to basing retained-ball ground-pickup recoil on actual arrival speed and Field rating, with routine slowed pickups free of added recovery."
+  },
+  "groundPickupRecoilCapProposal": {
+    "decisionId": "F693-02-ground-pickup-recoil-cap",
+    "state": "pending",
+    "maxRecoverySeconds": 0.2,
+    "recommendation": "Cap the required recovery from an ordinary grounded-ball impact with retained secure possession at .20 seconds. This is a ceiling, not a fixed pause on every hard pickup; routine pickups remain zero and the eventual speed/Field curve yields intermediate values.",
+    "scope": "The ordinary retained-ball ground/loose-pickup recoil selected by the accepted actual-arrival-speed/Field basis. Excludes bobbles, dives/landings, slips/items and authored special attacks. Does not select onset speed, curve, Field scaling, physical displacement, braking or which actions are blocked.",
+    "clock": "Recovery runs on active baseball simulation time from the authoritative secure acquisition/impact event after possession outcome is resolved. Pause/device recovery freezes it. A single required recoil interval ends no later than acquisition+.20; physical recoil/settling and any necessary recovery animation fit this interval rather than each adding another wait. Independent subsequent events remain separate and are not erased.",
+    "readiness": "A valid throw cannot start before required recovery ends. At readiness, ordinary .30 release remains intact; no guaranteed command or unchanged buffer age. Keep .25 command window unchanged; a command can expire during recovery. Existing force/tag geometry and movement permissions require separate review: .20 does not establish catch immunity, force immunity or a blanket freeze of every action.",
+    "run5Arithmetic": {
+      "nominalBagSeconds": 2.95,
+      "basepathFeet": 80.0,
+      "ordinaryRunnerFeetPerSecond": 27.11864406779661,
+      "runnerAdvanceDuringMaxRecoveryFeet": 5.423728813559322,
+      "recoilPlusOrdinaryReleaseSeconds": 0.5,
+      "baselineOldRecoveryCapSeconds": 0.55,
+      "runnerAdvanceDuringOldCapFeet": 14.915254237288137
+    },
+    "arithmeticScope": "Runner advance uses steady straight C80 Run-5 pace, without startup/mash/rounding or path constraints. .20+.30=.50 is only recoil plus ordinary release for a ready valid command, excluding pickup, CPU thinking, travel and receiver/tag geometry. Baseline .55 is the old cap, not a typical recovery or a converted arrival-speed threshold.",
+    "commandExamples": [
+      {
+        "name": "near-pickup-command",
+        "possessionSeconds": 1.0,
+        "recoverySeconds": 0.2,
+        "commandSeconds": 0.95,
+        "readySeconds": 1.2,
+        "ageAtReadinessSeconds": 0.25,
+        "valid": true,
+        "releaseStartSeconds": 1.2,
+        "ballReleaseSeconds": 1.5
+      },
+      {
+        "name": "too-early-command",
+        "possessionSeconds": 1.0,
+        "recoverySeconds": 0.2,
+        "commandSeconds": 0.8,
+        "readySeconds": 1.2,
+        "ageAtReadinessSeconds": 0.4,
+        "valid": false,
+        "releaseStartSeconds": null,
+        "ballReleaseSeconds": null
+      }
+    ],
+    "alternatives": [
+      {
+        "maxRecoverySeconds": 0.15,
+        "run5RunnerAdvanceFeet": 4.067796610169491,
+        "effect": "Less interruption, with a smaller visible recovery window."
+      },
+      {
+        "maxRecoverySeconds": 0.25,
+        "run5RunnerAdvanceFeet": 6.779661016949152,
+        "effect": "More recovery weight and a larger effect on close races."
+      }
+    ],
+    "referenceLimit": "Authored recovery ceiling, not measured Mario timing. Retained GameCube community descriptions support visible hard-hit reaction but do not establish .20 seconds or the new arrival-speed curve; matched Wii ordinary recovery remains open. Fresh access to the Fandom fielding mechanics page failed on September 15 (402); no new timing measurement was obtained.",
+    "requiredChecks": [
+      "Event time to ready never exceeds .20 for this ordinary recoil component; routine pickups remain zero",
+      "Arrival speed/Field curve preserves accepted monotonic rules and uses same event-sided incoming speed",
+      "Exact deadline and pause/time subdivision; physical reaction and animation do not append hidden recovery tails",
+      "Buffer validity at .25 including recovery, expiry/cancel precedence, no throw without valid command, ordinary .30 release unchanged",
+      "No accidental cap on bobble/dive/special recovery; action permissions and geometric tag/force behavior reviewed before implementation",
+      "Complete short-force, grounder and relay races with both seats/CPU and varied Field/Run, independent scoring and standalone readability"
+    ],
+    "implementationBoundary": "Pending recoil ceiling only. Trigger/curve/Field mapping, physical recovery and action permissions remain incomplete; no runtime, animation, simulation or human gate changes."
   }
 }
