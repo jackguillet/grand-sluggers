@@ -104,7 +104,10 @@ def derive(data):
                ROOT / "unity/Assets/Scripts/Runtime/MatchDirector.cs",
                ROOT / "src/GrandSluggers.Sim/Seats.cs",
                ROOT / "src/GrandSluggers.Sim/AtBatFeel.cs",
-               ROOT / "src/GrandSluggers.Sim/Rules.cs"]
+               ROOT / "src/GrandSluggers.Sim/Rules.cs",
+               ROOT / "data/abilities/star-skills.json",
+               ROOT / "src/GrandSluggers.Sim/StarSkillTable.cs",
+               ROOT / "src/GrandSluggers.Sim/ContentValidation.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -638,6 +641,8 @@ def derive(data):
         assert recoil_basis["acceptedBy"] and recoil_basis["acceptedOn"] and recoil_basis["acceptanceEvidence"]
     recoil_cap = data.get("groundPickupRecoilCapProposal")
     if recoil_cap:
+        if recoil_cap["state"] == "accepted-calibration-anchor":
+            assert recoil_cap["acceptedBy"] and recoil_cap["acceptedOn"] and recoil_cap["acceptanceEvidence"] and recoil_cap["specialHitException"]
         cap = recoil_cap["maxRecoverySeconds"]
         row = recoil_cap["run5Arithmetic"]
         assert cap > 0
@@ -661,9 +666,15 @@ def derive(data):
                 assert math.isclose(ex["ballReleaseSeconds"], ex["releaseStartSeconds"]+.30)
             else:
                 assert ex["releaseStartSeconds"] is None and ex["ballReleaseSeconds"] is None
+    composition = data.get("specialRecoveryCompositionProposal")
+    if composition:
+        for case in composition["examples"]:
+            ends = [r["start"]+r["duration"] for r in case["restrictions"] if case["action"] in r["blocks"]]
+            assert math.isclose(case["readySeconds"], max([case["atSeconds"]]+ends))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialRecoveryCompositionState": composition["state"] if composition else None,
             "groundPickupRecoilCapState": recoil_cap["state"] if recoil_cap else None,
             "groundPickupRecoilBasisState": data.get("groundPickupRecoilBasisProposal", {}).get("state"),
             "cleanGroundPickupReadinessState": pickup["state"] if pickup else None,
