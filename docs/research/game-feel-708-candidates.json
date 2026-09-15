@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-long-throw-and-good-chemistry-directions-accepted; long-range-profile-pending; incomplete-runtime-contract",
+  "status": "C80-ordinary-chemistry-and-long-range-profile-accepted; negative-chemistry-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Exact long-range curve, negative chemistry and special stacking remain pending.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Negative chemistry and special stacking remain pending.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -146,13 +146,13 @@
     },
     {
       "id": "F693-03-long-throw-numbers",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a 160-foot middle-arm comfortable range, varying 5 feet per Field point, with smooth extra flight time of 0.60 seconds at 80 feet beyond that range, as the trial profile?"
     },
     {
       "id": "F693-03-negative-chemistry",
-      "state": "pending",
-      "question": "Review the existing bad-pair slant/accuracy risk against reliable routine defense; good-chemistry approval must not silently select the penalty."
+      "state": "next-human-decision",
+      "question": "Replace bad chemistry’s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
     },
     {
       "id": "F693-03-relay-ownership",
@@ -294,8 +294,8 @@
     "decisionId": "F693-03-long-throws",
     "state": "accepted-design-direction",
     "recommendation": "Retain direct throws as a player choice; add moderate smooth arm-dependent long-range pace loss, so a well-positioned relay can sometimes win after its real catch/decision/release cost. Strong arms remain useful for direct throws; short and medium direct throws remain efficient.",
-    "comfortableRangeFeet": null,
-    "longRangeTimingCurve": null,
+    "comfortableRangeFeet": 160,
+    "longRangeTimingCurve": "Accepted under F693-03-long-throw-numbers; see longRangeProfileProposal for full arm/range/chemistry formula.",
     "relayAdvantageTargetSeconds": null,
     "scope": "Behavior choice only. Range, rate of pace loss, exact arm/ability/chemistry interactions, arc/velocity shape, receiving delays and input buffering remain to be specified. No universal relay advantage or automatic outcome.",
     "currentCodeAudit": {
@@ -397,7 +397,7 @@
   },
   "longRangeProfileProposal": {
     "decisionId": "F693-03-long-throw-numbers",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "middleFieldStat": 5,
     "middleComfortableRangeFeet": 160,
     "rangeFeetPerFieldPoint": 5,
@@ -458,6 +458,59 @@
       "Replay fixed-input deep-gap/wall and full scoring cohorts, including unchanged mixed parks; deeper parks may expose over-penalized returns.",
       "Trace total flight and long-range contribution; verify rendered arc/velocity realizes continuous timing without a midair pause.",
       "Human standalone acceptance remains open; these calculations are not a tested game."
+    ],
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to the 160-foot ordinary-range profile and gradual slowdown for the first trial, including the presented arm and chemistry relationships."
+  },
+  "negativeChemistryProposal": {
+    "decisionId": "F693-03-negative-chemistry",
+    "state": "pending",
+    "badPairTravelSpeedMultiplier": 0.9,
+    "chemistrySpecificSlantChance": 0.0,
+    "ordinaryReleaseSeconds": 0.3,
+    "recommendation": "Replace bad chemistry’s additional random slant branch with a predictable 10% travel-speed reduction for the actual bad thrower-receiver pair, applied once to full otherwise-calibrated flight. Preserve ordinary release; do not add a recovery pause or chemistry-only lateral miss.",
+    "scope": "Bad-pair chemistry only. This does not remove normal Field-dependent accuracy, bobbles, uncovered-receiver consequences, star effects or other errors; their calibration remains separate. Good and neutral pair anchors unchanged. Runtime and full scoring validation pending.",
+    "currentRule": {
+      "slantChance": 0.2,
+      "slantTravelSpeedMultiplier": 0.7,
+      "slantLateralFeet": [
+        10,
+        14
+      ],
+      "source": "src/GrandSluggers.Sim/ChemistryTable.cs::FieldingThrow; data/rules/fielding.json",
+      "twoBadLegsAtLeastOneSlantProbability": 0.36,
+      "probabilityScope": "Assumes two executed independent bad-pair rolls; slant activation is not a guaranteed uncaught throw or out/safe verdict."
+    },
+    "examples": [
+      {
+        "distanceFeet": 80,
+        "neutralFlightSeconds": 0.9,
+        "badFlightSeconds": 1.0,
+        "badCommandToTargetSeconds": 1.3
+      },
+      {
+        "distanceFeet": 240,
+        "neutralFlightSeconds": 3.3,
+        "badFlightSeconds": 3.6666666666666665,
+        "badCommandToTargetSeconds": 3.9666666666666663
+      }
+    ],
+    "reference": {
+      "url": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
+      "page": "printed 14 / PDF index 7",
+      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is a proposed deliberate Harbor deviation; 20%/0.70/10–14ft are audited Harbor values, not confirmed Wii parameters."
+    },
+    "tradeoff": "Predictable lineup/routing cost supports attribution to player choices and more consistent routine races, at the cost of some Mario-like surprise/party volatility. Accepted reliable defense does not itself prohibit occasional bad-pair errors; Jack must select the deviation explicitly.",
+    "alternative": "Retain current occasional slower/off-target chemistry throws, then review probability and severity against ordinary defense. This keeps the reference-style surprise but permits a correctly commanded bad-pair throw to go astray.",
+    "requiredChecks": [
+      "Apply only actual pair chemistry, once per leg; no chain-wide penalty.",
+      "Preserve 0.30-second ordinary release and real receiver coverage.",
+      "No guaranteed out or catch; ordinary accuracy and ball geometry remain authoritative.",
+      "CPU forecasts use the same deterministic pair factor without sampling future error RNG.",
+      "Version the changed random-draw schedule and replay baseline; removing a slant RNG branch changes later seeded outcomes even if unrelated rules are unchanged.",
+      "Re-run declared scoring cohorts and direct/relay traces rather than inferring balance from mean travel time.",
+      "Update governing chemistry spec and couch-facing explanation with implementation; do not silently remove legacy behavior in a research commit."
     ]
   }
 }
