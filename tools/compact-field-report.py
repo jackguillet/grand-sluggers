@@ -724,12 +724,19 @@ def derive(data):
                 assert math.isclose(row["field%dSeconds" % field],recoil_cap["maxRecoverySeconds"]*severity*factor)
     recoil_actions = data.get("ordinaryRecoilActionsProposal")
     if recoil_actions:
+        if recoil_actions["state"] == "accepted-calibration-anchor":
+            assert recoil_actions["acceptedBy"] and recoil_actions["acceptedOn"] and recoil_actions["acceptanceEvidence"]
         for case in recoil_actions["syntheticCases"]:
             eligible = case["secure"] and (case["legalForceContact"] or case["legalTagContact"])
             assert case["contactEligible"] == eligible
+    displacement = data.get("ordinaryRecoilDisplacementProposal")
+    if displacement:
+        assert displacement["state"] == "pending"
+        assert all(displacement[key] is None for key in ("maxDisplacementFeet", "impulseFeetPerSecond", "velocityResponse"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryRecoilDisplacementState": displacement["state"] if displacement else None,
             "ordinaryRecoilActionsState": recoil_actions["state"] if recoil_actions else None,
             "recoilSeverityCurveState": severity_curve["state"] if severity_curve else None,
             "recoilFieldFactorsState": field_factors["state"] if field_factors else None,

@@ -728,9 +728,9 @@ This decision selects only the normalized curve shape. It does not select how of
 
 **Accepted scope:** linear severity between shared onset/full-severity incoming speeds, zero below and capped above, followed by the accepted Field factor and applicable special addition. Numerical speed anchors remain null pending the recorded evidence/calibration work; no runtime or human gate pass.
 
-## Next decision — actions during ordinary recoil
+## Accepted decision — actions during ordinary recoil
 
-**F693-02-ordinary-recoil-actions — pending, September 15, 2026.** Recommend that ordinary retained-ball recoil **block commanded steering and starting a throw**, while **preserving secure possession and valid geometric force/tag evaluation**. The ball, runners and other fielders stay live. Physical recoil/settling motion is separate from commanded locomotion and still needs its own reviewed response.
+**F693-02-ordinary-recoil-actions — accepted by Jack on September 15, 2026.** Jack approved that ordinary retained-ball recoil **block commanded steering and starting a throw**, while **preserving secure possession and valid geometric force/tag evaluation**. The ball, runners and other fielders stay live. Physical recoil/settling motion is separate from commanded locomotion and still needs its own reviewed response.
 
 **Player-facing consequence:** a fielder holding the ball with a foot legally on first can complete a force while recovering. A runner crossing the held glove’s valid tag geometry can still be tagged. If recoil takes the body off the bag, the glove misses, the force has been removed, or possession is lost, the out does not happen. Recoil affects the fielder’s next commanded action; it does not make a secured ball stop counting or give the runner a protected interval. No extra reach or automatic nearby out is introduced.
 
@@ -744,7 +744,21 @@ This decision selects only the normalized curve shape. It does not select how of
 
 Validate force/tag during recovery, misses and lost possession, recovery displacement changing contact, force removal, steering/throw locks, live other bodies, buffer/cancel/expiry and exact recovery deadlines. Once actual recovery motion and incoming-speed thresholds are chosen, verify complete races, both seats/CPU, independent scoring and standalone feel. No runtime, motion/book or candidate simulation changes here.
 
-**Question for Jack:** have ordinary recoil delay steering and throw starts while still allowing outs from valid held-ball contact?
+## Next decision — physical displacement during ordinary recoil
+
+**F693-02-ordinary-recoil-displacement — pending, September 15, 2026.** Recommend a **short, modest physical skid on qualifying hard retained-ball ground pickups**. Routine pickups with zero ordinary recoil add no shove. This selects whether impact moves the fielder, with exact distance/impulse and the combined velocity response still requiring review.
+
+**Why it matters:** a planted fielder can be pushed off a bag; a moving fielder's actual path can change. Valid contact at acquisition can still complete an out, and later separation does not reverse that out. If the runner arrives only after contact has been lost, possession alone cannot complete the force. There is no automatic bag return or protected contact. The alternative is an in-place brace with braking of existing movement, which gives ordinary impacts less positional consequence.
+
+**Reference comparison:** the [GameCube character guide](https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143), Kristopher Pflipsen v1.30 (2007), rechecked September 15, describes Super Catch preventing backward sliding on hard line drives. This is community qualitative evidence, not a measured ground-pickup distance or permission matrix. Wii parity and a matched magnitude remain unverified. Applying a modest skid to qualifying ground pickups is an authored Grand Sluggers proposal.
+
+**Physical rail:** incoming horizontal ball travel at acquisition supplies impact direction, including deflections; body facing, camera and home-plate direction do not. Integrate from actual position and velocity in the sim and let presentation follow. Do not teleport, erase existing momentum or tack on an animation recovery tail. The ordinary impact contribution fits inside the accepted Field-dependent recovery interval. Better Fielding retains its shorter recovery; precise distance/Field mapping must avoid turning that shorter interval into a harsher shove. No extra numerical resistance, mass/body-size rule or Ball Dash resistance is selected here.
+
+**Special hits:** stronger displacement and longer recovery remain available through their own reviewed rules. Adding ordinary and special recovery durations does not automatically define how physical impulses combine.
+
+**Current audit:** `ArmRecoil` assigns the retained-ball timer without establishing a displacement law. `RecoilFtPerSec=14` appears only as a `BobbleRules` declaration in the inspected source/Unity search; it is not a verified active ordinary skid coefficient. The candidate therefore leaves maximum displacement, impulse and velocity response null. Required validation includes planted/moving pickups, acquisition/contact ordering, wall-deflected direction, fine recovery intervals, actual bag departure, shared predictor/stepper geometry and both seats/CPU. No candidate simulation or feel gate is passed.
+
+**Question for Jack:** allow modest physical pushback from qualifying ordinary hard pickups, including the possibility of moving off a bag?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
