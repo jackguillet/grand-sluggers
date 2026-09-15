@@ -844,9 +844,9 @@ A throw may enter the existing **.25-second buffer** during recovery, but an ear
 
 This is an authored permission contract, not a measured Mario special-status matrix. The abstract policy checks do not simulate contact geometry. Validate actual forces/tags, off-bag arrival, lost possession, exact combined readiness, buffer expiry, current intent, both seats/CPU and mixed-status restrictions after their contracts are defined. No runtime or human gate changes here.
 
-## Next decision — action readiness with multiple statuses
+## Accepted decision — action readiness with multiple statuses
 
-**F693-02-mixed-status-action-readiness — pending, September 15, 2026.** Recommend **recovering each action as soon as every active restriction on that action has ended**, provided its normal prerequisites still hold. An unrelated lingering effect does not keep the entire fielder locked. Ending one effect clears its own restrictions, without cancelling another effect.
+**F693-02-mixed-status-action-readiness — accepted by Jack on September 15, 2026.** Jack approved **recovering each action as soon as every active restriction on that action has ended**, provided its normal prerequisites still hold. An unrelated lingering effect does not keep the entire fielder locked. Ending one effect clears its own restrictions, without cancelling another effect.
 
 **Player-facing example:** suppose a special both pushes the fielder and leaves a temporary visual obstruction, with the obstruction explicitly defined to affect visibility only. Once pushback recovery ends, steering and throwing become available even while visibility remains affected. If another active status explicitly blocks movement, steering must still wait for that restriction. These are hypothetical permission examples, not approval of a particular obstruction attack or status duration.
 
@@ -858,7 +858,23 @@ This is an authored permission contract, not a measured Mario special-status mat
 
 This is an authored interaction policy, not a measured Mario status matrix. Abstract examples verify eligibility only; they do not implement any status. Validate update-order independence, source expiration, simultaneous boundaries, unchanged additive impact recovery, normal possession/contact rules and buffered-input expiry. Actual status definitions, repeated-effect lifetimes and standalone combinations remain pending.
 
-**Question for Jack:** restore actions individually when their own restrictions end, while preserving any other effects still active?
+## Next decision — recovery from repeated physical impacts
+
+**F693-02-repeated-impact-recovery — pending, September 15, 2026.** Recommend **starting each distinct impact's recovery when that hit actually lands**, with an action unavailable until all applicable intervals have ended. A new hit can extend the deadline from its arrival; it does not add its entire duration after the remaining wait. A weaker hit cannot shorten an older restriction.
+
+**Concrete example:** the first hit blocks an action until **.60 seconds**. A second hit lands at **.40 seconds** and independently causes **.50 seconds** of recovery. The proposed deadline is **.90 seconds**: .40 plus .50. Queuing the new recovery after the old wait would instead hold the action until **1.10 seconds**. Conversely, a .10-second hit arriving at .20 cannot shorten the existing .60 deadline. These are illustrative timings, not approved attack values.
+
+**Keep the earlier stacking decision:** ordinary and special contributions from the **same** qualifying pickup/impact still add, with their accepted Field factors. That complete event duration starts at its own impact time. This proposal overlaps recovery only between **distinct** impacts. Each event retains its own source record; taking the latest current deadline does not collapse the records or silently refresh older effects. A longer independent restriction can govern readiness even if Fielding shortens another one.
+
+**What counts as another hit:** duplicate callbacks and per-frame contact are not automatically new impacts. A multi-contact attack must explicitly define its hit eligibility. A subsequent attack on a carrier does not invent another ordinary pickup recoil unless a new qualifying acquisition actually occurs. Individual status refresh rules and physical impulse composition remain separately reviewed.
+
+**Tradeoff:** this prevents recovery durations accumulating into a long queue after attacks stop, but repeated real hits can still extend the deadline and keep a fielder restricted. It does not select immunity windows, cooldowns, a maximum continuous lock or a break-free action. Those would need explicit review if the attack design permits problematic chains.
+
+Use active gameplay time, preserve pause behavior, and evaluate exact impact/expiry ordering before granting action eligibility. The existing .25-second input buffer keeps aging; another hit does not refresh it or revive an expired command. Recovery timing does not restart old motion, reset velocity or decide how new impulses combine.
+
+This is an authored timing proposal, not a verified Mario repeat-hit rule. Check same-event addition versus distinct-event overlap, duplicate identity, stronger/weaker later hits, per-action deadlines, source clearing, pause, sub-tick boundaries and both seats/CPU. Real multi-impact motion and standalone behavior remain untested.
+
+**Question for Jack:** let new physical hits extend recovery from when they land, rather than queue their full duration after the unfinished wait?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
