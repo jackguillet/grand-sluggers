@@ -566,6 +566,7 @@ def derive(data):
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ballDashCarrierState": data.get("ballDashCarrierProposal", {}).get("state"),
             "fieldDashDurationState": duration["state"] if duration else None,
             "fieldDashPeakState": dash["state"] if dash else None,
             "pursuitCalibrationSamplesState": samples["state"] if samples else None,

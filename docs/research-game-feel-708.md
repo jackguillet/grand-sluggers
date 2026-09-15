@@ -546,7 +546,25 @@ Validate exact/just-outside bounds, diagonal offsets, slow wandering, jitter and
 
 **Accepted scope:** the .50-second calibration window with inclusive .10 center-offset/.02 maximum-deviation bounds, complete valid sampling and prior-profile preservation on failure. It does not add routine arming delay. Real hardware, runtime and human validation remain open.
 
-## Accepted decision — fielding dash peak speed
+## Current dash revision — passive ball-carrier ability
+
+**F693-02-ball-dash-carrier — proposed replacement, September 14, 2026.** Jack clarified that dash should apply automatically only to a character with the ability while holding the ball. This reopens the previously accepted universal 20% sprint scope and the two-second approval he gave immediately before the correction. Preserve their history below; **do not continue the sprint recovery decision or implement that earlier scope**. Other accepted anchors remain intact.
+
+**Recommendation:** make Ball Dash a passive **1.20x ordinary carry-speed trial**, active only for an ability holder with secure live-ball possession. No activation button, burst timer, stamina or cooldown. Before possession, everyone uses their ordinary pursuit profile; baserunning's separate mash rule stays as approved. Twenty percent was approved for a different scope, so its use here is a recommendation for review, not an automatic transfer of that approval.
+
+This preserves compact-field gap opportunities because the bonus cannot help reach an unpossessed ball. Once a catch/pickup is secure, it gives the character a distinct carry-to-bag, tag or rundown strength. **The balance risk moves to carrying versus throwing:** check unassisted forces and runner escapes as well as relay use. Do not promise that every rundown is catchable. An average 18-to-21.6-ft/s example is conditional on ordinary carrying using the pursuit base; the carry base/response are still pending.
+
+**Mario distinction:** community descriptions of [Ball Dash in both games](https://www.mariowiki.com/index.php?title=Ball_Dash&oldid=4496633), also described by [Mario Wiki](https://mario.fandom.com/wiki/Ball_Dash), associate the ability with holding the ball. That is distinct from the ordinary fielding dash controls in the Nintendo manuals used for the earlier sprint proposal. These descriptions support the mechanic identity, not measured 20% speed, exact transitions or timer behavior. The earlier research addressed ordinary sprint and did not establish this ability's numerical behavior.
+
+**Implementation rail:** eligibility is the actual character ability plus authoritative secure live-ball ownership, not selected glove, intended receiver or proximity. No bonus for a bobble, loose ball or ball in flight. It affects available carrying/tagging locomotion only, never the pitch delivery, throw animation, catch radius or pickup. Losing/releasing the ball removes the boosted movement target with shared physical response rather than a velocity snap. Same rule for both human seats and CPU. Player-owned movement/throws remain deliberate; outs still require geometry. [CPU carry/throw forecasts and live movement](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs) must consume the same effective speed; changing manual movement alone would make CPU decisions wrong.
+
+**Roster and control audit:** all 25 current [character records](../data/characters) were checked; none assigns a Dash/Ball Dash ability, and [FieldAbilities](../src/GrandSluggers.Sim/FieldAbilities.cs) has no carry-speed modifier. Choose holders and ability-slot tradeoffs explicitly later. The existing universal East/G dash path and [couch instructions](how-to-play.md) describe another behavior; replacing them requires coordinated simulation and later presentation/book work. This research revision edits none of those runtime/roster/help files.
+
+**Review boundary:** confirm the carrier trial, then resolve its movement response, ordinary carry/coverage and roster allocation. The old sprint duration/cooldown branch is suspended. Validate eligibility, both seats/CPU, pickup/release transitions, tags/rundowns, short forces and carry-versus-relay races; preserve independent scoring and human gates. No candidate has been simulated.
+
+**Question for Jack:** keep a 20% bonus as the first trial for automatic, possession-only Ball Dash, replacing the universal activated sprint and its burst timer?
+
+## Historical decision — fielding dash peak speed (scope reopened)
 
 **F693-02-field-dash-peak — accepted by Jack on September 14, 2026.** Jack approved **1.20x ordinary pursuit top speed while fielding dash is fully active**. This is a 20% peak boost: Run-5 rises from **18 to 21.6 ft/s**, adding **3.6 feet per second** at peak. Run 1/5/9 becomes about **16.22/21.60/26.98 ft/s**, preserving character differences. Apply the same relative peak across assigned positions and hit classes; retain a coherent ordinary profile.
 
@@ -566,9 +584,9 @@ Validate ordinary versus peak ratios across slow/middle/fast characters, both hu
 
 **Accepted scope:** 20% peak ordinary fielding pursuit boost, preserving character ratios. Duration, recovery/re-arming, response and CPU/assist ownership remain separate. Runtime and human validation remain open.
 
-## Next decision — fielding dash duration
+## Historical decision — fielding dash duration (scope reopened)
 
-**F693-02-field-dash-duration — pending.** Recommend a **maximum two-second continuous dash window**, including its build-up, followed by a smooth return toward ordinary running even if the button stays held. Use the same duration across characters. This choice does not impose a below-ordinary exhaustion speed; recovery/re-arming and the exact entry/exit rates are subsequent decisions.
+**F693-02-field-dash-duration — approved then reopened by Jack’s carrier-ability correction.** The earlier recommendation was a **maximum two-second continuous dash window**, including its build-up, followed by a smooth return toward ordinary running even if the button stays held. Use the same duration across characters. This choice does not impose a below-ordinary exhaustion speed; recovery/re-arming and the exact entry/exit rates are subsequent decisions.
 
 **Why two seconds:** it gives the approved moderate boost time to register and help a chase while bounding one continuous use. At Run-5, two seconds at ordinary 18 ft/s covers **36 feet**; at peak 21.6 ft/s it covers **43.2 feet**, a **7.2-foot difference**. These are constant-speed sensitivities, not simulated races: build-up/turns change the gain, and any residual fade distance must be counted separately. A 1.5-second window gives an ideal 5.4-foot difference; 2.5 seconds gives 9 feet. The compact-field objective favors trying the middle value before expanding recovery reach.
 
@@ -582,7 +600,7 @@ Validate ordinary versus peak ratios across slow/middle/fast characters, both hu
 
 Validate exact deadline/frame-split behavior, early release, held-at-contact eligibility, pause/recovery, selection persistence, and shared prediction/stepping. Once availability and transitions are complete, trace routine defense, wrong first steps, short pops, gaps, wall recoveries and relays with actual entry/exit travel, both seats and CPU choices. Independent scoring and Jack's standalone acceptance remain required. No runtime or candidate simulation changes here.
 
-**Question for Jack:** use a maximum two-second fielding dash burst, then return toward ordinary running, with recovery and transition rates reviewed next?
+**Historical scope only:** the two-second proposal was approved immediately before Jack redirected dash to an automatic carrier ability. It is reopened and is not the next decision.
 
 ## Race budget and remaining numerical choices
 
@@ -621,7 +639,7 @@ Retain the accepted **1.8–5 home and away mean runs**, independently for S-29,
 
 ## Implementation order and review boundary
 
-Continue Jack's decisions in the order recorded in the candidate JSON: accepted spatial lead and runner elapsed anchor, accepted ordinary release, accepted infield ball travel, accepted long-throw direction with chemistry, accepted good-chemistry treatment, accepted numerical long-range pace, accepted negative-chemistry treatment, accepted relay control ownership, accepted Snap Throw and Laser, accepted numerical input-buffer window, accepted cancel/retarget controls, accepted ordinary pursuit speed, accepted outfield read, accepted base-infielder read, accepted pitcher read, accepted catcher read, accepted ordinary pursuit acceleration, accepted braking, accepted full reversal, accepted angled turning, accepted analog shaping, accepted neutral/assistance boundaries, accepted calibration policy, accepted arming, accepted calibration sample criteria, accepted fielding dash peak, dash duration then recovery/availability and other movement response and coverage individually, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
+Continue Jack's decisions in the order recorded in the candidate JSON: accepted spatial lead and runner elapsed anchor, accepted ordinary release, accepted infield ball travel, accepted long-throw direction with chemistry, accepted good-chemistry treatment, accepted numerical long-range pace, accepted negative-chemistry treatment, accepted relay control ownership, accepted Snap Throw and Laser, accepted numerical input-buffer window, accepted cancel/retarget controls, accepted ordinary pursuit speed, accepted outfield read, accepted base-infielder read, accepted pitcher read, accepted catcher read, accepted ordinary pursuit acceleration, accepted braking, accepted full reversal, accepted angled turning, accepted analog shaping, accepted neutral/assistance boundaries, accepted calibration policy, accepted arming, accepted calibration sample criteria, reopened dash scope with the passive carrier-ability replacement reviewed next, then relevant movement response and coverage individually, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
 
 Before runtime calibration, finish this packet's pending quantities and review the combined contract. Create separate implementation children. **First migrate existing geometry into the shared data owner at unchanged values and prove parity.** Audit consumers across sim bags/paths, cover, classifications/CPU thresholds, fair/foul and wall geometry, plus kit/presentation adapters. Preserve control behavior before tuning. A separate presentation/kit owner must consume the same geometry; this research session does not edit their assets or cameras.
 
