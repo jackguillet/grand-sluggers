@@ -803,12 +803,19 @@ def derive(data):
             assert case["secureAfter"] == (case["secureBefore"] and not case["authoredDislodgeOccurs"])
     special_actions = data.get("specialPushbackActionsProposal")
     if special_actions:
-        assert special_actions["state"] == "pending"
+        if special_actions["state"] == "accepted-calibration-anchor":
+            assert special_actions["acceptedBy"] and special_actions["acceptedOn"] and special_actions["acceptanceEvidence"]
         for case in special_actions["cases"]:
             assert case["contactEligible"] == (case["secure"] and case["legalContact"])
+    mixed_status = data.get("mixedStatusActionReadinessProposal")
+    if mixed_status:
+        assert mixed_status["state"] == "pending"
+        for case in mixed_status["examples"]:
+            assert case["eligible"] == (case["normalPrerequisites"] and not case["activeRestrictionsBlockingAction"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "mixedStatusActionReadinessState": mixed_status["state"] if mixed_status else None,
             "specialPushbackActionsState": special_actions["state"] if special_actions else None,
             "specialPushbackPossessionState": special_possession["state"] if special_possession else None,
             "specialImpactFieldResistanceState": resistance["state"] if resistance else None,

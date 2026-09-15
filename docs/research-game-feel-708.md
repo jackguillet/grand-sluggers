@@ -830,9 +830,9 @@ Field10 still receives 80% of the special's physical effect. Dedicated immunity/
 
 This is an authored reliability/attack-identity rule, not a verified universal Mario retention rule. Abstract policy checks are not gameplay simulation. Validate real possession events, failed acquisition, duplicate effects, loose-ball transitions, legal-out ordering, both seats/CPU and visible distinctions between retained-ball recoil and a dislodged ball once individual effects are defined.
 
-## Next decision — actions during pure special pushback
+## Accepted decision — actions during pure special pushback
 
-**F693-02-special-pushback-actions — pending, September 15, 2026.** Recommend **the same action policy as ordinary recoil for pure special pushback**: delay commanded steering and starting a throw through the applicable recovery; preserve valid held-ball forces/tags and responsive input management. This explicitly extends the earlier ordinary-recoil decision to special physical pushback, not every special status.
+**F693-02-special-pushback-actions — accepted by Jack on September 15, 2026.** Jack approved **the same action policy as ordinary recoil for pure special pushback**: delay commanded steering and starting a throw through the applicable recovery; preserve valid held-ball forces/tags and responsive input management. This explicitly extends the earlier ordinary-recoil decision to special physical pushback, not every special status.
 
 **Player consequence:** a fielder with secure possession and legal contact on the required bag can complete a force during recovery. The force resolves at that contact event, without waiting for the runner to arrive; later pushback cannot undo the completed out. If the shove prevents the fielder from ever establishing required contact before the runner is safe, there is no out. An actual held-glove tag can likewise count; there is no extra reach or automatic lunge. The special disrupts position and throw timing without silently making the runner immune to a ball still held in valid contact.
 
@@ -844,7 +844,21 @@ A throw may enter the existing **.25-second buffer** during recovery, but an ear
 
 This is an authored permission contract, not a measured Mario special-status matrix. The abstract policy checks do not simulate contact geometry. Validate actual forces/tags, off-bag arrival, lost possession, exact combined readiness, buffer expiry, current intent, both seats/CPU and mixed-status restrictions after their contracts are defined. No runtime or human gate changes here.
 
-**Question for Jack:** have pure special pushback delay steering and throws while still allowing outs from valid held-ball contact?
+## Next decision — action readiness with multiple statuses
+
+**F693-02-mixed-status-action-readiness — pending, September 15, 2026.** Recommend **recovering each action as soon as every active restriction on that action has ended**, provided its normal prerequisites still hold. An unrelated lingering effect does not keep the entire fielder locked. Ending one effect clears its own restrictions, without cancelling another effect.
+
+**Player-facing example:** suppose a special both pushes the fielder and leaves a temporary visual obstruction, with the obstruction explicitly defined to affect visibility only. Once pushback recovery ends, steering and throwing become available even while visibility remains affected. If another active status explicitly blocks movement, steering must still wait for that restriction. These are hypothetical permission examples, not approval of a particular obstruction attack or status duration.
+
+**Preserve the accepted recovery sum:** first build the ordinary-plus-special impact recovery interval for each action restricted by both, including each source's approved Field factor. This proposal does not replace that sum with the longer component alone. Evaluate the resulting restriction alongside other active, separately reviewed status restrictions. Their duration/refresh/stacking rules for prior, repeated or multiple events remain unselected; this decision only determines which actions they block while active.
+
+**Eligibility is not execution:** normal possession and geometric prerequisites still apply. Pure pushback allowing contact cannot override another reviewed restriction on that contact action. A ready throw still needs a valid deliberate command; it is never issued just because an effect expired. The .25-second buffer keeps its original age, cancel and target rules. Current eligible movement intent resumes from actual velocity without an extra directional press or precharging acceleration.
+
+**Implementation rail:** use explicit source-owned restrictions per action. One source cannot globally restore control, erase another restriction or tie simulation readiness to the end of a visual effect. Future cleansing/immunity must explicitly remove or prevent its intended restrictions through a reviewed contract. Movement restrictions do not implicitly disable pause or unrelated input management. The same source state and readiness apply to both seats and CPU.
+
+This is an authored interaction policy, not a measured Mario status matrix. Abstract examples verify eligibility only; they do not implement any status. Validate update-order independence, source expiration, simultaneous boundaries, unchanged additive impact recovery, normal possession/contact rules and buffered-input expiry. Actual status definitions, repeated-effect lifetimes and standalone combinations remain pending.
+
+**Question for Jack:** restore actions individually when their own restrictions end, while preserving any other effects still active?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

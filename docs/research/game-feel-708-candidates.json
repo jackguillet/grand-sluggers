@@ -346,8 +346,13 @@
     },
     {
       "id": "F693-02-special-pushback-actions",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For pure special pushback, use the ordinary recoil action policy: block steering and throw starts through the applicable recovery, preserve valid held-ball forces/tags and input management, and review other statuses separately?"
+    },
+    {
+      "id": "F693-02-mixed-status-action-readiness",
+      "state": "next-human-decision",
+      "question": "Restore each action as soon as all active restrictions on that action end, keeping unrelated lingering effects active without a blanket full-character lock?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3571,7 +3576,7 @@
   },
   "specialPushbackActionsProposal": {
     "decisionId": "F693-02-special-pushback-actions",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Pure special physical pushback uses the same action policy as ordinary recoil: block commanded locomotion/steering and throw-release starts until the applicable recovery deadline; preserve valid geometric held-ball forces/tags and responsive buffer/cancel/target management.",
     "scope": "Pure special physical pushback with secure possession. Extends the ordinary permission policy to this named special component only. Does not assign permissions to burn, charm, freeze, visual obstruction, bobbles, dives, dislodging effects or a special that explicitly adds another reviewed status.",
     "blocks": [
@@ -3621,6 +3626,68 @@
       "Mixed statuses retain their own restrictions and cannot be bypassed by pure pushback permissions; test after those contracts are reviewed.",
       "Verify full special races and standalone readability after individual attack values and arrival-speed anchors are selected."
     ],
-    "implementationBoundary": "Pending pure-special-pushback permissions only. No individual special values, unrelated status permissions, runtime changes or human gate selected."
+    "implementationBoundary": "Accepted pure-special-pushback permissions only; other status contracts remain pending. No individual special values, unrelated status permissions, runtime changes or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to applying the ordinary recoil action policy to pure special pushback: delay steering/throw starts, preserve valid held-ball forces/tags and responsive input management."
+  },
+  "mixedStatusActionReadinessProposal": {
+    "decisionId": "F693-02-mixed-status-action-readiness",
+    "state": "pending",
+    "recommendation": "Recover action by action: an action is eligible only when its normal prerequisites hold and no active effect still blocks that action. Unrelated lingering effects do not keep the entire fielder locked. An effect ending clears only its own restrictions.",
+    "scope": "Composition of already-defined action permissions across active effects. Does not define any individual burn/freeze/charm/vision status, choose their durations, or decide refresh/add/max rules for earlier/repeated/multiple impacts. Those effects must supply their own reviewed active windows.",
+    "rule": "eligible(action)=normalPrerequisites(action) AND NOT any(activeRestrictionBlocks(action)). A permissive effect cannot override another active restriction. Eligibility is not execution: throws still require a valid deliberate command, movement uses current eligible intent, and outs require actual legal geometry.",
+    "sameImpactBoundary": "First construct the accepted ordinary-plus-special impact recovery interval for each action restricted by both, applying source Field factors once. Do not replace that accepted sum with the maximum of ordinary and special durations. Then evaluate that resulting restriction alongside other reviewed active status restrictions. This proposal chooses action composition, not how those other status lifetimes are created or renewed.",
+    "examples": [
+      {
+        "name": "pushback-ended-only-vision-effect-remains",
+        "action": "throw-start",
+        "normalPrerequisites": true,
+        "activeRestrictionsBlockingAction": [],
+        "eligible": true
+      },
+      {
+        "name": "pushback-ended-another-movement-lock-remains",
+        "action": "steering",
+        "normalPrerequisites": true,
+        "activeRestrictionsBlockingAction": [
+          "hypothetical-other-movement-lock"
+        ],
+        "eligible": false
+      },
+      {
+        "name": "another-lock-ended-pushback-still-active",
+        "action": "throw-start",
+        "normalPrerequisites": true,
+        "activeRestrictionsBlockingAction": [
+          "combined-impact-recovery"
+        ],
+        "eligible": false
+      },
+      {
+        "name": "all-locks-ended-but-no-possession",
+        "action": "throw-start",
+        "normalPrerequisites": false,
+        "activeRestrictionsBlockingAction": [],
+        "eligible": false
+      }
+    ],
+    "exampleScope": "Abstract eligibility examples only. The hypothetical vision effect changes readability but has no declared throw/movement prohibition; it is not an approved actual special. A second example assumes a separately reviewed status does block movement. No status duration, default ability or actual play is selected.",
+    "contacts": "Pure pushback permits existing force/tag evaluation, but cannot override a separately reviewed status restriction on the specific contact action. Normal possession, force validity and geometry remain prerequisites; clearing a status never creates an out by itself. Completed legal outs are not reversed by later restrictions.",
+    "input": "Keep input receipt/buffer/cancel/target management distinct from permission to execute a throw. Normal .25-second command age continues; expiry of a lock does not refresh or replay an expired command. No automatic throw. A restriction on movement does not implicitly disable pause, accessibility controls or unrelated inputs.",
+    "motion": "When steering becomes eligible, use current intent and actual velocity through the accepted response, without a new directional press or acceleration precharge. Physical motion components and action restrictions keep their own reviewed clocks; visual effect completion alone is not an action-ready signal.",
+    "cleansingAndImmunity": "Any future immunity/cleansing behavior must explicitly prevent or remove the intended source restriction under its own reviewed rules. Do not implement it as a global allow flag that bypasses unrelated active effects.",
+    "rationale": "A lingering visual or unrelated effect should not secretly prolong lost control. Conversely, finishing a short pushback cannot cancel a longer movement restriction. This keeps each special\u2019s actual cost tied to its declared actions and preserves player control when those actions become available.",
+    "referenceLimit": "Authored mixed-status policy, not a verified Wii/GameCube status-interaction matrix. No new reference measurement.",
+    "requiredChecks": [
+      "Each source expiration removes only its own restrictions, independent of update order and duplicate callbacks.",
+      "Unrelated effects do not delay allowed actions; another active restriction on the same action continues blocking it.",
+      "Accepted same-impact additive recovery stays additive before evaluating other source restrictions; no accidental max substitution or extra sum across unspecified effects.",
+      "Normal possession/geometry prerequisites remain authoritative, and eligibility does not auto-execute throws or award outs.",
+      "Buffer expiry/cancel/retarget remain correct across readiness boundaries; current eligible movement intent uses actual velocity.",
+      "Same rules for both seats/CPU, pause and sub-tick effect boundaries; effect visuals cannot own simulation readiness.",
+      "Implement and validate actual combinations only after individual status permissions, lifetimes and repeated-impact rules are reviewed."
+    ],
+    "implementationBoundary": "Pending action-composition policy only. No individual status, timer-stacking rule, immunity ability, runtime change or human gate selected."
   }
 }
