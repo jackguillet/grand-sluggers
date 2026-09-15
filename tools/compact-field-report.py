@@ -102,7 +102,9 @@ def derive(data):
                ROOT / "unity/Assets/Scripts/Runtime/InPlayDirector.cs",
                ROOT / "unity/Assets/Scripts/Runtime/AtBatDirector.cs",
                ROOT / "unity/Assets/Scripts/Runtime/MatchDirector.cs",
-               ROOT / "src/GrandSluggers.Sim/Seats.cs"]
+               ROOT / "src/GrandSluggers.Sim/Seats.cs",
+               ROOT / "src/GrandSluggers.Sim/AtBatFeel.cs",
+               ROOT / "src/GrandSluggers.Sim/Rules.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -508,6 +510,8 @@ def derive(data):
             assert expected == row["armedAfter"]
     samples = data.get("pursuitCalibrationSamplesProposal")
     if samples:
+        if samples["state"] == "accepted-calibration-anchor":
+            assert samples["acceptedBy"] and samples["acceptedOn"] and samples["acceptanceEvidence"]
         offset, deviation = samples["maxCenterOffsetRadius"], samples["maxSampleDeviationRadius"]
         window = samples["windowSeconds"]
         rel = samples["relationships"]
@@ -523,9 +527,30 @@ def derive(data):
             spread = max(math.hypot(row["x"]-cx,row["y"]-cy) for row in rows)
             valid = rows[-1]["t"]-rows[0]["t"] >= window-1e-12 and math.hypot(cx,cy) <= offset+1e-12 and spread <= deviation+1e-12
             assert valid == case["accepted"], case["name"]
+    dash = data.get("fieldDashPeakProposal")
+    if dash:
+        mul = dash["peakSpeedMultiplier"]
+        a = dash["run5Arithmetic"]
+        v = pursuit["run5FeetPerSecond"]
+        assert mul > 1 and math.isclose(a["ordinaryFeetPerSecond"], v)
+        assert math.isclose(a["dashPeakFeetPerSecond"], v*mul)
+        assert math.isclose(a["extraFeetPerSecondAtPeak"], v*(mul-1))
+        assert math.isclose(a["legacyMultiplierOnTrialBaseFeetPerSecond"], v*dash["currentHeldMultiplier"])
+        assert math.isclose(a["legacyMultiplierOnTrialExtraFeetPerSecond"], v*(dash["currentHeldMultiplier"]-1))
+        distance = a["illustrativeDistanceFeet"]
+        assert math.isclose(a["ordinaryConstantSpeedTravelSeconds"], distance/v)
+        assert math.isclose(a["peakConstantSpeedTravelSeconds"], distance/(v*mul))
+        assert math.isclose(a["constantSpeedTimeSavingSeconds"], distance/v-distance/(v*mul))
+        for row in dash["characterArithmetic"]:
+            speed = (21+1.9*row["run"])*v/pursuit["baselineRun5FeetPerSecond"]
+            assert math.isclose(row["ordinaryFeetPerSecond"], speed)
+            assert math.isclose(row["dashPeakFeetPerSecond"], speed*mul)
+        for row in dash["alternatives"]:
+            assert math.isclose(row["run5PeakFeetPerSecond"], v*row["multiplier"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "fieldDashPeakState": dash["state"] if dash else None,
             "pursuitCalibrationSamplesState": samples["state"] if samples else None,
             "pursuitArmingState": arming["state"] if arming else None,
             "pursuitCalibrationState": calibration["state"] if calibration else None,

@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-arming-accepted; calibration-samples-pending; incomplete-runtime-contract",
+  "status": "C80-through-calibration-samples-accepted; field-dash-peak-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -246,13 +246,18 @@
     },
     {
       "id": "F693-02-pursuit-calibration-samples",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a .50-second released-stick calibration window with at most .10 radial center offset and .02 maximum radial variation, retaining prior calibration if sampling fails?"
+    },
+    {
+      "id": "F693-02-field-dash-peak",
+      "state": "next-human-decision",
+      "question": "Use a 1.20x peak ordinary fielding dash speed, preserving character ratios, with duration/availability and dash response reviewed next?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Review dash/status and special movement, then reconcile assistance and handoff coast individually."
+      "question": "Review fielding dash duration/availability and response/ownership, then status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1950,7 +1955,7 @@
   },
   "pursuitCalibrationSamplesProposal": {
     "decisionId": "F693-02-pursuit-calibration-samples",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "windowSeconds": 0.5,
     "maxCenterOffsetRadius": 0.1,
     "maxSampleDeviationRadius": 0.02,
@@ -2177,6 +2182,77 @@
       "After adoption, verify fine movement, neutral ownership, endpoint reach/normalization and unchanged non-pursuit aiming safeguards",
       "Couch-visible retry/success and named standalone validation remain required before accepting hardware feel"
     ],
-    "implementationBoundary": "Pending numerical sampling preset. No controller capture, runtime calibration/UI edit, gameplay tuning or human gate pass. Remaining movement/coverage/ball contract and implementation children stay open."
+    "implementationBoundary": "Accepted numerical sampling preset; runtime and actual controller validation pending. No controller capture, runtime calibration/UI edit, gameplay tuning or human gate pass. Remaining movement/coverage/ball contract and implementation children stay open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied sure to the half-second calibration preset with maximum .10 radial center offset and .02 variation around the sampled center."
+  },
+  "fieldDashPeakProposal": {
+    "decisionId": "F693-02-field-dash-peak",
+    "state": "pending",
+    "peakSpeedMultiplier": 1.2,
+    "currentHeldMultiplier": 1.35,
+    "recommendation": "Use 1.20x ordinary pursuit top speed while a fielding dash is fully active: a 20% peak boost. Preserve accepted relative character speed differences and the same profile across assigned fielding positions/hit classes. Select peak speed only; duration, availability, fatigue/cooldown, response and CPU/assist ownership follow separately.",
+    "scope": "Ordinary fielding pursuit dash peak, not baserunning dash, carrying/coverage speeds, reach, pickup/throw recovery or buddy/dive/ability parameters. Existing East/G mapping is baseline, not a new mash/motion control choice. No automatic always-on boost for every CPU or neutral-stick chase is implied.",
+    "run5Arithmetic": {
+      "ordinaryFeetPerSecond": 18.0,
+      "dashPeakFeetPerSecond": 21.599999999999998,
+      "extraFeetPerSecondAtPeak": 3.599999999999999,
+      "legacyMultiplierOnTrialBaseFeetPerSecond": 24.3,
+      "legacyMultiplierOnTrialExtraFeetPerSecond": 6.3,
+      "illustrativeDistanceFeet": 60.0,
+      "ordinaryConstantSpeedTravelSeconds": 3.3333333333333335,
+      "peakConstantSpeedTravelSeconds": 2.777777777777778,
+      "constantSpeedTimeSavingSeconds": 0.5555555555555554
+    },
+    "characterArithmetic": [
+      {
+        "run": 1,
+        "ordinaryFeetPerSecond": 13.514754098360655,
+        "dashPeakFeetPerSecond": 16.217704918032783
+      },
+      {
+        "run": 5,
+        "ordinaryFeetPerSecond": 18.0,
+        "dashPeakFeetPerSecond": 21.599999999999998
+      },
+      {
+        "run": 9,
+        "ordinaryFeetPerSecond": 22.485245901639342,
+        "dashPeakFeetPerSecond": 26.98229508196721
+      }
+    ],
+    "arithmeticScope": "Peak-speed straight-line sensitivities with no acceleration, read, turn, reach, pickup or dash-duration limit. The 60-foot row assumes peak speed over the entire route only to show an upper sustained-boost sensitivity; it does not select availability, prove an actual chase or imply every dash lasts that long. 24.3 is current 1.35 applied to proposed base 18, not the old runtime grounder speed.",
+    "currentAudit": "fielding.dash.chaseMul=1.35. FieldDash.ChaseMul in AtBatFeel.cs returns the table value; FieldingResolver.ChaseSpeedFt applies it when dash bool is true. Live manual paths pass pad.EastHeld; inspected CPU/neutral-stick ordinary pursuit paths use the default false. Spec section 8.1 says 1.35 for 2 seconds then fades, but inspected rules/helper/live dash paths have no matching timed fade. Record this mismatch and resolve dash schedule in the next design decision rather than treating either baseline as accepted.",
+    "physicsAndOwnershipRail": "Dash modifies a named effective pursuit speed state. Do not directly jump current velocity to the new cap, multiply the already-approved start/brake/turn rates without review, bypass contact-read eligibility, or turn a dash into added catch reach. Predictor and stepping must consume the same explicit dash state and availability. Keep ability/status stacking and moving/holding-ball interactions explicit. Full dash response and activation ownership must complete the contract before implementation.",
+    "alternatives": [
+      {
+        "multiplier": 1.15,
+        "run5PeakFeetPerSecond": 20.7,
+        "effect": "Smaller chase reward and less ability to recover a mistaken route."
+      },
+      {
+        "multiplier": 1.25,
+        "run5PeakFeetPerSecond": 22.5,
+        "effect": "Stronger recovery tool, with more risk of erasing compact-field gaps."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "checkedOn": "2026-09-14",
+      "limit": "Official GameCube fielding controls describe repeated taps to dash; Wii fielding controls describe shaking the Remote while moving, and the sideways scheme documents repeated taps. They establish deliberate faster movement, not 1.20, duration or our hold-button behavior. No matched measured dash multiplier from both titles is available in this packet. 1.20 is an authored Harbor trial."
+    },
+    "requiredChecks": [
+      "Run 1/5/9 peak ratios and position/hit-class consistency after removing old ordinary modifiers",
+      "Actual dash eligibility, ramp, duration/recovery and player/CPU/assist control are reviewed before using peak speed in predicted races",
+      "Routine IF defense, short pops, wrong-step correction and deep gap/wall/relay opportunities remain geometric",
+      "Both human seats and keyboard/gamepad dash commands; no silent automatic dash or unchanged read bypass",
+      "Peak/ordinary changes do not jump velocity or inflate reach; status/abilities/carry explicitly reconciled later",
+      "Independent scoring cohorts and actual standalone speed/footfall readability; no duration inferred from 60-foot arithmetic"
+    ],
+    "implementationBoundary": "Pending dash-peak trial. No runtime or spec section 8.1 baseline coefficient is changed here; timed-fade mismatch remains an explicit follow-up for the dash schedule. No candidate simulation or human gate pass."
   }
 }
