@@ -669,8 +669,14 @@ def derive(data):
     composition = data.get("specialRecoveryCompositionProposal")
     if composition:
         for case in composition["examples"]:
-            ends = [r["start"]+r["duration"] for r in case["restrictions"] if case["action"] in r["blocks"]]
-            assert math.isclose(case["readySeconds"], max([case["atSeconds"]]+ends))
+            assert 0 <= case["ordinarySeconds"] <= recoil_cap["maxRecoverySeconds"]
+            assert math.isclose(case["totalSeconds"], case["ordinarySeconds"]+case["specialSeconds"])
+            assert math.isclose(case["readySeconds"], case["eventSeconds"]+case["totalSeconds"])
+        low, high = composition["examples"][:2]
+        value = composition["fieldingValue"]
+        assert math.isclose(value["ordinaryDifferenceSeconds"], high["ordinarySeconds"]-low["ordinarySeconds"])
+        assert math.isclose(value["totalDifferenceSeconds"], high["totalSeconds"]-low["totalSeconds"])
+        assert math.isclose(value["previousOverlapDifferenceSeconds"], max(high["ordinarySeconds"],high["specialSeconds"])-max(low["ordinarySeconds"],low["specialSeconds"]), abs_tol=1e-12)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,

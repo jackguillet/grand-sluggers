@@ -120,7 +120,7 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **Accepted recovery cap — F693-02-ground-pickup-recoil-cap, September 15, 2026:** [.20-second ordinary retained-ball recovery ceiling](research-game-feel-708.md#accepted-decision--retained-ball-ground-pickup-recovery-cap). Jack explicitly requires special-hit exceptions: authored special recovery may exceed .20. Not a fixed pause: routine pickups remain zero. Trigger/curve/Field mapping and physical/action recovery remain separate; .25 buffer/.30 release remain intact.
 
-**Next review — F693-02-special-recovery-composition:** [concurrent ordinary/special recovery, scoped per action](research-game-feel-708.md#next-decision--ordinary-and-special-recovery-composition). Use actual trigger/end times; no automatic sum or pickup refresh. Special durations and affected actions remain separately authored/reviewed.
+**Revised next review — F693-02-special-recovery-composition:** [add ordinary and special recovery from the same impact](research-game-feel-708.md#next-decision--ordinary-and-special-recovery-composition) to preserve the Fielding-dependent ordinary recovery advantage. Jack objected to overlap masking that advantage. The earlier unaccepted proposal is retained in candidate history; unrelated/repeated effects, special values and affected actions remain separate.
 
 The parent issue description was condensed after preserving its full history through 9ca738e in the [versioned tracker archive](research/game-feel-693-tracker-history.md); current statuses live here and in #708.
 
