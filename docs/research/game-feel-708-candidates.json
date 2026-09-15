@@ -411,8 +411,13 @@
     },
     {
       "id": "F693-02-normal-jump-input-buffer",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Remember a grounded normal-jump press for up to .10 seconds across a temporary read/recovery restriction, but never queue a jump from airborne input or wait for the ball?"
+    },
+    {
+      "id": "F693-02-normal-jump-character-profile",
+      "state": "next-human-decision",
+      "question": "Use the same 2-foot root rise and .60-second ordinary jump for all characters, preserving body/glove reach and Run differences, with special jump abilities reviewed separately?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4342,7 +4347,7 @@
   },
   "normalJumpInputBufferProposal": {
     "decisionId": "F693-02-normal-jump-input-buffer",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maxAgeSeconds": 0.1,
     "expiryBoundary": "inclusive",
     "airborneInputMayQueue": false,
@@ -4396,6 +4401,38 @@
       "Pause freezes existing age but accepts no new gameplay intent; device/role/play boundaries invalidate stale ownership across both seats and schemes.",
       "Trace reference and standalone near-ready inputs; arithmetic checks do not establish runtime correctness or human acceptance."
     ],
-    "implementationBoundary": "Pending normal-jump input-buffer contract. No runtime or input mapping change, no human gate passed. Future implementation must reconcile the physical jump and update both couch-book surfaces; exceptional jumps and reach remain separately reviewed."
+    "implementationBoundary": "Accepted normal-jump input-buffer contract. No runtime or input mapping change, no human gate passed. Future implementation must reconcile the physical jump and update both couch-book surfaces; exceptional jumps and reach remain separately reviewed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to the .10-second grace for slightly early grounded jump presses, with no airborne queue or automatic landing hop."
+  },
+  "normalJumpCharacterProfileProposal": {
+    "decisionId": "F693-02-normal-jump-character-profile",
+    "state": "pending",
+    "peakBodyRiseFeet": 2.0,
+    "airtimeSeconds": 0.6,
+    "apexSeconds": 0.3,
+    "ordinaryHeightScalesWithBody": false,
+    "ordinaryHeightScalesWithField": false,
+    "ordinaryHeightScalesWithRun": false,
+    "ordinaryAirtimeVariesByCharacter": false,
+    "recommendation": "Use the accepted 2-foot root rise and .60-second arc for every ordinary normal jump. Do not add a per-character jump stat, body-size multiplier, Field multiplier or Run multiplier to the vertical profile. Give exceptional jump abilities their own separately reviewed physical contracts.",
+    "scope": "This decides character variation in the baseline ordinary vertical motion. Shared startup, press/hold behavior and buffer remain accepted. It does not make all characters physically identical, assign special abilities or select their numerical height/timing. If an ability replaces the normal jump, only that reviewed ability contract may override the baseline.",
+    "reach": "Equal root rise is not equal absolute glove height. Actual body proportions and the authored glove pose still determine the glove path relative to the root; a higher glove can reach a higher ball, all else equal. Do not normalize every glove to the same world height or compensate a short body with hidden extra lift. Numerical glove trajectories and geometric catch allowances remain a separate mandatory review, so no specific character catch-height ranking or wall clearance is asserted here.",
+    "stats": "Run continues to determine ordinary movement speed and the accepted 10% air-response rates, so characters can have different horizontal drift and correction. Field retains separately accepted recoil/resistance and other reviewed fielding benefits; this proposal neither removes them nor freezes existing catch-window/radius numbers. It simply does not add vertical jump height/airtime as another Field benefit. Reconcile the legacy catch model separately rather than using it to imply a new root lift.",
+    "motion": "Use the common physical trajectory with character-specific expression on the one shared rig. Authored pose cannot introduce unreviewed extra root rise, airtime, takeoff delay or an invisible glove advantage. Do not resize bodies to equalize reach. No new skeleton, locomotion system or runtime character-name switch.",
+    "abilities": "Super Jump, Grow, Clamber and Buddy Jump retain separate design review for their physical motion, geometry, eligibility and timing. Existing rob allowances are not approved body-root heights. Preserve original ability identity without copying a Nintendo character or granting a special leap to every high-Field character.",
+    "currentAudit": "FlyCatch.RobHeightFt starts from JumpRobFt and branches on buddy, super-jump and clamber allowances; ExtraWindowSec adds ability-specific catch-window time. The current spec also describes Field-dependent catch radius. These are catch/rob contracts, not measured ordinary character root trajectories. Shared root motion alone does not resolve their physical reconciliation.",
+    "tradeoff": "One ordinary arc makes timing transferable between characters and concentrates large aerial differences in body/glove geometry and explicit abilities. Per-character vertical profiles could create more identity, but require more timing learning and could silently multiply the coverage of already tall or strong fielders. Start with the shared profile, then evaluate roster balance using actual glove paths.",
+    "referenceLimit": "Authored roster-control choice, not a verified Wii/GameCube per-character jump table. Existing official manual evidence establishes jump actions but not equal root rise or airtime. Matched short/tall/slow/fast ordinary jumps in both references remain needed, separating root motion from arm reach and exceptional abilities.",
+    "requiredChecks": [
+      "Every ordinary character uses the same 2-foot/.60-second/.30-apex vertical profile independent of Field, Run, body scale or position; compare prediction and stepping.",
+      "Actual glove paths preserve body/pose differences without hidden root lift, shared absolute glove height or double-counted legacy reach.",
+      "Run-dependent horizontal motion and previously accepted Field benefits still apply; the shared vertical profile does not erase them.",
+      "Only a separately reviewed ability contract may replace the baseline; legacy over-fence allowances do not become root rise.",
+      "Verify short/tall and slow/fast characters in both seats, CPU/assistance, standing/running jumps and high/low catch opportunities, with authored pose and physical reach agreeing.",
+      "Compare reference footage and actual roster catch coverage before judging fairness or Mario similarity; no mesh changes or human gate pass in this research step."
+    ],
+    "implementationBoundary": "Pending ordinary character-profile choice only. Actual glove/catch geometry and exceptional jump contracts remain incomplete. No runtime, roster, mesh, rig or motion asset change; human standalone acceptance remains open."
   }
 }

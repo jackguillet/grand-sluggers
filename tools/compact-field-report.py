@@ -939,7 +939,8 @@ def derive(data):
             assert math.isclose(js_row["landingAfterAcceptedInputSeconds"], js_delay+jump_arc["airtimeSeconds"])
     jump_buffer = data.get("normalJumpInputBufferProposal")
     if jump_buffer:
-        assert jump_buffer["state"] == "pending"
+        if jump_buffer["state"] == "accepted-calibration-anchor":
+            assert jump_buffer["acceptedBy"] and jump_buffer["acceptedOn"] and jump_buffer["acceptanceEvidence"]
         assert jump_buffer["maxAgeSeconds"] > 0
         assert jump_buffer["expiryBoundary"] == "inclusive"
         assert not jump_buffer["airborneInputMayQueue"]
@@ -952,9 +953,15 @@ def derive(data):
                 assert math.isclose(jb_row["landingSeconds"], jb_row["takeoffSeconds"]+jump_arc["airtimeSeconds"])
             else:
                 assert jb_row["takeoffSeconds"] is None and jb_row["landingSeconds"] is None
+    jump_characters = data.get("normalJumpCharacterProfileProposal")
+    if jump_characters:
+        assert jump_characters["state"] == "pending"
+        for jc_key in ("peakBodyRiseFeet", "airtimeSeconds", "apexSeconds"):
+            assert math.isclose(jump_characters[jc_key], jump_arc[jc_key])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpCharacterProfileState": jump_characters["state"] if jump_characters else None,
             "normalJumpInputBufferState": jump_buffer["state"] if jump_buffer else None,
             "normalJumpStartupTrialState": jump_startup["state"] if jump_startup else None,
             "normalJumpAirResponseTrialState": jump_response["state"] if jump_response else None,
