@@ -736,14 +736,41 @@ def derive(data):
         assert all(displacement[key] is None for key in ("maxDisplacementFeet", "impulseFeetPerSecond", "velocityResponse"))
     displacement_cap = data.get("ordinaryRecoilDistanceCapProposal")
     if displacement_cap:
-        assert displacement_cap["state"] == "pending"
+        if displacement_cap["state"] == "accepted-calibration-anchor":
+            assert displacement_cap["acceptedBy"] and displacement_cap["acceptedOn"] and displacement_cap["acceptanceEvidence"]
         assert displacement_cap["maxAddedImpactDisplacementFeet"] > 0
         basepath = next(p["basepathFt"] for p in data["profiles"] if p["id"] == selected)
         for row in displacement_cap["comparisons"]:
             assert math.isclose(row["percentOfC80Basepath"], 100*row["capFeet"]/basepath)
+    motion = data.get("ordinaryRecoilMotionProfileProposal")
+    if motion:
+        assert motion["state"] == "pending"
+        for row in motion["examples"]:
+            w = row["severity"]*(1-.05*(row["field"]-1))
+            t, k = .20*w, 10*w
+            assert math.isclose(row["recoverySeconds"], t)
+            assert math.isclose(row["initialImpactFeetPerSecond"], k)
+            assert math.isclose(row["impactDistanceFeet"], k*t/2)
+            assert math.isclose(row["impactDistanceInches"], 12*w*w)
+            assert 0 <= row["impactDistanceFeet"] <= displacement_cap["maxAddedImpactDisplacementFeet"]
+            if t > 0:
+                assert math.isclose(k/t, motion["impactDecelerationFeetPerSecondSquared"])
+                midpoint = t*.37
+                first = k*(midpoint-midpoint*midpoint/(2*t))
+                remaining_speed = k*(1-midpoint/t)
+                second = remaining_speed*(t-midpoint)/2
+                assert math.isclose(first+second, row["impactDistanceFeet"])
+        for field in range(1,11):
+            factor = 1-.05*(field-1)
+            previous = -1
+            for severity in (0, 1e-9, .01, .25, .5, 1):
+                distance = (severity*factor)**2
+                assert distance >= previous
+                previous = distance
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryRecoilMotionProfileState": motion["state"] if motion else None,
             "ordinaryRecoilDistanceCapState": displacement_cap["state"] if displacement_cap else None,
             "ordinaryRecoilDisplacementState": displacement["state"] if displacement else None,
             "ordinaryRecoilActionsState": recoil_actions["state"] if recoil_actions else None,
