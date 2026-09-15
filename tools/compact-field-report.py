@@ -712,6 +712,8 @@ def derive(data):
             assert math.isclose(alt["field10MaxSeconds"],cap*factor)
     severity_curve = data.get("recoilSeverityCurveProposal")
     if severity_curve:
+        if severity_curve["state"] == "accepted-calibration-anchor":
+            assert severity_curve["acceptedBy"] and severity_curve["acceptedOn"] and severity_curve["acceptanceEvidence"]
         assert severity_curve["curve"] == "clamped-linear-between-two-speed-anchors"
         assert severity_curve["onsetFeetPerSecond"] is None and severity_curve["fullSeverityFeetPerSecond"] is None
         for row in severity_curve["normalizedExamples"]:
@@ -720,9 +722,15 @@ def derive(data):
             for field in (1,5,10):
                 factor = field_factors["factorAtMinField"]-field_factors["factorReductionPerPoint"]*(field-field_factors["minField"])
                 assert math.isclose(row["field%dSeconds" % field],recoil_cap["maxRecoverySeconds"]*severity*factor)
+    recoil_actions = data.get("ordinaryRecoilActionsProposal")
+    if recoil_actions:
+        for case in recoil_actions["syntheticCases"]:
+            eligible = case["secure"] and (case["legalForceContact"] or case["legalTagContact"])
+            assert case["contactEligible"] == eligible
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryRecoilActionsState": recoil_actions["state"] if recoil_actions else None,
             "recoilSeverityCurveState": severity_curve["state"] if severity_curve else None,
             "recoilFieldFactorsState": field_factors["state"] if field_factors else None,
             "recoilFieldShapingState": field_shape["state"] if field_shape else None,

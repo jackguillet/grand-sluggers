@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "numeric-field-recovery-factors-accepted; ordinary-recoil-severity-curve-pending; speed-thresholds-await-arrival-evidence; incomplete-runtime-contract",
+  "status": "linear-recoil-severity-accepted; ordinary-recoil-action-permissions-pending; speed-thresholds-await-arrival-evidence; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -306,8 +306,13 @@
     },
     {
       "id": "F693-02-recoil-severity-curve",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a linear ordinary recoil severity ramp between the shared onset and full-severity incoming speeds, zero below onset and capped above the upper threshold, with actual speed thresholds chosen after arrival-speed evidence?"
+    },
+    {
+      "id": "F693-02-ordinary-recoil-actions",
+      "state": "next-human-decision",
+      "question": "During ordinary retained-ball recoil, delay player/CPU steering and throw starts while still allowing valid geometric forces/tags with secure possession, keeping buffer/cancel responsive and physical recovery motion separate?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3015,7 +3020,7 @@
   },
   "recoilSeverityCurveProposal": {
     "decisionId": "F693-02-recoil-severity-curve",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "curve": "clamped-linear-between-two-speed-anchors",
     "onsetFeetPerSecond": null,
     "fullSeverityFeetPerSecond": null,
@@ -3089,6 +3094,75 @@
       "Keep threshold placeholders unselected and observations versioned until speed evidence and coherent calibration support values",
       "After numeric speeds/physical permissions are chosen, full races across seats/CPU and characters, independent scoring and standalone feel gates"
     ],
-    "implementationBoundary": "Pending normalized severity curve only. Thresholds deliberately null; not a full runtime rule, no gameplay/roster/motion edits, candidate simulation or human gate pass."
+    "implementationBoundary": "Accepted normalized severity curve only. Both speed thresholds remain null pending event-sided arrival evidence and coherent ball-motion calibration. No runtime/roster/motion changes, candidate simulation or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to linear ordinary recoil severity between shared onset and full-severity incoming speed thresholds, leaving the numerical thresholds to arrival evidence."
+  },
+  "ordinaryRecoilActionsProposal": {
+    "decisionId": "F693-02-ordinary-recoil-actions",
+    "state": "pending",
+    "recommendation": "Ordinary retained-ball recoil temporarily blocks commanded locomotion/steering and starting a throw, but does not invalidate secure possession or valid geometric forces/tags. Physical recoil/settling can still move the body and glove under a shared recovery motion model reviewed separately.",
+    "blocksDuringRecovery": [
+      "commanded-locomotion-steering",
+      "throw-release-start"
+    ],
+    "preservesDuringRecovery": [
+      "secure-possession-unless-actual-loss",
+      "geometric-force-and-tag-evaluation",
+      "time-stamped-throw-buffer-with-normal-expiry",
+      "cancel-and-target-management"
+    ],
+    "scope": "Only ordinary retained-ball recoil. This does not assign permissions to special effects, dives, landings, bobbles or movement during an already committed throw. Same rule for both human seats and CPU; no new activation input, auto-throw or widened contact geometry.",
+    "geometry": "A held ball and actual legal bag/glove/runner contact can produce the existing force/tag during recoil. If recovery motion removes the foot/glove from contact, possession is lost, a force is removed, or another existing rule makes the runner safe, no out is granted by the timer or caption. Secure possession and event ordering are authoritative. No forced zero-velocity prerequisite, contact radius increase or protected runner interval.",
+    "movement": "Block commanded pursuit/carry steering during the ordinary recoil interval, not world motion or the live runner/ball clocks. The physical recoil path, velocity evolution, braking and return to carrying must be authored in a shared sim system and reviewed next; do not implement this as a teleport, erased momentum or frozen cartoon statue by default. Current stick intent may guide movement when recovery ends, using actual then-current velocity and the accepted response. No precharging acceleration or Ball Dash bypass.",
+    "commands": "Receive time-stamped throw commands through the accepted .25 window while recovering; they may expire before readiness. Cancel and retarget follow accepted precedence and do not refresh age by themselves. At recovery end a valid command may start ordinary .30 release; no command means no throw. Do not replay a press as multiple commands or force a fresh directional press after every recovery.",
+    "syntheticCases": [
+      {
+        "name": "legal-force-while-retaining-ball",
+        "recovering": true,
+        "secure": true,
+        "legalForceContact": true,
+        "legalTagContact": false,
+        "contactEligible": true
+      },
+      {
+        "name": "legal-tag-while-retaining-ball",
+        "recovering": true,
+        "secure": true,
+        "legalForceContact": false,
+        "legalTagContact": true,
+        "contactEligible": true
+      },
+      {
+        "name": "off-contact-no-out",
+        "recovering": true,
+        "secure": true,
+        "legalForceContact": false,
+        "legalTagContact": false,
+        "contactEligible": false
+      },
+      {
+        "name": "possession-lost",
+        "recovering": true,
+        "secure": false,
+        "legalForceContact": true,
+        "legalTagContact": true,
+        "contactEligible": false
+      }
+    ],
+    "caseScope": "Abstract policy examples assume all existing legal contact criteria are represented by the contact flags. They do not implement or prove the actual force/tag geometry, action locks or physical motion.",
+    "currentAudit": "LivePlaySystem recoil branch decrements RecoilT and, if not Bobbling and HoldsBall, calls TickLiveContact before returning for remaining recoil. TickLiveContact guards possession and Throwing and resolves Contact. Thus existing intent already distinguishes held-ball recovery from contact evaluation. Earlier off-ball movement helpers execute before this branch, so the branch alone is not proof that a shared per-fielder action gate exists. Do not blindly pause the entire world or disable all contacts.",
+    "referenceLimit": "Authored action contract anchored in current geometric-out rules, not a verified Mario recoil-permission matrix. Same-impact special addition applies only to actions that the individually reviewed effects restrict; it does not supply every special with these ordinary permissions.",
+    "requiredChecks": [
+      "Actual legal force at bag during recoil and actual tag during recoil; no contact or lost possession gives no out",
+      "Recovery displacement removing bag/glove contact changes outcome geometrically; force removal and existing safe rules still apply",
+      "Both seats/CPU cannot steer or start throw while ordinary recovery is active; world motion and other bodies continue",
+      "Held direction resumes through actual velocity, no reset/precharge/Ball Dash bypass, physical recoil response separately selected",
+      "Buffer/cancel/retarget remain responsive with .25 expiry, no automatic throw or age refresh",
+      "Event ordering for possession/recoil/contact and special-specific restrictions, with exact readiness across frame subdivisions",
+      "Implement shared action state and physical motion before full scenarios, independent scoring and standalone feel gates"
+    ],
+    "implementationBoundary": "Pending ordinary action-permission policy. Physical recoil motion and numerical speed thresholds remain incomplete; no runtime, special permissions, motion/book, candidate simulation or human gate changes."
   }
 }
