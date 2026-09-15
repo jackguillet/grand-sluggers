@@ -90,6 +90,8 @@ def derive(data):
                ROOT / "src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
                ROOT / "src/GrandSluggers.Sim/BodyFacing.cs",
                ROOT / "src/GrandSluggers.Sim/FieldAssist.cs",
+               ROOT / "src/GrandSluggers.Sim/StickPlay.cs",
+               ROOT / "data/feel/table.json",
                ROOT / "src/GrandSluggers.Sim/FieldingPursuit.cs",
                ROOT / "src/GrandSluggers.Sim/ChemistryTable.cs",
                ROOT / "src/GrandSluggers.Sim/Match.cs",
@@ -417,6 +419,8 @@ def derive(data):
             assert math.isclose(row["wrongWayExcursionFeet"], speed*tb/2)
     turning = data.get("pursuitAngledTurnProposal")
     if turning:
+        if turning["state"] == "accepted-calibration-anchor":
+            assert turning["acceptedBy"] and turning["acceptedOn"] and turning["acceptanceEvidence"]
         tb, ta = braking["fullSpeedToStopSeconds"], acceleration["restToFullSeconds"]
         v = pursuit["run5FeetPerSecond"]
         assert math.isclose(turning["usesAcceptedBrakingSeconds"], tb)
@@ -440,9 +444,32 @@ def derive(data):
         t1, t2 = tb/math.sqrt(2), ta/math.sqrt(2)
         assert math.isclose(a["oldDirectionFeetAtCompletion"], v*(.75*t1+.25*t2))
         assert math.isclose(a["newDirectionFeetAtCompletion"], v*(.25*t1+.75*t2))
+    analog = data.get("pursuitAnalogProposal")
+    if analog:
+        assert analog["curve"] == "linear-active-radial-travel"
+        a = analog["run5Arithmetic"]
+        v = pursuit["run5FeetPerSecond"]
+        accel = v/acceleration["restToFullSeconds"]
+        brake = v/braking["fullSpeedToStopSeconds"]
+        assert math.isclose(a["topSpeedFeetPerSecond"], v)
+        for name, fraction in (("quarter", .25), ("half", .5), ("full", 1)):
+            assert math.isclose(a[name+"ActiveTargetFeetPerSecond"], v*fraction)
+        half = v/2
+        assert math.isclose(a["restToHalfSeconds"], half/accel)
+        assert math.isclose(a["restToHalfDistanceFeet"], half*a["restToHalfSeconds"]/2)
+        assert math.isclose(a["fullToHalfSeconds"], half/brake)
+        assert math.isclose(a["fullToHalfDistanceFeet"], (v+half)*a["fullToHalfSeconds"]/2)
+        assert math.isclose(a["halfToFullSeconds"], half/accel)
+        assert math.isclose(a["halfToFullDistanceFeet"], (v+half)*a["halfToFullSeconds"]/2)
+        # Algebraic check across illustrative neutral radii, not selected thresholds.
+        for z in (0, .2, .4):
+            for fraction in (0, .25, .5, 1):
+                magnitude = z+(1-z)*fraction
+                assert math.isclose((magnitude-z)/(1-z), fraction, abs_tol=1e-12)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitAnalogState": analog["state"] if analog else None,
             "pursuitAngledTurnState": turning["state"] if turning else None,
             "pursuitReversalState": reversal["state"] if reversal else None,
             "pursuitBrakingState": braking["state"] if braking else None,

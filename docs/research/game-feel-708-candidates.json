@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-reversal-accepted; pursuit-angled-turn-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-angled-turn-accepted; pursuit-analog-response-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -221,13 +221,18 @@
     },
     {
       "id": "F693-02-pursuit-angled-turn",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use continuous angled pursuit correction through the accepted brake/start rates, with modest speed loss for small turns and greater loss toward a full reversal?"
+    },
+    {
+      "id": "F693-02-pursuit-analog-response",
+      "state": "next-human-decision",
+      "question": "Use linear proportional pursuit speed across the active radial stick range, from fine movement just beyond neutral to full speed at full tilt, through the accepted physical response?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Choose numerical neutral/assistance boundaries and drift handling, then dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1490,7 +1495,7 @@
   },
   "pursuitAngledTurnProposal": {
     "decisionId": "F693-02-pursuit-angled-turn",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "response": "straight-segment-in-velocity-space-with-speed-decreasing-and-increasing-phases",
     "usesAcceptedBrakingSeconds": 0.1,
     "usesAcceptedAccelerationSeconds": 0.2,
@@ -1599,6 +1604,71 @@
       "Both human seats/schemes and CPU; fly alignment, short pops, bunts, liners, rolling-ball replans and gap/wall/relay races",
       "Authored facing/feet and live ground path agree in standalone; independent scoring and human gates remain open"
     ],
-    "implementationBoundary": "Pending authored angled-turn trial. Finish partial-stick/transition, dash/status, coverage and ball contract before runtime implementation. No simulation, Unity or animation changes in this documentation step."
+    "implementationBoundary": "Accepted authored angled-turn trial; runtime migration pending. Finish partial-stick/transition, dash/status, coverage and ball contract before runtime implementation. No simulation, Unity or animation changes in this documentation step.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to gradual angled-turn response, with modest slowdown on small corrections and greater slowdown on sharp turns."
+  },
+  "pursuitAnalogProposal": {
+    "decisionId": "F693-02-pursuit-analog-response",
+    "state": "pending",
+    "curve": "linear-active-radial-travel",
+    "neutralRadius": null,
+    "recommendation": "Map usable stick travel beyond the neutral region linearly to requested ordinary speed: half active travel requests half speed, full active travel full speed, with fine movement near its start. Use radial direction/magnitude so the same tilt works consistently around the stick. Feed requested velocity through the accepted physical response, not directly into displacement.",
+    "scope": "Ordinary manual pursuit analog shaping and partial-speed transitions. Numerical neutral radius, hysteresis, drift calibration and assistance ownership boundary follow next. This does not select a new stop button, keyboard walk modifier, changed throwing/base-selector aim or a global input rewrite. Dash/status, carrying and coverage remain separate.",
+    "math": "Given calibrated pursuit vector w, radial magnitude m=min(|w|,1), and separately reviewed neutral radius z in [0,1), active fraction f=clamp((m-z)/(1-z),0,1). Outside neutral, requested velocity is normalize(w)*f*V. Inside neutral, resolve the existing assistance policy rather than interpreting zero stick as a universal stop. V is the accepted ordinary character top speed. Half active travel is m=z+(1-z)/2, not a claim that raw half tilt produces half speed.",
+    "ownershipAndResponse": "Once manual pursuit owns the intent, a steady gentle tilt must retain the requested small movement rather than be relearned as drift. Current velocity carries across target-speed changes and manual/assist transitions. Retain the accepted start/brake/turn response at character rates V/.20 and V/.10; do not multiply physical velocity instantly by the new stick fraction or restart a whole .20-second ramp on each change. Numerical ownership/hysteresis remains pending.",
+    "run5Arithmetic": {
+      "topSpeedFeetPerSecond": 18.0,
+      "quarterActiveTargetFeetPerSecond": 4.5,
+      "halfActiveTargetFeetPerSecond": 9.0,
+      "fullActiveTargetFeetPerSecond": 18.0,
+      "restToHalfSeconds": 0.1,
+      "restToHalfDistanceFeet": 0.45,
+      "fullToHalfSeconds": 0.05,
+      "fullToHalfDistanceFeet": 0.675,
+      "halfToFullSeconds": 0.1,
+      "halfToFullDistanceFeet": 1.35
+    },
+    "arithmeticScope": "Target fraction examples describe the usable range beyond the still-unselected neutral radius, not raw hardware tilt. Transition examples hold direction fixed on open ground with no dash/read/action/collision. These are consequences of the proposed target and accepted response rates, not simulated pursuit or Mario measurements.",
+    "currentAudit": {
+      "paths": [
+        "src/GrandSluggers.Sim/StickPlay.cs",
+        "src/GrandSluggers.Sim/FieldAssist.cs",
+        "src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
+        "unity/Assets/Scripts/Runtime/Controls.cs",
+        "data/feel/table.json"
+      ],
+      "details": "StickPlay.Live and Mix discard per-axis magnitudes below .32; Pad.Tick can relearn a steady input inside its .45 L1 recenter region after .12 seconds. FieldAssist uses |x|+|y| with fieldAssistStick=.35, and live manual pursuit multiplies separate axes by speed. These existing layers do not supply the proposed continuous active radial range. Their values are baselines, not approved thresholds. Unity/device processing upstream must also be audited; do not assume raw means unprocessed."
+    },
+    "implementationRail": "Use the existing input ownership/calibration architecture with an explicit ordinary-pursuit vector path retaining intentional analog detail before destructive per-axis filtering. Do not apply a second deadzone remap to already-remapped data or globally remove the held-at-SET/drift protections. Numerical neutral and drift handling require review before implementation. Compose direction and magnitude once, cap total ordinary target speed, and preserve keyboard cardinal/diagonal full-intent parity. Mouse vector shaping belongs to the same pursuit path and needs input-specific validation; bag aim and other verbs keep their own semantics.",
+    "alternatives": [
+      {
+        "choice": "Full speed whenever outside neutral",
+        "effect": "Simple and immediate, but removes gentle stick positioning."
+      },
+      {
+        "choice": "Unremapped magnitude after a hard neutral cutoff",
+        "effect": "Closer to existing proportional-axis behavior, but starts manual movement at a nonzero fraction instead of making the full slow-to-fast range usable."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "sourceReport": "docs/research-game-feel-701-movement.md",
+      "limit": "The inspected GameCube/Wii manuals describe stick movement and fielding control styles without a numeric tilt-to-speed curve. No matched known-input amplitude measurements establish either title's response. Linear active-range mapping is an authored control trial, not measured Mario equivalence."
+    },
+    "requiredChecks": [
+      "Equal radial tilt around cardinal/diagonal directions requests the same speed; composed input never exceeds the ordinary cap",
+      "Active fractions near zero, .25, .5 and 1 produce the specified target without stacked remapping",
+      "Rest/half/full speed changes agree with accepted physical rates and predictor/step integration; direction changes remain continuous",
+      "A steady intentional small tilt stays manual and does not decay into learned drift; noisy resting/off-center pads remain controlled under the separately reviewed calibration policy",
+      "Neutral assistance, thresholds and hysteresis validated after the next decision; no universal stop implied",
+      "Both pads and player-1 keyboard/mouse, mixed devices and bag/throw/pitch controls regression; held-at-SET protections retained contextually",
+      "Slow placement under flies/short pops, grounder approaches and pickup/catch geometry in actual races; no new catch assist or human gate pass"
+    ],
+    "implementationBoundary": "Pending analog-shape trial with numerical neutral boundary and drift handling unresolved. No runtime or global input change here; finish combined control/movement/coverage/ball contract before implementing."
   }
 }
