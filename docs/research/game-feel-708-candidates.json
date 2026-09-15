@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-catcher-read-accepted; pursuit-acceleration-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-acceleration-accepted; pursuit-braking-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -206,13 +206,18 @@
     },
     {
       "id": "F693-02-pursuit-acceleration",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a linear 0.20-second ordinary pursuit build-up from rest to full speed, beginning movement immediately when eligible, with the same duration across characters?"
+    },
+    {
+      "id": "F693-02-pursuit-braking",
+      "state": "next-human-decision",
+      "question": "Use linear ordinary braking that stops full speed in .10 seconds, with a shorter stop from partial speed and target-aware assisted arrival?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose braking and direction-change response individually; review partial-stick transitions, dash/status, special movement and assistance handoffs."
+      "question": "Choose direction-change response, partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1249,7 +1254,7 @@
   },
   "pursuitAccelerationProposal": {
     "decisionId": "F693-02-pursuit-acceleration",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "restToFullSeconds": 0.2,
     "curve": "linear-speed-ramp",
     "recommendation": "From rest under sustained full movement intent, rise linearly to ordinary top speed in .20 seconds. Movement begins on the first eligible step; this is not .20 seconds of additional standstill.",
@@ -1322,6 +1327,82 @@
       "Routine grounder margins, short pops, bunts, gap/wall chases and full relay races; no hidden runner or field-size rescue",
       "Actual first displacement, velocity, pickup and authored footfalls are legible in standalone; independent scoring cohorts and Jack gate"
     ],
-    "implementationBoundary": "Pending authored acceleration trial. Braking/turning and remaining response/coverage/ball quantities must complete the contract before runtime implementation. No production rules, Unity or motion edits here."
+    "implementationBoundary": "Accepted authored acceleration trial; runtime migration pending. Braking/turning and remaining response/coverage/ball quantities must complete the contract before runtime implementation. No production rules, Unity or motion edits here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to the proposed linear .20-second build-up from rest to ordinary full speed, with the same duration across characters and movement beginning when eligible."
+  },
+  "pursuitBrakingProposal": {
+    "decisionId": "F693-02-pursuit-braking",
+    "state": "pending",
+    "fullSpeedToStopSeconds": 0.1,
+    "curve": "constant-deceleration-to-zero",
+    "recommendation": "Stop from ordinary full speed in .10 seconds with linear speed reduction. Each character uses braking magnitude equal to their accepted ordinary top speed divided by .10, so partial speed stops sooner. Start braking immediately when the active ordinary movement intent requests rest.",
+    "scope": "Ordinary pursuit stopping for manual, assisted and CPU fielders across positions/hit types. This does not select reversal/turn response, partial-stick speed changes, dash/status braking, carrying/throw planting, cover or the old handoff-coast replacement.",
+    "intentBoundary": "Neutral stick can continue assisted pursuit under FieldAssist.CpuChases; it is not a new universal stop command. Existing physical velocity persists across ownership changes. Do not reset movement or invent a stop when selection changes. The existing .20-second handoff coast is a distinct pending transition audit, not silently accepted or stacked with this brake.",
+    "arrivalRail": "For an ordinary assisted/CPU route that calls for rest at a fixed destination, plan braking before arrival using current speed and stopping distance. Apply the same physical model to prediction and stepping, including short routes that cannot reach top speed. Do not travel at full speed to the target then snap still, teleport back, enlarge catch reach or append a .10-second post-arrival wait. A moving target or late human correction can still overshoot; do not conceal physically insufficient stopping room. Existing arrival tolerance and catch geometry remain independently defined.",
+    "actionBoundary": "This is movement response, not a prerequisite that every catch/pickup must wait for zero speed. Preserve geometric action eligibility and moving catches; pickup recovery, throwing plants and special-action constraints remain separate. Presentation must match physical slowing without imposing a clip or camera delay.",
+    "math": "For ordinary top speed V and T=.10, braking magnitude b=V/T. Starting at speed u in [0,V], stopTime=u/b and stopDistance=u*u/(2*b). v(t)=max(0,u-b*t); integrate only until zero and then remain stopped. Full-speed stopping distance is V*T/2.",
+    "run5Arithmetic": {
+      "topSpeedFeetPerSecond": 18.0,
+      "decelerationFeetPerSecondSquared": 180.0,
+      "fullStopDistanceFeet": 0.9,
+      "halfSpeedFeetPerSecond": 9.0,
+      "halfSpeedStopSeconds": 0.05,
+      "halfSpeedStopDistanceFeet": 0.225,
+      "accelerationSeconds": 0.2,
+      "brakingToAccelerationDurationRatio": 0.5,
+      "illustrativeRestToRestFeet": 16.0,
+      "restToRestSeconds": 1.0388888888888888,
+      "fullRampMinimumRestToRestFeet": 2.7
+    },
+    "characterArithmetic": [
+      {
+        "run": 1,
+        "speedFeetPerSecond": 13.514754098360655,
+        "fullStopDistanceFeet": 0.6757377049180328
+      },
+      {
+        "run": 5,
+        "speedFeetPerSecond": 18.0,
+        "fullStopDistanceFeet": 0.9
+      },
+      {
+        "run": 9,
+        "speedFeetPerSecond": 22.485245901639342,
+        "fullStopDistanceFeet": 1.1242622950819672
+      }
+    ],
+    "arithmeticScope": "Straight-line ordinary movement on open ground, excluding read, route changes, reach, ball motion, pickup, action constraints and dash. The 16-foot rest-to-rest example has enough room for full acceleration and braking; not a simulated catch or required stationary pickup.",
+    "alternatives": [
+      {
+        "seconds": 0.05,
+        "run5FullStopDistanceFeet": 0.45,
+        "effect": "Sharper, almost immediate settling."
+      },
+      {
+        "seconds": 0.15,
+        "run5FullStopDistanceFeet": 1.35,
+        "effect": "More visible runout and greater overshoot cost."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "checkedOn": "2026-09-14",
+      "limit": "Re-inspected official GameCube fielding page and Wii fielding page describe movement/dash/control ownership without a numeric physical stop curve. No independently timed ordinary fielding stop for either title is established. .10 and constant deceleration are authored; rendered facing and unknown-input footage cannot prove braking latency."
+    },
+    "requiredChecks": [
+      "Full/half/low-speed stopping and short routes across Run 1/5/9; no negative speed or per-tick drift",
+      "Prediction and stepping agree across read/start/brake boundaries, variable step sizes and replanned targets",
+      "Neutral-stick pursuit continues where required; selection and manual/assist handoffs neither reset velocity nor double-apply coast/brake",
+      "Fixed-target assisted arrivals brake in advance; insufficient stopping room stays physical without snap-back or reach changes",
+      "Moving catches and scoops are not blocked merely because velocity is nonzero; action recovery remains separate",
+      "Both human seats, pad/keyboard and CPU; routine grounders, bunts, short pops and gap/wall races retain full timeline/scoring checks",
+      "Standalone footfall/settling and actual geometry review; Jack passes the human gate"
+    ],
+    "implementationBoundary": "Pending braking trial. Complete turn/transition, coverage and ball contract before runtime implementation. No simulation, production rule or animation changes in this documentation step."
   }
 }
