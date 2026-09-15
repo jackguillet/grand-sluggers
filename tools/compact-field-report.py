@@ -146,6 +146,8 @@ def derive(data):
         assert math.isclose(relay - direct, example["minimumExtraDirectFlightSecondsToTie"])
     chemistry = data.get("goodChemistryProposal")
     if chemistry:
+        if chemistry["state"] == "accepted-calibration-anchor":
+            assert chemistry["acceptedBy"] and chemistry["acceptedOn"] and chemistry["acceptanceEvidence"]
         boost = chemistry["speedMultiplier"]
         release_sec = chemistry["ordinaryReleaseSeconds"]
         assert math.isclose(release_sec, release["releaseSeconds"])
@@ -161,10 +163,45 @@ def derive(data):
         assert math.isclose(example["neutralRelaySeconds"], overhead + 2 * leg)
         assert math.isclose(example["oneGoodLegRelaySeconds"], overhead + leg + leg / boost)
         assert math.isclose(example["twoGoodLegsRelaySeconds"], overhead + 2 * leg / boost)
+    long_range = data.get("longRangeProfileProposal")
+    long_rows = []
+    if long_range:
+        def flight(distance, field, good=False):
+            comfortable = long_range["middleComfortableRangeFeet"] + long_range["rangeFeetPerFieldPoint"] * (field - long_range["middleFieldStat"])
+            arm = long_range["armSpeedBase"] + long_range["armSpeedPerFieldPoint"] * field
+            speed = travel["baselineHorizontalFeetPerSecond"] * arm
+            extra = long_range["extraFlightAtReferenceExcessSeconds"] * (max(0, distance - comfortable) / long_range["referenceExcessFeet"]) ** long_range["excessExponent"]
+            return (distance / speed + extra) / (chemistry["speedMultiplier"] if good else 1)
+
+        assert math.isclose(flight(80, 5), travel["referenceFlightSeconds"])
+        assert math.isclose(flight(80, 5, True), chemistry["ordinary80FootExample"]["goodFlightSeconds"])
+        cutoff_field = long_range["relayComparison"]["cutoffFieldStat"]
+        split = long_range["relayComparison"]["splitFraction"]
+        decision_gap = long_range["relayComparison"]["extraDecisionSeconds"]
+        release_sec = release["releaseSeconds"]
+        for field in long_range["comparisonFieldStats"]:
+            previous = -1
+            for distance in long_range["comparisonDistancesFeet"]:
+                ordinary = flight(distance, field)
+                assert ordinary > previous
+                previous = ordinary
+                legs = (distance * split, distance * (1 - split))
+                times = {}
+                for name, first_good, second_good in (("neutral", False, False), ("firstLegGood", True, False),
+                                                      ("secondLegGood", False, True), ("bothLegsGood", True, True)):
+                    times[name] = (2 * release_sec + decision_gap + flight(legs[0], field, first_good)
+                                   + flight(legs[1], cutoff_field, second_good))
+                long_rows.append({"distanceFeet": distance, "throwerField": field, "cutoffField": cutoff_field,
+                                  "comfortableRangeFeet": long_range["middleComfortableRangeFeet"] + long_range["rangeFeetPerFieldPoint"] * (field - long_range["middleFieldStat"]),
+                                  "neutralDirectCommandToTargetSeconds": release_sec + ordinary,
+                                  "goodDirectCommandToTargetSeconds": release_sec + flight(distance, field, True),
+                                  "idealRelayCommandToTargetSeconds": times,
+                                  "neutralRelayAdvantageSeconds": release_sec + ordinary - times["neutral"],
+                                  "scope": "Proposed formula, ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"})
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "sourceSha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in tracked},
-            "profiles": records}
+            "profiles": records, "proposedLongRangeComparisons": long_rows}
 
 
 def plot(data, result):

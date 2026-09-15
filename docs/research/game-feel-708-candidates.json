@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-anchors-and-long-throw-direction-accepted; chemistry-calibration-pending; incomplete-runtime-contract",
+  "status": "C80-ordinary-long-throw-and-good-chemistry-directions-accepted; long-range-profile-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Exact long-range curve and chemistry tuning remain pending.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Exact long-range curve, negative chemistry and special stacking remain pending.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -141,13 +141,13 @@
     },
     {
       "id": "F693-03-good-chemistry",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Retain the existing 1.30x good-chemistry travel-speed bonus per actual thrower-receiver pair, with no extra chain bonus or shortening of the ordinary release?"
     },
     {
       "id": "F693-03-long-throw-numbers",
-      "state": "pending",
-      "question": "Review the comfortable range and smooth long-throw timing profile against direct, relay and strong/weak-arm race examples."
+      "state": "next-human-decision",
+      "question": "Use a 160-foot middle-arm comfortable range, varying 5 feet per Field point, with smooth extra flight time of 0.60 seconds at 80 feet beyond that range, as the trial profile?"
     },
     {
       "id": "F693-03-negative-chemistry",
@@ -344,11 +344,11 @@
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
     "acceptanceEvidence": "Jack: absolutely agree. note that character chemistry can come into play here.",
-    "chemistryQualification": "Chemistry must participate in direct-versus-relay calibration. Exact bonus, range/release interactions and stacking remain separately reviewed."
+    "chemistryQualification": "Chemistry participates in direct-versus-relay calibration; F693-03-good-chemistry subsequently accepts the 1.30x travel-speed treatment per actual pair with ordinary release unchanged. Negative chemistry and special interactions remain pending."
   },
   "goodChemistryProposal": {
     "decisionId": "F693-03-good-chemistry",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "speedMultiplier": 1.3,
     "ordinaryReleaseSeconds": 0.3,
     "recommendation": "Retain existing 30% good-chemistry travel-speed boost per actual thrower-receiver pair. Apply separately on each relay leg and equally to compatible direct throws; no chain-wide bonus, no chemistry release shortening, no unlimited range.",
@@ -390,6 +390,74 @@
       "CPU forecasts use deterministic pair chemistry without rolling accuracy or consuming gameplay RNG; execution retains the same effective modifiers.",
       "Trace pair identity and separate arm, chemistry and ability factors, plus each release/reception.",
       "Neutral relay opportunities must still exist; chemistry enriches the choice rather than making it required for competent routine defense."
+    ],
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to retaining the 30% good-chemistry speed boost per actual throw, with ordinary release unchanged."
+  },
+  "longRangeProfileProposal": {
+    "decisionId": "F693-03-long-throw-numbers",
+    "state": "pending",
+    "middleFieldStat": 5,
+    "middleComfortableRangeFeet": 160,
+    "rangeFeetPerFieldPoint": 5,
+    "armSpeedBase": 0.85,
+    "armSpeedPerFieldPoint": 0.03,
+    "extraFlightAtReferenceExcessSeconds": 0.6,
+    "referenceExcessFeet": 80,
+    "excessExponent": 2,
+    "formulas": {
+      "range": "R = 160 + 5*(Field-5) feet",
+      "ordinarySpeed": "v = (80/0.90)*(0.85+0.03*Field) horizontal ft/s",
+      "neutralFlight": "T = distance/v + 0.60*(max(0,distance-R)/80)^2 seconds",
+      "goodFlight": "Tgood = T/1.30",
+      "commandToTarget": "0.30 + T (or Tgood); actual eligible reception may be later"
+    },
+    "scope": "Proposed original trial curve for ordinary throws; actual arm stat affects both base speed and comfortable range. Good chemistry applies once to full flight duration, not to range or release. Curve and first derivative are continuous at comfortable range. Direct throws remain available. Special abilities and negative chemistry are excluded from the analytical comparisons, pending their own review.",
+    "basis": "160 ft is two C80 basepaths and below the old flat 200-ft CPU cutoff threshold. .60 s at 80 ft beyond range gives a small neutral relay advantage at an ideal 240-ft return after .30 s extra release plus illustrative .20 s extra decision. These are authored choices, not Mario measurements or sim results.",
+    "comparisonDistancesFeet": [
+      80,
+      120,
+      140,
+      160,
+      180,
+      200,
+      220,
+      240,
+      260,
+      280
+    ],
+    "comparisonFieldStats": [
+      1,
+      5,
+      9
+    ],
+    "relayComparison": {
+      "cutoffFieldStat": 5,
+      "splitFraction": 0.5,
+      "extraDecisionSeconds": 0.2,
+      "scope": "Ideal collinear midpoint cutoff with receiver already ready; excludes pickup and ordinary pre-first-command thinking. Extra decision .20 s is illustrative, not an approved response or auto-relay delay."
+    },
+    "alternatives": [
+      {
+        "middleRangeFeet": 140,
+        "extraAt80FeetSeconds": 0.6,
+        "effect": "Earlier long-throw loss and stronger relay incentive; weaker direct throws even from shallower positions."
+      },
+      {
+        "middleRangeFeet": 180,
+        "extraAt80FeetSeconds": 0.6,
+        "effect": "Later long-throw loss and stronger direct throws; neutral relays become useful closer to the wall."
+      }
+    ],
+    "requiredChecks": [
+      "Same physical model predicts and steps direct and relay trajectories; no outcome-only time addition.",
+      "Neutral, one-good-leg, both-good-leg and good-direct comparisons use actual paired characters and receiver coverage.",
+      "Include late/off-line cutoff and both input seats; do not infer automatic relay continuation from the illustrative .20 s gap.",
+      "Retain approved short infield timing, release and runner anchors; do not cap or hide an inconvenient direct outcome.",
+      "Replay fixed-input deep-gap/wall and full scoring cohorts, including unchanged mixed parks; deeper parks may expose over-penalized returns.",
+      "Trace total flight and long-range contribution; verify rendered arc/velocity realizes continuous timing without a midair pause.",
+      "Human standalone acceptance remains open; these calculations are not a tested game."
     ]
   }
 }
