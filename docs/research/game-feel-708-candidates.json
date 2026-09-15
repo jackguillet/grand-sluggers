@@ -321,8 +321,13 @@
     },
     {
       "id": "F693-02-ordinary-recoil-distance-cap",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a one-foot maximum added ordinary impact displacement as the initial trial, with routine pickups at zero, lesser impacts below the cap and authored special impacts allowed beyond it? It caps impact displacement, not total travel from existing movement."
+    },
+    {
+      "id": "F693-02-ordinary-recoil-motion-profile",
+      "state": "next-human-decision",
+      "question": "Use an impact kick that slows linearly to rest over ordinary recovery, with kick speed proportional to severity times Field factor and displacement proportional to its square, while separately braking existing motion? Strong fielders slide less as well as recover sooner."
     },
     {
       "id": "F693-02-movement-response",
@@ -3219,7 +3224,7 @@
   },
   "ordinaryRecoilDistanceCapProposal": {
     "decisionId": "F693-02-ordinary-recoil-distance-cap",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maxAddedImpactDisplacementFeet": 1.0,
     "recommendation": "Use a one-foot maximum for the added ordinary impact displacement as the initial trial. Routine zero-recoil pickups add zero; lesser qualifying impacts stay below the ceiling. Special hits that impact the fielder may exceed this ordinary ceiling under their own authored bounds.",
     "scope": "A ceiling for the ordinary impact contribution in unobstructed space, not a mandatory distance for every hard pickup, a cap on total body movement, or a completed velocity law. Exact severity/Field-to-distance mapping, impulse and combined motion response remain pending.",
@@ -3253,6 +3258,116 @@
       "Special impact bounds remain distinct and explicit; no accidental ordinary cap on their total effect.",
       "After response and speed thresholds are selected, trace stationary/moving/opposing-motion pickups and wall cases across seats/CPU and characters; verify actual standalone readability and complete races."
     ],
-    "implementationBoundary": "Pending ordinary displacement ceiling only. No runtime, roster, simulation, motion assets or human gate changes."
+    "implementationBoundary": "Accepted ordinary displacement ceiling only; the response law remains pending. No runtime, roster, simulation, motion assets or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to a one-foot ceiling for added ordinary pushback, with impacting special hits allowed to go farther."
+  },
+  "ordinaryRecoilMotionProfileProposal": {
+    "decisionId": "F693-02-ordinary-recoil-motion-profile",
+    "state": "pending",
+    "recommendation": "A brief physical impact kick followed by linear slowing to zero over the ordinary recovery interval. Weaker arrivals and stronger Fielding produce a smaller initial kick and a shorter skid, not the same distance squeezed into less time.",
+    "normalizedWeight": "w = accepted speed severity S(v) * accepted Field factor F(Field)",
+    "recoverySecondsFormula": "T = .20*w",
+    "impactDistanceFeetFormula": "D = 1.0*w*w",
+    "initialImpactFeetPerSecondFormula": "K = 10*w",
+    "impactVelocityFormula": "For T>0, impact velocity = incoming horizontal unit direction * K * max(0, 1-t/T), for t measured from acquisition; zero when w=0. Integrated impact distance at elapsed t<=T is K*(t-t*t/(2*T)).",
+    "maxInitialImpactFeetPerSecond": 10.0,
+    "impactDecelerationFeetPerSecondSquared": 50.0,
+    "examples": [
+      {
+        "severity": 1.0,
+        "field": 1,
+        "recoverySeconds": 0.2,
+        "initialImpactFeetPerSecond": 10.0,
+        "impactDistanceFeet": 1.0,
+        "impactDistanceInches": 12.0
+      },
+      {
+        "severity": 1.0,
+        "field": 5,
+        "recoverySeconds": 0.16000000000000003,
+        "initialImpactFeetPerSecond": 8.0,
+        "impactDistanceFeet": 0.6400000000000001,
+        "impactDistanceInches": 7.6800000000000015
+      },
+      {
+        "severity": 1.0,
+        "field": 10,
+        "recoverySeconds": 0.11000000000000001,
+        "initialImpactFeetPerSecond": 5.5,
+        "impactDistanceFeet": 0.30250000000000005,
+        "impactDistanceInches": 3.630000000000001
+      },
+      {
+        "severity": 0.5,
+        "field": 1,
+        "recoverySeconds": 0.1,
+        "initialImpactFeetPerSecond": 5.0,
+        "impactDistanceFeet": 0.25,
+        "impactDistanceInches": 3.0
+      },
+      {
+        "severity": 0.5,
+        "field": 5,
+        "recoverySeconds": 0.08000000000000002,
+        "initialImpactFeetPerSecond": 4.0,
+        "impactDistanceFeet": 0.16000000000000003,
+        "impactDistanceInches": 1.9200000000000004
+      },
+      {
+        "severity": 0.5,
+        "field": 10,
+        "recoverySeconds": 0.05500000000000001,
+        "initialImpactFeetPerSecond": 2.75,
+        "impactDistanceFeet": 0.07562500000000001,
+        "impactDistanceInches": 0.9075000000000002
+      },
+      {
+        "severity": 0.0,
+        "field": 1,
+        "recoverySeconds": 0.0,
+        "initialImpactFeetPerSecond": 0.0,
+        "impactDistanceFeet": 0.0,
+        "impactDistanceInches": 0.0
+      },
+      {
+        "severity": 0.0,
+        "field": 5,
+        "recoverySeconds": 0.0,
+        "initialImpactFeetPerSecond": 0.0,
+        "impactDistanceFeet": 0.0,
+        "impactDistanceInches": 0.0
+      },
+      {
+        "severity": 0.0,
+        "field": 10,
+        "recoverySeconds": 0.0,
+        "initialImpactFeetPerSecond": 0.0,
+        "impactDistanceFeet": 0.0,
+        "impactDistanceInches": 0.0
+      }
+    ],
+    "fieldingTradeoff": "At full severity, Field1/5/10 slide 12/7.68/3.63 inches and recover in .20/.16/.11 seconds. Field10 has 45 percent lower initial impact speed and 69.75 percent less added displacement than Field1. This intentionally makes Fielding resist displacement as well as shorten recovery; it is a new proposed benefit, not already implied by the accepted timer.",
+    "momentumComposition": "Start with actual pre-acquisition locomotion velocity, not a zero reset. During ordinary steering lock, brake that component toward zero using accepted unboosted b=V/.10; independently integrate the impact component above. Add the two velocities for one authoritative body/glove path. The impact changes velocity at contact, never position. Opposing components may reduce net displacement; do not infer impact budget from net distance alone. At ordinary recovery end the impact component is zero, while any residual locomotion velocity continues through the accepted carrying response and current eligible intent. No extra wait for full stop.",
+    "scope": "Ordinary retained-ball ground-pickup motion in unobstructed space. Resolve actual collisions/bounds without teleport or automatic bag return; do not bank blocked impact travel and release it later. Existing body/contact geometry is not changed. Degenerate zero horizontal arrival direction supplies no horizontal kick, rather than inventing a facing/home direction; recovery severity still follows accepted total incoming speed.",
+    "specialBoundary": "Use ordinary T, not the longer ordinary-plus-special action lock, to integrate the ordinary kick. Do not stretch ordinary displacement over a special timer or scale it with special severity. Author special displacement and its interaction with locomotion/ordinary kick separately; no inferred sum of impulses or universal special effect.",
+    "abilityBoundary": "Run supplies the already accepted ordinary locomotion brake rate only; Field and arrival severity determine the impact kick. Ball Dash does not strengthen the kick, precharge movement or bypass recovery. Body size and mesh mass supply no unreviewed resistance.",
+    "alternatives": [
+      "Distance proportional to w with the same recovery T would retain the same initial kick speed even as severity tends to zero for a triangular speed profile.",
+      "A fixed one-foot skid across Field ratings would compress the same travel into better fielders shorter recovery, increasing their required speed."
+    ],
+    "referenceLimit": "Authored response derived from the approved time/distance budgets, not measured Mario acceleration or displacement scaling. Exact incoming-speed anchors still require evidence. No candidate simulation or reference measurement for this choice.",
+    "requiredChecks": [
+      "Integrating the proposed impact speed yields w squared feet and zero impact speed at the exact ordinary deadline, with w=0 handled without division.",
+      "Distance and initial kick shrink continuously as severity tends to zero; higher Field never increases either at fixed arrival.",
+      "Keep the pre-impact velocity and apply an impact velocity change without teleporting position; integrate locomotion braking and impact across exact phase boundaries.",
+      "Equivalent unsplit and split time integration, including recovery end within a tick; no extra animation tail or mandatory full stop.",
+      "Moving, planted and opposite-motion catches: ordinary impact stays within one foot while total movement and legal bag/tag contact follow actual geometry.",
+      "Actual acquisition-time outs remain complete; later contact loss matters; no bag snap or motion stored against a wall.",
+      "Both seats/CPU, Run/Field extremes and eligible Ball Dash share stepping and prediction; special composition remains explicitly pending.",
+      "Full race traces, independent scoring and human standalone readability after speed anchors and special motion are reviewed."
+    ],
+    "implementationBoundary": "Pending coherent ordinary response law only. Analytical examples do not implement or validate runtime collisions, contacts or animation; no gameplay coefficients or human gates changed."
   }
 }

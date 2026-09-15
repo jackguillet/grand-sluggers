@@ -758,9 +758,9 @@ Validate force/tag during recovery, misses and lost possession, recovery displac
 
 **Current audit:** `ArmRecoil` assigns the retained-ball timer without establishing a displacement law. `RecoilFtPerSec=14` appears only as a `BobbleRules` declaration in the inspected source/Unity search; it is not a verified active ordinary skid coefficient. The candidate therefore leaves maximum displacement, impulse and velocity response null. Required validation includes planted/moving pickups, acquisition/contact ordering, wall-deflected direction, fine recovery intervals, actual bag departure, shared predictor/stepper geometry and both seats/CPU. No candidate simulation or feel gate is passed.
 
-## Next decision — ordinary pushback distance ceiling
+## Accepted decision — ordinary pushback distance ceiling
 
-**F693-02-ordinary-recoil-distance-cap — pending, September 15, 2026.** Recommend **at most one foot of added ordinary impact displacement** as the initial trial. Routine zero-recoil pickups add none; lesser impacts stay below the ceiling. This is a maximum, not a fixed one-foot slide on every qualifying pickup. Exact severity/Field mapping and velocity response follow separately.
+**F693-02-ordinary-recoil-distance-cap — accepted by Jack on September 15, 2026.** Jack approved **at most one foot of added ordinary impact displacement** as the initial trial. Routine zero-recoil pickups add none; lesser impacts stay below the ceiling. This is a maximum, not a fixed one-foot slide on every qualifying pickup. Exact severity/Field mapping and velocity response follow separately.
 
 **Scale and tradeoff:** one foot is **1.25% of an 80-foot basepath**. A half-foot ceiling is more restrained and could be harder to read; 1.5 feet produces more positional disruption. One foot keeps ordinary impact modest while leaving impacting special hits room for larger reactions. These are authored comparison budgets, not measured Mario distances or verified camera readability.
 
@@ -772,7 +772,23 @@ Validate force/tag during recovery, misses and lost possession, recovery displac
 
 Validate the ordinary component and total body path separately for stationary, moving and opposite-direction acquisitions; include bag/contact event order, both seats/CPU, all character speeds, walls and special combinations. Numerical arrival thresholds remain pending evidence. Report arithmetic checks spatial ratios only; no candidate simulation or human feel gate is passed.
 
-**Question for Jack:** use a one-foot maximum added ordinary pushback for the first trial, with impacting special hits allowed to go farther?
+## Next decision — ordinary skid response
+
+**F693-02-ordinary-recoil-motion-profile — pending, September 15, 2026.** Recommend a **brief impact kick that slows steadily to rest within ordinary recovery**, with weaker impacts and better Fielding reducing both initial kick speed and skid distance. This explicitly gives Fielding a positional benefit in addition to its accepted recovery benefit.
+
+**The coupled profile:** let `w=S(arrivalSpeed)*F(Field)`, using the accepted severity and Field factors. Ordinary recovery remains `T=.20*w` seconds. Added impact distance is `D=1.0*w²` feet; initial added impact speed is `K=10*w` ft/s along actual incoming horizontal ball travel. For `T>0`, that component slows linearly as `K*(1-t/T)` until it reaches zero at `T`. Its integrated distance is `K*(t-t²/(2*T))`, reaching exactly `D`; deceleration is 50 ft/s². At `w=0`, no impact motion or division occurs. An impact changes velocity at acquisition, never position.
+
+**Player-facing examples at full severity:** Field1 skids **12 inches over .20 seconds**; Field5 **7.68 inches over .16 seconds**; Field10 **3.63 inches over .11 seconds**. At half severity, Field5 adds **1.92 inches over .08 seconds**. These describe the ordinary impact component in free space, not total travel from a running catch. Field10's initial kick is 45% smaller and its added distance 69.75% smaller than Field1's: this extra positional reward is part of the proposal, not a previously approved stat effect.
+
+**Why distance falls faster than recovery time:** keeping the full distance while shortening the timer would shove better fielders faster. Making distance merely proportional to time with this triangular speed profile would retain the same initial kick even as severity approached zero. Squaring `w` makes both initial speed and distance fade continuously at the routine-pickup boundary while respecting the one-foot maximum.
+
+**Existing motion:** brake actual pre-acquisition locomotion toward zero using the accepted unboosted `b=V/.10` during the ordinary steering lock. Integrate that component and the impact component together into one authoritative body/glove path. Opposite-direction motion can cancel some visible travel without cancelling the impact budget. At ordinary readiness the impact is finished; any remaining locomotion velocity continues through the accepted carrying response and current eligible intent. No reset, extra wait to reach a full stop, acceleration precharge or Ball Dash bypass.
+
+**World and special boundaries:** actual collision/boundary resolution may reduce free-space displacement; do not bank blocked travel, teleport or return automatically to a bag. Zero horizontal incoming direction adds no horizontal kick instead of inventing a direction from facing or home. Recovery still uses incoming total speed. The ordinary kick ends on its own ordinary deadline even if a special keeps actions blocked longer. Individual special impacts, their motion composition and collision details need their own reviewed contract; the additive timing rule does not select summed impulses.
+
+This is an authored physical response, not measured Mario motion. The report checks integration, monotonicity and exact endpoints analytically, not actual runtime contacts or collision behavior. Validate sub-tick readiness and equivalent split integration, stationary/moving/opposing pickups, acquisition-time outs, actual bag departure, both seats/CPU and character extremes before full races and standalone feel. Arrival-speed thresholds remain unselected.
+
+**Question for Jack:** use this brief kick-and-settle response, with better Fielding producing a smaller skid as well as faster recovery?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
