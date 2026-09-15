@@ -3,7 +3,8 @@
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
   "catcherReadState": "accepted-calibration-anchor",
-  "pursuitCalibrationState": "pending",
+  "pursuitArmingState": "pending",
+  "pursuitCalibrationState": "accepted-calibration-anchor",
   "pursuitNeutralState": "accepted-calibration-anchor",
   "pursuitAnalogState": "accepted-calibration-anchor",
   "pursuitAngledTurnState": "accepted-calibration-anchor",
@@ -22,7 +23,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "a8b8552a0634a5b5f22221219ced19575dec460d0836c3e6e89601460511d155",
+    "docs/research/game-feel-708-candidates.json": "e000f26b5be235d9717006c7ea6eaeab17c67adda14f1aac533c6b670e131623",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -48,7 +49,10 @@
     "data/characters/brondo.json": "d689cab90ab3b8b0ee465b2112a2c29df5cbb95f5142cd8ea0da1f2f2a0408de",
     "data/characters/role-players.json": "83eed963ab531a910e1e418b955805f74d245804e3dba0b042efb3f28fb1dbbb",
     "unity/Assets/Scripts/Runtime/Controls.cs": "c46d052e589be7131423542f4b10d751caae90c98711553a2f3e98d66b0b4821",
-    "unity/Assets/Scripts/Runtime/InPlayDirector.cs": "180253da3e6450cf89e8e37e2c15fb12418f92af800ca07bf5f0838c6e5a3dab"
+    "unity/Assets/Scripts/Runtime/InPlayDirector.cs": "180253da3e6450cf89e8e37e2c15fb12418f92af800ca07bf5f0838c6e5a3dab",
+    "unity/Assets/Scripts/Runtime/AtBatDirector.cs": "29e83950cbdafe16a345ff807d5c9406afc3a9eeac5aeca6f1a1c3152c1c379e",
+    "unity/Assets/Scripts/Runtime/MatchDirector.cs": "41f36ab86ff8f10fc67a2a2624903840ed8606f0da4125686f731cb60a290bcd",
+    "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77"
   },
   "profiles": [
     {

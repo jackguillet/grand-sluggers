@@ -99,7 +99,10 @@ def derive(data):
                ROOT / "data/characters/vale.json", ROOT / "data/characters/brondo.json",
                ROOT / "data/characters/role-players.json",
                ROOT / "unity/Assets/Scripts/Runtime/Controls.cs",
-               ROOT / "unity/Assets/Scripts/Runtime/InPlayDirector.cs"]
+               ROOT / "unity/Assets/Scripts/Runtime/InPlayDirector.cs",
+               ROOT / "unity/Assets/Scripts/Runtime/AtBatDirector.cs",
+               ROOT / "unity/Assets/Scripts/Runtime/MatchDirector.cs",
+               ROOT / "src/GrandSluggers.Sim/Seats.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -491,10 +494,21 @@ def derive(data):
             magnitude = row["magnitude"]
             after = True if magnitude >= enter else False if magnitude <= leave else row["manualBefore"]
             assert after == row["manualAfter"]
+    calibration = data.get("pursuitCalibrationProposal")
+    if calibration and calibration["state"] == "accepted-calibration-anchor":
+        assert calibration["acceptedBy"] and calibration["acceptedOn"] and calibration["acceptanceEvidence"]
+    arming = data.get("pursuitArmingProposal")
+    if arming:
+        assert arming["neutralRadius"] == neutral["manualExitRadius"]
+        assert arming["extraNeutralDwellSeconds"] == 0
+        for row in arming["exampleChecks"]:
+            expected = row["profileValid"] and (row["wasArmed"] or row["magnitude"] <= arming["neutralRadius"])
+            assert expected == row["armedAfter"]
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
-            "pursuitCalibrationState": data.get("pursuitCalibrationProposal", {}).get("state"),
+            "pursuitArmingState": arming["state"] if arming else None,
+            "pursuitCalibrationState": calibration["state"] if calibration else None,
             "pursuitNeutralState": neutral["state"] if neutral else None,
             "pursuitAnalogState": analog["state"] if analog else None,
             "pursuitAngledTurnState": turning["state"] if turning else None,

@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-neutral-boundary-accepted; pursuit-calibration-policy-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-calibration-policy-accepted; pursuit-arming-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -236,13 +236,18 @@
     },
     {
       "id": "F693-02-pursuit-calibration-policy",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Establish a released-stick center outside live play and keep it fixed through the match, with explicit paused recalibration instead of silent live recentering?"
+    },
+    {
+      "id": "F693-02-pursuit-arming",
+      "state": "next-human-decision",
+      "question": "Require neutral once on defensive-role entry, controller recovery or recalibration, then retain pursuit readiness through the half so held direction works at contact?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Review held-at-SET and reconnect/arming behavior and calibration sample protocol, then dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Review calibration sample protocol, then dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1784,7 +1789,7 @@
   },
   "pursuitCalibrationProposal": {
     "decisionId": "F693-02-pursuit-calibration-policy",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "policy": "explicit-nonlive-calibration-and-fixed-match-center",
     "recommendation": "Establish a valid released-stick center for each bound controller outside live baseball, then freeze that pursuit calibration through the match. If recalibration is needed, make it an explicit player-requested action while paused. Never silently relearn center from steady live input, including neutral-assisted play.",
     "scope": "Pursuit center-learning policy and its player-visible ownership, for both pads through the existing input architecture. Exact stable-sample duration, admissible offset/noise bounds and neutral-arming rules remain unresolved. No claim that a stationary sample alone proves a released stick. Held-at-SET/scene and reconnect arming are reviewed next.",
@@ -1843,6 +1848,96 @@
       "Couch instructions and recovery can be completed without external docs; add HowToPlay/book presentation work before implementation handoff",
       "Full fine-positioning/catch paths and human standalone review remain required"
     ],
-    "implementationBoundary": "Pending calibration-policy decision. No sample-duration/noise/offset numbers or arming lifecycle are accepted here. Any new calibration couch action needs presentation/book implementation in its own scope. No runtime/input edits, simulation or human gate pass."
+    "implementationBoundary": "Accepted calibration policy; runtime migration pending. No sample-duration/noise/offset numbers or arming lifecycle are accepted here. Any new calibration couch action needs presentation/book implementation in its own scope. No runtime/input edits, simulation or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to fixed calibration during the match, with explicit paused recalibration when needed."
+  },
+  "pursuitArmingProposal": {
+    "decisionId": "F693-02-pursuit-arming",
+    "state": "pending",
+    "neutralRadius": 0.15,
+    "extraNeutralDwellSeconds": 0,
+    "recommendation": "Require a valid profile and one observed calibrated neutral sample at or below .15 when a controller enters a defensive role, is newly bound/reconnected/replaced, or completes recalibration. Then retain pursuit readiness through that defensive half: no new release requirement between pitches, on contact, camera cuts or glove selection.",
+    "scope": "Ordinary pursuit input arming and defensive-role lifecycle, for both bound human pads. Does not change pitch/batting/base-aim input guards, invent a new pause mode, bypass device binding, change the read clock or reset a fielder's physical velocity. Calibration sample duration/offset/noise validation remains separate.",
+    "eventPolicy": [
+      {
+        "event": "enter defensive role or start match on defense",
+        "requiresNeutralCheck": true
+      },
+      {
+        "event": "new or recovered controller binding",
+        "requiresNeutralCheck": true
+      },
+      {
+        "event": "successful explicit recalibration",
+        "requiresNeutralCheck": true
+      },
+      {
+        "event": "next pitch in same defensive half",
+        "requiresNeutralCheck": false
+      },
+      {
+        "event": "bat contact or field camera change",
+        "requiresNeutralCheck": false
+      },
+      {
+        "event": "glove selection or ordinary manual-assist switch",
+        "requiresNeutralCheck": false
+      },
+      {
+        "event": "ordinary pause/resume with same valid connected device",
+        "requiresNeutralCheck": false
+      }
+    ],
+    "armingRule": "The neutral check is <=.15 in the same calibrated vector coordinate as the accepted ownership boundary. A current valid neutral sample can satisfy it immediately; no additional timed dwell or fresh centering gesture is required when already neutral. An unarmed sample >.15 stays unarmed even if a join/confirm button is pressed. Arm only after a valid profile exists. Center calibration is not changed by observing neutral.",
+    "inputAfterArming": "Apply accepted .20-entry/.15-exit ownership after arming. Direction held before contact remains a live request and begins movement when the position read/action eligibility permits. Do not require release/repress at contact, reset acceleration through selection, or let held input bypass the read. Preserve each body's existing movement state; armed status is an input permission, not a velocity assignment.",
+    "recoveryBoundary": "Use existing non-live readiness/device-recovery flow to show which seat must release its stick. Do not let live baseball resume with the recovering defense unarmed and silently assisted. Extend recovery readiness to include valid calibration and neutral; after readiness, preserve existing resume policy: formerly running play may resume, previously paused play stays paused. No new unconditional auto-resume or extra resume button is selected. Menu/join/confirm commands are context-bound and must not replay as live baseball actions.",
+    "contextIsolation": "Pursuit readiness is per bound seat/device and defensive-role epoch, independent of mutable gamepad order. A new defensive role prevents stale offensive/menu direction taking control; routine pitches within that role do not rearm. Different controller requires its own profile. Existing AtBatDirector.BeginSet calls Controls.CatchPlay globally, so implementation must separate pursuit readiness from other verb guards inside existing input owners rather than remove all CatchPlay protection.",
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "limit": "GameCube neutral-reset guidance supports released controls for a valid center but does not establish this pursuit arming lifecycle. Neither game has a matched measured held-direction/SET/reconnect protocol in the retained evidence. This is an authored control-continuity policy; existing Harbor recovery behavior is inspected separately."
+    },
+    "currentAudit": "Controls.BeginMatch and MatchDirector.TickDeviceRecovery call CatchPlay; AtBatDirector.BeginSet calls it for each pitch. CatchPlay calls each Pad.Catch, which resets SeenCenter based on current raw magnitude and can block off-center stick until it returns. DeviceRecovery remembers whether the match was previously running. The proposed pursuit readiness must be independently retained inside these existing systems, without globally changing other verbs.",
+    "exampleChecks": [
+      {
+        "profileValid": true,
+        "wasArmed": false,
+        "magnitude": 0.15,
+        "armedAfter": true
+      },
+      {
+        "profileValid": true,
+        "wasArmed": false,
+        "magnitude": 0.16,
+        "armedAfter": false
+      },
+      {
+        "profileValid": false,
+        "wasArmed": false,
+        "magnitude": 0.0,
+        "armedAfter": false
+      },
+      {
+        "profileValid": true,
+        "wasArmed": true,
+        "magnitude": 0.8,
+        "armedAfter": true
+      }
+    ],
+    "requiredChecks": [
+      "Already-neutral role entry arms immediately; off-center entry waits with understandable seat-specific copy",
+      "Exact .15 boundary, invalid calibration, held join button and reconnect at full tilt do not bypass readiness",
+      "Held direction through SET/pitch/contact works at the accepted read deadline without a fresh release or early movement",
+      "Glove selection and ordinary pause retain readiness and actual velocity; role/device change invalidates readiness only for its owner",
+      "Recovery while previously running versus already paused preserves resume policy and sim state until neutral is valid",
+      "Same-device reconnect versus replacement and device-order swaps; both human seats independent",
+      "Pitch/batting/aim CatchPlay protections and keyboard/mouse behavior regressions; no replayed confirm as live action",
+      "Standalone path from role/device recovery to fielding requires no external explanation; book and in-game help updated with implementation"
+    ],
+    "implementationBoundary": "Pending arming policy. No runtime/input/UI changes or new human gate pass. Calibration sample protocol and remaining movement/coverage/ball contract must be completed before implementation."
   }
 }
