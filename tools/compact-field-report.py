@@ -987,12 +987,31 @@ def derive(data):
                    ("difficultyThresholds", "handlingResponseCurve", "errorResolutionModel"))
     handling_resolution = data.get("ordinaryHandlingResolutionProposal")
     if handling_resolution:
-        assert handling_resolution["state"] == "pending"
+        assert handling_resolution["state"] == "superseded-by-user-direction"
+        assert handling_resolution["supersededBy"] == "F693-02-ordinary-handling-error-chance"
+        assert handling_resolution["supersessionEvidence"]
         assert all(handling_resolution[key] is None for key in
                    ("challengeInputs", "handlingLimitCurve", "failureOutcomeProfile"))
+    handling_chance = data.get("ordinaryHandlingErrorChanceDirection")
+    if handling_chance:
+        assert handling_chance["state"] == "accepted-calibration-anchor"
+        assert handling_chance["acceptedBy"] and handling_chance["acceptedOn"] and handling_chance["acceptanceEvidence"]
+    handling_cap = data.get("ordinaryHandlingErrorCapProposal")
+    if handling_cap:
+        assert handling_cap["state"] == "pending"
+        assert 0 < handling_cap["maximumOrdinaryErrorChance"] < 1
+        assert handling_cap["routineErrorChance"] == 0
+        assert all(handling_cap[key] is None for key in
+                   ("difficultyCurve", "defensiveQualityCurve", "specialErrorCap"))
+        hc_example = handling_cap["expectationExample"]
+        assert math.isclose(hc_example["expectedErrors"], hc_example["qualifyingAttemptsAtCap"]*handling_cap["maximumOrdinaryErrorChance"])
+        for hc_row in handling_cap["alternatives"]:
+            assert math.isclose(hc_row["expectedErrorsPer100AtCap"], 100*hc_row["maximumOrdinaryErrorChance"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryHandlingErrorChanceState": handling_chance["state"] if handling_chance else None,
+            "ordinaryHandlingErrorCapState": handling_cap["state"] if handling_cap else None,
             "ordinaryHandlingResolutionState": handling_resolution["state"] if handling_resolution else None,
             "handlingErrorOpportunitiesState": handling_errors["state"] if handling_errors else None,
             "characterCatchRangeDirectionState": catch_range_direction["state"] if catch_range_direction else None,
