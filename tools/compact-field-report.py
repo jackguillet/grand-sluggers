@@ -681,13 +681,36 @@ def derive(data):
         assert math.isclose(value["previousOverlapDifferenceSeconds"], max(high["ordinarySeconds"],high["specialSeconds"])-max(low["ordinarySeconds"],low["specialSeconds"]), abs_tol=1e-12)
     field_shape = data.get("recoilFieldShapingProposal")
     if field_shape:
+        if field_shape["state"] == "accepted-calibration-anchor":
+            assert field_shape["acceptedBy"] and field_shape["acceptedOn"] and field_shape["acceptanceEvidence"]
         for row in field_shape["illustrations"]:
             assert 0 <= row["severity"] <= 1
             assert 0 < row["illustrativeFieldFactor"] <= 1
             assert math.isclose(row["ordinarySeconds"], recoil_cap["maxRecoverySeconds"]*row["severity"]*row["illustrativeFieldFactor"])
+    field_factors = data.get("recoilFieldFactorsProposal")
+    if field_factors:
+        cap = recoil_cap["maxRecoverySeconds"]
+        rows = field_factors["rows"]
+        assert [r["field"] for r in rows] == list(range(field_factors["minField"],field_factors["maxField"]+1))
+        for row in rows:
+            factor = field_factors["factorAtMinField"]-field_factors["factorReductionPerPoint"]*(row["field"]-field_factors["minField"])
+            assert 0 < factor <= 1 and math.isclose(row["factor"],factor)
+            assert math.isclose(row["fullSeveritySeconds"],cap*factor)
+            assert math.isclose(row["halfSeveritySeconds"],cap*.5*factor)
+        rel = field_factors["relationships"]
+        diff = rows[0]["fullSeveritySeconds"]-rows[-1]["fullSeveritySeconds"]
+        assert math.isclose(rel["fullSeveritySecondsSavedPerPoint"],cap*field_factors["factorReductionPerPoint"])
+        assert math.isclose(rel["field1To10MaxDifferenceSeconds"],diff)
+        assert math.isclose(rel["field10ReductionFraction"],1-rows[-1]["factor"])
+        assert math.isclose(rel["run5SteadyRunnerDistanceForMaxDifferenceFeet"],80/proposal["run5NominalBagSeconds"]*diff)
+        for alt in field_factors["alternatives"]:
+            factor = 1-alt["reductionPerPoint"]*9
+            assert math.isclose(alt["field10Factor"],factor)
+            assert math.isclose(alt["field10MaxSeconds"],cap*factor)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "recoilFieldFactorsState": field_factors["state"] if field_factors else None,
             "recoilFieldShapingState": field_shape["state"] if field_shape else None,
             "specialRecoveryCompositionState": composition["state"] if composition else None,
             "groundPickupRecoilCapState": recoil_cap["state"] if recoil_cap else None,
