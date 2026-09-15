@@ -876,11 +876,17 @@ def derive(data):
         assert all(air_control[key] is None for key in ("airAccelerationScale", "airBrakingScale", "airSpeedLimitFeetPerSecond", "maxCorrectionDistanceFeet"))
     jump_input = data.get("normalJumpInputProfileProposal")
     if jump_input:
-        assert jump_input["state"] == "pending"
+        if jump_input["state"] == "accepted-calibration-anchor":
+            assert jump_input["acceptedBy"] and jump_input["acceptedOn"] and jump_input["acceptanceEvidence"]
         assert all(jump_input[key] is None for key in ("peakRiseFeet", "airtimeSeconds", "verticalCurve"))
+    takeoff = data.get("normalJumpTakeoffOwnershipProposal")
+    if takeoff:
+        assert takeoff["state"] == "pending"
+        assert takeoff["pressToTakeoffSeconds"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpTakeoffOwnershipState": takeoff["state"] if takeoff else None,
             "normalJumpInputProfileState": jump_input["state"] if jump_input else None,
             "jumpAirControlState": air_control["state"] if air_control else None,
             "jumpCatchThrowReadinessState": jump_ready["state"] if jump_ready else None,

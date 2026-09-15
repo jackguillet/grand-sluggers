@@ -950,9 +950,9 @@ This is an authored readiness proposal, not a measured Mario aerial-throw rule. 
 
 This is an authored control direction, not a measured Mario air-control curve. Direct jump comparison, numerical calibration, real catch coverage and standalone feel remain pending. No runtime or human gate changes here.
 
-## Next decision — normal-jump press and hold behavior
+## Accepted decision — normal-jump press and hold behavior
 
-**F693-02-normal-jump-input-profile — pending, September 15, 2026.** Recommend **one consistent vertical jump profile per eligible press**. Holding longer does not increase height or airtime, and releasing early does not cut the jump short. Holding the button through landing does not automatically trigger another jump. The approved limited steering adjusts the horizontal path only.
+**F693-02-normal-jump-input-profile — accepted by Jack on September 15, 2026.** Jack approved **one consistent vertical jump profile per eligible press**. Holding longer does not increase height or airtime, and releasing early does not cut the jump short. Holding the button through landing does not automatically trigger another jump. The approved limited steering adjusts the horizontal path only.
 
 **Why this choice:** the player learns one takeoff-and-landing rhythm for the selected jump type and concentrates on positioning and timing. Variable-height jumps would add another control dimension and make the wait before a return throw depend on button duration. The simpler commitment pairs with the limited horizontal correction already approved. This does not select height, airtime or a particular ascent/descent curve yet.
 
@@ -966,7 +966,23 @@ This is an authored control direction, not a measured Mario air-control curve. D
 
 Validate equal uninterrupted trajectories for tap/hold/early release, no held-button auto-repeat or catch reset, pause and actual landing, horizontal/vertical separation, and jump ability variants after numerical profiles are reviewed. Numerical Mario comparison and standalone control feel remain open; no runtime or human gate is passed.
 
-**Question for Jack:** use a consistent jump per press, with no hold-for-height or early-release shortening?
+## Next decision — who determines normal-jump takeoff timing
+
+**F693-02-normal-jump-takeoff-ownership — pending, September 15, 2026.** Recommend **starting the normal jump promptly from an eligible press**, without holding it until the ball reaches a preferred catch window. The player owns takeoff timing. A jump may be too early or too late, and success follows actual ball/glove geometry rather than a reserved catch.
+
+**Why it matters:** direct timing makes jump an immediate movement choice. Automatically scheduling takeoff to meet the ball would be more forgiving, but could turn the button into a request for an automatically timed catch. Limited midair correction remains available; it does not move the vertical clock or make the catch guaranteed.
+
+**Prompt does not select a latency number:** any subsequently reviewed short takeoff anticipation must be fixed relative to input and independent of predicted ball arrival. Input, physical takeoff and landing need one shared timeline. No hardware/frame-latency promise or numerical anticipation is selected here. A catch-window hint can guide the player without gating an otherwise eligible jump.
+
+**Respect existing restrictions:** this does not bypass a contact read, movement/recovery restriction, committed throw or grounded eligibility, and cannot trigger a midair second jump. Any small buffer for an ineligible early press still needs its own reviewed bounds; it cannot become an unlimited command waiting for the ball. Keep the existing jump mapping and approved no-hold-height/no-auto-repeat behavior.
+
+**A changing play:** once initiated, a deflection or another fielder catching the ball does not silently reschedule the jump, reset its clock or hand its command to another character. Complete the reviewed physical arc unless an actual external effect changes it. Human timing remains human-owned; CPU/assistance can issue their own intents only under their reviewed ownership rules and must use the same physical response. This proposal adds no human-side automatic jump takeover.
+
+**Current audit:** `WestDown` assigns `JumpT`; later `jumpTry` uses an active timer and `HighEnough` before `PlayerCaught`. The book describes arming through a catch window. That is catch-eligibility logic, not proof of a physical takeoff schedule or when the rendered body leaves the ground. A future physical jump must not reuse that window to silently choose a later perfect takeoff. Implementation must reconcile this with both couch-book surfaces, simulation and animation in the appropriate separate work.
+
+The previously checked Wii/GC manuals establish press-oriented actions, not measured input latency or automatic timing assistance. This is an authored ownership choice. Validate the same press against different ball arrival times, early/late misses, changes in the ball path, existing locks, both input schemes/seats and CPU execution. Numerical startup/airtime and real catch coverage remain open; no runtime or human gate is passed.
+
+**Question for Jack:** have an eligible press start the jump promptly, with you responsible for timing it rather than the game waiting for the ball?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
