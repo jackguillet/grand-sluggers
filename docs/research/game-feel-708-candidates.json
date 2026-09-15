@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-throw-controls-and-pursuit-speed-accepted; outfield-read-pending; incomplete-runtime-contract",
+  "status": "C80-throw-controls-pursuit-and-outfield-read-accepted; infield-read-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -107,7 +107,7 @@
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary per-character profile and Run-5 top speed 18 ft/s are accepted. Scale the original relative Run curve by 18/30.5. Existing IF/OF time-preserving sensitivities remain comparisons, not selected coefficients; read, response, coverage and ball calibration remain open.",
     "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with the 0.25-second buffer and contextual RB/period cancel accepted; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Snap Throw and situational Laser trial definitions are accepted below; remaining recovery and geometry interactions need validation.",
-    "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
+    "read": "Base outfield read .40 seconds from contact is accepted, retaining contact-clock ownership, existing airborne cap and no additional camera gate. Infield/pitcher/catcher timings and numerical acceleration/braking remain pending.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
     "scoring": "Accepted 1.8–5 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
@@ -186,13 +186,23 @@
     },
     {
       "id": "F693-02-outfield-read-clock",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a 0.40-second base outfield read from contact, with no extra camera wait, as the first trial?"
     },
     {
       "id": "F693-02-infield-read-clock",
+      "state": "next-human-decision",
+      "question": "Use one 0.25-second base pursuit read from contact for 1B/2B/SS/3B, with pitcher and catcher reviewed separately?"
+    },
+    {
+      "id": "F693-02-pitcher-read-clock",
       "state": "pending",
-      "question": "Review infield, pitcher and catcher read durations against routine defense and short-contact plays."
+      "question": "Choose pitcher post-contact pursuit read against comebackers, bunts and delivery recovery."
+    },
+    {
+      "id": "F693-02-catcher-read-clock",
+      "state": "pending",
+      "question": "Choose catcher post-contact pursuit read against bunts, short pops and plate coverage."
     },
     {
       "id": "F693-02-movement-response",
@@ -1006,7 +1016,7 @@
   },
   "outfieldReadProposal": {
     "decisionId": "F693-02-outfield-read-clock",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "secondsFromContact": 0.4,
     "currentSecondsFromContact": 0.83,
     "recommendation": "Use 0.40 seconds from bat contact as the base LF/CF/RF ordinary pursuit read. No new delay after the camera changes. Retain the existing airborne hang cap, fixed contact-clock eligibility and human-versus-CPU eligibility ownership structure for the trial.",
@@ -1047,6 +1057,82 @@
       "Read-start/eligibility/first-displacement timestamps, response ramp and actual interception",
       "Compact deep-hit/relay opportunity and independently gated scoring cohorts"
     ],
-    "implementationBoundary": "Pending read trial. Change no runtime or camera timing in research. Shared gameplay eligibility and route prediction must agree; presentation makes the read legible in a separately owned change. Human gate remains open."
+    "implementationBoundary": "Accepted outfield-read trial; runtime migration pending. Change no runtime or camera timing in research. Shared gameplay eligibility and route prediction must agree; presentation makes the read legible in a separately owned change. Human gate remains open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to a 0.40-second outfield read from contact with no additional camera wait."
+  },
+  "infieldReadProposal": {
+    "decisionId": "F693-02-infield-read-clock",
+    "state": "pending",
+    "secondsFromContact": 0.25,
+    "positions": [
+      "1B",
+      "2B",
+      "SS",
+      "3B"
+    ],
+    "recommendation": "Use a shared 0.25-second base ordinary pursuit read from contact for first, second, shortstop and third. Keep pitcher/catcher as separately reviewed roles. Preserve the contact-clock, airborne-cap and human/CPU ownership structure used by the accepted outfield trial.",
+    "currentPositionSeconds": {
+      "1B": 0.27,
+      "2B": 0.25,
+      "SS": 0.28,
+      "3B": 0.3
+    },
+    "scope": "Ordinary pursuit eligibility for four base infielders, not top speed, acceleration, guaranteed possession, a blanket action freeze, cover timing or new input mapping. No delay is added after the camera cut.",
+    "ownership": "Human-owned glove uses the base timing regardless of difficulty, including neutral-stick assistance. CPU bodies retain the existing multiplier mechanism as baseline assumptions pending difficulty validation. Field selection changes do not restart or erase contact-clock timing.",
+    "shortAirAndInput": "Retain the existing min(read, airborne hang/first-ground time) cap; no new grounder cap. Held direction can govern movement when eligible. Current catch/jump/dive and cover paths need separate checks rather than inheriting a new universal lockout.",
+    "arithmetic": {
+      "outfieldLeadSeconds": 0.15,
+      "potentialLeadFeetAtRun5TopSpeed": 2.7,
+      "speedFeetPerSecond": 18.0,
+      "positionGains": [
+        {
+          "position": "1B",
+          "earlierSeconds": 0.020000000000000018,
+          "potentialExtraFeet": 0.3600000000000003
+        },
+        {
+          "position": "2B",
+          "earlierSeconds": 0.0,
+          "potentialExtraFeet": 0.0
+        },
+        {
+          "position": "SS",
+          "earlierSeconds": 0.030000000000000027,
+          "potentialExtraFeet": 0.5400000000000005
+        },
+        {
+          "position": "3B",
+          "earlierSeconds": 0.04999999999999999,
+          "potentialExtraFeet": 0.8999999999999998
+        }
+      ]
+    },
+    "arithmeticScope": "Eligibility differences times full trial top speed only, excluding acceleration and interception. This small reduction cannot by itself offset the slower ordinary pursuit trial or prove routine outs.",
+    "tradeoff": "Consistent quick read across the four base positions while keeping a visible beat. Slightly increases opportunities for 1B/SS/3B and leaves 2B unchanged. Retaining separate .25-.30 delays preserves finer positional distinctions; a common .30 is more deliberate but delays all four relative to the proposed trial.",
+    "reference": {
+      "source": "docs/research-game-feel-701-movement.md; retained GameCube Fielding Mechanics revision 410",
+      "reportedFrames": {
+        "1B": 16,
+        "2B": 15,
+        "SS": 17,
+        "3B": 18
+      },
+      "assumedFramesPerSecond": 60,
+      "scope": "Retained community report, not independently timed stock footage. Converted range .25-.30 seconds motivates proximity only; a uniform .25 is authored. Fresh targeted search did not recover the four timing rows; Wii remains unmeasured."
+    },
+    "cameraBoundary": "The historical .42-second SET-to-field cut can occur after .25 eligibility, as it already does for these positions. Do not postpone sim input to hide that presentation mismatch. The presentation owner must make early field action and the controlled glove legible; no camera coefficient is selected here.",
+    "requiredChecks": [
+      "Each 1B/2B/SS/3B with same Run and input; P/C excluded",
+      "Routine grounders versus hard liners and short pops; no guaranteed catch from read expiry",
+      "Airborne cap and held stick; early/late glove switches",
+      "Both human seats and CPU difficulty ownership",
+      "Cover, jump/dive/catch eligibility stays explicit rather than inheriting pursuit lockout",
+      "Actual command/eligibility/displacement/possession and complete runner/throw race",
+      "Pre-cut field action is legible in standalone; no added camera wait",
+      "Mixed-park and separate Harbor scoring plus named routine-defense cases"
+    ],
+    "implementationBoundary": "Pending infield-read trial. No runtime or camera edits in research; implement after the combined movement/ball contract and explicit pitcher/catcher review. Human gate remains open."
   }
 }
