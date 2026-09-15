@@ -548,9 +548,9 @@ Validate exact/just-outside bounds, diagonal offsets, slow wandering, jitter and
 
 ## Current dash revision — passive ball-carrier ability
 
-**F693-02-ball-dash-carrier — proposed replacement, September 14, 2026.** Jack clarified that dash should apply automatically only to a character with the ability while holding the ball. This reopens the previously accepted universal 20% sprint scope and the two-second approval he gave immediately before the correction. Preserve their history below; **do not continue the sprint recovery decision or implement that earlier scope**. Other accepted anchors remain intact.
+**F693-02-ball-dash-carrier — accepted by Jack on September 14, 2026.** Jack clarified that dash should apply automatically only to a character with the ability while holding the ball. Jack then approved the 20% passive carrier trial. This supersedes the previously accepted universal sprint scope and the two-second approval he gave immediately before the correction. Preserve their history below; **do not continue the sprint recovery decision or implement that earlier scope**. Other accepted anchors remain intact.
 
-**Recommendation:** make Ball Dash a passive **1.20x ordinary carry-speed trial**, active only for an ability holder with secure live-ball possession. No activation button, burst timer, stamina or cooldown. Before possession, everyone uses their ordinary pursuit profile; baserunning's separate mash rule stays as approved. Twenty percent was approved for a different scope, so its use here is a recommendation for review, not an automatic transfer of that approval.
+**Accepted rule:** Ball Dash is a passive **1.20x ordinary carry-speed trial**, active only for an ability holder with secure live-ball possession. No activation button, burst timer, stamina or cooldown. Before possession, everyone uses their ordinary pursuit profile; baserunning's separate mash rule stays as approved. Jack explicitly approved twenty percent for this carrier scope; it is an authored trial, not a measured Mario multiplier.
 
 This preserves compact-field gap opportunities because the bonus cannot help reach an unpossessed ball. Once a catch/pickup is secure, it gives the character a distinct carry-to-bag, tag or rundown strength. **The balance risk moves to carrying versus throwing:** check unassisted forces and runner escapes as well as relay use. Do not promise that every rundown is catchable. An average 18-to-21.6-ft/s example is conditional on ordinary carrying using the pursuit base; the carry base/response are still pending.
 
@@ -560,11 +560,29 @@ This preserves compact-field gap opportunities because the bonus cannot help rea
 
 **Roster and control audit:** all 25 current [character records](../data/characters) were checked; none assigns a Dash/Ball Dash ability, and [FieldAbilities](../src/GrandSluggers.Sim/FieldAbilities.cs) has no carry-speed modifier. Choose holders and ability-slot tradeoffs explicitly later. The existing universal East/G dash path and [couch instructions](how-to-play.md) describe another behavior; replacing them requires coordinated simulation and later presentation/book work. This research revision edits none of those runtime/roster/help files.
 
-**Review boundary:** confirm the carrier trial, then resolve its movement response, ordinary carry/coverage and roster allocation. The old sprint duration/cooldown branch is suspended. Validate eligibility, both seats/CPU, pickup/release transitions, tags/rundowns, short forces and carry-versus-relay races; preserve independent scoring and human gates. No candidate has been simulated.
+**Review boundary:** carrier scope/bonus is accepted; resolve ordinary carrying speed next, then movement response, coverage and roster allocation. The old sprint duration/cooldown branch is superseded. Validate eligibility, both seats/CPU, pickup/release transitions, tags/rundowns, short forces and carry-versus-relay races; preserve independent scoring and human gates. No candidate has been simulated.
 
-**Question for Jack:** keep a 20% bonus as the first trial for automatic, possession-only Ball Dash, replacing the universal activated sprint and its burst timer?
+**Accepted scope:** passive 20% Ball Dash only for ability holders securely carrying the ball, without activation input or burst/recharge. Universal fielding sprint is superseded. Carry base/response, holders, runtime and human validation remain open.
 
-## Historical decision — fielding dash peak speed (scope reopened)
+## Next decision — ordinary carrying speed
+
+**F693-02-ordinary-carry-speed — pending.** Recommend **ordinary carrying top speed equal to the character’s ordinary pursuit top speed**, with no generic possession penalty or bonus. Run-5 therefore carries at **18 ft/s**, or **21.6 ft/s** with the accepted Ball Dash ability. Run 1/5/9 ordinary carry is about 13.51/18/22.49 ft/s; eligible Ball Dash is 16.22/21.6/26.98. No characters have been assigned the ability yet.
+
+**Why:** a secure pickup should not introduce an unexplained general slowdown. The same base lets players learn a character’s field movement while Ball Dash remains a distinct possession advantage. A 10% carry penalty would instead give Run-5 16.2 ft/s ordinary and 19.44 with Ball Dash; that could favor throws more strongly but adds a state-dependent slowdown and burdens short unassisted plays. Recommend the 1.0 ratio first, then test actual races.
+
+For a **40-foot** straight route at steady speed, ordinary carry takes **2.222 seconds** and Ball Dash **1.852**. The accepted neutral Field-5 throw model gives **.30 release + .45 flight = .75 seconds** over the same distance. These are component sensitivities: a throw still needs a real covered receiver, while carries need actual movement, bag or tag geometry. Pickup, thinking, acceleration/turn/brake, receiver recovery and catch are excluded. This supports testing carry as a short-play choice while throwing covers distance; it does not decide an out or select a CPU threshold.
+
+**Code audit:** [WalkGloveTo and CpuWalkSec](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs) use the base pursuit-speed overload. The manual WalkGloveWithStick path passes a retained Preview when not loose; the [position/preview overload](../src/GrandSluggers.Sim/Fielding.cs) can apply legacy air-class modifiers from that preview. Do not assume current manual/CPU carrying is already equivalent. The implementation must use an explicit shared carry context for movement, CPU forecasts and traces, and verify grounder/fly/liner possession identically. Do not patch one overload in isolation from the agreed coherent calibration.
+
+**Scope and response:** choose carrying top speed only. Preserve actual velocity and existing movement eligibility on possession changes; carrying is not a fresh contact-read timer or permission to move during an unavailable animation. Exact carrying/ability acceleration, braking, turns and pickup/throw recovery remain separate. Off-ball coverage, baserunning and ability/status stacking are not selected here. No universal East/G speed boost survives the accepted replacement.
+
+**Reference limit:** the [Ball Dash reference](https://www.mariowiki.com/Ball_Dash) supports a distinct carrier ability, not a measured 1.0 ordinary carry/pursuit ratio or our absolute speeds. The ratio is an authored consistency trial; matched stock carry-versus-pursuit measurements remain open.
+
+Validate speed ratios across characters and seats, possession eligibility, former air-preview cases, shared carry/throw prediction, short unassisted forces, tags/rundowns and long carry/relay choices. Keep independent scoring and standalone human gates. No runtime tuning or candidate simulation occurs here.
+
+**Question for Jack:** use ordinary fielding speed while carrying, with only eligible Ball Dash characters receiving the approved 20% bonus?
+
+## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
 **F693-02-field-dash-peak — accepted by Jack on September 14, 2026.** Jack approved **1.20x ordinary pursuit top speed while fielding dash is fully active**. This is a 20% peak boost: Run-5 rises from **18 to 21.6 ft/s**, adding **3.6 feet per second** at peak. Run 1/5/9 becomes about **16.22/21.60/26.98 ft/s**, preserving character differences. Apply the same relative peak across assigned positions and hit classes; retain a coherent ordinary profile.
 
@@ -584,7 +602,7 @@ Validate ordinary versus peak ratios across slow/middle/fast characters, both hu
 
 **Accepted scope:** 20% peak ordinary fielding pursuit boost, preserving character ratios. Duration, recovery/re-arming, response and CPU/assist ownership remain separate. Runtime and human validation remain open.
 
-## Historical decision — fielding dash duration (scope reopened)
+## Historical decision — fielding dash duration (superseded by passive Ball Dash)
 
 **F693-02-field-dash-duration — approved then reopened by Jack’s carrier-ability correction.** The earlier recommendation was a **maximum two-second continuous dash window**, including its build-up, followed by a smooth return toward ordinary running even if the button stays held. Use the same duration across characters. This choice does not impose a below-ordinary exhaustion speed; recovery/re-arming and the exact entry/exit rates are subsequent decisions.
 
@@ -600,7 +618,7 @@ Validate ordinary versus peak ratios across slow/middle/fast characters, both hu
 
 Validate exact deadline/frame-split behavior, early release, held-at-contact eligibility, pause/recovery, selection persistence, and shared prediction/stepping. Once availability and transitions are complete, trace routine defense, wrong first steps, short pops, gaps, wall recoveries and relays with actual entry/exit travel, both seats and CPU choices. Independent scoring and Jack's standalone acceptance remain required. No runtime or candidate simulation changes here.
 
-**Historical scope only:** the two-second proposal was approved immediately before Jack redirected dash to an automatic carrier ability. It is reopened and is not the next decision.
+**Historical scope only:** the two-second proposal was approved immediately before Jack redirected dash to an automatic carrier ability. The accepted passive ability supersedes it; no sprint timer/recovery decision remains.
 
 ## Race budget and remaining numerical choices
 
@@ -639,7 +657,7 @@ Retain the accepted **1.8–5 home and away mean runs**, independently for S-29,
 
 ## Implementation order and review boundary
 
-Continue Jack's decisions in the order recorded in the candidate JSON: accepted spatial lead and runner elapsed anchor, accepted ordinary release, accepted infield ball travel, accepted long-throw direction with chemistry, accepted good-chemistry treatment, accepted numerical long-range pace, accepted negative-chemistry treatment, accepted relay control ownership, accepted Snap Throw and Laser, accepted numerical input-buffer window, accepted cancel/retarget controls, accepted ordinary pursuit speed, accepted outfield read, accepted base-infielder read, accepted pitcher read, accepted catcher read, accepted ordinary pursuit acceleration, accepted braking, accepted full reversal, accepted angled turning, accepted analog shaping, accepted neutral/assistance boundaries, accepted calibration policy, accepted arming, accepted calibration sample criteria, reopened dash scope with the passive carrier-ability replacement reviewed next, then relevant movement response and coverage individually, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
+Continue Jack's decisions in the order recorded in the candidate JSON: accepted spatial lead and runner elapsed anchor, accepted ordinary release, accepted infield ball travel, accepted long-throw direction with chemistry, accepted good-chemistry treatment, accepted numerical long-range pace, accepted negative-chemistry treatment, accepted relay control ownership, accepted Snap Throw and Laser, accepted numerical input-buffer window, accepted cancel/retarget controls, accepted ordinary pursuit speed, accepted outfield read, accepted base-infielder read, accepted pitcher read, accepted catcher read, accepted ordinary pursuit acceleration, accepted braking, accepted full reversal, accepted angled turning, accepted analog shaping, accepted neutral/assistance boundaries, accepted calibration policy, accepted arming, accepted calibration sample criteria, accepted passive Ball Dash replacing the universal sprint, ordinary carrying top speed reviewed next, then relevant movement response and coverage individually, contact-class ball budget, then individual numerical presentation choices. Present a concrete recommendation, evidence limits and consequences for each; do not reopen accepted design intent. If a later budget makes the selected spatial trial infeasible, bring back the affected decision with measured failures.
 
 Before runtime calibration, finish this packet's pending quantities and review the combined contract. Create separate implementation children. **First migrate existing geometry into the shared data owner at unchanged values and prove parity.** Audit consumers across sim bags/paths, cover, classifications/CPU thresholds, fair/foul and wall geometry, plus kit/presentation adapters. Preserve control behavior before tuning. A separate presentation/kit owner must consume the same geometry; this research session does not edit their assets or cameras.
 
