@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-pursuit-braking-accepted; pursuit-reversal-pending; incomplete-runtime-contract",
+  "status": "C80-through-pursuit-reversal-accepted; pursuit-angled-turn-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -216,13 +216,18 @@
     },
     {
       "id": "F693-02-pursuit-reversal",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "On a full opposite-direction command, use the accepted .10-second brake followed immediately by the .20-second acceleration, with no extra pivot pause?"
+    },
+    {
+      "id": "F693-02-pursuit-angled-turn",
+      "state": "next-human-decision",
+      "question": "Use continuous angled pursuit correction through the accepted brake/start rates, with modest speed loss for small turns and greater loss toward a full reversal?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "Choose angled course-correction response, partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
+      "question": "Choose partial-stick transitions, dash/status and special movement; reconcile assistance and handoff coast individually."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -1415,7 +1420,7 @@
   },
   "pursuitReversalProposal": {
     "decisionId": "F693-02-pursuit-reversal",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "usesAcceptedBrakingSeconds": 0.1,
     "usesAcceptedAccelerationSeconds": 0.2,
     "recommendation": "For a sustained full-intent 180-degree reversal from ordinary full speed, brake using the accepted .10-second full-speed stop, then immediately accelerate in the requested direction using the accepted .20-second ramp. No extra pivot pause, repeated read or instantaneous velocity flip.",
@@ -1478,6 +1483,122 @@
       "Wrong first step under a short pop, a liner misread, bunt correction and rolling-ball replan; actual geometry still decides catches",
       "Standalone feet/facing and response agree; angled corrections must be reviewed before a complete movement implementation"
     ],
-    "implementationBoundary": "Pending reversal trial; angled turning and remaining movement/coverage/ball contract are unresolved. No runtime or animation edits in this research step; all candidate/human validation remains open."
+    "implementationBoundary": "Accepted reversal trial; runtime migration pending; angled turning and remaining movement/coverage/ball contract are unresolved. No runtime or animation edits in this research step; all candidate/human validation remains open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to the brake-then-accelerate full reversal with no extra pivot pause."
+  },
+  "pursuitAngledTurnProposal": {
+    "decisionId": "F693-02-pursuit-angled-turn",
+    "state": "pending",
+    "response": "straight-segment-in-velocity-space-with-speed-decreasing-and-increasing-phases",
+    "usesAcceptedBrakingSeconds": 0.1,
+    "usesAcceptedAccelerationSeconds": 0.2,
+    "recommendation": "Continuously redirect physical velocity toward the requested velocity using the accepted braking rate while speed is decreasing and acceleration rate while speed is increasing. Keep moving through ordinary angled corrections; do not snap direction or impose a full stop below the full-reversal boundary. No angle threshold or added pivot timer.",
+    "scope": "Ordinary pursuit under sustained full movement intent, same character-scaled response for positions/hit classes and manual/assisted/CPU pursuit. Defines angled continuation between accepted rest/start, stop and exact reversal boundaries. Partial-stick target mapping/transitions, dash/status, carrying/coverage and old handoff coast remain separately reviewed.",
+    "math": "For initial velocity p and fixed requested velocity q, let L=|q-p| and e=(q-p)/L. If L=0 retain p. Otherwise follow p+s*e from s=0 to L. The speed-minimum point is s0=clamp(-dot(p,e),0,L). Advance s at b=V/Tb until s0, then a=V/Ta until L, with no dwell. Integrate position by the endpoint-average velocity of each constant-rate phase. This is a straight segment in velocity space, not a straight ground-position route. Recompute from actual velocity when intent changes. Equal-speed angle theta gives phase times Tb*sin(theta/2), Ta*sin(theta/2), minimum speed V*cos(theta/2).",
+    "boundaryAndContinuity": "The same rule gives .20 from rest, .10 to rest, and .10+.20 for exact reversal. Endpoint speeds at most V keep all interpolated speeds at most V by convexity. Rotate the whole setup without changing timings; do not interpolate world X/Z independently with axis-specific limits. Integrate at the phase boundary and target velocity without overshoot; no fixed timestep or render-frame dependency.",
+    "fullSpeedAngleArithmetic": [
+      {
+        "angleDegrees": 0,
+        "brakingPhaseSeconds": 0.0,
+        "accelerationPhaseSeconds": 0.0,
+        "completeSeconds": 0.0,
+        "minimumSpeedFraction": 1.0,
+        "run5MinimumSpeedFeetPerSecond": 18.0
+      },
+      {
+        "angleDegrees": 15,
+        "brakingPhaseSeconds": 0.013052619222005159,
+        "accelerationPhaseSeconds": 0.026105238444010317,
+        "completeSeconds": 0.039157857666015476,
+        "minimumSpeedFraction": 0.9914448613738104,
+        "run5MinimumSpeedFeetPerSecond": 17.846007504728586
+      },
+      {
+        "angleDegrees": 45,
+        "brakingPhaseSeconds": 0.03826834323650898,
+        "accelerationPhaseSeconds": 0.07653668647301796,
+        "completeSeconds": 0.11480502970952695,
+        "minimumSpeedFraction": 0.9238795325112867,
+        "run5MinimumSpeedFeetPerSecond": 16.62983158520316
+      },
+      {
+        "angleDegrees": 90,
+        "brakingPhaseSeconds": 0.07071067811865475,
+        "accelerationPhaseSeconds": 0.1414213562373095,
+        "completeSeconds": 0.21213203435596428,
+        "minimumSpeedFraction": 0.7071067811865476,
+        "run5MinimumSpeedFeetPerSecond": 12.727922061357857
+      },
+      {
+        "angleDegrees": 120,
+        "brakingPhaseSeconds": 0.08660254037844387,
+        "accelerationPhaseSeconds": 0.17320508075688773,
+        "completeSeconds": 0.2598076211353316,
+        "minimumSpeedFraction": 0.5000000000000001,
+        "run5MinimumSpeedFeetPerSecond": 9.000000000000002
+      },
+      {
+        "angleDegrees": 150,
+        "brakingPhaseSeconds": 0.09659258262890684,
+        "accelerationPhaseSeconds": 0.19318516525781368,
+        "completeSeconds": 0.28977774788672056,
+        "minimumSpeedFraction": 0.25881904510252074,
+        "run5MinimumSpeedFeetPerSecond": 4.658742811845373
+      },
+      {
+        "angleDegrees": 179,
+        "brakingPhaseSeconds": 0.09999619230641714,
+        "accelerationPhaseSeconds": 0.19999238461283428,
+        "completeSeconds": 0.29998857691925146,
+        "minimumSpeedFraction": 0.008726535498373897,
+        "run5MinimumSpeedFeetPerSecond": 0.15707763897073013
+      },
+      {
+        "angleDegrees": 180,
+        "brakingPhaseSeconds": 0.1,
+        "accelerationPhaseSeconds": 0.2,
+        "completeSeconds": 0.30000000000000004,
+        "minimumSpeedFraction": 6.123233995736766e-17,
+        "run5MinimumSpeedFeetPerSecond": 1.102182119232618e-15
+      }
+    ],
+    "run5RightAngleDisplacement": {
+      "oldDirectionFeetAtCompletion": 1.590990257669732,
+      "newDirectionFeetAtCompletion": 2.2273863607376247
+    },
+    "arithmeticScope": "Fixed full-speed requested heading after an initial ordinary full-speed run, open ground, no read/reach/ball/collision/dash. Timing starts when the new intent arrives. Speed minima are instantaneous within the transition, not sustained penalties. Values are authored-response arithmetic, not Nintendo measurements or a candidate chase simulation.",
+    "inputAndActionBoundary": "Begin responding on the first eligible step; preserve actual velocity across changing intent and selection. Never lock input until a turn completes. Neutral stick retains assistance. Catch/pickup geometry stays active; do not require full alignment or completed braking to catch. Rendered body facing and authored footfalls reflect physical movement without adding turn-rate/camera waits.",
+    "implementationRail": "One shared physical response in sim for prediction and stepping, including current velocity and actual direction changes on replanned routes. Assisted settling uses accepted stopping-distance behavior. Reject instant-speed predictors, per-frame velocity reset, per-axis diagonal speed bonuses or hidden angle thresholds. Turning affects actual interception routes and must be included in their estimates.",
+    "alternatives": [
+      {
+        "choice": "Maintain full speed through every turn",
+        "effect": "Sharper route control but erases the proposed speed cost of angled corrections; requires another policy to reconcile the accepted full stop on reversal."
+      },
+      {
+        "choice": "Stop before every direction change",
+        "effect": "More committed routing but makes small adjustments under a fly unnecessarily costly."
+      }
+    ],
+    "reference": {
+      "sources": [
+        "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf"
+      ],
+      "checkedOn": "2026-09-14",
+      "sourceReport": "docs/research-game-feel-701-movement.md",
+      "limit": "Official GameCube/Wii fielding-control passages were re-opened; they do not supply a physical angled-turn curve. No matched known-input velocity captures establish timing or speed retention for either game. This continuous velocity rule and its numerical angle consequences are authored trials derived from approved Harbor anchors, not measured Mario equivalence."
+    },
+    "requiredChecks": [
+      "Angle sweep including near-zero, 45, 90, 120 and near/exact 180; no threshold jump, zero-angle cost or speed above the ordinary cap",
+      "Rotation-invariant trajectories and mirrored controls, variable step sizes and exact speed-minimum/end boundaries",
+      "Start, stop and full-reversal traces match accepted anchors; partial-current-speed cases retain continuity without selecting a new input mapping",
+      "Changing intent during either phase and selection/manual-assist transitions preserve current velocity without resetting response",
+      "Pursuit prediction agrees with actual movement on repeated route changes and target-aware settling",
+      "Both human seats/schemes and CPU; fly alignment, short pops, bunts, liners, rolling-ball replans and gap/wall/relay races",
+      "Authored facing/feet and live ground path agree in standalone; independent scoring and human gates remain open"
+    ],
+    "implementationBoundary": "Pending authored angled-turn trial. Finish partial-stick/transition, dash/status, coverage and ball contract before runtime implementation. No simulation, Unity or animation changes in this documentation step."
   }
 }

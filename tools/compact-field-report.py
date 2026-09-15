@@ -393,6 +393,8 @@ def derive(data):
             assert math.isclose(row["run5FullStopDistanceFeet"], v*row["seconds"]/2)
     reversal = data.get("pursuitReversalProposal")
     if reversal:
+        if reversal["state"] == "accepted-calibration-anchor":
+            assert reversal["acceptedBy"] and reversal["acceptedOn"] and reversal["acceptanceEvidence"]
         tb = braking["fullSpeedToStopSeconds"]
         ta = acceleration["restToFullSeconds"]
         v = pursuit["run5FeetPerSecond"]
@@ -413,9 +415,35 @@ def derive(data):
             speed = (21+1.9*row["run"])*v/pursuit["baselineRun5FeetPerSecond"]
             assert math.isclose(row["speedFeetPerSecond"], speed)
             assert math.isclose(row["wrongWayExcursionFeet"], speed*tb/2)
+    turning = data.get("pursuitAngledTurnProposal")
+    if turning:
+        tb, ta = braking["fullSpeedToStopSeconds"], acceleration["restToFullSeconds"]
+        v = pursuit["run5FeetPerSecond"]
+        assert math.isclose(turning["usesAcceptedBrakingSeconds"], tb)
+        assert math.isclose(turning["usesAcceptedAccelerationSeconds"], ta)
+        for row in turning["fullSpeedAngleArithmetic"]:
+            angle = math.radians(row["angleDegrees"])
+            sh, ch = math.sin(angle/2), math.cos(angle/2)
+            assert math.isclose(row["brakingPhaseSeconds"], tb*sh, abs_tol=1e-12)
+            assert math.isclose(row["accelerationPhaseSeconds"], ta*sh, abs_tol=1e-12)
+            assert math.isclose(row["completeSeconds"], (tb+ta)*sh, abs_tol=1e-12)
+            assert math.isclose(row["minimumSpeedFraction"], ch, abs_tol=1e-12)
+            assert math.isclose(row["run5MinimumSpeedFeetPerSecond"], v*ch, abs_tol=1e-12)
+            # Independent endpoint geometry: chord midpoint gives the speed minimum.
+            qx, qz = v*math.cos(angle), v*math.sin(angle)
+            chord = math.hypot(qx-v, qz)
+            assert math.isclose(chord/2/(v/tb)+chord/2/(v/ta), row["completeSeconds"], abs_tol=1e-12)
+            assert math.isclose(math.hypot((v+qx)/2, qz/2), row["run5MinimumSpeedFeetPerSecond"], abs_tol=1e-12)
+            for f in (0, .25, .5, .75, 1):
+                assert math.hypot(v*(1-f)+qx*f, qz*f) <= v+1e-10
+        a = turning["run5RightAngleDisplacement"]
+        t1, t2 = tb/math.sqrt(2), ta/math.sqrt(2)
+        assert math.isclose(a["oldDirectionFeetAtCompletion"], v*(.75*t1+.25*t2))
+        assert math.isclose(a["newDirectionFeetAtCompletion"], v*(.25*t1+.75*t2))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitAngledTurnState": turning["state"] if turning else None,
             "pursuitReversalState": reversal["state"] if reversal else None,
             "pursuitBrakingState": braking["state"] if braking else None,
             "pursuitAccelerationState": acceleration["state"] if acceleration else None,
