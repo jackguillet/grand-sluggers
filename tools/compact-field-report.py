@@ -287,6 +287,8 @@ def derive(data):
             assert math.isclose(alt["rearChaseSeconds"], rear["c80GapFeet"] / alt["run5FeetPerSecond"])
     outfield_read = data.get("outfieldReadProposal")
     if outfield_read:
+        if outfield_read["state"] == "accepted-calibration-anchor":
+            assert outfield_read["acceptedBy"] and outfield_read["acceptedOn"] and outfield_read["acceptanceEvidence"]
         a = outfield_read["arithmetic"]
         earlier = outfield_read["currentSecondsFromContact"] - outfield_read["secondsFromContact"]
         assert math.isclose(a["earlierEligibilitySeconds"], earlier)
@@ -294,8 +296,20 @@ def derive(data):
         assert math.isclose(a["extraPotentialFeetAtRun5TopSpeed"], earlier * a["speedFeetPerSecond"])
         assert math.isclose(a["controlReadPlusRearTravelSeconds"], outfield_read["currentSecondsFromContact"] + pursuit["rearChase"]["controlTravelSeconds"])
         assert math.isclose(a["trialReadPlusRearTravelSeconds"], outfield_read["secondsFromContact"] + pursuit["rearChase"]["trialTravelSeconds"])
+    infield_read = data.get("infieldReadProposal")
+    if infield_read:
+        a = infield_read["arithmetic"]
+        assert set(infield_read["positions"]) == {"1B", "2B", "SS", "3B"}
+        assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
+        assert math.isclose(a["outfieldLeadSeconds"], outfield_read["secondsFromContact"] - infield_read["secondsFromContact"])
+        assert math.isclose(a["potentialLeadFeetAtRun5TopSpeed"], a["outfieldLeadSeconds"] * a["speedFeetPerSecond"])
+        for row in a["positionGains"]:
+            delta = infield_read["currentPositionSeconds"][row["position"]] - infield_read["secondsFromContact"]
+            assert math.isclose(row["earlierSeconds"], delta, abs_tol=1e-12)
+            assert math.isclose(row["potentialExtraFeet"], delta * a["speedFeetPerSecond"], abs_tol=1e-12)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "outfieldReadState": outfield_read["state"] if outfield_read else None,
             "pursuitSpeedState": pursuit["state"] if pursuit else None,
             "throwCancelState": cancel["state"] if cancel else None,
             "throwBufferState": buffer["state"] if buffer else None,
