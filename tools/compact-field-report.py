@@ -91,7 +91,9 @@ def derive(data):
                ROOT / "src/GrandSluggers.Sim/Match.cs",
                ROOT / "src/GrandSluggers.Sim/FieldAbilities.cs",
                ROOT / "data/characters/vale.json", ROOT / "data/characters/brondo.json",
-               ROOT / "data/characters/role-players.json"]
+               ROOT / "data/characters/role-players.json",
+               ROOT / "unity/Assets/Scripts/Runtime/Controls.cs",
+               ROOT / "unity/Assets/Scripts/Runtime/InPlayDirector.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -247,6 +249,8 @@ def derive(data):
             assert math.isclose(example["laserTotalSeconds"], release["releaseSeconds"] + fast)
     buffer = data.get("throwBufferProposal")
     if buffer:
+        if buffer["state"] == "accepted-calibration-anchor":
+            assert buffer["acceptedBy"] and buffer["acceptedOn"] and buffer["acceptanceEvidence"]
         assert buffer["windowSeconds"] > 0
         for example in buffer["examples"]:
             start = max(example["pressAtSeconds"], example["readyAtSeconds"])
@@ -258,6 +262,7 @@ def derive(data):
                 assert example["releaseStartsAtSeconds"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "throwBufferState": buffer["state"] if buffer else None,
             "laserThrowState": laser["state"] if laser else None,
             "snapThrowState": snap["state"] if snap else None,
             "relayOwnershipState": relay_control["state"] if relay_control else None,

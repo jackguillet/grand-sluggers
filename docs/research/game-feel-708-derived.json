@@ -2,13 +2,14 @@
   "schemaVersion": 1,
   "status": "derived-design-arithmetic-not-simulation",
   "acceptedLeadSpatialTrial": "C80",
+  "throwBufferState": "accepted-calibration-anchor",
   "laserThrowState": "accepted-calibration-anchor",
   "snapThrowState": "accepted-calibration-anchor",
   "relayOwnershipState": "accepted-design-direction",
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "a360ffc7186bed2d307c54514642b18007c23c2b81c81f96d58f6814770127a2",
+    "docs/research/game-feel-708-candidates.json": "1a436be40e4a8c2529b4f54cdc3792a45e14641d835bdfeea8a17ebcb820573e",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -25,7 +26,9 @@
     "src/GrandSluggers.Sim/FieldAbilities.cs": "f26840e98252220d1eff2943f5de4d71451eafd71972f929ffb564169d5fa398",
     "data/characters/vale.json": "e901e2f5c788b68a7b1c1d4d7d1204179b2555933b636cefde4f1b935ea9d2c1",
     "data/characters/brondo.json": "d689cab90ab3b8b0ee465b2112a2c29df5cbb95f5142cd8ea0da1f2f2a0408de",
-    "data/characters/role-players.json": "83eed963ab531a910e1e418b955805f74d245804e3dba0b042efb3f28fb1dbbb"
+    "data/characters/role-players.json": "83eed963ab531a910e1e418b955805f74d245804e3dba0b042efb3f28fb1dbbb",
+    "unity/Assets/Scripts/Runtime/Controls.cs": "c46d052e589be7131423542f4b10d751caae90c98711553a2f3e98d66b0b4821",
+    "unity/Assets/Scripts/Runtime/InPlayDirector.cs": "180253da3e6450cf89e8e37e2c15fb12418f92af800ca07bf5f0838c6e5a3dab"
   },
   "profiles": [
     {

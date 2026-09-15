@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-throw-abilities-and-relay-direction-accepted; input-buffer-pending; incomplete-runtime-contract",
+  "status": "C80-throw-abilities-relay-and-input-buffer-accepted; throw-cancel-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -171,13 +171,13 @@
     },
     {
       "id": "F693-03-input-buffer",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Remember an early onward-throw press for 0.25 seconds of active play, executing only when the intended receiver is ready within that window?"
     },
     {
       "id": "F693-03-throw-cancel",
-      "state": "pending",
-      "question": "Choose the exact cancel/retarget control and queued-target feedback, preserving the accepted ownership boundary."
+      "state": "next-human-decision",
+      "question": "Use RB / period to cancel a queued defensive throw, and existing bag-selection controls to retarget before release motion, with distinct selected versus queued target feedback?"
     },
     {
       "id": "F693-02-movement-budget",
@@ -786,7 +786,7 @@
   },
   "throwBufferProposal": {
     "decisionId": "F693-03-input-buffer",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "windowSeconds": 0.25,
     "recommendation": "An early deliberate onward-throw press remains valid for up to 0.25 seconds of active simulation time. Begin release as soon as the intended receiver has secure possession and has completed required recovery within that window; otherwise expire the command.",
     "scope": "The accepted relay/double-play onward-throw buffer, including short receiver recovery. This does not rebind catch/dive/batting buttons or authorize pre-contact throws. Any broader batted-ball input overlap needs explicit control review.",
@@ -847,6 +847,43 @@
       "Both human defensive seats, both schemes, CPU defense unaffected",
       "Record press, queue/replace/cancel/expire, possession, eligibility and release times in the existing trace rail"
     ],
-    "implementationBoundary": "Pending numerical buffer trial. Implement within the shared live input/throw system with data-owned timing and existing traces. Review cancel mapping and couch feedback next; update the book and HowToPlay together through the presentation owner. No runtime edits in this research step."
+    "implementationBoundary": "Accepted numerical buffer trial; runtime migration pending. Implement within the shared live input/throw system with data-owned timing and existing traces. Review cancel mapping and couch feedback next; update the book and HowToPlay together through the presentation owner. No runtime edits in this research step.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to the 0.25-second early-input buffer, executing immediately when ready within the window and expiring otherwise."
+  },
+  "throwCancelProposal": {
+    "decisionId": "F693-03-throw-cancel",
+    "state": "pending",
+    "recommendation": "While a defensive throw is queued, a fresh RB / period press cancels it. Existing bag selectors retarget it before release motion begins, without refreshing the 0.25-second buffer.",
+    "gamepad": "Right shoulder (RB / R equivalent by controller family), fresh press",
+    "keyboard": "Period (.), fresh press; keyboard+mouse remain player 1 only",
+    "cancelEffect": "Clear only the pending throw command. Retain the selected target as an unqueued selection; no throw occurs until another deliberate command. Do not change the ball already in flight, force a catch, stop locomotion or pause play.",
+    "retargetEffect": "Existing D-pad diamond / 1 2 3 4 / established bag-selection inputs change the pending target before release starts. Target-only input never creates a throw or extends buffer age. Expired/canceled command stays absent until a fresh throw press.",
+    "priority": "A queued defensive cancel consumes its press before throw dispatch, target update or legacy RB-related item/buddy-toss input. Cancel wins against throw/eligibility on the same tick. Do not infer cancellation from RB already held before queuing. Holding cancel must not repeatedly cancel future commands.",
+    "ownershipBoundary": "Only the owning human defensive seat can cancel. Offense RB/period remains all-return; its input cannot cancel the other seat. CPU throws remain CPU-owned. With no queued throw, preserve existing role behavior; once release motion begins there is no cancel or retarget.",
+    "feedback": "Use the existing target indicator with distinct selected-only and queued states, readable by shape/label as well as color. On cancel or expiry, remove queued state immediately and retain selected-only state. Exact art/layout is for the presentation owner; no new panel or modal required.",
+    "currentAudit": {
+      "files": [
+        "unity/Assets/Scripts/Runtime/Controls.cs",
+        "unity/Assets/Scripts/Runtime/InPlayDirector.cs",
+        "src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
+        "docs/how-to-play.md"
+      ],
+      "finding": "RB/period drives offense AllReturn; RB also participates in pitch cycling and Charge+RB item input. FieldInput passes Item and the fielding path can use it for buddy toss. RB is not globally unused. The new contextual cancel must consume that press before conflicting defensive item behavior when a queue exists; offense and SET remain separate."
+    },
+    "tradeoff": "A dedicated cancellation press makes intent explicit and preserves the throw button for issuing/replacing commands. It adds a contextual shoulder verb that must be taught and tested. Using East/G conflicts with dive/dash; using another throw press conflicts with the accepted queue-refresh behavior.",
+    "referenceLimits": "This is an authored mapping onto the existing Grand Sluggers pad/keyboard scheme. The Mario throwing passages do not verify a matching queued-cancel binding; no exact reference claim.",
+    "requiredChecks": [
+      "Cancel before readiness and exactly at the readiness/expiry boundary",
+      "RB already held before queue does not cancel; fresh press does",
+      "Cancel plus throw/retarget/item on the same tick yields cancel only",
+      "Other defensive and offensive seat isolation; SET/pitch and CPU unchanged",
+      "Retarget before release keeps original input age and uses new actual receiver/chemistry/ability context for the outgoing throw",
+      "Cancel/expiry clear queued feedback while retaining selected target",
+      "After release-motion commitment, no undo or redirect",
+      "Both gamepad seats and keyboard/mouse player 1 follow the same contract"
+    ],
+    "implementationBoundary": "Pending control proposal. Create a typed defensive cancel command in the existing shared input/throw path; do not reuse runner AllReturn as a simulation command. Update docs/how-to-play.md and HowToPlay.cs together with the implementation through the presentation owner. Research edits do not activate the verb."
   }
 }
