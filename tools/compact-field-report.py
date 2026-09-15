@@ -499,14 +499,34 @@ def derive(data):
         assert calibration["acceptedBy"] and calibration["acceptedOn"] and calibration["acceptanceEvidence"]
     arming = data.get("pursuitArmingProposal")
     if arming:
+        if arming["state"] == "accepted-calibration-anchor":
+            assert arming["acceptedBy"] and arming["acceptedOn"] and arming["acceptanceEvidence"]
         assert arming["neutralRadius"] == neutral["manualExitRadius"]
         assert arming["extraNeutralDwellSeconds"] == 0
         for row in arming["exampleChecks"]:
             expected = row["profileValid"] and (row["wasArmed"] or row["magnitude"] <= arming["neutralRadius"])
             assert expected == row["armedAfter"]
+    samples = data.get("pursuitCalibrationSamplesProposal")
+    if samples:
+        offset, deviation = samples["maxCenterOffsetRadius"], samples["maxSampleDeviationRadius"]
+        window = samples["windowSeconds"]
+        rel = samples["relationships"]
+        assert math.isclose(rel["maxSampleRadiusByTriangleBound"], offset+deviation)
+        assert math.isclose(rel["calibratedSampleDeviationBound"], deviation)
+        assert rel["armingNeutralRadius"] == arming["neutralRadius"]
+        assert math.isclose(rel["deviationMarginBelowArmingRadius"], arming["neutralRadius"]-deviation)
+        for case in samples["syntheticWindows"]:
+            rows = case["samples"]
+            assert all(rows[i]["t"] < rows[i+1]["t"] for i in range(len(rows)-1))
+            cx = sum(row["x"] for row in rows)/len(rows)
+            cy = sum(row["y"] for row in rows)/len(rows)
+            spread = max(math.hypot(row["x"]-cx,row["y"]-cy) for row in rows)
+            valid = rows[-1]["t"]-rows[0]["t"] >= window-1e-12 and math.hypot(cx,cy) <= offset+1e-12 and spread <= deviation+1e-12
+            assert valid == case["accepted"], case["name"]
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitCalibrationSamplesState": samples["state"] if samples else None,
             "pursuitArmingState": arming["state"] if arming else None,
             "pursuitCalibrationState": calibration["state"] if calibration else None,
             "pursuitNeutralState": neutral["state"] if neutral else None,
