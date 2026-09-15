@@ -311,6 +311,8 @@ def derive(data):
             assert math.isclose(row["potentialExtraFeet"], delta * a["speedFeetPerSecond"], abs_tol=1e-12)
     pitcher_read = data.get("pitcherReadProposal")
     if pitcher_read:
+        if pitcher_read["state"] == "accepted-calibration-anchor":
+            assert pitcher_read["acceptedBy"] and pitcher_read["acceptedOn"] and pitcher_read["acceptanceEvidence"]
         a = pitcher_read["arithmetic"]
         assert pitcher_read["position"] == "P"
         assert math.isclose(a["earlierThanCurrentSeconds"], pitcher_read["currentSecondsFromContact"] - pitcher_read["secondsFromContact"])
@@ -318,8 +320,20 @@ def derive(data):
         assert math.isclose(a["earlierThanOutfieldSeconds"], outfield_read["secondsFromContact"] - pitcher_read["secondsFromContact"])
         assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
         assert math.isclose(a["potentialExtraFeetAtRun5TopSpeed"], a["earlierThanCurrentSeconds"] * a["speedFeetPerSecond"])
+    catcher_read = data.get("catcherReadProposal")
+    if catcher_read:
+        a = catcher_read["arithmetic"]
+        assert catcher_read["position"] == "C"
+        assert math.isclose(a["earlierThanCurrentSeconds"], catcher_read["currentSecondsFromContact"] - catcher_read["secondsFromContact"])
+        assert math.isclose(a["laterThanPitcherSeconds"], catcher_read["secondsFromContact"] - pitcher_read["secondsFromContact"])
+        assert math.isclose(a["laterThanBaseInfieldSeconds"], catcher_read["secondsFromContact"] - infield_read["secondsFromContact"])
+        assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
+        assert math.isclose(a["potentialExtraFeetAtRun5TopSpeed"], a["earlierThanCurrentSeconds"] * a["speedFeetPerSecond"])
+        assert math.isclose(a["controlReadPlusTravelSeconds"], catcher_read["currentSecondsFromContact"] + a["illustrativeChaseFeet"] / pursuit["baselineRun5FeetPerSecond"])
+        assert math.isclose(a["trialReadPlusTravelSeconds"], catcher_read["secondsFromContact"] + a["illustrativeChaseFeet"] / pursuit["run5FeetPerSecond"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "pitcherReadState": pitcher_read["state"] if pitcher_read else None,
             "infieldReadState": infield_read["state"] if infield_read else None,
             "outfieldReadState": outfield_read["state"] if outfield_read else None,
             "pursuitSpeedState": pursuit["state"] if pursuit else None,

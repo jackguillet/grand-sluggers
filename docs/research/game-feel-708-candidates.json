@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-through-base-infielder-read-accepted; pitcher-read-pending; incomplete-runtime-contract",
+  "status": "C80-through-pitcher-read-accepted; catcher-read-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -107,7 +107,7 @@
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary per-character profile and Run-5 top speed 18 ft/s are accepted. Scale the original relative Run curve by 18/30.5. Existing IF/OF time-preserving sensitivities remain comparisons, not selected coefficients; read, response, coverage and ball calibration remain open.",
     "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with the 0.25-second buffer and contextual RB/period cancel accepted; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Snap Throw and situational Laser trial definitions are accepted below; remaining recovery and geometry interactions need validation.",
-    "read": "Base outfield read .40 seconds and base-infielder 1B/2B/SS/3B read .25 seconds from contact are accepted, retaining contact-clock ownership, existing airborne cap and no additional camera gate. Pitcher/catcher and numerical movement response remain pending.",
+    "read": "Base contact-clock reads accepted: LF/CF/RF .40 seconds, 1B/2B/SS/3B .25, P .35. Preserve ownership, existing airborne cap and no additional camera gate. Catcher and numerical movement response remain pending.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
     "scoring": "Accepted 1.8–5 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
@@ -196,13 +196,13 @@
     },
     {
       "id": "F693-02-pitcher-read-clock",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a 0.35-second base pitcher pursuit read from contact, preserving geometric catches and no stacked camera/delivery delay, as the first trial?"
     },
     {
       "id": "F693-02-catcher-read-clock",
-      "state": "pending",
-      "question": "Choose catcher post-contact pursuit read against bunts, short pops and plate coverage."
+      "state": "next-human-decision",
+      "question": "Use a 0.45-second base catcher pursuit read after batted contact, without adding it to received throws or steal attempts, as the first trial?"
     },
     {
       "id": "F693-02-movement-response",
@@ -1140,7 +1140,7 @@
   },
   "pitcherReadProposal": {
     "decisionId": "F693-02-pitcher-read-clock",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "position": "P",
     "secondsFromContact": 0.35,
     "currentSecondsFromContact": 0.42,
@@ -1183,6 +1183,60 @@
       "Delivery-to-field motion visible with actual first displacement and any real action constraint traced",
       "Full runner/possession/throw race and named scoring cohorts"
     ],
-    "implementationBoundary": "Pending pitcher-read trial. Keep runtime unchanged until the combined contract is implemented. Motion coordination belongs to the existing shared rig/clip owners; no new animation system or gameplay immunity."
+    "implementationBoundary": "Accepted pitcher-read trial; runtime migration pending. Keep runtime unchanged until the combined contract is implemented. Motion coordination belongs to the existing shared rig/clip owners; no new animation system or gameplay immunity.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied sure to a 0.35-second pitcher read from contact with no added camera or follow-through delay."
+  },
+  "catcherReadProposal": {
+    "decisionId": "F693-02-catcher-read-clock",
+    "state": "pending",
+    "position": "C",
+    "secondsFromContact": 0.45,
+    "currentSecondsFromContact": 0.67,
+    "recommendation": "Use a 0.45-second base ordinary catcher pursuit read after batted contact, replacing .67. Allow a visible transition from the receiving crouch while avoiding a long response delay. Keep the shared contact-clock, airborne-cap and human/CPU ownership structure.",
+    "scope": "Batted-contact pursuit only. Do not add this timer to catching a pitch, receiving a fielding throw at home, tagging a runner, or the catcher throw on a steal. Those remain governed by their actual possession/action/throw systems; catcher steal-release calibration remains a separate full-contract check.",
+    "motionBoundary": "Start the read at bat contact, not after standing up or after camera completion. Do not stack an additional invented crouch-rise timer. Synchronize authored crouch-to-field motion with physical eligibility. Any actual required action readiness is a separately traced prerequisite, not a blind sum.",
+    "geometryAndBunt": "Preserve current contact-clock switch/held-input semantics and airborne hang cap. Keep BuntDefense formation and actual P/C/corner pursuit competition. The catcher start remains the accepted trial home/catcher group; no hidden forward teleport, extra pickup reach or automatic bunt out.",
+    "ownership": "Human-owned catcher uses base timing independent of difficulty, including neutral-stick assistance. CPU multiplier mechanism remains a baseline assumption pending difficulty validation. Ordinary pursuit gate is not a new universal catch/jump/tag lockout.",
+    "arithmetic": {
+      "earlierThanCurrentSeconds": 0.22,
+      "laterThanPitcherSeconds": 0.1,
+      "laterThanBaseInfieldSeconds": 0.2,
+      "speedFeetPerSecond": 18.0,
+      "potentialExtraFeetAtRun5TopSpeed": 3.96,
+      "illustrativeChaseFeet": 15.0,
+      "controlReadPlusTravelSeconds": 1.1618032786885246,
+      "trialReadPlusTravelSeconds": 1.2833333333333334
+    },
+    "arithmeticScope": "Read difference and an unchanged 15-foot straight chase at full speed, excluding acceleration, catch reach, interception, pickup and thrown-ball race. Not a bunt simulation. The unchanged distance reflects the preserved home/catcher group for the trial, not a selected actual pickup point.",
+    "tradeoff": "Earlier control and a shorter crouch-to-pursuit wait, but more opportunity on bunts and short pops. Slower pursuit can offset some of that: illustrative read plus 15-foot travel is about 1.28 seconds versus 1.16 historically, before other events. No claim that all catcher plays become easier or equivalent.",
+    "alternatives": [
+      {
+        "secondsFromContact": 0.4,
+        "effect": "Earlier pursuit, same base read as outfield; less catcher transition time."
+      },
+      {
+        "secondsFromContact": 0.55,
+        "effect": "Longer catcher beat, closer to the old .67 value but later pursuit."
+      }
+    ],
+    "reference": {
+      "source": "docs/research-game-feel-701-movement.md, retained GameCube Fielding Mechanics revision 410",
+      "reportedFrames": 40,
+      "assumedFramesPerSecond": 60,
+      "scope": "About .667 seconds under an assumed 60 Hz, community timing not independently captured. Wii catcher read remains unmeasured. .45 is an explicitly authored shorter trial."
+    },
+    "currentAudit": "reaction.catcherSec=.67 enters FieldingResolver.ReactionLockouts for batted contact. BeginRunnerPlay instead seeds possession and schedules RollCatcherRelease for a steal; it must not gain the new batted-contact timer. Home reception/tagging also has separate geometry and action paths.",
+    "requiredChecks": [
+      "Squared/late bunts, short pops and foul balls with real pickup paths",
+      "Slow/fast catchers and preserved start geometry; no hidden range gain",
+      "Held input, switches, airborne cap, neutral assistance and CPU difficulty",
+      "Pitch reception, steal throws, home relay reception and tag plays do not gain a new batted-contact wait",
+      "Authored crouch-to-pursuit motion agrees with eligibility, without camera dependency",
+      "Actual readiness/displacement/pickup and full runner/throw race",
+      "Both human seats and independently gated scoring cohorts"
+    ],
+    "implementationBoundary": "Pending catcher-read trial. No runtime, camera or animation changes in this research step. Finish the combined response/coverage/ball contract and audit separate steal-release timing before implementing and human validation."
   }
 }
