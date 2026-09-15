@@ -88,6 +88,9 @@ def derive(data):
                ROOT / "data/art/clips.json", ROOT / "data/art/baseball-takes.json",
                ROOT / "src/GrandSluggers.Sim/InPlay.cs",
                ROOT / "src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
+               ROOT / "src/GrandSluggers.Sim/BodyFacing.cs",
+               ROOT / "src/GrandSluggers.Sim/FieldAssist.cs",
+               ROOT / "src/GrandSluggers.Sim/FieldingPursuit.cs",
                ROOT / "src/GrandSluggers.Sim/ChemistryTable.cs",
                ROOT / "src/GrandSluggers.Sim/Match.cs",
                ROOT / "src/GrandSluggers.Sim/FieldAbilities.cs",
@@ -362,6 +365,8 @@ def derive(data):
             assert math.isclose(acceleration["uncappedContactToFullSpeedSeconds"][name], read["secondsFromContact"]+t)
     braking = data.get("pursuitBrakingProposal")
     if braking:
+        if braking["state"] == "accepted-calibration-anchor":
+            assert braking["acceptedBy"] and braking["acceptedOn"] and braking["acceptanceEvidence"]
         t = braking["fullSpeedToStopSeconds"]
         a = braking["run5Arithmetic"]
         v = pursuit["run5FeetPerSecond"]
@@ -386,9 +391,32 @@ def derive(data):
             assert math.isclose(row["fullStopDistanceFeet"], speed*t/2)
         for row in braking["alternatives"]:
             assert math.isclose(row["run5FullStopDistanceFeet"], v*row["seconds"]/2)
+    reversal = data.get("pursuitReversalProposal")
+    if reversal:
+        tb = braking["fullSpeedToStopSeconds"]
+        ta = acceleration["restToFullSeconds"]
+        v = pursuit["run5FeetPerSecond"]
+        a = reversal["run5Arithmetic"]
+        assert math.isclose(reversal["usesAcceptedBrakingSeconds"], tb)
+        assert math.isclose(reversal["usesAcceptedAccelerationSeconds"], ta)
+        assert math.isclose(a["speedFeetPerSecond"], v)
+        assert math.isclose(a["oppositeMotionBeginsSeconds"], tb)
+        assert math.isclose(a["oppositeFullSpeedSeconds"], tb+ta)
+        assert math.isclose(a["wrongWayExcursionFeet"], v*tb/2)
+        assert math.isclose(a["newDirectionTravelDuringAccelerationFeet"], v*ta/2)
+        assert math.isclose(a["positionAtOppositeFullSpeedFeet"], v*(tb-ta)/2)
+        assert tb <= ta, "return-to-origin example assumes it occurs during acceleration"
+        assert math.isclose(a["returnsToCommandPositionSeconds"], tb+math.sqrt(tb*ta))
+        assert math.isclose(a["halfInitialSpeedFullReversalSeconds"], tb/2+ta)
+        assert math.isclose(a["halfInitialSpeedWrongWayFeet"], v*tb/8)
+        for row in reversal["characterArithmetic"]:
+            speed = (21+1.9*row["run"])*v/pursuit["baselineRun5FeetPerSecond"]
+            assert math.isclose(row["speedFeetPerSecond"], speed)
+            assert math.isclose(row["wrongWayExcursionFeet"], speed*tb/2)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "pursuitReversalState": reversal["state"] if reversal else None,
             "pursuitBrakingState": braking["state"] if braking else None,
             "pursuitAccelerationState": acceleration["state"] if acceleration else None,
             "pitcherReadState": pitcher_read["state"] if pitcher_read else None,
