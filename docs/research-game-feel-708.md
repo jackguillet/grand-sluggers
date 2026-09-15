@@ -1120,9 +1120,9 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 This is an authored architecture proposal, not a verified Mario aggregation formula. Range dimensions, individual abilities, error rules, summary formula and migration remain tracked before runtime work. No gameplay, roster, card or human gate changes here.
 
-## Next decision — when handling errors can happen
+## Accepted decision — when handling errors can happen
 
-**F693-02-handling-error-opportunities — pending, September 15, 2026.** Recommend **reliable routine catches/pickups, with handling errors limited to specifically defined difficult or disrupted acquisition opportunities**. A low handling trait alone should not add a random failure to an otherwise ordinary legal catch. The underlying handling trait can improve resistance when a reviewed difficulty actually applies; displayed Fielding does not drive the outcome.
+**F693-02-handling-error-opportunities — accepted by Jack on September 15, 2026.** Jack approved **reliable routine catches/pickups, with handling errors limited to specifically defined difficult or disrupted acquisition opportunities**. A low handling trait alone should not add a random failure to an otherwise ordinary legal catch. The underlying handling trait can improve resistance when a reviewed difficulty actually applies; displayed Fielding does not drive the outcome.
 
 **What this feels like:** execute a routine in-range catch or pickup correctly and the ball is secured. A bad route, late jump, out-of-range ball or special acquisition restriction can still defeat the play; reliability is not a guaranteed out. Character handling differences matter when there is a visible reason the ball is difficult to secure.
 
@@ -1136,7 +1136,23 @@ This is an authored architecture proposal, not a verified Mario aggregation form
 
 No matched Wii/GC error-rate distribution has been established. Research routine and difficult acquisitions separately, including visible causes and special effects, then choose the eligible contexts and resolution model before numerical tuning. This proposal selects neither new error odds nor a current code change. Standalone and scoring gates remain open.
 
-**Question for Jack:** keep routine catches and pickups reliable, with handling differences affecting errors only in clearly defined difficult or disrupted situations?
+## Next decision — consistent handling limits or a chance roll
+
+**F693-02-ordinary-handling-resolution — pending, September 15, 2026.** Recommend **consistent handling limits for difficult ordinary acquisition**, rather than a chance roll. The same actual acquisition conditions and underlying handling trait produce the same result, independent of random seed. Better handling tolerates more of the reviewed difficulty before control is lost.
+
+**The distinction:** catch range answers whether the character can meet the ball. Handling answers whether they can secure control in a specifically qualified difficult situation. It must not change glove positioning, range or jump behavior. Routine legal catches remain reliable for every character; low handling alone cannot classify a play as difficult. The displayed Fielding summary is not an input.
+
+**Example relationship:** a reviewed awkward pickup could exceed one character's handling tolerance while another secures it. Repeat the same relevant conditions and the outcome repeats. Improve only the handling trait and the result cannot get worse. This illustrates the relationship; no particular hop, speed threshold, trait curve or error consequence is approved here.
+
+**Why:** consistent limits make character strengths learnable and failures explainable from the play. A bounded chance roll in difficult situations would add unpredictability, allowing occasional different outcomes under otherwise identical conditions. The recommendation favors consistency, while requiring readable causes and stable numerical boundaries. Do not smuggle randomness back through frame-dependent jitter or an unexplained difficulty score.
+
+**Physical consequence remains mandatory:** an error must become a reviewed bobble, loss of control or other physical outcome with an explicit possession timeline. It cannot simply award a base or exist as an ERROR caption. Exact outcomes remain pending. Resolve acquisition before secure-possession benefits, preserve already completed outs after later losses, and keep retained-ball recoil/pure-pushback rules intact.
+
+**Scope and migration:** ordinary non-special acquisition only. Special hits still need their individual acquisition/dislodging contracts, and throw accuracy remains separate. This would be a deliberate change from the seeded `InPlay.Bobbles` model. Inventory all affected paths and compare physical outcomes/frequency in the defensive-trait migration. Removing an RNG call must not silently shift unrelated later random events; that needs an explicit migration plan, not a blind deletion. No current probability, random stream or gameplay is changed here.
+
+**Evidence boundary:** no measured Wii/GC error algorithm establishes this mechanism. It is an authored recommendation. Compare the references' difficult-play conditions, visible outcomes and frequency without claiming their internal logic is known. Before implementation, select the actual condition inputs, handling curve and failure profiles; validate repeatability across seeds/frame partitions/seats, monotonic handling benefits, reliable routine cases and special-effect separation. Standalone and scoring gates remain open.
+
+**Question for Jack:** use consistent handling limits for difficult ordinary plays, so the same conditions produce the same result rather than an error chance roll?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

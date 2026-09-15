@@ -441,8 +441,13 @@
     },
     {
       "id": "F693-02-handling-error-opportunities",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Keep routine legal catches/pickups free of a generic error roll, and let handling differences matter only in explicitly defined difficult/disrupted acquisition situations?"
+    },
+    {
+      "id": "F693-02-ordinary-handling-resolution",
+      "state": "next-human-decision",
+      "question": "Resolve difficult ordinary acquisition through consistent physical-condition/handling limits rather than a chance roll, with special-hit outcomes reviewed separately?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4575,7 +4580,7 @@
   },
   "handlingErrorOpportunitiesProposal": {
     "decisionId": "F693-02-handling-error-opportunities",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "routineStatOnlyErrorChance": 0.0,
     "difficultyThresholds": null,
     "handlingResponseCurve": null,
@@ -4598,6 +4603,38 @@
       "Audit legacy bobble/drop/accuracy consumers before migration; choose triggers, resolution model and outcomes separately before runtime implementation.",
       "Test real routine and difficult acquisition traces and inspect visible error causes in standalone; no statistical or human gate is passed by this document."
     ],
-    "implementationBoundary": "Pending handling-error eligibility direction. No error probability table, trigger threshold, RNG model, current bobble/drop behavior, runtime or human gate changed."
+    "implementationBoundary": "Accepted handling-error eligibility direction; specific contexts and resolution remain pending. No error probability table, trigger threshold, RNG model, current bobble/drop behavior, runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to reliable routine handling, with errors limited to defined difficult or disrupted situations."
+  },
+  "ordinaryHandlingResolutionProposal": {
+    "decisionId": "F693-02-ordinary-handling-resolution",
+    "state": "pending",
+    "resolutionKind": "deterministic-handling-limits",
+    "usesOrdinaryErrorChanceRoll": false,
+    "challengeInputs": null,
+    "handlingLimitCurve": null,
+    "failureOutcomeProfile": null,
+    "recommendation": "For a separately qualified difficult ordinary acquisition, resolve control through consistent limits based on actual acquisition conditions and the underlying handling trait, without an ordinary error chance roll. Identical relevant state and traits must yield the same handling outcome independently of random seed. Better handling increases tolerance to the reviewed difficulty.",
+    "scope": "Resolution direction for ordinary non-special handling errors only, after a reviewed difficult-opportunity gate. Routine legal handling stays reliable. Special-hit acquisition/possession effects retain individual contracts; this does not remove their existing probabilities or approve any new ones. Throw accuracy is separate.",
+    "separation": "Catch range and visible glove motion establish that the character can meet the ball. Handling determines whether control can be secured under a specifically qualified difficulty, not whether the hand reaches the ball. A low handling value alone does not qualify a difficult opportunity; it cannot change range, glove positioning, jump motion or ordinary input forgiveness. Displayed Fielding is descriptive only.",
+    "conditions": "Use an explicitly reviewed description of the acquisition event and its physical context. Candidate inputs must be chosen and measured before a formula; do not introduce an arbitrary all-purpose difficulty score, original exit-energy shortcut, camera/input-device factor, match-seed factor or hidden frame-dependent jitter. No particular speed, hop, posture or threshold is approved by this proposal.",
+    "monotonicity": "Holding all actual conditions and other traits fixed, increasing handling cannot turn secure control into a handling failure. The same authored difficult case may exceed a weaker handler's tolerance but remain manageable for a stronger handler. This is an illustrative relationship, not a new numerical threshold or a guaranteed safe/out result.",
+    "consequence": "A handling failure must have a reviewed visible physical outcome and possession timeline; it cannot simply award a runner a base, fabricate an out or produce only an ERROR caption. The exact bobble/loose-ball/recovery behavior remains unselected. Resolve the acquisition result before secure-possession effects; never undo an already completed out because of a later distinct loss.",
+    "retention": "Do not turn retained-ball ordinary recoil or pure special pushback into a fresh drop check. This proposal concerns acquisition before secure control and grants no new post-possession dislodging trigger. Existing special interactions and overlapping recovery rules remain separate.",
+    "migration": "This would deliberately replace the current seeded ordinary InPlay.Bobbles outcome model, not merely rename its Field argument. Review and map each affected acquisition path in F693-02-defensive-trait-migration, compare frequency and physical outcomes, and keep unrelated random-stream consumers stable through an explicit event/RNG migration plan. Do not remove calls blindly and shift every later random event. No migration is performed in this research step.",
+    "tradeoff": "Consistent limits make handler strengths and repeated practice learnable and make failures traceable to the actual play. A bounded chance roll in difficult situations would allow occasional successes/failures under otherwise identical conditions and add baseball unpredictability. Deterministic thresholds also need readable causes and stable boundary behavior; tiny numerical noise must not decide a play differently across frame partitions.",
+    "referenceLimit": "Authored resolution recommendation, not a verified Wii/GC error algorithm. No matched measurements establish whether either reference uses the same mechanism. Keep Mario comparison focused on error situations, visible outcomes and frequency until stronger mechanism evidence exists.",
+    "requiredChecks": [
+      "Same physical event/trait state yields the same ordinary handling result across seeds, frame partitions, input schemes and seats.",
+      "Routine legal cases remain reliable regardless of handling; difficult eligibility cannot arise from low trait alone.",
+      "Within a reviewed difficult case, improving handling never worsens secure-control outcome; displayed Fielding changes alone do nothing.",
+      "Catch reach and glove motion do not change with handling; failure is a distinct secure-control result with a real visible possession timeline.",
+      "Threshold boundaries and input measurements are stable, explicit and tested; no implicit frame jitter or original-energy stand-in.",
+      "Special-hit resolution and unrelated RNG consumers are not accidentally changed while replacing ordinary bobble rolls.",
+      "Choose context inputs, trait curve and physical failure outcomes before implementation, then compare reference/standalone behavior and scoring."
+    ],
+    "implementationBoundary": "Pending ordinary handling-resolution direction only. No challenge inputs, numerical curve, failure profile, RNG migration, runtime or human gate selected."
   }
 }

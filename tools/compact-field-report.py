@@ -981,12 +981,19 @@ def derive(data):
         assert fielding_role["summaryFormula"] is None and fielding_role["errorModel"] is None
     handling_errors = data.get("handlingErrorOpportunitiesProposal")
     if handling_errors:
-        assert handling_errors["state"] == "pending"
+        if handling_errors["state"] == "accepted-calibration-anchor":
+            assert handling_errors["acceptedBy"] and handling_errors["acceptedOn"] and handling_errors["acceptanceEvidence"]
         assert all(handling_errors[key] is None for key in
                    ("difficultyThresholds", "handlingResponseCurve", "errorResolutionModel"))
+    handling_resolution = data.get("ordinaryHandlingResolutionProposal")
+    if handling_resolution:
+        assert handling_resolution["state"] == "pending"
+        assert all(handling_resolution[key] is None for key in
+                   ("challengeInputs", "handlingLimitCurve", "failureOutcomeProfile"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryHandlingResolutionState": handling_resolution["state"] if handling_resolution else None,
             "handlingErrorOpportunitiesState": handling_errors["state"] if handling_errors else None,
             "characterCatchRangeDirectionState": catch_range_direction["state"] if catch_range_direction else None,
             "fieldingRatingRoleState": fielding_role["state"] if fielding_role else None,
