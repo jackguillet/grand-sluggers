@@ -391,8 +391,13 @@
     },
     {
       "id": "F693-02-normal-jump-takeoff-ownership",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Have an eligible press start the normal jump promptly, without waiting for or retiming to the ball/catch window, so the player owns takeoff timing?"
+    },
+    {
+      "id": "F693-02-normal-jump-arc-trial",
+      "state": "next-human-decision",
+      "question": "Use a first normal-jump trial of 2 feet body rise over .60 seconds airborne, with one symmetric parabolic arc peaking at .30 seconds, while actual glove reach and special jump variants remain separately reviewed?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4100,7 +4105,7 @@
   },
   "normalJumpTakeoffOwnershipProposal": {
     "decisionId": "F693-02-normal-jump-takeoff-ownership",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "ballScheduledTakeoff": false,
     "ballDependentExtraWaitSeconds": 0.0,
     "pressToTakeoffSeconds": null,
@@ -4124,6 +4129,91 @@
       "Update docs/how-to-play.md and HowToPlay.cs together when this future input behavior is implemented, and validate both schemes/seats and CPU execution.",
       "Measure numerical startup, jump profile and catch tolerance before gameplay and standalone acceptance."
     ],
-    "implementationBoundary": "Pending normal-jump takeoff ownership only. No numerical jump/latency/buffer change, live control/book edit, runtime implementation or human gate selected."
+    "implementationBoundary": "Accepted normal-jump takeoff ownership only; numerical startup and jump profile remain pending. No numerical jump/latency/buffer change, live control/book edit, runtime implementation or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to starting the normal jump promptly from an eligible press, without automatically waiting for the ball."
+  },
+  "normalJumpArcTrialProposal": {
+    "decisionId": "F693-02-normal-jump-arc-trial",
+    "state": "pending",
+    "peakBodyRiseFeet": 2.0,
+    "airtimeSeconds": 0.6,
+    "apexSeconds": 0.3,
+    "curve": "heightAboveTakeoff(t)=4*H*u*(1-u), u=t/T, 0<=t<=T",
+    "initialVerticalFeetPerSecond": 13.333333333333334,
+    "verticalAccelerationFeetPerSecondSquared": -44.44444444444444,
+    "recommendation": "Trial a normal uninterrupted jump on level ground with 2 feet of body-root rise and .60 seconds from takeoff to landing. Use a symmetric parabolic arc with apex at .30 seconds, no apex hold and no generic extra pause after clean landing.",
+    "scope": "A shared baseline normal-jump trial on level ground. This selects a physical body-root offset, not absolute glove height, a catch radius, wall clearance or a complete per-character/ability contract. Super Jump, wall/buddy/diving variants and exceptional collisions/impacts remain separate.",
+    "clock": "Airborne time begins at actual takeoff and ends at ground support at T=.60. It excludes any separately reviewed short input-to-takeoff anticipation and the subsequent .30-second throw release. Input-relative takeoff remains player-owned; no ball-dependent retiming, hold extension, catch reset or animation tail.",
+    "motion": "At takeoff apply the reviewed vertical jump impulse without resetting horizontal velocity. Height follows 4H*u*(1-u), vertical speed 4H/T*(1-2u), and vertical acceleration -8*H/(T*T). These are character-jump parameters, not a change to the ball gravity/time scale. End at actual ground support without below-ground integration; collision/slope interruption needs its own coherent path rather than forcing the level-ground duration.",
+    "horizontalExposure": [
+      {
+        "run": 1,
+        "ordinaryTakeoffSpeedFeetPerSecond": 13.514754098360655,
+        "neutralDriftFeet": 8.108852459016392
+      },
+      {
+        "run": 5,
+        "ordinaryTakeoffSpeedFeetPerSecond": 18.0,
+        "neutralDriftFeet": 10.8
+      },
+      {
+        "run": 9,
+        "ordinaryTakeoffSpeedFeetPerSecond": 22.485245901639342,
+        "neutralDriftFeet": 13.491147540983603
+      }
+    ],
+    "horizontalScope": "Steady ordinary takeoff speed with neutral horizontal intent, no assist intent, collision, drag, special effect or air correction. Run5 drifts 10.8 feet during .60 seconds, exactly the distance at the same speed on the ground; this is preserved momentum, not an added jump lunge. Air-control strength and resulting extra reach remain pending.",
+    "samples": [
+      {
+        "seconds": 0,
+        "heightFeet": 0.0
+      },
+      {
+        "seconds": 0.15,
+        "heightFeet": 1.5
+      },
+      {
+        "seconds": 0.3,
+        "heightFeet": 2.0
+      },
+      {
+        "seconds": 0.45,
+        "heightFeet": 1.5
+      },
+      {
+        "seconds": 0.6,
+        "heightFeet": 0.0
+      }
+    ],
+    "alternatives": [
+      {
+        "airtimeSeconds": 0.5,
+        "peakBodyRiseFeet": 2.0,
+        "run5NeutralDriftFeet": 9.0,
+        "tradeoff": "Faster, sharper hop with less airborne commitment."
+      },
+      {
+        "airtimeSeconds": 0.7,
+        "peakBodyRiseFeet": 2.0,
+        "run5NeutralDriftFeet": 12.6,
+        "tradeoff": "Longer aerial commitment and more time for correction/coverage."
+      }
+    ],
+    "scaleEvidence": "The historical #701 nominal rest head-top markers range from about 3.18 feet for Zig to 8.17 for Ashlord, with Rio about 5.11. A 2-foot root rise is a visible starting budget relative to those authored scales, not a measured live body bound or a guaranteed catch height. Extras, pose and actual glove placement remain separate. Do not resize bodies to make the jump work.",
+    "reachBoundary": "The authoritative glove path must combine root motion with the selected body/rig pose and catch geometry. Do not blindly add the legacy JumpReachFt=8 horizontal catch-window allowance or the 4-foot over-fence rob allowance as another vertical lift. Existing reach/rob values need a separate reconciliation with the physical trajectory before implementation; this trial neither approves them nor silently removes them.",
+    "currentAudit": "CatchRules exposes JumpArmSec=.55 and WallJumpArmSec=.70 as arming windows, JumpReachFt=8 consumed in CatchWindowFt, and JumpRobFt=4 used by RobHeightFt as clearance over the fence. These are different quantities, not an existing normal jump height/airtime measurement. FlyCatch and Fielding are included in source evidence for that distinction.",
+    "referenceLimit": "Authored first trial, not measured Mario jump height or airtime. The reviewed official manuals establish jump inputs, not these numbers. Capture comparable ordinary standing/running jumps in Wii and GameCube and compare takeoff/apex/landing against body and glove scale before claiming reference similarity.",
+    "requiredChecks": [
+      "Arc starts/ends at zero, peaks at H at T/2 and has no artificial apex hold; exact takeoff/landing events agree across prediction, stepping and presentation.",
+      "Preserve horizontal velocity and measured neutral drift, with no bonus lunge, takeoff speed refill or extra reach from double-counting legacy allowances.",
+      "Separate root rise, actual glove height, ground support and catch radius; validate short/tall characters without mesh scaling or a one-character pose fix.",
+      "Input hold/release, catch/miss and ball prediction cannot alter the uninterrupted selected arc; no throw start before actual landing.",
+      "Review air-control coefficients against the .60-second coverage envelope, then test stationary/moving/angled jumps and early/late catches across both seats/CPU.",
+      "Keep ball physics unchanged; wall/buddy/ability, slopes and exceptional airborne impacts need their own reviewed contracts.",
+      "Compare reference jump footage and actual standalone body/glove motion before human feel acceptance; design arithmetic alone does not pass the gate."
+    ],
+    "implementationBoundary": "Pending baseline numerical normal-jump trial. Full input latency, air-control limits, glove reach and character/ability/exceptional contracts remain incomplete; no runtime coefficient, rig, motion asset or human gate changed."
   }
 }

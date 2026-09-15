@@ -82,7 +82,7 @@ def derive(data):
         })
     tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
-               ROOT / "src/GrandSluggers.Sim/Fielding.cs", ROOT / "src/GrandSluggers.Sim/BuntDefense.cs",
+               ROOT / "src/GrandSluggers.Sim/Fielding.cs", ROOT / "src/GrandSluggers.Sim/FlyCatch.cs", ROOT / "src/GrandSluggers.Sim/BuntDefense.cs",
                ROOT / "src/GrandSluggers.Sim/ParkDiamond.cs", ROOT / "data/rules/running.json",
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json",
                ROOT / "data/art/clips.json", ROOT / "data/art/baseball-takes.json",
@@ -881,11 +881,31 @@ def derive(data):
         assert all(jump_input[key] is None for key in ("peakRiseFeet", "airtimeSeconds", "verticalCurve"))
     takeoff = data.get("normalJumpTakeoffOwnershipProposal")
     if takeoff:
-        assert takeoff["state"] == "pending"
+        if takeoff["state"] == "accepted-calibration-anchor":
+            assert takeoff["acceptedBy"] and takeoff["acceptedOn"] and takeoff["acceptanceEvidence"]
         assert takeoff["pressToTakeoffSeconds"] is None
+    jump_arc = data.get("normalJumpArcTrialProposal")
+    if jump_arc:
+        assert jump_arc["state"] == "pending"
+        jump_peak, jump_duration = jump_arc["peakBodyRiseFeet"], jump_arc["airtimeSeconds"]
+        assert jump_peak > 0 and jump_duration > 0
+        assert math.isclose(jump_arc["apexSeconds"], jump_duration/2)
+        assert math.isclose(jump_arc["initialVerticalFeetPerSecond"], 4*jump_peak/jump_duration)
+        assert math.isclose(jump_arc["verticalAccelerationFeetPerSecondSquared"], -8*jump_peak/jump_duration**2)
+        for row in jump_arc["samples"]:
+            u = row["seconds"]/jump_duration
+            assert 0 <= u <= 1
+            assert math.isclose(row["heightFeet"], 4*jump_peak*u*(1-u), abs_tol=1e-12)
+        for row in jump_arc["horizontalExposure"]:
+            speed = (21+1.9*row["run"])*18/30.5
+            assert math.isclose(row["ordinaryTakeoffSpeedFeetPerSecond"], speed)
+            assert math.isclose(row["neutralDriftFeet"], speed*jump_duration)
+        for row in jump_arc["alternatives"]:
+            assert math.isclose(row["run5NeutralDriftFeet"], 18*row["airtimeSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpArcTrialState": jump_arc["state"] if jump_arc else None,
             "normalJumpTakeoffOwnershipState": takeoff["state"] if takeoff else None,
             "normalJumpInputProfileState": jump_input["state"] if jump_input else None,
             "jumpAirControlState": air_control["state"] if air_control else None,
