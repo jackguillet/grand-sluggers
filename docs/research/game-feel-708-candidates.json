@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "recoil-field-shaping-accepted; numeric-field-recovery-factors-pending; incomplete-runtime-contract",
+  "status": "numeric-field-recovery-factors-accepted; ordinary-recoil-severity-curve-pending; speed-thresholds-await-arrival-evidence; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -301,8 +301,13 @@
     },
     {
       "id": "F693-02-recoil-field-factors",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a linear five-percentage-point reduction per Field point above 1 for ordinary recoil, giving max recovery .20 at Field1, .16 at Field5 and .11 at Field10?"
+    },
+    {
+      "id": "F693-02-recoil-severity-curve",
+      "state": "next-human-decision",
+      "question": "Use a linear ordinary recoil severity ramp between the shared onset and full-severity incoming speeds, zero below onset and capped above the upper threshold, with actual speed thresholds chosen after arrival-speed evidence?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2902,7 +2907,7 @@
   },
   "recoilFieldFactorsProposal": {
     "decisionId": "F693-02-recoil-field-factors",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "minField": 1,
     "maxField": 10,
     "factorAtMinField": 1.0,
@@ -3003,6 +3008,87 @@
       "Existing ratings unchanged, invalid content rejected, both seats/CPU use same event speed and formula",
       "After speed thresholds/curve and physical permissions are selected, verify complete grounder/force/relay races, character roles, independent scoring and standalone human gate"
     ],
-    "implementationBoundary": "Pending numeric Field-factor trial. No speed threshold/severity curve, runtime rules/roster, recovery animation or human acceptance selected here."
+    "implementationBoundary": "Accepted numerical Field-factor trial. Speed thresholds/severity curve, physical recovery and action permissions remain separate; no runtime rules/roster, animation, simulation or human gate changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to the five-percentage-point ordinary recoil reduction per Fielding point above 1, with maximum .20/.16/.11 seconds at Field1/5/10."
+  },
+  "recoilSeverityCurveProposal": {
+    "decisionId": "F693-02-recoil-severity-curve",
+    "state": "pending",
+    "curve": "clamped-linear-between-two-speed-anchors",
+    "onsetFeetPerSecond": null,
+    "fullSeverityFeetPerSecond": null,
+    "recommendation": "Use S(v)=clamp((v-v0)/(v1-v0),0,1), with common v1>v0>=0. Zero ordinary recoil at/below onset, continuous linear growth to full severity, then saturation. Apply the accepted Field factor after S is capped and add applicable same-impact special recovery afterward.",
+    "scope": "Shape of ordinary retained-ball ground-pickup speed severity only. Numerical onset/full-severity speeds are not selected; no change to the actual-arrival speed basis, Field table, ordinary .20 cap, special addition or recovery action permissions.",
+    "normalizedExamples": [
+      {
+        "normalizedSpeedPosition": -0.25,
+        "severity": 0,
+        "field1Seconds": 0.0,
+        "field5Seconds": 0.0,
+        "field10Seconds": 0.0
+      },
+      {
+        "normalizedSpeedPosition": 0,
+        "severity": 0,
+        "field1Seconds": 0.0,
+        "field5Seconds": 0.0,
+        "field10Seconds": 0.0
+      },
+      {
+        "normalizedSpeedPosition": 0.25,
+        "severity": 0.25,
+        "field1Seconds": 0.05,
+        "field5Seconds": 0.04000000000000001,
+        "field10Seconds": 0.027500000000000004
+      },
+      {
+        "normalizedSpeedPosition": 0.5,
+        "severity": 0.5,
+        "field1Seconds": 0.1,
+        "field5Seconds": 0.08000000000000002,
+        "field10Seconds": 0.05500000000000001
+      },
+      {
+        "normalizedSpeedPosition": 0.75,
+        "severity": 0.75,
+        "field1Seconds": 0.15000000000000002,
+        "field5Seconds": 0.12000000000000002,
+        "field10Seconds": 0.08250000000000002
+      },
+      {
+        "normalizedSpeedPosition": 1,
+        "severity": 1,
+        "field1Seconds": 0.2,
+        "field5Seconds": 0.16000000000000003,
+        "field10Seconds": 0.11000000000000001
+      },
+      {
+        "normalizedSpeedPosition": 1.25,
+        "severity": 1,
+        "field1Seconds": 0.2,
+        "field5Seconds": 0.16000000000000003,
+        "field10Seconds": 0.11000000000000001
+      }
+    ],
+    "exampleScope": "Normalized position means (actualSpeed-v0)/(v1-v0), not half raw speed or a measured speed bin. At halfway, ordinary recovery is .10/.08/.055 at Field1/5/10. No physical threshold value is inferred from these examples.",
+    "rationale": "A small speed increase produces a proportional recovery increase within the transition band, rather than jumping directly from a clean pickup to maximum recoil. The severity value is continuous at onset and saturation, though slope changes there; preserve fine timing without an unreviewed minimum wait.",
+    "alternatives": [
+      "A binary threshold gives every qualifying arrival full severity, making nearby speeds produce abrupt recovery changes.",
+      "A smoothstep S=3u\u00b2-2u\u00b3 softens the onset and saturation slopes but changes how medium-impact speeds distribute recovery; recommend a linear first trial for transparent calibration."
+    ],
+    "evidenceAudit": "The #702 report contains event timings and fixed launch-input fixtures, not a representative C80 distribution of incoming pickup speeds. BallFlight samples contain time/position/event and PointAt interpolates positions; these do not by themselves establish safe event-sided speed at every acquisition. Existing flight timeScale1.65 and pending ball calibration prevent treating original exit mph or the old minEnergy72 as the new incoming-speed threshold.",
+    "thresholdEvidencePlan": "Keep v0/v1 null until an event-sided arrival-speed observation set is available on the gameplay clock. Separate historical control observations from compact trial results. Include routine and hard grounders, shallow/deep pickups, slowed/wall/loose recoveries and varied characters/control seats, with launch, pickup position/time, incoming segment/speed, possession/recoil classification and source revision. Check bounce/acquisition order and predictor/stepper parity. Do not call historical fixture launch speeds, interpolated across-event differences or inspected seeds unseen validation. Final thresholds require coherent ball-motion calibration and human review.",
+    "referenceLimit": "Linear severity is an authored curve choice. Existing Mario descriptions do not establish this equation or a matched onset/full-severity speed pair. No new simulation or reference measurement was performed for this choice.",
+    "requiredChecks": [
+      "Zero through v0, full severity at/above v1, linear midpoint/quarter points, v1>v0 and continuous values at boundaries",
+      "Same speed anchors for every Field rating; apply accepted factor after capped severity and preserve differences at saturation",
+      "Actual incoming event-sided gameplay-clock velocity, no launch-energy substitution or bounce-crossing finite difference",
+      "No hidden fixed minimum recovery or frame quantization; ordinary max and special additive identity remain correct",
+      "Keep threshold placeholders unselected and observations versioned until speed evidence and coherent calibration support values",
+      "After numeric speeds/physical permissions are chosen, full races across seats/CPU and characters, independent scoring and standalone feel gates"
+    ],
+    "implementationBoundary": "Pending normalized severity curve only. Thresholds deliberately null; not a full runtime rule, no gameplay/roster/motion edits, candidate simulation or human gate pass."
   }
 }

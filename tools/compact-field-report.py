@@ -107,7 +107,8 @@ def derive(data):
                ROOT / "src/GrandSluggers.Sim/Rules.cs",
                ROOT / "data/abilities/star-skills.json",
                ROOT / "src/GrandSluggers.Sim/StarSkillTable.cs",
-               ROOT / "src/GrandSluggers.Sim/ContentValidation.cs"]
+               ROOT / "src/GrandSluggers.Sim/ContentValidation.cs",
+               ROOT / "src/GrandSluggers.Sim/Models.cs"]
     proposal = data.get("runnerClockProposal")
     if proposal:
         bag = max(proposal["bagSeconds"]["min"], min(proposal["bagSeconds"]["max"],
@@ -689,6 +690,8 @@ def derive(data):
             assert math.isclose(row["ordinarySeconds"], recoil_cap["maxRecoverySeconds"]*row["severity"]*row["illustrativeFieldFactor"])
     field_factors = data.get("recoilFieldFactorsProposal")
     if field_factors:
+        if field_factors["state"] == "accepted-calibration-anchor":
+            assert field_factors["acceptedBy"] and field_factors["acceptedOn"] and field_factors["acceptanceEvidence"]
         cap = recoil_cap["maxRecoverySeconds"]
         rows = field_factors["rows"]
         assert [r["field"] for r in rows] == list(range(field_factors["minField"],field_factors["maxField"]+1))
@@ -707,9 +710,20 @@ def derive(data):
             factor = 1-alt["reductionPerPoint"]*9
             assert math.isclose(alt["field10Factor"],factor)
             assert math.isclose(alt["field10MaxSeconds"],cap*factor)
+    severity_curve = data.get("recoilSeverityCurveProposal")
+    if severity_curve:
+        assert severity_curve["curve"] == "clamped-linear-between-two-speed-anchors"
+        assert severity_curve["onsetFeetPerSecond"] is None and severity_curve["fullSeverityFeetPerSecond"] is None
+        for row in severity_curve["normalizedExamples"]:
+            severity = max(0,min(1,row["normalizedSpeedPosition"]))
+            assert math.isclose(row["severity"],severity)
+            for field in (1,5,10):
+                factor = field_factors["factorAtMinField"]-field_factors["factorReductionPerPoint"]*(field-field_factors["minField"])
+                assert math.isclose(row["field%dSeconds" % field],recoil_cap["maxRecoverySeconds"]*severity*factor)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "recoilSeverityCurveState": severity_curve["state"] if severity_curve else None,
             "recoilFieldFactorsState": field_factors["state"] if field_factors else None,
             "recoilFieldShapingState": field_shape["state"] if field_shape else None,
             "specialRecoveryCompositionState": composition["state"] if composition else None,
