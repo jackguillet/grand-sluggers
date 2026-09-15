@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "ordinary-recoil-cap-accepted-with-special-hit-exceptions; additive-same-impact-recovery-proposed-after-fielding-value-feedback; incomplete-runtime-contract",
+  "status": "same-impact-additive-recovery-accepted; field-dependent-recoil-shaping-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -291,8 +291,13 @@
     },
     {
       "id": "F693-02-special-recovery-composition",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For the same pickup/impact, add ordinary Field-dependent recoil and special recovery so better Fielding retains its recovery advantage, with unrelated/repeated effects and per-action permissions reviewed separately?"
+    },
+    {
+      "id": "F693-02-recoil-field-shaping",
+      "state": "next-human-decision",
+      "question": "Use a shared incoming-speed onset for ordinary recoil, with Fielding shortening duration after severity is capped so strong fielders retain their recovery advantage even on the hardest ordinary pickups?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2673,7 +2678,7 @@
   },
   "specialRecoveryCompositionProposal": {
     "decisionId": "F693-02-special-recovery-composition",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "revisionOn": "2026-09-15",
     "userFeedback": "Jack noted that concurrent recovery can mask the value of higher Fielding when both characters receive the same dominant special effect; he suggested stacking.",
     "recommendation": "For ordinary retained-ball recoil and an authored special recovery triggered by the same pickup/impact, add their applicable recovery contributions. Preserve the Field-dependent ordinary recoil difference instead of masking it behind a longer special.",
@@ -2733,7 +2738,7 @@
       "Review special balance against full recovery and real races, then human standalone validation"
     ],
     "referenceLimit": "Authored revised policy responding to Jack\u2019s Fielding-value priority; no measured Mario recovery-stacking claim. Special durations, action scope and prior-event composition remain open.",
-    "implementationBoundary": "Revised pending proposal, not final approval or runtime change. Preserve the previous unaccepted overlap proposal in history; no content, roster, motion, control or human gate changes.",
+    "implementationBoundary": "Accepted same-impact additive composition. Earlier/unrelated/repeated effects, multiple-special rules, special durations and per-action permissions remain separate. Prior unaccepted overlap proposal retained; no runtime/content/motion/control or human gate changes.",
     "previousProposal": {
       "decisionId": "F693-02-special-recovery-composition",
       "state": "unaccepted-proposal-revised-after-user-feedback",
@@ -2834,6 +2839,57 @@
       "referenceLimit": "Authored shared-recovery rule. No Mario source was used to establish concurrent versus additive recovery or the illustrative .60 duration. Each special effect still needs its own researched review.",
       "implementationBoundary": "Pending composition policy only. No special duration, action permission, active runtime effect, content allocation, control/motion/book edit, simulation or human gate pass.",
       "revisionReason": "Jack objected that a dominant special stun hides the better fielder\u2019s shorter ordinary recoil under max-deadline overlap and suggested stacking."
-    }
+    },
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to adding ordinary Field-dependent recoil and authored special recovery from the same impact, preserving the better fielder\u2019s shorter recovery."
+  },
+  "recoilFieldShapingProposal": {
+    "decisionId": "F693-02-recoil-field-shaping",
+    "state": "pending",
+    "recommendation": "Use one ordinary arrival-speed onset across Field ratings. Above it, determine bounded speed severity first, then apply a decreasing Field recovery factor. Field reduces duration rather than shifting the onset; strong fielders retain a shorter ordinary recovery even at saturated impact severity.",
+    "formula": "ordinaryRecovery(v,Field)=.20*S(v)*F(Field), where S is monotonic in arrival speed, zero through a shared onset and in [0,1]; F is positive, at most 1 and decreases with Field. Numerical onset/full-severity speeds, S curve and F table remain unselected. Then add applicable special recovery per the separately accepted same-impact rule.",
+    "scope": "Structure of ordinary retained-ball ground-pickup recoil only. No numerical speed threshold or Field multipliers selected; no change to general catching/reach, bobble chance, movement speed, other stats or special-effect resistance. Exact physical/action recovery remains pending.",
+    "capOrdering": "Bound S before applying F. Do not grow a Field-dependent raw delay then clamp all ratings to .20, which can collapse different ratings to the same delay. Do not round response to frame counts or introduce a minimum nonzero timer that silently erases small Field differences. Explicit floating-point/event precision belongs to implementation validation.",
+    "tradeoff": "A shared onset means a better fielder does not gain an additional category of entirely recoil-free hot pickups from Field alone; the benefit is reliably faster recovery above that onset. Raising the onset for high Field would instead change which balls count as difficult. Recommend shared onset and duration-only Field shaping for a readable ordinary rule; numeric strength still needs review.",
+    "illustrations": [
+      {
+        "severity": 0.5,
+        "illustrativeFieldFactor": 1.0,
+        "ordinarySeconds": 0.1
+      },
+      {
+        "severity": 0.5,
+        "illustrativeFieldFactor": 0.5,
+        "ordinarySeconds": 0.05
+      },
+      {
+        "severity": 1.0,
+        "illustrativeFieldFactor": 1.0,
+        "ordinarySeconds": 0.2
+      },
+      {
+        "severity": 1.0,
+        "illustrativeFieldFactor": 0.5,
+        "ordinarySeconds": 0.1
+      },
+      {
+        "severity": 0.0,
+        "illustrativeFieldFactor": 0.5,
+        "ordinarySeconds": 0.0
+      }
+    ],
+    "illustrationScope": "Dimensionless demonstration only: factors 1.0/.5 are not approved Field multipliers or assigned to particular ratings. Severity .5/1 does not imply actual ball-speed values or a chosen severity curve.",
+    "currentAudit": "Current InPlay.KnockbackSec multiplies raw launch-strength excess by a Field deficit before the final cap. Under a replacement actual-arrival model, copying this order can flatten different Field results at the cap. Proposed normalized severity then Field factor explicitly prevents that for differing positive factors.",
+    "referenceLimit": "Authored structural choice motivated by Jack\u2019s request to preserve Fielding value. No measured Wii/GameCube threshold, duration-only stat model or multiplier table is established. Ordinary arrival-speed distributions still require coherent ball-motion calibration before numeric onset is justified.",
+    "requiredChecks": [
+      "Zero recoil at/below shared onset for all ratings; no hidden stat-dependent onset",
+      "Monotonic speed severity and non-increasing duration as Field improves, with distinct authored factors retaining differences at full severity",
+      "Ordinary result never exceeds .20; special contribution remains separately additive and can exceed ordinary cap",
+      "Synthetic factor examples remain marked illustrative; no implementation defaults silently adopt .5",
+      "Same event-sided incoming speed, state and result for both seats/CPU; no render-frame quantization or extra minimum timer",
+      "Numeric curves, actual motion/action permissions, full races and independent scoring validated before runtime or human acceptance"
+    ],
+    "implementationBoundary": "Pending shape/ordering policy only. No numeric threshold, severity curve or Field factor approved here; no runtime, roster, special balance, motion or simulation changes."
   }
 }

@@ -668,6 +668,8 @@ def derive(data):
                 assert ex["releaseStartSeconds"] is None and ex["ballReleaseSeconds"] is None
     composition = data.get("specialRecoveryCompositionProposal")
     if composition:
+        if composition["state"] == "accepted-calibration-anchor":
+            assert composition["acceptedBy"] and composition["acceptedOn"] and composition["acceptanceEvidence"]
         for case in composition["examples"]:
             assert 0 <= case["ordinarySeconds"] <= recoil_cap["maxRecoverySeconds"]
             assert math.isclose(case["totalSeconds"], case["ordinarySeconds"]+case["specialSeconds"])
@@ -677,9 +679,16 @@ def derive(data):
         assert math.isclose(value["ordinaryDifferenceSeconds"], high["ordinarySeconds"]-low["ordinarySeconds"])
         assert math.isclose(value["totalDifferenceSeconds"], high["totalSeconds"]-low["totalSeconds"])
         assert math.isclose(value["previousOverlapDifferenceSeconds"], max(high["ordinarySeconds"],high["specialSeconds"])-max(low["ordinarySeconds"],low["specialSeconds"]), abs_tol=1e-12)
+    field_shape = data.get("recoilFieldShapingProposal")
+    if field_shape:
+        for row in field_shape["illustrations"]:
+            assert 0 <= row["severity"] <= 1
+            assert 0 < row["illustrativeFieldFactor"] <= 1
+            assert math.isclose(row["ordinarySeconds"], recoil_cap["maxRecoverySeconds"]*row["severity"]*row["illustrativeFieldFactor"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "recoilFieldShapingState": field_shape["state"] if field_shape else None,
             "specialRecoveryCompositionState": composition["state"] if composition else None,
             "groundPickupRecoilCapState": recoil_cap["state"] if recoil_cap else None,
             "groundPickupRecoilBasisState": data.get("groundPickupRecoilBasisProposal", {}).get("state"),
