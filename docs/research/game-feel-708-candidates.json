@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "same-impact-additive-recovery-accepted; field-dependent-recoil-shaping-pending; incomplete-runtime-contract",
+  "status": "recoil-field-shaping-accepted; numeric-field-recovery-factors-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -296,8 +296,13 @@
     },
     {
       "id": "F693-02-recoil-field-shaping",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a shared incoming-speed onset for ordinary recoil, with Fielding shortening duration after severity is capped so strong fielders retain their recovery advantage even on the hardest ordinary pickups?"
+    },
+    {
+      "id": "F693-02-recoil-field-factors",
+      "state": "next-human-decision",
+      "question": "Use a linear five-percentage-point reduction per Field point above 1 for ordinary recoil, giving max recovery .20 at Field1, .16 at Field5 and .11 at Field10?"
     },
     {
       "id": "F693-02-movement-response",
@@ -2846,7 +2851,7 @@
   },
   "recoilFieldShapingProposal": {
     "decisionId": "F693-02-recoil-field-shaping",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "Use one ordinary arrival-speed onset across Field ratings. Above it, determine bounded speed severity first, then apply a decreasing Field recovery factor. Field reduces duration rather than shifting the onset; strong fielders retain a shorter ordinary recovery even at saturated impact severity.",
     "formula": "ordinaryRecovery(v,Field)=.20*S(v)*F(Field), where S is monotonic in arrival speed, zero through a shared onset and in [0,1]; F is positive, at most 1 and decreases with Field. Numerical onset/full-severity speeds, S curve and F table remain unselected. Then add applicable special recovery per the separately accepted same-impact rule.",
     "scope": "Structure of ordinary retained-ball ground-pickup recoil only. No numerical speed threshold or Field multipliers selected; no change to general catching/reach, bobble chance, movement speed, other stats or special-effect resistance. Exact physical/action recovery remains pending.",
@@ -2890,6 +2895,114 @@
       "Same event-sided incoming speed, state and result for both seats/CPU; no render-frame quantization or extra minimum timer",
       "Numeric curves, actual motion/action permissions, full races and independent scoring validated before runtime or human acceptance"
     ],
-    "implementationBoundary": "Pending shape/ordering policy only. No numeric threshold, severity curve or Field factor approved here; no runtime, roster, special balance, motion or simulation changes."
+    "implementationBoundary": "Accepted shared-onset, severity-before-Field shaping policy. Numerical speed thresholds, severity curve and Field factors remain separate; no runtime/roster/special-balance/motion/simulation changes.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to a shared recoil threshold with Fielding reducing recovery duration after severity is capped."
+  },
+  "recoilFieldFactorsProposal": {
+    "decisionId": "F693-02-recoil-field-factors",
+    "state": "pending",
+    "minField": 1,
+    "maxField": 10,
+    "factorAtMinField": 1.0,
+    "factorReductionPerPoint": 0.05,
+    "recommendation": "Use F(Field)=1-.05*(Field-1) for validated integer Field ratings 1 through 10. Apply this factor to the already capped ordinary speed-severity recovery; five percentage points of baseline per rating, not a compounding five-percent reduction.",
+    "formula": "ordinaryRecovery=.20*S(incomingSpeed)*(1-.05*(Field-1)); same-impact special recovery is added afterward and is not multiplied by this ordinary factor.",
+    "rows": [
+      {
+        "field": 1,
+        "factor": 1.0,
+        "fullSeveritySeconds": 0.2,
+        "halfSeveritySeconds": 0.1
+      },
+      {
+        "field": 2,
+        "factor": 0.95,
+        "fullSeveritySeconds": 0.19,
+        "halfSeveritySeconds": 0.095
+      },
+      {
+        "field": 3,
+        "factor": 0.9,
+        "fullSeveritySeconds": 0.18000000000000002,
+        "halfSeveritySeconds": 0.09000000000000001
+      },
+      {
+        "field": 4,
+        "factor": 0.85,
+        "fullSeveritySeconds": 0.17,
+        "halfSeveritySeconds": 0.085
+      },
+      {
+        "field": 5,
+        "factor": 0.8,
+        "fullSeveritySeconds": 0.16000000000000003,
+        "halfSeveritySeconds": 0.08000000000000002
+      },
+      {
+        "field": 6,
+        "factor": 0.75,
+        "fullSeveritySeconds": 0.15000000000000002,
+        "halfSeveritySeconds": 0.07500000000000001
+      },
+      {
+        "field": 7,
+        "factor": 0.7,
+        "fullSeveritySeconds": 0.13999999999999999,
+        "halfSeveritySeconds": 0.06999999999999999
+      },
+      {
+        "field": 8,
+        "factor": 0.6499999999999999,
+        "fullSeveritySeconds": 0.12999999999999998,
+        "halfSeveritySeconds": 0.06499999999999999
+      },
+      {
+        "field": 9,
+        "factor": 0.6,
+        "fullSeveritySeconds": 0.12,
+        "halfSeveritySeconds": 0.06
+      },
+      {
+        "field": 10,
+        "factor": 0.55,
+        "fullSeveritySeconds": 0.11000000000000001,
+        "halfSeveritySeconds": 0.05500000000000001
+      }
+    ],
+    "relationships": {
+      "fullSeveritySecondsSavedPerPoint": 0.01,
+      "field1To10MaxDifferenceSeconds": 0.09,
+      "field10ReductionFraction": 0.45,
+      "run5SteadyRunnerDistanceForMaxDifferenceFeet": 2.4406779661016946
+    },
+    "scope": "Numerical Field factor for ordinary retained-ball ground-pickup recoil only. Shared onset/full-severity speeds and S curve remain pending. No roster rating edits, new skill, catch/bobble/throw-release change or automatic resistance to special recovery. Invalid stat values follow existing content validation rather than hidden clamping.",
+    "rationale": "A meaningful but moderate spread: Field10 has 45% shorter ordinary recoil than Field1 at the same positive severity, without becoming immune. Full-severity per-point difference is .01 seconds and shrinks proportionally for lesser impacts; preserve sub-frame timestamps. Same special contribution preserves this absolute difference under the accepted additive rule.",
+    "alternatives": [
+      {
+        "reductionPerPoint": 0.04,
+        "field10Factor": 0.64,
+        "field10MaxSeconds": 0.128,
+        "effect": "Smaller Fielding advantage, 36% maximum reduction."
+      },
+      {
+        "reductionPerPoint": 0.06,
+        "field10Factor": 0.46,
+        "field10MaxSeconds": 0.092,
+        "effect": "Larger Fielding advantage, 54% maximum reduction."
+      }
+    ],
+    "evidence": "ContentValidation explicitly validates Field in 1..10. Current KnockbackSec uses a different pre-cap Field-deficit formula with original hit energy; this trial is not claimed to preserve old balance. No measured Mario numeric Field table supports these factors.",
+    "validationNotes": "Rows are derived design arithmetic, not simulated plays. S=.5 is normalized half severity, not half incoming speed; actual S(v) remains unselected. The 2.441-foot sensitivity for .09 seconds uses steady C80 Run5 pace, excluding startup/mash/rounding and geometry.",
+    "requiredChecks": [
+      "All supported Field1..10 rows positive and strictly decreasing, Field1 .20 maximum and Field10 .11",
+      "Zero S gives zero for all Field; partial/full severity keep proportional Field benefit without a common saturation plateau",
+      "Each point saves .01 at full severity; no per-frame rounding or minimum timer flattening small differences",
+      "Special recovery added once after ordinary factor; do not multiply entire combined recovery or ordinary .30 release",
+      "Existing ratings unchanged, invalid content rejected, both seats/CPU use same event speed and formula",
+      "After speed thresholds/curve and physical permissions are selected, verify complete grounder/force/relay races, character roles, independent scoring and standalone human gate"
+    ],
+    "implementationBoundary": "Pending numeric Field-factor trial. No speed threshold/severity curve, runtime rules/roster, recovery animation or human acceptance selected here."
   }
 }
