@@ -955,12 +955,17 @@ def derive(data):
                 assert jb_row["takeoffSeconds"] is None and jb_row["landingSeconds"] is None
     jump_characters = data.get("normalJumpCharacterProfileProposal")
     if jump_characters:
-        assert jump_characters["state"] == "pending"
+        if jump_characters["state"] == "accepted-calibration-anchor":
+            assert jump_characters["acceptedBy"] and jump_characters["acceptedOn"] and jump_characters["acceptanceEvidence"]
         for jc_key in ("peakBodyRiseFeet", "airtimeSeconds", "apexSeconds"):
             assert math.isclose(jump_characters[jc_key], jump_arc[jc_key])
+    jump_catch_input = data.get("normalJumpCatchInputProposal")
+    if jump_catch_input:
+        assert jump_catch_input["state"] == "pending"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "normalJumpCatchInputState": jump_catch_input["state"] if jump_catch_input else None,
             "normalJumpCharacterProfileState": jump_characters["state"] if jump_characters else None,
             "normalJumpInputBufferState": jump_buffer["state"] if jump_buffer else None,
             "normalJumpStartupTrialState": jump_startup["state"] if jump_startup else None,
