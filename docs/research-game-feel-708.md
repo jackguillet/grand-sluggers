@@ -788,9 +788,9 @@ Validate the ordinary component and total body path separately for stationary, m
 
 This is an authored physical response, not measured Mario motion. The report checks integration, monotonicity and exact endpoints analytically, not actual runtime contacts or collision behavior. Validate sub-tick readiness and equivalent split integration, stationary/moving/opposing pickups, acquisition-time outs, actual bag departure, both seats/CPU and character extremes before full races and standalone feel. Arrival-speed thresholds remain unselected.
 
-## Next decision — combining ordinary and special impact motion
+## Accepted decision — combining ordinary and special impact motion
 
-**F693-02-special-impact-motion-composition — pending, September 15, 2026.** Recommend **combining ordinary recoil and an authored special impact concurrently from the same pickup/impact**. Each contributes motion once to one actual body/glove path. The special adds its authored effect without replacing the ordinary Field-dependent response or waiting for a second shove animation.
+**F693-02-special-impact-motion-composition — accepted by Jack on September 15, 2026.** Jack approved **combining ordinary recoil and an authored special impact concurrently from the same pickup/impact**. Each contributes motion once to one actual body/glove path. The special adds its authored effect without replacing the ordinary Field-dependent response or waiting for a second shove animation.
 
 **Why this follows the approved direction:** ordinary recoil already rewards Fielding with less displacement and shorter recovery. Retaining that contribution when a special hits preserves its value. With an aligned special in free space, adding the same special displacement preserves the ordinary distance difference between fielders. Different directions, running momentum and actual collisions can change net travel and outcomes; this does not promise a better fielder always ends nearer a bag or gets an out.
 
@@ -802,7 +802,21 @@ This is an authored physical response, not measured Mario motion. The report che
 
 The proposal does not yet decide whether Fielding also reduces the special's own strength. It is an authored composition policy, not a verified Mario stacking equation. The report checks the aligned illustration arithmetically; no special race, actual contact path or standalone feel is simulated. Validate source identity, individual motion endpoints, action deadlines, vector opposition, collision constraints and both seats/CPU before implementation.
 
-**Question for Jack:** combine ordinary and special pushback together from the impact, keeping the ordinary Fielding benefit and each effect's own motion limits?
+## Next decision — Fielding resistance to special impacts
+
+**F693-02-special-impact-field-resistance — pending, September 15, 2026.** Recommend **a modest Fielding reduction of the special's own physical pushback and associated impact recovery**, in addition to the ordinary benefit already preserved. Use `R(Field)=1-.20*(Field-1)/9` for validated ratings 1–10: Field1 receives 100% of the authored effect, Field5 about 91.1%, and Field10 **80%**. This chooses a 20% maximum reduction, not immunity.
+
+**Why add this benefit:** ordinary Field differences survive the approved composition, but a powerful special can dominate the reaction. Letting Fielding modestly resist the special itself keeps a strong defender valuable in that encounter. Reusing the ordinary factor would reduce a special by as much as 45%; the proposed separate 20% maximum leaves most of the attack intact. This is an authored trial, not a measured Mario formula.
+
+**What is reduced:** the special's physical-impact displacement, its motion duration and recovery explicitly attributed to that impact. Apply `R` once to the special component before combining it with ordinary motion/recovery. Keep ordinary `F(Field)` unchanged; never apply either factor to the entire combined result. Each special must declare its impact component and action restrictions. This is not automatic resistance to burn, charm, freeze, visual obstruction, terrain effects, bobbles or every special-hit property.
+
+**Coherent motion mapping:** for an authored finite impact velocity profile `v_base(t)` lasting `M`, use `v_resisted(t)=v_base(t/R)` lasting `R*M`. Peak velocity stays the same, while travel and duration both fall by `R`. A better fielder braces sooner without receiving a faster initial kick; braking/acceleration can be up to 25% greater at Field10, which must be checked visually. Scale the corresponding impact-recovery durations by `R`, then apply the already approved per-action recovery sum. Do not retime an entire multi-stage attack or unrelated status script with this formula; an incompatible attack requires its own reviewed contract.
+
+**Illustration only:** take the prior unselected special example of 2 feet and .40 seconds. Its own contribution at Field10 would become **1.6 feet and .32 seconds**. With maximum ordinary recoil, Field1 versus Field10 would receive **3.00 versus 1.9025 feet** of combined impact travel and **.60 versus .43 seconds** of recovery for an action blocked by both. These are stationary, aligned, free-space arithmetic examples, not selected attack data or simulated outs. Actual momentum, directions and collisions remain authoritative.
+
+Field10 still receives 80% of the special's physical effect. Dedicated immunity/resistance abilities, named attack exceptions, individual strengths and earlier/repeated-effect behavior remain separate. Validate per-source factors, velocity-profile integration, non-impact status isolation, action readiness, both seats/CPU and the same real attacks against weak/strong fielders before standalone feel acceptance. No runtime or human gate changes here.
+
+**Question for Jack:** let Fielding also reduce special physical pushback and impact recovery, reaching a modest 20% reduction at Fielding 10?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

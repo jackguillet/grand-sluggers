@@ -331,8 +331,13 @@
     },
     {
       "id": "F693-02-special-impact-motion-composition",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For the same retained-ball pickup/impact, combine ordinary Field-dependent recoil and an authored special motion contribution concurrently in one body path, each counted once, preserving their own motion clocks and the accepted additive action recovery?"
+    },
+    {
+      "id": "F693-02-special-impact-field-resistance",
+      "state": "next-human-decision",
+      "question": "Let Fielding moderately reduce the special physical impact itself: linearly from no reduction at Field1 to 20 percent shorter special displacement and impact recovery at Field10, keeping non-impact statuses separate?"
     },
     {
       "id": "F693-02-movement-response",
@@ -3380,7 +3385,7 @@
   },
   "specialImpactMotionCompositionProposal": {
     "decisionId": "F693-02-special-impact-motion-composition",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "recommendation": "For the same retained-ball pickup/impact, apply ordinary Field-dependent recoil and the authored special impact motion concurrently from that event, combining their velocity contributions into one authoritative body/glove path. Count each contribution once; do not replace ordinary recoil with the special or play two sequential shove animations.",
     "scope": "Same pickup/impact, one ordinary response and one authored special motion contribution. Does not decide earlier/unrelated impacts, repeated strikes, multiple specials, loose-ball/bobble effects, or special motion following a later distinct impact event.",
     "composition": "v_total(t)=v_locomotion(t)+v_ordinary(t)+v_special(t) in unobstructed space, with each authored contribution using its own event-relative clock, direction, bounds and end condition. Integrate one body position and evaluate contacts on that path. Do not add distances as unsigned scalars for different directions. The ordinary component retains its one-foot maximum and T=.20*S*F; special motion never stretches ordinary T.",
@@ -3439,6 +3444,69 @@
       "Same stepping/prediction across seats/CPU; special strength, Field resistance and earlier/repeated/multiple-effect rules remain separately reviewed.",
       "Validate real special-plus-ordinary races and standalone impact readability after attack values and arrival-speed thresholds are selected."
     ],
-    "implementationBoundary": "Pending same-impact physical composition only. No individual special strengths, special Field resistance or runtime motion selected; examples are analytical, not candidate simulation or human acceptance."
+    "implementationBoundary": "Accepted same-impact physical composition only; individual special values and resistance remain pending. No individual special strengths, special Field resistance or runtime motion selected; examples are analytical, not candidate simulation or human acceptance.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to combining ordinary and special pushback from the same impact, with separate limits and the ordinary Fielding benefit preserved."
+  },
+  "specialImpactFieldResistanceProposal": {
+    "decisionId": "F693-02-special-impact-field-resistance",
+    "state": "pending",
+    "recommendation": "Fielding also moderately reduces the special physical impact contribution: scale its displacement and associated impact-recovery durations linearly from 1.0 at Field1 to .80 at Field10. Preserve separate ordinary recoil and individually authored special identity; this is not universal magic/status resistance.",
+    "minField": 1,
+    "maxField": 10,
+    "maxReduction": 0.2,
+    "factorFormula": "R(Field)=1-.20*(Field-1)/9",
+    "scope": "Proposed shared resistance rule for authored special-hit physical knockback on the affected fielder and the recovery explicitly attributed to that impact. Does not automatically shorten burn, charm, freeze, visual obstruction, terrain hazards, ball-path effects, bobbles or unrelated ability states. Each special must identify its physical-impact contribution and associated action restrictions.",
+    "application": "Evaluate validated Field at the authoritative impact event. Apply R once to the special contribution before composing with ordinary motion/recovery. Ordinary T=.20*S*F and D=(S*F)^2 retain their own accepted factor; never scale the combined total or apply ordinary F to the special. Do not infer extra resistance from Run, body size or Ball Dash.",
+    "motionMapping": "For a finite authored special velocity profile v_base(t) with duration M, use v_resisted(t)=v_base(t/R) for 0<=t<=R*M. This preserves its directional sequence and peak velocity, compresses its duration by R, and scales integrated displacement by R. Strong fielders brace sooner rather than receiving a faster initial kick. Acceleration/braking magnitudes can increase by 1/R, at most 1.25 here; inspect that reaction in play. This is the proposed mapping for physical pushback, not a way to retime an arbitrary multi-stage special script.",
+    "recoveryMapping": "Multiply each declared special-impact recovery duration by R; keep other status clocks unchanged. Then apply accepted same-event per-action ordinary-plus-special recovery composition. A special whose motion and action windows do not fit this shared mapping must receive a reviewed coherent contract, not a silent exception or a runtime retiming of its whole script.",
+    "specialIdentity": "Field10 still receives 80 percent of the authored special displacement and impact recovery; Field alone grants no immunity. Dedicated resistance/immunity abilities and specific special exceptions require separate named review. No new roster ability or effect is introduced.",
+    "examples": [
+      {
+        "field": 1,
+        "specialFactor": 1.0,
+        "specialDistanceFeet": 2.0,
+        "specialMotionSeconds": 0.4,
+        "specialRecoverySeconds": 0.4,
+        "combinedDistanceFeet": 3.0,
+        "combinedRecoverySeconds": 0.6000000000000001
+      },
+      {
+        "field": 5,
+        "specialFactor": 0.9111111111111111,
+        "specialDistanceFeet": 1.8222222222222222,
+        "specialMotionSeconds": 0.36444444444444446,
+        "specialRecoverySeconds": 0.36444444444444446,
+        "combinedDistanceFeet": 2.4622222222222225,
+        "combinedRecoverySeconds": 0.5244444444444445
+      },
+      {
+        "field": 10,
+        "specialFactor": 0.8,
+        "specialDistanceFeet": 1.6,
+        "specialMotionSeconds": 0.32000000000000006,
+        "specialRecoverySeconds": 0.32000000000000006,
+        "combinedDistanceFeet": 1.9025,
+        "combinedRecoverySeconds": 0.43000000000000005
+      }
+    ],
+    "exampleScope": "Illustrative full ordinary severity plus the prior aligned 2-foot/.40-second special motion and .40-second impact recovery, from rest in free space. These special values remain unselected placeholders. Field1 versus Field10 combined impact travel would be 3 versus 1.9025 feet and shared-action recovery .60 versus .43 seconds. No actual special, collision or play has been simulated.",
+    "rationale": "Ordinary Field differences already survive special stacking, but a large special can dominate the total. A modest separate resistance keeps good Fielding relevant to the actual attack while preserving most of its authored effect. The proposed 20 percent ceiling is an authored trial, not a measured Mario factor.",
+    "alternatives": [
+      "No extra special resistance preserves the ordinary benefit but lets the same special affect every Field rating equally.",
+      "Reusing the ordinary Field factor would reduce the special by up to 45 percent instead of the proposed 20 percent, a much larger general defensive benefit."
+    ],
+    "referenceLimit": "No verified Wii/GameCube continuous Field-to-special-resistance formula is established. This proposal follows the accepted project goals and requires individual special/race/standalone validation.",
+    "requiredChecks": [
+      "Factor endpoints 1/.80 at Field1/10, monotonic across validated ratings and applied exactly once to the special contribution.",
+      "Special displacement and impact recovery scale by R; ordinary contribution is unchanged and the combined total is not scaled again.",
+      "Retimed impact profile preserves peak velocity, integrates to R times displacement, and ends at R times its own duration.",
+      "An effect with zero authored pushback acquires none; separate burn/charm/other statuses retain their reviewed clocks.",
+      "Per-action readiness remains coherent with physical motion and existing buffer/cancel behavior; no extra animation tail or implicit immunity.",
+      "Compare low/high Field against the same actual authored attack, across seats/CPU, ordinary severities and collision cases; do not claim a universal out advantage.",
+      "Review each special strength and identity, exceptions/abilities and repeated-effect behavior before runtime or human feel acceptance."
+    ],
+    "implementationBoundary": "Pending special physical-impact resistance only. No individual attack numbers, non-impact status resistance, runtime changes or human gate selected."
   }
 }

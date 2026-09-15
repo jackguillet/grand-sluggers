@@ -770,7 +770,8 @@ def derive(data):
                 previous = distance
     special_motion = data.get("specialImpactMotionCompositionProposal")
     if special_motion:
-        assert special_motion["state"] == "pending"
+        if special_motion["state"] == "accepted-calibration-anchor":
+            assert special_motion["acceptedBy"] and special_motion["acceptedOn"] and special_motion["acceptanceEvidence"]
         for row in special_motion["examples"]:
             w = 1-.05*(row["field"]-1)
             assert math.isclose(row["ordinaryDistanceFeet"], w*w)
@@ -779,9 +780,24 @@ def derive(data):
             assert math.isclose(row["actionReadyAfterSeconds"], .20*w+row["specialRecoverySeconds"])
             assert math.isclose(row["impactMotionEndsAfterSeconds"], max(.20*w, .40))
             assert math.isclose(row["combinedInitialImpactFeetPerSecond"], 10*w+2*row["specialDistanceFeet"]/.40)
+    resistance = data.get("specialImpactFieldResistanceProposal")
+    if resistance:
+        assert resistance["state"] == "pending"
+        for row in resistance["examples"]:
+            factor = 1-resistance["maxReduction"]*(row["field"]-resistance["minField"])/(resistance["maxField"]-resistance["minField"])
+            w = 1-.05*(row["field"]-1)
+            assert math.isclose(row["specialFactor"], factor)
+            assert math.isclose(row["specialDistanceFeet"], 2*factor)
+            assert math.isclose(row["specialMotionSeconds"], .4*factor)
+            assert math.isclose(row["specialRecoverySeconds"], .4*factor)
+            assert math.isclose(row["combinedDistanceFeet"], w*w+2*factor)
+            assert math.isclose(row["combinedRecoverySeconds"], .2*w+.4*factor)
+            # Illustrative triangular profile keeps its initial 10 ft/s speed.
+            assert math.isclose(10*row["specialMotionSeconds"]/2, row["specialDistanceFeet"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "specialImpactFieldResistanceState": resistance["state"] if resistance else None,
             "specialImpactMotionCompositionState": special_motion["state"] if special_motion else None,
             "ordinaryRecoilMotionProfileState": motion["state"] if motion else None,
             "ordinaryRecoilDistanceCapState": displacement_cap["state"] if displacement_cap else None,
