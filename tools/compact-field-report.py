@@ -266,6 +266,8 @@ def derive(data):
         assert cancel["acceptedBy"] and cancel["acceptedOn"] and cancel["acceptanceEvidence"]
     pursuit = data.get("pursuitSpeedProposal")
     if pursuit:
+        if pursuit["state"] == "accepted-calibration-anchor":
+            assert pursuit["acceptedBy"] and pursuit["acceptedOn"] and pursuit["acceptanceEvidence"]
         v = pursuit["run5FeetPerSecond"]
         scale = v / pursuit["baselineRun5FeetPerSecond"]
         for row in pursuit["statRows"]:
@@ -283,8 +285,18 @@ def derive(data):
         for alt in pursuit["alternatives"]:
             assert math.isclose(alt["thirtyFeetSeconds"], 30 / alt["run5FeetPerSecond"])
             assert math.isclose(alt["rearChaseSeconds"], rear["c80GapFeet"] / alt["run5FeetPerSecond"])
+    outfield_read = data.get("outfieldReadProposal")
+    if outfield_read:
+        a = outfield_read["arithmetic"]
+        earlier = outfield_read["currentSecondsFromContact"] - outfield_read["secondsFromContact"]
+        assert math.isclose(a["earlierEligibilitySeconds"], earlier)
+        assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
+        assert math.isclose(a["extraPotentialFeetAtRun5TopSpeed"], earlier * a["speedFeetPerSecond"])
+        assert math.isclose(a["controlReadPlusRearTravelSeconds"], outfield_read["currentSecondsFromContact"] + pursuit["rearChase"]["controlTravelSeconds"])
+        assert math.isclose(a["trialReadPlusRearTravelSeconds"], outfield_read["secondsFromContact"] + pursuit["rearChase"]["trialTravelSeconds"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "pursuitSpeedState": pursuit["state"] if pursuit else None,
             "throwCancelState": cancel["state"] if cancel else None,
             "throwBufferState": buffer["state"] if buffer else None,
             "laserThrowState": laser["state"] if laser else None,

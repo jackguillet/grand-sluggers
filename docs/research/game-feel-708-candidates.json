@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-throw-and-relay-controls-accepted; pursuit-speed-pending; incomplete-runtime-contract",
+  "status": "C80-throw-controls-and-pursuit-speed-accepted; outfield-read-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -105,7 +105,7 @@
   },
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
-    "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
+    "pursuit": "One ordinary per-character profile and Run-5 top speed 18 ft/s are accepted. Scale the original relative Run curve by 18/30.5. Existing IF/OF time-preserving sensitivities remain comparisons, not selected coefficients; read, response, coverage and ball calibration remain open.",
     "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay command-per-leg direction is accepted, with the 0.25-second buffer and contextual RB/period cancel accepted; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Snap Throw and situational Laser trial definitions are accepted below; remaining recovery and geometry interactions need validation.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
@@ -181,13 +181,18 @@
     },
     {
       "id": "F693-02-pursuit-speed",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use 18 ft/s as the ordinary Run-5 pursuit top speed for C80, preserving the relative character-speed curve and using one profile across positions and hit classes?"
     },
     {
-      "id": "F693-02-read-clock",
+      "id": "F693-02-outfield-read-clock",
+      "state": "next-human-decision",
+      "question": "Use a 0.40-second base outfield read from contact, with no extra camera wait, as the first trial?"
+    },
+    {
+      "id": "F693-02-infield-read-clock",
       "state": "pending",
-      "question": "Choose the brief post-contact read durations and eligibility rules without adding camera-dependent lockout."
+      "question": "Review infield, pitcher and catcher read durations against routine defense and short-contact plays."
     },
     {
       "id": "F693-02-movement-response",
@@ -906,7 +911,7 @@
   },
   "pursuitSpeedProposal": {
     "decisionId": "F693-02-pursuit-speed",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "run5FeetPerSecond": 18.0,
     "formula": "speed(Run) = (21 + 1.9*Run) * (18/30.5)",
     "baselineBaseFeetPerSecond": 21.0,
@@ -994,6 +999,54 @@
       "Both human seats and deterministic CPU routes use matching movement predictions",
       "Named mixed-park and separate Harbor home/away scoring gates, extra-base/relay counts and standalone feel"
     ],
-    "implementationBoundary": "Pending speed trial. No runtime coefficients change until the shared movement/geometry/ball contract is complete and implementation children exist. Record failures against accepted intent; numerical arithmetic is not gameplay acceptance."
+    "implementationBoundary": "Accepted top-speed trial; runtime migration pending. No runtime coefficients change until the shared movement/geometry/ball contract is complete and implementation children exist. Record failures against accepted intent; numerical arithmetic is not gameplay acceptance.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to 18 ft/s as the middle fielder pursuit trial, with proportional character speed differences."
+  },
+  "outfieldReadProposal": {
+    "decisionId": "F693-02-outfield-read-clock",
+    "state": "pending",
+    "secondsFromContact": 0.4,
+    "currentSecondsFromContact": 0.83,
+    "recommendation": "Use 0.40 seconds from bat contact as the base LF/CF/RF ordinary pursuit read. No new delay after the camera changes. Retain the existing airborne hang cap, fixed contact-clock eligibility and human-versus-CPU eligibility ownership structure for the trial.",
+    "scope": "Base outfield pursuit/read timing only. Infield/pitcher/catcher timings are the next decision. This is not a new ball freeze, guaranteed catch, blanket action lockout or numerical acceleration choice. Existing jump/catch/dive eligibility interactions require explicit review; do not extend the pursuit gate to every verb.",
+    "ownership": "The human-owned glove uses the base read even under neutral-stick assistance, independent of difficulty. CPU-driven bodies retain the existing difficulty-multiplier mechanism; its coefficients remain baseline assumptions for later difficulty validation. Switching gloves does not restart or erase the contact-clock read.",
+    "eligibility": "At normal uncapped human/standard-base timing, ordinary pursuit becomes eligible at contact + 0.40 seconds. For an airborne shape retain the existing min(read, first-ground/hang time) cap; grounders have no new cap. Required other action constraints remain. Do not wait for camera completion or make camera transition alter sim time.",
+    "input": "The currently held direction can govern motion when pursuit becomes eligible; do not require a second stick movement. This does not add a pre-contact throw buffer or change the accepted onward-throw buffer. Discrete dive/jump/catch presses need their own existing action eligibility review.",
+    "arithmetic": {
+      "earlierEligibilitySeconds": 0.43,
+      "extraPotentialFeetAtRun5TopSpeed": 7.74,
+      "speedFeetPerSecond": 18.0,
+      "controlReadPlusRearTravelSeconds": 6.021256830601093,
+      "trialReadPlusRearTravelSeconds": 4.094444444444445
+    },
+    "arithmeticScope": "Uncapped read plus constant-speed straight CF-to-wall sensitivity, excluding acceleration, interception, reach, pickup and ball motion. Extra 7.74 feet isolates .43 seconds at trial top speed; neither number predicts an actual catch or extra-base outcome.",
+    "alternatives": [
+      {
+        "secondsFromContact": 0.3,
+        "effect": "Earlier control, less visible read and more recovery time."
+      },
+      {
+        "secondsFromContact": 0.5,
+        "effect": "Longer readable beat, but longer time before movement responds."
+      }
+    ],
+    "reference": {
+      "url": "https://mariobaseball.miraheze.org/wiki/Fielding_Mechanics?oldid=410",
+      "scope": "Previously retained community table reports 50-frame GameCube outfield eligibility and 25-frame camera change; at an assumed 60 Hz, .833 and .417 seconds. Not independently measured stock footage. Fresh revision retrieval failed; Fandom search excerpt still reports 50/50 outfield entries."
+    },
+    "referenceLimits": "0.40 seconds is an authored shorter trial, not a verified Wii duration or exact GameCube behavior. Wii corresponding input-to-move interval remains unresolved. Existing .42-second Harbor camera transition is a separate observation, not the cause or required duration of this read.",
+    "tradeoff": "Less apparent unresponsiveness while retaining a visible read. Adds recovery opportunity on top of compact geometry; slower top speed does not cancel this automatically. Deep-hit opportunities must be preserved through full ball/pursuit calibration, not a larger outfield or hidden freeze.",
+    "requiredChecks": [
+      "Human/neutral-stick and CPU-controlled bodies with declared difficulty",
+      "Grounder/liner/fly/pop/wall and airborne hang-cap boundary",
+      "Held stick across contact and early/late glove changes",
+      "No added camera-completion wait; visible read reflects sim eligibility",
+      "Ordinary pursuit versus catch/jump/dive and cover gates audited separately",
+      "Read-start/eligibility/first-displacement timestamps, response ramp and actual interception",
+      "Compact deep-hit/relay opportunity and independently gated scoring cohorts"
+    ],
+    "implementationBoundary": "Pending read trial. Change no runtime or camera timing in research. Shared gameplay eligibility and route prediction must agree; presentation makes the read legible in a separately owned change. Human gate remains open."
   }
 }
