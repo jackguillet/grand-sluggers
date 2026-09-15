@@ -563,9 +563,31 @@ def derive(data):
         assert math.isclose(row["extraDistanceWithinWindowFeet"], (peak-v)*seconds)
         for alternative in duration["alternatives"]:
             assert math.isclose(alternative["run5IdealExtraDistanceFeet"], (peak-v)*alternative["seconds"])
+    carrier = data.get("ballDashCarrierProposal")
+    if carrier and carrier["state"] == "accepted-calibration-anchor":
+        assert carrier["acceptedBy"] and carrier["acceptedOn"] and carrier["acceptanceEvidence"]
+    carry = data.get("ordinaryCarrySpeedProposal")
+    if carry:
+        ratio = carry["ordinaryPursuitMultiplier"]
+        boost = carrier["speedMultiplier"]
+        for row in carry["characterArithmetic"]:
+            speed = (21+1.9*row["run"])*pursuit["run5FeetPerSecond"]/pursuit["baselineRun5FeetPerSecond"]*ratio
+            assert math.isclose(row["ordinaryCarryFeetPerSecond"], speed)
+            assert math.isclose(row["ballDashCarryFeetPerSecond"], speed*boost)
+        row = carry["run5Comparison"]
+        v = pursuit["run5FeetPerSecond"]*ratio
+        assert math.isclose(row["ordinaryConstantSpeedCarrySeconds"], row["distanceFeet"]/v)
+        assert math.isclose(row["ballDashConstantSpeedCarrySeconds"], row["distanceFeet"]/(v*boost))
+        assert math.isclose(row["ordinaryNeutralThrowFlightSeconds"], row["distanceFeet"]/(80/.9))
+        assert math.isclose(row["ordinaryNeutralThrowReleaseSeconds"], .30)
+        assert math.isclose(row["ordinaryNeutralReleasePlusFlightSeconds"], row["ordinaryNeutralThrowReleaseSeconds"]+row["ordinaryNeutralThrowFlightSeconds"])
+        for alt in carry["alternatives"]:
+            assert math.isclose(alt["run5OrdinaryCarryFeetPerSecond"], pursuit["run5FeetPerSecond"]*alt["ordinaryPursuitMultiplier"])
+            assert math.isclose(alt["run5BallDashCarryFeetPerSecond"], alt["run5OrdinaryCarryFeetPerSecond"]*boost)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryCarrySpeedState": carry["state"] if carry else None,
             "ballDashCarrierState": data.get("ballDashCarrierProposal", {}).get("state"),
             "fieldDashDurationState": duration["state"] if duration else None,
             "fieldDashPeakState": dash["state"] if dash else None,

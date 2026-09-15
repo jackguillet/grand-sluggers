@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "dash-scope-reopened-for-passive-ball-carrier-ability; prior-other-anchors-retained; incomplete-runtime-contract",
+  "status": "passive-ball-dash-20-percent-accepted; ordinary-carry-speed-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -251,23 +251,28 @@
     },
     {
       "id": "F693-02-field-dash-peak",
-      "state": "reopened-scope",
+      "state": "superseded-by-ball-dash-carrier",
       "question": "Use a 1.20x peak ordinary fielding dash speed, preserving character ratios, with duration/availability and dash response reviewed next?"
     },
     {
       "id": "F693-02-field-dash-duration",
-      "state": "reopened-scope",
+      "state": "superseded-by-ball-dash-carrier",
       "question": "Use a maximum two-second continuous fielding dash window, including build-up, then return toward ordinary running, with recovery/re-arming and physical response reviewed separately?"
     },
     {
       "id": "F693-02-ball-dash-carrier",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Replace universal activated fielding sprint with automatic Ball Dash only for ability holders with secure live-ball possession, with no burst/cooldown, and retain 1.20x ordinary carry speed as the first numerical trial?"
+    },
+    {
+      "id": "F693-02-ordinary-carry-speed",
+      "state": "next-human-decision",
+      "question": "Use the character\u2019s ordinary pursuit top speed as ordinary carrying speed, with no generic possession penalty or bonus, then apply the accepted Ball Dash factor only to eligible carriers?"
     },
     {
       "id": "F693-02-movement-response",
       "state": "pending",
-      "question": "After the carrier-ability scope/bonus, review its movement transitions, ordinary carry/coverage, roster allocation and status interactions. Universal sprint duration/recovery is suspended."
+      "question": "After ordinary carrying top speed, review carrying/ability transitions, coverage, roster allocation and status. Universal sprint and burst/recharge are superseded."
     },
     {
       "id": "F693-02-coverage-budget",
@@ -2199,7 +2204,7 @@
   },
   "fieldDashPeakProposal": {
     "decisionId": "F693-02-field-dash-peak",
-    "state": "reopened-scope",
+    "state": "superseded-by-ball-dash-carrier",
     "peakSpeedMultiplier": 1.2,
     "currentHeldMultiplier": 1.35,
     "recommendation": "Use 1.20x ordinary pursuit top speed while a fielding dash is fully active: a 20% peak boost. Preserve accepted relative character speed differences and the same profile across assigned fielding positions/hit classes. Select peak speed only; duration, availability, fatigue/cooldown, response and CPU/assist ownership follow separately.",
@@ -2267,11 +2272,12 @@
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
     "acceptanceEvidence": "Jack replied sure to the proposed 20% peak fielding dash boost, taking Run-5 from 18 to 21.6 ft/s, with duration and availability reviewed next.",
-    "revisionReason": "After approving the two-second burst, Jack redirected the design: dash speed should apply automatically only to a character with the Dash ability while holding the ball, and asked for the recommendation. Suspend the universal activated-sprint direction; review the replacement carrier ability before implementing."
+    "revisionReason": "After approving the two-second burst, Jack redirected the design: dash speed should apply automatically only to a character with the Dash ability while holding the ball, and asked for the recommendation. Suspend the universal activated-sprint direction; review the replacement carrier ability before implementing.",
+    "supersededBy": "F693-02-ball-dash-carrier"
   },
   "fieldDashDurationProposal": {
     "decisionId": "F693-02-field-dash-duration",
-    "state": "reopened-scope",
+    "state": "superseded-by-ball-dash-carrier",
     "maxBurstSeconds": 2.0,
     "recommendation": "Allow up to two seconds of continuous fielding dash eligibility, including build-up, then request ordinary running even if dash remains held. Return smoothly, with no below-ordinary exhaustion penalty from this choice.",
     "scope": "One continuous ordinary fielding pursuit burst, same duration across characters. Recovery time, fresh-press/re-arming rules, per-play reset policy, CPU/assisted activation, status/carry and numerical build-up/fade remain separate. No baserunning change.",
@@ -2319,17 +2325,18 @@
     "revisionReason": "After approving the two-second burst, Jack redirected the design: dash speed should apply automatically only to a character with the Dash ability while holding the ball, and asked for the recommendation. Suspend the universal activated-sprint direction; review the replacement carrier ability before implementing.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
-    "acceptanceEvidence": "Jack replied sure to the two-second proposal, then immediately redirected dash toward an automatic possession-only character ability before that approval was committed."
+    "acceptanceEvidence": "Jack replied sure to the two-second proposal, then immediately redirected dash toward an automatic possession-only character ability before that approval was committed.",
+    "supersededBy": "F693-02-ball-dash-carrier"
   },
   "ballDashCarrierProposal": {
     "decisionId": "F693-02-ball-dash-carrier",
-    "state": "pending",
-    "origin": "Jack proposed automatic ability-only speed while holding the ball; assistant recommends this replacement. Previous 1.20 pursuit approval does not automatically approve the new carry scope.",
+    "state": "accepted-calibration-anchor",
+    "origin": "Jack redirected dash to automatic ability-only movement while carrying, then approved the recommended 20% carrier trial.",
     "speedMultiplier": 1.2,
     "recommendation": "Replace the universal activated fielding sprint with passive Ball Dash: only a character assigned the ability receives 1.20x ordinary carry movement target speed while securely possessing the live ball. No activation input, two-second expiry, stamina or cooldown. Maintain ordinary pursuit before possession; existing baserunning mash is separate.",
     "possession": "Use authoritative secure live-ball ownership, never nearest-fielder, selected-glove or planned receiver. A bobble/loose ball or throw in flight gives no owner this bonus. It applies to actual carrying/tagging movement, not delivery animations, throws, dives or pickup reach; it never unlocks otherwise unavailable movement. End the boosted target on loss/release; shared physical movement response prevents a velocity snap.",
     "ownership": "Same eligibility for human and CPU fielders. Player still steers and chooses carry versus throw; passive speed does not auto-tag or auto-chase. CPU carry/throw estimates, actual steps and arrival traces must use the same eligible state and effective speed.",
-    "numericScope": "Recommend retaining 20% as a conservative carrier trial, not as measured Mario magnitude or transferred approval. Ordinary carry base and transitions remain pending; 18 to 21.6 ft/s is conditional on carry using the Run-5 ordinary pursuit base. No final holder speeds or guaranteed rundown outcome selected.",
+    "numericScope": "Accepted 20% carrier multiplier, not measured Mario magnitude. Ordinary carry base and transitions remain pending; 18 to 21.6 ft/s is conditional on carry using the Run-5 ordinary pursuit base. No final holder speeds or guaranteed rundown outcome selected.",
     "lifecycle": "A possession-conditioned ability removes the reason for a sprint burst/recharge timer. The previous two-second discussion is historical and reopened, not an additional passive-ability limit. Receiving again reapplies eligibility; throwing/receiving must still pay real transfer/travel clocks. Status/stacking and precise response remain separately reviewed.",
     "rosterAudit": "Inspected all 25 current data/characters records: no Dash/Ball Dash fieldAbility assigned. Existing FieldAbilities has no possession-speed branch. Do not assume holders or silently add this on top of another fieldAbility; roster allocation needs its own decision.",
     "sources": [
@@ -2346,6 +2353,63 @@
       "Roster opportunity cost, couch description and removal of obsolete East/G dash copy in future presentation/book work",
       "Independent scoring cohorts and Jack standalone acceptance; no candidate simulations in this revision"
     ],
-    "implementationBoundary": "Research proposal and reopened decision history only. No runtime, roster, control mapping or help text changes. Keep prior non-dash approvals and historical evidence intact."
+    "implementationBoundary": "Accepted passive carrier-ability scope and multiplier. No runtime, roster, control mapping or help edits; ordinary carry speed/response, ability holders and human validation remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied approve to retaining a 20% bonus for automatic Ball Dash, only for ability holders securely carrying the ball, replacing universal activated sprint and its burst/cooldown."
+  },
+  "ordinaryCarrySpeedProposal": {
+    "decisionId": "F693-02-ordinary-carry-speed",
+    "state": "pending",
+    "ordinaryPursuitMultiplier": 1.0,
+    "recommendation": "Use each character\u2019s ordinary pursuit top speed as ordinary live-ball carrying top speed. No generic possession penalty or boost; Ball Dash multiplies this by the separately accepted 1.20 only for eligible ability holders.",
+    "scope": "Top speed for available carrying/tagging movement after secure possession, across characters/assigned positions and both human/CPU control. This does not choose off-ball cover speeds, pickup/throw recovery, acceleration/turn/brake response, new movement permissions, status stacking, baserunning or ability holders.",
+    "formula": "carryBase(Run)=(21+1.9*Run)*(18/30.5); eligibleBallDashCarry=carryBase*1.20; explicit status and movement eligibility remain separately reconciled.",
+    "characterArithmetic": [
+      {
+        "run": 1,
+        "ordinaryCarryFeetPerSecond": 13.514754098360655,
+        "ballDashCarryFeetPerSecond": 16.217704918032783
+      },
+      {
+        "run": 5,
+        "ordinaryCarryFeetPerSecond": 18.0,
+        "ballDashCarryFeetPerSecond": 21.599999999999998
+      },
+      {
+        "run": 9,
+        "ordinaryCarryFeetPerSecond": 22.485245901639342,
+        "ballDashCarryFeetPerSecond": 26.98229508196721
+      }
+    ],
+    "run5Comparison": {
+      "distanceFeet": 40.0,
+      "ordinaryConstantSpeedCarrySeconds": 2.2222222222222223,
+      "ballDashConstantSpeedCarrySeconds": 1.851851851851852,
+      "ordinaryNeutralThrowReleaseSeconds": 0.3,
+      "ordinaryNeutralThrowFlightSeconds": 0.45,
+      "ordinaryNeutralReleasePlusFlightSeconds": 0.75
+    },
+    "arithmeticScope": "Illustrative 40-foot straight carry at steady top speed versus ordinary Field-5 neutral throw release+flight. Excludes pickup, thinking, start/turn/brake, bag/tag geometry, receiver coverage/recovery, catch and special effects; not a predicted out or actual CPU decision.",
+    "alternatives": [
+      {
+        "ordinaryPursuitMultiplier": 0.9,
+        "run5OrdinaryCarryFeetPerSecond": 16.2,
+        "run5BallDashCarryFeetPerSecond": 19.44,
+        "effect": "Generic 10% carrying penalty makes pickup slow every carrier and increases the burden on short unassisted plays."
+      }
+    ],
+    "currentAudit": "CPU WalkGloveTo and CpuWalkSec call the base ChaseSpeedFt overload. Manual WalkGloveWithStick passes Preview when not loose; the position/preview overload can retain old air-class multipliers if that preview is an air ball. Therefore verify actual carry state and avoid claiming current manual/CPU parity. This audit is not a standalone runtime fix.",
+    "implementationRail": "One explicit shared carry speed owner consumed by movement, CPU carry-versus-throw forecast and traces. Secure possession changes movement context, not current velocity by assignment or read/pickup recovery. Neither retained contact class nor EastHeld grants a carry bonus. Actual physical response is a subsequent decision. Do not fix old modifiers in isolation from coherent calibration.",
+    "referenceLimit": "Ball Dash community descriptions establish a distinct possession ability, not the ordinary carry-to-pursuit speed ratio or these absolute speeds in either Mario game. Ratio 1.0 is an authored consistency trial; matched carry/pursuit footage remains required.",
+    "requiredChecks": [
+      "Run 1/5/9 same ordinary pursuit/carry top speed and eligible 1.20 ratio; both seats and CPU",
+      "Grounder/fly/liner catches lead to the same ordinary carry profile for a given character; no retained-preview air modifier",
+      "Secure possession versus bobble/release/in-flight states; no generic EastHeld sprint",
+      "Movement and carry/throw prediction share context/response, with geometric receivers and out/tag bounds",
+      "Short unassisted forces, tags/rundowns, long carries versus throws/relays, status and abilities; preserve runner anchors",
+      "Independent scoring cohorts and human standalone feel; no candidate simulation here"
+    ],
+    "implementationBoundary": "Pending top-speed relation, no runtime or control changes. Response and complete-race validation remain open."
   }
 }
