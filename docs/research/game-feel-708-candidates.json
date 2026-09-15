@@ -416,8 +416,13 @@
     },
     {
       "id": "F693-02-normal-jump-character-profile",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use the same 2-foot root rise and .60-second ordinary jump for all characters, preserving body/glove reach and Run differences, with special jump abilities reviewed separately?"
+    },
+    {
+      "id": "F693-02-normal-jump-catch-input",
+      "state": "next-human-decision",
+      "question": "Retain jump as the only required action press for a normal jumping catch, completing eligible actual ball/glove contact without a second catch press?"
     },
     {
       "id": "F693-02-special-attack-contracts",
@@ -4408,7 +4413,7 @@
   },
   "normalJumpCharacterProfileProposal": {
     "decisionId": "F693-02-normal-jump-character-profile",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "peakBodyRiseFeet": 2.0,
     "airtimeSeconds": 0.6,
     "apexSeconds": 0.3,
@@ -4433,6 +4438,35 @@
       "Verify short/tall and slow/fast characters in both seats, CPU/assistance, standing/running jumps and high/low catch opportunities, with authored pose and physical reach agreeing.",
       "Compare reference footage and actual roster catch coverage before judging fairness or Mario similarity; no mesh changes or human gate pass in this research step."
     ],
-    "implementationBoundary": "Pending ordinary character-profile choice only. Actual glove/catch geometry and exceptional jump contracts remain incomplete. No runtime, roster, mesh, rig or motion asset change; human standalone acceptance remains open."
+    "implementationBoundary": "Accepted ordinary character-profile choice only. Actual glove/catch geometry and exceptional jump contracts remain incomplete. No runtime, roster, mesh, rig or motion asset change; human standalone acceptance remains open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to shared ordinary jump height and airtime across characters, with special abilities handled separately."
+  },
+  "normalJumpCatchInputProposal": {
+    "decisionId": "F693-02-normal-jump-catch-input",
+    "state": "pending",
+    "requiresSecondCatchPress": false,
+    "jumpPressGuaranteesPossession": false,
+    "recommendation": "Retain one action press for a normal jumping catch: the eligible jump input initiates the jump and catch attempt; eligible actual ball/glove contact during that jump can secure the ball without a separate South/catch press. Positioning, takeoff timing and limited steering remain player-owned.",
+    "scope": "Normal jumping acquisition of an airborne batted ball. This does not decide ordinary grounded fly input, teammate-throw reception, ground pickups, dives, wall/buddy/Super Jump input, or automatic jump ownership. Those remain governed by their accepted or separately reviewed contracts.",
+    "geometry": "An actual legal contact with the authoritative glove catch geometry is required; jumping under a predicted landing marker, being within a legacy broad radius or having an active timer cannot alone award possession. The ball and glove must meet on their actual trajectories. Numerical glove volume, authored pose/reach, collision ordering and reconciliation of current catch windows remain mandatory before implementation. This selects no new radius, snap, teleport or homing correction.",
+    "input": "No second catch-button timing challenge and no requirement to keep jump held. Releasing jump does not cancel the attempt or shorten the arc. An extra catch press cannot extend airtime, reset the jump, enlarge reach or turn a miss into a catch. After landing, the jumping attempt ends and ordinary grounded rules apply; no leftover jump timer grants an airborne catch or queues another jump.",
+    "ownership": "No extra auto-jump is introduced. Existing CPU/assist ownership decides whose intents may initiate movement; all use the same actual catch geometry and restrictions. Switching selection cannot turn an otherwise valid physical interception into a miss solely because the body is no longer selected, nor transfer the active jump to another body. Shared event ownership must prevent duplicate possession/out awards.",
+    "eligibility": "Contact only secures the ball when catching is legal and applicable effects permit acquisition. No generic additional drop roll is introduced. Reviewed special-hit effects can block acquisition or alter possession; resolve same-event possession loss before transient outs or carrier abilities, and preserve already completed outs after a later distinct loss. This is not special-hit immunity or approval of unfinished individual special contracts.",
+    "afterCatch": "Preserve the accepted physical arc, actual horizontal velocity and landing-before-throw readiness. Catching does not snap the fielder down, restart the arc, choose a throw target or begin an automatic throw. Existing buffered throw expiry and recovery restrictions remain authoritative.",
+    "currentAudit": "LivePlaySystem computes jumpTry from JumpT and HighEnough then passes it alongside pad.SouthDown to FlyCatch.PlayerCaught. PlayerCaught accepts its jump branch independently of southDown when existing spatial/window/rob predicates pass. Retain that one-press interaction while replacing timer/radius shortcuts with the separately reviewed physical catch model; the current code is not proof of physical glove contact.",
+    "tradeoff": "One jump press keeps the timing challenge on the visible leap and interception. Requiring a second press adds a separate dexterity check and could make an apparently correct glove contact fail. Preserve timing and positioning as the challenge while keeping acquisition visible and reliable.",
+    "referenceLimit": "Current repository input behavior directly supports retaining one press. Previously reviewed Wii/GC manuals describe jump actions but do not establish exact catch collision geometry, all input edge cases or measured success windows. No claim of verified frame-for-frame Mario parity; compare visible ordinary jump catches in both references and the future standalone.",
+    "requiredChecks": [
+      "A legal actual interception during a normal jump can secure possession with no South input; a jump with no eligible contact cannot.",
+      "Hold/release and extra catch presses do not add a second timing gate, enlarge reach or reset/extend the jump.",
+      "A miss near the glove remains a miss under the reviewed geometry; broad landing markers or legacy timers cannot substitute for contact.",
+      "Airborne acquisition respects special/status restrictions and resolves same-event loss before temporary outs or Ball Dash; no new random ordinary drop.",
+      "Catches do not alter the arc or landing-before-release rule; a throw still needs its independent valid command.",
+      "Selected, deselected, CPU and assisted fielders share physical eligibility and single-owner ball acquisition, across both seats/input schemes.",
+      "Review actual glove volume/pose and collision ordering before runtime implementation, update both couch-book surfaces, and inspect standalone catches/misses; docs do not pass a human gate."
+    ],
+    "implementationBoundary": "Pending normal-jump catch-input contract only. No runtime, controller mapping, catch geometry, motion asset or human gate changes."
   }
 }

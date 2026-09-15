@@ -1050,9 +1050,9 @@ Validate one shared event timeline in prediction, stepping and animation, includ
 
 The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Measure input-synchronized near-ready presses in both references and the eventual standalone game. Validate inclusive expiry, overlapping restrictions, fresh versus held input, cancellation/conflicting actions, support/possession/ownership changes and both seats/schemes. Future implementation must reconcile the physical jump and both couch-book surfaces. No runtime or human gate changes here.
 
-## Next decision — ordinary jump differences between characters
+## Accepted decision — ordinary jump differences between characters
 
-**F693-02-normal-jump-character-profile — pending, September 15, 2026.** Recommend the **same 2-foot root rise and .60-second ordinary jump for every character**, with the apex at .30 seconds. Do not add an ordinary jump-height stat or scale the vertical arc by body size, Field or Run. Exceptional jump abilities remain separately reviewed.
+**F693-02-normal-jump-character-profile — accepted by Jack on September 15, 2026.** Jack approved the **same 2-foot root rise and .60-second ordinary jump for every character**, with the apex at .30 seconds. Do not add an ordinary jump-height stat or scale the vertical arc by body size, Field or Run. Exceptional jump abilities remain separately reviewed.
 
 **What stays different:** equal lift does not mean equal absolute glove height. Body proportions and the authored glove pose still determine where the glove travels relative to the root. A higher glove can reach a higher ball, all else equal; do not pull all characters' gloves to one world height or secretly boost a short character's root. Actual glove trajectories and catch allowances still need a separate geometry decision, so this does not establish a numerical catch height or rank the current roster's reach.
 
@@ -1064,7 +1064,23 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 
 **Reference and implementation boundary:** no matched Wii/GC per-character root-rise/airtime table has been established. This is an authored roster-control choice. Compare short/tall and slow/fast ordinary jumps in both games, separating root motion, arm reach and special abilities. Then inspect the eventual standalone glove paths across the roster. Author character expression without extra hidden root lift, clip startup, airtime or a body resize; preserve the one-rig system. No runtime, character asset or human gate changes here.
 
-**Question for Jack:** keep the same ordinary lift and airtime across characters, with differences coming from their body/glove reach, movement stats and separately reviewed jump abilities?
+## Next decision — catching during a normal jump
+
+**F693-02-normal-jump-catch-input — pending, September 15, 2026.** Recommend **retaining one action press for a normal jumping catch**: jump, position the glove, and secure the ball on eligible actual contact without pressing a second catch button. The player owns takeoff timing and the limited midair correction.
+
+**Why:** requiring another press would add a separate timing challenge after the player has already positioned and timed the leap. A visible, otherwise legal glove interception could fail solely because that extra press was missing. Keep the challenge on reaching the ball with the actual glove. A premature, late or badly positioned jump can still miss; pressing jump is not a reservation of possession.
+
+**Current input precedent:** `LivePlaySystem.Field` supplies `jumpTry` and `pad.SouthDown` separately to `FlyCatch.PlayerCaught`. Its jump branch does not require South when its existing spatial/window/rob predicates pass. Preserve that interaction through the planned physical-jump rewrite. Those current radius/window checks do not prove a real glove interception and cannot silently become the new geometric standard.
+
+**Actual interception remains mandatory:** evaluate ball and glove on their real trajectories with the reviewed catch geometry. No automatic snap to the ball, extended reach from a landing marker, or catch merely because `JumpT` remains active. Glove volume, authored pose/reach, collision ordering and reconciliation of old catch windows still require review before implementation. This proposal selects the input relationship, not those numerical tolerances.
+
+**Input and lifecycle:** no second catch press or continued hold is required. An extra catch press cannot extend the jump, enlarge the glove or turn a miss into a catch. A normal jump attempt ends at landing; subsequent grounded catches use their own rules. Selection changes neither transfer the active jump to another body nor make a valid physical interception fail merely because its fielder is no longer selected. Existing ownership controls jump initiation; this introduces no automatic human-side leap.
+
+**Possession and specials:** secure only when acquisition is legal and applicable effects permit it. Retain reliable ordinary defense without a new generic drop roll. Special hits can still block acquisition or change possession under their reviewed contracts; resolve same-event possession loss before transient outs/abilities, while a later distinct loss cannot undo an already completed out. Catching preserves the accepted arc and landing-before-throw rule. It never starts a throw without the independent valid command.
+
+**Scope and evidence:** normal jumping catches of airborne batted balls only. Grounded fly input, teammate throws, pickups and exceptional jumps remain separate. The repository establishes the existing one-press path; reviewed Mario manuals do not establish exact collision geometry or all input edge cases. Compare ordinary jump catches in both reference games and the eventual standalone before claiming feel parity. Validate catches and near misses with no South input, hold/release, both seats/schemes, CPU/assistance and special effects, using one authoritative acquisition event. Future implementation must reconcile the physical catch and both couch-book surfaces. No runtime or human gate changes here.
+
+**Question for Jack:** keep jump as the only required action press, with a normal jumping catch completing on eligible actual ball–glove contact?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
