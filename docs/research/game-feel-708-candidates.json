@@ -446,8 +446,18 @@
     },
     {
       "id": "F693-02-ordinary-handling-resolution",
-      "state": "next-human-decision",
+      "state": "superseded-by-user-direction",
       "question": "Resolve difficult ordinary acquisition through consistent physical-condition/handling limits rather than a chance roll, with special-hit outcomes reviewed separately?"
+    },
+    {
+      "id": "F693-02-ordinary-handling-error-chance",
+      "state": "accepted-calibration-anchor",
+      "question": "User correction: a small error chance depends on acquisition difficulty and underlying defensive quality; routine reliability remains accepted."
+    },
+    {
+      "id": "F693-02-ordinary-handling-error-cap",
+      "state": "next-human-decision",
+      "question": "Trial a 10% maximum error chance per qualifying difficult ordinary acquisition attempt, with routine plays at zero and specials reviewed separately?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4610,7 +4620,7 @@
   },
   "ordinaryHandlingResolutionProposal": {
     "decisionId": "F693-02-ordinary-handling-resolution",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "resolutionKind": "deterministic-handling-limits",
     "usesOrdinaryErrorChanceRoll": false,
     "challengeInputs": null,
@@ -4635,6 +4645,74 @@
       "Special-hit resolution and unrelated RNG consumers are not accidentally changed while replacing ordinary bobble rolls.",
       "Choose context inputs, trait curve and physical failure outcomes before implementation, then compare reference/standalone behavior and scoring."
     ],
-    "implementationBoundary": "Pending ordinary handling-resolution direction only. No challenge inputs, numerical curve, failure profile, RNG migration, runtime or human gate selected."
+    "implementationBoundary": "Historical deterministic proposal, briefly approved then explicitly superseded before implementation by Jack's chance-based correction. Do not implement seed-independent ordinary handling outcomes from this record.",
+    "supersededBy": "F693-02-ordinary-handling-error-chance",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack first replied approve, then interrupted before documentation changes and explicitly revised the decision: add a bit of error chance based on degree of difficulty and character defensive quality. The later instruction controls."
+  },
+  "ordinaryHandlingErrorChanceDirection": {
+    "decisionId": "F693-02-ordinary-handling-error-chance",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack: actually, i think we should add a bit of error chance roll. the chance is based on degree of difficulty and the quality of the character's defense.",
+    "direction": "Use a small error chance for qualifying difficult ordinary acquisitions, based on the degree of difficulty and the character's underlying defensive quality. This supersedes the briefly approved deterministic-handling proposal. Higher difficulty increases risk; better defensive handling reduces risk, holding other inputs fixed.",
+    "scope": "The accepted difficult/disrupted-opportunity gate and reliable routine handling remain in force. This correction changes the resolution model, not the decision to exclude a generic random failure on routine legal catches/pickups. Special-hit outcomes and throw accuracy retain separate contracts.",
+    "traits": "Defensive quality is supplied by explicitly defined underlying handling/defensive traits under the accepted summary architecture. Displayed Fielding alone is not a gameplay input, and neither it nor the error roll changes glove positioning, catch-range size, jump timing or ability ownership. Exact contributing traits and their mapping remain unselected.",
+    "rangeAndControl": "Catch range determines a reachable opportunity and corresponding visible glove placement. The qualified error chance concerns securing control under difficulty. Failed handling needs a reviewed visible bobble/control-loss outcome, not a fake glove-positioning miss or an automatic base/out award.",
+    "samplingRail": "Implement event-based authoritative randomness through the project's replayable seeded-randomness rail. Resolve a qualifying acquisition opportunity once; do not roll on every frame, client/presentation path or repeated callback. Define stable attempt identity and genuine new-attempt rules before implementation, so lingering in range or changing selection cannot multiply error risk. Identical full state plus random state replays identically; identical physical conditions across different draws may differ.",
+    "possession": "Resolve acquisition/error before granting secure-possession benefits or outs. Preserve the accepted ordinary retained-ball recoil and pure-pushback possession rules; no fresh chance check merely because a secured fielder recoils. Later distinct dislodging effects need explicit contracts and cannot reverse completed outs.",
+    "numericalBoundary": "No maximum chance, difficulty measure, defense curve, floor, roll boundary or failure profile is approved by this direction. Current InPlay.Bobbles uses original-hit energy and Field with a cap; its numbers and triggers do not automatically transfer to the new model. The explicit consumer migration remains required.",
+    "requiredChecks": [
+      "Routine legal acquisitions remain free of a generic error roll; only reviewed difficult opportunities qualify.",
+      "For fixed quality, probability cannot fall as reviewed difficulty rises; for fixed difficulty, improved relevant defense cannot raise probability.",
+      "Glove reach/positioning and display-only Field changes do not alter the qualified chance; named underlying traits are its quality inputs.",
+      "One authoritative result per stable acquisition opportunity; frame partition, selection and duplicate callbacks cannot reroll it.",
+      "Replay with the same event/random state agrees; outcome differences across different draws are permitted.",
+      "Physical failure/possession ordering preserves geometric outs, retained-ball recoil and separately authored special effects."
+    ],
+    "referenceLimit": "User-authored chance-based correction; no measured Wii/GC chance curve or difficulty/defense formula established.",
+    "implementationBoundary": "Accepted chance-resolution direction only. No numerical chance, context catalog, error outcome, RNG/trait migration, runtime or human gate selected."
+  },
+  "ordinaryHandlingErrorCapProposal": {
+    "decisionId": "F693-02-ordinary-handling-error-cap",
+    "state": "pending",
+    "maximumOrdinaryErrorChance": 0.1,
+    "routineErrorChance": 0.0,
+    "difficultyCurve": null,
+    "defensiveQualityCurve": null,
+    "specialErrorCap": null,
+    "recommendation": "Trial a 10% maximum error chance for any one qualifying difficult ordinary acquisition attempt. Routine legal catches/pickups stay at zero; easier qualifying difficulties and better relevant defense reduce the chance under separately reviewed curves.",
+    "scope": "A ceiling, not a universal 10% chance on all difficult plays, a guaranteed worst-case assignment or an observed game-wide error rate. The exact combination reaching the ceiling remains part of curve calibration. Special attacks have separately reviewed effect probabilities and are not silently clamped to this ordinary cap.",
+    "probability": "For ordinary acquisition, require 0<=p(difficulty,quality)<=.10 after all applicable ordinary modifiers; no ordinary trait/item/combination may exceed it. A low defense rating does not make a routine play eligible. The difficulty and quality mappings, strongest-character floor and any special exceptions remain pending.",
+    "attempts": "The cap applies once per genuine qualifying acquisition attempt, not per tick and not as a cap on the entire play. Repeated observations of one attempt share its result. A later genuinely separate difficult attempt could have its own chance; define those boundaries and repeated-bobble behavior explicitly before implementation. No per-frame reroll or unlimited ambiguous retries.",
+    "expectationExample": {
+      "qualifyingAttemptsAtCap": 100,
+      "expectedErrors": 10,
+      "meaning": "Arithmetic expectation only if every attempt is evaluated at the ceiling. Not a guaranteed count, candidate simulation or prediction of errors per game."
+    },
+    "alternatives": [
+      {
+        "maximumOrdinaryErrorChance": 0.05,
+        "expectedErrorsPer100AtCap": 5,
+        "tradeoff": "Very rare failures even at the ordinary ceiling; less room for handling differences."
+      },
+      {
+        "maximumOrdinaryErrorChance": 0.15,
+        "expectedErrorsPer100AtCap": 15,
+        "tradeoff": "More visible uncertainty and handling differentiation, but more failed difficult acquisitions."
+      }
+    ],
+    "tradeoff": "Ten percent starts with occasional uncertainty while a qualifying difficult ordinary play still succeeds at least 90% of the time on this handling check alone. This does not include failures of position/range/legality or specials, nor guarantee a 90% total catch rate. Verify actual exposure frequency before calling the resulting game reliable.",
+    "currentAudit": "BobbleRules.MaxChance currently defaults to .5 and InPlay.Bobbles uses original-hit energy and Field. That is a code observation, not a measured in-game rate or an accepted replacement curve. A 10% ceiling would deliberately differ from that maximum; use event traces and explicit trait migration rather than transplanting the old energy formula.",
+    "referenceLimit": "Authored first ceiling to interpret Jack's request for a bit of error chance. No matched Wii/GC error percentages support 10%; reference frequency/context and standalone playtests remain required.",
+    "requiredChecks": [
+      "Every qualifying ordinary probability is bounded in [0,.10], including all ordinary modifiers; routine cases remain zero.",
+      "Difficulty and defense curves remain separately reviewed; no blanket .10 assignment to all non-routine balls.",
+      "Deduplicate one physical attempt and verify replay/event ordering; define fresh attempts after a failure before runtime work.",
+      "Measure how often qualifying attempts occur and resulting errors per game/cohort, not only the per-attempt cap.",
+      "Specials retain separate authored contracts and secure-ball recoil cannot trigger a new ordinary roll."
+    ],
+    "implementationBoundary": "Pending numerical ceiling only. No current chance table, curve, attempt definition, error outcome, runtime or human gate changed."
   }
 }

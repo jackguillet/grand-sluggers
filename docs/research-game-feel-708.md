@@ -1136,9 +1136,9 @@ This is an authored architecture proposal, not a verified Mario aggregation form
 
 No matched Wii/GC error-rate distribution has been established. Research routine and difficult acquisitions separately, including visible causes and special effects, then choose the eligible contexts and resolution model before numerical tuning. This proposal selects neither new error odds nor a current code change. Standalone and scoring gates remain open.
 
-## Next decision — consistent handling limits or a chance roll
+## Historical proposal — consistent handling limits (superseded)
 
-**F693-02-ordinary-handling-resolution — pending, September 15, 2026.** Recommend **consistent handling limits for difficult ordinary acquisition**, rather than a chance roll. The same actual acquisition conditions and underlying handling trait produce the same result, independent of random seed. Better handling tolerates more of the reviewed difficulty before control is lost.
+**F693-02-ordinary-handling-resolution — briefly approved, then explicitly superseded by Jack on September 15, 2026 before implementation.** The following is historical, not the current target. The proposal recommended **consistent handling limits for difficult ordinary acquisition**, rather than a chance roll. The same actual acquisition conditions and underlying handling trait produce the same result, independent of random seed. Better handling tolerates more of the reviewed difficulty before control is lost.
 
 **The distinction:** catch range answers whether the character can meet the ball. Handling answers whether they can secure control in a specifically qualified difficult situation. It must not change glove positioning, range or jump behavior. Routine legal catches remain reliable for every character; low handling alone cannot classify a play as difficult. The displayed Fielding summary is not an input.
 
@@ -1152,7 +1152,31 @@ No matched Wii/GC error-rate distribution has been established. Research routine
 
 **Evidence boundary:** no measured Wii/GC error algorithm establishes this mechanism. It is an authored recommendation. Compare the references' difficult-play conditions, visible outcomes and frequency without claiming their internal logic is known. Before implementation, select the actual condition inputs, handling curve and failure profiles; validate repeatability across seeds/frame partitions/seats, monotonic handling benefits, reliable routine cases and special-effect separation. Standalone and scoring gates remain open.
 
-**Question for Jack:** use consistent handling limits for difficult ordinary plays, so the same conditions produce the same result rather than an error chance roll?
+## Accepted direction — difficulty and defense determine error chance
+
+**F693-02-ordinary-handling-error-chance — directed by Jack on September 15, 2026.** Add **a small error chance based on degree of difficulty and the character's defensive quality**. Jack first approved the deterministic proposal, then explicitly revised it before the interrupted documentation turn made changes. This later direction controls.
+
+Higher difficulty raises risk; better relevant underlying defensive traits lower it. The displayed Fielding summary remains descriptive, and the chance model does not change catch range or glove positioning. Retain the accepted reliable-routine-play rule: this chance concerns qualified difficult ordinary acquisition, not every legal catch or pickup. Special-hit outcomes and throw accuracy remain separately governed.
+
+**One acquisition, one result:** use the project's authoritative replayable randomness and resolve a qualifying opportunity once. Repeated frames/callbacks, presentation or selection changes must not reroll it. Stable opportunity identity and what counts as a genuine later attempt need explicit definition before implementation. Same event/random state replays identically; different draws may produce different outcomes under otherwise identical physical conditions.
+
+**Control and possession:** an error concerns securing the ball under difficulty and must become a reviewed visible physical outcome. It cannot turn into a fake glove-positioning miss, an automatic base award or an out caption. Resolve acquisition/error before secure-possession effects. Pure pushback and ordinary retained-ball recoil keep their accepted possession rules; a later distinct dislodging effect cannot undo an already completed out.
+
+No probability cap, difficulty metric, trait curve, floor or failure profile is selected by Jack's direction. The current hit-energy/Field bobble formula is not automatically accepted. Reference comparison, event exposure measurements and explicit trait/RNG migration remain required.
+
+## Next decision — maximum ordinary handling-error chance
+
+**F693-02-ordinary-handling-error-cap — pending, September 15, 2026.** Recommend a first ceiling of **10% per qualifying difficult ordinary acquisition attempt**. Routine legal catches/pickups remain at zero. Easier qualifying situations and better defenders should have lower chances through the separately reviewed curves.
+
+**What 10% means:** even at the ceiling, the handling check succeeds 90% of the time. It does not mean every difficult play gets a 10% chance, that all catches succeed 90% of the time, or that errors occur in 10% of plays. Position/range/legality and special effects are separate. Across 100 attempts all evaluated at the ceiling, the expected count is 10 errors; that is probability arithmetic, not a guaranteed count or simulated game result.
+
+**Why this starting point:** 5% would make even the highest ordinary risk rare and leave less room for handling differences. 15% would make those differences and uncertainty more visible, with more failures. Ten percent is a proposed moderate ceiling for the requested bit of chance; it is not a measured Mario percentage. The exact difficulty/quality combination reaching the ceiling remains unselected.
+
+**Scope of the cap:** apply after all ordinary modifiers, once per genuine acquisition attempt. Do not roll repeatedly while the ball remains in range. A later genuinely separate difficult attempt may have its own chance, so this is not a per-play error cap; fresh-attempt and repeated-bobble behavior need explicit review. Special attacks retain their individual contracts and are not automatically limited to 10%. No new drop check follows a secured recoil or pure pushback.
+
+**Current evidence and validation:** `BobbleRules.MaxChance` defaults to .5, but that is neither an observed game-wide rate nor an approved future curve. A 10% ceiling deliberately differs from that maximum without adopting the old original-hit-energy formula. Validate probability bounds, routine zero risk, monotonic difficulty/defense effects, attempt deduplication and replay. Measure how often qualifying opportunities actually occur before judging errors per game, and compare Wii/GC contexts and visible error frequency. No runtime, probability table or human gate changes here.
+
+**Question for Jack:** start with a 10% maximum error chance on qualifying difficult ordinary acquisitions, with lower odds for easier plays and better defenders?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
