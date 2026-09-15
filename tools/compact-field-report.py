@@ -82,7 +82,7 @@ def derive(data):
         })
     tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
-               ROOT / "src/GrandSluggers.Sim/Fielding.cs",
+               ROOT / "src/GrandSluggers.Sim/Fielding.cs", ROOT / "src/GrandSluggers.Sim/BuntDefense.cs",
                ROOT / "src/GrandSluggers.Sim/ParkDiamond.cs", ROOT / "data/rules/running.json",
                ROOT / "data/rules/fielding.json", ROOT / "data/parks/harbor-diamond.json",
                ROOT / "data/art/clips.json", ROOT / "data/art/baseball-takes.json",
@@ -298,6 +298,8 @@ def derive(data):
         assert math.isclose(a["trialReadPlusRearTravelSeconds"], outfield_read["secondsFromContact"] + pursuit["rearChase"]["trialTravelSeconds"])
     infield_read = data.get("infieldReadProposal")
     if infield_read:
+        if infield_read["state"] == "accepted-calibration-anchor":
+            assert infield_read["acceptedBy"] and infield_read["acceptedOn"] and infield_read["acceptanceEvidence"]
         a = infield_read["arithmetic"]
         assert set(infield_read["positions"]) == {"1B", "2B", "SS", "3B"}
         assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
@@ -307,8 +309,18 @@ def derive(data):
             delta = infield_read["currentPositionSeconds"][row["position"]] - infield_read["secondsFromContact"]
             assert math.isclose(row["earlierSeconds"], delta, abs_tol=1e-12)
             assert math.isclose(row["potentialExtraFeet"], delta * a["speedFeetPerSecond"], abs_tol=1e-12)
+    pitcher_read = data.get("pitcherReadProposal")
+    if pitcher_read:
+        a = pitcher_read["arithmetic"]
+        assert pitcher_read["position"] == "P"
+        assert math.isclose(a["earlierThanCurrentSeconds"], pitcher_read["currentSecondsFromContact"] - pitcher_read["secondsFromContact"])
+        assert math.isclose(a["laterThanBaseInfieldSeconds"], pitcher_read["secondsFromContact"] - infield_read["secondsFromContact"])
+        assert math.isclose(a["earlierThanOutfieldSeconds"], outfield_read["secondsFromContact"] - pitcher_read["secondsFromContact"])
+        assert math.isclose(a["speedFeetPerSecond"], pursuit["run5FeetPerSecond"])
+        assert math.isclose(a["potentialExtraFeetAtRun5TopSpeed"], a["earlierThanCurrentSeconds"] * a["speedFeetPerSecond"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
+            "infieldReadState": infield_read["state"] if infield_read else None,
             "outfieldReadState": outfield_read["state"] if outfield_read else None,
             "pursuitSpeedState": pursuit["state"] if pursuit else None,
             "throwCancelState": cancel["state"] if cancel else None,
