@@ -998,9 +998,9 @@ The previously checked Wii/GC manuals establish press-oriented actions, not meas
 
 This is the shared baseline normal-jump trial on level ground. Character/ability variation, wall/buddy/diving profiles, slopes, exceptional impacts, input startup and actual glove reach remain separate. Check arc endpoints and peak, exact integration, neutral drift, early/late catches, short/tall characters, both seats/CPU and animation agreement, then inspect the standalone game. No runtime, rig or human gate changes here.
 
-## Next decision — normal-jump air-response strength
+## Accepted decision — normal-jump air-response strength
 
-**F693-02-normal-jump-air-response-trial — pending, September 15, 2026.** Recommend **10% of ordinary ground acceleration and braking rates** for active horizontal correction during the accepted .60-second jump. Keep the approved neutral coasting and takeoff momentum. This gives a numerical meaning to small corrections while preserving the importance of positioning before jumping.
+**F693-02-normal-jump-air-response-trial — accepted by Jack on September 15, 2026.** Jack approved **10% of ordinary ground acceleration and braking rates** for active horizontal correction during the accepted .60-second jump. Keep the approved neutral coasting and takeoff momentum. This gives a numerical meaning to small corrections while preserving the importance of positioning before jumping.
 
 **Shared response:** with ordinary character speed `V`, use `a_air=.10*(V/.20)` and `b_air=.10*(V/.10)`. Eligible active intent uses the previously accepted velocity-segment turn law at those rates, with the same analog shaping and appropriate ordinary/carry requested speed cap. Braking and acceleration are sequential phases, not independent forces to add. Neutral intent retains velocity; it does not brake toward zero. Integrate actual velocity into the physical root path with no overshoot or instant speed clamp.
 
@@ -1018,7 +1018,23 @@ These are root-motion examples, not added glove reach or a guaranteed catch. Neu
 
 **Evidence and validation:** this is an authored coefficient, not measured Mario steering. The previously reviewed official manuals establish inputs, not midair acceleration. Comparable Wii/GC neutral, perpendicular and opposite-input jumps still need observation, followed by standalone checks of actual body/glove paths. Verify exact integration and frame splitting, partial/changing intents, short/tall and slow/fast characters, both seats/schemes, CPU/assistance, possession transitions and restrictions. Runtime and human gates remain open.
 
-**Question for Jack:** use this restrained 10% air-steering trial, allowing small corrections while keeping the takeoff direction important?
+## Next decision — normal-jump startup timing
+
+**F693-02-normal-jump-startup-trial — pending, September 15, 2026.** Recommend **zero added gameplay startup**: begin the physical normal jump when the simulation accepts an eligible new press, without an extra crouch/windup timer. This makes the previously approved prompt, player-owned takeoff concrete.
+
+**Timeline:** if the eligible press is accepted at `t0`, takeoff and airborne steering begin at `t0`, the 2-foot apex occurs at `t0+.30`, and uninterrupted level-ground landing occurs at `t0+.60`. This is not a promise of zero hardware, input polling, rendering or display latency, and it cannot backdate the jump before input consumption. A .05-second grounded preparation would move the apex/landing to .35/.65 after acceptance; .10 would move them to .40/.70. Those are unselected alternatives, with the same .60 seconds in the air.
+
+**Why this trial:** a direct response supports a deliberate last-moment jump toward a reachable ball. A brief grounded preparation could sell weight, but also delays reaching height. Start with immediate takeoff and judge whether the authored motion reads well at the approved toy scale. It still permits early/late misses; the game does not synchronize the leap to ball arrival.
+
+**Physical and visible agreement:** preserve actual horizontal velocity at takeoff and use the accepted 10% air response from that event. No speed reset, added lunge or extra ground movement after takeoff. The authored launch and body compression must agree with the physical arc; do not leave visible feet planted through a hidden animation lead-in while the simulation already grants airborne reach. If a convincing launch requires genuine grounded anticipation, bring that tradeoff back for review. Do not quietly add delay, alter a character's body or move the gameplay glove ahead of the visible pose.
+
+**Eligibility remains authoritative:** evaluate ownership, ground support and applicable read/movement/recovery/throw restrictions before accepting the press. This adds no coyote time, midair second jump or held-button repeat. What happens to a new press made just before eligibility returns is a separate input-buffer decision; zero startup does not authorize waiting indefinitely for a catch or lock to end. Shared baseline startup applies to human, CPU and assisted intents under their existing ownership rules. Wall/buddy/diving and other exceptional profiles remain separate.
+
+**Reference boundary:** the Nintendo [GameCube manual](https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf) and [Wii manual](https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf), re-opened September 15, describe jump actions but do not supply a measured startup interval. This is an authored responsiveness trial. Input-synchronized footage must distinguish button/input consumption, first visible response and physical takeoff before claiming Mario parity. The current `WestDown`/`JumpT` code arms a catch window; that does not establish a physical startup duration.
+
+Validate one shared event timeline in prediction, stepping and animation, including different ball arrivals, frame partitions, both seats/schemes, CPU and short/tall bodies. Preserve the independent throw buffer and actual landing requirement; no new automatic throw follows. Future implementation must update both couch-book surfaces together. No runtime, motion asset or human gate changes here.
+
+**Question for Jack:** start the normal jump with no added crouch/windup delay once an eligible press is accepted?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
