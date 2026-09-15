@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-chemistry-long-range-and-relay-direction-accepted; snap-throw-pending; incomplete-runtime-contract",
+  "status": "C80-ordinary-chemistry-long-range-relay-and-snap-throw-accepted; laser-throw-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -161,13 +161,13 @@
     },
     {
       "id": "F693-03-snap-throw",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Make Snap Throw a 0.22-second release after cleanly receiving a teammate throw, replacing its 1.22x flight-speed boost?"
     },
     {
       "id": "F693-03-laser-throw",
-      "state": "pending",
-      "question": "Review Laser activation and travel-speed effect, including chemistry and long-range stacking."
+      "state": "next-human-decision",
+      "question": "Make Laser a 1.25x travel-speed bonus only on actual throws home with a live runner on third or between third and home, stacking once with pair chemistry and retaining ordinary release?"
     },
     {
       "id": "F693-03-input-buffer",
@@ -573,7 +573,7 @@
   },
   "snapThrowProposal": {
     "decisionId": "F693-03-snap-throw",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "abilityId": "snap-throw",
     "recommendation": "Replace the universal 1.22x flight-speed boost with a 0.22-second release after a cleanly received teammate throw. Retain 0.30 seconds for ordinary batted-ball catches, ground pickups and loose-ball recovery. Flight uses the ordinary arm, long-range and pair-chemistry rules.",
     "ordinaryReleaseSeconds": 0.3,
@@ -639,7 +639,7 @@
         "scope": "Original player guide by k_pflipsen describes quick fielding-to-throw action and relay/double-play usefulness; no measured 0.22-second value or definitive received-only trigger in that passage."
       }
     ],
-    "referenceLimits": "Mario-inspired role, authored scope and timing. The received-throw-only trigger is an explicit proposed Harbor rule here, not verified from the cited primary passages. No matched Wii/GameCube ability timing capture is available.",
+    "referenceLimits": "Mario-inspired role, authored scope and timing. The received-throw-only trigger is an explicitly accepted Harbor trial rule here, not verified from the cited primary passages. No matched Wii/GameCube ability timing capture is available.",
     "requiredChecks": [
       "Clean relay and double-play receptions versus grounders, flies and loose pickups",
       "Neutral/good/bad pairs and Field 1/5/8/9",
@@ -648,6 +648,132 @@
       "Direct/relay comparisons and character-specific regression cohorts after removing the old universal multiplier",
       "Visible transfer and release marker agree with the sim; no C# pose or independent presentation clock"
     ],
-    "implementationBoundary": "Pending proposal. Update the shared throw model, ability data, gameplay spec and systems catalog together during coherent gameplay implementation; synchronize the existing authored motion and book through their owners. No runtime or roster edits in this research step."
+    "implementationBoundary": "Accepted trial ability definition; runtime migration pending. Update the shared throw model, ability data, gameplay spec and systems catalog together during coherent gameplay implementation; synchronize the existing authored motion and book through their owners. No runtime or roster edits in this research step.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied sure to Snap Throw as a 0.22-second release after receiving a teammate throw, replacing its flight-speed boost."
+  },
+  "laserThrowProposal": {
+    "decisionId": "F693-03-laser-throw",
+    "state": "pending",
+    "abilityId": "laser",
+    "travelSpeedMultiplier": 1.25,
+    "ordinaryReleaseSeconds": 0.3,
+    "recommendation": "Replace the universal 1.45x travel-speed bonus with 1.25x on actual throws home while a live unresolved runner is on third or between third and home. Preserve ordinary release and apply actual pair chemistry once to full otherwise-calibrated flight.",
+    "activation": "At the start of release motion, the thrower has Laser, the actual leg targets home, and at least one active unresolved runner is on third or on the third-home path segment, in either direction. A scored/retired runner is excluded. Snapshot activation for this throw; do not change speed mid-flight when the runner reverses or scores. Queuing an input does not lock eligibility early.",
+    "relayScope": "An initial leg to a cutoff gets no Laser bonus just because the eventual destination is home. A Laser holder making the actual onward throw home may activate it. No chain-wide multiplier or forced direct throw.",
+    "stacking": "flight = ordinaryNeutralFlight / (pairFactor * laserFactor), with pairFactor 1.30 / 1.00 / 0.90 and laserFactor 1.25 only when eligible. Add ordinary release separately. Comfortable range is unchanged; the existing long-range time contribution is divided with the full flight, not erased. No accuracy, catch radius or free recovery bonus.",
+    "currentRule": {
+      "travelSpeedMultiplier": 1.45,
+      "source": "src/GrandSluggers.Sim/FieldAbilities.cs::ThrowMul; data/rules/fielding.json::abilities.laserMul",
+      "scope": "Universal multiplier on throws from a Laser holder, independent of target or runner state."
+    },
+    "roster": [
+      "brondo",
+      "boom",
+      "hex",
+      "nugget"
+    ],
+    "reference": {
+      "url": "https://gamefaqs.gamespot.com/gamecube/925314-mario-superstar-baseball/faqs/45143",
+      "scope": "Original GameCube player guide by k_pflipsen, Laser Beam section: fast throws home with a runner at/past third; notes outfield and relay applications. Supports tactical role, not 1.25x, exact runner-state boundaries or stacking formula."
+    },
+    "referenceLimits": "Nintendo Wii booklet text does not specify this named ability; no matched Wii/GameCube Laser timing or activation capture has been measured. The exact trigger boundary, snapshot policy, 1.25x factor and stacking are authored trial choices. Do not claim an exact hybrid.",
+    "tradeoff": "Creates a scoring-play specialty and limits pressure on routine infield and extra-base races. Substantially narrows current ability and lowers its bonus; roster balance, sacrifice flies and third-to-home opportunities need explicit validation. Good chemistry remains strong: 1.625x combined travel speed, not 1.55x.",
+    "alternative": "Retain a universal arm-speed bonus and calibrate its strength; simpler and broader, but overlaps arm stats and accelerates routine throws as well as scoring plays.",
+    "examples": [
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "neutral",
+        "ordinaryFlightSeconds": 0.9,
+        "laserFlightSeconds": 0.72,
+        "ordinaryTotalSeconds": 1.2,
+        "laserTotalSeconds": 1.02
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "good",
+        "ordinaryFlightSeconds": 0.6923076923076923,
+        "laserFlightSeconds": 0.5538461538461539,
+        "ordinaryTotalSeconds": 0.9923076923076923,
+        "laserTotalSeconds": 0.8538461538461539
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 80,
+        "pair": "bad",
+        "ordinaryFlightSeconds": 1.0,
+        "laserFlightSeconds": 0.8,
+        "ordinaryTotalSeconds": 1.3,
+        "laserTotalSeconds": 1.1
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 240,
+        "pair": "neutral",
+        "ordinaryFlightSeconds": 3.3000000000000003,
+        "laserFlightSeconds": 2.64,
+        "ordinaryTotalSeconds": 3.6,
+        "laserTotalSeconds": 2.94
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 240,
+        "pair": "good",
+        "ordinaryFlightSeconds": 2.5384615384615388,
+        "laserFlightSeconds": 2.030769230769231,
+        "ordinaryTotalSeconds": 2.8384615384615386,
+        "laserTotalSeconds": 2.330769230769231
+      },
+      {
+        "fieldStat": 5,
+        "distanceFeet": 240,
+        "pair": "bad",
+        "ordinaryFlightSeconds": 3.666666666666667,
+        "laserFlightSeconds": 2.9333333333333336,
+        "ordinaryTotalSeconds": 3.966666666666667,
+        "laserTotalSeconds": 3.2333333333333334
+      },
+      {
+        "fieldStat": 3,
+        "distanceFeet": 240,
+        "pair": "neutral",
+        "ordinaryFlightSeconds": 3.6317154255319153,
+        "laserFlightSeconds": 2.905372340425532,
+        "ordinaryTotalSeconds": 3.931715425531915,
+        "laserTotalSeconds": 3.205372340425532
+      },
+      {
+        "fieldStat": 3,
+        "distanceFeet": 240,
+        "pair": "good",
+        "ordinaryFlightSeconds": 2.7936272504091657,
+        "laserFlightSeconds": 2.2349018003273327,
+        "ordinaryTotalSeconds": 3.0936272504091655,
+        "laserTotalSeconds": 2.5349018003273325
+      },
+      {
+        "fieldStat": 3,
+        "distanceFeet": 240,
+        "pair": "bad",
+        "ordinaryFlightSeconds": 4.035239361702128,
+        "laserFlightSeconds": 3.228191489361702,
+        "ordinaryTotalSeconds": 4.335239361702127,
+        "laserTotalSeconds": 3.528191489361702
+      }
+    ],
+    "requiredChecks": [
+      "Home versus third/second/first/cutoff targets with same positions",
+      "Runner on third, advancing/returning on third-home, scored/retired, and no qualifying runner",
+      "Queue time versus release start eligibility; runner reversal cannot change an in-flight clock",
+      "Neutral/good/bad actual pairs; direct versus actual cutoff-home leg; no whole-chain boost",
+      "Field 1/3/5/9 including Brondo Field 3; short and deep distances",
+      "Ordinary release and accuracy preserved; uncovered receiver still needs real reception",
+      "Sacrifice fly/tag-up and close-play geometry; doubles/triples and independently gated scoring cohorts",
+      "One shared forecast/trajectory calculation for CPU and both human defensive seats"
+    ],
+    "implementationBoundary": "Pending research proposal. Keep stable ability ids/roster. Implement data, shared throw context, deterministic CPU forecast and spec/catalog together; presentation supplies readable feedback without changing the physics or creating a second clock."
   }
 }
