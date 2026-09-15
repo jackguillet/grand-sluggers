@@ -744,9 +744,9 @@ This decision selects only the normalized curve shape. It does not select how of
 
 Validate force/tag during recovery, misses and lost possession, recovery displacement changing contact, force removal, steering/throw locks, live other bodies, buffer/cancel/expiry and exact recovery deadlines. Once actual recovery motion and incoming-speed thresholds are chosen, verify complete races, both seats/CPU, independent scoring and standalone feel. No runtime, motion/book or candidate simulation changes here.
 
-## Next decision — physical displacement during ordinary recoil
+## Accepted decision — physical displacement during ordinary recoil
 
-**F693-02-ordinary-recoil-displacement — pending, September 15, 2026.** Recommend a **short, modest physical skid on qualifying hard retained-ball ground pickups**. Routine pickups with zero ordinary recoil add no shove. This selects whether impact moves the fielder, with exact distance/impulse and the combined velocity response still requiring review.
+**F693-02-ordinary-recoil-displacement — accepted by Jack on September 15, 2026.** Jack approved a **short, modest physical skid on qualifying hard retained-ball ground pickups**. Routine pickups with zero ordinary recoil add no shove. This selects whether impact moves the fielder, with exact distance/impulse and the combined velocity response still requiring review.
 
 **Why it matters:** a planted fielder can be pushed off a bag; a moving fielder's actual path can change. Valid contact at acquisition can still complete an out, and later separation does not reverse that out. If the runner arrives only after contact has been lost, possession alone cannot complete the force. There is no automatic bag return or protected contact. The alternative is an in-place brace with braking of existing movement, which gives ordinary impacts less positional consequence.
 
@@ -754,11 +754,25 @@ Validate force/tag during recovery, misses and lost possession, recovery displac
 
 **Physical rail:** incoming horizontal ball travel at acquisition supplies impact direction, including deflections; body facing, camera and home-plate direction do not. Integrate from actual position and velocity in the sim and let presentation follow. Do not teleport, erase existing momentum or tack on an animation recovery tail. The ordinary impact contribution fits inside the accepted Field-dependent recovery interval. Better Fielding retains its shorter recovery; precise distance/Field mapping must avoid turning that shorter interval into a harsher shove. No extra numerical resistance, mass/body-size rule or Ball Dash resistance is selected here.
 
-**Special hits:** stronger displacement and longer recovery remain available through their own reviewed rules. Adding ordinary and special recovery durations does not automatically define how physical impulses combine.
+**Special hits:** Jack emphasized “especially on special hits that impact the fielder.” Stronger displacement and longer recovery remain available through their own reviewed rules; this does not turn every special into a knockback attack or authorize unbounded force. Adding ordinary and special recovery durations does not automatically define how physical impulses combine.
 
 **Current audit:** `ArmRecoil` assigns the retained-ball timer without establishing a displacement law. `RecoilFtPerSec=14` appears only as a `BobbleRules` declaration in the inspected source/Unity search; it is not a verified active ordinary skid coefficient. The candidate therefore leaves maximum displacement, impulse and velocity response null. Required validation includes planted/moving pickups, acquisition/contact ordering, wall-deflected direction, fine recovery intervals, actual bag departure, shared predictor/stepper geometry and both seats/CPU. No candidate simulation or feel gate is passed.
 
-**Question for Jack:** allow modest physical pushback from qualifying ordinary hard pickups, including the possibility of moving off a bag?
+## Next decision — ordinary pushback distance ceiling
+
+**F693-02-ordinary-recoil-distance-cap — pending, September 15, 2026.** Recommend **at most one foot of added ordinary impact displacement** as the initial trial. Routine zero-recoil pickups add none; lesser impacts stay below the ceiling. This is a maximum, not a fixed one-foot slide on every qualifying pickup. Exact severity/Field mapping and velocity response follow separately.
+
+**Scale and tradeoff:** one foot is **1.25% of an 80-foot basepath**. A half-foot ceiling is more restrained and could be harder to read; 1.5 feet produces more positional disruption. One foot keeps ordinary impact modest while leaving impacting special hits room for larger reactions. These are authored comparison budgets, not measured Mario distances or verified camera readability.
+
+**What the ceiling measures:** the added ordinary impact contribution, not all movement after catching the ball. A fielder already running can travel farther as existing momentum is braked. One integrated sim body/glove path determines contact; never clamp the body to a one-foot circle, erase velocity, or let opposite-direction motion conceal an oversized impact contribution. Contact can be lost before the runner arrives, while a legally completed out remains completed.
+
+**Recovery and Fielding:** the impact response must fit the accepted ordinary recovery window without another tail. Do not squeeze the entire maximum distance into every tiny recovery; the next response proposal must give lesser impacts less displacement and preserve stronger Fielding without creating a harsher impulse. This ceiling alone does not select a speed curve, impulse or extra resistance stat.
+
+**Special hits:** the one-foot ceiling applies only to ordinary impact. Authored specials that strike the fielder may exceed it under their own finite bounds; special distances, per-action effects and physical composition remain separate decisions. The accepted additive recovery-time rule does not automatically sum pushback forces.
+
+Validate the ordinary component and total body path separately for stationary, moving and opposite-direction acquisitions; include bag/contact event order, both seats/CPU, all character speeds, walls and special combinations. Numerical arrival thresholds remain pending evidence. Report arithmetic checks spatial ratios only; no candidate simulation or human feel gate is passed.
+
+**Question for Jack:** use a one-foot maximum added ordinary pushback for the first trial, with impacting special hits allowed to go farther?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
