@@ -3,7 +3,7 @@
   "issue": 708,
   "parentIssue": 693,
   "date": "2026-09-14",
-  "status": "C80-ordinary-chemistry-and-long-range-profile-accepted; negative-chemistry-pending; incomplete-runtime-contract",
+  "status": "C80-ordinary-chemistry-and-long-range-profile-accepted; relay-ownership-pending; incomplete-runtime-contract",
   "baselineRevision": "59f3762",
   "decisionId": "F693-02-spatial-trial",
   "acceptedCandidate": "C80",
@@ -106,7 +106,7 @@
   "clockComparisonPolicy": {
     "runner": "Accepted F693-05-runner-clock: retain current stat-to-bag elapsed times, 0.5-second batter startup and explicit dash schedule as C80 calibration anchor. Derive linear speeds from candidate distance. Exact path/rounding/slide arrivals remain to be validated.",
     "pursuit": "One ordinary profile per character is accepted. Calculate separate IF and OF time-preserving speed sensitivities; neither is a selected coefficient or a feasible joint solution.",
-    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range, pace loss and relay behavior remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Negative chemistry and special stacking remain pending.",
+    "throw": "Accepted ordinary anchors: 0.30-second command-to-release with immediate motion, then 0.90-second flight over 80 ft for a neutral middle arm with proportional infield travel times. Actual eligible reception is separate from target arrival. Long-throw range and pace loss are accepted below; relay controls remain pending; no extra .22-second hold. Accepted long-throw direction: moderate smooth arm-dependent loss of pace with direct choice preserved and chemistry included in the direct/relay comparison. Good-pair chemistry is accepted at 1.30x travel speed per actual pair, ordinary release unchanged. Long-range curve is accepted under F693-03-long-throw-numbers. Bad-pair chemistry is accepted at 0.90x travel speed per actual pair, replacing the extra random slant. Special stacking remains pending.",
     "read": "Brief visible read and responsive acceleration are accepted directions. Numerical values pending; no additional camera-completion gate.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
@@ -151,13 +151,18 @@
     },
     {
       "id": "F693-03-negative-chemistry",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Replace bad chemistry’s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
     },
     {
       "id": "F693-03-relay-ownership",
+      "state": "next-human-decision",
+      "question": "Require a separate player throw command for each relay leg, allowing an early buffered command for the next receiver, with hold and retarget before commitment?"
+    },
+    {
+      "id": "F693-03-special-throws",
       "state": "pending",
-      "question": "Specify whether the armed route authorizes continuation or needs a new press, and how hold/retarget works at the cutoff, while preserving human play ownership."
+      "question": "Review special-ability speed/release effects and stacking with chemistry and the long-range curve."
     },
     {
       "id": "F693-02-movement-budget",
@@ -344,7 +349,7 @@
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
     "acceptanceEvidence": "Jack: absolutely agree. note that character chemistry can come into play here.",
-    "chemistryQualification": "Chemistry participates in direct-versus-relay calibration; F693-03-good-chemistry subsequently accepts the 1.30x travel-speed treatment per actual pair with ordinary release unchanged. Negative chemistry and special interactions remain pending."
+    "chemistryQualification": "Chemistry participates in direct-versus-relay calibration; F693-03-good-chemistry subsequently accepts the 1.30x travel-speed treatment per actual pair with ordinary release unchanged. Negative chemistry is subsequently accepted at 0.90x travel speed per actual pair, replacing its extra random slant. Special interactions remain pending."
   },
   "goodChemistryProposal": {
     "decisionId": "F693-03-good-chemistry",
@@ -413,7 +418,7 @@
       "goodFlight": "Tgood = T/1.30",
       "commandToTarget": "0.30 + T (or Tgood); actual eligible reception may be later"
     },
-    "scope": "Proposed original trial curve for ordinary throws; actual arm stat affects both base speed and comfortable range. Good chemistry applies once to full flight duration, not to range or release. Curve and first derivative are continuous at comfortable range. Direct throws remain available. Special abilities and negative chemistry are excluded from the analytical comparisons, pending their own review.",
+    "scope": "Accepted original trial curve for ordinary throws; actual arm stat affects both base speed and comfortable range. Good chemistry applies once to full flight duration, not to range or release. Curve and first derivative are continuous at comfortable range. Direct throws remain available. Special abilities and negative chemistry are excluded from these original direct/relay comparisons; the accepted bad-pair treatment has separate examples below. Special interactions remain pending.",
     "basis": "160 ft is two C80 basepaths and below the old flat 200-ft CPU cutoff threshold. .60 s at 80 ft beyond range gives a small neutral relay advantage at an ideal 240-ft return after .30 s extra release plus illustrative .20 s extra decision. These are authored choices, not Mario measurements or sim results.",
     "comparisonDistancesFeet": [
       80,
@@ -465,7 +470,7 @@
   },
   "negativeChemistryProposal": {
     "decisionId": "F693-03-negative-chemistry",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "badPairTravelSpeedMultiplier": 0.9,
     "chemistrySpecificSlantChance": 0.0,
     "ordinaryReleaseSeconds": 0.3,
@@ -499,9 +504,9 @@
     "reference": {
       "url": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
       "page": "printed 14 / PDF index 7",
-      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is a proposed deliberate Harbor deviation; 20%/0.70/10–14ft are audited Harbor values, not confirmed Wii parameters."
+      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is an accepted deliberate Harbor deviation; 20%/0.70/10–14ft are audited Harbor values, not confirmed Wii parameters."
     },
-    "tradeoff": "Predictable lineup/routing cost supports attribution to player choices and more consistent routine races, at the cost of some Mario-like surprise/party volatility. Accepted reliable defense does not itself prohibit occasional bad-pair errors; Jack must select the deviation explicitly.",
+    "tradeoff": "Predictable lineup/routing cost supports attribution to player choices and more consistent routine races, at the cost of some Mario-like surprise/party volatility. Accepted reliable defense does not itself prohibit occasional bad-pair errors; Jack explicitly selected this deviation on September 14, 2026.",
     "alternative": "Retain current occasional slower/off-target chemistry throws, then review probability and severity against ordinary defense. This keeps the reference-style surprise but permits a correctly commanded bad-pair throw to go astray.",
     "requiredChecks": [
       "Apply only actual pair chemistry, once per leg; no chain-wide penalty.",
@@ -511,6 +516,46 @@
       "Version the changed random-draw schedule and replay baseline; removing a slant RNG branch changes later seeded outcomes even if unrelated rules are unchanged.",
       "Re-run declared scoring cohorts and direct/relay traces rather than inferring balance from mean travel time.",
       "Update governing chemistry spec and couch-facing explanation with implementation; do not silently remove legacy behavior in a research commit."
-    ]
+    ],
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-14",
+    "acceptanceEvidence": "Jack replied yes to the predictable 10% bad-chemistry speed penalty instead of its extra random misthrow chance."
+  },
+  "relayOwnershipProposal": {
+    "decisionId": "F693-03-relay-ownership",
+    "state": "pending",
+    "recommendation": "Each human relay leg requires its own deliberate throw command. Permit an early command buffered for the next intended receiver; selecting a bag alone does not authorize throwing.",
+    "currentBehavior": "An explicitly armed ThrowBag is copied into _relayBag on a cutoff throw; after successful reception the human branch calls BeginThrowToBag automatically when _relayBag is valid. With no explicitly armed bag it holds. CPU re-evaluates its decision table.",
+    "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md §8.7",
+    "interactionContract": [
+      "The cutoff command authorizes the first leg only. A separate throw press authorizes the onward leg; merely holding the original button must not create another command.",
+      "Allow a deliberate early press for the intended incoming receiver so onward throwing need not require catch-frame timing. Numeric buffer window remains pending.",
+      "Without an onward command, the receiver holds the ball. Before the onward release motion begins, the player can cancel a queued command or change its target. Exact cancel mapping remains pending.",
+      "Start the ordinary 0.30-second release only after actual secure possession and any required recovery. No free release or artificial 0.20-second decision delay.",
+      "After release motion begins, the target is committed for that throw. No mid-flight retargeting.",
+      "Consume each queued command at most once, tied to the expected receiver and current play. Invalidate it on a missed reception, receiver change, play end or seat ownership change.",
+      "Use the same human ownership principle for cutoff returns and double-play throws, for either human defensive seat and both supported input schemes. CPU defense still selects its own throws."
+    ],
+    "tradeoff": "More control over holding and reacting to runners, plus one additional deliberate input per onward throw. Buffering reduces timing burden; automatic armed-route continuation needs fewer inputs but commits more of the play up front.",
+    "referenceLimits": "Wii printed page 10 and GameCube fielding controls document selecting a cutoff. Neither cited passage establishes the exact onward-command, buffering or cancellation behavior; this is an authored proposal, not a verified Mario control clone.",
+    "references": [
+      "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
+      "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf"
+    ],
+    "pendingDetails": [
+      "Early-input buffer duration",
+      "Cancel button and target feedback",
+      "Recovery/transfer cases",
+      "Special-ability interactions"
+    ],
+    "requiredChecks": [
+      "Dead-stick armed cutoff holds after first leg",
+      "One deliberate second press produces one onward throw",
+      "Early/late command, hold, cancel and retarget boundaries",
+      "Missed catch and changed receiver cannot leak a queued throw",
+      "Both human defensive seats, both input schemes, CPU defense and double-play continuation",
+      "Full direct/relay race with actual per-leg release, movement and chemistry"
+    ],
+    "implementationBoundary": "Design proposal only; reconcile §8.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit."
   }
 }
