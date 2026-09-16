@@ -59,7 +59,7 @@ Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a
 
 | Kind | Owns | Banned |
 | --- | --- | --- |
-| **Gameplay** | `data/rules/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
+| **Gameplay** | `data/rules/`, `trials/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
 | **Presentation** | cameras, HUD, `HowToPlay` / `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one `data/art/` slot, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 

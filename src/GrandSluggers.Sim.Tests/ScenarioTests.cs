@@ -353,7 +353,7 @@ public sealed class ScenarioTests
         PlayKind.GroundOut, match.Pitcher, match.Batter, 1.5, 48, 72, false, false,
         new ThrowResult(Chemistry.Good, 1.7, false));
 
-    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root, ".."));
+    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
 }
 
 static class ScenarioExtensions

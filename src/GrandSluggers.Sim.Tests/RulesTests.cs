@@ -25,7 +25,7 @@ public sealed class RulesTests
     [Fact]
     public void EveryShippedTableExistsAndLoadsCleanly()
     {
-        var dir = Path.Combine(_content.Root, RulesTable.Directory);
+        var dir = Path.Combine(_content.Root.Shipped, RulesTable.Directory);
         foreach (var name in RulesTable.Files)
             Assert.True(File.Exists(Path.Combine(dir, name + ".json")), name);
         Assert.Empty(RulesTable.Validate(_content.Root));
@@ -48,7 +48,7 @@ public sealed class RulesTests
     public void ShippedJsonNamesEveryRuleTheCodeDeclares()
     {
         // A rule that exists only as a C# initializer is a literal hiding from the table.
-        var dir = Path.Combine(_content.Root, RulesTable.Directory);
+        var dir = Path.Combine(_content.Root.Shipped, RulesTable.Directory);
         var missing = new List<string>();
         foreach (var name in RulesTable.Files)
         {
@@ -191,7 +191,7 @@ public sealed class RulesTests
         public RulesFixture()
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-rules-" + Guid.NewGuid().ToString("N"));
-            var source = ContentCatalog.Load().Root;
+            var source = ContentCatalog.Load().Root.Shipped;
             Directory.CreateDirectory(Root);
             foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(System.IO.Path.Combine(Root, System.IO.Path.GetRelativePath(source, directory)));

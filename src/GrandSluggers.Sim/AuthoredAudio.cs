@@ -6,24 +6,24 @@ namespace GrandSluggers.Sim;
 /// </summary>
 public static class AuthoredAudio
 {
-    public static string Dir(string dataRoot) => Path.Combine(dataRoot, "art", "audio-clips");
+    public const string Directory = "art/audio-clips";
 
-    public static HashSet<string> Ids(string dataRoot)
+    public static string Dir(DataRoot dataRoot) => dataRoot.Resolve("art", "audio-clips");
+
+    public static HashSet<string> Ids(DataRoot dataRoot)
     {
         var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var dir = Dir(dataRoot);
-        if (!Directory.Exists(dir)) return set;
-        foreach (var file in Directory.GetFiles(dir, "*.wav"))
+        foreach (var file in dataRoot.Files(Directory, "*.wav"))
             set.Add(Path.GetFileNameWithoutExtension(file));
         return set;
     }
 
-    public static bool TryLoad(string dataRoot, string id, out float[] samples, out int sampleRate)
+    public static bool TryLoad(DataRoot dataRoot, string id, out float[] samples, out int sampleRate)
     {
         samples = Array.Empty<float>();
         sampleRate = 0;
         if (string.IsNullOrWhiteSpace(id)) return false;
-        return WavPcm.TryRead(Path.Combine(Dir(dataRoot), id + ".wav"), out samples, out sampleRate);
+        return WavPcm.TryRead(dataRoot.Resolve("art", "audio-clips", id + ".wav"), out samples, out sampleRate);
     }
 }
 

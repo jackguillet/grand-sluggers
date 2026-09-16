@@ -10,8 +10,8 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class DistillTests
 {
-    readonly string _root = ContentCatalog.Load().Root;
-    string Repo => Path.GetFullPath(Path.Combine(_root, ".."));
+    readonly DataRoot _root = ContentCatalog.Load().Root;
+    string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]
     public void PlaybookSectionFiveNamesTheThreeSteps()

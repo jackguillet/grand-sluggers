@@ -25,7 +25,7 @@ public class ArtCatalogTests
         Assert.Equal("hero-shared", _content.Art.Rig.Id, ignoreCase: true);
         Assert.Contains("SharedRig", _content.Art.Rig.Slot, StringComparison.OrdinalIgnoreCase);
         Assert.EndsWith(".fbx", _content.Art.Rig.Slot, StringComparison.OrdinalIgnoreCase);
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var fbx = Path.GetFullPath(Path.Combine(repo, "unity",
             _content.Art.Rig.Slot.Replace('/', Path.DirectorySeparatorChar)));
@@ -68,7 +68,7 @@ public class ArtCatalogTests
     [Fact]
     public void EveryTakeIsBakedForEveryHandItNeeds()
     {
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         foreach (var clip in _content.Art.Clips)
         {
@@ -89,7 +89,7 @@ public class ArtCatalogTests
     [Fact]
     public void ExtrasAreKitMeshesOnRigBones()
     {
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var kit = Path.Combine(repo, "unity", ArtCatalog.ExtrasKitSlot.Replace('/', Path.DirectorySeparatorChar));
         var ascii = System.Text.Encoding.ASCII.GetString(File.ReadAllBytes(kit));
@@ -129,7 +129,7 @@ public class ArtCatalogTests
         var frost = _content.Art.SkinOf(_content.Must("frost"));
         Assert.Equal("vale", frost.BodyType, ignoreCase: true);
         Assert.Empty(frost.Extras);
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var extrasFbx = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Art/Characters/SharedRig/extras.fbx".Replace('/', Path.DirectorySeparatorChar)));

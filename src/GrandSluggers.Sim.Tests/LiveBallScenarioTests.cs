@@ -290,5 +290,5 @@ public sealed class LiveBallScenarioTests
             new ThrowResult(Chemistry.Good, 1.35, false));
     }
 
-    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root, ".."));
+    static string RepoRoot() => Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
 }
