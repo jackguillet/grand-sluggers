@@ -1167,7 +1167,9 @@ def derive(data):
         assert continuing_direction["horizontalMaxOffsetDegrees"] < bobble_spread["horizontalMaxOffsetDegrees"]
         assert continuing_direction["untouchedMissAddedOffsetDegrees"] == 0
         assert all(continuing_direction[key] is None for key in
-                   ("contactBaselineMapping", "verticalTreatment"))
+                   ("contactBaselineMapping",))
+        assert continuing_direction["verticalTreatment"]["sameFactorAsHorizontal"] is True
+        assert continuing_direction["verticalTreatment"]["contactFactorMapping"] is None
         assert continuing_direction["distribution"] == "uniform-angle"
         assert continuing_direction["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
         assert continuing_direction["retainedSpeedModel"]["contactMapping"] is None
@@ -1312,7 +1314,8 @@ def derive(data):
             assert math.isclose(roll_example["travelToRestFt"], roll_s**2 / (2*roll_a))
     continuing_vertical = data.get("continuingErrorVerticalRetentionProposal")
     if continuing_vertical:
-        assert continuing_vertical["state"] == "pending"
+        assert continuing_vertical["state"] == "accepted-calibration-anchor"
+        assert continuing_vertical["acceptedBy"] and continuing_vertical["acceptedOn"] and continuing_vertical["acceptanceEvidence"]
         assert continuing_vertical["sameFactorAsHorizontal"] is True
         assert continuing_vertical["minimumFactor"] == .5 and continuing_vertical["maximumFactor"] == .8
         assert continuing_vertical["independentVerticalRandomness"] is False
@@ -1321,10 +1324,18 @@ def derive(data):
             assert .5 <= vertical_example["factor"] <= .8
             assert math.isclose(vertical_example["outgoingHorizontalFtPerSec"], vertical_example["factor"] * vertical_example["incomingHorizontalFtPerSec"])
             assert math.isclose(vertical_example["outgoingVerticalFtPerSec"], vertical_example["factor"] * vertical_example["incomingVerticalFtPerSec"])
+    continuing_ground = data.get("continuingErrorGroundResponseProposal")
+    if continuing_ground:
+        assert continuing_ground["state"] == "pending"
+        assert continuing_ground["responseFamily"] == "shared-ordinary-batted-ball-ground"
+        assert continuing_ground["extraErrorSpecificBraking"] is False
+        assert continuing_ground["inheritsLocalBobbleGroundLimits"] is False
+        assert continuing_ground["numericalGroundProfile"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "continuingErrorGroundResponseState": continuing_ground["state"] if continuing_ground else None,
             "continuingErrorVerticalRetentionState": continuing_vertical["state"] if continuing_vertical else None,
             "localBobbleRollingDecelerationState": local_rolling["state"] if local_rolling else None,
             "localBobbleGroundHorizontalState": local_ground_horizontal["state"] if local_ground_horizontal else None,

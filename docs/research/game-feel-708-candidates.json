@@ -615,8 +615,13 @@
     },
     {
       "id": "F693-02-continuing-error-vertical-retention",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For continuing deflections, scale vertical speed by the same contact-dependent 50\u201380% factor used horizontally, preserving rising/falling direction without adding a pop?"
+    },
+    {
+      "id": "F693-02-continuing-error-ground-response",
+      "state": "next-human-decision",
+      "question": "After a continuing deflection, use the shared ordinary batted-ball ground response from its actual new motion, without local-bobble caps or extra error-specific braking?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5583,7 +5588,11 @@
       "maximumFraction": 0.8,
       "contactMapping": null
     },
-    "verticalTreatment": null,
+    "verticalTreatment": {
+      "decisionId": "F693-02-continuing-error-vertical-retention",
+      "sameFactorAsHorizontal": true,
+      "contactFactorMapping": null
+    },
     "recommendation": "Use a narrower plus/minus 15-degree horizontal random variation trial for ordinary continuing deflections. Actual contact reduces speed while the general path stays more aligned with incoming motion than the substantially stopped local bobble. Untouched misses receive no error-induced angle change.",
     "baseline": "Use actual incoming motion and contact to produce a forward-biased continuing-deflection baseline. The narrower random fan is around that baseline; it is not permission to arbitrarily rotate the baseline away from incoming motion. Exact baseline mapping and total deviation from incoming direction remain pending; the accepted 15 degrees bounds random variation, not yet total contact-plus-random deflection.",
     "speedAndPosition": "Rotate the valid outgoing horizontal velocity without changing its magnitude through the random-angle operation. This is not a choice to preserve the pre-contact speed; impact speed loss still needs its own reviewed model. Keep vertical treatment separate and position continuous at actual contact. Do not teleport, add energy, pick a landing target or impose the local-bobble distance on a continuing ball.",
@@ -6154,7 +6163,7 @@
   },
   "continuingErrorVerticalRetentionProposal": {
     "decisionId": "F693-02-continuing-error-vertical-retention",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "factorSourceDecisionId": "F693-02-continuing-error-speed-retention",
     "sameFactorAsHorizontal": true,
     "minimumFactor": 0.5,
@@ -6191,7 +6200,7 @@
     "physics": "Preserve continuous actual contact position/height; vertical velocity may change at collision. Do not invent an upward launch or reverse rising into falling or falling into rising at contact. Zero vertical input stays zero at the instant of contact; gravity acts immediately afterwards. Keep ground/support collision handling explicit to prevent penetration. No fixed airtime, target outfield landing or forced extra base.",
     "recovery": "Preserve contacted-error .40-second stun, reliable same-origin recovery and actual eligible acquisition. Independent specials remain explicit. Continuing travel does not extend the stun or create a fresh ordinary error roll.",
     "openWork": "The exact contact-to-r mapping and local/continuing classifier remain unselected. Downstream continuing ground response, complete contact/collision geometry, shared integration and reference/full-race validation remain open. This does not approve a new error trigger or catch-range/stat behavior.",
-    "referenceLimit": "Authored proposed coupling, not measured Wii/GC vertical deflection retention. The sample factor .60 and input speeds are arithmetic illustrations, not selected hit targets.",
+    "referenceLimit": "Accepted authored coupling, not measured Wii/GC vertical deflection retention. The sample factor .60 and input speeds are arithmetic illustrations, not selected hit targets.",
     "requiredChecks": [
       "Use one identical factor for horizontal and signed vertical components; no second draw or handling multiplier.",
       "Rising/falling/level incoming examples preserve vertical sign at impact; zero remains zero until gravity advances.",
@@ -6199,6 +6208,34 @@
       "Keep local-bobble response, continuing ground response and specials distinct.",
       "Validate hard infield escapes and recovery races with full trajectories before human acceptance."
     ],
-    "implementationBoundary": "Pending continuing vertical-response coupling only. No runtime tuning, measured reference claim or human gate pass."
+    "implementationBoundary": "Accepted continuing vertical-response coupling only. No runtime tuning, measured reference claim or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to the shared contact-retention factor for continuing deflections: the same 50\u201380% factor scales horizontal and signed vertical speed."
+  },
+  "continuingErrorGroundResponseProposal": {
+    "decisionId": "F693-02-continuing-error-ground-response",
+    "state": "pending",
+    "responseFamily": "shared-ordinary-batted-ball-ground",
+    "extraErrorSpecificBraking": false,
+    "inheritsLocalBobbleGroundLimits": false,
+    "numericalGroundProfile": null,
+    "recommendation": "After a continuing ordinary deflection, use the same ordinary batted-ball ground response as another ball reaching the same surface with equivalent physical motion. Continue from the actual deflected position, height and velocity. Do not add special error-only braking or inherit the nearby-bobble ground caps.",
+    "rationale": "The glove already removes speed through the accepted contact factor. Shared subsequent ground behavior lets remaining momentum determine whether the ball escapes into the outfield, keeping hard infield deflections meaningful without another hidden slowdown.",
+    "eventHandling": "Ground collision consumes actual current state; rolling uses current supported motion. Keep airborne deflections airborne until actual landing and do not fabricate an impact for a ball already supported. Resolve genuine simultaneous contact/ground events consistently in the shared collision rail. Do not restore the original batted trajectory, restart at home plate or reuse a launch-class shortcut that contradicts current motion.",
+    "separation": "This reuses the ordinary ground-physics family, not ordinary acquisition-error eligibility. Preserve the contacted error origin and accepted reliable same-origin recovery through bounces, rolling, distance and defender changes. Untouched misses still receive no protection merely from passing a fielder.",
+    "localExclusions": "Do not apply the local six-ft/s release ceiling, zero-vertical release, six-inch rebound cap, three-inch settling cutoff, 90% local impact retention or six-ft/s-squared local rolling slowdown solely because this ball came from an error.",
+    "openNumbers": "This selects shared behavior, not the current legacy numerical defaults. Ordinary flight/ground calibration remains F693-04-flight-budget work; restitution, ground horizontal retention, settling and rolling values are not approved by this proposal. Any later change to that shared profile must be checked against normal hits and continuing-error races together.",
+    "preserved": "Keep the accepted contact-dependent 50\u201380% horizontal/vertical speed factor, forward-biased contact direction with uniform +/-15-degree variation, .40-second contacted-error stun and actual eligible pickup. No automatic outfield destination, fixed travel distance, additional error roll or forced extra base.",
+    "scope": "Ordinary continuing handling errors on ordinary park ground. Walls, slopes and individual specials retain their explicit contracts; this does not silently clear a special effect or choose a new special-surface response.",
+    "referenceLimit": "Authored rule-sharing proposal, not a claim about Wii/GC internal ground physics. Compare ordinary-hit and deflected trajectories with equivalent state in reference/gameplay research before claiming parity.",
+    "requiredChecks": [
+      "Equivalent ordinary/deflected physical states on the same surface use the same ground response, while their acquisition-error history remains distinct.",
+      "Continue from actual contact state; no restored pre-deflection trajectory or fabricated landing.",
+      "No local-bobble limits or extra error-specific braking leak into continuing deflections.",
+      "Preserve reliable recovery and independent stun through ground transitions.",
+      "Review normal gaps, hard infield escapes and relay races together when calibrating shared ground values."
+    ],
+    "implementationBoundary": "Pending shared-ground-response direction only; ordinary numerical profile, runtime integration and human validation remain open."
   }
 }
