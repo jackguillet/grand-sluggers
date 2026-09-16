@@ -1093,11 +1093,20 @@ def derive(data):
             assert math.isclose(bb_row["remainingStunAfterStopSec"], .40-bb_u/bb_b)
     bobble_reliability = data.get("bobbleRecoveryReliabilityProposal")
     if bobble_reliability:
-        assert bobble_reliability["state"] == "pending"
+        assert bobble_reliability["state"] == "accepted-calibration-anchor"
+        assert bobble_reliability["acceptedBy"] and bobble_reliability["acceptedOn"] and bobble_reliability["acceptanceEvidence"]
         assert bobble_reliability["sameBobbleRecoveryErrorChance"] == 0
+    bobble_direction = data.get("bobbleDeflectionDirectionProposal")
+    if bobble_direction:
+        assert bobble_direction["state"] == "pending"
+        assert bobble_direction["randomDirectionRoll"] is False
+        assert all(bobble_direction[key] is None for key in
+                   ("directionMapping", "angularBounds", "scatterDistanceFt",
+                    "scatterSpeedFtPerSec", "verticalProfile"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "bobbleDeflectionDirectionState": bobble_direction["state"] if bobble_direction else None,
             "bobbleRecoveryReliabilityState": bobble_reliability["state"] if bobble_reliability else None,
             "groundedBobbleBrakingState": bobble_braking["state"] if bobble_braking else None,
             "uniformBobbleStunState": uniform_stun["state"] if uniform_stun else None,

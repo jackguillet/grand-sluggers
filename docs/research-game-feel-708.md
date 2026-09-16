@@ -1296,9 +1296,9 @@ Before accepting implementation, compare .30/.40/.50-second trials with visible 
 
 This is an authored reuse of our accepted movement profile, not a verified Wii/GC stop curve. Verify the reaction against reference motion and the eventual game, with rest/partial/full-speed approaches, nearby geometry, both seats, switching and helpers. The arithmetic examples are not simulated plays. No runtime or asset change; scatter, buffering, fresh-attempt and committed-motion details remain pending.
 
-## Next decision — reliable ordinary bobble recovery
+## Accepted decision — reliable ordinary bobble recovery
 
-**F693-02-bobble-recovery-reliability — pending, September 15, 2026.** Recommend **no second ordinary error roll when an eligible defender physically recovers the same ordinary bobble**. The original fielder must finish their stun, or an eligible teammate can collect the ball sooner. Actual range, contact and action readiness still decide whether recovery is possible.
+**F693-02-bobble-recovery-reliability — accepted by Jack on September 15, 2026.** Jack approved **no second ordinary error roll when an eligible defender physically recovers the same ordinary bobble**. The original fielder must finish their stun, or an eligible teammate can collect the ball sooner. Actual range, contact and action readiness still decide whether recovery is possible.
 
 **Why this rule:** the first failed pickup already produces loose-ball travel, a .40-second reaction and a recovery race. Rolling again on the nearby recovery could turn one mistake into a chain of random fumbles. Keep the remaining challenge in reaching the ball and making the next play. The alternative is to allow another qualifying awkward-hop roll on the recovery; that adds occasional repeat failures and a less predictable total penalty.
 
@@ -1312,7 +1312,23 @@ This is an authored reuse of our accepted movement profile, not a verified Wii/G
 
 This is an authored recovery-reliability proposal, not a verified Mario rule. Validate original-fielder and helper recovery, small scatter bounces, switching/range re-entry, independent effects and subsequent distinct plays. No runtime, general attempt policy or human gate changes here.
 
-**Question for Jack:** make a legal pickup of the same ordinary bobble reliable, without another ordinary error roll from that fumble?
+## Next decision — ordinary bobble deflection direction
+
+**F693-02-bobble-deflection-direction — pending, September 15, 2026.** Recommend **basing the deflection direction on the incoming ball and actual glove contact, without a separate random scatter-direction roll**. The handling roll decides whether the pickup fails; the loose ball's direction then follows that physical encounter. Exact directional mapping, speed, distance and bounce height remain unselected.
+
+**Player context:** the escape should read as a consequence of where the ball met the glove. Equivalent contacts produce equivalent directions; different approach/contact geometry can change the deflection. Random direction would add surprise, but also another source of outcome variance after the error roll. This recommendation keeps that additional variance tied to the play's visible geometry.
+
+**Use event-side evidence:** capture incoming ball velocity and resolved glove contact geometry before any held-ball transform. Do not infer direction from original exit velocity, a later ball-at-glove position, a rendered animation frame, the camera or a desired throw target. How contact normal/side influences direction, and how near-vertical or nearly stationary horizontal motion is handled, still needs explicit review with catch geometry. No forward/backward bias, angular cone or restitution coefficient is selected here.
+
+**Preserve the accepted local bobble:** begin the trajectory continuously at contact. Contact may change velocity; it cannot teleport the ball to an offset or reset it to a fixed height. Retain modest nearby scatter and real collision/boundary behavior. Do not silently choose a direction to miss a helper, find empty space, approach a runner/base or force a safe/out result. Handling still affects error frequency, without acquiring a new scatter benefit. Same-bobble recovery remains reliable once legal contact/readiness occur.
+
+**Current audit:** `ArmRecoil` derives a horizontal direction from ball-minus-glove position and falls back to world +Z when that vector is small. It is called after `CatchGlove`, then places the loose ball at a scatter offset and resets its height. That does not establish a validated contact-based deflection law. Preserve actual pre-acquisition trajectory/contact data and reconcile visible glove motion with the authoritative event before implementation; do not bless the fixed-axis fallback or current scatter constants.
+
+**Replay and reference boundaries:** selection, camera, seat, CPU/manual ownership and frame partition cannot change a physically equivalent contact's initial direction. No extra random direction draw is introduced; the accepted seeded error roll remains. This is an authored readability proposal, not measured Mario logic. Compare approach-side and near-vertical bobbles in both reference games before choosing the mapping and trajectory numbers.
+
+Future checks must cover mirrored/rotated encounter fixtures, low-horizontal-speed fallback, continuous contact-origin motion, boundaries, helpers and full physical recovery. No runtime, asset or human gate changes here.
+
+**Question for Jack:** should ordinary bobble direction come from the incoming ball and glove contact, without another random direction roll?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
