@@ -78,6 +78,12 @@ The first six items are a research foundation, not completion of #693. A docs me
 
 **Acceptance:** preserve the existing 50-game mixed-park cohort; add a Harbor-only cohort and predeclared disjoint validation seeds. Report per-side means and play kinds, fixture event budgets, and seat parity. Score alone cannot pass feel.
 
+### F693-06-H — Harbor-specific scoring scope
+
+**State: accepted by Jack on September 14, 2026.** Apply **1.8–5 mean runs per side** independently to Harbor-specific calibration and validation cohorts, checking home and away separately, while retaining the existing mixed-park S-29 guardrail. Individual games may fall outside the band.
+
+[The #702 baseline report](research-game-feel-702.md) remains unchanged evidence: mixed parks 1.90 home / 1.92 away, Harbor calibration 1.90 / 1.38, Harbor validation 1.60 / 2.30. Harbor calibration's away mean and validation's home mean fall below the newly accepted target. They remain calibration work; approval of the target does not pass the baseline or select a gameplay coefficient. Preserve compact proportions, reliable routine defense, readable throws, and extra-base/relay opportunity. Geometry decides outcomes, and Jack retains the standalone feel gate.
+
 ### F693-07 — Spectator pacing and couch acceptance
 
 **State:** design intent accepted by Jack on September 14, 2026: **brisk routine beats, on the slower/more deliberate side**, with additional emphasis for big moments. After a routine dead-ball result, give the result and a brief character reaction enough time to register before returning to play. Jack explicitly requires comparison with Mario; do not interpret brisk as an immediate reset.
@@ -99,6 +105,8 @@ All seven initial decision areas now have a recorded direction or constraint. Th
 Deliver a small version-controlled annotation dataset, exact clip locators, source revisions, a comparison for F693-01–05 and F693-07, and a recommendation with tradeoffs. A screenshot does not count as elapsed-time evidence. Existing retrospective clips may lack enough metadata and must be marked accordingly. Exit is a reviewable comparison, not Jack's approval.
 
 ### R2 — Make Harbor's race measurable (#702)
+
+The #702 implementation and reproduction contract is [race-traces.md](race-traces.md). Its version 2 observations preserve full throw/receiver chains and runner retirement evidence; the evidence catalog rejects unresolved active defaults. This is draft instrumentation until its PR merges. Numeric design choices and human acceptance remain open.
 
 [#702](https://github.com/jackguillet/grand-sluggers/issues/702), gameplay child of #693 under #209. Extend the existing `PlayTrace`/`cli match` observation path with revision/profile hashes, contact inputs, seats, difficulty, character/hand information, commands, release/possession/receiver events, and per-leg timing. Version the trace format and preserve deterministic replay. Do not change gameplay coefficients in this step.
 

@@ -579,11 +579,14 @@ public sealed partial class LivePlaySystem
 
         if (Throwing)
         {
+            var traceBeforeFlightT = ThrowT;
             ThrowT += dt;
             var u = Math.Clamp(ThrowT / Math.Max(0.05, ThrowDur), 0, 1);
             BallX = ThrowFrom.X + (ThrowTo.X - ThrowFrom.X) * u;
             BallY = ThrowFrom.Y + (ThrowTo.Y - ThrowFrom.Y) * u;
             BallZ = ThrowFrom.Z + (ThrowTo.Z - ThrowFrom.Z) * u;
+            if (traceBeforeFlightT < ThrowDur && ThrowT >= ThrowDur)
+                _trace?.Mark(PlayTraceMarkKind.ThrowTargetReached, ElapsedSeconds, CoverPos, ThrowBag);
             if (ThrowT >= ThrowDur && !command.EffectInFlight)
             {
                 if (OnThrowLanded(dt, out var arrived)) return arrived;
@@ -2048,6 +2051,9 @@ public sealed partial class LivePlaySystem
         _fielders[_throwerPos] = (GloveX, GloveZ);
         if (!string.IsNullOrEmpty(receiverPos) && receiverPos != GlovePos)
             HandGloveTo(receiverPos, coast: false);
+        _trace?.Mark(PlayTraceMarkKind.ThrowRelease, ElapsedSeconds, _throwerPos, bag,
+            flight: new PlayTraceThrow(_throwerPos, receiverPos, bag, ThrowFrom.X, ThrowFrom.Y, ThrowFrom.Z,
+                ThrowTo.X, ThrowTo.Y, ThrowTo.Z, ThrowDur, thr.SpeedMul, thr.Relation.ToString()));
         _events.Add(LiveEvent.ThrowPop);
     }
 
@@ -2077,12 +2083,14 @@ public sealed partial class LivePlaySystem
         if (!covered)
         {
             // Nobody at the bag: the ball hangs as a lob for the cover, then drops there, live (§8.5).
+            if (_lobT == 0) _trace?.Mark(PlayTraceMarkKind.UncoveredWait, ElapsedSeconds, receiverPos, ThrowBag);
             _lobT += dt;
             (BallX, BallY, BallZ) = ThrowTo;
             if (_lobT < R.Fielding.Throw.LobMaxSec) return false;
             DropThrowAtBag();
             return false;
         }
+        _trace?.Mark(PlayTraceMarkKind.Reception, ElapsedSeconds, receiverPos, ThrowBag);
         (BallX, BallY, BallZ) = ThrowTo;
         if (ThrowBag is >= 1 and <= 4)
         {
@@ -2165,6 +2173,7 @@ public sealed partial class LivePlaySystem
         _looseVX = vx;
         _looseVZ = vz;
         _looseRestAt = vx == 0 && vz == 0 ? ElapsedSeconds : -1;
+        _trace?.Mark(PlayTraceMarkKind.LooseBall, ElapsedSeconds, GlovePos);
     }
 
     /// <summary>A loose ball rolls to a stop (fielding.overthrow) inside the park.</summary>
@@ -2370,6 +2379,7 @@ public sealed partial class LivePlaySystem
         _looseVX = _looseVZ = 0;
         _looseRestAt = -1;
         _firstGlove ??= GloveChar();
+        _trace?.Mark(PlayTraceMarkKind.Possession, ElapsedSeconds, GlovePos);
     }
 
     /// <summary>A glove takes a thrown or loose ball: no fair / foul call, no bobble roll.</summary>
@@ -2611,7 +2621,11 @@ public sealed partial class LivePlaySystem
         if (_closeRunner is { Live: true } body)
         {
             // The verdict is written once (§9.6): the body is on the bag, or the out is recorded; the caption follows the record.
-            if (safe) body.Arrive(CloseBag, ElapsedSeconds);
+            if (safe)
+            {
+                body.Arrive(CloseBag, ElapsedSeconds);
+                _trace?.Mark(PlayTraceMarkKind.RunnerAward, ElapsedSeconds, GlovePos, CloseBag, PlayTraceRunner.Of(body));
+            }
             else if (!Retire(body.FromBag, CloseBag, OutType.Tag, PlayFielder())) safe = true;
             if (!safe) LastMoment = new LiveMoment(InPlay.ThrowVerdict.TagOut, CloseBag, PlayFielder(), body.Who);
             Throws++;

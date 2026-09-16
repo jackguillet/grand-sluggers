@@ -473,7 +473,7 @@ public sealed class TrialOverlayTests
         Assert.Equal(["rules/infield.json"], stamp!.Files);
 
         var control = new PlayTraceLog(7, "rio", "ashlord", "harbor-diamond", []).ToJson();
-        var candidate = new PlayTraceLog(7, "rio", "ashlord", "harbor-diamond", [], stamp).ToJson();
+        var candidate = new PlayTraceLog(7, "rio", "ashlord", "harbor-diamond", [], Trial: stamp).ToJson();
         Assert.DoesNotContain("trial", control, StringComparison.Ordinal);
         Assert.Contains("rules/infield.json", candidate, StringComparison.Ordinal);
     }
