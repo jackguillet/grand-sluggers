@@ -1352,19 +1352,29 @@ def derive(data):
         assert contact_incidence["acceptedBy"] and contact_incidence["acceptedOn"] and contact_incidence["acceptanceEvidence"]
         assert contact_incidence["basis"] == "three-dimensional-contact-incidence"
         assert contact_incidence["usesRelativeContactVelocity"] is True and contact_incidence["usesPenetrationDepth"] is False
-        assert all(contact_incidence[key] is None for key in ("geometryContract", "continuingNormalizationBounds", "branchThresholds", "zeroRelativeSpeedFallback"))
+        assert all(contact_incidence[key] is None for key in ("continuingNormalizationBounds", "branchThresholds", "zeroRelativeSpeedFallback"))
+        assert contact_incidence["geometryContract"]["shapeFamily"] == "smooth-concave-pocket-rounded-rim"
+        assert contact_incidence["geometryContract"]["dimensions"] is None
         for incidence_row, expected_incidence in zip(contact_incidence["examples"], (1, math.sqrt(.5), 0)):
             assert math.isclose(incidence_row["rawIncidence"], expected_incidence)
     glove_surface = data.get("gloveContactSurfaceProposal")
     if glove_surface:
-        assert glove_surface["state"] == "pending"
+        assert glove_surface["state"] == "accepted-calibration-anchor"
+        assert glove_surface["acceptedBy"] and glove_surface["acceptedOn"] and glove_surface["acceptanceEvidence"]
         assert glove_surface["shapeFamily"] == "smooth-concave-pocket-rounded-rim"
         assert glove_surface["usesDecorativeMeshTriangles"] is False and glove_surface["changesCatchRange"] is False
         assert all(glove_surface[key] is None for key in ("dimensionsFt", "pocketDepthFt", "rimProfile", "backAndCuffResponse", "authoritativeMotionContract"))
+    glove_sides = data.get("gloveCatchSidesProposal")
+    if glove_sides:
+        assert glove_sides["state"] == "pending"
+        assert glove_sides["eligibleSolidRegions"] == ["pocket", "rim", "back"]
+        assert glove_sides["requiresPocketFacing"] is False and glove_sides["addsGloveFacingInput"] is False
+        assert glove_sides["solidSurfaceGeometry"] is None and glove_sides["cuffGeometry"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
             "continuingErrorRetentionCurveState": continuing_curve["state"] if continuing_curve else None,

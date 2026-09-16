@@ -1664,9 +1664,9 @@ This is an accepted authored geometry basis, not a claim about Wii/GC internals.
 
 **Accepted scope:** three-dimensional contact incidence from pre-contact relative motion and the actual surface normal. Geometry, normalization, branch thresholds and degenerate-contact handling remain open.
 
-## Next decision — glove contact surface
+## Accepted decision — glove contact surface
 
-**F693-02-glove-contact-surface — pending, September 15, 2026.** Recommend a **simplified smooth cup-shaped pocket with a rounded rim**, matching the visible glove and moving with it. This supplies the physical surface used to measure contact angle.
+**F693-02-glove-contact-surface — accepted by Jack on September 15, 2026.** Jack approved a **simplified smooth cup-shaped pocket with a rounded rim**, matching the visible glove and moving with it. This supplies the physical surface used to measure contact angle.
 
 **Player context:** the pocket and edge should behave like recognizable parts of a glove. A square meeting with the pocket and a glancing rim clip can produce different contact angles. The approved error probability still decides eligible failures; pocket contact does not guarantee success, and a rim clip does not automatically cause an error or continuing deflection.
 
@@ -1678,9 +1678,27 @@ A filled convex sphere would erase the pocket. Using every decorative finger or 
 
 **Unresolved details remain visible:** pocket width/height/depth, rounded rim profile, back/cuff response, body contact shapes, swept ball contact and numerical tolerances require review. Contact motion must agree across both hands and body proportions using the existing authored contract; no C# bone posing, second rig or Unity PhysX baseball. Surface-point velocity feeds the accepted incidence measure. Validate stable normals at joins and actual visible contact before runtime/human acceptance.
 
-This is an authored surface proposal, not verified Wii/GC collision geometry. All accepted error, motion, recovery and special rules remain intact.
+This is an accepted authored surface direction, not verified Wii/GC collision geometry. All accepted error, motion, recovery and special rules remain intact.
 
-**Question for Jack:** use a smooth cup-shaped glove contact surface with a rounded rim, separate from the character's reach range?
+**Accepted scope:** smooth concave pocket with rounded rim, matching the visible glove and separate from reach. Dimensions, back/cuff/body geometry and authoritative motion integration remain open.
+
+## Next decision — which glove sides can secure the ball
+
+**F693-02-glove-catch-sides — pending, September 15, 2026.** Recommend that **eligible actual contact with the pocket, rim or back of the glove can secure the ball**, without a separate pocket-facing requirement.
+
+**Player context:** positioning and timing should remain the player's responsibility. A brief wrist pose that exposes the glove's back should not add a hidden orientation failure after the player reaches the ball. Pocket-only catching is the alternative; it makes glove orientation more demanding, but the player currently has no separate glove-facing input. The proposed policy is deliberately forgiving arcade acquisition, not a real-world glove claim.
+
+**Actual contact still matters:** use the reviewed solid glove surface, not the whole reach region or empty air across the cuff. Back/cuff geometry is still to be specified. This does not turn bare-hand or body contact into a glove catch, add reach, change Fielding-driven positioning or introduce a new catch input or motion system.
+
+**Eligible does not mean automatic success:** existing action readiness, play legality, possession and jump rules still apply. A qualifying difficult acquisition still uses the accepted error probability; surface region alone adds no new error chance. When that handling event fails, the actual pocket/rim/back normal and motion still determine physical obstruction and the reviewed response. Pocket contact does not force success, and rim contact does not force failure.
+
+**Keep the picture honest:** authored secure-contact motion must agree with where contact occurred and transition coherently into possession. Do not teleport the ball through the glove, move the contact to its pocket for appearance, or alter the normal to suit animation. Verify both hands and wrist poses through the existing shared motion contract before human acceptance.
+
+The cup-shaped geometry still matters for contact and deflection. This choice only determines whether a solid glove side can qualify for acquisition. Dimensions, body/cuff behavior, full collision/motion integration and special contracts remain explicit work.
+
+This is an authored proposal for reliable fielding, not verified Wii/GC catch-side behavior. No runtime or human gate change here.
+
+**Question for Jack:** allow pocket, rim and back-of-glove contact to secure the ball when otherwise eligible, without a pocket-facing requirement?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

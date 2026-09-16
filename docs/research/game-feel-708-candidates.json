@@ -635,8 +635,13 @@
     },
     {
       "id": "F693-02-glove-contact-surface",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a simplified smooth cup-shaped glove contact surface with a rounded rim, matching the visible pocket and moving with the glove, independently of catch reach?"
+    },
+    {
+      "id": "F693-02-glove-catch-sides",
+      "state": "next-human-decision",
+      "question": "Allow eligible actual glove contact on pocket, rim or back to secure a ball, without a separate pocket-facing requirement?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -6374,7 +6379,13 @@
     "basis": "three-dimensional-contact-incidence",
     "usesRelativeContactVelocity": true,
     "usesPenetrationDepth": false,
-    "geometryContract": null,
+    "geometryContract": {
+      "gloveShapeDecisionId": "F693-02-glove-contact-surface",
+      "shapeFamily": "smooth-concave-pocket-rounded-rim",
+      "dimensions": null,
+      "bodyGeometry": null,
+      "motionContract": null
+    },
     "continuingNormalizationBounds": null,
     "branchThresholds": null,
     "zeroRelativeSpeedFallback": null,
@@ -6415,7 +6426,7 @@
   },
   "gloveContactSurfaceProposal": {
     "decisionId": "F693-02-glove-contact-surface",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "shapeFamily": "smooth-concave-pocket-rounded-rim",
     "usesDecorativeMeshTriangles": false,
     "changesCatchRange": false,
@@ -6439,6 +6450,38 @@
       "Contact timing and incidence are stable across frame partitions and shared sim/presentation sampling.",
       "Front, rim, back, cuff and body contacts remain explicit before full implementation; human visual acceptance stays open."
     ],
-    "implementationBoundary": "Pending glove contact-shape family only; dimensions, motion integration, other surfaces, runtime and human gates remain open."
+    "implementationBoundary": "Pending glove contact-shape family only; dimensions, motion integration, other surfaces, runtime and human gates remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to a smooth cup-shaped glove contact surface with rounded rim, separate from character reach."
+  },
+  "gloveCatchSidesProposal": {
+    "decisionId": "F693-02-glove-catch-sides",
+    "state": "pending",
+    "eligibleSolidRegions": [
+      "pocket",
+      "rim",
+      "back"
+    ],
+    "requiresPocketFacing": false,
+    "addsGloveFacingInput": false,
+    "solidSurfaceGeometry": null,
+    "cuffGeometry": null,
+    "recommendation": "Allow actual contact with the authored solid glove surface, including pocket, rim and back, to be an acquisition opportunity when the fielder and play are otherwise eligible. Do not add a separate pocket-facing gate or new glove-aim input.",
+    "rationale": "Preserve reliable arcade fielding when the player reaches the ball but a brief authored wrist orientation exposes the rim or back. Pocket-only acquisition would make orientation matter more and could cause misses without a distinct player-controlled correction. This is a deliberate forgiving acquisition rule, not a statement about real glove mechanics.",
+    "geometryBoundary": "This requires actual swept ball contact with the reviewed glove surface. It does not fill empty space across the cuff or enlarge the glove to the reach region. Back/cuff dimensions and surface construction remain pending. Bare hand and body contacts are separate; this does not grant them glove catch eligibility.",
+    "eligibility": "Surface contact alone is insufficient: apply existing action readiness, possession, play legality, jump/support rules and reviewed ordinary error eligibility/probability. Routine eligible contact remains reliable; an independently qualifying failed handling event still uses its actual contact angle and approved local/continuing response. Do not create a new error chance solely because the contacted region was rim/back.",
+    "rangeAndMotion": "Preserve explicit character reach, no Field-driven glove positioning, one-press jump catching and the shared authored motion system. This selects no reach enlargement, automatic lunge, new pose, extra catch button or second IK system.",
+    "presentation": "Authored secure-contact motion must visibly agree with the real contact and transition coherently to possession. Do not teleport the ball through the glove, pretend it struck the pocket when it hit the back, or alter collision normals for a nicer catch animation. Presentation validation remains a future human gate.",
+    "physicsSeparation": "The approved concave pocket/rim geometry still supplies real normals for physical collision and obstruction. Acquisition-side forgiveness does not replace contact geometry with a sphere, change incident velocity, force pocket success or force rim failure. Special contracts remain explicit.",
+    "referenceLimit": "Authored catch-eligibility proposal to support reliable arcade feel, not verified Wii/GC front-versus-back catch behavior.",
+    "requiredChecks": [
+      "Equivalent otherwise eligible pocket/rim/back contacts all reach the same acquisition decision without a facing-only rejection.",
+      "No catch without actual glove contact, no body/bare-hand promotion and no filling cuff air or reach volume.",
+      "Readiness, legal catch versus pickup, ordinary error gate and special exceptions remain intact.",
+      "Failed contact preserves the real surface normal/velocity and same-error rules.",
+      "Verify both hands, changing wrist poses and visible secured contact across the shared motion contract before human acceptance."
+    ],
+    "implementationBoundary": "Pending acquisition-side policy only; geometry, animation integration, body/cuff contracts, runtime and human gates remain open."
   }
 }
