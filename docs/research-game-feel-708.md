@@ -1408,9 +1408,9 @@ Use a forward-biased baseline derived from the incoming motion and actual contac
 
 Retain one seeded result for the actual failed-contact event, with no redraw from local/continuing classification, selection or recovery. Direction rotation must not restore speed removed by impact. This is not yet a numerical speed-loss rule: contact mapping, distribution, vertical response and low-horizontal-motion fallback remain open. Existing reaction and reliable recovery stay accepted. These are authored trials, not measured Wii/GC values; no runtime or human gate changes.
 
-## Next decision — continuing-deflection speed retention
+## Accepted decision — continuing-deflection speed retention
 
-**F693-02-continuing-error-speed-retention — pending, September 15, 2026.** Recommend a first trial in which a continuing deflection retains **50–80% of its horizontal speed immediately before contact**. A glancing touch sits toward the higher end; a stronger interruption within this branch sits toward the lower end. This selects bounds, not the exact contact-to-retention curve or the outcome classifier.
+**F693-02-continuing-error-speed-retention — accepted by Jack on September 15, 2026.** Jack approved a first trial in which a continuing deflection retains **50–80% of its horizontal speed immediately before contact**. A glancing touch sits toward the higher end; a stronger interruption within this branch sits toward the lower end. This selects bounds, not the exact contact-to-retention curve or the outcome classifier.
 
 **What that means:** an illustrative ball arriving at 40 ft/s would leave contact at 20–32 ft/s. At 20 ft/s incoming the range is 10–16; at 60 it is 30–48. These are calculation examples, not chosen hit speeds or Mario measurements. Faster incoming balls remain capable of a longer escape, while every continuing deflection in this trial visibly loses some speed.
 
@@ -1422,7 +1422,23 @@ Retain one seeded result for the actual failed-contact event, with no redraw fro
 
 Compare matched pre/post-contact trajectories in both references and the eventual full recovery race before claiming parity. This is an authored numerical band only. Exact mapping, outcome thresholds, vertical response and downstream trajectory remain open; no runtime or human gate changes here.
 
-**Question for Jack:** trial 50–80% retained horizontal speed for continuing deflections, with glancing contact keeping more and stronger interruption keeping less?
+## Next decision — ordinary error direction distribution
+
+**F693-02-error-direction-distribution — pending, September 15, 2026.** Recommend **a symmetric triangular distribution for directional variation**, making small offsets more common and tapering toward the limits. Left and right are equally likely. Keep the accepted limits: ±30 degrees for local bobbles and ±15 degrees for continuing deflections.
+
+**Player context:** contact remains the main visual explanation for the path, with occasional wider variation. Uniform sampling is the alternative: every equal-width slice of the angle range would be equally likely. The triangular shape puts more outcomes near the contact direction without eliminating the larger offsets Jack requested.
+
+**Concrete probabilities:** 75% of random offsets lie within the central half of the range: ±15 degrees for local bobbles, or ±7.5 degrees for continuing deflections. The remaining 25% lie in the outer halves combined. These are probability statements, not enforced quotas per match. Mean absolute offset is 10 degrees for local bobbles and 5 degrees for continuing deflections. None changes the chance that the fielder makes an error.
+
+**Definition:** sample normalized `X` from density `f(x)=1-|x|` on `[-1,1]`, then use offset `theta=A*X`, where `A` is the reviewed cap for that event's outcome branch. Mean and mode are zero; `P(|X|<=c)=2c-c²` for `0<=c<=1`. The numerical examples are analytic checks, not simulated plays or reference measurements.
+
+**One event result:** retain one normalized directional outcome through the authoritative seeded rail and scale it once for the selected branch. Do not draw again for local/continuing classification, choose an advantageous result or resample on frames, selection changes or recovery. Exact RNG allocation still needs implementation review. Untouched misses gain no error-angle sample or modifier.
+
+This choice affects horizontal direction only. It adds no speed, severity, vertical or stun randomness, no handling/Fielding spread multiplier and no bias toward runners, bases or helpers. Angle rotation keeps actual contact position and outgoing horizontal speed magnitude intact. The continuing branch still uses its accepted 50–80% speed-retention bounds and forward-biased contact direction; all same-origin recovery and special-effect rules remain intact.
+
+The cap describes variation around the contact-derived baseline, not total turning from the incoming trajectory. Exact baseline/fallback, contact-to-retention mapping, branch thresholds and vertical response remain pending. This is an authored distribution, not measured Wii/GC randomness. Compare visible small and near-limit offsets and full recovery races before implementation or human acceptance; no runtime changes here.
+
+**Question for Jack:** favor small directional offsets with this symmetric triangular distribution, while keeping the occasional wider deflection within the approved limits?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

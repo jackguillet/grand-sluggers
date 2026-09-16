@@ -1137,7 +1137,9 @@ def derive(data):
         assert error_selection["state"] == "accepted-calibration-anchor" and error_selection["separateSeverityRoll"] is False
         assert error_selection["acceptedBy"] and error_selection["acceptedOn"] and error_selection["acceptanceEvidence"]
         assert all(error_selection[key] is None for key in
-                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel"))
+                   ("outcomeMapping", "speedThresholds"))
+        assert error_selection["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
+        assert error_selection["retainedSpeedModel"]["contactMapping"] is None
         assert error_selection["randomAngleInheritance"] == "F693-02-continuing-error-direction"
         assert error_selection["recoveryInheritance"] == "F693-02-continuing-error-recovery"
         assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
@@ -1163,10 +1165,13 @@ def derive(data):
         assert continuing_direction["horizontalMaxOffsetDegrees"] < bobble_spread["horizontalMaxOffsetDegrees"]
         assert continuing_direction["untouchedMissAddedOffsetDegrees"] == 0
         assert all(continuing_direction[key] is None for key in
-                   ("distribution", "contactBaselineMapping", "retainedSpeedModel", "verticalTreatment"))
+                   ("distribution", "contactBaselineMapping", "verticalTreatment"))
+        assert continuing_direction["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
+        assert continuing_direction["retainedSpeedModel"]["contactMapping"] is None
     continuing_retention = data.get("continuingErrorSpeedRetentionProposal")
     if continuing_retention:
-        assert continuing_retention["state"] == "pending"
+        assert continuing_retention["state"] == "accepted-calibration-anchor"
+        assert continuing_retention["acceptedBy"] and continuing_retention["acceptedOn"] and continuing_retention["acceptanceEvidence"]
         retain_min = continuing_retention["minimumRetainedHorizontalSpeedFraction"]
         retain_max = continuing_retention["maximumRetainedHorizontalSpeedFraction"]
         assert 0 < retain_min < retain_max < 1
@@ -1176,9 +1181,26 @@ def derive(data):
         for retain_row in continuing_retention["examples"]:
             assert math.isclose(retain_row["lowerOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_min)
             assert math.isclose(retain_row["upperOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_max)
+    direction_distribution = data.get("errorDirectionDistributionProposal")
+    if direction_distribution:
+        assert direction_distribution["state"] == "pending"
+        assert direction_distribution["distribution"] == "symmetric-triangular"
+        assert direction_distribution["normalizedSupport"] == [-1, 1] and direction_distribution["normalizedMode"] == 0
+        assert math.isclose(direction_distribution["leftProbability"], .5)
+        assert math.isclose(direction_distribution["rightProbability"], .5)
+        dist_caps = {"local-bobble": bobble_spread["horizontalMaxOffsetDegrees"],
+                     "continuing-deflection": continuing_direction["horizontalMaxOffsetDegrees"]}
+        for dist_row in direction_distribution["examples"]:
+            dist_cap = dist_caps[dist_row["branch"]]
+            assert dist_row["maxDegrees"] == dist_cap
+            assert math.isclose(dist_row["centralHalfDegrees"], dist_cap/2)
+            assert math.isclose(dist_row["centralHalfProbability"], 2*.5-.5**2)
+            assert math.isclose(dist_row["outerHalfProbability"], 1-dist_row["centralHalfProbability"])
+            assert math.isclose(dist_row["expectedAbsoluteOffsetDegrees"], dist_cap/3)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "errorDirectionDistributionState": direction_distribution["state"] if direction_distribution else None,
             "continuingErrorSpeedRetentionState": continuing_retention["state"] if continuing_retention else None,
             "continuingErrorDirectionState": continuing_direction["state"] if continuing_direction else None,
             "continuingErrorRecoveryState": continuing_recovery["state"] if continuing_recovery else None,
