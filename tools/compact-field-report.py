@@ -1544,9 +1544,32 @@ def derive(data):
         assert len(cpu_dive["options"]) == 3
     delay_research = data.get("diveRecoveryCostResearch")
     if delay_research:
-        assert delay_research["state"] == "research-in-progress"
+        assert delay_research["state"] == "next-human-decision"
         neighbours = delay_research["neighbouringAcceptedDurationsSeconds"]
         assert math.isclose(neighbours["sharedHandlingStun"], data["bobbleStunDurationProposal"]["stunDurationSec"])
+        example = data["throwReleaseProposal"]["arithmeticOnlyExample"]
+        anchor = delay_research["anchor"]
+        assert math.isclose(anchor["routineReceptionSeconds"], example["assumedCoveredReceptionSeconds"])
+        assert math.isclose(anchor["runnerNominalArrivalSeconds"], example["runnerNominalArrivalSeconds"])
+        assert math.isclose(anchor["marginSeconds"], example["marginSeconds"])
+        for row in delay_research["durationTable"]:
+            assert math.isclose(row["receptionSeconds"], anchor["routineReceptionSeconds"] + row["delaySeconds"])
+            assert math.isclose(row["marginSeconds"],
+                                anchor["runnerNominalArrivalSeconds"] - row["receptionSeconds"], abs_tol=1e-9)
+        trial = delay_research["proposedTrialSeconds"]
+        assert any(math.isclose(row["delaySeconds"], trial) and row["marginSeconds"] < 0
+                   for row in delay_research["durationTable"]), \
+            "The proposed trial must make an unnecessary dive cost the out"
+        assert trial > neighbours["sharedHandlingStun"], "A dive must read as a larger commitment than a bobble"
+        for curve in delay_research["openQuestion"]["curveComparison"]:
+            rate = curve["ratePerPoint"]
+            for key, point in (("lowestSeconds", 1), ("middleSeconds", 5), ("highestSeconds", 10)):
+                assert math.isclose(curve[key], trial * (1 - rate * (point - 1)), abs_tol=5e-4)
+        narrow = min(delay_research["openQuestion"]["curveComparison"], key=lambda c: c["ratePerPoint"] or 1)
+        house = max(delay_research["openQuestion"]["curveComparison"], key=lambda c: c["ratePerPoint"])
+        assert narrow["ratePerPoint"] < house["ratePerPoint"]
+        assert (anchor["runnerNominalArrivalSeconds"] - anchor["routineReceptionSeconds"]
+                - narrow["highestSeconds"]) < .05, "A narrowed curve must still deny the best defender a comfortable out"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
