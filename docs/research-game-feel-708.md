@@ -175,6 +175,44 @@ None of those needs Jack to arbitrate a coefficient. They are worth consolidatin
 
 **Reference limit:** no Wii or GameCube dive recovery has been measured, and no dive frequency has been counted in either reference. Both are understood to let uncontrolled fielders dive, but that is recollection rather than a recorded observation in this packet and is not evidence here.
 
+## What the dive delay has to be worth
+
+`F693-02-dive-recovery-cost`, consolidated rather than brought forward one coefficient at a time. The packet already contains the anchor this needs, so the duration is a consequence rather than a taste call.
+
+The accepted release and travel section carries an illustrative routine race: possession at 1.30 s, 0.25 s of player decision, the accepted 0.30 s release and 1.10 s of flight give a covered reception at **2.95 s** against the nominal **3.45 s** runner — a **0.50-second margin**. A dive delay is spent inside that margin, because it sits between possession and release. That turns Jack's instruction into arithmetic: *“dives are used as a last resort to reach a ball, not spammed on every play”* means a dive taken on a ball the fielder could have fielded standing should not still produce the out.
+
+| Delay | Reception | Margin | An unnecessary dive is… |
+| --- | --- | --- | --- |
+| 0.20 s (recoil-sized) | 3.15 s | +0.30 s | still a comfortable out |
+| 0.40 s (stun-sized) | 3.35 s | +0.10 s | still an out, barely |
+| 0.50 s | 3.45 s | 0.00 s | a dead heat |
+| **0.60 s** | **3.55 s** | **−0.10 s** | **a hit** |
+
+**Proposed trial: 0.60 seconds.** It is the shortest value in the table at which the deterrent is unambiguous. A dead heat at 0.50 reads as *sometimes you get away with it*, which is an invitation to spam rather than a discouragement. It also sits above the 0.40-second handling stun, so a dive reads as a larger commitment than a bobble, and it happens to match the accepted 0.60-second normal-jump arc — a readability parallel rather than a justification, since a jump already pays its airtime the same way.
+
+A **necessary** dive is unaffected by this reasoning. If the ball was at the rim the fielder had no standing play at all, so there was no out to lose; the dive converts a certain hit into a stopped ball and a shorter one. The cost only bites when the dive was not needed, which is the intent.
+
+Three parts of the rule are shape rather than magnitude, and the packet answers two of them:
+
+- **Caught and missed dives cost the same.** The accepted direction already says the delay is a cost of the dive rather than a penalty for failing. Charging the miss extra would double-punish a play that has already failed and would quietly reintroduce a failure lottery.
+- **The delay and the handling stun overlap; take the longer, do not add.** If a dive reaches the ball and then fails its handling roll, adding gives 1.00 second, which is longer than anything else in the packet by a wide margin. The dive delay already represents being on the ground, and the stun's job — a visible reaction that costs time — is already done by it. **This departs from the additive precedent set for ordinary and special recovery from the same impact**, and is flagged here rather than buried so it can be rejected on sight.
+- **Whether recovery varies by character is a real decision**, and it is below.
+
+### The one open question — does the dive differentiate defenders
+
+Jack raised earlier that Fielding could indicate “a unique dive ability, or make less errors.” Reach and glove positioning are both ruled out as things Fielding may touch, so dive recovery is the last natural home for the first half of that remark. Any variation must be driven by an explicit defensive trait, not the displayed Fielding number, exactly as the handling error chance is.
+
+Putting it on the packet's house curve — the recoil factor's 5% per point — has a consequence worth seeing before choosing:
+
+| | lowest quality | middle | highest |
+| --- | --- | --- | --- |
+| 5% per point | 0.600 s → a hit | 0.480 s → dead heat | 0.330 s → **comfortable out** |
+| 2.5% per point | 0.600 s → a hit | 0.540 s → dead heat | 0.465 s → dead heat |
+
+On the recoil curve the best defender recovers fast enough that an unnecessary dive is still a comfortable out, which hands that character back the spam the decision was meant to remove. If recovery varies at all, the curve has to be **narrower than the recoil curve** so even the best defender pays something real. That is why the two are one question rather than two.
+
+**Reference limit:** no Wii or GameCube dive recovery has been measured and no dive frequency counted. The 0.60-second trial is derived from this packet's own accepted race anchors, not from either reference.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.

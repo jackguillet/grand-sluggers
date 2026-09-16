@@ -700,8 +700,8 @@
     },
     {
       "id": "F693-02-dive-recovery-cost",
-      "state": "research-in-progress",
-      "question": "How long is the dive recovery delay before the diver can throw or move, does a caught dive cost the same as a missed one, and does it vary by character?"
+      "state": "next-human-decision",
+      "question": "Proposed 0.60-second dive recovery, caught and missed alike, overlapping the handling stun. Does it vary by character, and how widely?"
     },
     {
       "id": "F693-02-cpu-dive-intent",
@@ -6911,8 +6911,8 @@
   },
   "diveRecoveryCostResearch": {
     "decisionId": "F693-02-dive-recovery-cost",
-    "state": "research-in-progress",
-    "status": "research-not-simulation",
+    "state": "next-human-decision",
+    "status": "consolidated-trial-research-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-dive-jump-scoop-reach"
@@ -6933,6 +6933,108 @@
     ],
     "plan": "Consolidate into a single proposed trial rather than arbitrating coefficients one at a time, and only return to Jack if the shape turns out to be a real tradeoff. Sequenced after F693-02-cpu-dive-intent, because a CPU that dives changes what the delay has to be worth.",
     "referenceLimit": "No Wii or GameCube dive recovery has been measured.",
-    "implementationBoundary": "Research in progress. No duration, character mapping, composition rule, rules-file edit or runtime change is selected."
+    "implementationBoundary": "Consolidated trial and one open question. No duration, trait curve, composition rule, rules-file edit, runtime change or human gate is selected or passed here.",
+    "anchor": {
+      "source": "throwReleaseProposal.arithmeticOnlyExample",
+      "routineReceptionSeconds": 2.95,
+      "runnerNominalArrivalSeconds": 3.45,
+      "marginSeconds": 0.5,
+      "reasoning": "A dive delay is spent between possession and release, so it comes out of the routine margin. \"Last resort, not spammed\" means a dive taken on a ball the fielder could have fielded standing should not still produce the out."
+    },
+    "durationTable": [
+      {
+        "delaySeconds": 0.2,
+        "receptionSeconds": 3.15,
+        "marginSeconds": 0.3,
+        "unnecessaryDive": "still a comfortable out",
+        "note": "recoil-sized"
+      },
+      {
+        "delaySeconds": 0.4,
+        "receptionSeconds": 3.35,
+        "marginSeconds": 0.1,
+        "unnecessaryDive": "still an out, barely",
+        "note": "handling-stun-sized"
+      },
+      {
+        "delaySeconds": 0.5,
+        "receptionSeconds": 3.45,
+        "marginSeconds": 0.0,
+        "unnecessaryDive": "a dead heat",
+        "note": "matches the existing dive arm window"
+      },
+      {
+        "delaySeconds": 0.6,
+        "receptionSeconds": 3.55,
+        "marginSeconds": -0.1,
+        "unnecessaryDive": "a hit",
+        "note": "proposed trial; matches the accepted normal-jump arc"
+      }
+    ],
+    "proposedTrialSeconds": 0.6,
+    "proposedTrialReasoning": "The shortest value at which the deterrent is unambiguous. A dead heat at 0.50 reads as sometimes getting away with it, which invites spam. It sits above the 0.40-second handling stun so a dive reads as a larger commitment than a bobble. Matching the 0.60-second normal-jump arc is a readability parallel, not a justification.",
+    "necessaryDiveNote": "A necessary dive is unaffected by the reasoning: if the ball was at the rim there was no standing play and therefore no out to lose. The dive converts a certain hit into a stopped ball. The cost only bites when the dive was not needed, which is the intent.",
+    "settledShape": [
+      {
+        "question": "caught versus missed",
+        "proposal": "same duration",
+        "reasoning": "The accepted direction already says the delay is a cost of the dive rather than a penalty for failing. Charging the miss extra would double-punish a play that has already failed and would quietly reintroduce a failure lottery."
+      },
+      {
+        "question": "composition with the 0.40-second handling stun",
+        "proposal": "overlap; take the longer, do not add",
+        "reasoning": "Adding gives 1.00 second, longer than anything else in the packet by a wide margin. The dive delay already represents being on the ground and the stun\u2019s visible-reaction job is already done by it.",
+        "departsFromPrecedent": "This departs from the additive precedent in F693-02-special-recovery-composition for ordinary and special recovery from the same impact. Flagged explicitly rather than buried so it can be rejected on sight."
+      }
+    ],
+    "openQuestion": {
+      "question": "Does dive recovery vary by character, and if so how widely?",
+      "whyPlayerFacing": "Reach and glove positioning are both ruled out as things Fielding may touch, so dive recovery is the last natural home for Jack\u2019s remark that Fielding could indicate a unique dive ability.",
+      "traitConstraint": "Any variation must be driven by an explicit defensive trait, not the displayed Fielding number, exactly as the handling error chance is.",
+      "curveComparison": [
+        {
+          "ratePerPoint": 0.05,
+          "label": "the packet house recoil curve",
+          "lowestSeconds": 0.6,
+          "middleSeconds": 0.48,
+          "highestSeconds": 0.33,
+          "highestUnnecessaryDive": "comfortable out",
+          "problem": "The best defender recovers fast enough that an unnecessary dive is still a comfortable out, handing that character back the spam the decision removed."
+        },
+        {
+          "ratePerPoint": 0.025,
+          "label": "narrowed",
+          "lowestSeconds": 0.6,
+          "middleSeconds": 0.54,
+          "highestSeconds": 0.465,
+          "highestUnnecessaryDive": "dead heat",
+          "problem": null
+        }
+      ],
+      "constraint": "If recovery varies at all, the curve must be narrower than the recoil curve so even the best defender pays something real. That is why magnitude and variation are one question rather than two."
+    },
+    "options": [
+      {
+        "id": "narrow-variation",
+        "ratePerPoint": 0.025,
+        "summary": "Dive recovery varies with an explicit defensive trait on a curve narrower than the recoil curve.",
+        "consequence": "A defender who gets up quickly is meaningfully different to play with, without Fielding touching reach or glove positioning. Even the best defender still only reaches a dead heat on an unnecessary dive, so the deterrent survives.",
+        "cost": "One more trait-driven curve to author, tune and explain, and the trait migration has to land before it can be implemented."
+      },
+      {
+        "id": "shared-recovery-named-dive-ability",
+        "ratePerPoint": 0.0,
+        "summary": "One shared dive recovery for everyone; a distinctive dive is a named ability a few characters have.",
+        "consequence": "The rule stays flat and readable, and \"a unique dive\" becomes a real ability with its own contract rather than a curve everyone sits on. Matches the second half of Jack\u2019s own remark.",
+        "cost": "Ordinary defenders are undifferentiated on the dive, so Fielding\u2019s only remaining ordinary effect is the error chance."
+      },
+      {
+        "id": "shared-recovery-only",
+        "ratePerPoint": 0.0,
+        "summary": "One shared dive recovery, full stop. Fielding differentiates through the error chance alone.",
+        "consequence": "Simplest possible rule and the least to tune.",
+        "cost": "Leaves Fielding meaning very little in ordinary play, having already lost reach, glove positioning and tracking speed."
+      }
+    ]
   }
 }
