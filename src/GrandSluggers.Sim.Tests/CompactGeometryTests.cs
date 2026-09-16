@@ -133,12 +133,16 @@ public sealed class CompactGeometryTests
         Assert.Equal(231, (int)Math.Round(Control.Parks["harbor-diamond"].LeftFenceFt * Outfield, MidpointRounding.ToEven));
         Assert.Equal(232, Trial.Parks["harbor-diamond"].LeftFenceFt);
 
-        // Ember Keep stays the biggest and Canopy Yard the smallest, before and after.
-        var shippedOrder = ParkIds.OrderBy(id => Control.Parks[id].CenterFenceFt).ToArray();
-        var trialOrder = ParkIds.OrderBy(id => Trial.Parks[id].CenterFenceFt).ToArray();
-        Assert.Equal(shippedOrder, trialOrder);
-        Assert.Equal("canopy-yard", trialOrder[0]);
-        Assert.Equal("ember-keep", trialOrder[^1]);
+        // The parks keep their order. Asserted against the literal ranking rather than against the
+        // shipped one re-sorted: a monotone scale preserves order necessarily, so comparing the two
+        // sorted lists restates the loop above and could not fail on its own.
+        string[] bySize = ["canopy-yard", "crystal-rink", "rooftop-city", "funfair-park", "harbor-diamond", "ember-keep"];
+        Assert.Equal(bySize, ParkIds.OrderBy(id => Control.Parks[id].CenterFenceFt).ToArray());
+        Assert.Equal(bySize, ParkIds.OrderBy(id => Trial.Parks[id].CenterFenceFt).ToArray());
+
+        // The tight pair is the one rounding could have swapped: 3 ft apart before, 2 ft after.
+        Assert.Equal(3, Control.Parks["rooftop-city"].CenterFenceFt - Control.Parks["crystal-rink"].CenterFenceFt);
+        Assert.Equal(2, Trial.Parks["rooftop-city"].CenterFenceFt - Trial.Parks["crystal-rink"].CenterFenceFt);
     }
 
     /// <summary>
@@ -339,31 +343,62 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// Ordinary uncharged contact stays inside a migrated park — with one exception, and it is one
-    /// the compact profile inherited rather than created. A nice slap at Power 9 or 10 with full lift,
-    /// pulled to the line, clears Funfair Park's left pole: 222 ft against a 220-ft pole, an 8-ft wall
-    /// and the only 6 mph wind blowing straight out in the set. The same swing already clears the
-    /// shipped Funfair line today (317 ft against 315), so the migration did not open that door.
+    /// <b>The slice's claim does not survive measurement.</b> #717 says ordinary uncharged contact
+    /// stays inside a migrated park at every Power rating. It does not, and the shortfall is wider
+    /// than a nice slap alone shows.
+    ///
+    /// A <i>perfect</i> slap is equally ordinary uncharged contact — the research's own derby probes
+    /// list "perfect slap, lifted, Power 5" — and it is the ceiling of the uncharged swing at
+    /// quality 1.00 against nice's 0.95. Sweeping only the nice column measures 95% of the door and
+    /// reports the room is sealed. Sour (0.75) is dominated by perfect and adds nothing.
+    ///
+    /// Swept across both uncharged qualities, six parks, Power 1-10, both lifts and nine sprays,
+    /// the migration opens <b>five new</b> ordinary home runs across <b>four</b> parks, one of them
+    /// at Power 8 rather than only the top two ratings.
     /// </summary>
     [Fact]
-    public void TheOnlyNiceSlapThatClearsAPoleIsTheOneThatAlreadyDoesToday()
+    public void OrdinaryUnchargedContactClearsFivePolesTheShippedParksDoNot()
     {
-        Assert.Equal(
-            ["funfair-park P9 lift spray-44.9", "funfair-park P10 lift spray-44.9"],
-            NiceSlapHomeRuns(Trial));
+        var b = Control.Rules.Batting;
+
+        // The nice column on its own: one inherited, one created.
         Assert.Equal(
             ["funfair-park P10 lift spray-44.9"],
-            NiceSlapHomeRuns(Control));
+            HomeRuns(Control, b.Quality.Slap.Nice));
+        Assert.Equal(
+            ["funfair-park P9 lift spray-44.9", "funfair-park P10 lift spray-44.9"],
+            HomeRuns(Trial, b.Quality.Slap.Nice));
 
-        static IReadOnlyList<string> NiceSlapHomeRuns(ContentCatalog cat)
+        // The ceiling of ordinary contact, which is what the criterion is actually about.
+        var control = HomeRuns(Control, b.Quality.Slap.Perfect);
+        var trial = HomeRuns(Trial, b.Quality.Slap.Perfect);
+        Assert.Equal(7, control.Count);
+        Assert.Equal(12, trial.Count);
+
+        Assert.Equal(
+            [
+                "canopy-yard P10 lift spray-35",
+                "ember-keep P10 lift spray-44.9",
+                "ember-keep P10 lift spray44.9",
+                "funfair-park P8 lift spray-44.9",
+                "rooftop-city P10 lift spray35"
+            ],
+            trial.Except(control).ToArray());
+
+        // Nothing the shipped parks allow is closed by the migration: the trial is a superset.
+        Assert.Empty(control.Except(trial));
+
+        static IReadOnlyList<string> HomeRuns(ContentCatalog cat, double quality)
         {
-            var b = Control.Rules.Batting;
+            // From `cat`, not Control: batting.json is not overridden today, but a helper that mixes
+            // one catalog's exit table with another's parks would lie the moment one was.
+            var b = cat.Rules.Batting;
             var gone = new List<string>();
             foreach (var id in ParkIds)
                 for (var power = 1; power <= 10; power++)
                     foreach (var lift in new[] { 0.0, b.Launch.StickDeg })
                         foreach (var spray in Sprays)
-                            if (BattedBall.Of(Exit(b, power, b.Quality.Slap.Nice), Launch(b, power, false, lift), spray,
+                            if (BattedBall.Of(Exit(b, power, quality), Launch(b, power, false, lift), spray,
                                     cat.Parks[id], cat.Rules).HomeRun)
                                 gone.Add($"{id} P{power} {(lift > 0 ? "lift" : "flat")} spray{spray}");
             return gone;
@@ -437,7 +472,9 @@ public sealed class CompactGeometryTests
                                 $"{id} P{power} {exit} mph {launch} deg hung {trial.HangT:F3} against {today.HangT:F3}");
                         }
 
-        Assert.True(liners > 300, $"only {liners} liners in the sweep");
+        // The real sweep is 2446. A floor of 300 would let it collapse to an eighth of its size and
+        // still claim "every liner hangs less", so the count is pinned instead.
+        Assert.Equal(2446, liners);
     }
 
     /// <summary>
@@ -529,6 +566,183 @@ public sealed class CompactGeometryTests
         Assert.Equal(400, Control.Parks["harbor-diamond"].CenterFenceFt);
         Assert.Equal(378, Control.Parks["canopy-yard"].CenterFenceFt);
         Assert.Equal(58, Control.Parks["canopy-yard"].Hazards[0].Z);
+    }
+
+    /// <summary>
+    /// <b>No trial park carries a key the shipped park does not.</b> The overlay's "override, never
+    /// add" rule is enforced per <i>file</i>; inside a park file it is not. A rules table is
+    /// protected — <c>RulesValidation.UnknownFields</c> refuses an unknown field — but
+    /// <c>ParkDto</c> deserialization ignores unmapped members, so a speculative knob added to a
+    /// trial park would load, be silently ignored by the sim, and read as authored.
+    ///
+    /// This checks the eight files this slice actually ships. The machinery gap itself belongs to
+    /// #716 and is filed there.
+    /// </summary>
+    [Fact]
+    public void NoTrialParkInventsAFieldTheShippedParkDoesNotHave()
+    {
+        foreach (var id in ParkIds)
+        {
+            var shipped = Keys(Path.Combine(Shipped, "parks", id + ".json"));
+            var trial = Keys(Path.Combine(Overlay, "parks", id + ".json"));
+            Assert.Equal(shipped, trial);
+        }
+
+        static IReadOnlyList<string> Keys(string path)
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(path), new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+            var keys = new List<string>();
+            foreach (var field in doc.RootElement.EnumerateObject())
+            {
+                keys.Add(field.Name);
+                if (field.Name != "hazards" || field.Value.ValueKind != JsonValueKind.Array) continue;
+                var i = 0;
+                foreach (var hazard in field.Value.EnumerateArray())
+                {
+                    foreach (var inner in hazard.EnumerateObject()) keys.Add($"hazards[{i}].{inner.Name}");
+                    i++;
+                }
+            }
+            keys.Sort(StringComparer.Ordinal);
+            return keys;
+        }
+    }
+
+    /// <summary>
+    /// <b>Four hazards end up in a different zone than the one that scaled them.</b> The rule picks a
+    /// factor from each hazard's <i>shipped</i> distance, and nothing checks where the result lands.
+    /// Because the outfield contracts harder than the infield, four hazards that were outfield become
+    /// infield — Canopy's deep tree by five hundredths of a foot.
+    ///
+    /// This is not a mis-application of the rule; it is the rule being one-way. It is recorded because
+    /// the seam is <c>flight.classes.infieldLipFt</c>, which did not migrate (<b>#728</b>) — once that
+    /// number moves, these four are the rows to re-check first.
+    /// </summary>
+    [Fact]
+    public void FourHazardsLandInADifferentZoneThanTheOneThatScaledThem()
+    {
+        var lip = Control.Rules.Flight.Classes.InfieldLipFt;
+        var flipped = new List<string>();
+
+        foreach (var id in ParkIds)
+        {
+            var shipped = Control.Parks[id].Hazards;
+            var trial = Trial.Parks[id].Hazards;
+            for (var i = 0; i < shipped.Count; i++)
+            {
+                var was = Diamond.Dist(0, 0, shipped[i].X, shipped[i].Z) >= lip;
+                var now = Diamond.Dist(0, 0, trial[i].X, trial[i].Z) >= lip;
+                if (was == now) continue;
+                flipped.Add($"{id} {shipped[i].Type}");
+
+                // Every flip runs outfield to infield. The outfield contracts harder, so a hazard can
+                // fall inside the lip but never climb out of it.
+                Assert.True(was && !now, $"{id} {shipped[i].Type} moved outward, which the scales forbid");
+            }
+        }
+
+        Assert.Equal(
+            ["canopy-yard tree", "crystal-rink freeze_volume", "ember-keep lava_pit", "rooftop-city ac_unit"],
+            flipped);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Effects the slice does not own, measured so 3d does not mistake them for its anchors
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// <b>The un-migrated lip doubles the pop rate.</b> <c>BattedBall</c> downgrades a fly landing
+    /// inside <c>flight.classes.infieldLipFt</c> to a pop. The trial carries <c>flight.json</c> but
+    /// deliberately moves only <c>drag</c>, so the lip stays at 155 ft against a 280-ft centre field
+    /// — about 17% of fair territory becomes about 34%, and twice as many flies are reclassified.
+    ///
+    /// This slice is right not to move it: the lip is <b>#728</b>, filed separately and flagged to
+    /// land with #717. But this slice also <i>uses</i> that lip to decide hazard zones, so the number
+    /// is load-bearing here and its cost belongs on the record rather than in a later surprise.
+    /// </summary>
+    [Fact]
+    public void TheUnmigratedLipDoublesThePopRate()
+    {
+        var control = Shapes(Control);
+        var trial = Shapes(Trial);
+
+        Assert.Equal(489, control.Pop);
+        Assert.Equal(976, trial.Pop);
+        Assert.True(trial.Pop > control.Pop * 1.9,
+            $"pops {control.Pop} -> {trial.Pop}: the lip is the cause, and it did not move");
+
+        // The flies did not vanish; they were reclassified.
+        Assert.Equal(4103, control.Fly);
+        Assert.Equal(3494, trial.Fly);
+
+        static (int Pop, int Fly) Shapes(ContentCatalog cat)
+        {
+            var b = cat.Rules.Batting;
+            var qualities = new[]
+            {
+                b.Quality.Slap.Nice, b.Quality.Slap.Perfect,
+                b.Quality.Charge.Nice, b.Quality.Charge.Perfect
+            };
+            int pop = 0, fly = 0;
+            foreach (var id in ParkIds)
+                for (var power = 1; power <= 10; power++)
+                    foreach (var charged in new[] { false, true })
+                        foreach (var quality in qualities)
+                            foreach (var lift in new[] { 0.0, b.Launch.StickDeg })
+                                foreach (var spray in Sprays)
+                                {
+                                    var shape = BattedBall.Of(Exit(b, power, quality),
+                                        Launch(b, power, charged, lift), spray, cat.Parks[id], cat.Rules).Shape;
+                                    if (shape == BattedBallClass.Pop) pop++;
+                                    else if (shape == BattedBallClass.Fly) fly++;
+                                }
+            return (pop, fly);
+        }
+    }
+
+    /// <summary>
+    /// <b>The corner infielders lose their bags, and it is not only the outfield that did not move.</b>
+    /// The PR body and this file both discuss <c>Diamond.Positions</c> as an outfield problem. The
+    /// sharper cost is at the corners: 1B and 3B sit close to bags that walk in without them, while
+    /// 2B and SS already play deep enough that the shrink barely reaches them.
+    ///
+    /// <b>#725</b> owns the migration and is flagged to land before #718. This pins what it costs
+    /// until it does, because #718 measures cover arrival and the double-play feed against these
+    /// exact distances — and #719 cuts the stand-up catch reach to 6 ft, which is smaller than the
+    /// error.
+    /// </summary>
+    [Fact]
+    public void TheCornerInfieldersStandTwiceAsFarFromTheirBagsAsTheReachThatWillCoverThem()
+    {
+        Assert.Equal(16.62, BagGap("1B", 1, Control.Rules), 2);
+        Assert.Equal(26.41, BagGap("1B", 1, Trial.Rules), 2);
+        Assert.Equal(16.62, BagGap("3B", 3, Control.Rules), 2);
+        Assert.Equal(26.41, BagGap("3B", 3, Trial.Rules), 2);
+
+        // The middle infield is fine: it already played too deep for the shrink to reach it.
+        Assert.Equal(43.01, BagGap("2B", 2, Control.Rules), 2);
+        Assert.Equal(42.28, BagGap("2B", 2, Trial.Rules), 2);
+
+        // The error at the corners is larger than the whole stand-up reach #719 authors.
+        Assert.True(BagGap("1B", 1, Trial.Rules) - BagGap("1B", 1, Control.Rules) > 6.0);
+
+        static double BagGap(string pos, int bag, RulesTable rules)
+        {
+            var (fx, fz) = Diamond.Positions[pos];
+            var infield = rules.Infield;
+            var (bx, bz) = bag switch
+            {
+                1 => (infield.CornerFt, infield.CornerFt),
+                2 => (0.0, infield.SecondFt),
+                3 => (-infield.CornerFt, infield.CornerFt),
+                _ => (0.0, 0.0)
+            };
+            return Diamond.Dist(fx, fz, bx, bz);
+        }
     }
 
     // ---------------------------------------------------------------------------------
