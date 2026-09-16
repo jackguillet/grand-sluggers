@@ -534,8 +534,13 @@
     },
     {
       "id": "F693-02-error-outcome-selection",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use current ball speed and actual contact/obstruction to determine local bobble versus continuing escape, without a separate random severe-error roll?"
+    },
+    {
+      "id": "F693-02-continuing-error-reaction",
+      "state": "next-human-decision",
+      "question": "Use the same .40-second reaction for failed ordinary handling with actual contact, including continuing deflections, but add no error stun to an untouched geometric miss?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5400,7 +5405,7 @@
   },
   "errorOutcomeSelectionProposal": {
     "decisionId": "F693-02-error-outcome-selection",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "basis": "current-ball-motion-and-actual-contact",
     "separateSeverityRoll": false,
     "outcomeMapping": null,
@@ -5423,6 +5428,35 @@
       "No guaranteed outfield destination, extra base, safe call or nearby stop is assigned by the outcome label.",
       "All new branches explicitly resolve reaction, recovery and randomness inheritance before runtime implementation."
     ],
-    "implementationBoundary": "Pending outcome-selection principle only. Numerical classifier/physics and all new-branch inheritance remain open; no runtime or human gate change."
+    "implementationBoundary": "Accepted outcome-selection principle only. Numerical classifier/physics and all new-branch inheritance remain open; no runtime or human gate change.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to using current ball speed and actual contact to determine whether the failed play stays nearby or keeps travelling, without a separate random severe-error roll."
+  },
+  "continuingErrorReactionProposal": {
+    "decisionId": "F693-02-continuing-error-reaction",
+    "state": "pending",
+    "contactFailureStunSec": 0.4,
+    "untouchedMissAddedStunSec": 0,
+    "durationScalesWithHandling": false,
+    "durationScalesWithEscapeDistance": false,
+    "recommendation": "Extend the accepted .40-second ordinary fumble reaction to a qualifying failed ordinary acquisition that makes actual contact and lets the ball continue away. An untouched geometric miss adds no error stun. Outcome distance does not lengthen or restart the reaction.",
+    "trigger": "Require the reviewed ordinary difficulty/handling opportunity, its failed handling result and actual ball/glove or ball/body contact attributable to that attempted acquisition. A glancing touch alone, a hard-hit label, body proximity or generic collision is not automatically a handling failure. General body-hit/stun mechanics and new error eligibility remain outside this decision.",
+    "rationale": "A contacted handling failure should visibly interrupt the fielder whether it leaves a nearby bobble or a longer escape. The longer loose-ball chase already changes the cost. Do not add another severity-based duration multiplier; better handling still reduces error frequency rather than this shared reaction.",
+    "untouchedMiss": "When the defender physically never touches the ball, preserve existing pursuit/committed-action behavior with no new error-specific pause. Do not fake contact or change range/glove placement to justify a stun. This does not cancel an existing dive/landing recovery or an independently applicable special restriction.",
+    "contactReaction": "Start at the actual failed-contact event on active gameplay time; no delay until the ball crosses an outfield boundary or an error caption. Use the existing ordinary stun action restrictions. For grounded ordinary locomotion, reuse accepted braking inside the .40 seconds. Other eligible defenders remain live, and switching characters cannot erase or transfer the timer.",
+    "readiness": "At the deadline restore ordinary eligibility only when independent gates permit. The fielder must still reach and legally acquire the ball. No automatic catch, throw, out, Ball Dash or new error roll occurs at expiry. The ball travelling farther does not extend or refresh the stun.",
+    "motionBoundary": "This extension does not select airborne/committed-action interruption physics or erase external impulses. Grounded braking keeps its existing limited scope. Ball trajectory and the defender reaction have separate state and clocks; neither forces the other to stop.",
+    "scope": "Ordinary contacted handling failures only. Retained secure catches/recoil, special-hit reactions, failed throws and catcher pitch handling keep their own contracts. Recovery-error eligibility and directional-jitter inheritance for continuing escapes remain separate decisions.",
+    "referenceLimit": "Authored consistency proposal, not measured Wii/GC contacted-versus-untouched error timing. Actual input/contact traces and visible reactions need reference/gameplay verification.",
+    "requiredChecks": [
+      "Qualifying contacted failures receive .40 seconds whether the ball remains local or travels farther; handling and distance do not change the timer.",
+      "Untouched misses add zero error-specific stun while preserving independently active action restrictions.",
+      "Touches without a qualifying failed handling event cannot create this stun automatically.",
+      "Grounded braking runs inside the timer, helpers remain eligible and control switching cannot bypass the affected character's gate.",
+      "Readiness expiry grants no possession or fresh roll, and ball distance/camera/caption cannot refresh the timer.",
+      "Airborne/committed motion, separate special effects and recovery/randomness rules remain explicit rather than inherited accidentally."
+    ],
+    "implementationBoundary": "Pending reaction inheritance only. New-branch recovery-error and directional-jitter rules, numerical trajectory and contact classification remain open. No runtime or human gate changed."
   }
 }

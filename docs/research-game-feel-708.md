@@ -1358,9 +1358,9 @@ Let remaining ball motion, ground/wall interactions and defender coverage decide
 
 **Inheritance still needs review:** the .40-second stun, grounded braking, reliable same-bobble recovery and ±30-degree local variation remain accepted for the local-bobble branch. Decide explicitly how each applies to a continuing deflection or a ball that gets through. An untouched ball cannot receive a fictitious contact kick. No runtime change or measured Wii/GC frequency/retained-speed claim.
 
-## Next decision — selecting the ordinary error outcome
+## Accepted decision — selecting the ordinary error outcome
 
-**F693-02-error-outcome-selection — pending, September 15, 2026.** Recommend **using current ball speed and actual glove/body contact to determine whether the failed play stays local or keeps travelling**, without a separate random severe-error roll.
+**F693-02-error-outcome-selection — accepted by Jack on September 15, 2026.** Jack approved **using current ball speed and actual glove/body contact to determine whether the failed play stays local or keeps travelling**, without a separate random severe-error roll.
 
 A contact that takes most of the speed out can leave a nearby bobble. A glancing contact on a fast ground ball can leave enough motion for it to continue through the infield. An untouched geometric miss continues on its path. These are qualitative examples, not accepted thresholds or collision coefficients: a hard ball can still be knocked down, and a slower one can still get past.
 
@@ -1370,7 +1370,21 @@ No numerical speed retention, restitution, ground resistance or classification t
 
 This is an authored selection principle, not a verified Mario algorithm. Compare hard/soft and central/glancing encounters in both references before selecting numerical physics, and then validate full recovery races and coverage. No runtime or human gate changes here.
 
-**Question for Jack:** let current ball speed and actual contact determine local bobble versus continuing escape, without a separate random severe-error roll?
+## Next decision — reaction to a continuing ordinary error
+
+**F693-02-continuing-error-reaction — pending, September 15, 2026.** Recommend **the same .40-second stun for a qualifying failed ordinary pickup that makes actual contact**, whether it leaves a nearby bobble or deflects farther away. If the fielder never touches the ball, add **no error-specific stun** and allow pursuit under existing action rules.
+
+**Why keep the timer:** the contacted failure needs a visible reaction in either case. A ball that keeps travelling already changes the recovery race; it does not need a longer stun merely because it escapes farther. This preserves Jack's shared-duration choice and avoids adding a handling or severity multiplier. An untouched miss has no fumble contact to justify this particular reaction.
+
+**Qualify the event:** the .40-second extension requires the reviewed ordinary handling opportunity, a failed handling result and actual contact attributable to the attempted acquisition. A glancing touch, body collision, nearby ball, hard-hit label or infielder position alone does not create an error or stun. Keep physical miss, failed handling and successful retained catch distinct. Do not pull the glove away, shrink its range or fabricate contact.
+
+**Apply the existing reaction contract:** start at failed contact on active gameplay time. Block the same ordinary actions and acquisition, and use accepted ordinary braking for grounded locomotion within the timer. Helpers remain live; selection/ownership changes cannot clear or transfer the affected character's stun. Distance travelled, camera transitions and captions cannot lengthen or restart it. Once .40 seconds and other applicable restrictions permit, restore eligibility rather than possession: actual travel and contact still determine recovery.
+
+**Untouched does not mean unrestricted:** an existing dive, landing recovery or independent special effect continues under its own rules. This proposal simply adds no new error pause for failing to reach the ball. It does not resolve airborne/committed reaction physics or discard external impulses. Nor does it change retained-ball recoil, special-hit reactions, throws or catcher pitch handling.
+
+Recovery-error protection and directional variation for the new continuing-error branches still need separate decisions. The ball's trajectory is not paused by the fielder's reaction. This is an authored consistency proposal, not measured Wii/GC timing; validate contacted/untouched cases and full recovery races before implementation. No runtime or human gate changes here.
+
+**Question for Jack:** use the same .40-second stun for contacted ordinary handling failures that keep travelling, while untouched misses add no error stun?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
