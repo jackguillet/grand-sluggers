@@ -715,8 +715,8 @@
     },
     {
       "id": "F693-02-defensive-trait-mapping",
-      "state": "pending",
-      "question": "Which explicit defensive traits exist, and how do they map to the quality input now consumed by the handling error chance and the dive recovery curve?"
+      "state": "next-human-decision",
+      "question": "The displayed Fielding number is doing four jobs at once. Does Arm split out as its own rating, does one defensive rating stay, or do Arm, Hands and Dive split three ways?"
     }
   ],
   "runnerClockProposal": {
@@ -7117,5 +7117,166 @@
       "The CPU dive pays the same delay on the same curve as a seat dive, per F693-02-cpu-dive-intent.",
       "The delay blocks throwing and movement only; it is not a possession loss, an acquisition gate or a new error source."
     ]
+  },
+  "defensiveTraitMappingResearch": {
+    "decisionId": "F693-02-defensive-trait-mapping",
+    "state": "next-human-decision",
+    "status": "research-inventory-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-fielding-rating-role",
+      "F693-02-ordinary-handling-error-chance",
+      "F693-02-dive-recovery-cost",
+      "F693-02-catch-reach-envelope",
+      "F693-03-long-throw-numbers"
+    ],
+    "whyBlocking": "Two accepted decisions consume defensive quality as an explicit trait, the handling error chance and the dive recovery curve, and neither can be implemented until those traits exist.",
+    "currentRatings": [
+      "Pitch",
+      "Bat",
+      "Field",
+      "Run"
+    ],
+    "inventory": [
+      {
+        "consumer": "Fielding.CatchRadiusFt",
+        "formula": "10 + 0.6 x Field",
+        "governs": "catch reach",
+        "group": "reach",
+        "status": "superseded-by-F693-02-catch-reach-envelope-and-character-catch-range"
+      },
+      {
+        "consumer": "InPlay.ArmMul",
+        "formula": "0.85 + 0.03 x Field",
+        "governs": "throw speed",
+        "group": "arm",
+        "status": "accepted-and-field-dependent-F693-03-long-throw-numbers"
+      },
+      {
+        "consumer": "longThrowComfortableRange",
+        "formula": "160 ft +/- 5 ft per Field point",
+        "governs": "arm range",
+        "group": "arm",
+        "status": "accepted-and-field-dependent-F693-03-long-throw-numbers"
+      },
+      {
+        "consumer": "ChemistryTable.FieldingThrow",
+        "formula": "sigma = (11 - Field) x 0.35 ft",
+        "governs": "throw accuracy",
+        "group": "arm",
+        "status": "live-no-accepted-replacement"
+      },
+      {
+        "consumer": "InPlay.KnockbackSec",
+        "formula": "(11 - Field) x 0.045",
+        "governs": "retained-ball recoil",
+        "group": "hands",
+        "status": "accepted-and-remapped-F693-02-recoil-field-factors"
+      },
+      {
+        "consumer": "InPlay.Bobbles",
+        "formula": "energy, hands = Field + glove",
+        "governs": "error chance",
+        "group": "hands",
+        "status": "superseded-by-F693-02-ordinary-handling-error-chance"
+      },
+      {
+        "consumer": "handlingErrorQualityH",
+        "formula": null,
+        "governs": "handling quality",
+        "group": "hands",
+        "status": "accepted-waiting-on-a-trait"
+      },
+      {
+        "consumer": "diveRecoveryCurve",
+        "formula": "2.5% per quality point",
+        "governs": "dive recovery",
+        "group": "hands",
+        "status": "accepted-waiting-on-a-trait"
+      },
+      {
+        "consumer": "InPlay.ThrowReactionSec",
+        "formula": "0.35 - 0.02 x Field, x cpu.active.reactionMul",
+        "governs": "CPU throw delay",
+        "group": "cpu-reaction",
+        "status": "live-cpu-only"
+      },
+      {
+        "consumer": "StealThrow.CpuReleaseSec",
+        "formula": "0.42 - 0.014 x Field, x cpu.active.reactionMul",
+        "governs": "CPU catcher release",
+        "group": "cpu-reaction",
+        "status": "live-cpu-only"
+      },
+      {
+        "consumer": "ClosePlay.CpuReactionSec",
+        "formula": "base + (10 - n) x per, x cpu.active.reactionMul",
+        "governs": "CPU close-play reaction",
+        "group": "cpu-reaction",
+        "status": "live-cpu-only"
+      },
+      {
+        "consumer": "Teams.Tools",
+        "formula": "Pitch + Bat + Field + Run",
+        "governs": "roster building",
+        "group": "not-gameplay",
+        "status": "unaffected"
+      },
+      {
+        "consumer": "hudAndCli",
+        "formula": "displayed as F",
+        "governs": "display",
+        "group": "not-gameplay",
+        "status": "unaffected"
+      }
+    ],
+    "groups": {
+      "arm": "Throw speed, comfortable range and throw accuracy. Three consumers, two accepted anchors depend on it.",
+      "hands": "Recoil duration, the handling error chance and dive recovery. Three consumers, three accepted decisions depend on it.",
+      "reach": "Already leaving the rating entirely by two accepted decisions; becomes an authored property.",
+      "cpu-reaction": "Three consumers, every one multiplied by cpu.active.reactionMul. Difficulty scaling wearing a character stat; worth settling during migration but not a reason to keep any other job attached to the rating.",
+      "not-gameplay": "Roster building and display. Unaffected by the migration whichever rating list is chosen."
+    },
+    "finding": {
+      "headline": "The displayed Fielding number is simultaneously the arm rating and the hands rating.",
+      "consequence": "A cannon-armed catcher with stone hands cannot exist today, and neither can a slick middle infielder with a noodle arm. Both are ordinary baseball archetypes and exactly the kind of character a cartoon roster is made of.",
+      "constraint": "The accepted throw anchors sit on the arm half of the number. Whatever replaces Field must keep feeding 0.03 per point of arm speed and 5 feet per point of range, or F693-03-long-throw-numbers breaks.",
+      "migrationSafePath": "Seeding an Arm rating at each character's current Field value makes every accepted throw anchor evaluate identically on day one, so the split costs nothing numerically and only allows deliberate divergence later. The same trick does not work for reach, which is why reach had to be re-authored rather than migrated."
+    },
+    "options": [
+      {
+        "id": "split-arm-out",
+        "ratings": [
+          "Arm",
+          "Fielding"
+        ],
+        "summary": "Arm becomes its own rating; Fielding summarises hands and dive.",
+        "consequence": "Unlocks the strong-arm/weak-hands archetypes and gives Fielding a single coherent meaning at last. Seeded from today's Field, every accepted throw anchor is unchanged on day one.",
+        "cost": "A fifth rating on the HUD, roster and content schema, and every character needs a deliberate Arm number eventually."
+      },
+      {
+        "id": "one-defensive-rating",
+        "ratings": [
+          "Fielding"
+        ],
+        "summary": "Fielding stays one summary behind both arm and hands; only reach leaves.",
+        "consequence": "Least work by far, no schema or HUD change, and the accepted anchors keep working untouched.",
+        "cost": "No defensive archetypes: arm and hands remain locked together forever, and Fielding keeps meaning several unrelated things at once."
+      },
+      {
+        "id": "arm-hands-dive",
+        "ratings": [
+          "Arm",
+          "Hands",
+          "Dive"
+        ],
+        "summary": "Three explicit ratings, with Fielding displayed as their summary.",
+        "consequence": "Most expressive, and it makes the unique dive a rating rather than an ability.",
+        "cost": "Three numbers per character to tune and explain, and the dive is thin as a whole rating when it drives one curve."
+      }
+    ],
+    "cpuReactionNote": "Recommend that the CPU reaction group follows whatever defensive rating remains rather than becoming its own trait, and that whether it should be character-driven at all is settled during migration rather than by this decision.",
+    "referenceLimit": "No Wii or GameCube stat architecture has been inspected in this packet. Both games display per-character ratings, but nothing here establishes what their internals separate and no claim is made about it.",
+    "implementationBoundary": "Research inventory prepared for one human decision. No rating list, schema change, roster number, migration code, rules-file edit, runtime change or human gate is selected or passed here."
   }
 }

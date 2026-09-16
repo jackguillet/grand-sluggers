@@ -223,6 +223,43 @@ The rest of the rule is as proposed. A caught dive and a missed dive cost the sa
 
 **Reference limit:** no Wii or GameCube dive recovery has been measured and no dive frequency counted. The 0.60-second trial is derived from this packet's own accepted race anchors, not from either reference.
 
+## Every job the Fielding number is doing
+
+`F693-02-defensive-trait-mapping`. Two accepted decisions now consume “defensive quality” as an explicit trait — the handling error chance and the dive recovery curve — and neither can be implemented until those traits exist. This is the inventory that was required before implementation. It reads the current runtime; it proposes no runtime change.
+
+A character has four ratings: Pitch, Bat, **Field**, Run. Every gameplay use of `Stats.Field`:
+
+| Consumer | Current formula | What it actually governs | Status |
+| --- | --- | --- | --- |
+| `Fielding.CatchRadiusFt` | `10 + 0.6 × Field` | catch reach | **Superseded.** `F693-02-catch-reach-envelope` authored 6 feet and `F693-02-character-catch-range` bars Fielding from sizing reach. Needs an authored reach property. |
+| `InPlay.ArmMul` | `0.85 + 0.03 × Field` | throw speed | **Accepted and Field-dependent** — `F693-03-long-throw-numbers` carries `armSpeedPerFieldPoint 0.03`. |
+| long-throw comfortable range | `160 ft ± 5 ft per Field point` | arm range | **Accepted and Field-dependent** — same decision, `rangeFeetPerFieldPoint 5`. |
+| `ChemistryTable.FieldingThrow` | `σ = (11 − Field) × 0.35 ft` | throw accuracy | Live. No accepted replacement. |
+| `InPlay.KnockbackSec` | `(11 − Field) × 0.045` | retained-ball recoil | **Accepted and remapped** — `F693-02-recoil-field-factors`, 5% per point, 0.20 / 0.16 / 0.11 s. |
+| `InPlay.Bobbles` | energy, `hands = Field + glove` | error chance | **Superseded** — `F693-02-ordinary-handling-error-chance`. |
+| *new* handling error `H` | — | handling quality | Accepted; **waiting on a trait**. |
+| *new* dive recovery curve | 2.5% per point | dive recovery | Accepted; **waiting on a trait**. |
+| `InPlay.ThrowReactionSec` | `0.35 − 0.02 × Field`, × CPU multiplier | CPU throw delay | CPU-only. |
+| `StealThrow.CpuReleaseSec` | `0.42 − 0.014 × Field`, × CPU multiplier | CPU catcher release | CPU-only. |
+| `ClosePlay.CpuReactionSec` | `base + (10 − n) × per`, × CPU multiplier | CPU close-play reaction | CPU-only. |
+| `Teams.Tools` | sum of four ratings | roster building | Not gameplay. |
+| HUD and CLI | `F 5` | display | Display only. |
+
+Four distinct jobs fall out, not one:
+
+- **Arm** — throw speed, comfortable range, throw accuracy. Three consumers, and **two accepted anchors depend on it**.
+- **Hands** — recoil duration, the handling error chance and dive recovery. Three consumers, and **three accepted decisions depend on it**.
+- **Reach** — already leaving the rating entirely, by two accepted decisions.
+- **CPU reaction** — three consumers, every one of them multiplied by the difficulty reaction multiplier.
+
+Two of those deserve comment. The **CPU reaction** group is difficulty scaling wearing a character stat: the same number is scaled by `cpu.active.reactionMul` in all three places, so what it mostly expresses is how hard the computer is playing. Whether it should be trait-driven at all is worth settling during migration, but it is not a reason to keep any other job attached to the rating.
+
+The **Arm** group is the finding. **The displayed Fielding number is simultaneously the arm rating and the hands rating.** A cannon-armed catcher with stone hands cannot exist today, and neither can a slick middle infielder with a noodle arm — both are ordinary baseball archetypes and both are exactly the kind of character a cartoon roster is made of. The accepted throw anchors sit squarely on the arm half of that number, which means the migration cannot quietly drop it: whatever replaces Field must keep feeding `0.03` per point of arm speed and `5` feet per point of range, or `F693-03-long-throw-numbers` breaks.
+
+There is a migration-safe path through that. If an Arm rating is seeded at each character's current Field value, every accepted throw anchor evaluates identically on day one and the split costs nothing numerically — it only *allows* divergence later, when the roster is tuned deliberately. The same trick does not work for reach, which is why reach had to be re-authored rather than migrated.
+
+**Reference limit:** no Wii or GameCube stat architecture has been inspected in this packet. Both games display per-character ratings, but nothing here establishes what their internals separate, and no claim is made about it.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.
