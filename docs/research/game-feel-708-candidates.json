@@ -487,8 +487,19 @@
     },
     {
       "id": "F693-02-bobble-stun-handling",
+      "state": "superseded-by-user-direction",
+      "question": "Should better underlying handling modestly shorten the ordinary bobble stun, while every defender still shows a readable reaction?",
+      "supersededBy": "F693-02-uniform-bobble-stun"
+    },
+    {
+      "id": "F693-02-uniform-bobble-stun",
+      "state": "accepted-calibration-anchor",
+      "question": "Use the same ordinary bobble stun duration across characters; handling reduces error frequency, not this reaction duration."
+    },
+    {
+      "id": "F693-02-bobble-stun-duration",
       "state": "next-human-decision",
-      "question": "Should better underlying handling modestly shorten the ordinary bobble stun, while every defender still shows a readable reaction?"
+      "question": "Trial a shared .40-second ordinary bobble stun, followed by physical pursuit and pickup?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4951,7 +4962,7 @@
     "acceptanceEvidence": "Jack directed a brief stun after a bobble, followed by resuming movement to pick the ball up, replacing the pending movement-available recovery proposal.",
     "recoveryModel": "brief-fumbler-stun-then-resume",
     "stunDurationSec": null,
-    "handlingDurationMapping": null,
+    "handlingDurationMapping": "shared-duration-no-handling-scaling",
     "entryMotionProfile": null,
     "freshAttemptDefinition": null,
     "direction": "After an ordinary awkward-hop bobble, the fumbling character briefly stuns/reacts before resuming pursuit and pickup. During the reaction the character cannot actively run/steer, initiate a new jump/dive, or secure the ball. Show the reaction on that character while the ball remains physically loose. This replaces the unaccepted movement-available glove-recovery proposal.",
@@ -4961,11 +4972,11 @@
     "preservedRules": "Keep accepted loose-ball continuity and acquisition-before-possession ordering, throw-buffer aging/invalidation, retained-ball recoil and pure special-pushback contracts. No new stun-specific input-buffer promise is made. Special effects keep their own gates; combined timing and repeated-attempt rules remain reviewed separately. A later loss does not undo a completed earlier out.",
     "currentAudit": "The existing RecoilT/Bobbling branch has a fumble early return while the loose ball and some off-ball helpers advance earlier. This resembles an interruption but does not prove consistent per-character stun gating across movement, helper, catch and ownership paths. Current FumbleSec .58 remains an observation, not an accepted duration.",
     "referenceLimit": "Explicit user-authored direction. Matched Wii/GC ordinary bobble stun duration and entry motion have not been measured. No Mario-parity claim.",
-    "implementationBoundary": "Accepted stun direction only. Duration, handling dependence, entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed."
+    "implementationBoundary": "Accepted stun direction, with shared duration confirmed by F693-02-uniform-bobble-stun. Numerical duration, entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed."
   },
   "bobbleStunHandlingProposal": {
     "decisionId": "F693-02-bobble-stun-handling",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "stunDurationSec": null,
     "maximumRelativeReduction": null,
     "minimumReadableStunSec": null,
@@ -4981,6 +4992,79 @@
       "Changing only displayed Fielding cannot change stun, and no glove/range/scatter or speed benefit is silently added.",
       "Evaluate the combined frequency and recovery advantage, not just stun duration, across compact-field races."
     ],
-    "implementationBoundary": "Pending handling-to-stun direction only. Numerical durations, reduction, trait mapping, runtime and human gates remain open."
+    "implementationBoundary": "Superseded before implementation. Do not add handling-dependent ordinary stun duration; follow F693-02-uniform-bobble-stun.",
+    "supersededBy": "F693-02-uniform-bobble-stun",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack replied i don't think that is necessary to the proposed handling-based reduction in ordinary bobble stun."
+  },
+  "uniformBobbleStunProposal": {
+    "decisionId": "F693-02-uniform-bobble-stun",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack declined a handling-based reduction in ordinary bobble stun; retain a shared duration across characters.",
+    "handlingAffectsDuration": false,
+    "stunDurationSec": null,
+    "direction": "Use the same ordinary bobble stun duration across characters. Underlying handling retains its approved error-probability benefit without also shortening this reaction. Displayed Fielding, body size and Run do not create a different ordinary stun duration.",
+    "scope": "Ordinary awkward-hop bobble reaction only. Characters can still differ in actual travel time, handling-error frequency and geometry. This does not equalize total recovery time or change already approved ordinary recoil/special resistance. Special-hit effects and independent gates retain their own contracts.",
+    "implementationBoundary": "Accepted no-handling-scaling direction; shared numerical duration, motion transitions and fresh-attempt rules remain pending. No runtime or human gate changed."
+  },
+  "bobbleStunDurationProposal": {
+    "decisionId": "F693-02-bobble-stun-duration",
+    "state": "pending",
+    "stunDurationSec": 0.4,
+    "clock": "authoritative-active-gameplay-seconds",
+    "appliesTo": "ordinary-awkward-hop-bobble-all-characters",
+    "handlingAffectsDuration": false,
+    "recommendation": "Trial a shared .40-second ordinary bobble stun from the failed-acquisition event. Once it ends and independent restrictions permit, resume ordinary movement and physical recovery.",
+    "rationale": "A readable interruption while retaining a brisk recovery opportunity. Compare .30/.40/.50 seconds as shorter/recommended/longer authored alternatives. The ball is already loose and travel/pickup follow, so the stun must not absorb the whole recovery race or silently duplicate another generic delay.",
+    "timing": "Begin at actual failed acquisition, not a later caption or animation callback. Stun is active for t < eventTime + .40, with ordinary action eligibility at or after that boundary subject to other gates and actual geometry. Split event-side stepping at the boundary so frame partition does not add a full update of lock. Pause stops the gameplay clock. Switching control cannot restart or erase the timer.",
+    "resume": "Resume the existing movement law and physical catch eligibility without an additional generic stand-up/read delay. This does not snap velocity, grant possession or create a fresh roll. Entry braking, residual velocity and committed-motion interactions remain separate; ordinary acceleration and independent restrictions still apply.",
+    "scope": "Shared ordinary reaction only, no handling/Fielding/Run/body multiplier. No change to error chance, scatter trajectory, catch range or glove positioning. Special effects keep separately reviewed clocks and action gates. A helper may recover sooner; .40 is not minimum team recovery or a guaranteed offensive advantage.",
+    "sensitivity": {
+      "runnerRun": 5,
+      "basepathFt": 80,
+      "steadyBagTravelSec": 2.95,
+      "runnerSpeedFtPerSec": 27.11864406779661,
+      "assumptions": "Runner already at the accepted steady ordinary between-bag pace; no startup, turn, slide, dash or additional restriction. Distance during the timer only, not a simulated base award or total error cost.",
+      "alternatives": [
+        {
+          "stunSec": 0.3,
+          "runnerTravelFt": 8.135593220338983
+        },
+        {
+          "stunSec": 0.4,
+          "runnerTravelFt": 10.847457627118644
+        },
+        {
+          "stunSec": 0.5,
+          "runnerTravelFt": 13.559322033898304
+        }
+      ]
+    },
+    "referenceAudit": [
+      {
+        "game": "GameCube Mario Superstar Baseball",
+        "url": "https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf",
+        "checkedOn": "2026-09-15",
+        "result": "Rechecked fielding controls in the Nintendo manual. No numerical ordinary bobble stun duration established."
+      },
+      {
+        "game": "Wii Mario Super Sluggers",
+        "url": "https://manuals.plus/m/dc4160b4fa6593dfa8887c09074763be7dac564e2152eb8ccfe0acf1f11caa8c.pdf",
+        "checkedOn": "2026-09-15",
+        "result": "Rechecked fielding controls in the Nintendo manual. No numerical ordinary bobble stun duration established."
+      }
+    ],
+    "referenceLimit": "Authored .40-second trial, not a measured Wii/GC timer. Need matched ordinary-bobble footage/event measurements separating contact, stun end, travel and secure pickup before claiming parity. Do not mix special-hit stun with ordinary errors.",
+    "currentAudit": "Existing FumbleSec .58 is a legacy code observation, not reference evidence. It is not selected as the baseline target by this proposal.",
+    "requiredChecks": [
+      "All characters have the same .40-second reaction independent of handling, displayed Fielding, Run and body size.",
+      "The actual event clock, pause and control switches preserve the duration without frame-dependent extra lock.",
+      "The fumbling character cannot act or acquire during the stun; helper recovery and live ball/runners continue under their own rules.",
+      "Expiry grants eligibility only, with actual contact required and no duplicate read delay, automatic possession or fresh roll.",
+      "Compare .30/.40/.50-second reactions and full recovery races in both seats, across roster and reference contexts before human acceptance."
+    ],
+    "implementationBoundary": "Pending numerical trial only. No runtime timer changed; entry motion, scatter, buffering and fresh-attempt rules still need review. No simulation or human gate passed."
   }
 }

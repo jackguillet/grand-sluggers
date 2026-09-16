@@ -1250,9 +1250,9 @@ Before choosing the interval, compare both reference games' visible bobble react
 
 **Audit and limits:** the current `RecoilT`/`Bobbling` branch interrupts processing, but the loose ball and several off-ball helpers update before it. Implementation must gate the actual affected character consistently across all relevant paths. Existing `.58`-second `FumbleSec` is not an accepted target. Duration, handling influence, motion transitions and human calibration remain open. This records Jack's design direction; matched Wii/GC stun timing has not been measured. No runtime or asset changes.
 
-## Next decision — handling and bobble stun duration
+## Superseded proposal — handling and bobble stun duration
 
-**F693-02-bobble-stun-handling — pending, September 15, 2026.** Recommend **better underlying defensive handling modestly shortens the ordinary bobble stun**, while every character retains a brief readable reaction.
+**F693-02-bobble-stun-handling — superseded by Jack on September 15, 2026; never accepted or implemented.** The prior recommendation was **better underlying defensive handling modestly shortens the ordinary bobble stun**, while every character retains a brief readable reaction.
 
 A strong defender already bobbles less often through the accepted chance curve. This would also help them recover a little sooner when an error does happen. Equal stun duration is the alternative: defense would help primarily through fewer errors. Because shorter stun would be a second benefit, keep the eventual spread modest and compare the total recovery race on our compact field.
 
@@ -1260,7 +1260,27 @@ Only the stun duration would change through this rule. Do not alter catch range,
 
 Base duration, reduction curve, readable minimum and roster/trait mapping remain unselected. Compare both reference games before choosing numerical targets; this proposal is authored design, not a verified Mario relationship. Strong handling must not erase the stun or permit an immediate same-contact rescoop. Special effects retain independent gates and contracts.
 
-**Question for Jack:** should better defensive handling modestly shorten the bobble stun, with a visible brief reaction remaining for everyone?
+**Superseded:** Jack declined this additional handling benefit. Use the shared-duration direction below.
+
+## Accepted direction — shared ordinary bobble stun
+
+**F693-02-uniform-bobble-stun — directed by Jack on September 15, 2026.** Use **the same ordinary bobble stun duration across characters**. Better underlying handling already reduces the chance of making an error; it does not also shorten this reaction. Do not introduce a displayed Fielding, Run or body-size duration multiplier.
+
+The common timer does not equalize full recovery time: characters still have their own travel speed and geometry, and another defender may collect the ball first. Existing recoil and special-hit resistance rules remain intact. Numerical duration and motion transitions remain unselected; no runtime changes.
+
+## Next decision — ordinary bobble stun duration
+
+**F693-02-bobble-stun-duration — pending, September 15, 2026.** Recommend a shared **.40-second stun** after an ordinary awkward-hop bobble. This is the reaction interval; physical pursuit and pickup follow. It is an authored first trial intended to register visibly without turning a modest bobble into a long loss of control.
+
+**Race context:** at the accepted Run-5 ordinary steady between-bag pace, `80 / 2.95 = 27.118644 ft/s`, a runner travels about **8.14 feet during .30 seconds**, **10.85 feet during .40**, or **13.56 feet during .50**. These isolate the timer at constant speed, excluding startup, turns, slides and dash. They are neither simulated outcomes nor promised extra bases. Another defender may recover during the stun, and the original fielder's later chase/pickup adds its own time.
+
+**Clock and readiness:** begin at the failed-acquisition event, on active gameplay time. Pause freezes the clock; selection/ownership changes cannot reset it. The stun blocks the fumbling character until `eventTime + .40`; at that boundary ordinary eligibility returns only if independent restrictions allow it. Event-side stepping must not add a whole update of delay. No extra generic stand-up/read pause follows. Normal acceleration and actual ball contact still matter: expiry cannot grant possession, a throw, Ball Dash or a fresh roll. Entry braking/residual motion and already committed movement remain separately reviewed.
+
+**Reference comparison:** rechecked the Nintendo [GameCube manual's fielding controls](https://www.gamesdatabase.org/Media/SYSTEM/Nintendo_GameCube/Manual/formated/Mario_Superstar_Baseball_-_2005_-_Nintendo.pdf) and [Wii manual's fielding controls](https://manuals.plus/m/dc4160b4fa6593dfa8887c09074763be7dac564e2152eb8ccfe0acf1f11caa8c.pdf) on September 15, 2026. Neither check established a numerical ordinary bobble-stun duration. The existing game's `.58`-second `FumbleSec` is also only a code observation. **.40 seconds is not a measured Mario value.** Matched ordinary-error footage/event measurements must separate initial contact, reaction end, travel and secure pickup in both games; special-hit stun is a different context.
+
+Before accepting implementation, compare .30/.40/.50-second trials with visible reactions and full compact-field recovery races across characters, CPU/manual defense and both seats. Preserve the same ordinary timer across handling values and the independent special/recoil contracts. Scatter, entry motion, buffering and fresh-attempt rules remain pending. No runtime or human gate changes here.
+
+**Question for Jack:** trial the same .40-second ordinary bobble stun for every character, followed by actual pursuit and pickup?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
