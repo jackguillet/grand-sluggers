@@ -1220,7 +1220,9 @@ def derive(data):
         assert local_vertical["state"] == "accepted-calibration-anchor" and local_vertical["defaultAddedUpwardPop"] is False
         assert local_vertical["acceptedBy"] and local_vertical["acceptedOn"] and local_vertical["acceptanceEvidence"]
         assert all(local_vertical[key] is None for key in
-                   ("reboundHeightFt", "localHorizontalSpeed", "settleDistanceFt"))
+                   ("reboundHeightFt", "settleDistanceFt"))
+        assert local_vertical["localHorizontalSpeed"]["maximumFtPerSec"] == 6
+        assert local_vertical["localHorizontalSpeed"]["contactMapping"] is None
         assert local_vertical["verticalContactResponse"]["postContactVerticalSpeedFtPerSec"] == 0
     local_rebound = data.get("localBobbleReboundCeilingProposal")
     if local_rebound:
@@ -1267,20 +1269,31 @@ def derive(data):
         assert local_glove_release["acceptedBy"] and local_glove_release["acceptedOn"] and local_glove_release["acceptanceEvidence"]
         assert local_glove_release["postContactVerticalSpeedFtPerSec"] == 0
         assert local_glove_release["addedHoldSec"] == 0
-        assert local_glove_release["horizontalContactResponse"] is None
+        assert local_glove_release["horizontalContactResponse"]["maximumFtPerSec"] == 6
+        assert local_glove_release["horizontalContactResponse"]["contactMapping"] is None
     local_horizontal_cap = data.get("localBobbleHorizontalCapProposal")
     if local_horizontal_cap:
-        assert local_horizontal_cap["state"] == "pending"
+        assert local_horizontal_cap["state"] == "accepted-calibration-anchor"
+        assert local_horizontal_cap["acceptedBy"] and local_horizontal_cap["acceptedOn"] and local_horizontal_cap["acceptanceEvidence"]
         assert local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"] == 6
         assert local_horizontal_cap["fixedSpeed"] is False
         assert all(local_horizontal_cap[key] is None for key in
                    ("minimumSpeedFtPerSec", "contactSpeedMapping", "groundHorizontalResponse"))
         spill_example = local_horizontal_cap["illustration"]
         assert math.isclose(spill_example["distanceFt"], spill_example["constantSpeedFtPerSec"] * spill_example["elapsedSec"])
+    local_horizontal_retention = data.get("localBobbleHorizontalRetentionProposal")
+    if local_horizontal_retention:
+        assert local_horizontal_retention["state"] == "pending"
+        assert local_horizontal_retention["horizontalSpeedRetention"] == .20
+        assert local_horizontal_retention["maximumOutgoingHorizontalSpeedFtPerSec"] == local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"]
+        for retention_example in local_horizontal_retention["examples"]:
+            retained_speed = min(local_horizontal_retention["horizontalSpeedRetention"] * retention_example["incomingHorizontalSpeedFtPerSec"], local_horizontal_retention["maximumOutgoingHorizontalSpeedFtPerSec"])
+            assert math.isclose(retention_example["outgoingHorizontalSpeedFtPerSec"], retained_speed)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleHorizontalRetentionState": local_horizontal_retention["state"] if local_horizontal_retention else None,
             "localBobbleHorizontalCapState": local_horizontal_cap["state"] if local_horizontal_cap else None,
             "localBobbleGloveReleaseState": local_glove_release["state"] if local_glove_release else None,
             "localBobbleSettlingState": local_settling["state"] if local_settling else None,

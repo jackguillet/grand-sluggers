@@ -595,8 +595,13 @@
     },
     {
       "id": "F693-02-local-bobble-horizontal-cap",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial a six-foot-per-second maximum horizontal speed immediately after local-bobble contact, allowing weaker contacts to spill more slowly without a minimum kick?"
+    },
+    {
+      "id": "F693-02-local-bobble-horizontal-retention",
+      "state": "next-human-decision",
+      "question": "Trial retaining 20% of actual incoming horizontal speed for local bobbles, limited by the accepted six-foot-per-second ceiling?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5730,7 +5735,11 @@
       "postContactVerticalSpeedFtPerSec": 0,
       "addedHoldSec": 0
     },
-    "localHorizontalSpeed": null,
+    "localHorizontalSpeed": {
+      "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
+      "maximumFtPerSec": 6,
+      "contactMapping": null
+    },
     "settleDistanceFt": null,
     "recommendation": "For the ordinary local-bobble branch, spill the ball down from actual glove contact and use a small low ground rebound, instead of adding a default upward pop. Keep the bobble nearby and visibly loose while the character performs its accepted reaction.",
     "rationale": "The failed contact and low bounce should read clearly without a long airborne wait added to the .40-second stun. The alternative is an upward juggle/pop, which can add airborne time and make the recovery race depend more on waiting for descent. This selects a qualitative shape, not a fixed airtime.",
@@ -5899,7 +5908,11 @@
     "state": "accepted-calibration-anchor",
     "postContactVerticalSpeedFtPerSec": 0,
     "addedHoldSec": 0,
-    "horizontalContactResponse": null,
+    "horizontalContactResponse": {
+      "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
+      "maximumFtPerSec": 6,
+      "contactMapping": null
+    },
     "recommendation": "For a qualifying failed handling event already classified as a local knockdown/bobble, absorb the incoming vertical component at glove contact: world-space vertical speed becomes zero, then shared ball gravity acts immediately. Retain actual contact position and height. No possession or hold is inserted.",
     "rationale": "The glove visibly interrupts the local ball before it drops. This gives a simple soft spill without a scripted upward pop or downward punch. The alternative is to retain some downward momentum, producing a faster drop after harder descending contacts. Horizontal spill is a separate pending response; zero vertical speed does not mean zero horizontal speed.",
     "scope": "Only the reviewed local-knockdown branch of ordinary awkward-hop handling errors. Never change a continuing deflection into a local bobble by applying this response before classification. Continuing deflections, untouched balls, special hits and other catch contexts retain separate rules.",
@@ -5922,7 +5935,7 @@
   },
   "localBobbleHorizontalCapProposal": {
     "decisionId": "F693-02-local-bobble-horizontal-cap",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maximumPostContactHorizontalSpeedFtPerSec": 6,
     "fixedSpeed": false,
     "minimumSpeedFtPerSec": null,
@@ -5949,6 +5962,59 @@
       "No cap-driven minimum speed, tactical bias, extra RNG or automatic possession."
     ],
     "referenceLimit": "Authored speed ceiling and arithmetic sensitivity only; no matched Wii/GC local-spill speed measurement. Reference comparison and gameplay-distance review remain required.",
-    "implementationBoundary": "Pending local horizontal speed ceiling only. Contact mapping, ground response, stopping distance, complete runtime integration and human validation remain open."
+    "implementationBoundary": "Accepted local horizontal speed ceiling only. Contact mapping, ground response, stopping distance, complete runtime integration and human validation remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to six feet per second as the initial horizontal spill ceiling for ordinary nearby bobbles."
+  },
+  "localBobbleHorizontalRetentionProposal": {
+    "decisionId": "F693-02-local-bobble-horizontal-retention",
+    "state": "pending",
+    "horizontalSpeedRetention": 0.2,
+    "maximumOutgoingHorizontalSpeedFtPerSec": 6,
+    "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
+    "formula": "s_out = min(0.20 * s_in, 6), with speeds in feet per second",
+    "recommendation": "After qualifying failed contact is physically classified as an ordinary local knockdown/bobble, retain 20% of actual pre-contact world-space horizontal speed, capped at six ft/s. This is a shared trial within the local branch; contact geometry still owns outcome classification and baseline direction.",
+    "examples": [
+      {
+        "incomingHorizontalSpeedFtPerSec": 0,
+        "outgoingHorizontalSpeedFtPerSec": 0.0
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 10,
+        "outgoingHorizontalSpeedFtPerSec": 2.0
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 20,
+        "outgoingHorizontalSpeedFtPerSec": 4.0
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 30,
+        "outgoingHorizontalSpeedFtPerSec": 6.0
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 40,
+        "outgoingHorizontalSpeedFtPerSec": 6
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 60,
+        "outgoingHorizontalSpeedFtPerSec": 6
+      }
+    ],
+    "rationale": "A strong knockdown leaves a small spill: incoming 10 ft/s becomes 2, 20 becomes 4, and 30 or faster reaches the six-ft/s ceiling. Continuing deflections retain a larger .50-.80 fraction under their separate contract. Ten percent gives softer spill before saturation; thirty percent reaches the cap sooner. These are illustrative speeds, not chosen hit targets or Mario measurements.",
+    "scope": "Only after actual qualified failure and local-versus-continuing classification. Never classify an outcome using the already slowed/clamped ball. Use current horizontal velocity at glove contact, not bat exit speed, total 3D speed, ball-glove relative speed or character Run. No extra RNG or Fielding/handling multiplier; no independent contact-strength scalar inside the local branch is proposed.",
+    "direction": "Keep the reviewed contact-derived horizontal baseline and uniform +/-30-degree offset. Rotate the outgoing vector without changing its chosen magnitude. A zero incoming horizontal speed stays zero; no invented kick or world-forward travel to define a direction. Exact contact-direction mapping and collision classifier remain open.",
+    "boundaries": "The fraction describes horizontal speed, not retained energy or vertical speed. Zero post-contact vertical speed and immediate gravity remain accepted. The six-ft/s cap applies at local release; this is not a guaranteed separation, stopping distance or cap on later external impulses.",
+    "recovery": "Preserve .40-second stun and grounded braking, actual contact origin, same-error recovery, and approved rebound/settling response. No automatic possession, forced extra base or hidden minimum scatter distance.",
+    "openWork": "Horizontal ground impact response/friction, local-versus-continuing classifier thresholds, baseline direction, complete trajectory integration and measured reference/gameplay validation remain open.",
+    "referenceLimit": "Authored 20% trial with arithmetic examples, not measured Wii/GC local-bobble velocity retention. It is not evidence of reference parity or a simulated recovery race.",
+    "requiredChecks": [
+      "Before saturation, outgoing magnitude is one fifth of incoming horizontal speed; at and above 30 ft/s incoming it is six.",
+      "Zero and weak inputs gain no horizontal energy or minimum kick.",
+      "Selection uses physical pre-response contact and does not change when the speed ceiling is applied.",
+      "Angle variation preserves outgoing magnitude and real contact position.",
+      "Keep continuing/special trajectories separate; validate actual short/high-contact recovery races before human acceptance."
+    ],
+    "implementationBoundary": "Pending local horizontal-retention fraction only; no runtime or human gate change."
   }
 }
