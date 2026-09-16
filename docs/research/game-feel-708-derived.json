@@ -1,0 +1,1278 @@
+{
+  "schemaVersion": 1,
+  "status": "derived-design-arithmetic-not-simulation",
+  "acceptedLeadSpatialTrial": "C80",
+  "catcherReadState": "accepted-calibration-anchor",
+  "uniformErrorDirectionState": "accepted-calibration-anchor",
+  "arcadeFieldingState": "accepted-calibration-anchor",
+  "catchReachEnvelopeState": "accepted-calibration-anchor",
+  "diveJumpScoopReachState": "accepted-calibration-anchor",
+  "cpuDiveIntentState": "accepted-calibration-anchor",
+  "diveRecoveryCostState": "accepted-calibration-anchor",
+  "defensiveTraitMappingState": "accepted-calibration-anchor",
+  "flightBudgetState": "accepted-calibration-anchor",
+  "coverageBudgetState": "accepted-calibration-anchor",
+  "parkMigrationState": "consolidated-proposal",
+  "armRatingMigrationState": "consolidated-proposal",
+  "cpuDiveIntentPolicyState": "accepted-calibration-anchor",
+  "gloveCatchSidesState": "superseded-by-user-direction",
+  "gloveContactSurfaceState": "superseded-by-user-direction",
+  "errorContactObstructionBasisState": "superseded-by-user-direction",
+  "continuingErrorRetentionCurveState": "superseded-by-user-direction",
+  "continuingErrorGroundResponseState": "accepted-calibration-anchor",
+  "continuingErrorVerticalRetentionState": "accepted-calibration-anchor",
+  "localBobbleRollingDecelerationState": "accepted-calibration-anchor",
+  "localBobbleGroundHorizontalState": "accepted-calibration-anchor",
+  "localBobbleHorizontalRetentionState": "accepted-calibration-anchor",
+  "localBobbleHorizontalCapState": "accepted-calibration-anchor",
+  "localBobbleGloveReleaseState": "accepted-calibration-anchor",
+  "localBobbleSettlingState": "accepted-calibration-anchor",
+  "localBobbleRestitutionState": "accepted-calibration-anchor",
+  "localBobbleReboundCeilingState": "accepted-calibration-anchor",
+  "localBobbleVerticalShapeState": "accepted-calibration-anchor",
+  "errorDirectionDistributionState": "superseded-by-user-direction",
+  "continuingErrorSpeedRetentionState": "accepted-calibration-anchor",
+  "continuingErrorDirectionState": "accepted-calibration-anchor",
+  "continuingErrorRecoveryState": "accepted-calibration-anchor",
+  "continuingErrorReactionState": "accepted-calibration-anchor",
+  "expandedOrdinaryErrorOutcomesState": "accepted-calibration-anchor",
+  "errorOutcomeSelectionState": "accepted-calibration-anchor",
+  "contactLedRandomBobbleState": "accepted-calibration-anchor",
+  "bobbleDirectionSpreadState": "accepted-calibration-anchor",
+  "bobbleDeflectionDirectionState": "superseded-by-user-direction",
+  "bobbleRecoveryReliabilityState": "accepted-calibration-anchor",
+  "groundedBobbleBrakingState": "accepted-calibration-anchor",
+  "uniformBobbleStunState": "accepted-calibration-anchor",
+  "bobbleStunDurationState": "accepted-calibration-anchor",
+  "bobbleStunState": "accepted-calibration-anchor",
+  "bobbleStunHandlingState": "superseded-by-user-direction",
+  "bobbleRecoveryPermissionsState": "superseded-by-user-direction",
+  "ordinaryBobbleOutcomeState": "accepted-calibration-anchor",
+  "awkwardHopDifficultySourceState": "accepted-calibration-anchor",
+  "ordinaryHandlingChanceCurveState": "accepted-calibration-anchor",
+  "ordinaryHandlingErrorChanceState": "accepted-calibration-anchor",
+  "ordinaryHandlingErrorCapState": "accepted-calibration-anchor",
+  "ordinaryHandlingResolutionState": "superseded-by-user-direction",
+  "handlingErrorOpportunitiesState": "accepted-calibration-anchor",
+  "characterCatchRangeDirectionState": "accepted-calibration-anchor",
+  "fieldingRatingRoleState": "superseded-in-part",
+  "normalJumpGloveTrackingState": "superseded-by-user-direction",
+  "normalJumpCatchInputState": "accepted-calibration-anchor",
+  "normalJumpCharacterProfileState": "accepted-calibration-anchor",
+  "normalJumpInputBufferState": "accepted-calibration-anchor",
+  "normalJumpStartupTrialState": "accepted-calibration-anchor",
+  "normalJumpAirResponseTrialState": "accepted-calibration-anchor",
+  "normalJumpArcTrialState": "accepted-calibration-anchor",
+  "normalJumpTakeoffOwnershipState": "accepted-calibration-anchor",
+  "normalJumpInputProfileState": "accepted-calibration-anchor",
+  "jumpAirControlState": "accepted-calibration-anchor",
+  "jumpCatchThrowReadinessState": "accepted-calibration-anchor",
+  "groundedAirCatchRecoilState": "accepted-calibration-anchor",
+  "cleanAirCatchReadinessState": "accepted-calibration-anchor",
+  "specialImpactRepeatEligibilityState": "accepted-calibration-anchor",
+  "repeatedImpactRecoveryState": "accepted-calibration-anchor",
+  "mixedStatusActionReadinessState": "accepted-calibration-anchor",
+  "specialPushbackActionsState": "accepted-calibration-anchor",
+  "specialPushbackPossessionState": "accepted-calibration-anchor",
+  "specialImpactFieldResistanceState": "accepted-calibration-anchor",
+  "specialImpactMotionCompositionState": "accepted-calibration-anchor",
+  "ordinaryRecoilMotionProfileState": "accepted-calibration-anchor",
+  "ordinaryRecoilDistanceCapState": "accepted-calibration-anchor",
+  "ordinaryRecoilDisplacementState": "accepted-calibration-anchor",
+  "ordinaryRecoilActionsState": "accepted-calibration-anchor",
+  "recoilSeverityCurveState": "accepted-calibration-anchor",
+  "recoilFieldFactorsState": "accepted-calibration-anchor",
+  "recoilFieldShapingState": "accepted-calibration-anchor",
+  "specialRecoveryCompositionState": "accepted-calibration-anchor",
+  "groundPickupRecoilCapState": "accepted-calibration-anchor",
+  "groundPickupRecoilBasisState": "accepted-calibration-anchor",
+  "cleanGroundPickupReadinessState": "accepted-calibration-anchor",
+  "carryMovementResponseState": "accepted-calibration-anchor",
+  "ordinaryCarrySpeedState": "accepted-calibration-anchor",
+  "ballDashCarrierState": "accepted-calibration-anchor",
+  "fieldDashDurationState": "superseded-by-ball-dash-carrier",
+  "fieldDashPeakState": "superseded-by-ball-dash-carrier",
+  "pursuitCalibrationSamplesState": "accepted-calibration-anchor",
+  "pursuitArmingState": "accepted-calibration-anchor",
+  "pursuitCalibrationState": "accepted-calibration-anchor",
+  "pursuitNeutralState": "accepted-calibration-anchor",
+  "pursuitAnalogState": "accepted-calibration-anchor",
+  "pursuitAngledTurnState": "accepted-calibration-anchor",
+  "pursuitReversalState": "accepted-calibration-anchor",
+  "pursuitBrakingState": "accepted-calibration-anchor",
+  "pursuitAccelerationState": "accepted-calibration-anchor",
+  "pitcherReadState": "accepted-calibration-anchor",
+  "infieldReadState": "accepted-calibration-anchor",
+  "outfieldReadState": "accepted-calibration-anchor",
+  "pursuitSpeedState": "accepted-calibration-anchor",
+  "throwCancelState": "accepted-design-direction",
+  "throwBufferState": "accepted-calibration-anchor",
+  "laserThrowState": "accepted-calibration-anchor",
+  "snapThrowState": "accepted-calibration-anchor",
+  "relayOwnershipState": "accepted-design-direction",
+  "negativeChemistryState": "accepted-calibration-anchor",
+  "longRangeProfileState": "accepted-calibration-anchor",
+  "sourceSha256": {
+    "docs/research/game-feel-708-candidates.json": "f4b89956571b1400fdd7119e3457b790afc5c48e7127f8b55d16a93acbc26de3",
+    "docs/research/game-feel-708-flight-derived.json": "3de5f38521d0cd00ced2f91401c6b1caa415f83d65c215d683a01d03450d0c2f",
+    "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
+    "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
+    "src/GrandSluggers.Sim/BallFlight.cs": "ff0f7cd07a713ed41297335a871188f2c14b38af5045d50340d9554b6c75fe64",
+    "src/GrandSluggers.Sim/BattedBall.cs": "ccb27d247b96807263a9983fba1ed35b8600a52c1bc39e6f12180fe63a65a589",
+    "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+    "src/GrandSluggers.Sim/FlyCatch.cs": "bd3d2251dcc98e9e602314d3d9e7a91b3c4005ff775d9522b0df5c93057874a7",
+    "src/GrandSluggers.Sim/BuntDefense.cs": "b4db787e3bfe173ad92c9e17286f354ee1a2625cf6376c581333f0c2e23b8d92",
+    "src/GrandSluggers.Sim/ParkDiamond.cs": "93992c60661fe4d8b0ac818841c7093809b8dcd9bba378ab59d97fd56841f4af",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/parks/harbor-diamond.json": "b8ea12521fa65d24c9bbc71d5521dad4c788f9626eefbdfd7ec3f7e1c1d06108",
+    "data/art/clips.json": "204c3ec5effacb462a72f7f518cf117d21141645498e7c83244b31ebc4c293ff",
+    "data/art/baseball-takes.json": "0686b49e4b9721a39801b4d89f37f6911992b29a5060e5558df8b7708643e7e0",
+    "src/GrandSluggers.Sim/InPlay.cs": "b3b6a0a11e080f1ccf21f2970eb1bf35497766378bdfc08cfd9fb9b5618b1ce3",
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "bfa793749e569340f7bb7aafbe50f79b700fc18f5a40b80432c481b4bdb8c782",
+    "src/GrandSluggers.Sim/BodyFacing.cs": "c2b715ea80796a97bf9086010ec92226472360f19738b72290b281b523dfda64",
+    "src/GrandSluggers.Sim/FieldAssist.cs": "8aa56d8c6677c064ef6198aabf4350e94da09f20382858307f17d84b73727b6c",
+    "src/GrandSluggers.Sim/StickPlay.cs": "c6c5e72f138579bfe88c1a7fd4e4dd31247e1e883715820102d8f57a77ea44d3",
+    "data/feel/table.json": "fa7e7cb1526caf74697b461b3412565b3362e6b6f78ad1965622269e5c9dea50",
+    "src/GrandSluggers.Sim/FieldingPursuit.cs": "c61cd009609e921faa032dbdc34dc45daa701fca2ea25dfe283fb5f0be4be9d7",
+    "src/GrandSluggers.Sim/ChemistryTable.cs": "f4d577afb857d6b7fc167428fea2a78120c8d4fec70775604329ab311d3fcf84",
+    "src/GrandSluggers.Sim/Match.cs": "00c4cceed0eb773c80e6cc1c12d9fd96f84531d3e3a5c5b83b717f0bb9e187e0",
+    "src/GrandSluggers.Sim/FieldAbilities.cs": "f26840e98252220d1eff2943f5de4d71451eafd71972f929ffb564169d5fa398",
+    "data/characters/vale.json": "e901e2f5c788b68a7b1c1d4d7d1204179b2555933b636cefde4f1b935ea9d2c1",
+    "data/characters/brondo.json": "d689cab90ab3b8b0ee465b2112a2c29df5cbb95f5142cd8ea0da1f2f2a0408de",
+    "data/characters/role-players.json": "83eed963ab531a910e1e418b955805f74d245804e3dba0b042efb3f28fb1dbbb",
+    "unity/Assets/Scripts/Runtime/Controls.cs": "c46d052e589be7131423542f4b10d751caae90c98711553a2f3e98d66b0b4821",
+    "unity/Assets/Scripts/Runtime/InPlayDirector.cs": "180253da3e6450cf89e8e37e2c15fb12418f92af800ca07bf5f0838c6e5a3dab",
+    "unity/Assets/Scripts/Runtime/AtBatDirector.cs": "29e83950cbdafe16a345ff807d5c9406afc3a9eeac5aeca6f1a1c3152c1c379e",
+    "unity/Assets/Scripts/Runtime/MatchDirector.cs": "41f36ab86ff8f10fc67a2a2624903840ed8606f0da4125686f731cb60a290bcd",
+    "src/GrandSluggers.Sim/Seats.cs": "c1dbf2bceeeb02ab8932fce4b792fdd71bf5755908cdeabaaa803633903a7c77",
+    "src/GrandSluggers.Sim/AtBatFeel.cs": "11afd94ea43a4ec4044a486723cacfc5ae9e94c173d8b7459462c6f359b738c1",
+    "src/GrandSluggers.Sim/Rules.cs": "332ec5300c7ec28c45f3c3f001366ba0025b7ea594e44e7fbc37075fbbc960a3",
+    "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
+    "src/GrandSluggers.Sim/StarSkillTable.cs": "bebc9d52ba662a3149d29da3ad429f1cd06f47e44f56e630177dfc4598eaa66b",
+    "src/GrandSluggers.Sim/ContentValidation.cs": "d7676753b610c293154953a67d7d1b5613176c12d570ba85cb89e228941ca4cc",
+    "src/GrandSluggers.Sim/Models.cs": "78b8530480a42b58cc9d424aeec080a66fc0aa31c641d6b515f5308c8b85e792"
+  },
+  "profiles": [
+    {
+      "id": "C0",
+      "basepathFt": 90,
+      "fencesFt": [
+        330,
+        400,
+        330
+      ],
+      "wallPerBasepath": [
+        3.6666666666666665,
+        4.444444444444445,
+        3.6666666666666665
+      ],
+      "relativeBodyIncreasePercent": 0.0,
+      "centerDepthReductionPercent": 0.0,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          63.64,
+          63.64
+        ],
+        [
+          0.0,
+          127.28
+        ],
+        [
+          -63.64,
+          63.64
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          60.5
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          78.0,
+          72.0
+        ],
+        "2B": [
+          42.0,
+          118.0
+        ],
+        "3B": [
+          -78.0,
+          72.0
+        ],
+        "SS": [
+          -42.0,
+          118.0
+        ],
+        "LF": [
+          -110.0,
+          250.0
+        ],
+        "CF": [
+          0.0,
+          305.0
+        ],
+        "RF": [
+          110.0,
+          250.0
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 50.0,
+        "backArcRadius": 92.0
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.056758
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.07819991111111112
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.035316088888888895
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.06054186666666667
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.0819837777777778
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.0908128
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.04919026666666668
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 26.239067055393587,
+        "5": 30.50847457627119,
+        "9": 36.43724696356276
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 30.5,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 18.3,
+        "centerStartToWallFt": 95.0,
+        "rearChaseTimeSec": 5.191256830601093,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 1.6666666666666665,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.14444444444444443,
+      "catchReachCoverage": {
+        "scaledOptionFt": 13.0,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 58.41232746604094,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.2503424296122483,
+              "8": 1.5281202073900262,
+              "6": 1.6392313185011371,
+              "4": 1.7503424296122483,
+              "0": 1.9725646518344706
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 84.0,
+            "spacingPerBasepath": 0.9333333333333333,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.961111111111111,
+              "8": 2.238888888888889,
+              "6": 2.35,
+              "4": 2.4611111111111112,
+              "0": 2.6833333333333336
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 58.41232746604094,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.2503424296122483,
+              "8": 1.5281202073900262,
+              "6": 1.6392313185011371,
+              "4": 1.7503424296122483,
+              "0": 1.9725646518344706
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 122.98373876248844,
+            "spacingPerBasepath": 1.3664859862498715,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 3.193992743402457,
+              "8": 3.4717705211802348,
+              "6": 3.582881632291346,
+              "4": 3.693992743402457,
+              "0": 3.9162149656246794
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 122.98373876248844,
+            "spacingPerBasepath": 1.3664859862498715,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 3.193992743402457,
+              "8": 3.4717705211802348,
+              "6": 3.582881632291346,
+              "4": 3.693992743402457,
+              "0": 3.9162149656246794
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
+      "simulated": false
+    },
+    {
+      "id": "C80",
+      "basepathFt": 80,
+      "fencesFt": [
+        232,
+        280,
+        232
+      ],
+      "wallPerBasepath": [
+        2.9,
+        3.5,
+        2.9
+      ],
+      "relativeBodyIncreasePercent": 12.5,
+      "centerDepthReductionPercent": 30.000000000000004,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          56.568888888888885,
+          56.568888888888885
+        ],
+        [
+          0.0,
+          113.13777777777777
+        ],
+        [
+          -56.568888888888885,
+          56.568888888888885
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          53.77777777777777
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          69.33333333333333,
+          64.0
+        ],
+        "2B": [
+          37.33333333333333,
+          104.88888888888889
+        ],
+        "3B": [
+          -69.33333333333333,
+          64.0
+        ],
+        "SS": [
+          -37.33333333333333,
+          104.88888888888889
+        ],
+        "LF": [
+          -77.08560550305882,
+          175.1945579614973
+        ],
+        "CF": [
+          0.0,
+          213.5
+        ],
+        "RF": [
+          77.08560550305882,
+          175.1945579614973
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 44.44444444444444,
+        "backArcRadius": 81.77777777777777
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.06385275
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.0879749
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.039730600000000005
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.0681096
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.09223175000000002
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.1021644
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.055339050000000015
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 23.323615160349856,
+        "5": 27.118644067796613,
+        "9": 32.388663967611336
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 27.11111111111111,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 12.81,
+        "centerStartToWallFt": 66.5,
+        "rearChaseTimeSec": 5.191256830601093,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 2.1164021164021163,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.1625,
+      "catchReachCoverage": {
+        "scaledOptionFt": 11.555555555555555,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 51.92206885870305,
+            "spacingPerBasepath": 0.6490258607337881,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.070057468297307,
+              "11.5556": 1.1503019127417513,
+              "8": 1.3478352460750846,
+              "6": 1.4589463571861958,
+              "4": 1.5700574682973067,
+              "0": 1.792279690519529
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 74.66666666666666,
+            "spacingPerBasepath": 0.9333333333333332,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.7018518518518515,
+              "11.5556": 1.782096296296296,
+              "8": 1.9796296296296292,
+              "6": 2.0907407407407406,
+              "4": 2.2018518518518517,
+              "0": 2.424074074074074
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 51.92206885870305,
+            "spacingPerBasepath": 0.6490258607337881,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.070057468297307,
+              "11.5556": 1.1503019127417513,
+              "8": 1.3478352460750846,
+              "6": 1.4589463571861958,
+              "4": 1.5700574682973067,
+              "0": 1.792279690519529
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 86.07843786650812,
+            "spacingPerBasepath": 1.0759804733313516,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 2.168845496291892,
+              "11.5556": 2.249089940736337,
+              "8": 2.4466232740696703,
+              "6": 2.5577343851807814,
+              "4": 2.6688454962918926,
+              "0": 2.891067718514115
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 86.07843786650812,
+            "spacingPerBasepath": 1.0759804733313516,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 2.168845496291892,
+              "11.5556": 2.249089940736337,
+              "8": 2.4466232740696703,
+              "6": 2.5577343851807814,
+              "4": 2.6688454962918926,
+              "0": 2.891067718514115
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
+      "simulated": false
+    },
+    {
+      "id": "C70",
+      "basepathFt": 70,
+      "fencesFt": [
+        203,
+        245,
+        203
+      ],
+      "wallPerBasepath": [
+        2.9,
+        3.5,
+        2.9
+      ],
+      "relativeBodyIncreasePercent": 28.57142857142858,
+      "centerDepthReductionPercent": 38.74999999999999,
+      "bagsFt": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          49.49777777777778,
+          49.49777777777778
+        ],
+        [
+          0.0,
+          98.99555555555555
+        ],
+        [
+          -49.49777777777778,
+          49.49777777777778
+        ]
+      ],
+      "fieldingStartsFt": {
+        "P": [
+          0.0,
+          47.05555555555556
+        ],
+        "C": [
+          0,
+          -15
+        ],
+        "1B": [
+          60.666666666666664,
+          56.0
+        ],
+        "2B": [
+          32.666666666666664,
+          91.77777777777779
+        ],
+        "3B": [
+          -60.666666666666664,
+          56.0
+        ],
+        "SS": [
+          -32.666666666666664,
+          91.77777777777779
+        ],
+        "LF": [
+          -67.44990481517645,
+          153.2952382163101
+        ],
+        "CF": [
+          0.0,
+          186.8125
+        ],
+        "RF": [
+          67.44990481517645,
+          153.2952382163101
+        ]
+      },
+      "groundDressFt": {
+        "innerHalf": 38.88888888888889,
+        "backArcRadius": 71.55555555555556
+      },
+      "characters": [
+        {
+          "id": "rio",
+          "nominalHeadTopFt": 5.10822,
+          "headTopPerBasepath": 0.07297457142857143
+        },
+        {
+          "id": "vale",
+          "nominalHeadTopFt": 7.037992,
+          "headTopPerBasepath": 0.10054274285714286
+        },
+        {
+          "id": "zig",
+          "nominalHeadTopFt": 3.1784480000000004,
+          "headTopPerBasepath": 0.045406400000000006
+        },
+        {
+          "id": "brondo",
+          "nominalHeadTopFt": 5.448768,
+          "headTopPerBasepath": 0.07783954285714285
+        },
+        {
+          "id": "konga",
+          "nominalHeadTopFt": 7.378540000000001,
+          "headTopPerBasepath": 0.1054077142857143
+        },
+        {
+          "id": "ashlord",
+          "nominalHeadTopFt": 8.173152,
+          "headTopPerBasepath": 0.11675931428571429
+        },
+        {
+          "id": "fenn",
+          "nominalHeadTopFt": 4.427124000000001,
+          "headTopPerBasepath": 0.06324462857142858
+        }
+      ],
+      "runnerLinearSpeedAtUnchangedBagTimeFtPerSec": {
+        "1": 20.408163265306126,
+        "5": 23.728813559322035,
+        "9": 28.340080971659923
+      },
+      "constantSpeedSensitivityNotSelected": {
+        "sameInfieldChaseTimeRun5FtPerSec": 23.72222222222222,
+        "sameOutfieldRearChaseTimeRun5FtPerSec": 11.208750000000002,
+        "centerStartToWallFt": 58.1875,
+        "rearChaseTimeSec": 5.191256830601092,
+        "infieldTimeMultiplierIfUsingOutfieldSensitivity": 2.116402116402116,
+        "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
+      },
+      "unchanged13FtCatchRadiusOverBasepath": 0.18571428571428572,
+      "catchReachCoverage": {
+        "scaledOptionFt": 10.11111111111111,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 45.43181025136518,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 0.8897725069823661,
+              "10.1111": 1.0502669514268104,
+              "8": 1.1675502847601438,
+              "6": 1.278661395871255,
+              "4": 1.389772506982366,
+              "0": 1.6119947292045882
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 65.33333333333333,
+            "spacingPerBasepath": 0.9333333333333332,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.4425925925925924,
+              "10.1111": 1.6030870370370367,
+              "8": 1.72037037037037,
+              "6": 1.8314814814814813,
+              "4": 1.9425925925925924,
+              "0": 2.1648148148148145
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 45.43181025136518,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 0.8897725069823661,
+              "10.1111": 1.0502669514268104,
+              "8": 1.1675502847601438,
+              "6": 1.278661395871255,
+              "4": 1.389772506982366,
+              "0": 1.6119947292045882
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 75.31863313319462,
+            "spacingPerBasepath": 1.0759804733313518,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 1.8699620314776284,
+              "10.1111": 2.030456475922073,
+              "8": 2.1477398092554063,
+              "6": 2.2588509203665175,
+              "4": 2.3699620314776286,
+              "0": 2.592184253699851
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 75.31863313319462,
+            "spacingPerBasepath": 1.0759804733313518,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 1.8699620314776284,
+              "10.1111": 2.030456475922073,
+              "8": 2.1477398092554063,
+              "6": 2.2588509203665175,
+              "4": 2.3699620314776286,
+              "0": 2.592184253699851
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
+      "simulated": false
+    }
+  ],
+  "proposedLongRangeComparisons": [
+    {
+      "distanceFeet": 80,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 1.322727272727273,
+      "goodDirectCommandToTargetSeconds": 1.086713286713287,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 1.7613636363636365,
+        "firstLegGood": 1.6433566433566436,
+        "secondLegGood": 1.6575174825174828,
+        "bothLegsGood": 1.5395104895104899
+      },
+      "neutralRelayAdvantageSeconds": -0.4386363636363635,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 120,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 1.8340909090909092,
+      "goodDirectCommandToTargetSeconds": 1.48006993006993,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.2420454545454547,
+        "firstLegGood": 2.065034965034965,
+        "secondLegGood": 2.086276223776224,
+        "bothLegsGood": 1.9092657342657344
+      },
+      "neutralRelayAdvantageSeconds": -0.40795454545454546,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 140,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 2.0897727272727273,
+      "goodDirectCommandToTargetSeconds": 1.676748251748252,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.4823863636363637,
+        "firstLegGood": 2.275874125874126,
+        "secondLegGood": 2.3006555944055944,
+        "bothLegsGood": 2.094143356643357
+      },
+      "neutralRelayAdvantageSeconds": -0.39261363636363633,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 160,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 2.3829545454545458,
+      "goodDirectCommandToTargetSeconds": 1.9022727272727276,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.722727272727273,
+        "firstLegGood": 2.486713286713287,
+        "secondLegGood": 2.5150349650349653,
+        "bothLegsGood": 2.279020979020979
+      },
+      "neutralRelayAdvantageSeconds": -0.33977272727272734,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 180,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 2.7511363636363635,
+      "goodDirectCommandToTargetSeconds": 2.1854895104895102,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.9630681818181817,
+        "firstLegGood": 2.6975524475524475,
+        "secondLegGood": 2.7294143356643357,
+        "bothLegsGood": 2.4638986013986015
+      },
+      "neutralRelayAdvantageSeconds": -0.21193181818181817,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 200,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 3.194318181818182,
+      "goodDirectCommandToTargetSeconds": 2.5263986013986015,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.203409090909091,
+        "firstLegGood": 2.9083916083916086,
+        "secondLegGood": 2.9437937062937065,
+        "bothLegsGood": 2.648776223776224
+      },
+      "neutralRelayAdvantageSeconds": -0.00909090909090926,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 220,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 3.7125000000000004,
+      "goodDirectCommandToTargetSeconds": 2.9250000000000003,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.4437500000000005,
+        "firstLegGood": 3.1192307692307697,
+        "secondLegGood": 3.1581730769230774,
+        "bothLegsGood": 2.8336538461538465
+      },
+      "neutralRelayAdvantageSeconds": 0.2687499999999998,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 240,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 4.305681818181818,
+      "goodDirectCommandToTargetSeconds": 3.381293706293706,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.684090909090909,
+        "firstLegGood": 3.3300699300699304,
+        "secondLegGood": 3.3725524475524473,
+        "bothLegsGood": 3.0185314685314686
+      },
+      "neutralRelayAdvantageSeconds": 0.6215909090909091,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 260,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 4.973863636363636,
+      "goodDirectCommandToTargetSeconds": 3.89527972027972,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.9244318181818185,
+        "firstLegGood": 3.540909090909091,
+        "secondLegGood": 3.586931818181818,
+        "bothLegsGood": 3.203409090909091
+      },
+      "neutralRelayAdvantageSeconds": 1.0494318181818176,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 280,
+      "throwerField": 1,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 140,
+      "neutralDirectCommandToTargetSeconds": 5.717045454545455,
+      "goodDirectCommandToTargetSeconds": 4.466958041958042,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 4.1647727272727275,
+        "firstLegGood": 3.7517482517482517,
+        "secondLegGood": 3.801311188811189,
+        "bothLegsGood": 3.388286713286713
+      },
+      "neutralRelayAdvantageSeconds": 1.5522727272727277,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 80,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 1.2,
+      "goodDirectCommandToTargetSeconds": 0.9923076923076923,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 1.7,
+        "firstLegGood": 1.596153846153846,
+        "secondLegGood": 1.5961538461538463,
+        "bothLegsGood": 1.4923076923076923
+      },
+      "neutralRelayAdvantageSeconds": -0.5,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 120,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 1.6500000000000001,
+      "goodDirectCommandToTargetSeconds": 1.3384615384615386,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.1500000000000004,
+        "firstLegGood": 1.9942307692307695,
+        "secondLegGood": 1.9942307692307693,
+        "bothLegsGood": 1.8384615384615386
+      },
+      "neutralRelayAdvantageSeconds": -0.5000000000000002,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 140,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 1.875,
+      "goodDirectCommandToTargetSeconds": 1.5115384615384615,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.375,
+        "firstLegGood": 2.1932692307692307,
+        "secondLegGood": 2.1932692307692307,
+        "bothLegsGood": 2.0115384615384615
+      },
+      "neutralRelayAdvantageSeconds": -0.5,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 160,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 2.1,
+      "goodDirectCommandToTargetSeconds": 1.6846153846153846,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.6,
+        "firstLegGood": 2.3923076923076922,
+        "secondLegGood": 2.3923076923076927,
+        "bothLegsGood": 2.184615384615385
+      },
+      "neutralRelayAdvantageSeconds": -0.5,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 180,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 2.3625,
+      "goodDirectCommandToTargetSeconds": 1.8865384615384615,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.825,
+        "firstLegGood": 2.5913461538461537,
+        "secondLegGood": 2.5913461538461537,
+        "bothLegsGood": 2.3576923076923073
+      },
+      "neutralRelayAdvantageSeconds": -0.46250000000000036,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 200,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 2.6999999999999997,
+      "goodDirectCommandToTargetSeconds": 2.146153846153846,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.05,
+        "firstLegGood": 2.7903846153846152,
+        "secondLegGood": 2.7903846153846152,
+        "bothLegsGood": 2.5307692307692307
+      },
+      "neutralRelayAdvantageSeconds": -0.3500000000000001,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 220,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 3.1125,
+      "goodDirectCommandToTargetSeconds": 2.463461538461538,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.2750000000000004,
+        "firstLegGood": 2.989423076923077,
+        "secondLegGood": 2.989423076923077,
+        "bothLegsGood": 2.703846153846154
+      },
+      "neutralRelayAdvantageSeconds": -0.16250000000000053,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 240,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 3.6,
+      "goodDirectCommandToTargetSeconds": 2.8384615384615386,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.5000000000000004,
+        "firstLegGood": 3.1884615384615387,
+        "secondLegGood": 3.1884615384615387,
+        "bothLegsGood": 2.8769230769230774
+      },
+      "neutralRelayAdvantageSeconds": 0.09999999999999964,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 260,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 4.1625000000000005,
+      "goodDirectCommandToTargetSeconds": 3.271153846153846,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.7250000000000005,
+        "firstLegGood": 3.3875,
+        "secondLegGood": 3.3875,
+        "bothLegsGood": 3.05
+      },
+      "neutralRelayAdvantageSeconds": 0.4375,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 280,
+      "throwerField": 5,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 160,
+      "neutralDirectCommandToTargetSeconds": 4.8,
+      "goodDirectCommandToTargetSeconds": 3.761538461538461,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.95,
+        "firstLegGood": 3.5865384615384617,
+        "secondLegGood": 3.5865384615384617,
+        "bothLegsGood": 3.223076923076923
+      },
+      "neutralRelayAdvantageSeconds": 0.8499999999999996,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 80,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 1.1035714285714286,
+      "goodDirectCommandToTargetSeconds": 0.9181318681318682,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 1.6517857142857142,
+        "firstLegGood": 1.559065934065934,
+        "secondLegGood": 1.5479395604395605,
+        "bothLegsGood": 1.4552197802197804
+      },
+      "neutralRelayAdvantageSeconds": -0.5482142857142855,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 120,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 1.5053571428571428,
+      "goodDirectCommandToTargetSeconds": 1.227197802197802,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.0776785714285717,
+        "firstLegGood": 1.938598901098901,
+        "secondLegGood": 1.9219093406593406,
+        "bothLegsGood": 1.7828296703296704
+      },
+      "neutralRelayAdvantageSeconds": -0.5723214285714289,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 140,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 1.70625,
+      "goodDirectCommandToTargetSeconds": 1.3817307692307692,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.290625,
+        "firstLegGood": 2.1283653846153845,
+        "secondLegGood": 2.1088942307692307,
+        "bothLegsGood": 1.9466346153846152
+      },
+      "neutralRelayAdvantageSeconds": -0.5843749999999999,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 160,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 1.9071428571428573,
+      "goodDirectCommandToTargetSeconds": 1.5362637362637364,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.5035714285714286,
+        "firstLegGood": 2.3181318681318683,
+        "secondLegGood": 2.295879120879121,
+        "bothLegsGood": 2.1104395604395605
+      },
+      "neutralRelayAdvantageSeconds": -0.5964285714285713,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 180,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 2.1080357142857142,
+      "goodDirectCommandToTargetSeconds": 1.6907967032967033,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.7165178571428568,
+        "firstLegGood": 2.5078983516483513,
+        "secondLegGood": 2.4828640109890108,
+        "bothLegsGood": 2.2742445054945053
+      },
+      "neutralRelayAdvantageSeconds": -0.6084821428571425,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 200,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 2.346428571428571,
+      "goodDirectCommandToTargetSeconds": 1.874175824175824,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 2.9294642857142854,
+        "firstLegGood": 2.697664835164835,
+        "secondLegGood": 2.669848901098901,
+        "bothLegsGood": 2.4380494505494505
+      },
+      "neutralRelayAdvantageSeconds": -0.5830357142857143,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 220,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 2.659821428571428,
+      "goodDirectCommandToTargetSeconds": 2.1152472527472526,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.142410714285714,
+        "firstLegGood": 2.887431318681319,
+        "secondLegGood": 2.856833791208791,
+        "bothLegsGood": 2.601854395604396
+      },
+      "neutralRelayAdvantageSeconds": -0.48258928571428594,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 240,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 3.0482142857142853,
+      "goodDirectCommandToTargetSeconds": 2.4140109890109884,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.355357142857143,
+        "firstLegGood": 3.0771978021978024,
+        "secondLegGood": 3.0438186813186814,
+        "bothLegsGood": 2.765659340659341
+      },
+      "neutralRelayAdvantageSeconds": -0.30714285714285783,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 260,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 3.5116071428571427,
+      "goodDirectCommandToTargetSeconds": 2.7704670329670327,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.5683035714285714,
+        "firstLegGood": 3.2669642857142858,
+        "secondLegGood": 3.2308035714285714,
+        "bothLegsGood": 2.9294642857142854
+      },
+      "neutralRelayAdvantageSeconds": -0.05669642857142865,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    },
+    {
+      "distanceFeet": 280,
+      "throwerField": 9,
+      "cutoffField": 5,
+      "comfortableRangeFeet": 180,
+      "neutralDirectCommandToTargetSeconds": 4.05,
+      "goodDirectCommandToTargetSeconds": 3.1846153846153844,
+      "idealRelayCommandToTargetSeconds": {
+        "neutral": 3.78125,
+        "firstLegGood": 3.456730769230769,
+        "secondLegGood": 3.4177884615384615,
+        "bothLegsGood": 3.0932692307692307
+      },
+      "neutralRelayAdvantageSeconds": 0.2687499999999998,
+      "scope": "Trial formula; acceptance status in longRangeProfileState. Ideal ready midpoint cutoff, illustrative decision gap; no simulation or guaranteed reception"
+    }
+  ]
+}
