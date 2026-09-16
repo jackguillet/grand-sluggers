@@ -1098,14 +1098,37 @@ def derive(data):
         assert bobble_reliability["sameBobbleRecoveryErrorChance"] == 0
     bobble_direction = data.get("bobbleDeflectionDirectionProposal")
     if bobble_direction:
-        assert bobble_direction["state"] == "pending"
+        assert bobble_direction["state"] == "superseded-by-user-direction"
+        assert bobble_direction["supersededBy"] == "F693-02-contact-led-random-bobble"
         assert bobble_direction["randomDirectionRoll"] is False
         assert all(bobble_direction[key] is None for key in
                    ("directionMapping", "angularBounds", "scatterDistanceFt",
                     "scatterSpeedFtPerSec", "verticalProfile"))
+    random_bobble = data.get("contactLedRandomBobbleProposal")
+    if random_bobble:
+        assert random_bobble["state"] == "accepted-calibration-anchor"
+        assert random_bobble["acceptedBy"] and random_bobble["acceptedOn"] and random_bobble["acceptanceEvidence"]
+        assert random_bobble["randomDirectionRoll"] is True
+        assert all(random_bobble[key] is None for key in
+                   ("directionMapping", "angularBounds", "distribution", "verticalRandomness"))
+    bobble_spread = data.get("bobbleDirectionSpreadProposal")
+    if bobble_spread:
+        assert bobble_spread["state"] == "pending"
+        assert bobble_spread["horizontalMaxOffsetDegrees"] == 15
+        assert all(bobble_spread[key] is None for key in
+                   ("distribution", "baselineDirectionMapping", "verticalRandomness"))
+        spread_example = bobble_spread["sensitivity"]
+        assert spread_example["travelIsTarget"] is False
+        for spread_row in spread_example["alternatives"]:
+            spread_angle = math.radians(spread_row["maxOffsetDegrees"])
+            assert spread_row["totalFanDegrees"] == 2*spread_row["maxOffsetDegrees"]
+            assert math.isclose(spread_row["lateralComponentFt"], spread_example["illustrativeTravelFt"]*math.sin(spread_angle))
+            assert math.isclose(spread_row["baselineProjectionFt"], spread_example["illustrativeTravelFt"]*math.cos(spread_angle))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "contactLedRandomBobbleState": random_bobble["state"] if random_bobble else None,
+            "bobbleDirectionSpreadState": bobble_spread["state"] if bobble_spread else None,
             "bobbleDeflectionDirectionState": bobble_direction["state"] if bobble_direction else None,
             "bobbleRecoveryReliabilityState": bobble_reliability["state"] if bobble_reliability else None,
             "groundedBobbleBrakingState": bobble_braking["state"] if bobble_braking else None,

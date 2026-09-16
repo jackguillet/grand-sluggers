@@ -513,8 +513,19 @@
     },
     {
       "id": "F693-02-bobble-deflection-direction",
+      "state": "superseded-by-user-direction",
+      "question": "Base ordinary bobble direction on the actual incoming ball and glove contact, without a separate random scatter-direction roll?",
+      "supersededBy": "F693-02-contact-led-random-bobble"
+    },
+    {
+      "id": "F693-02-contact-led-random-bobble",
+      "state": "accepted-calibration-anchor",
+      "question": "Keep the general bobble direction contact based, with a small random directional variation."
+    },
+    {
+      "id": "F693-02-bobble-direction-spread",
       "state": "next-human-decision",
-      "question": "Base ordinary bobble direction on the actual incoming ball and glove contact, without a separate random scatter-direction roll?"
+      "question": "Trial up to 15 degrees of horizontal variation either side of the contact-derived direction?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5235,7 +5246,7 @@
   },
   "bobbleDeflectionDirectionProposal": {
     "decisionId": "F693-02-bobble-deflection-direction",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "directionBasis": "incoming-ball-and-actual-glove-contact",
     "randomDirectionRoll": false,
     "directionMapping": null,
@@ -5260,6 +5271,76 @@
       "Direction is not chosen from runner/base/helper advantage, and changing handling alone does not change the scatter path for the same failed contact.",
       "The visible contact and eventual local trajectory agree with actual recovery geometry, boundaries and reliable same-bobble recovery."
     ],
-    "implementationBoundary": "Pending direction-source choice only. Numerical mapping, angular bounds, scatter speed/distance/height, catch geometry reconciliation, runtime and human gates remain open."
+    "implementationBoundary": "Superseded before implementation. The no-random-direction proposal is not approved; follow F693-02-contact-led-random-bobble.",
+    "supersededBy": "F693-02-contact-led-random-bobble",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack requested a little random direction roll while keeping the general direction contact based."
+  },
+  "contactLedRandomBobbleProposal": {
+    "decisionId": "F693-02-contact-led-random-bobble",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack: i think we should have a little bit of random direction roll, but the general direction should be contact based",
+    "directionBasis": "incoming-ball-and-actual-glove-contact-plus-small-random-offset",
+    "randomDirectionRoll": true,
+    "directionMapping": null,
+    "angularBounds": null,
+    "distribution": null,
+    "verticalRandomness": null,
+    "direction": "Derive the general ordinary bobble direction from incoming ball motion and actual glove contact, then add a small bounded random directional variation. Contact remains the dominant basis; do not replace it with unrestricted random scatter.",
+    "eventAndReplay": "Resolve and retain the directional result once for the actual failed-acquisition event using the existing authoritative seeded randomness rail. Same contact state plus same event/random state replays the same result; equivalent contact with a different draw may vary within the reviewed spread. No reroll per frame, selection switch, callback, range re-entry or subsequent ordinary recovery. Record the baseline and sampled variation for future trace validation; exact RNG allocation awaits implementation review.",
+    "physicalContinuity": "Keep the approved modest nearby loose-ball outcome, actual contact origin and continuous position. A directional offset changes the outgoing trajectory, not a teleported destination. Direction mapping, spread/distribution, vertical treatment and speed/distance remain unselected. Preserve real collisions and physical recovery.",
+    "limits": "No bias from intended throw, camera, runner/base locations or helper availability. Do not silently tie spread to handling or displayed Fielding. Error probability, shared stun, grounded braking and reliable same-bobble recovery remain unchanged. Separate special effects retain their own rules.",
+    "implementationBoundary": "Accepted contact-led random direction only. Numerical spread, distribution, baseline contact mapping and trajectory values remain pending. No runtime or human gate changed.",
+    "referenceLimit": "Explicit user-authored direction; not a measured Wii/GC random-deflection algorithm."
+  },
+  "bobbleDirectionSpreadProposal": {
+    "decisionId": "F693-02-bobble-direction-spread",
+    "state": "pending",
+    "horizontalMaxOffsetDegrees": 15,
+    "distribution": null,
+    "baselineDirectionMapping": null,
+    "verticalRandomness": null,
+    "recommendation": "Trial a maximum horizontal offset of 15 degrees to either side of the contact-derived baseline direction: a 30-degree total horizontal fan. This is a cap, not a fixed 15-degree turn or a selected probability distribution.",
+    "scope": "Horizontal heading variation only. Keep contact as the dominant direction and the already accepted small local bobble. Speed, distance, vertical profile/randomness, sampling distribution and baseline/fallback geometry are separate. Do not add random forward/backward reversal or vertical changes under this angle approval.",
+    "geometry": "Given a valid reviewed horizontal contact direction, rotate that heading by one retained offset in [-15,+15] degrees around world up. Initial horizontal speed magnitude is unchanged by this rotation. At the proposed bound the forward projection along the baseline remains cos(15 degrees), about .966 of the horizontal speed. Collisions can subsequently redirect the ball under their own rules.",
+    "fallback": "Nearly vertical or zero-horizontal baseline contacts require an explicitly reviewed contact-frame fallback or suppression rule before implementation. The angular bound does not authorize a fixed world-axis fallback, random full-circle heading or invented horizontal launch energy.",
+    "sensitivity": {
+      "illustrativeTravelFt": 4,
+      "travelIsTarget": false,
+      "assumptions": "Compare unobstructed horizontal displacement vectors of equal 4-foot length. Lateral component is L*sin(angle); not a selected scatter distance, final resting position or simulated recovery race.",
+      "alternatives": [
+        {
+          "maxOffsetDegrees": 10,
+          "totalFanDegrees": 20,
+          "lateralComponentFt": 0.6945927106677213,
+          "baselineProjectionFt": 3.939231012048832
+        },
+        {
+          "maxOffsetDegrees": 15,
+          "totalFanDegrees": 30,
+          "lateralComponentFt": 1.035276180410083,
+          "baselineProjectionFt": 3.8637033051562732
+        },
+        {
+          "maxOffsetDegrees": 20,
+          "totalFanDegrees": 40,
+          "lateralComponentFt": 1.3680805733026749,
+          "baselineProjectionFt": 3.7587704831436337
+        }
+      ]
+    },
+    "rationale": "A small fan gives the ball some variation while keeping the direction visibly related to contact. At an illustrative four-foot travel length, the 15-degree edge sits about 1.04 feet sideways from the baseline axis; 10 and 20 degrees give about .69 and 1.37 feet. Those are geometric comparisons only.",
+    "eventRules": "Use the accepted once-per-bobble seeded result; no tactical targeting, outcome-based resampling or repeated direction roll during flight/recovery. Manual, CPU and both seats share the same rule. The choice of sampling distribution inside the cap remains pending.",
+    "referenceLimit": "Authored angular trial, not measured Mario scatter. Compare both references and eventual in-game contact/recovery readability before asserting parity.",
+    "requiredChecks": [
+      "A valid baseline plus retained offset always starts within the 15-degree horizontal cap, with no speed-magnitude change from angle rotation.",
+      "Same event/random state replays the same variation across frame partitions and control changes.",
+      "No tactical outcome or defender/runner availability biases or resamples the direction.",
+      "The contact origin, modest local trajectory, body stun and reliable recovery remain coherent; angular variation alone cannot teleport the ball.",
+      "Review low-horizontal-motion handling and sample distribution before runtime implementation."
+    ],
+    "implementationBoundary": "Pending horizontal bound only. Distribution, baseline/fallback mapping, vertical profile/randomness, scatter speed/distance, runtime and human gates remain open."
   }
 }
