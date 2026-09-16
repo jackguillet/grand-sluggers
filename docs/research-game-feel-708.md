@@ -1312,9 +1312,9 @@ This is an authored reuse of our accepted movement profile, not a verified Wii/G
 
 This is an authored recovery-reliability proposal, not a verified Mario rule. Validate original-fielder and helper recovery, small scatter bounces, switching/range re-entry, independent effects and subsequent distinct plays. No runtime, general attempt policy or human gate changes here.
 
-## Next decision — ordinary bobble deflection direction
+## Superseded proposal — ordinary bobble direction without randomness
 
-**F693-02-bobble-deflection-direction — pending, September 15, 2026.** Recommend **basing the deflection direction on the incoming ball and actual glove contact, without a separate random scatter-direction roll**. The handling roll decides whether the pickup fails; the loose ball's direction then follows that physical encounter. Exact directional mapping, speed, distance and bounce height remain unselected.
+**F693-02-bobble-deflection-direction — superseded by Jack on September 15, 2026; never accepted or implemented.** The prior recommendation was **basing the deflection direction on the incoming ball and actual glove contact, without a separate random scatter-direction roll**. The handling roll decides whether the pickup fails; the loose ball's direction then follows that physical encounter. Exact directional mapping, speed, distance and bounce height remain unselected.
 
 **Player context:** the escape should read as a consequence of where the ball met the glove. Equivalent contacts produce equivalent directions; different approach/contact geometry can change the deflection. Random direction would add surprise, but also another source of outcome variance after the error roll. This recommendation keeps that additional variance tied to the play's visible geometry.
 
@@ -1328,7 +1328,29 @@ This is an authored recovery-reliability proposal, not a verified Mario rule. Va
 
 Future checks must cover mirrored/rotated encounter fixtures, low-horizontal-speed fallback, continuous contact-origin motion, boundaries, helpers and full physical recovery. No runtime, asset or human gate changes here.
 
-**Question for Jack:** should ordinary bobble direction come from the incoming ball and glove contact, without another random direction roll?
+**Superseded:** Jack requested a little random directional variation while keeping the general direction contact based. The preceding no-random-direction proposal is historical only.
+
+## Accepted direction — contact-led random bobble
+
+**F693-02-contact-led-random-bobble — directed by Jack on September 15, 2026.** Derive the general direction from the incoming ball and actual glove contact, then add **a small random directional variation**. Contact remains the dominant influence. This replaces the unaccepted deterministic-only proposal.
+
+Resolve the directional variation once for the failed-acquisition event through the existing authoritative seeded randomness rail, and retain it. Same contact plus same event/random state must replay the same result; a different draw can produce a slightly different direction. Do not reroll on frames, selection changes, repeated callbacks or recovery. Keep error probability, the .40-second stun, grounded braking and reliable recovery intact.
+
+The ball still begins continuously at actual contact. No unrestricted scatter, teleport, tactical bias toward/away from helpers/runners/bases, or new handling-dependent spread is approved. Numerical angle/distribution, baseline contact mapping, vertical treatment and speed/distance remain open. This records user-authored direction, not measured Mario logic; no runtime changes.
+
+## Next decision — horizontal bobble direction spread
+
+**F693-02-bobble-direction-spread — pending, September 15, 2026.** Recommend a first trial of **up to 15 degrees left or right of the contact-derived horizontal direction**: a 30-degree total fan. This chooses the maximum variation, not a fixed turn or how likely different offsets are inside the fan.
+
+**Why this amount:** contact still clearly leads the motion, with enough room for a slight left/right surprise. For an illustrative horizontal travel length of four feet, the outer edge is about **1.04 feet sideways** from the baseline axis. A 10-degree limit would give about .69 feet; a 20-degree limit about 1.37 feet. Four feet is only a geometric example, not an approved scatter distance or a simulated recovery race.
+
+**Keep the angle separate:** rotate the initial horizontal heading without changing its speed magnitude or the contact origin. The forward projection remains at least `cos(15°)`, about .966, of that horizontal magnitude before later collisions. Do not use this choice to add random height, distance, speed or a backward reversal. Vertical treatment, baseline direction/fallback and the sampling distribution remain separately reviewed. Near-vertical/zero-horizontal encounters need an explicit contact-based fallback or suppression rule; do not invent a world-axis heading or extra horizontal energy just to apply the fan.
+
+Use the retained once-per-bobble seeded result with no tactical targeting or outcome-based resampling. All seats and CPU/manual paths share it. Verify the cone, replay behavior, continuous contact and actual recovery together before implementation. The .40-second reaction and reliable ordinary recovery remain unchanged.
+
+This is an authored angular trial, not a measured Wii/GC value. Compare both reference games and eventual gameplay readability before claiming parity. No runtime, trajectory-distance target or human gate changes here.
+
+**Question for Jack:** trial up to 15 degrees of horizontal variation either side of the contact-based direction?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
