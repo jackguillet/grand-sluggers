@@ -1515,7 +1515,16 @@ def derive(data):
         assert dive_research["correction"], "The one-glove correction must stay on the record"
     cpu_dive = data.get("cpuDiveIntentResearch")
     if cpu_dive:
-        assert cpu_dive["state"] == "next-human-decision"
+        assert cpu_dive["state"] == "accepted-calibration-anchor"
+        assert cpu_dive["acceptedBy"] and cpu_dive["acceptedOn"] and cpu_dive["acceptanceEvidence"]
+        assert cpu_dive["acceptedOption"] == "cpu-dives-deliberately"
+        cpu_accepted = cpu_dive["acceptedDirection"]
+        assert cpu_accepted["cpuMayDive"] and cpu_accepted["cpuPaysSameRecoveryDelay"] and cpu_accepted["cpuDiveMayMiss"]
+        assert cpu_accepted["assistanceDiveForNeutralStickSeat"] is False, \
+            "The assistance dive stays removed"
+        assert math.isclose(cpu_accepted["cpuDiveReachEqualsSeatReachFt"],
+                            dive_research["acceptedDirection"]["earnedReachFt"]), \
+            "A CPU dive may not out-reach a seat dive"
         assert cpu_dive["finding"]["cpuHasNoOtherPathToTheRim"] is True
         earned = dive_research["acceptedDirection"]["earnedAdditionFt"]
         assert math.isclose(cpu_dive["finding"]["diveWorthFt"], 2 * earned), \
