@@ -11,8 +11,9 @@ namespace GrandSluggers.Sim;
 public static class PitchFlight
 {
     // Plate frame geometry: the normalized aim square and where it sits. Presentation, the
-    // strike frame, and the umpire all share it, so it stays a constant like Diamond.
-    public const double MoundZ = Diamond.Mound;
+    // strike frame, and the umpire all share it, so it stays one number like Diamond — which
+    // now reads it from data, so this forwards rather than baking a copy at compile time.
+    public static double MoundZ => Diamond.Mound;
     /// <summary>The natural crossing height: a normal or charged pitch crosses mid-zone (spec §4.2).</summary>
     public const double PlateY = StrikeZoneGeometry.CenterY;
     public const double PlateScaleX = 1.85;
