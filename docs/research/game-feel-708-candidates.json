@@ -682,7 +682,7 @@
     },
     {
       "id": "F693-04-flight-budget",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "C80 as specified is a home-run derby: a Power-3 bat clears centre on a charged perfect and a Power-10 bat homers on ordinary contact. Raise the ball drag, cut exit velocity, or raise the wall?"
     },
     {
@@ -724,6 +724,11 @@
       "id": "F693-02-arm-rating-migration",
       "state": "pending",
       "question": "How does the Arm rating land: schema and seeding, whether Arm joins the Teams.Tools roster-building sum, the HUD row, the CPU reaction group, and when deliberate per-character Arm values get authored?"
+    },
+    {
+      "id": "F693-04-park-migration",
+      "state": "pending",
+      "question": "How do the other five parks migrate to compact scale, and how is the drag change sequenced with them so no park is left homerless?"
     }
   ],
   "runnerClockProposal": {
@@ -7328,8 +7333,8 @@
   },
   "flightBudgetResearch": {
     "decisionId": "F693-04-flight-budget",
-    "state": "next-human-decision",
-    "status": "research-model-probes-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-trial-anchor-model-probes-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-spatial-trial",
@@ -7509,6 +7514,44 @@
     ],
     "wallHeightNote": "The accepted spatial contract deliberately preserved the 12-foot wall as a control so that wall height and wall distance would not move together. Changing it is therefore a conscious revision of that control, not a free knob.",
     "referenceLimit": "No Wii or GameCube carry, drag or home-run rate has been measured. The target economy used here is this game's own control field, not either reference.",
-    "implementationBoundary": "Research probes prepared for one human decision. No drag value, exit table, wall height, park migration, rules-file edit, runtime change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted trial lever and value only. No rules-file edit, exit table, wall height, park dimensions, migration, runtime change or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"Raise the ball's drag\" over cutting exit velocity by a fifth and over raising the wall.",
+    "acceptedOption": "raise-drag",
+    "acceptedDirection": {
+      "dragFrom": 0.0019,
+      "dragTrialTo": 0.004,
+      "exitTableUnchanged": true,
+      "wallHeightUnchangedFt": 12,
+      "economyAchieved": [
+        "Ordinary contact stays in the park: a nice slap with lift carries 180 ft and a Power-10 nice slap becomes a 206-foot liner rather than a 269-foot home run.",
+        "A charged, squared-up mid-power swing clears the pole at 248 ft but not centre.",
+        "The biggest bat clears centre at 304 ft.",
+        "Star swings clear centre reliably: heat 282 ft, cask 293 and furnace 304 at Power 5, and 339 to 360 at Power 10, which is the role a star swing should have."
+      ],
+      "whySurgical": "Drag acts on carry through the air and barely touches a ground ball, so exit speeds, infield races, the awkward-hop difficulty source and every accepted fielding anchor are unaffected. Cutting exit velocity would have reopened all of them.",
+      "doublesEffect": "Gap doubles increase rather than decrease, because liners that used to clear the fence now land in front of it while still hanging under the 2.56-second alley closure."
+    },
+    "requiredCoupling": {
+      "headline": "Drag is global and the five un-migrated parks are still at control scale. At drag 0.0040 the best ordinary swing carries 304 feet against their 330-foot poles, so those parks would have no home runs at all.",
+      "rule": "The drag change and the park migration must land together. Shipping the drag change first would make the game homerless everywhere except a migrated Harbor.",
+      "parksToMigrate": [
+        "canopy-yard",
+        "crystal-rink",
+        "ember-keep",
+        "funfair-park",
+        "rooftop-city"
+      ]
+    },
+    "acceptedScope": "The lever and its trial value. Trial anchor, not a shipping default and not a measured Mario carry. It selects no exit-table change, no wall height, no per-park dimensions and no runtime change. The exact value within roughly 0.0035 to 0.0045 stays open, and the heavier-ball look it produces has to be judged by eye rather than by arithmetic.",
+    "requiredChecks": [
+      "Ordinary uncharged contact stays inside a migrated park at every Power rating; no nice slap clears a pole.",
+      "A charged perfect swing still leaves the yard, and a star swing still clears centre; the change must not remove the home run.",
+      "Exit speeds, grounder arrival times at infielders and every accepted infield anchor are unchanged, since only drag moved.",
+      "Liner hang times stay under the accepted alley closure so gap doubles survive; verify against real traces rather than probes.",
+      "The drag change does not ship before the park migration, or the five control-scale parks lose home runs entirely.",
+      "The heavier-ball look is judged on screen before the value is treated as a shipping default."
+    ]
   }
 }

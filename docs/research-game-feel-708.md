@@ -328,6 +328,18 @@ All six parks are still at control scale: poles 312–338 feet, centres 378–40
 
 **Raising the wall** is the cheapest and most visible, and it converts wall-scrapers into wall play, which serves the doubles goal directly. But it does nothing about a 451-foot drive or a 352-foot liner, so it trims the derby rather than fixing it. It is a good companion to a ball change and a poor substitute for one.
 
+### Accepted decision — raise the ball's drag
+
+**F693-04-flight-budget — accepted by Jack on September 15, 2026.** Ball drag rises from **0.0019 to a 0.0040 trial**. The exit table and the 12-foot wall are untouched.
+
+That restores a sane economy on C80. Ordinary contact stays in the park — a nice slap with lift carries 180 feet, and a Power-10 nice slap becomes a 206-foot liner instead of a 269-foot home run. A charged, squared-up mid-power swing clears the pole at 248 feet but not centre. The biggest bat clears centre at 304. And **star swings clear centre reliably** — heat 282, cask 293, furnace 304 at Power 5, rising to 339–360 at Power 10 — which is the role a star swing should have and which the earlier probe set did not cover.
+
+It is the surgical lever. Drag acts on carry through the air and barely touches a ground ball, so exit speeds, grounder arrival times, the infield races, the awkward-hop difficulty source and every accepted fielding anchor are unaffected; cutting exit velocity would have reopened all of them. Gap doubles go **up**, not down, because liners that used to clear the fence now land in front of it while still hanging under the 2.56-second alley closure.
+
+**Required coupling — the drag change cannot ship alone.** Drag is global and the other five parks are still at control scale. At 0.0040 the best ordinary swing carries 304 feet against their 330-foot poles, so **those parks would have no home runs at all**. The drag change and the park migration have to land together; shipping drag first would make the game homerless everywhere except a migrated Harbor. That migration is queued as `F693-04-park-migration`.
+
+**Accepted scope:** the lever and its trial value, as a trial anchor rather than a shipping default or a measured Mario carry. The exact value within roughly 0.0035–0.0045 stays open, and the heavier-ball look it produces has to be judged on screen rather than by arithmetic before it is treated as settled.
+
 **Scope note:** these are probes at mean launch with noise excluded, ignoring spray angle — the fence runs from 232 feet at the poles to 280 at centre, so a pulled ball faces a nearer wall than these centre-line figures suggest. They establish the shape of the problem and the size of each lever, **not a home-run rate**. No rate can be claimed before the whole-race validation.
 
 ## Accepted decision — lead spatial trial
