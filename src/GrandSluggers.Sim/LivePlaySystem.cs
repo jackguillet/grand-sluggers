@@ -311,6 +311,15 @@ public sealed partial class LivePlaySystem
 
     public LivePlayCommandResult Apply(LivePlayCommand command)
     {
+        if (_trace is not null)
+        {
+            _trace.Source = this;
+            if (command.Kind is LivePlayCommandKind.Begin or LivePlayCommandKind.BeginLive
+                or LivePlayCommandKind.BeginSteal or LivePlayCommandKind.BeginPickoff)
+                _trace.Begin(TraceContext(command));
+            _trace.Command(command, command.Kind is LivePlayCommandKind.Begin or LivePlayCommandKind.BeginLive
+                or LivePlayCommandKind.BeginSteal or LivePlayCommandKind.BeginPickoff ? 0 : ElapsedSeconds);
+        }
         var result = command.Kind switch
         {
             LivePlayCommandKind.Begin => Begin(command),
@@ -337,14 +346,17 @@ public sealed partial class LivePlaySystem
     void Observe(LivePlayCommand command, LivePlayCommandResult result)
     {
         if (_trace is null) return;
-        if (command.Kind is LivePlayCommandKind.BeginLive or LivePlayCommandKind.BeginSteal
+        if (command.Kind is LivePlayCommandKind.Begin or LivePlayCommandKind.BeginLive or LivePlayCommandKind.BeginSteal
             or LivePlayCommandKind.BeginPickoff)
         {
-            _trace.Clear();
-            if (Active) _trace.Record(this);
+            if (Active)
+            {
+                _trace.Mark(RunnerPlay ? PlayTraceMarkKind.RunnerPlayStart : PlayTraceMarkKind.Contact, ElapsedSeconds);
+                _trace.Record(this);
+            }
             return;
         }
-        if (command.Kind == LivePlayCommandKind.Tick && command.DeltaSeconds > 0 && Active)
+        if (command.Kind is LivePlayCommandKind.Tick or LivePlayCommandKind.Advance && command.DeltaSeconds > 0 && Active)
             _trace.Record(this, result.CompletedPlay);
         if (result.CompletedPlay is not null)
             _trace.Complete(result.CompletedPlay);
@@ -473,7 +485,11 @@ public sealed partial class LivePlaySystem
         Decide(dash01);
         RunnerSystem.Tick(Runners, dt, ctx, _match.Rules);
         foreach (var r in Runners)
-            if (r.ArrivedThisTick) _aiPending = true;
+            if (r.ArrivedThisTick)
+            {
+                _aiPending = true;
+                _trace?.Mark(PlayTraceMarkKind.RunnerArrival, ElapsedSeconds, bag: r.Bag, runner: PlayTraceRunner.Of(r));
+            }
         Decide(dash01);
     }
 
@@ -630,7 +646,12 @@ public sealed partial class LivePlaySystem
         }
         if (step.TurnedTwo) TurnedTwo = true;
         if (!step.Out && runnerBeats && target is not null && step.Verdict is not InPlay.ThrowVerdict.None)
+        {
             target.Arrive(bag, ElapsedSeconds); // beat the throw: the bag is theirs
+            _trace?.Mark(PlayTraceMarkKind.RunnerAward, ElapsedSeconds, fielder?.Id, bag, PlayTraceRunner.Of(target));
+        }
+        _trace?.Mark(PlayTraceMarkKind.Verdict, ElapsedSeconds, fielder?.Id, bag,
+            target is null ? null : PlayTraceRunner.Of(target), verdict: step.Verdict);
         StampNewScores();
         return new LivePlayCommandResult(Snapshot, step);
     }
@@ -654,7 +675,11 @@ public sealed partial class LivePlaySystem
             if (BatterOut) return false;
             BatterOut = true;
         }
+        var traceRunner = _trace is null ? null : _match.RunnerAt(fromBag);
+        double? predictedAt = traceRunner is null || atBag < 1 ? null
+            : ElapsedSeconds + RunnerSystem.ArrivalSec(traceRunner, atBag, ElapsedSeconds, Dash01, R);
         if (!_match.RetireLiveRunner(fromBag, atBag, type, fielder)) return false;
+        _trace?.Mark(PlayTraceMarkKind.Out, ElapsedSeconds, fielder?.Id, atBag, traceRunner is null ? null : PlayTraceRunner.Of(traceRunner), type, predictedAt);
         Forces = Forces.AfterOutAt(fromBag + 1);
         _aiPending = true;
         var feat = type == OutType.Catch && Preview is not null

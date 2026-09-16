@@ -110,6 +110,11 @@ public sealed class PlayTraceTests
         var tag = Assert.Single(play!.Outcome!.OutsMade);
         Assert.Equal((OutType.Tag, 4, 3, runner.Id), (tag.Type, tag.Bag, tag.FromBag, tag.Runner.Id));
         Assert.Equal(PlayKind.CaughtStealing, play.Kind);
+        var mark = Assert.Single(trace.Marks!, m => m.Kind == PlayTraceMarkKind.Out && m.OutType == OutType.Tag);
+        Assert.Equal(runner.Id, mark.Runner!.Id);
+        Assert.False(mark.Runner.Live);
+        Assert.True(mark.Geometry!.HoldsUnthrownBall);
+        Assert.Equal(4, mark.Bag);
         AssertMonotonic(trace);
 
         var plate = Diamond.Home;

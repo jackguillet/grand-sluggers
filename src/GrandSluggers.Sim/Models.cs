@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace GrandSluggers.Sim;
 
 public enum Hand
@@ -50,11 +51,19 @@ public sealed record Stats(int Pitch, int Bat, int Field, int Run)
         init => _hands = value;
     }
 
-    /// <summary>True when this rating was authored rather than seeded from <see cref="Field"/>.</summary>
-    public bool ArmAuthored => _arm > 0;
+    /// <summary>
+    /// True when this rating was authored rather than seeded from <see cref="Field"/>.
+    ///
+    /// Not serialized. It is bookkeeping about where the number came from, not a rating, and a
+    /// play trace records what happened rather than how the roster was written. Emitting it also
+    /// made <see cref="Stats"/> unstable across a JSON round trip: the serialized <c>arm</c> reloads
+    /// through the init setter, which marks the trait authored, so a replayed trace no longer
+    /// matched the live one it replayed.
+    /// </summary>
+    [JsonIgnore] public bool ArmAuthored => _arm > 0;
 
     /// <inheritdoc cref="ArmAuthored"/>
-    public bool HandsAuthored => _hands > 0;
+    [JsonIgnore] public bool HandsAuthored => _hands > 0;
 
     // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped Field.
     public Stats Clamp() => new(

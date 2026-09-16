@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "s29-baseline",
+      "locator": "docs/research/game-feel-693-baseline.json",
+      "status": "baseline",
+      "uncertainty": "50-game cohort mean; not a per-game bound or proof of feel"
+    },
+    {
+      "id": "mario-throw-packet",
+      "locator": "docs/research/game-feel-701-observations.json",
+      "status": "community",
+      "uncertainty": "Two heterogeneous plays; controls and abilities unverified; no stock throw target inferred"
+    },
+    {
+      "id": "harbor-702-baseline",
+      "locator": "docs/research/game-feel-702-baseline.json",
+      "status": "baseline",
+      "uncertainty": "Two 50-game Harbor cohorts show seed/matchup variation; no confidence interval or causal attribution"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "F693-06",
+      "state": "accepted",
+      "locator": "docs/plan-game-feel-693.md#decision-register"
+    },
+    {
+      "id": "F693-03-numeric",
+      "state": "pending",
+      "locator": "docs/plan-game-feel-693.md"
+    },
+    {
+      "id": "F693-06-H",
+      "state": "accepted",
+      "locator": "docs/research-game-feel-702.md#accepted-human-decision--f693-06-h-harbor-scoring-scope"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "S29",
+      "kind": "cohort",
+      "locator": "src/GrandSluggers.Sim.Tests/AtBatScenarioTests.cs::S29_FiftySeedCpuGamesLandInTheBand"
+    },
+    {
+      "id": "S31",
+      "kind": "tactical",
+      "locator": "src/GrandSluggers.Sim.Tests/FieldingScenarioTests.cs::S31_RoutineGrounderToShortWithARunFiveBatterIsAForceAtFirstByGeometry"
+    },
+    {
+      "id": "fixed-grounder",
+      "kind": "fixed-input",
+      "locator": "src/GrandSluggers.Sim.Tests/RaceTraceTests.cs::FixedInputsAndTacticalFixturesRemainDistinct"
+    },
+    {
+      "id": "harbor-calibration",
+      "kind": "cohort",
+      "locator": "src/GrandSluggers.Sim/RaceCohort.cs::Run"
+    },
+    {
+      "id": "harbor-validation",
+      "kind": "cohort",
+      "locator": "src/GrandSluggers.Sim/RaceCohort.cs::Run"
+    }
+  ],
+  "budgets": [
+    {
+      "id": "s29-mean-runs",
+      "source": "s29-baseline",
+      "decision": "F693-06",
+      "fixture": "S29",
+      "unit": "runs/side/game",
+      "lower": 1.8,
+      "upper": 5,
+      "uncertainty": "Apply separately to home and away means in the existing mixed-park cohort",
+      "state": "accepted",
+      "purpose": "guardrail",
+      "activeDefault": false
+    },
+    {
+      "id": "routine-throw-travel",
+      "source": "mario-throw-packet",
+      "decision": "F693-03-numeric",
+      "fixture": "S31",
+      "unit": "s",
+      "lower": null,
+      "upper": null,
+      "uncertainty": "Quick release and visible travel accepted; numerical band still pending comparable evidence and Jack's playtest",
+      "state": "pending",
+      "purpose": "target",
+      "activeDefault": false
+    },
+    {
+      "id": "harbor-calibration-mean-runs-proposal",
+      "source": "harbor-702-baseline",
+      "decision": "F693-06-H",
+      "fixture": "harbor-calibration",
+      "unit": "runs/side/game",
+      "lower": 1.8,
+      "upper": 5,
+      "uncertainty": "Accepted by Jack September 14, 2026; applies separately to home and away cohort means, not individual games. Baseline misses remain calibration work.",
+      "state": "accepted",
+      "purpose": "guardrail",
+      "activeDefault": false
+    },
+    {
+      "id": "harbor-validation-mean-runs-proposal",
+      "source": "harbor-702-baseline",
+      "decision": "F693-06-H",
+      "fixture": "harbor-validation",
+      "unit": "runs/side/game",
+      "lower": 1.8,
+      "upper": 5,
+      "uncertainty": "Accepted by Jack September 14, 2026; applies separately to home and away cohort means, not individual games. Baseline misses remain calibration work.",
+      "state": "accepted",
+      "purpose": "guardrail",
+      "activeDefault": false
+    }
+  ]
+}
