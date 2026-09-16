@@ -1528,9 +1528,9 @@ This is an accepted authored response, not measured Wii/GC glove-contact physics
 
 **Accepted scope:** zero post-contact vertical speed and zero hold time for the ordinary local branch. The actual contact point remains continuous and gravity acts immediately; horizontal response remains separate.
 
-## Next decision — local bobble horizontal speed ceiling
+## Accepted decision — local bobble horizontal speed ceiling
 
-**F693-02-local-bobble-horizontal-cap — pending, September 15, 2026.** Recommend a **six-foot-per-second maximum horizontal spill speed** immediately after ordinary local-bobble contact. Weaker contacts may spill more slowly or have no horizontal motion; this is a ceiling, not a fixed kick.
+**F693-02-local-bobble-horizontal-cap — accepted by Jack on September 15, 2026.** Jack approved a **six-foot-per-second maximum horizontal spill speed** immediately after ordinary local-bobble contact. Weaker contacts may spill more slowly or have no horizontal motion; this is a ceiling, not a fixed kick.
 
 **Player context:** local bobbles should get visibly away from the glove while staying distinct from continuing deflections. A four-foot-per-second cap keeps them tighter; eight permits more escape. Six is an authored starting proposal, not measured Wii/GC speed. At a constant six feet per second, the ball travels **2.4 feet during the .40-second stun**, before accounting for deceleration, collision or recovery. This is a sensitivity calculation, not a total-scatter radius or simulated play.
 
@@ -1542,7 +1542,23 @@ This is an accepted authored response, not measured Wii/GC glove-contact physics
 
 Continuing deflections retain their separate 50–80% incoming horizontal-speed retention and ±15-degree direction rules. Untouched balls, specials and normal batted-ball flight do not inherit this local cap. Preserve the independent .40-second stun and reliable same-error recovery. Reference capture, trajectory/race validation and gameplay-distance review remain required; no runtime change here.
 
-**Question for Jack:** trial a six-foot-per-second maximum horizontal spill for nearby bobbles, with weaker contacts allowed to move more slowly?
+**Accepted scope:** six-ft/s maximum outgoing horizontal speed at ordinary local-bobble contact. No fixed kick, minimum speed or stopping distance is selected.
+
+## Next decision — local bobble horizontal speed retention
+
+**F693-02-local-bobble-horizontal-retention — pending, September 15, 2026.** Recommend retaining **20% of actual incoming horizontal speed**, limited by the accepted six-ft/s ceiling, after the failed contact has been classified as a local knockdown/bobble.
+
+**Player context:** a softer incoming ball produces a smaller spill, while a harder local knockdown reaches the ceiling. Illustrative inputs of **10, 20 and 30 ft/s become 2, 4 and 6 ft/s** respectively. Inputs above 30 still leave at six; zero horizontal input stays zero. These examples are arithmetic, not measured hit speeds or simulated recovery races. Continuing deflections keep their separately accepted 50–80% response.
+
+**Why 20%:** this represents a strong knockdown while preserving a visible spill. Ten percent would keep more contacts very close; thirty percent would reach the ceiling sooner. Contact geometry still determines local versus continuing outcomes and the direction. Within the local branch, this trial uses one shared fraction, with no extra random speed roll, handling multiplier or additional contact-strength scalar.
+
+**Definition:** `s_out=min(.20*s_in, 6)`, where `s_in` is the actual world-space horizontal magnitude immediately before glove contact, in ft/s. Do not substitute bat exit speed, total 3D speed, ball-glove relative speed or character movement speed. The percentage is speed retention, not energy retention. Classify from physical pre-response contact first; do not clamp the ball and then use that artificially slowed state to decide its branch.
+
+Apply the accepted contact-derived baseline and uniform ±30-degree variation without changing the resulting magnitude. Zero horizontal speed does not gain a kick or arbitrary forward travel. Exact direction mapping and the physical outcome classifier remain open. Keep continuous contact position, zero initial vertical speed with immediate gravity, approved ground rebound/settling, independent .40-second stun and reliable same-error recovery.
+
+Horizontal ground response, rolling friction and full recovery distance remain pending. This is an authored fraction, not measured Wii/GC retention; reference capture and eventual trajectory/gameplay review remain required. No runtime or human gate changes here.
+
+**Question for Jack:** trial 20% incoming horizontal-speed retention for nearby bobbles, capped at six feet per second?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
