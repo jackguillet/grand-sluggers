@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 2,
+  "issue": 701,
+  "parentIssue": 693,
+  "observedOn": "2026-09-14",
+  "status": "reported-evidence-and-pending-research-candidate",
+  "baselineRevision": "eff10d90d1b19ba0ab4f66d471163eb89a8f7db2",
+  "sources": [
+    {
+      "id": "wii-pianta-survey-2022",
+      "url": "https://www.reddit.com/r/MarioSuperSluggers/comments/xdvwn9/my_crude_attempt_at_measuring_the_size_of_the/",
+      "author": "therevd0g",
+      "published": "2022-09-14",
+      "game": "Mario Super Sluggers (Wii)",
+      "park": "Mario Stadium",
+      "type": "original-community-timing-report",
+      "independentlyReproduced": false,
+      "unknowns": [
+        "movement modes and effective speeds",
+        "dash",
+        "start motion",
+        "route and exact endpoints",
+        "repeat count",
+        "stock configuration",
+        "timing uncertainty"
+      ]
+    },
+    {
+      "id": "gc-coordinate-report-2021",
+      "url": "https://www.reddit.com/r/MarioBaseball/comments/nt2n3v",
+      "published": "2021-06-05",
+      "type": "original-community-coordinate-report",
+      "game": "Mario Superstar Baseball (GameCube)",
+      "independentlyReproduced": false,
+      "access": "Original post text returned by web search; direct page retrieval failed."
+    },
+    {
+      "id": "gc-stadium-wiki-890",
+      "url": "https://mariobaseball.miraheze.org/wiki/Stadiums?oldid=890",
+      "type": "community-survey",
+      "independenceFromCoordinateReport": "unknown"
+    },
+    {
+      "id": "rio-coordinate-schema",
+      "url": "https://github.com/ProjectRio/ProjectRio-Modding/blob/6b9748a87c9383c4eb5b2cf79cc1e7836c3cfb3d/Game%20Data/GameData.h",
+      "revision": "6b9748a87c9383c4eb5b2cf79cc1e7836c3cfb3d",
+      "type": "community-memory-schema",
+      "symbols": [
+        {
+          "name": "base_MoundCoordinates",
+          "address": "0x807B5A44",
+          "line": 33940
+        },
+        {
+          "name": "baseCoordsForRunning",
+          "address": "0x807B6034",
+          "line": 34016
+        }
+      ],
+      "coordinateValuesAvailable": false
+    }
+  ],
+  "wii": {
+    "formula": "wall/base = (effectiveWallRunSpeed/effectiveBaseRunSpeed) * wallRunSeconds/baseRunSeconds",
+    "rows": [
+      {
+        "direction": "left",
+        "sourceId": "wii-pianta-survey-2022",
+        "reportedWallRunSeconds": 10.49,
+        "reportedBaseRunSeconds": 3.65,
+        "equalSpeedWallPerBasepath": 2.8739726027397263,
+        "baselineWallPerBasepath": 3.6666666666666665,
+        "conditionalChangeFromBaselinePercent": -21.61892901618928,
+        "speedRatioToEqualBaseline": 1.2758182395932633,
+        "speedStressCases": [
+          {
+            "assumedEffectiveSpeedRatio": 0.9,
+            "wallPerBasepath": 2.586575342465754
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1,
+            "wallPerBasepath": 2.8739726027397263
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1.1,
+            "wallPerBasepath": 3.1613698630136993
+          }
+        ],
+        "timingStressBounds": [
+          2.7210526315789476,
+          3.04
+        ]
+      },
+      {
+        "direction": "center",
+        "sourceId": "wii-pianta-survey-2022",
+        "reportedWallRunSeconds": 12.86,
+        "reportedBaseRunSeconds": 3.65,
+        "equalSpeedWallPerBasepath": 3.5232876712328767,
+        "baselineWallPerBasepath": 4.444444444444445,
+        "conditionalChangeFromBaselinePercent": -20.72602739726028,
+        "speedRatioToEqualBaseline": 1.261448073267669,
+        "speedStressCases": [
+          {
+            "assumedEffectiveSpeedRatio": 0.9,
+            "wallPerBasepath": 3.170958904109589
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1,
+            "wallPerBasepath": 3.5232876712328767
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1.1,
+            "wallPerBasepath": 3.8756164383561647
+          }
+        ],
+        "timingStressBounds": [
+          3.344736842105263,
+          3.717142857142857
+        ]
+      },
+      {
+        "direction": "right",
+        "sourceId": "wii-pianta-survey-2022",
+        "reportedWallRunSeconds": 10.51,
+        "reportedBaseRunSeconds": 3.65,
+        "equalSpeedWallPerBasepath": 2.8794520547945206,
+        "baselineWallPerBasepath": 3.6666666666666665,
+        "conditionalChangeFromBaselinePercent": -21.469489414694888,
+        "speedRatioToEqualBaseline": 1.2733904218204883,
+        "speedStressCases": [
+          {
+            "assumedEffectiveSpeedRatio": 0.9,
+            "wallPerBasepath": 2.591506849315069
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1,
+            "wallPerBasepath": 2.8794520547945206
+          },
+          {
+            "assumedEffectiveSpeedRatio": 1.1,
+            "wallPerBasepath": 3.167397260273973
+          }
+        ],
+        "timingStressBounds": [
+          2.7263157894736842,
+          3.045714285714286
+        ]
+      }
+    ],
+    "sensitivity": {
+      "status": "hypothetical-stress-cases-not-confidence-intervals",
+      "assumedTimingErrorSeconds": 0.15,
+      "assumedEffectiveSpeedRatios": [
+        0.9,
+        1,
+        1.1
+      ],
+      "combinedErrorModel": false
+    },
+    "dependencies": "All ratios share the same reported 3.65-second base run; they are not independent trials."
+  },
+  "gamecube": {
+    "sourceId": "gc-coordinate-report-2021",
+    "reportedMoundDistanceUnits": 18.4,
+    "reportedCenterDistanceUnits": 100,
+    "centerPerMound": 5.434782608695652,
+    "baselineCenterPerMound": 6.6115702479338845,
+    "basepathUnits": null,
+    "bodyPerBasepath": null
+  },
+  "candidates": [
+    {
+      "id": "C0",
+      "status": "audited-control",
+      "wallPerBasepath": [
+        3.6666666666666665,
+        4.444444444444445,
+        3.6666666666666665
+      ],
+      "order": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    {
+      "id": "C1",
+      "status": "proposed-incomplete-not-accepted",
+      "wallPerBasepath": [
+        2.9,
+        3.5,
+        2.9
+      ],
+      "order": [
+        "left",
+        "center",
+        "right"
+      ],
+      "basis": "Harbor-authored rounding motivated by conditional Wii report; not measured Nintendo geometry",
+      "unresolved": [
+        "basepath/body",
+        "mound/basepath",
+        "wall height and full shape",
+        "fielder starts",
+        "flight/carry",
+        "complete runner and throw race budget"
+      ]
+    }
+  ],
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-deep-hit-experience",
+      "status": "accepted-design-intent",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Preserve doubles, triples, and relays within a compact, cartoon-feeling outfield",
+      "implementationConstraint": "Coordinate pursuit movement, fielding starts, ball carry/bounce/roll, baserunning, and throw timing; do not enlarge the outfield merely to preserve pursuit time.",
+      "userQualification": "A smaller outfield with slower outfielders can preserve the chase time of a larger outfield with faster fielders.",
+      "scope": "Spatial and tactical intent; no dimensions, movement coefficients, per-position penalty, or hit frequencies approved.",
+      "referenceHomeRunFrequency": "unknown"
+    }
+  ]
+}
