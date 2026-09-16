@@ -14,13 +14,14 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "infield", "fielding", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
     public PitchingRules Pitching { get; init; } = new();
     public BattingRules Batting { get; init; } = new();
     public FlightRules Flight { get; init; } = new();
+    public InfieldRules Infield { get; init; } = new();
     public FieldingRules Fielding { get; init; } = new();
     public RunningRules Running { get; init; } = new();
     public StarRules Stars { get; init; } = new();
@@ -39,7 +40,8 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
-            Fielding = Fielding, Running = Running, Stars = Stars, Cpu = Cpu.AtLevel(level)
+            Infield = Infield, Fielding = Fielding, Running = Running, Stars = Stars,
+            Cpu = Cpu.AtLevel(level)
         };
     }
 
@@ -69,6 +71,7 @@ public sealed class RulesTable
             Pitching = Read<PitchingRules>(dir, "pitching", json, errors),
             Batting = Read<BattingRules>(dir, "batting", json, errors),
             Flight = Read<FlightRules>(dir, "flight", json, errors),
+            Infield = Read<InfieldRules>(dir, "infield", json, errors),
             Fielding = Read<FieldingRules>(dir, "fielding", json, errors),
             Running = Read<RunningRules>(dir, "running", json, errors),
             Stars = Read<StarRules>(dir, "stars", json, errors),
@@ -163,12 +166,14 @@ public static class RulesValidation
         Walk(table.Pitching, Path.Combine(dir, "pitching.json"), "pitching", errors);
         Walk(table.Batting, Path.Combine(dir, "batting.json"), "batting", errors);
         Walk(table.Flight, Path.Combine(dir, "flight.json"), "flight", errors);
+        Walk(table.Infield, Path.Combine(dir, "infield.json"), "infield", errors);
         Walk(table.Fielding, Path.Combine(dir, "fielding.json"), "fielding", errors);
         Walk(table.Running, Path.Combine(dir, "running.json"), "running", errors);
         Walk(table.Stars, Path.Combine(dir, "stars.json"), "stars", errors);
         Walk(table.Cpu, Path.Combine(dir, "cpu.json"), "cpu", errors);
         table.Cpu.Validate(Path.Combine(dir, "cpu.json"), errors);
         table.Flight.Validate(Path.Combine(dir, "flight.json"), errors);
+        table.Infield.Validate(Path.Combine(dir, "infield.json"), errors);
         table.Running.Validate(Path.Combine(dir, "running.json"), errors);
         table.Fielding.Validate(Path.Combine(dir, "fielding.json"), errors);
         table.Batting.Validate(Path.Combine(dir, "batting.json"), errors);
@@ -260,6 +265,42 @@ public sealed class MercyRules
     public int Runs { get; init; } = 10;
     public int FromInning { get; init; } = 3;
     public int MinScheduledInnings { get; init; } = 6;
+}
+
+// ---------------------------------------------------------------------------------------
+// infield.json — the diamond every park shares
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// Bases and rubber, in feet, read by <see cref="Diamond"/>. Every park plays on the same
+/// infield — that is the design, not an accident — so these are one global set loaded once
+/// and never changed at runtime. What varies per park is the outfield, the foul area and the
+/// environment, and none of that belongs here.
+///
+/// The corners are authored, not derived from <see cref="BaselineFt"/>. A 90-ft baseline
+/// rotated 45° is 63.6396…, and the diamond has always played at a rounded 63.64; deriving it
+/// would move the bases by four thousandths of a foot and silently change every route.
+/// </summary>
+public sealed class InfieldRules
+{
+    /// <summary>Bag to bag. The unit a runner's progress is measured in.</summary>
+    [Positive] public double BaselineFt { get; init; } = 90;
+
+    /// <summary>Home to the rubber, along the center line.</summary>
+    [Positive] public double MoundFt { get; init; } = 60.5;
+
+    /// <summary>First and third, off the center line and out from home by the same amount each.</summary>
+    [Positive] public double CornerFt { get; init; } = 63.64;
+
+    /// <summary>Second, straight out from home.</summary>
+    [Positive] public double SecondFt { get; init; } = 127.28;
+
+    /// <summary>The rubber sits between home and second, and second is past the corners.</summary>
+    public void Validate(string source, List<string> errors)
+    {
+        RulesValidation.Order(source, "infield.moundFt", MoundFt, SecondFt, errors);
+        RulesValidation.Order(source, "infield.cornerFt", CornerFt, SecondFt, errors);
+    }
 }
 
 // ---------------------------------------------------------------------------------------
