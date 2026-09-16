@@ -1040,12 +1040,26 @@ def derive(data):
                     "reactionDurationSec", "reacquisitionEligibility"))
     bobble_permissions = data.get("bobbleRecoveryPermissionsProposal")
     if bobble_permissions:
-        assert bobble_permissions["state"] == "pending"
+        assert bobble_permissions["state"] == "superseded-by-user-direction"
+        assert bobble_permissions["supersededBy"] == "F693-02-bobble-stun"
         assert all(bobble_permissions[key] is None for key in
                    ("recoveryDurationSec", "handlingDurationMapping", "freshAttemptDefinition"))
+    bobble_stun = data.get("bobbleStunProposal")
+    if bobble_stun:
+        assert bobble_stun["state"] == "accepted-calibration-anchor"
+        assert bobble_stun["acceptedBy"] and bobble_stun["acceptedOn"] and bobble_stun["acceptanceEvidence"]
+        assert all(bobble_stun[key] is None for key in
+                   ("stunDurationSec", "handlingDurationMapping", "entryMotionProfile", "freshAttemptDefinition"))
+    stun_handling = data.get("bobbleStunHandlingProposal")
+    if stun_handling:
+        assert stun_handling["state"] == "pending"
+        assert all(stun_handling[key] is None for key in
+                   ("stunDurationSec", "maximumRelativeReduction", "minimumReadableStunSec", "handlingTraitMapping"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "bobbleStunState": bobble_stun["state"] if bobble_stun else None,
+            "bobbleStunHandlingState": stun_handling["state"] if stun_handling else None,
             "bobbleRecoveryPermissionsState": bobble_permissions["state"] if bobble_permissions else None,
             "ordinaryBobbleOutcomeState": ordinary_bobble["state"] if ordinary_bobble else None,
             "awkwardHopDifficultySourceState": awkward_hop["state"] if awkward_hop else None,
