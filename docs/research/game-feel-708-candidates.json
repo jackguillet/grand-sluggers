@@ -524,8 +524,18 @@
     },
     {
       "id": "F693-02-bobble-direction-spread",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial up to 15 degrees of horizontal variation either side of the contact-derived direction?"
+    },
+    {
+      "id": "F693-02-expanded-ordinary-error-outcomes",
+      "state": "accepted-calibration-anchor",
+      "question": "Include balls that get past a defender and deflections continuing into the outfield, especially on hard-hit infield balls, rather than force every error into a nearby bobble."
+    },
+    {
+      "id": "F693-02-error-outcome-selection",
+      "state": "next-human-decision",
+      "question": "Use current ball speed and actual contact/obstruction to determine local bobble versus continuing escape, without a separate random severe-error roll?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4949,7 +4959,11 @@
     "implementationBoundary": "Accepted outcome direction only; numerical scatter and recovery remain pending. No scatter/recovery numbers, new difficulty sources, repeated-attempt rule, runtime changes, animation assets or human gate selected.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied yes to a modest loose-ball bobble requiring actual recovery as the default failed ordinary awkward-hop acquisition outcome."
+    "acceptanceEvidence": "Jack replied yes to a modest loose-ball bobble requiring actual recovery as the default failed ordinary awkward-hop acquisition outcome.",
+    "scopeAmendment": {
+      "decisionId": "F693-02-expanded-ordinary-error-outcomes",
+      "meaning": "Local bobble remains an accepted outcome, but does not define every ordinary failure. Stun, braking, repeat-error protection and random-angle inheritance for new through-ball/continuing-deflection branches require explicit review."
+    }
   },
   "bobbleRecoveryPermissionsProposal": {
     "decisionId": "F693-02-bobble-recovery-permissions",
@@ -5242,7 +5256,11 @@
     "implementationBoundary": "Accepted same-bobble recovery reliability only. No general fresh-attempt catalog, special exception, scatter target, runtime change or human gate selected.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied yes to reliable legal recovery of the same ordinary bobble without another ordinary error roll."
+    "acceptanceEvidence": "Jack replied yes to reliable legal recovery of the same ordinary bobble without another ordinary error roll.",
+    "scopeAmendment": {
+      "decisionId": "F693-02-expanded-ordinary-error-outcomes",
+      "meaning": "Local bobble remains an accepted outcome, but does not define every ordinary failure. Stun, braking, repeat-error protection and random-angle inheritance for new through-ball/continuing-deflection branches require explicit review."
+    }
   },
   "bobbleDeflectionDirectionProposal": {
     "decisionId": "F693-02-bobble-deflection-direction",
@@ -5285,26 +5303,34 @@
     "directionBasis": "incoming-ball-and-actual-glove-contact-plus-small-random-offset",
     "randomDirectionRoll": true,
     "directionMapping": null,
-    "angularBounds": null,
+    "angularBounds": {
+      "horizontalMinDegrees": -30,
+      "horizontalMaxDegrees": 30,
+      "decisionId": "F693-02-bobble-direction-spread"
+    },
     "distribution": null,
     "verticalRandomness": null,
     "direction": "Derive the general ordinary bobble direction from incoming ball motion and actual glove contact, then add a small bounded random directional variation. Contact remains the dominant basis; do not replace it with unrestricted random scatter.",
     "eventAndReplay": "Resolve and retain the directional result once for the actual failed-acquisition event using the existing authoritative seeded randomness rail. Same contact state plus same event/random state replays the same result; equivalent contact with a different draw may vary within the reviewed spread. No reroll per frame, selection switch, callback, range re-entry or subsequent ordinary recovery. Record the baseline and sampled variation for future trace validation; exact RNG allocation awaits implementation review.",
     "physicalContinuity": "Keep the approved modest nearby loose-ball outcome, actual contact origin and continuous position. A directional offset changes the outgoing trajectory, not a teleported destination. Direction mapping, spread/distribution, vertical treatment and speed/distance remain unselected. Preserve real collisions and physical recovery.",
     "limits": "No bias from intended throw, camera, runner/base locations or helper availability. Do not silently tie spread to handling or displayed Fielding. Error probability, shared stun, grounded braking and reliable same-bobble recovery remain unchanged. Separate special effects retain their own rules.",
-    "implementationBoundary": "Accepted contact-led random direction only. Numerical spread, distribution, baseline contact mapping and trajectory values remain pending. No runtime or human gate changed.",
-    "referenceLimit": "Explicit user-authored direction; not a measured Wii/GC random-deflection algorithm."
+    "implementationBoundary": "Accepted contact-led random local-bobble direction and plus/minus 30-degree horizontal bound. Distribution, baseline contact mapping and trajectory values remain pending. Expanded error branches are tracked separately; no runtime or human gate changed.",
+    "referenceLimit": "Explicit user-authored direction; not a measured Wii/GC random-deflection algorithm.",
+    "scopeAmendment": {
+      "decisionId": "F693-02-expanded-ordinary-error-outcomes",
+      "meaning": "Local bobble remains an accepted outcome, but does not define every ordinary failure. Stun, braking, repeat-error protection and random-angle inheritance for new through-ball/continuing-deflection branches require explicit review."
+    }
   },
   "bobbleDirectionSpreadProposal": {
     "decisionId": "F693-02-bobble-direction-spread",
-    "state": "pending",
-    "horizontalMaxOffsetDegrees": 15,
+    "state": "accepted-calibration-anchor",
+    "horizontalMaxOffsetDegrees": 30,
     "distribution": null,
     "baselineDirectionMapping": null,
     "verticalRandomness": null,
-    "recommendation": "Trial a maximum horizontal offset of 15 degrees to either side of the contact-derived baseline direction: a 30-degree total horizontal fan. This is a cap, not a fixed 15-degree turn or a selected probability distribution.",
+    "recommendation": "Use a maximum horizontal offset of 30 degrees either side of the contact-derived local-bobble direction, a 60-degree total fan. This is a cap, not a fixed turn or selected distribution.",
     "scope": "Horizontal heading variation only. Keep contact as the dominant direction and the already accepted small local bobble. Speed, distance, vertical profile/randomness, sampling distribution and baseline/fallback geometry are separate. Do not add random forward/backward reversal or vertical changes under this angle approval.",
-    "geometry": "Given a valid reviewed horizontal contact direction, rotate that heading by one retained offset in [-15,+15] degrees around world up. Initial horizontal speed magnitude is unchanged by this rotation. At the proposed bound the forward projection along the baseline remains cos(15 degrees), about .966 of the horizontal speed. Collisions can subsequently redirect the ball under their own rules.",
+    "geometry": "Given a valid reviewed horizontal contact direction, rotate by one retained offset in [-30,+30] degrees around world up without changing horizontal speed magnitude. The baseline projection remains at least cos(30 degrees), about .866 of that speed before later collisions. This is not a 30-degree total fan.",
     "fallback": "Nearly vertical or zero-horizontal baseline contacts require an explicitly reviewed contact-frame fallback or suppression rule before implementation. The angular bound does not authorize a fixed world-axis fallback, random full-circle heading or invented horizontal launch energy.",
     "sensitivity": {
       "illustrativeTravelFt": 4,
@@ -5328,19 +5354,75 @@
           "totalFanDegrees": 40,
           "lateralComponentFt": 1.3680805733026749,
           "baselineProjectionFt": 3.7587704831436337
+        },
+        {
+          "maxOffsetDegrees": 30,
+          "totalFanDegrees": 60,
+          "lateralComponentFt": 1.9999999999999998,
+          "baselineProjectionFt": 3.464101615137755
         }
       ]
     },
-    "rationale": "A small fan gives the ball some variation while keeping the direction visibly related to contact. At an illustrative four-foot travel length, the 15-degree edge sits about 1.04 feet sideways from the baseline axis; 10 and 20 degrees give about .69 and 1.37 feet. Those are geometric comparisons only.",
+    "rationale": "Jack requested a wider 30-degree variation either side. At illustrative four-foot horizontal travel the edge is 2 feet sideways from the baseline axis; four feet remains an example, not a selected scatter distance.",
     "eventRules": "Use the accepted once-per-bobble seeded result; no tactical targeting, outcome-based resampling or repeated direction roll during flight/recovery. Manual, CPU and both seats share the same rule. The choice of sampling distribution inside the cap remains pending.",
     "referenceLimit": "Authored angular trial, not measured Mario scatter. Compare both references and eventual in-game contact/recovery readability before asserting parity.",
     "requiredChecks": [
-      "A valid baseline plus retained offset always starts within the 15-degree horizontal cap, with no speed-magnitude change from angle rotation.",
+      "A valid baseline plus retained offset always starts within the 30-degree horizontal cap, with no speed-magnitude change from angle rotation.",
       "Same event/random state replays the same variation across frame partitions and control changes.",
       "No tactical outcome or defender/runner availability biases or resamples the direction.",
       "The contact origin, modest local trajectory, body stun and reliable recovery remain coherent; angular variation alone cannot teleport the ball.",
       "Review low-horizontal-motion handling and sample distribution before runtime implementation."
     ],
-    "implementationBoundary": "Pending horizontal bound only. Distribution, baseline/fallback mapping, vertical profile/randomness, scatter speed/distance, runtime and human gates remain open."
+    "implementationBoundary": "Accepted plus/minus 30-degree horizontal bound for the local-bobble branch. Distribution, baseline/fallback mapping, vertical treatment and trajectory values remain pending. Extension to newly requested through-ball/continuing-deflection outcomes needs review. No runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack changed the proposed plus/minus 15-degree limit to 30 degrees, in response to the explicit either-side question; recorded as plus/minus 30 degrees (60-degree total spread)."
+  },
+  "expandedOrdinaryErrorOutcomesProposal": {
+    "decisionId": "F693-02-expanded-ordinary-error-outcomes",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack requested that errors can include a ball getting past the defender or a deflection continuing into the outfield, specifically for hard-hit infield balls, instead of always a nearby bobble.",
+    "outcomeKinds": [
+      "local-bobble",
+      "ball-gets-past",
+      "continuing-deflection"
+    ],
+    "direction": "Retain the local bobble as one outcome. Also support a ball escaping past the defender and a deflection that retains enough motion to continue into the outfield. Hard-hit infield balls are an important review case; do not force every ordinary failed handling event to lose its speed and stop nearby.",
+    "scope": "This expands possible outcomes, not ordinary error eligibility or probability. High current/exit speed, an infield position or a hard-hit label alone cannot add an error roll. Preserve the approved qualifying difficulty gate and handling curve unless explicitly revised. Outcome classification and numerical physics remain pending.",
+    "geometry": "Preserve real ball/contact/obstruction evidence and continuous motion. Do not manufacture an error by pulling the glove away, changing character catch range or cancelling a legal interception without the approved handling failure. An untouched geometric miss is not automatically a new stat error or bobble-stun event. No-contact versus failed-handling distinctions must be explicit.",
+    "coverage": "Let actual remaining motion, ground/wall interaction and defenders determine where the ball ends up. The outfield is a possible destination, not an authored waypoint, guaranteed extra base or minimum escape distance. Helpers and outfielders recover through existing ownership/geometry rules.",
+    "inheritanceBoundary": "Accepted .40-second stun, grounded braking, reliable same-bobble recovery and plus/minus 30-degree variation remain valid for their reviewed local-bobble scope. Whether and how they apply to each new branch remains pending; neither silently extend them nor silently remove them. Untouched balls must not receive a fictitious contact-direction kick.",
+    "terminology": "Here ball gets past describes a batted-ball fielding outcome. Catcher misses of pitches and formal passed-ball scoring are outside this change; do not alter those systems by this wording.",
+    "implementationBoundary": "Accepted expanded outcome direction only. Classifier, thresholds, retained-speed/energy model, new-branch reaction/recovery/randomness and runtime remain unselected. No human gate passed.",
+    "referenceLimit": "User-authored scope expansion; no matched Wii/GC frequencies or retained-speed measurements claimed."
+  },
+  "errorOutcomeSelectionProposal": {
+    "decisionId": "F693-02-error-outcome-selection",
+    "state": "pending",
+    "basis": "current-ball-motion-and-actual-contact",
+    "separateSeverityRoll": false,
+    "outcomeMapping": null,
+    "speedThresholds": null,
+    "retainedSpeedModel": null,
+    "reactionInheritance": null,
+    "recoveryInheritance": null,
+    "randomAngleInheritance": null,
+    "recommendation": "Determine whether a failed handling event stays local or keeps travelling from current ball motion and how much the actual glove/body contact obstructs it. Do not add a separate lottery for a severe error. The approved handling roll and small directional randomness remain separate.",
+    "examples": "A contact that removes most travel speed can leave a nearby bobble; a glancing contact on a fast ground ball may leave enough motion to escape through the infield. A real no-contact miss continues under existing trajectory rules. These are qualitative cases, not approved thresholds, collision coefficients or changed catch-range rules.",
+    "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
+    "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
+    "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
+    "openInteractions": "Select each branch's reaction, action gate, repeat-error/recovery rule and directional-jitter inheritance explicitly before implementation. The local-bobble .40-second stun and reliable pickup are not automatically universal error rules. Special-hit behavior retains its own contracts.",
+    "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
+    "requiredChecks": [
+      "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
+      "A hard-hit/infield label alone cannot cause failure, and handling cannot secretly reposition the glove or alter range.",
+      "Contact origin and velocity changes remain physically coherent, while no-contact motion has no fictitious deflection.",
+      "No guaranteed outfield destination, extra base, safe call or nearby stop is assigned by the outcome label.",
+      "All new branches explicitly resolve reaction, recovery and randomness inheritance before runtime implementation."
+    ],
+    "implementationBoundary": "Pending outcome-selection principle only. Numerical classifier/physics and all new-branch inheritance remain open; no runtime or human gate change."
   }
 }
