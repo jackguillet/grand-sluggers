@@ -554,8 +554,13 @@
     },
     {
       "id": "F693-02-continuing-error-speed-retention",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial retaining 50\u201380% of pre-contact horizontal speed for continuing deflections, with glancing contact toward the high end and stronger interruption toward the low end?"
+    },
+    {
+      "id": "F693-02-error-direction-distribution",
+      "state": "next-human-decision",
+      "question": "Use a symmetric triangular random-angle distribution, so smaller offsets are more common within the existing local/continuing limits?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5425,7 +5430,10 @@
     "separateSeverityRoll": false,
     "outcomeMapping": null,
     "speedThresholds": null,
-    "retainedSpeedModel": null,
+    "retainedSpeedModel": {
+      "boundsDecisionId": "F693-02-continuing-error-speed-retention",
+      "contactMapping": null
+    },
     "reactionInheritance": "F693-02-continuing-error-reaction",
     "recoveryInheritance": "F693-02-continuing-error-recovery",
     "randomAngleInheritance": "F693-02-continuing-error-direction",
@@ -5434,7 +5442,7 @@
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction and recovery inheritance are accepted, with continuing random direction narrowed to plus/minus 15 degrees under F693-02-continuing-error-direction. Contact baseline, outcome thresholds, retained-speed physics, distribution and vertical response remain pending.",
+    "openInteractions": "Reaction, recovery, narrower continuing angle and .50\u2013.80 pre-contact horizontal-speed retention bounds are accepted. Contact mapping, outcome thresholds, distribution and vertical response remain pending; no complete runtime physics model is approved.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5511,7 +5519,12 @@
     "untouchedMissAddedOffsetDegrees": 0,
     "distribution": null,
     "contactBaselineMapping": null,
-    "retainedSpeedModel": null,
+    "retainedSpeedModel": {
+      "boundsDecisionId": "F693-02-continuing-error-speed-retention",
+      "minimumFraction": 0.5,
+      "maximumFraction": 0.8,
+      "contactMapping": null
+    },
     "verticalTreatment": null,
     "recommendation": "Use a narrower plus/minus 15-degree horizontal random variation trial for ordinary continuing deflections. Actual contact reduces speed while the general path stays more aligned with incoming motion than the substantially stopped local bobble. Untouched misses receive no error-induced angle change.",
     "baseline": "Use actual incoming motion and contact to produce a forward-biased continuing-deflection baseline. The narrower random fan is around that baseline; it is not permission to arbitrarily rotate the baseline away from incoming motion. Exact baseline mapping and total deviation from incoming direction remain pending; the accepted 15 degrees bounds random variation, not yet total contact-plus-random deflection.",
@@ -5536,7 +5549,7 @@
   },
   "continuingErrorSpeedRetentionProposal": {
     "decisionId": "F693-02-continuing-error-speed-retention",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "minimumRetainedHorizontalSpeedFraction": 0.5,
     "maximumRetainedHorizontalSpeedFraction": 0.8,
     "contactRetentionMapping": null,
@@ -5575,6 +5588,56 @@
       "Contact geometry selects retention within the band without a new random speed draw or unapproved stat multiplier.",
       "Short/long recovery races and the distinction from local bobbles are visibly validated across both seats and relevant character geometry."
     ],
-    "implementationBoundary": "Pending numerical horizontal-retention bounds only. Contact mapping, classifier thresholds, vertical response, downstream trajectory and runtime/human gates remain open."
+    "implementationBoundary": "Accepted numerical horizontal-retention bounds only. Contact mapping, classifier thresholds, vertical response, downstream trajectory and runtime/human gates remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to the initial 50\u201380% retained-horizontal-speed range for continuing deflections, with glancing contact retaining more and stronger interruption retaining less."
+  },
+  "errorDirectionDistributionProposal": {
+    "decisionId": "F693-02-error-direction-distribution",
+    "state": "pending",
+    "distribution": "symmetric-triangular",
+    "normalizedSupport": [
+      -1,
+      1
+    ],
+    "normalizedMode": 0,
+    "leftProbability": 0.5,
+    "rightProbability": 0.5,
+    "recommendation": "Use the same symmetric triangular distribution for the retained ordinary error-direction offset: small offsets are more common, larger ones taper toward the cap, and neither side is favored. Scale it by the accepted local-bobble 30-degree cap or continuing-deflection 15-degree cap.",
+    "definition": "Let X have density f(x)=1-|x| on [-1,1], zero outside. Set horizontal offset theta=A*X, where A is the accepted cap of the already selected outcome branch. The mode and mean are zero. For 0<=c<=1, P(|X|<=c)=2*c-c*c. This describes a probability distribution, not deterministic quotas across a few plays.",
+    "examples": [
+      {
+        "branch": "local-bobble",
+        "maxDegrees": 30,
+        "centralHalfDegrees": 15,
+        "centralHalfProbability": 0.75,
+        "outerHalfProbability": 0.25,
+        "expectedAbsoluteOffsetDegrees": 10
+      },
+      {
+        "branch": "continuing-deflection",
+        "maxDegrees": 15,
+        "centralHalfDegrees": 7.5,
+        "centralHalfProbability": 0.75,
+        "outerHalfProbability": 0.25,
+        "expectedAbsoluteOffsetDegrees": 5
+      }
+    ],
+    "tradeoff": "Uniform sampling gives equal probability density to every angle within the limit. The triangular choice favors the contact-derived direction while keeping occasional wider variation. It changes how often offsets occur, not their approved maximum or the chance that handling fails.",
+    "event": "Use one retained normalized directional result for the actual failed-contact event through the authoritative seeded rail. Apply the outcome branch cap once; no extra draw for local/continuing classification, no choosing between sampled angles, and no per-frame/selection/recovery resampling. Exact RNG allocation and integration remain an implementation review item.",
+    "scope": "Horizontal angular variation only. No new randomness in speed retention, severity, vertical launch, error chance or stun duration. No handling/Fielding or tactical-target bias. An untouched miss consumes no error-direction sample or trajectory modifier under this rule.",
+    "baselineBoundary": "Offset is relative to the reviewed contact-derived outgoing baseline, with the continuing branch preserving more incoming direction. The \u00b130/\u00b115 limits bound random variation, not yet total deflection from the incoming path. Contact mapping, low-horizontal-speed fallback and vertical treatment remain pending.",
+    "preservedPhysics": "Keep actual contact origin, continuous ball position and horizontal speed magnitude through angle rotation. Contact still determines the retained-speed factor within the approved .50\u2013.80 continuing range. No automatic possession, base award, range change or same-origin recovery reroll.",
+    "referenceLimit": "Authored probability shape, not a measured Wii/GC random-angle distribution. Compare eventual visible variation and full recovery races before human acceptance.",
+    "requiredChecks": [
+      "Distribution is symmetric, centered at zero and bounded by the branch-specific accepted cap, with no favored side or tactical bias.",
+      "Analytic central-half probability is .75 and mean absolute offset is A/3; finite gameplay samples need not match exact quotas.",
+      "One event retains one result across replay, frame partitions, selection and recovery; branch classification never triggers another draw.",
+      "The angle sample changes neither speed magnitude nor contact position and cannot supply a missing baseline or vertical launch.",
+      "Error frequency, stun, reliable recovery and special-hit contracts remain unchanged.",
+      "Review both frequent small and occasional near-limit offsets across local and continuing paths before runtime/human acceptance."
+    ],
+    "implementationBoundary": "Pending sampling-distribution choice only. Baseline mapping, contact-to-retention mapping, outcome thresholds, vertical physics and runtime/human gates remain open."
   }
 }
