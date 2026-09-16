@@ -239,6 +239,11 @@ public static class ContentDataValidator
         Range(row.Source, $"character '{c.Id}' bat", c.Bat, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' field", c.Field, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' run", c.Run, 1, 10, errors);
+        // Arm, hands and reach are optional: absent means seeded from field / the legacy radius.
+        if (c.Arm != 0) Range(row.Source, $"character '{c.Id}' arm", c.Arm, 1, 10, errors);
+        if (c.Hands != 0) Range(row.Source, $"character '{c.Id}' hands", c.Hands, 1, 10, errors);
+        if (c.ReachFt is { } reach && reach <= 0)
+            errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
         Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
@@ -400,6 +405,16 @@ internal sealed class CharacterDto
     public int Bat { get; set; }
     public int Field { get; set; }
     public int Run { get; set; }
+
+    /// <summary>Explicit throwing rating. Absent seeds from <see cref="Field"/> (F693-02-defensive-trait-mapping).</summary>
+    public int Arm { get; set; }
+
+    /// <summary>Explicit handling rating. Absent seeds from <see cref="Field"/>.</summary>
+    public int Hands { get; set; }
+
+    /// <summary>Authored stand-up catch reach in feet. Absent keeps the legacy radius formula.</summary>
+    public double? ReachFt { get; set; }
+
     public string Bats { get; set; } = "";
     public string Throws { get; set; } = "";
     public string StarPitch { get; set; } = "";
@@ -409,9 +424,9 @@ internal sealed class CharacterDto
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
-        new Stats(Pitch, Bat, Field, Run),
+        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands },
         ParseHand(Bats), ParseHand(Throws),
-        StarPitch, StarSwing, FieldAbility, Bio);
+        StarPitch, StarSwing, FieldAbility, Bio, ReachFt);
 
     static Hand ParseHand(string value) => value.Equals("L", StringComparison.OrdinalIgnoreCase) ? Hand.L : Hand.R;
 }
