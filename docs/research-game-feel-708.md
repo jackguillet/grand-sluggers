@@ -1400,21 +1400,29 @@ Recovery-error protection and directional variation for the new continuing-error
 
 The existing no-reroll loose-recovery paths are an implementation precedent, not a complete origin model. Validate failed-infielder-to-outfielder sequences alongside untouched misses, helpers, switching, repeated bounces and independent effects. Directional variation and numerical continuation physics remain pending. This is authored design, not verified Mario multi-fielder error logic; no runtime or human gate changes here.
 
-## Next decision — directional variation of a continuing ordinary error
+## Accepted decision — directional variation of a continuing ordinary error
 
-**F693-02-continuing-error-direction — pending, September 15, 2026.** Recommend **the same ±30-degree horizontal variation around the contact-derived outgoing direction** for a continuing ordinary failed-contact deflection. An untouched miss gets **no error-induced angle change**.
+**F693-02-continuing-error-direction — revised by Jack on September 15, 2026.** Use an initial **±15-degree horizontal random-variation trial for continuing deflections**, instead of the proposed ±30 degrees. Nearby bobbles retain ±30 degrees. Jack's reason is part of the contract: contact slows a continuing ball, but it should retain more of its incoming direction than a ball substantially stopped and bobbled nearby.
 
-**Why share the limit:** both outcomes come from an ordinary failed handling event. Preserve contact as the main source of direction while allowing the random variation Jack requested. The alternative is a narrower angle for continuing escapes. The shared limit is simpler to tune consistently, but its consequence is not identical: a longer path can produce much more sideways travel. Judge that together with retained speed, ground resistance and defensive coverage rather than calling it automatically a small final scatter.
+Use a forward-biased baseline derived from the incoming motion and actual contact. The ±15 degrees bounds random variation around that baseline; exact baseline mapping and the total angle from the incoming path remain unselected. Do not evade the narrower direction by giving the baseline an arbitrary large turn. An untouched miss receives no error-induced directional change and continues under actual trajectory/collision rules.
 
-**Contact first, angle second:** derive the outgoing baseline from current ball motion and actual contact/obstruction. Rotate that horizontal velocity by the retained offset without changing its magnitude through this operation. This does not preserve pre-contact speed regardless of impact; the speed-loss model is still unselected. Keep vertical treatment separate and position continuous. No teleport, added energy, outfield waypoint or forced nearby stop.
+Retain one seeded result for the actual failed-contact event, with no redraw from local/continuing classification, selection or recovery. Direction rotation must not restore speed removed by impact. This is not yet a numerical speed-loss rule: contact mapping, distribution, vertical response and low-horizontal-motion fallback remain open. Existing reaction and reliable recovery stay accepted. These are authored trials, not measured Wii/GC values; no runtime or human gate changes.
 
-The baseline is not automatically the original bat direction, fielder facing or unmodified incoming heading. Exact contact mapping and nearly vertical/zero-horizontal fallback remain pending. A random modifier cannot invent a heading or contact impulse where the ball never touched the defender. Untouched flight continues under actual ground/wall rules; generic contacts without a qualifying ordinary handling failure do not automatically gain this modifier.
+## Next decision — continuing-deflection speed retention
 
-**One directional result:** the actual failed-contact event chooses and retains one authoritative seeded variation. Classifying its result as local or continuing cannot produce a second draw. No reroll when it crosses into the outfield, the camera changes, defenders switch or someone recovers it. Keep the accepted reaction, reliable same-origin recovery and separate special-effect rules.
+**F693-02-continuing-error-speed-retention — pending, September 15, 2026.** Recommend a first trial in which a continuing deflection retains **50–80% of its horizontal speed immediately before contact**. A glancing touch sits toward the higher end; a stronger interruption within this branch sits toward the lower end. This selects bounds, not the exact contact-to-retention curve or the outcome classifier.
 
-This selects only the horizontal bound for the continuing branch. Sampling distribution, contact/retained-speed model, vertical response and numerical trajectory remain pending. It is an authored consistency trial, not measured Wii/GC variance. Verify long-path lateral coverage and real recovery races alongside the angular/replay checks before implementation or human acceptance. No runtime changes.
+**What that means:** an illustrative ball arriving at 40 ft/s would leave contact at 20–32 ft/s. At 20 ft/s incoming the range is 10–16; at 60 it is 30–48. These are calculation examples, not chosen hit speeds or Mario measurements. Faster incoming balls remain capable of a longer escape, while every continuing deflection in this trial visibly loses some speed.
 
-**Question for Jack:** use the same ±30-degree contact-based variation for continuing ordinary deflections, with no added direction roll for untouched misses?
+**Do not force all failures into this band:** a substantial knockdown can use the local-bobble branch instead. The 50% lower bound must not make a ball regain speed just to qualify as a deflection. Select the branch from reviewed contact/trajectory evidence, then apply its reviewed response. Near-zero horizontal motion cannot gain artificial forward travel. Branch thresholds and the obstruction metric remain pending.
+
+**Event-side calculation:** with pre-contact horizontal speed `s_in`, use `s_out=r*s_in`, where contact determines `r` in `[.50,.80]`. Do not substitute bat exit velocity or add an independent random speed roll, severity roll or handling multiplier. Apply the approved forward-biased contact direction and ±15-degree variation without changing the retained horizontal magnitude. Range, glove placement and the approved handling-error probability stay separate.
+
+**Physics boundary:** the percentage describes horizontal speed, not kinetic energy or total 3D speed. Vertical response must be reviewed explicitly; removed forward speed is not permission for an arbitrary upward launch or added energy. Subsequent ground/air resistance, collision, coverage and pickup determine travel. No guaranteed outfield destination or extra base is selected.
+
+Compare matched pre/post-contact trajectories in both references and the eventual full recovery race before claiming parity. This is an authored numerical band only. Exact mapping, outcome thresholds, vertical response and downstream trajectory remain open; no runtime or human gate changes here.
+
+**Question for Jack:** trial 50–80% retained horizontal speed for continuing deflections, with glancing contact keeping more and stronger interruption keeping less?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

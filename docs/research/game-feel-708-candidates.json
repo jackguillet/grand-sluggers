@@ -549,8 +549,13 @@
     },
     {
       "id": "F693-02-continuing-error-direction",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use the same plus/minus 30-degree horizontal variation around the contact-derived direction for continuing ordinary deflections, with no error-angle change for an untouched miss?"
+    },
+    {
+      "id": "F693-02-continuing-error-speed-retention",
+      "state": "next-human-decision",
+      "question": "Trial retaining 50\u201380% of pre-contact horizontal speed for continuing deflections, with glancing contact toward the high end and stronger interruption toward the low end?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4977,7 +4982,7 @@
     "acceptanceEvidence": "Jack replied yes to a modest loose-ball bobble requiring actual recovery as the default failed ordinary awkward-hop acquisition outcome.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted failures share the accepted reaction and reliable same-origin recovery, but use narrower plus/minus 15-degree directional variation and lose speed while keeping more incoming direction. Numerical contact/trajectory rules remain pending."
     }
   },
   "bobbleRecoveryPermissionsProposal": {
@@ -5274,7 +5279,7 @@
     "acceptanceEvidence": "Jack replied yes to reliable legal recovery of the same ordinary bobble without another ordinary error roll.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted failures share the accepted reaction and reliable same-origin recovery, but use narrower plus/minus 15-degree directional variation and lose speed while keeping more incoming direction. Numerical contact/trajectory rules remain pending."
     }
   },
   "bobbleDeflectionDirectionProposal": {
@@ -5333,7 +5338,7 @@
     "referenceLimit": "Explicit user-authored direction; not a measured Wii/GC random-deflection algorithm.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted failures share the accepted reaction and reliable same-origin recovery, but use narrower plus/minus 15-degree directional variation and lose speed while keeping more incoming direction. Numerical contact/trajectory rules remain pending."
     }
   },
   "bobbleDirectionSpreadProposal": {
@@ -5408,7 +5413,7 @@
     "scope": "This expands possible outcomes, not ordinary error eligibility or probability. High current/exit speed, an infield position or a hard-hit label alone cannot add an error roll. Preserve the approved qualifying difficulty gate and handling curve unless explicitly revised. Outcome classification and numerical physics remain pending.",
     "geometry": "Preserve real ball/contact/obstruction evidence and continuous motion. Do not manufacture an error by pulling the glove away, changing character catch range or cancelling a legal interception without the approved handling failure. An untouched geometric miss is not automatically a new stat error or bobble-stun event. No-contact versus failed-handling distinctions must be explicit.",
     "coverage": "Let actual remaining motion, ground/wall interaction and defenders determine where the ball ends up. The outfield is a possible destination, not an authored waypoint, guaranteed extra base or minimum escape distance. Helpers and outfielders recover through existing ownership/geometry rules.",
-    "inheritanceBoundary": "Contacted failures inherit .40-second reaction and reliable same-origin recovery under F693-02-continuing-error-reaction/recovery. Untouched misses add neither error stun nor recovery protection. Grounded braking retains its limited scope. Continuing-error random-angle inheritance remains pending; untouched balls receive no fictitious contact kick.",
+    "inheritanceBoundary": "Contacted failures inherit .40-second reaction and reliable same-origin recovery. Local bobble random variation is plus/minus 30 degrees; continuing deflections use a narrower plus/minus 15-degree trial, lose speed and keep more incoming direction. Untouched misses add no error stun, protection or angle change. Exact contact/trajectory models remain pending.",
     "terminology": "Here ball gets past describes a batted-ball fielding outcome. Catcher misses of pitches and formal passed-ball scoring are outside this change; do not alter those systems by this wording.",
     "implementationBoundary": "Accepted expanded outcome direction only. Classifier, thresholds, retained-speed/energy model, new-branch reaction/recovery/randomness and runtime remain unselected. No human gate passed.",
     "referenceLimit": "User-authored scope expansion; no matched Wii/GC frequencies or retained-speed measurements claimed."
@@ -5423,13 +5428,13 @@
     "retainedSpeedModel": null,
     "reactionInheritance": "F693-02-continuing-error-reaction",
     "recoveryInheritance": "F693-02-continuing-error-recovery",
-    "randomAngleInheritance": null,
+    "randomAngleInheritance": "F693-02-continuing-error-direction",
     "recommendation": "Determine whether a failed handling event stays local or keeps travelling from current ball motion and how much the actual glove/body contact obstructs it. Do not add a separate lottery for a severe error. The approved handling roll and small directional randomness remain separate.",
     "examples": "A contact that removes most travel speed can leave a nearby bobble; a glancing contact on a fast ground ball may leave enough motion to escape through the infield. A real no-contact miss continues under existing trajectory rules. These are qualitative cases, not approved thresholds, collision coefficients or changed catch-range rules.",
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction and recovery inheritance are accepted under F693-02-continuing-error-reaction and F693-02-continuing-error-recovery. Continuing-error directional variation and numerical retained-motion model remain pending; special and committed-motion contracts remain separate.",
+    "openInteractions": "Reaction and recovery inheritance are accepted, with continuing random direction narrowed to plus/minus 15 degrees under F693-02-continuing-error-direction. Contact baseline, outcome thresholds, retained-speed physics, distribution and vertical response remain pending.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5501,29 +5506,75 @@
   },
   "continuingErrorDirectionProposal": {
     "decisionId": "F693-02-continuing-error-direction",
-    "state": "pending",
-    "horizontalMaxOffsetDegrees": 30,
+    "state": "accepted-calibration-anchor",
+    "horizontalMaxOffsetDegrees": 15,
     "untouchedMissAddedOffsetDegrees": 0,
     "distribution": null,
     "contactBaselineMapping": null,
     "retainedSpeedModel": null,
     "verticalTreatment": null,
-    "recommendation": "Use the same plus/minus 30-degree horizontal variation around the actual contact-derived outgoing baseline for an ordinary failed handling event that produces a continuing deflection. An untouched miss receives no error-induced directional change.",
-    "baseline": "Derive baseline direction and speed from current ball motion and actual contact/obstruction under the accepted outcome-selection principle. Apply the small directional variation around that outgoing baseline, not around the original bat direction, fielder facing, outfield center or raw incoming heading regardless of contact. The contact model and low-horizontal-motion fallback remain pending.",
+    "recommendation": "Use a narrower plus/minus 15-degree horizontal random variation trial for ordinary continuing deflections. Actual contact reduces speed while the general path stays more aligned with incoming motion than the substantially stopped local bobble. Untouched misses receive no error-induced angle change.",
+    "baseline": "Use actual incoming motion and contact to produce a forward-biased continuing-deflection baseline. The narrower random fan is around that baseline; it is not permission to arbitrarily rotate the baseline away from incoming motion. Exact baseline mapping and total deviation from incoming direction remain pending; the accepted 15 degrees bounds random variation, not yet total contact-plus-random deflection.",
     "speedAndPosition": "Rotate the valid outgoing horizontal velocity without changing its magnitude through the random-angle operation. This is not a choice to preserve the pre-contact speed; impact speed loss still needs its own reviewed model. Keep vertical treatment separate and position continuous at actual contact. Do not teleport, add energy, pick a landing target or impose the local-bobble distance on a continuing ball.",
-    "tradeoff": "One shared angular limit makes ordinary error variation consistent. The same angle can create more lateral travel on a longer escape, so speed/ground-resistance calibration and full recovery races must assess the combined effect. The alternative is a narrower angle for continuing deflections; this proposal does not claim equal recovery difficulty or a small final sideways distance.",
+    "tradeoff": "Jack chose narrower variation to distinguish a slowed continuing ball from a substantially stopped bobble. Local bobbles retain plus/minus 30 degrees. Continuing deflections use plus/minus 15 degrees and preserve more incoming direction. Numerical speed retention and baseline mapping still need review; no final travel distance is implied.",
     "event": "Choose and retain one authoritative seeded directional result for the actual ordinary failed-contact event. Local-versus-continuing classification cannot cause a second draw or redraw. No per-frame, boundary-crossing, selection, recovery or tactical-outcome resampling. Preserve replay identity and approved error/recovery rules.",
     "untouched": "A ball the defender never touches keeps its existing trajectory under actual ground/wall interactions. Do not roll an error angle or invent a contact impulse merely because it passed a defender. Successful acquisitions, generic ricochets without a qualifying failed handling event and special hits are not granted this ordinary-error modifier.",
     "scope": "Horizontal bound inheritance only; no new failure trigger, error chance, handling-dependent spread, severity roll or reaction change. Sampling distribution, exact baseline/fallback, contact energy loss, vertical response and wall interactions remain separately reviewed.",
     "referenceLimit": "Authored consistency trial, not verified Wii/GC continuing-deflection variance. Review both reference games and full infield-to-outfield recovery paths before human acceptance.",
     "requiredChecks": [
-      "A valid contact-derived continuing-deflection baseline receives one retained horizontal offset within plus/minus 30 degrees.",
+      "A valid contact-derived continuing-deflection baseline receives one retained horizontal offset within plus/minus 15 degrees.",
       "The angle operation preserves outgoing horizontal speed magnitude and contact position; it does not restore incoming impact energy.",
       "Untouched misses receive zero error-angle change, while ordinary collision/ground rules still operate.",
       "Local/continuing classification, frame partitions, control changes and recovery cannot trigger additional direction draws.",
       "Longer trajectories are checked for actual lateral coverage and recovery cost; no destination, base award or equal-cost claim is encoded.",
       "Existing .40-second contact reaction and reliable same-origin recovery remain intact, with independent reviewed effects separate."
     ],
-    "implementationBoundary": "Pending continuing-error angular inheritance only. Distribution, contact/retained-motion model, vertical response, runtime and human gates remain open."
+    "implementationBoundary": "Accepted narrower plus/minus 15-degree continuing-deflection random-angle trial and qualitative speed-loss/forward-direction distinction. Contact baseline, total angular deviation, speed-retention values, distribution and vertical response remain pending. No runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack requested continuing deflection variation closer to 15 degrees, because contact slows the ball but it should preserve more of its original direction than a stopped nearby bobble. Recorded as an initial plus/minus 15-degree trial, replacing the proposed plus/minus 30."
+  },
+  "continuingErrorSpeedRetentionProposal": {
+    "decisionId": "F693-02-continuing-error-speed-retention",
+    "state": "pending",
+    "minimumRetainedHorizontalSpeedFraction": 0.5,
+    "maximumRetainedHorizontalSpeedFraction": 0.8,
+    "contactRetentionMapping": null,
+    "outcomeThresholds": null,
+    "verticalResponse": null,
+    "recommendation": "Trial continuing-deflection horizontal speed between .50 and .80 times its actual horizontal speed immediately before contact. A glancing touch retains a larger share; more obstructive contact within the continuing branch retains a smaller share. This selects bounds, not the interpolation or branch classifier.",
+    "rationale": "The ball remains dangerous after an infield error but visibly loses speed, preserving the user distinction from a substantially stopped local bobble. Faster incoming balls can still travel faster afterward than slower ones; avoid assigning every escaped ball one fixed speed or destination.",
+    "scope": "Apply only after the reviewed actual contact/outcome classifier selects a continuing ordinary failed-handling deflection. The .50 minimum is not a floor for all contacts: substantial knockdowns can enter the separate local-bobble branch. Do not force the classifier to retain speed merely to satisfy this range. Zero/near-zero incoming horizontal motion cannot be turned into an artificial travelling deflection.",
+    "formula": "Let s_in be the magnitude of actual event-side horizontal velocity before contact. Select r in [.50,.80] from reviewed contact obstruction, then s_out=r*s_in. Use contact-based forward direction and the accepted plus/minus 15-degree random variation without restoring lost speed. Original bat exit velocity is not the input.",
+    "contactDependence": "Within comparable continuing-deflection contacts, less obstruction should retain more speed. Exact geometry metric, mapping and branch thresholds remain unselected; no additional random speed/severity roll or new handling/Fielding multiplier is proposed. Preserve the approved handling error chance and actual glove/range rules.",
+    "physicsBoundary": "This is horizontal speed retention, not an energy percentage or a complete 3D restitution law. Do not redirect the removed horizontal speed into an arbitrary vertical launch. Vertical response and full contact/ground/wall motion must be reviewed together before implementation. No created energy, body/ball teleport or target position.",
+    "examples": [
+      {
+        "incomingHorizontalFtPerSec": 20,
+        "lowerOutgoingFtPerSec": 10.0,
+        "upperOutgoingFtPerSec": 16.0
+      },
+      {
+        "incomingHorizontalFtPerSec": 40,
+        "lowerOutgoingFtPerSec": 20.0,
+        "upperOutgoingFtPerSec": 32.0
+      },
+      {
+        "incomingHorizontalFtPerSec": 60,
+        "lowerOutgoingFtPerSec": 30.0,
+        "upperOutgoingFtPerSec": 48.0
+      }
+    ],
+    "exampleLimits": "Illustrative speeds only, not selected reference hit velocities or thresholds. Values describe the instant after contact; subsequent ground/air resistance, collisions, coverage and pickup determine travel and outcome. No guaranteed outfield reach or base award.",
+    "referenceLimit": "Authored retained-speed band, not measured Wii/GC values. Need matched before/after-contact trajectories from both references and full game recovery races before claiming parity.",
+    "requiredChecks": [
+      "For valid continuing contacts, post-contact horizontal speed lies between .50 and .80 of the actual pre-contact magnitude.",
+      "The random-angle rotation does not change that retained magnitude, and original bat exit speed cannot substitute for event-side speed.",
+      "Strong knockdowns are not forced up to a .50 speed floor; branch eligibility and speed mapping must be reconciled before runtime use.",
+      "Low/zero incoming horizontal speed gains no artificial outgoing travel and vertical response does not hide added energy.",
+      "Contact geometry selects retention within the band without a new random speed draw or unapproved stat multiplier.",
+      "Short/long recovery races and the distinction from local bobbles are visibly validated across both seats and relevant character geometry."
+    ],
+    "implementationBoundary": "Pending numerical horizontal-retention bounds only. Contact mapping, classifier thresholds, vertical response, downstream trajectory and runtime/human gates remain open."
   }
 }
