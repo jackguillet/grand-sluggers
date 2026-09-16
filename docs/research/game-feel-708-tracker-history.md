@@ -480,3 +480,14 @@ Jack chose to decide from the live ball. The CPU dive decision reads **where the
 Boundary: this changes the dive decision only. Ordinary CPU pursuit keeps `FieldingPursuit.Plan` and its complete-trajectory route and must not be slowed by it, and the CPU still pays the same recovery delay on the same curve and reaches the same 14 feet as a seat. The first check worth writing is that traces produce real misses; a run with none means the predicate is reading too much. The exact predicate, and whether willingness varies with difficulty, stay open.
 
 Validation: report/check and whitespace pass; the checker holds Harbor's compact fences against the accepted profile, that every park shrinks with walls unscaled and the size order preserved, that Arm stays out of `Teams.Tools`, that the CPU reaction group matches the trait inventory, that every CPU dive option states its cost, and that the accepted dive basis is the live ball rather than the resolved route with ordinary pursuit untouched. No runtime, rules-file, asset, roster, input or UI edits, candidate simulation, standalone build or human gate pass. [Current report](https://github.com/jackguillet/grand-sluggers/blob/3afcfca/docs/research-game-feel-708.md). Both issues remain open.
+
+
+### Four review corrections authorized — September 15, 2026 / #709
+
+Jack asked to implement the recommended fixes for all four findings. Preserve every accepted trial, including drag .0040. The governing spec now records Arm versus Fielding and marks summary-only Fielding historical where it conflicts. The parity migration may proceed; compact prototype completion explicitly requires D/H, error-branch and continuing-response mappings. Prototype completion, whole-race validation and default promotion are separate.
+
+The new production-flight probes contradict the former grounder-invariance claim: at 80 mph / 8 degrees, 100-foot arrival is 1.566 versus 1.752 seconds and first bounce is 115.8 versus 102.3 feet. P5 Heat Swing carries about 282 feet but crosses center at about 3 feet high, hitting the 12-foot wall. Preserve star power; do not manufacture a guaranteed homer. Actual fence events, not carry alone, govern the corrected evidence.
+
+[Full pre-correction tracker snapshot](game-feel-709-pre-review-trackers.json) preserves #693, #708 and the nearly full #709 body at revision 8f1f123 before condensation. The older entries above remain verbatim historical records, including claims now corrected. Current scopes are in the report, candidate register and spec.
+
+Validation: 42 fixed production-model flight probes, arithmetic regeneration/check, local documentation links and diff hygiene. These are not a complete compact-game simulation or a human gate. No runtime rules, assets, roster or shipped behavior changed.

@@ -48,7 +48,8 @@ No runtime, asset, merge or human gate changes. This is Jack's design direction,
 | Glove mesh collision, pocket/rim/back eligibility, contact-surface normals, the `r = .80 - .30*c` obstruction curve | Superseded; kept below as history |
 | The exact simplified contact-to-outcome mapping | **Open**, and must stay reproducible with no new severity roll |
 | Ordinary stand-up catch reach | Accepted as a 6-foot trial, below |
-| Dive/jump/scoop reach, per-character reach source, defensive-trait migration, coverage, flight budget | **Open**, see the queue |
+| Dive ownership/cost, Arm/Fielding split, covering profile, drag lever | Accepted trial directions; see decisions below |
+| D/H mappings, simple response selection/direction, trigger speeds, full race calibration | **Open implementation dependencies**, see the plan |
 
 **Reference comparison.** The two recorded plays in the [#701 comparison](research-game-feel-701-comparison.md) — the Wii shortstop grounder around 00:58 and the GameCube force-and-return around 03:10 — are both clean fielding. Neither reference packet contains a bobble, a deflection or a gap ball, so this contract's error behaviour has **no matched Wii or GameCube observation at all**, in either direction. A fresh attempt on September 15, 2026 reopened the Wii clip page and was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it. What the existing clips do support is the shape the contract already assumes: a visible gather, a visible release and a visible travel, with the result readable as it happens.
 
@@ -304,10 +305,10 @@ Two rows are the problem. A **Power-3 hitter** — the weakest bat on the roster
 
 Against the accepted C80 alley closure of 2.56 seconds at the accepted 6-foot reach:
 
-- **Flies hang 4.3 to 8.5 seconds.** Every one of them is caught if it stays in the park. The 1.65 arcade clock guarantees it.
-- **Liners hang 1.8 to 3.3 seconds.** Most beat the closure and drop.
+- **The sampled flies hang 4.3 to 8.5 seconds.** This gives pursuit time, but does not guarantee catches; the lateral closure model omits radial travel, height, routing and actual acquisition.
+- **The sampled liners hang 1.8 to 3.3 seconds.** Their shorter clock can create gaps, but catch and extra-base outcomes require full routes.
 
-So the doubles and triples Jack wants do not come from fly balls at all — they come from line drives, and they come from them because of a clock split that already exists. That is good news for the compact field: the mechanism is intact and needs no new invention. The risk is the opposite of what it looked like. Liners are not in danger of being caught; they are in danger of **clearing the fence instead of falling in the gap**.
+The clock split is a useful calibration lever, not proof of the doubles engine. The earlier claim that all in-park flies are caught and liners guarantee gap hits was too strong. Shorter carry changes both landing depth and hang; measure pursuit, acquisition, return throws and runner progress together.
 
 ### Finding three — this is the game's ball, not Harbor's
 
@@ -322,9 +323,9 @@ All six parks are still at control scale: poles 312–338 feet, centres 378–40
 | **exit × 0.80** | 164 | 217 | 256 | 350 | 195 |
 | *control-field equivalent* | *in play* | *in play* | *pole homer* | *centre homer* | *in play* |
 
-**Raising drag to 0.0040** reproduces the control field's home-run economy on a park 30% smaller: only a charged, squared-up swing leaves the yard, a mid-power charged perfect clears the pole but not centre, and the biggest bat clears centre. It is surgical — drag acts on carry through the air and barely touches a ground ball, so exit speeds, infield races, the awkward-hop difficulty source and every accepted fielding anchor are unaffected. It also *increases* gap doubles, because liners that used to clear the fence now land in front of it: a Power-10 nice slap becomes a 206-foot liner at 2.56 seconds instead of a 269-foot home run.
+**Raising drag to 0.0040** shortens sampled carry without changing the exit table. It also changes grounder arrival speed, timing and bounce location. Keep it as the accepted trial and test those coupled effects; do not treat the infield as unchanged or infer an increase in doubles from carry alone.
 
-**Cutting exit velocity by a fifth** reaches a similar fence outcome but scales everything, including how hard a grounder arrives at an infielder. That reopens accepted infield work rather than leaving it alone.
+**Cutting exit velocity by a fifth** changes the ball's initial speed directly. Both levers affect infield arrival and require full-race validation. Jack selected drag; this correction does not substitute the exit-velocity alternative.
 
 **Raising the wall** is the cheapest and most visible, and it converts wall-scrapers into wall play, which serves the doubles goal directly. But it does nothing about a 451-foot drive or a 352-foot liner, so it trims the derby rather than fixing it. It is a good companion to a ball change and a poor substitute for one.
 
@@ -332,15 +333,19 @@ All six parks are still at control scale: poles 312–338 feet, centres 378–40
 
 **F693-04-flight-budget — accepted by Jack on September 15, 2026.** Ball drag rises from **0.0019 to a 0.0040 trial**. The exit table and the 12-foot wall are untouched.
 
-That restores a sane economy on C80. Ordinary contact stays in the park — a nice slap with lift carries 180 feet, and a Power-10 nice slap becomes a 206-foot liner instead of a 269-foot home run. A charged, squared-up mid-power swing clears the pole at 248 feet but not centre. The biggest bat clears centre at 304. And **star swings clear centre reliably** — heat 282, cask 293, furnace 304 at Power 5, rising to 339–360 at Power 10 — which is the role a star swing should have and which the earlier probe set did not cover.
+The earlier conclusion confused open-field carry with clearance of a 12-foot wall. The versioned [flight inputs](research/game-feel-708-flight-inputs.json) and [production-model results](research/game-feel-708-flight-derived.json) now resolve actual C80 fence crossings at center and near both poles. Under the explicit still-air mean-launch inputs, P5 charged lift clears the near-pole wall and P10 charged lift clears center. **P5 Heat Swing carries about 282.4 feet but reaches the 280-foot center fence only about 3.0 feet high: it hits the wall.** No star-power increase or guaranteed-homer rule is selected to rescue the earlier claim. Individual special contracts remain separate.
 
-It is the surgical lever. Drag acts on carry through the air and barely touches a ground ball, so exit speeds, grounder arrival times, the infield races, the awkward-hop difficulty source and every accepted fielding anchor are unaffected; cutting exit velocity would have reopened all of them. Gap doubles go **up**, not down, because liners that used to clear the fence now land in front of it while still hanging under the 2.56-second alley closure.
+**Grounder correction:** an 80-mph, 8-degree ball reaches 100 feet in **1.566 seconds** at drag .0019 and **1.752 seconds** at .0040. Its first bounce moves from **115.8 to 102.3 feet**. Thus the exit table is unchanged, but arrival timing, incoming speed, hop context and the complete defensive race can change. The fixture set also includes a slower ground trajectory and a hop candidate; these labels do not classify an acquisition as difficult. Record actual arrival relative to the fielder before applying the still-open difficulty mapping. Do not introduce separate grounder physics merely to preserve old arithmetic.
 
-**Required coupling — the drag change cannot ship alone.** Drag is global and the other five parks are still at control scale. At 0.0040 the best ordinary swing carries 304 feet against their 330-foot poles, so **those parks would have no home runs at all**. The drag change and the park migration have to land together; shipping drag first would make the game homerless everywhere except a migrated Harbor. That migration is queued as `F693-04-park-migration`.
+**Required coupling retained:** evaluate global drag with the compact park geometry, in one selectable trial beside the unchanged control. The earlier assertion that other parks become entirely homerless was not established by a small ordinary-contact probe set; stars, wind, launch, chemistry and pitch factors also matter. Keep the coordinated migration, without that unsupported justification.
 
-**Accepted scope:** the lever and its trial value, as a trial anchor rather than a shipping default or a measured Mario carry. The exact value within roughly 0.0035–0.0045 stays open, and the heavier-ball look it produces has to be judged on screen rather than by arithmetic before it is treated as settled.
+**Accepted scope unchanged:** .0040 remains the authored drag trial, with the exit table and 12-foot Harbor wall untouched. No measured Mario coefficient, homer rate, doubles rate or gameplay gate is claimed. Further tuning must be based on complete races and visual review; a probe cannot approve shipping defaults.
 
-**Scope note:** these are probes at mean launch with noise excluded, ignoring spray angle — the fence runs from 232 feet at the poles to 280 at centre, so a pulled ball faces a nearer wall than these centre-line figures suggest. They establish the shape of the problem and the size of each lever, **not a home-run rate**. No rate can be claimed before the whole-race validation.
+### Reproduce the corrected evidence
+
+Run `dotnet run --project tools/game-feel-flight-probes -- --check`. Use `--write` to regenerate after reviewing changed inputs or source. This calls production `BallFlight` and `FieldBounds` with in-memory rules and C80 park overrides; it does not edit runtime data or duplicate the integrator. The output records source hashes, first bounce positions/times, ground-station height and segment velocity on the play clock, actual fence-crossing outcomes, spray, and wall height. Separate regression cases guard against the two false claims above.
+
+Run this **in addition to** `python3 tools/compact-field-report.py --check`; the arithmetic checker does not execute flight physics. These fixed probes are not a whole compact-game simulation. Required next validation includes routine grounders, awkward-hop opportunities and hard infield escapes alongside pursuit and throws, plus full gap/relay races and star/ordinary fence outcomes across actual input conditions.
 
 ## Coverage budget — who is at the bag when the throw lands
 
@@ -1545,6 +1550,8 @@ The previously reviewed Wii/GC manuals do not establish an early-jump buffer. Me
 **Fielding suggestion:** Jack proposed that Fielding could be a broader indication of defensive abilities, such as a unique dive, or fewer errors. That is a stat-design discussion, not approval of new error rolls or automatic ability unlocks. Keep prior reliable-defense, throwing and recoil decisions intact until their explicit migration is reviewed. The next decision addresses the summary rating's role; error situations and individual abilities remain separate.
 
 ## Accepted decision — what the Fielding rating represents
+
+**Historical architecture, superseded in part by F693-02-defensive-trait-mapping:** the summary-only role below no longer governs the approved target. Arm controls throwing and Fielding is the hands/recovery input. Separate catch reach, visual glove positioning and explicitly owned abilities remain preserved. Original rationale/evidence below is retained for audit.
 
 **F693-02-fielding-rating-role — accepted by Jack on September 15, 2026.** Jack approved **displayed Fielding as a summary of explicit defensive traits and abilities**, rather than serve as one universal multiplier. Underlying definitions could cover catch range, handling/error resistance, arm/transfer behavior and special defensive abilities. The score describes the character; changing only that displayed score would not change gameplay.
 

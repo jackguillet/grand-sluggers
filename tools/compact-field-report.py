@@ -129,7 +129,8 @@ def derive(data):
             "catchReachCoverage": reach_coverage(data, starts, base),
             "simulated": False,
         })
-    tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
+    tracked = [INPUT, ROOT / "docs/research/game-feel-708-flight-derived.json",
+               ROOT / "docs/research/game-feel-701-proportions.json",
                ROOT / "src/GrandSluggers.Sim/Diamond.cs", ROOT / "src/GrandSluggers.Sim/AtBatResolver.cs",
                ROOT / "src/GrandSluggers.Sim/BallFlight.cs", ROOT / "src/GrandSluggers.Sim/BattedBall.cs",
                ROOT / "src/GrandSluggers.Sim/Fielding.cs", ROOT / "src/GrandSluggers.Sim/FlyCatch.cs", ROOT / "src/GrandSluggers.Sim/BuntDefense.cs",
@@ -1029,6 +1030,9 @@ def derive(data):
         if fielding_role["state"] == "accepted-calibration-anchor":
             assert fielding_role["acceptedBy"] and fielding_role["acceptedOn"] and fielding_role["acceptanceEvidence"]
         assert fielding_role["summaryFormula"] is None and fielding_role["errorModel"] is None
+        assert fielding_role["state"] == "superseded-in-part"
+        assert fielding_role["supersededBy"] == "F693-02-defensive-trait-mapping"
+        assert fielding_role["currentAmendment"]
     handling_errors = data.get("handlingErrorOpportunitiesProposal")
     if handling_errors:
         if handling_errors["state"] == "accepted-calibration-anchor":
@@ -1703,22 +1707,37 @@ def derive(data):
             "The global-ball finding rests on every park still being at control scale"
         lead = next(p for p in data["profiles"] if p["id"] == selected)
         pole, centre = lead["fencesFt"][0], lead["fencesFt"][1]
-        for row in flight["findings"]["derby"]["probes"]:
-            over_pole = row["heightAt232PoleFt"] is not None and row["heightAt232PoleFt"] > 12
-            assert (row["verdict"] != "wall ball") == over_pole or row["heightAt280CentreFt"] is not None, \
-                "A wall-ball verdict must be a ball that failed to clear the 12-foot wall"
+        # Carry table comparisons are sensitivities only, not homer verdicts.
         levers = {row["lever"]: row for row in flight["leverTableFt"]}
         today = next(k for k in levers if k.startswith("today"))
         for name, row in levers.items():
-            if name == today:
-                continue
-            assert all(row[k] < levers[today][k] for k in row if k != "lever"), \
-                "Every lever must shorten every probe relative to today"
-        drag_row = levers["drag 0.0040"]
-        assert drag_row["perfectChargeLiftP10"] > centre and drag_row["perfectChargeLiftP5"] > pole, \
-            "The recommended lever must still let a charged squared-up swing leave the yard"
-        assert drag_row["niceSlapLiftP5"] < pole and drag_row["niceSlapNeutralP10"] < pole, \
-            "The recommended lever must keep ordinary contact in the park"
+            if name != today:
+                assert all(row[k] < levers[today][k] for k in row if k != "lever")
+        # This checks recorded evidence freshness, not trajectories; run the .NET probe --check too.
+        evidence_path = ROOT / flight["reviewCorrection"]["results"]
+        evidence = json.loads(evidence_path.read_text())
+        for name, expected in evidence["sourceSha256"].items():
+            assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, \
+                f"Stale flight evidence: {name}; review and run the production probe --write"
+        assert math.isclose(evidence["trialDrag"], accepted_flight["dragTrialTo"])
+        rows = evidence["rows"]
+        heat = next(r for r in rows if r["id"] == "p5-heat-perfect-charge-lift"
+                    and r["dragProfile"] == "trial-drag" and r["sprayDeg"] == 0)
+        assert heat["firstLandingDistanceFt"] > centre
+        assert heat["fenceCrossing"]["outcome"] == "wall", "Carry alone must not turn this into a homer"
+        for row in rows:
+            crossing = row["fenceCrossing"]
+            if crossing and crossing["outcome"] == "home-run":
+                assert crossing["heightFt"] > crossing["wallHeightFt"]
+                assert crossing["groundedBeforeCrossing"] is False
+        readiness = data["implementationReadiness"]
+        assert readiness["state"] == "parity-migration-ready-compact-prototype-has-open-dependencies"
+        assert {task["id"] for task in readiness["tasks"]} == {
+            "awkward-hop-difficulty", "fielding-quality", "failed-acquisition-response", "continuing-speed-direction"}
+        assert all(task["status"] == "open" and task["deliverable"] and task["scenarios"]
+                   for task in readiness["tasks"])
+        queue = {q["id"]: q for q in data["decisionQueue"]}
+        assert queue["F693-02-error-response-mapping"]["state"] == "implementation-design-required"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
