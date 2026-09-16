@@ -258,6 +258,21 @@ The **Arm** group is the finding. **The displayed Fielding number is simultaneou
 
 There is a migration-safe path through that. If an Arm rating is seeded at each character's current Field value, every accepted throw anchor evaluates identically on day one and the split costs nothing numerically — it only *allows* divergence later, when the roster is tuned deliberately. The same trick does not work for reach, which is why reach had to be re-authored rather than migrated.
 
+### Accepted decision — Arm splits out
+
+**F693-02-defensive-trait-mapping — accepted by Jack on September 15, 2026.** There are two defensive ratings. **Arm** is the throwing rating: throw speed `0.85 + 0.03 × Arm`, comfortable range `160 ft ± 5 ft per point`, and throw accuracy `σ = (11 − Arm) × 0.35 ft`. **Fielding** becomes the hands rating and finally means one coherent thing: recoil duration at 5% per point, the handling error chance quality term, and dive recovery at 0.60 seconds narrowing 2.5% per point. **Reach belongs to neither**, being an authored property under the two reach decisions.
+
+Every character's Arm is **seeded at their current Field value**, so every accepted throw anchor evaluates identically the day the split lands. It is numerically free at that moment and only permits deliberate divergence afterwards — a cannon-armed catcher with stone hands becomes expressible, which it is not today.
+
+Four knock-on effects are recorded rather than assumed:
+
+- The content schema gains an Arm rating, validated 1–10 like the others, and existing character files need it or a seeded default.
+- `Teams.Tools` sums Pitch + Bat + Field + Run for roster building. Adding Arm changes that sum and therefore team-building balance. **Whether Arm joins the sum is a deliberate choice, not an automatic one.**
+- The HUD and CLI rows show B / P / F / R and gain an A. The displayed Fielding number now means hands only, which is a readability change for anyone used to reading it as general defence.
+- The three CPU-only reaction timings still read Field. They are reaction rather than throwing, so the default is that they follow Fielding, but whether they should be character-driven at all stays open through migration.
+
+**Accepted scope:** the architecture and which consumer belongs to which rating. No roster numbers, schema edit, migration code, `Teams.Tools` decision, HUD change or runtime change is selected. Those are queued as `F693-02-arm-rating-migration`.
+
 **Reference limit:** no Wii or GameCube stat architecture has been inspected in this packet. Both games display per-character ratings, but nothing here establishes what their internals separate, and no claim is made about it.
 
 ## Accepted decision — lead spatial trial
