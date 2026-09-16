@@ -248,7 +248,7 @@ public sealed class Game : IDisposable
         _starArmed = false;
         _banner = "";
         _sub = "";
-        _ball = new Vector3(0, 5.4f, 60.5f);
+        _ball = new Vector3(0, 5.4f, (float)Diamond.Mound);
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
     }
 
@@ -303,7 +303,7 @@ public sealed class Game : IDisposable
         _charge = 0;
         _phase = Phase.Flight;
         _phaseT = 0;
-        _ball = new Vector3(0, 5.4f, 60.5f);
+        _ball = new Vector3(0, 5.4f, (float)Diamond.Mound);
         _cam = _match.Top ? WorldView.PitchingCamera() : WorldView.BattingCamera();
     }
 
