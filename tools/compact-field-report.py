@@ -1628,6 +1628,27 @@ def derive(data):
         coupling = flight["requiredCoupling"]
         assert len(coupling["parksToMigrate"]) == len(flight["findings"]["globalBall"]["parks"]) - 1, \
             "Every park but the lead profile's still needs migrating"
+    coverage = data.get("coverageBudgetResearch")
+    if coverage:
+        assert coverage["state"] == "next-human-decision"
+        runtime = coverage["currentRuntime"]
+        anchors = reach_research["pursuitInputs"]
+        assert runtime["coverFtPerSec"] > anchors["topSpeedFeetPerSecond"], \
+            "The conflict only exists while cover outruns the accepted pursuit profile"
+        assert math.isclose(runtime["coverRadiusFt"], dive_research["acceptedDirection"]["passiveReachFt"]), \
+            "The receiver-reach harmonisation rests on cover radius matching the accepted stand-up reach"
+        feed = coverage["doublePlayFeed"]
+        by_option = {row["option"]: row for row in feed["rows"]}
+        for row in feed["rows"]:
+            assert math.isclose(row["averageMarginSec"], feed["averageBallArrivalSec"] - row["coverArrivesSec"], abs_tol=.005)
+            assert math.isclose(row["quickMarginSec"], feed["quickBallArrivalSec"] - row["coverArrivesSec"], abs_tol=.005)
+            assert row["quickBreaks"] == (row["quickMarginSec"] < 0)
+        assert sum(1 for row in feed["rows"] if row["quickBreaks"]) == 1, \
+            "Exactly one option breaks the quick double play"
+        relay = next(x for x in coverage["notAtRisk"] if x["item"] == "the relay")
+        assert relay["relaySec"] < relay["directSec"] < relay["controlDirectSec"], \
+            "The relay must still beat the deep direct throw on the compact field"
+        assert len(coverage["options"]) == 3
         assert flight["method"]["simulated"] is False
         parks = flight["findings"]["globalBall"]["parks"]
         control = data["profiles"][0]
@@ -1662,6 +1683,7 @@ def derive(data):
             "diveRecoveryCostState": delay_research["state"] if delay_research else None,
             "defensiveTraitMappingState": traits["state"] if traits else None,
             "flightBudgetState": flight["state"] if flight else None,
+            "coverageBudgetState": coverage["state"] if coverage else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
