@@ -1666,7 +1666,15 @@ def derive(data):
             1 for row in traits["inventory"] if row["group"] == "cpu-reaction")
     cpu_policy = data.get("cpuDiveIntentPolicyResearch")
     if cpu_policy:
-        assert cpu_policy["state"] == "next-human-decision"
+        assert cpu_policy["state"] == "accepted-calibration-anchor"
+        assert cpu_policy["acceptedBy"] and cpu_policy["acceptedOn"] and cpu_policy["acceptanceEvidence"]
+        assert cpu_policy["acceptedOption"] == "commit-on-the-live-ball"
+        accepted_policy = cpu_policy["acceptedDirection"]
+        assert accepted_policy["usesResolvedFuturePath"] is False, \
+            "The accepted basis is the live ball, not the resolved route"
+        assert accepted_policy["ordinaryPursuitUnchanged"] is True, "Chasing keeps the route planner"
+        assert accepted_policy["sameCostAsSeat"] and accepted_policy["sameReachAsSeat"]
+        assert accepted_policy["missesComeFrom"] and cpu_policy["boundary"]
         assert cpu_dive["decisionId"] in cpu_policy["parentDecisionIds"]
         assert len(cpu_policy["options"]) == 3
         assert all(o["cost"] for o in cpu_policy["options"]), "Every option must state what it costs"
