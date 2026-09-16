@@ -13,13 +13,13 @@ Agents start here. Do not pick a lower row because it is easier.
 3. **The toy reads HUD-off.** Six captains name themselves at gameplay distance. Cameras look at the body, not a brim. [#188](https://github.com/jackguillet/grand-sluggers/issues/188).
 4. **Authored sound.** Bat crack, glove pop, crowd bed. Generated tones are not the product. [#223](https://github.com/jackguillet/grand-sluggers/issues/223). After play, not instead of it.
 
-**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig plus extras; unique packages are deferred (`docs/character-package.md`).
+**Do not start:** Challenge (#36), extra parks as products (#37), unique meshes for role players (#25), online, motion, 40-man, full-screen blinds (#38), a second input toolkit, a second skeleton or a second motion system, a prompt-to-game engine, Unity PhysX or NavMesh as baseball. Every captain is the one rig; unique packages are deferred (`docs/character-package.md`). Extras stay off until they read as toys (#687).
 
 ## Done means you played it
 
 Unit tests are necessary and not sufficient. **Exact** is the bar; similar is a fail. Rule: `.grok/rules/exact-work.md`.
 
-- Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists." A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/`.
+- Research the spec (MLB, the reference still, existing tables, `docs/gameplay-spec.md`) **before** coding. Write the numbers. Tests must encode those relationships, not "a mesh exists." A play is decided by geometry (ball, runner, glove, bag), never by a roll or a caption; rule numbers live in `data/rules/` (a trial's own copies in `trials/`, never a second default).
 - **View the change** (Play `HarborDiamond` + Scene orbit, still, live bounds vs the reference). Math-only is not verification. If you cannot look, say so — do not claim look done.
 - "Close" / "better" from Jack is a correction, not acceptance.
 - If you change a screen, **be that screen as a player**: every captain if select, both schemes if controls, title → lineup → first pitch if front-of-house.
@@ -59,7 +59,7 @@ Declare one kind per session. Mixing them is a patch (shrinking a mesh to save a
 
 | Kind | Owns | Banned |
 | --- | --- | --- |
-| **Gameplay** | `data/rules/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
+| **Gameplay** | `data/rules/`, `trials/`, Sim, scenario ids, `cli match` | Blender, extras (except a clip marker the sim already reads), still PNGs, Unity presentation |
 | **Presentation** | cameras, HUD, `HowToPlay` / `docs/how-to-play.md`, stamps | Rule tables, `MatchDirector` switches, Blender, new captains |
 | **Art** | one `data/art/` slot, the matching Blender script, still PNGs, `cli art` | Sim rules, C# poses, a second rig, a new hero, shrinking a mesh to save a shot |
 
@@ -69,9 +69,9 @@ End the session with the artifact of its kind: gameplay → `dotnet test` + `cli
 
 Steal the *feel* of Mario Super Sluggers. Do not steal Mario.
 
-- **Look:** oversized cartoon toys, fat silhouettes, saturated toon, personality in extras (brim, crown, goggles, snout, horns). Heads read at catcher-eye. 10-foot UI.
-- **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type and **must not** grow captain extras.
-- **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette + extras in data. Contract: `docs/character-motion.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
+- **Look:** oversized cartoon toys, fat silhouettes, saturated toon. Identity is palette + size. Heads read at catcher-eye. 10-foot UI.
+- **Cast:** Rio, Vale, Zig, Brondo, Konga, Ashlord, Elder Fenn + faction role players. Role players reuse the captain body type. No skin lists extras until they read as toys (#687).
+- **Characters are DCC assets.** One rig (`hero-shared`), one body script, one takes script; every verb is a Blender take baked for both hands; C# holds no pose. A captain is proportions + palette in data. Contract: `docs/character-motion.md`. Procedure: `.grok/skills/character-art/`. Style lock: `tools/blender/style-lock/`. No caps yet; hats come back as accessories.
 - **Harbor is the expensive diamond** (the “real stadium”). Other parks stay JSON until Exhibition is the reason people stay. Harbor kit meshes are authored in **Blender MCP** (`tools/blender/harbor_kit.py`, server in `.grok/config.toml`). Do not invent Unity-only park art when a kit slot exists.
 - **Original pictures, original tones.** No Nintendo samples, meshes, mushrooms, plumbers, princesses, or set dressing.
 - Missing art is a placeholder that does not crash. Do not invent a new pipeline to hide a missing file.

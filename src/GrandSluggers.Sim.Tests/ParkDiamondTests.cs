@@ -84,7 +84,7 @@ public class ParkDiamondTests
     [Fact]
     public void InfieldDirtAuthoringMatchesParkDiamond()
     {
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
         Assert.Contains("PATH_Y = 0.26", py);
@@ -125,7 +125,7 @@ public class ParkDiamondTests
     [Fact]
     public void BagAuthoringMatchesParkDiamond()
     {
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
         Assert.Contains("BAG_SIZE = 4.0", py);

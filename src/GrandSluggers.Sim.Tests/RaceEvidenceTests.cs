@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public sealed class RaceEvidenceTests
 {
-    static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(ContentCatalog.Load().Root, RaceEvidence.FileName)))!.AsObject();
+    static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(RaceEvidence.PathFor(ContentCatalog.Load().Root)))!.AsObject();
     [Fact]
     public void PendingMeasurementsStayNullAndTheScoringDecisionIsAccepted()
     {

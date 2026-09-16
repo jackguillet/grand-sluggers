@@ -175,7 +175,8 @@ namespace GrandSluggers.UnityClient
                 if (_throwing && !string.IsNullOrEmpty(_coverPos) && kv.Key == _coverPos)
                     pose = Motion.Verb.Catch;
                 var hero = Hero(who);
-                hero.SetGrow(who.FieldAbility == "grow" && highlighted);
+                var holdBall = _caught || _buddy;
+                hero.SetGrow(BodyScale.GrowOn(who.FieldAbility, playGlove: who.Id == litId, holdBall: holdBall));
                 hero.SetHighlight(highlighted);
                 hero.SetYou((_phase is Phase.InPlay or Phase.StealThrow) && who.Id == litId && HumanOwnsThrow);
                 hero.SetHint((_phase is Phase.InPlay or Phase.StealThrow) && kv.Key == _switchPos && kv.Key != _glovePos && !(_caught || _buddy));

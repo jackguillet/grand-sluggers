@@ -82,6 +82,31 @@ public static class BroadcastHud
     /// <summary>In-play ITEM pointer. Opposite corner from YOU.</summary>
     public static readonly HudRect ItemTell = new(0.750, 0.850, 0.221875, 0.045);
 
+    /// <summary>
+    /// Live-event dirt stickers (§15, #690). Same recipe 1P and 1v1. None is the old
+    /// screen-center card (0.50, 0.40): they sit on the dirt, the glove, or the plate.
+    /// </summary>
+    public static HudRect Stamp(StampAnchor anchor) => anchor switch
+    {
+        StampAnchor.Glove => StampGlove,
+        StampAnchor.Bag => StampBag,
+        StampAnchor.Plate => StampPlate,
+        _ => StampDirt
+    };
+
+    public static readonly HudRect StampGlove = new(0.040, 0.580, 0.240, 0.120);
+    public static readonly HudRect StampBag = new(0.380, 0.560, 0.240, 0.120);
+    public static readonly HudRect StampPlate = new(0.380, 0.660, 0.240, 0.120);
+    public static readonly HudRect StampDirt = new(0.380, 0.500, 0.240, 0.120);
+
+    /// <summary>The retired full-screen card: 50% X, 40% Y. Live tells must not sit here.</summary>
+    public static bool IsScreenCenterCard(HudRect r)
+    {
+        var cx = r.X + r.W * 0.5;
+        var cy = r.Y + r.H * 0.5;
+        return Math.Abs(cx - 0.50) < 0.05 && Math.Abs(cy - 0.40) < 0.08;
+    }
+
     public const double FrameMarginPx = 8;
 
     public static bool InFrame(HudRect r, double screenW, double screenH, double marginPx = FrameMarginPx)

@@ -141,6 +141,8 @@ namespace GrandSluggers.UnityClient
         void PlayLiveCues(LivePlayCommandResult result)
         {
             var live = _match.LivePlay;
+            foreach (var tell in live.Stamps)
+                StampSmall(tell);
             foreach (var cue in live.Events)
             {
                 switch (cue)
@@ -153,9 +155,6 @@ namespace GrandSluggers.UnityClient
                         if (_armedThrow != null) _spec.ArmThrow(_throwFrom, _throwTo, _armedThrow);
                         _audio?.ThrowPop();
                         break;
-                    case LiveEvent.StampSafe:
-                        StampSmall(PlayStamp.LiveTell(cue));
-                        break;
                     case LiveEvent.ItemSmashed:
                         _itemFlying = false;
                         _itemId = "";
@@ -167,11 +166,10 @@ namespace GrandSluggers.UnityClient
                         _audio?.Glove();
                         break;
                     case LiveEvent.ThrowSailed:
-                        // The throw skipped past its cover (§8.5, §8.6): the ball is loose, the small ERROR tell
-                        // pops now, and the play's stamp comes at Time from the typed outcome.
+                        // The throw skipped past its cover (§8.5, §8.6): the ball is loose; the ERROR tell
+                        // is the live stamp at Dirt, not a second card at Time.
                         _park.Ball.Release();
                         _park.Ball.ContactPuff(_ball);
-                        StampSmall(PlayStamp.LiveTell(cue));
                         break;
                     case LiveEvent.Bobble:
                         // The fumble (§8.6): the ball scatters on the dirt; the glove chases it.
@@ -204,15 +202,19 @@ namespace GrandSluggers.UnityClient
             _recoilT = 0;
             _camHold.Reset();
             _park.Ball.Release();
+            if (_last != null && !PlayStamp.ShowsAtTime(_last) && !string.IsNullOrEmpty(_bagStamp))
+                _bagStampHold = (float)PlayStamp.HoldSeconds(_last.Kind, _feel);
             BeginResult();
         }
 
-        /// <summary>The small mid-play tell (SAFE, ERROR): the same sticker, the count's scale and hold.</summary>
-        void StampSmall(string tell)
+        /// <summary>A live tell at its named anchor (OUT at the glove, SCORE at the plate, SAFE / ERROR on the dirt).</summary>
+        void StampSmall(LiveStamp tell)
         {
-            if (string.IsNullOrEmpty(tell)) return;
-            _bagStamp = tell;
+            if (tell == null || string.IsNullOrEmpty(tell.Word)) return;
+            _bagStamp = tell.Word;
+            _bagStampAnchor = tell.Anchor;
             _bagStampT = 0;
+            _bagStampHold = (float)PlayStamp.SafeHoldSeconds(_feel);
         }
 
         Character PlayFielder()

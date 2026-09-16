@@ -47,6 +47,7 @@ Surveyed 2026-09-13 from X (Paper Route / @builtbysketch via @zekeatchan, OpenGa
 | D9 | One-shot a captain or Harbor kit? | **No.** Named stages, save after each, a still at each stage. | Nex loft six-stage Blender MCP (2026-09-11). `data/agent/dcc-stages.json` / `cli stages`. |
 | D10 | Prompt-to-game / Meshy heroes / a second engine? | **No.** | We are not generating a new game or a new skeleton. Unique packages are deferred. |
 | D11 | Shrink or hide a mesh to save a camera? | **No.** Tune the shot. | AGENTS.md. Twitter "keep the engine small" is not permission to starve the toy. |
+| D12 | Are extras on the field? | **No until they read as toys.** Identity is palette + `Silhouette.Proportions`. | #687 sitting: Brondo/Konga foot circles, Ashlord cape as an orange plate. `extras.json` slots stay; skins list none. Do not shrink Ashlord to hide the cape. Caps stay off (#557). |
 
 ---
 
@@ -153,7 +154,7 @@ Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc ga
 
 ## 6. Stage-save DCC
 
-✅ **R6 #653.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
+✅ **R6 #653 / #662.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
 
 `data/agent/dcc-stages.json` (name stable) holds the five stages. Load with `DccStages.Load` or `dotnet run --project src/GrandSluggers.Cli -- stages`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing. One-shot is `banned`.
 
@@ -195,7 +196,7 @@ These are the rails Twitter is rediscovering. Keep them. Do not replace them wit
 | One worktree per child | [AGENTS.md](../AGENTS.md), [roadmap.md](roadmap.md) |
 | Rules in data | `data/rules/` |
 | Art catalog | `data/art/`, `cli art`, [art-rails.md](art-rails.md) |
-| One rig + extras | [character-motion.md](character-motion.md), `hero-shared` |
+| One rig; extras off until they read as toys | [character-motion.md](character-motion.md), `hero-shared`, D12 #687 |
 | Headless baseball | `cli match`, S-01…S-92, S-29 |
 | Play traces | `cli match --trace`, `PlayTrace`, `LivePlaySystem.Recording` |
 | In-game still gate | [screenshot-gate.md](screenshot-gate.md) |

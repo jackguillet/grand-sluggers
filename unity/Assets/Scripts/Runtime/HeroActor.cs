@@ -188,7 +188,7 @@ namespace GrandSluggers.UnityClient
         {
             if (_body != null)
             {
-                var g = (_grow ? 1.45f : 1f) * (_lit ? 1.18f : _hint ? 1.12f : 1f);
+                var g = (float)BodyScale.Of(_grow, highlighted: _lit, hint: _hint);
                 var squash = Vector3.one;
                 if (_verb == Motion.Verb.Swing)
                 {

@@ -120,7 +120,7 @@ public class HarborPostcardTests
     [Fact]
     public void HarborKitFbxIsInThePlayerResourcesSlot()
     {
-        var repo = Directory.GetParent(_content.Root)?.FullName
+        var repo = Directory.GetParent(_content.Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var drop = Path.GetFullPath(Path.Combine(repo, "unity",
             "Assets/Art/Parks/harbor-diamond/harbor-kit.fbx".Replace('/', Path.DirectorySeparatorChar)));

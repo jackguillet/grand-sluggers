@@ -10,8 +10,8 @@ namespace GrandSluggers.Sim.Tests;
 /// </summary>
 public sealed class DistillTests
 {
-    readonly string _root = ContentCatalog.Load().Root;
-    string Repo => Path.GetFullPath(Path.Combine(_root, ".."));
+    readonly DataRoot _root = ContentCatalog.Load().Root;
+    string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]
     public void PlaybookSectionFiveNamesTheThreeSteps()
@@ -58,6 +58,21 @@ public sealed class DistillTests
             "SwingPresentationTests.TheBatClearsTheHeadOnEverySampleOfBothTakesAndTheWholeChargeUp",
             row.Promoted);
         Assert.Contains("swing-*-max-load", row.Signature, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CharacterArtGrewFromExtrasAsGeometryJunk()
+    {
+        var skill = File.ReadAllText(Path.Combine(Repo, ".grok/skills/character-art/SKILL.md"));
+        Assert.Contains("#687", skill, StringComparison.Ordinal);
+        Assert.Contains("extras-are-geometry-junk", skill, StringComparison.Ordinal);
+        Assert.Contains("leave extras off the skin", skill, StringComparison.Ordinal);
+        Assert.Contains("NoSkinListsAnExtraUntilTheyReadAsToys", skill, StringComparison.Ordinal);
+
+        var row = Assert.Single(DebugProtocol.Load(_root).Entries, e => e.Id == "extras-are-geometry-junk");
+        Assert.Equal("#687", row.Issue);
+        Assert.Equal("ArtCatalogTests.NoSkinListsAnExtraUntilTheyReadAsToys", row.Promoted);
+        Assert.Contains("circles/squares", row.Signature, StringComparison.Ordinal);
     }
 
     [Fact]

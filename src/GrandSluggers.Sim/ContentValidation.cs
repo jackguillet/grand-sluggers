@@ -21,13 +21,13 @@ public static class ContentDataValidator
         "freeze_volume", "lava_pit", "statue", "train", "tree", "warp_pipe"
     };
 
-    public static IReadOnlyList<string> Validate(string dataRoot)
+    public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var data = Read(dataRoot, JsonOptions());
         return Errors(data);
     }
 
-    internal static ContentData Load(string dataRoot, JsonSerializerOptions json)
+    internal static ContentData Load(DataRoot dataRoot, JsonSerializerOptions json)
     {
         var data = Read(dataRoot, json);
         var errors = Errors(data);
@@ -44,9 +44,8 @@ public static class ContentDataValidator
         AllowTrailingCommas = true
     };
 
-    static ContentData Read(string dataRoot, JsonSerializerOptions json)
+    static ContentData Read(DataRoot root, JsonSerializerOptions json)
     {
-        var root = Path.GetFullPath(dataRoot);
         var data = new ContentData();
         data.ReadErrors.AddRange(RaceEvidence.Validate(root));
 
@@ -75,11 +74,11 @@ public static class ContentDataValidator
         ReadRows(root, "bats", data.Bats, json, data.ReadErrors);
         ReadRows(root, "gloves", data.Gloves, json, data.ReadErrors);
 
-        var chemistryPath = Path.Combine(root, "chemistry", "overrides.json");
+        var chemistryPath = root.Resolve("chemistry", "overrides.json");
         data.Chemistry = ReadJson<ChemistryOverrides>(chemistryPath, json, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
 
-        var skillsPath = Path.Combine(root, "abilities", "star-skills.json");
+        var skillsPath = root.Resolve("abilities", "star-skills.json");
         data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors) ?? new();
         data.StarSkillsSource = skillsPath;
 
@@ -89,7 +88,7 @@ public static class ContentDataValidator
     }
 
     static void ReadRows<T>(
-        string root,
+        DataRoot root,
         string directory,
         List<Sourced<T>> destination,
         JsonSerializerOptions json,
@@ -102,17 +101,20 @@ public static class ContentDataValidator
         }
     }
 
-    static IReadOnlyList<string> Files(string root, string directory, List<string> errors)
+    /// <summary>
+    /// A data directory's files, resolved one by one against the trial overlay. The listing and its
+    /// order come from the shipped root, so a run reads the same set of rows whether or not a trial
+    /// is named — only the contents of the files the trial carries change.
+    /// </summary>
+    static IReadOnlyList<string> Files(DataRoot root, string directory, List<string> errors)
     {
-        var path = Path.Combine(root, directory);
+        var path = root.Resolve(directory);
         if (!Directory.Exists(path))
         {
             errors.Add($"{path}: required gameplay data directory is missing");
             return [];
         }
-        return Directory.GetFiles(path, "*.json")
-            .OrderBy(Path.GetFullPath, StringComparer.Ordinal)
-            .ToList();
+        return root.Files(directory, "*.json");
     }
 
     static T? ReadJson<T>(string path, JsonSerializerOptions json, List<string> errors) where T : class
@@ -240,6 +242,11 @@ public static class ContentDataValidator
         Range(row.Source, $"character '{c.Id}' bat", c.Bat, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' field", c.Field, 1, 10, errors);
         Range(row.Source, $"character '{c.Id}' run", c.Run, 1, 10, errors);
+        // Arm, hands and reach are optional: absent means seeded from field / the legacy radius.
+        if (c.Arm != 0) Range(row.Source, $"character '{c.Id}' arm", c.Arm, 1, 10, errors);
+        if (c.Hands != 0) Range(row.Source, $"character '{c.Id}' hands", c.Hands, 1, 10, errors);
+        if (c.ReachFt is { } reach && reach <= 0)
+            errors.Add($"{row.Source}: character '{c.Id}' reachFt must be positive when present");
         Known(row.Source, $"character '{c.Id}' bats", c.Bats, Hands, errors);
         Known(row.Source, $"character '{c.Id}' throws", c.Throws, Hands, errors);
         Known(row.Source, $"character '{c.Id}' fieldAbility", c.FieldAbility, FieldAbilityIds, errors);
@@ -401,6 +408,16 @@ internal sealed class CharacterDto
     public int Bat { get; set; }
     public int Field { get; set; }
     public int Run { get; set; }
+
+    /// <summary>Explicit throwing rating. Absent seeds from <see cref="Field"/> (F693-02-defensive-trait-mapping).</summary>
+    public int Arm { get; set; }
+
+    /// <summary>Explicit handling rating. Absent seeds from <see cref="Field"/>.</summary>
+    public int Hands { get; set; }
+
+    /// <summary>Authored stand-up catch reach in feet. Absent keeps the legacy radius formula.</summary>
+    public double? ReachFt { get; set; }
+
     public string Bats { get; set; } = "";
     public string Throws { get; set; } = "";
     public string StarPitch { get; set; } = "";
@@ -410,9 +427,9 @@ internal sealed class CharacterDto
 
     public Character ToCharacter() => new(
         Id, Name, Faction, Captain,
-        new Stats(Pitch, Bat, Field, Run),
+        new Stats(Pitch, Bat, Field, Run) { Arm = Arm, Hands = Hands },
         ParseHand(Bats), ParseHand(Throws),
-        StarPitch, StarSwing, FieldAbility, Bio);
+        StarPitch, StarSwing, FieldAbility, Bio, ReachFt);
 
     static Hand ParseHand(string value) => value.Equals("L", StringComparison.OrdinalIgnoreCase) ? Hand.L : Hand.R;
 }
