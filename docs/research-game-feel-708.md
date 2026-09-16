@@ -1,5 +1,7 @@
 # Compact field proposal — first numerical decision
 
+**Continuing in a new session?** Read the [research handoff](handoff-game-feel-693.md) first for the current direction, accepted anchors, worktree, evidence limits and next research action.
+
 September 14, 2026. [#708](https://github.com/jackguillet/grand-sluggers/issues/708), under [#693](https://github.com/jackguillet/grand-sluggers/issues/693). **Gameplay research/documentation. No runtime tuning.** Stacked after the #702 measurement work at `59f3762` / draft [#707](https://github.com/jackguillet/grand-sluggers/pull/707).
 
 **Accepted first trial: C80, an 80-foot diamond and 232 / 280 / 232-foot fences. Jack approved on September 14, 2026.** Compare C70, a 70-foot diamond with 203 / 245 / 203-foot fences, as the stronger alternative. Preserve character stature in both. C80 is an approved original spatial trial; C70 remains an unselected alternative. Neither is measured Nintendo geometry or approved shipping defaults.
