@@ -145,7 +145,7 @@ Personal Unity cannot `-batchmode`. `tools/unity-compile.sh` stays the CI csc ga
 
 ## 6. Stage-save DCC
 
-✅ **R6 #653.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
+✅ **R6 #653 / #662.** Cousin: the Blender scripts already exist. Named stages with a save and a still at each, so a session continues from a checkpoint instead of one-shotting Harbor or a captain.
 
 `data/agent/dcc-stages.json` (name stable) holds the five stages. Load with `DccStages.Load` or `dotnet run --project src/GrandSluggers.Cli -- stages`. `cli art` validates it. Code-side defaults are only the load fallback when the file is missing. One-shot is `banned`.
 
