@@ -1338,7 +1338,9 @@ def derive(data):
     if continuing_curve:
         assert continuing_curve["state"] == "accepted-calibration-anchor" and continuing_curve["curve"] == "linear"
         assert continuing_curve["acceptedBy"] and continuing_curve["acceptedOn"] and continuing_curve["acceptanceEvidence"]
-        assert continuing_curve["obstructionMetric"] is None and continuing_curve["branchThresholds"] is None
+        assert continuing_curve["obstructionMetric"]["basis"] == "three-dimensional-contact-incidence"
+        assert continuing_curve["obstructionMetric"]["normalizationBounds"] is None
+        assert continuing_curve["branchThresholds"] is None
         assert continuing_curve["lightContactRetention"] == .8 and continuing_curve["strongContinuingContactRetention"] == .5
         for curve_example in continuing_curve["examples"]:
             c_value = curve_example["normalizedContinuingObstruction"]
@@ -1346,16 +1348,24 @@ def derive(data):
             assert math.isclose(curve_example["retainedFraction"], .8-.3*c_value)
     contact_incidence = data.get("errorContactObstructionBasisProposal")
     if contact_incidence:
-        assert contact_incidence["state"] == "pending"
+        assert contact_incidence["state"] == "accepted-calibration-anchor"
+        assert contact_incidence["acceptedBy"] and contact_incidence["acceptedOn"] and contact_incidence["acceptanceEvidence"]
         assert contact_incidence["basis"] == "three-dimensional-contact-incidence"
         assert contact_incidence["usesRelativeContactVelocity"] is True and contact_incidence["usesPenetrationDepth"] is False
         assert all(contact_incidence[key] is None for key in ("geometryContract", "continuingNormalizationBounds", "branchThresholds", "zeroRelativeSpeedFallback"))
         for incidence_row, expected_incidence in zip(contact_incidence["examples"], (1, math.sqrt(.5), 0)):
             assert math.isclose(incidence_row["rawIncidence"], expected_incidence)
+    glove_surface = data.get("gloveContactSurfaceProposal")
+    if glove_surface:
+        assert glove_surface["state"] == "pending"
+        assert glove_surface["shapeFamily"] == "smooth-concave-pocket-rounded-rim"
+        assert glove_surface["usesDecorativeMeshTriangles"] is False and glove_surface["changesCatchRange"] is False
+        assert all(glove_surface[key] is None for key in ("dimensionsFt", "pocketDepthFt", "rimProfile", "backAndCuffResponse", "authoritativeMotionContract"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
             "continuingErrorRetentionCurveState": continuing_curve["state"] if continuing_curve else None,
             "continuingErrorGroundResponseState": continuing_ground["state"] if continuing_ground else None,

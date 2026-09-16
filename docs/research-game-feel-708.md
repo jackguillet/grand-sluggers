@@ -1646,9 +1646,9 @@ This is an accepted authored interpolation, not a measured Wii/GC algorithm. Con
 
 **Accepted scope:** linear retention from 80% to 50% across normalized continuing-contact obstruction, with 65% at midpoint. The physical metric and branch boundaries remain open.
 
-## Next decision — physical contact obstruction basis
+## Accepted decision — physical contact obstruction basis
 
-**F693-02-error-contact-obstruction-basis — pending, September 15, 2026.** Recommend measuring obstruction by **how squarely the ball meets the actual glove/body contact surface**. A grazing encounter is less obstructive; an approach straight into the surface is more obstructive. Include motion of the contact surface itself.
+**F693-02-error-contact-obstruction-basis — accepted by Jack on September 15, 2026.** Jack approved measuring obstruction by **how squarely the ball meets the actual glove/body contact surface**. A grazing encounter is less obstructive; an approach straight into the surface is more obstructive. Include motion of the contact surface itself.
 
 **Player context:** a ball clipping a surface should tend to keep more momentum than one meeting it squarely. Contact location matters through the actual shape and its surface direction. This is not simply whether the defender faces the ball, and it does not use Fielding to move the glove or alter its range.
 
@@ -1660,9 +1660,27 @@ This is an accepted authored interpolation, not a measured Wii/GC algorithm. Con
 
 Relative velocity is used here only to measure incidence. Approved outgoing speed still derives from actual world-space ball velocity; this does not add the fielder's running speed to a deflection. A body/glove collision alone still does not create a handling-error opportunity or stun. Keep error chance, explicit catch range, contact origin, approved response/recovery and special contracts intact.
 
-This is an authored geometry proposal, not a claim about Wii/GC internals. Geometry, continuing normalization, branch thresholds and actual-contact/gameplay validation remain open. No runtime change here.
+This is an accepted authored geometry basis, not a claim about Wii/GC internals. Geometry, continuing normalization, branch thresholds and actual-contact/gameplay validation remain open. No runtime change here.
 
-**Question for Jack:** base obstruction on how squarely the ball meets the actual contact surface, including the surface's motion?
+**Accepted scope:** three-dimensional contact incidence from pre-contact relative motion and the actual surface normal. Geometry, normalization, branch thresholds and degenerate-contact handling remain open.
+
+## Next decision — glove contact surface
+
+**F693-02-glove-contact-surface — pending, September 15, 2026.** Recommend a **simplified smooth cup-shaped pocket with a rounded rim**, matching the visible glove and moving with it. This supplies the physical surface used to measure contact angle.
+
+**Player context:** the pocket and edge should behave like recognizable parts of a glove. A square meeting with the pocket and a glancing rim clip can produce different contact angles. The approved error probability still decides eligible failures; pocket contact does not guarantee success, and a rim clip does not automatically cause an error or continuing deflection.
+
+**Repository context:** [the character-motion contract](character-motion.md) already specifies a concave glove pocket and names [baseball-equipment.json](../data/art/baseball-equipment.json) as the dimensions/pocket source. It also requires the shared rig, baked handed takes and sim-owned clock. Use those existing authoring sources for a reviewed gameplay contact surface. This research step changes no asset, pose or runtime collision behavior.
+
+A filled convex sphere would erase the pocket. Using every decorative finger or webbing triangle would let cosmetic art detail influence contact normals. The proposed smooth pocket/rim surface should retain the useful glove shape while keeping baseball geometry explicit and reviewable. Exact curvature and dimensions are not selected here.
+
+**Separate reach from contact:** the character's approved range determines where the glove can reach. This proposal describes the glove surface at that reached pose. It adds no reach, changes no Fielding-driven positioning and introduces no new player input or animation system. Authored visual dimensions are references, not automatically accepted collider sizes.
+
+**Unresolved details remain visible:** pocket width/height/depth, rounded rim profile, back/cuff response, body contact shapes, swept ball contact and numerical tolerances require review. Contact motion must agree across both hands and body proportions using the existing authored contract; no C# bone posing, second rig or Unity PhysX baseball. Surface-point velocity feeds the accepted incidence measure. Validate stable normals at joins and actual visible contact before runtime/human acceptance.
+
+This is an authored surface proposal, not verified Wii/GC collision geometry. All accepted error, motion, recovery and special rules remain intact.
+
+**Question for Jack:** use a smooth cup-shaped glove contact surface with a rounded rim, separate from the character's reach range?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
