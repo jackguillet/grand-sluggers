@@ -1138,7 +1138,8 @@ def derive(data):
         assert error_selection["acceptedBy"] and error_selection["acceptedOn"] and error_selection["acceptanceEvidence"]
         assert all(error_selection[key] is None for key in
                    ("outcomeMapping", "speedThresholds", "retainedSpeedModel",
-                    "recoveryInheritance", "randomAngleInheritance"))
+                    "randomAngleInheritance"))
+        assert error_selection["recoveryInheritance"] == "F693-02-continuing-error-recovery"
         assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
     continuing_reaction = data.get("continuingErrorReactionProposal")
     if continuing_reaction:
@@ -1150,12 +1151,21 @@ def derive(data):
         assert continuing_reaction["durationScalesWithEscapeDistance"] is False
     continuing_recovery = data.get("continuingErrorRecoveryProposal")
     if continuing_recovery:
-        assert continuing_recovery["state"] == "pending"
+        assert continuing_recovery["state"] == "accepted-calibration-anchor"
+        assert continuing_recovery["acceptedBy"] and continuing_recovery["acceptedOn"] and continuing_recovery["acceptanceEvidence"]
         assert continuing_recovery["sameErrorRecoveryChance"] == 0
         assert continuing_recovery["untouchedMissGrantsRecoveryProtection"] is False
+    continuing_direction = data.get("continuingErrorDirectionProposal")
+    if continuing_direction:
+        assert continuing_direction["state"] == "pending"
+        assert continuing_direction["horizontalMaxOffsetDegrees"] == bobble_spread["horizontalMaxOffsetDegrees"]
+        assert continuing_direction["untouchedMissAddedOffsetDegrees"] == 0
+        assert all(continuing_direction[key] is None for key in
+                   ("distribution", "contactBaselineMapping", "retainedSpeedModel", "verticalTreatment"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "continuingErrorDirectionState": continuing_direction["state"] if continuing_direction else None,
             "continuingErrorRecoveryState": continuing_recovery["state"] if continuing_recovery else None,
             "continuingErrorReactionState": continuing_reaction["state"] if continuing_reaction else None,
             "expandedOrdinaryErrorOutcomesState": expanded_errors["state"] if expanded_errors else None,

@@ -544,8 +544,13 @@
     },
     {
       "id": "F693-02-continuing-error-recovery",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Extend reliable recovery to the same continuing ordinary handling error, while an untouched earlier miss does not grant protection from a later first handling attempt?"
+    },
+    {
+      "id": "F693-02-continuing-error-direction",
+      "state": "next-human-decision",
+      "question": "Use the same plus/minus 30-degree horizontal variation around the contact-derived direction for continuing ordinary deflections, with no error-angle change for an untouched miss?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4972,7 +4977,7 @@
     "acceptanceEvidence": "Jack replied yes to a modest loose-ball bobble requiring actual recovery as the default failed ordinary awkward-hop acquisition outcome.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. New continuing branches now inherit the reaction distinction under F693-02-continuing-error-reaction; recovery-error protection and random-angle inheritance remain separate pending reviews."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
     }
   },
   "bobbleRecoveryPermissionsProposal": {
@@ -5269,7 +5274,7 @@
     "acceptanceEvidence": "Jack replied yes to reliable legal recovery of the same ordinary bobble without another ordinary error roll.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. New continuing branches now inherit the reaction distinction under F693-02-continuing-error-reaction; recovery-error protection and random-angle inheritance remain separate pending reviews."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
     }
   },
   "bobbleDeflectionDirectionProposal": {
@@ -5328,7 +5333,7 @@
     "referenceLimit": "Explicit user-authored direction; not a measured Wii/GC random-deflection algorithm.",
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
-      "meaning": "Local bobble remains one accepted outcome. New continuing branches now inherit the reaction distinction under F693-02-continuing-error-reaction; recovery-error protection and random-angle inheritance remain separate pending reviews."
+      "meaning": "Local bobble remains one accepted outcome. Continuing contacted errors inherit the accepted reaction and reliable same-origin recovery distinctions. Random-angle inheritance for continuing errors remains a separate pending review."
     }
   },
   "bobbleDirectionSpreadProposal": {
@@ -5403,7 +5408,7 @@
     "scope": "This expands possible outcomes, not ordinary error eligibility or probability. High current/exit speed, an infield position or a hard-hit label alone cannot add an error roll. Preserve the approved qualifying difficulty gate and handling curve unless explicitly revised. Outcome classification and numerical physics remain pending.",
     "geometry": "Preserve real ball/contact/obstruction evidence and continuous motion. Do not manufacture an error by pulling the glove away, changing character catch range or cancelling a legal interception without the approved handling failure. An untouched geometric miss is not automatically a new stat error or bobble-stun event. No-contact versus failed-handling distinctions must be explicit.",
     "coverage": "Let actual remaining motion, ground/wall interaction and defenders determine where the ball ends up. The outfield is a possible destination, not an authored waypoint, guaranteed extra base or minimum escape distance. Helpers and outfielders recover through existing ownership/geometry rules.",
-    "inheritanceBoundary": "F693-02-continuing-error-reaction accepts .40-second stun for qualifying contacted failures and no added error stun for untouched misses; grounded braking retains its existing limited scope. Reliable-recovery and random-angle inheritance for new branches remain pending. Untouched balls receive no fictitious contact kick.",
+    "inheritanceBoundary": "Contacted failures inherit .40-second reaction and reliable same-origin recovery under F693-02-continuing-error-reaction/recovery. Untouched misses add neither error stun nor recovery protection. Grounded braking retains its limited scope. Continuing-error random-angle inheritance remains pending; untouched balls receive no fictitious contact kick.",
     "terminology": "Here ball gets past describes a batted-ball fielding outcome. Catcher misses of pitches and formal passed-ball scoring are outside this change; do not alter those systems by this wording.",
     "implementationBoundary": "Accepted expanded outcome direction only. Classifier, thresholds, retained-speed/energy model, new-branch reaction/recovery/randomness and runtime remain unselected. No human gate passed.",
     "referenceLimit": "User-authored scope expansion; no matched Wii/GC frequencies or retained-speed measurements claimed."
@@ -5417,14 +5422,14 @@
     "speedThresholds": null,
     "retainedSpeedModel": null,
     "reactionInheritance": "F693-02-continuing-error-reaction",
-    "recoveryInheritance": null,
+    "recoveryInheritance": "F693-02-continuing-error-recovery",
     "randomAngleInheritance": null,
     "recommendation": "Determine whether a failed handling event stays local or keeps travelling from current ball motion and how much the actual glove/body contact obstructs it. Do not add a separate lottery for a severe error. The approved handling roll and small directional randomness remain separate.",
     "examples": "A contact that removes most travel speed can leave a nearby bobble; a glancing contact on a fast ground ball may leave enough motion to escape through the infield. A real no-contact miss continues under existing trajectory rules. These are qualitative cases, not approved thresholds, collision coefficients or changed catch-range rules.",
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction inheritance is accepted under F693-02-continuing-error-reaction. Continuing-error recovery and directional-jitter inheritance still require review before implementation; special-hit and airborne/committed-motion contracts remain separate.",
+    "openInteractions": "Reaction and recovery inheritance are accepted under F693-02-continuing-error-reaction and F693-02-continuing-error-recovery. Continuing-error directional variation and numerical retained-motion model remain pending; special and committed-motion contracts remain separate.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5469,7 +5474,7 @@
   },
   "continuingErrorRecoveryProposal": {
     "decisionId": "F693-02-continuing-error-recovery",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "sameErrorRecoveryChance": 0,
     "untouchedMissGrantsRecoveryProtection": false,
     "recommendation": "Extend reliable legal recovery to the loose-ball phase of a continuing ordinary contacted handling failure, including recovery by an outfielder after an infield deflection. Do not add another ordinary error roll merely because the ball travelled farther or a different defender recovers it. An earlier untouched geometric miss does not create this protection.",
@@ -5489,6 +5494,36 @@
       "Independent reviewed effects retain their own rules and history, while later distinct events after recovery ends are not globally protected.",
       "The event trace identifies the source failure and actual recovery owner without relying on a generic loose flag or caption."
     ],
-    "implementationBoundary": "Pending continuing-error recovery inheritance only. Full attempt identity, special exceptions, directional variation and numerical trajectory remain open. No runtime or human gate changed."
+    "implementationBoundary": "Accepted continuing-error recovery inheritance only. Full attempt identity, special exceptions, directional variation and numerical trajectory remain open. No runtime or human gate changed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to reliable recovery of the same continuing ordinary contacted handling error, while an untouched earlier miss leaves the next defender's first-attempt handling rules intact."
+  },
+  "continuingErrorDirectionProposal": {
+    "decisionId": "F693-02-continuing-error-direction",
+    "state": "pending",
+    "horizontalMaxOffsetDegrees": 30,
+    "untouchedMissAddedOffsetDegrees": 0,
+    "distribution": null,
+    "contactBaselineMapping": null,
+    "retainedSpeedModel": null,
+    "verticalTreatment": null,
+    "recommendation": "Use the same plus/minus 30-degree horizontal variation around the actual contact-derived outgoing baseline for an ordinary failed handling event that produces a continuing deflection. An untouched miss receives no error-induced directional change.",
+    "baseline": "Derive baseline direction and speed from current ball motion and actual contact/obstruction under the accepted outcome-selection principle. Apply the small directional variation around that outgoing baseline, not around the original bat direction, fielder facing, outfield center or raw incoming heading regardless of contact. The contact model and low-horizontal-motion fallback remain pending.",
+    "speedAndPosition": "Rotate the valid outgoing horizontal velocity without changing its magnitude through the random-angle operation. This is not a choice to preserve the pre-contact speed; impact speed loss still needs its own reviewed model. Keep vertical treatment separate and position continuous at actual contact. Do not teleport, add energy, pick a landing target or impose the local-bobble distance on a continuing ball.",
+    "tradeoff": "One shared angular limit makes ordinary error variation consistent. The same angle can create more lateral travel on a longer escape, so speed/ground-resistance calibration and full recovery races must assess the combined effect. The alternative is a narrower angle for continuing deflections; this proposal does not claim equal recovery difficulty or a small final sideways distance.",
+    "event": "Choose and retain one authoritative seeded directional result for the actual ordinary failed-contact event. Local-versus-continuing classification cannot cause a second draw or redraw. No per-frame, boundary-crossing, selection, recovery or tactical-outcome resampling. Preserve replay identity and approved error/recovery rules.",
+    "untouched": "A ball the defender never touches keeps its existing trajectory under actual ground/wall interactions. Do not roll an error angle or invent a contact impulse merely because it passed a defender. Successful acquisitions, generic ricochets without a qualifying failed handling event and special hits are not granted this ordinary-error modifier.",
+    "scope": "Horizontal bound inheritance only; no new failure trigger, error chance, handling-dependent spread, severity roll or reaction change. Sampling distribution, exact baseline/fallback, contact energy loss, vertical response and wall interactions remain separately reviewed.",
+    "referenceLimit": "Authored consistency trial, not verified Wii/GC continuing-deflection variance. Review both reference games and full infield-to-outfield recovery paths before human acceptance.",
+    "requiredChecks": [
+      "A valid contact-derived continuing-deflection baseline receives one retained horizontal offset within plus/minus 30 degrees.",
+      "The angle operation preserves outgoing horizontal speed magnitude and contact position; it does not restore incoming impact energy.",
+      "Untouched misses receive zero error-angle change, while ordinary collision/ground rules still operate.",
+      "Local/continuing classification, frame partitions, control changes and recovery cannot trigger additional direction draws.",
+      "Longer trajectories are checked for actual lateral coverage and recovery cost; no destination, base award or equal-cost claim is encoded.",
+      "Existing .40-second contact reaction and reliable same-origin recovery remain intact, with independent reviewed effects separate."
+    ],
+    "implementationBoundary": "Pending continuing-error angular inheritance only. Distribution, contact/retained-motion model, vertical response, runtime and human gates remain open."
   }
 }
