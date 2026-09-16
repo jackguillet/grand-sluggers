@@ -1280,9 +1280,9 @@ The common timer does not equalize full recovery time: characters still have the
 
 Before accepting implementation, compare .30/.40/.50-second trials with visible reactions and full compact-field recovery races across characters, CPU/manual defense and both seats. Preserve the same ordinary timer across handling values and the independent special/recoil contracts. Scatter, entry motion, buffering and fresh-attempt rules remain pending. No runtime or human gate changes here.
 
-## Next decision — grounded bobble braking
+## Accepted decision — grounded bobble braking
 
-**F693-02-grounded-bobble-braking — pending, September 15, 2026.** Recommend **using the accepted ordinary braking to stop a grounded fielder during the bobble stun**. Active steering stops immediately; existing ordinary movement slows to rest. From ordinary full speed this takes .10 seconds, leaving .30 seconds of the accepted .40-second reaction. These clocks run together; this is not a .50-second combined delay.
+**F693-02-grounded-bobble-braking — accepted by Jack on September 15, 2026.** Jack approved **using the accepted ordinary braking to stop a grounded fielder during the bobble stun**. Active steering stops immediately; existing ordinary movement slows to rest. From ordinary full speed this takes .10 seconds, leaving .30 seconds of the accepted .40-second reaction. These clocks run together; this is not a .50-second combined delay.
 
 **What the player sees:** a quick stop into the fumble reaction, then resumed pursuit after the stun. Reusing ordinary braking preserves the movement weight already selected and avoids introducing a new bobble-specific skid or an abrupt physical freeze. This does not reintroduce movement control during stun or let the fielder collect the ball before readiness.
 
@@ -1296,7 +1296,23 @@ Before accepting implementation, compare .30/.40/.50-second trials with visible 
 
 This is an authored reuse of our accepted movement profile, not a verified Wii/GC stop curve. Verify the reaction against reference motion and the eventual game, with rest/partial/full-speed approaches, nearby geometry, both seats, switching and helpers. The arithmetic examples are not simulated plays. No runtime or asset change; scatter, buffering, fresh-attempt and committed-motion details remain pending.
 
-**Question for Jack:** use normal quick braking during the .40-second stun, so a grounded fielder briefly settles to a stop without adding another delay?
+## Next decision — reliable ordinary bobble recovery
+
+**F693-02-bobble-recovery-reliability — pending, September 15, 2026.** Recommend **no second ordinary error roll when an eligible defender physically recovers the same ordinary bobble**. The original fielder must finish their stun, or an eligible teammate can collect the ball sooner. Actual range, contact and action readiness still decide whether recovery is possible.
+
+**Why this rule:** the first failed pickup already produces loose-ball travel, a .40-second reaction and a recovery race. Rolling again on the nearby recovery could turn one mistake into a chain of random fumbles. Keep the remaining challenge in reaching the ball and making the next play. The alternative is to allow another qualifying awkward-hop roll on the recovery; that adds occasional repeat failures and a less predictable total penalty.
+
+**Define the narrow boundary:** this applies to the recovery phase of the loose ball created by the ordinary awkward-hop error. Its own scatter bounces do not create a new ordinary difficulty roll. Switching fielders, moving out of and back into range or repeated callbacks cannot clear that history. Track the originating bobble until the recovery phase actually ends through secure possession or an applicable dead-ball rule. This does not select a global one-error-per-play cap, immunity for every loose ball, or a complete fresh-attempt catalog.
+
+**Reliable handling still needs contact:** no catch during the fumbler's stun, no remote possession when the timer ends and no guaranteed interception. A defender can fail to reach the ball. A helper obeys their own movement, range and action restrictions, and simultaneous eligible contact still resolves to one owner. Recovering a grounded ball cannot become an airborne catch-out. Throw-buffer age and action timing retain their accepted rules.
+
+**Independent effects remain real:** an applicable special-hit effect or separately reviewed new disruption can still interfere through its own contract. This recommendation does not cancel that effect, reset its activation history or authorize an unreviewed new roll. Wall interactions and additional recovery exceptions need explicit review. After genuine secure possession, later throws/losses/acquisitions follow their own rules, and already completed outs stay completed.
+
+**Code audit:** `TakeBall` acquires thrown/loose balls without a bobble roll; `TakeBattedBall` remembers `wasLoose` and calls `ArmRecoil` only when it was not loose. This supports an existing no-reroll recovery path, but a broad loose flag or one-shot recoil field is not a complete future event contract. Verify origin tracking, acquisition-before-possession ordering and all human/CPU/assisted acquisition paths before implementation.
+
+This is an authored recovery-reliability proposal, not a verified Mario rule. Validate original-fielder and helper recovery, small scatter bounces, switching/range re-entry, independent effects and subsequent distinct plays. No runtime, general attempt policy or human gate changes here.
+
+**Question for Jack:** make a legal pickup of the same ordinary bobble reliable, without another ordinary error roll from that fumble?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

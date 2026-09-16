@@ -503,8 +503,13 @@
     },
     {
       "id": "F693-02-grounded-bobble-braking",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use ordinary braking to bring a grounded fielder to rest within the .40-second bobble stun, with no added delay or abrupt velocity reset?"
+    },
+    {
+      "id": "F693-02-bobble-recovery-reliability",
+      "state": "next-human-decision",
+      "question": "Make a legal recovery pickup of the same ordinary bobble reliable, without another ordinary error roll from that fumble?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4968,7 +4973,7 @@
     "recoveryModel": "brief-fumbler-stun-then-resume",
     "stunDurationSec": 0.4,
     "handlingDurationMapping": "shared-duration-no-handling-scaling",
-    "entryMotionProfile": null,
+    "entryMotionProfile": "grounded-ordinary-braking-within-stun",
     "freshAttemptDefinition": null,
     "direction": "After an ordinary awkward-hop bobble, the fumbling character briefly stuns/reacts before resuming pursuit and pickup. During the reaction the character cannot actively run/steer, initiate a new jump/dive, or secure the ball. Show the reaction on that character while the ball remains physically loose. This replaces the unaccepted movement-available glove-recovery proposal.",
     "motionBoundary": "The direction selects interrupted control, not an instantaneous velocity reset or frozen world. Entry braking, residual motion, existing airborne/committed motion and authored reaction root motion require explicit physical reconciliation before implementation. Do not teleport the body/ball, discard existing impulses or imply a second motion system. These details and duration remain unselected.",
@@ -4977,8 +4982,9 @@
     "preservedRules": "Keep accepted loose-ball continuity and acquisition-before-possession ordering, throw-buffer aging/invalidation, retained-ball recoil and pure special-pushback contracts. No new stun-specific input-buffer promise is made. Special effects keep their own gates; combined timing and repeated-attempt rules remain reviewed separately. A later loss does not undo a completed earlier out.",
     "currentAudit": "The existing RecoilT/Bobbling branch has a fumble early return while the loose ball and some off-ball helpers advance earlier. This resembles an interruption but does not prove consistent per-character stun gating across movement, helper, catch and ownership paths. Current FumbleSec .58 remains an observation, not an accepted duration.",
     "referenceLimit": "Explicit user-authored direction. Matched Wii/GC ordinary bobble stun duration and entry motion have not been measured. No Mario-parity claim.",
-    "implementationBoundary": "Accepted stun direction and shared .40-second trial. Entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed.",
-    "durationDecisionId": "F693-02-bobble-stun-duration"
+    "implementationBoundary": "Accepted shared .40-second stun with grounded ordinary braking inside it. Airborne/committed motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed.",
+    "durationDecisionId": "F693-02-bobble-stun-duration",
+    "entryMotionDecisionId": "F693-02-grounded-bobble-braking"
   },
   "bobbleStunHandlingProposal": {
     "decisionId": "F693-02-bobble-stun-handling",
@@ -5079,7 +5085,7 @@
   },
   "groundedBobbleBrakingProposal": {
     "decisionId": "F693-02-grounded-bobble-braking",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "normalFullSpeedStopSec": 0.1,
     "stunDurationSec": 0.4,
     "stopRunsInsideStun": true,
@@ -5191,6 +5197,32 @@
       "External impulses, airborne/committed motion and collisions are not erased by applying a grounded locomotion rule to total velocity.",
       "The authored reaction and authoritative body path agree without a second pose system, animation-dependent timer or double-applied displacement."
     ],
-    "implementationBoundary": "Pending grounded entry-motion trial only. No runtime/asset change or human gate; scatter, airborne/committed interactions, buffering and fresh-attempt rules remain open."
+    "implementationBoundary": "Accepted grounded entry-motion trial only. No runtime/asset change or human gate; scatter, airborne/committed interactions, buffering and fresh-attempt rules remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to normal quick braking into the grounded bobble reaction, with braking contained within the .40-second stun."
+  },
+  "bobbleRecoveryReliabilityProposal": {
+    "decisionId": "F693-02-bobble-recovery-reliability",
+    "state": "pending",
+    "sameBobbleRecoveryErrorChance": 0,
+    "scope": "Recovery of the loose ball produced by the accepted ordinary awkward-hop bobble, by the original fielder or another eligible defender. This is a narrow recovery rule, not a cap of one error per play or blanket immunity for every loose ball.",
+    "recommendation": "Once an eligible defender physically collects the loose ball from an ordinary bobble, secure it without a second ordinary error roll caused by that same fumble. Require actual ball/glove contact, range and action readiness; reliable handling does not guarantee interception or automatic possession.",
+    "rationale": "The first failure already costs a visible loose ball, a .40-second fumbler stun and a recovery race. An additional ordinary roll on the resulting nearby pickup can turn that single mistake into repeated random fumbles. Keep the remaining challenge in reaching the ball and making the next play.",
+    "lineage": "Track the originating ordinary bobble through its loose-ball recovery phase. Its subsequent ordinary ground bounces, a change of selected defender, leaving/re-entering range or a repeated contact callback cannot turn it into a fresh awkward-hop roll. Preserve that origin across all equivalent recovery paths; clear it when the recovery phase actually ends, such as secure possession or a rules-driven dead ball, not on selection changes.",
+    "geometryAndReadiness": "The fumbler remains unable to acquire during the shared stun; an eligible helper can recover earlier. An out-of-range defender can still miss. Stun expiry, path prediction or a queued throw cannot grant possession. Handle competing eligible physical contacts through one authoritative owner. Recovery does not convert a grounded ball into an airborne catch-out.",
+    "separateEffects": "An independently applicable special effect or newly defined disruption still follows its own reviewed eligibility, repeat-hit and possession rules. This proposal neither cancels such effects nor grants permission for an unreviewed extra error check. Wall interactions and other future difficult-recovery exceptions require explicit review. Do not use this rule to adopt a global no-errors-after-first-touch shortcut.",
+    "followingPlay": "After genuine secure possession, later throws, losses or new acquisitions follow their own accepted contracts. No reset of an active special activation's per-fielder hit history, no immunity to a later legal event and no reversal of completed outs. Existing throw-buffer age/invalidation and action timing remain unchanged.",
+    "currentAudit": "TakeBall acquires thrown/loose balls without a bobble roll; TakeBattedBall captures wasLoose and calls ArmRecoil only when it was not loose. These demonstrate an existing no-reroll recovery path but do not prove authoritative origin tracking or correct possession ordering across all future paths. Preserve intended reliability through the shared event contract rather than copying a broad loose flag or one-shot field as the full rule.",
+    "referenceLimit": "Authored reliability proposal, not verified Wii/GC recovery-error logic. Existing code is implementation evidence only. Reference comparison and human recovery-race validation remain pending.",
+    "requiredChecks": [
+      "Original-fielder recovery after stun and eligible-helper recovery before stun end both secure a legally intercepted ordinary bobble without another same-fumble error roll.",
+      "Own scatter bounces, selection changes, frame partitions and range re-entry cannot manufacture a new ordinary awkward-hop roll.",
+      "No secure possession before readiness/contact; failed geometric interception and competing-contact ownership remain real.",
+      "Independent reviewed effects retain their own gates, activation history and outcomes without a new unreviewed roll.",
+      "After actual recovery ends, later distinct plays use their own rules; this is not a one-error-per-play cap.",
+      "Keep grounded-ball out rules, completed outs and command-buffer aging correct through the complete recovery event trace."
+    ],
+    "implementationBoundary": "Pending same-bobble recovery reliability only. No general fresh-attempt catalog, special exception, scatter target, runtime change or human gate selected."
   }
 }

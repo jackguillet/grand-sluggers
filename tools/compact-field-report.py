@@ -1048,8 +1048,8 @@ def derive(data):
     if bobble_stun:
         assert bobble_stun["state"] == "accepted-calibration-anchor"
         assert bobble_stun["acceptedBy"] and bobble_stun["acceptedOn"] and bobble_stun["acceptanceEvidence"]
-        assert all(bobble_stun[key] is None for key in
-                   ("entryMotionProfile", "freshAttemptDefinition"))
+        assert bobble_stun["freshAttemptDefinition"] is None
+        assert bobble_stun["entryMotionProfile"] == "grounded-ordinary-braking-within-stun"
         assert math.isclose(bobble_stun["stunDurationSec"], .40)
         assert bobble_stun["handlingDurationMapping"] == "shared-duration-no-handling-scaling"
     stun_handling = data.get("bobbleStunHandlingProposal")
@@ -1077,7 +1077,8 @@ def derive(data):
             assert math.isclose(stun_row["runnerTravelFt"], stun_runner_speed * stun_row["stunSec"])
     bobble_braking = data.get("groundedBobbleBrakingProposal")
     if bobble_braking:
-        assert bobble_braking["state"] == "pending" and bobble_braking["stopRunsInsideStun"] is True
+        assert bobble_braking["state"] == "accepted-calibration-anchor" and bobble_braking["stopRunsInsideStun"] is True
+        assert bobble_braking["acceptedBy"] and bobble_braking["acceptedOn"] and bobble_braking["acceptanceEvidence"]
         assert math.isclose(bobble_braking["stunDurationSec"], stun_duration["stunDurationSec"])
         assert math.isclose(bobble_braking["normalFullSpeedStopSec"], .10)
         for bb_row in bobble_braking["examples"]:
@@ -1090,9 +1091,14 @@ def derive(data):
             assert math.isclose(bb_row["stopSec"], bb_u/bb_b)
             assert math.isclose(bb_row["travelFt"], bb_u*bb_u/(2*bb_b))
             assert math.isclose(bb_row["remainingStunAfterStopSec"], .40-bb_u/bb_b)
+    bobble_reliability = data.get("bobbleRecoveryReliabilityProposal")
+    if bobble_reliability:
+        assert bobble_reliability["state"] == "pending"
+        assert bobble_reliability["sameBobbleRecoveryErrorChance"] == 0
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "bobbleRecoveryReliabilityState": bobble_reliability["state"] if bobble_reliability else None,
             "groundedBobbleBrakingState": bobble_braking["state"] if bobble_braking else None,
             "uniformBobbleStunState": uniform_stun["state"] if uniform_stun else None,
             "bobbleStunDurationState": stun_duration["state"] if stun_duration else None,
