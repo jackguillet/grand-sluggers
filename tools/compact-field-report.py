@@ -1592,6 +1592,21 @@ def derive(data):
                                 abs_tol=5e-4)
         best_margin = anchor["marginSeconds"] - seconds[-1]
         assert best_margin < .05, "The best defender may not get a comfortable out on an unnecessary dive"
+    traits = data.get("defensiveTraitMappingResearch")
+    if traits:
+        assert traits["state"] == "next-human-decision"
+        groups = {row["group"] for row in traits["inventory"]}
+        assert groups == set(traits["groups"]), "Every inventory row must belong to a named group"
+        waiting = [row["consumer"] for row in traits["inventory"] if row["status"] == "accepted-waiting-on-a-trait"]
+        assert len(waiting) == 2, "The handling error chance and the dive recovery curve are what block implementation"
+        long_throw = data["longRangeProfileProposal"]
+        arm_rows = [row for row in traits["inventory"] if row["group"] == "arm"]
+        assert any(str(long_throw["armSpeedPerFieldPoint"]) in (row["formula"] or "") for row in arm_rows)
+        assert any(str(long_throw["rangeFeetPerFieldPoint"]) in (row["formula"] or "") for row in arm_rows)
+        for row in traits["inventory"]:
+            if row["group"] == "cpu-reaction":
+                assert "reactionMul" in row["formula"], "A CPU-only row must show the difficulty multiplier"
+        assert any(row["group"] == "reach" and row["status"].startswith("superseded") for row in traits["inventory"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
@@ -1601,6 +1616,7 @@ def derive(data):
             "diveJumpScoopReachState": dive_research["state"] if dive_research else None,
             "cpuDiveIntentState": cpu_dive["state"] if cpu_dive else None,
             "diveRecoveryCostState": delay_research["state"] if delay_research else None,
+            "defensiveTraitMappingState": traits["state"] if traits else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
