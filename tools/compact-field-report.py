@@ -1594,7 +1594,15 @@ def derive(data):
         assert best_margin < .05, "The best defender may not get a comfortable out on an unnecessary dive"
     traits = data.get("defensiveTraitMappingResearch")
     if traits:
-        assert traits["state"] == "next-human-decision"
+        assert traits["state"] == "accepted-calibration-anchor"
+        assert traits["acceptedBy"] and traits["acceptedOn"] and traits["acceptanceEvidence"]
+        assert traits["acceptedOption"] == "split-arm-out"
+        accepted_traits = traits["acceptedDirection"]
+        assert accepted_traits["ratings"] == ["Arm", "Fielding"]
+        assert len(accepted_traits["armGoverns"]) == sum(1 for row in traits["inventory"] if row["group"] == "arm")
+        assert len(accepted_traits["fieldingGoverns"]) == sum(
+            1 for row in traits["inventory"] if row["group"] == "hands" and not row["status"].startswith("superseded"))
+        assert accepted_traits["neitherGoverns"] and traits["knockOnEffects"]
         groups = {row["group"] for row in traits["inventory"]}
         assert groups == set(traits["groups"]), "Every inventory row must belong to a named group"
         waiting = [row["consumer"] for row in traits["inventory"] if row["status"] == "accepted-waiting-on-a-trait"]

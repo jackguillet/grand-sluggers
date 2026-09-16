@@ -715,8 +715,13 @@
     },
     {
       "id": "F693-02-defensive-trait-mapping",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "The displayed Fielding number is doing four jobs at once. Does Arm split out as its own rating, does one defensive rating stay, or do Arm, Hands and Dive split three ways?"
+    },
+    {
+      "id": "F693-02-arm-rating-migration",
+      "state": "pending",
+      "question": "How does the Arm rating land: schema and seeding, whether Arm joins the Teams.Tools roster-building sum, the HUD row, the CPU reaction group, and when deliberate per-character Arm values get authored?"
     }
   ],
   "runnerClockProposal": {
@@ -7120,8 +7125,8 @@
   },
   "defensiveTraitMappingResearch": {
     "decisionId": "F693-02-defensive-trait-mapping",
-    "state": "next-human-decision",
-    "status": "research-inventory-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-architecture-research-inventory-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-fielding-rating-role",
@@ -7277,6 +7282,46 @@
     ],
     "cpuReactionNote": "Recommend that the CPU reaction group follows whatever defensive rating remains rather than becoming its own trait, and that whether it should be character-driven at all is settled during migration rather than by this decision.",
     "referenceLimit": "No Wii or GameCube stat architecture has been inspected in this packet. Both games display per-character ratings, but nothing here establishes what their internals separate and no claim is made about it.",
-    "implementationBoundary": "Research inventory prepared for one human decision. No rating list, schema change, roster number, migration code, rules-file edit, runtime change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted rating architecture only. No roster numbers, schema edit, migration code, Teams.Tools decision, HUD change, rules-file edit, runtime change or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"Split Arm out\" over keeping one defensive rating and over splitting Arm, Hands and Dive three ways.",
+    "acceptedOption": "split-arm-out",
+    "acceptedDirection": {
+      "ratings": [
+        "Arm",
+        "Fielding"
+      ],
+      "armGoverns": [
+        "throw speed, 0.85 + 0.03 x Arm",
+        "comfortable range, 160 ft +/- 5 ft per Arm point",
+        "throw accuracy, sigma = (11 - Arm) x 0.35 ft"
+      ],
+      "fieldingGoverns": [
+        "retained-ball recoil duration, 5% per point",
+        "the handling error chance quality term H",
+        "dive recovery, 0.60 s narrowing 2.5% per point"
+      ],
+      "neitherGoverns": [
+        "catch reach, which is an authored property under F693-02-catch-reach-envelope and F693-02-character-catch-range"
+      ],
+      "seeding": "Every character\u2019s Arm is seeded at their current Field value, so every accepted throw anchor evaluates identically on day one. The split is numerically free at the moment it lands and only allows deliberate divergence afterwards.",
+      "direction": "Two defensive ratings. Arm is the throwing rating; Fielding becomes the hands rating and finally means one coherent thing. Reach belongs to neither."
+    },
+    "acceptedScope": "The rating architecture and which consumer belongs to which rating. It selects no roster numbers, no migration code, no schema edit and no runtime change. Arm is seeded from Field rather than authored per character; deliberate Arm values are later roster work.",
+    "knockOnEffects": [
+      "The content schema gains an arm rating, validated 1..10 like the others, and existing character files need it or a seeded default.",
+      "Teams.Tools sums Pitch + Bat + Field + Run for roster building. Adding Arm changes that sum and therefore team-building balance; whether Arm joins the sum is a deliberate choice, not an automatic one.",
+      "The HUD and CLI rows show B / P / F / R and gain an A; the displayed Fielding number now means hands only, which is a readability change for anyone used to it.",
+      "The three CPU-only reaction timings still read Field. They are reaction rather than throwing, so the default is that they follow Fielding, but whether they should be character-driven at all stays open during migration."
+    ],
+    "requiredChecks": [
+      "With Arm seeded from Field, every accepted throw anchor evaluates identically: 0.03 per point of arm speed, 5 feet per point of comfortable range, and the 0.35-foot lateral sigma per point of deficit.",
+      "No consumer reads both ratings, and no consumer silently keeps reading Field after its group moved to Arm.",
+      "Catch reach reads neither rating; changing either cannot resize it.",
+      "Changing Arm alone cannot alter the handling error chance, recoil duration or dive recovery, and changing Fielding alone cannot alter throw speed, range or accuracy.",
+      "Content validation rejects a character missing Arm or carrying an out-of-range value, and the roster-building sum change is explicit rather than incidental.",
+      "Both seats and the CPU use the same ratings through the same formulas."
+    ]
   }
 }
