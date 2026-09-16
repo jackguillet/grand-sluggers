@@ -338,6 +338,30 @@ Then create one gameplay implementation child per coherent change. If geometry m
 
 Do not add an experimental player-facing settings menu. Research profiles belong in the existing data/test workflow, and the shipped game has the selected contract. A candidate that changes an existing rule requires a corresponding spec decision and scenario update before it can be accepted.
 
+### R3 next work items — sequenced September 15, 2026
+
+Seven rows remain in the #708 queue and no human decision is pending. The fielding contract is decided end to end but **has never been run**: roughly ninety-five accepted anchors exist only as authored arithmetic, and none of them has met the others. The sequence below is ordered by that fact, not by queue order.
+
+**1. Flight budget — `F693-04-flight-budget`. Design, expect one or two decisions.**
+The last remaining design input, and the one that decides whether the fielding numbers are right. Everything accepted so far describes what the defence *can* cover; the flight budget decides what it *has* to cover. Contact-class flight, bounce, roll and wall play inside 232 / 280 / 232 feet. The coverage arithmetic is explicitly contingent on it — the closure tables state a ceiling, and how many real batted balls land inside the open window is a flight question. **Do this before implementation**, because it can move reach and pursuit, and moving them after they are in code is more expensive.
+
+**2. Coverage budget — `F693-02-coverage-budget`. Research-heavy, perhaps one decision.**
+Cover and cutoff movement, receiver readiness, and pickup/recovery against complete races. Catch reach, its original headline item, is now answered. What remains is whether a receiver is actually at the bag when the throw lands on a field this size, which is a relay and double-play question rather than a fielding one.
+
+**3. Implementation slice one — the fielding contract in code.**
+Where this packet stops being documentation. It covers `F693-02-arm-rating-migration` (schema, seeding, the `Teams.Tools` decision, the HUD row, the CPU reaction group), the authored reach property replacing `10 + 0.6 × Field`, dive ownership and the recovery delay, the handling error chance on the seeded rail, and `F693-02-cpu-dive-intent-policy`. Because Arm is seeded from Field, **no roster authoring is needed for this slice** — the split is numerically free on day one. Follow R3's existing rule: migrate values into the shared data owner and prove parity before changing behaviour.
+
+**4. Whole-race validation — the traces R2 built the instrumentation for.**
+A C80 profile exercising reach, dive, delay, throws, pursuit and the runner clock at once, across a routine grounder, a gap ball, a relay and a steal. **Expect accepted trial numbers to move here.** They were each derived soundly and in isolation; several were derived from the same 0.50-second routine margin, which means they are coupled and have never been tested together. Report effects rather than repairing each failed fixture with a private exception, per R3.
+
+**5. Presentation budget — `F693-07-presentation-budget`.** R4's work, after the sim contract is coherent, not before.
+
+**6. Standalone re-sit — R5.** Jack's look and play gate, still open, as is the human gameplay gate.
+
+**Deliberately deferred.** `F693-02-special-attack-contracts` is large, independent of the ordinary loop and better judged once the loop is playable; the accepted shared recovery rails do not approve any individual special, so nothing is being inferred while it waits. `F693-02-movement-response` sits behind the same validation. Neither blocks the sequence above.
+
+If the accepted dimensions require kit work, that remains a separate art child under #188 as described in R4.
+
 ### R4 — Present the approved race
 
 Separate presentation child, after the sim contract is coherent. Use named shots, existing HUD/event systems, and `data/feel/`; test 1P and 1v1 with the same geometry. Coordinate #690 event stamps, #691 body scaling, #645 fly shadow, and #570 book/presentation work. No duplicate repairs in #693.
