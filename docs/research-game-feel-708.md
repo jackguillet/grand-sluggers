@@ -382,6 +382,18 @@ Applying the accepted profile *with* its read delay breaks the quick double play
 
 `CpuThrowReadySec` returns `max(throw arrival, the cover's walk)` — the comment calls it *a lob waits*. **The CPU will not throw to a bag before its receiver gets there.** A human seat has no such restraint: a player can fire to an unoccupied bag, and `cover.radiusFt` alone decides whether it is caught. Slowing cover therefore squeezes the human more than the CPU. It is not part of this decision, but it is the reason the margins above matter to a player and not to the computer.
 
+### Accepted decision — covering bodies move like everyone else
+
+**F693-02-coverage-budget — accepted by Jack on September 15, 2026.** Cover, cutoff and backup all inherit the accepted movement profile: **18 ft/s** with the 0.20-second build-up, the 0.10-second brake and character speed differences. They begin **at contact, with no read** — `cover.startSec` and the position reaction lockout stop gating a covering body. One body, one way of moving.
+
+Dropping the read is justified rather than convenient. Covering is a known assignment to a fixed spot, and the fielder knows it the moment the ball is struck; the read exists to model recognising *where a batted ball went*, which is not what covering is. **This does not shorten the accepted pursuit reads.** A covering body that stops covering and starts chasing a live ball — an overthrow, say — is doing pursuit and takes the ordinary read.
+
+Retained: `cover.stopFt` as the arrival tolerance, `cover.backupFt`, and `cover.radiusFt` at 6 feet, which now matches the accepted stand-up reach and should not be split back apart. The double-play feed keeps **+0.39 seconds** on an average ball and **+0.09** on a quick one, so the pivot becomes a real race rather than a formality.
+
+**Correction.** An earlier draft of the options above said a Snap Throw would tighten that feed further. It would not. Snap Throw is a 0.22-second release after cleanly *receiving a teammate throw*, so it does not apply to the feed itself, which is thrown by the fielder who fielded a batted ball; it applies to the pivot onward to first, by which point the cover has already arrived. The case where a Snap Throw genuinely can outrun a walking cover is a **relay** — a cutoff receiving and snapping onward to a bag whose cover is still moving — and that is queued as `F693-02-throw-before-cover` alongside the human-versus-CPU asymmetry rather than assumed either way.
+
+**Accepted scope:** movement for covering bodies. No rules-file edit, throw-wait rule, Snap Throw change or runtime change is selected.
+
 **Reference limit:** no Wii or GameCube cover speed, cutoff placement or receiver timing has been measured. These are this game's own numbers against this game's own accepted anchors.
 
 ## Accepted decision — lead spatial trial

@@ -1630,7 +1630,18 @@ def derive(data):
             "Every park but the lead profile's still needs migrating"
     coverage = data.get("coverageBudgetResearch")
     if coverage:
-        assert coverage["state"] == "next-human-decision"
+        assert coverage["state"] == "accepted-calibration-anchor"
+        assert coverage["acceptedBy"] and coverage["acceptedOn"] and coverage["acceptanceEvidence"]
+        assert coverage["acceptedOption"] == "one-profile-no-read"
+        accepted_cover = coverage["acceptedDirection"]
+        chosen_cover = next(o for o in coverage["options"] if o["id"] == coverage["acceptedOption"])
+        assert math.isclose(accepted_cover["topFtPerSec"], chosen_cover["topFtPerSec"])
+        assert math.isclose(accepted_cover["readSec"], chosen_cover["readSec"]) and accepted_cover["readSec"] == 0
+        assert math.isclose(accepted_cover["topFtPerSec"], anchors["topSpeedFeetPerSecond"]), \
+            "Covering must inherit the accepted pursuit speed exactly"
+        assert math.isclose(accepted_cover["buildUpSec"], anchors["accelerationSeconds"])
+        assert set(accepted_cover["appliesTo"]) == {"cover", "cutoff", "backup"}
+        assert coverage["boundary"] and coverage["correction"]
         runtime = coverage["currentRuntime"]
         anchors = reach_research["pursuitInputs"]
         assert runtime["coverFtPerSec"] > anchors["topSpeedFeetPerSecond"], \

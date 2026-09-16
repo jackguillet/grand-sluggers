@@ -677,7 +677,7 @@
     },
     {
       "id": "F693-02-coverage-budget",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Cover runs a flat 28 ft/s with no acceleration while ball pursuit is the accepted 18 ft/s profile. Does cover inherit the profile, and if so does it also inherit the read delay?"
     },
     {
@@ -729,6 +729,11 @@
       "id": "F693-04-park-migration",
       "state": "pending",
       "question": "How do the other five parks migrate to compact scale, and how is the drag change sequenced with them so no park is left homerless?"
+    },
+    {
+      "id": "F693-02-throw-before-cover",
+      "state": "pending",
+      "question": "A human can throw to a bag before its cover arrives while CpuThrowReadySec makes the CPU wait. Should a seat be restrained too, and can a relay Snap Throw outrun a walking cover?"
     }
   ],
   "runnerClockProposal": {
@@ -7556,8 +7561,8 @@
   },
   "coverageBudgetResearch": {
     "decisionId": "F693-02-coverage-budget",
-    "state": "next-human-decision",
-    "status": "research-arithmetic-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-direction-research-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-pursuit-speed",
@@ -7673,6 +7678,47 @@
       }
     ],
     "referenceLimit": "No Wii or GameCube cover speed, cutoff placement or receiver timing has been measured. These are this game's own numbers against its own accepted anchors.",
-    "implementationBoundary": "Research prepared for one human decision. No cover speed, read rule, rules-file edit, throw-wait rule, runtime change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted movement direction for covering bodies only. No rules-file edit, throw-wait rule, Snap Throw change, runtime change or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"Inherit it, but no read delay\" over keeping cover's own flat speed and over inheriting the profile in full.",
+    "acceptedOption": "one-profile-no-read",
+    "acceptedDirection": {
+      "appliesTo": [
+        "cover",
+        "cutoff",
+        "backup"
+      ],
+      "topFtPerSec": 18.0,
+      "buildUpSec": 0.2,
+      "brakeSec": 0.1,
+      "characterDifferences": true,
+      "readSec": 0.0,
+      "startsAt": "contact",
+      "retiredGates": [
+        "cover.startSec 0.23",
+        "the position reaction lockout as a gate on covering"
+      ],
+      "retained": [
+        "cover.stopFt arrival tolerance",
+        "cover.radiusFt 6, the receiver reach now harmonised with the accepted stand-up reach",
+        "cover.backupFt 60"
+      ],
+      "direction": "A body going to a bag moves the way a body going to a ball moves: the accepted 18 ft/s profile with its build-up, brake and character differences. It begins at contact with no read, because covering is a known assignment to a fixed spot rather than the recognition of where a batted ball went.",
+      "doublePlayFeedMarginSec": {
+        "averageBall": 0.39,
+        "quickBall": 0.09
+      }
+    },
+    "boundary": "This does not shorten the accepted pursuit reads. A covering body that stops covering and starts chasing a live ball, an overthrow for example, is doing pursuit and takes the ordinary read. The no-read rule applies to the walk to an assigned bag, not to any subsequent ball chase.",
+    "correction": "An earlier option summary said a Snap Throw would tighten the double-play feed further. That is wrong. Snap Throw is a 0.22-second release after cleanly receiving a teammate throw, so it does not apply to the feed itself, which is thrown by the fielder who fielded a batted ball. It applies to the pivot onward to first, by which point the cover has already arrived. Where a Snap Throw can genuinely outrun a cover is a relay, when a cutoff receives and snaps onward to a bag whose cover is still walking. That case is queued rather than assumed.",
+    "requiredChecks": [
+      "Cover, cutoff and backup all use the accepted movement profile; no path retains a flat 28 ft/s step.",
+      "A covering body begins moving at contact, with neither cover.startSec nor the position reaction lockout gating it.",
+      "The accepted pursuit reads are unchanged; a covering body that switches to chasing a live ball takes the ordinary read.",
+      "Character speed differences reach covering, so a faster body covers sooner, which flat cover never allowed.",
+      "The double-play pivot still completes on a quickly fielded ball; verify against real traces rather than these margins.",
+      "cover.radiusFt stays equal to the accepted stand-up reach unless both are reviewed together."
+    ]
   }
 }
