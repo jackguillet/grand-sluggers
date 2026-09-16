@@ -1482,7 +1482,7 @@ Validate low/high contact origins, weaker impacts below the cap, phase boundarie
 
 ## Accepted decision — local bobble bounce strength
 
-**F693-02-local-bobble-restitution — accepted by Jack on September 15, 2026.** Jack approved retaining **35% of the actual downward impact speed as upward rebound speed**, reduced when necessary to respect the accepted six-inch ceiling. A weaker impact naturally produces a smaller bounce. A later reviewed settling threshold can end tiny rebounds without adding a minimum bounce.
+**F693-02-local-bobble-restitution — accepted by Jack on September 15, 2026.** Jack approved retaining **35% of the actual downward impact speed as upward rebound speed**, reduced when necessary to respect the accepted six-inch ceiling. A weaker impact naturally produces a smaller bounce. The accepted three-inch predicted-rise settling threshold below can end small rebounds without adding a minimum bounce.
 
 **How it should feel:** a modest first bounce followed by much smaller motion. As an illustration, a ball dropped from rest through two feet would rebound about **three inches**; a four-foot drop would rebound about **six inches**. A stronger impact still cannot exceed six inches. These are flat-ground, constant-gravity calculations without drag or a settling cutoff, not selected glove heights, live simulations or Mario measurements.
 
@@ -1496,23 +1496,37 @@ The post-glove vertical response, settling cutoff, horizontal scatter and comple
 
 **Accepted scope:** 35% vertical speed retention at ordinary local-bobble ground impact, reduced as needed by the six-inch ceiling. Settling and post-glove response remain open.
 
-## Next decision — local bobble settling
+## Accepted decision — local bobble settling
 
-**F693-02-local-bobble-settling — pending, September 15, 2026.** Recommend that **a predicted next rebound of one inch or less settle into ground motion at impact**. Keep the ball rolling if it still has horizontal velocity. This ends very small vertical hops without stopping the whole ball.
+**F693-02-local-bobble-settling — directed by Jack on September 15, 2026.** Jack selected that **a predicted next rebound of three inches or less settle into ground motion at impact**. Keep the ball rolling if it still has horizontal velocity. This ends very small vertical hops without stopping the whole ball.
 
-**Player context:** the initial visible bobble should read clearly, then become a recoverable ground ball without a tail of tiny hops. A half-inch cutoff permits more small rebounds; two inches removes more visible bounce. One inch is an authored trial, not a measured Mario threshold.
+**Player context:** the initial visible bobble should read clearly, then become a recoverable ground ball without a tail of tiny hops. Jack increased the pending one-inch recommendation to three inches, so more weak contacts now settle without a visible rebound. Three inches is an authored trial, not a measured Mario threshold.
 
-**Example:** after a six-inch rebound, the approved .35 speed ratio would produce a subsequent rise of about **0.735 inches** under flat-ground, constant-gravity, no-drag assumptions. This proposal suppresses that next hop when the ball actually hits the ground. This is analytical illustration, not a fixed one-bounce rule: a weak first impact can settle immediately, and later interactions must use their actual state.
+**Example:** after a six-inch rebound, the approved .35 speed ratio would produce a subsequent rise of about **0.735 inches** under flat-ground, constant-gravity, no-drag assumptions. The accepted rule suppresses that next hop when the ball actually hits the ground. This is analytical illustration, not a fixed one-bounce rule: a weak first impact can settle immediately, and later interactions must use their actual state.
 
-**Exact boundary:** at actual ground collision, calculate the next apex rise after the approved restitution and ceiling using the shared authoritative trajectory. If it is `<= 1/12 foot`, set outgoing vertical speed to zero and enter supported ground motion. Above that threshold, retain the bounce. The simple `h=u_out²/(2*g)` relationship applies only to the constant-gravity/no-drag case; prediction and stepping must agree for the actual model.
+**Exact boundary:** at actual ground collision, calculate the next apex rise after the approved restitution and ceiling using the shared authoritative trajectory. If it is `<= 0.25 foot`, set outgoing vertical speed to zero and enter supported ground motion. Above that threshold, retain the bounce. The simple `h=u_out²/(2*g)` relationship applies only to the constant-gravity/no-drag case; prediction and stepping must agree for the actual model.
 
-**No ground snap or forced stop:** do not trigger this because an airborne ball is currently below one inch. Let it reach the ground continuously. Keep horizontal movement subject to its separately reviewed collision and rolling response. No teleport, automatic possession, fixed bounce count, minimum bounce or added waiting period. The initial ball drop is not skipped.
+**No ground snap or forced stop:** do not trigger this because an airborne ball is currently below three inches. Let it reach the ground continuously. Keep horizontal movement subject to its separately reviewed collision and rolling response. No teleport, automatic possession, fixed bounce count, minimum bounce or added waiting period. The initial ball drop is not skipped.
 
 Keep the .40-second stun independent and allow eligible recovery before settling, including by a helper. Preserve the same-error origin through ground rolling so settling cannot create a fresh error roll. This threshold applies only to ordinary local bobbles; continuing deflections, untouched balls, specials and unreviewed slope/wall interactions retain separate contracts.
 
-The existing ball-flight path already distinguishes rebound and rolling through an incoming-speed cutoff. This proposal defines a local-error threshold by outgoing predicted rise; it does not silently adopt that legacy cutoff or authorize a second physics path. Horizontal response and post-glove vertical velocity remain pending. No runtime or human gate changes here.
+The existing ball-flight path already distinguishes rebound and rolling through an incoming-speed cutoff. The accepted decision defines a local-error threshold by outgoing predicted rise; it does not silently adopt that legacy cutoff or authorize a second physics path. Horizontal response and post-glove vertical velocity remain pending. No runtime or human gate changes here.
 
-**Question for Jack:** settle into a ground roll whenever the next nearby-bobble rebound would rise one inch or less?
+**Effect of the correction:** in the same simplified drop-from-rest calculation, a two-foot fall predicts a 2.94-inch rebound, which now settles on its first ground impact. A four-foot fall predicts 5.88 inches, so that bounce remains. Rebounds of exactly three inches settle; only predicted rises above three inches survive, up to the accepted six-inch ceiling. These are arithmetic illustrations, not chosen glove heights or measured Mario paths.
+
+## Next decision — local bobble release from the glove
+
+**F693-02-local-bobble-glove-release — pending, September 15, 2026.** Recommend that the local knockdown/bobble contact **absorb the incoming vertical motion, then let gravity immediately drop the loose ball from its actual contact height**. Post-contact vertical speed starts at zero, with no timed hold. Horizontal spill remains a separate pending response.
+
+**Player context:** the glove interrupts the ball and it spills down softly. Retaining some downward momentum is the alternative; that would make a hard descending contact fall faster. The proposed local response gives a simple drop without an upward pop or a scripted downward shove. It does not govern continuing deflections, whose retained momentum is part of their separate contract.
+
+**Apply at actual failed contact:** classify the physical outcome first; do not force continuing deflections into the local branch by zeroing their vertical motion. Keep position and height continuous, remove only the vertical component at this step, and let shared gravity act immediately. No possession attachment, hovering interval, fixed release height or ground snap. A contact already at the support surface uses ordinary support handling without lifting the ball.
+
+Actual contact height controls fall duration. Subsequent ground impacts use the accepted 35% vertical restitution, six-inch ceiling and three-inch settling cutoff. A visible bounce is not guaranteed. The .40-second stun remains independent, and eligible recovery can occur before the ball reaches the ground, including by a helper.
+
+This is an authored proposal, not measured Wii/GC glove-contact physics. Local horizontal motion, the contact classifier, complete collision handling and reference/gameplay validation remain open. Use the shared authoritative ball model and authored contact motion; no second physics path or runtime change is approved here.
+
+**Question for Jack:** have an ordinary nearby bobble lose its vertical momentum at glove contact and immediately drop under gravity?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
