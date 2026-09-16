@@ -1560,21 +1560,39 @@ Horizontal ground response, rolling friction and full recovery distance remain p
 
 **Accepted scope:** retain 20% of actual pre-contact horizontal speed in the local branch, capped at six ft/s. Ground response and full collision integration remain open.
 
-## Next decision — local bobble horizontal response at ground impact
+## Accepted decision — local bobble horizontal response at ground impact
 
-**F693-02-local-bobble-ground-horizontal — pending, September 15, 2026.** Recommend retaining **80% of current horizontal speed at each actual ground impact** during an ordinary nearby bobble. This removes 20% at impact, whether the ball rebounds vertically or settles into ground motion.
+**F693-02-local-bobble-ground-horizontal — directed by Jack on September 15, 2026.** Jack selected retaining **90% of current horizontal speed at each actual ground impact** during an ordinary nearby bobble. This removes 10% at impact, whether the ball rebounds vertically or settles into ground motion.
 
-**Player context:** the ball loses some speed as it hits the dirt but can still roll. An incoming horizontal speed of six ft/s becomes **4.8 ft/s**; four becomes **3.2**; two becomes **1.6**. Retaining 60% would produce a sharper slowdown, while retaining 100% would add none at contact. These are arithmetic examples, not Mario measurements or total-distance predictions.
+**Player context:** the ball loses some speed as it hits the dirt but can still roll. An incoming horizontal speed of six ft/s becomes **5.4 ft/s**; four becomes **3.6**; two becomes **1.8**. Retaining 60% would produce a sharper slowdown, while retaining 100% would add none at contact. These are arithmetic examples, not Mario measurements or total-distance predictions.
 
-**Event, not frame:** on flat stationary ground, multiply both horizontal velocity components by .80 once at the actual impact. Use current velocity immediately before that collision, not the original glove-release speed. Another genuine bounce landing can apply the response again. Never repeat it every grounded frame, on selection changes or during continuous rolling. A ball released already supported has no invented landing event; its supported movement must be handled explicitly.
+**Event, not frame:** on flat stationary ground, multiply both horizontal velocity components by .90 once at the actual impact. Use current velocity immediately before that collision, not the original glove-release speed. Another genuine bounce landing can apply the response again. Never repeat it every grounded frame, on selection changes or during continuous rolling. A ball released already supported has no invented landing event; its supported movement must be handled explicitly.
 
-**Keep motion coherent:** horizontal direction stays the same at flat ground impact, without another random roll or handling modifier. Position remains continuous. Vertical motion keeps its separately accepted 35% restitution, six-inch ceiling and three-inch settling rule. Removed horizontal energy does not create an upward pop or a minimum roll speed. The 4.8-ft/s example assumes six immediately before impact; it is not a global cap after other impulses.
+**Keep motion coherent:** horizontal direction stays the same at flat ground impact, without another random roll or handling modifier. Position remains continuous. Vertical motion keeps its separately accepted 35% restitution, six-inch ceiling and three-inch settling rule. Removed horizontal energy does not create an upward pop or a minimum roll speed. The 5.4-ft/s example assumes six immediately before impact; it is not a global cap after other impulses.
 
 Keep same-error identity, independent .40-second stun and eligible recovery. Impact does not award possession or require waiting until the ball stops. Ordinary local-bobble impacts alone use this trial; continuing deflections, normal batted balls, specials and unreviewed slope/wall responses remain separate.
 
-Continuous rolling friction and stopping distance are still pending. This is an authored impact-response proposal, not measured Wii/GC physics. Use shared authoritative collision/trajectory handling and validate full recovery races before human acceptance. No runtime change here.
+Continuous rolling friction and stopping distance are still pending. This is an accepted authored impact-response trial, not measured Wii/GC physics. Use shared authoritative collision/trajectory handling and validate full recovery races before human acceptance. No runtime change here.
 
-**Question for Jack:** retain 80% of horizontal speed when a nearby bobble actually hits the ground?
+**Correction history:** Jack selected 90% instead of the pending 80% recommendation. The trial loses 10% at each real impact; continuous rolling remains separate.
+
+## Next decision — local bobble rolling slowdown
+
+**F693-02-local-bobble-rolling-deceleration — pending, September 15, 2026.** Recommend **six ft/s of speed loss per second** while an ordinary nearby bobble rolls on flat ground, stopping smoothly at zero.
+
+**Player context:** a ball entering its roll at **5.4 ft/s** would stop after **0.90 seconds**, traveling **2.43 feet** if untouched. This is the ground-only example after a six-ft/s landing loses 10% at impact; flight before landing adds separate travel. Slower rolls stop sooner and nearer. Fielders can recover during the roll; nobody waits for it to stop.
+
+**Why six:** a four-ft/s-per-second slowdown would let that same roll last 1.35 seconds and travel 3.645 feet; eight would stop it in .675 seconds over 1.8225 feet. Six is a moderate authored starting trial. None of these calculations establishes Mario friction or predicts the full recovery race.
+
+**Continuous response:** with initial rolling speed `s` and supported elapsed time `t`, speed is `max(0,s-6*t)`. Stop time is `s/6`, and travel to rest is `s²/12`. Integrate with `tau=min(t,s/6)` and distance `s*tau-3*tau²`, splitting at collisions, pickups and other events. Preserve heading and continuous position; never reverse or teleport to a prescribed stopping radius. Zero entry stays zero, and no arbitrary minimum roll or low-speed snap is selected.
+
+**Keep impact and rolling distinct:** apply the accepted 90% retention once at actual ground impact. If it settles vertically, rolling friction acts only during the subsequent supported interval, including the proper remainder of the step. A ball already supported at release gets no fabricated landing loss. Never apply the rolling rule in the air or repeat the impact multiplier every frame. Respond to later external events from actual state rather than resetting a stop timer.
+
+Use the same trial across characters on flat ordinary ground. Continuing deflections, normal unhandled batted-ball rolls, specials and unreviewed slope/wall responses retain separate contracts. Preserve the error identity after rest, independent .40-second stun and actual eligible recovery. No new RNG or handling/Run modifier.
+
+This is an authored local rolling proposal with arithmetic checks only. Full flight, contact classification/direction, reference comparisons and gameplay-distance recovery races remain open; no runtime or human gate change.
+
+**Question for Jack:** trial this rolling slowdown—about nine-tenths of a second and 2.4 feet to stop from a 5.4-ft/s roll?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

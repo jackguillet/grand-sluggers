@@ -605,8 +605,13 @@
     },
     {
       "id": "F693-02-local-bobble-ground-horizontal",
+      "state": "accepted-calibration-anchor",
+      "question": "Retain 90% of current horizontal speed at each actual local-bobble ground impact, with continuous ground rolling handled separately?"
+    },
+    {
+      "id": "F693-02-local-bobble-rolling-deceleration",
       "state": "next-human-decision",
-      "question": "Retain 80% of current horizontal speed at each actual local-bobble ground impact, with continuous ground rolling handled separately?"
+      "question": "Trial a constant six-ft/s-squared rolling deceleration for ordinary local bobbles, stopping a 5.4-ft/s roll in 0.90 seconds over 2.43 feet if untouched?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5957,7 +5962,11 @@
       "retainedFraction": 0.2,
       "maximumFtPerSec": 6
     },
-    "groundHorizontalResponse": null,
+    "groundHorizontalResponse": {
+      "decisionId": "F693-02-local-bobble-ground-horizontal",
+      "retainedFraction": 0.9,
+      "rollingFriction": null
+    },
     "recommendation": "Trial a six-foot-per-second ceiling on outgoing horizontal speed at ordinary local-bobble glove contact. Contact determines a speed at or below that ceiling through a separately reviewed mapping. Do not force every bobble to six or invent a minimum kick.",
     "rationale": "Keep local knockdowns visibly loose but nearby, while continuing deflections retain their separate faster escape response. A four-foot-per-second cap is tighter; eight allows a larger spill. Six is an authored trial, not a measured Mario speed.",
     "definition": "Apply to horizontal magnitude sqrt(vx squared + vz squared) after local contact response; reduce only if above six feet per second, preserving the approved contact-derived direction plus uniform +/-30-degree offset. This is event-side world-space speed, not bat exit speed, a speed fraction, or a total-3D speed cap.",
@@ -6039,11 +6048,11 @@
   },
   "localBobbleGroundHorizontalProposal": {
     "decisionId": "F693-02-local-bobble-ground-horizontal",
-    "state": "pending",
-    "retainedHorizontalFraction": 0.8,
+    "state": "accepted-calibration-anchor",
+    "retainedHorizontalFraction": 0.9,
     "rollingFriction": null,
-    "recommendation": "At each actual airborne-to-ground collision in the ordinary local-bobble phase, retain 80% of current horizontal velocity: vx_out=.8*vx_in and vz_out=.8*vz_in on flat stationary ground. Apply whether the vertical response rebounds or settles.",
-    "rationale": "A modest 20% speed loss should make ground contact register while allowing a short roll. Retaining 60% would stop more of the spill at impact; 100% would add no impact slowdown. The proposed 80% is an authored trial, not measured Wii/GC behavior.",
+    "recommendation": "At each actual airborne-to-ground collision in the ordinary local-bobble phase, retain 90% of current horizontal velocity: vx_out=.9*vx_in and vz_out=.9*vz_in on flat stationary ground. Apply whether the vertical response rebounds or settles.",
+    "rationale": "A modest 10% speed loss should make ground contact register while allowing a short roll. Retaining 60% would stop more of the spill at impact; 100% would add no impact slowdown. The selected 90% is an authored trial, not measured Wii/GC behavior.",
     "examples": [
       {
         "incomingHorizontalSpeedFtPerSec": 0,
@@ -6051,23 +6060,23 @@
       },
       {
         "incomingHorizontalSpeedFtPerSec": 2,
-        "outgoingHorizontalSpeedFtPerSec": 1.6
+        "outgoingHorizontalSpeedFtPerSec": 1.8
       },
       {
         "incomingHorizontalSpeedFtPerSec": 4,
-        "outgoingHorizontalSpeedFtPerSec": 3.2
+        "outgoingHorizontalSpeedFtPerSec": 3.6
       },
       {
         "incomingHorizontalSpeedFtPerSec": 6,
-        "outgoingHorizontalSpeedFtPerSec": 4.800000000000001
+        "outgoingHorizontalSpeedFtPerSec": 5.4
       }
     ],
     "event": "Apply once per actual ground impact using current pre-impact velocity, not the original glove-release speed. A later real bounce landing may apply it again. Never reapply every grounded frame, because a ground flag remains true, on selection changes or while merely rolling. A ball released already supported gets no fabricated landing event; support/rolling handling remains explicit.",
     "scope": "Ordinary local-bobble ground impact on flat stationary ordinary park ground only. Same trial across characters. Preserve horizontal direction; no extra direction/speed roll or handling modifier. Slopes, walls, special surfaces/impulses, continuing deflections and normal batted-ball trajectories retain separate contracts.",
     "physics": "Change velocity at physical collision while preserving continuous ball position. Apply the approved .35 vertical restitution, six-inch rebound cap and three-inch settling cutoff independently; horizontal damping also occurs when that impact settles vertically. No minimum horizontal speed or conversion of removed horizontal energy into a vertical pop.",
     "recovery": "Retain same-error identity, independent .40-second stun and actual eligible pickup. Ground contact does not award possession, reset a timer or require waiting for the ball to stop.",
-    "openWork": "Continuous rolling friction, stopping distance, flight integration, contact classification/direction and reference/gameplay validation remain pending. The 4.8 ft/s example assumes six ft/s immediately before impact, not every bobble landing or a global post-impact limit.",
-    "referenceLimit": "Authored impact-retention proposal and arithmetic examples only; no matched Wii/GC measurements establish .8.",
+    "openWork": "Continuous rolling friction, stopping distance, flight integration, contact classification/direction and reference/gameplay validation remain pending. The 5.4 ft/s example assumes six ft/s immediately before impact, not every bobble landing or a global post-impact limit.",
+    "referenceLimit": "Accepted authored impact-retention trial and arithmetic examples only; no matched Wii/GC measurements establish .9.",
     "requiredChecks": [
       "Apply exactly once per real ground impact, not per frame or every grounded sample.",
       "Use current pre-impact magnitude and preserve its heading on flat ground, including zero input.",
@@ -6075,6 +6084,58 @@
       "Later genuine impacts may repeat damping; rolling/support cannot invent impacts.",
       "Preserve continuity, error origin and eligible recovery; compare full races before human acceptance."
     ],
-    "implementationBoundary": "Pending ground-impact horizontal retention only; no rolling-friction value, runtime tuning or human gate pass."
+    "implementationBoundary": "Accepted ground-impact horizontal retention only; no rolling-friction value, runtime tuning or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack directed \"let's try 90%\", replacing the pending 80% ground-impact horizontal-retention recommendation.",
+    "priorProposedRetainedFraction": 0.8
+  },
+  "localBobbleRollingDecelerationProposal": {
+    "decisionId": "F693-02-local-bobble-rolling-deceleration",
+    "state": "pending",
+    "decelerationFtPerSecSquared": 6,
+    "recommendation": "While an ordinary local bobble is supported and rolling on flat ordinary ground, reduce horizontal speed at six ft/s per second until zero. Preserve heading and continuous position; no reversal or fixed stop timer.",
+    "definition": "For initial rolling speed s>=0 and elapsed supported time t, v=max(0,s-6*t). Stop time is s/6; travel to rest is s*s/12. For integration use tau=min(t,s/6), distance=s*tau-3*tau*tau. Split at impacts and other events and use actual current speed. Do not multiply speed by .9 each frame.",
+    "examples": [
+      {
+        "initialRollingSpeedFtPerSec": 0,
+        "stopTimeSec": 0.0,
+        "travelToRestFt": 0.0
+      },
+      {
+        "initialRollingSpeedFtPerSec": 1.8,
+        "stopTimeSec": 0.3,
+        "travelToRestFt": 0.27
+      },
+      {
+        "initialRollingSpeedFtPerSec": 3.6,
+        "stopTimeSec": 0.6,
+        "travelToRestFt": 1.08
+      },
+      {
+        "initialRollingSpeedFtPerSec": 5.4,
+        "stopTimeSec": 0.9,
+        "travelToRestFt": 2.43
+      },
+      {
+        "initialRollingSpeedFtPerSec": 6,
+        "stopTimeSec": 1.0,
+        "travelToRestFt": 3.0
+      }
+    ],
+    "rationale": "At 5.4 ft/s immediately after an illustrative six-ft/s landing with accepted 90% impact retention, the ball rolls for .90 seconds and 2.43 feet if untouched. This allows a short chase without a long tail. Four ft/s squared would give 1.35 seconds and 3.645 feet; eight gives .675 seconds and 1.8225 feet. These are ground-only arithmetic sensitivities, not complete scatter or recovery races.",
+    "scope": "Ordinary local-bobble supported rolling on flat ordinary ground only. Same trial across characters; no handling/Run modifier or extra RNG. Do not apply this rolling deceleration while airborne. Continuing deflections, ordinary unhandled batted-ball rolls, specials, slopes and wall responses retain separate contracts.",
+    "eventComposition": "At an actual landing, apply accepted 90% horizontal impact retention once. If vertical settling enters rolling, apply continuous deceleration only over subsequent supported time, including the correct remainder of that step. A supported release has no invented landing loss and begins rolling from its actual velocity. A later external event uses its own response; do not reset a canned timer or reapply old impact loss.",
+    "stopping": "Clamp speed at zero without reversing or adding a minimum roll. Stop position follows integrated travel, never a fixed radius or teleport. This selects no arbitrary low-speed snap threshold. At rest the ball remains loose until actual eligible recovery or dead play.",
+    "recovery": "Players/helpers may recover while it is moving. No wait-until-stopped requirement, automatic acquisition, extra error roll or change to the independent .40-second stun. Preserve error origin through the rest state.",
+    "referenceLimit": "Authored deceleration trial and analytic examples, not measured Wii/GC friction. Full ball flight, fielder motion, pickup and reference/gameplay validation remain open.",
+    "requiredChecks": [
+      "Verify speed, stop time and travel across zero/weak/fast entries and frame partitions, splitting exactly at zero.",
+      "No motion reversal or repeated impact multiplier during rolling.",
+      "Count only supported time, with event-correct transition from rebound/settling and supported release.",
+      "Pickup during rolling and after rest remains geometric and reliable for the same error.",
+      "Keep ordinary/continuing/special trajectories separate; validate full recovery races before human acceptance."
+    ],
+    "implementationBoundary": "Pending local rolling-deceleration trial only; no runtime tuning or human gate pass."
   }
 }
