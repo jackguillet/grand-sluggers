@@ -1612,9 +1612,9 @@ This is an accepted authored response, not measured Wii/GC vertical retention. T
 
 **Accepted scope:** the same contact-dependent 50–80% factor scales horizontal and signed vertical speed at a continuing ordinary deflection. Exact contact-to-factor mapping and downstream ground response remain open.
 
-## Next decision — continuing-deflection ground response
+## Accepted decision — continuing-deflection ground response
 
-**F693-02-continuing-error-ground-response — pending, September 15, 2026.** Recommend that a continuing deflection **use the shared ordinary batted-ball bounce and roll rules from its actual new motion**, with no additional error-specific ground braking.
+**F693-02-continuing-error-ground-response — accepted by Jack on September 15, 2026.** Jack approved that a continuing deflection **use the shared ordinary batted-ball bounce and roll rules from its actual new motion**, with no additional error-specific ground braking.
 
 **Player context:** the glove already slows the ball. Once it reaches the dirt or grass, its remaining momentum and the ground response should determine whether it keeps escaping into the outfield. A normal hit and a continuing deflection arriving at the same surface with equivalent physical motion should bounce and roll alike. Applying the nearby-bobble rules would deliberately shorten that escape; those rules stay with the local knockdown branch.
 
@@ -1626,9 +1626,25 @@ Do not import the local six-ft/s release cap, zero-vertical drop, six-inch rebou
 
 **What this selects:** one shared ordinary ground-response family. It does not approve existing legacy numbers. Ordinary restitution, impact retention, settling and rolling values remain part of the broader ball-motion calibration under F693-04. Calibrate normal hits and continuing-deflection recovery races together whenever those shared values change.
 
-This is an authored design proposal, not evidence of Wii/GC internals. Reference and gameplay comparisons, complete collision integration and human validation remain open. No runtime change here.
+This is an accepted authored design direction, not evidence of Wii/GC internals. Reference and gameplay comparisons, complete collision integration and human validation remain open. No runtime change here.
 
-**Question for Jack:** let continuing deflections use ordinary batted-ball ground physics, without extra error-specific slowing?
+**Accepted scope:** shared ordinary batted-ball ground response from actual deflected state, preserving same-error recovery and excluding local-bobble limits. Ordinary numerical ground calibration remains open.
+
+## Next decision — continuing-deflection retention curve
+
+**F693-02-continuing-error-retention-curve — pending, September 15, 2026.** Recommend a **linear progression through the accepted 50–80% retention range**: the lightest continuing contact keeps 80%, the strongest contact still classed as continuing keeps 50%, and midpoint obstruction keeps 65%.
+
+**Player context:** progressively more obstructive contact should remove progressively more speed without a separate light/heavy jump. A stepped response would change speed abruptly; a curved response would favor one end of the range. A straight progression is a transparent starting trial. The same factor still scales horizontal and vertical speed.
+
+**Definition and limits:** for normalized obstruction `c` within the reviewed continuing-contact range, use `r=.80-.30*c`, with `c` between zero and one. Quarter, midpoint and three-quarter values retain 72.5%, 65% and 57.5%. The strong endpoint means the strongest *continuing* contact, not complete blockage; substantial knockdowns still have the separate local response.
+
+**Not yet a geometry contract:** the actual obstruction metric and local/continuing boundary remain unselected. This approves neither a glove overlap threshold nor a new speed/error trigger. Do not substitute handling difficulty, a character stat or desired tactical outcome for real contact obstruction. Classification must use physical pre-response contact, not the resulting slowed velocity. Any discontinuity between local and continuing responses still needs explicit validation.
+
+Preserve current velocity/contact origin, the shared horizontal/vertical factor, forward-biased direction with uniform ±15-degree variation, shared ordinary ground physics, .40-second stun and reliable same-error recovery. No added random speed or severity roll, handling modifier or new behavior for untouched misses/specials.
+
+This is an authored interpolation proposal, not a measured Wii/GC algorithm. Contact-metric research, branch geometry, numerical ordinary ground calibration, full races and human validation remain open; no runtime change here.
+
+**Question for Jack:** use this linear progression, with 65% retained speed at midpoint obstruction?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

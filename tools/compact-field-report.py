@@ -1182,7 +1182,8 @@ def derive(data):
         assert 0 < retain_min < retain_max < 1
         assert math.isclose(retain_min, .50) and math.isclose(retain_max, .80)
         assert all(continuing_retention[key] is None for key in
-                   ("contactRetentionMapping", "outcomeThresholds", "verticalResponse"))
+                   ("contactRetentionMapping", "outcomeThresholds"))
+        assert continuing_retention["verticalResponse"]["sameFactorAsHorizontal"] is True
         for retain_row in continuing_retention["examples"]:
             assert math.isclose(retain_row["lowerOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_min)
             assert math.isclose(retain_row["upperOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_max)
@@ -1326,15 +1327,26 @@ def derive(data):
             assert math.isclose(vertical_example["outgoingVerticalFtPerSec"], vertical_example["factor"] * vertical_example["incomingVerticalFtPerSec"])
     continuing_ground = data.get("continuingErrorGroundResponseProposal")
     if continuing_ground:
-        assert continuing_ground["state"] == "pending"
+        assert continuing_ground["state"] == "accepted-calibration-anchor"
+        assert continuing_ground["acceptedBy"] and continuing_ground["acceptedOn"] and continuing_ground["acceptanceEvidence"]
         assert continuing_ground["responseFamily"] == "shared-ordinary-batted-ball-ground"
         assert continuing_ground["extraErrorSpecificBraking"] is False
         assert continuing_ground["inheritsLocalBobbleGroundLimits"] is False
         assert continuing_ground["numericalGroundProfile"] is None
+    continuing_curve = data.get("continuingErrorRetentionCurveProposal")
+    if continuing_curve:
+        assert continuing_curve["state"] == "pending" and continuing_curve["curve"] == "linear"
+        assert continuing_curve["obstructionMetric"] is None and continuing_curve["branchThresholds"] is None
+        assert continuing_curve["lightContactRetention"] == .8 and continuing_curve["strongContinuingContactRetention"] == .5
+        for curve_example in continuing_curve["examples"]:
+            c_value = curve_example["normalizedContinuingObstruction"]
+            assert 0 <= c_value <= 1
+            assert math.isclose(curve_example["retainedFraction"], .8-.3*c_value)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "continuingErrorRetentionCurveState": continuing_curve["state"] if continuing_curve else None,
             "continuingErrorGroundResponseState": continuing_ground["state"] if continuing_ground else None,
             "continuingErrorVerticalRetentionState": continuing_vertical["state"] if continuing_vertical else None,
             "localBobbleRollingDecelerationState": local_rolling["state"] if local_rolling else None,
