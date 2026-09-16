@@ -695,8 +695,8 @@
     },
     {
       "id": "F693-02-dive-jump-scoop-reach",
-      "state": "pending",
-      "question": "With the stand-up envelope re-authored to 6 feet, what are the dive, jump and scoop additions, which are +8 / +8 / +4 feet in the current runtime and are now the dominant reach?"
+      "state": "next-human-decision",
+      "question": "The dive adds 8 feet on top of the accepted 6-foot stand-up radius and fires automatically for any fielder the player is not steering. Keep it automatic at that size, shrink it, or make it an earned press?"
     }
   ],
   "runnerClockProposal": {
@@ -6668,5 +6668,96 @@
       "The flight budget, which decides what hang times actually occur and therefore how much of the reopened window is used.",
       "Outfield starting depth and spread, still a calibration variable."
     ]
+  },
+  "diveJumpScoopReachResearch": {
+    "decisionId": "F693-02-dive-jump-scoop-reach",
+    "state": "next-human-decision",
+    "status": "research-arithmetic-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-catch-reach-envelope",
+      "F693-02-character-catch-range",
+      "F693-02-arcade-fielding-simplification"
+    ],
+    "question": "The dive adds 8 feet on top of the accepted 6-foot stand-up radius and fires automatically for any fielder the player is not steering. Should the dive stay automatic at that size, shrink, or become an earned press?",
+    "whyPlayerFacing": "The dive is the defence's most visible highlight play, and today the game mostly makes it for the player. It is also the difference between the accepted 6-foot radius being real and being cosmetic.",
+    "currentRuntimeStack": {
+      "source": "data/rules/fielding.json, src/GrandSluggers.Sim/FlyCatch.cs, src/GrandSluggers.Sim/LivePlaySystem.Field.cs",
+      "standUpFt": 6.0,
+      "standUpNote": "Accepted trial from F693-02-catch-reach-envelope; the runtime still holds the superseded 10 + 0.6 x Field.",
+      "additions": [
+        {
+          "name": "dirt scoop pad",
+          "rule": "windowPadFt",
+          "ft": 4.0,
+          "owner": "automatic",
+          "evidence": "The grounder branch calls TouchScoop against radius + windowPadFt and takes the ball with no button."
+        },
+        {
+          "name": "dive",
+          "rule": "diveReachFt",
+          "ft": 8.0,
+          "owner": "automatic-when-unsteered-or-cpu-otherwise-east-press",
+          "evidence": "FlyCatch.AutoDive fires behind stick < stickTake on the dead-stick branch and unconditionally on the CPU branch, performing the lunge itself. FlyCatch.PlayerDiveCatch requires an armed East press and applies when the player is steering."
+        },
+        {
+          "name": "jump",
+          "rule": "jumpReachFt",
+          "ft": 8.0,
+          "owner": "west-press",
+          "evidence": "JumpT is set only by pad.WestDown, so the addition is armed by an explicit press."
+        },
+        {
+          "name": "loose-ball scoop",
+          "rule": "looseScoopFt",
+          "ft": 3.5,
+          "owner": "automatic-and-independent-of-catch-radius",
+          "evidence": "The loose branch substitutes looseScoopFt for the catch window entirely."
+        }
+      ]
+    },
+    "headline": {
+      "effectiveAutomaticAirReachFt": 14.0,
+      "removedRadiusFt": 13.0,
+      "reading": "A 6-foot stand-up radius with an automatic 8-foot dive gives 14 feet of passive coverage, more than the 13 feet the reach decision removed. For every fielder the seat is not personally steering, and for the whole CPU defence, the accepted radius would be cosmetic. Each addition is also larger than the radius it extends, inverting the intended relationship.",
+      "alleyClosureAtSixFtSeconds": 2.56,
+      "alleyClosureAtFourteenFtSeconds": 2.11,
+      "thirdToShortClosureAtSixFtSeconds": 1.46,
+      "thirdToShortClosureAtFourteenFtSeconds": 1.01
+    },
+    "outOfScope": [
+      "The jump addition, already armed by an explicit press and governed by the accepted normal-jump contract.",
+      "The loose-ball scoop, independent of catch radius.",
+      "The dirt scoop pad, which is slack for a dirt hop; revisit only if 10 feet of automatic grounder pickup still looks wide after the dive is settled."
+    ],
+    "options": [
+      {
+        "id": "earned-dive-reaches-further",
+        "automaticAdditionFt": 3.0,
+        "earnedAdditionFt": 8.0,
+        "summary": "Split the dive by ownership: an assisted or CPU fielder still dives, but for a small addition; a player-timed East dive gets the full one.",
+        "consequence": "Passive coverage settles at 9 feet, below the 13 removed, while a read-and-press dive reaches 14. The defence still looks alive with no input, and the highlight play becomes something the player earns.",
+        "cost": "Two dive reaches to author, tune and teach, and the visible pose has to read as the same action at both sizes."
+      },
+      {
+        "id": "one-smaller-dive",
+        "automaticAdditionFt": 4.0,
+        "earnedAdditionFt": 4.0,
+        "summary": "One dive for everyone, shrunk so the total is sane.",
+        "consequence": "Uniform 10 feet of reach whoever is diving, matching the dirt scoop window. Simplest to author and explain.",
+        "cost": "Pressing East buys timing and a pose, not reach, so the dive stops rewarding a good read."
+      },
+      {
+        "id": "always-earned-dive",
+        "automaticAdditionFt": 0.0,
+        "earnedAdditionFt": 8.0,
+        "summary": "Remove the automatic dive; a dive only ever happens on an East press.",
+        "consequence": "Passive coverage is exactly the accepted 6 feet. Purest expression of player-owned fielding.",
+        "cost": "Assisted and CPU fielders never make a rim play, so eight of nine defenders and the entire opposing defence lose the highlight catch unless CPU dive intent is designed separately."
+      }
+    ],
+    "model": "Reuses the straight-line lateral interception model and the accepted pursuit anchors from catchReachCoverageResearch. A ceiling on coverage, not a hit rate, and not a simulation.",
+    "referenceLimit": "No Wii or GameCube dive reach has been measured, and video gives no world scale. Both references are understood to show automatic diving by uncontrolled fielders, but that is recollection rather than a recorded observation in this packet and is not treated as evidence.",
+    "implementationBoundary": "Research prepared for one human decision. No dive value, ownership rule, CPU intent design, rules-file edit, runtime change or human gate is selected or passed here."
   }
 }

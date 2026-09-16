@@ -1462,12 +1462,40 @@ def derive(data):
             assert math.isclose(consequences[key], lead_pairs[pair]["closureHangSecondsByReachFt"][accepted], abs_tol=.005)
         assert math.isclose(consequences["reachPerBasepath"],
                             reach_research["acceptedStandUpReachFt"] / lead["basepathFt"])
+    dive_research = data.get("diveJumpScoopReachResearch")
+    if dive_research:
+        assert dive_research["state"] == "next-human-decision"
+        assert dive_research["status"] == "research-arithmetic-not-simulation"
+        stack = dive_research["currentRuntimeStack"]
+        assert math.isclose(stack["standUpFt"], reach_research["acceptedStandUpReachFt"]), \
+            "The dive research must stack on the accepted stand-up reach"
+        additions = {a["rule"]: a for a in stack["additions"]}
+        dive_ft = additions["diveReachFt"]["ft"]
+        head = dive_research["headline"]
+        assert math.isclose(head["effectiveAutomaticAirReachFt"], stack["standUpFt"] + dive_ft)
+        assert head["effectiveAutomaticAirReachFt"] > head["removedRadiusFt"], \
+            "The finding only holds while the automatic dive out-reaches the radius it replaced"
+        lead_alley = lead_pairs["LF-CF"]["closureHangSecondsByReachFt"]
+        lead_hole = lead_pairs["3B-SS"]["closureHangSecondsByReachFt"]
+        for key, table, reach in (("alleyClosureAtSixFtSeconds", lead_alley, stack["standUpFt"]),
+                                  ("thirdToShortClosureAtSixFtSeconds", lead_hole, stack["standUpFt"])):
+            assert math.isclose(head[key], table[f"{reach:g}"], abs_tol=.005)
+        for key, gap, read in (("alleyClosureAtFourteenFtSeconds", lead_pairs["LF-CF"]["spacingFt"], .40),
+                               ("thirdToShortClosureAtFourteenFtSeconds", lead_pairs["3B-SS"]["spacingFt"], .25)):
+            anchors = reach_research["pursuitInputs"]
+            expected = lateral_closure_seconds(gap, head["effectiveAutomaticAirReachFt"], read,
+                                               anchors["accelerationSeconds"], anchors["topSpeedFeetPerSecond"])
+            assert math.isclose(head[key], expected, abs_tol=.005)
+        for option in dive_research["options"]:
+            assert option["earnedAdditionFt"] >= option["automaticAdditionFt"], \
+                "An automatic dive may not out-reach the earned one"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
             "arcadeFieldingState": arcade_fielding["state"],
             "catchReachEnvelopeState": reach_research["state"] if reach_research else None,
+            "diveJumpScoopReachState": dive_research["state"] if dive_research else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,

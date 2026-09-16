@@ -88,6 +88,36 @@ On the coverage table that reopens the third-to-short hole from 1.07 to **1.46 s
 
 **Reference limit:** no Wii or GameCube catch reach has been measured. Video supplies no world scale, so a reach figure cannot honestly be read from either reference; this decision has to be judged as an original game trial.
 
+## Dive, jump and scoop reach after the six-foot decision
+
+Re-authoring the stand-up radius to 6 feet only does what it was meant to do if the additions stacked on top of it are also accounted for. They are larger than the radius they extend, and the important question turned out not to be their size but **who owns them**. This section reads the current runtime; it proposes no runtime change.
+
+| Addition | Rule | Who triggers it today | Effective reach on 6 ft |
+| --- | --- | --- | --- |
+| Stand-up radius | accepted trial | nobody — passive | 6 ft |
+| Dirt scoop pad | `windowPadFt` 4 | **automatic**: a grounder inside the window is taken with no button | 10 ft |
+| Dive | `diveReachFt` 8 | **automatic** when the stick is neutral and for every CPU fielder; the East press only when the player is actively steering | 14 ft |
+| Jump | `jumpReachFt` 8 | the West press arms it | 14 ft |
+| Loose-ball scoop | `looseScoopFt` 3.5 | automatic, and independent of catch radius | 3.5 ft |
+
+Verified in [`FlyCatch.AutoDive`](../src/GrandSluggers.Sim/FlyCatch.cs) and its two call sites in [`LivePlaySystem.Field.cs`](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs): the dead-stick branch fires behind `stick < stickTake`, and the CPU branch fires unconditionally, both performing the lunge themselves. On a nine-player defence the seat steers one fielder, so the other eight dive automatically, and the entire opposing defence does.
+
+Spending the same accepted pursuit anchors on those effective radii:
+
+| Gap | 6 ft | 10 ft | 14 ft | *13 ft, the radius just removed* |
+| --- | --- | --- | --- | --- |
+| Left–center alley, 86.08 ft | 2.56 s | 2.34 s | 2.11 s | *2.17 s* |
+| Third–short hole, 51.92 ft | 1.46 s | 1.24 s | 1.01 s | *1.07 s* |
+| Short–second hole, 74.67 ft | 2.09 s | 1.87 s | 1.65 s | *1.70 s* |
+
+**That last column is the finding.** A 6-foot stand-up radius with an automatic 8-foot dive gives **14 feet of passive coverage — more than the 13 feet the reach decision removed.** For any fielder the player is not personally steering, and for the whole CPU defence, `F693-02-catch-reach-envelope` would be cosmetic: the alley would close at 2.11 seconds instead of 2.17, and the third-to-short hole at 1.01 instead of 1.07. The intended relationship is also inverted, since each addition is larger than the radius it extends.
+
+The jump is not part of this problem. It is already armed by an explicit press, so its 8 feet are earned, and the accepted normal-jump contract already governs its arc, takeoff ownership and air correction. The loose-ball scoop is independent of catch radius and is unaffected. The dirt scoop pad is automatic, but 4 feet of slack on a dirt hop is what that pad is for; it is worth revisiting only if 10 feet of automatic grounder pickup still looks wide after the dive is settled.
+
+So the open question is the dive, and it is a player-facing one rather than a number: **the dive is the defence's most visible highlight play, and today the game mostly makes it for you.** Whatever is chosen has to keep an assisted or CPU defence looking alive without handing it back the passive radius that was just removed.
+
+**Reference limit:** no Wii or GameCube dive reach has been measured, and video gives no world scale. Both references are understood to show automatic diving by fielders the player is not controlling, but that recollection is not a recorded observation in this packet and is not evidence here.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.
