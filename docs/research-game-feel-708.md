@@ -1472,7 +1472,7 @@ This is an accepted authored direction, not a measured Wii/GC local-error arc. C
 
 **Measure the rise correctly:** measure the ball center's rise from its supported ground-contact height to the subsequent apex, relative to the local collision surface. Do not cap absolute world height or initial glove-contact height. A high contact can still have a longer initial fall. Position stays continuous at contact and impact.
 
-**Do not manufacture a bounce:** the eventual reviewed ground response must dissipate energy; this ceiling can reduce its rebound, but must never boost a weaker impact up to six inches. Restitution and the post-glove vertical response remain undecided. No minimum rebound, fixed bounce count, vertical randomness or handling-based bounce bonus is selected. Slope/wall interactions need explicit collision review.
+**Do not manufacture a bounce:** the eventual reviewed ground response must dissipate energy; this ceiling can reduce its rebound, but must never boost a weaker impact up to six inches. Restitution is accepted in the following decision; the post-glove vertical response remains undecided. No minimum rebound, fixed bounce count, vertical randomness or handling-based bounce bonus is selected. Slope/wall interactions need explicit collision review.
 
 **Scope and recovery:** apply only during the ordinary local-bobble phase, not to continuing deflections, untouched balls, normal unhandled batted-ball bounces, throws or special trajectories. Preserve the independent .40-second stun and reliable same-origin recovery. An eligible fielder can collect during descent or rebound; no wait for settling, mandatory bounce, automatic possession or animation-driven extension of the stun.
 
@@ -1480,9 +1480,9 @@ Validate low/high contact origins, weaker impacts below the cap, phase boundarie
 
 **Accepted scope:** six-inch maximum rise for ordinary nearby-bobble ground rebounds, allowing lower rebounds or settling. The initial glove-contact height and exact collision response remain separate.
 
-## Next decision — local bobble bounce strength
+## Accepted decision — local bobble bounce strength
 
-**F693-02-local-bobble-restitution — pending, September 15, 2026.** Recommend retaining **35% of the actual downward impact speed as upward rebound speed**, reduced when necessary to respect the accepted six-inch ceiling. A weaker impact naturally produces a smaller bounce. A later reviewed settling threshold can end tiny rebounds without adding a minimum bounce.
+**F693-02-local-bobble-restitution — accepted by Jack on September 15, 2026.** Jack approved retaining **35% of the actual downward impact speed as upward rebound speed**, reduced when necessary to respect the accepted six-inch ceiling. A weaker impact naturally produces a smaller bounce. A later reviewed settling threshold can end tiny rebounds without adding a minimum bounce.
 
 **How it should feel:** a modest first bounce followed by much smaller motion. As an illustration, a ball dropped from rest through two feet would rebound about **three inches**; a four-foot drop would rebound about **six inches**. A stronger impact still cannot exceed six inches. These are flat-ground, constant-gravity calculations without drag or a settling cutoff, not selected glove heights, live simulations or Mario measurements.
 
@@ -1492,9 +1492,27 @@ Validate low/high contact origins, weaker impacts below the cap, phase boundarie
 
 **Boundaries:** local ordinary bobbles only, with the same trial across characters and ordinary ground surfaces. No new random roll or handling multiplier. Do not change continuing deflections, untouched balls, special trajectories or normal batted-ball rebounds. Slope, wall and special-surface responses still require review. Preserve continuous contact and the independent .40-second stun; eligible fielders can recover without waiting for the bounce to end.
 
-The post-glove vertical response, settling cutoff, horizontal scatter and complete collision integration remain pending. The existing flight model already has bounce handling; extend the shared authoritative model rather than introducing a second physics path. No measured Wii/GC restitution establishes .35; this is an authored trial proposal with arithmetic checks only.
+The post-glove vertical response, settling cutoff, horizontal scatter and complete collision integration remain pending. The existing flight model already has bounce handling; extend the shared authoritative model rather than introducing a second physics path. No measured Wii/GC restitution establishes .35; this is an accepted authored trial with arithmetic checks only.
 
-**Question for Jack:** trial this softly damped bounce—35% vertical speed retention, with the six-inch ceiling?
+**Accepted scope:** 35% vertical speed retention at ordinary local-bobble ground impact, reduced as needed by the six-inch ceiling. Settling and post-glove response remain open.
+
+## Next decision — local bobble settling
+
+**F693-02-local-bobble-settling — pending, September 15, 2026.** Recommend that **a predicted next rebound of one inch or less settle into ground motion at impact**. Keep the ball rolling if it still has horizontal velocity. This ends very small vertical hops without stopping the whole ball.
+
+**Player context:** the initial visible bobble should read clearly, then become a recoverable ground ball without a tail of tiny hops. A half-inch cutoff permits more small rebounds; two inches removes more visible bounce. One inch is an authored trial, not a measured Mario threshold.
+
+**Example:** after a six-inch rebound, the approved .35 speed ratio would produce a subsequent rise of about **0.735 inches** under flat-ground, constant-gravity, no-drag assumptions. This proposal suppresses that next hop when the ball actually hits the ground. This is analytical illustration, not a fixed one-bounce rule: a weak first impact can settle immediately, and later interactions must use their actual state.
+
+**Exact boundary:** at actual ground collision, calculate the next apex rise after the approved restitution and ceiling using the shared authoritative trajectory. If it is `<= 1/12 foot`, set outgoing vertical speed to zero and enter supported ground motion. Above that threshold, retain the bounce. The simple `h=u_out²/(2*g)` relationship applies only to the constant-gravity/no-drag case; prediction and stepping must agree for the actual model.
+
+**No ground snap or forced stop:** do not trigger this because an airborne ball is currently below one inch. Let it reach the ground continuously. Keep horizontal movement subject to its separately reviewed collision and rolling response. No teleport, automatic possession, fixed bounce count, minimum bounce or added waiting period. The initial ball drop is not skipped.
+
+Keep the .40-second stun independent and allow eligible recovery before settling, including by a helper. Preserve the same-error origin through ground rolling so settling cannot create a fresh error roll. This threshold applies only to ordinary local bobbles; continuing deflections, untouched balls, specials and unreviewed slope/wall interactions retain separate contracts.
+
+The existing ball-flight path already distinguishes rebound and rolling through an incoming-speed cutoff. This proposal defines a local-error threshold by outgoing predicted rise; it does not silently adopt that legacy cutoff or authorize a second physics path. Horizontal response and post-glove vertical velocity remain pending. No runtime or human gate changes here.
+
+**Question for Jack:** settle into a ground roll whenever the next nearby-bobble rebound would rise one inch or less?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
