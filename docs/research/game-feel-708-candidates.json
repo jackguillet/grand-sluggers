@@ -705,8 +705,13 @@
     },
     {
       "id": "F693-02-cpu-dive-intent",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "With the assistance dive removed, does a CPU or unselected fielder get deliberate dive intent paying the same commitment cost, or never dive?"
+    },
+    {
+      "id": "F693-02-cpu-dive-intent-policy",
+      "state": "pending",
+      "question": "When does the CPU spend a dive, how far ahead may it look when deciding, and does willingness vary with difficulty?"
     }
   ],
   "runnerClockProposal": {
@@ -6808,8 +6813,8 @@
   },
   "cpuDiveIntentResearch": {
     "decisionId": "F693-02-cpu-dive-intent",
-    "state": "next-human-decision",
-    "status": "research-arithmetic-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-direction-research-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-dive-jump-scoop-reach",
@@ -6876,7 +6881,33 @@
       "Assistance behaviour for a human glove on a neutral stick, already settled: it does not dive."
     ],
     "referenceLimit": "No Wii or GameCube dive frequency has been counted and no dive recovery measured. Both references are understood to let uncontrolled fielders dive, but that is recollection rather than a recorded observation in this packet and is not evidence here.",
-    "implementationBoundary": "Research prepared for one human decision. No CPU intent design, dive budget, difficulty model, rules-file edit, runtime change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted direction that the CPU may dive deliberately under the same cost. No intent policy, difficulty scaling, lookahead budget, delay duration, rules-file edit, runtime change or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"CPU dives deliberately, same cost\" over never diving and over diving only on balls it converts.",
+    "acceptedOption": "cpu-dives-deliberately",
+    "acceptedDirection": {
+      "cpuMayDive": true,
+      "cpuPaysSameRecoveryDelay": true,
+      "cpuDiveMayMiss": true,
+      "cpuDiveReachEqualsSeatReachFt": 14.0,
+      "assistanceDiveForNeutralStickSeat": false,
+      "direction": "The CPU-driven glove gets deliberate dive intent. It chooses to dive, it can miss, and it pays the same recovery delay the seat pays. Same rules, different agency. This restores a contested rim for the opposing defence without restoring free reach.",
+      "explicitlyRejected": "The CPU must not dive only on balls it will convert. A CPU that never misses a dive is the automatic dive wearing a delay: it would hand back the passive rim coverage F693-02-catch-reach-envelope and F693-02-dive-jump-scoop-reach removed, and reduce the commitment cost to decoration."
+    },
+    "openValues": [
+      "The CPU dive intent policy: when it spends a dive, and the discipline not to spend it on a ball it could walk to.",
+      "Whether and how CPU dive willingness varies with difficulty, and whether a per-inning or per-play budget is needed to stop it looking robotic.",
+      "How far ahead the CPU may look when deciding, which is what separates a deliberate dive from a psychic one."
+    ],
+    "requiredChecks": [
+      "The CPU dive pays the same recovery delay as a seat dive, on the authoritative gameplay clock.",
+      "A CPU dive can miss and can leave the ball live; no branch converts a CPU dive by construction.",
+      "CPU dive reach equals seat dive reach; the CPU never reaches the rim through a wider window or a lookahead the seat has no equivalent of.",
+      "A human glove on a neutral stick still does not dive; the assistance dive stays removed.",
+      "Any randomness in CPU dive intent runs on the project seeded rail and replays identically.",
+      "Removing every CPU dive from a trace must reopen the 16-foot band, confirming the intent is doing the work rather than a hidden reach."
+    ]
   },
   "diveRecoveryCostResearch": {
     "decisionId": "F693-02-dive-recovery-cost",

@@ -151,7 +151,15 @@ What that is worth, on the accepted anchors:
 
 The dive is worth a flat **16-foot band** of every gap — 8 feet either side of the hardest point — until the gap closes on pursuit alone. Against a CPU defence that cannot dive, that band is open on every play; against a seat that presses East, it is not. So this is not a small AI detail. It sets how hard the computer is to hit against, and it decides whether the opposing defence ever produces a highlight catch.
 
-It is also the one place where a straight reading of the accepted direction and the intent behind it can come apart. *“Dive ever only on a press”* is about **the dive being a deliberate act with a cost**, not about the dive requiring a physical controller. A CPU that chooses to dive, can miss, and pays the same recovery delay honours that; a CPU that dives for free does not. Whether the computer should get that choice at all is the decision.
+It is also the one place where a straight reading of the accepted direction and the intent behind it can come apart. *“Dive ever only on a press”* is about **the dive being a deliberate act with a cost**, not about the dive requiring a physical controller. A CPU that chooses to dive, can miss, and pays the same recovery delay honours that; a CPU that dives for free does not.
+
+### Accepted decision — the CPU dives deliberately
+
+**F693-02-cpu-dive-intent — accepted by Jack on September 15, 2026.** The CPU-driven glove gets deliberate dive intent: it chooses to dive, **it can miss**, and it pays the same recovery delay a seat pays. Same rules, different agency. Its dive reaches the same 14 feet a seat's does and no further. The assistance dive stays removed, so a human glove on a neutral stick still does not dive.
+
+Jack explicitly did not take the option where the CPU dives only on balls it converts, and that exclusion is part of the decision: a CPU that never misses a dive is the automatic dive wearing a delay, and it would hand back the passive rim coverage the last two decisions removed while reducing the commitment cost to decoration. **A CPU dive that fails, and leaves the ball live, is a required behaviour rather than a defect.**
+
+**Accepted scope:** that the CPU may dive deliberately under the same cost. It selects no intent policy — when the CPU spends a dive, the discipline not to spend it on a ball it could walk to, how far ahead it may look when deciding, and whether willingness varies with difficulty are all open under `F693-02-cpu-dive-intent-policy`. Lookahead is the line between a deliberate dive and a psychic one, and it needs an explicit budget rather than whatever the prediction code happens to expose. No rules-file value or runtime change is selected.
 
 ### The delay is the smaller question, but it has a shape
 
