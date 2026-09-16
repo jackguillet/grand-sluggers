@@ -1425,9 +1425,14 @@ def derive(data):
         assert retired_glove["supersededBy"] == arcade_fielding["decisionId"]
     reach_research = data.get("catchReachCoverageResearch")
     if reach_research:
-        assert reach_research["state"] == "next-human-decision"
-        assert reach_research["status"] == "research-arithmetic-not-simulation"
+        assert reach_research["state"] == "accepted-calibration-anchor"
+        assert reach_research["acceptedBy"] and reach_research["acceptedOn"] and reach_research["acceptanceEvidence"]
+        assert reach_research["acceptedOption"] == "re-author-visible-envelope"
         assert reach_research["model"]["simulated"] is False
+        chosen = next(o for o in reach_research["options"] if o["id"] == reach_research["acceptedOption"])
+        assert math.isclose(reach_research["acceptedStandUpReachFt"], chosen["candidateTrialFt"])
+        assert reach_research["acceptedStandUpReachFt"] in reach_research["reachOptionsFt"], \
+            "The accepted reach must be one of the options the coverage table covers"
         assert arcade_fielding["decisionId"] in reach_research["parentDecisionIds"]
         assert math.isclose(reach_research["currentRuntimeStack"]["field5StandUpFt"],
                             10 + .6 * 5), "Field-5 stand-up reach must follow the live rules file"
@@ -1448,6 +1453,15 @@ def derive(data):
                                     ("alleyClosureC80LegacyReachSeconds", "C80", "13"),
                                     ("alleyClosureC80ZeroReachSeconds", "C80", "0")):
             assert math.isclose(headline[key], alley[profile]["closureHangSecondsByReachFt"][reach], abs_tol=.005)
+        accepted = f'{reach_research["acceptedStandUpReachFt"]:g}'
+        consequences = reach_research["acceptedConsequences"]
+        lead = next(r for r in records if r["id"] == selected)
+        lead_pairs = {row["pair"]: row for row in lead["catchReachCoverage"]["pairs"]}
+        for key, pair in (("alleyClosureSeconds", "LF-CF"), ("thirdToShortClosureSeconds", "3B-SS"),
+                          ("shortToSecondClosureSeconds", "SS-2B")):
+            assert math.isclose(consequences[key], lead_pairs[pair]["closureHangSecondsByReachFt"][accepted], abs_tol=.005)
+        assert math.isclose(consequences["reachPerBasepath"],
+                            reach_research["acceptedStandUpReachFt"] / lead["basepathFt"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
