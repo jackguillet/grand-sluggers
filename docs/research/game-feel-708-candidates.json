@@ -660,8 +660,10 @@
     },
     {
       "id": "F693-02-defensive-trait-migration",
-      "state": "pending",
-      "question": "Inventory and map every approved/current Field consumer to explicit underlying traits, preserving accepted anchors or seeking review for behavioral changes before implementation."
+      "state": "superseded-by-defensive-trait-mapping",
+      "question": "Inventory and map every approved/current Field consumer to explicit underlying traits, preserving accepted anchors or seeking review for behavioral changes before implementation.",
+      "supersededBy": "F693-02-defensive-trait-mapping",
+      "note": "This row asked for the Field-consumer inventory and its mapping to explicit traits. That inventory was completed and the architecture accepted as F693-02-defensive-trait-mapping on September 15, 2026, which was filed under a new id. The two are the same work; this row is closed to stop a later session redoing it. The remaining mechanical migration is F693-02-arm-rating-migration."
     },
     {
       "id": "F693-02-special-attack-contracts",

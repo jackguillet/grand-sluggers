@@ -87,7 +87,11 @@ Four knock-on effects are recorded rather than assumed, and the second is easy t
 
 `decisionQueue` now has **zero `next-human-decision` entries**.
 
-Open behind it: `F693-02-arm-rating-migration` (schema, seeding, the `Teams.Tools` sum, the HUD row, the CPU reaction group and when deliberate Arm values get authored), `F693-02-cpu-dive-intent-policy` (when the CPU spends a dive, how far ahead it may look — lookahead is the line between deliberate and psychic and needs an explicit budget — and difficulty scaling), and the authored per-character reach property replacing `10 + 0.6 × Field`. Research each before asking; none is obviously a question for Jack yet.
+**The sequenced plan for what remains is [R3 next work items](plan-game-feel-693.md#r3-next-work-items--sequenced-september-15-2026)**, agreed with Jack on September 15, 2026. In short: flight budget first because it can still move reach and pursuit; then the coverage budget; then implementation slice one, which is where this packet stops being documentation; then whole-race validation, where accepted trial numbers are expected to move; then presentation and the re-sit. Special attack contracts and movement response are deliberately deferred and block nothing.
+
+`F693-02-defensive-trait-migration` was the older row asking for the Field-consumer inventory. That work is done and accepted as `F693-02-defensive-trait-mapping`, filed under a new id; the old row is now marked superseded so a later session does not redo it. The remaining mechanical work is `F693-02-arm-rating-migration`.
+
+**The standing caution for whoever picks this up:** roughly ninety-five accepted anchors exist only as authored arithmetic and none has met the others. Several were derived from the same 0.50-second routine margin, so they are coupled. Validation is not a rubber stamp on them.
 
 The two rows that came straight out of the dive answer: `F693-02-dive-recovery-cost` for the delay's duration, caught-versus-missed cost and character variation — Jack's earlier "unique dive ability" remark makes dive recovery the natural home for Fielding, which is worth raising when you get there — and `F693-02-cpu-dive-intent` for the cost he accepted with his eyes open, that eight of nine defenders and the whole opposing defence now stop reaching the rim. Research both before asking, and do not let the CPU side be settled by omission.
 
