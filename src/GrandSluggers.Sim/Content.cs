@@ -152,15 +152,13 @@ public sealed class ContentCatalog
     /// </summary>
     public static DataRoot? TryFindDataRoot()
     {
-        var shipped = ShippedRoot();
-        return shipped is null ? null : DataRoot.FromEnvironment(shipped);
+        var named = NamedDataRoot(Environment.GetEnvironmentVariable(DataRootVariable));
+        var shipped = named ?? RootAboveTheBinary();
+        return shipped is null ? null : DataRoot.FromEnvironment(shipped, rootWasNamed: named is not null);
     }
 
-    static string? ShippedRoot()
+    static string? RootAboveTheBinary()
     {
-        var named = NamedDataRoot(Environment.GetEnvironmentVariable(DataRootVariable));
-        if (named is not null) return named;
-
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {

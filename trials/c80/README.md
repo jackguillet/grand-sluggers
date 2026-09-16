@@ -34,13 +34,16 @@ Anything not carried here is read from `data/`, so the trial and the control can
 a file the trial never meant to own. A character edited next month changes both runs, because both
 runs read the same character.
 
-Three rules, and the reasons they are rules rather than conventions:
+Three rules. Each is checked when the overlay is read, not left to care:
 
-- **Whole files, never fields.** A trial that wants a different `flight.json` writes a whole
-  `flight.json`. Field-level merging would make a table that is half one profile and half another,
-  and "what is this trial changing?" would stop being answerable by reading the folder.
-- **Override, never add.** A file `data/` does not have is a typo and stops the run. A trial that
-  quietly runs the control is worse than one that fails.
+- **Whole files, never fields.** A trial's copy must carry every field the shipped file carries; a
+  partial one is refused by name. A field it did not name would fall back to the C# default, making
+  a table that is half this profile and half whatever the code says — with a provenance line
+  claiming the whole table.
+- **Override, never add.** A file `data/` does not have stops the run, **including a name that
+  differs only in case** — `rules/Flight.json` is a stray file, not an override, and the refusal
+  tells you the spelling `data/` uses. A trial that quietly runs the control is worse than one that
+  fails.
 - **This README is the only exception**, because a trial that cannot explain itself is not evidence
   either.
 
