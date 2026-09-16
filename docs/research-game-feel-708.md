@@ -1576,9 +1576,9 @@ Continuous rolling friction and stopping distance are still pending. This is an 
 
 **Correction history:** Jack selected 90% instead of the pending 80% recommendation. The trial loses 10% at each real impact; continuous rolling remains separate.
 
-## Next decision — local bobble rolling slowdown
+## Accepted decision — local bobble rolling slowdown
 
-**F693-02-local-bobble-rolling-deceleration — pending, September 15, 2026.** Recommend **six ft/s of speed loss per second** while an ordinary nearby bobble rolls on flat ground, stopping smoothly at zero.
+**F693-02-local-bobble-rolling-deceleration — accepted by Jack on September 15, 2026.** Jack approved **six ft/s of speed loss per second** while an ordinary nearby bobble rolls on flat ground, stopping smoothly at zero.
 
 **Player context:** a ball entering its roll at **5.4 ft/s** would stop after **0.90 seconds**, traveling **2.43 feet** if untouched. This is the ground-only example after a six-ft/s landing loses 10% at impact; flight before landing adds separate travel. Slower rolls stop sooner and nearer. Fielders can recover during the roll; nobody waits for it to stop.
 
@@ -1590,9 +1590,27 @@ Continuous rolling friction and stopping distance are still pending. This is an 
 
 Use the same trial across characters on flat ordinary ground. Continuing deflections, normal unhandled batted-ball rolls, specials and unreviewed slope/wall responses retain separate contracts. Preserve the error identity after rest, independent .40-second stun and actual eligible recovery. No new RNG or handling/Run modifier.
 
-This is an authored local rolling proposal with arithmetic checks only. Full flight, contact classification/direction, reference comparisons and gameplay-distance recovery races remain open; no runtime or human gate change.
+This is an accepted authored local rolling trial with arithmetic checks only. Full flight, contact classification/direction, reference comparisons and gameplay-distance recovery races remain open; no runtime or human gate change.
 
-**Question for Jack:** trial this rolling slowdown—about nine-tenths of a second and 2.4 feet to stop from a 5.4-ft/s roll?
+**Accepted scope:** six ft/s² supported rolling deceleration for ordinary local bobbles, with continuous travel to zero and no waiting requirement for pickup. The flight portion and full recovery race still need validation.
+
+## Next decision — continuing-deflection vertical response
+
+**F693-02-continuing-error-vertical-retention — pending, September 15, 2026.** Recommend that continuing deflections **retain their rising or falling direction, with vertical speed reduced by the same contact-dependent 50–80% factor already selected for horizontal speed**. Reuse the identical factor for both components; no separate vertical roll or multiplier.
+
+**Player context:** a glancing ball can carry on toward the outfield along a slowed version of its current path. A rising hop continues rising more gently; a descending ball continues downward more slowly at contact, with gravity acting immediately afterwards. The nearby-bobble branch keeps its accepted vertical stop and soft drop. Applying that local response here would instead flatten every continuing contact into a drop.
+
+**Concrete example:** for an illustrative factor of .60, incoming horizontal speed of 20 ft/s and vertical speed of +10 ft/s become 12 and +6. A descending vertical speed of -10 becomes -6; level input stays zero at that instant. These are arithmetic examples, not selected hit velocities or measured Mario response.
+
+**Definition:** at actual contact use `vy_out=r*vy_in`, with the exact same `r` already selected for horizontal retention in `[.50,.80]`. Preserve continuous contact position and the approved forward-biased contact heading with uniform ±15-degree variation. Scaling both magnitudes preserves the instantaneous ratio of vertical to horizontal speed; it does not preserve final apex height or flight time, because gravity and subsequent interactions continue. Exact contact-to-factor mapping remains pending.
+
+**No artificial launch:** do not reverse the vertical sign at contact or convert removed horizontal energy into an upward pop. Zero vertical input receives no kick. Ground/support collision handling must still prevent penetration. No fixed airtime, forced outfield destination or automatic extra-base result.
+
+Do not inherit the local six-ft/s spill cap, six-inch rebound ceiling, three-inch settling rule or local rolling slowdown. Continuing ground response remains a separate unresolved contract. Untouched misses and specials retain their own rules. Preserve the contacted-error .40-second stun, reliable same-origin recovery and actual eligible pickup.
+
+This is an authored response proposal, not measured Wii/GC vertical retention. The physical outcome classifier, exact retention mapping, downstream collisions and full reference/gameplay race validation remain open. No runtime or human gate changes here.
+
+**Question for Jack:** use the same 50–80% contact-retention factor for a continuing deflection's vertical speed, preserving whether it was rising or falling?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

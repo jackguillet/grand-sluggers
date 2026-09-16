@@ -610,8 +610,13 @@
     },
     {
       "id": "F693-02-local-bobble-rolling-deceleration",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial a constant six-ft/s-squared rolling deceleration for ordinary local bobbles, stopping a 5.4-ft/s roll in 0.90 seconds over 2.43 feet if untouched?"
+    },
+    {
+      "id": "F693-02-continuing-error-vertical-retention",
+      "state": "next-human-decision",
+      "question": "For continuing deflections, scale vertical speed by the same contact-dependent 50\u201380% factor used horizontally, preserving rising/falling direction without adding a pop?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5965,7 +5970,10 @@
     "groundHorizontalResponse": {
       "decisionId": "F693-02-local-bobble-ground-horizontal",
       "retainedFraction": 0.9,
-      "rollingFriction": null
+      "rollingFriction": {
+        "decisionId": "F693-02-local-bobble-rolling-deceleration",
+        "decelerationFtPerSecSquared": 6
+      }
     },
     "recommendation": "Trial a six-foot-per-second ceiling on outgoing horizontal speed at ordinary local-bobble glove contact. Contact determines a speed at or below that ceiling through a separately reviewed mapping. Do not force every bobble to six or invent a minimum kick.",
     "rationale": "Keep local knockdowns visibly loose but nearby, while continuing deflections retain their separate faster escape response. A four-foot-per-second cap is tighter; eight allows a larger spill. Six is an authored trial, not a measured Mario speed.",
@@ -6050,7 +6058,10 @@
     "decisionId": "F693-02-local-bobble-ground-horizontal",
     "state": "accepted-calibration-anchor",
     "retainedHorizontalFraction": 0.9,
-    "rollingFriction": null,
+    "rollingFriction": {
+      "decisionId": "F693-02-local-bobble-rolling-deceleration",
+      "decelerationFtPerSecSquared": 6
+    },
     "recommendation": "At each actual airborne-to-ground collision in the ordinary local-bobble phase, retain 90% of current horizontal velocity: vx_out=.9*vx_in and vz_out=.9*vz_in on flat stationary ground. Apply whether the vertical response rebounds or settles.",
     "rationale": "A modest 10% speed loss should make ground contact register while allowing a short roll. Retaining 60% would stop more of the spill at impact; 100% would add no impact slowdown. The selected 90% is an authored trial, not measured Wii/GC behavior.",
     "examples": [
@@ -6092,7 +6103,7 @@
   },
   "localBobbleRollingDecelerationProposal": {
     "decisionId": "F693-02-local-bobble-rolling-deceleration",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "decelerationFtPerSecSquared": 6,
     "recommendation": "While an ordinary local bobble is supported and rolling on flat ordinary ground, reduce horizontal speed at six ft/s per second until zero. Preserve heading and continuous position; no reversal or fixed stop timer.",
     "definition": "For initial rolling speed s>=0 and elapsed supported time t, v=max(0,s-6*t). Stop time is s/6; travel to rest is s*s/12. For integration use tau=min(t,s/6), distance=s*tau-3*tau*tau. Split at impacts and other events and use actual current speed. Do not multiply speed by .9 each frame.",
@@ -6136,6 +6147,58 @@
       "Pickup during rolling and after rest remains geometric and reliable for the same error.",
       "Keep ordinary/continuing/special trajectories separate; validate full recovery races before human acceptance."
     ],
-    "implementationBoundary": "Pending local rolling-deceleration trial only; no runtime tuning or human gate pass."
+    "implementationBoundary": "Accepted local rolling-deceleration trial only; no runtime tuning or human gate pass.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to the initial rolling slowdown: six ft/s of speed loss per second, stopping an untouched 5.4-ft/s roll in .90 seconds over 2.43 feet."
+  },
+  "continuingErrorVerticalRetentionProposal": {
+    "decisionId": "F693-02-continuing-error-vertical-retention",
+    "state": "pending",
+    "factorSourceDecisionId": "F693-02-continuing-error-speed-retention",
+    "sameFactorAsHorizontal": true,
+    "minimumFactor": 0.5,
+    "maximumFactor": 0.8,
+    "independentVerticalRandomness": false,
+    "contactFactorMapping": null,
+    "recommendation": "For an ordinary failed contact already classified as a continuing deflection, retain the signed vertical component using the very same contact-dependent factor r in [.50,.80] selected for horizontal speed. Set vy_out=r*vy_in at the contact, then continue shared gravity/trajectory. Do not draw or select a separate vertical factor.",
+    "rationale": "A continuing ball carries through its current rising/falling path with reduced momentum, while a nearby local bobble has its separately accepted zero-vertical-speed drop. Coupling both components preserves the incoming rise/fall angle relative to horizontal magnitude at the instant of contact, apart from the separately reviewed horizontal heading change.",
+    "examples": [
+      {
+        "factor": 0.6,
+        "incomingHorizontalFtPerSec": 20,
+        "incomingVerticalFtPerSec": -10,
+        "outgoingHorizontalFtPerSec": 12,
+        "outgoingVerticalFtPerSec": -6.0
+      },
+      {
+        "factor": 0.6,
+        "incomingHorizontalFtPerSec": 20,
+        "incomingVerticalFtPerSec": 0,
+        "outgoingHorizontalFtPerSec": 12,
+        "outgoingVerticalFtPerSec": 0.0
+      },
+      {
+        "factor": 0.6,
+        "incomingHorizontalFtPerSec": 20,
+        "incomingVerticalFtPerSec": 10,
+        "outgoingHorizontalFtPerSec": 12,
+        "outgoingVerticalFtPerSec": 6.0
+      }
+    ],
+    "definition": "Use actual pre-contact world-space velocity. Horizontal magnitude remains r*sqrt(vx squared+vz squared), with the accepted contact-derived forward-biased heading and +/-15-degree random variation. Vertical component is r*vy. For nonzero horizontal input, vy_out/s_horizontal_out equals vy_in/s_horizontal_in. This is velocity retention, not an apex-height or flight-time multiplier.",
+    "scope": "Continuing ordinary contacted handling errors only, after physical outcome classification. Do not apply the local zero-vertical-speed release, six-ft/s spill cap, six-inch rebound ceiling, three-inch settling threshold or local rolling friction to this branch. Its downstream ground response remains pending; untouched misses and specials retain separate contracts.",
+    "physics": "Preserve continuous actual contact position/height; vertical velocity may change at collision. Do not invent an upward launch or reverse rising into falling or falling into rising at contact. Zero vertical input stays zero at the instant of contact; gravity acts immediately afterwards. Keep ground/support collision handling explicit to prevent penetration. No fixed airtime, target outfield landing or forced extra base.",
+    "recovery": "Preserve contacted-error .40-second stun, reliable same-origin recovery and actual eligible acquisition. Independent specials remain explicit. Continuing travel does not extend the stun or create a fresh ordinary error roll.",
+    "openWork": "The exact contact-to-r mapping and local/continuing classifier remain unselected. Downstream continuing ground response, complete contact/collision geometry, shared integration and reference/full-race validation remain open. This does not approve a new error trigger or catch-range/stat behavior.",
+    "referenceLimit": "Authored proposed coupling, not measured Wii/GC vertical deflection retention. The sample factor .60 and input speeds are arithmetic illustrations, not selected hit targets.",
+    "requiredChecks": [
+      "Use one identical factor for horizontal and signed vertical components; no second draw or handling multiplier.",
+      "Rising/falling/level incoming examples preserve vertical sign at impact; zero remains zero until gravity advances.",
+      "Preserve actual contact position, forward-biased horizontal direction and accepted speed reduction.",
+      "Keep local-bobble response, continuing ground response and specials distinct.",
+      "Validate hard infield escapes and recovery races with full trajectories before human acceptance."
+    ],
+    "implementationBoundary": "Pending continuing vertical-response coupling only. No runtime tuning, measured reference claim or human gate pass."
   }
 }

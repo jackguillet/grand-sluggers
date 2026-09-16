@@ -1297,22 +1297,35 @@ def derive(data):
         assert local_ground_horizontal["state"] == "accepted-calibration-anchor"
         assert local_ground_horizontal["acceptedBy"] and local_ground_horizontal["acceptedOn"] and local_ground_horizontal["acceptanceEvidence"]
         assert local_ground_horizontal["retainedHorizontalFraction"] == .9
-        assert local_ground_horizontal["rollingFriction"] is None
+        assert local_ground_horizontal["rollingFriction"]["decelerationFtPerSecSquared"] == 6
         for impact_example in local_ground_horizontal["examples"]:
             assert math.isclose(impact_example["outgoingHorizontalSpeedFtPerSec"], impact_example["incomingHorizontalSpeedFtPerSec"] * local_ground_horizontal["retainedHorizontalFraction"])
     local_rolling = data.get("localBobbleRollingDecelerationProposal")
     if local_rolling:
-        assert local_rolling["state"] == "pending"
+        assert local_rolling["state"] == "accepted-calibration-anchor"
+        assert local_rolling["acceptedBy"] and local_rolling["acceptedOn"] and local_rolling["acceptanceEvidence"]
         assert local_rolling["decelerationFtPerSecSquared"] == 6
         for roll_example in local_rolling["examples"]:
             roll_s = roll_example["initialRollingSpeedFtPerSec"]
             roll_a = local_rolling["decelerationFtPerSecSquared"]
             assert math.isclose(roll_example["stopTimeSec"], roll_s / roll_a)
             assert math.isclose(roll_example["travelToRestFt"], roll_s**2 / (2*roll_a))
+    continuing_vertical = data.get("continuingErrorVerticalRetentionProposal")
+    if continuing_vertical:
+        assert continuing_vertical["state"] == "pending"
+        assert continuing_vertical["sameFactorAsHorizontal"] is True
+        assert continuing_vertical["minimumFactor"] == .5 and continuing_vertical["maximumFactor"] == .8
+        assert continuing_vertical["independentVerticalRandomness"] is False
+        assert continuing_vertical["contactFactorMapping"] is None
+        for vertical_example in continuing_vertical["examples"]:
+            assert .5 <= vertical_example["factor"] <= .8
+            assert math.isclose(vertical_example["outgoingHorizontalFtPerSec"], vertical_example["factor"] * vertical_example["incomingHorizontalFtPerSec"])
+            assert math.isclose(vertical_example["outgoingVerticalFtPerSec"], vertical_example["factor"] * vertical_example["incomingVerticalFtPerSec"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "continuingErrorVerticalRetentionState": continuing_vertical["state"] if continuing_vertical else None,
             "localBobbleRollingDecelerationState": local_rolling["state"] if local_rolling else None,
             "localBobbleGroundHorizontalState": local_ground_horizontal["state"] if local_ground_horizontal else None,
             "localBobbleHorizontalRetentionState": local_horizontal_retention["state"] if local_horizontal_retention else None,
