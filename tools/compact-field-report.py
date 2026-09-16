@@ -1617,7 +1617,17 @@ def derive(data):
         assert any(row["group"] == "reach" and row["status"].startswith("superseded") for row in traits["inventory"])
     flight = data.get("flightBudgetResearch")
     if flight:
-        assert flight["state"] == "next-human-decision"
+        assert flight["state"] == "accepted-calibration-anchor"
+        assert flight["acceptedBy"] and flight["acceptedOn"] and flight["acceptanceEvidence"]
+        assert flight["acceptedOption"] == "raise-drag"
+        accepted_flight = flight["acceptedDirection"]
+        chosen_flight = next(o for o in flight["options"] if o["id"] == flight["acceptedOption"])
+        assert math.isclose(accepted_flight["dragTrialTo"], chosen_flight["dragTrial"])
+        assert accepted_flight["dragTrialTo"] > accepted_flight["dragFrom"]
+        assert accepted_flight["exitTableUnchanged"] is True, "The accepted lever must leave the exit table alone"
+        coupling = flight["requiredCoupling"]
+        assert len(coupling["parksToMigrate"]) == len(flight["findings"]["globalBall"]["parks"]) - 1, \
+            "Every park but the lead profile's still needs migrating"
         assert flight["method"]["simulated"] is False
         parks = flight["findings"]["globalBall"]["parks"]
         control = data["profiles"][0]
