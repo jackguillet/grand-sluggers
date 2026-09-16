@@ -20,6 +20,10 @@ Tracker #39 is the older checklist. Many of its children shipped as first-pass. 
 
 ---
 
+## Scale and pace foundation (#693)
+
+The sitting found contact and throws too fast. This is a coupled game contract, not a local park shrink. [Research](research-game-feel-693.md), [decision register and staged work](plan-game-feel-693.md), and [gameplay-spec D19](gameplay-spec.md#02-field-proportions-and-race-calibration--d19-693) govern this work. Compare Wii and GameCube before choosing; collect proportions and full race timings, then accept targets, calibrate gameplay, present the approved race, and re-sit in the standalone. Reference measurements, target approval, and human acceptance remain open. Harbor Exhibition retains priority; this does not start more parks or deferred modes.
+
 ## How we use coding agents
 
 Agents are the production line. You are the director. They are fast at systems, catalogs, wiring, tests, and filling named slots. They are weak at taste. Do not ask them "is this Nintendo enough?" — play Harbor and reject with a screenshot. For Phase P, do not ask them "does this feel like baseball?" — hand them a scenario id from the spec and reject when the scenario or the sitting fails.
