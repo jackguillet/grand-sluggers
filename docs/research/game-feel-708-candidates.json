@@ -654,8 +654,9 @@
     },
     {
       "id": "F693-02-arcade-fielding-validation",
-      "state": "next-research-action",
-      "question": "Consolidate the simplified fielding contract and compare player-visible reference situations; bring only material gameplay tradeoffs to Jack, one at a time."
+      "state": "research-complete",
+      "question": "Consolidate the simplified fielding contract and compare player-visible reference situations; bring only material gameplay tradeoffs to Jack, one at a time.",
+      "result": "Contract consolidated around three representative plays; reach and coverage accounted; next material tradeoff identified as F693-02-catch-reach-envelope."
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -686,6 +687,11 @@
       "id": "F693-07-presentation-budget",
       "state": "pending",
       "question": "Review result pacing and numerical readability aids individually after the sim contract is coherent."
+    },
+    {
+      "id": "F693-02-catch-reach-envelope",
+      "state": "next-human-decision",
+      "question": "Keep today's absolute catch reach on the compact field, scale it with the basepath, or re-author a smaller envelope the visible glove can meet?"
     }
   ],
   "runnerClockProposal": {
@@ -6524,5 +6530,112 @@
     "nextWork": "Consolidate remaining range, simple error-response selection, defensive traits, coverage and ball-motion work around observable play examples. Compare both Mario references with evidence labels, then validate actual full recovery/throw/runner races. No new human microdecision is queued this turn.",
     "referenceLimit": "User-authored simplification; not a measured claim about Nintendo internal implementation.",
     "implementationBoundary": "Design/documentation correction only. No runtime or asset changes, simulation evidence, merge or human gate pass."
+  },
+  "catchReachCoverageResearch": {
+    "decisionId": "F693-02-catch-reach-envelope",
+    "state": "next-human-decision",
+    "status": "research-arithmetic-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-character-catch-range",
+      "F693-02-arcade-fielding-simplification",
+      "F693-02-spatial-trial"
+    ],
+    "question": "On the accepted C80 field, should a fielder's stand-up catch reach keep today's absolute size, scale with the basepath, or be re-authored to a smaller envelope the visible glove can actually meet?",
+    "whyPlayerFacing": "Reach is the radius at which a ball becomes an out without further running. It decides whether alley balls drop for doubles and triples and whether ground balls survive the infield holes. It is not a hidden coefficient: the player sees balls either drop in the gap or get swallowed.",
+    "currentRuntimeStack": {
+      "source": "data/rules/fielding.json",
+      "standUpRadiusFormula": "radiusBaseFt 10 + radiusPerField 0.6 x displayed Field",
+      "field5StandUpFt": 13.0,
+      "windowPadFt": 4.0,
+      "diveReachFt": 8.0,
+      "jumpReachFt": 8.0,
+      "status": "current shipped Harbor runtime on the 90-foot control field; not an approved compact default and not a measured Mario reach",
+      "conflictWithAcceptedDirection": "F693-02-character-catch-range states displayed Fielding must not size the catch range. The live 10 + 0.6 x Field formula does exactly that, so this stack cannot carry over unchanged whichever magnitude is chosen."
+    },
+    "pursuitInputs": {
+      "outfieldReadSeconds": 0.4,
+      "infieldReadSeconds": 0.25,
+      "accelerationSeconds": 0.2,
+      "topSpeedFeetPerSecond": 18.0,
+      "sourceDecisionIds": [
+        "F693-02-pursuit-speed",
+        "F693-02-outfield-read-clock",
+        "F693-02-infield-read-clock",
+        "F693-02-pursuit-acceleration"
+      ],
+      "note": "Accepted Run-5 anchors. This research spends them as given and proposes no change to them."
+    },
+    "reachOptionsFt": [
+      13.0,
+      8.0,
+      6.0,
+      4.0,
+      0.0
+    ],
+    "scaledOptionBasis": "13 x basepath / 90",
+    "fielderPairs": [
+      "3B-SS",
+      "SS-2B",
+      "2B-1B",
+      "LF-CF",
+      "CF-RF"
+    ],
+    "model": {
+      "name": "straight-line lateral interception",
+      "definition": "Two neighbouring fielders start at their trial positions. A ball arrives on the straight line between them after a given hang time. Each fielder waits out the accepted read, accelerates linearly for 0.20 seconds and then holds top speed along that line. Closure hang time is the shortest hang at which the two together cover every point of the line, reach included.",
+      "excludes": [
+        "route curvature",
+        "ball height and hop",
+        "moving-target lead",
+        "dive and jump input",
+        "authored pose and glove path",
+        "wall and roll",
+        "character differences",
+        "assistance and ability effects"
+      ],
+      "interpretation": "A capability ceiling for the defence, not a hit rate. How many real batted balls fall inside the open window depends on the pending flight budget, which is not selected.",
+      "simulated": false
+    },
+    "headline": {
+      "alleyClosureC0LegacyReachSeconds": 3.19,
+      "alleyClosureC80LegacyReachSeconds": 2.17,
+      "alleyClosureC80ZeroReachSeconds": 2.89,
+      "reading": "The compact alley is 30% narrower while reach and pursuit are unchanged, so the defence closes it about a second earlier. Reach is a real but partial lever: deleting reach entirely recovers roughly 0.7 of that second, and a 6-foot envelope recovers about 0.39.",
+      "carryCaveat": "The C80 outfield arc is nearer than the control's, so a ball to the alley also hangs less. A no-drag same-launch-angle ball scales hang with the square root of carry, which would put the control-equivalent near 2.67 seconds rather than 3.19. The compact defence still gains roughly half a second of coverage; the exact figure needs the flight budget."
+    },
+    "options": [
+      {
+        "id": "legacy-absolute",
+        "standUpFt": 13.0,
+        "summary": "Keep today's absolute feet on the smaller field.",
+        "consequence": "Reach grows from 14.4% to 16.25% of a basepath. Two neighbouring infielders standing still already cover 26 of the 51.92 feet between third and short. The alley closes for anything hanging 2.17 seconds or more.",
+        "visualContract": "Unmet: a 13-foot radius is about two and a half Rio head-heights, so the authored glove cannot visibly meet a ball at the rim of it."
+      },
+      {
+        "id": "scale-with-basepath",
+        "standUpFt": 11.5556,
+        "summary": "Multiply reach by basepath / 90 with the rest of the infield migration.",
+        "consequence": "Holds the infield hole fractions exactly where they are today. Does nothing for the alley, which shrank 30% rather than 11.1%; closure moves only from 2.17 to 2.25 seconds.",
+        "visualContract": "Still unmet for the same reason."
+      },
+      {
+        "id": "re-author-visible-envelope",
+        "standUpFt": null,
+        "candidateTrialFt": 6.0,
+        "summary": "Author reach as the distance the visible glove can actually cover from a planted stance, with dive and jump continuing to add their own authored reach.",
+        "consequence": "Alley closure moves to 2.56 seconds and the third-to-short hole reopens to 1.46 seconds. Routine plays are unaffected because a routine fielder runs to the ball rather than reaching for it; the margins move.",
+        "visualContract": "Met, and it is the only option that satisfies the accepted glove-meets-the-ball contract without a new pose system.",
+        "cost": "Marginal plays that are outs today become hits, and the dive and jump additions (+8 feet each in the current runtime) become the dominant reach and need their own review."
+      }
+    ],
+    "openAfterThisDecision": [
+      "Whether reach varies by character at all, and from which explicit property rather than displayed Field.",
+      "Dive, jump, scoop pad and ability reach, which are larger than the stand-up radius in the current runtime.",
+      "Outfield starting depth and spread, still a calibration variable.",
+      "The flight budget, which decides what hang times actually occur on a compact field."
+    ],
+    "referenceLimit": "No Wii or GameCube catch-reach dimension has been measured. Video gives no world scale, so a reach figure cannot honestly be read from either reference. A fresh observation attempt on September 15, 2026 reached the Wii clip page but was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it.",
+    "implementationBoundary": "Research arithmetic prepared for one human decision. No reach value, runtime rule, trait migration, roster change or human gate is selected or passed here."
   }
 }
