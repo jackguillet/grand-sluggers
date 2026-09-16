@@ -575,8 +575,13 @@
     },
     {
       "id": "F693-02-local-bobble-rebound-ceiling",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial a maximum six-inch (0.50-foot) ground rebound for ordinary nearby bobbles, allowing weaker contacts to bounce lower or settle?"
+    },
+    {
+      "id": "F693-02-local-bobble-restitution",
+      "state": "next-human-decision",
+      "question": "Trial retaining 35% of downward impact speed as upward rebound speed for ordinary local bobbles, limited by the accepted six-inch ceiling?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5727,11 +5732,12 @@
     "implementationBoundary": "Accepted local vertical-shape direction only. Numerical vertical/horizontal response, contact/outcome mapping, runtime and human gates remain open.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"approve. resume.\" to the downward spill with a low bounce as the ordinary nearby-bobble shape."
+    "acceptanceEvidence": "Jack replied \"approve. resume.\" to the downward spill with a low bounce as the ordinary nearby-bobble shape.",
+    "reboundCeilingDecisionId": "F693-02-local-bobble-rebound-ceiling"
   },
   "localBobbleReboundCeilingProposal": {
     "decisionId": "F693-02-local-bobble-rebound-ceiling",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "maximumReboundRiseFt": 0.5,
     "maximumReboundRiseInches": 6,
     "fixedReboundHeight": false,
@@ -5744,7 +5750,7 @@
     "physicalResponse": "Ground response must dissipate rather than invent energy. The ceiling may reduce the rebound produced by the later reviewed collision model; it must never boost a weak impact to reach the ceiling. Continuous position and actual contact height remain mandatory. No fixed bounce count, upward launch at glove contact, vertical random roll or handling-based bounce scaling is selected.",
     "scope": "Only ordinary local bobbles after qualifying failed handling. Continuing deflections, untouched balls, ordinary unhandled batted-ball bounces, throws and special-hit trajectories keep separate contracts. Do not turn this into a global ball bounce cap. Walls/slopes and transition handling require explicit collision review.",
     "recovery": "The .40-second stun and ball motion remain independent. Actual eligible contact can recover during descent or rebound, including a helper; do not require settling or wait for an apex. Same-origin recovery remains reliable. No automatic pickup or timer extension.",
-    "referenceLimit": "No matched Wii/GC local-error rebound measurements are established. Keep this proposal pending and label any later accepted number as an authored trial until reference capture and gameplay-distance comparison support calibration.",
+    "referenceLimit": "Accepted authored trial, not a measured Wii/GC rebound. Matched reference capture and gameplay-distance comparison remain required before claiming calibration or parity.",
     "requiredChecks": [
       "Measure apex rise relative to supported ball-center height, across low/high glove contact origins.",
       "Weaker impacts can remain below the ceiling or settle without added energy; no minimum or forced bounce count.",
@@ -5752,6 +5758,56 @@
       "Neither collision nor rebound completion resets the stun or triggers an extra ordinary error roll.",
       "Review visible bounce and full recovery races across slow/fast defenders, helpers and both human seats before claiming feel acceptance."
     ],
-    "implementationBoundary": "Pending rebound ceiling only. Restitution, post-glove vertical velocity, horizontal scatter, settling distance and full collision model remain open; no runtime or human gate change."
+    "implementationBoundary": "Accepted rebound ceiling only. Restitution, post-glove vertical velocity, horizontal scatter, settling distance and full collision model remain open; no runtime or human gate change.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to six inches as the initial maximum rebound for ordinary nearby bobbles."
+  },
+  "localBobbleRestitutionProposal": {
+    "decisionId": "F693-02-local-bobble-restitution",
+    "state": "pending",
+    "verticalSpeedRetention": 0.35,
+    "reboundCeilingDecisionId": "F693-02-local-bobble-rebound-ceiling",
+    "maximumReboundRiseFt": 0.5,
+    "settleThreshold": null,
+    "postGloveVerticalResponse": null,
+    "recommendation": "On ordinary local-bobble ground impact, trial 35% of actual downward impact speed as upward speed, reduced as needed by the accepted six-inch rise ceiling. Weak impacts can settle under a later reviewed threshold; no minimum rebound speed or forced bounce.",
+    "definition": "Flat stationary ground: before the ceiling/settling rule, u_out=0.35*abs(v_y_in), using actual event-side downward vertical velocity. The shared trajectory must enforce the rise ceiling without adding energy or snapping position. With constant downward gravity g and no drag, the capped analytical response is min(0.35*abs(v_y_in),sqrt(2*g*0.50)). No new gravity, flight time scale or independent physics path is selected.",
+    "examples": [
+      {
+        "illustrativeDropFromRestFt": 0.5,
+        "uncappedReboundRiseFt": 0.06124999999999999,
+        "cappedReboundRiseFt": 0.06124999999999999
+      },
+      {
+        "illustrativeDropFromRestFt": 2,
+        "uncappedReboundRiseFt": 0.24499999999999997,
+        "cappedReboundRiseFt": 0.24499999999999997
+      },
+      {
+        "illustrativeDropFromRestFt": 4,
+        "uncappedReboundRiseFt": 0.48999999999999994,
+        "cappedReboundRiseFt": 0.48999999999999994
+      },
+      {
+        "illustrativeDropFromRestFt": 6,
+        "uncappedReboundRiseFt": 0.7349999999999999,
+        "cappedReboundRiseFt": 0.5
+      }
+    ],
+    "exampleAssumptions": "Illustrative drops from rest onto flat ground under constant gravity, without drag, intervening contact or settling threshold. Rebound height ratio before the cap is 0.35 squared = 0.1225. These are arithmetic examples, not chosen glove heights or simulated/reference trajectories.",
+    "rationale": "Strong damping lets a modest first bounce register while making later bounces much smaller. A .25 speed ratio would return 6.25% of equivalent drop height before capping; .50 would return 25%; .35 returns 12.25%. This is speed retention in the vertical component, not 35% of height, horizontal speed or total energy.",
+    "scope": "Ordinary local-bobble ground rebounds only. Same trial across characters and ordinary park ground surfaces; no handling/Fielding modifier or new random draw. Special surfaces and slope/wall collision contracts require review; do not silently extrapolate this flat-ground formula. Continuing deflections, untouched balls and ordinary batted-ball flight remain separate.",
+    "recovery": "Keep .40-second stun independent; actual eligible recovery can occur before any bounce or during it. No extra wait for settling, automatic acquisition, error reroll or change to local horizontal angles.",
+    "openWork": "Post-glove vertical velocity, low-speed settling threshold, horizontal speed/damping/distance, classifier, contact geometry and complete collision integration remain open. A numerical restitution alone is not a complete runtime contract.",
+    "referenceLimit": "Authored trial with analytic illustrations; no measured Wii/GC restitution or matched local-bobble trajectory establishes .35. Reference and gameplay-distance review remain required.",
+    "requiredChecks": [
+      "Outgoing vertical speed never exceeds 35% of actual incoming downward speed; the ceiling can only reduce it.",
+      "Continuous ground contact, nonnegative clearance and shared prediction/stepping remain consistent across frame partitions.",
+      "Check weak impacts below the cap and stronger impacts reaching it without inventing energy; settling remains explicit.",
+      "No global change to ordinary batted-ball, continuing-deflection or special trajectories.",
+      "Verify visible bounce and full recovery races before human acceptance."
+    ],
+    "implementationBoundary": "Pending vertical restitution trial only; no runtime change or passed human gate."
   }
 }

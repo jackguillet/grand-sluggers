@@ -1223,16 +1223,28 @@ def derive(data):
                    ("reboundHeightFt", "verticalContactResponse", "localHorizontalSpeed", "settleDistanceFt"))
     local_rebound = data.get("localBobbleReboundCeilingProposal")
     if local_rebound:
-        assert local_rebound["state"] == "pending"
+        assert local_rebound["state"] == "accepted-calibration-anchor"
+        assert local_rebound["acceptedBy"] and local_rebound["acceptedOn"] and local_rebound["acceptanceEvidence"]
         assert local_rebound["maximumReboundRiseFt"] == .5
         assert local_rebound["maximumReboundRiseInches"] == local_rebound["maximumReboundRiseFt"] * 12
         assert local_rebound["fixedReboundHeight"] is False
         assert all(local_rebound[key] is None for key in
                    ("minimumReboundRiseFt", "restitution", "verticalContactResponse"))
+    local_restitution = data.get("localBobbleRestitutionProposal")
+    if local_restitution:
+        assert local_restitution["state"] == "pending"
+        assert local_restitution["verticalSpeedRetention"] == .35
+        assert local_restitution["maximumReboundRiseFt"] == local_rebound["maximumReboundRiseFt"]
+        assert local_restitution["settleThreshold"] is None and local_restitution["postGloveVerticalResponse"] is None
+        for rebound_example in local_restitution["examples"]:
+            rebound_rise = rebound_example["illustrativeDropFromRestFt"] * local_restitution["verticalSpeedRetention"]**2
+            assert math.isclose(rebound_example["uncappedReboundRiseFt"], rebound_rise)
+            assert math.isclose(rebound_example["cappedReboundRiseFt"], min(local_rebound["maximumReboundRiseFt"], rebound_rise))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleRestitutionState": local_restitution["state"] if local_restitution else None,
             "localBobbleReboundCeilingState": local_rebound["state"] if local_rebound else None,
             "localBobbleVerticalShapeState": local_vertical["state"] if local_vertical else None,
             "errorDirectionDistributionState": direction_distribution["state"] if direction_distribution else None,
