@@ -1137,8 +1137,8 @@ def derive(data):
         assert error_selection["state"] == "accepted-calibration-anchor" and error_selection["separateSeverityRoll"] is False
         assert error_selection["acceptedBy"] and error_selection["acceptedOn"] and error_selection["acceptanceEvidence"]
         assert all(error_selection[key] is None for key in
-                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel",
-                    "randomAngleInheritance"))
+                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel"))
+        assert error_selection["randomAngleInheritance"] == "F693-02-continuing-error-direction"
         assert error_selection["recoveryInheritance"] == "F693-02-continuing-error-recovery"
         assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
     continuing_reaction = data.get("continuingErrorReactionProposal")
@@ -1157,14 +1157,29 @@ def derive(data):
         assert continuing_recovery["untouchedMissGrantsRecoveryProtection"] is False
     continuing_direction = data.get("continuingErrorDirectionProposal")
     if continuing_direction:
-        assert continuing_direction["state"] == "pending"
-        assert continuing_direction["horizontalMaxOffsetDegrees"] == bobble_spread["horizontalMaxOffsetDegrees"]
+        assert continuing_direction["state"] == "accepted-calibration-anchor"
+        assert continuing_direction["acceptedBy"] and continuing_direction["acceptedOn"] and continuing_direction["acceptanceEvidence"]
+        assert continuing_direction["horizontalMaxOffsetDegrees"] == 15
+        assert continuing_direction["horizontalMaxOffsetDegrees"] < bobble_spread["horizontalMaxOffsetDegrees"]
         assert continuing_direction["untouchedMissAddedOffsetDegrees"] == 0
         assert all(continuing_direction[key] is None for key in
                    ("distribution", "contactBaselineMapping", "retainedSpeedModel", "verticalTreatment"))
+    continuing_retention = data.get("continuingErrorSpeedRetentionProposal")
+    if continuing_retention:
+        assert continuing_retention["state"] == "pending"
+        retain_min = continuing_retention["minimumRetainedHorizontalSpeedFraction"]
+        retain_max = continuing_retention["maximumRetainedHorizontalSpeedFraction"]
+        assert 0 < retain_min < retain_max < 1
+        assert math.isclose(retain_min, .50) and math.isclose(retain_max, .80)
+        assert all(continuing_retention[key] is None for key in
+                   ("contactRetentionMapping", "outcomeThresholds", "verticalResponse"))
+        for retain_row in continuing_retention["examples"]:
+            assert math.isclose(retain_row["lowerOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_min)
+            assert math.isclose(retain_row["upperOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_max)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "continuingErrorSpeedRetentionState": continuing_retention["state"] if continuing_retention else None,
             "continuingErrorDirectionState": continuing_direction["state"] if continuing_direction else None,
             "continuingErrorRecoveryState": continuing_recovery["state"] if continuing_recovery else None,
             "continuingErrorReactionState": continuing_reaction["state"] if continuing_reaction else None,
