@@ -690,8 +690,13 @@
     },
     {
       "id": "F693-02-catch-reach-envelope",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Keep today's absolute catch reach on the compact field, scale it with the basepath, or re-author a smaller envelope the visible glove can meet?"
+    },
+    {
+      "id": "F693-02-dive-jump-scoop-reach",
+      "state": "pending",
+      "question": "With the stand-up envelope re-authored to 6 feet, what are the dive, jump and scoop additions, which are +8 / +8 / +4 feet in the current runtime and are now the dominant reach?"
     }
   ],
   "runnerClockProposal": {
@@ -6533,8 +6538,8 @@
   },
   "catchReachCoverageResearch": {
     "decisionId": "F693-02-catch-reach-envelope",
-    "state": "next-human-decision",
-    "status": "research-arithmetic-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-trial-anchor-research-arithmetic-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-character-catch-range",
@@ -6636,6 +6641,32 @@
       "The flight budget, which decides what hang times actually occur on a compact field."
     ],
     "referenceLimit": "No Wii or GameCube catch-reach dimension has been measured. Video gives no world scale, so a reach figure cannot honestly be read from either reference. A fresh observation attempt on September 15, 2026 reached the Wii clip page but was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it.",
-    "implementationBoundary": "Research arithmetic prepared for one human decision. No reach value, runtime rule, trait migration, roster change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted trial magnitude and re-authoring direction only. No runtime rule, rules-file edit, dive/jump/scoop value, per-character spread, trait migration, roster change or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"Re-author to ~6 ft\" from the three reach options, over keeping today's absolute 13 feet and over scaling to 11.56 feet.",
+    "acceptedOption": "re-author-visible-envelope",
+    "acceptedStandUpReachFt": 6.0,
+    "acceptedScope": "The ordinary stand-up catch reach for a middle character on C80, authored as roughly what the visible glove covers from a planted stance. Trial anchor, not a shipping default and not a measured Mario reach. Dive, jump, scoop pad and ability reach are not selected by this and are now the larger numbers in the stack. Per-character variation is not selected either, except that its source must be an explicit property rather than displayed Fielding, per F693-02-character-catch-range.",
+    "acceptedConsequences": {
+      "alleyClosureSeconds": 2.56,
+      "thirdToShortClosureSeconds": 1.46,
+      "shortToSecondClosureSeconds": 2.09,
+      "reachPerBasepath": 0.075,
+      "note": "Straight-line lateral interception arithmetic, a ceiling on coverage rather than a hit rate. Routine plays are unaffected because a routine fielder runs to the ball; the margins move."
+    },
+    "requiredChecks": [
+      "The stand-up radius is an authored property, not a function of displayed Fielding; changing the displayed number cannot resize it.",
+      "The authored glove path visibly meets a ball at the rim of the accepted radius, across characters, handedness, seats and CPU.",
+      "Dive, jump, scoop pad and ability reach are reviewed explicitly before implementation; they are no longer smaller than the stand-up radius.",
+      "Routine in-range opportunities stay reliable; the smaller envelope must not become a second timing gate or a hidden error source.",
+      "Full-race validation reports what the smaller envelope does to actual doubles, triples and infield singles before any shipping default."
+    ],
+    "nextDependencies": [
+      "Dive, jump and scoop reach, now the dominant reach in the current runtime at +8 / +8 / +4 feet.",
+      "The explicit per-character source for reach, replacing 10 + 0.6 x Field.",
+      "The flight budget, which decides what hang times actually occur and therefore how much of the reopened window is used.",
+      "Outfield starting depth and spread, still a calibration variable."
+    ]
   }
 }

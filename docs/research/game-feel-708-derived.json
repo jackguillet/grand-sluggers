@@ -5,7 +5,7 @@
   "catcherReadState": "accepted-calibration-anchor",
   "uniformErrorDirectionState": "accepted-calibration-anchor",
   "arcadeFieldingState": "accepted-calibration-anchor",
-  "catchReachEnvelopeState": "next-human-decision",
+  "catchReachEnvelopeState": "accepted-calibration-anchor",
   "gloveCatchSidesState": "superseded-by-user-direction",
   "gloveContactSurfaceState": "superseded-by-user-direction",
   "errorContactObstructionBasisState": "superseded-by-user-direction",
@@ -104,7 +104,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "27ac409c8cded90e3fee23bc66012febda230bc33f6eaaf4a4f0ee35e0656cf1",
+    "docs/research/game-feel-708-candidates.json": "5bad85bddcac3526c2ffb0beb60822ddf454768a47badacc3405d9a6635c2dc0",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",

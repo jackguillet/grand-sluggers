@@ -24,7 +24,7 @@ The player still owns positioning and jump/action timing. Apply baseball legalit
 
 **Keep useful feel work:** the previously recorded ball-response numbers remain authored trial anchors for later calibration, not measured Mario constants or shipping defaults. This correction does not implement or retune them. Reach dimensions, simplified response mapping, traits, coverage and full race validation remain open.
 
-**Review process:** continue one decision at a time for meaningful player-facing tradeoffs. Consolidate hidden geometry and implementation choices into research/tuning work rather than asking Jack to approve each microscopic detail. That consolidation is now done below, in [the consolidated contract](#consolidated-simplified-fielding-contract) and [the reach accounting](#reach-and-coverage-accounting-for-c80); it identified one material tradeoff, `F693-02-catch-reach-envelope`. No replacement glove microdecision is queued here.
+**Review process:** continue one decision at a time for meaningful player-facing tradeoffs. Consolidate hidden geometry and implementation choices into research/tuning work rather than asking Jack to approve each microscopic detail. That consolidation is now done below, in [the consolidated contract](#consolidated-simplified-fielding-contract) and [the reach accounting](#reach-and-coverage-accounting-for-c80); it identified one material tradeoff, `F693-02-catch-reach-envelope`, which Jack accepted the same day. No replacement glove microdecision is queued here.
 
 No runtime, asset, merge or human gate changes. This is Jack's design direction, not a claim about Nintendo internals.
 
@@ -47,7 +47,8 @@ No runtime, asset, merge or human gate changes. This is Jack's design direction,
 | Local bobble and continuing deflection trial numbers | Retained as authored trial anchors |
 | Glove mesh collision, pocket/rim/back eligibility, contact-surface normals, the `r = .80 - .30*c` obstruction curve | Superseded; kept below as history |
 | The exact simplified contact-to-outcome mapping | **Open**, and must stay reproducible with no new severity roll |
-| Catch reach magnitude, dive/jump/scoop reach, defensive-trait migration, coverage, flight budget | **Open**, see below and the queue |
+| Ordinary stand-up catch reach | Accepted as a 6-foot trial, below |
+| Dive/jump/scoop reach, per-character reach source, defensive-trait migration, coverage, flight budget | **Open**, see the queue |
 
 **Reference comparison.** The two recorded plays in the [#701 comparison](research-game-feel-701-comparison.md) — the Wii shortstop grounder around 00:58 and the GameCube force-and-return around 03:10 — are both clean fielding. Neither reference packet contains a bobble, a deflection or a gap ball, so this contract's error behaviour has **no matched Wii or GameCube observation at all**, in either direction. A fresh attempt on September 15, 2026 reopened the Wii clip page and was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it. What the existing clips do support is the shape the contract already assumes: a visible gather, a visible release and a visible travel, with the result readable as it happens.
 
@@ -77,7 +78,13 @@ The infield row is the sharper warning. At 13 feet, two neighbouring infielders 
 
 Restoring the alley by slowing outfielders is not available: `F693-02-pursuit-speed` accepted one pursuit profile across positions, and it would take roughly 11 ft/s to match the control's alley closure. Outfield spread cannot do it either — matching C0's closure would need C0's absolute 123-foot gap, which does not fit inside a 232/280-foot fence without abandoning the lines. That leaves reach, the flight budget and the outfield starts as the levers, and reach is the one already queued for review.
 
-**Open decision `F693-02-catch-reach-envelope`.** Keep today's absolute feet, scale them with the basepath, or re-author a smaller envelope the visible glove can actually meet. The third is the only option that satisfies the accepted glove-meets-the-ball contract — a 13-foot radius is about two and a half Rio head-heights, so no authored glove reaches its rim — but it makes marginal outs into hits and promotes the dive and jump additions, still 8 feet each in the current runtime, into the dominant reach. Whichever magnitude is chosen, the per-character source has to move off displayed Fielding. No value is selected here.
+### Accepted decision — re-author the catch reach
+
+**F693-02-catch-reach-envelope — accepted by Jack on September 15, 2026.** Offered the three options above, Jack chose to **re-author the ordinary stand-up catch reach to roughly 6 feet** for a middle character on C80, over keeping today's absolute 13 feet and over scaling to 11.56. Reach becomes about what the visible glove covers from a planted stance — 7.5% of a basepath instead of 16.25% — which is the only option consistent with the accepted glove-meets-the-ball contract, since a 13-foot radius is about two and a half Rio head-heights and no authored glove reaches its rim.
+
+On the coverage table that reopens the third-to-short hole from 1.07 to **1.46 seconds**, the short-to-second hole to **2.09**, and the alley from 2.17 to **2.56**. Routine plays are unaffected, because a routine fielder runs to the ball rather than reaching for it; what moves is the margins. Marginal plays that would be outs at 13 feet become hits.
+
+**Accepted scope:** the ordinary stand-up magnitude only, as a trial anchor rather than a shipping default or a measured Mario reach. It does **not** select dive, jump, scoop-pad or ability reach — still +8 / +8 / +4 feet in the current runtime, and therefore now the dominant reach in the stack, which makes them the next thing to review. It does not select per-character variation either, beyond the already accepted rule that its source must be an explicit property and not displayed Fielding: `10 + 0.6 × Field` cannot survive this decision. No rules file, runtime behaviour, trait migration or human gate changes here, and full-race validation still has to report what the smaller envelope does to actual doubles, triples and infield singles.
 
 **Reference limit:** no Wii or GameCube catch reach has been measured. Video supplies no world scale, so a reach figure cannot honestly be read from either reference; this decision has to be judged as an original game trial.
 
