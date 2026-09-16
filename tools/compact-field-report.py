@@ -1464,8 +1464,9 @@ def derive(data):
                             reach_research["acceptedStandUpReachFt"] / lead["basepathFt"])
     dive_research = data.get("diveJumpScoopReachResearch")
     if dive_research:
-        assert dive_research["state"] == "next-human-decision"
-        assert dive_research["status"] == "research-arithmetic-not-simulation"
+        assert dive_research["state"] == "accepted-calibration-anchor"
+        assert dive_research["acceptedBy"] and dive_research["acceptedOn"] and dive_research["acceptanceEvidence"]
+        assert dive_research["acceptedOption"] == "always-earned-dive"
         stack = dive_research["currentRuntimeStack"]
         assert math.isclose(stack["standUpFt"], reach_research["acceptedStandUpReachFt"]), \
             "The dive research must stack on the accepted stand-up reach"
@@ -1489,6 +1490,19 @@ def derive(data):
         for option in dive_research["options"]:
             assert option["earnedAdditionFt"] >= option["automaticAdditionFt"], \
                 "An automatic dive may not out-reach the earned one"
+        chosen_dive = next(o for o in dive_research["options"] if o["id"] == dive_research["acceptedOption"])
+        accepted_dive = dive_research["acceptedDirection"]
+        assert accepted_dive["automaticDive"] is False and math.isclose(accepted_dive["automaticAdditionFt"], 0)
+        assert math.isclose(accepted_dive["automaticAdditionFt"], chosen_dive["automaticAdditionFt"])
+        assert math.isclose(accepted_dive["earnedAdditionFt"], chosen_dive["earnedAdditionFt"])
+        assert math.isclose(accepted_dive["passiveReachFt"], stack["standUpFt"]), \
+            "With no assistance dive, passive reach is the accepted stand-up radius"
+        assert math.isclose(accepted_dive["passiveDirtReachFt"],
+                            stack["standUpFt"] + additions["windowPadFt"]["ft"])
+        assert math.isclose(accepted_dive["earnedReachFt"], stack["standUpFt"] + accepted_dive["earnedAdditionFt"])
+        assert accepted_dive["passiveReachFt"] < head["removedRadiusFt"], \
+            "The accepted direction must leave passive reach below the radius it replaced"
+        assert dive_research["openValues"] and dive_research["namedFollowUps"]
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,

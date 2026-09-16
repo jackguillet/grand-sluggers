@@ -114,9 +114,21 @@ Spending the same accepted pursuit anchors on those effective radii:
 
 The jump is not part of this problem. It is already armed by an explicit press, so its 8 feet are earned, and the accepted normal-jump contract already governs its arc, takeoff ownership and air correction. The loose-ball scoop is independent of catch radius and is unaffected. The dirt scoop pad is automatic, but 4 feet of slack on a dirt hop is what that pad is for; it is worth revisiting only if 10 feet of automatic grounder pickup still looks wide after the dive is settled.
 
-So the open question is the dive, and it is a player-facing one rather than a number: **the dive is the defence's most visible highlight play, and today the game mostly makes it for you.** Whatever is chosen has to keep an assisted or CPU defence looking alive without handing it back the passive radius that was just removed.
+So the question was the dive, and it was a player-facing one rather than a number: **the dive is the defence's most visible highlight play, and today the game mostly makes it for you.** Jack's answer is below.
 
 **Reference limit:** no Wii or GameCube dive reach has been measured, and video gives no world scale. Both references are understood to show automatic diving by fielders the player is not controlling, but that recollection is not a recorded observation in this packet and is not evidence here.
+
+### Accepted decision — the dive is earned, and it costs something
+
+**F693-02-dive-jump-scoop-reach — accepted by Jack on September 15, 2026.** Offered the three options above, Jack chose the strictest: *“Dive ever only on a press. But, there should be a ‘delay’ if you dive (before throwing or moving) so that dives are used as a last resort to reach a ball, not spammed on every play.”*
+
+Two things follow. **The assistance dive is removed** — `AutoDive` must stop firing behind the dead-stick branch, so no fielder reaches the rim without someone choosing to. Passive coverage becomes exactly the accepted **6 feet** in the air and **10 feet** on the dirt, never 14, and an earned dive still reaches 14. And **a dive now carries a recovery delay before the diver can throw or move.** That is new behaviour rather than a retune: `DiveT` in the current runtime is only an arm window that widens the catch window and gates nothing, so there is no existing dive cost to adjust.
+
+The delay is a cost of the dive itself, so it applies whether or not the ball was caught; whether the two cases cost the same is open, as are the duration, character variation and how it composes with the accepted 0.40-second handling stun. Jack raised earlier that Fielding might mean “a unique dive ability” — dive recovery is the most natural place for that to live, and it is recorded as a direction to discuss, not a selected mechanism. A dive that secures the ball still records the out; the delay is paid after the catch, not a reason to drop it. Routine clean catches and pickups keep their accepted zero added pause, and the dive is an explicit exception to that — consistent with the earlier readiness decisions, which all excluded dives by name.
+
+**Accepted scope:** dive ownership and the existence of a commitment cost. No delay duration, rules-file value or runtime change is selected. The jump stays armed by the West press under the accepted normal-jump contract, the loose-ball scoop stays independent of catch radius, and the 4-foot dirt scoop pad is unchanged and still deferred.
+
+**Named follow-ups.** `F693-02-dive-recovery-cost` carries the delay's numbers. `F693-02-cpu-dive-intent` carries the cost Jack accepted with his eyes open: with the assistance dive gone, eight of nine defenders and the entire opposing defence stop reaching the rim. Whether a CPU or unselected fielder gets *deliberate* dive intent paying the same commitment cost, or genuinely never dives, needs its own contract rather than being settled by omission.
 
 ## Accepted decision — lead spatial trial
 
