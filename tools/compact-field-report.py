@@ -1049,15 +1049,34 @@ def derive(data):
         assert bobble_stun["state"] == "accepted-calibration-anchor"
         assert bobble_stun["acceptedBy"] and bobble_stun["acceptedOn"] and bobble_stun["acceptanceEvidence"]
         assert all(bobble_stun[key] is None for key in
-                   ("stunDurationSec", "handlingDurationMapping", "entryMotionProfile", "freshAttemptDefinition"))
+                   ("stunDurationSec", "entryMotionProfile", "freshAttemptDefinition"))
+        assert bobble_stun["handlingDurationMapping"] == "shared-duration-no-handling-scaling"
     stun_handling = data.get("bobbleStunHandlingProposal")
     if stun_handling:
-        assert stun_handling["state"] == "pending"
+        assert stun_handling["state"] == "superseded-by-user-direction"
+        assert stun_handling["supersededBy"] == "F693-02-uniform-bobble-stun"
         assert all(stun_handling[key] is None for key in
                    ("stunDurationSec", "maximumRelativeReduction", "minimumReadableStunSec", "handlingTraitMapping"))
+    uniform_stun = data.get("uniformBobbleStunProposal")
+    if uniform_stun:
+        assert uniform_stun["state"] == "accepted-calibration-anchor"
+        assert uniform_stun["acceptedBy"] and uniform_stun["acceptedOn"] and uniform_stun["acceptanceEvidence"]
+        assert uniform_stun["handlingAffectsDuration"] is False and uniform_stun["stunDurationSec"] is None
+    stun_duration = data.get("bobbleStunDurationProposal")
+    if stun_duration:
+        assert stun_duration["state"] == "pending"
+        assert stun_duration["handlingAffectsDuration"] is False
+        assert math.isclose(stun_duration["stunDurationSec"], .40)
+        stun_sensitivity = stun_duration["sensitivity"]
+        stun_runner_speed = stun_sensitivity["basepathFt"] / stun_sensitivity["steadyBagTravelSec"]
+        assert math.isclose(stun_sensitivity["runnerSpeedFtPerSec"], stun_runner_speed)
+        for stun_row in stun_sensitivity["alternatives"]:
+            assert math.isclose(stun_row["runnerTravelFt"], stun_runner_speed * stun_row["stunSec"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "uniformBobbleStunState": uniform_stun["state"] if uniform_stun else None,
+            "bobbleStunDurationState": stun_duration["state"] if stun_duration else None,
             "bobbleStunState": bobble_stun["state"] if bobble_stun else None,
             "bobbleStunHandlingState": stun_handling["state"] if stun_handling else None,
             "bobbleRecoveryPermissionsState": bobble_permissions["state"] if bobble_permissions else None,
