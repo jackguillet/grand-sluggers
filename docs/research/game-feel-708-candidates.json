@@ -600,8 +600,13 @@
     },
     {
       "id": "F693-02-local-bobble-horizontal-retention",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial retaining 20% of actual incoming horizontal speed for local bobbles, limited by the accepted six-foot-per-second ceiling?"
+    },
+    {
+      "id": "F693-02-local-bobble-ground-horizontal",
+      "state": "next-human-decision",
+      "question": "Retain 80% of current horizontal speed at each actual local-bobble ground impact, with continuous ground rolling handled separately?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5738,7 +5743,11 @@
     "localHorizontalSpeed": {
       "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
       "maximumFtPerSec": 6,
-      "contactMapping": null
+      "contactMapping": {
+        "decisionId": "F693-02-local-bobble-horizontal-retention",
+        "retainedFraction": 0.2,
+        "maximumFtPerSec": 6
+      }
     },
     "settleDistanceFt": null,
     "recommendation": "For the ordinary local-bobble branch, spill the ball down from actual glove contact and use a small low ground rebound, instead of adding a default upward pop. Keep the bobble nearby and visibly loose while the character performs its accepted reaction.",
@@ -5911,7 +5920,11 @@
     "horizontalContactResponse": {
       "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
       "maximumFtPerSec": 6,
-      "contactMapping": null
+      "contactMapping": {
+        "decisionId": "F693-02-local-bobble-horizontal-retention",
+        "retainedFraction": 0.2,
+        "maximumFtPerSec": 6
+      }
     },
     "recommendation": "For a qualifying failed handling event already classified as a local knockdown/bobble, absorb the incoming vertical component at glove contact: world-space vertical speed becomes zero, then shared ball gravity acts immediately. Retain actual contact position and height. No possession or hold is inserted.",
     "rationale": "The glove visibly interrupts the local ball before it drops. This gives a simple soft spill without a scripted upward pop or downward punch. The alternative is to retain some downward momentum, producing a faster drop after harder descending contacts. Horizontal spill is a separate pending response; zero vertical speed does not mean zero horizontal speed.",
@@ -5939,7 +5952,11 @@
     "maximumPostContactHorizontalSpeedFtPerSec": 6,
     "fixedSpeed": false,
     "minimumSpeedFtPerSec": null,
-    "contactSpeedMapping": null,
+    "contactSpeedMapping": {
+      "decisionId": "F693-02-local-bobble-horizontal-retention",
+      "retainedFraction": 0.2,
+      "maximumFtPerSec": 6
+    },
     "groundHorizontalResponse": null,
     "recommendation": "Trial a six-foot-per-second ceiling on outgoing horizontal speed at ordinary local-bobble glove contact. Contact determines a speed at or below that ceiling through a separately reviewed mapping. Do not force every bobble to six or invent a minimum kick.",
     "rationale": "Keep local knockdowns visibly loose but nearby, while continuing deflections retain their separate faster escape response. A four-foot-per-second cap is tighter; eight allows a larger spill. Six is an authored trial, not a measured Mario speed.",
@@ -5969,7 +5986,7 @@
   },
   "localBobbleHorizontalRetentionProposal": {
     "decisionId": "F693-02-local-bobble-horizontal-retention",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "horizontalSpeedRetention": 0.2,
     "maximumOutgoingHorizontalSpeedFtPerSec": 6,
     "ceilingDecisionId": "F693-02-local-bobble-horizontal-cap",
@@ -6015,6 +6032,49 @@
       "Angle variation preserves outgoing magnitude and real contact position.",
       "Keep continuing/special trajectories separate; validate actual short/high-contact recovery races before human acceptance."
     ],
-    "implementationBoundary": "Pending local horizontal-retention fraction only; no runtime or human gate change."
+    "implementationBoundary": "Accepted local horizontal-retention fraction only; no runtime or human gate change.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to 20% incoming horizontal-speed retention for nearby bobbles, capped at six ft/s."
+  },
+  "localBobbleGroundHorizontalProposal": {
+    "decisionId": "F693-02-local-bobble-ground-horizontal",
+    "state": "pending",
+    "retainedHorizontalFraction": 0.8,
+    "rollingFriction": null,
+    "recommendation": "At each actual airborne-to-ground collision in the ordinary local-bobble phase, retain 80% of current horizontal velocity: vx_out=.8*vx_in and vz_out=.8*vz_in on flat stationary ground. Apply whether the vertical response rebounds or settles.",
+    "rationale": "A modest 20% speed loss should make ground contact register while allowing a short roll. Retaining 60% would stop more of the spill at impact; 100% would add no impact slowdown. The proposed 80% is an authored trial, not measured Wii/GC behavior.",
+    "examples": [
+      {
+        "incomingHorizontalSpeedFtPerSec": 0,
+        "outgoingHorizontalSpeedFtPerSec": 0.0
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 2,
+        "outgoingHorizontalSpeedFtPerSec": 1.6
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 4,
+        "outgoingHorizontalSpeedFtPerSec": 3.2
+      },
+      {
+        "incomingHorizontalSpeedFtPerSec": 6,
+        "outgoingHorizontalSpeedFtPerSec": 4.800000000000001
+      }
+    ],
+    "event": "Apply once per actual ground impact using current pre-impact velocity, not the original glove-release speed. A later real bounce landing may apply it again. Never reapply every grounded frame, because a ground flag remains true, on selection changes or while merely rolling. A ball released already supported gets no fabricated landing event; support/rolling handling remains explicit.",
+    "scope": "Ordinary local-bobble ground impact on flat stationary ordinary park ground only. Same trial across characters. Preserve horizontal direction; no extra direction/speed roll or handling modifier. Slopes, walls, special surfaces/impulses, continuing deflections and normal batted-ball trajectories retain separate contracts.",
+    "physics": "Change velocity at physical collision while preserving continuous ball position. Apply the approved .35 vertical restitution, six-inch rebound cap and three-inch settling cutoff independently; horizontal damping also occurs when that impact settles vertically. No minimum horizontal speed or conversion of removed horizontal energy into a vertical pop.",
+    "recovery": "Retain same-error identity, independent .40-second stun and actual eligible pickup. Ground contact does not award possession, reset a timer or require waiting for the ball to stop.",
+    "openWork": "Continuous rolling friction, stopping distance, flight integration, contact classification/direction and reference/gameplay validation remain pending. The 4.8 ft/s example assumes six ft/s immediately before impact, not every bobble landing or a global post-impact limit.",
+    "referenceLimit": "Authored impact-retention proposal and arithmetic examples only; no matched Wii/GC measurements establish .8.",
+    "requiredChecks": [
+      "Apply exactly once per real ground impact, not per frame or every grounded sample.",
+      "Use current pre-impact magnitude and preserve its heading on flat ground, including zero input.",
+      "Apply on both rebound and vertical settling, with no added upward energy.",
+      "Later genuine impacts may repeat damping; rolling/support cannot invent impacts.",
+      "Preserve continuity, error origin and eligible recovery; compare full races before human acceptance."
+    ],
+    "implementationBoundary": "Pending ground-impact horizontal retention only; no rolling-friction value, runtime tuning or human gate pass."
   }
 }

@@ -1222,7 +1222,7 @@ def derive(data):
         assert all(local_vertical[key] is None for key in
                    ("reboundHeightFt", "settleDistanceFt"))
         assert local_vertical["localHorizontalSpeed"]["maximumFtPerSec"] == 6
-        assert local_vertical["localHorizontalSpeed"]["contactMapping"] is None
+        assert local_vertical["localHorizontalSpeed"]["contactMapping"]["retainedFraction"] == .2
         assert local_vertical["verticalContactResponse"]["postContactVerticalSpeedFtPerSec"] == 0
     local_rebound = data.get("localBobbleReboundCeilingProposal")
     if local_rebound:
@@ -1270,7 +1270,7 @@ def derive(data):
         assert local_glove_release["postContactVerticalSpeedFtPerSec"] == 0
         assert local_glove_release["addedHoldSec"] == 0
         assert local_glove_release["horizontalContactResponse"]["maximumFtPerSec"] == 6
-        assert local_glove_release["horizontalContactResponse"]["contactMapping"] is None
+        assert local_glove_release["horizontalContactResponse"]["contactMapping"]["retainedFraction"] == .2
     local_horizontal_cap = data.get("localBobbleHorizontalCapProposal")
     if local_horizontal_cap:
         assert local_horizontal_cap["state"] == "accepted-calibration-anchor"
@@ -1278,21 +1278,31 @@ def derive(data):
         assert local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"] == 6
         assert local_horizontal_cap["fixedSpeed"] is False
         assert all(local_horizontal_cap[key] is None for key in
-                   ("minimumSpeedFtPerSec", "contactSpeedMapping", "groundHorizontalResponse"))
+                   ("minimumSpeedFtPerSec", "groundHorizontalResponse"))
+        assert local_horizontal_cap["contactSpeedMapping"]["retainedFraction"] == .2
         spill_example = local_horizontal_cap["illustration"]
         assert math.isclose(spill_example["distanceFt"], spill_example["constantSpeedFtPerSec"] * spill_example["elapsedSec"])
     local_horizontal_retention = data.get("localBobbleHorizontalRetentionProposal")
     if local_horizontal_retention:
-        assert local_horizontal_retention["state"] == "pending"
+        assert local_horizontal_retention["state"] == "accepted-calibration-anchor"
+        assert local_horizontal_retention["acceptedBy"] and local_horizontal_retention["acceptedOn"] and local_horizontal_retention["acceptanceEvidence"]
         assert local_horizontal_retention["horizontalSpeedRetention"] == .20
         assert local_horizontal_retention["maximumOutgoingHorizontalSpeedFtPerSec"] == local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"]
         for retention_example in local_horizontal_retention["examples"]:
             retained_speed = min(local_horizontal_retention["horizontalSpeedRetention"] * retention_example["incomingHorizontalSpeedFtPerSec"], local_horizontal_retention["maximumOutgoingHorizontalSpeedFtPerSec"])
             assert math.isclose(retention_example["outgoingHorizontalSpeedFtPerSec"], retained_speed)
+    local_ground_horizontal = data.get("localBobbleGroundHorizontalProposal")
+    if local_ground_horizontal:
+        assert local_ground_horizontal["state"] == "pending"
+        assert local_ground_horizontal["retainedHorizontalFraction"] == .8
+        assert local_ground_horizontal["rollingFriction"] is None
+        for impact_example in local_ground_horizontal["examples"]:
+            assert math.isclose(impact_example["outgoingHorizontalSpeedFtPerSec"], impact_example["incomingHorizontalSpeedFtPerSec"] * local_ground_horizontal["retainedHorizontalFraction"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleGroundHorizontalState": local_ground_horizontal["state"] if local_ground_horizontal else None,
             "localBobbleHorizontalRetentionState": local_horizontal_retention["state"] if local_horizontal_retention else None,
             "localBobbleHorizontalCapState": local_horizontal_cap["state"] if local_horizontal_cap else None,
             "localBobbleGloveReleaseState": local_glove_release["state"] if local_glove_release else None,

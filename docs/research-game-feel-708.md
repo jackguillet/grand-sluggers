@@ -1544,9 +1544,9 @@ Continuing deflections retain their separate 50–80% incoming horizontal-speed 
 
 **Accepted scope:** six-ft/s maximum outgoing horizontal speed at ordinary local-bobble contact. No fixed kick, minimum speed or stopping distance is selected.
 
-## Next decision — local bobble horizontal speed retention
+## Accepted decision — local bobble horizontal speed retention
 
-**F693-02-local-bobble-horizontal-retention — pending, September 15, 2026.** Recommend retaining **20% of actual incoming horizontal speed**, limited by the accepted six-ft/s ceiling, after the failed contact has been classified as a local knockdown/bobble.
+**F693-02-local-bobble-horizontal-retention — accepted by Jack on September 15, 2026.** Jack approved retaining **20% of actual incoming horizontal speed**, limited by the accepted six-ft/s ceiling, after the failed contact has been classified as a local knockdown/bobble.
 
 **Player context:** a softer incoming ball produces a smaller spill, while a harder local knockdown reaches the ceiling. Illustrative inputs of **10, 20 and 30 ft/s become 2, 4 and 6 ft/s** respectively. Inputs above 30 still leave at six; zero horizontal input stays zero. These examples are arithmetic, not measured hit speeds or simulated recovery races. Continuing deflections keep their separately accepted 50–80% response.
 
@@ -1558,7 +1558,23 @@ Apply the accepted contact-derived baseline and uniform ±30-degree variation wi
 
 Horizontal ground response, rolling friction and full recovery distance remain pending. This is an authored fraction, not measured Wii/GC retention; reference capture and eventual trajectory/gameplay review remain required. No runtime or human gate changes here.
 
-**Question for Jack:** trial 20% incoming horizontal-speed retention for nearby bobbles, capped at six feet per second?
+**Accepted scope:** retain 20% of actual pre-contact horizontal speed in the local branch, capped at six ft/s. Ground response and full collision integration remain open.
+
+## Next decision — local bobble horizontal response at ground impact
+
+**F693-02-local-bobble-ground-horizontal — pending, September 15, 2026.** Recommend retaining **80% of current horizontal speed at each actual ground impact** during an ordinary nearby bobble. This removes 20% at impact, whether the ball rebounds vertically or settles into ground motion.
+
+**Player context:** the ball loses some speed as it hits the dirt but can still roll. An incoming horizontal speed of six ft/s becomes **4.8 ft/s**; four becomes **3.2**; two becomes **1.6**. Retaining 60% would produce a sharper slowdown, while retaining 100% would add none at contact. These are arithmetic examples, not Mario measurements or total-distance predictions.
+
+**Event, not frame:** on flat stationary ground, multiply both horizontal velocity components by .80 once at the actual impact. Use current velocity immediately before that collision, not the original glove-release speed. Another genuine bounce landing can apply the response again. Never repeat it every grounded frame, on selection changes or during continuous rolling. A ball released already supported has no invented landing event; its supported movement must be handled explicitly.
+
+**Keep motion coherent:** horizontal direction stays the same at flat ground impact, without another random roll or handling modifier. Position remains continuous. Vertical motion keeps its separately accepted 35% restitution, six-inch ceiling and three-inch settling rule. Removed horizontal energy does not create an upward pop or a minimum roll speed. The 4.8-ft/s example assumes six immediately before impact; it is not a global cap after other impulses.
+
+Keep same-error identity, independent .40-second stun and eligible recovery. Impact does not award possession or require waiting until the ball stops. Ordinary local-bobble impacts alone use this trial; continuing deflections, normal batted balls, specials and unreviewed slope/wall responses remain separate.
+
+Continuous rolling friction and stopping distance are still pending. This is an authored impact-response proposal, not measured Wii/GC physics. Use shared authoritative collision/trajectory handling and validate full recovery races before human acceptance. No runtime change here.
+
+**Question for Jack:** retain 80% of horizontal speed when a nearby bobble actually hits the ground?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
