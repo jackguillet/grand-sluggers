@@ -118,9 +118,33 @@ public sealed class ContentCatalog
         TryFindDataRoot()
         ?? throw new DirectoryNotFoundException("Could not find data/characters from " + AppContext.BaseDirectory);
 
+    /// <summary>
+    /// The environment variable that points a whole process at another data root. Set it to play
+    /// a trial profile — a different infield, a different park table — against the same binary,
+    /// without editing the shipped data. It is read once per process and never written, so the
+    /// control and the trial are two runs to diff, not two tables inside one run.
+    /// </summary>
+    public const string DataRootVariable = "GRAND_SLUGGERS_DATA";
+
+    /// <summary>
+    /// The root <see cref="DataRootVariable"/> names, or null when it is unset. A value that is not
+    /// a data root is a mistake worth stopping on: falling back to the shipped data would quietly
+    /// run the control while the operator believed they were running the trial.
+    /// </summary>
+    public static string? NamedDataRoot(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (Directory.Exists(Path.Combine(value, "characters"))) return value;
+        throw new DirectoryNotFoundException(
+            $"{DataRootVariable}={value} has no characters/ — point it at a data root, not at one folder inside it");
+    }
+
     /// <summary>The data root above the running binary, or null when the binary sits elsewhere (Unity passes its own).</summary>
     public static string? TryFindDataRoot()
     {
+        var named = NamedDataRoot(Environment.GetEnvironmentVariable(DataRootVariable));
+        if (named is not null) return named;
+
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
