@@ -695,8 +695,18 @@
     },
     {
       "id": "F693-02-dive-jump-scoop-reach",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "The dive adds 8 feet on top of the accepted 6-foot stand-up radius and fires automatically for any fielder the player is not steering. Keep it automatic at that size, shrink it, or make it an earned press?"
+    },
+    {
+      "id": "F693-02-dive-recovery-cost",
+      "state": "pending",
+      "question": "How long is the dive recovery delay before the diver can throw or move, does a caught dive cost the same as a missed one, and does it vary by character?"
+    },
+    {
+      "id": "F693-02-cpu-dive-intent",
+      "state": "pending",
+      "question": "With the assistance dive removed, does a CPU or unselected fielder get deliberate dive intent paying the same commitment cost, or never dive?"
     }
   ],
   "runnerClockProposal": {
@@ -6671,8 +6681,8 @@
   },
   "diveJumpScoopReachResearch": {
     "decisionId": "F693-02-dive-jump-scoop-reach",
-    "state": "next-human-decision",
-    "status": "research-arithmetic-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-direction-research-arithmetic-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-catch-reach-envelope",
@@ -6758,6 +6768,40 @@
     ],
     "model": "Reuses the straight-line lateral interception model and the accepted pursuit anchors from catchReachCoverageResearch. A ceiling on coverage, not a hit rate, and not a simulation.",
     "referenceLimit": "No Wii or GameCube dive reach has been measured, and video gives no world scale. Both references are understood to show automatic diving by uncontrolled fielders, but that is recollection rather than a recorded observation in this packet and is not treated as evidence.",
-    "implementationBoundary": "Research prepared for one human decision. No dive value, ownership rule, CPU intent design, rules-file edit, runtime change or human gate is selected or passed here."
+    "implementationBoundary": "Accepted ownership direction and the existence of a commitment cost only. No delay duration, CPU intent design, rules-file edit, runtime change, trait migration or human gate is selected or passed here.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack: Dive ever only on a press. But, there should be a 'delay' if you dive (before throwing or moving) so that dives are used as a last resort to reach a ball, not spammed on every play.",
+    "acceptedOption": "always-earned-dive",
+    "acceptedDirection": {
+      "automaticDive": false,
+      "automaticAdditionFt": 0.0,
+      "earnedAdditionFt": 8.0,
+      "passiveReachFt": 6.0,
+      "passiveDirtReachFt": 10.0,
+      "earnedReachFt": 14.0,
+      "ownership": "A dive is a deliberate committed action. Remove the assistance dive path: FlyCatch.AutoDive must stop firing behind the dead-stick branch. No fielder reaches the rim without someone choosing to.",
+      "commitmentCost": "A dive carries a recovery delay before the diver can throw or move again, so the dive is a last resort for reaching a ball rather than a default pressed on every play. This is new behaviour: DiveT in the current runtime is only an arm window that widens the catch window and gates nothing, so there is no dive cost to retune.",
+      "appliesTo": "The delay is a cost of the dive itself, so it applies whether or not the ball was caught. Whether the two cases carry the same duration is open."
+    },
+    "openValues": [
+      "The delay duration, and whether a successful dive and a missed dive carry the same one.",
+      "Whether the delay varies by character, and specifically whether this is where the Fielding summary earns its keep as the \"unique dive\" direction Jack raised.",
+      "Whether the delay is cancellable or interruptible, and how it composes with the accepted 0.40-second handling stun if a dive attempt also fails a handling roll.",
+      "Whether the dive retains the full +8 feet now that it is always earned, or whether an earned-only dive should reach further still."
+    ],
+    "acceptedScope": "Dive ownership and the existence of a dive commitment cost. Trial direction, not a shipping default and not a measured Mario behaviour. It selects no delay duration, no CPU dive design, no rules-file value and no runtime change. The jump stays armed by the West press under the accepted normal-jump contract, the loose-ball scoop stays independent of catch radius, and the 4-foot dirt scoop pad is unchanged and still deferred.",
+    "requiredChecks": [
+      "No dive occurs without a deliberate press; the dead-stick branch no longer reaches the rim.",
+      "Passive coverage is the accepted 6-foot stand-up radius in the air and 10 feet on the dirt, never 14.",
+      "The delay applies to the diver on the authoritative gameplay clock regardless of selection or control owner, and switching away and back cannot erase or restart it.",
+      "The delay blocks throwing and movement specifically, and does not silently become a new error source, a possession loss or a second acquisition gate.",
+      "A dive that secures the ball still yields an out; the delay is a cost paid after the catch, not a reason to drop it.",
+      "Routine clean catches and pickups keep their accepted zero added pause; the dive delay is an explicit exception, consistent with prior decisions that excluded dives from those contracts."
+    ],
+    "namedFollowUps": [
+      "F693-02-cpu-dive-intent: with the assistance dive removed, whether a CPU or unselected fielder gets deliberate dive intent paying the same commitment cost, or genuinely never dives. Jack accepted the stated cost that eight of nine defenders and the whole opposing defence stop reaching the rim, but the CPU side still needs its own explicit contract rather than inheriting one by omission.",
+      "F693-02-dive-recovery-cost: the delay duration and its open values above."
+    ]
   }
 }
