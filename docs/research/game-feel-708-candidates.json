@@ -585,8 +585,13 @@
     },
     {
       "id": "F693-02-local-bobble-settling",
+      "state": "accepted-calibration-anchor",
+      "question": "At actual ground impact, settle vertical motion when the next local-bobble rebound would rise three inches or less, preserving horizontal roll and normal recovery?"
+    },
+    {
+      "id": "F693-02-local-bobble-glove-release",
       "state": "next-human-decision",
-      "question": "At actual ground impact, settle vertical motion when the next local-bobble rebound would rise one inch or less, preserving horizontal roll and normal recovery?"
+      "question": "For the local knockdown/bobble branch, absorb vertical speed at failed glove contact and let gravity immediately drop the loose ball from its actual contact height?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5775,9 +5780,13 @@
     "verticalSpeedRetention": 0.35,
     "reboundCeilingDecisionId": "F693-02-local-bobble-rebound-ceiling",
     "maximumReboundRiseFt": 0.5,
-    "settleThreshold": null,
+    "settleThreshold": {
+      "decisionId": "F693-02-local-bobble-settling",
+      "maximumSuppressedReboundRiseFt": 0.25,
+      "comparison": "less-than-or-equal"
+    },
     "postGloveVerticalResponse": null,
-    "recommendation": "On ordinary local-bobble ground impact, trial 35% of actual downward impact speed as upward speed, reduced as needed by the accepted six-inch rise ceiling. Weak impacts can settle under a later reviewed threshold; no minimum rebound speed or forced bounce.",
+    "recommendation": "On ordinary local-bobble ground impact, trial 35% of actual downward impact speed as upward speed, reduced as needed by the accepted six-inch rise ceiling. Weak impacts can settle under the accepted three-inch predicted-rise threshold; no minimum rebound speed or forced bounce.",
     "definition": "Flat stationary ground: before the ceiling/settling rule, u_out=0.35*abs(v_y_in), using actual event-side downward vertical velocity. The shared trajectory must enforce the rise ceiling without adding energy or snapping position. With constant downward gravity g and no drag, the capped analytical response is min(0.35*abs(v_y_in),sqrt(2*g*0.50)). No new gravity, flight time scale or independent physics path is selected.",
     "examples": [
       {
@@ -5805,7 +5814,7 @@
     "rationale": "Strong damping lets a modest first bounce register while making later bounces much smaller. A .25 speed ratio would return 6.25% of equivalent drop height before capping; .50 would return 25%; .35 returns 12.25%. This is speed retention in the vertical component, not 35% of height, horizontal speed or total energy.",
     "scope": "Ordinary local-bobble ground rebounds only. Same trial across characters and ordinary park ground surfaces; no handling/Fielding modifier or new random draw. Special surfaces and slope/wall collision contracts require review; do not silently extrapolate this flat-ground formula. Continuing deflections, untouched balls and ordinary batted-ball flight remain separate.",
     "recovery": "Keep .40-second stun independent; actual eligible recovery can occur before any bounce or during it. No extra wait for settling, automatic acquisition, error reroll or change to local horizontal angles.",
-    "openWork": "Post-glove vertical velocity, low-speed settling threshold, horizontal speed/damping/distance, classifier, contact geometry and complete collision integration remain open. A numerical restitution alone is not a complete runtime contract.",
+    "openWork": "Post-glove vertical velocity, horizontal speed/damping/distance, classifier, contact geometry and complete collision integration remain open. A numerical restitution alone is not a complete runtime contract.",
     "referenceLimit": "Authored trial with analytic illustrations; no measured Wii/GC restitution or matched local-bobble trajectory establishes .35. Reference and gameplay-distance review remain required.",
     "requiredChecks": [
       "Outgoing vertical speed never exceeds 35% of actual incoming downward speed; the ceiling can only reduce it.",
@@ -5821,16 +5830,16 @@
   },
   "localBobbleSettlingProposal": {
     "decisionId": "F693-02-local-bobble-settling",
-    "state": "pending",
-    "maximumSuppressedReboundRiseInches": 1,
-    "maximumSuppressedReboundRiseFt": 0.08333333333333333,
+    "state": "accepted-calibration-anchor",
+    "maximumSuppressedReboundRiseInches": 3,
+    "maximumSuppressedReboundRiseFt": 0.25,
     "comparison": "less-than-or-equal",
     "restitutionDecisionId": "F693-02-local-bobble-restitution",
     "atActualGroundImpactOnly": true,
     "forceHorizontalStop": false,
-    "recommendation": "At actual ground impact in the ordinary local-bobble phase, if the next rebound under the accepted .35 restitution and .50-foot cap would rise one inch or less, suppress that tiny rebound and transition to supported ground motion. Keep actual horizontal velocity subject to its separately reviewed collision/rolling response.",
-    "definition": "Predict the next apex rise with the same authoritative trajectory used to step the ball, after restitution and the ceiling. If rise <= 1/12 foot at collision, outgoing vertical speed is zero. Flat constant-gravity/no-drag arithmetic uses h=u_out squared/(2*g); do not apply that shortcut to a different flight model or use incoming ball height as the cutoff.",
-    "rationale": "Let the visible bobble read, then remove a tail of tiny hops that can look jittery. A half-inch cutoff permits more small rebounds; a two-inch cutoff removes more visible motion. One inch is an authored trial, not a measured Mario value.",
+    "recommendation": "At actual ground impact in the ordinary local-bobble phase, if the next rebound under the accepted .35 restitution and .50-foot cap would rise three inches or less, suppress that tiny rebound and transition to supported ground motion. Keep actual horizontal velocity subject to its separately reviewed collision/rolling response.",
+    "definition": "Predict the next apex rise with the same authoritative trajectory used to step the ball, after restitution and the ceiling. If rise <= 0.25 foot at collision, outgoing vertical speed is zero. Flat constant-gravity/no-drag arithmetic uses h=u_out squared/(2*g); do not apply that shortcut to a different flight model or use incoming ball height as the cutoff.",
+    "rationale": "Jack selected a larger cutoff, so more weak impacts settle directly into ground motion. Rebounds above three inches remain visible up to the six-inch ceiling. This is an authored trial, not a measured Mario value.",
     "examples": {
       "assumptions": "Flat stationary ground, constant gravity, no drag or added impulse, no pickup between bounces. Analytic sequence only.",
       "previousReboundRiseInches": 6,
@@ -5838,17 +5847,57 @@
       "nextReboundSuppressed": true
     },
     "scope": "Ordinary local-bobble phase only. The first ground impact may settle if sufficiently weak; no guaranteed first bounce, fixed bounce count, fixed airtime or upward minimum. Continuing deflections, untouched batted balls and special hits retain separate contracts. Slope/wall/special-surface handling remains open.",
-    "continuity": "Evaluate only at physical ground collision. Never snap a descending ball to the ground because its current height is under one inch, freeze horizontal position, stop all motion or teleport to a fielder. Settling removes remaining vertical energy; it does not award possession.",
+    "continuity": "Evaluate only at physical ground collision. Never snap a descending ball to the ground because its current height is under three inches, freeze horizontal position, stop all motion or teleport to a fielder. Settling removes remaining vertical energy; it does not award possession.",
     "recovery": "The .40-second stun stays independent. Eligible players/helpers can recover before settling. Settling neither makes a pickup mandatory nor rerolls the same ordinary error. Preserve the error origin until actual possession or dead-play termination, not merely until vertical settling.",
     "openWork": "Horizontal contact/rolling response, post-glove vertical velocity, complete collision integration, outcome classification and final gameplay validation remain open. No character handling multiplier, extra RNG or change to error frequency.",
-    "referenceLimit": "Authored settling proposal with analytical illustration only. No matched Wii/GC measurement establishes a one-inch threshold. Reference and gameplay-distance comparisons remain required.",
+    "referenceLimit": "Accepted authored settling trial with analytical illustration only. No matched Wii/GC measurement establishes a three-inch threshold. Reference and gameplay-distance comparisons remain required.",
     "requiredChecks": [
-      "Boundary: next predicted apex at or below one inch settles; above it remains a rebound, subject to the accepted ceiling.",
+      "Boundary: next predicted apex at or below three inches settles; above it remains a rebound, subject to the accepted ceiling.",
       "Evaluate at actual contact, never by current airborne height or a countdown.",
       "Preserve horizontal motion, error identity and actual pickup geometry across the transition.",
       "Compare frame partitions and shared prediction/stepping without repeated artificial impact events.",
       "Verify weak first impacts and later diminishing rebounds without enforcing a fixed bounce count."
     ],
-    "implementationBoundary": "Pending settling threshold only; no runtime tuning, simulation evidence or passed human gate."
+    "implementationBoundary": "Accepted three-inch settling threshold only; no runtime tuning, simulation evidence or passed human gate.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack directed \"let's make it 3 inches\", replacing the pending one-inch recommendation with a three-inch predicted-rebound settling threshold.",
+    "priorProposedThresholdInches": 1,
+    "firstImpactExamples": [
+      {
+        "illustrativeDropFromRestFt": 2,
+        "uncutReboundRiseInches": 2.9399999999999995,
+        "settlesAtFirstGroundImpact": true
+      },
+      {
+        "illustrativeDropFromRestFt": 4,
+        "uncutReboundRiseInches": 5.879999999999999,
+        "settlesAtFirstGroundImpact": false
+      }
+    ],
+    "exampleAssumptions": "Flat ground, constant gravity, no drag or added impulse. Drop heights are illustrations, not chosen glove heights; use the actual trajectory for the runtime cutoff."
+  },
+  "localBobbleGloveReleaseProposal": {
+    "decisionId": "F693-02-local-bobble-glove-release",
+    "state": "pending",
+    "postContactVerticalSpeedFtPerSec": 0,
+    "addedHoldSec": 0,
+    "horizontalContactResponse": null,
+    "recommendation": "For a qualifying failed handling event already classified as a local knockdown/bobble, absorb the incoming vertical component at glove contact: world-space vertical speed becomes zero, then shared ball gravity acts immediately. Retain actual contact position and height. No possession or hold is inserted.",
+    "rationale": "The glove visibly interrupts the local ball before it drops. This gives a simple soft spill without a scripted upward pop or downward punch. The alternative is to retain some downward momentum, producing a faster drop after harder descending contacts. Horizontal spill is a separate pending response; zero vertical speed does not mean zero horizontal speed.",
+    "scope": "Only the reviewed local-knockdown branch of ordinary awkward-hop handling errors. Never change a continuing deflection into a local bobble by applying this response before classification. Continuing deflections, untouched balls, special hits and other catch contexts retain separate rules.",
+    "physics": "Velocity may change at actual collision while position stays continuous. Remove vertical motion without adding energy, then use the existing authoritative gravity/trajectory and active simulation clock. No reset to a fixed height, ground snap, upward launch, downward impulse, carry attachment or timed hovering. Contact already at the support surface uses ordinary collision/support handling without lifting the ball.",
+    "groundResponse": "Subsequent ordinary local ground impacts use the accepted .35 vertical restitution, .50-foot rise ceiling and .25-foot predicted-rise settling threshold. The real contact height still determines fall duration and whether a visible bounce survives; no guaranteed bounce or fixed airtime.",
+    "recovery": "Keep the .40-second stun independent. A helper or the recovered fumbler can acquire through eligible actual contact before ground impact; no wait for the drop to finish, automatic pickup or same-origin reroll.",
+    "openWork": "Local horizontal contact speed/direction mapping, drag and rolling response, contact geometry/outcome classifier, collision integration and reference/gameplay validation remain open. No new random vertical variation or Fielding modifier.",
+    "referenceLimit": "Authored proposed local-contact response, not a measured Wii/GC glove-to-ball velocity. Compare low/high contact and rising/falling incoming examples in eventual reference and gameplay review.",
+    "requiredChecks": [
+      "Apply zero vertical velocity only after actual qualifying contact and local classification, without a momentary secured-possession state.",
+      "Different contact heights retain real fall-time differences; no fixed-height reset or scripted fall duration.",
+      "Gravity acts immediately with no hold or forced animation pause.",
+      "Preserve independent horizontal response, same-error identity, stun and eligible recovery.",
+      "Continuing and special trajectories do not inherit the local knockdown response."
+    ],
+    "implementationBoundary": "Pending post-glove vertical response only. No runtime tuning, reference measurement or passed human gate."
   }
 }

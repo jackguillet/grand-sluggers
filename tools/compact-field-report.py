@@ -1237,26 +1237,39 @@ def derive(data):
         assert local_restitution["acceptedBy"] and local_restitution["acceptedOn"] and local_restitution["acceptanceEvidence"]
         assert local_restitution["verticalSpeedRetention"] == .35
         assert local_restitution["maximumReboundRiseFt"] == local_rebound["maximumReboundRiseFt"]
-        assert local_restitution["settleThreshold"] is None and local_restitution["postGloveVerticalResponse"] is None
+        assert local_restitution["settleThreshold"]["maximumSuppressedReboundRiseFt"] == .25
+        assert local_restitution["postGloveVerticalResponse"] is None
         for rebound_example in local_restitution["examples"]:
             rebound_rise = rebound_example["illustrativeDropFromRestFt"] * local_restitution["verticalSpeedRetention"]**2
             assert math.isclose(rebound_example["uncappedReboundRiseFt"], rebound_rise)
             assert math.isclose(rebound_example["cappedReboundRiseFt"], min(local_rebound["maximumReboundRiseFt"], rebound_rise))
     local_settling = data.get("localBobbleSettlingProposal")
     if local_settling:
-        assert local_settling["state"] == "pending"
-        assert local_settling["maximumSuppressedReboundRiseInches"] == 1
-        assert math.isclose(local_settling["maximumSuppressedReboundRiseFt"] * 12, 1)
+        assert local_settling["state"] == "accepted-calibration-anchor"
+        assert local_settling["acceptedBy"] and local_settling["acceptedOn"] and local_settling["acceptanceEvidence"]
+        assert local_settling["maximumSuppressedReboundRiseInches"] == 3
+        assert math.isclose(local_settling["maximumSuppressedReboundRiseFt"] * 12, 3)
         assert local_settling["comparison"] == "less-than-or-equal"
         assert local_settling["atActualGroundImpactOnly"] is True and local_settling["forceHorizontalStop"] is False
         settling_example = local_settling["examples"]
         settling_rise = settling_example["previousReboundRiseInches"] * local_restitution["verticalSpeedRetention"]**2
         assert math.isclose(settling_example["uncutNextReboundRiseInches"], settling_rise)
         assert settling_example["nextReboundSuppressed"] == (settling_rise <= local_settling["maximumSuppressedReboundRiseInches"])
+        for first_impact in local_settling["firstImpactExamples"]:
+            first_rise = first_impact["illustrativeDropFromRestFt"] * 12 * local_restitution["verticalSpeedRetention"]**2
+            assert math.isclose(first_impact["uncutReboundRiseInches"], first_rise)
+            assert first_impact["settlesAtFirstGroundImpact"] == (first_rise <= local_settling["maximumSuppressedReboundRiseInches"])
+    local_glove_release = data.get("localBobbleGloveReleaseProposal")
+    if local_glove_release:
+        assert local_glove_release["state"] == "pending"
+        assert local_glove_release["postContactVerticalSpeedFtPerSec"] == 0
+        assert local_glove_release["addedHoldSec"] == 0
+        assert local_glove_release["horizontalContactResponse"] is None
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleGloveReleaseState": local_glove_release["state"] if local_glove_release else None,
             "localBobbleSettlingState": local_settling["state"] if local_settling else None,
             "localBobbleRestitutionState": local_restitution["state"] if local_restitution else None,
             "localBobbleReboundCeilingState": local_rebound["state"] if local_rebound else None,
