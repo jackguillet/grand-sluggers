@@ -630,8 +630,13 @@
     },
     {
       "id": "F693-02-error-contact-obstruction-basis",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Measure physical obstruction by how squarely the ball meets the actual contact surface, using relative incoming motion and the surface normal, rather than overlap depth?"
+    },
+    {
+      "id": "F693-02-glove-contact-surface",
+      "state": "next-human-decision",
+      "question": "Use a simplified smooth cup-shaped glove contact surface with a rounded rim, matching the visible pocket and moving with the glove, independently of catch reach?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5508,7 +5513,12 @@
       "contactMapping": {
         "curveDecisionId": "F693-02-continuing-error-retention-curve",
         "curve": "linear",
-        "obstructionMetric": null,
+        "obstructionMetric": {
+          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+          "basis": "three-dimensional-contact-incidence",
+          "normalizationBounds": null,
+          "geometryContract": null
+        },
         "branchThresholds": null
       }
     },
@@ -5604,7 +5614,12 @@
       "contactMapping": {
         "curveDecisionId": "F693-02-continuing-error-retention-curve",
         "curve": "linear",
-        "obstructionMetric": null,
+        "obstructionMetric": {
+          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+          "basis": "three-dimensional-contact-incidence",
+          "normalizationBounds": null,
+          "geometryContract": null
+        },
         "branchThresholds": null
       }
     },
@@ -5614,7 +5629,12 @@
       "contactFactorMapping": {
         "curveDecisionId": "F693-02-continuing-error-retention-curve",
         "curve": "linear",
-        "obstructionMetric": null,
+        "obstructionMetric": {
+          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+          "basis": "three-dimensional-contact-incidence",
+          "normalizationBounds": null,
+          "geometryContract": null
+        },
         "branchThresholds": null
       }
     },
@@ -5648,7 +5668,12 @@
     "contactRetentionMapping": {
       "curveDecisionId": "F693-02-continuing-error-retention-curve",
       "curve": "linear",
-      "obstructionMetric": null,
+      "obstructionMetric": {
+        "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+        "basis": "three-dimensional-contact-incidence",
+        "normalizationBounds": null,
+        "geometryContract": null
+      },
       "branchThresholds": null
     },
     "outcomeThresholds": null,
@@ -6205,7 +6230,12 @@
     "contactFactorMapping": {
       "curveDecisionId": "F693-02-continuing-error-retention-curve",
       "curve": "linear",
-      "obstructionMetric": null,
+      "obstructionMetric": {
+        "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+        "basis": "three-dimensional-contact-incidence",
+        "normalizationBounds": null,
+        "geometryContract": null
+      },
       "branchThresholds": null
     },
     "recommendation": "For an ordinary failed contact already classified as a continuing deflection, retain the signed vertical component using the very same contact-dependent factor r in [.50,.80] selected for horizontal speed. Set vy_out=r*vy_in at the contact, then continue shared gravity/trajectory. Do not draw or select a separate vertical factor.",
@@ -6290,7 +6320,12 @@
     "curve": "linear",
     "lightContactRetention": 0.8,
     "strongContinuingContactRetention": 0.5,
-    "obstructionMetric": null,
+    "obstructionMetric": {
+      "basisDecisionId": "F693-02-error-contact-obstruction-basis",
+      "basis": "three-dimensional-contact-incidence",
+      "normalizationBounds": null,
+      "geometryContract": null
+    },
     "branchThresholds": null,
     "recommendation": "Within the already selected continuing branch, interpolate linearly from .80 retention for the lightest reviewed contact obstruction to .50 for the strongest obstruction still classified as continuing. Use the same resulting factor for horizontal and signed vertical speed.",
     "definition": "For normalized contact obstruction c in [0,1] within the continuing-contact range, r=.80-.30*c. Here c=0 is the light endpoint and c=1 the strong continuing endpoint, not a completely blocked ball. Defining c from actual contact geometry and choosing branch boundaries remain separate pending work.",
@@ -6335,7 +6370,7 @@
   },
   "errorContactObstructionBasisProposal": {
     "decisionId": "F693-02-error-contact-obstruction-basis",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "basis": "three-dimensional-contact-incidence",
     "usesRelativeContactVelocity": true,
     "usesPenetrationDepth": false,
@@ -6373,6 +6408,37 @@
       "Zero-relative-speed/tangent cases remain explicit until a reviewed fallback is selected.",
       "Validate glove/body contact geometry against visible contact and full error races before human acceptance."
     ],
-    "implementationBoundary": "Pending obstruction basis only. Geometry, normalization, classifier thresholds, degeneracy handling, runtime and human gates remain open."
+    "implementationBoundary": "Accepted obstruction basis only. Geometry, normalization, classifier thresholds, degeneracy handling, runtime and human gates remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"approve\" to the contact-angle obstruction basis using actual surface contact and relative incoming motion."
+  },
+  "gloveContactSurfaceProposal": {
+    "decisionId": "F693-02-glove-contact-surface",
+    "state": "pending",
+    "shapeFamily": "smooth-concave-pocket-rounded-rim",
+    "usesDecorativeMeshTriangles": false,
+    "changesCatchRange": false,
+    "dimensionsFt": null,
+    "pocketDepthFt": null,
+    "rimProfile": null,
+    "backAndCuffResponse": null,
+    "authoritativeMotionContract": null,
+    "recommendation": "Represent the glove contact surface with a simple smooth concave pocket and rounded rim, authored to agree with visible glove dimensions and pocket location. Follow the glove through the shared authored motion contract. Keep this physical contact surface separate from the character reach region.",
+    "rationale": "The pocket and rim provide meaningful normals for square versus glancing contact. A filled convex ball-shaped proxy erases the pocket; detailed decorative fingers/webbing can make small art edits change baseball response. A smooth authored surface keeps the visible contact understandable without simulating every visual detail.",
+    "existingAuthoring": "docs/character-motion.md and data/art/baseball-equipment.json already define authored glove dimensions and pocket location; the motion contract uses one rig, baked handed takes and a sim-owned clock. Reuse these sources for a future reviewed contact contract, not a second rig, C# pose or Unity PhysX baseball system. No asset or live geometry is changed here.",
+    "reachBoundary": "The approved character catch range controls where the glove can reach. This proposal is the glove surface at the reached pose; it neither enlarges/shrinks reach nor makes Fielding control glove positioning. It does not approve a new hand animation/IK system or make every surface touch a secured catch.",
+    "geometryBoundary": "Shape family only. Exact pocket dimensions, depth, rim curvature, outward normals, back/cuff behavior, sphere-versus-surface sweep and numerical collision tolerances still need review. Body contact geometry is separate. Rim joins must be smooth enough for stable normals; actual event resolution must agree with visible contact at gameplay distance.",
+    "motion": "Use authoritative time/pose data consistent with the existing authored glove motion. Account for surface point motion when measuring incidence. Mirrored handed assets and character proportions must be consistent; no runtime negative-scale mirror or per-character corrective offset is approved.",
+    "errorBoundary": "Only a qualified failed handling event uses the accepted error response. Pocket contact does not force success, and a rim clip does not force failure or a continuing deflection. Preserve error probability, actual contact origin, local/continuing classifier review, same-error recovery and independent stun.",
+    "referenceLimit": "Authored collision-surface proposal grounded in the project glove contract, not measured Wii/GC collision geometry. Source dimensions are not automatically approved gameplay collider dimensions.",
+    "requiredChecks": [
+      "Pocket/rim normals agree with the authored visible glove at actual contact, across both hands and character proportions.",
+      "Catch reach and contact surface remain distinct; no stat-dependent positioning or invisible reach inflation.",
+      "Small decorative mesh edits do not change the gameplay surface unless its versioned contract changes.",
+      "Contact timing and incidence are stable across frame partitions and shared sim/presentation sampling.",
+      "Front, rim, back, cuff and body contacts remain explicit before full implementation; human visual acceptance stays open."
+    ],
+    "implementationBoundary": "Pending glove contact-shape family only; dimensions, motion integration, other surfaces, runtime and human gates remain open."
   }
 }
