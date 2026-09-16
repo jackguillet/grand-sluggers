@@ -1594,9 +1594,9 @@ This is an accepted authored local rolling trial with arithmetic checks only. Fu
 
 **Accepted scope:** six ft/s² supported rolling deceleration for ordinary local bobbles, with continuous travel to zero and no waiting requirement for pickup. The flight portion and full recovery race still need validation.
 
-## Next decision — continuing-deflection vertical response
+## Accepted decision — continuing-deflection vertical response
 
-**F693-02-continuing-error-vertical-retention — pending, September 15, 2026.** Recommend that continuing deflections **retain their rising or falling direction, with vertical speed reduced by the same contact-dependent 50–80% factor already selected for horizontal speed**. Reuse the identical factor for both components; no separate vertical roll or multiplier.
+**F693-02-continuing-error-vertical-retention — accepted by Jack on September 15, 2026.** Jack approved that continuing deflections **retain their rising or falling direction, with vertical speed reduced by the same contact-dependent 50–80% factor already selected for horizontal speed**. Reuse the identical factor for both components; no separate vertical roll or multiplier.
 
 **Player context:** a glancing ball can carry on toward the outfield along a slowed version of its current path. A rising hop continues rising more gently; a descending ball continues downward more slowly at contact, with gravity acting immediately afterwards. The nearby-bobble branch keeps its accepted vertical stop and soft drop. Applying that local response here would instead flatten every continuing contact into a drop.
 
@@ -1608,9 +1608,27 @@ This is an accepted authored local rolling trial with arithmetic checks only. Fu
 
 Do not inherit the local six-ft/s spill cap, six-inch rebound ceiling, three-inch settling rule or local rolling slowdown. Continuing ground response remains a separate unresolved contract. Untouched misses and specials retain their own rules. Preserve the contacted-error .40-second stun, reliable same-origin recovery and actual eligible pickup.
 
-This is an authored response proposal, not measured Wii/GC vertical retention. The physical outcome classifier, exact retention mapping, downstream collisions and full reference/gameplay race validation remain open. No runtime or human gate changes here.
+This is an accepted authored response, not measured Wii/GC vertical retention. The physical outcome classifier, exact retention mapping, downstream collisions and full reference/gameplay race validation remain open. No runtime or human gate changes here.
 
-**Question for Jack:** use the same 50–80% contact-retention factor for a continuing deflection's vertical speed, preserving whether it was rising or falling?
+**Accepted scope:** the same contact-dependent 50–80% factor scales horizontal and signed vertical speed at a continuing ordinary deflection. Exact contact-to-factor mapping and downstream ground response remain open.
+
+## Next decision — continuing-deflection ground response
+
+**F693-02-continuing-error-ground-response — pending, September 15, 2026.** Recommend that a continuing deflection **use the shared ordinary batted-ball bounce and roll rules from its actual new motion**, with no additional error-specific ground braking.
+
+**Player context:** the glove already slows the ball. Once it reaches the dirt or grass, its remaining momentum and the ground response should determine whether it keeps escaping into the outfield. A normal hit and a continuing deflection arriving at the same surface with equivalent physical motion should bounce and roll alike. Applying the nearby-bobble rules would deliberately shorten that escape; those rules stay with the local knockdown branch.
+
+**Continue the actual state:** preserve the deflected position, height and velocity. If airborne, wait for real ground collision; if already supported, do not invent a landing. Do not restore the original bat trajectory, restart flight at home plate or carry a launch-class shortcut into a response that contradicts the current physical motion. Shared collision handling must resolve genuine simultaneous contact/ground events consistently.
+
+**Keep error history separate from physics:** sharing ordinary ground motion does not permit another ordinary handling-error roll when recovering the same contacted error. Keep that origin through ground bounces, distance, rolling and defender changes. An untouched miss still gains no such protection. Actual eligible contact determines recovery; no automatic pickup, outfield destination or extra base.
+
+Do not import the local six-ft/s release cap, zero-vertical drop, six-inch rebound ceiling, three-inch settling threshold, 90% local impact retention or six-ft/s² local rolling slowdown. Preserve the continuing 50–80% contact factor, ±15-degree directional variation and independent .40-second stun. Specials, walls and unreviewed slopes retain explicit separate contracts.
+
+**What this selects:** one shared ordinary ground-response family. It does not approve existing legacy numbers. Ordinary restitution, impact retention, settling and rolling values remain part of the broader ball-motion calibration under F693-04. Calibrate normal hits and continuing-deflection recovery races together whenever those shared values change.
+
+This is an authored design proposal, not evidence of Wii/GC internals. Reference and gameplay comparisons, complete collision integration and human validation remain open. No runtime change here.
+
+**Question for Jack:** let continuing deflections use ordinary batted-ball ground physics, without extra error-specific slowing?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
