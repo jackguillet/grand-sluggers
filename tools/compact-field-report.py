@@ -1642,6 +1642,34 @@ def derive(data):
         assert math.isclose(accepted_cover["buildUpSec"], anchors["accelerationSeconds"])
         assert set(accepted_cover["appliesTo"]) == {"cover", "cutoff", "backup"}
         assert coverage["boundary"] and coverage["correction"]
+    park_mig = data.get("parkMigrationResearch")
+    if park_mig:
+        assert park_mig["state"] == "consolidated-proposal"
+        assert park_mig["basepathIsGlobal"] is True and park_mig["diamondInCode"]
+        lead_row = next(r for r in park_mig["rows"] if r["id"] == "harbor-diamond")
+        assert lead_row["compactFt"] == lead["fencesFt"], "Harbor must keep the accepted C80 fences"
+        for row in park_mig["rows"]:
+            assert row["wallScaled"] is False
+            assert all(n < t for n, t in zip(row["compactFt"], row["todayFt"])), "Every park shrinks"
+            if row["id"] != "harbor-diamond":
+                assert row["compactFt"] == [round(v * park_mig["scale"]) for v in row["todayFt"]]
+        order_now = sorted(park_mig["rows"], key=lambda r: r["todayFt"][1])
+        order_new = sorted(park_mig["rows"], key=lambda r: r["compactFt"][1])
+        assert [r["id"] for r in order_now] == [r["id"] for r in order_new], \
+            "One scale must preserve the parks' size order"
+    arm_mig = data.get("armRatingMigrationResearch")
+    if arm_mig:
+        assert arm_mig["state"] == "consolidated-proposal"
+        assert arm_mig["teamsTools"]["includeArm"] is False, "Including Arm would break parity while it equals Field"
+        assert arm_mig["cpuReactionGroup"]["follows"] == "Fielding"
+        assert len(arm_mig["cpuReactionGroup"]["consumers"]) == sum(
+            1 for row in traits["inventory"] if row["group"] == "cpu-reaction")
+    cpu_policy = data.get("cpuDiveIntentPolicyResearch")
+    if cpu_policy:
+        assert cpu_policy["state"] == "next-human-decision"
+        assert cpu_dive["decisionId"] in cpu_policy["parentDecisionIds"]
+        assert len(cpu_policy["options"]) == 3
+        assert all(o["cost"] for o in cpu_policy["options"]), "Every option must state what it costs"
         runtime = coverage["currentRuntime"]
         anchors = reach_research["pursuitInputs"]
         assert runtime["coverFtPerSec"] > anchors["topSpeedFeetPerSecond"], \
@@ -1695,6 +1723,9 @@ def derive(data):
             "defensiveTraitMappingState": traits["state"] if traits else None,
             "flightBudgetState": flight["state"] if flight else None,
             "coverageBudgetState": coverage["state"] if coverage else None,
+            "parkMigrationState": park_mig["state"] if park_mig else None,
+            "armRatingMigrationState": arm_mig["state"] if arm_mig else None,
+            "cpuDiveIntentPolicyState": cpu_policy["state"] if cpu_policy else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,

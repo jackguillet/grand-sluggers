@@ -396,6 +396,48 @@ Retained: `cover.stopFt` as the arrival tolerance, `cover.backupFt`, and `cover.
 
 **Reference limit:** no Wii or GameCube cover speed, cutoff placement or receiver timing has been measured. These are this game's own numbers against this game's own accepted anchors.
 
+## Migration questions — 3a
+
+The three questions standing between the decided contract and the parity slice. Two of them consolidate; the third is a real tradeoff and is put to Jack below. Read from the runtime; no runtime change is proposed.
+
+### The diamond is not in data yet
+
+Before any of it: `Diamond.First` is `(63.64, 63.64)` — a `static readonly` C# constant, alongside Second, Third and Home. **Basepath is not a park property**, so every park shares one infield and the C80 move is a single change rather than six. But it is currently a constant in a system, and R3's rule is that a geometry move first migrates values into the shared data owner and proves parity. **Moving the diamond into `data/` at today's values, changing nothing, is the first commit of the parity slice.** It is also the cheapest possible test of that rule: the entire suite must pass untouched.
+
+### `F693-04-park-migration` — consolidated
+
+Parks carry only fences, wall height, wind and hazards. Scaling every fence by **0.70**, Harbor's accepted centre factor:
+
+| Park | Today | Wall | Compact | Centre / basepath |
+| --- | --- | --- | --- | --- |
+| canopy-yard | 312 / 378 / 318 | 12 | 218 / 265 / 223 | 3.31 |
+| crystal-rink | 320 / 385 / 320 | 8 | 224 / 270 / 224 | 3.38 |
+| ember-keep | 338 / 408 / 338 | 10 | 237 / 286 / 237 | 3.58 |
+| funfair-park | 315 / 390 / 340 | 8 | 220 / 273 / 238 | 3.41 |
+| **harbor-diamond** | 330 / 400 / 330 | 12 | **232 / 280 / 232** | 3.50 |
+| rooftop-city | 318 / 388 / 322 | 12 | 223 / 272 / 225 | 3.40 |
+
+Harbor keeps the accepted 232 / 280 / 232. A flat 0.70 would give it 231 at the poles; that one foot is rounding, not a design difference, and the accepted numbers win.
+
+One scale for every park preserves each park's identity and their order — Ember Keep stays the biggest, Canopy Yard the smallest — where re-deriving each from Harbor's 2.9 / 3.5 / 2.9 ratios would flatten all six into the same stadium. **Wall heights do not scale.** Bodies did not shrink, and the accepted spatial contract deliberately froze Harbor's 12 feet; an 8-foot wall stays 8 feet and simply becomes a friendlier park, which is what it already is.
+
+**Hazards have to migrate with the field.** Five parks place barrels, freeze volumes, lava pits, warp pipes, billboards and AC units at explicit `x` / `z`, and they split across the infield lip — Canopy Yard has three inside it and five on the grass. Leaving them at absolute positions would drift them relative to everything around them; an infield barrel would end up deeper into a shallower infield. They scale by the zone they sit in: the infield factor inside the lip, the fence factor beyond it. Some entries carry no `x` at all, so the migration is per hazard type rather than a blanket multiply, and it needs its own validator pass.
+
+### `F693-02-arm-rating-migration` — consolidated
+
+- **Schema and seeding.** Characters gain `arm`, validated 1–10 like the rest, seeded at each character's current `field`.
+- **`Teams.Tools` excludes Arm, for now.** Tools is `Pitch + Bat + Field + Run` and feeds only `FillScore`, the roster auto-fill ranking, against chemistry at 80 / −40 / 10 and faction at 30. Adding Arm looks obviously right and **breaks parity on day one**: with Arm seeded equal to Field, including it double-counts defence and changes which players the auto-fill picks before anyone has authored a deliberate Arm value. Exclude it through the parity slice; revisit when real Arm numbers exist, as a roster decision rather than a migration one.
+- **HUD and CLI gain an A.** The displayed Fielding number now means hands only. That is a readability change for anyone used to reading F as general defence, and it belongs to a presentation child rather than this slice.
+- **The CPU reaction group follows Fielding.** `InPlay.ThrowReactionSec`, `StealThrow.CpuReleaseSec` and `ClosePlay.CpuReactionSec` are reaction rather than throwing, so Fielding is the right home. All three are already multiplied by `cpu.active.reactionMul`, so what they mostly express is difficulty; whether they should be character-driven at all is a difficulty question, not a migration one, and it stays open.
+
+### `F693-02-cpu-dive-intent-policy` — the real question
+
+The CPU does not need new prediction machinery. `FieldingPursuit.Plan` already returns a `Route` carrying **`MissFt`**, how many feet short the glove will be at the meeting point, and `CanTakeInAir` already compares it against the catch window. A dive decision is exactly that quantity: dive when the route falls short, but by no more than the dive adds.
+
+Nor is lookahead the problem it looked like. The planner already routes against the **complete trajectory** for ordinary pursuit — that is shipped, accepted behaviour. Giving the dive the same information is consistent; giving it *less* would be the odd choice. And the project already has an idiom for when to commit: the #640 rundown throws *at the last makeable moment*, never early. A dive should commit the same way.
+
+What that leaves is the part Jack's decision actually turns on. If the CPU dives exactly when `MissFt` is inside dive reach, computed from the true future path, then **the dive essentially always reaches**, and the only way it fails is the handling roll. That is uncomfortably close to the convert-only option Jack explicitly declined, wearing a delay. A CPU dive that misses has to be able to happen for real, not just in principle.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.

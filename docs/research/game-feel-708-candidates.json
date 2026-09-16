@@ -712,7 +712,7 @@
     },
     {
       "id": "F693-02-cpu-dive-intent-policy",
-      "state": "pending",
+      "state": "next-human-decision",
       "question": "When does the CPU spend a dive, how far ahead may it look when deciding, and does willingness vary with difficulty?"
     },
     {
@@ -722,12 +722,12 @@
     },
     {
       "id": "F693-02-arm-rating-migration",
-      "state": "pending",
+      "state": "consolidated-proposal",
       "question": "How does the Arm rating land: schema and seeding, whether Arm joins the Teams.Tools roster-building sum, the HUD row, the CPU reaction group, and when deliberate per-character Arm values get authored?"
     },
     {
       "id": "F693-04-park-migration",
-      "state": "pending",
+      "state": "consolidated-proposal",
       "question": "How do the other five parks migrate to compact scale, and how is the drag change sequenced with them so no park is left homerless?"
     },
     {
@@ -7720,5 +7720,174 @@
       "The double-play pivot still completes on a quickly fielded ball; verify against real traces rather than these margins.",
       "cover.radiusFt stays equal to the accepted stand-up reach unless both are reviewed together."
     ]
+  },
+  "parkMigrationResearch": {
+    "decisionId": "F693-04-park-migration",
+    "state": "consolidated-proposal",
+    "status": "research-consolidation-not-simulation",
+    "preparedOn": "2026-09-15",
+    "basepathIsGlobal": true,
+    "diamondInCode": "Diamond.First/Second/Third/Home are static readonly C# constants, not data. Moving them into data at today's values, changing nothing, is the first commit of the parity slice and the cheapest test of R3's migrate-then-prove-parity rule.",
+    "scale": 0.7,
+    "scaleReasoning": "One scale for every park preserves each park's identity and their order, Ember Keep staying the biggest and Canopy Yard the smallest. Re-deriving each from Harbor's 2.9 / 3.5 / 2.9 ratios would flatten all six into the same stadium.",
+    "harborException": "Harbor keeps the accepted 232 / 280 / 232. A flat 0.70 gives 231 at the poles; that one foot is rounding, not a design difference, and the accepted numbers win.",
+    "wallHeights": "Unscaled. Bodies did not shrink and the accepted spatial contract deliberately froze Harbor's 12 feet. An 8-foot wall stays 8 feet and simply remains the friendlier park it already is.",
+    "rows": [
+      {
+        "id": "canopy-yard",
+        "todayFt": [
+          312,
+          378,
+          318
+        ],
+        "wallFt": 12,
+        "compactFt": [
+          218,
+          265,
+          223
+        ],
+        "wallScaled": false
+      },
+      {
+        "id": "crystal-rink",
+        "todayFt": [
+          320,
+          385,
+          320
+        ],
+        "wallFt": 8,
+        "compactFt": [
+          224,
+          270,
+          224
+        ],
+        "wallScaled": false
+      },
+      {
+        "id": "ember-keep",
+        "todayFt": [
+          338,
+          408,
+          338
+        ],
+        "wallFt": 10,
+        "compactFt": [
+          237,
+          286,
+          237
+        ],
+        "wallScaled": false
+      },
+      {
+        "id": "funfair-park",
+        "todayFt": [
+          315,
+          390,
+          340
+        ],
+        "wallFt": 8,
+        "compactFt": [
+          220,
+          273,
+          238
+        ],
+        "wallScaled": false
+      },
+      {
+        "id": "harbor-diamond",
+        "todayFt": [
+          330,
+          400,
+          330
+        ],
+        "wallFt": 12,
+        "compactFt": [
+          232,
+          280,
+          232
+        ],
+        "wallScaled": false
+      },
+      {
+        "id": "rooftop-city",
+        "todayFt": [
+          318,
+          388,
+          322
+        ],
+        "wallFt": 12,
+        "compactFt": [
+          223,
+          272,
+          225
+        ],
+        "wallScaled": false
+      }
+    ],
+    "hazards": "Five parks place hazards at explicit x/z that straddle the 155-foot infield lip; Canopy Yard has three inside it and five on the grass. Absolute positions would drift relative to everything around them, so hazards scale by the zone they sit in: the infield factor inside the lip, the fence factor beyond it. Some entries carry no x at all, so the migration is per hazard type rather than a blanket multiply and needs its own validator pass.",
+    "dragCoupling": "Ships in the same commit as the drag change, per F693-04-flight-budget: drag is global and un-migrated parks would have no home runs at all.",
+    "implementationBoundary": "Consolidated proposal. No park file, hazard coordinate, validator or runtime change is made here."
+  },
+  "armRatingMigrationResearch": {
+    "decisionId": "F693-02-arm-rating-migration",
+    "state": "consolidated-proposal",
+    "status": "research-consolidation-not-simulation",
+    "preparedOn": "2026-09-15",
+    "schema": "Characters gain arm, validated 1 to 10 like the rest, seeded at each character's current field.",
+    "teamsTools": {
+      "includeArm": false,
+      "throughSlice": "parity",
+      "reasoning": "Tools is Pitch + Bat + Field + Run and feeds only FillScore, the roster auto-fill ranking, against chemistry at 80 / -40 / 10 and faction at 30. Adding Arm looks obviously right and breaks parity on day one: with Arm seeded equal to Field, including it double-counts defence and changes which players the auto-fill picks before anyone has authored a deliberate Arm value.",
+      "revisitWhen": "Real Arm numbers exist, as a roster decision rather than a migration one."
+    },
+    "hudAndCli": "Gain an A. The displayed Fielding number now means hands only, which is a readability change for anyone used to reading F as general defence, and it belongs to a presentation child rather than this slice.",
+    "cpuReactionGroup": {
+      "consumers": [
+        "InPlay.ThrowReactionSec",
+        "StealThrow.CpuReleaseSec",
+        "ClosePlay.CpuReactionSec"
+      ],
+      "follows": "Fielding",
+      "reasoning": "They are reaction rather than throwing, so Fielding is the right home. All three are already multiplied by cpu.active.reactionMul, so what they mostly express is difficulty.",
+      "stillOpen": "Whether they should be character-driven at all is a difficulty question, not a migration one."
+    },
+    "implementationBoundary": "Consolidated proposal. No schema, roster number, HUD row, migration code or runtime change is made here."
+  },
+  "cpuDiveIntentPolicyResearch": {
+    "decisionId": "F693-02-cpu-dive-intent-policy",
+    "state": "next-human-decision",
+    "status": "research-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-cpu-dive-intent",
+      "F693-02-dive-jump-scoop-reach",
+      "F693-02-dive-recovery-cost"
+    ],
+    "noNewMachinery": "FieldingPursuit.Plan already returns a Route carrying MissFt, how many feet short the glove will be at the meeting point, and CanTakeInAir already compares it against the catch window. A dive decision is exactly that quantity: dive when the route falls short, but by no more than the dive adds.",
+    "lookaheadResolved": "The planner already routes against the complete trajectory for ordinary pursuit, which is shipped, accepted behaviour. Giving the dive the same information is consistent; giving it less would be the odd choice. Lookahead is therefore not the open question it appeared to be.",
+    "commitmentIdiom": "The project already has an idiom for when to commit: the #640 rundown throws at the last makeable moment, never early. A dive should commit the same way.",
+    "question": "If the CPU dives exactly when MissFt is inside dive reach, computed from the true future path, the dive essentially always reaches and the only way it fails is the handling roll. That is close to the convert-only option Jack explicitly declined, wearing a delay. What makes a CPU dive able to genuinely miss?",
+    "options": [
+      {
+        "id": "commit-on-the-route",
+        "summary": "Dive whenever the planned route says the dive reaches, committing at the last makeable moment.",
+        "consequence": "Simplest, uses only rails that exist, and the CPU never wastes a dive.",
+        "cost": "The dive reaches essentially every time, so only the handling roll can beat it. That is the convert-only behaviour Jack declined, wearing a delay, and it quietly restores the passive rim coverage two decisions removed."
+      },
+      {
+        "id": "commit-on-the-live-ball",
+        "summary": "Decide from the ball's state at the moment of commitment \u2014 where it is and how it is moving \u2014 rather than from its resolved future path.",
+        "consequence": "A ball that changes after the commitment can beat the dive: a late bounce, a carom, a deflection off another glove. Misses arise from the world rather than from a roll, which is what the arcade contract asks for everywhere else.",
+        "cost": "A second, smaller prediction path beside the route planner, and the CPU will sometimes look briefly wrong-footed \u2014 which is the point, but has to be judged on screen."
+      },
+      {
+        "id": "commit-with-a-margin",
+        "summary": "Dive when the route falls short by up to dive reach plus a slack band, so the CPU sometimes over-reaches.",
+        "consequence": "Keeps one prediction path and produces genuine misses by construction; the slack is a single tunable number.",
+        "cost": "The misses are authored rather than earned \u2014 the CPU is being told to be wrong by a margin, which is a softer form of the severity lottery the packet has refused elsewhere."
+      }
+    ],
+    "referenceLimit": "No Wii or GameCube CPU dive behaviour has been measured.",
+    "implementationBoundary": "Research prepared for one human decision. No intent policy, slack value, prediction path, difficulty scaling or runtime change is selected."
   }
 }
