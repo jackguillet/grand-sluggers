@@ -1268,9 +1268,9 @@ Base duration, reduction curve, readable minimum and roster/trait mapping remain
 
 The common timer does not equalize full recovery time: characters still have their own travel speed and geometry, and another defender may collect the ball first. Existing recoil and special-hit resistance rules remain intact. Numerical duration and motion transitions remain unselected; no runtime changes.
 
-## Next decision — ordinary bobble stun duration
+## Accepted decision — ordinary bobble stun duration
 
-**F693-02-bobble-stun-duration — pending, September 15, 2026.** Recommend a shared **.40-second stun** after an ordinary awkward-hop bobble. This is the reaction interval; physical pursuit and pickup follow. It is an authored first trial intended to register visibly without turning a modest bobble into a long loss of control.
+**F693-02-bobble-stun-duration — accepted by Jack on September 15, 2026.** Jack approved a shared **.40-second stun** after an ordinary awkward-hop bobble. This is the reaction interval; physical pursuit and pickup follow. It is an authored first trial intended to register visibly without turning a modest bobble into a long loss of control.
 
 **Race context:** at the accepted Run-5 ordinary steady between-bag pace, `80 / 2.95 = 27.118644 ft/s`, a runner travels about **8.14 feet during .30 seconds**, **10.85 feet during .40**, or **13.56 feet during .50**. These isolate the timer at constant speed, excluding startup, turns, slides and dash. They are neither simulated outcomes nor promised extra bases. Another defender may recover during the stun, and the original fielder's later chase/pickup adds its own time.
 
@@ -1280,7 +1280,23 @@ The common timer does not equalize full recovery time: characters still have the
 
 Before accepting implementation, compare .30/.40/.50-second trials with visible reactions and full compact-field recovery races across characters, CPU/manual defense and both seats. Preserve the same ordinary timer across handling values and the independent special/recoil contracts. Scatter, entry motion, buffering and fresh-attempt rules remain pending. No runtime or human gate changes here.
 
-**Question for Jack:** trial the same .40-second ordinary bobble stun for every character, followed by actual pursuit and pickup?
+## Next decision — grounded bobble braking
+
+**F693-02-grounded-bobble-braking — pending, September 15, 2026.** Recommend **using the accepted ordinary braking to stop a grounded fielder during the bobble stun**. Active steering stops immediately; existing ordinary movement slows to rest. From ordinary full speed this takes .10 seconds, leaving .30 seconds of the accepted .40-second reaction. These clocks run together; this is not a .50-second combined delay.
+
+**What the player sees:** a quick stop into the fumble reaction, then resumed pursuit after the stun. Reusing ordinary braking preserves the movement weight already selected and avoids introducing a new bobble-specific skid or an abrupt physical freeze. This does not reintroduce movement control during stun or let the fielder collect the ball before readiness.
+
+**Numbers and scope:** use `V=(21+1.9*Run)*18/30.5` and `b=V/.10` for the grounded ordinary locomotion component. With entry speed `u`, apply `max(0,u-b*t)` along its existing direction, integrating continuous travel without reversal. Unobstructed stop time is `u/b`, and distance is `u²/(2b)`. Run-5 full speed is 18 ft/s: the stop takes .10 seconds over **.90 feet**. Half speed stops in .05 seconds over **.225 feet**; a stationary fielder stays put. Full-speed Run-1/Run-9 examples travel about .676/1.124 feet but retain the same .40-second stun.
+
+**One event clock:** start braking and stun at failed acquisition, split stepping at the stop/deadline, and do not restart either when fielders switch. At .40 seconds resume the ordinary movement response from actual state if other restrictions permit. Do not restore the earlier running velocity or append a fresh contact-read/stand-up delay. Actual ball contact is still required for recovery; no automatic possession or new roll at expiry.
+
+**Physical boundaries:** apply this only to ordinary ground-supported locomotion. No new recoil shove, backward displacement or forced turn is introduced. Collisions may stop travel earlier. Do not erase independently governed impact motion by braking total world velocity as if it were all running. Airborne bobbles, committed dives/landings and mixed-effect motion remain separately reviewed; this rule cannot cancel a jump or another accepted impulse. If existing locomotion speed exceeds the ordinary cap, decelerate continuously rather than snapping it down; any remaining motion at the stun deadline does not extend the timer merely to reach rest.
+
+**Implementation rail:** the actual fumbling character's motion and action gate must govern manual, CPU and assisted paths, including while deselected. Helpers continue under their own rules. The shared authored reaction and authoritative path must agree without animation-driven timing, double root displacement or a second motion system. Existing global fumble early returns are not proof of this physical integration.
+
+This is an authored reuse of our accepted movement profile, not a verified Wii/GC stop curve. Verify the reaction against reference motion and the eventual game, with rest/partial/full-speed approaches, nearby geometry, both seats, switching and helpers. The arithmetic examples are not simulated plays. No runtime or asset change; scatter, buffering, fresh-attempt and committed-motion details remain pending.
+
+**Question for Jack:** use normal quick braking during the .40-second stun, so a grounded fielder briefly settles to a stop without adding another delay?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

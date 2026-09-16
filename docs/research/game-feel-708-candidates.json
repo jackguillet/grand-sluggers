@@ -498,8 +498,13 @@
     },
     {
       "id": "F693-02-bobble-stun-duration",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Trial a shared .40-second ordinary bobble stun, followed by physical pursuit and pickup?"
+    },
+    {
+      "id": "F693-02-grounded-bobble-braking",
+      "state": "next-human-decision",
+      "question": "Use ordinary braking to bring a grounded fielder to rest within the .40-second bobble stun, with no added delay or abrupt velocity reset?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4961,7 +4966,7 @@
     "acceptedOn": "2026-09-15",
     "acceptanceEvidence": "Jack directed a brief stun after a bobble, followed by resuming movement to pick the ball up, replacing the pending movement-available recovery proposal.",
     "recoveryModel": "brief-fumbler-stun-then-resume",
-    "stunDurationSec": null,
+    "stunDurationSec": 0.4,
     "handlingDurationMapping": "shared-duration-no-handling-scaling",
     "entryMotionProfile": null,
     "freshAttemptDefinition": null,
@@ -4972,7 +4977,8 @@
     "preservedRules": "Keep accepted loose-ball continuity and acquisition-before-possession ordering, throw-buffer aging/invalidation, retained-ball recoil and pure special-pushback contracts. No new stun-specific input-buffer promise is made. Special effects keep their own gates; combined timing and repeated-attempt rules remain reviewed separately. A later loss does not undo a completed earlier out.",
     "currentAudit": "The existing RecoilT/Bobbling branch has a fumble early return while the loose ball and some off-ball helpers advance earlier. This resembles an interruption but does not prove consistent per-character stun gating across movement, helper, catch and ownership paths. Current FumbleSec .58 remains an observation, not an accepted duration.",
     "referenceLimit": "Explicit user-authored direction. Matched Wii/GC ordinary bobble stun duration and entry motion have not been measured. No Mario-parity claim.",
-    "implementationBoundary": "Accepted stun direction, with shared duration confirmed by F693-02-uniform-bobble-stun. Numerical duration, entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed."
+    "implementationBoundary": "Accepted stun direction and shared .40-second trial. Entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed.",
+    "durationDecisionId": "F693-02-bobble-stun-duration"
   },
   "bobbleStunHandlingProposal": {
     "decisionId": "F693-02-bobble-stun-handling",
@@ -5004,14 +5010,15 @@
     "acceptedOn": "2026-09-15",
     "acceptanceEvidence": "Jack declined a handling-based reduction in ordinary bobble stun; retain a shared duration across characters.",
     "handlingAffectsDuration": false,
-    "stunDurationSec": null,
+    "stunDurationSec": 0.4,
     "direction": "Use the same ordinary bobble stun duration across characters. Underlying handling retains its approved error-probability benefit without also shortening this reaction. Displayed Fielding, body size and Run do not create a different ordinary stun duration.",
     "scope": "Ordinary awkward-hop bobble reaction only. Characters can still differ in actual travel time, handling-error frequency and geometry. This does not equalize total recovery time or change already approved ordinary recoil/special resistance. Special-hit effects and independent gates retain their own contracts.",
-    "implementationBoundary": "Accepted no-handling-scaling direction; shared numerical duration, motion transitions and fresh-attempt rules remain pending. No runtime or human gate changed."
+    "implementationBoundary": "Accepted shared duration with .40-second trial selected by F693-02-bobble-stun-duration. Motion transitions and fresh-attempt rules remain pending; no runtime or human gate changed.",
+    "durationDecisionId": "F693-02-bobble-stun-duration"
   },
   "bobbleStunDurationProposal": {
     "decisionId": "F693-02-bobble-stun-duration",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "stunDurationSec": 0.4,
     "clock": "authoritative-active-gameplay-seconds",
     "appliesTo": "ordinary-awkward-hop-bobble-all-characters",
@@ -5065,6 +5072,125 @@
       "Expiry grants eligibility only, with actual contact required and no duplicate read delay, automatic possession or fresh roll.",
       "Compare .30/.40/.50-second reactions and full recovery races in both seats, across roster and reference contexts before human acceptance."
     ],
-    "implementationBoundary": "Pending numerical trial only. No runtime timer changed; entry motion, scatter, buffering and fresh-attempt rules still need review. No simulation or human gate passed."
+    "implementationBoundary": "Accepted numerical trial only. No runtime timer changed; entry motion, scatter, buffering and fresh-attempt rules still need review. No simulation or human gate passed.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to the same .40-second ordinary bobble stun trial for every character, followed by physical pursuit and pickup."
+  },
+  "groundedBobbleBrakingProposal": {
+    "decisionId": "F693-02-grounded-bobble-braking",
+    "state": "pending",
+    "normalFullSpeedStopSec": 0.1,
+    "stunDurationSec": 0.4,
+    "stopRunsInsideStun": true,
+    "recommendation": "For a grounded ordinary bobble, immediately block active locomotion commands and brake existing locomotion velocity with the accepted ordinary braking rate. At ordinary full speed, come to rest in .10 seconds, then remain stunned until the shared .40-second event deadline. No added stun or stop-before-stun delay.",
+    "law": "For ordinary top speed V=(21+1.9*Run)*18/30.5, use b=V/.10. Given entry locomotion speed u, speed is max(0,u-b*t) along the entry direction; integrate displacement with no reversal. Stop time u/b and unobstructed stop distance u^2/(2*b). At zero entry speed there is no movement. Geometry/collision may stop motion earlier.",
+    "scope": "Ground-supported ordinary locomotion only. No new backward recoil impulse, shove, forced turn, hard velocity reset or root snap accompanies the bobble. Do not use braking as permission to steer, jump/dive or reacquire during stun. The accepted uniform .40-second duration is unchanged by Run/handling/body size; travel differs with actual entry velocity and ordinary braking.",
+    "timing": "Braking and stun start together at actual failed acquisition. Braking is included within .40, not .10 plus .40. Split integration at stop and stun boundaries. At stun expiry, resume the normal movement response from actual remaining velocity if other gates permit; do not restore pre-bobble velocity or add a fresh read/startup pause.",
+    "otherMotion": "Do not treat total world velocity as ordinary locomotion when independent impulses or committed action motion exist. Preserve their already accepted physical components, collisions and action gates. Airborne bobbles, active dive/landing transitions and mixed-effect motion need separate review; this grounded proposal cannot cancel them or alter the normal-jump arc. Residual above-ordinary locomotion speed must decelerate continuously, never be clamped to V merely to fit the example; if still moving at .40, readiness does not wait for rest.",
+    "ownership": "The motion and action gate belong to the actual fumbler across selection/ownership changes. Every manual, assisted and CPU locomotion path must respect it. Other eligible defenders retain their own movement and can recover physically; no global pause or reserved recovery.",
+    "examples": [
+      {
+        "run": 1,
+        "entrySpeedFraction": 0,
+        "ordinaryTopSpeedFtPerSec": 13.514754098360655,
+        "entrySpeedFtPerSec": 0.0,
+        "brakingFtPerSecSquared": 135.14754098360655,
+        "stopSec": 0.0,
+        "travelFt": 0.0,
+        "remainingStunAfterStopSec": 0.4
+      },
+      {
+        "run": 1,
+        "entrySpeedFraction": 0.5,
+        "ordinaryTopSpeedFtPerSec": 13.514754098360655,
+        "entrySpeedFtPerSec": 6.757377049180327,
+        "brakingFtPerSecSquared": 135.14754098360655,
+        "stopSec": 0.05,
+        "travelFt": 0.1689344262295082,
+        "remainingStunAfterStopSec": 0.35000000000000003
+      },
+      {
+        "run": 1,
+        "entrySpeedFraction": 1,
+        "ordinaryTopSpeedFtPerSec": 13.514754098360655,
+        "entrySpeedFtPerSec": 13.514754098360655,
+        "brakingFtPerSecSquared": 135.14754098360655,
+        "stopSec": 0.1,
+        "travelFt": 0.6757377049180328,
+        "remainingStunAfterStopSec": 0.30000000000000004
+      },
+      {
+        "run": 5,
+        "entrySpeedFraction": 0,
+        "ordinaryTopSpeedFtPerSec": 18.0,
+        "entrySpeedFtPerSec": 0.0,
+        "brakingFtPerSecSquared": 180.0,
+        "stopSec": 0.0,
+        "travelFt": 0.0,
+        "remainingStunAfterStopSec": 0.4
+      },
+      {
+        "run": 5,
+        "entrySpeedFraction": 0.5,
+        "ordinaryTopSpeedFtPerSec": 18.0,
+        "entrySpeedFtPerSec": 9.0,
+        "brakingFtPerSecSquared": 180.0,
+        "stopSec": 0.05,
+        "travelFt": 0.225,
+        "remainingStunAfterStopSec": 0.35000000000000003
+      },
+      {
+        "run": 5,
+        "entrySpeedFraction": 1,
+        "ordinaryTopSpeedFtPerSec": 18.0,
+        "entrySpeedFtPerSec": 18.0,
+        "brakingFtPerSecSquared": 180.0,
+        "stopSec": 0.1,
+        "travelFt": 0.9,
+        "remainingStunAfterStopSec": 0.30000000000000004
+      },
+      {
+        "run": 9,
+        "entrySpeedFraction": 0,
+        "ordinaryTopSpeedFtPerSec": 22.485245901639342,
+        "entrySpeedFtPerSec": 0.0,
+        "brakingFtPerSecSquared": 224.8524590163934,
+        "stopSec": 0.0,
+        "travelFt": 0.0,
+        "remainingStunAfterStopSec": 0.4
+      },
+      {
+        "run": 9,
+        "entrySpeedFraction": 0.5,
+        "ordinaryTopSpeedFtPerSec": 22.485245901639342,
+        "entrySpeedFtPerSec": 11.242622950819671,
+        "brakingFtPerSecSquared": 224.8524590163934,
+        "stopSec": 0.05,
+        "travelFt": 0.2810655737704918,
+        "remainingStunAfterStopSec": 0.35000000000000003
+      },
+      {
+        "run": 9,
+        "entrySpeedFraction": 1,
+        "ordinaryTopSpeedFtPerSec": 22.485245901639342,
+        "entrySpeedFtPerSec": 22.485245901639342,
+        "brakingFtPerSecSquared": 224.8524590163934,
+        "stopSec": 0.1,
+        "travelFt": 1.1242622950819672,
+        "remainingStunAfterStopSec": 0.30000000000000004
+      }
+    ],
+    "exampleLimits": "Unobstructed level ground; no independent impulse or committed action. Arithmetic only. Examples show locomotion displacement and concurrent reaction time, not ball scatter or total recovery time.",
+    "referenceLimit": "Authored reuse of the accepted ordinary movement profile, not a measured Wii/GC bobble stop curve. Matched reference stop/reaction motion and eventual in-game animation remain to verify.",
+    "requiredChecks": [
+      "Entry from rest stays still; partial and full ordinary speed stop without reversal, and a Run-5 full-speed stop takes .10 seconds over .90 feet.",
+      "All ordinary examples share the .40-second stun, with braking concurrent rather than adding .10 seconds.",
+      "Frame partitions and character switching preserve the same physical stop path and event deadline.",
+      "No catch/action bypass occurs during braking; helpers and live runners/ball remain active.",
+      "External impulses, airborne/committed motion and collisions are not erased by applying a grounded locomotion rule to total velocity.",
+      "The authored reaction and authoritative body path agree without a second pose system, animation-dependent timer or double-applied displacement."
+    ],
+    "implementationBoundary": "Pending grounded entry-motion trial only. No runtime/asset change or human gate; scatter, airborne/committed interactions, buffering and fresh-attempt rules remain open."
   }
 }

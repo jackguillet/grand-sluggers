@@ -1049,7 +1049,8 @@ def derive(data):
         assert bobble_stun["state"] == "accepted-calibration-anchor"
         assert bobble_stun["acceptedBy"] and bobble_stun["acceptedOn"] and bobble_stun["acceptanceEvidence"]
         assert all(bobble_stun[key] is None for key in
-                   ("stunDurationSec", "entryMotionProfile", "freshAttemptDefinition"))
+                   ("entryMotionProfile", "freshAttemptDefinition"))
+        assert math.isclose(bobble_stun["stunDurationSec"], .40)
         assert bobble_stun["handlingDurationMapping"] == "shared-duration-no-handling-scaling"
     stun_handling = data.get("bobbleStunHandlingProposal")
     if stun_handling:
@@ -1061,10 +1062,12 @@ def derive(data):
     if uniform_stun:
         assert uniform_stun["state"] == "accepted-calibration-anchor"
         assert uniform_stun["acceptedBy"] and uniform_stun["acceptedOn"] and uniform_stun["acceptanceEvidence"]
-        assert uniform_stun["handlingAffectsDuration"] is False and uniform_stun["stunDurationSec"] is None
+        assert uniform_stun["handlingAffectsDuration"] is False
+        assert math.isclose(uniform_stun["stunDurationSec"], .40)
     stun_duration = data.get("bobbleStunDurationProposal")
     if stun_duration:
-        assert stun_duration["state"] == "pending"
+        assert stun_duration["state"] == "accepted-calibration-anchor"
+        assert stun_duration["acceptedBy"] and stun_duration["acceptedOn"] and stun_duration["acceptanceEvidence"]
         assert stun_duration["handlingAffectsDuration"] is False
         assert math.isclose(stun_duration["stunDurationSec"], .40)
         stun_sensitivity = stun_duration["sensitivity"]
@@ -1072,9 +1075,25 @@ def derive(data):
         assert math.isclose(stun_sensitivity["runnerSpeedFtPerSec"], stun_runner_speed)
         for stun_row in stun_sensitivity["alternatives"]:
             assert math.isclose(stun_row["runnerTravelFt"], stun_runner_speed * stun_row["stunSec"])
+    bobble_braking = data.get("groundedBobbleBrakingProposal")
+    if bobble_braking:
+        assert bobble_braking["state"] == "pending" and bobble_braking["stopRunsInsideStun"] is True
+        assert math.isclose(bobble_braking["stunDurationSec"], stun_duration["stunDurationSec"])
+        assert math.isclose(bobble_braking["normalFullSpeedStopSec"], .10)
+        for bb_row in bobble_braking["examples"]:
+            bb_v = (21 + 1.9*bb_row["run"])*18/30.5
+            bb_b = bb_v/bobble_braking["normalFullSpeedStopSec"]
+            bb_u = bb_v*bb_row["entrySpeedFraction"]
+            assert math.isclose(bb_row["ordinaryTopSpeedFtPerSec"], bb_v)
+            assert math.isclose(bb_row["brakingFtPerSecSquared"], bb_b)
+            assert math.isclose(bb_row["entrySpeedFtPerSec"], bb_u)
+            assert math.isclose(bb_row["stopSec"], bb_u/bb_b)
+            assert math.isclose(bb_row["travelFt"], bb_u*bb_u/(2*bb_b))
+            assert math.isclose(bb_row["remainingStunAfterStopSec"], .40-bb_u/bb_b)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "groundedBobbleBrakingState": bobble_braking["state"] if bobble_braking else None,
             "uniformBobbleStunState": uniform_stun["state"] if uniform_stun else None,
             "bobbleStunDurationState": stun_duration["state"] if stun_duration else None,
             "bobbleStunState": bobble_stun["state"] if bobble_stun else None,
