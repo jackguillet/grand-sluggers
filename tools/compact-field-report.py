@@ -1110,11 +1110,14 @@ def derive(data):
         assert random_bobble["acceptedBy"] and random_bobble["acceptedOn"] and random_bobble["acceptanceEvidence"]
         assert random_bobble["randomDirectionRoll"] is True
         assert all(random_bobble[key] is None for key in
-                   ("directionMapping", "angularBounds", "distribution", "verticalRandomness"))
+                   ("directionMapping", "distribution", "verticalRandomness"))
+        assert random_bobble["angularBounds"]["horizontalMinDegrees"] == -30
+        assert random_bobble["angularBounds"]["horizontalMaxDegrees"] == 30
     bobble_spread = data.get("bobbleDirectionSpreadProposal")
     if bobble_spread:
-        assert bobble_spread["state"] == "pending"
-        assert bobble_spread["horizontalMaxOffsetDegrees"] == 15
+        assert bobble_spread["state"] == "accepted-calibration-anchor"
+        assert bobble_spread["acceptedBy"] and bobble_spread["acceptedOn"] and bobble_spread["acceptanceEvidence"]
+        assert bobble_spread["horizontalMaxOffsetDegrees"] == 30
         assert all(bobble_spread[key] is None for key in
                    ("distribution", "baselineDirectionMapping", "verticalRandomness"))
         spread_example = bobble_spread["sensitivity"]
@@ -1124,9 +1127,22 @@ def derive(data):
             assert spread_row["totalFanDegrees"] == 2*spread_row["maxOffsetDegrees"]
             assert math.isclose(spread_row["lateralComponentFt"], spread_example["illustrativeTravelFt"]*math.sin(spread_angle))
             assert math.isclose(spread_row["baselineProjectionFt"], spread_example["illustrativeTravelFt"]*math.cos(spread_angle))
+    expanded_errors = data.get("expandedOrdinaryErrorOutcomesProposal")
+    if expanded_errors:
+        assert expanded_errors["state"] == "accepted-calibration-anchor"
+        assert expanded_errors["acceptedBy"] and expanded_errors["acceptedOn"] and expanded_errors["acceptanceEvidence"]
+        assert expanded_errors["outcomeKinds"] == ["local-bobble", "ball-gets-past", "continuing-deflection"]
+    error_selection = data.get("errorOutcomeSelectionProposal")
+    if error_selection:
+        assert error_selection["state"] == "pending" and error_selection["separateSeverityRoll"] is False
+        assert all(error_selection[key] is None for key in
+                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel", "reactionInheritance",
+                    "recoveryInheritance", "randomAngleInheritance"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "expandedOrdinaryErrorOutcomesState": expanded_errors["state"] if expanded_errors else None,
+            "errorOutcomeSelectionState": error_selection["state"] if error_selection else None,
             "contactLedRandomBobbleState": random_bobble["state"] if random_bobble else None,
             "bobbleDirectionSpreadState": bobble_spread["state"] if bobble_spread else None,
             "bobbleDeflectionDirectionState": bobble_direction["state"] if bobble_direction else None,

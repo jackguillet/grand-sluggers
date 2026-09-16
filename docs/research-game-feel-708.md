@@ -1208,6 +1208,8 @@ Before implementation, compare clean rolls, clean short/long hops and awkward mi
 
 ## Accepted decision — ordinary bobble outcome
 
+**Scope amended by F693-02-expanded-ordinary-error-outcomes:** this remains the local-bobble branch; balls getting past and continuing deflections are also required outcomes. See the expanded-outcome decision below.
+
 **F693-02-ordinary-bobble-outcome — accepted by Jack on September 15, 2026.** Jack approved a **small, visible bobble that leaves the ball loose nearby** when an ordinary awkward-hop acquisition fails. The ball reaches the glove but is not secured. The original fielder or another eligible defender must recover it through real contact before throwing or making a possession-dependent out.
 
 **Why this consequence:** a local bobble gives the error a readable physical cost and creates a recovery race. Keeping secure possession with only a delay would resemble slow handling; a large ricochet could make the occasional ordinary failure dominate a compact field. This proposal chooses a modest local loose-ball outcome. Exact scatter direction/distance/speed, bounce, fumbler reaction and recovery eligibility remain separate decisions.
@@ -1338,19 +1340,37 @@ Resolve the directional variation once for the failed-acquisition event through 
 
 The ball still begins continuously at actual contact. No unrestricted scatter, teleport, tactical bias toward/away from helpers/runners/bases, or new handling-dependent spread is approved. Numerical angle/distribution, baseline contact mapping, vertical treatment and speed/distance remain open. This records user-authored direction, not measured Mario logic; no runtime changes.
 
-## Next decision — horizontal bobble direction spread
+## Accepted decision — horizontal bobble direction spread
 
-**F693-02-bobble-direction-spread — pending, September 15, 2026.** Recommend a first trial of **up to 15 degrees left or right of the contact-derived horizontal direction**: a 30-degree total fan. This chooses the maximum variation, not a fixed turn or how likely different offsets are inside the fan.
+**F693-02-bobble-direction-spread — selected by Jack on September 15, 2026.** Jack increased the proposed ±15-degree limit to **±30 degrees around the contact-derived horizontal direction**, a 60-degree total spread. This records his response to the explicit either-side question. It is a cap, not a fixed turn or a selected sampling distribution.
 
-**Why this amount:** contact still clearly leads the motion, with enough room for a slight left/right surprise. For an illustrative horizontal travel length of four feet, the outer edge is about **1.04 feet sideways** from the baseline axis. A 10-degree limit would give about .69 feet; a 20-degree limit about 1.37 feet. Four feet is only a geometric example, not an approved scatter distance or a simulated recovery race.
+Contact remains the main direction: angle rotation preserves horizontal speed magnitude, with at least `cos(30°)`, about .866, projected along the baseline before subsequent collisions. At an illustrative four-foot horizontal travel length, the cap produces a two-foot lateral component. Four feet remains a geometric example, not a scatter-distance target or simulated recovery race.
 
-**Keep the angle separate:** rotate the initial horizontal heading without changing its speed magnitude or the contact origin. The forward projection remains at least `cos(15°)`, about .966, of that horizontal magnitude before later collisions. Do not use this choice to add random height, distance, speed or a backward reversal. Vertical treatment, baseline direction/fallback and the sampling distribution remain separately reviewed. Near-vertical/zero-horizontal encounters need an explicit contact-based fallback or suppression rule; do not invent a world-axis heading or extra horizontal energy just to apply the fan.
+Distribution, contact baseline/fallback and vertical treatment remain open. Near-vertical contacts require a reviewed rule, not an arbitrary world-axis heading or invented horizontal energy. Keep one retained seeded variation per bobble, continuous position and no tactical resampling. The new error branches below need explicit review before inheriting this local-bobble angle rule. No runtime or human gate changes.
 
-Use the retained once-per-bobble seeded result with no tactical targeting or outcome-based resampling. All seats and CPU/manual paths share it. Verify the cone, replay behavior, continuous contact and actual recovery together before implementation. The .40-second reaction and reliable ordinary recovery remain unchanged.
+## Accepted direction — expanded ordinary error outcomes
 
-This is an authored angular trial, not a measured Wii/GC value. Compare both reference games and eventual gameplay readability before claiming parity. No runtime, trajectory-distance target or human gate changes here.
+**F693-02-expanded-ordinary-error-outcomes — directed by Jack on September 15, 2026.** A failed play can leave a local bobble, **let the ball get past the defender**, or **deflect onward into the outfield**, particularly on a hard-hit infield ball. The earlier nearby-bobble decision remains a branch of the model; it must not force every ordinary failure to shed its speed and stay close.
 
-**Question for Jack:** trial up to 15 degrees of horizontal variation either side of the contact-based direction?
+This expands possible consequences, not the approved difficulty gate or error probability. A hard-hit label, an infield position or high speed alone cannot add an error roll. Preserve real geometry and the separation between reaching the ball and securing it. Do not manufacture a miss by moving the glove away or changing catch range. A genuine untouched miss is not automatically a stat-based handling failure or a stun event.
+
+Let remaining ball motion, ground/wall interactions and defender coverage decide whether the ball reaches the outfield. Do not assign a target location, extra base, safe call or guaranteed escape distance. Here “gets past” describes a batted-ball play; catcher pitch handling and formal passed-ball scoring remain outside this scope.
+
+**Inheritance still needs review:** the .40-second stun, grounded braking, reliable same-bobble recovery and ±30-degree local variation remain accepted for the local-bobble branch. Decide explicitly how each applies to a continuing deflection or a ball that gets through. An untouched ball cannot receive a fictitious contact kick. No runtime change or measured Wii/GC frequency/retained-speed claim.
+
+## Next decision — selecting the ordinary error outcome
+
+**F693-02-error-outcome-selection — pending, September 15, 2026.** Recommend **using current ball speed and actual glove/body contact to determine whether the failed play stays local or keeps travelling**, without a separate random severe-error roll.
+
+A contact that takes most of the speed out can leave a nearby bobble. A glancing contact on a fast ground ball can leave enough motion for it to continue through the infield. An untouched geometric miss continues on its path. These are qualitative examples, not accepted thresholds or collision coefficients: a hard ball can still be knocked down, and a slower one can still get past.
+
+Keep the approved handling-error chance and directional variation. This choice would avoid adding a third lottery to decide whether an error becomes severe. Use actual event-side velocity/contact rather than original exit speed, contact-quality labels, fielder position tags or tactical targets. Preserve the existing catch range/glove positioning rules and distinguish an eligible failed acquisition from a ball the defender never reaches.
+
+No numerical speed retention, restitution, ground resistance or classification threshold is selected. Do not teleport the ball, force full-speed continuation after every touch or force a nearby stop. New-branch reaction, pickup reliability and random-angle inheritance remain explicit follow-up work; special hits retain their own contracts.
+
+This is an authored selection principle, not a verified Mario algorithm. Compare hard/soft and central/glancing encounters in both references before selecting numerical physics, and then validate full recovery races and coverage. No runtime or human gate changes here.
+
+**Question for Jack:** let current ball speed and actual contact determine local bobble versus continuing escape, without a separate random severe-error roll?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
