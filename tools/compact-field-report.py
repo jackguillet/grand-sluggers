@@ -1141,7 +1141,7 @@ def derive(data):
         assert all(error_selection[key] is None for key in
                    ("outcomeMapping", "speedThresholds"))
         assert error_selection["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
-        assert error_selection["retainedSpeedModel"]["contactMapping"] is None
+        assert error_selection["retainedSpeedModel"]["contactMapping"]["curve"] == "linear"
         assert error_selection["randomAngleInheritance"] == "F693-02-continuing-error-direction"
         assert error_selection["recoveryInheritance"] == "F693-02-continuing-error-recovery"
         assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
@@ -1169,10 +1169,10 @@ def derive(data):
         assert all(continuing_direction[key] is None for key in
                    ("contactBaselineMapping",))
         assert continuing_direction["verticalTreatment"]["sameFactorAsHorizontal"] is True
-        assert continuing_direction["verticalTreatment"]["contactFactorMapping"] is None
+        assert continuing_direction["verticalTreatment"]["contactFactorMapping"]["curve"] == "linear"
         assert continuing_direction["distribution"] == "uniform-angle"
         assert continuing_direction["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
-        assert continuing_direction["retainedSpeedModel"]["contactMapping"] is None
+        assert continuing_direction["retainedSpeedModel"]["contactMapping"]["curve"] == "linear"
     continuing_retention = data.get("continuingErrorSpeedRetentionProposal")
     if continuing_retention:
         assert continuing_retention["state"] == "accepted-calibration-anchor"
@@ -1182,7 +1182,8 @@ def derive(data):
         assert 0 < retain_min < retain_max < 1
         assert math.isclose(retain_min, .50) and math.isclose(retain_max, .80)
         assert all(continuing_retention[key] is None for key in
-                   ("contactRetentionMapping", "outcomeThresholds"))
+                   ("outcomeThresholds",))
+        assert continuing_retention["contactRetentionMapping"]["curve"] == "linear"
         assert continuing_retention["verticalResponse"]["sameFactorAsHorizontal"] is True
         for retain_row in continuing_retention["examples"]:
             assert math.isclose(retain_row["lowerOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_min)
@@ -1320,7 +1321,7 @@ def derive(data):
         assert continuing_vertical["sameFactorAsHorizontal"] is True
         assert continuing_vertical["minimumFactor"] == .5 and continuing_vertical["maximumFactor"] == .8
         assert continuing_vertical["independentVerticalRandomness"] is False
-        assert continuing_vertical["contactFactorMapping"] is None
+        assert continuing_vertical["contactFactorMapping"]["curve"] == "linear"
         for vertical_example in continuing_vertical["examples"]:
             assert .5 <= vertical_example["factor"] <= .8
             assert math.isclose(vertical_example["outgoingHorizontalFtPerSec"], vertical_example["factor"] * vertical_example["incomingHorizontalFtPerSec"])
@@ -1335,17 +1336,27 @@ def derive(data):
         assert continuing_ground["numericalGroundProfile"] is None
     continuing_curve = data.get("continuingErrorRetentionCurveProposal")
     if continuing_curve:
-        assert continuing_curve["state"] == "pending" and continuing_curve["curve"] == "linear"
+        assert continuing_curve["state"] == "accepted-calibration-anchor" and continuing_curve["curve"] == "linear"
+        assert continuing_curve["acceptedBy"] and continuing_curve["acceptedOn"] and continuing_curve["acceptanceEvidence"]
         assert continuing_curve["obstructionMetric"] is None and continuing_curve["branchThresholds"] is None
         assert continuing_curve["lightContactRetention"] == .8 and continuing_curve["strongContinuingContactRetention"] == .5
         for curve_example in continuing_curve["examples"]:
             c_value = curve_example["normalizedContinuingObstruction"]
             assert 0 <= c_value <= 1
             assert math.isclose(curve_example["retainedFraction"], .8-.3*c_value)
+    contact_incidence = data.get("errorContactObstructionBasisProposal")
+    if contact_incidence:
+        assert contact_incidence["state"] == "pending"
+        assert contact_incidence["basis"] == "three-dimensional-contact-incidence"
+        assert contact_incidence["usesRelativeContactVelocity"] is True and contact_incidence["usesPenetrationDepth"] is False
+        assert all(contact_incidence[key] is None for key in ("geometryContract", "continuingNormalizationBounds", "branchThresholds", "zeroRelativeSpeedFallback"))
+        for incidence_row, expected_incidence in zip(contact_incidence["examples"], (1, math.sqrt(.5), 0)):
+            assert math.isclose(incidence_row["rawIncidence"], expected_incidence)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
             "continuingErrorRetentionCurveState": continuing_curve["state"] if continuing_curve else None,
             "continuingErrorGroundResponseState": continuing_ground["state"] if continuing_ground else None,
             "continuingErrorVerticalRetentionState": continuing_vertical["state"] if continuing_vertical else None,

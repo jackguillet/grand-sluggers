@@ -625,8 +625,13 @@
     },
     {
       "id": "F693-02-continuing-error-retention-curve",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use a linear progression from 80% retention for the lightest continuing contact to 50% for the most obstructive continuing contact, with 65% at the midpoint?"
+    },
+    {
+      "id": "F693-02-error-contact-obstruction-basis",
+      "state": "next-human-decision",
+      "question": "Measure physical obstruction by how squarely the ball meets the actual contact surface, using relative incoming motion and the surface normal, rather than overlap depth?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5500,7 +5505,12 @@
     "speedThresholds": null,
     "retainedSpeedModel": {
       "boundsDecisionId": "F693-02-continuing-error-speed-retention",
-      "contactMapping": null
+      "contactMapping": {
+        "curveDecisionId": "F693-02-continuing-error-retention-curve",
+        "curve": "linear",
+        "obstructionMetric": null,
+        "branchThresholds": null
+      }
     },
     "reactionInheritance": "F693-02-continuing-error-reaction",
     "recoveryInheritance": "F693-02-continuing-error-recovery",
@@ -5591,12 +5601,22 @@
       "boundsDecisionId": "F693-02-continuing-error-speed-retention",
       "minimumFraction": 0.5,
       "maximumFraction": 0.8,
-      "contactMapping": null
+      "contactMapping": {
+        "curveDecisionId": "F693-02-continuing-error-retention-curve",
+        "curve": "linear",
+        "obstructionMetric": null,
+        "branchThresholds": null
+      }
     },
     "verticalTreatment": {
       "decisionId": "F693-02-continuing-error-vertical-retention",
       "sameFactorAsHorizontal": true,
-      "contactFactorMapping": null
+      "contactFactorMapping": {
+        "curveDecisionId": "F693-02-continuing-error-retention-curve",
+        "curve": "linear",
+        "obstructionMetric": null,
+        "branchThresholds": null
+      }
     },
     "recommendation": "Use a narrower plus/minus 15-degree horizontal random variation trial for ordinary continuing deflections. Actual contact reduces speed while the general path stays more aligned with incoming motion than the substantially stopped local bobble. Untouched misses receive no error-induced angle change.",
     "baseline": "Use actual incoming motion and contact to produce a forward-biased continuing-deflection baseline. The narrower random fan is around that baseline; it is not permission to arbitrarily rotate the baseline away from incoming motion. Exact baseline mapping and total deviation from incoming direction remain pending; the accepted 15 degrees bounds random variation, not yet total contact-plus-random deflection.",
@@ -5625,7 +5645,12 @@
     "state": "accepted-calibration-anchor",
     "minimumRetainedHorizontalSpeedFraction": 0.5,
     "maximumRetainedHorizontalSpeedFraction": 0.8,
-    "contactRetentionMapping": null,
+    "contactRetentionMapping": {
+      "curveDecisionId": "F693-02-continuing-error-retention-curve",
+      "curve": "linear",
+      "obstructionMetric": null,
+      "branchThresholds": null
+    },
     "outcomeThresholds": null,
     "verticalResponse": {
       "decisionId": "F693-02-continuing-error-vertical-retention",
@@ -6177,7 +6202,12 @@
     "minimumFactor": 0.5,
     "maximumFactor": 0.8,
     "independentVerticalRandomness": false,
-    "contactFactorMapping": null,
+    "contactFactorMapping": {
+      "curveDecisionId": "F693-02-continuing-error-retention-curve",
+      "curve": "linear",
+      "obstructionMetric": null,
+      "branchThresholds": null
+    },
     "recommendation": "For an ordinary failed contact already classified as a continuing deflection, retain the signed vertical component using the very same contact-dependent factor r in [.50,.80] selected for horizontal speed. Set vy_out=r*vy_in at the contact, then continue shared gravity/trajectory. Do not draw or select a separate vertical factor.",
     "rationale": "A continuing ball carries through its current rising/falling path with reduced momentum, while a nearby local bobble has its separately accepted zero-vertical-speed drop. Coupling both components preserves the incoming rise/fall angle relative to horizontal magnitude at the instant of contact, apart from the separately reviewed horizontal heading change.",
     "examples": [
@@ -6256,7 +6286,7 @@
   },
   "continuingErrorRetentionCurveProposal": {
     "decisionId": "F693-02-continuing-error-retention-curve",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "curve": "linear",
     "lightContactRetention": 0.8,
     "strongContinuingContactRetention": 0.5,
@@ -6298,6 +6328,51 @@
       "Future geometry metric must be replayable, invariant under field rotation and independent of tactical outcomes.",
       "Review near-boundary contacts and full recovery races before runtime/human acceptance."
     ],
-    "implementationBoundary": "Pending interpolation shape only. Obstruction metric, outcome thresholds, ordinary ground values, runtime and human validation remain open."
+    "implementationBoundary": "Accepted interpolation shape only. Obstruction metric, outcome thresholds, ordinary ground values, runtime and human validation remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"approve\" to the linear continuing-deflection retention progression, with 65% retention at midpoint obstruction."
+  },
+  "errorContactObstructionBasisProposal": {
+    "decisionId": "F693-02-error-contact-obstruction-basis",
+    "state": "pending",
+    "basis": "three-dimensional-contact-incidence",
+    "usesRelativeContactVelocity": true,
+    "usesPenetrationDepth": false,
+    "geometryContract": null,
+    "continuingNormalizationBounds": null,
+    "branchThresholds": null,
+    "zeroRelativeSpeedFallback": null,
+    "recommendation": "Use how squarely the ball meets the actual resolved glove/body contact surface as the obstruction basis. A grazing approach is less obstructive; an approach straight into the surface is more obstructive. Evaluate incoming motion relative to the moving contact surface in 3D, not a frame-dependent overlap depth.",
+    "definition": "For a valid approaching contact, let n be the unit outward surface normal and u the nonzero pre-contact ball velocity relative to the surface point. Raw incidence g=clamp(-dot(u/length(u),n),0,1). This defines a geometry measure only. The accepted normalized continuing obstruction c is not automatically g: its range and classifier bounds remain unselected.",
+    "examples": [
+      {
+        "approach": "straight-into-surface",
+        "rawIncidence": 1
+      },
+      {
+        "approach": "45-degrees-from-inward-normal",
+        "rawIncidence": 0.7071067811865476
+      },
+      {
+        "approach": "ideal-tangent-limit",
+        "rawIncidence": 0
+      }
+    ],
+    "rationale": "A grazing touch should preserve more motion than a square obstruction. Overlap depth can depend on frame stepping or collision correction; it should not silently decide the outcome. Contact location still matters through the actual surface normal, so this is not just a character-facing angle.",
+    "geometry": "Use shared authoritative baseball contact geometry and motion at the actual event, including the velocity of the contact point, not a cosmetic triangle, render-frame pose or camera projection. Required glove/body shapes, normals and swept-contact resolution must be specified and validated before implementation. This selects neither a new collider/range nor a second physics system.",
+    "scope": "A basis for obstruction in qualifying contacted ordinary handling failures, not a new failure trigger or proof of possession. Glove/body collision alone does not authorize an error roll or stun. Preserve explicit character catch range and no Field-driven glove positioning. Special contacts retain their reviewed contracts.",
+    "velocityBoundary": "Relative contact velocity is used only to measure incidence. Accepted speed retention still multiplies actual world-space incoming ball velocity. Do not quietly add fielder movement speed to outgoing speed or replace the accepted world-space speed model.",
+    "openMapping": "Actual speed remains an independent input to the later local/continuing classifier. Selecting incidence does not assign thresholds, define normalized c, make every square contact a local bobble or make every graze a continuing error. Tangent limits and zero/negligible relative speed need explicit robust handling; no invented world-axis fallback or extra random branch.",
+    "preserved": "Keep approved error probability, per-event directional RNG, local/continuing response coefficients, same-error recovery and independent stun. No handling/stat/tactical modifier of geometry and no post-response feedback into contact classification.",
+    "referenceLimit": "Authored geometric proposal, not measured Wii/GC contact code. The angle examples are geometric definitions, not observed gameplay statistics.",
+    "requiredChecks": [
+      "Rotating/translating an equivalent encounter does not change incidence; relative motion treats moving contact surfaces consistently.",
+      "Use pre-response actual contact state and a valid unit normal; frame overlap and corrective penetration do not decide severity.",
+      "Keep raw incidence separate from normalized continuing obstruction and branch thresholds.",
+      "Zero-relative-speed/tangent cases remain explicit until a reviewed fallback is selected.",
+      "Validate glove/body contact geometry against visible contact and full error races before human acceptance."
+    ],
+    "implementationBoundary": "Pending obstruction basis only. Geometry, normalization, classifier thresholds, degeneracy handling, runtime and human gates remain open."
   }
 }

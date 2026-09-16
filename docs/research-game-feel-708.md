@@ -1630,9 +1630,9 @@ This is an accepted authored design direction, not evidence of Wii/GC internals.
 
 **Accepted scope:** shared ordinary batted-ball ground response from actual deflected state, preserving same-error recovery and excluding local-bobble limits. Ordinary numerical ground calibration remains open.
 
-## Next decision — continuing-deflection retention curve
+## Accepted decision — continuing-deflection retention curve
 
-**F693-02-continuing-error-retention-curve — pending, September 15, 2026.** Recommend a **linear progression through the accepted 50–80% retention range**: the lightest continuing contact keeps 80%, the strongest contact still classed as continuing keeps 50%, and midpoint obstruction keeps 65%.
+**F693-02-continuing-error-retention-curve — accepted by Jack on September 15, 2026.** Jack approved a **linear progression through the accepted 50–80% retention range**: the lightest continuing contact keeps 80%, the strongest contact still classed as continuing keeps 50%, and midpoint obstruction keeps 65%.
 
 **Player context:** progressively more obstructive contact should remove progressively more speed without a separate light/heavy jump. A stepped response would change speed abruptly; a curved response would favor one end of the range. A straight progression is a transparent starting trial. The same factor still scales horizontal and vertical speed.
 
@@ -1642,9 +1642,27 @@ This is an accepted authored design direction, not evidence of Wii/GC internals.
 
 Preserve current velocity/contact origin, the shared horizontal/vertical factor, forward-biased direction with uniform ±15-degree variation, shared ordinary ground physics, .40-second stun and reliable same-error recovery. No added random speed or severity roll, handling modifier or new behavior for untouched misses/specials.
 
-This is an authored interpolation proposal, not a measured Wii/GC algorithm. Contact-metric research, branch geometry, numerical ordinary ground calibration, full races and human validation remain open; no runtime change here.
+This is an accepted authored interpolation, not a measured Wii/GC algorithm. Contact-metric research, branch geometry, numerical ordinary ground calibration, full races and human validation remain open; no runtime change here.
 
-**Question for Jack:** use this linear progression, with 65% retained speed at midpoint obstruction?
+**Accepted scope:** linear retention from 80% to 50% across normalized continuing-contact obstruction, with 65% at midpoint. The physical metric and branch boundaries remain open.
+
+## Next decision — physical contact obstruction basis
+
+**F693-02-error-contact-obstruction-basis — pending, September 15, 2026.** Recommend measuring obstruction by **how squarely the ball meets the actual glove/body contact surface**. A grazing encounter is less obstructive; an approach straight into the surface is more obstructive. Include motion of the contact surface itself.
+
+**Player context:** a ball clipping a surface should tend to keep more momentum than one meeting it squarely. Contact location matters through the actual shape and its surface direction. This is not simply whether the defender faces the ball, and it does not use Fielding to move the glove or alter its range.
+
+**Geometric definition:** for an actual approaching contact, let `n` be the outward unit surface normal and `u` the ball's pre-contact velocity relative to that surface point. Raw incidence is `g=clamp(-dot(normalize(u),n),0,1)`. A straight-in approach yields 1, a 45-degree approach about .707, and the ideal grazing limit 0. Evaluate in 3D using authoritative contact geometry and motion. These are geometric illustrations, not Mario measurements.
+
+**Do not confuse the two scales:** raw incidence `g` is not automatically the accepted normalized continuing obstruction `c`. The continuing range must still be selected and normalized before the approved `.80-.30*c` curve applies. Actual ball speed also remains an independent classifier input. This choice does not make every square contact a local bobble or every grazing contact a continuing error.
+
+**Implementation requirements remain explicit:** specify and validate glove/body contact shapes, normals and swept event resolution through the shared baseball system. Do not use cosmetic mesh detail, camera projection, render-frame poses or frame-dependent overlap depth as the severity measure. Contact surface velocity includes motion at the point of impact. Zero/negligible relative speed and tangent degeneracies need a reviewed rule; do not invent a direction or random branch to cover them.
+
+Relative velocity is used here only to measure incidence. Approved outgoing speed still derives from actual world-space ball velocity; this does not add the fielder's running speed to a deflection. A body/glove collision alone still does not create a handling-error opportunity or stun. Keep error chance, explicit catch range, contact origin, approved response/recovery and special contracts intact.
+
+This is an authored geometry proposal, not a claim about Wii/GC internals. Geometry, continuing normalization, branch thresholds and actual-contact/gameplay validation remain open. No runtime change here.
+
+**Question for Jack:** base obstruction on how squarely the ball meets the actual contact surface, including the surface's motion?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
