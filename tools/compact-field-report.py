@@ -1220,7 +1220,8 @@ def derive(data):
         assert local_vertical["state"] == "accepted-calibration-anchor" and local_vertical["defaultAddedUpwardPop"] is False
         assert local_vertical["acceptedBy"] and local_vertical["acceptedOn"] and local_vertical["acceptanceEvidence"]
         assert all(local_vertical[key] is None for key in
-                   ("reboundHeightFt", "verticalContactResponse", "localHorizontalSpeed", "settleDistanceFt"))
+                   ("reboundHeightFt", "localHorizontalSpeed", "settleDistanceFt"))
+        assert local_vertical["verticalContactResponse"]["postContactVerticalSpeedFtPerSec"] == 0
     local_rebound = data.get("localBobbleReboundCeilingProposal")
     if local_rebound:
         assert local_rebound["state"] == "accepted-calibration-anchor"
@@ -1229,7 +1230,8 @@ def derive(data):
         assert local_rebound["maximumReboundRiseInches"] == local_rebound["maximumReboundRiseFt"] * 12
         assert local_rebound["fixedReboundHeight"] is False
         assert all(local_rebound[key] is None for key in
-                   ("minimumReboundRiseFt", "verticalContactResponse"))
+                   ("minimumReboundRiseFt",))
+        assert local_rebound["verticalContactResponse"]["postContactVerticalSpeedFtPerSec"] == 0
         assert local_rebound["restitution"] == .35
     local_restitution = data.get("localBobbleRestitutionProposal")
     if local_restitution:
@@ -1238,7 +1240,7 @@ def derive(data):
         assert local_restitution["verticalSpeedRetention"] == .35
         assert local_restitution["maximumReboundRiseFt"] == local_rebound["maximumReboundRiseFt"]
         assert local_restitution["settleThreshold"]["maximumSuppressedReboundRiseFt"] == .25
-        assert local_restitution["postGloveVerticalResponse"] is None
+        assert local_restitution["postGloveVerticalResponse"]["postContactVerticalSpeedFtPerSec"] == 0
         for rebound_example in local_restitution["examples"]:
             rebound_rise = rebound_example["illustrativeDropFromRestFt"] * local_restitution["verticalSpeedRetention"]**2
             assert math.isclose(rebound_example["uncappedReboundRiseFt"], rebound_rise)
@@ -1261,14 +1263,25 @@ def derive(data):
             assert first_impact["settlesAtFirstGroundImpact"] == (first_rise <= local_settling["maximumSuppressedReboundRiseInches"])
     local_glove_release = data.get("localBobbleGloveReleaseProposal")
     if local_glove_release:
-        assert local_glove_release["state"] == "pending"
+        assert local_glove_release["state"] == "accepted-calibration-anchor"
+        assert local_glove_release["acceptedBy"] and local_glove_release["acceptedOn"] and local_glove_release["acceptanceEvidence"]
         assert local_glove_release["postContactVerticalSpeedFtPerSec"] == 0
         assert local_glove_release["addedHoldSec"] == 0
         assert local_glove_release["horizontalContactResponse"] is None
+    local_horizontal_cap = data.get("localBobbleHorizontalCapProposal")
+    if local_horizontal_cap:
+        assert local_horizontal_cap["state"] == "pending"
+        assert local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"] == 6
+        assert local_horizontal_cap["fixedSpeed"] is False
+        assert all(local_horizontal_cap[key] is None for key in
+                   ("minimumSpeedFtPerSec", "contactSpeedMapping", "groundHorizontalResponse"))
+        spill_example = local_horizontal_cap["illustration"]
+        assert math.isclose(spill_example["distanceFt"], spill_example["constantSpeedFtPerSec"] * spill_example["elapsedSec"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleHorizontalCapState": local_horizontal_cap["state"] if local_horizontal_cap else None,
             "localBobbleGloveReleaseState": local_glove_release["state"] if local_glove_release else None,
             "localBobbleSettlingState": local_settling["state"] if local_settling else None,
             "localBobbleRestitutionState": local_restitution["state"] if local_restitution else None,

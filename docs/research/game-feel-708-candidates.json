@@ -590,8 +590,13 @@
     },
     {
       "id": "F693-02-local-bobble-glove-release",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "For the local knockdown/bobble branch, absorb vertical speed at failed glove contact and let gravity immediately drop the loose ball from its actual contact height?"
+    },
+    {
+      "id": "F693-02-local-bobble-horizontal-cap",
+      "state": "next-human-decision",
+      "question": "Trial a six-foot-per-second maximum horizontal speed immediately after local-bobble contact, allowing weaker contacts to spill more slowly without a minimum kick?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5720,7 +5725,11 @@
     "shape": "downward-spill-low-rebound",
     "defaultAddedUpwardPop": false,
     "reboundHeightFt": null,
-    "verticalContactResponse": null,
+    "verticalContactResponse": {
+      "decisionId": "F693-02-local-bobble-glove-release",
+      "postContactVerticalSpeedFtPerSec": 0,
+      "addedHoldSec": 0
+    },
     "localHorizontalSpeed": null,
     "settleDistanceFt": null,
     "recommendation": "For the ordinary local-bobble branch, spill the ball down from actual glove contact and use a small low ground rebound, instead of adding a default upward pop. Keep the bobble nearby and visibly loose while the character performs its accepted reaction.",
@@ -5753,7 +5762,11 @@
     "fixedReboundHeight": false,
     "minimumReboundRiseFt": null,
     "restitution": 0.35,
-    "verticalContactResponse": null,
+    "verticalContactResponse": {
+      "decisionId": "F693-02-local-bobble-glove-release",
+      "postContactVerticalSpeedFtPerSec": 0,
+      "addedHoldSec": 0
+    },
     "recommendation": "Trial a maximum six-inch rise after each ground rebound in the ordinary local-bobble phase. Weaker impacts may bounce lower or settle; do not force a six-inch bounce.",
     "measurement": "Rise of the ball center from its supported ground-contact height to its next apex, relative to the local collision surface. This is not an absolute world Y, ball-top height, release/contact height or ceiling on the initial fall.",
     "rationale": "A low rebound should make the loose ball visible while limiting added airborne waiting. Three inches is a subtler alternative; twelve inches is more pronounced and can add hang time. Six inches is an authored starting cap, not a measured Mario number or a guaranteed recovery duration.",
@@ -5785,7 +5798,11 @@
       "maximumSuppressedReboundRiseFt": 0.25,
       "comparison": "less-than-or-equal"
     },
-    "postGloveVerticalResponse": null,
+    "postGloveVerticalResponse": {
+      "decisionId": "F693-02-local-bobble-glove-release",
+      "postContactVerticalSpeedFtPerSec": 0,
+      "addedHoldSec": 0
+    },
     "recommendation": "On ordinary local-bobble ground impact, trial 35% of actual downward impact speed as upward speed, reduced as needed by the accepted six-inch rise ceiling. Weak impacts can settle under the accepted three-inch predicted-rise threshold; no minimum rebound speed or forced bounce.",
     "definition": "Flat stationary ground: before the ceiling/settling rule, u_out=0.35*abs(v_y_in), using actual event-side downward vertical velocity. The shared trajectory must enforce the rise ceiling without adding energy or snapping position. With constant downward gravity g and no drag, the capped analytical response is min(0.35*abs(v_y_in),sqrt(2*g*0.50)). No new gravity, flight time scale or independent physics path is selected.",
     "examples": [
@@ -5879,7 +5896,7 @@
   },
   "localBobbleGloveReleaseProposal": {
     "decisionId": "F693-02-local-bobble-glove-release",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "postContactVerticalSpeedFtPerSec": 0,
     "addedHoldSec": 0,
     "horizontalContactResponse": null,
@@ -5890,7 +5907,7 @@
     "groundResponse": "Subsequent ordinary local ground impacts use the accepted .35 vertical restitution, .50-foot rise ceiling and .25-foot predicted-rise settling threshold. The real contact height still determines fall duration and whether a visible bounce survives; no guaranteed bounce or fixed airtime.",
     "recovery": "Keep the .40-second stun independent. A helper or the recovered fumbler can acquire through eligible actual contact before ground impact; no wait for the drop to finish, automatic pickup or same-origin reroll.",
     "openWork": "Local horizontal contact speed/direction mapping, drag and rolling response, contact geometry/outcome classifier, collision integration and reference/gameplay validation remain open. No new random vertical variation or Fielding modifier.",
-    "referenceLimit": "Authored proposed local-contact response, not a measured Wii/GC glove-to-ball velocity. Compare low/high contact and rising/falling incoming examples in eventual reference and gameplay review.",
+    "referenceLimit": "Accepted authored local-contact response, not a measured Wii/GC glove-to-ball velocity. Compare low/high contact and rising/falling incoming examples in eventual reference and gameplay review.",
     "requiredChecks": [
       "Apply zero vertical velocity only after actual qualifying contact and local classification, without a momentary secured-possession state.",
       "Different contact heights retain real fall-time differences; no fixed-height reset or scripted fall duration.",
@@ -5898,6 +5915,40 @@
       "Preserve independent horizontal response, same-error identity, stun and eligible recovery.",
       "Continuing and special trajectories do not inherit the local knockdown response."
     ],
-    "implementationBoundary": "Pending post-glove vertical response only. No runtime tuning, reference measurement or passed human gate."
+    "implementationBoundary": "Accepted post-glove vertical response only. No runtime tuning, reference measurement or passed human gate.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to the immediate gravity-driven drop for ordinary nearby bobbles: absorb vertical momentum at glove contact, then fall from actual contact height with no hold."
+  },
+  "localBobbleHorizontalCapProposal": {
+    "decisionId": "F693-02-local-bobble-horizontal-cap",
+    "state": "pending",
+    "maximumPostContactHorizontalSpeedFtPerSec": 6,
+    "fixedSpeed": false,
+    "minimumSpeedFtPerSec": null,
+    "contactSpeedMapping": null,
+    "groundHorizontalResponse": null,
+    "recommendation": "Trial a six-foot-per-second ceiling on outgoing horizontal speed at ordinary local-bobble glove contact. Contact determines a speed at or below that ceiling through a separately reviewed mapping. Do not force every bobble to six or invent a minimum kick.",
+    "rationale": "Keep local knockdowns visibly loose but nearby, while continuing deflections retain their separate faster escape response. A four-foot-per-second cap is tighter; eight allows a larger spill. Six is an authored trial, not a measured Mario speed.",
+    "definition": "Apply to horizontal magnitude sqrt(vx squared + vz squared) after local contact response; reduce only if above six feet per second, preserving the approved contact-derived direction plus uniform +/-30-degree offset. This is event-side world-space speed, not bat exit speed, a speed fraction, or a total-3D speed cap.",
+    "illustration": {
+      "constantSpeedFtPerSec": 6,
+      "elapsedSec": 0.4,
+      "distanceFt": 2.4,
+      "assumptions": "Constant horizontal speed throughout the accepted stun, no deceleration, collision, external impulse or pickup. Arithmetic sensitivity only; not a simulated recovery or total-scatter guarantee."
+    },
+    "scope": "Ordinary local-bobble branch only after the actual failed contact and physical outcome classification. Do not classify local versus continuing by clamping first. Continuing deflections retain their .50-.80 incoming horizontal-speed fraction and +/-15-degree variation. No change to untouched balls, specials, character movement or ordinary batted-ball flight.",
+    "noEnergyFloor": "A weak or near-stationary contact may produce a slower spill or no horizontal motion. The ceiling alone supplies neither an impulse nor a direction for zero-speed cases. Exact contact mapping must avoid inventing speed to reach a target distance. No new speed roll or handling/Fielding modifier.",
+    "distanceBoundary": "The cap is at release, not a fixed scatter radius, guaranteed stopping distance or global speed limiter after later collisions/impulses. Actual contact height, flight, ground response, fielder movement and pickup determine separation. Horizontal friction/retention and stopping distance remain open.",
+    "preserved": "Keep actual contact position, zero post-contact vertical speed with immediate gravity, accepted rebound/settling rules, independent .40-second stun and reliable same-origin recovery. Do not offset/teleport the ball away to make the bobble visible.",
+    "requiredChecks": [
+      "The local outgoing horizontal magnitude never exceeds six ft/s while weaker response remains below it.",
+      "Direction sampling preserves the chosen magnitude and actual contact position.",
+      "Classification precedes response; continuing deflections never inherit the local cap.",
+      "Review short/high contact drops and moving/standing defenders with actual flight/ground response before accepting recovery races.",
+      "No cap-driven minimum speed, tactical bias, extra RNG or automatic possession."
+    ],
+    "referenceLimit": "Authored speed ceiling and arithmetic sensitivity only; no matched Wii/GC local-spill speed measurement. Reference comparison and gameplay-distance review remain required.",
+    "implementationBoundary": "Pending local horizontal speed ceiling only. Contact mapping, ground response, stopping distance, complete runtime integration and human validation remain open."
   }
 }

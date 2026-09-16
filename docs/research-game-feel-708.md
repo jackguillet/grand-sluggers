@@ -1514,9 +1514,9 @@ The existing ball-flight path already distinguishes rebound and rolling through 
 
 **Effect of the correction:** in the same simplified drop-from-rest calculation, a two-foot fall predicts a 2.94-inch rebound, which now settles on its first ground impact. A four-foot fall predicts 5.88 inches, so that bounce remains. Rebounds of exactly three inches settle; only predicted rises above three inches survive, up to the accepted six-inch ceiling. These are arithmetic illustrations, not chosen glove heights or measured Mario paths.
 
-## Next decision — local bobble release from the glove
+## Accepted decision — local bobble release from the glove
 
-**F693-02-local-bobble-glove-release — pending, September 15, 2026.** Recommend that the local knockdown/bobble contact **absorb the incoming vertical motion, then let gravity immediately drop the loose ball from its actual contact height**. Post-contact vertical speed starts at zero, with no timed hold. Horizontal spill remains a separate pending response.
+**F693-02-local-bobble-glove-release — accepted by Jack on September 15, 2026.** Jack approved that the local knockdown/bobble contact **absorb the incoming vertical motion, then let gravity immediately drop the loose ball from its actual contact height**. Post-contact vertical speed starts at zero, with no timed hold. Horizontal spill remains a separate pending response.
 
 **Player context:** the glove interrupts the ball and it spills down softly. Retaining some downward momentum is the alternative; that would make a hard descending contact fall faster. The proposed local response gives a simple drop without an upward pop or a scripted downward shove. It does not govern continuing deflections, whose retained momentum is part of their separate contract.
 
@@ -1524,9 +1524,25 @@ The existing ball-flight path already distinguishes rebound and rolling through 
 
 Actual contact height controls fall duration. Subsequent ground impacts use the accepted 35% vertical restitution, six-inch ceiling and three-inch settling cutoff. A visible bounce is not guaranteed. The .40-second stun remains independent, and eligible recovery can occur before the ball reaches the ground, including by a helper.
 
-This is an authored proposal, not measured Wii/GC glove-contact physics. Local horizontal motion, the contact classifier, complete collision handling and reference/gameplay validation remain open. Use the shared authoritative ball model and authored contact motion; no second physics path or runtime change is approved here.
+This is an accepted authored response, not measured Wii/GC glove-contact physics. Local horizontal motion, the contact classifier, complete collision handling and reference/gameplay validation remain open. Use the shared authoritative ball model and authored contact motion; no second physics path or runtime change is approved here.
 
-**Question for Jack:** have an ordinary nearby bobble lose its vertical momentum at glove contact and immediately drop under gravity?
+**Accepted scope:** zero post-contact vertical speed and zero hold time for the ordinary local branch. The actual contact point remains continuous and gravity acts immediately; horizontal response remains separate.
+
+## Next decision — local bobble horizontal speed ceiling
+
+**F693-02-local-bobble-horizontal-cap — pending, September 15, 2026.** Recommend a **six-foot-per-second maximum horizontal spill speed** immediately after ordinary local-bobble contact. Weaker contacts may spill more slowly or have no horizontal motion; this is a ceiling, not a fixed kick.
+
+**Player context:** local bobbles should get visibly away from the glove while staying distinct from continuing deflections. A four-foot-per-second cap keeps them tighter; eight permits more escape. Six is an authored starting proposal, not measured Wii/GC speed. At a constant six feet per second, the ball travels **2.4 feet during the .40-second stun**, before accounting for deceleration, collision or recovery. This is a sensitivity calculation, not a total-scatter radius or simulated play.
+
+**Apply the cap to the right quantity:** after actual qualifying contact and physical local/continuing classification, limit the local outgoing horizontal magnitude to six ft/s. Preserve the contact-derived baseline plus uniform ±30-degree variation. The angle changes direction without changing magnitude. This is world-space event velocity, not bat exit speed or total 3D speed. Keep the accepted zero initial vertical speed and immediate gravity.
+
+**No minimum kick:** actual contact will determine the speed below the ceiling through a later reviewed mapping. Do not boost a weak ball, manufacture motion from a zero-speed case, add another random speed roll or use handling/Fielding as a hidden scatter modifier. The ceiling alone does not resolve contact mapping or the zero-direction fallback.
+
+**Distance remains physical:** preserve the real contact origin; no instant offset or fixed-distance release. Contact height, flight, ground response, defender movement and pickup determine actual separation. Horizontal ground retention/friction and eventual stopping distance remain pending. This release cap is not a global limiter on later independent collisions or special impulses.
+
+Continuing deflections retain their separate 50–80% incoming horizontal-speed retention and ±15-degree direction rules. Untouched balls, specials and normal batted-ball flight do not inherit this local cap. Preserve the independent .40-second stun and reliable same-error recovery. Reference capture, trajectory/race validation and gameplay-distance review remain required; no runtime change here.
+
+**Question for Jack:** trial a six-foot-per-second maximum horizontal spill for nearby bobbles, with weaker contacts allowed to move more slowly?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
