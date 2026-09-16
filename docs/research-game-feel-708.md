@@ -4,11 +4,27 @@ September 14, 2026. [#708](https://github.com/jackguillet/grand-sluggers/issues/
 
 **Accepted first trial: C80, an 80-foot diamond and 232 / 280 / 232-foot fences. Jack approved on September 14, 2026.** Compare C70, a 70-foot diamond with 203 / 245 / 203-foot fences, as the stronger alternative. Preserve character stature in both. C80 is an approved original spatial trial; C70 remains an unselected alternative. Neither is measured Nintendo geometry or approved shipping defaults.
 
-This packet starts R3's numerical review. It supplies the coordinated spatial proposal, its race dependencies, analytical sensitivities and outstanding decisions. **It is not yet a complete implementable game contract.** Jack chooses one decision at a time; selecting a spatial trial does not approve its future movement, throwing, flight or presentation coefficients. R3 stays open until those quantities have also been reviewed together and validated.
+This packet starts R3's numerical review. It supplies the coordinated spatial proposal, its race dependencies, analytical sensitivities and outstanding decisions. **It is not yet a complete implementable game contract.** Jack chooses meaningful gameplay decisions one at a time; the current arcade-fielding correction below removes the microscopic glove-geometry approval chain. Selecting a spatial trial does not approve all future tuning. R3 stays open until those quantities have also been reviewed together and validated.
 
 Machine-readable [candidate inputs](research/game-feel-708-candidates.json), [derived arithmetic](research/game-feel-708-derived.json), and [reproduction script](../tools/compact-field-report.py) accompany this report. No compact profile has been simulated or played.
 
 ![Same-scale ground plans and nominal character proportions](research/game-feel-708-comparison.png)
+
+## Current direction — simple arcade fielding
+
+**F693-02-arcade-fielding-simplification — directed by Jack on September 15, 2026.** This is a cartoon toy baseball game. **Use the character's explicit fielding range, ball trajectory and action readiness to resolve fielding; make the glove pocket face the ball visually. Do not simulate glove pocket/rim/back eligibility, detailed contact surfaces or contact normals.** This correction takes precedence over the historical glove/obstruction sections below.
+
+The player still owns positioning and jump/action timing. Apply baseball legality and the approved difficulty/defensive-quality error rules at a qualifying gameplay opportunity. Routine fielding remains reliable. Preserve local bobbles, continuing deflections, the brief stun, reliable same-error recovery and special-hit exceptions. A visual wrist angle is not another skill check or failure roll.
+
+**Visual responsibility:** authored motion should meet the ball convincingly with the pocket facing it. A mismatch is a presentation issue to fix, not permission to manufacture a miss or teleport the ball. Use the existing shared rig, authored takes and simulation clock. No new pose or collision engine is selected.
+
+**Retired implementation requirements:** the contact-incidence calculation, concave glove collider, pocket/rim/back acquisition policy and geometry-dependent obstruction curve are superseded as runtime requirements. Their original decisions remain below as history. The 50–80% continuing speed bounds and shared vertical factor remain trial anchors; a detailed collider-driven interpolation is no longer required. Simple error-response selection and direction must still be reproducible, with no new severity lottery or tactical result assignment silently introduced.
+
+**Keep useful feel work:** the previously recorded ball-response numbers remain authored trial anchors for later calibration, not measured Mario constants or shipping defaults. This correction does not implement or retune them. Reach dimensions, simplified response mapping, traits, coverage and full race validation remain open.
+
+**Review process:** continue one decision at a time for meaningful player-facing tradeoffs. Consolidate hidden geometry and implementation choices into research/tuning work rather than asking Jack to approve each microscopic detail. The next work is to consolidate the simplified contract around representative catches, bobbles and hard infield escapes, compare both references, and identify the next material gameplay decision. No replacement glove microdecision is queued here.
+
+No runtime, asset, merge or human gate changes. This is Jack's design direction, not a claim about Nintendo internals.
 
 ## Accepted decision — lead spatial trial
 
@@ -1630,7 +1646,11 @@ This is an accepted authored design direction, not evidence of Wii/GC internals.
 
 **Accepted scope:** shared ordinary batted-ball ground response from actual deflected state, preserving same-error recovery and excluding local-bobble limits. Ordinary numerical ground calibration remains open.
 
-## Accepted decision — continuing-deflection retention curve
+<a id="accepted-decision--continuing-deflection-retention-curve"></a>
+
+## Superseded — continuing-deflection retention curve
+
+**Superseded by F693-02-arcade-fielding-simplification.** Historical design record only; not a current implementation requirement.
 
 **F693-02-continuing-error-retention-curve — accepted by Jack on September 15, 2026.** Jack approved a **linear progression through the accepted 50–80% retention range**: the lightest continuing contact keeps 80%, the strongest contact still classed as continuing keeps 50%, and midpoint obstruction keeps 65%.
 
@@ -1646,7 +1666,11 @@ This is an accepted authored interpolation, not a measured Wii/GC algorithm. Con
 
 **Accepted scope:** linear retention from 80% to 50% across normalized continuing-contact obstruction, with 65% at midpoint. The physical metric and branch boundaries remain open.
 
-## Accepted decision — physical contact obstruction basis
+<a id="accepted-decision--physical-contact-obstruction-basis"></a>
+
+## Superseded — physical contact obstruction basis
+
+**Superseded by F693-02-arcade-fielding-simplification.** Historical design record only; not a current implementation requirement.
 
 **F693-02-error-contact-obstruction-basis — accepted by Jack on September 15, 2026.** Jack approved measuring obstruction by **how squarely the ball meets the actual glove/body contact surface**. A grazing encounter is less obstructive; an approach straight into the surface is more obstructive. Include motion of the contact surface itself.
 
@@ -1664,7 +1688,11 @@ This is an accepted authored geometry basis, not a claim about Wii/GC internals.
 
 **Accepted scope:** three-dimensional contact incidence from pre-contact relative motion and the actual surface normal. Geometry, normalization, branch thresholds and degenerate-contact handling remain open.
 
-## Accepted decision — glove contact surface
+<a id="accepted-decision--glove-contact-surface"></a>
+
+## Superseded — glove contact surface
+
+**Superseded by F693-02-arcade-fielding-simplification.** Historical design record only; not a current implementation requirement.
 
 **F693-02-glove-contact-surface — accepted by Jack on September 15, 2026.** Jack approved a **simplified smooth cup-shaped pocket with a rounded rim**, matching the visible glove and moving with it. This supplies the physical surface used to measure contact angle.
 
@@ -1682,9 +1710,13 @@ This is an accepted authored surface direction, not verified Wii/GC collision ge
 
 **Accepted scope:** smooth concave pocket with rounded rim, matching the visible glove and separate from reach. Dimensions, back/cuff/body geometry and authoritative motion integration remain open.
 
-## Next decision — which glove sides can secure the ball
+<a id="next-decision--which-glove-sides-can-secure-the-ball"></a>
 
-**F693-02-glove-catch-sides — pending, September 15, 2026.** Recommend that **eligible actual contact with the pocket, rim or back of the glove can secure the ball**, without a separate pocket-facing requirement.
+## Superseded — which glove sides can secure the ball
+
+**Superseded by F693-02-arcade-fielding-simplification.** Historical design record only; not a current implementation requirement.
+
+**F693-02-glove-catch-sides — proposed then superseded, September 15, 2026.** Recommend that **eligible actual contact with the pocket, rim or back of the glove can secure the ball**, without a separate pocket-facing requirement.
 
 **Player context:** positioning and timing should remain the player's responsibility. A brief wrist pose that exposes the glove's back should not add a hidden orientation failure after the player reaches the ball. Pocket-only catching is the alternative; it makes glove orientation more demanding, but the player currently has no separate glove-facing input. The proposed policy is deliberately forgiving arcade acquisition, not a real-world glove claim.
 
@@ -1698,7 +1730,7 @@ The cup-shaped geometry still matters for contact and deflection. This choice on
 
 This is an authored proposal for reliable fielding, not verified Wii/GC catch-side behavior. No runtime or human gate change here.
 
-**Question for Jack:** allow pocket, rim and back-of-glove contact to secure the ball when otherwise eligible, without a pocket-facing requirement?
+**Retired question:** Jack rejected this level of glove simulation. See the current arcade-fielding direction at the top of this report.
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

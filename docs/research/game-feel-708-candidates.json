@@ -625,23 +625,37 @@
     },
     {
       "id": "F693-02-continuing-error-retention-curve",
-      "state": "accepted-calibration-anchor",
-      "question": "Use a linear progression from 80% retention for the lightest continuing contact to 50% for the most obstructive continuing contact, with 65% at the midpoint?"
+      "state": "superseded-by-user-direction",
+      "question": "Use a linear progression from 80% retention for the lightest continuing contact to 50% for the most obstructive continuing contact, with 65% at the midpoint?",
+      "supersededBy": "F693-02-arcade-fielding-simplification"
     },
     {
       "id": "F693-02-error-contact-obstruction-basis",
-      "state": "accepted-calibration-anchor",
-      "question": "Measure physical obstruction by how squarely the ball meets the actual contact surface, using relative incoming motion and the surface normal, rather than overlap depth?"
+      "state": "superseded-by-user-direction",
+      "question": "Measure physical obstruction by how squarely the ball meets the actual contact surface, using relative incoming motion and the surface normal, rather than overlap depth?",
+      "supersededBy": "F693-02-arcade-fielding-simplification"
     },
     {
       "id": "F693-02-glove-contact-surface",
-      "state": "accepted-calibration-anchor",
-      "question": "Use a simplified smooth cup-shaped glove contact surface with a rounded rim, matching the visible pocket and moving with the glove, independently of catch reach?"
+      "state": "superseded-by-user-direction",
+      "question": "Use a simplified smooth cup-shaped glove contact surface with a rounded rim, matching the visible pocket and moving with the glove, independently of catch reach?",
+      "supersededBy": "F693-02-arcade-fielding-simplification"
     },
     {
       "id": "F693-02-glove-catch-sides",
-      "state": "next-human-decision",
-      "question": "Allow eligible actual glove contact on pocket, rim or back to secure a ball, without a separate pocket-facing requirement?"
+      "state": "superseded-by-user-direction",
+      "question": "Allow eligible actual glove contact on pocket, rim or back to secure a ball, without a separate pocket-facing requirement?",
+      "supersededBy": "F693-02-arcade-fielding-simplification"
+    },
+    {
+      "id": "F693-02-arcade-fielding-simplification",
+      "state": "accepted-calibration-anchor",
+      "question": "Use readable cartoon fielding range/readiness and visual glove facing instead of simulating pocket/rim/back contact surfaces or incidence."
+    },
+    {
+      "id": "F693-02-arcade-fielding-validation",
+      "state": "next-research-action",
+      "question": "Consolidate the simplified fielding contract and compare player-visible reference situations; bring only material gameplay tradeoffs to Jack, one at a time."
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4746,7 +4760,11 @@
       "Preserve special-hit eligibility and existing accepted throw/recoil rules until an explicit stat migration is reviewed."
     ],
     "referenceLimit": "User-authored correction. No measured Mario catch-range dimensions or composite Fielding formula established.",
-    "implementationBoundary": "Accepted direction only. No numerical range, new error probability, roster/stat migration, runtime or asset change; standalone gates remain open."
+    "implementationBoundary": "Accepted direction only. No numerical range, new error probability, roster/stat migration, runtime or asset change; standalone gates remain open.",
+    "currentAmendment": {
+      "decisionId": "F693-02-arcade-fielding-simplification",
+      "direction": "Fielding opportunity is range/readiness based; glove facing and matching contact motion are visual responsibilities, not an additional surface collision/facing gate."
+    }
   },
   "fieldingRatingRoleProposal": {
     "decisionId": "F693-02-fielding-rating-role",
@@ -5516,15 +5534,10 @@
     "retainedSpeedModel": {
       "boundsDecisionId": "F693-02-continuing-error-speed-retention",
       "contactMapping": {
-        "curveDecisionId": "F693-02-continuing-error-retention-curve",
-        "curve": "linear",
-        "obstructionMetric": {
-          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
-          "basis": "three-dimensional-contact-incidence",
-          "normalizationBounds": null,
-          "geometryContract": null
-        },
-        "branchThresholds": null
+        "policy": "simple-gameplay-contact-context",
+        "formula": null,
+        "noGloveNormals": true,
+        "directionDecisionId": "F693-02-arcade-fielding-simplification"
       }
     },
     "reactionInheritance": "F693-02-continuing-error-reaction",
@@ -5547,7 +5560,12 @@
     "implementationBoundary": "Accepted outcome-selection principle only. Numerical classifier/physics and all new-branch inheritance remain open; no runtime or human gate change.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied yes to using current ball speed and actual contact to determine whether the failed play stays nearby or keeps travelling, without a separate random severe-error roll."
+    "acceptanceEvidence": "Jack replied yes to using current ball speed and actual contact to determine whether the failed play stays nearby or keeps travelling, without a separate random severe-error roll.",
+    "currentAmendment": {
+      "decisionId": "F693-02-arcade-fielding-simplification",
+      "basis": "simple ball-motion and range-based fielding context, not detailed glove/body surface obstruction",
+      "outcomeMapping": null
+    }
   },
   "continuingErrorReactionProposal": {
     "decisionId": "F693-02-continuing-error-reaction",
@@ -5617,30 +5635,20 @@
       "minimumFraction": 0.5,
       "maximumFraction": 0.8,
       "contactMapping": {
-        "curveDecisionId": "F693-02-continuing-error-retention-curve",
-        "curve": "linear",
-        "obstructionMetric": {
-          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
-          "basis": "three-dimensional-contact-incidence",
-          "normalizationBounds": null,
-          "geometryContract": null
-        },
-        "branchThresholds": null
+        "policy": "simple-gameplay-contact-context",
+        "formula": null,
+        "noGloveNormals": true,
+        "directionDecisionId": "F693-02-arcade-fielding-simplification"
       }
     },
     "verticalTreatment": {
       "decisionId": "F693-02-continuing-error-vertical-retention",
       "sameFactorAsHorizontal": true,
       "contactFactorMapping": {
-        "curveDecisionId": "F693-02-continuing-error-retention-curve",
-        "curve": "linear",
-        "obstructionMetric": {
-          "basisDecisionId": "F693-02-error-contact-obstruction-basis",
-          "basis": "three-dimensional-contact-incidence",
-          "normalizationBounds": null,
-          "geometryContract": null
-        },
-        "branchThresholds": null
+        "policy": "simple-gameplay-contact-context",
+        "formula": null,
+        "noGloveNormals": true,
+        "directionDecisionId": "F693-02-arcade-fielding-simplification"
       }
     },
     "recommendation": "Use a narrower plus/minus 15-degree horizontal random variation trial for ordinary continuing deflections. Actual contact reduces speed while the general path stays more aligned with incoming motion than the substantially stopped local bobble. Untouched misses receive no error-induced angle change.",
@@ -5671,15 +5679,10 @@
     "minimumRetainedHorizontalSpeedFraction": 0.5,
     "maximumRetainedHorizontalSpeedFraction": 0.8,
     "contactRetentionMapping": {
-      "curveDecisionId": "F693-02-continuing-error-retention-curve",
-      "curve": "linear",
-      "obstructionMetric": {
-        "basisDecisionId": "F693-02-error-contact-obstruction-basis",
-        "basis": "three-dimensional-contact-incidence",
-        "normalizationBounds": null,
-        "geometryContract": null
-      },
-      "branchThresholds": null
+      "policy": "simple-gameplay-contact-context",
+      "formula": null,
+      "noGloveNormals": true,
+      "directionDecisionId": "F693-02-arcade-fielding-simplification"
     },
     "outcomeThresholds": null,
     "verticalResponse": {
@@ -6233,15 +6236,10 @@
     "maximumFactor": 0.8,
     "independentVerticalRandomness": false,
     "contactFactorMapping": {
-      "curveDecisionId": "F693-02-continuing-error-retention-curve",
-      "curve": "linear",
-      "obstructionMetric": {
-        "basisDecisionId": "F693-02-error-contact-obstruction-basis",
-        "basis": "three-dimensional-contact-incidence",
-        "normalizationBounds": null,
-        "geometryContract": null
-      },
-      "branchThresholds": null
+      "policy": "simple-gameplay-contact-context",
+      "formula": null,
+      "noGloveNormals": true,
+      "directionDecisionId": "F693-02-arcade-fielding-simplification"
     },
     "recommendation": "For an ordinary failed contact already classified as a continuing deflection, retain the signed vertical component using the very same contact-dependent factor r in [.50,.80] selected for horizontal speed. Set vy_out=r*vy_in at the contact, then continue shared gravity/trajectory. Do not draw or select a separate vertical factor.",
     "rationale": "A continuing ball carries through its current rising/falling path with reduced momentum, while a nearby local bobble has its separately accepted zero-vertical-speed drop. Coupling both components preserves the incoming rise/fall angle relative to horizontal magnitude at the instant of contact, apart from the separately reviewed horizontal heading change.",
@@ -6321,7 +6319,7 @@
   },
   "continuingErrorRetentionCurveProposal": {
     "decisionId": "F693-02-continuing-error-retention-curve",
-    "state": "accepted-calibration-anchor",
+    "state": "superseded-by-user-direction",
     "curve": "linear",
     "lightContactRetention": 0.8,
     "strongContinuingContactRetention": 0.5,
@@ -6371,11 +6369,15 @@
     "implementationBoundary": "Accepted interpolation shape only. Obstruction metric, outcome thresholds, ordinary ground values, runtime and human validation remain open.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"approve\" to the linear continuing-deflection retention progression, with 65% retention at midpoint obstruction."
+    "acceptanceEvidence": "Jack replied \"approve\" to the linear continuing-deflection retention progression, with 65% retention at midpoint obstruction.",
+    "supersededBy": "F693-02-arcade-fielding-simplification",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "errorContactObstructionBasisProposal": {
     "decisionId": "F693-02-error-contact-obstruction-basis",
-    "state": "accepted-calibration-anchor",
+    "state": "superseded-by-user-direction",
     "basis": "three-dimensional-contact-incidence",
     "usesRelativeContactVelocity": true,
     "usesPenetrationDepth": false,
@@ -6422,11 +6424,15 @@
     "implementationBoundary": "Accepted obstruction basis only. Geometry, normalization, classifier thresholds, degeneracy handling, runtime and human gates remain open.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"approve\" to the contact-angle obstruction basis using actual surface contact and relative incoming motion."
+    "acceptanceEvidence": "Jack replied \"approve\" to the contact-angle obstruction basis using actual surface contact and relative incoming motion.",
+    "supersededBy": "F693-02-arcade-fielding-simplification",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "gloveContactSurfaceProposal": {
     "decisionId": "F693-02-glove-contact-surface",
-    "state": "accepted-calibration-anchor",
+    "state": "superseded-by-user-direction",
     "shapeFamily": "smooth-concave-pocket-rounded-rim",
     "usesDecorativeMeshTriangles": false,
     "changesCatchRange": false,
@@ -6453,11 +6459,15 @@
     "implementationBoundary": "Pending glove contact-shape family only; dimensions, motion integration, other surfaces, runtime and human gates remain open.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"yes\" to a smooth cup-shaped glove contact surface with rounded rim, separate from character reach."
+    "acceptanceEvidence": "Jack replied \"yes\" to a smooth cup-shaped glove contact surface with rounded rim, separate from character reach.",
+    "supersededBy": "F693-02-arcade-fielding-simplification",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "gloveCatchSidesProposal": {
     "decisionId": "F693-02-glove-catch-sides",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "eligibleSolidRegions": [
       "pocket",
       "rim",
@@ -6482,6 +6492,37 @@
       "Failed contact preserves the real surface normal/velocity and same-error rules.",
       "Verify both hands, changing wrist poses and visible secured contact across the shared motion contract before human acceptance."
     ],
-    "implementationBoundary": "Pending acquisition-side policy only; geometry, animation integration, body/cuff contracts, runtime and human gates remain open."
+    "implementationBoundary": "Pending acquisition-side policy only; geometry, animation integration, body/cuff contracts, runtime and human gates remain open.",
+    "supersededBy": "F693-02-arcade-fielding-simplification",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
+  },
+  "arcadeFieldingSimplification": {
+    "decisionId": "F693-02-arcade-fielding-simplification",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
+    "acquisitionBasis": "explicit-character-fielding-range-and-action-readiness",
+    "gloveFacingRole": "presentation",
+    "calculatesGloveSurfaceNormals": false,
+    "calculatesPocketRimBackEligibility": false,
+    "requiresGloveMeshCollision": false,
+    "direction": "Determine a legal fielding opportunity from ball position/trajectory within the explicit character fielding range and the appropriate action/readiness state. Glove pocket facing and convincing interception belong to the visual motion. Do not add a pocket-facing, rim/back, mesh-overlap or surface-normal calculation as a second gameplay gate.",
+    "visualContract": "The authored glove motion should visibly meet the ball and face its pocket toward it at the resolved gameplay contact. A visual mismatch is a presentation defect to fix; do not turn it into an extra gameplay miss, move the ball through space to hide it, or build a second pose/physics system. Preserve shared rig, authored takes and sim clock.",
+    "errors": "Preserve reliable routine fielding, the approved difficulty/defensive-quality error chance for qualified opportunities, local bobbles versus continuing escapes, brief stun, reliable same-error recovery and special exceptions. Catch range and player positioning/jump timing still matter. Range entry alone cannot bypass readiness or baseball legality.",
+    "contactResponse": "Use simple reproducible gameplay contact context from ball motion and the eligible fielding opportunity for error selection/direction. No detailed glove/body surface normal, pocket collision or contact-point relative-velocity requirement. Exact simplified branch/direction mapping remains design work; do not silently replace it with another random severity roll or choose a destination/base result.",
+    "priorNumbers": "Existing ball-response values remain documented authored trial anchors, not measured Mario or shipping defaults. Preserve the 50\u201380% continuing bounds and shared vertical factor. Archive the geometry-dependent linear obstruction curve as history rather than a required collider-driven formula; exact response selection can be addressed in simplified calibration.",
+    "supersededDecisions": [
+      "F693-02-continuing-error-retention-curve",
+      "F693-02-error-contact-obstruction-basis",
+      "F693-02-glove-contact-surface",
+      "F693-02-glove-catch-sides"
+    ],
+    "reviewProcess": "Keep decisions one at a time when they change player experience. Consolidate routine physics/geometry implementation details into reviewable research and tuning work rather than a long approval chain for hidden mechanics. Do not implement or silently retune existing approved anchors in this documentation step.",
+    "nextWork": "Consolidate remaining range, simple error-response selection, defensive traits, coverage and ball-motion work around observable play examples. Compare both Mario references with evidence labels, then validate actual full recovery/throw/runner races. No new human microdecision is queued this turn.",
+    "referenceLimit": "User-authored simplification; not a measured claim about Nintendo internal implementation.",
+    "implementationBoundary": "Design/documentation correction only. No runtime or asset changes, simulation evidence, merge or human gate pass."
   }
 }

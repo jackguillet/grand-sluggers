@@ -1141,7 +1141,8 @@ def derive(data):
         assert all(error_selection[key] is None for key in
                    ("outcomeMapping", "speedThresholds"))
         assert error_selection["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
-        assert error_selection["retainedSpeedModel"]["contactMapping"]["curve"] == "linear"
+        assert error_selection["retainedSpeedModel"]["contactMapping"]["policy"] == "simple-gameplay-contact-context"
+        assert error_selection["retainedSpeedModel"]["contactMapping"]["noGloveNormals"] is True
         assert error_selection["randomAngleInheritance"] == "F693-02-continuing-error-direction"
         assert error_selection["recoveryInheritance"] == "F693-02-continuing-error-recovery"
         assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
@@ -1169,10 +1170,12 @@ def derive(data):
         assert all(continuing_direction[key] is None for key in
                    ("contactBaselineMapping",))
         assert continuing_direction["verticalTreatment"]["sameFactorAsHorizontal"] is True
-        assert continuing_direction["verticalTreatment"]["contactFactorMapping"]["curve"] == "linear"
+        assert continuing_direction["verticalTreatment"]["contactFactorMapping"]["policy"] == "simple-gameplay-contact-context"
+        assert continuing_direction["verticalTreatment"]["contactFactorMapping"]["noGloveNormals"] is True
         assert continuing_direction["distribution"] == "uniform-angle"
         assert continuing_direction["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
-        assert continuing_direction["retainedSpeedModel"]["contactMapping"]["curve"] == "linear"
+        assert continuing_direction["retainedSpeedModel"]["contactMapping"]["policy"] == "simple-gameplay-contact-context"
+        assert continuing_direction["retainedSpeedModel"]["contactMapping"]["noGloveNormals"] is True
     continuing_retention = data.get("continuingErrorSpeedRetentionProposal")
     if continuing_retention:
         assert continuing_retention["state"] == "accepted-calibration-anchor"
@@ -1183,7 +1186,8 @@ def derive(data):
         assert math.isclose(retain_min, .50) and math.isclose(retain_max, .80)
         assert all(continuing_retention[key] is None for key in
                    ("outcomeThresholds",))
-        assert continuing_retention["contactRetentionMapping"]["curve"] == "linear"
+        assert continuing_retention["contactRetentionMapping"]["policy"] == "simple-gameplay-contact-context"
+        assert continuing_retention["contactRetentionMapping"]["noGloveNormals"] is True
         assert continuing_retention["verticalResponse"]["sameFactorAsHorizontal"] is True
         for retain_row in continuing_retention["examples"]:
             assert math.isclose(retain_row["lowerOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_min)
@@ -1321,7 +1325,8 @@ def derive(data):
         assert continuing_vertical["sameFactorAsHorizontal"] is True
         assert continuing_vertical["minimumFactor"] == .5 and continuing_vertical["maximumFactor"] == .8
         assert continuing_vertical["independentVerticalRandomness"] is False
-        assert continuing_vertical["contactFactorMapping"]["curve"] == "linear"
+        assert continuing_vertical["contactFactorMapping"]["policy"] == "simple-gameplay-contact-context"
+        assert continuing_vertical["contactFactorMapping"]["noGloveNormals"] is True
         for vertical_example in continuing_vertical["examples"]:
             assert .5 <= vertical_example["factor"] <= .8
             assert math.isclose(vertical_example["outgoingHorizontalFtPerSec"], vertical_example["factor"] * vertical_example["incomingHorizontalFtPerSec"])
@@ -1336,7 +1341,7 @@ def derive(data):
         assert continuing_ground["numericalGroundProfile"] is None
     continuing_curve = data.get("continuingErrorRetentionCurveProposal")
     if continuing_curve:
-        assert continuing_curve["state"] == "accepted-calibration-anchor" and continuing_curve["curve"] == "linear"
+        assert continuing_curve["state"] == "superseded-by-user-direction" and continuing_curve["curve"] == "linear"
         assert continuing_curve["acceptedBy"] and continuing_curve["acceptedOn"] and continuing_curve["acceptanceEvidence"]
         assert continuing_curve["obstructionMetric"]["basis"] == "three-dimensional-contact-incidence"
         assert continuing_curve["obstructionMetric"]["normalizationBounds"] is None
@@ -1348,7 +1353,7 @@ def derive(data):
             assert math.isclose(curve_example["retainedFraction"], .8-.3*c_value)
     contact_incidence = data.get("errorContactObstructionBasisProposal")
     if contact_incidence:
-        assert contact_incidence["state"] == "accepted-calibration-anchor"
+        assert contact_incidence["state"] == "superseded-by-user-direction"
         assert contact_incidence["acceptedBy"] and contact_incidence["acceptedOn"] and contact_incidence["acceptanceEvidence"]
         assert contact_incidence["basis"] == "three-dimensional-contact-incidence"
         assert contact_incidence["usesRelativeContactVelocity"] is True and contact_incidence["usesPenetrationDepth"] is False
@@ -1359,21 +1364,30 @@ def derive(data):
             assert math.isclose(incidence_row["rawIncidence"], expected_incidence)
     glove_surface = data.get("gloveContactSurfaceProposal")
     if glove_surface:
-        assert glove_surface["state"] == "accepted-calibration-anchor"
+        assert glove_surface["state"] == "superseded-by-user-direction"
         assert glove_surface["acceptedBy"] and glove_surface["acceptedOn"] and glove_surface["acceptanceEvidence"]
         assert glove_surface["shapeFamily"] == "smooth-concave-pocket-rounded-rim"
         assert glove_surface["usesDecorativeMeshTriangles"] is False and glove_surface["changesCatchRange"] is False
         assert all(glove_surface[key] is None for key in ("dimensionsFt", "pocketDepthFt", "rimProfile", "backAndCuffResponse", "authoritativeMotionContract"))
     glove_sides = data.get("gloveCatchSidesProposal")
     if glove_sides:
-        assert glove_sides["state"] == "pending"
+        assert glove_sides["state"] == "superseded-by-user-direction"
         assert glove_sides["eligibleSolidRegions"] == ["pocket", "rim", "back"]
         assert glove_sides["requiresPocketFacing"] is False and glove_sides["addsGloveFacingInput"] is False
         assert glove_sides["solidSurfaceGeometry"] is None and glove_sides["cuffGeometry"] is None
+    arcade_fielding = data["arcadeFieldingSimplification"]
+    assert arcade_fielding["state"] == "accepted-calibration-anchor"
+    assert arcade_fielding["acceptedBy"] and arcade_fielding["acceptedOn"] and arcade_fielding["acceptanceEvidence"]
+    assert arcade_fielding["gloveFacingRole"] == "presentation"
+    assert arcade_fielding["acquisitionBasis"] == "explicit-character-fielding-range-and-action-readiness"
+    assert all(arcade_fielding[key] is False for key in ("calculatesGloveSurfaceNormals", "calculatesPocketRimBackEligibility", "requiresGloveMeshCollision"))
+    for retired_glove in (continuing_curve, contact_incidence, glove_surface, glove_sides):
+        assert retired_glove["supersededBy"] == arcade_fielding["decisionId"]
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "arcadeFieldingState": arcade_fielding["state"],
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,
