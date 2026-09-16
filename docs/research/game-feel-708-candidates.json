@@ -471,8 +471,13 @@
     },
     {
       "id": "F693-02-ordinary-bobble-outcome",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Make a failed ordinary awkward-hop acquisition produce a modest visible loose-ball bobble nearby, requiring actual recovery before possession-dependent actions?"
+    },
+    {
+      "id": "F693-02-bobble-recovery-permissions",
+      "state": "next-human-decision",
+      "question": "Keep ordinary running and steering available after a bobble, with a brief fumbler-only glove recovery before reacquisition and other eligible defenders free to recover?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4870,7 +4875,7 @@
   },
   "ordinaryBobbleOutcomeProposal": {
     "decisionId": "F693-02-ordinary-bobble-outcome",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "outcomeKind": "nearby-loose-ball-bobble",
     "scatterDistanceFt": null,
     "scatterSpeedFtPerSec": null,
@@ -4893,6 +4898,35 @@
       "A previously completed legal out remains valid; retained-ball recoil and pure pushback remain separate possession states.",
       "Compare visible bobble size and recovery races across bodies, 1P/1v1 and manual/assisted/CPU defense, including nearby bags and boundaries, before human acceptance."
     ],
-    "implementationBoundary": "Pending outcome direction only. No scatter/recovery numbers, new difficulty sources, repeated-attempt rule, runtime changes, animation assets or human gate selected."
+    "implementationBoundary": "Accepted outcome direction only; numerical scatter and recovery remain pending. No scatter/recovery numbers, new difficulty sources, repeated-attempt rule, runtime changes, animation assets or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to a modest loose-ball bobble requiring actual recovery as the default failed ordinary awkward-hop acquisition outcome."
+  },
+  "bobbleRecoveryPermissionsProposal": {
+    "decisionId": "F693-02-bobble-recovery-permissions",
+    "state": "pending",
+    "recoveryModel": "movement-available-acquisition-gated",
+    "recoveryDurationSec": null,
+    "handlingDurationMapping": null,
+    "freshAttemptDefinition": null,
+    "recommendation": "Keep ordinary running and steering available after a failed awkward-hop pickup, while a brief recovery interval prevents that fielder from immediately acquiring the ball again. Other eligible defenders may recover through actual contact without inheriting the fumbler recovery.",
+    "movement": "The bobble itself adds no full-body stun, speed penalty, velocity reset, auto-chase or compulsory route. Preserve ordinary movement acceleration/braking and current velocity. Existing independent action restrictions still apply. Without secure possession there is no Ball Dash bonus. This does not grant new movement, alter catch range or remove another effect.",
+    "acquisition": "Apply the recovery gate to the actual fumbling character on the authoritative gameplay clock, regardless of selection, controller or CPU/manual ownership. Switching away and back cannot erase or restart it. Before readiness this character cannot acquire a ball through a standing, jump, dive, assist or ability path. At readiness actual eligible contact is still required: no delayed remote catch from contact that occurred during recovery, no guarantee the ball remains nearby and no automatic possession.",
+    "support": "Other defenders remain subject to their own geometry, ownership and existing action gates. A teammate may recover during the fumbler interval if physically eligible. Do not teleport or automatically switch to a helper, disable all gloves or let two defenders acquire simultaneously. Preserve the existing authoritative ownership resolver; unresolved simultaneous-contact details require implementation review.",
+    "actionScope": "Select ordinary running/steering and acquisition permissions only. Jump/dive initiation and input buffering during the reaction still require review, but no such action may bypass the acquisition gate. Throwing, Ball Dash and possession-dependent outs require actual secure possession under their accepted contracts. Existing throw-buffer aging/invalidation remains in force without refresh or an automatic throw.",
+    "timing": "Brief describes intended feel, not an accepted timer. Duration, any underlying handling-quality influence, scatter trajectory and fresh-attempt/repeated-bobble rules remain pending. Physical difficulty and error probability are unchanged. The end of the recovery gate alone is not a new acquisition attempt or permission to reroll.",
+    "composition": "A bobble does not grant immunity to independent special effects, existing airborne/landing restrictions or other valid locks. Readiness must satisfy each applicable action gate. Do not stack retained-ball recoil on this failed acquisition by default or infer additive duration for unreviewed bobble/special combinations.",
+    "currentAudit": "LivePlaySystem advances the loose ball and several off-ball movement helpers before the RecoilT/Bobbling early return. The current fumble return blocks later processing for the selected glove and shares a timer with recoil. It does not establish the proposed per-character acquisition gate with preserved ordinary steering. Current FumbleSec .58 is an observed value, not an accepted duration.",
+    "referenceLimit": "Authored control/readability proposal; no verified matched Wii/GC bobble movement-permission or recovery-time measurement. Compare both before choosing a numerical interval; do not claim Mario parity.",
+    "requiredChecks": [
+      "Ordinary running/steering retains its normal response during a bobble unless an independent restriction applies.",
+      "The fumbler cannot reacquire before readiness through any catch path or by switching selection/ownership; no frame-based reroll.",
+      "An eligible helper can recover during the fumbler interval through actual contact, without double possession or a team-wide freeze.",
+      "Readiness expiry alone does not grant possession, a new roll, Ball Dash, a throw or an out.",
+      "Existing velocity, input-buffer aging, independent status locks and completed outs remain valid.",
+      "Observe the reaction, loose-ball travel and actual recovery races across characters, CPU/manual defense and both seat modes before human acceptance."
+    ],
+    "implementationBoundary": "Pending recovery-permissions direction only. No duration, handling modifier, new jump/dive initiation policy, scatter values, repeated-error rules, runtime, animation asset or human gate selected."
   }
 }

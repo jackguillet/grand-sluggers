@@ -1206,9 +1206,9 @@ The curve never changes glove positioning, catch range or jump behavior, and it 
 
 Before implementation, compare clean rolls, clean short/long hops and awkward middle-hop cases across the roster and both reference games. Baseball coaching is qualitative rationale, not proof of Wii/GC internal logic. Numerical bands, error outcomes, ball calibration and standalone gates remain open; no runtime or physics changes here.
 
-## Next decision — ordinary bobble outcome
+## Accepted decision — ordinary bobble outcome
 
-**F693-02-ordinary-bobble-outcome — pending, September 15, 2026.** Recommend a **small, visible bobble that leaves the ball loose nearby** when an ordinary awkward-hop acquisition fails. The ball reaches the glove but is not secured. The original fielder or another eligible defender must recover it through real contact before throwing or making a possession-dependent out.
+**F693-02-ordinary-bobble-outcome — accepted by Jack on September 15, 2026.** Jack approved a **small, visible bobble that leaves the ball loose nearby** when an ordinary awkward-hop acquisition fails. The ball reaches the glove but is not secured. The original fielder or another eligible defender must recover it through real contact before throwing or making a possession-dependent out.
 
 **Why this consequence:** a local bobble gives the error a readable physical cost and creates a recovery race. Keeping secure possession with only a delay would resemble slow handling; a large ricochet could make the occasional ordinary failure dominate a compact field. This proposal chooses a modest local loose-ball outcome. Exact scatter direction/distance/speed, bounce, fumbler reaction and recovery eligibility remain separate decisions.
 
@@ -1222,7 +1222,23 @@ Before implementation, compare clean rolls, clean short/long hops and awkward mi
 
 This is an authored cartoon-defense proposal. Matched Wii/GC bobble trajectories and recovery timing have not been measured; compare both before choosing numbers. Future verification must cover contact/possession ordering, legal collisions/bounds, nearby bags, recovery by supporting defenders and readable races across character bodies and both seat modes. No runtime, asset or human gate changes here.
 
-**Question for Jack:** should a failed ordinary awkward-hop acquisition produce a modest visible loose-ball bobble nearby, requiring actual recovery?
+## Next decision — bobble recovery permissions
+
+**F693-02-bobble-recovery-permissions — pending, September 15, 2026.** Recommend **keeping ordinary running and steering available, with a brief glove-recovery interval before the fumbling character can acquire the ball again**. Other eligible defenders can recover it during that interval through actual contact. Duration and any handling-quality influence remain unselected.
+
+**Player context:** the ball has already escaped the glove. Let the player chase or reposition while the character recovers their hands. A full-body freeze would add lost movement to the loose-ball cost; unrestricted instant reacquisition could erase the visible mistake. This recommendation keeps the recovery race controllable while giving the bobble time to register. It is a proposed control contract, not a measured Mario mechanic.
+
+**Movement and identity:** preserve current velocity and ordinary acceleration/braking. The bobble adds no speed penalty, forced route, auto-chase or new movement verb. Existing independent restrictions still apply, and Ball Dash requires secure possession. Attach the acquisition restriction to the fumbling character on the gameplay clock; switching fielders, changing control ownership or a CPU/manual transition cannot clear or restart it. No standing/jump/dive/ability catch path may bypass the restriction. New jump/dive initiation and their buffering during this reaction remain separately reviewed.
+
+**Actual recovery:** once eligible, the fielder must meet the ball again under the applicable geometry. Expiry alone cannot grant possession, create a fresh error roll or convert earlier contact into a remote catch. Fresh-attempt and repeated-bobble definitions remain pending. Another eligible defender can recover while the fumbler is unavailable; that defender keeps their own restrictions and existing control/ownership rules. Do not freeze the team, teleport a helper or force an automatic selection change. Resolve simultaneous physical contacts through one authoritative owner.
+
+**Other actions and effects:** throws, possession-dependent outs and Ball Dash still require secure possession. Keep accepted throw-buffer aging/invalidation without a fresh timer or automatic throw. Independent special effects and existing airborne/landing gates still apply; this proposal does not grant immunity or choose new combined recovery durations. Do not automatically append retained-ball recoil to failed acquisition.
+
+**Current audit:** loose-ball motion and several off-ball movement helpers run before the `RecoilT`/`Bobbling` early return in `LivePlaySystem`. That return blocks subsequent selected-glove processing using a timer shared with recoil. It is not proof of the proposed per-character acquisition gate with preserved normal steering. Existing `.58`-second `FumbleSec` is only an observation. The future implementation must share action eligibility across human, CPU, assist and all catch paths rather than rely on this global branch.
+
+Before choosing the interval, compare both reference games' visible bobble reaction, continued movement and recovery opportunity. Matched timing/permission measurements remain missing. Future verification must cover helper recovery, character switching, no instant rescoop, independent status restrictions, physical contact at readiness and readable compact-field races. No runtime, animation assets or human gates change in this packet.
+
+**Question for Jack:** keep running and steering available after a bobble, with a brief fumbler-only glove recovery before reacquisition, while teammates can still recover?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

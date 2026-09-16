@@ -1033,13 +1033,20 @@ def derive(data):
                    ("difficultyMapping", "hopPhaseBounds", "heightBounds", "speedBounds"))
     ordinary_bobble = data.get("ordinaryBobbleOutcomeProposal")
     if ordinary_bobble:
-        assert ordinary_bobble["state"] == "pending"
+        assert ordinary_bobble["state"] == "accepted-calibration-anchor"
+        assert ordinary_bobble["acceptedBy"] and ordinary_bobble["acceptedOn"] and ordinary_bobble["acceptanceEvidence"]
         assert all(ordinary_bobble[key] is None for key in
                    ("scatterDistanceFt", "scatterSpeedFtPerSec", "bounceProfile",
                     "reactionDurationSec", "reacquisitionEligibility"))
+    bobble_permissions = data.get("bobbleRecoveryPermissionsProposal")
+    if bobble_permissions:
+        assert bobble_permissions["state"] == "pending"
+        assert all(bobble_permissions[key] is None for key in
+                   ("recoveryDurationSec", "handlingDurationMapping", "freshAttemptDefinition"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "bobbleRecoveryPermissionsState": bobble_permissions["state"] if bobble_permissions else None,
             "ordinaryBobbleOutcomeState": ordinary_bobble["state"] if ordinary_bobble else None,
             "awkwardHopDifficultySourceState": awkward_hop["state"] if awkward_hop else None,
             "ordinaryHandlingChanceCurveState": handling_curve["state"] if handling_curve else None,
