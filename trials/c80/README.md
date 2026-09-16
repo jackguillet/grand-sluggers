@@ -81,8 +81,27 @@ way.
 2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` is not
 carried.
 
-**What this slice deliberately leaves to the chain.** `Diamond.Positions` still stands the nine
-fielders at their 90-ft spots — they are C# literals, not data, so no overlay can move them — and
-that is what keeps grounder arrival times at infielders unchanged, which #717 has to hold.
+**What this slice leaves to other issues, and what it costs.** `Diamond.Positions` still stands the
+nine fielders at their 90-ft spots — they are C# literals, not data, so no overlay can move them.
+That is not a virtue, and it is not only an outfield problem:
+
+- **The corners lose their bags.** 1B and 3B go from 16.62 ft to **26.41 ft** from the bag they
+  cover, a 59% increase, at exactly the spots where the close plays are. 2B and SS barely move
+  (43.01 → 42.28 ft) because they already play deep. This is **#725**, which is flagged to land
+  *before* #718.
+- **The outfield stands outside the park.** LF and RF at (±110, 250) and CF at (0, 305) are further
+  out than every migrated fence. `FieldBounds.Clamp` pins them to the warning track: CF snaps from
+  305 to 272 against a 280-ft wall, and in Canopy Yard it would be 40 ft beyond the fence. Nothing
+  can land behind an outfielder pinned to the wall, which is why the extra-base line in the trial
+  table below collapses.
+- **The lip did not move either.** `flight.classes.infieldLipFt` stays 155 ft against a 280-ft
+  centre field, so the infield goes from about 17% of fair territory to about 34%. This slice uses
+  that same lip to decide hazard zones, so the rule and its boundary disagree. That is **#728**.
+
 Funfair's night chompers are `ParkHazards.FunfairChompers` in code, so they did not migrate with the
-park's data hazards. Both belong to the fielding chain (#718 on) and 3d should watch them.
+park's data hazards. They sit at z 198–228 in a park whose centre fence is now 273 — still inbounds,
+but now in the deep-fly band that the pinned outfielders cannot reach.
+
+None of this is fixed here on purpose: absorbing #725, #728 or #729 would merge four slices into one
+and destroy the attribution 3d depends on. It is recorded so a 3d reader does not mistake these
+effects for the anchors under test.
