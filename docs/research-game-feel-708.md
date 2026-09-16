@@ -1448,9 +1448,9 @@ With an authoritative uniform `U` in `[0,1)`, use normalized `X=2U-1` and offset
 
 Retain one directional result per actual failed-contact event; selecting local/continuing outcomes, switching defenders or recovering the ball cannot create another draw. No tactical bias or result selection. Untouched misses receive no error-angle modifier. The approved contact-derived direction, speed retention, stun and reliable recovery remain intact. This is user-authored design, not measured Mario distribution; no runtime changes.
 
-## Next decision — local bobble vertical shape
+## Accepted decision — local bobble vertical shape
 
-**F693-02-local-bobble-vertical-shape — pending, September 15, 2026.** Recommend that a nearby bobble **spill down from the glove and make a small, low ground bounce**, without a default upward pop. The failed contact and loose ball remain visible while the fielder reacts.
+**F693-02-local-bobble-vertical-shape — accepted by Jack on September 15, 2026.** Jack approved that a nearby bobble **spill down from the glove and make a small, low ground bounce**, without a default upward pop. The failed contact and loose ball remain visible while the fielder reacts.
 
 **Why this shape:** it avoids adding a long airborne wait on top of the .40-second stun. An upward juggle/pop is the alternative, and would make the recovery depend more on waiting for descent. This choice is only a motion shape: exact rebound height, contact velocity response, local horizontal speed and settling distance remain open.
 
@@ -1460,9 +1460,25 @@ Retain one directional result per actual failed-contact event; selecting local/c
 
 This applies only to the ordinary local-bobble branch. Continuing deflections, untouched balls, special hits and other catch contexts retain their separate contracts. No new vertical random roll, hidden handling benefit or speed/height target is approved by this direction. Use the shared authoritative ball model and matching authored motion; no invented second physics/animation system.
 
-This is an authored proposal, not a measured Wii/GC local-error arc. Compare low/high contact examples and both references before choosing numbers, then verify visible contact, bounce and recovery at gameplay distance. No runtime or human gate changes here.
+This is an accepted authored direction, not a measured Wii/GC local-error arc. Compare low/high contact examples and both references before choosing numbers, then verify visible contact, bounce and recovery at gameplay distance. No runtime or human gate changes here.
 
-**Question for Jack:** make nearby bobbles spill downward with a low bounce, rather than adding an upward pop?
+**Accepted scope:** qualitative downward spill and low rebound only. Numerical response remains open; no runtime implementation or playtest acceptance is implied.
+
+## Next decision — local bobble rebound ceiling
+
+**F693-02-local-bobble-rebound-ceiling — pending, September 15, 2026.** Recommend a **six-inch (0.50-foot) maximum ground rebound** for ordinary nearby bobbles. Weaker impacts may bounce lower or settle. This is a ceiling, not a fixed height every bobble must reach.
+
+**Player context:** the bounce should be visible while staying close to the dirt. A three-inch cap would be subtler; a twelve-inch cap would be more pronounced and could add airborne waiting. Six inches is an authored starting proposal. No matched Wii/GC rebound measurements establish this number; reference comparison and eventual gameplay-distance review remain required before claiming calibration or parity.
+
+**Measure the rise correctly:** measure the ball center's rise from its supported ground-contact height to the subsequent apex, relative to the local collision surface. Do not cap absolute world height or initial glove-contact height. A high contact can still have a longer initial fall. Position stays continuous at contact and impact.
+
+**Do not manufacture a bounce:** the eventual reviewed ground response must dissipate energy; this ceiling can reduce its rebound, but must never boost a weaker impact up to six inches. Restitution and the post-glove vertical response remain undecided. No minimum rebound, fixed bounce count, vertical randomness or handling-based bounce bonus is selected. Slope/wall interactions need explicit collision review.
+
+**Scope and recovery:** apply only during the ordinary local-bobble phase, not to continuing deflections, untouched balls, normal unhandled batted-ball bounces, throws or special trajectories. Preserve the independent .40-second stun and reliable same-origin recovery. An eligible fielder can collect during descent or rebound; no wait for settling, mandatory bounce, automatic possession or animation-driven extension of the stun.
+
+Validate low/high contact origins, weaker impacts below the cap, phase boundaries and actual pickup races using shared authoritative physics. Horizontal scatter speed/distance and numerical vertical response remain open. This is a pending design choice, not runtime tuning or a passed human gate.
+
+**Question for Jack:** trial a six-inch maximum rebound for nearby bobbles, with weaker impacts allowed to stay lower or settle?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

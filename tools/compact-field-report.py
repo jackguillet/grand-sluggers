@@ -1217,13 +1217,23 @@ def derive(data):
             assert math.isclose(uniform_row["expectedAbsoluteOffsetDegrees"], uniform_cap/2)
     local_vertical = data.get("localBobbleVerticalShapeProposal")
     if local_vertical:
-        assert local_vertical["state"] == "pending" and local_vertical["defaultAddedUpwardPop"] is False
+        assert local_vertical["state"] == "accepted-calibration-anchor" and local_vertical["defaultAddedUpwardPop"] is False
+        assert local_vertical["acceptedBy"] and local_vertical["acceptedOn"] and local_vertical["acceptanceEvidence"]
         assert all(local_vertical[key] is None for key in
                    ("reboundHeightFt", "verticalContactResponse", "localHorizontalSpeed", "settleDistanceFt"))
+    local_rebound = data.get("localBobbleReboundCeilingProposal")
+    if local_rebound:
+        assert local_rebound["state"] == "pending"
+        assert local_rebound["maximumReboundRiseFt"] == .5
+        assert local_rebound["maximumReboundRiseInches"] == local_rebound["maximumReboundRiseFt"] * 12
+        assert local_rebound["fixedReboundHeight"] is False
+        assert all(local_rebound[key] is None for key in
+                   ("minimumReboundRiseFt", "restitution", "verticalContactResponse"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleReboundCeilingState": local_rebound["state"] if local_rebound else None,
             "localBobbleVerticalShapeState": local_vertical["state"] if local_vertical else None,
             "errorDirectionDistributionState": direction_distribution["state"] if direction_distribution else None,
             "continuingErrorSpeedRetentionState": continuing_retention["state"] if continuing_retention else None,
