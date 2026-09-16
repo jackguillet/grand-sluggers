@@ -49,6 +49,40 @@ Three rules. Each is checked when the overlay is read, not left to care:
 
 ## What is here now
 
-Nothing yet — the mechanism landed first, on purpose, because every later slice is authored into
-it. [#717](https://github.com/jackguillet/grand-sluggers/issues/717) puts the first files in:
-80-ft basepaths, six migrated parks, drag 0.0040.
+[#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
+ball that fits it. Eight files, one commit, because **drag is global and park dimensions are not**:
+at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
+poles is a game with no home runs in it, and the parks alone are a derby.
+
+| File | What it changes |
+| --- | --- |
+| `rules/infield.json` | 80-ft basepaths. One file, because #711 made the infield global and every park shares it. |
+| `rules/flight.json` | `drag` 0.0019 → 0.0040, and nothing else in the table. |
+| `parks/*.json` (six) | fences at one scale, 0.70. Wall heights, wind and hazard radii unchanged. |
+
+**The infield.** `baselineFt` 80, `moundFt` 53.78, and the bags at 56.57 / 113.14 — the shipped
+rounded 63.64 / 127.28 multiplied by 80/90, kept at the two decimals `data/` already spells them in.
+
+**The parks.** One scale for all six is what preserves each park's identity and their order: Ember
+Keep stays the biggest, Canopy Yard the smallest. Re-deriving each from Harbor's ratios would
+flatten all six into the same stadium. Harbor keeps its accepted 232 / 280 / 232; a flat 0.70 gives
+231 at the poles, and that foot is rounding.
+
+**Wall heights do not scale.** Bodies did not shrink. An 8-ft wall stays 8 ft and Crystal Rink and
+Funfair Park simply stay the friendlier parks they already are.
+
+**Hazards migrate by the zone they sit in** — the basepath scale inside the infield lip
+(`flight.classes.infieldLipFt`, radial from home, the same predicate the fielders use), the fence
+scale beyond it. **Radii are not scaled**: a barrel is a physical object, and it did not shrink for
+the same reason a wall did not. Harbor has no hazards, so the reference park is untouched either
+way.
+
+**The runner clock is not retuned here.** Elapsed pace is the C80 anchor, so a Run-5 bag stays
+2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` is not
+carried.
+
+**What this slice deliberately leaves to the chain.** `Diamond.Positions` still stands the nine
+fielders at their 90-ft spots — they are C# literals, not data, so no overlay can move them — and
+that is what keeps grounder arrival times at infielders unchanged, which #717 has to hold.
+Funfair's night chompers are `ParkHazards.FunfairChompers` in code, so they did not migrate with the
+park's data hazards. Both belong to the fielding chain (#718 on) and 3d should watch them.
