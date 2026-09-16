@@ -342,6 +342,48 @@ It is the surgical lever. Drag acts on carry through the air and barely touches 
 
 **Scope note:** these are probes at mean launch with noise excluded, ignoring spray angle — the fence runs from 232 feet at the poles to 280 at centre, so a pulled ball faces a nearer wall than these centre-line figures suggest. They establish the shape of the problem and the size of each lever, **not a home-run rate**. No rate can be claimed before the whole-race validation.
 
+## Coverage budget — who is at the bag when the throw lands
+
+`F693-02-coverage-budget`. Its headline item, catch reach, is answered. What remains is whether a receiver is actually standing on the bag when the ball gets there on a field this size. Read from the runtime; no runtime change is proposed.
+
+### Cover is a second locomotion system
+
+A fielder going to a bag does not move the way a fielder going to a ball moves. `TickCoverAndBackup` steps every covering body, the cutoff and the backup through `StepFlat` at a flat **`cover.ftPerSec` of 28 ft/s** — no acceleration, no braking, no analog shaping, no character difference — beginning at `max(cover.startSec 0.23, the position's reaction lockout)` and stopping dead within `stopFt` 1.2 feet of the goal. Ball pursuit, by contrast, is the accepted profile: 18 ft/s, a 0.20-second build-up, a 0.10-second brake, proportional stick response and character speed differences.
+
+So the same body runs **56% faster to a bag than to a ball**, starts instantly and stops dead. `F693-02-pursuit-speed` accepted *one ordinary pursuit movement profile per character across hit types and assigned fielding positions*. Cover obeys none of it. That is the decision this section exists to raise.
+
+What it costs to fix, on C80:
+
+| | 1B → 1st | 2B → 2nd | 3B → 3rd |
+| --- | --- | --- | --- |
+| today, flat 28 ft/s from 0.23 s | 0.54 s | 1.38 s | 0.54 s |
+| accepted profile, starting at contact | 0.59 s | 1.89 s | 0.59 s |
+| accepted profile with the 0.25 s read | 0.84 s | 2.14 s | 0.84 s |
+
+The corner bags barely move — those fielders start almost on top of them. **Second base is the pressure point**, because the middle infielders start 38 feet away from it. The test is the double-play feed: shortstop fields, flips to second, and second base has to be occupied when the ball arrives 0.73 seconds after the command.
+
+| | cover arrives | average ball, fielded at 1.30 s | quick ball, fielded at 1.00 s |
+| --- | --- | --- | --- |
+| today, flat 28 ft/s | 1.38 s | +0.90 s | +0.60 s |
+| accepted profile, no read | 1.89 s | +0.39 s | +0.09 s |
+| accepted profile with the read | 2.14 s | +0.14 s | **late by 0.16 s** |
+
+Applying the accepted profile *with* its read delay breaks the quick double play — the throw beats the receiver to the bag. Applying it **without** a read delay does not, and there is a principled reason to drop the read: a covering fielder is not reading a ball. They are executing a known assignment to a fixed spot, and they know it at contact. The read exists to model *recognising where a batted ball went*, which is not what covering is.
+
+### Three things that turn out not to be at risk
+
+**The cutoff is fine.** It walks to the throw line at the same cover speed while the ball is in the air, and a fly hangs 4.3 to 8.5 seconds. Even at 18 ft/s the deepest reposition is about two seconds. The cutoff is never the thing that is late.
+
+**The relay still beats the long throw.** On C80 the deepest throw is the centre-field wall to home, 280 feet: **4.80 seconds** direct with the accepted long-range penalty, against **4.00 seconds** for two 140-foot legs including a buffered command. The accepted relay design survives the shrink with 0.8 seconds to spare. (The control field's 400-foot equivalent is 10.20 seconds, which is why the penalty curve looks so severe there.)
+
+**Receiver reach is now consistent.** `cover.radiusFt` is 6 feet — a throw is caught when it lands within 6 feet of its receiver. Before the reach decision a receiver had 6 feet of reach while the same character fielding a batted ball had 13. The accepted 6-foot stand-up reach has, incidentally, **harmonised them**. That is one fewer inconsistency in the contract and it should not be "fixed" back apart.
+
+### One asymmetry worth naming
+
+`CpuThrowReadySec` returns `max(throw arrival, the cover's walk)` — the comment calls it *a lob waits*. **The CPU will not throw to a bag before its receiver gets there.** A human seat has no such restraint: a player can fire to an unoccupied bag, and `cover.radiusFt` alone decides whether it is caught. Slowing cover therefore squeezes the human more than the CPU. It is not part of this decision, but it is the reason the margins above matter to a player and not to the computer.
+
+**Reference limit:** no Wii or GameCube cover speed, cutoff placement or receiver timing has been measured. These are this game's own numbers against this game's own accepted anchors.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.

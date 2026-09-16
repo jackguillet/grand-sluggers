@@ -677,8 +677,8 @@
     },
     {
       "id": "F693-02-coverage-budget",
-      "state": "pending",
-      "question": "Review cover/cutoff movement, receiver readiness, catch reach and pickup/recovery against complete races."
+      "state": "next-human-decision",
+      "question": "Cover runs a flat 28 ft/s with no acceleration while ball pursuit is the accepted 18 ft/s profile. Does cover inherit the profile, and if so does it also inherit the read delay?"
     },
     {
       "id": "F693-04-flight-budget",
@@ -7553,5 +7553,126 @@
       "The drag change does not ship before the park migration, or the five control-scale parks lose home runs entirely.",
       "The heavier-ball look is judged on screen before the value is treated as a shipping default."
     ]
+  },
+  "coverageBudgetResearch": {
+    "decisionId": "F693-02-coverage-budget",
+    "state": "next-human-decision",
+    "status": "research-arithmetic-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-pursuit-speed",
+      "F693-02-pursuit-acceleration",
+      "F693-02-infield-read-clock",
+      "F693-02-catch-reach-envelope",
+      "F693-03-relay-ownership"
+    ],
+    "question": "Does a fielder going to a bag move the way a fielder going to a ball moves? Cover runs a separate flat 28 ft/s system while ball pursuit is the accepted 18 ft/s profile.",
+    "currentRuntime": {
+      "source": "LivePlaySystem.Field.TickCoverAndBackup and StepFlat, data/rules/fielding.json",
+      "coverFtPerSec": 28.0,
+      "coverStartSec": 0.23,
+      "coverStopFt": 1.2,
+      "coverRadiusFt": 6.0,
+      "backupFt": 60.0,
+      "motion": "Flat speed through StepFlat: no acceleration, no braking, no analog shaping, no character difference. Cover, cutoff and backup all use it.",
+      "startGate": "max(cover.startSec 0.23, the position's reaction lockout)",
+      "acceptedPursuitForComparison": "18 ft/s top, 0.20-second build-up, 0.10-second brake, proportional stick response, character speed differences.",
+      "conflict": "F693-02-pursuit-speed accepted one ordinary pursuit movement profile per character across hit types and assigned fielding positions. Cover obeys none of it, so the same body runs 56% faster to a bag than to a ball, starts instantly and stops dead."
+    },
+    "coverArrivalSecC80": [
+      {
+        "option": "today, flat 28 ft/s from 0.23 s",
+        "firstBase": 0.54,
+        "secondBase": 1.38,
+        "thirdBase": 0.54
+      },
+      {
+        "option": "accepted profile, starting at contact",
+        "firstBase": 0.59,
+        "secondBase": 1.89,
+        "thirdBase": 0.59
+      },
+      {
+        "option": "accepted profile with the 0.25 s read",
+        "firstBase": 0.84,
+        "secondBase": 2.14,
+        "thirdBase": 0.84
+      }
+    ],
+    "doublePlayFeed": {
+      "description": "Shortstop fields and flips to second base, 38.2 feet, 0.73 seconds from the command.",
+      "averageBallArrivalSec": 2.28,
+      "quickBallArrivalSec": 1.98,
+      "rows": [
+        {
+          "option": "today, flat 28 ft/s",
+          "coverArrivesSec": 1.38,
+          "averageMarginSec": 0.9,
+          "quickMarginSec": 0.6,
+          "quickBreaks": false
+        },
+        {
+          "option": "accepted profile, no read",
+          "coverArrivesSec": 1.89,
+          "averageMarginSec": 0.39,
+          "quickMarginSec": 0.09,
+          "quickBreaks": false
+        },
+        {
+          "option": "accepted profile with the read",
+          "coverArrivesSec": 2.14,
+          "averageMarginSec": 0.14,
+          "quickMarginSec": -0.16,
+          "quickBreaks": true
+        }
+      ],
+      "reading": "Second base is the pressure point because the middle infielders start 38 feet from it; the corner bags barely move. Applying the accepted profile with its read delay breaks the quick double play. Applying it without a read does not, and there is a principled reason to drop the read: a covering fielder is not reading a ball, they are executing a known assignment to a fixed spot and they know it at contact."
+    },
+    "notAtRisk": [
+      {
+        "item": "the cutoff",
+        "finding": "It walks to the throw line at cover speed while the ball is in the air, and a fly hangs 4.3 to 8.5 seconds. Even at 18 ft/s the deepest reposition is about two seconds, so the cutoff is never the thing that is late."
+      },
+      {
+        "item": "the relay",
+        "finding": "On C80 the deepest throw, the centre-field wall to home at 280 feet, takes 4.80 seconds direct with the accepted long-range penalty against 4.00 seconds for two 140-foot legs including a buffered command. The accepted relay design survives the shrink with 0.8 seconds to spare. The control field's 400-foot equivalent is 10.20 seconds.",
+        "directSec": 4.8,
+        "relaySec": 4.0,
+        "controlDirectSec": 10.2
+      },
+      {
+        "item": "receiver reach",
+        "finding": "cover.radiusFt is 6 feet and the accepted stand-up catch reach is now also 6 feet. Before the reach decision a receiver had 6 feet while the same character fielding a batted ball had 13. The reach decision has incidentally harmonised them; that is one fewer inconsistency and should not be split apart again."
+      }
+    ],
+    "asymmetry": "CpuThrowReadySec returns max(throw arrival, the cover's walk), commented as a lob waits, so the CPU will not throw to a bag before its receiver arrives. A human seat has no such restraint and can fire to an unoccupied bag, with cover.radiusFt alone deciding whether it is caught. Slowing cover therefore squeezes the human more than the CPU. Not part of this decision, but the reason these margins matter to a player and not to the computer.",
+    "options": [
+      {
+        "id": "one-profile-no-read",
+        "topFtPerSec": 18.0,
+        "readSec": 0.0,
+        "summary": "Cover inherits the accepted movement profile, but starts at contact with no read delay.",
+        "consequence": "One body, one way of moving, and the double-play feed survives on both an average and a quick ball at +0.39 and +0.09 seconds. The dropped read is justified rather than convenient: covering is a known assignment to a fixed spot, not the recognition of where a batted ball went.",
+        "cost": "Slack on the feed falls from 0.90 to 0.09 seconds on a quick ball, so the pivot becomes a real race rather than a formality, and a Snap Throw would tighten it further."
+      },
+      {
+        "id": "keep-flat-cover-speed",
+        "topFtPerSec": 28.0,
+        "readSec": 0.23,
+        "summary": "Cover keeps its own faster flat speed.",
+        "consequence": "Nothing to change and every current timing preserved, with the most comfortable margins.",
+        "cost": "The same character visibly runs at two different speeds depending on the job, starting instantly and stopping dead, and the accepted one-profile decision stays contradicted."
+      },
+      {
+        "id": "one-profile-with-read",
+        "topFtPerSec": 18.0,
+        "readSec": 0.25,
+        "summary": "Cover inherits the accepted profile in full, read delay included.",
+        "consequence": "The strictest reading of one profile, with nothing carved out.",
+        "cost": "Breaks the quick double play: the throw beats the receiver to second by 0.16 seconds. The pivot would need the throw to wait for the cover, which means changing accepted throw rules rather than movement."
+      }
+    ],
+    "referenceLimit": "No Wii or GameCube cover speed, cutoff placement or receiver timing has been measured. These are this game's own numbers against its own accepted anchors.",
+    "implementationBoundary": "Research prepared for one human decision. No cover speed, read rule, rules-file edit, throw-wait rule, runtime change or human gate is selected or passed here."
   }
 }

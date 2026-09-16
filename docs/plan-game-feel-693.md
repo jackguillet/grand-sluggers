@@ -348,7 +348,10 @@ See [what C80 does to the ball](research-game-feel-708.md#flight-budget--what-c8
 **Original framing.**
 The last remaining design input, and the one that decides whether the fielding numbers are right. Everything accepted so far describes what the defence *can* cover; the flight budget decides what it *has* to cover. Contact-class flight, bounce, roll and wall play inside 232 / 280 / 232 feet. The coverage arithmetic is explicitly contingent on it — the closure tables state a ceiling, and how many real batted balls land inside the open window is a flight question. **Do this before implementation**, because it can move reach and pursuit, and moving them after they are in code is more expensive.
 
-**2. Coverage budget — `F693-02-coverage-budget`. Research-heavy, perhaps one decision.**
+**2. Coverage budget — `F693-02-coverage-budget`. Research done September 15, 2026; one decision open.**
+See [who is at the bag when the throw lands](research-game-feel-708.md#coverage-budget--who-is-at-the-bag-when-the-throw-lands). Cover, cutoff and backup all move through `StepFlat` at a flat 28 ft/s with no acceleration, braking or character difference, while ball pursuit is the accepted 18 ft/s profile — so the same body runs 56% faster to a bag than to a ball, which the accepted one-profile decision did not intend. Second base is the pressure point; the corner bags barely move. The cutoff, the relay and receiver reach all turn out **not** to be at risk, and `cover.radiusFt` 6 now matches the accepted 6-foot stand-up reach, which harmonised a long-standing inconsistency by accident.
+
+**Original framing.**
 Cover and cutoff movement, receiver readiness, and pickup/recovery against complete races. Catch reach, its original headline item, is now answered. What remains is whether a receiver is actually at the bag when the throw lands on a field this size, which is a relay and double-play question rather than a fielding one.
 
 **3. Implementation slice one — the fielding contract in code.**
