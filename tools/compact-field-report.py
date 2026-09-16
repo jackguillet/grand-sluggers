@@ -27,6 +27,45 @@ def fence(profile, angle):
     return b + math.sqrt(b * b - circle_z * circle_z + radius * radius)
 
 
+def lateral_closure_seconds(gap, reach, read, accel, top):
+    """Shortest hang at which two neighbours cover the whole line between them.
+
+    Straight-line lateral interception only: each fielder waits out the read, accelerates
+    linearly for `accel` seconds and holds `top`. No route, height, dive, jump or pose.
+    """
+    need = gap / 2 - reach
+    if need <= 0:
+        return 0.0
+    ramp = .5 * top * accel
+    if need <= ramp:
+        return read + math.sqrt(2 * need * accel / top)
+    return read + accel + (need - ramp) / top
+
+PAIR_READ = {"3B-SS": "infieldReadSeconds", "SS-2B": "infieldReadSeconds", "2B-1B": "infieldReadSeconds",
+             "LF-CF": "outfieldReadSeconds", "CF-RF": "outfieldReadSeconds"}
+
+
+def reach_coverage(data, starts, base):
+    """Closure-hang arithmetic for each reach option; empty when the research block is absent."""
+    research = data.get("catchReachCoverageResearch")
+    if not research:
+        return None
+    pursuit = research["pursuitInputs"]
+    accel, top = pursuit["accelerationSeconds"], pursuit["topSpeedFeetPerSecond"]
+    options = list(research["reachOptionsFt"]) + [13 * base / 90]
+    rows = []
+    for pair in research["fielderPairs"]:
+        a, b = pair.split("-")
+        gap = math.dist(starts[a], starts[b])
+        read = pursuit[PAIR_READ[pair]]
+        rows.append({
+            "pair": pair, "spacingFt": gap, "spacingPerBasepath": gap / base, "readSeconds": read,
+            "closureHangSecondsByReachFt": {f"{r:g}": lateral_closure_seconds(gap, r, read, accel, top)
+                                            for r in sorted(set(round(o, 4) for o in options), reverse=True)},
+        })
+    return {"scaledOptionFt": 13 * base / 90, "pairs": rows,
+            "limitations": research["model"]["excludes"], "simulated": False}
+
 def derive(data):
     selected = data["acceptedCandidate"]
     assert selected is None or selected in {p["id"] for p in data["profiles"]}
@@ -78,6 +117,7 @@ def derive(data):
                 "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
             },
             "unchanged13FtCatchRadiusOverBasepath": 13 / base,
+            "catchReachCoverage": reach_coverage(data, starts, base),
             "simulated": False,
         })
     tracked = [INPUT, ROOT / "docs/research/game-feel-701-proportions.json",
@@ -1383,11 +1423,37 @@ def derive(data):
     assert all(arcade_fielding[key] is False for key in ("calculatesGloveSurfaceNormals", "calculatesPocketRimBackEligibility", "requiresGloveMeshCollision"))
     for retired_glove in (continuing_curve, contact_incidence, glove_surface, glove_sides):
         assert retired_glove["supersededBy"] == arcade_fielding["decisionId"]
+    reach_research = data.get("catchReachCoverageResearch")
+    if reach_research:
+        assert reach_research["state"] == "next-human-decision"
+        assert reach_research["status"] == "research-arithmetic-not-simulation"
+        assert reach_research["model"]["simulated"] is False
+        assert arcade_fielding["decisionId"] in reach_research["parentDecisionIds"]
+        assert math.isclose(reach_research["currentRuntimeStack"]["field5StandUpFt"],
+                            10 + .6 * 5), "Field-5 stand-up reach must follow the live rules file"
+        control_pairs = {r["pair"]: r for r in records[0]["catchReachCoverage"]["pairs"]}
+        for record in records:
+            coverage = record["catchReachCoverage"]
+            assert math.isclose(coverage["scaledOptionFt"], 13 * record["basepathFt"] / 90)
+            for row in coverage["pairs"]:
+                seconds = [v for _, v in sorted(row["closureHangSecondsByReachFt"].items(),
+                                                key=lambda kv: float(kv[0]))]
+                assert seconds == sorted(seconds, reverse=True), "More reach cannot close a gap later"
+                control = control_pairs[row["pair"]]
+                assert row["spacingFt"] <= control["spacingFt"] + 1e-9, "No compact gap may exceed the control"
+        alley = {r["id"]: next(row for row in r["catchReachCoverage"]["pairs"] if row["pair"] == "LF-CF")
+                 for r in records}
+        headline = reach_research["headline"]
+        for key, profile, reach in (("alleyClosureC0LegacyReachSeconds", "C0", "13"),
+                                    ("alleyClosureC80LegacyReachSeconds", "C80", "13"),
+                                    ("alleyClosureC80ZeroReachSeconds", "C80", "0")):
+            assert math.isclose(headline[key], alley[profile]["closureHangSecondsByReachFt"][reach], abs_tol=.005)
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
             "arcadeFieldingState": arcade_fielding["state"],
+            "catchReachEnvelopeState": reach_research["state"] if reach_research else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,

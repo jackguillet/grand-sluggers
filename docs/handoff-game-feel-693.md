@@ -1,6 +1,6 @@
 # Game feel research handoff — #693 / #708
 
-Prepared September 15, 2026 because Jack is nearly out of session usage. **Continue the existing work; do not restart the decision interview.** Session kind: **Gameplay research/documentation**. Last design commit: `59baf8c` (`docs: simplify fielding to arcade range and visual glove motion`). This handoff introduces no new gameplay decision.
+Prepared September 15, 2026 because Jack is nearly out of session usage. **Continue the existing work; do not restart the decision interview.** Session kind: **Gameplay research/documentation**. Last design commit at preparation: `59baf8c` (`docs: simplify fielding to arcade range and visual glove motion`); see the September 15 update in [Next work](#next-work--one-decision-is-now-waiting) for the current state.
 
 ## Start here
 
@@ -65,16 +65,16 @@ This is orientation, not a substitute for the detailed scope and exceptions in t
 - **Nearby bobble trial:** initial vertical speed zero; gravity from actual contact position; horizontal speed `min(.20*incoming horizontal speed, 6 ft/s)`. Ground vertical retention .35, rebound ceiling 6 inches, settle at actual ground impact if predicted next rebound is at most 3 inches. Retain 90% horizontal speed per actual ground impact; supported rolling deceleration 6 ft/s². No forced airborne snap or fixed scatter endpoint.
 - **Continuing deflection trial:** retain 50–80% incoming horizontal speed and apply the same factor to signed vertical speed; then use shared ordinary batted-ball ground response. Exact simplified contact factor is unresolved. Do not inherit the nearby-bobble caps, and do not interpret shared response as approval of legacy bounce/friction numbers.
 
-## Next work — do this instead of another glove microdecision
+## Next work — one decision is now waiting
 
-At handoff, `decisionQueue` has **zero `next-human-decision` entries** and exactly one `next-research-action`: **`F693-02-arcade-fielding-validation`**. No question or approval is waiting on Jack.
+**Updated September 15, 2026.** `F693-02-arcade-fielding-validation` is **research complete**. The consolidated contract and the reach/coverage accounting are now the two new sections at the top of [the #708 report](research-game-feel-708.md#consolidated-simplified-fielding-contract). `decisionQueue` now has exactly one `next-human-decision`: **`F693-02-catch-reach-envelope`** — keep today's absolute catch reach on the compact field, scale it with the basepath, or re-author a smaller envelope the visible glove can meet. Its full context, options and arithmetic are in `catchReachCoverageResearch` in the candidate JSON and the per-profile `catchReachCoverage` blocks in the derived JSON. **It was put to Jack on September 15, 2026; if no answer is recorded, it is still open — put it to him again rather than choosing for him, and do not reopen it once an answer is recorded.**
 
-1. Consolidate the simplified fielding contract around representative routine catches, awkward-hop bobbles and hard infield balls that escape into the outfield. Distinguish retained decisions from superseded microphysics and unresolved mappings.
-2. Compare player-visible examples from both reference games, recording source, timestamp, event boundaries, conditions, uncertainty and what was actually observed. Use available evidence honestly; do not manufacture measurements or require Jack to answer hidden implementation trivia.
-3. Review remaining meaningful dependencies together before proposing the next player-facing decision. Pending queue rows cover defensive-trait migration, individual special attacks, movement/coverage and reach, flight/bounce/roll/walls, and presentation/readability.
-4. Return to Jack only when there is a material gameplay choice, with context and a recommendation. Continue one such decision at a time. Preserve the compact-field goal and whole-race validation requirements.
+Then, and only after that answer:
 
-**Reference limits:** no matched Mario bobble/error/contact measurements exist in this packet. Manuals establish controls, not exact physics constants. Earlier throw clips and community geometry accounts are conditional evidence, not a calibrated Wii/GameCube equivalence. No C80 play evidence exists. Historical #702 tests are not a compact-field simulation. Never describe an arithmetic check as gameplay or look verification.
+1. Review remaining meaningful dependencies together before proposing the next player-facing decision. Pending queue rows cover defensive-trait migration, individual special attacks, movement/coverage and reach, flight/bounce/roll/walls, and presentation/readability. The reach answer feeds directly into dive/jump/scoop reach and the flight budget.
+2. Return to Jack only when there is a material gameplay choice, with context and a recommendation. Continue one such decision at a time. Preserve the compact-field goal and whole-race validation requirements.
+
+**Reference limits:** no matched Mario bobble/error/contact measurements exist in this packet, and no Mario catch reach has been measured — video supplies no world scale, so a reach figure cannot honestly be read from either reference. A September 15, 2026 attempt reopened the Wii clip page and was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it. Manuals establish controls, not exact physics constants. Earlier throw clips and community geometry accounts are conditional evidence, not a calibrated Wii/GameCube equivalence. No C80 play evidence exists. Historical #702 tests are not a compact-field simulation. Never describe an arithmetic check as gameplay or look verification.
 
 ## Validation and publishing workflow
 

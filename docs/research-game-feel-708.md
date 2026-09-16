@@ -24,9 +24,62 @@ The player still owns positioning and jump/action timing. Apply baseball legalit
 
 **Keep useful feel work:** the previously recorded ball-response numbers remain authored trial anchors for later calibration, not measured Mario constants or shipping defaults. This correction does not implement or retune them. Reach dimensions, simplified response mapping, traits, coverage and full race validation remain open.
 
-**Review process:** continue one decision at a time for meaningful player-facing tradeoffs. Consolidate hidden geometry and implementation choices into research/tuning work rather than asking Jack to approve each microscopic detail. The next work is to consolidate the simplified contract around representative catches, bobbles and hard infield escapes, compare both references, and identify the next material gameplay decision. No replacement glove microdecision is queued here.
+**Review process:** continue one decision at a time for meaningful player-facing tradeoffs. Consolidate hidden geometry and implementation choices into research/tuning work rather than asking Jack to approve each microscopic detail. That consolidation is now done below, in [the consolidated contract](#consolidated-simplified-fielding-contract) and [the reach accounting](#reach-and-coverage-accounting-for-c80); it identified one material tradeoff, `F693-02-catch-reach-envelope`. No replacement glove microdecision is queued here.
 
 No runtime, asset, merge or human gate changes. This is Jack's design direction, not a claim about Nintendo internals.
+
+## Consolidated simplified fielding contract
+
+**F693-02-arcade-fielding-validation — research complete, September 15, 2026.** This section is the single place the simplified contract is stated end to end. It introduces no new decision; every number below is an already accepted trial anchor, and the three plays are the representative cases the correction asked for. Nothing here has been simulated.
+
+**A routine grounder to short.** Contact, then the accepted 0.25-second infield read, then pursuit through the accepted 0.20-second build-up toward 18 ft/s. The ball is fielded when it is inside that character's explicit catch range, the fielder is in an appropriate ready state and the play is legal. There is no handling roll, because a routine opportunity is reliable. The authored glove motion meets the ball with the pocket facing it; a bad wrist angle is a presentation defect to fix, not a miss. A clean pickup adds no generic pause, and the throw follows the accepted 0.30-second release and 0.90-second 80-foot flight.
+
+**An awkward in-between hop.** The accepted first difficulty source, and the only one so far — a hard-hit label alone does not qualify. It opens the difficulty and defensive-quality error chance, trial `p = .10*D*(1-.80*H)` capped at 10%, with the D and H mappings still open, drawn once per genuine attempt on the seeded rail. On failure the outcome comes from the ball's own current motion and the simple gameplay contact context, not from a severity lottery. A hop that has already lost most of its travel leaves a local bobble: vertical speed zero at the actual contact position, horizontal speed `min(.20 × incoming, 6 ft/s)`, ground vertical retention .35, rebound ceiling 6 inches, settling when the next predicted rebound is 3 inches or less, 90% horizontal retention per ground impact and 6 ft/s² rolling deceleration. Direction is contact-led with uniform ±30° variation. The fielder takes the shared 0.40-second stun; the ball stays live, helpers stay live, and same-error recovery is reliable.
+
+**A hard infield ball that escapes into the outfield.** Same gate, same single draw. When the contact leaves substantial motion, the ball keeps going: retain 50–80% of incoming horizontal speed, apply the same factor to signed vertical speed, then hand off to the shared ordinary batted-ball ground response. Direction is contact-led with uniform ±15° variation — narrower than the local bobble, not wider. This branch does **not** inherit the bobble's 6 ft/s cap, rebound ceiling or settling rule, and no outfield destination, minimum escape distance or extra base is assigned. The ball goes where its remaining motion takes it, and ordinary coverage decides the consequence. A ball that was never touched is not this: it earns no stun, no recovery protection and no deflection angle.
+
+| | Status |
+| --- | --- |
+| Explicit character catch range, action readiness, baseball legality | Retained as the acquisition basis |
+| Player-owned positioning and jump timing | Retained |
+| Glove pocket facing the ball | Presentation responsibility only |
+| Routine reliability, the qualified error chance, the three outcome kinds, the 0.40-second stun, reliable same-error recovery | Retained |
+| Local bobble and continuing deflection trial numbers | Retained as authored trial anchors |
+| Glove mesh collision, pocket/rim/back eligibility, contact-surface normals, the `r = .80 - .30*c` obstruction curve | Superseded; kept below as history |
+| The exact simplified contact-to-outcome mapping | **Open**, and must stay reproducible with no new severity roll |
+| Catch reach magnitude, dive/jump/scoop reach, defensive-trait migration, coverage, flight budget | **Open**, see below and the queue |
+
+**Reference comparison.** The two recorded plays in the [#701 comparison](research-game-feel-701-comparison.md) — the Wii shortstop grounder around 00:58 and the GameCube force-and-return around 03:10 — are both clean fielding. Neither reference packet contains a bobble, a deflection or a gap ball, so this contract's error behaviour has **no matched Wii or GameCube observation at all**, in either direction. A fresh attempt on September 15, 2026 reopened the Wii clip page and was abandoned in pre-roll advertising before any play was inspected; nothing was measured or inferred from it. What the existing clips do support is the shape the contract already assumes: a visible gather, a visible release and a visible travel, with the result readable as it happens.
+
+## Reach and coverage accounting for C80
+
+The spatial section warned that reach needs its own accounting. This is it, and it produces the next decision rather than settling it.
+
+The current Harbor runtime gives a fielder a stand-up catch radius of `10 + 0.6 × Field` feet from [`data/rules/fielding.json`](../data/rules/fielding.json) — **13 feet at Field 5** — plus a 4-foot scoop pad, 8 feet of dive and 8 feet of jump. Those are shipped control-field numbers, not approved compact defaults and not measured Mario reach. They also contradict an accepted direction: `F693-02-character-catch-range` says displayed Fielding must not size the catch range, and `10 + 0.6 × Field` does exactly that. The stack cannot carry over unchanged whichever magnitude wins.
+
+The infield starts scale with the basepath, so infield gaps shrink 11.1%. The outfield starts preserve their fraction of the fence radius at their own bearing, and the fence shrank 30% at center, so **the alley shrinks 30% while reach and pursuit do not shrink at all**. Adjacent starts fall from 122.98 to 86.08 feet between left and center.
+
+Spending the accepted anchors — 0.40-second outfield read, 0.25-second infield read, 0.20-second build-up, 18 ft/s — on straight-line lateral interception between two neighbours gives the hang time at which they cover every point of the line between them, reach included:
+
+| Gap | 13 ft (today) | 11.56 ft (scaled) | 8 ft | 6 ft | 0 ft |
+| --- | --- | --- | --- | --- | --- |
+| C0 left–center alley, 122.98 ft | 3.19 s | — | 3.47 s | 3.58 s | 3.92 s |
+| **C80 left–center alley, 86.08 ft** | **2.17 s** | 2.25 s | 2.45 s | **2.56 s** | 2.89 s |
+| C0 third–short hole, 58.41 ft | 1.25 s | — | 1.53 s | 1.64 s | 1.97 s |
+| **C80 third–short hole, 51.92 ft** | **1.07 s** | 1.15 s | 1.35 s | **1.46 s** | 1.79 s |
+| C80 short–second hole, 74.67 ft | 1.70 s | 1.78 s | 1.98 s | 2.09 s | 2.42 s |
+
+This is straight-line arithmetic only. It excludes route curvature, ball height and hop, leading a moving target, dive and jump input, authored pose, wall and roll, character differences and assistance. It states a ceiling on what the defence can cover, **not a hit rate**: how many real batted balls fall in the open window depends on the pending flight budget. It is not a simulation.
+
+Read carefully, it says three things. First, keeping today's absolute reach costs about a second of alley survival, from 3.19 down to 2.17. Second, **reach is a real but partial lever** — deleting reach entirely only recovers about 0.7 of that second, and a 6-foot envelope recovers 0.39 — because the dominant term is the narrower gap against unchanged 18 ft/s pursuit. Third, the honest comparison is gentler than the raw numbers look: the C80 outfield arc is nearer, so an alley ball also hangs less. A no-drag, same-launch-angle ball scales hang with the square root of carry, which would put the control-equivalent near 2.67 seconds rather than 3.19 — so the compact defence still gains roughly half a second, not a full one. That correction needs the flight budget to be more than arithmetic.
+
+The infield row is the sharper warning. At 13 feet, two neighbouring infielders standing perfectly still already cover 26 of the 51.92 feet between third and short, and the hole is closed for anything taking 1.07 seconds or more to reach them. Ground balls through the left side are the single most common hit in baseball, and this is the setting that decides whether they exist.
+
+Restoring the alley by slowing outfielders is not available: `F693-02-pursuit-speed` accepted one pursuit profile across positions, and it would take roughly 11 ft/s to match the control's alley closure. Outfield spread cannot do it either — matching C0's closure would need C0's absolute 123-foot gap, which does not fit inside a 232/280-foot fence without abandoning the lines. That leaves reach, the flight budget and the outfield starts as the levers, and reach is the one already queued for review.
+
+**Open decision `F693-02-catch-reach-envelope`.** Keep today's absolute feet, scale them with the basepath, or re-author a smaller envelope the visible glove can actually meet. The third is the only option that satisfies the accepted glove-meets-the-ball contract — a 13-foot radius is about two and a half Rio head-heights, so no authored glove reaches its rim — but it makes marginal outs into hits and promotes the dive and jump additions, still 8 feet each in the current runtime, into the dominant reach. Whichever magnitude is chosen, the per-character source has to move off displayed Fielding. No value is selected here.
+
+**Reference limit:** no Wii or GameCube catch reach has been measured. Video supplies no world scale, so a reach figure cannot honestly be read from either reference; this decision has to be judged as an original game trial.
 
 ## Accepted decision — lead spatial trial
 

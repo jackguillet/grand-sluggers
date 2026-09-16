@@ -5,6 +5,7 @@
   "catcherReadState": "accepted-calibration-anchor",
   "uniformErrorDirectionState": "accepted-calibration-anchor",
   "arcadeFieldingState": "accepted-calibration-anchor",
+  "catchReachEnvelopeState": "next-human-decision",
   "gloveCatchSidesState": "superseded-by-user-direction",
   "gloveContactSurfaceState": "superseded-by-user-direction",
   "errorContactObstructionBasisState": "superseded-by-user-direction",
@@ -103,7 +104,7 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "c99c5c54e2a3dfb0948326b00264751ebf6514f79d107d3ad48253fab371ca8d",
+    "docs/research/game-feel-708-candidates.json": "27ac409c8cded90e3fee23bc66012febda230bc33f6eaaf4a4f0ee35e0656cf1",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
@@ -270,6 +271,87 @@
         "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
       },
       "unchanged13FtCatchRadiusOverBasepath": 0.14444444444444443,
+      "catchReachCoverage": {
+        "scaledOptionFt": 13.0,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 58.41232746604094,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.2503424296122483,
+              "8": 1.5281202073900262,
+              "6": 1.6392313185011371,
+              "4": 1.7503424296122483,
+              "0": 1.9725646518344706
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 84.0,
+            "spacingPerBasepath": 0.9333333333333333,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.961111111111111,
+              "8": 2.238888888888889,
+              "6": 2.35,
+              "4": 2.4611111111111112,
+              "0": 2.6833333333333336
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 58.41232746604094,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.2503424296122483,
+              "8": 1.5281202073900262,
+              "6": 1.6392313185011371,
+              "4": 1.7503424296122483,
+              "0": 1.9725646518344706
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 122.98373876248844,
+            "spacingPerBasepath": 1.3664859862498715,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 3.193992743402457,
+              "8": 3.4717705211802348,
+              "6": 3.582881632291346,
+              "4": 3.693992743402457,
+              "0": 3.9162149656246794
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 122.98373876248844,
+            "spacingPerBasepath": 1.3664859862498715,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 3.193992743402457,
+              "8": 3.4717705211802348,
+              "6": 3.582881632291346,
+              "4": 3.693992743402457,
+              "0": 3.9162149656246794
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
       "simulated": false
     },
     {
@@ -398,6 +480,92 @@
         "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
       },
       "unchanged13FtCatchRadiusOverBasepath": 0.1625,
+      "catchReachCoverage": {
+        "scaledOptionFt": 11.555555555555555,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 51.92206885870305,
+            "spacingPerBasepath": 0.6490258607337881,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.070057468297307,
+              "11.5556": 1.1503019127417513,
+              "8": 1.3478352460750846,
+              "6": 1.4589463571861958,
+              "4": 1.5700574682973067,
+              "0": 1.792279690519529
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 74.66666666666666,
+            "spacingPerBasepath": 0.9333333333333332,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.7018518518518515,
+              "11.5556": 1.782096296296296,
+              "8": 1.9796296296296292,
+              "6": 2.0907407407407406,
+              "4": 2.2018518518518517,
+              "0": 2.424074074074074
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 51.92206885870305,
+            "spacingPerBasepath": 0.6490258607337881,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.070057468297307,
+              "11.5556": 1.1503019127417513,
+              "8": 1.3478352460750846,
+              "6": 1.4589463571861958,
+              "4": 1.5700574682973067,
+              "0": 1.792279690519529
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 86.07843786650812,
+            "spacingPerBasepath": 1.0759804733313516,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 2.168845496291892,
+              "11.5556": 2.249089940736337,
+              "8": 2.4466232740696703,
+              "6": 2.5577343851807814,
+              "4": 2.6688454962918926,
+              "0": 2.891067718514115
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 86.07843786650812,
+            "spacingPerBasepath": 1.0759804733313516,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 2.168845496291892,
+              "11.5556": 2.249089940736337,
+              "8": 2.4466232740696703,
+              "6": 2.5577343851807814,
+              "4": 2.6688454962918926,
+              "0": 2.891067718514115
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
       "simulated": false
     },
     {
@@ -526,6 +694,92 @@
         "limitations": "No acceleration, read, reach, moving interception, fielding route or throw. Two incompatible speeds are sensitivities, not a candidate movement profile."
       },
       "unchanged13FtCatchRadiusOverBasepath": 0.18571428571428572,
+      "catchReachCoverage": {
+        "scaledOptionFt": 10.11111111111111,
+        "pairs": [
+          {
+            "pair": "3B-SS",
+            "spacingFt": 45.43181025136518,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 0.8897725069823661,
+              "10.1111": 1.0502669514268104,
+              "8": 1.1675502847601438,
+              "6": 1.278661395871255,
+              "4": 1.389772506982366,
+              "0": 1.6119947292045882
+            }
+          },
+          {
+            "pair": "SS-2B",
+            "spacingFt": 65.33333333333333,
+            "spacingPerBasepath": 0.9333333333333332,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 1.4425925925925924,
+              "10.1111": 1.6030870370370367,
+              "8": 1.72037037037037,
+              "6": 1.8314814814814813,
+              "4": 1.9425925925925924,
+              "0": 2.1648148148148145
+            }
+          },
+          {
+            "pair": "2B-1B",
+            "spacingFt": 45.43181025136518,
+            "spacingPerBasepath": 0.6490258607337882,
+            "readSeconds": 0.25,
+            "closureHangSecondsByReachFt": {
+              "13": 0.8897725069823661,
+              "10.1111": 1.0502669514268104,
+              "8": 1.1675502847601438,
+              "6": 1.278661395871255,
+              "4": 1.389772506982366,
+              "0": 1.6119947292045882
+            }
+          },
+          {
+            "pair": "LF-CF",
+            "spacingFt": 75.31863313319462,
+            "spacingPerBasepath": 1.0759804733313518,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 1.8699620314776284,
+              "10.1111": 2.030456475922073,
+              "8": 2.1477398092554063,
+              "6": 2.2588509203665175,
+              "4": 2.3699620314776286,
+              "0": 2.592184253699851
+            }
+          },
+          {
+            "pair": "CF-RF",
+            "spacingFt": 75.31863313319462,
+            "spacingPerBasepath": 1.0759804733313518,
+            "readSeconds": 0.4,
+            "closureHangSecondsByReachFt": {
+              "13": 1.8699620314776284,
+              "10.1111": 2.030456475922073,
+              "8": 2.1477398092554063,
+              "6": 2.2588509203665175,
+              "4": 2.3699620314776286,
+              "0": 2.592184253699851
+            }
+          }
+        ],
+        "limitations": [
+          "route curvature",
+          "ball height and hop",
+          "moving-target lead",
+          "dive and jump input",
+          "authored pose and glove path",
+          "wall and roll",
+          "character differences",
+          "assistance and ability effects"
+        ],
+        "simulated": false
+      },
       "simulated": false
     }
   ],
