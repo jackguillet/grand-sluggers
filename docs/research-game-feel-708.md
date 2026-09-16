@@ -1422,9 +1422,9 @@ Retain one seeded result for the actual failed-contact event, with no redraw fro
 
 Compare matched pre/post-contact trajectories in both references and the eventual full recovery race before claiming parity. This is an authored numerical band only. Exact mapping, outcome thresholds, vertical response and downstream trajectory remain open; no runtime or human gate changes here.
 
-## Next decision — ordinary error direction distribution
+## Superseded proposal — center-weighted error direction distribution
 
-**F693-02-error-direction-distribution — pending, September 15, 2026.** Recommend **a symmetric triangular distribution for directional variation**, making small offsets more common and tapering toward the limits. Left and right are equally likely. Keep the accepted limits: ±30 degrees for local bobbles and ±15 degrees for continuing deflections.
+**F693-02-error-direction-distribution — superseded by Jack on September 15, 2026; never accepted or implemented.** The prior recommendation was **a symmetric triangular distribution for directional variation**, making small offsets more common and tapering toward the limits. Left and right are equally likely. Keep the accepted limits: ±30 degrees for local bobbles and ±15 degrees for continuing deflections.
 
 **Player context:** contact remains the main visual explanation for the path, with occasional wider variation. Uniform sampling is the alternative: every equal-width slice of the angle range would be equally likely. The triangular shape puts more outcomes near the contact direction without eliminating the larger offsets Jack requested.
 
@@ -1438,7 +1438,31 @@ This choice affects horizontal direction only. It adds no speed, severity, verti
 
 The cap describes variation around the contact-derived baseline, not total turning from the incoming trajectory. Exact baseline/fallback, contact-to-retention mapping, branch thresholds and vertical response remain pending. This is an authored distribution, not measured Wii/GC randomness. Compare visible small and near-limit offsets and full recovery races before implementation or human acceptance; no runtime changes here.
 
-**Question for Jack:** favor small directional offsets with this symmetric triangular distribution, while keeping the occasional wider deflection within the approved limits?
+**Superseded:** Jack selected an even distribution. The triangular probabilities above are historical, not the chosen rule.
+
+## Accepted decision — uniform error direction distribution
+
+**F693-02-uniform-error-direction — directed by Jack on September 15, 2026.** Use **uniform angular sampling** within ±30 degrees for local bobbles and ±15 degrees for continuing deflections. Equal-width slices of each angle range have equal probability. Left/right remain equally likely; contact still determines the baseline direction.
+
+With an authoritative uniform `U` in `[0,1)`, use normalized `X=2U-1` and offset `theta=A*X`. Half the samples lie within the central half of each range: ±15 degrees for local bobbles or ±7.5 degrees for continuing deflections. Mean absolute offsets are 15 and 7.5 degrees respectively. These are probabilities, not enforced quotas. Uniform in angle does not mean uniform landing positions.
+
+Retain one directional result per actual failed-contact event; selecting local/continuing outcomes, switching defenders or recovering the ball cannot create another draw. No tactical bias or result selection. Untouched misses receive no error-angle modifier. The approved contact-derived direction, speed retention, stun and reliable recovery remain intact. This is user-authored design, not measured Mario distribution; no runtime changes.
+
+## Next decision — local bobble vertical shape
+
+**F693-02-local-bobble-vertical-shape — pending, September 15, 2026.** Recommend that a nearby bobble **spill down from the glove and make a small, low ground bounce**, without a default upward pop. The failed contact and loose ball remain visible while the fielder reacts.
+
+**Why this shape:** it avoids adding a long airborne wait on top of the .40-second stun. An upward juggle/pop is the alternative, and would make the recovery depend more on waiting for descent. This choice is only a motion shape: exact rebound height, contact velocity response, local horizontal speed and settling distance remain open.
+
+**Start where the ball actually is:** use the actual contact point and height, with continuous motion. Do not reset to one universal height, teleport to the ground or momentarily attach the ball as secured possession. Contact response can change velocity, but the numerical response must be reviewed with gravity/ground collision. Different contact heights naturally have different fall times; no fixed airtime or bounce-count guarantee is selected.
+
+**Keep recovery independent:** the character's .40-second reaction does not wait for the ball to land, and ball motion does not pause for the character. Actual contact and action readiness determine recovery, including an eligible helper before the fumbler recovers. Do not add a wait-until-grounded rule, automatic pickup or a longer stun to fit an animation. Preserve reliable same-error recovery and uniform ±30-degree local horizontal variation.
+
+This applies only to the ordinary local-bobble branch. Continuing deflections, untouched balls, special hits and other catch contexts retain their separate contracts. No new vertical random roll, hidden handling benefit or speed/height target is approved by this direction. Use the shared authoritative ball model and matching authored motion; no invented second physics/animation system.
+
+This is an authored proposal, not a measured Wii/GC local-error arc. Compare low/high contact examples and both references before choosing numbers, then verify visible contact, bounce and recovery at gameplay distance. No runtime or human gate changes here.
+
+**Question for Jack:** make nearby bobbles spill downward with a low bounce, rather than adding an upward pop?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

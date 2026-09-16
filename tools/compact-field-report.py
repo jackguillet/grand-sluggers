@@ -1110,7 +1110,8 @@ def derive(data):
         assert random_bobble["acceptedBy"] and random_bobble["acceptedOn"] and random_bobble["acceptanceEvidence"]
         assert random_bobble["randomDirectionRoll"] is True
         assert all(random_bobble[key] is None for key in
-                   ("directionMapping", "distribution", "verticalRandomness"))
+                   ("directionMapping", "verticalRandomness"))
+        assert random_bobble["distribution"] == "uniform-angle"
         assert random_bobble["angularBounds"]["horizontalMinDegrees"] == -30
         assert random_bobble["angularBounds"]["horizontalMaxDegrees"] == 30
     bobble_spread = data.get("bobbleDirectionSpreadProposal")
@@ -1119,7 +1120,8 @@ def derive(data):
         assert bobble_spread["acceptedBy"] and bobble_spread["acceptedOn"] and bobble_spread["acceptanceEvidence"]
         assert bobble_spread["horizontalMaxOffsetDegrees"] == 30
         assert all(bobble_spread[key] is None for key in
-                   ("distribution", "baselineDirectionMapping", "verticalRandomness"))
+                   ("baselineDirectionMapping", "verticalRandomness"))
+        assert bobble_spread["distribution"] == "uniform-angle"
         spread_example = bobble_spread["sensitivity"]
         assert spread_example["travelIsTarget"] is False
         for spread_row in spread_example["alternatives"]:
@@ -1165,7 +1167,8 @@ def derive(data):
         assert continuing_direction["horizontalMaxOffsetDegrees"] < bobble_spread["horizontalMaxOffsetDegrees"]
         assert continuing_direction["untouchedMissAddedOffsetDegrees"] == 0
         assert all(continuing_direction[key] is None for key in
-                   ("distribution", "contactBaselineMapping", "verticalTreatment"))
+                   ("contactBaselineMapping", "verticalTreatment"))
+        assert continuing_direction["distribution"] == "uniform-angle"
         assert continuing_direction["retainedSpeedModel"]["boundsDecisionId"] == "F693-02-continuing-error-speed-retention"
         assert continuing_direction["retainedSpeedModel"]["contactMapping"] is None
     continuing_retention = data.get("continuingErrorSpeedRetentionProposal")
@@ -1183,7 +1186,8 @@ def derive(data):
             assert math.isclose(retain_row["upperOutgoingFtPerSec"], retain_row["incomingHorizontalFtPerSec"]*retain_max)
     direction_distribution = data.get("errorDirectionDistributionProposal")
     if direction_distribution:
-        assert direction_distribution["state"] == "pending"
+        assert direction_distribution["state"] == "superseded-by-user-direction"
+        assert direction_distribution["supersededBy"] == "F693-02-uniform-error-direction"
         assert direction_distribution["distribution"] == "symmetric-triangular"
         assert direction_distribution["normalizedSupport"] == [-1, 1] and direction_distribution["normalizedMode"] == 0
         assert math.isclose(direction_distribution["leftProbability"], .5)
@@ -1197,9 +1201,30 @@ def derive(data):
             assert math.isclose(dist_row["centralHalfProbability"], 2*.5-.5**2)
             assert math.isclose(dist_row["outerHalfProbability"], 1-dist_row["centralHalfProbability"])
             assert math.isclose(dist_row["expectedAbsoluteOffsetDegrees"], dist_cap/3)
+    uniform_direction = data.get("uniformErrorDirectionProposal")
+    if uniform_direction:
+        assert uniform_direction["state"] == "accepted-calibration-anchor"
+        assert uniform_direction["acceptedBy"] and uniform_direction["acceptedOn"] and uniform_direction["acceptanceEvidence"]
+        assert uniform_direction["distribution"] == "uniform-angle" and uniform_direction["normalizedSupport"] == [-1, 1]
+        assert uniform_direction["leftProbability"] == uniform_direction["rightProbability"] == .5
+        uniform_caps = {"local-bobble": bobble_spread["horizontalMaxOffsetDegrees"],
+                        "continuing-deflection": continuing_direction["horizontalMaxOffsetDegrees"]}
+        for uniform_row in uniform_direction["examples"]:
+            uniform_cap = uniform_caps[uniform_row["branch"]]
+            assert uniform_row["maxDegrees"] == uniform_cap
+            assert math.isclose(uniform_row["centralHalfDegrees"], uniform_cap/2)
+            assert uniform_row["centralHalfProbability"] == uniform_row["outerHalfProbability"] == .5
+            assert math.isclose(uniform_row["expectedAbsoluteOffsetDegrees"], uniform_cap/2)
+    local_vertical = data.get("localBobbleVerticalShapeProposal")
+    if local_vertical:
+        assert local_vertical["state"] == "pending" and local_vertical["defaultAddedUpwardPop"] is False
+        assert all(local_vertical[key] is None for key in
+                   ("reboundHeightFt", "verticalContactResponse", "localHorizontalSpeed", "settleDistanceFt"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleVerticalShapeState": local_vertical["state"] if local_vertical else None,
             "errorDirectionDistributionState": direction_distribution["state"] if direction_distribution else None,
             "continuingErrorSpeedRetentionState": continuing_retention["state"] if continuing_retention else None,
             "continuingErrorDirectionState": continuing_direction["state"] if continuing_direction else None,

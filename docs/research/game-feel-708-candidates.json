@@ -559,8 +559,19 @@
     },
     {
       "id": "F693-02-error-direction-distribution",
+      "state": "superseded-by-user-direction",
+      "question": "Use a symmetric triangular random-angle distribution, so smaller offsets are more common within the existing local/continuing limits?",
+      "supersededBy": "F693-02-uniform-error-direction"
+    },
+    {
+      "id": "F693-02-uniform-error-direction",
+      "state": "accepted-calibration-anchor",
+      "question": "Use even angular probability within each accepted range: \u00b130 degrees local bobble and \u00b115 degrees continuing deflection."
+    },
+    {
+      "id": "F693-02-local-bobble-vertical-shape",
       "state": "next-human-decision",
-      "question": "Use a symmetric triangular random-angle distribution, so smaller offsets are more common within the existing local/continuing limits?"
+      "question": "Make the local bobble spill down from the glove with a low bounce, without a default upward pop or extra airborne delay?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5333,7 +5344,7 @@
       "horizontalMaxDegrees": 30,
       "decisionId": "F693-02-bobble-direction-spread"
     },
-    "distribution": null,
+    "distribution": "uniform-angle",
     "verticalRandomness": null,
     "direction": "Derive the general ordinary bobble direction from incoming ball motion and actual glove contact, then add a small bounded random directional variation. Contact remains the dominant basis; do not replace it with unrestricted random scatter.",
     "eventAndReplay": "Resolve and retain the directional result once for the actual failed-acquisition event using the existing authoritative seeded randomness rail. Same contact state plus same event/random state replays the same result; equivalent contact with a different draw may vary within the reviewed spread. No reroll per frame, selection switch, callback, range re-entry or subsequent ordinary recovery. Record the baseline and sampled variation for future trace validation; exact RNG allocation awaits implementation review.",
@@ -5344,13 +5355,14 @@
     "scopeAmendment": {
       "decisionId": "F693-02-expanded-ordinary-error-outcomes",
       "meaning": "Local bobble remains one accepted outcome. Continuing contacted failures share the accepted reaction and reliable same-origin recovery, but use narrower plus/minus 15-degree directional variation and lose speed while keeping more incoming direction. Numerical contact/trajectory rules remain pending."
-    }
+    },
+    "distributionDecisionId": "F693-02-uniform-error-direction"
   },
   "bobbleDirectionSpreadProposal": {
     "decisionId": "F693-02-bobble-direction-spread",
     "state": "accepted-calibration-anchor",
     "horizontalMaxOffsetDegrees": 30,
-    "distribution": null,
+    "distribution": "uniform-angle",
     "baselineDirectionMapping": null,
     "verticalRandomness": null,
     "recommendation": "Use a maximum horizontal offset of 30 degrees either side of the contact-derived local-bobble direction, a 60-degree total fan. This is a cap, not a fixed turn or selected distribution.",
@@ -5401,7 +5413,8 @@
     "implementationBoundary": "Accepted plus/minus 30-degree horizontal bound for the local-bobble branch. Distribution, baseline/fallback mapping, vertical treatment and trajectory values remain pending. Extension to newly requested through-ball/continuing-deflection outcomes needs review. No runtime or human gate changed.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack changed the proposed plus/minus 15-degree limit to 30 degrees, in response to the explicit either-side question; recorded as plus/minus 30 degrees (60-degree total spread)."
+    "acceptanceEvidence": "Jack changed the proposed plus/minus 15-degree limit to 30 degrees, in response to the explicit either-side question; recorded as plus/minus 30 degrees (60-degree total spread).",
+    "distributionDecisionId": "F693-02-uniform-error-direction"
   },
   "expandedOrdinaryErrorOutcomesProposal": {
     "decisionId": "F693-02-expanded-ordinary-error-outcomes",
@@ -5442,7 +5455,7 @@
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction, recovery, narrower continuing angle and .50\u2013.80 pre-contact horizontal-speed retention bounds are accepted. Contact mapping, outcome thresholds, distribution and vertical response remain pending; no complete runtime physics model is approved.",
+    "openInteractions": "Reaction, recovery, continuing \u00b115-degree/local \u00b130-degree caps, uniform angular sampling and .50\u2013.80 continuing horizontal-speed bounds are accepted. Contact mapping, outcome thresholds and vertical response remain pending; no complete runtime physics model is approved.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5517,7 +5530,7 @@
     "state": "accepted-calibration-anchor",
     "horizontalMaxOffsetDegrees": 15,
     "untouchedMissAddedOffsetDegrees": 0,
-    "distribution": null,
+    "distribution": "uniform-angle",
     "contactBaselineMapping": null,
     "retainedSpeedModel": {
       "boundsDecisionId": "F693-02-continuing-error-speed-retention",
@@ -5545,7 +5558,8 @@
     "implementationBoundary": "Accepted narrower plus/minus 15-degree continuing-deflection random-angle trial and qualitative speed-loss/forward-direction distinction. Contact baseline, total angular deviation, speed-retention values, distribution and vertical response remain pending. No runtime or human gate changed.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack requested continuing deflection variation closer to 15 degrees, because contact slows the ball but it should preserve more of its original direction than a stopped nearby bobble. Recorded as an initial plus/minus 15-degree trial, replacing the proposed plus/minus 30."
+    "acceptanceEvidence": "Jack requested continuing deflection variation closer to 15 degrees, because contact slows the ball but it should preserve more of its original direction than a stopped nearby bobble. Recorded as an initial plus/minus 15-degree trial, replacing the proposed plus/minus 30.",
+    "distributionDecisionId": "F693-02-uniform-error-direction"
   },
   "continuingErrorSpeedRetentionProposal": {
     "decisionId": "F693-02-continuing-error-speed-retention",
@@ -5595,7 +5609,7 @@
   },
   "errorDirectionDistributionProposal": {
     "decisionId": "F693-02-error-direction-distribution",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "distribution": "symmetric-triangular",
     "normalizedSupport": [
       -1,
@@ -5638,6 +5652,73 @@
       "Error frequency, stun, reliable recovery and special-hit contracts remain unchanged.",
       "Review both frequent small and occasional near-limit offsets across local and continuing paths before runtime/human acceptance."
     ],
-    "implementationBoundary": "Pending sampling-distribution choice only. Baseline mapping, contact-to-retention mapping, outcome thresholds, vertical physics and runtime/human gates remain open."
+    "implementationBoundary": "Superseded before implementation. Use the accepted uniform distribution under F693-02-uniform-error-direction instead of this triangular proposal.",
+    "supersededBy": "F693-02-uniform-error-direction",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: i think even distribution is fine"
+  },
+  "uniformErrorDirectionProposal": {
+    "decisionId": "F693-02-uniform-error-direction",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected an even distribution instead of the proposed center-weighted triangular distribution.",
+    "distribution": "uniform-angle",
+    "normalizedSupport": [
+      -1,
+      1
+    ],
+    "leftProbability": 0.5,
+    "rightProbability": 0.5,
+    "definition": "For an authoritative uniform U in [0,1), set X=2*U-1 and angle offset theta=A*X. Equal-width angular intervals within [-A,+A] have equal probability; practical endpoint convention does not change the continuous law. A is 30 degrees for local bobbles and 15 for continuing deflections. Uniform in angle, not uniform over landing area.",
+    "examples": [
+      {
+        "branch": "local-bobble",
+        "maxDegrees": 30,
+        "centralHalfDegrees": 15,
+        "centralHalfProbability": 0.5,
+        "outerHalfProbability": 0.5,
+        "expectedAbsoluteOffsetDegrees": 15
+      },
+      {
+        "branch": "continuing-deflection",
+        "maxDegrees": 15,
+        "centralHalfDegrees": 7.5,
+        "centralHalfProbability": 0.5,
+        "outerHalfProbability": 0.5,
+        "expectedAbsoluteOffsetDegrees": 7.5
+      }
+    ],
+    "scope": "Changes directional sampling only. Keep contact-derived baseline and continuing forward bias, accepted angle caps and speed-retention bounds, error chance, stun and recovery. No new speed/vertical randomness, handling multiplier or tactical bias. A finite match need not exhibit exact probability quotas.",
+    "event": "Retain one normalized directional result per actual failed-contact event through the authoritative seeded rail. Apply the selected branch cap without a second draw. No selection/frame/recovery or outcome-based resampling. Untouched misses receive no error-direction sample or modifier. Exact RNG integration remains reviewable implementation work.",
+    "referenceLimit": "User-authored distribution choice, not a measured Wii/GC angle distribution. Baseline/fallback, contact mapping and vertical response remain unselected.",
+    "implementationBoundary": "Accepted uniform angular distribution only. No runtime, asset or human gate changed."
+  },
+  "localBobbleVerticalShapeProposal": {
+    "decisionId": "F693-02-local-bobble-vertical-shape",
+    "state": "pending",
+    "shape": "downward-spill-low-rebound",
+    "defaultAddedUpwardPop": false,
+    "reboundHeightFt": null,
+    "verticalContactResponse": null,
+    "localHorizontalSpeed": null,
+    "settleDistanceFt": null,
+    "recommendation": "For the ordinary local-bobble branch, spill the ball down from actual glove contact and use a small low ground rebound, instead of adding a default upward pop. Keep the bobble nearby and visibly loose while the character performs its accepted reaction.",
+    "rationale": "The failed contact and low bounce should read clearly without a long airborne wait added to the .40-second stun. The alternative is an upward juggle/pop, which can add airborne time and make the recovery race depend more on waiting for descent. This selects a qualitative shape, not a fixed airtime.",
+    "contactOrigin": "Begin at actual contact position and height. Do not reset to a universal ball height, move the ball instantly to the ground, snap it downward or fake possession before release. Contact may reduce/change velocity through a reviewed response; gravity and ground collision continue on the authoritative clock. Different real contact heights can yield different fall times.",
+    "scope": "Ordinary nearby bobble only, following a qualifying failed handling event and reviewed outcome classifier. Do not apply this downward response to continuing deflections, untouched misses, special hits or airborne catches as a blanket rule. The continuing branch remains slowed and forward-biased under its own future vertical model.",
+    "physics": "Specify the post-contact vertical response and low rebound through shared ball-motion data before implementation. No numerical bounce height, restitution, local horizontal speed, stopping distance or bounce-count guarantee is selected here. Do not add upward energy solely for an exaggerated pop. Prevent ground penetration/teleporting and keep authored visible motion consistent with the sim.",
+    "recovery": "Existing .40-second stun and grounded braking remain independent from ball fall/bounce time. Eligibility returning does not guarantee the ball is collectable; actual contact/readiness still apply. A helper can recover earlier if eligible. Do not impose a new wait-until-grounded rule or reset/extend the stun to synchronize the animation.",
+    "preservedRules": "Local horizontal direction retains the contact baseline plus uniform \u00b130-degree variation. Recovery of the same ordinary error remains reliable. This adds no new error probability, handling-based scatter benefit or vertical random draw. Physical wall/ground interactions and independent special gates remain explicit.",
+    "referenceLimit": "Authored visual/physics direction, not a measured Wii/GC bobble-height profile. Compare visible local-error arcs across actual contact heights and both reference games before selecting numerical targets.",
+    "requiredChecks": [
+      "The loose ball starts at actual failed-contact location with continuous motion and no fixed-height reset or ground snap.",
+      "The proposed local branch spills down with a low rebound once its numerical response is reviewed; no default high upward kick is introduced.",
+      "Low/high contact points use the same shared model while preserving real fall-time differences.",
+      "Ball flight and .40-second character stun have independent clocks, with no automatic pickup at expiry or hidden wait-until-grounded requirement.",
+      "Continuing deflections, untouched balls and specials do not inherit this local vertical shape accidentally.",
+      "The low bounce, contact reaction and actual recovery read coherently at gameplay distance before human acceptance."
+    ],
+    "implementationBoundary": "Pending local vertical-shape direction only. Numerical vertical/horizontal response, contact/outcome mapping, runtime and human gates remain open."
   }
 }
