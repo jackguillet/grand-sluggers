@@ -1137,18 +1137,26 @@ def derive(data):
         assert error_selection["state"] == "accepted-calibration-anchor" and error_selection["separateSeverityRoll"] is False
         assert error_selection["acceptedBy"] and error_selection["acceptedOn"] and error_selection["acceptanceEvidence"]
         assert all(error_selection[key] is None for key in
-                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel", "reactionInheritance",
+                   ("outcomeMapping", "speedThresholds", "retainedSpeedModel",
                     "recoveryInheritance", "randomAngleInheritance"))
+        assert error_selection["reactionInheritance"] == "F693-02-continuing-error-reaction"
     continuing_reaction = data.get("continuingErrorReactionProposal")
     if continuing_reaction:
-        assert continuing_reaction["state"] == "pending"
+        assert continuing_reaction["state"] == "accepted-calibration-anchor"
+        assert continuing_reaction["acceptedBy"] and continuing_reaction["acceptedOn"] and continuing_reaction["acceptanceEvidence"]
         assert math.isclose(continuing_reaction["contactFailureStunSec"], stun_duration["stunDurationSec"])
         assert continuing_reaction["untouchedMissAddedStunSec"] == 0
         assert continuing_reaction["durationScalesWithHandling"] is False
         assert continuing_reaction["durationScalesWithEscapeDistance"] is False
+    continuing_recovery = data.get("continuingErrorRecoveryProposal")
+    if continuing_recovery:
+        assert continuing_recovery["state"] == "pending"
+        assert continuing_recovery["sameErrorRecoveryChance"] == 0
+        assert continuing_recovery["untouchedMissGrantsRecoveryProtection"] is False
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "continuingErrorRecoveryState": continuing_recovery["state"] if continuing_recovery else None,
             "continuingErrorReactionState": continuing_reaction["state"] if continuing_reaction else None,
             "expandedOrdinaryErrorOutcomesState": expanded_errors["state"] if expanded_errors else None,
             "errorOutcomeSelectionState": error_selection["state"] if error_selection else None,
