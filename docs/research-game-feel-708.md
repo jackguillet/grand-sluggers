@@ -1190,9 +1190,9 @@ No probability cap, difficulty metric, trait curve, floor or failure profile is 
 
 The curve never changes glove positioning, catch range or jump behavior, and it cannot introduce a post-catch drop roll during retained-ball recoil or pure pushback. Specials retain separate contracts. Validate bounds and monotonicity, log actual `D`, `H`, probability, acquisition identity and outcome in the future event traces, and compare roster/cohort exposure and reference play before accepting feel. No matched Wii/GC formula is established; this remains an authored trial with no runtime or human gate changes.
 
-## Next decision — awkward hop as the first difficulty source
+## Accepted decision — awkward hop as the first difficulty source
 
-**F693-02-awkward-hop-difficulty-source — pending, September 15, 2026.** Recommend **an awkward in-between hop at actual ground-ball acquisition** as the first ordinary source of difficulty. The ball reaches the fielder during an uncomfortable part of its bounce, rather than a routine roll or a clean short/long hop. This selects the first context to calibrate, not the complete difficulty catalog or its numerical bands.
+**F693-02-awkward-hop-difficulty-source — accepted by Jack on September 15, 2026.** Jack approved **an awkward in-between hop at actual ground-ball acquisition** as the first ordinary source of difficulty. The ball reaches the fielder during an uncomfortable part of its bounce, rather than a routine roll or a clean short/long hop. This selects the first context to calibrate, not the complete difficulty catalog or its numerical bands.
 
 **Baseball rationale:** the publisher's [Coaching Youth Baseball excerpt](https://us.humankinetics.com/blogs/excerpt/fielding-ground-balls) distinguishes a low hop near the glove from a harder-to-gauge in-between hop. [Trent Mongero's attributed coaching material](https://wrssba.com/coaches/skills-and-drills/infield-ground-ball-mechanics/) also describes choosing a descending long hop or immediate short hop. Both were checked September 15, 2026. This supports distinguishing the awkward middle of a bounce from every short hop; it does not establish Mario rules or our numbers.
 
@@ -1206,7 +1206,23 @@ The curve never changes glove positioning, catch range or jump behavior, and it 
 
 Before implementation, compare clean rolls, clean short/long hops and awkward middle-hop cases across the roster and both reference games. Baseball coaching is qualitative rationale, not proof of Wii/GC internal logic. Numerical bands, error outcomes, ball calibration and standalone gates remain open; no runtime or physics changes here.
 
-**Question for Jack:** use an awkward in-between hop as our first ordinary handling-difficulty source, while keeping clean rolls and clean short/long hops reliable?
+## Next decision — ordinary bobble outcome
+
+**F693-02-ordinary-bobble-outcome — pending, September 15, 2026.** Recommend a **small, visible bobble that leaves the ball loose nearby** when an ordinary awkward-hop acquisition fails. The ball reaches the glove but is not secured. The original fielder or another eligible defender must recover it through real contact before throwing or making a possession-dependent out.
+
+**Why this consequence:** a local bobble gives the error a readable physical cost and creates a recovery race. Keeping secure possession with only a delay would resemble slow handling; a large ricochet could make the occasional ordinary failure dominate a compact field. This proposal chooses a modest local loose-ball outcome. Exact scatter direction/distance/speed, bounce, fumbler reaction and recovery eligibility remain separate decisions.
+
+**Continuous contact, honest possession:** the loose trajectory begins at the actual contact location and time. Do not teleport the ball to a scatter point or reset its height. Resolve failure before recording secure possession, force/tag outs or Ball Dash. Contact may still decide fair/foul under the applicable baseball rules. A bobble does not guarantee the runner a base or a safe call, and a later distinct loss cannot undo an already completed legal out. The ball and runners remain live unless the actual baseball rules end the play.
+
+**Recovery stays physical:** any eligible defender can recover the ball under existing control and ownership rules. Do not reserve recovery for the original fielder, grant remote possession or instantly rescoop the same failed contact. Fresh-attempt boundaries and repeat-error eligibility still need review; this direction does not choose a cooldown or add frame-based rolls. Preserve throw-buffer age/invalidation without a refresh or automatic throw. The fumbler's reaction permissions remain pending; other defenders do not inherit a global freeze.
+
+**Keep separate contracts:** this is a failed ordinary acquisition, distinct from retained-ball recoil or pure special pushback. Do not automatically stack retained-ball recovery onto an unsecured bobble or use the proposal to add drop checks to secured-ball states. Special-hit outcomes, teammate-throw errors and additional ordinary difficulty contexts remain separately reviewed.
+
+**Current code audit:** `TakeBattedBall` calls `CatchGlove` before `ArmRecoil`; the bobble branch then clears `Caught`, applies `FumbleSec`, positions the loose ball at a `ScatterFt` offset and resets `BallY` to `ScatterBallY`. That ordering and placement need reconciliation with failure-before-possession and continuous motion from contact. Existing values (.58-second fumble, 6.5-foot position offset, 12 ft/s scatter and 3.1-foot ball height) are observations, not accepted targets. The current loose-ball state provides an implementation concept, not a validated future outcome.
+
+This is an authored cartoon-defense proposal. Matched Wii/GC bobble trajectories and recovery timing have not been measured; compare both before choosing numbers. Future verification must cover contact/possession ordering, legal collisions/bounds, nearby bags, recovery by supporting defenders and readable races across character bodies and both seat modes. No runtime, asset or human gate changes here.
+
+**Question for Jack:** should a failed ordinary awkward-hop acquisition produce a modest visible loose-ball bobble nearby, requiring actual recovery?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
