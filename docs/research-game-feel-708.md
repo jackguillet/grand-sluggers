@@ -1464,11 +1464,11 @@ This is an accepted authored direction, not a measured Wii/GC local-error arc. C
 
 **Accepted scope:** qualitative downward spill and low rebound only. Numerical response remains open; no runtime implementation or playtest acceptance is implied.
 
-## Next decision — local bobble rebound ceiling
+## Accepted decision — local bobble rebound ceiling
 
-**F693-02-local-bobble-rebound-ceiling — pending, September 15, 2026.** Recommend a **six-inch (0.50-foot) maximum ground rebound** for ordinary nearby bobbles. Weaker impacts may bounce lower or settle. This is a ceiling, not a fixed height every bobble must reach.
+**F693-02-local-bobble-rebound-ceiling — accepted by Jack on September 15, 2026.** Jack approved a **six-inch (0.50-foot) maximum ground rebound** for ordinary nearby bobbles. Weaker impacts may bounce lower or settle. This is a ceiling, not a fixed height every bobble must reach.
 
-**Player context:** the bounce should be visible while staying close to the dirt. A three-inch cap would be subtler; a twelve-inch cap would be more pronounced and could add airborne waiting. Six inches is an authored starting proposal. No matched Wii/GC rebound measurements establish this number; reference comparison and eventual gameplay-distance review remain required before claiming calibration or parity.
+**Player context:** the bounce should be visible while staying close to the dirt. A three-inch cap would be subtler; a twelve-inch cap would be more pronounced and could add airborne waiting. Six inches is an accepted authored trial. No matched Wii/GC rebound measurements establish this number; reference comparison and eventual gameplay-distance review remain required before claiming calibration or parity.
 
 **Measure the rise correctly:** measure the ball center's rise from its supported ground-contact height to the subsequent apex, relative to the local collision surface. Do not cap absolute world height or initial glove-contact height. A high contact can still have a longer initial fall. Position stays continuous at contact and impact.
 
@@ -1476,9 +1476,25 @@ This is an accepted authored direction, not a measured Wii/GC local-error arc. C
 
 **Scope and recovery:** apply only during the ordinary local-bobble phase, not to continuing deflections, untouched balls, normal unhandled batted-ball bounces, throws or special trajectories. Preserve the independent .40-second stun and reliable same-origin recovery. An eligible fielder can collect during descent or rebound; no wait for settling, mandatory bounce, automatic possession or animation-driven extension of the stun.
 
-Validate low/high contact origins, weaker impacts below the cap, phase boundaries and actual pickup races using shared authoritative physics. Horizontal scatter speed/distance and numerical vertical response remain open. This is a pending design choice, not runtime tuning or a passed human gate.
+Validate low/high contact origins, weaker impacts below the cap, phase boundaries and actual pickup races using shared authoritative physics. Horizontal scatter speed/distance and numerical vertical response remain open. This is an accepted design ceiling, not runtime tuning or a passed human gate.
 
-**Question for Jack:** trial a six-inch maximum rebound for nearby bobbles, with weaker impacts allowed to stay lower or settle?
+**Accepted scope:** six-inch maximum rise for ordinary nearby-bobble ground rebounds, allowing lower rebounds or settling. The initial glove-contact height and exact collision response remain separate.
+
+## Next decision — local bobble bounce strength
+
+**F693-02-local-bobble-restitution — pending, September 15, 2026.** Recommend retaining **35% of the actual downward impact speed as upward rebound speed**, reduced when necessary to respect the accepted six-inch ceiling. A weaker impact naturally produces a smaller bounce. A later reviewed settling threshold can end tiny rebounds without adding a minimum bounce.
+
+**How it should feel:** a modest first bounce followed by much smaller motion. As an illustration, a ball dropped from rest through two feet would rebound about **three inches**; a four-foot drop would rebound about **six inches**. A stronger impact still cannot exceed six inches. These are flat-ground, constant-gravity calculations without drag or a settling cutoff, not selected glove heights, live simulations or Mario measurements.
+
+**Why 35%:** before the cap, this returns 12.25% of the equivalent drop height. A 25% speed ratio returns 6.25% of that height, while a 50% ratio returns 25%. The proposed middle value should allow a visible bounce while damping subsequent motion. Visibility and recovery still require gameplay review.
+
+**Precise quantity:** use actual vertical speed immediately before ground collision. On flat stationary ground, the uncapped response is `u_out=.35*abs(v_y_in)`. Under constant gravity `g` with no drag, the capped analytic form is `min(.35*abs(v_y_in), sqrt(2*g*.50))`. The authoritative ball model must enforce the ceiling using its own consistent units, trajectory and clock. This does not select new gravity or reuse an incompatible time-scaled velocity. Do not interpret 35% as a height, horizontal-speed or total-energy multiplier.
+
+**Boundaries:** local ordinary bobbles only, with the same trial across characters and ordinary ground surfaces. No new random roll or handling multiplier. Do not change continuing deflections, untouched balls, special trajectories or normal batted-ball rebounds. Slope, wall and special-surface responses still require review. Preserve continuous contact and the independent .40-second stun; eligible fielders can recover without waiting for the bounce to end.
+
+The post-glove vertical response, settling cutoff, horizontal scatter and complete collision integration remain pending. The existing flight model already has bounce handling; extend the shared authoritative model rather than introducing a second physics path. No measured Wii/GC restitution establishes .35; this is an authored trial proposal with arithmetic checks only.
+
+**Question for Jack:** trial this softly damped bounce—35% vertical speed retention, with the six-inch ceiling?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
