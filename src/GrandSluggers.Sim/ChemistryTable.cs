@@ -103,7 +103,7 @@ public sealed class ChemistryTable
         var chem = _rules.Fielding.Chem;
         var thr = _rules.Fielding.Throw;
         var rel = ThrowChemistry(from, to);
-        var sigma = Math.Max(0, 11 - from.Stats.Field) * thr.LateralSigmaPerFieldDeficitFt;
+        var sigma = Math.Max(0, 11 - from.Stats.Arm) * thr.LateralSigmaPerFieldDeficitFt;
         var lateral = Gauss(rng) * sigma;
         if (rel == Chemistry.Bad && rng.NextDouble() < chem.SlantChance)
         {
