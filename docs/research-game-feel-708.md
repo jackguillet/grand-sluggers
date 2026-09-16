@@ -96,11 +96,13 @@ Re-authoring the stand-up radius to 6 feet only does what it was meant to do if 
 | --- | --- | --- | --- |
 | Stand-up radius | accepted trial | nobody — passive | 6 ft |
 | Dirt scoop pad | `windowPadFt` 4 | **automatic**: a grounder inside the window is taken with no button | 10 ft |
-| Dive | `diveReachFt` 8 | **automatic** when the stick is neutral and for every CPU fielder; the East press only when the player is actively steering | 14 ft |
+| Dive | `diveReachFt` 8 | **automatic** when the seat's stick is neutral, and unconditionally for the CPU-driven glove; the East press only when the seat is actively steering | 14 ft |
 | Jump | `jumpReachFt` 8 | the West press arms it | 14 ft |
 | Loose-ball scoop | `looseScoopFt` 3.5 | automatic, and independent of catch radius | 3.5 ft |
 
-Verified in [`FlyCatch.AutoDive`](../src/GrandSluggers.Sim/FlyCatch.cs) and its two call sites in [`LivePlaySystem.Field.cs`](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs): the dead-stick branch fires behind `stick < stickTake`, and the CPU branch fires unconditionally, both performing the lunge themselves. On a nine-player defence the seat steers one fielder, so the other eight dive automatically, and the entire opposing defence does.
+Verified in [`FlyCatch.AutoDive`](../src/GrandSluggers.Sim/FlyCatch.cs) and its two call sites in [`LivePlaySystem.Field.cs`](../src/GrandSluggers.Sim/LivePlaySystem.Field.cs): the dead-stick branch fires behind `stick < stickTake`, and the CPU branch fires unconditionally, both performing the lunge themselves.
+
+**Correction, recorded September 15, 2026.** An earlier draft of this section said that on a nine-player defence the seat steers one fielder while the other eight dive automatically. That is wrong about how the sim is built. There is exactly **one active glove**, `GlovePos`, driven by the seat's stick or by `ChaseGlove` assistance when the stick is dead, and handed to another position by `TryHandoffOutfield` / `TryHandoffLoose` as the play develops. The other fielders are positioned, not chasing. So the automatic dive was two real cases, not eight: a **human glove whose stick is neutral at that instant**, and the **entire CPU defence, unconditionally**, since the CPU branch always drives that one glove. The 14-foot finding and the accepted decision are unaffected — for the CPU side the automatic dive was unconditional, which makes the finding stronger rather than weaker. The coverage arithmetic is also unaffected: the two-neighbour model computes the nearest-fielder case, which is what the handoff produces.
 
 Spending the same accepted pursuit anchors on those effective radii:
 
@@ -128,7 +130,42 @@ The delay is a cost of the dive itself, so it applies whether or not the ball wa
 
 **Accepted scope:** dive ownership and the existence of a commitment cost. No delay duration, rules-file value or runtime change is selected. The jump stays armed by the West press under the accepted normal-jump contract, the loose-ball scoop stays independent of catch radius, and the 4-foot dirt scoop pad is unchanged and still deferred.
 
-**Named follow-ups.** `F693-02-dive-recovery-cost` carries the delay's numbers. `F693-02-cpu-dive-intent` carries the cost Jack accepted with his eyes open: with the assistance dive gone, eight of nine defenders and the entire opposing defence stop reaching the rim. Whether a CPU or unselected fielder gets *deliberate* dive intent paying the same commitment cost, or genuinely never dives, needs its own contract rather than being settled by omission.
+**Named follow-ups.** `F693-02-dive-recovery-cost` carries the delay's numbers. `F693-02-cpu-dive-intent` carries the cost Jack accepted with his eyes open: with the assistance dive gone, **the entire CPU defence stops reaching the rim**, and so does a human glove whose stick happens to be neutral. Whether the CPU gets *deliberate* dive intent paying the same commitment cost, or genuinely never dives, needs its own contract rather than being settled by omission.
+
+## Who dives now that nobody dives for free
+
+The earned-only dive leaves two questions behind it. This section researches both and brings the larger one forward. No runtime change is proposed.
+
+### The CPU has no press
+
+The one-glove model above decides the shape of this. The CPU defence drives the same single `GlovePos` a seat would, through `ChaseGlove`, and today it reaches the rim entirely through `AutoDive`. Remove that and **the CPU defence has no dive at all** — not a weaker dive, none. There is no other path to the rim in the code.
+
+What that is worth, on the accepted anchors:
+
+| Gap | hang | earned dive, 14 ft | no dive, 6 ft |
+| --- | --- | --- | --- |
+| Left–center alley | 1.6 s | 18.5 ft open | 34.5 ft open |
+| Left–center alley | 2.0 s | 4.1 ft open | 20.1 ft open |
+| Short–second hole | 1.6 s | 1.7 ft open | 17.7 ft open |
+| Third–short hole | 1.0 s | 0.5 ft open | 16.5 ft open |
+
+The dive is worth a flat **16-foot band** of every gap — 8 feet either side of the hardest point — until the gap closes on pursuit alone. Against a CPU defence that cannot dive, that band is open on every play; against a seat that presses East, it is not. So this is not a small AI detail. It sets how hard the computer is to hit against, and it decides whether the opposing defence ever produces a highlight catch.
+
+It is also the one place where a straight reading of the accepted direction and the intent behind it can come apart. *“Dive ever only on a press”* is about **the dive being a deliberate act with a cost**, not about the dive requiring a physical controller. A CPU that chooses to dive, can miss, and pays the same recovery delay honours that; a CPU that dives for free does not. Whether the computer should get that choice at all is the decision.
+
+### The delay is the smaller question, but it has a shape
+
+`F693-02-dive-recovery-cost` needs a duration, and the packet already has neighbours to sit it among: the accepted shared handling stun is **0.40 s**, ordinary retained-ball recoil runs **0.20 / 0.16 / 0.11 s** at Field 1/5/10, the normal-jump arc is **0.60 s**, and the existing `diveArmSec` window is **0.50 s**. A dive commitment that is meant to read as a last resort has to cost more than a recoil and land nearer the stun, and it has to be long enough that pressing East on a ball you could have walked to is visibly worse than walking to it.
+
+Three parts of it are shape rather than magnitude, and they are worth settling together with the number rather than one at a time:
+
+- Whether a **caught** dive costs the same as a **missed** one. Charging both is the simplest rule and the one the accepted direction already implies, since the delay is a cost of the dive rather than a penalty for failing. Charging the miss more would make the read sharper but risks double-punishing a play that already failed.
+- Whether it **varies by character**. This is the most natural home in the whole packet for Jack's own remark that Fielding could indicate “a unique dive ability” — a defender whose dive recovery is short is meaningfully different to play with, without Fielding touching reach or glove positioning, both of which are already ruled out.
+- How it **composes with the 0.40-second handling stun** when a dive both reaches the ball and fails its handling roll. The accepted rails say ordinary and special recovery from the same impact add; whether a dive delay and a handling stun add, overlap or take the longer of the two is unresolved.
+
+None of those needs Jack to arbitrate a coefficient. They are worth consolidating into a single proposed trial once the CPU question is answered, because a CPU that dives changes what the delay has to be worth.
+
+**Reference limit:** no Wii or GameCube dive recovery has been measured, and no dive frequency has been counted in either reference. Both are understood to let uncontrolled fielders dive, but that is recollection rather than a recorded observation in this packet and is not evidence here.
 
 ## Accepted decision — lead spatial trial
 

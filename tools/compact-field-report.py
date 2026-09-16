@@ -27,6 +27,15 @@ def fence(profile, angle):
     return b + math.sqrt(b * b - circle_z * circle_z + radius * radius)
 
 
+def lateral_reach_run(hang, read, accel, top):
+    """Ground one fielder covers along the line by `hang`, through the accepted pursuit anchors."""
+    t = hang - read
+    if t <= 0:
+        return 0.0
+    if t <= accel:
+        return .5 * (top / accel) * t * t
+    return .5 * top * accel + top * (t - accel)
+
 def lateral_closure_seconds(gap, reach, read, accel, top):
     """Shortest hang at which two neighbours cover the whole line between them.
 
@@ -1503,6 +1512,32 @@ def derive(data):
         assert accepted_dive["passiveReachFt"] < head["removedRadiusFt"], \
             "The accepted direction must leave passive reach below the radius it replaced"
         assert dive_research["openValues"] and dive_research["namedFollowUps"]
+        assert dive_research["correction"], "The one-glove correction must stay on the record"
+    cpu_dive = data.get("cpuDiveIntentResearch")
+    if cpu_dive:
+        assert cpu_dive["state"] == "next-human-decision"
+        assert cpu_dive["finding"]["cpuHasNoOtherPathToTheRim"] is True
+        earned = dive_research["acceptedDirection"]["earnedAdditionFt"]
+        assert math.isclose(cpu_dive["finding"]["diveWorthFt"], 2 * earned), \
+            "The contested band is the earned dive on either side of the hardest point"
+        anchors = reach_research["pursuitInputs"]
+        spacing = {row["pair"]: row["spacingFt"] for row in lead["catchReachCoverage"]["pairs"]}
+        reads = {"LF-CF": anchors["outfieldReadSeconds"], "CF-RF": anchors["outfieldReadSeconds"],
+                 "3B-SS": anchors["infieldReadSeconds"], "SS-2B": anchors["infieldReadSeconds"],
+                 "2B-1B": anchors["infieldReadSeconds"]}
+        for row in cpu_dive["finding"]["openWindowExamplesFt"]:
+            gap, read = spacing[row["gap"]], reads[row["gap"]]
+            run = lateral_reach_run(row["hangSeconds"], read, anchors["accelerationSeconds"],
+                                    anchors["topSpeedFeetPerSecond"])
+            for key, reach in (("earnedDiveFt", dive_research["acceptedDirection"]["earnedReachFt"]),
+                               ("noDiveFt", dive_research["acceptedDirection"]["passiveReachFt"])):
+                assert math.isclose(row[key], max(0.0, gap - 2 * (run + reach)), abs_tol=.05)
+        assert len(cpu_dive["options"]) == 3
+    delay_research = data.get("diveRecoveryCostResearch")
+    if delay_research:
+        assert delay_research["state"] == "research-in-progress"
+        neighbours = delay_research["neighbouringAcceptedDurationsSeconds"]
+        assert math.isclose(neighbours["sharedHandlingStun"], data["bobbleStunDurationProposal"]["stunDurationSec"])
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
@@ -1510,6 +1545,8 @@ def derive(data):
             "arcadeFieldingState": arcade_fielding["state"],
             "catchReachEnvelopeState": reach_research["state"] if reach_research else None,
             "diveJumpScoopReachState": dive_research["state"] if dive_research else None,
+            "cpuDiveIntentState": cpu_dive["state"] if cpu_dive else None,
+            "diveRecoveryCostState": delay_research["state"] if delay_research else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,

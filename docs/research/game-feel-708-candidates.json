@@ -700,12 +700,12 @@
     },
     {
       "id": "F693-02-dive-recovery-cost",
-      "state": "pending",
+      "state": "research-in-progress",
       "question": "How long is the dive recovery delay before the diver can throw or move, does a caught dive cost the same as a missed one, and does it vary by character?"
     },
     {
       "id": "F693-02-cpu-dive-intent",
-      "state": "pending",
+      "state": "next-human-decision",
       "question": "With the assistance dive removed, does a CPU or unselected fielder get deliberate dive intent paying the same commitment cost, or never dive?"
     }
   ],
@@ -6707,8 +6707,8 @@
           "name": "dive",
           "rule": "diveReachFt",
           "ft": 8.0,
-          "owner": "automatic-when-unsteered-or-cpu-otherwise-east-press",
-          "evidence": "FlyCatch.AutoDive fires behind stick < stickTake on the dead-stick branch and unconditionally on the CPU branch, performing the lunge itself. FlyCatch.PlayerDiveCatch requires an armed East press and applies when the player is steering."
+          "owner": "automatic-on-a-neutral-stick-and-unconditional-for-the-cpu-glove-otherwise-east-press",
+          "evidence": "FlyCatch.AutoDive fires behind stick < stickTake on the dead-stick branch and unconditionally on the CPU branch, performing the lunge itself. FlyCatch.PlayerDiveCatch requires an armed East press and applies when the seat is steering."
         },
         {
           "name": "jump",
@@ -6724,7 +6724,8 @@
           "owner": "automatic-and-independent-of-catch-radius",
           "evidence": "The loose branch substitutes looseScoopFt for the catch window entirely."
         }
-      ]
+      ],
+      "gloveModel": "The sim runs exactly one active glove, GlovePos, driven by the seat stick or by ChaseGlove assistance on a dead stick, and handed to another position by TryHandoffOutfield / TryHandoffLoose as the play develops. Other fielders are positioned, not chasing. So the automatic dive was two real cases: a human glove whose stick is neutral at that instant, and the entire CPU defence unconditionally."
     },
     "headline": {
       "effectiveAutomaticAirReachFt": 14.0,
@@ -6800,8 +6801,107 @@
       "Routine clean catches and pickups keep their accepted zero added pause; the dive delay is an explicit exception, consistent with prior decisions that excluded dives from those contracts."
     ],
     "namedFollowUps": [
-      "F693-02-cpu-dive-intent: with the assistance dive removed, whether a CPU or unselected fielder gets deliberate dive intent paying the same commitment cost, or genuinely never dives. Jack accepted the stated cost that eight of nine defenders and the whole opposing defence stop reaching the rim, but the CPU side still needs its own explicit contract rather than inheriting one by omission.",
+      "F693-02-cpu-dive-intent: with the assistance dive removed, whether the CPU-driven glove gets deliberate dive intent paying the same commitment cost, or genuinely never dives. Jack accepted the stated cost that the CPU defence stops reaching the rim, but the CPU side still needs its own explicit contract rather than inheriting one by omission.",
       "F693-02-dive-recovery-cost: the delay duration and its open values above."
-    ]
+    ],
+    "correction": "An earlier draft of this research said the seat steers one fielder while the other eight dive automatically. That was wrong about the one-glove model and is corrected above. The 14-foot finding and the accepted decision are unaffected; for the CPU side the automatic dive was unconditional, which strengthens the finding. The coverage arithmetic is unaffected because the two-neighbour model computes the nearest-fielder case, which is what the handoff produces."
+  },
+  "cpuDiveIntentResearch": {
+    "decisionId": "F693-02-cpu-dive-intent",
+    "state": "next-human-decision",
+    "status": "research-arithmetic-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-dive-jump-scoop-reach",
+      "F693-02-catch-reach-envelope"
+    ],
+    "question": "With the assistance dive removed, does the CPU-driven glove get deliberate dive intent paying the same recovery delay, or does the CPU defence simply never dive?",
+    "whyPlayerFacing": "It sets how hard the computer is to hit against and whether the opposing defence ever makes a highlight catch. The dive is worth a flat 16-foot band of every gap.",
+    "finding": {
+      "cpuHasNoOtherPathToTheRim": true,
+      "evidence": "The CPU defence drives the same single GlovePos through ChaseGlove and reaches the rim only through FlyCatch.AutoDive. Removing that leaves the CPU with no dive at all, not a weaker one.",
+      "diveWorthFt": 16.0,
+      "diveWorthNote": "Eight feet either side of the hardest point of a gap, until the gap closes on pursuit alone.",
+      "openWindowExamplesFt": [
+        {
+          "gap": "LF-CF",
+          "hangSeconds": 1.6,
+          "earnedDiveFt": 18.5,
+          "noDiveFt": 34.5
+        },
+        {
+          "gap": "LF-CF",
+          "hangSeconds": 2.0,
+          "earnedDiveFt": 4.1,
+          "noDiveFt": 20.1
+        },
+        {
+          "gap": "SS-2B",
+          "hangSeconds": 1.6,
+          "earnedDiveFt": 1.7,
+          "noDiveFt": 17.7
+        },
+        {
+          "gap": "3B-SS",
+          "hangSeconds": 1.0,
+          "earnedDiveFt": 0.5,
+          "noDiveFt": 16.5
+        }
+      ]
+    },
+    "interpretationNote": "'Dive ever only on a press' is about the dive being a deliberate act with a cost, not about requiring a physical controller. A CPU that chooses to dive, can miss, and pays the same delay honours that; a CPU that dives for free does not. Whether the computer gets that choice is the decision, and it is Jack's to make rather than one to infer.",
+    "options": [
+      {
+        "id": "cpu-dives-deliberately",
+        "summary": "The CPU glove chooses to dive, can miss, and pays the same recovery delay.",
+        "consequence": "Symmetric rules with asymmetric agency. The opposing defence still produces highlight catches and the 16-foot band is contested. The delay is a real cost for the CPU too, so it cannot dive on everything.",
+        "cost": "Needs CPU dive intent: when to spend it, and the discipline not to spend it on balls it could walk to. Badly tuned, the CPU either looks robotic or looks psychic."
+      },
+      {
+        "id": "cpu-never-dives",
+        "summary": "Literal reading: no press, no dive. The CPU defence has no rim play.",
+        "consequence": "Simplest by far, nothing new to author, and the human's dive becomes a genuine earned advantage over the computer.",
+        "cost": "The 16-foot band is open on every play against the CPU, so the computer is materially easier to hit against and never makes a highlight catch. Difficulty would have to be recovered somewhere else."
+      },
+      {
+        "id": "cpu-dives-only-when-it-converts",
+        "summary": "The CPU dives only on balls it will actually catch.",
+        "consequence": "Looks competent and never wastes a dive.",
+        "cost": "A CPU that never misses a dive is the old automatic dive wearing a delay. It hands back the passive rim coverage the last two decisions removed, and the delay becomes decoration rather than a cost."
+      }
+    ],
+    "outOfScope": [
+      "Difficulty levels and any per-difficulty dive budget.",
+      "The delay duration itself, which is F693-02-dive-recovery-cost.",
+      "Assistance behaviour for a human glove on a neutral stick, already settled: it does not dive."
+    ],
+    "referenceLimit": "No Wii or GameCube dive frequency has been counted and no dive recovery measured. Both references are understood to let uncontrolled fielders dive, but that is recollection rather than a recorded observation in this packet and is not evidence here.",
+    "implementationBoundary": "Research prepared for one human decision. No CPU intent design, dive budget, difficulty model, rules-file edit, runtime change or human gate is selected or passed here."
+  },
+  "diveRecoveryCostResearch": {
+    "decisionId": "F693-02-dive-recovery-cost",
+    "state": "research-in-progress",
+    "status": "research-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-dive-jump-scoop-reach"
+    ],
+    "neighbouringAcceptedDurationsSeconds": {
+      "sharedHandlingStun": 0.4,
+      "ordinaryRetainedBallRecoilField1": 0.2,
+      "ordinaryRetainedBallRecoilField5": 0.16,
+      "ordinaryRetainedBallRecoilField10": 0.11,
+      "normalJumpArc": 0.6,
+      "existingDiveArmWindow": 0.5
+    },
+    "magnitudeReading": "A dive commitment meant to read as a last resort has to cost more than a recoil and land nearer the stun, and must be long enough that pressing East on a ball the fielder could have walked to is visibly worse than walking to it.",
+    "shapeQuestions": [
+      "Whether a caught dive costs the same as a missed one. Charging both is simplest and is what the accepted direction implies, since the delay is a cost of the dive rather than a penalty for failing; charging the miss more sharpens the read but risks double-punishing a play that already failed.",
+      "Whether it varies by character. This is the most natural home in the packet for Jack's remark that Fielding could indicate a unique dive ability, since it differentiates defenders without Fielding touching reach or glove positioning, both already ruled out.",
+      "How it composes with the accepted 0.40-second handling stun when a dive reaches the ball and then fails its handling roll: add, overlap, or take the longer of the two."
+    ],
+    "plan": "Consolidate into a single proposed trial rather than arbitrating coefficients one at a time, and only return to Jack if the shape turns out to be a real tradeoff. Sequenced after F693-02-cpu-dive-intent, because a CPU that dives changes what the delay has to be worth.",
+    "referenceLimit": "No Wii or GameCube dive recovery has been measured.",
+    "implementationBoundary": "Research in progress. No duration, character mapping, composition rule, rules-file edit or runtime change is selected."
   }
 }
