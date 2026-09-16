@@ -1222,9 +1222,9 @@ Before implementation, compare clean rolls, clean short/long hops and awkward mi
 
 This is an authored cartoon-defense proposal. Matched Wii/GC bobble trajectories and recovery timing have not been measured; compare both before choosing numbers. Future verification must cover contact/possession ordering, legal collisions/bounds, nearby bags, recovery by supporting defenders and readable races across character bodies and both seat modes. No runtime, asset or human gate changes here.
 
-## Next decision — bobble recovery permissions
+## Superseded proposal — movement during bobble recovery
 
-**F693-02-bobble-recovery-permissions — pending, September 15, 2026.** Recommend **keeping ordinary running and steering available, with a brief glove-recovery interval before the fumbling character can acquire the ball again**. Other eligible defenders can recover it during that interval through actual contact. Duration and any handling-quality influence remain unselected.
+**F693-02-bobble-recovery-permissions — superseded by Jack on September 15, 2026; never accepted or implemented.** The prior recommendation was **keeping ordinary running and steering available, with a brief glove-recovery interval before the fumbling character can acquire the ball again**. Other eligible defenders can recover it during that interval through actual contact. Duration and any handling-quality influence remain unselected.
 
 **Player context:** the ball has already escaped the glove. Let the player chase or reposition while the character recovers their hands. A full-body freeze would add lost movement to the loose-ball cost; unrestricted instant reacquisition could erase the visible mistake. This recommendation keeps the recovery race controllable while giving the bobble time to register. It is a proposed control contract, not a measured Mario mechanic.
 
@@ -1238,7 +1238,29 @@ This is an authored cartoon-defense proposal. Matched Wii/GC bobble trajectories
 
 Before choosing the interval, compare both reference games' visible bobble reaction, continued movement and recovery opportunity. Matched timing/permission measurements remain missing. Future verification must cover helper recovery, character switching, no instant rescoop, independent status restrictions, physical contact at readiness and readable compact-field races. No runtime, animation assets or human gates change in this packet.
 
-**Question for Jack:** keep running and steering available after a bobble, with a brief fumbler-only glove recovery before reacquisition, while teammates can still recover?
+**Superseded:** Jack instead directed a brief stun followed by resumed pursuit. The preceding movement-available proposal is historical only.
+
+## Accepted direction — brief bobble stun
+
+**F693-02-bobble-stun — directed by Jack on September 15, 2026.** After the character bobbles the ball, **briefly stun them, then let them resume moving to pick it up**. This replaces the pending glove-only recovery proposal. The reaction interrupts active running/steering, new jump/dive actions and acquisition for the fumbling character. The ball remains loose and other eligible defenders can still recover it.
+
+**State and motion:** attach the stun to the actual character on the authoritative gameplay clock. Selection or CPU/manual ownership changes cannot bypass, restart or transfer it. The direction does not select an instant velocity reset, world freeze or body teleport. Entry braking/residual motion and any already committed airborne motion need explicit reconciliation with the shared movement and authored-animation contracts. A current animation clip or global early return must not become an accidental physics rule.
+
+**Resume means regain eligibility:** once the stun and any other applicable restrictions end, ordinary control/assistance can resume. The fielder must still travel to and physically acquire the ball. Expiry does not grant possession, a throw, an out, Ball Dash or a new random roll. Preserve accepted buffer aging/invalidation and completed outs; no new stun-buffer policy is selected. Special composition and fresh-attempt definitions remain pending.
+
+**Audit and limits:** the current `RecoilT`/`Bobbling` branch interrupts processing, but the loose ball and several off-ball helpers update before it. Implementation must gate the actual affected character consistently across all relevant paths. Existing `.58`-second `FumbleSec` is not an accepted target. Duration, handling influence, motion transitions and human calibration remain open. This records Jack's design direction; matched Wii/GC stun timing has not been measured. No runtime or asset changes.
+
+## Next decision — handling and bobble stun duration
+
+**F693-02-bobble-stun-handling — pending, September 15, 2026.** Recommend **better underlying defensive handling modestly shortens the ordinary bobble stun**, while every character retains a brief readable reaction.
+
+A strong defender already bobbles less often through the accepted chance curve. This would also help them recover a little sooner when an error does happen. Equal stun duration is the alternative: defense would help primarily through fewer errors. Because shorter stun would be a second benefit, keep the eventual spread modest and compare the total recovery race on our compact field.
+
+Only the stun duration would change through this rule. Do not alter catch range, glove placement, scatter distance, running speed or displayed Fielding semantics. The underlying handling trait drives gameplay; changing the summary score alone cannot change the reaction. Existing ordinary recoil and special resistance factors are separate contracts, not ready-made bobble coefficients.
+
+Base duration, reduction curve, readable minimum and roster/trait mapping remain unselected. Compare both reference games before choosing numerical targets; this proposal is authored design, not a verified Mario relationship. Strong handling must not erase the stun or permit an immediate same-contact rescoop. Special effects retain independent gates and contracts.
+
+**Question for Jack:** should better defensive handling modestly shorten the bobble stun, with a visible brief reaction remaining for everyone?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 

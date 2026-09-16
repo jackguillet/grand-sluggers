@@ -476,8 +476,19 @@
     },
     {
       "id": "F693-02-bobble-recovery-permissions",
+      "state": "superseded-by-user-direction",
+      "question": "Keep ordinary running and steering available after a bobble, with a brief fumbler-only glove recovery before reacquisition and other eligible defenders free to recover?",
+      "supersededBy": "F693-02-bobble-stun"
+    },
+    {
+      "id": "F693-02-bobble-stun",
+      "state": "accepted-calibration-anchor",
+      "question": "Briefly stun the fumbling character, then allow them to resume pursuit and physical recovery."
+    },
+    {
+      "id": "F693-02-bobble-stun-handling",
       "state": "next-human-decision",
-      "question": "Keep ordinary running and steering available after a bobble, with a brief fumbler-only glove recovery before reacquisition and other eligible defenders free to recover?"
+      "question": "Should better underlying handling modestly shorten the ordinary bobble stun, while every defender still shows a readable reaction?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4905,7 +4916,7 @@
   },
   "bobbleRecoveryPermissionsProposal": {
     "decisionId": "F693-02-bobble-recovery-permissions",
-    "state": "pending",
+    "state": "superseded-by-user-direction",
     "recoveryModel": "movement-available-acquisition-gated",
     "recoveryDurationSec": null,
     "handlingDurationMapping": null,
@@ -4927,6 +4938,49 @@
       "Existing velocity, input-buffer aging, independent status locks and completed outs remain valid.",
       "Observe the reaction, loose-ball travel and actual recovery races across characters, CPU/manual defense and both seat modes before human acceptance."
     ],
-    "implementationBoundary": "Pending recovery-permissions direction only. No duration, handling modifier, new jump/dive initiation policy, scatter values, repeated-error rules, runtime, animation asset or human gate selected."
+    "implementationBoundary": "Superseded before implementation. Movement-available recovery is not approved; follow F693-02-bobble-stun instead.",
+    "supersededBy": "F693-02-bobble-stun",
+    "supersededOn": "2026-09-15",
+    "supersessionEvidence": "Jack: i think instead, the character should have a brief 'stun' if they bobble it and then they can resume to go pick it up"
+  },
+  "bobbleStunProposal": {
+    "decisionId": "F693-02-bobble-stun",
+    "state": "accepted-calibration-anchor",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack directed a brief stun after a bobble, followed by resuming movement to pick the ball up, replacing the pending movement-available recovery proposal.",
+    "recoveryModel": "brief-fumbler-stun-then-resume",
+    "stunDurationSec": null,
+    "handlingDurationMapping": null,
+    "entryMotionProfile": null,
+    "freshAttemptDefinition": null,
+    "direction": "After an ordinary awkward-hop bobble, the fumbling character briefly stuns/reacts before resuming pursuit and pickup. During the reaction the character cannot actively run/steer, initiate a new jump/dive, or secure the ball. Show the reaction on that character while the ball remains physically loose. This replaces the unaccepted movement-available glove-recovery proposal.",
+    "motionBoundary": "The direction selects interrupted control, not an instantaneous velocity reset or frozen world. Entry braking, residual motion, existing airborne/committed motion and authored reaction root motion require explicit physical reconciliation before implementation. Do not teleport the body/ball, discard existing impulses or imply a second motion system. These details and duration remain unselected.",
+    "identity": "Stun belongs to the actual fumbling character on the authoritative gameplay clock. Switching selection, control ownership or CPU/manual mode cannot cancel, restart or transfer it. Other defenders retain their own action eligibility and may physically recover the loose ball; no team-wide freeze or forced selection change.",
+    "resume": "When the stun and any independent applicable locks end, normal control/assistance may resume under existing ownership rules. The ball must still be acquired through actual legal contact. Expiry grants no automatic possession, throw, Ball Dash, out or fresh random roll. The fielder may need to travel; recovery duration is not a fixed total error cost.",
+    "preservedRules": "Keep accepted loose-ball continuity and acquisition-before-possession ordering, throw-buffer aging/invalidation, retained-ball recoil and pure special-pushback contracts. No new stun-specific input-buffer promise is made. Special effects keep their own gates; combined timing and repeated-attempt rules remain reviewed separately. A later loss does not undo a completed earlier out.",
+    "currentAudit": "The existing RecoilT/Bobbling branch has a fumble early return while the loose ball and some off-ball helpers advance earlier. This resembles an interruption but does not prove consistent per-character stun gating across movement, helper, catch and ownership paths. Current FumbleSec .58 remains an observation, not an accepted duration.",
+    "referenceLimit": "Explicit user-authored direction. Matched Wii/GC ordinary bobble stun duration and entry motion have not been measured. No Mario-parity claim.",
+    "implementationBoundary": "Accepted stun direction only. Duration, handling dependence, entry/exit motion, input buffering, fresh-attempt rules and special composition remain pending. No runtime, asset or human gate changed."
+  },
+  "bobbleStunHandlingProposal": {
+    "decisionId": "F693-02-bobble-stun-handling",
+    "state": "pending",
+    "stunDurationSec": null,
+    "maximumRelativeReduction": null,
+    "minimumReadableStunSec": null,
+    "handlingTraitMapping": null,
+    "recommendation": "Let better underlying defensive handling modestly shorten the ordinary bobble stun, while every character still shows a brief readable reaction. This gives a strong defender some recovery advantage on the occasions when they do make an error.",
+    "tradeoff": "Handling already reduces error probability. Shorter stun would be an additional benefit, so keep its eventual spread modest and inspect the total recovery race. Equal stun duration across characters is the alternative, concentrating the handling benefit in making fewer errors.",
+    "scope": "Use the underlying handling trait, not the displayed Fielding summary. Do not change catch range, glove positioning, ball scatter, movement top speed or error chance to implement this duration benefit. No new roster assignments, floor, reduction coefficient or base duration selected.",
+    "timing": "Choose the base stun, reduction curve and readable minimum together in a later numerical review after comparing reference reactions. Strong handling must not erase the accepted stun or allow same-contact rescooping. Whether other independent effects permit action still follows their own gates.",
+    "referenceLimit": "Authored trait-design recommendation, not verified Wii/GC handling-to-stun behavior. The existing .58-second fumble and prior ordinary/special recoil factors are not adopted as bobble coefficients.",
+    "requiredChecks": [
+      "At equal encounter and ordinary bobble outcome, improving handling cannot lengthen the proposed stun.",
+      "Every handling value retains a readable nonzero reaction once numerical bounds are reviewed.",
+      "Changing only displayed Fielding cannot change stun, and no glove/range/scatter or speed benefit is silently added.",
+      "Evaluate the combined frequency and recovery advantage, not just stun duration, across compact-field races."
+    ],
+    "implementationBoundary": "Pending handling-to-stun direction only. Numerical durations, reduction, trait mapping, runtime and human gates remain open."
   }
 }
