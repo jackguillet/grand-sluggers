@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 2,
+  "issue": 701,
+  "parentIssue": 693,
+  "status": "code-audit-and-accepted-design-direction",
+  "auditedOn": "2026-09-14",
+  "auditedRevision": "dc86fb94b63915dd0b70b16eee0f5a050f8cf6ba",
+  "sourceSha256": {
+    "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+    "src/GrandSluggers.Sim/FieldingPursuit.cs": "c61cd009609e921faa032dbdc34dc45daa701fca2ea25dfe283fb5f0be4be9d7",
+    "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+    "src/GrandSluggers.Sim/Runner.cs": "b1a54a4b7dd73d354ee81ef91a574940f235f7739592ec65bea149f5d53ba0bf",
+    "src/GrandSluggers.Sim/Diamond.cs": "0962c7de7fd22ae04bc95c7d7ea23e466461ca3ebcb7bc68a6f8d2d6f40fe001",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136"
+  },
+  "conditions": "No dash, frozen status, or ability; full stick for field movement. Formula values, not measured play averages.",
+  "fieldingParameters": {
+    "baseFtPerSec": 21,
+    "ftPerSecPerRun": 1.9,
+    "outfieldAirMul": 0.6,
+    "infieldAirMul": 0.45
+  },
+  "runningParameters": {
+    "baseSec": 3.55,
+    "secPerRun": 0.12,
+    "minSec": 2.45,
+    "maxSec": 3.65,
+    "dashMul": 0.12,
+    "batterStartSec": 0.5,
+    "noPassFt": 27
+  },
+  "baselineFeet": 90,
+  "rows": [
+    {
+      "run": 1,
+      "baseFieldingFtPerSec": 22.9,
+      "outfieldNonGrounderPreviewFtPerSec": 13.739999999999998,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 10.305,
+      "baseRunningBagSec": 3.4299999999999997,
+      "baseRunningFtPerSec": 26.239067055393587
+    },
+    {
+      "run": 5,
+      "baseFieldingFtPerSec": 30.5,
+      "outfieldNonGrounderPreviewFtPerSec": 18.3,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 13.725,
+      "baseRunningBagSec": 2.9499999999999997,
+      "baseRunningFtPerSec": 30.50847457627119
+    },
+    {
+      "run": 10,
+      "baseFieldingFtPerSec": 40.0,
+      "outfieldNonGrounderPreviewFtPerSec": 24.0,
+      "infieldNonLinerNonGrounderPreviewFtPerSec": 18.0,
+      "baseRunningBagSec": 2.45,
+      "baseRunningFtPerSec": 36.73469387755102
+    }
+  ],
+  "selector": "FieldingResolver.AirMul uses preview.Grounder, preview.Line and fielding position, not current ball height. A bounce alone does not remove this multiplier at call sites retaining the preview.",
+  "fieldingAndRunningCalibration": "Separate formulas use the same Run stat. No requirement that offense and defense have identical ft/s.",
+  "motionImplementation": "Ordinary stick and StepToward integrate speed * dt after eligibility/lockout; no ordinary pursuit acceleration ramp. Special moves and handoff coast are separate.",
+  "references": [
+    {
+      "id": "gc-fielding-410",
+      "url": "https://mariobaseball.miraheze.org/wiki/Fielding_Mechanics?oldid=410",
+      "status": "community-reverse-engineering",
+      "access": "Previously retrieved local source cache re-inspected; web retrieval failed this turn.",
+      "supports": "Reported ordinary fielding formula is normal character speed times sprint and Ball Dash modifiers; no contact-class factor listed. Not proof all movement states lack further modifiers."
+    },
+    {
+      "id": "gc-running-426",
+      "url": "https://mariobaseball.miraheze.org/wiki/Running_Mechanics?oldid=426",
+      "status": "community-reverse-engineering",
+      "access": "Previously retrieved local source cache re-inspected; web retrieval failed this turn.",
+      "supports": "Baserunning has separately described acceleration, stamina, and dash. Inconsistent prose/equations preclude importing full formula."
+    }
+  ],
+  "acceptedTargets": [],
+  "acceptedDirections": [
+    {
+      "id": "F693-02-pursuit-consistency",
+      "status": "accepted-design-intent",
+      "scope": "Pursuit movement contract only. Does not equate baserunning with fielding or select speed, acceleration, reaction delay, reach, or dimensions.",
+      "existingSpecAffected": [
+        "8.1 outfieldAirMul and infieldAirMul",
+        "8.2 historical scoring calibration"
+      ],
+      "implementationGate": "Replace modifiers only within a coherent compact geometry/flight/pursuit profile with gameplay validation; do not set both to 1 on current geometry.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "One ordinary pursuit movement profile per character, independent of hit class or assigned fielding position, retaining explicit dash/status/ability modifiers",
+      "alternativeConsideredNotSelected": "Retain hit-class/position movement modifiers as deliberate calibration tools",
+      "basis": "Jack answered yes to the consistent ordinary movement direction after the movement audit and tradeoff review."
+    },
+    {
+      "id": "F693-02-movement-weight",
+      "status": "accepted-design-intent",
+      "scope": "Ordinary pursuit response after movement eligibility; no numerical timing, new stat, special-action change, assistance change, or reaction-lockout decision.",
+      "implementationRequirement": "Shared physical prediction and stepping with matching authored presentation; follow accepted consistency across hit types and assigned positions.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Brief build-up to running speed, quick course corrections, little residual drift when movement intent changes",
+      "alternativeConsideredNotSelected": "Heavier momentum with greater acceleration/braking/reversal commitment",
+      "basis": "Jack said: i approve of your recommendation."
+    },
+    {
+      "id": "F693-02-post-contact-read",
+      "status": "accepted-design-intent",
+      "scope": "Read-beat intent only; no numerical or per-position schedule, difficulty change, camera-dependent sim gate, D7 change, or new input-buffering policy.",
+      "implementationConstraint": "Do not lengthen a freeze to manufacture extra bases. Calibrate read and remaining reachable distance with ball motion, compact geometry and the separate presentation handoff.",
+      "acceptedBy": "Jack",
+      "acceptedOn": "2026-09-14",
+      "direction": "Retain a brief visibly communicated post-contact read before pursuit, followed by accepted responsive movement",
+      "alternativeConsideredNotSelected": "Remove the deliberate selected-fielder read, allowing movement from contact subject to existing action/state constraints",
+      "basis": "Jack answered yes to retaining the brief, visible read beat after the reference and current-code comparison."
+    }
+  ],
+  "responseAudit": {
+    "auditedRevision": "9a442a23c17b47466ebe384263ed41996fa6e89a",
+    "sourceSha256": {
+      "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+      "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+      "src/GrandSluggers.Sim/FieldAssist.cs": "8aa56d8c6677c064ef6198aabf4350e94da09f20382858307f17d84b73727b6c",
+      "src/GrandSluggers.Sim/BodyFacing.cs": "c2b715ea80796a97bf9086010ec92226472360f19738b72290b281b523dfda64",
+      "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a"
+    },
+    "ordinaryPhysicalAccelerationRamp": false,
+    "visualFacingSmoothingControlsSimPosition": false,
+    "neutralStickWithoutBall": "Automatic pursuit may move the glove; neutral is not a universal stop command.",
+    "reactionEligibility": "Separate existing post-contact lockout; not changed by the accepted movement-weight direction.",
+    "handoffCoastSec": 0.2,
+    "referenceInputToMotionLatency": "unverified"
+  },
+  "readAudit": {
+    "auditedRevision": "06b0868622612a2d91d6984e54cbfe1a285bd3d5",
+    "sourceSha256": {
+      "src/GrandSluggers.Sim/Fielding.cs": "dbbce66db1c951123268c1d62d9153ac96a6fd73b798440557f8eae2c5f9f54b",
+      "src/GrandSluggers.Sim/LivePlaySystem.Field.cs": "0e0c993639380de69d582e4e92758415b2a0b2070677c8b36533a58bbd865cc0",
+      "src/GrandSluggers.Sim/FieldAssist.cs": "8aa56d8c6677c064ef6198aabf4350e94da09f20382858307f17d84b73727b6c",
+      "src/GrandSluggers.Sim/PlayCamera.cs": "4f5a2264fd111d01eefd75257c7a3dd3b6c192d30e2f1306448681d94ea4ee92",
+      "src/GrandSluggers.Sim.Tests/OutfieldReadTests.cs": "fdbc33afdbac0b55ca9a053cb7a552e3e8b82a721aed0fb1d4469efc26a8a834",
+      "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+      "data/rules/cpu.json": "65805a546b7ebde3d38122fca50ecbe43ddd4307a6996d3894658083a4c00f05",
+      "data/feel/table.json": "fa7e7cb1526caf74697b461b3412565b3362e6b6f78ad1965622269e5c9dea50"
+    },
+    "humanOutfieldEligibilitySeconds": 0.83,
+    "normalNonHomeRunViewChangeSeconds": 0.42,
+    "nominalOutfieldEligibilityAfterViewMarkSeconds": 0.41,
+    "conditions": "Nominal sim-clock marks; excludes hang cap, home-run camera exception, camera settling and wall-clock effects.",
+    "reference": {
+      "sourceId": "gc-fielding-410",
+      "humanFramesByPosition": {
+        "P": 25,
+        "C": 40,
+        "1B": 16,
+        "2B": 15,
+        "3B": 18,
+        "SS": 17,
+        "OF": 50
+      },
+      "cpuOutfieldFrames": 50,
+      "viewChangeFrames": 25,
+      "assumedSimulationFramesPerSecond": 60,
+      "conditionalOutfieldSeconds": 0.8333333333333334,
+      "conditionalOutfieldAfterViewSeconds": 0.4166666666666667,
+      "independentlyReproduced": false,
+      "cachedHtmlSha256": "2f3b6ceac096bd3073b2aa61ecc0b2b6794eef785084db1b6d57f22f289ad025"
+    },
+    "wiiReadInterval": "unverified",
+    "switching": "Eligibility uses the contact clock; selection does not start a new full lockout.",
+    "humanDifficulty": "Human-owned glove uses the same eligibility across difficulty, including neutral-stick assistance."
+  }
+}

@@ -28,6 +28,8 @@ The source register in §10 distinguishes the two games. The existing [reference
 
 No matched frame-count dataset for the Wii and GameCube games has yet been produced for #693. The Wii video in §10 was visually inspected at approximately 01:00, where a close infield view shows the player-controlled fielder, ball, dirt, and bags. That is qualitative framing evidence, not a world-space or timing calibration. The GameCube longplay is a candidate source; its introductory/cinematic material is excluded from measurement. Neither a video seek bar nor a single screenshot supplies simulation frames.
 
+The follow-on [#701 observation packet](research-game-feel-701-comparison.md) adds explicitly bounded recording-time observations from Wii and GameCube Mario Stadium plays. It preserves unknown capture configuration, distinguishes a direct out from a force/return scoring play, and remains outside the verified stock-calibration set. It does not supersede the sampling or evidence rules below.
+
 ## 2. Comparing the references
 
 ### Nintendo Wii: Mario Super Sluggers
@@ -73,7 +75,7 @@ The resulting code-derived Harbor ratios are:
 
 The community stadium survey reports Mario Stadium's center wall at **100 m**, its foul poles at approximately **80.5 m**, and a field that is not left/right symmetric. Those convert arithmetically to about **328.1 ft** and **264.1 ft**. Harbor's corresponding distances are about **21.9%** and **25.0%** longer. These are comparisons to community-reported dimensions, not measurements of Nintendo's physical feet. [^3]
 
-That supports testing **outfield depth independently**. It does not prove the basepaths are 80% of regulation, nor that scaling every Harbor object by 0.8 reproduces the reference. The inspected source text did not establish the basepath/body ratio. Wii field dimensions remain unresolved for this decision.
+That supports testing **outfield depth independently**. It does not prove the basepaths are 80% of regulation, nor that scaling every Harbor object by 0.8 reproduces the reference. The inspected source text did not establish the basepath/body ratio. Wii field dimensions remain unresolved for this decision. The [#701 geometry follow-up](research-game-feel-701-geometry.md) now records a Wii running survey whose equal-speed interpretation suggests shallower wall/basepath ratios, together with movement-model sensitivity and a pending research candidate. It does not establish absolute feet or basepath/body scale.
 
 ### Measure two kinds of proportion
 
