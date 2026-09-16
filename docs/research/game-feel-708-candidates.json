@@ -508,8 +508,13 @@
     },
     {
       "id": "F693-02-bobble-recovery-reliability",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Make a legal recovery pickup of the same ordinary bobble reliable, without another ordinary error roll from that fumble?"
+    },
+    {
+      "id": "F693-02-bobble-deflection-direction",
+      "state": "next-human-decision",
+      "question": "Base ordinary bobble direction on the actual incoming ball and glove contact, without a separate random scatter-direction roll?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5204,7 +5209,7 @@
   },
   "bobbleRecoveryReliabilityProposal": {
     "decisionId": "F693-02-bobble-recovery-reliability",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "sameBobbleRecoveryErrorChance": 0,
     "scope": "Recovery of the loose ball produced by the accepted ordinary awkward-hop bobble, by the original fielder or another eligible defender. This is a narrow recovery rule, not a cap of one error per play or blanket immunity for every loose ball.",
     "recommendation": "Once an eligible defender physically collects the loose ball from an ordinary bobble, secure it without a second ordinary error roll caused by that same fumble. Require actual ball/glove contact, range and action readiness; reliable handling does not guarantee interception or automatic possession.",
@@ -5223,6 +5228,38 @@
       "After actual recovery ends, later distinct plays use their own rules; this is not a one-error-per-play cap.",
       "Keep grounded-ball out rules, completed outs and command-buffer aging correct through the complete recovery event trace."
     ],
-    "implementationBoundary": "Pending same-bobble recovery reliability only. No general fresh-attempt catalog, special exception, scatter target, runtime change or human gate selected."
+    "implementationBoundary": "Accepted same-bobble recovery reliability only. No general fresh-attempt catalog, special exception, scatter target, runtime change or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied yes to reliable legal recovery of the same ordinary bobble without another ordinary error roll."
+  },
+  "bobbleDeflectionDirectionProposal": {
+    "decisionId": "F693-02-bobble-deflection-direction",
+    "state": "pending",
+    "directionBasis": "incoming-ball-and-actual-glove-contact",
+    "randomDirectionRoll": false,
+    "directionMapping": null,
+    "angularBounds": null,
+    "scatterDistanceFt": null,
+    "scatterSpeedFtPerSec": null,
+    "verticalProfile": null,
+    "recommendation": "Derive the ordinary bobble deflection direction from the incoming ball path and where it actually meets the glove. Do not add an independent random direction roll. Keep the accepted modest local loose-ball outcome; exact directional mapping and trajectory numbers remain pending.",
+    "playerContext": "The error chance decides whether the fielder fails to secure the ball. The resulting motion should visibly follow that contact rather than introduce another lottery for which way the ball escapes. Equivalent contact states should produce equivalent deflection directions, while visibly different approach/contact geometry can produce different directions.",
+    "inputs": "Capture authoritative incoming ball velocity and actual contact location with the resolved glove geometry at the failed-acquisition event. Use the character/contact frame as needed for a coherent local deflection. Do not substitute original exit velocity, a later held-ball position, visual animation-frame timing, camera facing, intended throw target or a fixed world axis. Exact use of contact normal, approach side and low-horizontal-speed fallback remains to be reviewed with catch geometry.",
+    "continuity": "Start at the actual contact point without a positional scatter offset, reset to a fixed height or body teleport. A contact impulse can change velocity, but the ensuing motion must agree with the visible failed pickup. No choosing a destination and snapping the ball there. Real collisions/bounds continue to affect the path.",
+    "scope": "Ordinary awkward-hop bobble only. This chooses the cause of direction, not a full restitution law, forward/backward bias, angular spread, speed, distance or bounce height. It must retain the accepted modest nearby outcome. Do not introduce handling-dependent scatter, resize catch range or modify error probability. Special-hit outcomes and wall-contact effects remain separately reviewed.",
+    "fairness": "Do not secretly aim away from the nearest helper, toward an empty region, toward a runner/base, or to force an offensive/defensive result. The physical encounter determines the initial deflection; subsequent recovery still requires legal contact and action readiness. Preserve the accepted reliable same-bobble recovery and origin tracking.",
+    "replay": "Same authoritative contact state yields the same initial direction without consuming an extra random direction draw. Selection, seat, CPU/manual ownership, camera and frame partition must not alter it. This does not change the already approved seeded error-chance roll.",
+    "currentAudit": "ArmRecoil currently computes BallX-GloveX and BallZ-GloveZ after TakeBattedBall calls CatchGlove; near-zero direction falls back to world +Z. SetLoose applies a ScatterFt position offset and then BallY is reset. That is not a validated actual-contact deflection model. Future implementation must retain pre-acquisition velocity/contact data and use the shared geometry; this proposal does not approve the fixed fallback or existing scatter constants.",
+    "referenceLimit": "Authored readable-motion proposal, not a measured Wii/GC deflection algorithm. Compare normal bobbles from both approach sides and near-vertical contacts in both references before selecting the directional mapping and numerical trajectory.",
+    "requiredChecks": [
+      "Equivalent authoritative contacts produce equivalent initial deflection without an added random direction roll across seats, selection changes and CPU/manual paths.",
+      "Mirrored/rotated encounter fixtures rotate or mirror consistently with world geometry; a camera rotation cannot change the physical output.",
+      "Ball position remains continuous at contact and no held-ball transform or fixed-height reset replaces the failed-acquisition point.",
+      "Near-vertical and low-horizontal-speed encounters have an explicit reviewed deterministic fallback, not an arbitrary world +Z bias.",
+      "Direction is not chosen from runner/base/helper advantage, and changing handling alone does not change the scatter path for the same failed contact.",
+      "The visible contact and eventual local trajectory agree with actual recovery geometry, boundaries and reliable same-bobble recovery."
+    ],
+    "implementationBoundary": "Pending direction-source choice only. Numerical mapping, angular bounds, scatter speed/distance/height, catch geometry reconciliation, runtime and human gates remain open."
   }
 }
