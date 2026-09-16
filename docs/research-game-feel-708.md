@@ -1384,9 +1384,9 @@ This is an authored selection principle, not a verified Mario algorithm. Compare
 
 Recovery-error protection and directional variation for the new continuing-error branches still need separate decisions. The ball's trajectory is not paused by the fielder's reaction. This is an authored consistency proposal, not measured Wii/GC timing; validate contacted/untouched cases and full recovery races before implementation. No runtime or human gate changes here.
 
-## Next decision — recovery of a continuing ordinary error
+## Accepted decision — recovery of a continuing ordinary error
 
-**F693-02-continuing-error-recovery — pending, September 15, 2026.** Recommend **extending reliable recovery to the same ordinary handling error when the ball keeps travelling**, including an outfielder collecting an infielder's failed-contact deflection. A different defender or longer trip should not by itself add another ordinary error roll.
+**F693-02-continuing-error-recovery — accepted by Jack on September 15, 2026.** Jack approved **extending reliable recovery to the same ordinary handling error when the ball keeps travelling**, including an outfielder collecting an infielder's failed-contact deflection. A different defender or longer trip should not by itself add another ordinary error roll.
 
 **Why extend it:** a local bobble and a continuing deflection originate in the same kind of handling failure. Let distance, coverage and physical pickup determine the additional cost. Keeping the approved reliable-recovery rule across both avoids a chain of ordinary random errors from the original fumble. A recovering defender can still fail to reach the ball or be unavailable under their own action restrictions.
 
@@ -1400,7 +1400,21 @@ Recovery-error protection and directional variation for the new continuing-error
 
 The existing no-reroll loose-recovery paths are an implementation precedent, not a complete origin model. Validate failed-infielder-to-outfielder sequences alongside untouched misses, helpers, switching, repeated bounces and independent effects. Directional variation and numerical continuation physics remain pending. This is authored design, not verified Mario multi-fielder error logic; no runtime or human gate changes here.
 
-**Question for Jack:** extend reliable recovery to a ball continuing from the same ordinary handling error, while an untouched earlier miss leaves the next defender's normal first-attempt rules intact?
+## Next decision — directional variation of a continuing ordinary error
+
+**F693-02-continuing-error-direction — pending, September 15, 2026.** Recommend **the same ±30-degree horizontal variation around the contact-derived outgoing direction** for a continuing ordinary failed-contact deflection. An untouched miss gets **no error-induced angle change**.
+
+**Why share the limit:** both outcomes come from an ordinary failed handling event. Preserve contact as the main source of direction while allowing the random variation Jack requested. The alternative is a narrower angle for continuing escapes. The shared limit is simpler to tune consistently, but its consequence is not identical: a longer path can produce much more sideways travel. Judge that together with retained speed, ground resistance and defensive coverage rather than calling it automatically a small final scatter.
+
+**Contact first, angle second:** derive the outgoing baseline from current ball motion and actual contact/obstruction. Rotate that horizontal velocity by the retained offset without changing its magnitude through this operation. This does not preserve pre-contact speed regardless of impact; the speed-loss model is still unselected. Keep vertical treatment separate and position continuous. No teleport, added energy, outfield waypoint or forced nearby stop.
+
+The baseline is not automatically the original bat direction, fielder facing or unmodified incoming heading. Exact contact mapping and nearly vertical/zero-horizontal fallback remain pending. A random modifier cannot invent a heading or contact impulse where the ball never touched the defender. Untouched flight continues under actual ground/wall rules; generic contacts without a qualifying ordinary handling failure do not automatically gain this modifier.
+
+**One directional result:** the actual failed-contact event chooses and retains one authoritative seeded variation. Classifying its result as local or continuing cannot produce a second draw. No reroll when it crosses into the outfield, the camera changes, defenders switch or someone recovers it. Keep the accepted reaction, reliable same-origin recovery and separate special-effect rules.
+
+This selects only the horizontal bound for the continuing branch. Sampling distribution, contact/retained-speed model, vertical response and numerical trajectory remain pending. It is an authored consistency trial, not measured Wii/GC variance. Verify long-path lateral coverage and real recovery races alongside the angular/replay checks before implementation or human acceptance. No runtime changes.
+
+**Question for Jack:** use the same ±30-degree contact-based variation for continuing ordinary deflections, with no added direction roll for untouched misses?
 
 ## Historical decision — fielding dash peak speed (superseded by passive Ball Dash)
 
