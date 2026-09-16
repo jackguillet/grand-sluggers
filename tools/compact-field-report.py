@@ -1027,12 +1027,20 @@ def derive(data):
             assert math.isclose(hcurve_row["errorChance"], hcurve_p, abs_tol=1e-12)
     awkward_hop = data.get("awkwardHopDifficultySourceProposal")
     if awkward_hop:
-        assert awkward_hop["state"] == "pending"
+        assert awkward_hop["state"] == "accepted-calibration-anchor"
+        assert awkward_hop["acceptedBy"] and awkward_hop["acceptedOn"] and awkward_hop["acceptanceEvidence"]
         assert all(awkward_hop[key] is None for key in
                    ("difficultyMapping", "hopPhaseBounds", "heightBounds", "speedBounds"))
+    ordinary_bobble = data.get("ordinaryBobbleOutcomeProposal")
+    if ordinary_bobble:
+        assert ordinary_bobble["state"] == "pending"
+        assert all(ordinary_bobble[key] is None for key in
+                   ("scatterDistanceFt", "scatterSpeedFtPerSec", "bounceProfile",
+                    "reactionDurationSec", "reacquisitionEligibility"))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
+            "ordinaryBobbleOutcomeState": ordinary_bobble["state"] if ordinary_bobble else None,
             "awkwardHopDifficultySourceState": awkward_hop["state"] if awkward_hop else None,
             "ordinaryHandlingChanceCurveState": handling_curve["state"] if handling_curve else None,
             "ordinaryHandlingErrorChanceState": handling_chance["state"] if handling_chance else None,

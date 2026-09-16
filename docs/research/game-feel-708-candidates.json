@@ -466,8 +466,13 @@
     },
     {
       "id": "F693-02-awkward-hop-difficulty-source",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Use an awkward in-between hop at actual ground-ball acquisition as the first ordinary difficulty source, keeping routine rolls and clean short/long hops outside this trigger?"
+    },
+    {
+      "id": "F693-02-ordinary-bobble-outcome",
+      "state": "next-human-decision",
+      "question": "Make a failed ordinary awkward-hop acquisition produce a modest visible loose-ball bobble nearby, requiring actual recovery before possession-dependent actions?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -4822,7 +4827,7 @@
   },
   "awkwardHopDifficultySourceProposal": {
     "decisionId": "F693-02-awkward-hop-difficulty-source",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "sourceKind": "awkward-in-between-ground-hop",
     "difficultyMapping": null,
     "hopPhaseBounds": null,
@@ -4858,6 +4863,36 @@
       "A ground bounce means ground acquisition rather than an airborne catch-out; preserve actual possession/error ordering and retained-ball rules.",
       "Compare event-side bounce/height/speed evidence, readable motion and actual errors across roster and matched reference contexts before implementation/human acceptance."
     ],
-    "implementationBoundary": "Pending first difficulty-source choice only. No numerical D mapping, new input, bounce/ball-physics tuning, acquisition detector, runtime or human gate selected."
+    "implementationBoundary": "Accepted first difficulty-source choice only; numerical bands remain pending. No numerical D mapping, new input, bounce/ball-physics tuning, acquisition detector, runtime or human gate selected.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied approve to using an awkward in-between hop as the first ordinary handling-difficulty source, while keeping clean rolls and clean short/long hops reliable under this source."
+  },
+  "ordinaryBobbleOutcomeProposal": {
+    "decisionId": "F693-02-ordinary-bobble-outcome",
+    "state": "pending",
+    "outcomeKind": "nearby-loose-ball-bobble",
+    "scatterDistanceFt": null,
+    "scatterSpeedFtPerSec": null,
+    "bounceProfile": null,
+    "reactionDurationSec": null,
+    "reacquisitionEligibility": null,
+    "recommendation": "For a failed ordinary awkward-hop acquisition, the ball contacts the glove but is not secured, then visibly bobbles loose nearby. An eligible defender must physically recover it before throwing, Ball Dash or a possession-dependent out. This is the proposed default consequence for this first ordinary error context, not a universal special-hit or throwing-error rule.",
+    "physicalContinuity": "Start the deflection at the actual ball/glove contact location and time. Preserve continuous visible and authoritative motion through the resulting local trajectory. No instantaneous scatter offset, fixed ball-height reset, root teleport or remote possession. Deflection direction, distance, speed, bounce and recovery timing remain unselected; nearby and modest describe the intended scale, not approved numbers.",
+    "possessionOrdering": "Resolve failed acquisition before emitting secure-possession or possession-dependent out/ability events. Physical contact can still matter for fair/foul or other baseball rules. No transient secure possession followed by rollback. The live play continues under its actual rules; the error grants neither an automatic safe call nor a base award. A later distinct loss cannot undo an earlier legally completed out.",
+    "recovery": "The original fielder or another eligible defender can recover through real ball/glove geometry and existing control/ownership rules. Do not reserve the ball for the original fielder or guarantee automatic reacquisition. Fresh-attempt boundaries, repeated-bobble eligibility and how to prevent immediate same-contact rescooping still require review; do not invent a timer or reroll on each frame.",
+    "actions": "The player must regain secure possession before any action requiring it. Preserve accepted input-buffer age and invalidation rules without refreshing a command or granting an automatic throw. Fumbler reaction duration and available non-possession actions remain pending. No global freeze or blanket shared recovery lock for every defender.",
+    "retainedBallBoundary": "A failed acquisition differs from accepted retained-ball recoil and pure special pushback. Do not silently add retained-ball recovery to this error or turn those secured-ball states into new drop checks. Special-hit outcomes and recovery contracts remain individually reviewed.",
+    "currentAudit": "TakeBattedBall currently calls CatchGlove before ArmRecoil; the bobble branch then clears Caught, starts FumbleSec and calls SetLoose with a ScatterFt offset from the glove, followed by a ScatterBallY reset. The existing loose-ball state is a reusable concept, but this order and instantaneous placement must be reconciled with acquisition-before-possession and continuous contact-origin motion. Current FumbleSec .58, ScatterFt 6.5, ScatterFtPerSec 12 and ScatterBallY 3.1 are observations, not approved targets.",
+    "referenceLimit": "Authored proposal for readable cartoon defense. No matched Wii/GC bobble trajectory or recovery timing has been measured; do not label this Mario parity. Compare both games before selecting scatter/recovery numbers.",
+    "requiredChecks": [
+      "A failed acquisition emits no transient secure-possession benefit, tag/force out or Ball Dash activation; real contact and fair/foul rules still apply.",
+      "Ball motion begins at actual contact and remains continuous, with legal collisions/bounds rather than an instantaneous scatter placement.",
+      "Eligible original and supporting fielders can recover physically; no guaranteed safe/base award or remote recovery.",
+      "One acquisition result cannot be rerolled by frame callbacks or erased by an immediate same-contact rescoop. Fresh-attempt and recovery rules must be selected before implementation.",
+      "A previously completed legal out remains valid; retained-ball recoil and pure pushback remain separate possession states.",
+      "Compare visible bobble size and recovery races across bodies, 1P/1v1 and manual/assisted/CPU defense, including nearby bags and boundaries, before human acceptance."
+    ],
+    "implementationBoundary": "Pending outcome direction only. No scatter/recovery numbers, new difficulty sources, repeated-attempt rule, runtime changes, animation assets or human gate selected."
   }
 }
