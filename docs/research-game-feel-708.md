@@ -211,6 +211,16 @@ Putting it on the packet's house curve — the recoil factor's 5% per point — 
 
 On the recoil curve the best defender recovers fast enough that an unnecessary dive is still a comfortable out, which hands that character back the spam the decision was meant to remove. If recovery varies at all, the curve has to be **narrower than the recoil curve** so even the best defender pays something real. That is why the two are one question rather than two.
 
+### Accepted decision — a 0.60-second dive recovery on a narrow curve
+
+**F693-02-dive-recovery-cost — accepted by Jack on September 15, 2026.** Dive recovery is **0.60 seconds** at the lowest defensive quality, narrowing **2.5% per quality point** to **0.465 seconds** at the highest. Jack chose character variation over a shared recovery with a named dive ability and over a shared recovery alone, so the dive is where the defensive rating finally earns its keep in ordinary play.
+
+The curve is deliberately narrower than the recoil curve. Even the best defender only reaches a dead heat on a dive they did not need — never a comfortable out — so the deterrent survives all the way up the roster. Quality is supplied by an explicit defensive trait under the accepted summary architecture, never by the displayed Fielding number, exactly as the handling error chance is sourced.
+
+The rest of the rule is as proposed. A caught dive and a missed dive cost the same, because the delay is a cost of the dive rather than a penalty for failing. When a dive reaches the ball and then fails its handling roll, the result is **the longer** of the dive delay and the 0.40-second stun rather than their sum — a deliberate departure from the additive precedent for ordinary and special recovery from the same impact, recorded here rather than buried. The CPU pays the same delay on the same curve, per the accepted deliberate-dive decision.
+
+**Accepted scope:** the trial duration, its curve, and the two composition rules. No trait list or trait-to-quality mapping is selected, and the explicit defensive-trait migration — now consumed by both the handling error chance and this curve — still blocks implementation. It is queued as `F693-02-defensive-trait-mapping`.
+
 **Reference limit:** no Wii or GameCube dive recovery has been measured and no dive frequency counted. The 0.60-second trial is derived from this packet's own accepted race anchors, not from either reference.
 
 ## Accepted decision — lead spatial trial
