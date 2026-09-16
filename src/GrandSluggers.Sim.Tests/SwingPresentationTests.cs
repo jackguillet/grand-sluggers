@@ -208,7 +208,7 @@ public class SwingPresentationTests
     [Fact]
     public void DccSwingTakesCatalogCarriesTheContractKeys()
     {
-        var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
+        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName;
         var doc = JsonNode.Parse(File.ReadAllText(Path.Combine(repo, "data", "art", "swing-takes.json")))!;
         Assert.Equal(Motion.SwingContact, doc["contactAt"]!.GetValue<double>(), 8);
         Assert.Equal(Motion.SwingFinish, doc["finishAt"]!.GetValue<double>(), 8);
@@ -410,7 +410,7 @@ public class SwingPresentationTests
     [Fact]
     public void DccCatalogCarriesThePortableStanceDirections()
     {
-        var repo = Directory.GetParent(ContentCatalog.Load().Root)!.FullName;
+        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)!.FullName;
         var path = Path.Combine(repo, "data", "art", "batting-stance.json");
         var keys = JsonNode.Parse(File.ReadAllText(path))!["keys"]!.AsArray();
         Assert.Equal(BattingStance.Keys.Count, keys.Count);

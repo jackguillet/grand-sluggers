@@ -5,7 +5,7 @@ namespace GrandSluggers.Sim.Tests;
 
 public class BodyScaleTests
 {
-    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root, ".."));
+    readonly string _repo = Path.GetFullPath(Path.Combine(ContentCatalog.Load().Root.Shipped, ".."));
     readonly ContentCatalog _content = ContentCatalog.Load();
 
     static readonly string[] NotGrow =

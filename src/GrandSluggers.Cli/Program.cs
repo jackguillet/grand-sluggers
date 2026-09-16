@@ -1,6 +1,23 @@
 using GrandSluggers.Sim;
 
-var content = ContentCatalog.Load();
+ContentCatalog content;
+try
+{
+    content = ContentCatalog.Load();
+}
+catch (Exception ex) when (ex is IOException or InvalidDataException)
+{
+    // A data root or trial overlay this run named and cannot have. The message names the offending
+    // path, so report it as a failure rather than a crash — and non-zero, so nothing reads on.
+    Console.Error.WriteLine("grand-sluggers: " + ex.Message);
+    return 1;
+}
+
+// Provenance, on stderr so stdout stays exactly the game's own output and a control run of any
+// command is still byte-comparable. A trace whose data root has to be reconstructed from memory
+// is not evidence, so every run says which root and which trial overlay produced it (#716).
+Console.Error.WriteLine(content.Root.Provenance);
+
 var cmd = args.Length > 0 ? args[0] : "help";
 
 switch (cmd)
@@ -320,3 +337,5 @@ static void SimAtBat(ContentCatalog content, string matchup, int seed)
         Console.WriteLine($"  t={timing,5:0.0}  {r.Quality,-8}  {r.ExitVeloMph,5:0} mph  {r.LaunchDeg,4:0}°{extra}{item}{star}");
     }
 }
+
+return Environment.ExitCode;

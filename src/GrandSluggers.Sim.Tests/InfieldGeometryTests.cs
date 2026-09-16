@@ -92,7 +92,7 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void AnotherDataRootPlaysAnotherInfield()
     {
-        using var trial = new DataRoot();
+        using var trial = new CopiedRoot();
         trial.Change("infield.json", json =>
         {
             json["baselineFt"] = 80;
@@ -115,7 +115,7 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void TheNamedRootIsTakenWhenItIsADataRoot()
     {
-        using var trial = new DataRoot();
+        using var trial = new CopiedRoot();
         Assert.Equal(trial.Root, ContentCatalog.NamedDataRoot(trial.Root));
     }
 
@@ -135,7 +135,7 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void ARootThatIsNotADataRootIsRefusedRatherThanIgnored()
     {
-        var rules = Path.Combine(_content.Root, RulesTable.Directory);
+        var rules = Path.Combine(_content.Root.Shipped, RulesTable.Directory);
         var ex = Assert.Throws<DirectoryNotFoundException>(() => ContentCatalog.NamedDataRoot(rules));
         Assert.Contains(ContentCatalog.DataRootVariable, ex.Message);
     }
@@ -143,7 +143,7 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void AnInfieldOutOfRangeIsNamedByPath()
     {
-        using var trial = new DataRoot();
+        using var trial = new CopiedRoot();
         trial.Change("infield.json", json => json["baselineFt"] = 0);
 
         Assert.Contains(
@@ -155,7 +155,7 @@ public sealed class InfieldGeometryTests
     [Fact]
     public void SecondMustSitBeyondTheRubberAndTheCorners()
     {
-        using var trial = new DataRoot();
+        using var trial = new CopiedRoot();
         trial.Change("infield.json", json => json["secondFt"] = 10);
 
         var errors = RulesTable.Validate(trial.Root);
@@ -178,7 +178,7 @@ public sealed class InfieldGeometryTests
     [InlineData("60.5")]
     public void NoBareInfieldLiteralIsLeftInTheSource(string literal)
     {
-        var src = Path.GetFullPath(Path.Combine(_content.Root, "..", "src"));
+        var src = Path.GetFullPath(Path.Combine(_content.Root.Shipped, "..", "src"));
         var offenders = Directory
             .EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains(".Tests") && Path.GetFileName(f) != "Rules.cs")
@@ -198,13 +198,17 @@ public sealed class InfieldGeometryTests
         }
     }
 
-    /// <summary>A copy of the shipped data root, free to be edited. The shipped one never is.</summary>
-    sealed class DataRoot : IDisposable
+    /// <summary>
+    /// A whole copy of the shipped data root, free to be edited. The shipped one never is. A trial
+    /// carries only its own diff instead (#716, <see cref="TrialOverlayTests"/>); this fixture is a
+    /// second root, which is what <see cref="ContentCatalog.DataRootVariable"/> points a process at.
+    /// </summary>
+    sealed class CopiedRoot : IDisposable
     {
-        public DataRoot()
+        public CopiedRoot()
         {
             Root = Path.Combine(Path.GetTempPath(), "grand-sluggers-infield-" + Guid.NewGuid().ToString("N"));
-            var source = ContentCatalog.Load().Root;
+            var source = ContentCatalog.Load().Root.Shipped;
             Directory.CreateDirectory(Root);
             foreach (var directory in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 Directory.CreateDirectory(Path.Combine(Root, Path.GetRelativePath(source, directory)));

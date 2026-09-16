@@ -18,7 +18,7 @@ public sealed class DebugProtocolTests
         "bat-behind-head-at-ready"
     ];
 
-    readonly string _root = ContentCatalog.Load().Root;
+    readonly DataRoot _root = ContentCatalog.Load().Root;
 
     [Fact]
     public void ShippedCatalogLoadsAndValidates()
