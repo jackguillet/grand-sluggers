@@ -21,13 +21,13 @@ public static class ContentDataValidator
         "freeze_volume", "lava_pit", "statue", "train", "tree", "warp_pipe"
     };
 
-    public static IReadOnlyList<string> Validate(string dataRoot)
+    public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var data = Read(dataRoot, JsonOptions());
         return Errors(data);
     }
 
-    internal static ContentData Load(string dataRoot, JsonSerializerOptions json)
+    internal static ContentData Load(DataRoot dataRoot, JsonSerializerOptions json)
     {
         var data = Read(dataRoot, json);
         var errors = Errors(data);
@@ -44,9 +44,8 @@ public static class ContentDataValidator
         AllowTrailingCommas = true
     };
 
-    static ContentData Read(string dataRoot, JsonSerializerOptions json)
+    static ContentData Read(DataRoot root, JsonSerializerOptions json)
     {
-        var root = Path.GetFullPath(dataRoot);
         var data = new ContentData();
 
         foreach (var file in Files(root, "characters", data.ReadErrors))
@@ -74,11 +73,11 @@ public static class ContentDataValidator
         ReadRows(root, "bats", data.Bats, json, data.ReadErrors);
         ReadRows(root, "gloves", data.Gloves, json, data.ReadErrors);
 
-        var chemistryPath = Path.Combine(root, "chemistry", "overrides.json");
+        var chemistryPath = root.Resolve("chemistry", "overrides.json");
         data.Chemistry = ReadJson<ChemistryOverrides>(chemistryPath, json, data.ReadErrors) ?? new();
         data.ChemistrySource = chemistryPath;
 
-        var skillsPath = Path.Combine(root, "abilities", "star-skills.json");
+        var skillsPath = root.Resolve("abilities", "star-skills.json");
         data.StarSkills = ReadJson<StarSkillsDto>(skillsPath, json, data.ReadErrors) ?? new();
         data.StarSkillsSource = skillsPath;
 
@@ -88,7 +87,7 @@ public static class ContentDataValidator
     }
 
     static void ReadRows<T>(
-        string root,
+        DataRoot root,
         string directory,
         List<Sourced<T>> destination,
         JsonSerializerOptions json,
@@ -101,17 +100,20 @@ public static class ContentDataValidator
         }
     }
 
-    static IReadOnlyList<string> Files(string root, string directory, List<string> errors)
+    /// <summary>
+    /// A data directory's files, resolved one by one against the trial overlay. The listing and its
+    /// order come from the shipped root, so a run reads the same set of rows whether or not a trial
+    /// is named — only the contents of the files the trial carries change.
+    /// </summary>
+    static IReadOnlyList<string> Files(DataRoot root, string directory, List<string> errors)
     {
-        var path = Path.Combine(root, directory);
+        var path = root.Resolve(directory);
         if (!Directory.Exists(path))
         {
             errors.Add($"{path}: required gameplay data directory is missing");
             return [];
         }
-        return Directory.GetFiles(path, "*.json")
-            .OrderBy(Path.GetFullPath, StringComparer.Ordinal)
-            .ToList();
+        return root.Files(directory, "*.json");
     }
 
     static T? ReadJson<T>(string path, JsonSerializerOptions json, List<string> errors) where T : class

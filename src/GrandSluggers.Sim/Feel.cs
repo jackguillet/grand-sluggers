@@ -25,9 +25,9 @@ public sealed class CameraShots
 
     public bool TryGet(string id, out CameraShot shot) => _byId.TryGetValue(id, out shot);
 
-    public static CameraShots Load(string dataRoot)
+    public static CameraShots Load(DataRoot dataRoot)
     {
-        var path = Path.Combine(dataRoot, "feel", "shots.json");
+        var path = dataRoot.Resolve("feel", "shots.json");
         var json = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -154,9 +154,9 @@ public sealed class FeelTable
 
     public BallShadowFeel BallShadow { get; private init; } = new();
 
-    public static FeelTable Load(string dataRoot)
+    public static FeelTable Load(DataRoot dataRoot)
     {
-        var path = Path.Combine(dataRoot, "feel", "table.json");
+        var path = dataRoot.Resolve("feel", "table.json");
         var json = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,

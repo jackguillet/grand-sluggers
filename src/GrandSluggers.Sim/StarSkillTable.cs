@@ -63,10 +63,13 @@ public sealed class StarSkillTable
 
     static StarSkillTable LoadDefault()
     {
+        // Outside the catch on purpose: see RulesTable.LoadDefault. A named root or overlay that
+        // cannot be honoured stops the run rather than quietly handing back the control.
+        var root = ContentCatalog.TryFindDataRoot();
+        if (root is null) return Empty;
         try
         {
-            var root = ContentCatalog.TryFindDataRoot();
-            return root is null ? Empty : ContentCatalog.Load(root).StarSkills;
+            return ContentCatalog.Load(root).StarSkills;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {

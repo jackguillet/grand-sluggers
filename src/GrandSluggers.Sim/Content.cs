@@ -17,10 +17,12 @@ public sealed class ContentCatalog
     /// <summary>The star skills as data (data/abilities/star-skills.json, spec §13).</summary>
     public StarSkillTable StarSkills { get; }
     public ArtCatalog Art { get; }
-    public string Root { get; }
+
+    /// <summary>Where this catalog was read from: the data root, and the trial overlay laid over it.</summary>
+    public DataRoot Root { get; }
 
     ContentCatalog(
-        string root,
+        DataRoot root,
         Dictionary<string, Character> characters,
         Dictionary<string, Park> parks,
         Dictionary<string, BatItem> bats,
@@ -45,7 +47,7 @@ public sealed class ContentCatalog
         Art = art;
     }
 
-    public static ContentCatalog Load(string? dataRoot = null)
+    public static ContentCatalog Load(DataRoot? dataRoot = null)
     {
         var root = dataRoot ?? FindDataRoot();
         var json = new JsonSerializerOptions
@@ -114,7 +116,7 @@ public sealed class ContentCatalog
         return new Team(name, captain, roster);
     }
 
-    static string FindDataRoot() =>
+    static DataRoot FindDataRoot() =>
         TryFindDataRoot()
         ?? throw new DirectoryNotFoundException("Could not find data/characters from " + AppContext.BaseDirectory);
 
@@ -139,12 +141,24 @@ public sealed class ContentCatalog
             $"{DataRootVariable}={value} has no characters/ — point it at a data root, not at one folder inside it");
     }
 
-    /// <summary>The data root above the running binary, or null when the binary sits elsewhere (Unity passes its own).</summary>
-    public static string? TryFindDataRoot()
+    /// <summary>
+    /// The data root this process runs on — the one <see cref="DataRootVariable"/> names, else the
+    /// one above the running binary — with whatever trial overlay <see cref="DataRoot.OverlayVariable"/>
+    /// lays over it. Null when the binary sits elsewhere (Unity passes its own root).
+    ///
+    /// The overlay rides on the root the environment resolves, never on a root a caller hands in:
+    /// a fixture root asked for by name is exactly that root, or tests running in parallel would
+    /// inherit a trial none of them asked for.
+    /// </summary>
+    public static DataRoot? TryFindDataRoot()
     {
         var named = NamedDataRoot(Environment.GetEnvironmentVariable(DataRootVariable));
-        if (named is not null) return named;
+        var shipped = named ?? RootAboveTheBinary();
+        return shipped is null ? null : DataRoot.FromEnvironment(shipped, rootWasNamed: named is not null);
+    }
 
+    static string? RootAboveTheBinary()
+    {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
