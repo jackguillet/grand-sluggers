@@ -8,7 +8,7 @@ public class BaseballMotionContractTests
     static JsonNode Art(string name)
     {
         var content = ContentCatalog.Load();
-        return JsonNode.Parse(File.ReadAllText(Path.Combine(content.Root, "art", name)))!;
+        return JsonNode.Parse(File.ReadAllText(Path.Combine(content.Root.Shipped, "art", name)))!;
     }
 
     [Fact]

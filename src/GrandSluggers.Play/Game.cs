@@ -601,7 +601,7 @@ public sealed class Game : IDisposable
 
     void DemoShots()
     {
-        var dir = Path.GetFullPath(Path.Combine(_content.Root, "..", "docs", "images"));
+        var dir = Path.GetFullPath(Path.Combine(_content.Root.Shipped, "..", "docs", "images"));
         Directory.CreateDirectory(dir);
         if (_phase == Phase.Lineup && !_shotLineup && _phaseT > 0.3f)
         {

@@ -180,7 +180,7 @@ public sealed class ContentValidationTests
         public ContentFixture()
         {
             Root = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grand-sluggers-content-" + Guid.NewGuid().ToString("N"));
-            CopyDirectory(ContentCatalog.Load().Root, Root);
+            CopyDirectory(ContentCatalog.Load().Root.Shipped, Root);
         }
 
         public string Root { get; }

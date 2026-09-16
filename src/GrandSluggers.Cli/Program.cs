@@ -1,6 +1,12 @@
 using GrandSluggers.Sim;
 
 var content = ContentCatalog.Load();
+
+// Provenance, on stderr so stdout stays exactly the game's own output and a control run of any
+// command is still byte-comparable. A trace whose data root has to be reconstructed from memory
+// is not evidence, so every run says which root and which trial overlay produced it (#716).
+Console.Error.WriteLine(content.Root.Provenance);
+
 var cmd = args.Length > 0 ? args[0] : "help";
 
 switch (cmd)

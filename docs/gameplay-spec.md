@@ -825,6 +825,19 @@ For each play class the camera, the stamp, and the hold are data (`data/feel/sho
 
 Presentation stays in `data/feel/`. Rules live in `data/rules/` (✅ P0), loaded by `RulesTable` into `ContentCatalog.Rules` the way `FeelTable` is loaded: the JSON is the source of truth, the C# initializers are only the load fallback for a field a file does not name, and `ContentDataValidator` (so `cli art` and every `ContentCatalog.Load`) refuses a missing file, an unknown field, or a value outside its declared range (`[Positive]`, `[Chance]`, `[Signed]`). A test pins the JSON to the code defaults field for field. Every helper that reads a number takes the table it is handed (`Match.Rules`, `ContentCatalog.Rules`); a caller with no catalog falls back to the table found from the data root. **Any new rule number is a field here with a validator, never a C# literal.** The infield joined them in `infield.json` (#711): every park shares one diamond, so it is one global set loaded once and read-only thereafter — nothing may change it mid-run, because tests execute in parallel. The rest of the structural geometry stays constant: the plate frame (`PitchFlight.PlateY`, `PlateScaleX/Y`) and the 45° foul line the wall and stands meshes share. To play a trial infield, point a whole process at another data root with `GRAND_SLUGGERS_DATA` and diff the two runs; the comparison is process-level, never a table swapped inside one run.
 
+### Trial overlays (#716)
+
+A candidate profile is authored as an **overlay**, not as a second `data/` tree: a folder under `trials/` that carries only the files it overrides and resolves everything else against the shipped root. `GRAND_SLUGGERS_TRIAL=trials/c80` lays one over the data root for a whole process — absolute, or relative to the folder `data/` sits in — and every `cli` run prints the root and the overlay it read on stderr, so a trace can be attributed after the fact.
+
+A second full tree would duplicate characters, bats, gloves, chemistry, abilities, art and feel, none of which a rules trial changes; the first edit to a character would make the trial and the control differ on something the trial never meant to own, and the comparison the trial exists to make would be quietly worthless. So:
+
+- **Whole files, never fields.** A trial that wants a different `flight.json` writes a whole `flight.json`. Field-level merging makes a table that is half one profile and half another, and stops "what is this trial changing?" being answerable by looking.
+- **The tree is the declaration.** A file is overridden because the overlay carries it. A manifest would be a second place to keep in sync, and a file that fell out of it would silently run the control.
+- **Override, never add.** A path the shipped root does not have is a typo and stops the run, for the same reason `GRAND_SLUGGERS_DATA` refuses a root with no `characters/`. `README.md` at the top of an overlay is the one exception, because a trial that cannot explain itself is not evidence either.
+- **Inert unless named.** A checked-in trial does not touch a run that did not ask for it, and the overlay rides only on the root the environment resolves — a root a caller passes in (a test fixture, Unity) is exactly that root.
+
+Trial anchors are not shipping defaults. Flipping one is its own step, after the trial has been measured.
+
 Files and the sections each owns (P0 moved the numbers that existed; later epics add fields, not literals):
 
 | File | Sections |
