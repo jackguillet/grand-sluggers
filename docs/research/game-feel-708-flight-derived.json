@@ -1,0 +1,1155 @@
+{
+  "schemaVersion": 1,
+  "status": "production-flight-model-probes-not-whole-game-validation",
+  "inputs": "docs/research/game-feel-708-flight-inputs.json",
+  "candidate": "C80",
+  "trialDrag": 0.004,
+  "sourceSha256": {
+    "docs/research/game-feel-708-flight-inputs.json": "0f6222ebb96c68fb02e758bca3fba6d72ad4f3ee27fe74237d8ee08e62133399",
+    "docs/research/game-feel-708-candidates.json": "f4b89956571b1400fdd7119e3457b790afc5c48e7127f8b55d16a93acbc26de3",
+    "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
+    "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
+    "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
+    "src/GrandSluggers.Sim/BallFlight.cs": "ff0f7cd07a713ed41297335a871188f2c14b38af5045d50340d9554b6c75fe64",
+    "src/GrandSluggers.Sim/FieldBounds.cs": "8c50dfbf89fe00985701af04d4c6066460e2beedba157184f1dd168a7175290a",
+    "src/GrandSluggers.Sim/Rules.cs": "332ec5300c7ec28c45f3c3f001366ba0025b7ea594e44e7fbc37075fbbc960a3",
+    "src/GrandSluggers.Sim/BattedBall.cs": "ccb27d247b96807263a9983fba1ed35b8600a52c1bc39e6f12180fe63a65a589",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "78d9d47eda0e41dd33e128863ee5b70c0e41cf126dac6c0df5bd838d1401ab84",
+    "src/GrandSluggers.Sim/HarborWall.cs": "73b89434d3791dfe29a6eb79518c86647adae77b2ccc7b3472e5b9b86ad25404",
+    "src/GrandSluggers.Sim/Models.cs": "78b8530480a42b58cc9d424aeec080a66fc0aa31c641d6b515f5308c8b85e792",
+    "tools/game-feel-flight-probes/GameFeelFlightProbes.csproj": "48cc9606851a8083bd83f53457aa3f9311174fd328aa8c6622a67e9f1fec22fa",
+    "tools/game-feel-flight-probes/Program.cs": "112b99d212f1d5fff0f7ab7fe791eb30c57a39427c3d47a5f332a4e7630f5731"
+  },
+  "limitations": [
+    "Still air, fixed launch and exit speed, no launch noise, no contact distribution or player input.",
+    "The three ground probes are illustrative trajectories, not classifications of a fielding opportunity. Awkward-hop difficulty requires actual arrival relative to the fielder and bounce.",
+    "Air probes use explicit unrounded mean contact inputs, neutral chemistry/pitch factors and the named star exit multiplier; they do not run AtBatResolver or implement special effects.",
+    "Near-pole probes use 44.9 degrees to stay inside fair territory; fence distance and height use the actual C80 boundary at that spray.",
+    "Production BallFlight and FieldBounds run with in-memory C80 fences and drag overrides; there is no pursuit, acquisition, throwing, baserunning or full compact-game simulation.",
+    "Ground station velocities are sampled segment velocities on the actual play clock, not unscaled internal integration velocities."
+  ],
+  "rows": [
+    {
+      "id": "routine-ground-65-5",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 65,
+      "launchDeg": 5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 64.650621,
+      "firstLandingTimeSec": 1.19625,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 1.105179,
+            "heightFt": 0.709345,
+            "horizontalSpeedFtPerPlaySecond": 51.285494,
+            "verticalSpeedFtPerPlaySecond": -7.965865,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 1.569862,
+            "heightFt": 0.719867,
+            "horizontalSpeedFtPerPlaySecond": 40.47537,
+            "verticalSpeedFtPerPlaySecond": -0.352155,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 2.111926,
+            "heightFt": 0.124576,
+            "horizontalSpeedFtPerPlaySecond": 31.966091,
+            "verticalSpeedFtPerPlaySecond": -0.671046,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.19625,
+          "distanceFt": 64.650621
+        },
+        {
+          "timeSec": 1.8975,
+          "distanceFt": 93.10116
+        },
+        {
+          "timeSec": 2.21375,
+          "distanceFt": 103.244665
+        }
+      ]
+    },
+    {
+      "id": "hop-candidate-75-12",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 75,
+      "launchDeg": 12,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 137.751779,
+      "firstLandingTimeSec": 1.466667,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 0.59166,
+            "heightFt": 9.752534,
+            "horizontalSpeedFtPerPlaySecond": 95.879891,
+            "verticalSpeedFtPerPlaySecond": 2.361765,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 0.804437,
+            "heightFt": 9.49725,
+            "horizontalSpeedFtPerPlaySecond": 92.232926,
+            "verticalSpeedFtPerPlaySecond": -4.571607,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 1.02548,
+            "heightFt": 7.727602,
+            "horizontalSpeedFtPerPlaySecond": 88.715451,
+            "verticalSpeedFtPerPlaySecond": -11.503324,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.466667,
+          "distanceFt": 137.751779
+        },
+        {
+          "timeSec": 2.175,
+          "distanceFt": 183.599631
+        },
+        {
+          "timeSec": 2.5,
+          "distanceFt": 199.861804
+        }
+      ]
+    },
+    {
+      "id": "hard-infield-80-8",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 80,
+      "launchDeg": 8,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 115.817452,
+      "firstLandingTimeSec": 1.8425,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 0.903669,
+            "heightFt": 6.212396,
+            "horizontalSpeedFtPerPlaySecond": 62.763336,
+            "verticalSpeedFtPerPlaySecond": -1.330591,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 1.228593,
+            "heightFt": 5.16041,
+            "horizontalSpeedFtPerPlaySecond": 60.379859,
+            "verticalSpeedFtPerPlaySecond": -5.108936,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 1.566169,
+            "heightFt": 2.810897,
+            "horizontalSpeedFtPerPlaySecond": 58.159439,
+            "verticalSpeedFtPerPlaySecond": -8.752129,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.8425,
+          "distanceFt": 115.817452
+        },
+        {
+          "timeSec": 2.7775,
+          "distanceFt": 157.355328
+        },
+        {
+          "timeSec": 3.2175,
+          "distanceFt": 172.545456
+        }
+      ]
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 343.61719,
+      "firstLandingTimeSec": 6.545,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 60.757182,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.91875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 343.61719,
+      "firstLandingTimeSec": 6.545,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 44.551958,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.9775
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 343.61719,
+      "firstLandingTimeSec": 6.545,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 60.757182,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.91875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 406.411259,
+      "firstLandingTimeSec": 7.24625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 79.583127,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.42375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 406.411259,
+      "firstLandingTimeSec": 7.24625,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 73.9289,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.345
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 406.411259,
+      "firstLandingTimeSec": 7.24625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 79.583127,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.42375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 426.56506,
+      "firstLandingTimeSec": 7.46625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 84.36681,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.28625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 426.56506,
+      "firstLandingTimeSec": 7.46625,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 81.390198,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.16625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 426.56506,
+      "firstLandingTimeSec": 7.46625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 84.36681,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.28625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 446.035823,
+      "firstLandingTimeSec": 7.6725,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 88.596501,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.1625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 446.035823,
+      "firstLandingTimeSec": 7.6725,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 87.988329,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.00125
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 446.035823,
+      "firstLandingTimeSec": 7.6725,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 88.596501,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.1625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 451.337705,
+      "firstLandingTimeSec": 8.525,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 108.735936,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.42375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 451.337705,
+      "firstLandingTimeSec": 8.525,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 108.887438,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.345
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 451.337705,
+      "firstLandingTimeSec": 8.525,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 108.735936,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 3.42375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 269.180617,
+      "firstLandingTimeSec": 2.783333,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 17.020195,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 2.316667
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 269.180617,
+      "firstLandingTimeSec": 2.783333,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "wall",
+        "heightFt": 1.419969,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": true,
+        "eventSampleTimeSec": 2.941667
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "control-drag",
+      "drag": 0.0019,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 269.180617,
+      "firstLandingTimeSec": 2.783333,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 17.020195,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 2.316667
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "routine-ground-65-5",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 65,
+      "launchDeg": 5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 60.69945,
+      "firstLandingTimeSec": 1.19625,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 1.180732,
+            "heightFt": 0.038828,
+            "horizontalSpeedFtPerPlaySecond": 45.174819,
+            "verticalSpeedFtPerPlaySecond": -8.533416,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 1.739941,
+            "heightFt": 0.42797,
+            "horizontalSpeedFtPerPlaySecond": 34.162477,
+            "verticalSpeedFtPerPlaySecond": -2.411361,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 2.458984,
+            "heightFt": 0,
+            "horizontalSpeedFtPerPlaySecond": 24.456217,
+            "verticalSpeedFtPerPlaySecond": 0,
+            "segmentEndEvent": "Ground",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.19625,
+          "distanceFt": 60.69945
+        },
+        {
+          "timeSec": 1.88375,
+          "distanceFt": 84.864684
+        },
+        {
+          "timeSec": 2.2,
+          "distanceFt": 93.404992
+        }
+      ]
+    },
+    {
+      "id": "hop-candidate-75-12",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 75,
+      "launchDeg": 12,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 117.991912,
+      "firstLandingTimeSec": 1.408333,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 0.632612,
+            "heightFt": 9.21991,
+            "horizontalSpeedFtPerPlaySecond": 84.348878,
+            "verticalSpeedFtPerPlaySecond": -0.284181,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 0.879791,
+            "heightFt": 8.167632,
+            "horizontalSpeedFtPerPlaySecond": 77.760858,
+            "verticalSpeedFtPerPlaySecond": -8.001585,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 1.147745,
+            "heightFt": 4.978693,
+            "horizontalSpeedFtPerPlaySecond": 71.719966,
+            "verticalSpeedFtPerPlaySecond": -15.635891,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.408333,
+          "distanceFt": 117.991912
+        },
+        {
+          "timeSec": 2.058333,
+          "distanceFt": 151.131981
+        },
+        {
+          "timeSec": 2.358333,
+          "distanceFt": 162.605158
+        }
+      ]
+    },
+    {
+      "id": "hard-infield-80-8",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 80,
+      "launchDeg": 8,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 102.291081,
+      "firstLandingTimeSec": 1.80125,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": [
+        {
+          "distanceFt": 60,
+          "arrival": {
+            "timeSec": 0.965831,
+            "heightFt": 5.758913,
+            "horizontalSpeedFtPerPlaySecond": 55.157709,
+            "verticalSpeedFtPerPlaySecond": -2.554702,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 80,
+          "arrival": {
+            "timeSec": 1.343118,
+            "heightFt": 4.027571,
+            "horizontalSpeedFtPerPlaySecond": 50.955214,
+            "verticalSpeedFtPerPlaySecond": -6.586284,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        },
+        {
+          "distanceFt": 100,
+          "arrival": {
+            "timeSec": 1.752219,
+            "heightFt": 0.466892,
+            "horizontalSpeedFtPerPlaySecond": 46.935284,
+            "verticalSpeedFtPerPlaySecond": -10.755107,
+            "segmentEndEvent": "None",
+            "velocityMethod": "Segment velocity in play-clock units; an impact-spanning segment includes the collision."
+          }
+        }
+      ],
+      "groundImpacts": [
+        {
+          "timeSec": 1.80125,
+          "distanceFt": 102.291081
+        },
+        {
+          "timeSec": 2.68125,
+          "distanceFt": 133.775799
+        },
+        {
+          "timeSec": 3.08,
+          "distanceFt": 144.530456
+        }
+      ]
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 247.846536,
+      "firstLandingTimeSec": 5.8575,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 16.553648,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 5.26625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 247.846536,
+      "firstLandingTimeSec": 5.8575,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "wall",
+        "heightFt": 6.65858,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": true,
+        "eventSampleTimeSec": 7.535
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 99.375,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 247.846536,
+      "firstLandingTimeSec": 5.8575,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 16.553648,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 5.26625
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 282.414407,
+      "firstLandingTimeSec": 6.36625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 45.555206,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.5925
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 282.414407,
+      "firstLandingTimeSec": 6.36625,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "wall",
+        "heightFt": 2.995924,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 6.27
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-heat-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 114.28125,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 282.414407,
+      "firstLandingTimeSec": 6.36625,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 45.555206,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.5925
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 293.394666,
+      "firstLandingTimeSec": 6.53125,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 52.904682,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.41375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 293.394666,
+      "firstLandingTimeSec": 6.53125,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 16.070007,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 6.00875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-cask-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 119.25,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 293.394666,
+      "firstLandingTimeSec": 6.53125,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 52.904682,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.41375
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.499741,
+      "firstLandingTimeSec": 6.66875,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 59.405843,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.24875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.499741,
+      "firstLandingTimeSec": 6.66875,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 27.549275,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 5.775
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p5-furnace-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 124.21875,
+      "launchDeg": 30.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.499741,
+      "firstLandingTimeSec": 6.66875,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 59.405843,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.24875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.953162,
+      "firstLandingTimeSec": 7.38375,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 72.648062,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.6475
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.953162,
+      "firstLandingTimeSec": 7.38375,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 34.173501,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 6.33875
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-perfect-charge-lift",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 122.5,
+      "launchDeg": 35.5,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 303.953162,
+      "firstLandingTimeSec": 7.38375,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "home-run",
+        "heightFt": 72.648062,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": false,
+        "eventSampleTimeSec": 4.6475
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": -44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 206.007158,
+      "firstLandingTimeSec": 2.558333,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "wall",
+        "heightFt": 0.680166,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": true,
+        "eventSampleTimeSec": 3.116667
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": 0,
+      "windMph": 0,
+      "firstLandingDistanceFt": 206.007158,
+      "firstLandingTimeSec": 2.558333,
+      "fenceDistanceAlongSprayFt": 280,
+      "fenceCrossing": null,
+      "groundStations": null,
+      "groundImpacts": null
+    },
+    {
+      "id": "p10-nice-slap-neutral",
+      "dragProfile": "trial-drag",
+      "drag": 0.004,
+      "exitMph": 93.1,
+      "launchDeg": 21,
+      "sprayDeg": 44.9,
+      "windMph": 0,
+      "firstLandingDistanceFt": 206.007158,
+      "firstLandingTimeSec": 2.558333,
+      "fenceDistanceAlongSprayFt": 232.181757,
+      "fenceCrossing": {
+        "outcome": "wall",
+        "heightFt": 0.680166,
+        "wallHeightFt": 12,
+        "groundedBeforeCrossing": true,
+        "eventSampleTimeSec": 3.116667
+      },
+      "groundStations": null,
+      "groundImpacts": null
+    }
+  ]
+}

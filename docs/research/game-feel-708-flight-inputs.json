@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Counterexamples and representative flight probes for the #709 review; not authored difficulty thresholds or a hit-rate cohort.",
+  "groundStationsFt": [60, 80, 100],
+  "sprayDegrees": [-44.9, 0, 44.9],
+  "limitations": [
+    "Still air, fixed launch and exit speed, no launch noise, no contact distribution or player input.",
+    "The three ground probes are illustrative trajectories, not classifications of a fielding opportunity. Awkward-hop difficulty requires actual arrival relative to the fielder and bounce.",
+    "Air probes use explicit unrounded mean contact inputs, neutral chemistry/pitch factors and the named star exit multiplier; they do not run AtBatResolver or implement special effects.",
+    "Near-pole probes use 44.9 degrees to stay inside fair territory; fence distance and height use the actual C80 boundary at that spray.",
+    "Production BallFlight and FieldBounds run with in-memory C80 fences and drag overrides; there is no pursuit, acquisition, throwing, baserunning or full compact-game simulation.",
+    "Ground station velocities are sampled segment velocities on the actual play clock, not unscaled internal integration velocities."
+  ],
+  "probes": [
+    {"id": "routine-ground-65-5", "kind": "ground", "exitMph": 65, "launchDeg": 5, "basis": "Authored routine-ground trajectory probe; opportunity reliability is not evaluated."},
+    {"id": "hop-candidate-75-12", "kind": "ground", "exitMph": 75, "launchDeg": 12, "basis": "Authored hop trajectory probe; not an approved awkward-hop difficulty threshold."},
+    {"id": "hard-infield-80-8", "kind": "ground", "exitMph": 80, "launchDeg": 8, "basis": "Review counterexample to unchanged grounder timing."},
+    {"id": "p5-perfect-charge-lift", "kind": "air", "exitMph": 99.375, "launchDeg": 30.5, "basis": "(61 + 3.7*5)*1.25; mean center-height charged full-lift launch."},
+    {"id": "p5-heat-perfect-charge-lift", "kind": "air", "exitMph": 114.28125, "launchDeg": 30.5, "basis": "P5 perfect charge exit * heat-swing 1.15."},
+    {"id": "p5-cask-perfect-charge-lift", "kind": "air", "exitMph": 119.25, "launchDeg": 30.5, "basis": "P5 perfect charge exit * cask-swing 1.20."},
+    {"id": "p5-furnace-perfect-charge-lift", "kind": "air", "exitMph": 124.21875, "launchDeg": 30.5, "basis": "P5 perfect charge exit * furnace 1.25."},
+    {"id": "p10-perfect-charge-lift", "kind": "air", "exitMph": 122.5, "launchDeg": 35.5, "basis": "(61 + 3.7*10)*1.25; mean center-height charged full-lift launch."},
+    {"id": "p10-nice-slap-neutral", "kind": "air", "exitMph": 93.1, "launchDeg": 21, "basis": "(61 + 3.7*10)*.95; mean center-height neutral slap launch."}
+  ]
+}
