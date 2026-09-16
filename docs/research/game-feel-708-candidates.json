@@ -682,8 +682,8 @@
     },
     {
       "id": "F693-04-flight-budget",
-      "state": "pending",
-      "question": "Review contact-class flight, bounce/roll and wall-play tradeoffs within the selected space."
+      "state": "next-human-decision",
+      "question": "C80 as specified is a home-run derby: a Power-3 bat clears centre on a charged perfect and a Power-10 bat homers on ordinary contact. Raise the ball drag, cut exit velocity, or raise the wall?"
     },
     {
       "id": "F693-07-presentation-budget",
@@ -7325,5 +7325,190 @@
       "Content validation rejects a character missing Arm or carrying an out-of-range value, and the roster-building sum change is explicit rather than incidental.",
       "Both seats and the CPU use the same ratings through the same formulas."
     ]
+  },
+  "flightBudgetResearch": {
+    "decisionId": "F693-04-flight-budget",
+    "state": "next-human-decision",
+    "status": "research-model-probes-not-simulation",
+    "preparedOn": "2026-09-15",
+    "parentDecisionIds": [
+      "F693-02-spatial-trial",
+      "F693-02-catch-reach-envelope",
+      "F693-02-pursuit-speed"
+    ],
+    "method": {
+      "source": "The game's own contact and flight model, read from data/rules/batting.json, data/rules/flight.json and AtBatResolver.",
+      "validation": "Carry figures cross-checked against BallFlight.CarryFeet on seven probes, agreeing within 0.7 foot. Counterfactuals vary only the drag constant in that same integrator.",
+      "excludes": [
+        "launch noise of plus or minus 7 degrees",
+        "spray angle, so the nearer pole wall is not reflected in centre-line figures",
+        "contact-quality distribution",
+        "star swings, chemistry and pitch factor beyond the quality multipliers"
+      ],
+      "interpretation": "Probes establishing the shape of the problem and the size of each lever. They are not a home-run rate and no rate can be claimed before whole-race validation.",
+      "simulated": false
+    },
+    "model": {
+      "exitMph": "(61 + 3.7 x Power) scaled by quality: slap 0.75 / 0.95 / 1.00, charge 0.95 / 1.12 / 1.25, then star swing, on-base chemistry and pitch factor.",
+      "launchDeg": "16 + (Power - 5) + 2.5 if charged + 6 per foot of pitch height - 12 x stick, plus or minus 7 degrees of noise, clamped 3 to 52.",
+      "integrator": "120 Hz Euler, gravity 32.174, drag 0.0019, plate height 2.5 ft.",
+      "decoupledClocks": "timeScale 1.65 stretches sample times without changing distance, so a fly travels its ballistic distance on a clock 1.65 times slower. linerTimeScale 1.0 exempts anything under 22 degrees at 74 mph or more. That split decides which balls the defence reaches."
+    },
+    "findings": {
+      "derby": {
+        "headline": "C80 as specified is a home-run derby, and the honest measure is the ball's height crossing the fence line rather than its carry, because the 12-foot wall catches wall-scrapers.",
+        "probes": [
+          {
+            "contact": "perfect slap, lifted, Power 5",
+            "class": "fly",
+            "heightAt232PoleFt": 10.8,
+            "heightAt280CentreFt": null,
+            "verdict": "wall ball"
+          },
+          {
+            "contact": "nice slap, neutral, Power 10",
+            "class": "liner",
+            "heightAt232PoleFt": 17.1,
+            "heightAt280CentreFt": null,
+            "verdict": "home run"
+          },
+          {
+            "contact": "perfect charge, lifted, Power 3",
+            "class": "fly",
+            "heightAt232PoleFt": 37.6,
+            "heightAt280CentreFt": 12.2,
+            "verdict": "home run to centre"
+          },
+          {
+            "contact": "perfect charge, neutral, Power 8",
+            "class": "liner",
+            "heightAt232PoleFt": 43.0,
+            "heightAt280CentreFt": 33.1,
+            "verdict": "home run"
+          },
+          {
+            "contact": "perfect charge, lifted, Power 5",
+            "class": "fly",
+            "heightAt232PoleFt": 60.8,
+            "heightAt280CentreFt": 44.5,
+            "verdict": "home run"
+          },
+          {
+            "contact": "perfect charge, lifted, Power 10",
+            "class": "fly",
+            "heightAt232PoleFt": 108.7,
+            "heightAt280CentreFt": 108.9,
+            "verdict": "home run"
+          }
+        ],
+        "worstTwo": "A Power-3 hitter, the weakest bat on the roster, clears centre field with a charged perfect swing. A Power-10 hitter leaves the yard on ordinary uncharged contact, on a line drive, with no lift at all. On the control field the same swings carry 296 and 269 feet against a 330-foot pole and a 400-foot centre, both comfortably in play.",
+        "diagnosis": "The compact park did not change the ball, and the ball is the thing that is now wrong."
+      },
+      "doublesEngine": {
+        "alleyClosureSeconds": 2.56,
+        "flyHangRangeSeconds": [
+          4.3,
+          8.5
+        ],
+        "linerHangRangeSeconds": [
+          1.8,
+          3.3
+        ],
+        "reading": "Flies are caught whenever they stay in the park; the 1.65 arcade clock guarantees it. Liners mostly beat the closure and drop. The doubles and triples Jack wants come from line drives, through a clock split that already exists, so the mechanism is intact and needs no new invention.",
+        "riskInversion": "Liners are not in danger of being caught. They are in danger of clearing the fence instead of falling in the gap."
+      },
+      "globalBall": {
+        "parks": [
+          {
+            "id": "canopy-yard",
+            "poleFt": 312,
+            "centreFt": 378,
+            "wallFt": 12
+          },
+          {
+            "id": "crystal-rink",
+            "poleFt": 320,
+            "centreFt": 385,
+            "wallFt": 8
+          },
+          {
+            "id": "ember-keep",
+            "poleFt": 338,
+            "centreFt": 408,
+            "wallFt": 10
+          },
+          {
+            "id": "funfair-park",
+            "poleFt": 315,
+            "centreFt": 390,
+            "wallFt": 8
+          },
+          {
+            "id": "harbor-diamond",
+            "poleFt": 330,
+            "centreFt": 400,
+            "wallFt": 12
+          },
+          {
+            "id": "rooftop-city",
+            "poleFt": 318,
+            "centreFt": 388,
+            "wallFt": 12
+          }
+        ],
+        "reading": "All six parks are still at control scale, and drag, gravity and the exit table are global. Whatever is chosen applies to every park, and every park will need its own compact migration. That argues for fixing this in the ball rather than in one park's wall."
+      }
+    },
+    "leverTableFt": [
+      {
+        "lever": "today, drag 0.0019",
+        "niceSlapLiftP5": 230,
+        "perfectChargeLiftP3": 296,
+        "perfectChargeLiftP5": 344,
+        "perfectChargeLiftP10": 451,
+        "niceSlapNeutralP10": 269
+      },
+      {
+        "lever": "drag 0.0040",
+        "niceSlapLiftP5": 180,
+        "perfectChargeLiftP3": 221,
+        "perfectChargeLiftP5": 248,
+        "perfectChargeLiftP10": 304,
+        "niceSlapNeutralP10": 206
+      },
+      {
+        "lever": "exit x 0.80",
+        "niceSlapLiftP5": 164,
+        "perfectChargeLiftP3": 217,
+        "perfectChargeLiftP5": 256,
+        "perfectChargeLiftP10": 350,
+        "niceSlapNeutralP10": 195
+      }
+    ],
+    "options": [
+      {
+        "id": "raise-drag",
+        "dragTrial": 0.004,
+        "summary": "Raise the ball's drag from 0.0019 to about 0.0040 so carry falls without touching how hard the ball is hit.",
+        "consequence": "Reproduces the control field's home-run economy on a park 30% smaller: only a charged, squared-up swing leaves the yard, a mid-power charged perfect clears the pole but not centre, and the biggest bat clears centre. It also increases gap doubles, because liners that used to clear the fence now land in front of it \u2014 a Power-10 nice slap becomes a 206-foot liner at 2.56 seconds instead of a 269-foot home run.",
+        "cost": "Drag is a hidden coefficient, so the change is felt rather than seen; the ball visibly decelerates more in the air, a heavier-ball look that has to be judged by eye, not by arithmetic."
+      },
+      {
+        "id": "cut-exit-velocity",
+        "exitMul": 0.8,
+        "summary": "Scale the exit table down by about a fifth.",
+        "consequence": "Reaches a similar fence outcome.",
+        "cost": "Scales everything, including how hard a grounder arrives at an infielder, which reopens accepted infield races, the awkward-hop difficulty source and the error model rather than leaving them alone."
+      },
+      {
+        "id": "raise-the-wall",
+        "summary": "Raise the 12-foot wall.",
+        "consequence": "Cheapest and most visible, and it converts wall-scrapers into wall play, which serves the doubles goal directly.",
+        "cost": "Does nothing about a 451-foot drive or a 352-foot liner, so it trims the derby rather than fixing it. A good companion to a ball change and a poor substitute for one."
+      }
+    ],
+    "wallHeightNote": "The accepted spatial contract deliberately preserved the 12-foot wall as a control so that wall height and wall distance would not move together. Changing it is therefore a conscious revision of that control, not a free knob.",
+    "referenceLimit": "No Wii or GameCube carry, drag or home-run rate has been measured. The target economy used here is this game's own control field, not either reference.",
+    "implementationBoundary": "Research probes prepared for one human decision. No drag value, exit table, wall height, park migration, rules-file edit, runtime change or human gate is selected or passed here."
   }
 }

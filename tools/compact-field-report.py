@@ -1615,6 +1615,32 @@ def derive(data):
             if row["group"] == "cpu-reaction":
                 assert "reactionMul" in row["formula"], "A CPU-only row must show the difficulty multiplier"
         assert any(row["group"] == "reach" and row["status"].startswith("superseded") for row in traits["inventory"])
+    flight = data.get("flightBudgetResearch")
+    if flight:
+        assert flight["state"] == "next-human-decision"
+        assert flight["method"]["simulated"] is False
+        parks = flight["findings"]["globalBall"]["parks"]
+        control = data["profiles"][0]
+        assert all(p["centreFt"] > control["fencesFt"][1] * .9 for p in parks), \
+            "The global-ball finding rests on every park still being at control scale"
+        lead = next(p for p in data["profiles"] if p["id"] == selected)
+        pole, centre = lead["fencesFt"][0], lead["fencesFt"][1]
+        for row in flight["findings"]["derby"]["probes"]:
+            over_pole = row["heightAt232PoleFt"] is not None and row["heightAt232PoleFt"] > 12
+            assert (row["verdict"] != "wall ball") == over_pole or row["heightAt280CentreFt"] is not None, \
+                "A wall-ball verdict must be a ball that failed to clear the 12-foot wall"
+        levers = {row["lever"]: row for row in flight["leverTableFt"]}
+        today = next(k for k in levers if k.startswith("today"))
+        for name, row in levers.items():
+            if name == today:
+                continue
+            assert all(row[k] < levers[today][k] for k in row if k != "lever"), \
+                "Every lever must shorten every probe relative to today"
+        drag_row = levers["drag 0.0040"]
+        assert drag_row["perfectChargeLiftP10"] > centre and drag_row["perfectChargeLiftP5"] > pole, \
+            "The recommended lever must still let a charged squared-up swing leave the yard"
+        assert drag_row["niceSlapLiftP5"] < pole and drag_row["niceSlapNeutralP10"] < pole, \
+            "The recommended lever must keep ordinary contact in the park"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
@@ -1625,6 +1651,7 @@ def derive(data):
             "cpuDiveIntentState": cpu_dive["state"] if cpu_dive else None,
             "diveRecoveryCostState": delay_research["state"] if delay_research else None,
             "defensiveTraitMappingState": traits["state"] if traits else None,
+            "flightBudgetState": flight["state"] if flight else None,
             "gloveCatchSidesState": glove_sides["state"] if glove_sides else None,
             "gloveContactSurfaceState": glove_surface["state"] if glove_surface else None,
             "errorContactObstructionBasisState": contact_incidence["state"] if contact_incidence else None,

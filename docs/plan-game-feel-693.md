@@ -342,7 +342,10 @@ Do not add an experimental player-facing settings menu. Research profiles belong
 
 Seven rows remain in the #708 queue and no human decision is pending. The fielding contract is decided end to end but **has never been run**: roughly ninety-five accepted anchors exist only as authored arithmetic, and none of them has met the others. The sequence below is ordered by that fact, not by queue order.
 
-**1. Flight budget — `F693-04-flight-budget`. Design, expect one or two decisions.**
+**1. Flight budget — `F693-04-flight-budget`. Research done September 15, 2026; one decision open.**
+See [what C80 does to the ball](research-game-feel-708.md#flight-budget--what-c80-does-to-the-ball). The compact park did not change the ball, and the ball is now wrong: a Power-3 bat clears centre field on a charged perfect swing and a Power-10 bat leaves the yard on ordinary uncharged line-drive contact. The doubles engine, by contrast, is intact — `linerTimeScale 1.0` keeps liners on the real clock against a 2.56-second alley closure while flies hang 4.3 to 8.5 seconds and are always caught, so gap hits come from liners and the risk is that they clear the fence rather than that they get caught. All six parks are still at control scale and drag is global, so this is the game's ball rather than Harbor's. Levers measured: raise drag to about 0.0040, cut exit velocity by a fifth, or raise the wall.
+
+**Original framing.**
 The last remaining design input, and the one that decides whether the fielding numbers are right. Everything accepted so far describes what the defence *can* cover; the flight budget decides what it *has* to cover. Contact-class flight, bounce, roll and wall play inside 232 / 280 / 232 feet. The coverage arithmetic is explicitly contingent on it — the closure tables state a ceiling, and how many real batted balls land inside the open window is a flight question. **Do this before implementation**, because it can move reach and pursuit, and moving them after they are in code is more expensive.
 
 **2. Coverage budget — `F693-02-coverage-budget`. Research-heavy, perhaps one decision.**

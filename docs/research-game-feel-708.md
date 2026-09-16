@@ -275,6 +275,61 @@ Four knock-on effects are recorded rather than assumed:
 
 **Reference limit:** no Wii or GameCube stat architecture has been inspected in this packet. Both games display per-character ratings, but nothing here establishes what their internals separate, and no claim is made about it.
 
+## Flight budget — what C80 does to the ball
+
+`F693-04-flight-budget`. Everything accepted so far describes what the defence *can* cover. This is what it has to cover. Figures come from the game's own model, cross-checked against `BallFlight.CarryFeet` on seven probes and agreeing within 0.7 foot; the counterfactuals vary only the drag constant in that same integrator.
+
+### The model, stated plainly
+
+Exit speed is `(61 + 3.7 × Power) mph` scaled by contact quality — slap 0.75 / 0.95 / 1.00 for sour, nice and perfect, charge 0.95 / 1.12 / 1.25 — then by star swing, on-base chemistry and the pitch factor. Launch is `16 + (Power − 5) + 2.5 if charged + 6 per foot of pitch height − 12 × stick`, with ±7° of noise, clamped to 3–52°. Flight is a 120 Hz Euler integration with gravity 32.174 and drag 0.0019.
+
+Two details matter more than anything else here. **Carry and hang are decoupled:** `timeScale 1.65` stretches sample times without changing distance, so a fly travels its ballistic distance on a clock 1.65 times slower. And **liners are exempt** — `linerTimeScale 1.0` leaves anything under 22° at 74 mph or more on the real clock. That single split is what decides which balls the defence reaches.
+
+### Finding one — C80 as specified is a home-run derby
+
+Carry alone overstates this, because the 12-foot wall catches wall-scrapers. The honest measure is the ball's **height as it crosses the fence line**:
+
+| Contact | Class | At the 232 ft pole | At 280 ft centre | |
+| --- | --- | --- | --- | --- |
+| perfect slap, lifted, Power 5 | fly | 10.8 ft | — | wall ball |
+| **nice slap, neutral, Power 10** | **liner** | **17.1 ft** | — | **home run** |
+| **perfect charge, lifted, Power 3** | **fly** | 37.6 ft | **12.2 ft** | **home run to centre** |
+| perfect charge, neutral, Power 8 | liner | 43.0 ft | 33.1 ft | home run |
+| perfect charge, lifted, Power 5 | fly | 60.8 ft | 44.5 ft | home run |
+| perfect charge, lifted, Power 10 | fly | 108.7 ft | 108.9 ft | home run |
+
+Two rows are the problem. A **Power-3 hitter** — the weakest bat on the roster — clears **centre field** with a charged perfect swing. And a **Power-10 hitter leaves the yard on ordinary uncharged contact**, on a line drive, with no lift at all. On the control field the same swings carry 296 and 269 feet against a 330-foot pole and a 400-foot centre: both comfortably in play. The compact park did not change the ball, and the ball is the thing that is now wrong.
+
+### Finding two — the doubles engine survives, and it is the liner
+
+Against the accepted C80 alley closure of 2.56 seconds at the accepted 6-foot reach:
+
+- **Flies hang 4.3 to 8.5 seconds.** Every one of them is caught if it stays in the park. The 1.65 arcade clock guarantees it.
+- **Liners hang 1.8 to 3.3 seconds.** Most beat the closure and drop.
+
+So the doubles and triples Jack wants do not come from fly balls at all — they come from line drives, and they come from them because of a clock split that already exists. That is good news for the compact field: the mechanism is intact and needs no new invention. The risk is the opposite of what it looked like. Liners are not in danger of being caught; they are in danger of **clearing the fence instead of falling in the gap**.
+
+### Finding three — this is the game's ball, not Harbor's
+
+All six parks are still at control scale: poles 312–338 feet, centres 378–408, walls 8–12 feet. Drag, gravity and the exit table are global. Whatever is chosen applies to every park, and every park will need its own compact migration. That is an argument for fixing this in the ball rather than in one park's wall.
+
+### The levers, with numbers
+
+| | nice slap lift P5 | perfect charge lift P3 | perfect charge lift P5 | perfect charge lift P10 | nice slap neutral P10 |
+| --- | --- | --- | --- | --- | --- |
+| **today, drag 0.0019** | 230 ft | 296 | 344 | 451 | 269 |
+| **drag 0.0040** | 180 | 221 | 248 | 304 | 206 |
+| **exit × 0.80** | 164 | 217 | 256 | 350 | 195 |
+| *control-field equivalent* | *in play* | *in play* | *pole homer* | *centre homer* | *in play* |
+
+**Raising drag to 0.0040** reproduces the control field's home-run economy on a park 30% smaller: only a charged, squared-up swing leaves the yard, a mid-power charged perfect clears the pole but not centre, and the biggest bat clears centre. It is surgical — drag acts on carry through the air and barely touches a ground ball, so exit speeds, infield races, the awkward-hop difficulty source and every accepted fielding anchor are unaffected. It also *increases* gap doubles, because liners that used to clear the fence now land in front of it: a Power-10 nice slap becomes a 206-foot liner at 2.56 seconds instead of a 269-foot home run.
+
+**Cutting exit velocity by a fifth** reaches a similar fence outcome but scales everything, including how hard a grounder arrives at an infielder. That reopens accepted infield work rather than leaving it alone.
+
+**Raising the wall** is the cheapest and most visible, and it converts wall-scrapers into wall play, which serves the doubles goal directly. But it does nothing about a 451-foot drive or a 352-foot liner, so it trims the derby rather than fixing it. It is a good companion to a ball change and a poor substitute for one.
+
+**Scope note:** these are probes at mean launch with noise excluded, ignoring spray angle — the fence runs from 232 feet at the poles to 280 at centre, so a pulled ball faces a nearer wall than these centre-line figures suggest. They establish the shape of the problem and the size of each lever, **not a home-run rate**. No rate can be claimed before the whole-race validation.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.
