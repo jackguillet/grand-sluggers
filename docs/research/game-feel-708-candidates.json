@@ -620,8 +620,13 @@
     },
     {
       "id": "F693-02-continuing-error-ground-response",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "After a continuing deflection, use the shared ordinary batted-ball ground response from its actual new motion, without local-bobble caps or extra error-specific braking?"
+    },
+    {
+      "id": "F693-02-continuing-error-retention-curve",
+      "state": "next-human-decision",
+      "question": "Use a linear progression from 80% retention for the lightest continuing contact to 50% for the most obstructive continuing contact, with 65% at the midpoint?"
     },
     {
       "id": "F693-02-defensive-trait-migration",
@@ -5505,7 +5510,7 @@
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction, recovery, continuing \u00b115-degree/local \u00b130-degree caps, uniform angular sampling and .50\u2013.80 continuing horizontal-speed bounds are accepted. Contact mapping, outcome thresholds and vertical response remain pending; no complete runtime physics model is approved.",
+    "openInteractions": "Reaction, recovery, angle caps/distribution, local response, continuing 50\u201380% shared horizontal/vertical bounds and shared ordinary continuing ground-response family are accepted. Contact mapping, classification thresholds, ordinary ground calibration and complete collision integration remain open.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5622,7 +5627,10 @@
     "maximumRetainedHorizontalSpeedFraction": 0.8,
     "contactRetentionMapping": null,
     "outcomeThresholds": null,
-    "verticalResponse": null,
+    "verticalResponse": {
+      "decisionId": "F693-02-continuing-error-vertical-retention",
+      "sameFactorAsHorizontal": true
+    },
     "recommendation": "Trial continuing-deflection horizontal speed between .50 and .80 times its actual horizontal speed immediately before contact. A glancing touch retains a larger share; more obstructive contact within the continuing branch retains a smaller share. This selects bounds, not the interpolation or branch classifier.",
     "rationale": "The ball remains dangerous after an infield error but visibly loses speed, preserving the user distinction from a substantially stopped local bobble. Faster incoming balls can still travel faster afterward than slower ones; avoid assigning every escaped ball one fixed speed or destination.",
     "scope": "Apply only after the reviewed actual contact/outcome classifier selects a continuing ordinary failed-handling deflection. The .50 minimum is not a floor for all contacts: substantial knockdowns can enter the separate local-bobble branch. Do not force the classifier to retain speed merely to satisfy this range. Zero/near-zero incoming horizontal motion cannot be turned into an artificial travelling deflection.",
@@ -6211,11 +6219,16 @@
     "implementationBoundary": "Accepted continuing vertical-response coupling only. No runtime tuning, measured reference claim or human gate pass.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"yes\" to the shared contact-retention factor for continuing deflections: the same 50\u201380% factor scales horizontal and signed vertical speed."
+    "acceptanceEvidence": "Jack replied \"yes\" to the shared contact-retention factor for continuing deflections: the same 50\u201380% factor scales horizontal and signed vertical speed.",
+    "groundResponse": {
+      "decisionId": "F693-02-continuing-error-ground-response",
+      "responseFamily": "shared-ordinary-batted-ball-ground",
+      "numericalGroundProfile": null
+    }
   },
   "continuingErrorGroundResponseProposal": {
     "decisionId": "F693-02-continuing-error-ground-response",
-    "state": "pending",
+    "state": "accepted-calibration-anchor",
     "responseFamily": "shared-ordinary-batted-ball-ground",
     "extraErrorSpecificBraking": false,
     "inheritsLocalBobbleGroundLimits": false,
@@ -6228,7 +6241,7 @@
     "openNumbers": "This selects shared behavior, not the current legacy numerical defaults. Ordinary flight/ground calibration remains F693-04-flight-budget work; restitution, ground horizontal retention, settling and rolling values are not approved by this proposal. Any later change to that shared profile must be checked against normal hits and continuing-error races together.",
     "preserved": "Keep the accepted contact-dependent 50\u201380% horizontal/vertical speed factor, forward-biased contact direction with uniform +/-15-degree variation, .40-second contacted-error stun and actual eligible pickup. No automatic outfield destination, fixed travel distance, additional error roll or forced extra base.",
     "scope": "Ordinary continuing handling errors on ordinary park ground. Walls, slopes and individual specials retain their explicit contracts; this does not silently clear a special effect or choose a new special-surface response.",
-    "referenceLimit": "Authored rule-sharing proposal, not a claim about Wii/GC internal ground physics. Compare ordinary-hit and deflected trajectories with equivalent state in reference/gameplay research before claiming parity.",
+    "referenceLimit": "Accepted authored rule-sharing direction, not a claim about Wii/GC internal ground physics. Compare ordinary-hit and deflected trajectories with equivalent state in reference/gameplay research before claiming parity.",
     "requiredChecks": [
       "Equivalent ordinary/deflected physical states on the same surface use the same ground response, while their acquisition-error history remains distinct.",
       "Continue from actual contact state; no restored pre-deflection trajectory or fabricated landing.",
@@ -6236,6 +6249,55 @@
       "Preserve reliable recovery and independent stun through ground transitions.",
       "Review normal gaps, hard infield escapes and relay races together when calibrating shared ground values."
     ],
-    "implementationBoundary": "Pending shared-ground-response direction only; ordinary numerical profile, runtime integration and human validation remain open."
+    "implementationBoundary": "Pending shared-ground-response direction only; ordinary numerical profile, runtime integration and human validation remain open.",
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack replied \"yes\" to ordinary batted-ball ground physics for continuing deflections without extra error-specific slowing."
+  },
+  "continuingErrorRetentionCurveProposal": {
+    "decisionId": "F693-02-continuing-error-retention-curve",
+    "state": "pending",
+    "curve": "linear",
+    "lightContactRetention": 0.8,
+    "strongContinuingContactRetention": 0.5,
+    "obstructionMetric": null,
+    "branchThresholds": null,
+    "recommendation": "Within the already selected continuing branch, interpolate linearly from .80 retention for the lightest reviewed contact obstruction to .50 for the strongest obstruction still classified as continuing. Use the same resulting factor for horizontal and signed vertical speed.",
+    "definition": "For normalized contact obstruction c in [0,1] within the continuing-contact range, r=.80-.30*c. Here c=0 is the light endpoint and c=1 the strong continuing endpoint, not a completely blocked ball. Defining c from actual contact geometry and choosing branch boundaries remain separate pending work.",
+    "examples": [
+      {
+        "normalizedContinuingObstruction": 0,
+        "retainedFraction": 0.8
+      },
+      {
+        "normalizedContinuingObstruction": 0.25,
+        "retainedFraction": 0.7250000000000001
+      },
+      {
+        "normalizedContinuingObstruction": 0.5,
+        "retainedFraction": 0.65
+      },
+      {
+        "normalizedContinuingObstruction": 0.75,
+        "retainedFraction": 0.5750000000000001
+      },
+      {
+        "normalizedContinuingObstruction": 1,
+        "retainedFraction": 0.5
+      }
+    ],
+    "rationale": "Give intermediate contacts a gradual response: midpoint obstruction retains 65%. A stepped light/heavy response creates an abrupt speed change; a nonlinear curve would favor one end. This trial adds neither new retention bounds nor another random outcome.",
+    "scope": "Qualifying contacted ordinary errors already classified as continuing only. No new error trigger, chance, glove positioning/range change, handling modifier or use of difficulty D as an obstruction shortcut. Contact geometry and event-side motion determine the future obstruction metric; speed alone is not that metric.",
+    "classification": "Select local versus continuing from physical pre-response contact under the later reviewed classifier. Do not define c from desired outgoing speed, tactical runner positions or whether an extra base would result. No interpolation between the local 20%-capped spill and the continuing .50-.80 response is selected; any branch discontinuity remains a validation concern.",
+    "preserved": "Keep actual incoming velocity, continuous contact origin, forward-biased heading and uniform +/-15-degree variation, shared vertical retention, shared ordinary ground response, .40-second stun and reliable same-error recovery. Untouched misses and specials retain separate contracts.",
+    "referenceLimit": "Authored curve shape and analytic examples, not measured Wii/GC contact interpolation. No obstruction geometry has yet been selected or measured by this proposal.",
+    "requiredChecks": [
+      "Retention is monotone decreasing across c=0 through 1 and remains within .50-.80, with .65 at midpoint.",
+      "Apply one identical factor to horizontal and signed vertical speed, with no extra roll.",
+      "Do not treat c=1 as complete blockage or use the curve to classify a contact.",
+      "Future geometry metric must be replayable, invariant under field rotation and independent of tactical outcomes.",
+      "Review near-boundary contacts and full recovery races before runtime/human acceptance."
+    ],
+    "implementationBoundary": "Pending interpolation shape only. Obstruction metric, outcome thresholds, ordinary ground values, runtime and human validation remain open."
   }
 }
