@@ -1544,7 +1544,9 @@ def derive(data):
         assert len(cpu_dive["options"]) == 3
     delay_research = data.get("diveRecoveryCostResearch")
     if delay_research:
-        assert delay_research["state"] == "next-human-decision"
+        assert delay_research["state"] == "accepted-calibration-anchor"
+        assert delay_research["acceptedBy"] and delay_research["acceptedOn"] and delay_research["acceptanceEvidence"]
+        assert delay_research["acceptedOption"] == "narrow-variation"
         neighbours = delay_research["neighbouringAcceptedDurationsSeconds"]
         assert math.isclose(neighbours["sharedHandlingStun"], data["bobbleStunDurationProposal"]["stunDurationSec"])
         example = data["throwReleaseProposal"]["arithmeticOnlyExample"]
@@ -1570,6 +1572,26 @@ def derive(data):
         assert narrow["ratePerPoint"] < house["ratePerPoint"]
         assert (anchor["runnerNominalArrivalSeconds"] - anchor["routineReceptionSeconds"]
                 - narrow["highestSeconds"]) < .05, "A narrowed curve must still deny the best defender a comfortable out"
+        chosen_delay = next(o for o in delay_research["options"] if o["id"] == delay_research["acceptedOption"])
+        accepted_delay = delay_research["acceptedDirection"]
+        assert math.isclose(accepted_delay["baseSeconds"], trial)
+        assert accepted_delay["variesByCharacter"] is True
+        assert math.isclose(accepted_delay["ratePerPoint"], chosen_delay["ratePerPoint"])
+        assert accepted_delay["ratePerPoint"] < house["ratePerPoint"], \
+            "The accepted curve must stay narrower than the recoil curve"
+        assert accepted_delay["caughtAndMissedCostTheSame"] is True
+        assert accepted_delay["handlingStunComposition"] == "overlap-take-the-longer"
+        assert accepted_delay["appliesToCpu"] is True and cpu_dive["acceptedDirection"]["cpuPaysSameRecoveryDelay"]
+        rows = accepted_delay["rows"]
+        assert [r["qualityPoint"] for r in rows] == list(range(1, 11))
+        seconds = [r["seconds"] for r in rows]
+        assert all(a > b > 0 for a, b in zip(seconds, seconds[1:])), "Rows must be positive and strictly decreasing"
+        for row in rows:
+            assert math.isclose(row["seconds"],
+                                accepted_delay["baseSeconds"] * (1 - accepted_delay["ratePerPoint"] * (row["qualityPoint"] - 1)),
+                                abs_tol=5e-4)
+        best_margin = anchor["marginSeconds"] - seconds[-1]
+        assert best_margin < .05, "The best defender may not get a comfortable out on an unnecessary dive"
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,

@@ -700,7 +700,7 @@
     },
     {
       "id": "F693-02-dive-recovery-cost",
-      "state": "next-human-decision",
+      "state": "accepted-calibration-anchor",
       "question": "Proposed 0.60-second dive recovery, caught and missed alike, overlapping the handling stun. Does it vary by character, and how widely?"
     },
     {
@@ -712,6 +712,11 @@
       "id": "F693-02-cpu-dive-intent-policy",
       "state": "pending",
       "question": "When does the CPU spend a dive, how far ahead may it look when deciding, and does willingness vary with difficulty?"
+    },
+    {
+      "id": "F693-02-defensive-trait-mapping",
+      "state": "pending",
+      "question": "Which explicit defensive traits exist, and how do they map to the quality input now consumed by the handling error chance and the dive recovery curve?"
     }
   ],
   "runnerClockProposal": {
@@ -6911,8 +6916,8 @@
   },
   "diveRecoveryCostResearch": {
     "decisionId": "F693-02-dive-recovery-cost",
-    "state": "next-human-decision",
-    "status": "consolidated-trial-research-not-simulation",
+    "state": "accepted-calibration-anchor",
+    "status": "accepted-trial-anchor-research-not-simulation",
     "preparedOn": "2026-09-15",
     "parentDecisionIds": [
       "F693-02-dive-jump-scoop-reach"
@@ -6933,7 +6938,7 @@
     ],
     "plan": "Consolidate into a single proposed trial rather than arbitrating coefficients one at a time, and only return to Jack if the shape turns out to be a real tradeoff. Sequenced after F693-02-cpu-dive-intent, because a CPU that dives changes what the delay has to be worth.",
     "referenceLimit": "No Wii or GameCube dive recovery has been measured.",
-    "implementationBoundary": "Consolidated trial and one open question. No duration, trait curve, composition rule, rules-file edit, runtime change or human gate is selected or passed here.",
+    "implementationBoundary": "Accepted trial duration, curve and composition rules only. No trait list, trait-to-quality mapping, rules-file edit, runtime change, roster change or human gate is selected or passed here.",
     "anchor": {
       "source": "throwReleaseProposal.arithmeticOnlyExample",
       "routineReceptionSeconds": 2.95,
@@ -7035,6 +7040,82 @@
         "consequence": "Simplest possible rule and the least to tune.",
         "cost": "Leaves Fielding meaning very little in ordinary play, having already lost reach, glove positioning and tracking speed."
       }
+    ],
+    "acceptedBy": "Jack",
+    "acceptedOn": "2026-09-15",
+    "acceptanceEvidence": "Jack selected \"Varies, on a narrow curve\" over a shared recovery with a named dive ability and over a shared recovery alone.",
+    "acceptedOption": "narrow-variation",
+    "acceptedDirection": {
+      "baseSeconds": 0.6,
+      "variesByCharacter": true,
+      "ratePerPoint": 0.025,
+      "rows": [
+        {
+          "qualityPoint": 1,
+          "factor": 1.0,
+          "seconds": 0.6
+        },
+        {
+          "qualityPoint": 2,
+          "factor": 0.975,
+          "seconds": 0.585
+        },
+        {
+          "qualityPoint": 3,
+          "factor": 0.95,
+          "seconds": 0.57
+        },
+        {
+          "qualityPoint": 4,
+          "factor": 0.925,
+          "seconds": 0.555
+        },
+        {
+          "qualityPoint": 5,
+          "factor": 0.9,
+          "seconds": 0.54
+        },
+        {
+          "qualityPoint": 6,
+          "factor": 0.875,
+          "seconds": 0.525
+        },
+        {
+          "qualityPoint": 7,
+          "factor": 0.85,
+          "seconds": 0.51
+        },
+        {
+          "qualityPoint": 8,
+          "factor": 0.825,
+          "seconds": 0.495
+        },
+        {
+          "qualityPoint": 9,
+          "factor": 0.8,
+          "seconds": 0.48
+        },
+        {
+          "qualityPoint": 10,
+          "factor": 0.775,
+          "seconds": 0.465
+        }
+      ],
+      "qualitySource": "An explicit defensive trait under the accepted summary architecture, never the displayed Fielding number, exactly as the handling error chance is sourced.",
+      "caughtAndMissedCostTheSame": true,
+      "handlingStunComposition": "overlap-take-the-longer",
+      "appliesToCpu": true,
+      "direction": "A dive costs 0.60 seconds of recovery before the diver can throw or move at the lowest defensive quality, reduced 2.5% per quality point to 0.465 seconds at the highest. Deliberately narrower than the recoil curve so even the best defender only reaches a dead heat on an unnecessary dive and never a comfortable out."
+    },
+    "acceptedScope": "The dive recovery trial: its magnitude, its character curve, that caught and missed dives cost the same, and that the delay overlaps rather than adds to the handling stun. Trial anchor, not a shipping default and not a measured Mario duration. It selects no trait list, no trait-to-quality mapping and no runtime change, and the explicit defensive-trait migration still blocks implementation.",
+    "requiredChecks": [
+      "Every supported quality row is positive and strictly decreasing, 0.60 seconds at the lowest and 0.465 at the highest.",
+      "Even the best defender fails to get a comfortable out on an unnecessary dive; the margin at the highest quality stays inside a dead heat.",
+      "The delay is sourced from an explicit defensive trait; changing displayed Fielding alone cannot alter it.",
+      "A caught dive and a missed dive cost the same, and no branch charges a missed dive extra or reintroduces a failure lottery.",
+      "When a dive both reaches the ball and fails its handling roll the result is the longer of the dive delay and the 0.40-second stun, never their sum.",
+      "The CPU dive pays the same delay on the same curve as a seat dive, per F693-02-cpu-dive-intent.",
+      "The delay blocks throwing and movement only; it is not a possession loss, an acquisition gate or a new error source."
     ]
   }
 }
