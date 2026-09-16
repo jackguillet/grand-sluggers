@@ -134,18 +134,34 @@ public static class Rules
     static RulesTable LoadDefault()
     {
         // Outside the catch on purpose: a data root or trial overlay the run named and cannot have
-        // is a stop, not a fallback. Falling back here would run the control's numbers under a
-        // trial's name, which is the one failure a trial cannot survive (#711, #716).
+        // is a stop, not a fallback (#711, #716).
         var root = ContentCatalog.TryFindDataRoot();
-        if (root is null) return RulesTable.Defaults;
+        return root is null ? RulesTable.Defaults : ForProcess(root);
+    }
+
+    /// <summary>
+    /// The process-wide table for a root, or the code defaults when there is nothing readable to
+    /// take. A root the run <see cref="DataRoot.Named"/> gets no such fallback: tables it cannot
+    /// read stop the run, because the alternative is the control's numbers playing under the
+    /// trial's name — and <see cref="Diamond"/> reads this table, so the geometry would be the
+    /// control's while the operator believed they were measuring a trial.
+    /// </summary>
+    public static RulesTable ForProcess(DataRoot root)
+    {
         try
         {
             var errors = new List<string>();
             var table = RulesTable.Load(root, errors);
-            return errors.Count == 0 ? table : RulesTable.Defaults;
+            if (errors.Count == 0) return table;
+            if (root.Named)
+                throw new InvalidDataException(
+                    "Invalid rules tables — " + root.Provenance + Environment.NewLine
+                    + string.Join(Environment.NewLine, errors.Select(e => "  - " + e)));
+            return RulesTable.Defaults;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            if (root.Named) throw;
             return RulesTable.Defaults;
         }
     }
