@@ -1278,7 +1278,8 @@ def derive(data):
         assert local_horizontal_cap["maximumPostContactHorizontalSpeedFtPerSec"] == 6
         assert local_horizontal_cap["fixedSpeed"] is False
         assert all(local_horizontal_cap[key] is None for key in
-                   ("minimumSpeedFtPerSec", "groundHorizontalResponse"))
+                   ("minimumSpeedFtPerSec",))
+        assert local_horizontal_cap["groundHorizontalResponse"]["retainedFraction"] == .9
         assert local_horizontal_cap["contactSpeedMapping"]["retainedFraction"] == .2
         spill_example = local_horizontal_cap["illustration"]
         assert math.isclose(spill_example["distanceFt"], spill_example["constantSpeedFtPerSec"] * spill_example["elapsedSec"])
@@ -1293,15 +1294,26 @@ def derive(data):
             assert math.isclose(retention_example["outgoingHorizontalSpeedFtPerSec"], retained_speed)
     local_ground_horizontal = data.get("localBobbleGroundHorizontalProposal")
     if local_ground_horizontal:
-        assert local_ground_horizontal["state"] == "pending"
-        assert local_ground_horizontal["retainedHorizontalFraction"] == .8
+        assert local_ground_horizontal["state"] == "accepted-calibration-anchor"
+        assert local_ground_horizontal["acceptedBy"] and local_ground_horizontal["acceptedOn"] and local_ground_horizontal["acceptanceEvidence"]
+        assert local_ground_horizontal["retainedHorizontalFraction"] == .9
         assert local_ground_horizontal["rollingFriction"] is None
         for impact_example in local_ground_horizontal["examples"]:
             assert math.isclose(impact_example["outgoingHorizontalSpeedFtPerSec"], impact_example["incomingHorizontalSpeedFtPerSec"] * local_ground_horizontal["retainedHorizontalFraction"])
+    local_rolling = data.get("localBobbleRollingDecelerationProposal")
+    if local_rolling:
+        assert local_rolling["state"] == "pending"
+        assert local_rolling["decelerationFtPerSecSquared"] == 6
+        for roll_example in local_rolling["examples"]:
+            roll_s = roll_example["initialRollingSpeedFtPerSec"]
+            roll_a = local_rolling["decelerationFtPerSecSquared"]
+            assert math.isclose(roll_example["stopTimeSec"], roll_s / roll_a)
+            assert math.isclose(roll_example["travelToRestFt"], roll_s**2 / (2*roll_a))
     return {"schemaVersion": 1, "status": "derived-design-arithmetic-not-simulation",
             "acceptedLeadSpatialTrial": selected,
             "catcherReadState": catcher_read["state"] if catcher_read else None,
             "uniformErrorDirectionState": uniform_direction["state"] if uniform_direction else None,
+            "localBobbleRollingDecelerationState": local_rolling["state"] if local_rolling else None,
             "localBobbleGroundHorizontalState": local_ground_horizontal["state"] if local_ground_horizontal else None,
             "localBobbleHorizontalRetentionState": local_horizontal_retention["state"] if local_horizontal_retention else None,
             "localBobbleHorizontalCapState": local_horizontal_cap["state"] if local_horizontal_cap else None,
