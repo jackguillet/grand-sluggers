@@ -438,6 +438,16 @@ Nor is lookahead the problem it looked like. The planner already routes against 
 
 What that leaves is the part Jack's decision actually turns on. If the CPU dives exactly when `MissFt` is inside dive reach, computed from the true future path, then **the dive essentially always reaches**, and the only way it fails is the handling roll. That is uncomfortably close to the convert-only option Jack explicitly declined, wearing a delay. A CPU dive that misses has to be able to happen for real, not just in principle.
 
+#### Accepted decision — the CPU dives on the live ball
+
+**F693-02-cpu-dive-intent-policy — accepted by Jack on September 15, 2026.** The CPU dive decision reads **where the ball is and how it is moving at the instant it commits**, not the resolved future path the route planner holds. It still commits at the last makeable moment, following the #640 rundown idiom.
+
+So a ball that changes after the commitment beats the dive — a late bounce, a carom, a deflection off another glove. **A CPU dive misses because the world moved, not because a roll said so**, which is what the arcade contract asks for everywhere else in this packet. The wrong-footed look that produces is deliberate, and it can only be judged on screen.
+
+**Boundary:** this changes the dive decision only. Ordinary CPU pursuit keeps `FieldingPursuit.Plan` and its complete-trajectory route, and nothing here may slow or degrade chasing. The CPU continues to pay the same recovery delay on the same curve and to reach the same 14 feet as a seat.
+
+A run that produces no such misses means the predicate is reading too much, and that is the check worth writing first. The exact predicate, and whether CPU dive willingness varies with difficulty, remain open; the latter is a difficulty question rather than a contract one.
+
 ## Accepted decision — lead spatial trial
 
 **F693-02-spatial-trial — accepted by Jack, September 14, 2026:** C80 leads the subsequent numerical design and prototype. Jack replied “approve.” to the recommendation, which explicitly reserved running and throwing times for separate review. Character sizes stay unchanged. This does not accept the remaining runtime coefficients or pass a human gate.
