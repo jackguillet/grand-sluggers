@@ -6,15 +6,15 @@ This is the production plan **after** feel infrastructure (#107) and art rails (
 
 ## Where we actually are (2026-09)
 
-**Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit (diamond + dress), feel tables, F2 overlay, art catalog, HUD-off specials as catalog VFX events, audio buses with authored bat / glove / crowd, scorebug that mutes during spectacle, the How to play book, one shared rig with baked takes for every captain. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later.
+**Shipped (do not rebuild as new work).** Rules, hops, tags, lines, scoops, Exhibition front-of-house, toon fill, named cameras, directors, HarborKit (diamond + dress), feel tables, F2 overlay, art catalog, HUD-off specials as catalog VFX events, audio buses with authored bat / glove / crowd, scorebug that mutes during spectacle, the How to play book, one shared rig with baked takes for every captain. Six captains, 18 role players, six park **JSON**s. Challenge exists as a session loop and stays later. **Agent rails** (#647): session split, debug protocol, play traces, dual stills, stage-save DCC, distill — R5 Unity CLI stays later. **Shared baseball body** (#628 / #627): default takes, handed equipment; extras stripped to size + color (#687 / #698).
 
 **Phase P shipped (2026-09-12, one day, nine sessions).** Every play is now decided by geometry from `data/rules/` tables: the cursor decides contact quality and timing decides direction; the flight has a fence, a wall, and foul lines; runners are bodies on the basepath with no lead-offs; the infield out is a race, not a roll; double plays, fielder's choices, close plays inside the margin, and rundowns follow spec §10; steals break at release and a pickoff catches only a runner who broke; the CPU pitcher, batter, fielder, runner, and steal decisions are tables with an EASY / NORMAL / HARD ladder; stamps and cameras come from typed outcomes; the book follows the verbs. `cli match` over fifty seeds sits in the spec band (S-29 in CI: 2.5–2.7 runs a side, singles over doubles, ~1.3 HR). What was true in the morning — the roll at `Fielding.cs:146`, the runner lookup table, the synthetic double play, the free base on a missed pickoff — is gone.
 
-**The gap now.** The code is ahead of the sittings. Three human gates are stacked and none has been run on a current build: the #534 parity sitting, the narrated half-inning, and the #346 book sitting. Until Jack has played them, Phase P is code-complete, not done.
+**The gap now.** Phase P is still not done — agents do not pass the sittings. Parity **#534 has been run twice** (2026-09-13 on `95026535d3`; re-sit 2026-09-14 on `850dd95` with the #628 body). First-sitting children all landed. Re-sit children: six shipped, five still open (table below). **D7 wait** until the next re-sit (#677). Then the narrated half and #346. Until those gates pass, do not start Phase T.
 
 **Definition of Nintendo-level for this game (unchanged).** Couch, gamepad, three innings at Harbor. You can name the captain with the HUD off. A perfect swing is illegal for two seconds and still baseball. A grounder is a scoop and a race. You want to play again.
 
-**Sequence from here.** Phase P's human gates (below), one skeptic pass, then the toy playset (#246, Phase T). Phases A–E are kept as the presentation plan they always were.
+**Sequence from here.** Remaining re-sit children (#684, #688, #690, #692, #693), rebuild, re-sit #534 and call D7, narrated half, #346 book, skeptic pass, then Phase T. Phases A–E stay the presentation plan they always were.
 
 Tracker #39 is the older checklist. Many of its children shipped as first-pass. This doc is the sequence from **now**.
 
@@ -70,8 +70,10 @@ Living spec: **[agent-rails.md](agent-rails.md)**. Does not replace #209 / #188 
 | R3 #650 | Play traces (tick JSON) | #657 |
 | R4 #651 | Dual stills + critic that files | #659 |
 | R5 #652 | Unity CLI observation only | later |
-| R6 #653 | Stage-save DCC | ❌ |
+| R6 #653 | Stage-save DCC | #662 |
 | R7 #654 | Distill sittings into protocol / tests | #660 |
+
+#647 is **code-complete except later R5**. Do not build more agent infrastructure.
 
 ---
 
@@ -82,14 +84,14 @@ Parent epic: **#209** (Harbor Exhibition plays like a baseball game). Each row i
 | Epic | Shipped as |
 | --- | --- |
 | P0 #562 | #571 rules tables · #584 typed outcomes + scenario harness · #573 live ball into the sim (closes #512) |
-| P1 #563 | #586 cursor / timing · #587 pitch shapes, one crossing, aim tell (#533 #577) · #589 CPU tables, per-pitcher stamina, star skills from JSON · #592 pad verbs + book (#582) · integrated onto main by #593 |
+| P1 #563 | #586 cursor / timing · #587 pitch shapes, one crossing, aim tell (#533 #577) · #589 CPU tables, per-pitcher stamina, star skills from JSON · #592 pad verbs + book (#582) · integrated onto main by #593 · sitting: changeup hang/dump (#668 / #672) · swing `leadSec` 0.18 (#670 / #673) |
 | P2 #564 | #588 3-D flight, fence, classes · #590 foul geometry and foul fielding (#575) · #591 positions from the lineup · integrated by #594 |
 | P3 #565 | #595 runners are bodies, no leads, Complete places them · #596 extra innings, mercy, walk-off |
-| P4 #566 | #597 the roll is dead, one throw model, CPU fielder table |
+| P4 #566 | #597 the roll is dead, one throw model, CPU fielder table · sitting: liner FlyOut (#666 / #674) · OF glove by the roll (#667 / #678) · stand-up ring, dive at the rim (#669 / #679) |
 | P5 #567 | #598 tag reach, close-play margin, rundowns, the DP matrix |
 | P6 #568 | #599 steals and pickoffs as one live runner play |
 | P7 #569 | #603 S-29 in CI, difficulty ladder, stars / MVP / items from tables, park window as data |
-| P8 #570 | #600 stamps from typed outcomes (#578) · #601 cameras per class, the catcher stays put (#574) · #602 the book follows the verbs |
+| P8 #570 | #600 stamps from typed outcomes (#578) · #601 cameras per class, the catcher stays put (#574) · #602 the book follows the verbs · sitting: liner shot (#665 / #675) · no throw laser (#689 / #699) |
 
 Lesson from the day: stacked PRs must be opened **against `main`** (or the top of the stack merged into `main` at the end). P1 and P2 merged their parts into their own parent branches and `main` only had part (a) of each until #593 / #594.
 
@@ -97,11 +99,40 @@ Lesson from the day: stacked PRs must be opened **against `main`** (or the top o
 
 The consolidated checklist is on #209. In order:
 
-1. **Parity sitting (#534)** — keyboard + mouse, one pad, two pads: rubber walk with the aim ring, CHANGE, the visible SWAP pick, tap / MAX / overcharge / changeup / break / star, the taller oval and a strike at the top of the frame, MAX on release and PERFECT / NICE / SOUR only on contact, early pulls / late pushes, bunt pop and the two-strike foul bunt K, HIT BY PITCH, the CPU working corners and mistracking when you move on the rubber. Then the **pitch-pace call (spec D7)**. Closes #563, #564.
-2. **Narrated half-inning (#598)** — every out has a reason you saw: a 6-4-3 or a FIELDER'S CHOICE, the 3-6 tag and a rundown, a silent tag at third versus a bang-bang icon, the relay home on a tag-up, the batter running through first. Watch the outfield on every fly for #576 / #580 and the 2.4 s outfield read on your own glove (#603). Closes #565–#568 and the fielding notes.
-3. **Three innings, then the book (#346)** — pad only, normal difficulty, then keyboard + mouse; Call time → How to play must be enough. Closes #209 and #342.
+1. **Parity sitting (#534)** — **played twice, not passed.** First: `95026535d3` (2026-09-13). Re-sit: `850dd95` with #628 body (2026-09-14). **D7 wait** (#677) until the next re-sit. Closes #563, #564 when Jack would keep the feel.
+2. **Narrated half-inning** — every out has a reason you saw. Watch the outfield on every fly for #580 and the glove read (#609). Closes #565–#568 and the fielding notes. **Not run yet.**
+3. **Three innings, then the book (#346)** — pad and keyboard; Call time → How to play must be enough. Closes #209 and #342. **Not run yet.**
 
-What sticks becomes a sitting-found child, as on 2026-09-12. After the gates: one **skeptic pass** by an agent (play the named path on a preview build, run the harness and the fifty seeds), then Phase T.
+What sticks becomes a sitting-found child. Distill: file, append `data/agent/debug-protocol.json` in the fix PR, promote on the second firing.
+
+#### First sitting children (2026-09-13) — all landed
+
+| Child | Observed | Status |
+| --- | --- | --- |
+| #665 | Liner vs hopper HUD-off | ✅ #675 |
+| #666 | Liner in the air is an out | ✅ #674 |
+| #667 | OF glove by the roll, not the bounce | ✅ #678 |
+| #668 | Changeup hang/dump | ✅ #672 |
+| #669 | Ring too wide; rim dives | ✅ #679 |
+| #670 | Swing `leadSec` 0.18 | ✅ #673 |
+
+#### Re-sit children (2026-09-14, `850dd95`)
+
+| Child | Observed | Status |
+| --- | --- | --- |
+| #683 | Bags brown, not white | ✅ #697 |
+| #684 | Foul pops behind the batter | open |
+| #685 | Title captain arms-up X — remove | ✅ #694 |
+| #686 | Select bobs through the dirt | ✅ #695 |
+| #687 | Strip extras; size + color only | ✅ #698 |
+| #688 | Runners cannot share a bag; per-runner send/hold | open |
+| #689 | Yellow throw-destination line | ✅ #699 |
+| #690 | Stamp each event when it happens | open |
+| #691 | Infielders scale up holding the ball | ✅ #700 |
+| #692 | CPU doubled off on a clear fly out | open |
+| #693 | Research Sluggers field proportions; bat/throws too fast | open |
+
+Also landed beside: plate bat (#560 / #671), turntable (#559 / #664), Esc/H (#629 / #663), shadow code (#646; visibility gate #645 still open), shared body (#628).
 
 ### The original Phase P plan (for the record)
 
@@ -119,7 +150,7 @@ What sticks becomes a sitting-found child, as on 2026-09-12. After the gates: on
 | **P7. Balance and CPU** (#569) | §4.8, §5.9, §8.8, §9.9, §11.6, §12, §13 | S-29 over 50 seeds; difficulty ladder | Tune `data/rules/` until `cli match` distributions read like a 3-inning arcade game; difficulty as multipliers in `cpu.json`; star gains / MVP / star-skill values read from JSON. Remove the item auto-throw roll; items become field effects with geometry. |
 | **P8. Presentation contract** (#570) | §15 | every stamp and camera in the table | Stamps ERROR / FIELDER'S CHOICE / PICKED OFF / SAFE; cameras per batted-ball class from `shots.json`; the booklet's Running and Fielding spreads rewritten for the new verbs; `HowToPlay.cs` and `docs/how-to-play.md` together. Runs alongside P3–P6 as each verb lands, not after. |
 
-**Human gates inside Phase P.** After P1: the #534 parity sitting (pitch and hit on pad, keyboard, two pads). After P5: one half-inning narrated (every out explained). After P7: three innings, then the #346 book sitting. Agents do not pass these.
+**Human gates inside Phase P.** After P1: #534 (played twice; remaining re-sit children then D7). After P5: narrated half. After P7: three innings, then #346. Agents do not pass these.
 
 **Banned during Phase P.** New parks, new captains, unique meshes, Challenge, motion, online, a second input toolkit, growing `MatchDirector` or `InPlayDirector`, any `Random` outside the sim's seeded `_rng` that produces a `PlayEvent`, any new number in C# that belongs in `data/rules/`, any caption that decides a play.
 
@@ -132,7 +163,7 @@ What sticks becomes a sitting-found child, as on 2026-09-12. After the gates: on
 | Epic | Why | Agent notes |
 | --- | --- | --- |
 | **A1. Plate and mound as film** | Shots are data; framing still drifts (cap close-up, square plate). Tune `data/feel/shots.json` and HarborKit empties, not new `Vector3`s in code. | One agent. F2 overlay on. Human screenshot. |
-| **A2. Batter and pitcher read as bodies** | Shipped: one shared rig, baked takes, captains as proportions + extras. | Tune takes against the reference (#558). |
+| **A2. Batter and pitcher read as bodies** | Shipped: one shared rig, baked takes. Captains are **size + color** (#687 / #698); extras off until they read as toys. | Tune takes against the reference (#558). |
 | **A3. Swing and pitch are verbs you can name HUD-off** | Contact, load, release hit `Contact` / `Release` marks. Charge and smash freeze live in `data/feel/table.json`. | The *rules* behind the verbs are P1. |
 | **A4. Ball is a baseball** | Seams, spin, shadow, dirt hops — hold the bar on plate cam. | Small. Skeptic with the cap-blob failure in mind. |
 
@@ -194,19 +225,23 @@ Only if A–C stills exist and Phase P has exited. Rule: **three good parks beat
 
 ## Recommended next move
 
-**The three Phase P sittings, then Phase T.**
+**Close the open re-sit children, rebuild, re-sit #534, call D7, then the other two gates.**
 
-1. Play the three sittings above on the current standalone (`python3 tools/local-player.py` after any merge). File what sticks. Make the pitch-pace call.
-2. One skeptic pass: an agent plays Exhibition → pitch → swing → grounder → throw → steal on a preview build and reruns the harness and S-29.
-3. **Phase T (#246)**, serial: toy language (#247), front of house as a carnival (#248), lineup as the chemistry toy (#249), in-play cartoon juice (#250). The swing finish pose (#583) rides with #250. Each closes on a still you would show a friend.
-4. Phase D stays gated on "Exhibition is the reason people stay".
+Open: **#684** foul behind home · **#688** share a bag / per-runner · **#690** live stamps · **#692** CPU doubled off on a fly · **#693** research Sluggers proportions (before any speed/scale number).
+
+1. One worktree per child. Session kind on the issue. #693 is research first.
+2. `python3 tools/local-player.py`, **re-sit #534**, then D7 keep / speed up / middle. Do not retune `arcadeScale` from an older sitting.
+3. Narrated half, then #346. Call time → How to play must be enough.
+4. Skeptic pass: Exhibition → pitch → swing → grounder → throw → steal; S-29 (`cli match --trace`).
+5. **Phase T (#246)** only after those gates. Do not start R5.
 
 Command to keep agents honest:
 
 ```bash
 PATH=/opt/homebrew/bin:$PATH dotnet test
 PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- art
-PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7
+PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- protocol
+PATH=/opt/homebrew/bin:$PATH dotnet run --project src/GrandSluggers.Cli -- match --home vale --away brondo --seed 7 --trace
 PATH=/opt/homebrew/bin:$PATH ./tools/unity-compile.sh
 ```
 

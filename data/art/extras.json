@@ -1,5 +1,5 @@
 {
-  "notes": "Accessory meshes in Assets/Art/Characters/SharedRig/extras.fbx, authored in the socket bone's space by tools/blender/hero_shared_extras.py. Unity parents each piece at identity. hides names body meshes the piece replaces. No caps yet; hats return as accessories.",
+  "notes": "Accessory meshes in Assets/Art/Characters/SharedRig/extras.fbx, authored in the socket bone's space by tools/blender/hero_shared_extras.py. Unity parents each piece at identity. hides names body meshes the piece replaces. Slots stay; skins list none until extras read as toys (#687). No caps yet; hats return as accessories.",
   "extras": [
     {
       "id": "cheeks",

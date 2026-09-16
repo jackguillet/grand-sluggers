@@ -10,8 +10,8 @@ public sealed class DccStagesTests
     /// <summary>A rename of a required stage is a spec change (docs/agent-rails.md §6).</summary>
     public static readonly string[] RequiredStageIds = ["blocking", "fill", "motion", "export", "still"];
 
-    readonly string _root = ContentCatalog.Load().Root;
-    string Repo => Path.GetFullPath(Path.Combine(_root, ".."));
+    readonly DataRoot _root = ContentCatalog.Load().Root;
+    string Repo => Path.GetFullPath(Path.Combine(_root.Shipped, ".."));
 
     [Fact]
     public void ShippedCatalogLoadsAndValidates()

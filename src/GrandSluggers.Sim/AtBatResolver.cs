@@ -9,7 +9,8 @@ public sealed class AtBatResolver
 {
     /// <summary>
     /// Chalk. Geometry of the diamond (first and third sit on the ±45° lines), shared by the
-    /// wall and stands meshes, so it stays a constant like <see cref="Diamond.Baseline"/>.
+    /// wall and stands meshes, so it stays a constant. (<see cref="Diamond"/> no longer is: the
+/// infield every park shares moved to <c>data/rules/infield.json</c> in #711.)
     /// Past this spray is foul territory, not a caption on a fair fly.
     /// </summary>
     public const double FoulLineDeg = 45;

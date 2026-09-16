@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace GrandSluggers.Sim;
 
 public enum Hand
@@ -25,13 +26,55 @@ public enum ContactQuality
     Perfect
 }
 
+/// <summary>
+/// A character's ratings. <see cref="Field"/> is the displayed defensive number; <see cref="Arm"/> and
+/// <see cref="Hands"/> are the explicit traits behind it (F693-02-defensive-trait-mapping). Both are
+/// <b>seeded from Field</b> until a character authors its own, so a roster that names neither behaves
+/// exactly as it did before the split.
+/// </summary>
 public sealed record Stats(int Pitch, int Bat, int Field, int Run)
 {
+    readonly int _arm;
+    readonly int _hands;
+
+    /// <summary>Throwing: speed and accuracy. Unauthored (0) tracks <see cref="Field"/>.</summary>
+    public int Arm
+    {
+        get => _arm > 0 ? _arm : Field;
+        init => _arm = value;
+    }
+
+    /// <summary>Handling: securing the ball and recovering from it. Unauthored (0) tracks <see cref="Field"/>.</summary>
+    public int Hands
+    {
+        get => _hands > 0 ? _hands : Field;
+        init => _hands = value;
+    }
+
+    /// <summary>
+    /// True when this rating was authored rather than seeded from <see cref="Field"/>.
+    ///
+    /// Not serialized. It is bookkeeping about where the number came from, not a rating, and a
+    /// play trace records what happened rather than how the roster was written. Emitting it also
+    /// made <see cref="Stats"/> unstable across a JSON round trip: the serialized <c>arm</c> reloads
+    /// through the init setter, which marks the trait authored, so a replayed trace no longer
+    /// matched the live one it replayed.
+    /// </summary>
+    [JsonIgnore] public bool ArmAuthored => _arm > 0;
+
+    /// <inheritdoc cref="ArmAuthored"/>
+    [JsonIgnore] public bool HandsAuthored => _hands > 0;
+
+    // An unauthored trait stays unauthored through a clamp, so it keeps tracking the clamped Field.
     public Stats Clamp() => new(
         Math.Clamp(Pitch, 1, 10),
         Math.Clamp(Bat, 1, 10),
         Math.Clamp(Field, 1, 10),
-        Math.Clamp(Run, 1, 10));
+        Math.Clamp(Run, 1, 10))
+    {
+        Arm = _arm > 0 ? Math.Clamp(_arm, 1, 10) : 0,
+        Hands = _hands > 0 ? Math.Clamp(_hands, 1, 10) : 0
+    };
 }
 
 public sealed record Character(
@@ -45,7 +88,12 @@ public sealed record Character(
     string StarPitch,
     string StarSwing,
     string FieldAbility,
-    string Bio);
+    string Bio,
+    /// <summary>
+    /// Authored stand-up catch reach in feet (F693-02-catch-reach-envelope). Null keeps the legacy
+    /// <c>radiusBaseFt + radiusPerField x Field</c>, so an unauthored roster reaches exactly as far as it did.
+    /// </summary>
+    double? ReachFt = null);
 
 public sealed record Park(
     string Id,

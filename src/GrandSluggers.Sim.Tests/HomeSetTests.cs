@@ -42,7 +42,7 @@ public class HomeSetTests
     [Fact]
     public void PlateMeshAuthoringMatchesOfficialInches()
     {
-        var repo = Directory.GetParent(ContentCatalog.Load().Root)?.FullName
+        var repo = Directory.GetParent(ContentCatalog.Load().Root.Shipped)?.FullName
             ?? throw new InvalidOperationException("no repo root");
         var py = File.ReadAllText(Path.Combine(repo, "tools", "blender", "harbor_kit.py"));
         Assert.Contains("17.0 / 12.0", py);

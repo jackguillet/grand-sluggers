@@ -18,7 +18,10 @@ public static class HarborInfield
 
     public static bool HomePackedIsAPad() => ParkDiamond.HomePackedIsAPad();
 
-    /// <summary>Infield lawn must not recap a dugout well.</summary>
-    public static bool LawnRespectsPits() =>
-        !HarborDugout.InPitHole(0, 63.64) && HarborDugout.LawnCovers(0, 63.64);
+    /// <summary>Infield lawn must not recap a dugout well. Probed out along the first-base line.</summary>
+    public static bool LawnRespectsPits()
+    {
+        var reach = Diamond.First.Z;
+        return !HarborDugout.InPitHole(0, reach) && HarborDugout.LawnCovers(0, reach);
+    }
 }

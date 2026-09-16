@@ -309,7 +309,7 @@ public static class HowToPlay
             "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
-            "SAFE / ERROR pop mid-play. Close play: bag cam.",
+            "OUT / SCORE pop mid-play. Close play: bag cam.",
         ],
         [
             "Scorebug: inning, runs, stars; B / S / O.",
@@ -317,7 +317,7 @@ public static class HowToPlay
             "Yellow circle: landing ring (stand-up). Red: jump window. YOU: the glove.",
             "ITEM names an error item.",
             "A stamp on the field names BALL, STRIKE, FOUL, WALK, outs, hits, steals, homers, ERROR; then SET starts the next pitch.",
-            "SAFE / ERROR pop mid-play. Close play: bag cam.",
+            "OUT / SCORE pop mid-play. Close play: bag cam.",
         ]),
         new("chemistry", "Chemistry", "chemistry",
         [

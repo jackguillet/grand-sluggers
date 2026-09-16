@@ -3,10 +3,15 @@ namespace GrandSluggers.Sim;
 /// <summary>Research catalog validation; never a source of gameplay defaults. Unknown values stay null.</summary>
 public static class RaceEvidence
 {
-    public const string FileName = "agent/race-evidence.json";
-    public static IReadOnlyList<string> Validate(string root)
+    public const string Directory = "agent";
+    public const string FileName = "race-evidence.json";
+
+    /// <summary>Resolved through the data root like every other agent catalog, so a trial overlay can carry it (#716).</summary>
+    public static string PathFor(DataRoot dataRoot) => dataRoot.Resolve(Directory, FileName);
+
+    public static IReadOnlyList<string> Validate(DataRoot root)
     {
-        var path = Path.Combine(root, FileName);
+        var path = PathFor(root);
         try { return ValidateJson(File.ReadAllText(path)).Select(e => $"{path}: {e}").ToArray(); }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException)
         { return new[] { $"{path}: {e.Message}" }; }

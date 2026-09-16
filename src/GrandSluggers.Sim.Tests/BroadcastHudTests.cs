@@ -61,6 +61,17 @@ public class BroadcastHudTests
         Assert.Equal(BroadcastHud.Standard, one);
         foreach (var r in new[] { one.Score, one.Count, one.MiniDiamond, one.PitcherCard, one.BatterCard, one.Banner })
             Assert.True(BroadcastHud.InFrame(r, screenW, screenH), $"{r} at {screenW}x{screenH}");
+        foreach (var anchor in Enum.GetValues<StampAnchor>())
+        {
+            var stamp = BroadcastHud.Stamp(anchor);
+            Assert.True(BroadcastHud.InFrame(stamp, screenW, screenH), $"{anchor} at {screenW}x{screenH}");
+            Assert.False(BroadcastHud.IsScreenCenterCard(stamp), $"{anchor} must not cover the camera");
+            Assert.False(BroadcastHud.Contains(one.Score, stamp), $"{anchor} is not the scorebug");
+        }
+        Assert.Equal(BroadcastHud.StampGlove, BroadcastHud.Stamp(StampAnchor.Glove));
+        Assert.Equal(BroadcastHud.StampBag, BroadcastHud.Stamp(StampAnchor.Bag));
+        Assert.Equal(BroadcastHud.StampPlate, BroadcastHud.Stamp(StampAnchor.Plate));
+        Assert.Equal(BroadcastHud.StampDirt, BroadcastHud.Stamp(StampAnchor.Dirt));
     }
 
     [Fact]

@@ -80,10 +80,10 @@ public sealed class DualStills
         [],
         new DualStillsCritic("", [], false, false, false));
 
-    public static string PathFor(string dataRoot) =>
-        Path.Combine(dataRoot, Directory, FileName);
+    public static string PathFor(DataRoot dataRoot) =>
+        dataRoot.Resolve(Directory, FileName);
 
-    public static DualStills Load(string dataRoot)
+    public static DualStills Load(DataRoot dataRoot)
     {
         var errors = new List<string>();
         var catalog = Load(dataRoot, errors);
@@ -93,7 +93,7 @@ public sealed class DualStills
         return catalog;
     }
 
-    public static DualStills Load(string dataRoot, List<string> errors)
+    public static DualStills Load(DataRoot dataRoot, List<string> errors)
     {
         var path = PathFor(dataRoot);
         if (!File.Exists(path))
@@ -149,7 +149,7 @@ public sealed class DualStills
         return new DualStills(drop, triggers, kinds, critic);
     }
 
-    public static IReadOnlyList<string> Validate(string dataRoot)
+    public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var errors = new List<string>();
         var path = PathFor(dataRoot);

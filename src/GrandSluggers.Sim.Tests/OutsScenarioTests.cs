@@ -112,6 +112,10 @@ public sealed class OutsScenarioTests
         {
             Assert.Equal(outs.Count >= 3 ? "TRIPLE PLAY" : "DOUBLE PLAY", PlayStamp.Label(play));
             Assert.False(facts.FieldersChoice);
+            var outTells = run.Stamps.Where(s => PlayStamp.IsOutWord(s.Word)).ToList();
+            Assert.True(outTells.Count >= outs.Count,
+                $"{row.Id}: {outs.Count} outs must stamp as they happen; got {outTells.Count}: {string.Join(",", run.Stamps.Select(s => s.Word))}");
+            Assert.False(PlayStamp.ShowsAtTime(play));
         }
         else
         {
@@ -571,6 +575,7 @@ public sealed class OutsScenarioTests
     {
         public PlayEvent Play = null!;
         public List<ThrowRecord> Throws = new();
+        public List<LiveStamp> Stamps = new();
         public HashSet<LiveEvent> EventsSeen = new();
         public bool SawIcon;
         public bool RundownSeen;
@@ -594,6 +599,7 @@ public sealed class OutsScenarioTests
             var field = fieldPad?.Invoke(i, live) ?? LivePadInput.Dead;
             var run = runPad?.Invoke(i, live) ?? LivePadInput.Dead;
             var r = live.Apply(LivePlayCommand.Tick(Frame, field, run, false, seat));
+            result.Stamps.AddRange(live.Stamps);
             foreach (var e in live.Events) result.EventsSeen.Add(e);
             if (live.CloseIcon) result.SawIcon = true;
             if (live.InRundown) result.RundownSeen = true;

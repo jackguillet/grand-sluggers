@@ -422,6 +422,7 @@ public sealed partial class LivePlaySystem
         _wasHolding = HasBall;
         _wasThrowing = Throwing;
         TickRunners(command.DeltaSeconds, command.Dash01);
+        StampNewScores();
         return new LivePlayCommandResult(Snapshot);
     }
 
@@ -651,6 +652,7 @@ public sealed partial class LivePlaySystem
         }
         _trace?.Mark(PlayTraceMarkKind.Verdict, ElapsedSeconds, fielder?.Id, bag,
             target is null ? null : PlayTraceRunner.Of(target), verdict: step.Verdict);
+        StampNewScores();
         return new LivePlayCommandResult(Snapshot, step);
     }
 
@@ -680,6 +682,10 @@ public sealed partial class LivePlaySystem
         _trace?.Mark(PlayTraceMarkKind.Out, ElapsedSeconds, fielder?.Id, atBag, traceRunner is null ? null : PlayTraceRunner.Of(traceRunner), type, predictedAt);
         Forces = Forces.AfterOutAt(fromBag + 1);
         _aiPending = true;
+        var feat = type == OutType.Catch && Preview is not null
+            ? FieldingResolver.PlayerCatchFeat(Preview, Park, Buddy, CatchJump, CatchDive)
+            : DefensiveFeat.None;
+        RaiseStamp(PlayStamp.OutTell(type, atBag, feat, Swing?.Bunt ?? false));
         return true;
     }
 

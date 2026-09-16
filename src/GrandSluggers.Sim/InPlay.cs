@@ -38,7 +38,7 @@ public static class InPlay
     {
         var k = Rules.Or(rules).Fielding.Knockback;
         if (energy < k.MinEnergy || fielder is null) return 0;
-        var w = (11 - fielder.Stats.Field) * k.SecPerFieldDeficit;
+        var w = (11 - fielder.Stats.Hands) * k.SecPerFieldDeficit;
         return Math.Clamp((energy - k.MinEnergy) / k.EnergySpan * w, 0, k.MaxSec);
     }
 
@@ -72,11 +72,11 @@ public static class InPlay
         return t.ReleaseSec + distFt / Math.Max(t.MinFtPerSec, fps);
     }
 
-    /// <summary>The thrower's arm (§8.5): <c>armBase + Field × armPerField</c>.</summary>
+    /// <summary>The thrower's arm (§8.5): <c>armBase + Arm × armPerField</c>. Arm seeds from Field until authored.</summary>
     public static double ArmMul(Character who, RulesTable? rules = null)
     {
         var t = Rules.Or(rules).Fielding.Throw;
-        return Math.Max(0.1, t.ArmBase + who.Stats.Field * t.ArmPerField);
+        return Math.Max(0.1, t.ArmBase + who.Stats.Arm * t.ArmPerField);
     }
 
     /// <summary>The CPU fielder's delay between gaining the ball and throwing it (§8.8): <c>throwBaseSec − Field × throwPerFieldSec</c>, × the difficulty's reaction multiplier.</summary>

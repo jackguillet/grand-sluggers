@@ -43,10 +43,10 @@ public sealed class DebugProtocol
     /// <summary>Empty catalog. Used only when the JSON file is missing.</summary>
     public static DebugProtocol Defaults => new([]);
 
-    public static string PathFor(string dataRoot) =>
-        Path.Combine(dataRoot, Directory, FileName);
+    public static string PathFor(DataRoot dataRoot) =>
+        dataRoot.Resolve(Directory, FileName);
 
-    public static DebugProtocol Load(string dataRoot)
+    public static DebugProtocol Load(DataRoot dataRoot)
     {
         var errors = new List<string>();
         var protocol = Load(dataRoot, errors);
@@ -56,7 +56,7 @@ public sealed class DebugProtocol
         return protocol;
     }
 
-    public static DebugProtocol Load(string dataRoot, List<string> errors)
+    public static DebugProtocol Load(DataRoot dataRoot, List<string> errors)
     {
         var path = PathFor(dataRoot);
         if (!File.Exists(path))
@@ -91,7 +91,7 @@ public sealed class DebugProtocol
         return new DebugProtocol(entries);
     }
 
-    public static IReadOnlyList<string> Validate(string dataRoot)
+    public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var errors = new List<string>();
         var path = PathFor(dataRoot);

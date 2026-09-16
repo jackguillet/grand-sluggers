@@ -175,9 +175,9 @@ public sealed class RaceTraceTests
         var root = Path.Combine(Path.GetTempPath(), "gs702-cover-" + Guid.NewGuid().ToString("N"));
         try
         {
-            foreach (var file in Directory.GetFiles(_content.Root, "*", SearchOption.AllDirectories))
+            foreach (var file in Directory.GetFiles(_content.Root.Shipped, "*", SearchOption.AllDirectories))
             {
-                var dest = Path.Combine(root, Path.GetRelativePath(_content.Root, file));
+                var dest = Path.Combine(root, Path.GetRelativePath(_content.Root.Shipped, file));
                 Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                 File.Copy(file, dest);
             }

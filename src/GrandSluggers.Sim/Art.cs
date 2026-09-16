@@ -93,9 +93,13 @@ public sealed class ArtCatalog
         return (clip.Slot + suffix + ".fbx", clip.PlayerSlot + suffix + ".fbx");
     }
 
-    static string Unity(string dataRoot, string slot)
+    /// <summary>
+    /// Art lives in the repository beside the data root, not inside it, so this resolves against the
+    /// shipped root: a trial overlay carries rule numbers, never meshes.
+    /// </summary>
+    static string Unity(DataRoot dataRoot, string slot)
     {
-        var repo = Directory.GetParent(Path.GetFullPath(dataRoot))?.FullName ?? dataRoot;
+        var repo = Directory.GetParent(dataRoot.Shipped)?.FullName ?? dataRoot.Shipped;
         return Path.GetFullPath(Path.Combine(repo, "unity", slot.Replace('/', Path.DirectorySeparatorChar)));
     }
 
@@ -194,7 +198,6 @@ public sealed class ArtCatalog
             if (!skin.Captain) errors.Add("skin " + id + " should be captain");
             if (!skin.BodyType.Equals(id, StringComparison.OrdinalIgnoreCase))
                 errors.Add("skin " + id + " bodyType should be self");
-            if (skin.Extras.Count == 0) errors.Add("captain skin " + id + " needs extras");
             if (string.IsNullOrWhiteSpace(skin.Portrait)) errors.Add("captain skin " + id + " needs portrait slot");
         }
 
@@ -204,8 +207,8 @@ public sealed class ArtCatalog
             var expected = Silhouette.BodyType(who);
             if (!skin.BodyType.Equals(expected, StringComparison.OrdinalIgnoreCase))
                 errors.Add("skin " + who.Id + " bodyType " + skin.BodyType + " != " + expected);
-            if (!who.Captain && skin.Extras.Count > 0)
-                errors.Add("role skin " + who.Id + " must not grow captain extras");
+            if (skin.Extras.Count > 0)
+                errors.Add("skin " + who.Id + " must not list extras until they read as toys");
             foreach (var extra in skin.Extras)
                 if (!Extras.ContainsKey(extra))
                     errors.Add("skin " + who.Id + " extra " + extra + " is not in extras.json");
@@ -282,7 +285,7 @@ public sealed class ArtCatalog
         return File.ReadAllBytes(a).AsSpan().SequenceEqual(File.ReadAllBytes(b));
     }
 
-    public static ArtCatalog Load(string dataRoot)
+    public static ArtCatalog Load(DataRoot dataRoot)
     {
         var json = new JsonSerializerOptions
         {
@@ -290,34 +293,34 @@ public sealed class ArtCatalog
             ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true
         };
-        var art = Path.Combine(dataRoot, "art");
+        string Art(string file) => dataRoot.Resolve("art", file);
 
-        var rigDto = Read<RigFile>(Path.Combine(art, "rig.json"), json);
+        var rigDto = Read<RigFile>(Art("rig.json"), json);
         var rig = new RigBoneMap(rigDto.Id, rigDto.Bones ?? [], rigDto.Events ?? [], rigDto.Slot ?? "");
 
-        var clipDto = Read<ClipsFile>(Path.Combine(art, "clips.json"), json);
+        var clipDto = Read<ClipsFile>(Art("clips.json"), json);
         var clips = (clipDto.Clips ?? []).Select(c =>
             new ClipSlot(c.Id, c.Loop, c.Handed, c.Events ?? [], c.Slot, c.PlayerSlot,
                 c.ContactAt, c.ReleaseAt, c.FootPlantAt, c.FinishAt)).ToList();
 
-        var skinDto = Read<SkinsFile>(Path.Combine(art, "skins.json"), json);
+        var skinDto = Read<SkinsFile>(Art("skins.json"), json);
         var skins = new Dictionary<string, SkinSlot>(StringComparer.OrdinalIgnoreCase);
         foreach (var s in skinDto.Skins ?? [])
             skins[s.Id] = new SkinSlot(s.Id, s.BodyType, s.Captain, s.Extras ?? [], s.Portrait, s.Palette);
 
         var extras = new Dictionary<string, ExtraSlot>(StringComparer.OrdinalIgnoreCase);
-        foreach (var e in Read<ExtrasFile>(Path.Combine(art, "extras.json"), json).Extras ?? [])
+        foreach (var e in Read<ExtrasFile>(Art("extras.json"), json).Extras ?? [])
             extras[e.Id] = new ExtraSlot(e.Id, e.Bone, e.Hides ?? []);
 
-        var vfx = (Read<EventsFile>(Path.Combine(art, "vfx.json"), json).Events ?? [])
+        var vfx = (Read<EventsFile>(Art("vfx.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Kind ?? "")).ToList();
-        var audio = (Read<EventsFile>(Path.Combine(art, "audio.json"), json).Events ?? [])
+        var audio = (Read<EventsFile>(Art("audio.json"), json).Events ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Bus ?? e.Kind ?? "", e.Authored)).ToList();
-        var mats = (Read<MatsFile>(Path.Combine(art, "materials.json"), json).Slots ?? [])
+        var mats = (Read<MatsFile>(Art("materials.json"), json).Slots ?? [])
             .Select(e => new NamedSlot(e.Id, e.Slot, e.Shader ?? "")).ToList();
-        var parks = (Read<ParksFile>(Path.Combine(art, "parks.json"), json).Kits ?? [])
+        var parks = (Read<ParksFile>(Art("parks.json"), json).Kits ?? [])
             .Select(p => new ParkKitSlot(p.Id, p.Slot, p.Placed)).ToList();
-        var folders = Read<FoldersFile>(Path.Combine(art, "folders.json"), json).Folders ?? [];
+        var folders = Read<FoldersFile>(Art("folders.json"), json).Folders ?? [];
 
         return new ArtCatalog(rig, clips, skins, extras, vfx, audio, mats, parks, folders);
     }

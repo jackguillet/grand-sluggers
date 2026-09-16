@@ -145,19 +145,26 @@ public static class WorldView
         Projection = CameraProjection.Perspective
     };
 
+    /// <summary>A bag, on the ground, where <see cref="Diamond"/> says it is.</summary>
+    static Vector3 At(int bag, float y = 0)
+    {
+        var (x, z) = Diamond.Bag(bag);
+        return new Vector3((float)x, y, (float)z);
+    }
+
     static void DrawInfieldDirt()
     {
         var h = 0.08f;
-        var home = new Vector3(0, h, 0);
-        var first = new Vector3(63.64f, h, 63.64f);
-        var second = new Vector3(0, h, 127.28f);
-        var third = new Vector3(-63.64f, h, 63.64f);
+        var home = At(0, h);
+        var first = At(1, h);
+        var second = At(2, h);
+        var third = At(3, h);
         Raylib.DrawTriangle3D(home, first, second, Palette.Dirt);
         Raylib.DrawTriangle3D(home, second, third, Palette.Dirt);
-        Raylib.DrawCylinder(new Vector3(0, 0, 0), 16, 16, 0.12f, 20, Palette.Dirt);
-        Raylib.DrawCylinder(new Vector3(63.64f, 0, 63.64f), 10, 10, 0.12f, 14, Palette.Dirt);
-        Raylib.DrawCylinder(new Vector3(-63.64f, 0, 63.64f), 10, 10, 0.12f, 14, Palette.Dirt);
-        Raylib.DrawCylinder(new Vector3(0, 0, 127.28f), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(0), 16, 16, 0.12f, 20, Palette.Dirt);
+        Raylib.DrawCylinder(At(1), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(3), 10, 10, 0.12f, 14, Palette.Dirt);
+        Raylib.DrawCylinder(At(2), 10, 10, 0.12f, 14, Palette.Dirt);
     }
 
     static void DrawFoulLines()
@@ -169,18 +176,19 @@ public static class WorldView
 
     static void DrawBases()
     {
-        void Bag(float x, float z) =>
-            Raylib.DrawCube(new Vector3(x, 0.25f, z), 2.2f, 0.4f, 2.2f, Palette.Chalk);
-        Bag(63.64f, 63.64f);
-        Bag(0, 127.28f);
-        Bag(-63.64f, 63.64f);
+        void Bag(int bag) =>
+            Raylib.DrawCube(At(bag, 0.25f), 2.2f, 0.4f, 2.2f, Palette.Chalk);
+        Bag(1);
+        Bag(2);
+        Bag(3);
         Raylib.DrawCube(new Vector3(0, 0.2f, -0.4f), 2.4f, 0.25f, 2.4f, Palette.Chalk);
     }
 
     static void DrawMound()
     {
-        Raylib.DrawCylinder(new Vector3(0, 0, 60.5f), 9, 9, 1.1f, 16, Palette.Mound);
-        Raylib.DrawCube(new Vector3(0, 1.15f, 60.5f), 1.8f, 0.15f, 0.4f, Palette.Chalk);
+        var mound = (float)Diamond.Mound;
+        Raylib.DrawCylinder(new Vector3(0, 0, mound), 9, 9, 1.1f, 16, Palette.Mound);
+        Raylib.DrawCube(new Vector3(0, 1.15f, mound), 1.8f, 0.15f, 0.4f, Palette.Chalk);
     }
 
     static void DrawFence(Park park, bool furnace)

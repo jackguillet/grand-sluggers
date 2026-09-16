@@ -14,13 +14,14 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "infield", "fielding", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
     public PitchingRules Pitching { get; init; } = new();
     public BattingRules Batting { get; init; } = new();
     public FlightRules Flight { get; init; } = new();
+    public InfieldRules Infield { get; init; } = new();
     public FieldingRules Fielding { get; init; } = new();
     public RunningRules Running { get; init; } = new();
     public StarRules Stars { get; init; } = new();
@@ -39,11 +40,12 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
-            Fielding = Fielding, Running = Running, Stars = Stars, Cpu = Cpu.AtLevel(level)
+            Infield = Infield, Fielding = Fielding, Running = Running, Stars = Stars,
+            Cpu = Cpu.AtLevel(level)
         };
     }
 
-    public static RulesTable Load(string dataRoot)
+    public static RulesTable Load(DataRoot dataRoot)
     {
         var errors = new List<string>();
         var table = Load(dataRoot, errors);
@@ -54,7 +56,7 @@ public sealed class RulesTable
     }
 
     /// <summary>Load every table, collecting errors instead of throwing. Missing fields fall back to code.</summary>
-    public static RulesTable Load(string dataRoot, List<string> errors)
+    public static RulesTable Load(DataRoot dataRoot, List<string> errors)
     {
         var json = new JsonSerializerOptions
         {
@@ -62,32 +64,35 @@ public sealed class RulesTable
             ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true
         };
-        var dir = Path.Combine(dataRoot, Directory);
         var table = new RulesTable
         {
-            Match = Read<MatchRules>(dir, "match", json, errors),
-            Pitching = Read<PitchingRules>(dir, "pitching", json, errors),
-            Batting = Read<BattingRules>(dir, "batting", json, errors),
-            Flight = Read<FlightRules>(dir, "flight", json, errors),
-            Fielding = Read<FieldingRules>(dir, "fielding", json, errors),
-            Running = Read<RunningRules>(dir, "running", json, errors),
-            Stars = Read<StarRules>(dir, "stars", json, errors),
-            Cpu = Read<CpuRules>(dir, "cpu", json, errors)
+            Match = Read<MatchRules>(dataRoot, "match", json, errors),
+            Pitching = Read<PitchingRules>(dataRoot, "pitching", json, errors),
+            Batting = Read<BattingRules>(dataRoot, "batting", json, errors),
+            Flight = Read<FlightRules>(dataRoot, "flight", json, errors),
+            Infield = Read<InfieldRules>(dataRoot, "infield", json, errors),
+            Fielding = Read<FieldingRules>(dataRoot, "fielding", json, errors),
+            Running = Read<RunningRules>(dataRoot, "running", json, errors),
+            Stars = Read<StarRules>(dataRoot, "stars", json, errors),
+            Cpu = Read<CpuRules>(dataRoot, "cpu", json, errors)
         };
-        RulesValidation.Validate(table, dir, errors);
+        RulesValidation.Validate(table, dataRoot, errors);
         return table;
     }
 
-    public static IReadOnlyList<string> Validate(string dataRoot)
+    /// <summary>Where one rules table is read from — the trial overlay's copy when it carries one.</summary>
+    public static string PathFor(DataRoot dataRoot, string name) => dataRoot.Resolve(Directory, name + ".json");
+
+    public static IReadOnlyList<string> Validate(DataRoot dataRoot)
     {
         var errors = new List<string>();
         Load(dataRoot, errors);
         return errors.OrderBy(e => e, StringComparer.Ordinal).ToList();
     }
 
-    static T Read<T>(string dir, string name, JsonSerializerOptions json, List<string> errors) where T : class, new()
+    static T Read<T>(DataRoot root, string name, JsonSerializerOptions json, List<string> errors) where T : class, new()
     {
-        var path = Path.Combine(dir, name + ".json");
+        var path = PathFor(root, name);
         if (!File.Exists(path))
         {
             errors.Add($"{path}: required rules table is missing");
@@ -128,16 +133,35 @@ public static class Rules
 
     static RulesTable LoadDefault()
     {
+        // Outside the catch on purpose: a data root or trial overlay the run named and cannot have
+        // is a stop, not a fallback (#711, #716).
+        var root = ContentCatalog.TryFindDataRoot();
+        return root is null ? RulesTable.Defaults : ForProcess(root);
+    }
+
+    /// <summary>
+    /// The process-wide table for a root, or the code defaults when there is nothing readable to
+    /// take. A root the run <see cref="DataRoot.Named"/> gets no such fallback: tables it cannot
+    /// read stop the run, because the alternative is the control's numbers playing under the
+    /// trial's name — and <see cref="Diamond"/> reads this table, so the geometry would be the
+    /// control's while the operator believed they were measuring a trial.
+    /// </summary>
+    public static RulesTable ForProcess(DataRoot root)
+    {
         try
         {
-            var root = ContentCatalog.TryFindDataRoot();
-            if (root is null) return RulesTable.Defaults;
             var errors = new List<string>();
             var table = RulesTable.Load(root, errors);
-            return errors.Count == 0 ? table : RulesTable.Defaults;
+            if (errors.Count == 0) return table;
+            if (root.Named)
+                throw new InvalidDataException(
+                    "Invalid rules tables — " + root.Provenance + Environment.NewLine
+                    + string.Join(Environment.NewLine, errors.Select(e => "  - " + e)));
+            return RulesTable.Defaults;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            if (root.Named) throw;
             return RulesTable.Defaults;
         }
     }
@@ -157,22 +181,28 @@ public sealed class SignedAttribute : Attribute;
 
 public static class RulesValidation
 {
-    public static void Validate(RulesTable table, string dir, List<string> errors)
+    /// <summary>
+    /// Every error names the file it came from, resolved through the trial overlay: a number a
+    /// trial supplied is reported against the trial's copy, never against the shipped one.
+    /// </summary>
+    public static void Validate(RulesTable table, DataRoot root, List<string> errors)
     {
-        Walk(table.Match, Path.Combine(dir, "match.json"), "match", errors);
-        Walk(table.Pitching, Path.Combine(dir, "pitching.json"), "pitching", errors);
-        Walk(table.Batting, Path.Combine(dir, "batting.json"), "batting", errors);
-        Walk(table.Flight, Path.Combine(dir, "flight.json"), "flight", errors);
-        Walk(table.Fielding, Path.Combine(dir, "fielding.json"), "fielding", errors);
-        Walk(table.Running, Path.Combine(dir, "running.json"), "running", errors);
-        Walk(table.Stars, Path.Combine(dir, "stars.json"), "stars", errors);
-        Walk(table.Cpu, Path.Combine(dir, "cpu.json"), "cpu", errors);
-        table.Cpu.Validate(Path.Combine(dir, "cpu.json"), errors);
-        table.Flight.Validate(Path.Combine(dir, "flight.json"), errors);
-        table.Running.Validate(Path.Combine(dir, "running.json"), errors);
-        table.Fielding.Validate(Path.Combine(dir, "fielding.json"), errors);
-        table.Batting.Validate(Path.Combine(dir, "batting.json"), errors);
-        table.Pitching.Cpu.Validate(Path.Combine(dir, "pitching.json"), errors);
+        Walk(table.Match, RulesTable.PathFor(root, "match"), "match", errors);
+        Walk(table.Pitching, RulesTable.PathFor(root, "pitching"), "pitching", errors);
+        Walk(table.Batting, RulesTable.PathFor(root, "batting"), "batting", errors);
+        Walk(table.Flight, RulesTable.PathFor(root, "flight"), "flight", errors);
+        Walk(table.Infield, RulesTable.PathFor(root, "infield"), "infield", errors);
+        Walk(table.Fielding, RulesTable.PathFor(root, "fielding"), "fielding", errors);
+        Walk(table.Running, RulesTable.PathFor(root, "running"), "running", errors);
+        Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
+        Walk(table.Cpu, RulesTable.PathFor(root, "cpu"), "cpu", errors);
+        table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
+        table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
+        table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
+        table.Running.Validate(RulesTable.PathFor(root, "running"), errors);
+        table.Fielding.Validate(RulesTable.PathFor(root, "fielding"), errors);
+        table.Batting.Validate(RulesTable.PathFor(root, "batting"), errors);
+        table.Pitching.Cpu.Validate(RulesTable.PathFor(root, "pitching"), errors);
     }
 
     /// <summary>Every numeric leaf is finite and inside its attribute range.</summary>
@@ -260,6 +290,42 @@ public sealed class MercyRules
     public int Runs { get; init; } = 10;
     public int FromInning { get; init; } = 3;
     public int MinScheduledInnings { get; init; } = 6;
+}
+
+// ---------------------------------------------------------------------------------------
+// infield.json — the diamond every park shares
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// Bases and rubber, in feet, read by <see cref="Diamond"/>. Every park plays on the same
+/// infield — that is the design, not an accident — so these are one global set loaded once
+/// and never changed at runtime. What varies per park is the outfield, the foul area and the
+/// environment, and none of that belongs here.
+///
+/// The corners are authored, not derived from <see cref="BaselineFt"/>. A 90-ft baseline
+/// rotated 45° is 63.6396…, and the diamond has always played at a rounded 63.64; deriving it
+/// would move the bases by four thousandths of a foot and silently change every route.
+/// </summary>
+public sealed class InfieldRules
+{
+    /// <summary>Bag to bag. The unit a runner's progress is measured in.</summary>
+    [Positive] public double BaselineFt { get; init; } = 90;
+
+    /// <summary>Home to the rubber, along the center line.</summary>
+    [Positive] public double MoundFt { get; init; } = 60.5;
+
+    /// <summary>First and third, off the center line and out from home by the same amount each.</summary>
+    [Positive] public double CornerFt { get; init; } = 63.64;
+
+    /// <summary>Second, straight out from home.</summary>
+    [Positive] public double SecondFt { get; init; } = 127.28;
+
+    /// <summary>The rubber sits between home and second, and second is past the corners.</summary>
+    public void Validate(string source, List<string> errors)
+    {
+        RulesValidation.Order(source, "infield.moundFt", MoundFt, SecondFt, errors);
+        RulesValidation.Order(source, "infield.cornerFt", CornerFt, SecondFt, errors);
+    }
 }
 
 // ---------------------------------------------------------------------------------------
