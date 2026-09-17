@@ -1,0 +1,36 @@
+{
+  "id": "crystal-rink",
+  "name": "Crystal Rink",
+  "faction": "royal",
+  "surface": "ice",
+  "leftFenceFt": 224,
+  "centerFenceFt": 270,
+  "rightFenceFt": 224,
+  "windMph": 2,
+  "windDeg": 180,
+  "fenceHeightFt": 8,
+  "nightContactWindowMul": 0.85,
+  "nightOnly": false,
+  "dayOnly": false,
+  "hazards": [
+    {
+      "type": "freeze_volume",
+      "x": 36,
+      "z": 62,
+      "radius": 8
+    },
+    {
+      "type": "freeze_volume",
+      "x": -40,
+      "z": 80,
+      "radius": 8
+    },
+    {
+      "type": "freeze_volume",
+      "x": 7,
+      "z": 126,
+      "radius": 10
+    }
+  ],
+  "notes": "Players do not skate. Freezers stun on touch. Night blackout shrinks the contact window; follow-spot on the ball is presentation."
+}
