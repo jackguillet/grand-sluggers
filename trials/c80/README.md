@@ -50,7 +50,7 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries nine now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries ten now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
@@ -59,8 +59,9 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | --- | --- |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732): the pad that decides a barrel's real catch, on the fence scale with the radii. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
-| `parks/*.json` (six) | fences at one scale, 0.70. Wall heights, wind and hazard radii unchanged. |
+| `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
 **The infield.** `baselineFt` 80, `moundFt` 53.78, and the bags at 56.57 / 113.14 — the shipped
 rounded 63.64 / 127.28 multiplied by 80/90, kept at the two decimals `data/` already spells them in.
@@ -79,8 +80,9 @@ Funfair Park simply stay the friendlier parks they already are.
 scale beyond it. The rule reads the **shipped** 155-ft lip, because it asks where a hazard stood on
 the historical field, not where it will stand on the compact one. #728 moved the trial's lip to
 137.78 and the positions did not change: no shipped hazard has a radius in [137.78, 155), so
-re-deriving against the new lip is byte-identical. **Radii are not scaled**: a barrel is a physical
-object, and it did not shrink for the same reason a wall did not. Harbor has no hazards, so the
+re-deriving against the new lip is byte-identical. **Radii were not scaled here**: a barrel is a
+physical object, and it did not shrink for the same reason a wall did not. (#730 decision 4 read the
+code and overturned that; #732 scaled them, in its own section below.) Harbor has no hazards, so the
 reference park is untouched either way.
 
 **The runner clock is not retuned here.** Elapsed pace is the C80 anchor, so a Run-5 bag stays
@@ -230,3 +232,61 @@ tracks the live centre-field depth or stays a fixed layout — is a design call 
 `tools/compact-field-report.py` holds its own nine-spot copy of the shipped starts; that is the
 frozen #708 control record the packet's arithmetic is published from, and pointing it at live C#
 would change what the packet means.
+
+---
+
+[#732](https://github.com/jackguillet/grand-sluggers/issues/732) — hazard radii and the reach pad, on
+the fence scale ([#730](https://github.com/jackguillet/grand-sluggers/issues/730) decision 4). Every
+`radius` in the five parks that have hazards is the shipped radius × 0.70, at the two decimals the rest
+of the overlay spells, and `rules/fielding.json` joins the overlay as the tenth file with one change:
+`park.pipeReachPadFt` 8 → **5.6**. `emberNightFireMul` 1.6 is dimensionless and stays. The shipped
+files are untouched, so a no-overlay run is byte-identical by construction — checked on `cli match`
+seeds 1, 7, 29, 104 and 2718 at the default park and at Canopy, Funfair and Ember, twenty runs.
+
+**Why the radius moved after #717 said it would not.** #717 left radii alone because a barrel is a
+physical object. #730 measured the code instead: a barrel's capture test is `radius + pipeReachPadFt`
+(`Fielding.cs`, `WarpIfPipe`), a fire breath's radius is × 1.6 at night, a freeze triggers on where the
+*ball* lands and then slows a body that need not be near it, and a `climb_wall` radius is never read at
+all. A radius is a trigger zone, not a body. Fair territory falls to 0.70² = 49% of shipped, so an
+unscaled zone roughly doubles its share of the field — Ember's night fire breath would have covered
+3.6% of fair ground. × 0.70 preserves each hazard's share exactly, and unlike the *positions* it takes
+the fence factor everywhere, infield barrels included: share is an area question and fair area follows
+the fences whatever zone a hazard sits in. `climb_wall` 90 → 63 is scaled with the rest for the same
+rule, and nothing reads it.
+
+**Why the pad had to move with it, in the same commit.** The pad is larger than any barrel or pipe
+radius. Scaling the radius alone would take a Canopy barrel's real catch from 13.00 ft to 11.50 — an
+11.5% cut on a field that lost 30%, and the packet's own `captureFenceScaledFt` column records that
+trap. With the pad at 5.60 the disc is 3.50 + 5.60 = **9.10 ft**, exactly 0.70 of 13.00; a Funfair pipe
+goes 12.00 → 8.40. That one number is why the fielding table enters the overlay here, whole, ahead of
+the two 3c chains that will write it (#727).
+
+| Hazard | shipped r | c80 r | what the ball meets, shipped → c80 |
+| --- | --- | --- | --- |
+| canopy `barrel` ×3 | 5 | 3.5 | capture disc 13.00 → 9.10 |
+| funfair `warp_pipe` ×3 | 4 | 2.8 | capture disc 12.00 → 8.40 |
+| ember `fire_breath` | 16 | 11.2 | day 16 → 11.2; night (×1.6) 25.60 → 17.92 |
+| ember `lava_pit` ×3 | 10, 10, 12 | 7, 7, 8.4 | slow zone |
+| crystal `freeze_volume` ×3 | 8, 8, 10 | 5.6, 5.6, 7 | freeze zone |
+| rooftop `billboard` ×2 | 12 | 8.4 | star sign |
+| rooftop `ac_unit` | 6 | 4.2 | — |
+| canopy `tree` ×4 | 8, 8, 10, 10 | 5.6, 5.6, 7, 7 | — |
+| ember `statue` | 10 | 7 | — |
+| canopy `climb_wall` | 90 | 63 | never read; the type is |
+
+**What it does to a run.** Forty-eight `cli match` seeds under the trial (seeds 1–8 in all six parks),
+before and after: **3 of 48 diverge** — Canopy seeds 3 and 5 and Funfair seed 7 — and 45 are
+byte-identical, Harbor's eight included because it has no hazards. Each divergence starts at a fly or a
+hop that used to fall inside a disc and no longer does; the one warp in the before set ("it hopped a
+barrel cannon", Canopy seed 3) is gone from the after set. One scoreline changes (Canopy 3: 4–3 → 5–4).
+Read the direction, not the digits: once one play differs the seed's stream diverges and pitch-level
+counts move with it. The controlled numbers are the geometric ones in the table.
+
+**What this leaves open.** `rules/fielding.json` is now carried whole, so from here every key added to
+or removed from `data/rules/fielding.json` must change this copy in the same commit — `DataRoot.WholeFiles`
+refuses a copy missing a shipped key, and only `RulesValidation.UnknownFields` catches a key the copy has
+and the shipped file no longer does. That makes #730 decision 6, should it proceed and delete
+`throw.onTheFlyFt`, a two-copy edit. Funfair's coded night chompers (`ParkHazards.FunfairChompers`,
+radii 16 / 18 / 16) are C# literals and did not scale, as their positions did not in #717 — recorded,
+not repaired. `pipeReachPadFt` carries no `[Positive]` validator in `Rules.cs`; adding one is a sealed-
+source edit and was left for a slice that already has to regenerate the packets.

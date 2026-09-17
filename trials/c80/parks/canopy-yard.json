@@ -16,52 +16,52 @@
       "type": "barrel",
       "x": 20,
       "z": 52,
-      "radius": 5,
+      "radius": 3.5,
       "tag": "A"
     },
     {
       "type": "barrel",
       "x": -27,
       "z": 57,
-      "radius": 5,
+      "radius": 3.5,
       "tag": "B"
     },
     {
       "type": "barrel",
       "x": 5,
       "z": 91,
-      "radius": 5,
+      "radius": 3.5,
       "tag": "C"
     },
     {
       "type": "climb_wall",
       "x": 0,
       "z": 259,
-      "radius": 90
+      "radius": 63
     },
     {
       "type": "tree",
       "x": -49,
       "z": 147,
-      "radius": 8
+      "radius": 5.6
     },
     {
       "type": "tree",
       "x": 56,
       "z": 161,
-      "radius": 8
+      "radius": 5.6
     },
     {
       "type": "tree",
       "x": -28,
       "z": 210,
-      "radius": 10
+      "radius": 7
     },
     {
       "type": "tree",
       "x": 35,
       "z": 217,
-      "radius": 10
+      "radius": 7
     }
   ],
   "notes": "Barrel cannons warp grounders. Clamber fielders can rob homers off the outfield wall."
