@@ -343,6 +343,53 @@ public sealed class OutsScenarioTests
         Assert.DoesNotContain(facts.OutsMade, o => o.Type == OutType.Tag && o.Bag == 4);
     }
 
+    /// <summary>
+    /// S-55b (#692): a firm catch is firm (§9.5, §10.5). The runner on third tags on a caught fly and the
+    /// relay loses the ball on the way in. Losing possession later is not the batted ball coming down: the
+    /// force the catch killed stays dead, and the body that legally tagged owes no second retouch. Before
+    /// the latch this fixture read the relay's catch as a second catch, charged the retouch again, and
+    /// retired the runner at the bag he had legally left — one run wiped and stamped DOUBLE PLAY.
+    /// </summary>
+    [Fact]
+    public void S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall()
+    {
+        var match = Defense("cinder", seed: 33);
+        Station(match, [3]);
+        var runner = match.Third!;
+        var hit = FlightFixtures.Landing(match.Park, 210, 34, 34);
+        var preview = match.PreviewHit(hit);
+        Assert.Equal("RF", preview.Position);
+
+        var lostAfterTheCatch = false;
+        var caught = false;
+        var reRead = new List<string>();
+        var run = Run(match, hit, preview, LiveSeats.CpuOnly, LivePlayCommandSource.Cpu,
+            observe: live =>
+            {
+                // The clock resets to 0 when the play commits; only the live play is evidence.
+                if (live.ElapsedSeconds <= 0) return;
+                if (live.Fly == FlyState.Caught) caught = true;
+                // The fixture is only evidence while it still loses the ball after the catch.
+                if (caught && !live.HoldsBall) lostAfterTheCatch = true;
+                if (caught && live.Fly != FlyState.Caught) reRead.Add($"{live.ElapsedSeconds:0.00}:{live.Fly}");
+            });
+
+        Assert.True(caught, "the fly was caught");
+        Assert.True(lostAfterTheCatch, "the fixture still loses the ball after the catch (otherwise it proves nothing)");
+
+        // The baseball first: one out, the catch; the body that tagged is not charged a retouch he does not owe.
+        var facts = run.Play.Outcome!;
+        var only = Assert.Single(facts.OutsMade);
+        Assert.Equal((OutType.Catch, 0), (only.Type, only.FromBag));
+        Assert.DoesNotContain(facts.OutsMade,
+            o => o.Runner.Id == runner.Id && o.Type == OutType.Force && o.FromBag == 3 && o.Bag == 3);
+        Assert.Contains(facts.Moves, m => m.Runner.Id == runner.Id && m.ToBag == 4);
+        Assert.Equal(1, run.Play.RunsScored);
+        Assert.NotEqual("DOUBLE PLAY", PlayStamp.Label(run.Play));
+        // Then the mechanism that produced it, as the diagnostic.
+        Assert.Empty(reRead);
+    }
+
     // ---------------------------------------------------------------------------------
     // S-73 … S-75  The close play only inside the margin (§9.6, D5)
     // ---------------------------------------------------------------------------------
