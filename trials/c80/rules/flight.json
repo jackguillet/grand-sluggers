@@ -40,7 +40,7 @@
     "chopperMinExitMph": 70,
     "linerMaxLaunchDeg": 22,
     "linerMinExitMph": 74,
-    "infieldLipFt": 155
+    "infieldLipFt": 137.78
   },
   "deadBall": {
     "minSec": 2.4,
