@@ -216,6 +216,11 @@ public sealed class RunnerScenarioTests
         Assert.False(leftEarly, "nobody leaves on a catchable fly (§9.5)");
         Assert.True(caughtAt > 0 && leftAt >= caughtAt - Frame, $"left at {leftAt:0.00} vs the catch {caughtAt:0.00}");
         Assert.Contains(play.Outcome!.OutsMade, o => o.Type == OutType.Catch);
+        // He tagged legally, so he can never owe a retouch back at third: that shape — a force at the bag
+        // he came from — is the catch being re-read as a drop (#692). A tag in the basepath (bag 0) or at
+        // the plate is ordinary baseball and still counts as having tagged.
+        Assert.DoesNotContain(play.Outcome.OutsMade,
+            o => o.Runner.Id == onThird.Id && o.Type == OutType.Force && o.FromBag == 3 && o.Bag == 3);
         var tagged = play.Outcome.Moves.Any(m => m.Runner.Id == onThird.Id && m.ToBag == 4)
                      || play.Outcome.OutsMade.Any(o => o.Runner.Id == onThird.Id);
         Assert.True(tagged, "the runner on third tags on a deep fly with fewer than two outs");

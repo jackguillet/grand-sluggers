@@ -441,6 +441,11 @@ public sealed partial class LivePlaySystem
 
     void UpdateFly(FlyState next)
     {
+        // The batted ball has one fate (§9.5, §10.5). A firm catch is firm: a glove that loses the ball
+        // later — a throw that sails, a lob nobody covers, an item that knocks it loose — is possession,
+        // not the batted ball coming down. Re-reading it as a drop would revive the force the catch
+        // killed and charge a retouch to a body that legally tagged, so Caught is terminal for the play.
+        if (Fly == FlyState.Caught) return;
         if (next == Fly) return;
         var was = Fly;
         Fly = next;

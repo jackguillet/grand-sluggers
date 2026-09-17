@@ -921,6 +921,7 @@ Rules that fall out of geometry, and must not be tabled:
 - Liner or fly caught with a runner off the bag: the fielder throws to (or steps on) that bag; if the ball arrives before the runner returns, the runner is out. This is an **appeal-less force back**. Works at every bag. S-51..S-53.
 - Fly ball, runner tags and goes, throw beats them: **tag** at the next bag (never a force). S-54 (sac fly thrown out at home).
 - Pop-up dropped on purpose with runners on: no infield fly rule; forced runners must go. CPU runners stay on the bag, so the drop is a force at the lead bag only. S-55.
+- **A firm catch is firm.** Once the batted ball is caught in the air it stays caught for the rest of the play. A glove that loses the ball afterwards — a throw that sails, a lob nobody covers, an item that knocks it loose — is possession changing, not the batted ball coming down. The retouch is owed only by a body that was off the bag **at the catch** (§9.5), and is judged **once**, on that catch. S-55b. ✅ P5 (`LivePlaySystem.UpdateFly`; #692). Note the rule is about a ball that reached the glove: a fly an out is awarded on *without* a glove (the chomper, §14) does not enter the caught state at all, and is not covered here.
 
 ✅ P5: the CPU reads the doubled-off race ahead of its table (`RunnerSystem.ReturnSec` against the throw to the start bag, or a walk onto it inside `fielding.throw.unassistedFt`); a human sends a runner into the doubled-off risk with the stick on that runner (LB on a ball in the air is tag-and-go, §9.5). A body owing a retouch is not settled: Time waits for it (§10.6).
 
@@ -1239,7 +1240,7 @@ The stale close-play verdict (A.5 #52) is gone with `Match.ClosePlaySafe` (the c
 
 Each scenario is a headless sim test: set the state, script the inputs (human seat commands or "CPU"), assert the outcome **and** the reason (which out type, which bag, which runner). A scenario is green only when it passes for the human seat *and* the CPU seat where both exist. Unity's job is to show it; the gate is `dotnet test`, then a sitting.
 
-**Coverage on `f82f948` + #634.** Every row S-01 … S-93 carries its id in a test name in `src/GrandSluggers.Sim.Tests` (plus S-24b and S-58b), and S-94 … S-99 are named by `ControlScenarioTests` since #633. The #634 skeptic pass re-read the sixteen rows the `a15f5f5` note listed as unnamed (S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81): every one already carried its id; four were not their row and were rewritten or tightened — S-49 (a 2B catch at 63 ft and a tag at second; now a bunt pop the catcher takes and the force back at first), S-38 (a comebacker; now a grounder to SS met inside `running.cpu.infieldBackFt`), S-52 and S-69 (an out only if one happened; now the out and the arrival that made it). S-69 (#640) is green again on PR #644: the one cover read of a runner play and the geometric rundown. S-97's in-air twin (the liner SS reaches past the lip) is green on both seats since #636. S-49 with the square (the crashing corners, the catcher's pop, the force back into 2B's glove) is `BuntScenarioTests` (#625). Nothing in the matrix is open.
+**Coverage on `f82f948` + #634.** Every row S-01 … S-93 carries its id in a test name in `src/GrandSluggers.Sim.Tests` (plus S-24b, S-55b and S-58b), and S-94 … S-99 are named by `ControlScenarioTests` since #633. The #634 skeptic pass re-read the sixteen rows the `a15f5f5` note listed as unnamed (S-02, S-08, S-12, S-38, S-49, S-52, S-53, S-54, S-61, S-63, S-69, S-70, S-71, S-74, S-78, S-81): every one already carried its id; four were not their row and were rewritten or tightened — S-49 (a 2B catch at 63 ft and a tag at second; now a bunt pop the catcher takes and the force back at first), S-38 (a comebacker; now a grounder to SS met inside `running.cpu.infieldBackFt`), S-52 and S-69 (an out only if one happened; now the out and the arrival that made it). S-69 (#640) is green again on PR #644: the one cover read of a runner play and the geometric rundown. S-97's in-air twin (the liner SS reaches past the lip) is green on both seats since #636. S-49 with the square (the crashing corners, the catcher's pop, the force back into 2B's glove) is `BuntScenarioTests` (#625). Nothing in the matrix is open.
 
 ### B.1 Pitch and swing
 
@@ -1295,7 +1296,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 
 ### B.4 Flies, liners, tag-ups
 
-✅ P5 for S-51 … S-55 (`OutsScenarioTests`; S-54 runs with the roster's Field-8 arm and three runner speeds); ✅ P2 for S-56 … S-59 (`FlightScenarioTests`).
+✅ P5 for S-51 … S-55 and S-55b (`OutsScenarioTests`; S-54 runs with the roster's Field-8 arm and three runner speeds; S-55b is the caught fly a lost relay must not re-read, #692); ✅ P2 for S-56 … S-59 (`FlightScenarioTests`).
 
 | Id | Setup | Input | Expect |
 | --- | --- | --- | --- |
@@ -1304,6 +1305,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-53 | Runner on 3rd holding on the bag, liner caught | | One out; runner stays |
 | S-54 | Runner on 3rd tags on a 220 ft fly to LF (arm Field 9), goes | | Throw home; out or safe by arrival; a close-play icon only if within 0.25 s |
 | S-55 | Bases loaded, pop to SS dropped on purpose | CPU runners | Runners on bags; force at home only |
+| S-55b | Runner on 3rd tags on a caught fly; the relay then loses the ball (sail, uncovered lob, or item) | CPU runners | The catch is the out and is never re-read as a drop: no second retouch, so no force back at the bag he legally left. His fate from there is geometry — he scores, or the recovered ball beats him to the plate (#692) |
 | S-56 | Fly 12 ft over the fence, CF Super Jump in the window at the wall | West | Robbed, out |
 | S-57 | Same, no ability | West | Home run |
 | S-58 | Fly hits the wall below the top | | Carom; live; batter to 2B by geometry |
