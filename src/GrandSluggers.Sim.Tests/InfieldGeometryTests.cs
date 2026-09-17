@@ -190,6 +190,43 @@ public sealed class InfieldGeometryTests
     }
 
     /// <summary>
+    /// Left field is on the left and right field is on the right, each named on its own. Ordering
+    /// the two against each other is not enough: <c>left.xFt == right.xFt == 0</c> satisfies
+    /// <c>left &lt;= right</c> and <c>[Signed]</c> permits zero, and that is the one table that
+    /// breaks something — <see cref="ChemistryToy.MiniSpot"/> divides by the right fielder's x,
+    /// which was the constant 110 until #725 made it a table value.
+    /// </summary>
+    [Fact]
+    public void AnOutfieldFoldedOntoOneSideIsNamedByPath()
+    {
+        using var flat = new CopiedRoot();
+        flat.Change("fielders.json", json =>
+        {
+            json["left"]!["xFt"] = 0;
+            json["right"]!["xFt"] = 0;
+        });
+
+        var errors = RulesTable.Validate(flat.Root);
+        Assert.Contains(errors, e => e.Contains("fielders.left.xFt"));
+        Assert.Contains(errors, e => e.Contains("fielders.right.xFt"));
+
+        // Swapped sides are caught too, by all three rules at once.
+        using var swapped = new CopiedRoot();
+        swapped.Change("fielders.json", json =>
+        {
+            json["left"]!["xFt"] = 110;
+            json["right"]!["xFt"] = -110;
+        });
+
+        var swappedErrors = RulesTable.Validate(swapped.Root);
+        Assert.Contains(swappedErrors, e => e.Contains("fielders.left.xFt"));
+        Assert.Contains(swappedErrors, e => e.Contains("fielders.right.xFt"));
+
+        // The shipped and the compact tables both pass, which is what makes the guard usable.
+        Assert.DoesNotContain(RulesTable.Validate(_content.Root), e => e.Contains("fielders."));
+    }
+
+    /// <summary>
     /// A start is a point, so x may be negative and z may not: a fielder behind home is not a
     /// defence, it is a typo. Both halves are named by path rather than found in a trace.
     /// </summary>

@@ -1002,13 +1002,26 @@ public sealed class FielderRules
     };
 
     /// <summary>
-    /// Left field is on the left. The sides are a frame, not a preference — the lineup toy measures
-    /// its mini-diamond against the right fielder's x, so a table that put both corners on one side
-    /// would draw a field folded in half rather than fail anywhere a reader would look.
+    /// Left field is on the left, and right field is on the right. The sides are a frame, not a
+    /// preference — the lineup toy measures its mini-diamond against the right fielder's x, so a
+    /// table that put both corners on one side would draw a field folded in half rather than fail
+    /// anywhere a reader would look.
+    ///
+    /// <para>
+    /// Each side is named on its own rather than only ordered against the other, because ordering
+    /// alone admits the one table that actually breaks: <c>left.xFt == right.xFt == 0</c> satisfies
+    /// <c>left &lt;= right</c>, <c>[Signed]</c> permits zero, and <c>ChemistryToy.MiniSpot</c> then
+    /// divides by it. Before #725 that divisor was the constant 110; it is a table value now, so the
+    /// table is where it gets checked.
+    /// </para>
     /// </summary>
     public void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "fielders.left.xFt", Left.XFt, Right.XFt, errors);
+        if (!(Left.XFt < 0))
+            errors.Add($"{source}: fielders.left.xFt must be left of the centre line; got {Left.XFt}");
+        if (!(Right.XFt > 0))
+            errors.Add($"{source}: fielders.right.xFt must be right of the centre line; got {Right.XFt}");
     }
 }
 

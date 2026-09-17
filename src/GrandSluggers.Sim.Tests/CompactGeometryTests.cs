@@ -951,6 +951,55 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
+    /// <b>The migrated centre fielder starts inside a Funfair chomper.</b> An effect this slice does
+    /// not own and does not repair. <c>ParkHazards.FunfairChompers</c> are C# literals, so they did
+    /// not migrate with the park data (#717's gap) — the centre mouth is still at (0, 228) with an
+    /// 18-ft radius. The shipped centre fielder stood 77.00 ft from that centre, 59.00 ft clear of
+    /// the rim. The migrated one stands 14.50 ft from it, which is 3.50 ft <i>inside</i> the rim.
+    ///
+    /// <para>
+    /// <c>ChompFly</c> is evaluated at the ball's landing point, not at the fielder, so nobody is
+    /// frozen where they stand. What it means is narrower and stranger: on a Funfair night, a fly
+    /// landing at the centre fielder's own feet is stamped an out by the hazard before his glove
+    /// resolves. Recorded because it puts part of the trial's fly-out movement outside the geometry
+    /// #725 controls, and a 3d reader would otherwise attribute all of it here.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheMigratedCentreFielderStartsInsideAFunfairChomper()
+    {
+        var funfair = Trial.Parks["funfair-park"];
+        var centre = ParkHazards.FunfairChompers.Single(h => h.Tag == "C");
+        var was = Control.Rules.Fielders.Spot("CF");
+        var now = Trial.Rules.Fielders.Spot("CF");
+
+        // Distance to the mouth's centre, then the clearance its 18-ft rim leaves.
+        Assert.Equal(18, centre.Radius);
+        Assert.Equal(77.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z), 2);
+        Assert.Equal(14.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z), 2);
+        Assert.Equal(59.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z) - centre.Radius, 2);
+        Assert.Equal(-3.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z) - centre.Radius, 2);
+
+        Assert.False(ParkHazards.ChompFly(funfair, night: true, was.X, was.Z));
+        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z));
+
+        // Only at night, and only a fly: a grounder or a liner is never chomped.
+        Assert.False(ParkHazards.ChompFly(funfair, night: false, now.X, now.Z));
+        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z, grounder: true) is false);
+
+        // The corners are clear, so this is one body in one park.
+        foreach (var pos in new[] { "LF", "RF" })
+        {
+            var spot = Trial.Rules.Fielders.Spot(pos);
+            Assert.False(ParkHazards.ChompFly(funfair, night: true, spot.X, spot.Z), pos);
+        }
+
+        // And no other park has chompers at all, whatever a body stands on.
+        foreach (var id in ParkIds.Where(p => p != "funfair-park"))
+            Assert.False(ParkHazards.ChompFly(Trial.Parks[id], night: true, now.X, now.Z), id);
+    }
+
+    /// <summary>
     /// <b>The lip and the drawn dirt agree again, on the compact field as on the shipped one.</b>
     /// The lip is a rule and the dirt is a picture, and until #729 they were authored in different
     /// places: the lip in <c>flight.classes.infieldLipFt</c>, the dirt in <c>ParkDiamond.BackR</c>,
