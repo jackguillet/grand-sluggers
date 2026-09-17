@@ -743,18 +743,69 @@
     },
     {
       "id": "F693-04-infield-lip",
-      "state": "pending-730",
-      "question": "flight.classes.infieldLipFt is 155 absolute feet and scales with nothing. Basepath gives 137.78, fence gives 108.50, and the value that preserves the shipped pop count is 129.2. Which?"
+      "state": "accepted-calibration-anchor",
+      "question": "flight.classes.infieldLipFt is 155 absolute feet and scales with nothing. Basepath gives 137.78, fence gives 108.50, and the value that preserves the shipped pop count is 129.2. Which?",
+      "acceptedDirection": {
+        "lipFt": 137.78,
+        "scale": "basepath 80/90",
+        "why": "Three of the lip's four consumers are geometry - where the dirt is, who is an infielder, where the ball counts as infield - and they take the infield's scale. The fence scale is impossible, not merely unwanted: at 108.50 ft the sim calls 2B and SS outfielders, and it still fails the floor after the start spots scale.",
+        "floorsCleared": {
+          "startsWhereTheyAre": 125.25,
+          "startsScaled": 111.33
+        },
+        "reportedEffect": "Pops rise from 489 to 652 on the standard grid, because the infield is still proportionally larger than it was. Reported for 3d rather than tuned away; the 129.2 ft that would preserve today's pop count was declined as fitting a number to an economy the compact game is meant to change."
+      }
     },
     {
       "id": "F693-02-infielder-starts",
-      "state": "pending-730",
-      "question": "Diamond.Positions hardcodes the four infield spots. Scale by basepath (1B lands 14.77 ft from the bag), preserve the fielder-to-bag gap (16.62 ft), or leave them (26.41 ft)?"
+      "state": "accepted-calibration-anchor",
+      "question": "Diamond.Positions hardcodes the four infield spots. Scale by basepath (1B lands 14.77 ft from the bag), preserve the fielder-to-bag gap (16.62 ft), or leave them (26.41 ft)?",
+      "acceptedDirection": {
+        "scale": "basepath 80/90",
+        "spots": {
+          "1B": [
+            69.33,
+            64.0
+          ],
+          "2B": [
+            37.33,
+            104.89
+          ],
+          "3B": [
+            -69.33,
+            64.0
+          ],
+          "SS": [
+            -37.33,
+            104.89
+          ]
+        },
+        "why": "The whole infield keeps its shape: every angle and ratio identical, each corner 18.5% of the basepath from its bag as today. Preserving the gap in feet instead would put the corners proportionally further out at 20.8%.",
+        "reportedEffect": "A corner's walk to his bag shortens 16.62 ft to 14.77 ft, so cover arrives slightly sooner."
+      }
     },
     {
       "id": "F693-02-outfielder-starts",
-      "state": "pending-730",
-      "question": "Preserve bearing and the fence-at-bearing fraction, putting CF at 213.5 ft? And does outfield depth become a per-park number (#713's axis)?"
+      "state": "accepted-calibration-anchor",
+      "question": "Preserve bearing and the fence-at-bearing fraction, putting CF at 213.5 ft? And does outfield depth become a per-park number (#713's axis)?",
+      "acceptedDirection": {
+        "rule": "One global set for all six parks, scaled: preserve bearing and the fraction of the fence at that bearing.",
+        "spots": {
+          "LF": [
+            -77.09,
+            175.19
+          ],
+          "CF": [
+            0.0,
+            213.5
+          ],
+          "RF": [
+            77.09,
+            175.19
+          ]
+        },
+        "why": "Today all six parks share one set, so depth-as-a-fraction already varies per park. Scaling preserves that exactly and restores CF's 76% of centre-field depth, unpinning it from the warning track. Per-park depth is new behaviour and belongs to #713."
+      }
     },
     {
       "id": "F693-04-foul-wrap",
@@ -763,23 +814,62 @@
     },
     {
       "id": "F693-05-tag-up-carry-gates",
-      "state": "pending-730",
-      "question": "cpu.TagSecondMinCarryFt 250 is past every compact pole, making the tag-from-second branch unreachable. Scale, re-author as a fraction of the fence, or leave?"
+      "state": "accepted-design-direction",
+      "question": "cpu.TagSecondMinCarryFt 250 is past every compact pole, making the tag-from-second branch unreachable. Scale, re-author as a fraction of the fence, or leave?",
+      "acceptedDirection": {
+        "rule": "Retire tagThirdMinCarryFt and tagSecondMinCarryFt. A CPU runner tags up when it judges it can beat the throw.",
+        "basis": "RunnerAi.Margin(runner, bag, ctx) = throwArrival - runnerArrival, which every other CPU runner decision already uses. The tag-up branch is the only one still reading a carry distance.",
+        "throwDistance": "ThrowArrivalSec already measures from the glove's actual position to the bag, so how far the thrower is from the target is in the model.",
+        "difficulty": "cpu.*.runnerMarginSec already tunes judgement by rung: easy +0.15 s, hard -0.15 s.",
+        "openGap": "ThrowArrivalSec passes null for the thrower, so Arm does not yet affect the estimate. #712 shipped Arm; wiring it in is what makes throw power count, as the direction requires.",
+        "acceptedBy": "Jack",
+        "acceptedOn": "2026-09-16",
+        "why": "Jack declined all four scaling options. A tag-up is a race, not a distance, so the number should not be rescaled - it should stop existing."
+      }
     },
     {
       "id": "F693-03-cutoff-threshold",
-      "state": "pending-730",
-      "question": "fielding.throw.onTheFlyFt 200 leaves no cutoff over half the compact field. What rule?"
+      "state": "accepted-design-direction",
+      "question": "fielding.throw.onTheFlyFt 200 leaves no cutoff over half the compact field. What rule?",
+      "acceptedDirection": {
+        "rule": "Retire onTheFlyFt as a gate. Relay when the two-leg throw reaches the bag before a direct throw would, otherwise throw through.",
+        "basis": "The same throw clock the runner margin uses. A weak arm relays from closer and a strong arm throws through, without a second table.",
+        "consequence": "#722's exit criterion asks for the relay break-even distance to be stated. It now falls out of the throw model rather than being authored, and it varies by arm.",
+        "acceptedBy": "Jack",
+        "acceptedOn": "2026-09-16"
+      }
     },
     {
       "id": "F693-04-hazard-radius",
-      "state": "pending-730",
-      "question": "Hazard radii were left unscaled on the argument that a barrel is a physical object, but radius is a trigger zone. Unscaled doubles every hazard's share of fair territory; x0.70 preserves it. Decide with PipeReachPadFt and EmberNightFireMul, which dominate it."
+      "state": "accepted-calibration-anchor",
+      "question": "Hazard radii were left unscaled on the argument that a barrel is a physical object, but radius is a trigger zone. Unscaled doubles every hazard's share of fair territory; x0.70 preserves it. Decide with PipeReachPadFt and EmberNightFireMul, which dominate it.",
+      "acceptedDirection": {
+        "radiusScale": 0.7,
+        "pipeReachPadFt": 5.6,
+        "emberNightFireMul": "unchanged - dimensionless",
+        "why": "Radius is a trigger zone, not an object: a barrel's capture test is radius + pad, a fire breath grows 1.6x at night, a freeze fires on where the ball lands, and a climb wall's radius is never read. Fair area scales by 0.70 squared, so scaling radii by 0.70 preserves every hazard's share of the field exactly.",
+        "whyThePadToo": "The pad is larger than a barrel's radius. Scaling the radius alone shrinks its real catch 13.00 ft to 11.50 ft - 11.5% on a field that lost 30%. With the pad scaled the capture disc is 9.10 ft, which is 0.70 of today."
+      }
     },
     {
       "id": "F693-07-ground-dress",
-      "state": "pending-730",
-      "question": "ParkDiamond.InnerHalf 50 and BackR 92 do not scale, so the drawn dirt no longer fits the diamond. Presentation only; judged on screen."
+      "state": "accepted-presentation-anchor",
+      "question": "ParkDiamond.InnerHalf 50 and BackR 92 do not scale, so the drawn dirt no longer fits the diamond. Presentation only; judged on screen.",
+      "acceptedDirection": {
+        "innerHalfFt": 44.44,
+        "backRFt": 81.78,
+        "scale": "basepath 80/90",
+        "preservedInFeet": [
+          "pathWidth 10",
+          "bagPadRadius 12",
+          "homePadRadius 18",
+          "warningTrackWidth 15",
+          "foulApron 36",
+          "mound shape"
+        ],
+        "why": "The packet's own groundDress rule. Applied without escalation: verified presentation-only in Phase 1, since dirtTimeScale keys off the batted-ball class rather than ground position and ParkDiamond.OnDirt has one consumer, a wall-loop assertion.",
+        "coupling": "ParkDiamond.cs:416 and ParkDiamondTests:70 tie the dress to the lip. Both move together."
+      }
     }
   ],
   "runnerClockProposal": {
@@ -8104,6 +8194,25 @@
       ],
       "why": "FoulWall converges the rail to zero offset at the pole, and these balls only meet it near the pole.",
       "consequence": "The 30.3% -> 41.4% rise is real but caused by the poles moving in. #732 should drop the foul wrap."
+    },
+    "phase2": {
+      "state": "decisions-accepted",
+      "acceptedOn": "2026-09-16",
+      "acceptedBy": "Jack",
+      "decided": [
+        "F693-04-infield-lip",
+        "F693-02-infielder-starts",
+        "F693-02-outfielder-starts",
+        "F693-04-hazard-radius",
+        "F693-05-tag-up-carry-gates",
+        "F693-03-cutoff-threshold",
+        "F693-07-ground-dress"
+      ],
+      "withdrawn": [
+        "F693-04-foul-wrap"
+      ],
+      "headline": "Two of the seven stopped being scaling questions. Jack's direction on the tag-up gates - a runner goes when it judges it can beat the throw - retires the number instead of rescaling it, and the same reasoning retires the relay threshold. Both already have the machinery; only the tag-up branch and the cutoff gate still read a distance.",
+      "implementationBoundary": "Decisions recorded. No rules file, runtime or shipped behaviour changed here; #725, #728, #729 and #732 carry the implementations."
     }
   }
 }
