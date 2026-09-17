@@ -35,6 +35,13 @@ public sealed class CompactGeometryTests
     /// <summary>The one fence scale, for all six parks (F693-04-park-migration).</summary>
     const double Outfield = 0.70;
 
+    /// <summary>
+    /// The migrated infield lip (<b>#728</b>): the shipped 155 ft on the basepath scale, rounded to
+    /// the two decimals <c>data/</c> spells. Derived rather than typed, so it cannot drift from the
+    /// scale the rest of this file checks.
+    /// </summary>
+    static readonly double MigratedLip = Math.Round(155 * Infield, 2);
+
     static readonly string[] ParkIds =
         ["canopy-yard", "crystal-rink", "ember-keep", "funfair-park", "harbor-diamond", "rooftop-city"];
 
@@ -191,7 +198,7 @@ public sealed class CompactGeometryTests
                 var was = shipped[i];
                 var now = trial[i];
                 var where = $"{id} hazard[{i}] {was.Type}";
-                var scale = FieldingResolver.OutfieldGrass(was.X, was.Z) ? Outfield : Infield;
+                var scale = FieldingResolver.OutfieldGrass(was.X, was.Z, Control.Rules) ? Outfield : Infield;
                 Assert.Equal(was.Type, now.Type);
                 Assert.Equal(was.Tag, now.Tag);
                 Assert.Equal(was.Radius, now.Radius);
@@ -204,14 +211,18 @@ public sealed class CompactGeometryTests
         // The eight Canopy hazards are the split the research describes: three barrels on the dirt,
         // five on the grass, and the lip decides which factor each one takes.
         var canopy = Control.Parks["canopy-yard"].Hazards;
-        Assert.Equal(3, canopy.Count(h => !FieldingResolver.OutfieldGrass(h.X, h.Z)));
-        Assert.Equal(5, canopy.Count(h => FieldingResolver.OutfieldGrass(h.X, h.Z)));
+        Assert.Equal(3, canopy.Count(h => !FieldingResolver.OutfieldGrass(h.X, h.Z, Control.Rules)));
+        Assert.Equal(5, canopy.Count(h => FieldingResolver.OutfieldGrass(h.X, h.Z, Control.Rules)));
 
-        // Rooftop's AC unit is the one the lip decides narrowly — 155.2 ft from home against a
-        // 155-ft lip — so it takes the fence factor and lands at (28, 105) rather than (36, 133).
+        // Rooftop's AC unit is the one the lip decides narrowly — 155.2 ft from home against the
+        // SHIPPED 155-ft lip — so it takes the fence factor and lands at (28, 105) rather than
+        // (36, 133). Two lips exist since #728, and the migration rule reads the shipped one: it asks
+        // where a hazard stood on the historical field, not where it will stand on the compact one.
+        // No shipped hazard has a radius in [137.78, 155), so re-deriving against the migrated lip
+        // would produce byte-identical positions and no park file needs touching.
         var ac = Control.Parks["rooftop-city"].Hazards.Single(h => h.Type == "ac_unit");
         Assert.Equal(155.24, Diamond.Dist(0, 0, ac.X, ac.Z), 2);
-        Assert.True(FieldingResolver.OutfieldGrass(ac.X, ac.Z));
+        Assert.True(FieldingResolver.OutfieldGrass(ac.X, ac.Z, Control.Rules));
         var migrated = Trial.Parks["rooftop-city"].Hazards.Single(h => h.Type == "ac_unit");
         Assert.Equal(28, migrated.X);
         Assert.Equal(105, migrated.Z);
@@ -222,23 +233,35 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// Surgical on purpose: drag is the only field that moves. Cutting exit velocity instead would
-    /// have reopened the exit table, the infield races and every accepted fielding anchor, so the
-    /// check is the whole file rather than the one number — a trial writes whole files (#716), and a
-    /// second field edited in passing would otherwise ride along unremarked.
+    /// Surgical on purpose: drag and the infield lip are the only fields that move. Cutting exit
+    /// velocity instead would have reopened the exit table, the infield races and every accepted
+    /// fielding anchor, so the check is the whole file rather than the two numbers — a trial writes
+    /// whole files (#716), and a third field edited in passing would otherwise ride along unremarked.
+    ///
+    /// <para>
+    /// The allow-list is two entries, not one, because <b>#728</b> landed: drag is global and the lip
+    /// is geometry. Each is asserted by value before it is stripped, so widening the list cannot hide
+    /// a wrong number — only a named one.
+    /// </para>
     /// </summary>
     [Fact]
-    public void TheTrialCarriesTheHeavierBallAndNothingElseInTheFlightTable()
+    public void TheTrialCarriesTheHeavierBallAndTheMigratedLipAndNothingElseInTheFlightTable()
     {
         Assert.Equal(0.0019, Control.Rules.Flight.Drag);
         Assert.Equal(0.0040, Trial.Rules.Flight.Drag);
+        Assert.Equal(155, Control.Rules.Flight.Classes.InfieldLipFt);
+        Assert.Equal(MigratedLip, Trial.Rules.Flight.Classes.InfieldLipFt);
 
         var shipped = Load(Path.Combine(Shipped, "rules", "flight.json"));
         var trial = Load(Path.Combine(Overlay, "rules", "flight.json"));
         Assert.Equal(0.0019, shipped["drag"]!.GetValue<double>());
         Assert.Equal(0.0040, trial["drag"]!.GetValue<double>());
+        Assert.Equal(155, shipped["classes"]!["infieldLipFt"]!.GetValue<double>());
+        Assert.Equal(MigratedLip, trial["classes"]!["infieldLipFt"]!.GetValue<double>());
         shipped.Remove("drag");
         trial.Remove("drag");
+        shipped["classes"]!.AsObject().Remove("infieldLipFt");
+        trial["classes"]!.AsObject().Remove("infieldLipFt");
         Assert.Equal(shipped.ToJsonString(), trial.ToJsonString());
 
         static JsonObject Load(string path) =>
@@ -247,6 +270,60 @@ public sealed class CompactGeometryTests
                 CommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true
             })!.AsObject();
+    }
+
+    /// <summary>
+    /// <b>The lip has a floor, and nothing in the rules enforces it.</b> A lip below a middle
+    /// infielder's radius makes <see cref="FieldingResolver.OutfieldGrass"/> answer true where 2B and
+    /// SS stand, so the fielding rules start calling them outfielders and put them on the outfield
+    /// read. <c>FlightRules.Validate</c> only orders the four launch bands and marks the lip positive,
+    /// so this is the only place the floor is written down.
+    ///
+    /// <para>
+    /// This is what ruled out the fence scale in <b>#730</b>: 155 × 0.70 = 108.50 ft sits inside the
+    /// middle infield at both the shipped starts and the scaled ones. The accepted 137.78 clears
+    /// today's floor by 12.53 ft and <b>#725</b>'s scaled floor by 26.45 ft, so the guard holds before
+    /// and after the starts migrate — which is why the two issues do not have to be ordered.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheMigratedLipStaysOutsideEveryInfielderBeforeAndAfterTheStartsMigrate()
+    {
+        var lip = Trial.Rules.Flight.Classes.InfieldLipFt;
+        Assert.Equal(MigratedLip, lip);
+
+        foreach (var pos in FieldingResolver.InfieldPursuitPositions)
+        {
+            var (x, z) = Diamond.Positions[pos];
+
+            // Today's starts, which are still C# literals until #725.
+            Assert.True(Diamond.Dist(0, 0, x, z) < lip,
+                $"{pos} at ({x}, {z}) is outside the migrated lip {lip}");
+
+            // #725's preview: the same spots on the basepath scale.
+            Assert.True(Diamond.Dist(0, 0, x * Infield, z * Infield) < lip,
+                $"{pos} scaled is outside the migrated lip {lip}");
+        }
+
+        // The two floors, named. 2B/SS are the deep pair and set both of them.
+        Assert.Equal(125.25, Radius("2B"), 2);
+        Assert.Equal(111.33, Radius("2B") * Infield, 2);
+        Assert.Equal(12.53, lip - Radius("2B"), 2);
+        Assert.Equal(26.45, lip - Radius("2B") * Infield, 2);
+
+        // The fence scale would have broken it, which is why #730 did not take it.
+        Assert.True(155 * Outfield < Radius("2B"),
+            "a lip on the fence scale sits inside the middle infield");
+
+        // And the outfield is on the far side under both roots, which is the rule's whole point.
+        foreach (var pos in new[] { "LF", "CF", "RF" })
+            Assert.True(Radius(pos) > lip, $"{pos} should be past the lip");
+
+        static double Radius(string pos)
+        {
+            var (x, z) = Diamond.Positions[pos];
+            return Diamond.Dist(0, 0, x, z);
+        }
     }
 
     /// <summary>
@@ -619,8 +696,16 @@ public sealed class CompactGeometryTests
     /// infield — Canopy's deep tree by five hundredths of a foot.
     ///
     /// This is not a mis-application of the rule; it is the rule being one-way. It is recorded because
-    /// the seam is <c>flight.classes.infieldLipFt</c>, which did not migrate (<b>#728</b>) — once that
-    /// number moves, these four are the rows to re-check first.
+    /// the seam is <c>flight.classes.infieldLipFt</c>.
+    ///
+    /// <para>
+    /// <b>Re-checked for #728.</b> The four assertions below are unchanged, and they should be: both
+    /// sides of the comparison read the <i>shipped</i> lip, and that is the lip the migration rule
+    /// used. Measured against the migrated 137.78 instead, the count is three, not four — Canopy's
+    /// deep tree lands at (-49, 147), r = 154.95 ft, which is outside it. Three is exactly what #730's
+    /// option table predicts for the accepted option, which is an independent check that 137.78 is the
+    /// value that was decided.
+    /// </para>
     /// </summary>
     [Fact]
     public void FourHazardsLandInADifferentZoneThanTheOneThatScaledThem()
@@ -648,6 +733,33 @@ public sealed class CompactGeometryTests
         Assert.Equal(
             ["canopy-yard tree", "crystal-rink freeze_volume", "ember-keep lava_pit", "rooftop-city ac_unit"],
             flipped);
+
+        // The same count read against the migrated lip, so the narration above is a measurement.
+        // Canopy's tree drops out: it lands at r = 154.95 ft, outside 137.78.
+        var stillInside = new List<string>();
+        foreach (var id in ParkIds)
+        {
+            var shipped = Control.Parks[id].Hazards;
+            var trial = Trial.Parks[id].Hazards;
+            for (var i = 0; i < shipped.Count; i++)
+            {
+                if (Diamond.Dist(0, 0, shipped[i].X, shipped[i].Z) < lip) continue;
+                if (Diamond.Dist(0, 0, trial[i].X, trial[i].Z) >= MigratedLip) continue;
+                stillInside.Add($"{id} {shipped[i].Type}");
+            }
+        }
+
+        Assert.Equal(
+            ["crystal-rink freeze_volume", "ember-keep lava_pit", "rooftop-city ac_unit"],
+            stillInside);
+
+        // Canopy's shallowest tree is the one that drops out: 221.36 ft shipped, 154.95 ft migrated,
+        // inside the shipped 155 but outside 137.78.
+        var tree = Trial.Parks["canopy-yard"].Hazards
+            .Where(h => h.Type == "tree")
+            .MinBy(h => Diamond.Dist(0, 0, h.X, h.Z))!;
+        Assert.Equal(154.95, Diamond.Dist(0, 0, tree.X, tree.Z), 2);
+        Assert.InRange(Diamond.Dist(0, 0, tree.X, tree.Z), MigratedLip, lip);
     }
 
     // ---------------------------------------------------------------------------------
@@ -655,29 +767,43 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <b>The un-migrated lip doubles the pop rate.</b> <c>BattedBall</c> downgrades a fly landing
-    /// inside <c>flight.classes.infieldLipFt</c> to a pop. The trial carries <c>flight.json</c> but
-    /// deliberately moves only <c>drag</c>, so the lip stays at 155 ft against a 280-ft centre field
-    /// — about 17% of fair territory becomes about 34%, and twice as many flies are reclassified.
+    /// <b>The migrated lip cuts two thirds of the extra pops, and the two scales keep the rest.</b>
+    /// <c>BattedBall</c> downgrades a fly landing inside <c>flight.classes.infieldLipFt</c> to a pop.
+    /// #717 shipped the trial with the lip still at 155 ft against a 280-ft centre field, and the
+    /// pops doubled: 489 → 976. <b>#728</b> moved it to 137.78 ft on the basepath scale and the count
+    /// is 652 — 163 extra pops where there were 487.
     ///
-    /// This slice is right not to move it: the lip is <b>#728</b>, filed separately and flagged to
-    /// land with #717. But this slice also <i>uses</i> that lip to decide hazard zones, so the number
-    /// is load-bearing here and its cost belongs on the record rather than in a later surprise.
+    /// <para>
+    /// The residual is not a miss; it is the compact profile's two scales. The lip follows the
+    /// basepath at 0.8889 while fair territory follows the fence at 0.70, so the same radius still
+    /// covers a larger share of a smaller field: 137.78 / 280 = 0.492 against the shipped
+    /// 155 / 400 = 0.388. Closing it the rest of the way would mean a lip on the fence scale — 108.50
+    /// ft — which #730 ruled out, because it puts 2B and SS outside the lip and makes the fielding
+    /// rules call them outfielders. The number below is therefore the accepted answer, not a gap.
+    /// </para>
+    ///
+    /// <para>The three counts stay on the record together so 3d can attribute the move.</para>
     /// </summary>
     [Fact]
-    public void TheUnmigratedLipDoublesThePopRate()
+    public void TheMigratedLipCutsTwoThirdsOfTheExtraPopsAndTheTwoScalesKeepTheRest()
     {
         var control = Shapes(Control);
         var trial = Shapes(Trial);
 
+        // 489 shipped, 976 at #717's un-migrated lip, 652 now.
         Assert.Equal(489, control.Pop);
-        Assert.Equal(976, trial.Pop);
-        Assert.True(trial.Pop > control.Pop * 1.9,
-            $"pops {control.Pop} -> {trial.Pop}: the lip is the cause, and it did not move");
+        Assert.Equal(652, trial.Pop);
+        Assert.Equal(163, trial.Pop - control.Pop);
+        Assert.True(trial.Pop - control.Pop < (976 - control.Pop) / 2.5,
+            $"pops {control.Pop} -> {trial.Pop}: #717 measured 976, so the lip was the cause");
 
-        // The flies did not vanish; they were reclassified.
+        // The flies did not vanish; they were reclassified. 4103 shipped, 3494 un-migrated, 3818 now.
         Assert.Equal(4103, control.Fly);
-        Assert.Equal(3494, trial.Fly);
+        Assert.Equal(3818, trial.Fly);
+
+        // Every other shape is untouched by the lip: it only ever sorts a fly from a pop.
+        Assert.Equal(489 + 4103, control.Pop + control.Fly);
+        Assert.Equal(976 + 3494, trial.Pop + trial.Fly);
 
         static (int Pop, int Fly) Shapes(ContentCatalog cat)
         {
@@ -702,6 +828,58 @@ public sealed class CompactGeometryTests
                                 }
             return (pop, fly);
         }
+    }
+
+    /// <summary>
+    /// <b>The migrated lip now sits inside the drawn dirt, and the dress is what has to follow.</b>
+    /// The lip is a rule and the dirt is a picture, and they are authored in different places: the
+    /// lip is <c>flight.classes.infieldLipFt</c> in data, the dirt is <c>ParkDiamond.BackR</c>, a C#
+    /// constant no overlay can reach. Shipped, the two agree — the lip sits 2.50 ft outside the
+    /// farthest dirt. #717 pulled the dirt in with the mound and left the lip where it was, so the
+    /// gap widened to 9.22 ft. #728 moves the lip and the sign flips: it is now 8.00 ft <i>inside</i>
+    /// the dirt, so a fly landing on drawn dirt past the lip is classified a fly.
+    ///
+    /// <para>
+    /// <b>#729</b> is the issue that closes it, and this pins the target: <c>BackR</c> on the basepath
+    /// scale is 81.78, which puts the lip back 2.22 ft outside — the shipped 2.50 × 8/9, exactly. It
+    /// does not follow that #729 must move the <i>shipped</i> dress; 92 × 80/90 is exact either way,
+    /// so deriving from <c>BaselineFt</c> leaves shipped at 92. That is #729's design question, not
+    /// this slice's.
+    /// </para>
+    ///
+    /// <para>
+    /// Recorded because the #730 packet predicted the wrong failure here: it named
+    /// <c>ParkDiamond.TrackIsInsideTheWall</c> and <c>ParkDiamondTests</c> as the tests that would
+    /// catch a lip moving without its dress. Both are <c>&gt;</c> comparisons against the lip, so
+    /// lowering it only widens their margin — they cannot fail, and no assertion in the suite sees
+    /// this inversion. This one does.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheMigratedLipFallsInsideTheDirtUntilTheDressFollowsIt()
+    {
+        const double backR = ParkDiamond.BackR;
+
+        var shippedDirt = Control.Rules.Infield.MoundFt + backR;
+        var trialDirt = Trial.Rules.Infield.MoundFt + backR;
+        Assert.Equal(152.50, shippedDirt, 2);
+        Assert.Equal(145.78, trialDirt, 2);
+        Assert.Equal(ParkDiamond.DirtMaxZ, shippedDirt, 2);
+
+        // Shipped: the lip is outside the dirt, which is the agreement #728 restores.
+        Assert.Equal(2.50, Control.Rules.Flight.Classes.InfieldLipFt - shippedDirt, 2);
+
+        // #717's trial: the dirt came in, the lip did not, and the gap grew.
+        Assert.Equal(9.22, 155 - trialDirt, 2);
+
+        // #728: the sign flips. This is the effect the slice reports rather than repairs.
+        Assert.Equal(-8.00, MigratedLip - trialDirt, 2);
+
+        // #729's target, and the proof it lands on the shipped margin exactly.
+        var dressedDirt = Trial.Rules.Infield.MoundFt + Math.Round(backR * Infield, 2);
+        Assert.Equal(135.56, dressedDirt, 2);
+        Assert.Equal(2.22, MigratedLip - dressedDirt, 2);
+        Assert.Equal(2.50 * 8 / 9, MigratedLip - dressedDirt, 2);
     }
 
     /// <summary>
