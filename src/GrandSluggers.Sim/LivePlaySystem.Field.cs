@@ -1518,8 +1518,14 @@ public sealed partial class LivePlaySystem
         BeginThrowToBag(bag);
     }
 
+    /// <summary>
+    /// The runner's read of the ball this frame (§9.9), exactly as <see cref="RunnerAi"/> would be handed it now — the
+    /// clock the ball carries included — for traces and tests. Not the catch event itself; that flag is the tick's.
+    /// </summary>
+    public RunnerAiContext RunnerRead(double dash01) => AiContext(dash01);
+
     /// <summary>The runner AI's read of the ball this frame (§9.9): who has it or will, and when.</summary>
-    RunnerAiContext AiContext(double dash01)
+    RunnerAiContext AiContext(double dash01, bool atCatch = false)
     {
         BallSituation ball;
         var carry = Hit?.CarryFt ?? 0;
@@ -1566,7 +1572,7 @@ public sealed partial class LivePlaySystem
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
             : int.MinValue;
         // The outs the runner reads are the count at contact: the two-out contact play does not begin when the batter is retired mid-play.
-        return new RunnerAiContext(ElapsedSeconds, OutsAtOpen, trailing, Fly, ball, dash01);
+        return new RunnerAiContext(ElapsedSeconds, OutsAtOpen, trailing, Fly, ball, dash01, atCatch);
     }
 
     /// <summary>
