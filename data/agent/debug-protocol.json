@@ -262,6 +262,16 @@
       "promoted": "PlayStampTests.ASacFlyEmitsACatchTellThenAScoreOrTagTellNotASingleEndOfPlayOut",
       "issue": "#690",
       "pr": "#705"
+    },
+    {
+      "id": "catch-re-read-as-drop",
+      "signature": "a runner who legally tagged is retired at the bag he left; DOUBLE PLAY on a clean sac fly; the run is wiped; FlyState reads Caught -> Dropped -> Caught on one batted ball",
+      "cause": "LivePlaySystem.FlyStateNow reads HoldsBall (Caught || Buddy), which is possession of ANY ball, and pairs it with the latched _call. A relay that sails (SailThrow), a lob nobody covers (DropThrowAtBag), or an item that foils the holder (Foil) all clear Caught, so the batted ball reads Dropped; the next glove re-enters Caught. That second Caught edge re-fires UpdateFly retouch block, which calls MarkLeftEarly() on a body that legally tagged; TryForce then converts the LeftEarly flag into a force back at the bag he came from. The force itself is NOT revived - Retire clears it at the catch (LivePlaySystem.cs:688, Forces.AfterOutAt) - so the retouch edge is the whole mechanism.",
+      "stage": "sitting",
+      "fix": "UpdateFly: Caught is terminal for the play. The batted ball has one fate (spec \u00a79.5, \u00a710.5) \u2014 losing the ball later is possession, not the batted ball coming down. Fly is the one shared read of that fate (LivePlaySnapshot.Fly), so it is latched at the state rather than at one consumer. A narrower gate on the retouch edge alone also removes the harm; it was not taken because it leaves every other reader seeing a caught ball as dropped.",
+      "promoted": "OutsScenarioTests.S55b_ACaughtFlyIsNotReReadAsADropWhenTheRelayLosesTheBall",
+      "issue": "#692",
+      "pr": ""
     }
   ]
 }
