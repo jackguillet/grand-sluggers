@@ -50,18 +50,19 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Eight files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried a ninth would show up here
-    /// rather than in a trace nobody could attribute.
+    /// Nine files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried a tenth would show up here
+    /// rather than in a trace nobody could attribute. It was eight until #725 added the fielder
+    /// starts; the count is in the name so growing it is a rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesEightFilesAndNoOthers()
+    public void TheTrialCarriesNineFilesAndNoOthers()
     {
         Assert.Equal(
             [
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
-                "rules/flight.json", "rules/infield.json"
+                "rules/fielders.json", "rules/flight.json", "rules/infield.json"
             ],
             Root.Overrides);
     }
@@ -160,8 +161,13 @@ public sealed class CompactGeometryTests
         Assert.True(shipped.InnerHalfFt + ParkDiamond.BagPadR > trial.CornerFt,
             "a pad-clearance rule is the only one that would have caught it");
 
-        // The trial still carries eight files: infield.json grew two keys, it did not gain a file.
-        Assert.Equal(8, Root.Overrides.Count);
+        // #729's own claim, which #725 did not change: the dress rides in infield.json rather than a
+        // file of its own. Named rather than counted, because the total is
+        // TheTrialCarriesNineFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // rules/fielders.json, and this line used to assert that count a second time.
+        Assert.Equal(
+            ["rules/fielders.json", "rules/flight.json", "rules/infield.json"],
+            Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
     }
 
     /// <summary>
@@ -349,8 +355,10 @@ public sealed class CompactGeometryTests
     /// <para>
     /// This is what ruled out the fence scale in <b>#730</b>: 155 × 0.70 = 108.50 ft sits inside the
     /// middle infield at both the shipped starts and the scaled ones. The accepted 137.78 clears
-    /// today's floor by 12.53 ft and <b>#725</b>'s scaled floor by 26.45 ft, so the guard holds before
-    /// and after the starts migrate — which is why the two issues do not have to be ordered.
+    /// today's floor by 12.53 ft and <b>#725</b>'s floor by 26.45 ft, so the guard held before and
+    /// after the starts migrated — which is why the two issues did not have to be ordered. Since
+    /// #725 the second arm reads the trial's authored starts instead of scaling the shipped ones
+    /// here, and lands on the same 111.33 ft.
     /// </para>
     /// </summary>
     [Fact]
@@ -361,22 +369,25 @@ public sealed class CompactGeometryTests
 
         foreach (var pos in FieldingResolver.InfieldPursuitPositions)
         {
+            // The shipped starts, which is what this process plays (#711).
             var (x, z) = Diamond.Positions[pos];
-
-            // Today's starts, which are still C# literals until #725.
             Assert.True(Diamond.Dist(0, 0, x, z) < lip,
                 $"{pos} at ({x}, {z}) is outside the migrated lip {lip}");
 
-            // #725's preview: the same spots on the basepath scale.
-            Assert.True(Diamond.Dist(0, 0, x * Infield, z * Infield) < lip,
-                $"{pos} scaled is outside the migrated lip {lip}");
+            // The trial's own, authored in #725 rather than scaled by this test.
+            var (tx, tz) = TrialStart(pos);
+            Assert.True(Diamond.Dist(0, 0, tx, tz) < lip,
+                $"{pos} at ({tx}, {tz}) is outside the migrated lip {lip}");
         }
 
         // The two floors, named. 2B/SS are the deep pair and set both of them.
         Assert.Equal(125.25, Radius("2B"), 2);
-        Assert.Equal(111.33, Radius("2B") * Infield, 2);
+        Assert.Equal(111.33, TrialRadius("2B"), 2);
         Assert.Equal(12.53, lip - Radius("2B"), 2);
-        Assert.Equal(26.45, lip - Radius("2B") * Infield, 2);
+        Assert.Equal(26.45, lip - TrialRadius("2B"), 2);
+
+        // The authored start lands where scaling the shipped one by the basepath predicted it would.
+        Assert.Equal(Radius("2B") * Infield, TrialRadius("2B"), 2);
 
         // The fence scale would have broken it, which is why #730 did not take it.
         Assert.True(155 * Outfield < Radius("2B"),
@@ -384,7 +395,10 @@ public sealed class CompactGeometryTests
 
         // And the outfield is on the far side under both roots, which is the rule's whole point.
         foreach (var pos in new[] { "LF", "CF", "RF" })
+        {
             Assert.True(Radius(pos) > lip, $"{pos} should be past the lip");
+            Assert.True(TrialRadius(pos) > lip, $"{pos} should be past the lip under the trial too");
+        }
 
         static double Radius(string pos)
         {
@@ -664,33 +678,72 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// <b>The outfield did not migrate with the park, and no overlay can move it.</b> The nine
-    /// defensive starts are <see cref="Diamond.Positions"/> literals, and the three outfield ones are
-    /// not even park-relative today — LF and RF at (±110, 250), CF at (0, 305), in every park. Against
-    /// a 400-ft centre field that is 95 ft of room in front of the wall; against a migrated 280-ft one
-    /// there is none, and <see cref="FieldBounds.Clamp"/> pins CF eight feet off the fence. Nothing can
-    /// land behind an outfielder pinned to the wall, which is why extra-base hits fall away in a trial
-    /// run and why no trace-level read of the park migration means anything until the starts follow.
+    /// <b>The outfield migrated with the park (#725).</b> This test used to be the marker for what
+    /// the slice could not carry: the nine defensive starts were <see cref="Diamond.Positions"/>
+    /// literals and the three outfield ones were not park-relative at all, so against a migrated
+    /// 280-ft centre field <see cref="FieldBounds.Clamp"/> pinned CF eight feet off the fence.
+    /// Nothing can land behind an outfielder pinned to the wall, which is why no trace-level read of
+    /// the park migration meant anything until the starts followed.
     ///
-    /// <para>The research names them for C80 — LF (−77.09, 175.19), CF (0, 213.5), RF (77.09, 175.19) —
-    /// and they belong to the fielding chain (#718 on). This test is the marker: it will fail the day
-    /// they move, which is the point.</para>
+    /// <para>
+    /// It said it would "fail the day they move". It could not have, and that is worth writing down:
+    /// the trial's table never reaches this process, because <see cref="Diamond"/> reads the one
+    /// shipped <see cref="Rules.Default"/> by #711's design. The three asserts would have stayed
+    /// green while every sentence around them went false. It is rewritten here as the result, with
+    /// the numbers it used to pin kept on the record.
+    /// </para>
+    ///
+    /// <para>
+    /// The trial's spots are <em>not</em> <see cref="Outfield"/>, the park fence scale. Each body
+    /// keeps its bearing and its fraction of the fence <em>at that bearing</em>: LF and RF keep
+    /// 0.7203 of a 379.16-ft fence, CF keeps 0.7625 of 400. The radial factors those imply are
+    /// 0.7008 and 0.7000 — close, and not the same number — so no single scale describes them, and
+    /// 110 × 0.70 = 77.00 is the wrong answer that looks right.
+    /// </para>
     /// </summary>
     [Fact]
-    public void TheOutfieldStartsAreStillTheNinetyFootLiteralsAndClampToACompactWall()
+    public void TheOutfieldStartsMigratedAndClearEveryCompactWall()
     {
+        // Shipped, unchanged: the numbers this test has always named.
         Assert.Equal((-110, 250), Diamond.Positions["LF"]);
         Assert.Equal((0, 305), Diamond.Positions["CF"]);
         Assert.Equal((110, 250), Diamond.Positions["RF"]);
+        Assert.Equal(305, FieldBounds.Clamp(Control.Parks["harbor-diamond"], 0, 305).Z, 1);
 
-        var (cfX, cfZ) = Diamond.Positions["CF"];
-        var shippedHarbor = FieldBounds.Clamp(Control.Parks["harbor-diamond"], cfX, cfZ);
-        Assert.Equal(305, shippedHarbor.Z, 1);
+        // The trial's own, from the accepted research (#730).
+        Assert.Equal((-77.09, 175.19), Trial.Rules.Fielders.Spot("LF"));
+        Assert.Equal((0, 213.5), Trial.Rules.Fielders.Spot("CF"));
+        Assert.Equal((77.09, 175.19), Trial.Rules.Fielders.Spot("RF"));
 
-        var compactHarbor = FieldBounds.Clamp(Trial.Parks["harbor-diamond"], cfX, cfZ);
-        Assert.Equal(272, compactHarbor.Z, 0);
-        Assert.True(Trial.Parks["harbor-diamond"].CenterFenceFt - compactHarbor.Z < 10,
-            "CF is pinned against the compact wall with no room behind it");
+        // The cost that is now closed, kept on the record: a 90-ft CF snapped to 272 against
+        // harbor's compact 280-ft wall. The trial's CF stands where it is asked to, 66.5 ft short
+        // of the fence — which is the room a ball needs to land behind an outfielder.
+        var harbor = Trial.Parks["harbor-diamond"];
+        Assert.Equal(272, FieldBounds.Clamp(harbor, 0, 305).Z, 0);
+        Assert.Equal(213.5, FieldBounds.Clamp(harbor, 0, 213.5).Z, 2);
+        Assert.Equal(66.5, harbor.CenterFenceFt - 213.5, 2);
+
+        // Every park, both columns: all eighteen 90-ft starts stood outside the compact wall, and
+        // none of the eighteen migrated ones does. One global set clears all six (#730 decision 3).
+        var checkedPairs = 0;
+        var tightest = double.MaxValue;
+        foreach (var id in ParkIds)
+        foreach (var pos in new[] { "LF", "CF", "RF" })
+        {
+            var park = Trial.Parks[id];
+            var (sx, sz) = Diamond.Positions[pos];
+            Assert.False(FieldBounds.Inside(park, sx, sz), $"{id} {pos} on the 90-ft spot used to be inside");
+
+            var (x, z) = Trial.Rules.Fielders.Spot(pos);
+            Assert.True(FieldBounds.Inside(park, x, z), $"{id} {pos} at ({x}, {z}) does not clear the wall");
+
+            var fence = AtBatResolver.FenceAt(park, Math.Atan2(x, z) * 180 / Math.PI);
+            tightest = Math.Min(tightest, fence - Diamond.Dist(0, 0, x, z));
+            checkedPairs++;
+        }
+
+        Assert.Equal(18, checkedPairs);
+        Assert.Equal(51.50, tightest, 2);   // canopy-yard's centre field, the closest of the eighteen
     }
 
     // ---------------------------------------------------------------------------------
@@ -898,6 +951,55 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
+    /// <b>The migrated centre fielder starts inside a Funfair chomper.</b> An effect this slice does
+    /// not own and does not repair. <c>ParkHazards.FunfairChompers</c> are C# literals, so they did
+    /// not migrate with the park data (#717's gap) — the centre mouth is still at (0, 228) with an
+    /// 18-ft radius. The shipped centre fielder stood 77.00 ft from that centre, 59.00 ft clear of
+    /// the rim. The migrated one stands 14.50 ft from it, which is 3.50 ft <i>inside</i> the rim.
+    ///
+    /// <para>
+    /// <c>ChompFly</c> is evaluated at the ball's landing point, not at the fielder, so nobody is
+    /// frozen where they stand. What it means is narrower and stranger: on a Funfair night, a fly
+    /// landing at the centre fielder's own feet is stamped an out by the hazard before his glove
+    /// resolves. Recorded because it puts part of the trial's fly-out movement outside the geometry
+    /// #725 controls, and a 3d reader would otherwise attribute all of it here.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheMigratedCentreFielderStartsInsideAFunfairChomper()
+    {
+        var funfair = Trial.Parks["funfair-park"];
+        var centre = ParkHazards.FunfairChompers.Single(h => h.Tag == "C");
+        var was = Control.Rules.Fielders.Spot("CF");
+        var now = Trial.Rules.Fielders.Spot("CF");
+
+        // Distance to the mouth's centre, then the clearance its 18-ft rim leaves.
+        Assert.Equal(18, centre.Radius);
+        Assert.Equal(77.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z), 2);
+        Assert.Equal(14.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z), 2);
+        Assert.Equal(59.00, Diamond.Dist(centre.X, centre.Z, was.X, was.Z) - centre.Radius, 2);
+        Assert.Equal(-3.50, Diamond.Dist(centre.X, centre.Z, now.X, now.Z) - centre.Radius, 2);
+
+        Assert.False(ParkHazards.ChompFly(funfair, night: true, was.X, was.Z));
+        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z));
+
+        // Only at night, and only a fly: a grounder or a liner is never chomped.
+        Assert.False(ParkHazards.ChompFly(funfair, night: false, now.X, now.Z));
+        Assert.True(ParkHazards.ChompFly(funfair, night: true, now.X, now.Z, grounder: true) is false);
+
+        // The corners are clear, so this is one body in one park.
+        foreach (var pos in new[] { "LF", "RF" })
+        {
+            var spot = Trial.Rules.Fielders.Spot(pos);
+            Assert.False(ParkHazards.ChompFly(funfair, night: true, spot.X, spot.Z), pos);
+        }
+
+        // And no other park has chompers at all, whatever a body stands on.
+        foreach (var id in ParkIds.Where(p => p != "funfair-park"))
+            Assert.False(ParkHazards.ChompFly(Trial.Parks[id], night: true, now.X, now.Z), id);
+    }
+
+    /// <summary>
     /// <b>The lip and the drawn dirt agree again, on the compact field as on the shipped one.</b>
     /// The lip is a rule and the dirt is a picture, and until #729 they were authored in different
     /// places: the lip in <c>flight.classes.infieldLipFt</c>, the dirt in <c>ParkDiamond.BackR</c>,
@@ -944,34 +1046,48 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// <b>The corner infielders lose their bags, and it is not only the outfield that did not move.</b>
-    /// The PR body and this file both discuss <c>Diamond.Positions</c> as an outfield problem. The
-    /// sharper cost is at the corners: 1B and 3B sit close to bags that walk in without them, while
-    /// 2B and SS already play deep enough that the shrink barely reaches them.
+    /// <b>The corner infielders followed their bags (#725).</b> It was never only the outfield that
+    /// did not move. The sharper cost was at the corners: with the starts still C# literals, 1B and
+    /// 3B stood 26.41 ft from bags that had walked in without them, against 16.62 ft shipped — an
+    /// error larger than the whole 6-ft stand-up catch reach #719 authors, and larger than the
+    /// margins #718 measures cover arrival and the double-play feed against. 2B and SS already
+    /// played deep enough that the shrink barely reached them.
     ///
-    /// <b>#725</b> owns the migration and is flagged to land before #718. This pins what it costs
-    /// until it does, because #718 measures cover arrival and the double-play feed against these
-    /// exact distances — and #719 cuts the stand-up catch reach to 6 ft, which is smaller than the
-    /// error.
+    /// <para>
+    /// This test pinned that cost until the migration landed. It now records that it is closed, and
+    /// keeps the old numbers, because the distance between the two columns is the whole point of the
+    /// slice. Note what it could <em>not</em> have done: it would not have gone red on its own, since
+    /// <see cref="Diamond.Positions"/> answers from the shipped root in this process whatever the
+    /// trial carries. It would simply have kept asserting 26.41 ft about a field that had moved.
+    /// </para>
     /// </summary>
     [Fact]
-    public void TheCornerInfieldersStandTwiceAsFarFromTheirBagsAsTheReachThatWillCoverThem()
+    public void TheCornerInfieldersFollowedTheirBagsWhenTheStartsMigrated()
     {
-        Assert.Equal(16.62, BagGap("1B", 1, Control.Rules), 2);
-        Assert.Equal(26.41, BagGap("1B", 1, Trial.Rules), 2);
-        Assert.Equal(16.62, BagGap("3B", 3, Control.Rules), 2);
-        Assert.Equal(26.41, BagGap("3B", 3, Trial.Rules), 2);
+        // Shipped, unchanged by any of this.
+        Assert.Equal(16.62, BagGap(Diamond.Positions["1B"], 1, Control.Rules), 2);
+        Assert.Equal(16.62, BagGap(Diamond.Positions["3B"], 3, Control.Rules), 2);
+        Assert.Equal(43.01, BagGap(Diamond.Positions["2B"], 2, Control.Rules), 2);
 
-        // The middle infield is fine: it already played too deep for the shrink to reach it.
-        Assert.Equal(43.01, BagGap("2B", 2, Control.Rules), 2);
-        Assert.Equal(42.28, BagGap("2B", 2, Trial.Rules), 2);
+        // What the overlay cost while the starts were literals: the gap this issue closed.
+        Assert.Equal(26.41, BagGap(Diamond.Positions["1B"], 1, Trial.Rules), 2);
+        Assert.Equal(26.41, BagGap(Diamond.Positions["3B"], 3, Trial.Rules), 2);
+        Assert.Equal(42.28, BagGap(Diamond.Positions["2B"], 2, Trial.Rules), 2);
+        Assert.True(BagGap(Diamond.Positions["1B"], 1, Trial.Rules)
+                    - BagGap(Diamond.Positions["1B"], 1, Control.Rules) > 6.0,
+            "the unmigrated corner error was larger than the whole stand-up reach");
 
-        // The error at the corners is larger than the whole stand-up reach #719 authors.
-        Assert.True(BagGap("1B", 1, Trial.Rules) - BagGap("1B", 1, Control.Rules) > 6.0);
+        // Where the trial's own bodies stand now.
+        Assert.Equal(14.77, BagGap(TrialStart("1B"), 1, Trial.Rules), 2);
+        Assert.Equal(14.77, BagGap(TrialStart("3B"), 3, Trial.Rules), 2);
+        Assert.Equal(38.23, BagGap(TrialStart("2B"), 2, Trial.Rules), 2);
 
-        static double BagGap(string pos, int bag, RulesTable rules)
+        // The gap scaled with the diamond, which is what "the same defence, smaller" has to mean.
+        Assert.Equal(16.62 * Infield, BagGap(TrialStart("1B"), 1, Trial.Rules), 2);
+        Assert.Equal(43.01 * Infield, BagGap(TrialStart("2B"), 2, Trial.Rules), 2);
+
+        static double BagGap((double X, double Z) fielder, int bag, RulesTable rules)
         {
-            var (fx, fz) = Diamond.Positions[pos];
             var infield = rules.Infield;
             var (bx, bz) = bag switch
             {
@@ -980,11 +1096,31 @@ public sealed class CompactGeometryTests
                 3 => (-infield.CornerFt, infield.CornerFt),
                 _ => (0.0, 0.0)
             };
-            return Diamond.Dist(fx, fz, bx, bz);
+            return Diamond.Dist(fielder.X, fielder.Z, bx, bz);
         }
     }
 
     // ---------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Where the trial stands the body at <paramref name="pos"/>. Seven come from the overlay's
+    /// <c>fielders.json</c> (#725); the pitcher is the trial's own rubber and the catcher is
+    /// <see cref="HomeSet.CatcherZ"/>, which no root moves. This is the defence a
+    /// <c>GRAND_SLUGGERS_TRIAL</c> process stands — not the one <see cref="Diamond.Positions"/>
+    /// reports here, which is always the shipped root's.
+    /// </summary>
+    static (double X, double Z) TrialStart(string pos) => pos switch
+    {
+        "P" => (0, Trial.Rules.Infield.MoundFt),
+        "C" => (0, HomeSet.CatcherZ),
+        _ => Trial.Rules.Fielders.Spot(pos)
+    };
+
+    static double TrialRadius(string pos)
+    {
+        var (x, z) = TrialStart(pos);
+        return Diamond.Dist(0, 0, x, z);
+    }
 
     static readonly double[] Sprays = [-44.9, -35, -22, -10, 0, 10, 22, 35, 44.9];
 

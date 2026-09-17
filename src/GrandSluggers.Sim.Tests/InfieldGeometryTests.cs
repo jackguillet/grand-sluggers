@@ -6,9 +6,10 @@ using Xunit;
 namespace GrandSluggers.Sim.Tests;
 
 /// <summary>
-/// The diamond every park shares is a rules table, not a C# constant (R3, #711). The JSON is
-/// the source of truth; <see cref="Diamond"/> reports what it says; and a process pointed at a
-/// different data root plays a different infield without the shipped one being touched.
+/// The diamond every park shares is a rules table, not a C# constant (R3, #711), and so are the
+/// spots the nine bodies start on (#725). The JSON is the source of truth; <see cref="Diamond"/>
+/// reports what it says; and a process pointed at a different data root plays a different infield
+/// — and stands a different defence — without the shipped one being touched.
 /// </summary>
 public sealed class InfieldGeometryTests
 {
@@ -119,6 +120,138 @@ public sealed class InfieldGeometryTests
     public void ThePitcherStartsOnTheRubber()
     {
         Assert.Equal(Diamond.Rubber, Diamond.Positions["P"]);
+    }
+
+    /// <summary>
+    /// The seven that migrated in #725 forward to <c>fielders.json</c>, and the two that did not are
+    /// named here so the split is a decision on the record rather than an omission: the pitcher is
+    /// the rubber <c>infield.json</c> already names, the catcher is <see cref="HomeSet.CatcherZ"/>.
+    /// </summary>
+    [Fact]
+    public void DiamondReportsTheStartsTheShippedTableSays()
+    {
+        var fielders = RulesTable.Load(_content.Root).Fielders;
+
+        foreach (var pos in new[] { "1B", "2B", "3B", "SS", "LF", "CF", "RF" })
+            Assert.Equal(fielders.Spot(pos), Diamond.Positions[pos]);
+
+        Assert.Equal(Diamond.Rubber, Diamond.Positions["P"]);
+        Assert.Equal((0d, HomeSet.CatcherZ), Diamond.Positions["C"]);
+        Assert.Equal(Diamond.Order.Length, Diamond.Positions.Count);
+    }
+
+    /// <summary>
+    /// The values #725 migrated, spelled out. This is the parity proof in this process: the left side
+    /// is read through <see cref="Diamond.Positions"/> — the path the whole sim uses — and the right
+    /// side is typed, so it is independent of both the JSON and the C# initializers the JSON is
+    /// compared against. <c>RulesTests.ShippedJsonEqualsTheCodeFallbackFieldForField</c> is not a
+    /// parity proof for this change: it pins the file to the new initializers, and a digit typed the
+    /// same way in both would pass it.
+    /// </summary>
+    [Fact]
+    public void TheShippedStartsAreTheOnesThatWereMigrated()
+    {
+        Assert.Equal((78d, 72d), Diamond.Positions["1B"]);
+        Assert.Equal((42d, 118d), Diamond.Positions["2B"]);
+        Assert.Equal((-78d, 72d), Diamond.Positions["3B"]);
+        Assert.Equal((-42d, 118d), Diamond.Positions["SS"]);
+        Assert.Equal((-110d, 250d), Diamond.Positions["LF"]);
+        Assert.Equal((0d, 305d), Diamond.Positions["CF"]);
+        Assert.Equal((110d, 250d), Diamond.Positions["RF"]);
+
+        // The two that did not migrate, at the numbers they have always been.
+        Assert.Equal((0d, 60.5d), Diamond.Positions["P"]);
+        Assert.Equal((0d, -15d), Diamond.Positions["C"]);
+    }
+
+    /// <summary>
+    /// The point of the migration, for the starts: another data root stands another defence. Before
+    /// #725 no root could — the seven were C# literals, so a compact park was played by fielders
+    /// standing where a 90-ft field put them.
+    /// </summary>
+    [Fact]
+    public void AnotherDataRootStandsAnotherDefence()
+    {
+        using var trial = new CopiedRoot();
+        trial.Change("fielders.json", json =>
+        {
+            json["center"]!["zFt"] = 213.5;
+            json["left"]!["xFt"] = -77.09;
+            json["left"]!["zFt"] = 175.19;
+        });
+
+        var fielders = RulesTable.Load(trial.Root).Fielders;
+
+        Assert.Equal((0d, 213.5d), fielders.Spot("CF"));
+        Assert.Equal((-77.09d, 175.19d), fielders.Spot("LF"));
+
+        // The shipped table is untouched, and the running process still stands it.
+        Assert.Equal((0d, 305d), Diamond.Positions["CF"]);
+    }
+
+    /// <summary>
+    /// Left field is on the left and right field is on the right, each named on its own. Ordering
+    /// the two against each other is not enough: <c>left.xFt == right.xFt == 0</c> satisfies
+    /// <c>left &lt;= right</c> and <c>[Signed]</c> permits zero, and that is the one table that
+    /// breaks something — <see cref="ChemistryToy.MiniSpot"/> divides by the right fielder's x,
+    /// which was the constant 110 until #725 made it a table value.
+    /// </summary>
+    [Fact]
+    public void AnOutfieldFoldedOntoOneSideIsNamedByPath()
+    {
+        using var flat = new CopiedRoot();
+        flat.Change("fielders.json", json =>
+        {
+            json["left"]!["xFt"] = 0;
+            json["right"]!["xFt"] = 0;
+        });
+
+        var errors = RulesTable.Validate(flat.Root);
+        Assert.Contains(errors, e => e.Contains("fielders.left.xFt"));
+        Assert.Contains(errors, e => e.Contains("fielders.right.xFt"));
+
+        // Swapped sides are caught too, by all three rules at once.
+        using var swapped = new CopiedRoot();
+        swapped.Change("fielders.json", json =>
+        {
+            json["left"]!["xFt"] = 110;
+            json["right"]!["xFt"] = -110;
+        });
+
+        var swappedErrors = RulesTable.Validate(swapped.Root);
+        Assert.Contains(swappedErrors, e => e.Contains("fielders.left.xFt"));
+        Assert.Contains(swappedErrors, e => e.Contains("fielders.right.xFt"));
+
+        // The shipped and the compact tables both pass, which is what makes the guard usable.
+        Assert.DoesNotContain(RulesTable.Validate(_content.Root), e => e.Contains("fielders."));
+    }
+
+    /// <summary>
+    /// A start is a point, so x may be negative and z may not: a fielder behind home is not a
+    /// defence, it is a typo. Both halves are named by path rather than found in a trace.
+    /// </summary>
+    [Fact]
+    public void AFielderStartOutOfRangeIsNamedByPath()
+    {
+        using var trial = new CopiedRoot();
+        trial.Change("fielders.json", json => json["center"]!["zFt"] = -5);
+
+        var errors = RulesTable.Validate(trial.Root);
+        Assert.Contains(errors, e => e.Contains("fielders.center.zFt") && e.Contains("greater than 0"));
+
+        // The signed half: the left side of the field is negative x and that is not an error.
+        Assert.DoesNotContain(errors, e => e.Contains("fielders.left.xFt"));
+        Assert.DoesNotContain(errors, e => e.Contains("fielders.third.xFt"));
+    }
+
+    /// <summary>A table that puts left field on the right draws a field folded in half.</summary>
+    [Fact]
+    public void TheCornersOfTheOutfieldMustStayOnTheirOwnSides()
+    {
+        using var trial = new CopiedRoot();
+        trial.Change("fielders.json", json => json["left"]!["xFt"] = 120);
+
+        Assert.Contains(RulesTable.Validate(trial.Root), e => e.Contains("fielders.left.xFt"));
     }
 
     /// <summary>
@@ -254,17 +387,51 @@ public sealed class InfieldGeometryTests
     [InlineData("60.5")]
     public void NoBareInfieldLiteralIsLeftInTheSource(string literal)
     {
+        var offenders = Offenders(literal);
+        Assert.True(offenders.Count == 0,
+            $"{literal} must come from data/rules/infield.json: " + string.Join(", ", offenders));
+    }
+
+    /// <summary>
+    /// The same guard for the starts (#725), and it can only hold one of the seven. The rule the
+    /// test above applies is a substring scan, and six of the migrated numbers are plain two- and
+    /// three-digit integers that the sim spells for unrelated reasons: on this branch "78" still
+    /// appears on 24 lines, "72" on 34 and "42" on 28 — colours, glove scales and one irrational
+    /// constant — and "118", "110" and "250" on four or five each (<c>Palette.Sky</c> is
+    /// <c>C(118, 186, 232)</c>). Adding them would fail on lines that have nothing to do with a
+    /// fielder.
+    ///
+    /// <para>
+    /// Centre field's depth is the exception: it appears nowhere else in the sim, so this one
+    /// permanently refuses a re-introduced copy of it. The other six are held by
+    /// <see cref="TheShippedStartsAreTheOnesThatWereMigrated"/> and by the byte-diff of a
+    /// <c>cli match</c> run, which is the gate the PR actually leans on.
+    /// </para>
+    /// </summary>
+    [Theory]
+    [InlineData("305")]
+    public void NoBareFielderStartLiteralIsLeftInTheSource(string literal)
+    {
+        var offenders = Offenders(literal);
+        Assert.True(offenders.Count == 0,
+            $"{literal} must come from data/rules/fielders.json: " + string.Join(", ", offenders));
+    }
+
+    /// <summary>
+    /// Every <c>.cs</c> file outside the tests that spells <paramref name="literal"/> in code.
+    /// <c>Rules.cs</c> is the one file allowed to: that is where the tables declare their numbers,
+    /// and the initializers are the documented load fallback, not a second copy.
+    /// </summary>
+    IReadOnlyList<string> Offenders(string literal)
+    {
         var src = Path.GetFullPath(Path.Combine(_content.Root.Shipped, "..", "src"));
-        var offenders = Directory
+        return Directory
             .EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains(".Tests") && Path.GetFileName(f) != "Rules.cs")
             .Where(f => File.ReadLines(f).Any(Spells))
             .Select(f => Path.GetRelativePath(src, f))
             .OrderBy(f => f, StringComparer.Ordinal)
             .ToList();
-
-        Assert.True(offenders.Count == 0,
-            $"{literal} must come from data/rules/infield.json: " + string.Join(", ", offenders));
 
         bool Spells(string line)
         {

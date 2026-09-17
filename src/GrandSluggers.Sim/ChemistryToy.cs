@@ -34,13 +34,28 @@ public static class ChemistryToy
         _ => None
     };
 
-    /// <summary>Mini-diamond UV. U is 3B (−) to 1B (+). V is home (0) toward CF (1).</summary>
+    /// <summary>
+    /// Mini-diamond UV. U is the 3B (−) to 1B (+) axis, V is home (0) toward CF (1).
+    ///
+    /// <para>
+    /// The frame is the outfield itself — the right fielder's x and the centre fielder's depth,
+    /// read from <see cref="Diamond.Positions"/>. Before #725 those were the shipped numbers typed
+    /// here; once the starts became data a root that moves them would have squashed every token
+    /// toward the middle of a toy diamond that had not moved.
+    /// </para>
+    /// </summary>
     public static (double U, double V) MiniSpot(string pos)
     {
         if (!Diamond.Positions.TryGetValue(pos, out var p)) return (0, 0.35);
-        return (p.X / 110.0, p.Z / 305.0);
+        return (p.X / Diamond.Positions["RF"].X, p.Z / Diamond.Positions["CF"].Z);
     }
 
+    /// <summary>
+    /// The V a whole group's token sits at, for the draft screen's group rows. These are a fixed
+    /// layout, not a reading of <see cref="Diamond.Positions"/>: they were authored from the shipped
+    /// depths and they do not follow a data root that moves the starts (#725). What V should mean
+    /// under a trial — the live depth, or a layout that stays put — is a design call nobody has made.
+    /// </summary>
     public static (double U, double V) GroupTokenSpot(string group) => group switch
     {
         "P" => (0, 0.20),

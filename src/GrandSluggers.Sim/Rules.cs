@@ -14,7 +14,7 @@ public sealed class RulesTable
     public const string Directory = "rules";
 
     public static readonly IReadOnlyList<string> Files =
-        ["match", "pitching", "batting", "flight", "infield", "fielding", "running", "stars", "cpu"];
+        ["match", "pitching", "batting", "flight", "infield", "fielders", "fielding", "running", "stars", "cpu"];
 
     public MatchRules Match { get; init; } = new();
 
@@ -22,6 +22,7 @@ public sealed class RulesTable
     public BattingRules Batting { get; init; } = new();
     public FlightRules Flight { get; init; } = new();
     public InfieldRules Infield { get; init; } = new();
+    public FielderRules Fielders { get; init; } = new();
     public FieldingRules Fielding { get; init; } = new();
     public RunningRules Running { get; init; } = new();
     public StarRules Stars { get; init; } = new();
@@ -40,7 +41,7 @@ public sealed class RulesTable
         return new RulesTable
         {
             Match = Match, Pitching = Pitching, Batting = Batting, Flight = Flight,
-            Infield = Infield, Fielding = Fielding, Running = Running, Stars = Stars,
+            Infield = Infield, Fielders = Fielders, Fielding = Fielding, Running = Running, Stars = Stars,
             Cpu = Cpu.AtLevel(level)
         };
     }
@@ -71,6 +72,7 @@ public sealed class RulesTable
             Batting = Read<BattingRules>(dataRoot, "batting", json, errors),
             Flight = Read<FlightRules>(dataRoot, "flight", json, errors),
             Infield = Read<InfieldRules>(dataRoot, "infield", json, errors),
+            Fielders = Read<FielderRules>(dataRoot, "fielders", json, errors),
             Fielding = Read<FieldingRules>(dataRoot, "fielding", json, errors),
             Running = Read<RunningRules>(dataRoot, "running", json, errors),
             Stars = Read<StarRules>(dataRoot, "stars", json, errors),
@@ -192,6 +194,7 @@ public static class RulesValidation
         Walk(table.Batting, RulesTable.PathFor(root, "batting"), "batting", errors);
         Walk(table.Flight, RulesTable.PathFor(root, "flight"), "flight", errors);
         Walk(table.Infield, RulesTable.PathFor(root, "infield"), "infield", errors);
+        Walk(table.Fielders, RulesTable.PathFor(root, "fielders"), "fielders", errors);
         Walk(table.Fielding, RulesTable.PathFor(root, "fielding"), "fielding", errors);
         Walk(table.Running, RulesTable.PathFor(root, "running"), "running", errors);
         Walk(table.Stars, RulesTable.PathFor(root, "stars"), "stars", errors);
@@ -199,6 +202,7 @@ public static class RulesValidation
         table.Cpu.Validate(RulesTable.PathFor(root, "cpu"), errors);
         table.Flight.Validate(RulesTable.PathFor(root, "flight"), errors);
         table.Infield.Validate(RulesTable.PathFor(root, "infield"), errors);
+        table.Fielders.Validate(RulesTable.PathFor(root, "fielders"), errors);
         table.Running.Validate(RulesTable.PathFor(root, "running"), errors);
         table.Fielding.Validate(RulesTable.PathFor(root, "fielding"), errors);
         table.Batting.Validate(RulesTable.PathFor(root, "batting"), errors);
@@ -943,6 +947,92 @@ public sealed class DeadBallRules
     public double AfterHangSec { get; init; } = 0.35;
     /// <summary>A flight nobody plays holds this long past the ball's rest (or exit) before the result.</summary>
     public double RestHoldSec { get; init; } = 0.2;
+}
+
+// ---------------------------------------------------------------------------------------
+// fielders.json — §8.1
+// ---------------------------------------------------------------------------------------
+
+/// <summary>
+/// Where the seven gloves stand with nobody on, in feet from home, read by
+/// <see cref="Diamond.Positions"/> (#725). Home is the origin, +Z runs toward second and centre,
+/// +X toward first, so the left side of the field is negative X.
+///
+/// <para>
+/// Only seven. The pitcher stands on <c>infield.moundFt</c> and the catcher on
+/// <see cref="HomeSet.CatcherZ"/>; naming either here would be a second source of truth for a
+/// spot that is already decided elsewhere.
+/// </para>
+///
+/// <para>
+/// <b>One global set, outfield included (#730, decision 3).</b> Every park shares these — that is
+/// what ships today, and per-park depth is new behaviour that stays with #713. A trial that wants
+/// a smaller field writes the whole file. The infield four scale with the basepath; the outfield
+/// three are placed by keeping each body's bearing and its fraction of the fence <em>at that
+/// bearing</em>, measured through the circular fence arc (<see cref="AtBatResolver.FenceAt"/>).
+/// That is not one scale factor applied to these numbers, and it is not the park fence scale:
+/// LF and RF keep 0.7203 of a 379.16-ft fence at ∓23.75°, centre keeps 0.7625 of 400, and the
+/// two fractions are different. See <c>docs/research-game-feel-730.md</c>.
+/// </para>
+/// </summary>
+public sealed class FielderRules
+{
+    public FielderSpotRules First { get; init; } = new() { XFt = 78, ZFt = 72 };
+    public FielderSpotRules Second { get; init; } = new() { XFt = 42, ZFt = 118 };
+    public FielderSpotRules Third { get; init; } = new() { XFt = -78, ZFt = 72 };
+    public FielderSpotRules Short { get; init; } = new() { XFt = -42, ZFt = 118 };
+    public FielderSpotRules Left { get; init; } = new() { XFt = -110, ZFt = 250 };
+    public FielderSpotRules Center { get; init; } = new() { XFt = 0, ZFt = 305 };
+    public FielderSpotRules Right { get; init; } = new() { XFt = 110, ZFt = 250 };
+
+    /// <summary>
+    /// The start for <paramref name="pos"/>, spelled the way the rest of the sim spells a position.
+    /// "P" and "C" are not this table's to answer — <see cref="Diamond.Positions"/> holds those.
+    /// </summary>
+    public (double X, double Z) Spot(string pos) => pos switch
+    {
+        "1B" => (First.XFt, First.ZFt),
+        "2B" => (Second.XFt, Second.ZFt),
+        "3B" => (Third.XFt, Third.ZFt),
+        "SS" => (Short.XFt, Short.ZFt),
+        "LF" => (Left.XFt, Left.ZFt),
+        "CF" => (Center.XFt, Center.ZFt),
+        "RF" => (Right.XFt, Right.ZFt),
+        _ => throw new ArgumentOutOfRangeException(nameof(pos), pos, "fielders.json names 1B, 2B, 3B, SS, LF, CF and RF")
+    };
+
+    /// <summary>
+    /// Left field is on the left, and right field is on the right. The sides are a frame, not a
+    /// preference — the lineup toy measures its mini-diamond against the right fielder's x, so a
+    /// table that put both corners on one side would draw a field folded in half rather than fail
+    /// anywhere a reader would look.
+    ///
+    /// <para>
+    /// Each side is named on its own rather than only ordered against the other, because ordering
+    /// alone admits the one table that actually breaks: <c>left.xFt == right.xFt == 0</c> satisfies
+    /// <c>left &lt;= right</c>, <c>[Signed]</c> permits zero, and <c>ChemistryToy.MiniSpot</c> then
+    /// divides by it. Before #725 that divisor was the constant 110; it is a table value now, so the
+    /// table is where it gets checked.
+    /// </para>
+    /// </summary>
+    public void Validate(string source, List<string> errors)
+    {
+        RulesValidation.Order(source, "fielders.left.xFt", Left.XFt, Right.XFt, errors);
+        if (!(Left.XFt < 0))
+            errors.Add($"{source}: fielders.left.xFt must be left of the centre line; got {Left.XFt}");
+        if (!(Right.XFt > 0))
+            errors.Add($"{source}: fielders.right.xFt must be right of the centre line; got {Right.XFt}");
+    }
+}
+
+/// <summary>One body's start. <see cref="XFt"/> is signed; <see cref="ZFt"/> is in front of home.</summary>
+public sealed class FielderSpotRules
+{
+    /// <summary>Off the centre line. Negative toward third and left.</summary>
+    [Signed] public double XFt { get; init; }
+
+    /// <summary>Out from home, along the centre line.</summary>
+    [Positive] public double ZFt { get; init; }
 }
 
 // ---------------------------------------------------------------------------------------
