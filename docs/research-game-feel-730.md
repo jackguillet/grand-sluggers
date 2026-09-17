@@ -121,22 +121,35 @@ Note the fence at LF/RF's bearing is 379.16, not the 330-ft pole — the fence i
 
 ---
 
-## Subject 4 — the foul wrap (#732)
+## Subject 4 — the foul rate down the lines — **not a scaling subject**
 
-`HarborWall.FoulOffset` = 36 ft, `flareStart` = 95 ft. Both hardcoded, neither scaled. The rail flares from 95 ft out to the pole, so in a 232-ft park it flares 95 → 232 instead of 95 → 330.
+`HarborWall.FoulOffset` = 36 ft and `flareStart` = 95 ft are hardcoded and do not scale. An earlier revision of this packet, #732 and the PR #731 review all named them as the cause of a measured shift in the foul rate. **That attribution is wrong, and the correction is the finding.**
 
-Down-the-line contact (|spray| > 40°), same grid:
+The shift is real. Down-the-line contact (|spray| > 40°), same grid:
 
 | | called foul |
 | --- | --- |
 | control | 582 / 1920 — **30.3%** |
 | compact | 794 / 1920 — **41.4%** |
 
-**This is currently shaping a published result.** PR #731 reports that only Funfair's line is cleared by ordinary contact and credits wind and wall heights. Pulled slaps in three other parks reach the pole line *above the wall* and are scored `Foul` for crossing the hip rail first.
+But those two constants do not cause it. Measured by patching them directly and re-running the whole grid:
 
-Any measurement of the compact home-run economy is reading this number whether or not anyone chose it.
+| `FoulOffset` | `flareStart` | compact foul share |
+| --- | --- | --- |
+| 36 (shipped) | 95 (shipped) | 0.4135 |
+| 36 | 66.5 (×0.70) | **0.4135** |
+| 25.2 (×0.70) | 66.5 (×0.70) | **0.4135** |
 
----
+Identical to four decimals. The reason is geometric: `FoulWall` flares the rail *outward* near home and converges it to zero offset at the pole, and these balls — 0.1° inside a 45° foul line — only ever interact with the rail near the pole, where the offset is ~0 whatever the constants say.
+
+**So the foul-rate rise is a consequence of the poles moving in, not an un-migrated absolute anyone can choose to scale.** It is an effect to report in 3d, not a number to decide here.
+
+Two things follow:
+
+- **#732 should drop the foul wrap** from its list of absolutes. It was the headline item there and it does not belong.
+- **The observation that shaped PR #731's result still stands, with a different cause.** Pulled contact that clears a wall can still be scored `Foul` for crossing the hip rail near the pole. That is compact geometry doing it, not a constant that failed to migrate.
+
+`HarborWall.HipHeight` is 4.2 ft — a vertical, correctly unscaled for the same reason wall heights are, and range-guarded to 3.2–5.5 ft at `HarborWall.cs:206`.
 
 ## Subject 5 — the tag-up gates (#732)
 
@@ -237,9 +250,8 @@ One coupling: `ParkDiamond.cs:416` asserts the warning track sits outside the li
 2. **Infielder starts.** Sets the lip's floor, and the fraction-vs-distance question is open.
 3. **Outfielder starts**, and whether outfield depth becomes per-park (#713's axis).
 4. **Hazard radii**, together with `PipeReachPadFt` and `EmberNightFireMul`.
-5. **The foul wrap**, before #731's ordinary-contact result is treated as measured.
-6. **The tag gates and the cutoff**, before #718 and #722 measure anything against them.
-7. **The dress**, judged on screen rather than by arithmetic.
+5. **The tag gates and the cutoff**, before #718 and #722 measure anything against them.
+6. **The dress**, judged on screen rather than by arithmetic.
 
 ## Vertical numbers are explicitly out of scope
 

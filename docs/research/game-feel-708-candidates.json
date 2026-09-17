@@ -758,8 +758,8 @@
     },
     {
       "id": "F693-04-foul-wrap",
-      "state": "pending-730",
-      "question": "HarborWall.FoulOffset 36 and flareStart 95 do not scale, taking down-the-line contact called foul from 30.3% to 41.4%. What rule?"
+      "state": "withdrawn-not-a-scaling-subject",
+      "question": "HarborWall.FoulOffset 36 and flareStart 95 were named as the cause of the compact foul-rate rise. Measured, they are not: all three settings give an identical 0.4135. The rise is a consequence of the poles moving in, so there is nothing here to scale. Report it in 3d instead."
     },
     {
       "id": "F693-05-tag-up-carry-gates",
@@ -8081,6 +8081,29 @@
       "why": "Below this the sim calls a middle infielder an outfielder, moving him onto the outfield air multiplier. The fence option at 108.50 ft fails both floors."
     },
     "lipThatKeepsTheShippedPopCountFt": 129.2,
-    "implementationBoundary": "Phase 1 research only. No decision accepted, no rule changed, no runtime edit proposed."
+    "implementationBoundary": "Phase 1 research only. No decision accepted, no rule changed, no runtime edit proposed.",
+    "foulWrapCorrection": {
+      "claim": "FoulOffset 36 and flareStart 95 do not scale and cause the compact foul-rate rise",
+      "verdict": "wrong",
+      "measured": [
+        {
+          "foulOffsetFt": 36,
+          "flareStartFt": 95,
+          "compactFoulShare": 0.4135
+        },
+        {
+          "foulOffsetFt": 36,
+          "flareStartFt": 66.5,
+          "compactFoulShare": 0.4135
+        },
+        {
+          "foulOffsetFt": 25.2,
+          "flareStartFt": 66.5,
+          "compactFoulShare": 0.4135
+        }
+      ],
+      "why": "FoulWall converges the rail to zero offset at the pole, and these balls only meet it near the pole.",
+      "consequence": "The 30.3% -> 41.4% rise is real but caused by the poles moving in. #732 should drop the foul wrap."
+    }
   }
 }

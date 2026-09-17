@@ -506,3 +506,16 @@ Two findings bear on results already published. The foul wrap takes down-the-lin
 The hazard-radius argument shipped on #731 — "a barrel is a physical object" — does not describe the code. A barrel's capture test is `radius + PipeReachPadFt` (8 ft), a fire breath's radius is multiplied by 1.6 at night, a freeze triggers on where the *ball* lands, and a climb wall's radius is never read. Radius is a trigger zone. Unscaled, every hazard's share of fair territory roughly doubles; x0.70 preserves it exactly, because fair area scales by 0.70². But the pad dominates a barrel — scaling the radius shrinks the real catch by 11.5% on a field that lost 30% — so the radius rule and those two rules-file values must be decided in one pass.
 
 Validation: a new production-classifier probe (`tools/game-feel-scale-probes`, `--check`) over 17,280 classifications per option, plus arithmetic regeneration and check of the #708 report and the 42 flight probes, whose rows are unchanged — only source hashes moved, from #707, #711, #712 and #716 touching files the evidence pins. No decision accepted, no rules file, asset, roster, runtime or shipped behaviour changed, no simulation and no human gate.
+
+
+### Correction — the foul wrap is not a scaling subject, September 16, 2026 / #730
+
+The Phase 1 entry above, issue #732 and the PR #731 review all named `HarborWall.FoulOffset` 36 and `flareStart` 95 as un-migrated absolutes causing the compact foul-rate rise. **That attribution is wrong.**
+
+The rise is real — down-the-line contact called foul goes from 30.3% to 41.4%. The two constants do not cause it. Patched directly and re-run over the whole grid, shipped (36, 95), flare-scaled (36, 66.5) and fully scaled (25.2, 66.5) all give an identical compact foul share of **0.4135**. `FoulWall` converges the rail to zero offset at the pole, and a ball 0.1° inside a 45° foul line only meets the rail near the pole, where the constants have no effect.
+
+So the foul-rate rise is a consequence of the poles moving in, not a number anyone can choose to scale. It is an effect for 3d to report. `F693-04-foul-wrap` is withdrawn as `withdrawn-not-a-scaling-subject`, and #732 should drop it — it was the headline item there.
+
+The observation it was invoked to explain still stands with a different cause: pulled contact that clears a wall can be scored `Foul` for crossing the hip rail near the pole. `HarborWall.HipHeight` 4.2 ft is a vertical, correctly unscaled like wall heights, and range-guarded to 3.2–5.5 ft.
+
+Validation: three counterfactual builds of the production classifier over 17,280 classifications each, arithmetic regeneration and check. The 42 flight-probe rows are unchanged. No decision accepted, no rules file, runtime or shipped behaviour changed.
