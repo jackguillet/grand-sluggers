@@ -519,3 +519,20 @@ So the foul-rate rise is a consequence of the poles moving in, not a number anyo
 The observation it was invoked to explain still stands with a different cause: pulled contact that clears a wall can be scored `Foul` for crossing the hip rail near the pole. `HarborWall.HipHeight` 4.2 ft is a vertical, correctly unscaled like wall heights, and range-guarded to 3.2–5.5 ft.
 
 Validation: three counterfactual builds of the production classifier over 17,280 classifications each, arithmetic regeneration and check. The 42 flight-probe rows are unchanged. No decision accepted, no rules file, runtime or shipped behaviour changed.
+
+
+### Scale decisions accepted — September 16, 2026 / #730 Phase 2
+
+Seven decisions, one at a time. **Two stopped being scaling questions.**
+
+**The lip is 137.78 ft, the basepath scale.** The fence scale was impossible rather than unwanted: at 108.50 ft the sim calls 2B and SS outfielders, and it still fails the floor after the start spots scale. Basepath won between the survivors because three of the lip's four consumers are geometry. Pops rise 489 to 652 and that is **reported, not tuned away** — the 129.2 ft that would preserve today's pop count was declined as fitting a number to an economy the compact game is meant to change.
+
+**The start spots scale by basepath** (1B at 69.33, 64.00), keeping the infield's shape exactly: each corner stays 18.5% of the basepath from its bag, where preserving the gap in feet would have put it at 20.8%. **The outfield keeps one global set, scaled** (CF at 0, 213.50), which is today's model; per-park depth is new behaviour and stays with #713. Both sets match the C80 figures the packet already cited, computed independently.
+
+**Hazard radii scale by 0.70, and `PipeReachPadFt` with them** (8 to 5.60). Radius is a trigger zone, not an object — a barrel's capture is radius + pad, a fire breath grows 1.6x at night, a freeze fires on where the ball lands, a climb wall's radius is never read. Scaling radii alone would shrink a barrel's real catch only 11.5% on a field that lost 30%, because the pad is larger than the radius. `EmberNightFireMul` is dimensionless and unchanged.
+
+**Jack declined every scaling option for the tag-up gates.** A tag-up is a race, not a distance: a CPU runner goes when it judges it can beat the throw. The machinery already exists and every other CPU runner decision uses it — `RunnerAi.Margin` is throwArrival minus runnerArrival, `ThrowArrivalSec` measures from the glove's real position, and `cpu.*.runnerMarginSec` tunes judgement per rung. The tag-up branch is the only CPU runner decision still reading a carry distance. One gap: `ThrowArrivalSec` passes null for the thrower, so `Arm` does not yet reach the estimate. **The same reasoning retires the relay threshold**: relay when the two-leg throw arrives first, which also supplies the break-even distance #722 asks for, varying by arm.
+
+**The dress took the packet's own rule without escalation**, verified in Phase 1 as presentation-only.
+
+Validation: decisions recorded against the Phase 1 measurements; arithmetic regeneration and check. No rules file, runtime, asset, roster or shipped behaviour changed, no simulation and no human gate. #725, #728, #729 and #732 carry the implementations.

@@ -256,3 +256,67 @@ One coupling: `ParkDiamond.cs:416` asserts the warning track sits outside the li
 ## Vertical numbers are explicitly out of scope
 
 `jumpRobFt` 4, `superJumpRobFt` 18, `clamberRobFt` 28 and `buddyJumpRobFt` 18 all compare against `FenceClearFt`, a **height** (`BattedBall.cs:149,171`). Leaving them unscaled beside unscaled walls is consistent, and "bodies did not shrink" does hold for them.
+
+---
+
+# Phase 2 — accepted decisions, September 16, 2026
+
+Seven decisions, taken one at a time. **Two of them stopped being scaling questions.**
+
+| # | Decision | Accepted |
+| --- | --- | --- |
+| 1 | infield lip | **137.78 ft**, basepath |
+| 2 | infielder starts | scale by basepath — 1B at (69.33, 64.00) |
+| 3 | outfielder starts | one global set, scaled — CF at (0, 213.50) |
+| 4 | hazard radii | scale radii **and** the reach pad by 0.70 |
+| 5 | tag-up gates | **retired** — a runner goes when it can beat the throw |
+| 6 | relay threshold | **retired** — relay when it arrives first |
+| 7 | ground dress | basepath for `InnerHalf` / `BackR`, rest preserved in feet |
+
+`F693-04-foul-wrap` is withdrawn; see Subject 4.
+
+## 1 — the lip: 137.78 ft
+
+The fence scale was not declined, it was **impossible**. At 108.50 ft the sim calls 2B and SS outfielders, and it still fails the floor after the start spots scale.
+
+Between the two survivors, basepath won because three of the lip's four consumers are geometry. **Pops rise 489 → 652, and that is reported rather than tuned away.** The 129.2 ft that would preserve today's pop count was declined as fitting a number to an economy the compact game is meant to change.
+
+## 2 and 3 — the start spots
+
+Infielders scale by basepath, so the infield keeps its shape exactly: each corner stays 18.5% of the basepath from its bag. Preserving the gap in feet would have put them proportionally further out, at 20.8%.
+
+Outfielders keep one global set for all six parks, scaled — which is what happens today, so depth-as-a-fraction goes on varying by park as it already does. CF returns to 76% of centre-field depth and stops being pinned to the warning track. Per-park depth is new behaviour and stays with #713.
+
+These values match the figures the #708 packet already cited for C80, computed independently here.
+
+## 4 — hazard radii, and the pad with them
+
+Radius is a trigger zone, not an object's size. Scaling radii by 0.70 preserves each hazard's share of the field exactly, because fair area scales by 0.70².
+
+**The pad scales too**, and that is the part that matters: it is larger than a barrel's radius, so scaling the radius alone would shrink a barrel's real catch from 13.00 ft to 11.50 ft — 11.5% on a field that lost 30%. With `PipeReachPadFt` at 5.60 the capture disc is 9.10 ft, exactly 0.70 of today. `EmberNightFireMul` is dimensionless and does not change.
+
+## 5 and 6 — two numbers retired rather than rescaled
+
+Jack declined all four scaling options for the tag-up gates: **a tag-up is a race, not a distance.** A CPU runner should go when it judges it can beat the throw.
+
+The machinery is already there and already used everywhere else. `RunnerAi.Margin` is `throwArrival − runnerArrival`; `ThrowArrivalSec` measures from the glove's actual position, so how far the thrower is from the bag is in the model; and `cpu.*.runnerMarginSec` already tunes judgement by difficulty, easy +0.15 s against hard −0.15 s. **The tag-up branch is the only CPU runner decision still reading a carry distance.**
+
+One gap: `ThrowArrivalSec` passes `null` for the thrower, so `Arm` does not yet reach the estimate. #712 shipped `Arm`; wiring it in is what makes throw power count, which the direction requires.
+
+The same reasoning retires the relay threshold. Relay when the two-leg throw arrives first, otherwise throw through. #722's exit criterion asks for the relay break-even distance — it now falls out of the throw model rather than being authored, and varies by arm.
+
+## 7 — the dress, decided without escalation
+
+Phase 1 verified the dress has no gameplay effect, so this took the packet's own rule rather than Jack's time. `InnerHalf` 44.44, `BackR` 81.78; path width, bag pads, home pad, warning track and foul apron stay in feet. It moves with the lip, because `ParkDiamond.cs:416` and `ParkDiamondTests:70` tie them together.
+
+## What Phase 3 hands on
+
+| Issue | Carries |
+| --- | --- |
+| #728 | the lip at 137.78 |
+| #725 | both sets of start spots |
+| #729 | the dress |
+| #732 | the tag-up and relay retirements, and `PipeReachPadFt` |
+| #717 / a follow-up | hazard radii in the trial overlay |
+
+**No runtime change was made here.** These are recorded decisions; the implementations are the issues above.
