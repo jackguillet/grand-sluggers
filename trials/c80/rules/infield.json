@@ -2,5 +2,7 @@
   "baselineFt": 80,
   "moundFt": 53.78,
   "cornerFt": 56.57,
-  "secondFt": 113.14
+  "secondFt": 113.14,
+  "innerHalfFt": 44.44,
+  "backArcFt": 81.78
 }

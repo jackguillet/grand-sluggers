@@ -56,12 +56,13 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 
 | File | What it changes |
 | --- | --- |
-| `rules/infield.json` | 80-ft basepaths. One file, because #711 made the infield global and every park shares it. |
+| `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70. Wall heights, wind and hazard radii unchanged. |
 
 **The infield.** `baselineFt` 80, `moundFt` 53.78, and the bags at 56.57 / 113.14 — the shipped
 rounded 63.64 / 127.28 multiplied by 80/90, kept at the two decimals `data/` already spells them in.
+`innerHalfFt` 44.44 and `backArcFt` 81.78 followed in #729, on the same factor.
 
 **The parks.** One scale for all six is what preserves each park's identity and their order: Ember
 Keep stays the biggest, Canopy Yard the smallest. Re-deriving each from Harbor's ratios would
@@ -102,9 +103,9 @@ Funfair's night chompers are `ParkHazards.FunfairChompers` in code, so they did 
 park's data hazards. They sit at z 198–228 in a park whose centre fence is now 273 — still inbounds,
 but now in the deep-fly band that the pinned outfielders cannot reach.
 
-None of this is fixed here on purpose: absorbing #725 or #729 would merge three slices into one
-and destroy the attribution 3d depends on. It is recorded so a 3d reader does not mistake these
-effects for the anchors under test.
+None of this is fixed here on purpose: absorbing #725 would merge two slices into one and destroy
+the attribution 3d depends on. It is recorded so a 3d reader does not mistake these effects for the
+anchors under test.
 
 ---
 
@@ -132,3 +133,31 @@ no overlay can reach, so the dirt still ends at 145.78 ft under the trial while 
 137.78 — 8.00 ft inside it. Shipped, the lip sits 2.50 ft outside the dirt; #717 widened that to
 9.22 ft, and this slice flips the sign. **#729** is the issue that closes it: `BackR` on the
 basepath scale is 81.78, which puts the lip back 2.22 ft outside — the shipped 2.50 × 8/9, exactly.
+
+---
+
+[#729](https://github.com/jackguillet/grand-sluggers/issues/729) — the ground dress, on the basepath
+scale. `ParkDiamond.InnerHalf` and `ParkDiamond.BackR` were `const float` 50 and 92; they are now
+`innerHalfFt` and `backArcFt` in `rules/infield.json`, and the trial carries **44.44** and **81.78**.
+The shipped values did not move — 50 and 92 are what the constants were — so a no-overlay run draws
+exactly the field it drew before.
+
+**What it repairs.** #717 moved the bags and left the dirt at 90-ft scale. That put the drawn grass
+vertex 6.57 ft from the corner bag it points at — **inside** the 12-ft bag pad, by 5.43 ft, so the
+lawn was drawn over the dirt the bag sits on. Migrated, the gap is 12.13 ft and the vertex clears the
+pad again.
+
+**What it closes for #728.** The dirt's far edge comes in from 145.78 ft to 135.56, which is the
+shipped 152.50 through the same factor. That puts the migrated lip back 2.22 ft *outside* the dirt —
+the shipped 2.50 × 8/9 — instead of 8.00 ft inside it. The rule and the picture agree again.
+
+**What stays in feet.** Path width, the bag pads, the home pad, the mound table, the warning track
+and the foul apron are bodies and equipment, and they stay `const` on `ParkDiamond` — the same rule
+that kept the wall heights at 8 ft. The cost is visible at the corners: the vertex clears the pad by
+0.13 ft here against 1.64 ft shipped, because the pad did not shrink with the diamond. That margin is
+pinned in the tests rather than enforced by the validator, because a smaller trial would fail the
+check on a dress that draws correctly.
+
+**Nothing in the sim reads it.** `flight.dirtTimeScale` keys off the batted-ball class, not ground
+position, and `ParkDiamond.OnDirt` has two non-test consumers, both boolean shape gates. The dress is
+presentation; it is in `data/rules/` because it is measured from geometry that moved.

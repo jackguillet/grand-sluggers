@@ -297,14 +297,23 @@ public sealed class MercyRules
 // ---------------------------------------------------------------------------------------
 
 /// <summary>
-/// Bases and rubber, in feet, read by <see cref="Diamond"/>. Every park plays on the same
-/// infield — that is the design, not an accident — so these are one global set loaded once
-/// and never changed at runtime. What varies per park is the outfield, the foul area and the
-/// environment, and none of that belongs here.
+/// Bases, rubber and the ground that dresses them, in feet, read by <see cref="Diamond"/> and
+/// <see cref="ParkDiamond"/>. Every park plays on the same infield — that is the design, not an
+/// accident — so these are one global set loaded once and never changed at runtime. What varies
+/// per park is the outfield, the foul area and the environment, and none of that belongs here.
 ///
 /// The corners are authored, not derived from <see cref="BaselineFt"/>. A 90-ft baseline
 /// rotated 45° is 63.6396…, and the diamond has always played at a rounded 63.64; deriving it
 /// would move the bases by four thousandths of a foot and silently change every route.
+///
+/// <para>
+/// <b>Why the dress is here and not in <c>data/feel/</c> (#729).</b> The grass diamond and the
+/// back arc are drawn, not played — nothing in the sim reads them to judge a ball. But they are
+/// measured from the bags, so when the bags move they have to move with them or the picture stops
+/// describing the field. Path width, the bag pads, the home pad, the mound table, the warning
+/// track and the foul apron are bodies and equipment, not geometry, and they stay in feet as
+/// <c>const</c> on <see cref="ParkDiamond"/>.
+/// </para>
 /// </summary>
 public sealed class InfieldRules
 {
@@ -320,11 +329,35 @@ public sealed class InfieldRules
     /// <summary>Second, straight out from home.</summary>
     [Positive] public double SecondFt { get; init; } = 127.28;
 
-    /// <summary>The rubber sits between home and second, and second is past the corners.</summary>
+    /// <summary>
+    /// Half-diagonal of the drawn grass diamond around second and the mound (#729). The bags sit
+    /// outside it, on the dirt, which is the whole reason it is smaller than <see cref="CornerFt"/>.
+    /// </summary>
+    [Positive] public double InnerHalfFt { get; init; } = 50;
+
+    /// <summary>
+    /// Outer arc of the 1B–2B–3B dirt, measured from the rubber (#729). Farther out than the home
+    /// legs, so the back of the diamond reads as a curve rather than a matching frame.
+    /// </summary>
+    [Positive] public double BackArcFt { get; init; } = 92;
+
+    /// <summary>
+    /// The rubber sits between home and second, second is past the corners, and the drawn grass
+    /// stays inside both the bag it points at and the arc behind it.
+    ///
+    /// <para>
+    /// The bag-pad clearance is deliberately not a rule here. The grass vertex must also clear
+    /// <c>ParkDiamond.BagPadR</c>, but that margin is 1.64 ft shipped and 0.13 ft at C80 — too thin
+    /// to refuse a table over, because a park override or a trial that rounds differently would fail
+    /// validation on a dress that draws correctly. The hairline is pinned in the tests instead.
+    /// </para>
+    /// </summary>
     public void Validate(string source, List<string> errors)
     {
         RulesValidation.Order(source, "infield.moundFt", MoundFt, SecondFt, errors);
         RulesValidation.Order(source, "infield.cornerFt", CornerFt, SecondFt, errors);
+        RulesValidation.Order(source, "infield.innerHalfFt", InnerHalfFt, CornerFt, errors);
+        RulesValidation.Order(source, "infield.innerHalfFt", InnerHalfFt, BackArcFt, errors);
     }
 }
 
