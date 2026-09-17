@@ -1,0 +1,192 @@
+{
+  "chase": {
+    "baseFtPerSec": 21,
+    "ftPerSecPerRun": 1.9,
+    "frozenMul": 0.45,
+    "minFtPerSec": 8,
+    "stepStopFt": 0.35,
+    "reachSlackFt": 0.35,
+    "swapLockSec": 0.7,
+    // #633 (S-97): after a hand-off the body the ring left keeps its velocity for this long, then stops (the FIFA
+    // "move assistance" idea, spec §8.9). The thrower at a release does not coast (§8.5).
+    "handoffCoastSec": 0.2,
+    "looseScoopFt": 3.5,
+    // #609: the S-29 lever since the outfield read went back to the reference. An outfielder on a ball hit in
+    // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
+    // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
+    // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
+    "outfieldAirMul": 0.6,
+    // #636: the other half of the lever. Once the infield -> outfield hand-off honours the infielder's route in the air
+    // (D17, S-97), an infielder under a ball on the stretched clock (a fly or a pop, flight.timeScale 1.65) runs at the
+    // one glove speed x this; on a liner (its own clock, 1.0) an infielder runs the one speed, so the rope SS reaches
+    // past the lip is SS's. S-29 seeds 1-5 (main at #642: 2.62 / 2.58): D17 in the air at 1.0 reads 1.92 / 1.76, the
+    // infield running back under every short fly past the lip; 0.6 (the real clock) 2.18 / 1.94; 0.5 2.38 / 2.18;
+    // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
+    // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
+    // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
+    "infieldAirMul": 0.45
+  },
+  "reaction": {
+    "pitcherSec": 0.42,
+    "catcherSec": 0.67,
+    "firstSec": 0.27,
+    "secondSec": 0.25,
+    "thirdSec": 0.30,
+    "shortSec": 0.28,
+    // #609: the reference's 50 frames (P7 had 2.4 to hold S-29). The human glove waits it at every rung; CPU
+    // bodies wait it x cpu.reactionMul; a ball in the air caps every lockout at its hang.
+    "outfieldSec": 0.83,
+    "throwBaseSec": 0.35,
+    "throwPerFieldSec": 0.02,
+    "throwMinSec": 0.08
+  },
+  "cover": {
+    "ftPerSec": 28,
+    "startSec": 0.23,
+    "stopFt": 1.2,
+    "radiusFt": 6,
+    "backupFt": 60
+  },
+  "dash": {
+    "chaseMul": 1.35,
+    "buddyTossFt": 28,
+    "kickFt": 22,
+    "diveLungeFt": 10,
+    "itemSmashFt": 24
+  },
+  "catch": {
+    "radiusBaseFt": 10,
+    "radiusPerField": 0.6,
+    "clamberRadiusFt": 6,
+    // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
+    // the catch radius, and the rim is diveReachFt (#669).
+    "windowPadFt": 4,
+    "diveReachFt": 8,
+    "jumpReachFt": 8,
+    "diveMaxBallY": 7.5,
+    "needsJumpReachFt": 22,
+    "jumpRobFt": 4,
+    "superJumpRobFt": 18,
+    "clamberRobFt": 28,
+    "buddyJumpRobFt": 18,
+    "touchScoopY": 3.2,
+    // §7.6: a liner (or fly) held above this before the first bounce is a catch; at or below it the hop is a scoop.
+    "inAirMinY": 0.75,
+    "jumpBallY": 2.2,
+    "wallBallY": 4.5,
+    "windowBeforeSec": 0.48,
+    "windowAfterSec": 0.14,
+    "wallSitSec": 1.15,
+    "superJumpWindowSec": 0.16,
+    "growWindowSec": 0.08,
+    "clamberWindowSec": 0.12,
+    "buddyPlantFt": 26,
+    "buddyJumpHoldSec": 0.18,
+    "heldBallY": 2.2,
+    "buddyHeldBallY": 6.4,
+    "buddyLeapBallY": 2.2,
+    "hoverLeadSec": 0.4,
+    "hoverMinSec": 0.25,
+    "jumpArmSec": 0.55,
+    "wallJumpArmSec": 0.7,
+    "diveArmSec": 0.5
+  },
+  "drops": {
+    "heatball": 0.35,
+    "phonySwing": 0.35,
+    "frozen": 0.4
+  },
+  "wallPlant": {
+    "insideFenceFt": 8,
+    "minFraction": 0.45,
+    "fallbackInsideFt": 10,
+    "minFt": 8
+  },
+  "abilities": {
+    "bigCatchBonusFt": 6,
+    "tagReachBonusFt": 2,
+    "superJumpCatchBonusFt": 3,
+    "superJumpFlyRangeFt": 22,
+    "diveGroundRangeFt": 16,
+    "laserMul": 1.45,
+    "snapThrowMul": 1.22
+  },
+  "throw": {
+    "releaseSec": 0.22,
+    "baseFtPerSec": 100,
+    "minFtPerSec": 32,
+    "armBase": 0.85,
+    "armPerField": 0.03,
+    "lateralSigmaPerFieldDeficitFt": 0.35,
+    "lobMaxSec": 1.5,
+    "onTheFlyFt": 200,
+    "unassistedFt": 8,
+    "handHeightFt": 3.2,
+    "bagHeightFt": 1.2
+  },
+  "overthrow": {
+    "carryMul": 0.35,
+    "decelFtPerSec2": 18,
+    "maxRollFt": 45
+  },
+  "catcher": {
+    "behindPlateFt": 3,
+    "cpuReleaseBaseSec": 0.42,
+    "cpuReleasePerField": 0.014,
+    "cpuReleaseNoiseSec": 0.2,
+    "cpuReleaseMinSec": 0.1,
+    "cpuReleaseMaxSec": 0.58
+  },
+  "chem": {
+    "goodSpeedMul": 1.30,
+    "slantChance": 0.20,
+    "slantSpeedMul": 0.70,
+    "slantLateralMinFt": 10,
+    "slantLateralMaxFt": 14
+  },
+  "bobble": {
+    "minEnergy": 78,
+    "handsPerGloveReduction": 3,
+    "energySpan": 110,
+    "chancePerHands": 0.08,
+    "maxChance": 0.5,
+    "fumbleSec": 0.58,
+    "scatterFt": 6.5,
+    "scatterFtPerSec": 12,
+    "scatterDropFtPerSec": 16,
+    "scatterBallY": 3.1,
+    "recoilFtPerSec": 14
+  },
+  "knockback": {
+    "minEnergy": 72,
+    "secPerFieldDeficit": 0.045,
+    "energySpan": 90,
+    "maxSec": 0.55,
+    "minSec": 0.02
+  },
+  "park": {
+    "emberNightFireMul": 1.6,
+    // #732, #730 decision 4: the pad is the larger part of a barrel's capture disc (radius + pad), so it
+    // takes the fence scale with the radii in the park files. 8 x 0.70 = 5.60: a Canopy barrel's disc is
+    // 3.50 + 5.60 = 9.10 ft, exactly 0.70 of the shipped 13.00; scaling the radius alone would have left it
+    // at 11.50. emberNightFireMul is dimensionless and does not move. Every other value in this file is
+    // the shipped table, byte for byte; this copy exists for this one number.
+    "pipeReachPadFt": 5.6,
+    "shellWarpChance": 0.6
+  },
+  // #625, spec §7.3: the batter squares at the West press and the defense reads it before the pitch. The corners
+  // crash crashFt toward the plate at their own chase speed, coverFirst / coverSecond walk to their bags at the cover
+  // speed, and after contact every charge body converges on the ball (the glove is still the earliest route, §8.2).
+  // The throw follows §8.8 with the bunt's rows: the batter at first by default, the lead force only on a bunt at or
+  // above hardExitMph, home on a squeeze only from inside squeezeHomeFt.
+  "bunt": {
+    "crashFt": 25,
+    "crash": ["1B", "3B"],
+    "coverFirst": "2B",
+    "coverSecond": "SS",
+    "charge": ["P", "C", "1B", "3B"],
+    "chargeStopFt": 6,
+    "squeezeHomeFt": 30,
+    "hardExitMph": 36
+  }
+}

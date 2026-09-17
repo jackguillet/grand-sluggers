@@ -16,21 +16,21 @@
       "type": "billboard",
       "x": -56,
       "z": 168,
-      "radius": 12,
+      "radius": 8.4,
       "tag": "star"
     },
     {
       "type": "billboard",
       "x": 63,
       "z": 182,
-      "radius": 12,
+      "radius": 8.4,
       "tag": "star"
     },
     {
       "type": "ac_unit",
       "x": 28,
       "z": 105,
-      "radius": 6
+      "radius": 4.2
     }
   ],
   "notes": "Urban rooftop. Hitting a star billboard awards a team star. AC units carom grounders."
