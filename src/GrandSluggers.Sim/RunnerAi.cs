@@ -20,7 +20,13 @@ public sealed record BallSituation(
     double BallZ,
     double CarryFt,
     /// <summary>The batted ball is a bunt (§7.3): the runner from third holds at contact unless the offense sent them.</summary>
-    bool Bunt = false);
+    bool Bunt = false,
+    /// <summary>
+    /// The runner's read of a throw released at (x, z) to a bag, in seconds (§9.9, #722): the defense's own plan — the
+    /// arm, the relay and the chemistry as far as the rung reads them. Null reads the neutral flat throw, which is what
+    /// the shipped rungs read too.
+    /// </summary>
+    Func<double, double, int, double>? ThrowClock = null);
 
 /// <summary>Everything the CPU runner reads at a decision event (§9.9).</summary>
 public sealed record RunnerAiContext(
@@ -50,14 +56,16 @@ public static class RunnerAi
     {
         var r = Rules.Or(rules);
         var reaction = r.Running.Cpu.ReactionSec;
+        // The clock the runner reads (#722): the defense's plan when the ball carries one, else the neutral flat throw.
+        double Clock(double x, double z) => ball.ThrowClock?.Invoke(x, z, bag) ?? InPlay.ThrowArrivalSec(x, z, bag, null, r);
         if (ball.Throwing)
         {
             var lands = Math.Max(0, ball.ThrowArrivesAt - elapsed);
             var landing = Diamond.Bag(ball.ThrowBag);
-            return ball.ThrowBag == bag ? lands : lands + reaction + InPlay.ThrowArrivalSec(landing.X, landing.Z, bag, null, r);
+            return ball.ThrowBag == bag ? lands : lands + reaction + Clock(landing.X, landing.Z);
         }
         var meet = ball.Held ? 0 : Math.Max(0, ball.MeetAt - elapsed);
-        return meet + reaction + InPlay.ThrowArrivalSec(ball.GloveX, ball.GloveZ, bag, null, r);
+        return meet + reaction + Clock(ball.GloveX, ball.GloveZ);
     }
 
     /// <summary>Seconds of slack a runner has to reach <paramref name="bag"/> ahead of the throw (positive is safe).</summary>

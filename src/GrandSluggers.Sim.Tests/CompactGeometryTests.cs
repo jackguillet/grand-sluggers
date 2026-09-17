@@ -50,20 +50,21 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Ten files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried an eleventh would show up
+    /// Eleven files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried a twelfth would show up
     /// here rather than in a trace nobody could attribute. It was eight until #725 added the fielder
-    /// starts and nine until #732 carried the fielding table for the hazard reach pad; the count is
-    /// in the name so growing it is a rename somebody has to mean.
+    /// starts, nine until #732 carried the fielding table for the hazard reach pad, and ten until
+    /// #722 carried the CPU table for the throw reads; the count is in the name so growing it is a
+    /// rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesTenFilesAndNoOthers()
+    public void TheTrialCarriesElevenFilesAndNoOthers()
     {
         Assert.Equal(
             [
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
-                "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"
+                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"
             ],
             Root.Overrides);
     }
@@ -164,11 +165,11 @@ public sealed class CompactGeometryTests
 
         // #729's own claim, which #725 and #732 did not change: the dress rides in infield.json rather
         // than a file of its own. Named rather than counted, because the total is
-        // TheTrialCarriesTenFilesAndNoOthers's to say — it went from eight to nine when #725 added
-        // rules/fielders.json and to ten when #732 added rules/fielding.json, and this line used to
-        // assert that count a second time.
+        // TheTrialCarriesElevenFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // rules/fielders.json, to ten when #732 added rules/fielding.json and to eleven when #722 added
+        // rules/cpu.json, and this line used to assert that count a second time.
         Assert.Equal(
-            ["rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"],
+            ["rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"],
             Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
     }
 
@@ -347,10 +348,12 @@ public sealed class CompactGeometryTests
         Assert.Equal(shippedLeaves.Keys, trialLeaves.Keys);
         var moved = shippedLeaves.Where(kv => trialLeaves[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
         // #732's pad and #722's throw clock (slice 1: release, travel, the long-throw loss, the bad pair's
-        // speed and no slant). Nothing else in the table moves, and a new difference has to be named here.
+        // speed and no slant; slice 2: the forced-relay ceiling set to never). Nothing else in the table
+        // moves, and a new difference has to be named here.
         Assert.Equal(
-            ["chem.badSpeedMul", "chem.slantChance", "park.pipeReachPadFt", "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.releaseSec"],
+            ["chem.badSpeedMul", "chem.slantChance", "park.pipeReachPadFt", "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.releaseSec"],
             moved);
+        Assert.Equal(("200", "9999"), (shippedLeaves["throw.onTheFlyFt"], trialLeaves["throw.onTheFlyFt"]));
         Assert.Equal(("8", "5.6"), (shippedLeaves["park.pipeReachPadFt"], trialLeaves["park.pipeReachPadFt"]));
         Assert.Equal(("0.22", "0.30"), (shippedLeaves["throw.releaseSec"], trialLeaves["throw.releaseSec"]));
         Assert.Equal(("100", "88.89"), (shippedLeaves["throw.baseFtPerSec"], trialLeaves["throw.baseFtPerSec"]));
@@ -358,37 +361,49 @@ public sealed class CompactGeometryTests
         Assert.Equal(("1.0", "0.90"), (shippedLeaves["chem.badSpeedMul"], trialLeaves["chem.badSpeedMul"]));
         Assert.Equal(("0.20", "0"), (shippedLeaves["chem.slantChance"], trialLeaves["chem.slantChance"]));
 
-        // Every leaf of a rules file, "section.key" to its raw JSON text, comments skipped. Sorted so
-        // the key lists compare in one order and a missing or extra key names itself.
-        static SortedDictionary<string, string> Leaves(string path)
-        {
-            using var doc = JsonDocument.Parse(File.ReadAllText(path), new JsonDocumentOptions
-            {
-                CommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            });
-            var leaves = new SortedDictionary<string, string>(StringComparer.Ordinal);
-            Walk(doc.RootElement, "");
-            return leaves;
+    }
 
-            void Walk(JsonElement element, string prefix)
-            {
-                switch (element.ValueKind)
-                {
-                    case JsonValueKind.Object:
-                        foreach (var field in element.EnumerateObject())
-                            Walk(field.Value, prefix.Length == 0 ? field.Name : prefix + "." + field.Name);
-                        break;
-                    case JsonValueKind.Array:
-                        var i = 0;
-                        foreach (var item in element.EnumerateArray()) Walk(item, $"{prefix}[{i++}]");
-                        break;
-                    default:
-                        leaves[prefix] = element.GetRawText();
-                        break;
-                }
-            }
+    /// <summary>
+    /// <b>The CPU table enters the overlay for the throw reads (#722 slice 2, decision 6 of #730).</b> Four
+    /// numbers per rung: how much a relay must save before a fielder throws through the cutoff, and how
+    /// much of the thrower's arm, of the fielder's relay and of the pair chemistry the CPU forecasts.
+    /// The shipped rungs read none of it and set the bias to a value no relay can save, which is today's
+    /// rule; the trial reads everything on normal and hard, half the arm and no relay on easy, and biases
+    /// 0.3 / 0.1 / 0. Every other leaf — the windows, the reactions, the steal chances, the margins — is
+    /// the shipped value, and the active rung is still normal.
+    /// </summary>
+    [Fact]
+    public void TheTrialCpuTableIsTheShippedOneWithTheThrowReadsSwitchedOn()
+    {
+        var shipped = Leaves(Path.Combine(Shipped, "rules", "cpu.json"));
+        var trial = Leaves(Path.Combine(Overlay, "rules", "cpu.json"));
+        Assert.Equal(shipped.Keys, trial.Keys);
+        Assert.Equal("\"normal\"", trial["level"]);
+        var moved = shipped.Where(kv => trial[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
+        Assert.Equal(
+            [
+                "easy.relayBiasSec", "easy.runnerReadsArm",
+                "hard.readsChemistry", "hard.relayBiasSec", "hard.runnerReadsArm", "hard.runnerReadsRelay",
+                "normal.readsChemistry", "normal.relayBiasSec", "normal.runnerReadsArm", "normal.runnerReadsRelay"
+            ],
+            moved);
+        foreach (var rung in new[] { "easy", "normal", "hard" })
+        {
+            Assert.Equal("99", shipped[rung + ".relayBiasSec"]);
+            Assert.Equal("0", shipped[rung + ".runnerReadsArm"]);
+            Assert.Equal("0", shipped[rung + ".runnerReadsRelay"]);
+            Assert.Equal("0", shipped[rung + ".readsChemistry"]);
         }
+        Assert.Equal(("0.3", "0.5", "0", "0"), (trial["easy.relayBiasSec"], trial["easy.runnerReadsArm"], trial["easy.runnerReadsRelay"], trial["easy.readsChemistry"]));
+        Assert.Equal(("0.1", "1", "1", "1"), (trial["normal.relayBiasSec"], trial["normal.runnerReadsArm"], trial["normal.runnerReadsRelay"], trial["normal.readsChemistry"]));
+        Assert.Equal(("0", "1", "1", "1"), (trial["hard.relayBiasSec"], trial["hard.runnerReadsArm"], trial["hard.runnerReadsRelay"], trial["hard.readsChemistry"]));
+
+        var rules = Trial.Rules.Cpu;
+        Assert.Equal(0.3, rules.Easy.RelayBiasSec);
+        Assert.Equal(0.1, rules.Normal.RelayBiasSec);
+        Assert.Equal(0, rules.Hard.RelayBiasSec);
+        Assert.Equal(99, Control.Rules.Cpu.Normal.RelayBiasSec);
+        Assert.Equal(0, Control.Rules.Cpu.Hard.RunnerReadsRelay);
     }
 
     /// <summary>
@@ -1251,6 +1266,37 @@ public sealed class CompactGeometryTests
     {
         var (x, z) = TrialStart(pos);
         return Diamond.Dist(0, 0, x, z);
+    }
+
+    /// <summary>Every leaf of a rules file, "section.key" to its raw JSON text, comments skipped. Sorted so the key lists compare in one order and a missing or extra key names itself.</summary>
+    static SortedDictionary<string, string> Leaves(string path)
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(path), new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        });
+        var leaves = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        Walk(doc.RootElement, "");
+        return leaves;
+
+        void Walk(JsonElement element, string prefix)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    foreach (var field in element.EnumerateObject())
+                        Walk(field.Value, prefix.Length == 0 ? field.Name : prefix + "." + field.Name);
+                    break;
+                case JsonValueKind.Array:
+                    var i = 0;
+                    foreach (var item in element.EnumerateArray()) Walk(item, $"{prefix}[{i++}]");
+                    break;
+                default:
+                    leaves[prefix] = element.GetRawText();
+                    break;
+            }
+        }
     }
 
     static readonly double[] Sprays = [-44.9, -35, -22, -10, 0, 10, 22, 35, 44.9];

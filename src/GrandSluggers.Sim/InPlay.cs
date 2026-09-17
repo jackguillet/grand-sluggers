@@ -226,6 +226,15 @@ public static class InPlay
     }
 
     /// <summary>
+    /// Whether the CPU throws through the cutoff (§8.7, #722): always beyond the ceiling
+    /// (<c>fielding.throw.onTheFlyFt</c>, <paramref name="forced"/>), otherwise when the relay beats the direct throw by
+    /// more than the rung's <c>cpu.*.relayBiasSec</c>. A bias no relay can save leaves the ceiling as the only reason,
+    /// which is the rule the game shipped with.
+    /// </summary>
+    public static bool RelayWins(double directSec, double relaySec, bool forced, double relayBiasSec) =>
+        forced || relaySec + relayBiasSec < directSec;
+
+    /// <summary>
     /// Bags to throw in order on a hopper. Force at second, then first when the batter is out.
     /// With first empty, the tag bag (home or third) only when that runner is going (§8.8 rules
     /// 2–3, S-36); otherwise first. Empty when the batter already beat the play and nobody is running.

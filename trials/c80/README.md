@@ -50,16 +50,17 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries ten now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries eleven now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
 
 | File | What it changes |
 | --- | --- |
+| `rules/cpu.json` | the CPU's read of a throw (#722): `relayBiasSec` 0.3 / 0.1 / 0 by rung, `runnerReadsArm` 0.5 / 1 / 1, `runnerReadsRelay` 0 / 1 / 1, `readsChemistry` 0 / 1 / 1. Nothing else in the table; the rung stays normal. |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, and the forced-relay ceiling `throw.onTheFlyFt` set to never. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -334,3 +335,46 @@ direction, not the digits.
 runner's estimate still reads a null arm; slice 2 makes both read this clock — `direct` against
 `relay = leg + transfer + leg` with real arms and pair chemistry — and re-describes `onTheFlyFt` as the
 forced-relay ceiling the trial sets to never. Laser and Snap Throw keep their multipliers until #723.
+
+---
+
+[#722](https://github.com/jackguillet/grand-sluggers/issues/722) slice 2 — the CPU relays by total time
+(decision 6 of [#730](https://github.com/jackguillet/grand-sluggers/issues/730)). `rules/cpu.json` joins the
+overlay as the eleventh file, and `rules/fielding.json` sets the forced-relay ceiling `throw.onTheFlyFt` to
+never (9999).
+
+**The rule.** For a throw to a bag the CPU computes `direct` and `relay = leg + the cutoff's reaction + leg`,
+each on the one clock with the real arms and the rung's read of the pair chemistry, and takes the relay when
+it saves more than the rung's `relayBiasSec`. Beyond the ceiling it always relays. The shipped table keeps
+the 200-ft ceiling beside a bias no relay can save (99), so a no-overlay run relays exactly when it did
+before — checked on 20 `cli match` seeds and all 50 S-29 cohort games against pristine `main`.
+
+**The runner reads the same plan.** `RunnerAi.ThrowArrivalSec` takes the clock the live ball carries
+(`BallSituation.ThrowClock`): the fielder's own plan from whoever holds the ball next, with the rung's read of
+the arm, the relay and the chemistry. The shipped rungs read none of it, which is the neutral flat throw the
+runner always read.
+
+| Rung | `relayBiasSec` | `runnerReadsArm` | `runnerReadsRelay` | `readsChemistry` |
+| --- | --- | --- | --- | --- |
+| easy | 0.3 | 0.5 | 0 | 0 |
+| normal | 0.1 | 1 | 1 | 1 |
+| hard | 0 | 1 | 1 | 1 |
+| shipped, every rung | 99 | 0 | 0 | 0 |
+
+**What it does to a run.** Forty-eight trial seeds (1–8 × six parks), slice 1 → slice 2, read from the live
+traces: outfield throws through the cutoff **14 → 2** and direct **102 → 112**. The fourteen that used to relay
+left from 206–251 ft from home, all just past the old gate; the two that still do leave from 250 ft. 12 of the
+48 seeds diverge. S-29 under the trial: **1.06 / 1.34 → 0.82 / 1.30** runs a side; the control is unchanged.
+On the compact field most outfield releases are 154–265 ft from home and the break-even for most arms is
+221–272 ft, so the relay is now the deep play and the direct throw the ordinary one — which is what the
+decision asked for. How often that is the right call is 3d's to judge, not this slice's.
+
+**Tests.** `RelayDecisionTests`: the arithmetic, the rungs' reads, the runner's clock, and six live scenarios
+with konga tagging from third on a 245-ft fly to centre. On the control both arms relay (forced); on the
+trial moss (Arm 4) relays, vine (Arm 8) throws home direct, and an Arm 5 relays on hard but not on easy —
+each checked against the plan recomputed from the live positions at the release frame. The in-process trial
+stands the bodies on the shipped spots (`Diamond` reads the shipped root), so these are decision tests, not
+geometry.
+
+**What slice 3 does.** The two tag-up carry gates become margins on this estimate, and `running.json`
+enters the overlay with its clock keys byte-identical.

@@ -1,5 +1,10 @@
 {
   "level": "normal",
+  // #722: the CPU's read of a throw, by rung. relayBiasSec is how much a relay must save before a fielder throws through
+  // the cutoff inside fielding.throw.onTheFlyFt; 99 is a value no relay can save, so the ceiling alone decides, which is
+  // the rule the game shipped with. runnerReadsArm / runnerReadsRelay / readsChemistry (0-1) are how much of the
+  // thrower's arm, of the fielder's relay and of the pair chemistry the CPU forecasts; 0 is the neutral flat read the
+  // shipped runner always had. trials/c80 switches them on.
   "easy": {
     "humanWindowMul": 1.3,
     "timingSigmaMul": 1.3,
@@ -8,7 +13,11 @@
     "makeableMarginSec": 0.3,
     "perfectStealChance": 0,
     "pickoffChance": 0.03,
-    "runnerMarginSec": 0.15
+    "runnerMarginSec": 0.15,
+    "relayBiasSec": 99,
+    "runnerReadsArm": 0,
+    "runnerReadsRelay": 0,
+    "readsChemistry": 0
   },
   "normal": {
     "humanWindowMul": 1.0,
@@ -18,7 +27,11 @@
     "makeableMarginSec": 0.15,
     "perfectStealChance": 0.2,
     "pickoffChance": 0.06,
-    "runnerMarginSec": 0
+    "runnerMarginSec": 0,
+    "relayBiasSec": 99,
+    "runnerReadsArm": 0,
+    "runnerReadsRelay": 0,
+    "readsChemistry": 0
   },
   "hard": {
     "humanWindowMul": 0.9,
@@ -28,6 +41,10 @@
     "makeableMarginSec": 0.05,
     "perfectStealChance": 0.4,
     "pickoffChance": 0.1,
-    "runnerMarginSec": -0.15
+    "runnerMarginSec": -0.15,
+    "relayBiasSec": 99,
+    "runnerReadsArm": 0,
+    "runnerReadsRelay": 0,
+    "readsChemistry": 0
   }
 }
