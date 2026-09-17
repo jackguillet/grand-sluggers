@@ -59,6 +59,23 @@ public sealed class RulesTests
         Assert.Empty(missing);
     }
 
+    /// <summary>
+    /// The other direction, which nothing checked until #725 added a file. A table the code does not
+    /// name in <see cref="RulesTable.Files"/> is never loaded and never validated — it sits in
+    /// <c>data/rules</c> looking authoritative while the C# initializers answer every question. No
+    /// test would have failed; the file would simply have had no effect.
+    /// </summary>
+    [Fact]
+    public void EveryJsonInTheRulesFolderIsATableTheCodeNames()
+    {
+        var dir = Path.Combine(_content.Root.Shipped, RulesTable.Directory);
+        var onDisk = Directory.EnumerateFiles(dir, "*.json")
+            .Select(Path.GetFileNameWithoutExtension)
+            .OrderBy(f => f, StringComparer.Ordinal);
+
+        Assert.Equal(RulesTable.Files.OrderBy(f => f, StringComparer.Ordinal), onDisk);
+    }
+
     [Fact]
     public void CatalogExposesTheLoadedRulesAndMatchPlaysByThem()
     {

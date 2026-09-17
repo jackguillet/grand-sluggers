@@ -50,13 +50,15 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. Eight files, one commit, because **drag is global and park dimensions are not**:
+ball that fits it. #717 landed eight files in one commit — the folder carries nine now — because
+**drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
 
 | File | What it changes |
 | --- | --- |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
+| `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70. Wall heights, wind and hazard radii unchanged. |
 
@@ -85,27 +87,42 @@ reference park is untouched either way.
 2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` is not
 carried.
 
-**What this slice leaves to other issues, and what it costs.** `Diamond.Positions` still stands the
-nine fielders at their 90-ft spots — they are C# literals, not data, so no overlay can move them.
-That is not a virtue, and it is not only an outfield problem:
+**What this slice left to other issues, and what it cost.** `Diamond.Positions` stood the nine
+fielders at their 90-ft spots — they were C# literals, not data, so no overlay could move them.
+That was not a virtue, and it was not only an outfield problem. Both bullets below are closed by
+**#725**, and the numbers stay here because the distance between the two columns is what the slice
+cost while it was open:
 
-- **The corners lose their bags.** 1B and 3B go from 16.62 ft to **26.41 ft** from the bag they
-  cover, a 59% increase, at exactly the spots where the close plays are. 2B and SS barely move
-  (43.01 → 42.28 ft) because they already play deep. This is **#725**, which is flagged to land
-  *before* #718.
-- **The outfield stands outside the park.** LF and RF at (±110, 250) and CF at (0, 305) are further
-  out than every migrated fence. `FieldBounds.Clamp` pins them to the warning track: CF snaps from
-  305 to 272 against a 280-ft wall, and in Canopy Yard it would be 40 ft beyond the fence. Nothing
+- **The corners lost their bags.** 1B and 3B went from 16.62 ft to **26.41 ft** from the bag they
+  cover, a 59% increase, at exactly the spots where the close plays are. 2B and SS barely moved
+  (43.01 → 42.28 ft) because they already play deep. **Closed by #725**: 14.77 ft and 38.23 ft, the
+  shipped gaps on the basepath scale.
+- **The outfield stood outside the park.** LF and RF at (±110, 250) and CF at (0, 305) were further
+  out than every migrated fence. `FieldBounds.Clamp` pinned them to the warning track: CF snapped
+  from 305 to 272 against a 280-ft wall, and in Canopy Yard it was 40 ft beyond the fence. Nothing
   can land behind an outfielder pinned to the wall, which is why the extra-base line in the trial
-  table below collapses.
+  table below collapses. **Closed by #725**: all eighteen of those starts (three bodies × six parks)
+  were clamped; none of the eighteen migrated ones is.
 
 Funfair's night chompers are `ParkHazards.FunfairChompers` in code, so they did not migrate with the
 park's data hazards. They sit at z 198–228 in a park whose centre fence is now 273 — still inbounds,
-but now in the deep-fly band that the pinned outfielders cannot reach.
+and since #725 inside the band a centre fielder starting at (0, 213.50) can work in, which he could
+not while he stood pinned to the wall.
 
-None of this is fixed here on purpose: absorbing #725 would merge two slices into one and destroy
-the attribution 3d depends on. It is recorded so a 3d reader does not mistake these effects for the
-anchors under test.
+**And he now starts inside one.** The centre mouth is at (0, 228) with an 18-ft radius. The migrated
+centre fielder starts 14.50 ft from that centre — **3.50 ft inside the rim**. Shipped, he stood
+77.00 ft away, 59 ft clear of it.
+`ChompFly` is evaluated at the ball's landing point, not at the fielder, so the body is not frozen —
+but on a Funfair night a fly landing at the centre fielder's own start is stamped an out by the
+hazard before his glove resolves. Measured through `ParkHazards.ChompFly`: the centre line chomps a
+night fly from z 210 to z 245, and LF and RF at (∓77.09, 175.19) are clear. No other position and no
+park flips. Some of the trial's fly-out movement at Funfair is therefore the chomper rather than the
+geometry this slice owns. The chompers are code literals and no overlay can move them (#717's gap);
+this is recorded, not repaired.
+
+None of this was fixed in #717 on purpose: absorbing #725 would have merged two slices into one and
+destroyed the attribution 3d depends on. It is recorded so a 3d reader does not mistake these
+effects for the anchors under test — and so the fix has a before to be measured against.
 
 ---
 
@@ -125,8 +142,8 @@ fence at 0.70, so the same radius still covers a larger share of a smaller field
 0.492 against the shipped 155 / 400 = 0.388. Closing it the rest of the way means a lip on the fence
 scale, 108.50 ft, which [#730](https://github.com/jackguillet/grand-sluggers/issues/730) ruled out:
 it sits inside the middle infield, so `FieldingResolver.OutfieldGrass` starts calling 2B and SS
-outfielders and puts them on the outfield read. 137.78 clears that floor by 12.53 ft at today's
-starts and by 26.45 ft at #725's scaled ones, so the two issues do not have to be ordered.
+outfielders and puts them on the outfield read. 137.78 clears that floor by 12.53 ft at the shipped
+starts and by 26.45 ft at the ones #725 authored, so the two issues did not have to be ordered.
 
 **What it costs.** The lip now sits **inside** the drawn dirt. `ParkDiamond.BackR` is a C# constant
 no overlay can reach, so the dirt still ends at 145.78 ft under the trial while the lip is at
@@ -161,3 +178,55 @@ check on a dress that draws correctly.
 **Nothing in the sim reads it.** `flight.dirtTimeScale` keys off the batted-ball class, not ground
 position, and `ParkDiamond.OnDirt` has two non-test consumers, both boolean shape gates. The dress is
 presentation; it is in `data/rules/` because it is measured from geometry that moved.
+
+---
+
+[#725](https://github.com/jackguillet/grand-sluggers/issues/725) — where the fielders stand, on the
+compact field. Seven of the nine spots in `Diamond.Positions` were C# literals; they are now
+`data/rules/fielders.json`, and the trial carries its own copy. The shipped file is authored at
+today's exact values, so a no-overlay run is byte-identical by construction — checked on `cli match`
+seeds 1, 7, 29, 104 and 2718. "P" still forwards to the rubber `infield.json` names and "C" to
+`HomeSet.CatcherZ`; neither is in the file, because naming them there would be a second source of
+truth.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| 1B / 3B | (±78, 72) | (±69.33, 64.00) |
+| 2B / SS | (±42, 118) | (±37.33, 104.89) |
+| LF / RF | (±110, 250) | (±77.09, 175.19) |
+| CF | (0, 305) | (0, 213.50) |
+
+**The infield takes the basepath scale**, 80/90, the same factor as the bags. The corner gap follows
+it exactly: 16.62 ft shipped → **14.77 ft** here, where an unmigrated corner stood 26.41 ft out. 2B
+goes 43.01 → **38.23 ft**. The middle infield radius lands at 111.33 ft, which clears the migrated
+137.78-ft lip by 26.45 ft — the floor #728 argued from, now measured against the authored starts
+instead of scaled ones.
+
+**The outfield does not take the fence scale, and it does not take one scale at all.** Each body
+keeps its bearing and its fraction of the fence *at that bearing*, computed through the circular
+fence arc (`AtBatResolver.FenceAt`) on harbor-diamond. LF and RF keep 0.7203 of a 379.16-ft fence at
+∓23.75°, so radius 273.13 → 191.40. CF keeps 0.7625 of 400, so 305 → 213.50. The radial factors
+those imply are **0.7008 and 0.7000** — close enough to look like one number and not one number, and
+`110 × 0.70 = 77.00` is the wrong answer that looks right. The reason they differ is in this file
+already: Harbor keeps its accepted 232 at the poles, and a flat 0.70 gives 231.
+
+**One global set clears all six parks.** Before: all eighteen outfield starts (three bodies × six
+parks) sat outside the wall and `FieldBounds.Clamp` pinned every one of them to the warning track.
+After: none is clamped, and the tightest of the eighteen is Canopy Yard's centre field at **51.50 ft**
+of fence in front of it. So no per-park exception is needed **to clear a wall**, and per-park depth
+stays with #713, exactly as #730 decision 3 decided. That is a claim about fences only: Funfair's
+coded night chompers are a per-park consequence the one global set does walk into, recorded above.
+
+**What it does to a run.** Twelve `cli match` seeds under the trial, before and after: 43 runs → 35,
+hits 63 → 52, balls-in-play outs 186 → 194, home runs 21 → 17. Read the direction, not the digits —
+the moment one play differs the seed's whole stream diverges, which is why pitch-level counts that
+the fielders cannot touch move too (called balls 367 → 398). Ten of the twelve seeds end on a
+different scoreline. The controlled numbers in this section are the geometric ones above.
+
+**What it does not fix, on purpose.** `ChemistryToy.GroupTokenSpot` carries the shipped depths
+pre-normalised (P 0.20 = 60.5/305, IF 0.39 = 118/305, OF 0.82 = 250/305) for the draft screen's
+group rows. It does not follow a trial root, and deciding whether it should — whether a group token
+tracks the live centre-field depth or stays a fixed layout — is a design call nobody has made.
+`tools/compact-field-report.py` holds its own nine-spot copy of the shipped starts; that is the
+frozen #708 control record the packet's arithmetic is published from, and pointing it at live C#
+would change what the packet means.
