@@ -1401,7 +1401,7 @@ public sealed partial class LivePlaySystem
 
     /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw.</summary>
     ThrowResult ArmOnly(Character who) =>
-        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * FieldAbilities.ThrowMul(who, R), false);
+        new(Chemistry.Neutral, InPlay.ArmMul(who, R) * FieldAbilities.ThrowMul(who, R), false, Arm: who.Stats.Arm);
 
     /// <summary>The CPU throws to <paramref name="bag"/>: straight when the arm reaches, through the cutoff on the line otherwise (§8.7).</summary>
     void CpuThrowTo(int bag)

@@ -65,9 +65,9 @@ public static class FieldAbilities
         };
     }
 
-    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5).</summary>
+    /// <summary>The thrower's arm and ability on a chemistry throw: one speed multiplier the one throw clock reads (§8.5), and the arm rating its range is measured from.</summary>
     public static ThrowResult ApplyThrow(Character from, ThrowResult throwRes, RulesTable? rules = null) =>
-        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules) };
+        throwRes with { SpeedMul = throwRes.SpeedMul * ThrowMul(from, rules) * InPlay.ArmMul(from, rules), Arm = from.Stats.Arm };
 }
 
 public static class ErrorItems
