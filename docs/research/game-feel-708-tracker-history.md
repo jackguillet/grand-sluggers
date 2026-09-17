@@ -491,3 +491,48 @@ The new production-flight probes contradict the former grounder-invariance claim
 [Full pre-correction tracker snapshot](game-feel-709-pre-review-trackers.json) preserves #693, #708 and the nearly full #709 body at revision 8f1f123 before condensation. The older entries above remain verbatim historical records, including claims now corrected. Current scopes are in the report, candidate register and spec.
 
 Validation: 42 fixed production-model flight probes, arithmetic regeneration/check, local documentation links and diff hygiene. These are not a complete compact-game simulation or a human gate. No runtime rules, assets, roster or shipped behavior changed.
+
+
+### Scale research opened — September 16, 2026 / #730 Phase 1
+
+Eight subjects, researched together because they are one question: **what scales when the diamond shrinks, and by what.** The compact profile scales the infield by 0.889 and the outfield by 0.700, so every length in feet outside the park files has to pick one, or a third thing. Answering them separately produces rules that disagree.
+
+Subjects: the infield lip (#728), infielder and outfielder start spots (#725), the foul wrap, the tag-up carry gates and the cutoff threshold (#732), hazard radii (raised reviewing PR #731) and ground dress (#729). Eight `pending-730` rows are registered; none is decided here.
+
+**The lip is the hinge**, and two measurements narrow it. First, there is a hard floor: a middle infielder stands 125.25 ft from home, and a lip below that makes `OutfieldGrass` call him an outfielder, moving him onto the outfield air multiplier. The floor falls to 111.33 ft only if the start spots scale. The fence factor, 108.50 ft, fails both — measured, the outfield roster becomes `2B, SS, LF, CF, RF`. Second, neither candidate preserves what the lip governs: the value that leaves the compact game with the shipped game's pop count is **129.2 ft**, a scale of 0.833, equal to neither the basepath nor the fence factor and clearing both floors.
+
+Two findings bear on results already published. The foul wrap takes down-the-line contact called foul from 30.3% to 41.4%, which is why PR #731's ordinary-contact sweep reads clean — pulled slaps in three parks clear the wall and are scored foul for crossing the hip rail first, a result the PR credits to wind. And `cpu.TagSecondMinCarryFt` 250 is past every compact pole, so the tag-from-second branch is unreachable: that removes a scoring path rather than shifting one, and would read in a 3d report as a fielding anchor.
+
+The hazard-radius argument shipped on #731 — "a barrel is a physical object" — does not describe the code. A barrel's capture test is `radius + PipeReachPadFt` (8 ft), a fire breath's radius is multiplied by 1.6 at night, a freeze triggers on where the *ball* lands, and a climb wall's radius is never read. Radius is a trigger zone. Unscaled, every hazard's share of fair territory roughly doubles; x0.70 preserves it exactly, because fair area scales by 0.70². But the pad dominates a barrel — scaling the radius shrinks the real catch by 11.5% on a field that lost 30% — so the radius rule and those two rules-file values must be decided in one pass.
+
+Validation: a new production-classifier probe (`tools/game-feel-scale-probes`, `--check`) over 17,280 classifications per option, plus arithmetic regeneration and check of the #708 report and the 42 flight probes, whose rows are unchanged — only source hashes moved, from #707, #711, #712 and #716 touching files the evidence pins. No decision accepted, no rules file, asset, roster, runtime or shipped behaviour changed, no simulation and no human gate.
+
+
+### Correction — the foul wrap is not a scaling subject, September 16, 2026 / #730
+
+The Phase 1 entry above, issue #732 and the PR #731 review all named `HarborWall.FoulOffset` 36 and `flareStart` 95 as un-migrated absolutes causing the compact foul-rate rise. **That attribution is wrong.**
+
+The rise is real — down-the-line contact called foul goes from 30.3% to 41.4%. The two constants do not cause it. Patched directly and re-run over the whole grid, shipped (36, 95), flare-scaled (36, 66.5) and fully scaled (25.2, 66.5) all give an identical compact foul share of **0.4135**. `FoulWall` converges the rail to zero offset at the pole, and a ball 0.1° inside a 45° foul line only meets the rail near the pole, where the constants have no effect.
+
+So the foul-rate rise is a consequence of the poles moving in, not a number anyone can choose to scale. It is an effect for 3d to report. `F693-04-foul-wrap` is withdrawn as `withdrawn-not-a-scaling-subject`, and #732 should drop it — it was the headline item there.
+
+The observation it was invoked to explain still stands with a different cause: pulled contact that clears a wall can be scored `Foul` for crossing the hip rail near the pole. `HarborWall.HipHeight` 4.2 ft is a vertical, correctly unscaled like wall heights, and range-guarded to 3.2–5.5 ft.
+
+Validation: three counterfactual builds of the production classifier over 17,280 classifications each, arithmetic regeneration and check. The 42 flight-probe rows are unchanged. No decision accepted, no rules file, runtime or shipped behaviour changed.
+
+
+### Scale decisions accepted — September 16, 2026 / #730 Phase 2
+
+Seven decisions, one at a time. **Two stopped being scaling questions.**
+
+**The lip is 137.78 ft, the basepath scale.** The fence scale was impossible rather than unwanted: at 108.50 ft the sim calls 2B and SS outfielders, and it still fails the floor after the start spots scale. Basepath won between the survivors because three of the lip's four consumers are geometry. Pops rise 489 to 652 and that is **reported, not tuned away** — the 129.2 ft that would preserve today's pop count was declined as fitting a number to an economy the compact game is meant to change.
+
+**The start spots scale by basepath** (1B at 69.33, 64.00), keeping the infield's shape exactly: each corner stays 18.5% of the basepath from its bag, where preserving the gap in feet would have put it at 20.8%. **The outfield keeps one global set, scaled** (CF at 0, 213.50), which is today's model; per-park depth is new behaviour and stays with #713. Both sets match the C80 figures the packet already cited, computed independently.
+
+**Hazard radii scale by 0.70, and `PipeReachPadFt` with them** (8 to 5.60). Radius is a trigger zone, not an object — a barrel's capture is radius + pad, a fire breath grows 1.6x at night, a freeze fires on where the ball lands, a climb wall's radius is never read. Scaling radii alone would shrink a barrel's real catch only 11.5% on a field that lost 30%, because the pad is larger than the radius. `EmberNightFireMul` is dimensionless and unchanged.
+
+**Jack declined every scaling option for the tag-up gates.** A tag-up is a race, not a distance: a CPU runner goes when it judges it can beat the throw. The machinery already exists and every other CPU runner decision uses it — `RunnerAi.Margin` is throwArrival minus runnerArrival, `ThrowArrivalSec` measures from the glove's real position, and `cpu.*.runnerMarginSec` tunes judgement per rung. The tag-up branch is the only CPU runner decision still reading a carry distance. One gap: `ThrowArrivalSec` passes null for the thrower, so `Arm` does not yet reach the estimate. **The same reasoning retires the relay threshold**: relay when the two-leg throw arrives first, which also supplies the break-even distance #722 asks for, varying by arm.
+
+**The dress took the packet's own rule without escalation**, verified in Phase 1 as presentation-only.
+
+Validation: decisions recorded against the Phase 1 measurements; arithmetic regeneration and check. No rules file, runtime, asset, roster or shipped behaviour changed, no simulation and no human gate. #725, #728, #729 and #732 carry the implementations.
