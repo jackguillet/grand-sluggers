@@ -47,6 +47,42 @@ public sealed class InfieldGeometryTests
         Assert.Equal(60.5, infield.MoundFt);
         Assert.Equal(63.64, infield.CornerFt);
         Assert.Equal(127.28, infield.SecondFt);
+
+        // #729's two, at the constants they replaced on ParkDiamond.
+        Assert.Equal(50, infield.InnerHalfFt);
+        Assert.Equal(92, infield.BackArcFt);
+    }
+
+    /// <summary>
+    /// The ground dress reports the table too (#729). <see cref="ParkDiamond"/> draws the dirt the
+    /// bags sit on, and it is measured from them — the grass diamond from second and the mound, the
+    /// back arc from the rubber — so a root that moves the bags without moving these draws the old
+    /// field under the new one.
+    ///
+    /// <para>
+    /// The rest of <see cref="ParkDiamond"/> stays in feet on purpose. Path width, the bag pads, the
+    /// home pad, the mound table and the warning track are bodies and equipment; a 10-ft path is
+    /// 10 ft because a fielder is the size a fielder is, and a smaller diamond does not shrink them.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void ParkDiamondReportsWhatTheShippedTableSays()
+    {
+        var infield = RulesTable.Load(_content.Root).Infield;
+
+        Assert.Equal((float)infield.InnerHalfFt, ParkDiamond.InnerHalf);
+        Assert.Equal((float)infield.BackArcFt, ParkDiamond.BackR);
+        Assert.Equal((float)(infield.MoundFt + infield.BackArcFt), ParkDiamond.DirtMaxZ);
+        Assert.Equal((float)infield.BackArcFt, ParkDiamond.DirtMaxX);
+
+        // The dress the decision left in feet, named so a later reader does not migrate them too.
+        Assert.Equal(10f, ParkDiamond.PathWidth);
+        Assert.Equal(12f, ParkDiamond.BagPadR);
+        Assert.Equal(18f, ParkDiamond.HomePackedR);
+
+        // The grass vertex clears the bag pad it points at. This is the hairline the validator
+        // deliberately does not refuse a table over: 1.64 ft shipped, and only 0.13 ft at C80.
+        Assert.Equal(1.64, infield.CornerFt - (infield.InnerHalfFt + ParkDiamond.BagPadR), 2);
     }
 
     [Fact]
@@ -111,6 +147,30 @@ public sealed class InfieldGeometryTests
         Assert.Equal(90, Diamond.Baseline);
     }
 
+    /// <summary>
+    /// The same point for the dress (#729): another data root draws another infield. Without this
+    /// the compact profile would play an 80-ft diamond on 90-ft dirt.
+    /// </summary>
+    [Fact]
+    public void AnotherDataRootPlaysAnotherDress()
+    {
+        using var trial = new CopiedRoot();
+        trial.Change("infield.json", json =>
+        {
+            json["innerHalfFt"] = 44.44;
+            json["backArcFt"] = 81.78;
+        });
+
+        var infield = RulesTable.Load(trial.Root).Infield;
+
+        Assert.Equal(44.44, infield.InnerHalfFt);
+        Assert.Equal(81.78, infield.BackArcFt);
+
+        // The shipped table is untouched, and the running process still draws it.
+        Assert.Equal(50f, ParkDiamond.InnerHalf);
+        Assert.Equal(92f, ParkDiamond.BackR);
+    }
+
     /// <summary>A trial root is named to a whole process, so the control and the trial are two runs to diff.</summary>
     [Fact]
     public void TheNamedRootIsTakenWhenItIsADataRoot()
@@ -161,6 +221,22 @@ public sealed class InfieldGeometryTests
         var errors = RulesTable.Validate(trial.Root);
         Assert.Contains(errors, e => e.Contains("infield.moundFt"));
         Assert.Contains(errors, e => e.Contains("infield.cornerFt"));
+    }
+
+    /// <summary>
+    /// The drawn grass stays inside the bag it points at and inside the arc behind it (#729). A
+    /// dress that swallows the bags is a lake, not a diamond, and it is named by path rather than
+    /// discovered in a screenshot.
+    /// </summary>
+    [Fact]
+    public void TheGrassDiamondMustStayInsideTheBagsAndTheArc()
+    {
+        using var trial = new CopiedRoot();
+        trial.Change("infield.json", json => json["innerHalfFt"] = 200);
+
+        var errors = RulesTable.Validate(trial.Root);
+        Assert.Contains(errors, e => e.Contains("infield.innerHalfFt"));
+        Assert.Equal(2, errors.Count(e => e.Contains("infield.innerHalfFt")));
     }
 
     /// <summary>
