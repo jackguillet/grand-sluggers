@@ -113,8 +113,8 @@
   "negativeChemistryState": "accepted-calibration-anchor",
   "longRangeProfileState": "accepted-calibration-anchor",
   "sourceSha256": {
-    "docs/research/game-feel-708-candidates.json": "be14dbc9f1b4c70086cd14adafc1de1ee1ceec704dd4adec80391af6c3fef2e7",
-    "docs/research/game-feel-708-flight-derived.json": "d370a1a36cf3cd9f3a5001f73be9a002bfc4ae53b4ee9069953ab264559647ab",
+    "docs/research/game-feel-708-candidates.json": "562585ab5d961c636ceb3469cb5fdd1519c4a0ddfc6785d015877626824d18f6",
+    "docs/research/game-feel-708-flight-derived.json": "a605e56c1dcef9cd9c409906ee2cc626b46b4edf7e460c3df41b518f6ab59423",
     "docs/research/game-feel-701-proportions.json": "38fc95d8a5805ee03100cde7bc9569c79579670e450e90bf466ecab06adead2d",
     "src/GrandSluggers.Sim/Diamond.cs": "ed02103cbfd1a0a6c45885fd0fe7349fa325f18cb46d6fe550f3b21c0a222251",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "b909cd9578708568e5f7d7baad58c289579b2819e1b41062ad4e358bfffdce09",
