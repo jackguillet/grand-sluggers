@@ -224,6 +224,8 @@ public sealed partial class LivePlaySystem
     LivePadInput _prevRun = LivePadInput.Dead;
     bool _catchRecorded;
     bool _aiPending;
+    /// <summary>The pending runner decision is the catch itself (#732): the one event a tag-up race is judged at.</summary>
+    bool _aiAtCatch;
     bool _wasHolding;
     bool _wasThrowing;
     /// <summary>Play seconds the glove on the ball took possession; −1 while nobody holds it (the tag sweep reads it, §10.3).</summary>
@@ -459,6 +461,7 @@ public sealed partial class LivePlaySystem
                 else if (r.TagAndGo) r.Send(r.NextBag, human: true);
             }
             _aiPending = true;
+            _aiAtCatch = true;
         }
         else if (next == FlyState.Dropped)
         {
@@ -502,8 +505,10 @@ public sealed partial class LivePlaySystem
     {
         if (!_aiPending) return;
         _aiPending = false;
+        var atCatch = _aiAtCatch;
+        _aiAtCatch = false;
         if (Seats.HumanRuns) return;
-        RunnerAi.Decide(Runners, AiContext(dash01), bag => Forces.At(bag), _match.Rules);
+        RunnerAi.Decide(Runners, AiContext(dash01, atCatch), bag => Forces.At(bag), _match.Rules);
     }
 
     /// <summary>A throw armed to the bag, or a glove with the ball close to it: the runner slides in (§9.4).</summary>

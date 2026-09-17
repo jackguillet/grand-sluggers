@@ -36,7 +36,9 @@ public sealed record RunnerAiContext(
     int TrailingInLastInning,
     FlyState Fly,
     BallSituation Ball,
-    double Dash01);
+    double Dash01,
+    /// <summary>This decision is the catch itself (§9.5, #732): the one event a tag-up race is judged at. Later events with the fly caught leave a held runner held.</summary>
+    bool AtCatch = false);
 
 /// <summary>
 /// The CPU baserunner (spec §9.9): evaluated at contact, at every fielder touch, at every throw
@@ -113,6 +115,13 @@ public static class RunnerAi
                     runner.Send(4);
                 else if (runner.Bag == 2 && ball.BallX > 0 && ball.OnGrass && ball.CarryFt >= cpu.TagSecondMinCarryFt && !blocked)
                     runner.Send(3);
+                // The race (#732, decision 5 of #730): once, at the catch, a runner on second or third goes when the margin to the
+                // next bag clears the bag's threshold plus the rung's slack — the same estimate every other CPU runner read uses,
+                // the thrower's arm and the fielder's relay included (§9.9). The shipped thresholds are ones no margin reaches, so
+                // there the gates above are the whole rule; the c80 copy sets the gates to never and authors the thresholds.
+                else if (ctx.AtCatch && !blocked && runner.Bag is 2 or 3 && (runner.Bag != 3 || ctx.Outs < 2)
+                         && Margin(runner, next, ctx, r) > TagUpThresholdSec(runner.Bag, cpu) + slack)
+                    runner.Send(next);
                 return;
         }
 
@@ -231,6 +240,14 @@ public static class RunnerAi
         if (run <= 8) return Lerp(cpu.StealBaseRun6, cpu.StealBaseRun8, (run - 6) / 2.0);
         return Lerp(cpu.StealBaseRun8, cpu.StealBaseRun10, (run - 8) / 2.0);
     }
+
+    /// <summary>The tag-up threshold for a runner on <paramref name="bag"/> (§9.5, #732): home from third, third from second; nowhere else.</summary>
+    public static double TagUpThresholdSec(int bag, CpuRunnerRules cpu) => bag switch
+    {
+        3 => cpu.TagUpHomeMarginSec,
+        2 => cpu.TagUpThirdMarginSec,
+        _ => double.PositiveInfinity
+    };
 
     /// <summary>The outfield "go" threshold for this runner (§9.9): aggression by Run, more with two outs, more when desperate.</summary>
     static double Threshold(Runner runner, RunnerAiContext ctx, CpuRunnerRules cpu, double slack, BallSituation ball)
