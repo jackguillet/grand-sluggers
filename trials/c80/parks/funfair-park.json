@@ -16,21 +16,21 @@
       "type": "warp_pipe",
       "x": 18,
       "z": 49,
-      "radius": 4,
+      "radius": 2.8,
       "tag": "A"
     },
     {
       "type": "warp_pipe",
       "x": -22,
       "z": 53,
-      "radius": 4,
+      "radius": 2.8,
       "tag": "B"
     },
     {
       "type": "warp_pipe",
       "x": 0,
       "z": 84,
-      "radius": 4,
+      "radius": 2.8,
       "tag": "C"
     },
     {

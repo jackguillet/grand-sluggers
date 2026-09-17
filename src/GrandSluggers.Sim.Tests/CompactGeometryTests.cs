@@ -50,19 +50,20 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Nine files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried a tenth would show up here
-    /// rather than in a trace nobody could attribute. It was eight until #725 added the fielder
-    /// starts; the count is in the name so growing it is a rename somebody has to mean.
+    /// Ten files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried an eleventh would show up
+    /// here rather than in a trace nobody could attribute. It was eight until #725 added the fielder
+    /// starts and nine until #732 carried the fielding table for the hazard reach pad; the count is
+    /// in the name so growing it is a rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesNineFilesAndNoOthers()
+    public void TheTrialCarriesTenFilesAndNoOthers()
     {
         Assert.Equal(
             [
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
-                "rules/fielders.json", "rules/flight.json", "rules/infield.json"
+                "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"
             ],
             Root.Overrides);
     }
@@ -161,12 +162,13 @@ public sealed class CompactGeometryTests
         Assert.True(shipped.InnerHalfFt + ParkDiamond.BagPadR > trial.CornerFt,
             "a pad-clearance rule is the only one that would have caught it");
 
-        // #729's own claim, which #725 did not change: the dress rides in infield.json rather than a
-        // file of its own. Named rather than counted, because the total is
-        // TheTrialCarriesNineFilesAndNoOthers's to say — it went from eight to nine when #725 added
-        // rules/fielders.json, and this line used to assert that count a second time.
+        // #729's own claim, which #725 and #732 did not change: the dress rides in infield.json rather
+        // than a file of its own. Named rather than counted, because the total is
+        // TheTrialCarriesTenFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // rules/fielders.json and to ten when #732 added rules/fielding.json, and this line used to
+        // assert that count a second time.
         Assert.Equal(
-            ["rules/fielders.json", "rules/flight.json", "rules/infield.json"],
+            ["rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"],
             Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
     }
 
@@ -255,11 +257,18 @@ public sealed class CompactGeometryTests
     /// The zone is decided by <see cref="FieldingResolver.OutfieldGrass"/>, the same radial lip the fielders
     /// use to decide who owns a ball there, so the rule is the game's own and not a second opinion.
     ///
-    /// <para><b>Radii are not scaled.</b> A barrel is a physical object; it did not shrink, for the
-    /// same reason a wall did not.</para>
+    /// <para><b>Radii take the fence scale (#732, #730 decision 4).</b> #717 shipped them unscaled —
+    /// "a barrel is a physical object; it did not shrink, for the same reason a wall did not" — and
+    /// #730 measured the code instead: a barrel's capture test is <c>radius + pipeReachPadFt</c>, a
+    /// fire breath's radius is × 1.6 at night, a freeze triggers on where the <i>ball</i> lands, and a
+    /// <c>climb_wall</c> radius is never read at all. A radius is a trigger zone, not a body. Fair
+    /// territory falls to 0.70² = 49% of shipped, so an unscaled zone roughly doubles its share of the
+    /// field; × 0.70 preserves each hazard's share exactly, and unlike the positions it takes the
+    /// fence factor everywhere, infield barrels included. The shipped radii stay on the record in
+    /// <c>data/parks/</c>, and this compares against them.</para>
     /// </summary>
     [Fact]
-    public void HazardsMigrateByTheZoneTheySitInAndKeepTheirRadius()
+    public void HazardsMigrateByTheZoneTheySitInAndTheirRadiiTakeTheFenceScale()
     {
         foreach (var id in ParkIds)
         {
@@ -274,7 +283,7 @@ public sealed class CompactGeometryTests
                 var scale = FieldingResolver.OutfieldGrass(was.X, was.Z, Control.Rules) ? Outfield : Infield;
                 Assert.Equal(was.Type, now.Type);
                 Assert.Equal(was.Tag, now.Tag);
-                Assert.Equal(was.Radius, now.Radius);
+                Assert.Equal(Math.Round(was.Radius * Outfield, 2), now.Radius, 6);
                 Assert.Equal(Math.Round(was.X * scale, MidpointRounding.AwayFromZero), now.X, 6);
                 Assert.Equal(Math.Round(was.Z * scale, MidpointRounding.AwayFromZero), now.Z, 6);
                 Assert.True(now.Radius > 0 || was.Type == "train", where);
@@ -299,10 +308,123 @@ public sealed class CompactGeometryTests
         var migrated = Trial.Parks["rooftop-city"].Hazards.Single(h => h.Type == "ac_unit");
         Assert.Equal(28, migrated.X);
         Assert.Equal(105, migrated.Z);
-        Assert.Equal(ac.Radius, migrated.Radius);
+        Assert.Equal(6, ac.Radius);
+        Assert.Equal(4.2, migrated.Radius);
 
         // Harbor is the reference park and has no hazards, so it is unaffected by the rule either way.
         Assert.Empty(Trial.Parks["harbor-diamond"].Hazards);
+    }
+
+    /// <summary>
+    /// <b>The reach pad scales with the radii, and it is the part that matters (#732, #730 decision 4).</b>
+    /// A barrel or pipe catches a ball inside <c>radius + park.pipeReachPadFt</c>, and the pad is
+    /// larger than any barrel's radius. Scaling the radius alone would have taken a Canopy barrel's
+    /// real catch from 13.00 ft to 11.50 — an 11.5% cut on a field that lost 30%. With the pad at 5.60
+    /// the disc is 3.50 + 5.60 = 9.10 ft, exactly 0.70 of shipped. <c>emberNightFireMul</c> is
+    /// dimensionless and does not move.
+    ///
+    /// <para>
+    /// This is why <c>rules/fielding.json</c> enters the overlay here, whole, ahead of the two 3c
+    /// chains that will write it (#727): every other leaf is the shipped value, checked by name so a
+    /// copy that dropped a key or drifted a number is refused rather than read as authored.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheTrialFieldingTableIsTheShippedOneWithThePadOnTheFenceScale()
+    {
+        var shipped = Control.Rules.Fielding.Park;
+        var trial = Trial.Rules.Fielding.Park;
+        Assert.Equal(8, shipped.PipeReachPadFt);
+        Assert.Equal(5.6, trial.PipeReachPadFt);
+        Assert.Equal(Math.Round(shipped.PipeReachPadFt * Outfield, 2), trial.PipeReachPadFt);
+        Assert.Equal(1.6, trial.EmberNightFireMul);
+        Assert.Equal(shipped.EmberNightFireMul, trial.EmberNightFireMul);
+        Assert.Equal(shipped.ShellWarpChance, trial.ShellWarpChance);
+
+        var shippedLeaves = Leaves(Path.Combine(Shipped, "rules", "fielding.json"));
+        var trialLeaves = Leaves(Path.Combine(Overlay, "rules", "fielding.json"));
+        Assert.Equal(shippedLeaves.Keys, trialLeaves.Keys);
+        var moved = shippedLeaves.Where(kv => trialLeaves[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
+        Assert.Equal(["park.pipeReachPadFt"], moved);
+        Assert.Equal("8", shippedLeaves["park.pipeReachPadFt"]);
+        Assert.Equal("5.6", trialLeaves["park.pipeReachPadFt"]);
+
+        // Every leaf of a rules file, "section.key" to its raw JSON text, comments skipped. Sorted so
+        // the key lists compare in one order and a missing or extra key names itself.
+        static SortedDictionary<string, string> Leaves(string path)
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(path), new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+            var leaves = new SortedDictionary<string, string>(StringComparer.Ordinal);
+            Walk(doc.RootElement, "");
+            return leaves;
+
+            void Walk(JsonElement element, string prefix)
+            {
+                switch (element.ValueKind)
+                {
+                    case JsonValueKind.Object:
+                        foreach (var field in element.EnumerateObject())
+                            Walk(field.Value, prefix.Length == 0 ? field.Name : prefix + "." + field.Name);
+                        break;
+                    case JsonValueKind.Array:
+                        var i = 0;
+                        foreach (var item in element.EnumerateArray()) Walk(item, $"{prefix}[{i++}]");
+                        break;
+                    default:
+                        leaves[prefix] = element.GetRawText();
+                        break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// The disc a barrel actually catches with, through <see cref="ParkHazards.WarpIfPipe"/> rather
+    /// than arithmetic: a ball 12.9 ft from a shipped Canopy barrel warps and 13.1 does not; 9.0 ft
+    /// from the compact one warps and 9.2 does not. Funfair's pipes go 12.00 → 8.40 the same way.
+    /// The compact park read with the <i>shipped</i> table still warps at 9.2, which is the packet's
+    /// point: the pad, not the radius, decides the catch. Ember's fire breath follows through
+    /// <see cref="ParkHazards.InSlow"/> — 16 → 11.2 by day, and 25.60 → 17.92 at night because the
+    /// multiplier stayed and the radius under it moved.
+    /// </summary>
+    [Fact]
+    public void ABarrelsCaptureDiscIsSeventyPercentOfTheShippedOne()
+    {
+        var rng = new Random(730);
+        foreach (var (id, type, discShipped) in new[] { ("canopy-yard", "barrel", 13.00), ("funfair-park", "warp_pipe", 12.00) })
+        {
+            var shippedPark = Control.Parks[id];
+            var trialPark = Trial.Parks[id];
+            var was = shippedPark.Hazards.First(h => h.Type == type);
+            var now = trialPark.Hazards.First(h => h.Type == type);
+            var discTrial = Math.Round(discShipped * Outfield, 2);
+            Assert.Equal(discShipped, was.Radius + Control.Rules.Fielding.Park.PipeReachPadFt, 2);
+            Assert.Equal(discTrial, now.Radius + Trial.Rules.Fielding.Park.PipeReachPadFt, 2);
+            // The radius alone: the 13.00 → 11.50 cut the packet warned about (12.00 → 10.80 for a pipe).
+            Assert.Equal(Math.Round(was.Radius * Outfield + 8, 2), now.Radius + Control.Rules.Fielding.Park.PipeReachPadFt, 2);
+
+            Assert.True(ParkHazards.WarpIfPipe(shippedPark, was.X + discShipped - 0.1, was.Z, rng, Control.Rules).Warped, id + " shipped, inside the disc");
+            Assert.False(ParkHazards.WarpIfPipe(shippedPark, was.X + discShipped + 0.1, was.Z, rng, Control.Rules).Warped, id + " shipped, outside the disc");
+            Assert.True(ParkHazards.WarpIfPipe(trialPark, now.X + discTrial - 0.1, now.Z, rng, Trial.Rules).Warped, id + " compact, inside the disc");
+            Assert.False(ParkHazards.WarpIfPipe(trialPark, now.X + discTrial + 0.1, now.Z, rng, Trial.Rules).Warped, id + " compact, outside the disc");
+            Assert.True(ParkHazards.WarpIfPipe(trialPark, now.X + discTrial + 0.1, now.Z, rng, Control.Rules).Warped, id + " compact radius under the shipped pad still catches it");
+        }
+
+        var ember = Trial.Parks["ember-keep"];
+        var fire = ember.Hazards.Single(h => h.Type == "fire_breath");
+        var shippedFire = Control.Parks["ember-keep"].Hazards.Single(h => h.Type == "fire_breath");
+        Assert.Equal(16, shippedFire.Radius);
+        Assert.Equal(11.2, fire.Radius);
+        Assert.Equal(25.60, shippedFire.Radius * Control.Rules.Fielding.Park.EmberNightFireMul, 2);
+        Assert.Equal(17.92, fire.Radius * Trial.Rules.Fielding.Park.EmberNightFireMul, 2);
+        Assert.True(ParkHazards.InSlow(ember, fire.X + 11.1, fire.Z, night: false, Trial.Rules));
+        Assert.False(ParkHazards.InSlow(ember, fire.X + 11.3, fire.Z, night: false, Trial.Rules));
+        Assert.True(ParkHazards.InSlow(ember, fire.X + 17.9, fire.Z, night: true, Trial.Rules));
+        Assert.False(ParkHazards.InSlow(ember, fire.X + 18.0, fire.Z, night: true, Trial.Rules));
     }
 
     /// <summary>
