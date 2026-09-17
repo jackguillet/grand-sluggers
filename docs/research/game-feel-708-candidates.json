@@ -39,7 +39,7 @@
     {
       "id": "wii-clip",
       "url": "https://www.youtube.com/watch?v=3-5aQh-fxZk&t=58s",
-      "scope": "Previously annotated throw flight 0.99–1.21 s; distance/stats/abilities not matched"
+      "scope": "Previously annotated throw flight 0.99\u20131.21 s; distance/stats/abilities not matched"
     },
     {
       "id": "gc-clip",
@@ -110,7 +110,7 @@
     "read": "Base contact-clock reads accepted: LF/CF/RF .40 seconds, 1B/2B/SS/3B .25, P .35. Preserve ownership, existing airborne cap and no additional camera gate. Catcher and numerical movement response remain pending.",
     "flight": "Fixed-input and tactical comparisons both required. Carry, hang, bounce, roll, wall interaction and contact-class distinctions need coordinated calibration; no uniform spatial transform can solve the independently scaled field.",
     "coverage": "Record ball-target arrival, receiver eligibility/possession and runner arrival separately; target arrival is not an out.",
-    "scoring": "Accepted 1.8–5 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
+    "scoring": "Accepted 1.8\u20135 home and away means separately for each S29 and Harbor cohort; no pooling. Baseline Harbor failures remain open.",
     "presentation": "D7 unchanged. Dead-ball duration and moderate ball assistance remain pending numerical presentation decisions."
   },
   "decisionQueue": [
@@ -152,7 +152,7 @@
     {
       "id": "F693-03-negative-chemistry",
       "state": "accepted-calibration-anchor",
-      "question": "Replace bad chemistry’s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
+      "question": "Replace bad chemistry\u2019s extra random slant with a predictable 0.90x travel-speed factor per bad pair, leaving ordinary release and other accuracy rules separately governed?"
     },
     {
       "id": "F693-03-relay-ownership",
@@ -267,7 +267,7 @@
     {
       "id": "F693-02-ordinary-carry-speed",
       "state": "accepted-calibration-anchor",
-      "question": "Use the character’s ordinary pursuit top speed as ordinary carrying speed, with no generic possession penalty or bonus, then apply the accepted Ball Dash factor only to eligible carriers?"
+      "question": "Use the character\u2019s ordinary pursuit top speed as ordinary carrying speed, with no generic possession penalty or bonus, then apply the accepted Ball Dash factor only to eligible carriers?"
     },
     {
       "id": "F693-02-carry-movement-response",
@@ -282,7 +282,7 @@
     {
       "id": "F693-02-ground-pickup-recoil-basis",
       "state": "accepted-calibration-anchor",
-      "question": "Base exceptional retained-ball ground-pickup recoil deterministically on actual incoming ball speed at the glove and the fielder’s Field rating, rather than original exit speed/contact quality, keeping routine slowed pickups free of added recovery?"
+      "question": "Base exceptional retained-ball ground-pickup recoil deterministically on actual incoming ball speed at the glove and the fielder\u2019s Field rating, rather than original exit speed/contact quality, keeping routine slowed pickups free of added recovery?"
     },
     {
       "id": "F693-02-ground-pickup-recoil-cap",
@@ -556,7 +556,7 @@
     {
       "id": "F693-02-continuing-error-speed-retention",
       "state": "accepted-calibration-anchor",
-      "question": "Trial retaining 50–80% of pre-contact horizontal speed for continuing deflections, with glancing contact toward the high end and stronger interruption toward the low end?"
+      "question": "Trial retaining 50\u201380% of pre-contact horizontal speed for continuing deflections, with glancing contact toward the high end and stronger interruption toward the low end?"
     },
     {
       "id": "F693-02-error-direction-distribution",
@@ -567,7 +567,7 @@
     {
       "id": "F693-02-uniform-error-direction",
       "state": "accepted-calibration-anchor",
-      "question": "Use even angular probability within each accepted range: ±30 degrees local bobble and ±15 degrees continuing deflection."
+      "question": "Use even angular probability within each accepted range: \u00b130 degrees local bobble and \u00b115 degrees continuing deflection."
     },
     {
       "id": "F693-02-local-bobble-vertical-shape",
@@ -617,7 +617,7 @@
     {
       "id": "F693-02-continuing-error-vertical-retention",
       "state": "accepted-calibration-anchor",
-      "question": "For continuing deflections, scale vertical speed by the same contact-dependent 50–80% factor used horizontally, preserving rising/falling direction without adding a pop?"
+      "question": "For continuing deflections, scale vertical speed by the same contact-dependent 50\u201380% factor used horizontally, preserving rising/falling direction without adding a pop?"
     },
     {
       "id": "F693-02-continuing-error-ground-response",
@@ -740,6 +740,136 @@
       "id": "F693-02-error-response-mapping",
       "state": "implementation-design-required",
       "question": "Define and validate D, H, local/continuing response selection and continuing speed/direction as simple trial mappings before compact prototype completion; consolidate routine choices, review material gameplay tradeoffs only."
+    },
+    {
+      "id": "F693-04-infield-lip",
+      "state": "accepted-calibration-anchor",
+      "question": "flight.classes.infieldLipFt is 155 absolute feet and scales with nothing. Basepath gives 137.78, fence gives 108.50, and the value that preserves the shipped pop count is 129.2. Which?",
+      "acceptedDirection": {
+        "lipFt": 137.78,
+        "scale": "basepath 80/90",
+        "why": "Three of the lip's four consumers are geometry - where the dirt is, who is an infielder, where the ball counts as infield - and they take the infield's scale. The fence scale is impossible, not merely unwanted: at 108.50 ft the sim calls 2B and SS outfielders, and it still fails the floor after the start spots scale.",
+        "floorsCleared": {
+          "startsWhereTheyAre": 125.25,
+          "startsScaled": 111.33
+        },
+        "reportedEffect": "Pops rise from 489 to 652 on the standard grid, because the infield is still proportionally larger than it was. Reported for 3d rather than tuned away; the 129.2 ft that would preserve today's pop count was declined as fitting a number to an economy the compact game is meant to change."
+      }
+    },
+    {
+      "id": "F693-02-infielder-starts",
+      "state": "accepted-calibration-anchor",
+      "question": "Diamond.Positions hardcodes the four infield spots. Scale by basepath (1B lands 14.77 ft from the bag), preserve the fielder-to-bag gap (16.62 ft), or leave them (26.41 ft)?",
+      "acceptedDirection": {
+        "scale": "basepath 80/90",
+        "spots": {
+          "1B": [
+            69.33,
+            64.0
+          ],
+          "2B": [
+            37.33,
+            104.89
+          ],
+          "3B": [
+            -69.33,
+            64.0
+          ],
+          "SS": [
+            -37.33,
+            104.89
+          ]
+        },
+        "why": "The whole infield keeps its shape: every angle and ratio identical, each corner 18.5% of the basepath from its bag as today. Preserving the gap in feet instead would put the corners proportionally further out at 20.8%.",
+        "reportedEffect": "A corner's walk to his bag shortens 16.62 ft to 14.77 ft, so cover arrives slightly sooner."
+      }
+    },
+    {
+      "id": "F693-02-outfielder-starts",
+      "state": "accepted-calibration-anchor",
+      "question": "Preserve bearing and the fence-at-bearing fraction, putting CF at 213.5 ft? And does outfield depth become a per-park number (#713's axis)?",
+      "acceptedDirection": {
+        "rule": "One global set for all six parks, scaled: preserve bearing and the fraction of the fence at that bearing.",
+        "spots": {
+          "LF": [
+            -77.09,
+            175.19
+          ],
+          "CF": [
+            0.0,
+            213.5
+          ],
+          "RF": [
+            77.09,
+            175.19
+          ]
+        },
+        "why": "Today all six parks share one set, so depth-as-a-fraction already varies per park. Scaling preserves that exactly and restores CF's 76% of centre-field depth, unpinning it from the warning track. Per-park depth is new behaviour and belongs to #713."
+      }
+    },
+    {
+      "id": "F693-04-foul-wrap",
+      "state": "withdrawn-not-a-scaling-subject",
+      "question": "HarborWall.FoulOffset 36 and flareStart 95 were named as the cause of the compact foul-rate rise. Measured, they are not: all three settings give an identical 0.4135. The rise is a consequence of the poles moving in, so there is nothing here to scale. Report it in 3d instead."
+    },
+    {
+      "id": "F693-05-tag-up-carry-gates",
+      "state": "accepted-design-direction",
+      "question": "cpu.TagSecondMinCarryFt 250 is past every compact pole, making the tag-from-second branch unreachable. Scale, re-author as a fraction of the fence, or leave?",
+      "acceptedDirection": {
+        "rule": "Retire tagThirdMinCarryFt and tagSecondMinCarryFt. A CPU runner tags up when it judges it can beat the throw.",
+        "basis": "RunnerAi.Margin(runner, bag, ctx) = throwArrival - runnerArrival, which every other CPU runner decision already uses. The tag-up branch is the only one still reading a carry distance.",
+        "throwDistance": "ThrowArrivalSec already measures from the glove's actual position to the bag, so how far the thrower is from the target is in the model.",
+        "difficulty": "cpu.*.runnerMarginSec already tunes judgement by rung: easy +0.15 s, hard -0.15 s.",
+        "openGap": "ThrowArrivalSec passes null for the thrower, so Arm does not yet affect the estimate. #712 shipped Arm; wiring it in is what makes throw power count, as the direction requires.",
+        "acceptedBy": "Jack",
+        "acceptedOn": "2026-09-16",
+        "why": "Jack declined all four scaling options. A tag-up is a race, not a distance, so the number should not be rescaled - it should stop existing."
+      }
+    },
+    {
+      "id": "F693-03-cutoff-threshold",
+      "state": "accepted-design-direction",
+      "question": "fielding.throw.onTheFlyFt 200 leaves no cutoff over half the compact field. What rule?",
+      "acceptedDirection": {
+        "rule": "Retire onTheFlyFt as a gate. Relay when the two-leg throw reaches the bag before a direct throw would, otherwise throw through.",
+        "basis": "The same throw clock the runner margin uses. A weak arm relays from closer and a strong arm throws through, without a second table.",
+        "consequence": "#722's exit criterion asks for the relay break-even distance to be stated. It now falls out of the throw model rather than being authored, and it varies by arm.",
+        "acceptedBy": "Jack",
+        "acceptedOn": "2026-09-16"
+      }
+    },
+    {
+      "id": "F693-04-hazard-radius",
+      "state": "accepted-calibration-anchor",
+      "question": "Hazard radii were left unscaled on the argument that a barrel is a physical object, but radius is a trigger zone. Unscaled doubles every hazard's share of fair territory; x0.70 preserves it. Decide with PipeReachPadFt and EmberNightFireMul, which dominate it.",
+      "acceptedDirection": {
+        "radiusScale": 0.7,
+        "pipeReachPadFt": 5.6,
+        "emberNightFireMul": "unchanged - dimensionless",
+        "why": "Radius is a trigger zone, not an object: a barrel's capture test is radius + pad, a fire breath grows 1.6x at night, a freeze fires on where the ball lands, and a climb wall's radius is never read. Fair area scales by 0.70 squared, so scaling radii by 0.70 preserves every hazard's share of the field exactly.",
+        "whyThePadToo": "The pad is larger than a barrel's radius. Scaling the radius alone shrinks its real catch 13.00 ft to 11.50 ft - 11.5% on a field that lost 30%. With the pad scaled the capture disc is 9.10 ft, which is 0.70 of today."
+      }
+    },
+    {
+      "id": "F693-07-ground-dress",
+      "state": "accepted-presentation-anchor",
+      "question": "ParkDiamond.InnerHalf 50 and BackR 92 do not scale, so the drawn dirt no longer fits the diamond. Presentation only; judged on screen.",
+      "acceptedDirection": {
+        "innerHalfFt": 44.44,
+        "backRFt": 81.78,
+        "scale": "basepath 80/90",
+        "preservedInFeet": [
+          "pathWidth 10",
+          "bagPadRadius 12",
+          "homePadRadius 18",
+          "warningTrackWidth 15",
+          "foulApron 36",
+          "mound shape"
+        ],
+        "why": "The packet's own groundDress rule. Applied without escalation: verified presentation-only in Phase 1, since dirtTimeScale keys off the batted-ball class rather than ground position and ParkDiamond.OnDirt has one consumer, a wall-loop assertion.",
+        "coupling": "ParkDiamond.cs:416 and ParkDiamondTests:70 tie the dress to the lip. Both move together."
+      }
     }
   ],
   "runnerClockProposal": {
@@ -825,7 +955,7 @@
         "commandToTargetSeconds": 1.6500000000000001
       }
     ],
-    "sourceStatus": "Authored trial timing. #701 Wii release-to-reception observation 0.99–1.21 s has unmatched distance/stats; GC return has wider release/reception uncertainty. No reference feet-per-second measured.",
+    "sourceStatus": "Authored trial timing. #701 Wii release-to-reception observation 0.99\u20131.21 s has unmatched distance/stats; GC return has wider release/reception uncertainty. No reference feet-per-second measured.",
     "baselineComparison": {
       "old90FootTotalSampledTravelSeconds": 1.12,
       "new80FootReleasePlusFlightSeconds": 1.2,
@@ -1036,7 +1166,7 @@
     "badPairTravelSpeedMultiplier": 0.9,
     "chemistrySpecificSlantChance": 0.0,
     "ordinaryReleaseSeconds": 0.3,
-    "recommendation": "Replace bad chemistry’s additional random slant branch with a predictable 10% travel-speed reduction for the actual bad thrower-receiver pair, applied once to full otherwise-calibrated flight. Preserve ordinary release; do not add a recovery pause or chemistry-only lateral miss.",
+    "recommendation": "Replace bad chemistry\u2019s additional random slant branch with a predictable 10% travel-speed reduction for the actual bad thrower-receiver pair, applied once to full otherwise-calibrated flight. Preserve ordinary release; do not add a recovery pause or chemistry-only lateral miss.",
     "scope": "Bad-pair chemistry only. This does not remove normal Field-dependent accuracy, bobbles, uncovered-receiver consequences, star effects or other errors; their calibration remains separate. Good and neutral pair anchors unchanged. Runtime and full scoring validation pending.",
     "currentRule": {
       "slantChance": 0.2,
@@ -1066,7 +1196,7 @@
     "reference": {
       "url": "https://www.mariomayhem.com/downloads/mario_instruction_booklets/Mario_Super_Sluggers_-_ML1_Manual_-_WII.pdf",
       "page": "printed 14 / PDF index 7",
-      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is an accepted deliberate Harbor deviation; 20%/0.70/10–14ft are audited Harbor values, not confirmed Wii parameters."
+      "scope": "Nintendo explicitly describes bad chemistry sometimes producing off-target throws. The predictable penalty is an accepted deliberate Harbor deviation; 20%/0.70/10\u201314ft are audited Harbor values, not confirmed Wii parameters."
     },
     "tradeoff": "Predictable lineup/routing cost supports attribution to player choices and more consistent routine races, at the cost of some Mario-like surprise/party volatility. Accepted reliable defense does not itself prohibit occasional bad-pair errors; Jack explicitly selected this deviation on September 14, 2026.",
     "alternative": "Retain current occasional slower/off-target chemistry throws, then review probability and severity against ordinary defense. This keeps the reference-style surprise but permits a correctly commanded bad-pair throw to go astray.",
@@ -1088,7 +1218,7 @@
     "state": "accepted-design-direction",
     "recommendation": "Each human relay leg requires its own deliberate throw command. Permit an early command buffered for the next intended receiver; selecting a bag alone does not authorize throwing.",
     "currentBehavior": "An explicitly armed ThrowBag is copied into _relayBag on a cutoff throw; after successful reception the human branch calls BeginThrowToBag automatically when _relayBag is valid. With no explicitly armed bag it holds. CPU re-evaluates its decision table.",
-    "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md §8.7",
+    "source": "src/GrandSluggers.Sim/LivePlaySystem.Field.cs::BeginPlayerThrowOrCommit and cutoff reception branch; docs/gameplay-spec.md \u00a78.7",
     "interactionContract": [
       "The cutoff command authorizes the first leg only. A separate throw press authorizes the onward leg; merely holding the original button must not create another command.",
       "Allow a deliberate early press for the intended incoming receiver so onward throwing need not require catch-frame timing. Numeric buffer window remains pending.",
@@ -1118,7 +1248,7 @@
       "Both human defensive seats, both input schemes, CPU defense and double-play continuation",
       "Full direct/relay race with actual per-leg release, movement and chemistry"
     ],
-    "implementationBoundary": "Accepted control direction only; reconcile §8.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit.",
+    "implementationBoundary": "Accepted control direction only; reconcile \u00a78.7 and the shared input contract in implementation, with docs/how-to-play.md and HowToPlay.cs updated together by the presentation owner. No runtime control change in this research commit.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-14",
     "acceptanceEvidence": "Jack replied approve to a separate command for each relay leg, with early-input buffering."
@@ -2814,7 +2944,7 @@
     "decisionId": "F693-02-ordinary-carry-speed",
     "state": "accepted-calibration-anchor",
     "ordinaryPursuitMultiplier": 1.0,
-    "recommendation": "Use each character’s ordinary pursuit top speed as ordinary live-ball carrying top speed. No generic possession penalty or boost; Ball Dash multiplies this by the separately accepted 1.20 only for eligible ability holders.",
+    "recommendation": "Use each character\u2019s ordinary pursuit top speed as ordinary live-ball carrying top speed. No generic possession penalty or boost; Ball Dash multiplies this by the separately accepted 1.20 only for eligible ability holders.",
     "scope": "Top speed for available carrying/tagging movement after secure possession, across characters/assigned positions and both human/CPU control. This does not choose off-ball cover speeds, pickup/throw recovery, acceleration/turn/brake response, new movement permissions, status stacking, baserunning or ability holders.",
     "formula": "carryBase(Run)=(21+1.9*Run)*(18/30.5); eligibleBallDashCarry=carryBase*1.20; explicit status and movement eligibility remain separately reconciled.",
     "characterArithmetic": [
@@ -3092,7 +3222,7 @@
       "No accidental cap on bobble/dive/special recovery; action permissions and geometric tag/force behavior reviewed before implementation",
       "Complete short-force, grounder and relay races with both seats/CPU and varied Field/Run, independent scoring and standalone readability"
     ],
-    "implementationBoundary": "Accepted ordinary recoil ceiling with Jack’s explicit special-hit exception. No individual special duration, onset/curve/Field mapping, physical reaction or action permissions selected; no runtime/motion/simulation/human gate changes.",
+    "implementationBoundary": "Accepted ordinary recoil ceiling with Jack\u2019s explicit special-hit exception. No individual special duration, onset/curve/Field mapping, physical reaction or action permissions selected; no runtime/motion/simulation/human gate changes.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
     "acceptanceEvidence": "Jack said the .20-second ordinary recoil cap is fine as long as special hits can circumvent it. Accepted with explicit authored special-hit exceptions.",
@@ -3104,7 +3234,7 @@
     "revisionOn": "2026-09-15",
     "userFeedback": "Jack noted that concurrent recovery can mask the value of higher Fielding when both characters receive the same dominant special effect; he suggested stacking.",
     "recommendation": "For ordinary retained-ball recoil and an authored special recovery triggered by the same pickup/impact, add their applicable recovery contributions. Preserve the Field-dependent ordinary recoil difference instead of masking it behind a longer special.",
-    "math": "For each affected action at the same acquisition event: totalRecovery=ordinaryContribution+specialContribution; readyAt=eventTime+totalRecovery. OrdinaryContribution is within [0,.20] and is zero when the action is not restricted by ordinary recoil. SpecialContribution is that special’s authored restriction for this event/action and is not globally capped to .20. Add each contribution once.",
+    "math": "For each affected action at the same acquisition event: totalRecovery=ordinaryContribution+specialContribution; readyAt=eventTime+totalRecovery. OrdinaryContribution is within [0,.20] and is zero when the action is not restricted by ordinary recoil. SpecialContribution is that special\u2019s authored restriction for this event/action and is not globally capped to .20. Add each contribution once.",
     "scope": "Same-event ordinary retained-ball recoil plus one authored special recovery on the same fielder. This does not choose blanket accumulation of unrelated effects, reapplication/refresh of earlier statuses, multiple-special stacking, action permissions or special durations. Those need separate explicit rules. A special that does not restrict an action contributes zero to that action.",
     "examples": [
       {
@@ -3159,7 +3289,7 @@
       "No animation tail added again; buffer expiry/cancel and actual possession/force geometry remain authoritative",
       "Review special balance against full recovery and real races, then human standalone validation"
     ],
-    "referenceLimit": "Authored revised policy responding to Jack’s Fielding-value priority; no measured Mario recovery-stacking claim. Special durations, action scope and prior-event composition remain open.",
+    "referenceLimit": "Authored revised policy responding to Jack\u2019s Fielding-value priority; no measured Mario recovery-stacking claim. Special durations, action scope and prior-event composition remain open.",
     "implementationBoundary": "Accepted same-impact additive composition. Earlier/unrelated/repeated effects, multiple-special rules, special durations and per-action permissions remain separate. Prior unaccepted overlap proposal retained; no runtime/content/motion/control or human gate changes.",
     "previousProposal": {
       "decisionId": "F693-02-special-recovery-composition",
@@ -3260,11 +3390,11 @@
       ],
       "referenceLimit": "Authored shared-recovery rule. No Mario source was used to establish concurrent versus additive recovery or the illustrative .60 duration. Each special effect still needs its own researched review.",
       "implementationBoundary": "Pending composition policy only. No special duration, action permission, active runtime effect, content allocation, control/motion/book edit, simulation or human gate pass.",
-      "revisionReason": "Jack objected that a dominant special stun hides the better fielder’s shorter ordinary recoil under max-deadline overlap and suggested stacking."
+      "revisionReason": "Jack objected that a dominant special stun hides the better fielder\u2019s shorter ordinary recoil under max-deadline overlap and suggested stacking."
     },
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied approve to adding ordinary Field-dependent recoil and authored special recovery from the same impact, preserving the better fielder’s shorter recovery."
+    "acceptanceEvidence": "Jack replied approve to adding ordinary Field-dependent recoil and authored special recovery from the same impact, preserving the better fielder\u2019s shorter recovery."
   },
   "recoilFieldShapingProposal": {
     "decisionId": "F693-02-recoil-field-shaping",
@@ -3303,7 +3433,7 @@
     ],
     "illustrationScope": "Dimensionless demonstration only: factors 1.0/.5 are not approved Field multipliers or assigned to particular ratings. Severity .5/1 does not imply actual ball-speed values or a chosen severity curve.",
     "currentAudit": "Current InPlay.KnockbackSec multiplies raw launch-strength excess by a Field deficit before the final cap. Under a replacement actual-arrival model, copying this order can flatten different Field results at the cap. Proposed normalized severity then Field factor explicitly prevents that for differing positive factors.",
-    "referenceLimit": "Authored structural choice motivated by Jack’s request to preserve Fielding value. No measured Wii/GameCube threshold, duration-only stat model or multiplier table is established. Ordinary arrival-speed distributions still require coherent ball-motion calibration before numeric onset is justified.",
+    "referenceLimit": "Authored structural choice motivated by Jack\u2019s request to preserve Fielding value. No measured Wii/GameCube threshold, duration-only stat model or multiplier table is established. Ordinary arrival-speed distributions still require coherent ball-motion calibration before numeric onset is justified.",
     "requiredChecks": [
       "Zero recoil at/below shared onset for all ratings; no hidden stat-dependent onset",
       "Monotonic speed severity and non-increasing duration as Field improves, with distinct authored factors retaining differences at full severity",
@@ -3488,7 +3618,7 @@
     "rationale": "A small speed increase produces a proportional recovery increase within the transition band, rather than jumping directly from a clean pickup to maximum recoil. The severity value is continuous at onset and saturation, though slope changes there; preserve fine timing without an unreviewed minimum wait.",
     "alternatives": [
       "A binary threshold gives every qualifying arrival full severity, making nearby speeds produce abrupt recovery changes.",
-      "A smoothstep S=3u²-2u³ softens the onset and saturation slopes but changes how medium-impact speeds distribute recovery; recommend a linear first trial for transparent calibration."
+      "A smoothstep S=3u\u00b2-2u\u00b3 softens the onset and saturation slopes but changes how medium-impact speeds distribute recovery; recommend a linear first trial for transparent calibration."
     ],
     "evidenceAudit": "The #702 report contains event timings and fixed launch-input fixtures, not a representative C80 distribution of incoming pickup speeds. BallFlight samples contain time/position/event and PointAt interpolates positions; these do not by themselves establish safe event-sided speed at every acquisition. Existing flight timeScale1.65 and pending ball calibration prevent treating original exit mph or the old minEnergy72 as the new incoming-speed threshold.",
     "thresholdEvidencePlan": "Keep v0/v1 null until an event-sided arrival-speed observation set is available on the gameplay clock. Separate historical control observations from compact trial results. Include routine and hard grounders, shallow/deep pickups, slowed/wall/loose recoveries and varied characters/control seats, with launch, pickup position/time, incoming segment/speed, possession/recoil classification and source revision. Check bounce/acquisition order and predictor/stepper parity. Do not call historical fixture launch speeds, interpolated across-event differences or inspected seeds unseen validation. Final thresholds require coherent ball-motion calibration and human review.",
@@ -3815,7 +3945,7 @@
       "Replacing ordinary motion with the special can erase the Field-dependent ordinary displacement benefit when the special dominates.",
       "Running ordinary and special shoves sequentially delays the special visual and changes the actual contact path; it is not implied by additive action recovery."
     ],
-    "referenceLimit": "Authored composition policy following Jack’s accepted Fielding and special-impact goals. No verified Wii/GameCube component-stacking equation or matched special magnitude is claimed.",
+    "referenceLimit": "Authored composition policy following Jack\u2019s accepted Fielding and special-impact goals. No verified Wii/GameCube component-stacking equation or matched special magnitude is claimed.",
     "requiredChecks": [
       "Ordinary alone and special-with-zero-motion retain their reviewed behavior; no special creates knockback without authored motion.",
       "One impact starts both contributions once, and duplicate event delivery cannot refresh either clock.",
@@ -3956,11 +4086,11 @@
       "time-stamped-throw-buffer-with-normal-expiry",
       "cancel-and-target-management"
     ],
-    "readiness": "For the same event, use ordinary recovery plus the Field-resisted special impact recovery for actions restricted by both. Their physical motion still runs concurrently on each component’s own clock. Do not unlock steering/throwing merely because the visible skid ends; do not append a new animation tail. Pause freezes the active gameplay clocks.",
+    "readiness": "For the same event, use ordinary recovery plus the Field-resisted special impact recovery for actions restricted by both. Their physical motion still runs concurrently on each component\u2019s own clock. Do not unlock steering/throwing merely because the visible skid ends; do not append a new animation tail. Pause freezes the active gameplay clocks.",
     "contacts": "A legally held ball and actual valid bag/glove/runner contact can complete the existing force/tag during pure pushback recovery. A force is resolved at the legal possession-and-bag contact event; it does not wait for the runner to arrive. Once legally completed, later separation does not reverse it. If pushback prevents any required contact before the runner is safe, or possession is lost, the force removed or another safe rule applies before the out, no out is granted. No increased contact radius, automatic tag animation lunge, extra commanded tag reach or temporary runner immunity.",
     "input": "Keep the accepted .25-second throw buffer, expiry, cancel precedence and target management. A long special recovery can outlast an early command; do not extend or refresh its age because a special is active. A later deliberate press may queue normally. Current eligible direction resumes at readiness from actual velocity; no fresh directional press, acceleration precharge, Ball Dash bypass or automatic throw.",
     "movement": "During the applicable steering lock, maintain neutral braking of locomotion and integrate allowed physical impact motion. Runners, ball and other fielders remain live. Existing movement during an already committed throw is not selected here.",
-    "statusComposition": "If an attack also applies a separately reviewed status, that status’s restrictions must still be honored; pure pushback permission cannot override a contact prohibition or restore possession. Mixed-status precedence, prior/repeated effects and individual attack permissions still need their own contracts.",
+    "statusComposition": "If an attack also applies a separately reviewed status, that status\u2019s restrictions must still be honored; pure pushback permission cannot override a contact prohibition or restore possession. Mixed-status precedence, prior/repeated effects and individual attack permissions still need their own contracts.",
     "cases": [
       {
         "name": "held-on-bag-during-pure-pushback",
@@ -4044,7 +4174,7 @@
     "input": "Keep input receipt/buffer/cancel/target management distinct from permission to execute a throw. Normal .25-second command age continues; expiry of a lock does not refresh or replay an expired command. No automatic throw. A restriction on movement does not implicitly disable pause, accessibility controls or unrelated inputs.",
     "motion": "When steering becomes eligible, use current intent and actual velocity through the accepted response, without a new directional press or acceleration precharge. Physical motion components and action restrictions keep their own reviewed clocks; visual effect completion alone is not an action-ready signal.",
     "cleansingAndImmunity": "Any future immunity/cleansing behavior must explicitly prevent or remove the intended source restriction under its own reviewed rules. Do not implement it as a global allow flag that bypasses unrelated active effects.",
-    "rationale": "A lingering visual or unrelated effect should not secretly prolong lost control. Conversely, finishing a short pushback cannot cancel a longer movement restriction. This keeps each special’s actual cost tied to its declared actions and preserves player control when those actions become available.",
+    "rationale": "A lingering visual or unrelated effect should not secretly prolong lost control. Conversely, finishing a short pushback cannot cancel a longer movement restriction. This keeps each special\u2019s actual cost tied to its declared actions and preserves player control when those actions become available.",
     "referenceLimit": "Authored mixed-status policy, not a verified Wii/GameCube status-interaction matrix. No new reference measurement.",
     "requiredChecks": [
       "Each source expiration removes only its own restrictions, independent of update order and duplicate callbacks.",
@@ -4116,7 +4246,7 @@
     "scope": "Default repeat eligibility for the physical-impact component of a special attack, keyed by stable attack activation and affected fielder identity. Not a blanket immunity to all attacks, not a limit on all ordinary pickups, and not a decision about repeated burn/charm/terrain effects.",
     "identity": "One activation persists through its own authored lifetime and deflections; a bounce, possession change or new callback cannot mint a fresh activation to evade the rule. The first qualifying authoritative impact records the activation/fielder pair. A mere near miss or an overlap that never satisfies the authored impact trigger does not consume the application. Seat/selected-glove identity is not fielder identity.",
     "bundle": "Apply the reviewed special physical motion and associated impact recovery once as one impact response. Do not deduplicate away the ordinary recoil contribution from a separately qualifying acquisition or remove other explicitly authored components of the attack. The rule does not retroactively cancel the first response when contact ends.",
-    "otherTargets": "A different fielder can receive that activation’s own first qualifying impact only if the authored attack remains active and its real geometry reaches that fielder. This grants no extra reach, area effect, continuation through a catch, or extension of attack lifetime.",
+    "otherTargets": "A different fielder can receive that activation\u2019s own first qualifying impact only if the authored attack remains active and its real geometry reaches that fielder. This grants no extra reach, area effect, continuation through a catch, or extension of attack lifetime.",
     "newAttacks": "A genuinely new attack activation may affect the same fielder again and uses the accepted arrival-based recovery rule. There is no global invulnerability period or guaranteed break in control loss between independent attacks. Repeated physical-motion composition remains separately reviewed.",
     "multiHitException": "An intentionally multi-hit special must explicitly declare qualifying distinct contacts, maximum applications per fielder, minimum separation or equivalent authored cadence, and its continuous-control-loss budget/counterplay. Values and any exception require human review before use; no existing special is designated multi-hit here.",
     "examples": [
@@ -5086,13 +5216,13 @@
     "currentAudit": "BallFlight emits Ground events both at impact and repeatedly while rolling. It changes vertical velocity via bounce/skid restitution or transitions to rolling below MinVy. BattedBall.Shape is a contact/trajectory classification. These offer trajectory evidence but neither a Ground flag nor a Shape value identifies an awkward acquisition. The future shared event trace needs actual bounce transitions and encounter conditions; no current difficulty detector has been validated.",
     "baseballEvidence": [
       {
-        "title": "Fielding ground balls — Coaching Youth Baseball excerpt, Human Kinetics",
+        "title": "Fielding ground balls \u2014 Coaching Youth Baseball excerpt, Human Kinetics",
         "url": "https://us.humankinetics.com/blogs/excerpt/fielding-ground-balls",
         "accessedOn": "2026-09-15",
         "supports": "The publisher's coaching excerpt distinguishes a low hop near the glove from a harder-to-gauge in-between hop. This supports the qualitative distinction, not a game threshold or probability."
       },
       {
-        "title": "Infield Ground Ball Mechanics — Trent Mongero / Winning Baseball material hosted by White Rock South Surrey Baseball",
+        "title": "Infield Ground Ball Mechanics \u2014 Trent Mongero / Winning Baseball material hosted by White Rock South Surrey Baseball",
         "url": "https://wrssba.com/coaches/skills-and-drills/infield-ground-ball-mechanics/",
         "accessedOn": "2026-09-15",
         "supports": "The attributed coaching material discusses selecting a descending long hop or immediate short hop and avoiding the intermediate hop. No Mario measurements or game coefficients are supplied."
@@ -5605,7 +5735,7 @@
     "inputs": "Use event-side current velocity and actual resolved contact/obstruction; original exit velocity, generic Grounder labels, infielder tags and camera state cannot substitute. A fast ball may be knocked down, and a slower ball may still get past depending on actual geometry; do not classify all hard infield hits as automatic severe errors.",
     "chanceBoundary": "Apply the approved ordinary difficulty/handling gate first for a handling-error opportunity. This proposal adds no new eligibility trigger or independent severity draw and does not alter glove placement to create a miss. A ball that physically misses has not automatically consumed a handling roll. Precise opportunity and branch boundaries require review.",
     "trajectory": "Continue from actual contact or uninterrupted flight as appropriate; do not teleport, assign an outfield target, preserve full speed regardless of impact or force nearby stopping. Numerical energy/speed loss, ground resistance and bounds remain unselected. Normal baseball and actual defender coverage decide the consequence.",
-    "openInteractions": "Reaction, recovery, angle caps/distribution, local response, continuing 50–80% shared horizontal/vertical bounds and shared ordinary continuing ground-response family are accepted. Contact mapping, classification thresholds, ordinary ground calibration and complete collision integration remain open.",
+    "openInteractions": "Reaction, recovery, angle caps/distribution, local response, continuing 50\u201380% shared horizontal/vertical bounds and shared ordinary continuing ground-response family are accepted. Contact mapping, classification thresholds, ordinary ground calibration and complete collision integration remain open.",
     "referenceLimit": "Authored contact-based outcome proposal, not a measured Wii/GC severity selector. Compare hard/soft and central/glancing encounters in both references before numerical calibration.",
     "requiredChecks": [
       "Local and continuing outcomes arise from reviewed event-side motion/contact without tactical targeting or an additional severity roll.",
@@ -5782,7 +5912,7 @@
     "implementationBoundary": "Accepted numerical horizontal-retention bounds only. Contact mapping, classifier thresholds, vertical response, downstream trajectory and runtime/human gates remain open.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied yes to the initial 50–80% retained-horizontal-speed range for continuing deflections, with glancing contact retaining more and stronger interruption retaining less."
+    "acceptanceEvidence": "Jack replied yes to the initial 50\u201380% retained-horizontal-speed range for continuing deflections, with glancing contact retaining more and stronger interruption retaining less."
   },
   "errorDirectionDistributionProposal": {
     "decisionId": "F693-02-error-direction-distribution",
@@ -5818,8 +5948,8 @@
     "tradeoff": "Uniform sampling gives equal probability density to every angle within the limit. The triangular choice favors the contact-derived direction while keeping occasional wider variation. It changes how often offsets occur, not their approved maximum or the chance that handling fails.",
     "event": "Use one retained normalized directional result for the actual failed-contact event through the authoritative seeded rail. Apply the outcome branch cap once; no extra draw for local/continuing classification, no choosing between sampled angles, and no per-frame/selection/recovery resampling. Exact RNG allocation and integration remain an implementation review item.",
     "scope": "Horizontal angular variation only. No new randomness in speed retention, severity, vertical launch, error chance or stun duration. No handling/Fielding or tactical-target bias. An untouched miss consumes no error-direction sample or trajectory modifier under this rule.",
-    "baselineBoundary": "Offset is relative to the reviewed contact-derived outgoing baseline, with the continuing branch preserving more incoming direction. The ±30/±15 limits bound random variation, not yet total deflection from the incoming path. Contact mapping, low-horizontal-speed fallback and vertical treatment remain pending.",
-    "preservedPhysics": "Keep actual contact origin, continuous ball position and horizontal speed magnitude through angle rotation. Contact still determines the retained-speed factor within the approved .50–.80 continuing range. No automatic possession, base award, range change or same-origin recovery reroll.",
+    "baselineBoundary": "Offset is relative to the reviewed contact-derived outgoing baseline, with the continuing branch preserving more incoming direction. The \u00b130/\u00b115 limits bound random variation, not yet total deflection from the incoming path. Contact mapping, low-horizontal-speed fallback and vertical treatment remain pending.",
+    "preservedPhysics": "Keep actual contact origin, continuous ball position and horizontal speed magnitude through angle rotation. Contact still determines the retained-speed factor within the approved .50\u2013.80 continuing range. No automatic possession, base award, range change or same-origin recovery reroll.",
     "referenceLimit": "Authored probability shape, not a measured Wii/GC random-angle distribution. Compare eventual visible variation and full recovery races before human acceptance.",
     "requiredChecks": [
       "Distribution is symmetric, centered at zero and bounded by the branch-specific accepted cap, with no favored side or tactical bias.",
@@ -5898,7 +6028,7 @@
     "scope": "Ordinary nearby bobble only, following a qualifying failed handling event and reviewed outcome classifier. Do not apply this downward response to continuing deflections, untouched misses, special hits or airborne catches as a blanket rule. The continuing branch remains slowed and forward-biased under its own future vertical model.",
     "physics": "Specify the post-contact vertical response and low rebound through shared ball-motion data before implementation. No numerical bounce height, restitution, local horizontal speed, stopping distance or bounce-count guarantee is selected here. Do not add upward energy solely for an exaggerated pop. Prevent ground penetration/teleporting and keep authored visible motion consistent with the sim.",
     "recovery": "Existing .40-second stun and grounded braking remain independent from ball fall/bounce time. Eligibility returning does not guarantee the ball is collectable; actual contact/readiness still apply. A helper can recover earlier if eligible. Do not impose a new wait-until-grounded rule or reset/extend the stun to synchronize the animation.",
-    "preservedRules": "Local horizontal direction retains the contact baseline plus uniform ±30-degree variation. Recovery of the same ordinary error remains reliable. This adds no new error probability, handling-based scatter benefit or vertical random draw. Physical wall/ground interactions and independent special gates remain explicit.",
+    "preservedRules": "Local horizontal direction retains the contact baseline plus uniform \u00b130-degree variation. Recovery of the same ordinary error remains reliable. This adds no new error probability, handling-based scatter benefit or vertical random draw. Physical wall/ground interactions and independent special gates remain explicit.",
     "referenceLimit": "Authored visual/physics direction, not a measured Wii/GC bobble-height profile. Compare visible local-error arcs across actual contact heights and both reference games before selecting numerical targets.",
     "requiredChecks": [
       "The loose ball starts at actual failed-contact location with continuous motion and no fixed-height reset or ground snap.",
@@ -6339,7 +6469,7 @@
     "implementationBoundary": "Accepted continuing vertical-response coupling only. No runtime tuning, measured reference claim or human gate pass.",
     "acceptedBy": "Jack",
     "acceptedOn": "2026-09-15",
-    "acceptanceEvidence": "Jack replied \"yes\" to the shared contact-retention factor for continuing deflections: the same 50–80% factor scales horizontal and signed vertical speed.",
+    "acceptanceEvidence": "Jack replied \"yes\" to the shared contact-retention factor for continuing deflections: the same 50\u201380% factor scales horizontal and signed vertical speed.",
     "groundResponse": {
       "decisionId": "F693-02-continuing-error-ground-response",
       "responseFamily": "shared-ordinary-batted-ball-ground",
@@ -6359,7 +6489,7 @@
     "separation": "This reuses the ordinary ground-physics family, not ordinary acquisition-error eligibility. Preserve the contacted error origin and accepted reliable same-origin recovery through bounces, rolling, distance and defender changes. Untouched misses still receive no protection merely from passing a fielder.",
     "localExclusions": "Do not apply the local six-ft/s release ceiling, zero-vertical release, six-inch rebound cap, three-inch settling cutoff, 90% local impact retention or six-ft/s-squared local rolling slowdown solely because this ball came from an error.",
     "openNumbers": "This selects shared behavior, not the current legacy numerical defaults. Ordinary flight/ground calibration remains F693-04-flight-budget work; restitution, ground horizontal retention, settling and rolling values are not approved by this proposal. Any later change to that shared profile must be checked against normal hits and continuing-error races together.",
-    "preserved": "Keep the accepted contact-dependent 50–80% horizontal/vertical speed factor, forward-biased contact direction with uniform +/-15-degree variation, .40-second contacted-error stun and actual eligible pickup. No automatic outfield destination, fixed travel distance, additional error roll or forced extra base.",
+    "preserved": "Keep the accepted contact-dependent 50\u201380% horizontal/vertical speed factor, forward-biased contact direction with uniform +/-15-degree variation, .40-second contacted-error stun and actual eligible pickup. No automatic outfield destination, fixed travel distance, additional error roll or forced extra base.",
     "scope": "Ordinary continuing handling errors on ordinary park ground. Walls, slopes and individual specials retain their explicit contracts; this does not silently clear a special effect or choose a new special-surface response.",
     "referenceLimit": "Accepted authored rule-sharing direction, not a claim about Wii/GC internal ground physics. Compare ordinary-hit and deflected trajectories with equivalent state in reference/gameplay research before claiming parity.",
     "requiredChecks": [
@@ -6430,7 +6560,7 @@
     "supersededBy": "F693-02-arcade-fielding-simplification",
     "supersededOn": "2026-09-15",
     "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
-    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50–80% continuing retention bounds remain trial anchors."
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "errorContactObstructionBasisProposal": {
     "decisionId": "F693-02-error-contact-obstruction-basis",
@@ -6485,7 +6615,7 @@
     "supersededBy": "F693-02-arcade-fielding-simplification",
     "supersededOn": "2026-09-15",
     "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
-    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50–80% continuing retention bounds remain trial anchors."
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "gloveContactSurfaceProposal": {
     "decisionId": "F693-02-glove-contact-surface",
@@ -6520,7 +6650,7 @@
     "supersededBy": "F693-02-arcade-fielding-simplification",
     "supersededOn": "2026-09-15",
     "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
-    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50–80% continuing retention bounds remain trial anchors."
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "gloveCatchSidesProposal": {
     "decisionId": "F693-02-glove-catch-sides",
@@ -6553,7 +6683,7 @@
     "supersededBy": "F693-02-arcade-fielding-simplification",
     "supersededOn": "2026-09-15",
     "supersessionEvidence": "Jack: honestly i think this is too detailed for our game. at the end of the day it is still a cartoon toy baseball game. we want the fielding mechanics to look good (glove pocket facing the ball visually) but i don't think it needs to be calculated",
-    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50–80% continuing retention bounds remain trial anchors."
+    "currentBoundary": "Historical record only. The arcade-fielding simplification removes mandatory glove-surface/contact-normal simulation. The prior curve is not a required geometry-driven runtime formula; 50\u201380% continuing retention bounds remain trial anchors."
   },
   "arcadeFieldingSimplification": {
     "decisionId": "F693-02-arcade-fielding-simplification",
@@ -6570,7 +6700,7 @@
     "visualContract": "The authored glove motion should visibly meet the ball and face its pocket toward it at the resolved gameplay contact. A visual mismatch is a presentation defect to fix; do not turn it into an extra gameplay miss, move the ball through space to hide it, or build a second pose/physics system. Preserve shared rig, authored takes and sim clock.",
     "errors": "Preserve reliable routine fielding, the approved difficulty/defensive-quality error chance for qualified opportunities, local bobbles versus continuing escapes, brief stun, reliable same-error recovery and special exceptions. Catch range and player positioning/jump timing still matter. Range entry alone cannot bypass readiness or baseball legality.",
     "contactResponse": "Use simple reproducible gameplay contact context from ball motion and the eligible fielding opportunity for error selection/direction. No detailed glove/body surface normal, pocket collision or contact-point relative-velocity requirement. Exact simplified branch/direction mapping remains design work; do not silently replace it with another random severity roll or choose a destination/base result.",
-    "priorNumbers": "Existing ball-response values remain documented authored trial anchors, not measured Mario or shipping defaults. Preserve the 50–80% continuing bounds and shared vertical factor. Archive the geometry-dependent linear obstruction curve as history rather than a required collider-driven formula; exact response selection can be addressed in simplified calibration.",
+    "priorNumbers": "Existing ball-response values remain documented authored trial anchors, not measured Mario or shipping defaults. Preserve the 50\u201380% continuing bounds and shared vertical factor. Archive the geometry-dependent linear obstruction curve as history rather than a required collider-driven formula; exact response selection can be addressed in simplified calibration.",
     "supersededDecisions": [
       "F693-02-continuing-error-retention-curve",
       "F693-02-error-contact-obstruction-basis",
@@ -7014,13 +7144,13 @@
       {
         "question": "composition with the 0.40-second handling stun",
         "proposal": "overlap; take the longer, do not add",
-        "reasoning": "Adding gives 1.00 second, longer than anything else in the packet by a wide margin. The dive delay already represents being on the ground and the stun’s visible-reaction job is already done by it.",
+        "reasoning": "Adding gives 1.00 second, longer than anything else in the packet by a wide margin. The dive delay already represents being on the ground and the stun\u2019s visible-reaction job is already done by it.",
         "departsFromPrecedent": "This departs from the additive precedent in F693-02-special-recovery-composition for ordinary and special recovery from the same impact. Flagged explicitly rather than buried so it can be rejected on sight."
       }
     ],
     "openQuestion": {
       "question": "Does dive recovery vary by character, and if so how widely?",
-      "whyPlayerFacing": "Reach and glove positioning are both ruled out as things Fielding may touch, so dive recovery is the last natural home for Jack’s remark that Fielding could indicate a unique dive ability.",
+      "whyPlayerFacing": "Reach and glove positioning are both ruled out as things Fielding may touch, so dive recovery is the last natural home for Jack\u2019s remark that Fielding could indicate a unique dive ability.",
       "traitConstraint": "Any variation must be driven by an explicit defensive trait, not the displayed Fielding number, exactly as the handling error chance is.",
       "curveComparison": [
         {
@@ -7056,8 +7186,8 @@
         "id": "shared-recovery-named-dive-ability",
         "ratePerPoint": 0.0,
         "summary": "One shared dive recovery for everyone; a distinctive dive is a named ability a few characters have.",
-        "consequence": "The rule stays flat and readable, and \"a unique dive\" becomes a real ability with its own contract rather than a curve everyone sits on. Matches the second half of Jack’s own remark.",
-        "cost": "Ordinary defenders are undifferentiated on the dive, so Fielding’s only remaining ordinary effect is the error chance."
+        "consequence": "The rule stays flat and readable, and \"a unique dive\" becomes a real ability with its own contract rather than a curve everyone sits on. Matches the second half of Jack\u2019s own remark.",
+        "cost": "Ordinary defenders are undifferentiated on the dive, so Fielding\u2019s only remaining ordinary effect is the error chance."
       },
       {
         "id": "shared-recovery-only",
@@ -7910,15 +8040,15 @@
       },
       {
         "id": "commit-on-the-live-ball",
-        "summary": "Decide from the ball's state at the moment of commitment — where it is and how it is moving — rather than from its resolved future path.",
+        "summary": "Decide from the ball's state at the moment of commitment \u2014 where it is and how it is moving \u2014 rather than from its resolved future path.",
         "consequence": "A ball that changes after the commitment can beat the dive: a late bounce, a carom, a deflection off another glove. Misses arise from the world rather than from a roll, which is what the arcade contract asks for everywhere else.",
-        "cost": "A second, smaller prediction path beside the route planner, and the CPU will sometimes look briefly wrong-footed — which is the point, but has to be judged on screen."
+        "cost": "A second, smaller prediction path beside the route planner, and the CPU will sometimes look briefly wrong-footed \u2014 which is the point, but has to be judged on screen."
       },
       {
         "id": "commit-with-a-margin",
         "summary": "Dive when the route falls short by up to dive reach plus a slack band, so the CPU sometimes over-reaches.",
         "consequence": "Keeps one prediction path and produces genuine misses by construction; the slack is a single tunable number.",
-        "cost": "The misses are authored rather than earned — the CPU is being told to be wrong by a margin, which is a softer form of the severity lottery the packet has refused elsewhere."
+        "cost": "The misses are authored rather than earned \u2014 the CPU is being told to be wrong by a margin, which is a softer form of the severity lottery the packet has refused elsewhere."
       }
     ],
     "referenceLimit": "No Wii or GameCube CPU dive behaviour has been measured.",
@@ -7928,7 +8058,7 @@
     "acceptanceEvidence": "Jack selected \"Decide from the live ball\" over committing on the resolved route and over diving with a slack margin.",
     "acceptedOption": "commit-on-the-live-ball",
     "acceptedDirection": {
-      "basis": "the ball’s live position and motion at the moment of commitment",
+      "basis": "the ball\u2019s live position and motion at the moment of commitment",
       "usesResolvedFuturePath": false,
       "commitTiming": "the last makeable moment, following the #640 rundown idiom",
       "ordinaryPursuitUnchanged": true,
@@ -7995,7 +8125,7 @@
       {
         "id": "continuing-speed-direction",
         "status": "open",
-        "deliverable": "Define the contact-led direction baseline and 50–80% retained factor from the same simple context; preserve signed vertical scaling and uniform ±15° draw.",
+        "deliverable": "Define the contact-led direction baseline and 50\u201380% retained factor from the same simple context; preserve signed vertical scaling and uniform \u00b115\u00b0 draw.",
         "scenarios": [
           "forward hard deflection",
           "weak contact and boundary continuity",
@@ -8017,5 +8147,72 @@
       "presentation/kit alignment and required human approval",
       "explicit default promotion"
     ]
+  },
+  "scaleResearch": {
+    "decisionId": "F693-04-scale-research",
+    "state": "research-phase-1-complete",
+    "status": "research-probes-not-simulation",
+    "issue": 730,
+    "preparedOn": "2026-09-16",
+    "subjects": [
+      "#725",
+      "#728",
+      "#729",
+      "#732",
+      "hazard radius (PR #731)"
+    ],
+    "report": "docs/research-game-feel-730.md",
+    "derived": "docs/research/game-feel-730-scale-derived.json",
+    "probe": "tools/game-feel-scale-probes",
+    "headline": "The compact profile scales the infield by 0.889 and the outfield by 0.700. Every subject here is a length in feet that must pick one, or a third thing. The lip is the hinge: it is the infield/outfield boundary, the pop/fly line and the seam the hazard rule reads.",
+    "lipFloorFt": {
+      "ifStartsStayWhereTheyAre": 125.25,
+      "ifStartsScaleByBasepath": 111.33,
+      "why": "Below this the sim calls a middle infielder an outfielder, moving him onto the outfield air multiplier. The fence option at 108.50 ft fails both floors."
+    },
+    "lipThatKeepsTheShippedPopCountFt": 129.2,
+    "implementationBoundary": "Phase 1 research only. No decision accepted, no rule changed, no runtime edit proposed.",
+    "foulWrapCorrection": {
+      "claim": "FoulOffset 36 and flareStart 95 do not scale and cause the compact foul-rate rise",
+      "verdict": "wrong",
+      "measured": [
+        {
+          "foulOffsetFt": 36,
+          "flareStartFt": 95,
+          "compactFoulShare": 0.4135
+        },
+        {
+          "foulOffsetFt": 36,
+          "flareStartFt": 66.5,
+          "compactFoulShare": 0.4135
+        },
+        {
+          "foulOffsetFt": 25.2,
+          "flareStartFt": 66.5,
+          "compactFoulShare": 0.4135
+        }
+      ],
+      "why": "FoulWall converges the rail to zero offset at the pole, and these balls only meet it near the pole.",
+      "consequence": "The 30.3% -> 41.4% rise is real but caused by the poles moving in. #732 should drop the foul wrap."
+    },
+    "phase2": {
+      "state": "decisions-accepted",
+      "acceptedOn": "2026-09-16",
+      "acceptedBy": "Jack",
+      "decided": [
+        "F693-04-infield-lip",
+        "F693-02-infielder-starts",
+        "F693-02-outfielder-starts",
+        "F693-04-hazard-radius",
+        "F693-05-tag-up-carry-gates",
+        "F693-03-cutoff-threshold",
+        "F693-07-ground-dress"
+      ],
+      "withdrawn": [
+        "F693-04-foul-wrap"
+      ],
+      "headline": "Two of the seven stopped being scaling questions. Jack's direction on the tag-up gates - a runner goes when it judges it can beat the throw - retires the number instead of rescaling it, and the same reasoning retires the relay threshold. Both already have the machinery; only the tag-up branch and the cutoff gate still read a distance.",
+      "implementationBoundary": "Decisions recorded. No rules file, runtime or shipped behaviour changed here; #725, #728, #729 and #732 carry the implementations."
+    }
   }
 }

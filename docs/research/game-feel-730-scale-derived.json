@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "issue": 730,
+  "status": "research-probes-not-simulation",
+  "note": "Counterfactual rule tables through the production classifier. No rate, no gate, no runtime change.",
+  "basepathScale": 0.888889,
+  "fenceScale": 0.7,
+  "shippedLipFt": 155,
+  "shippedShapes": {
+    "pop": 489,
+    "fly": 4103
+  },
+  "infielderStartRadii": [
+    {
+      "position": "1B",
+      "radiusShippedFt": 106.15,
+      "radiusIfScaledByBasepathFt": 94.36
+    },
+    {
+      "position": "2B",
+      "radiusShippedFt": 125.25,
+      "radiusIfScaledByBasepathFt": 111.33
+    },
+    {
+      "position": "3B",
+      "radiusShippedFt": 106.15,
+      "radiusIfScaledByBasepathFt": 94.36
+    },
+    {
+      "position": "SS",
+      "radiusShippedFt": 125.25,
+      "radiusIfScaledByBasepathFt": 111.33
+    }
+  ],
+  "lipFloorFt": {
+    "ifStartsStayWhereTheyAre": 125.25,
+    "ifStartsScaleByBasepath": 111.33,
+    "why": "below this the sim calls a middle infielder an outfielder, which moves him onto the outfield air multiplier"
+  },
+  "lipThatKeepsTheShippedPopCountFt": 129.2,
+  "lipOptions": [
+    {
+      "option": "unchanged",
+      "lipFt": 155,
+      "popInCompact": 976,
+      "flyInCompact": 3494,
+      "fractionOfCompactCentre": 0.5536,
+      "fractionOfCompactPole": 0.6681,
+      "outfieldStarts": [
+        "LF",
+        "CF",
+        "RF"
+      ],
+      "hazardsInAForeignZone": [
+        "canopy-yard tree",
+        "crystal-rink freeze_volume",
+        "ember-keep lava_pit",
+        "rooftop-city ac_unit"
+      ]
+    },
+    {
+      "option": "basepath",
+      "lipFt": 137.78,
+      "popInCompact": 652,
+      "flyInCompact": 3818,
+      "fractionOfCompactCentre": 0.4921,
+      "fractionOfCompactPole": 0.5939,
+      "outfieldStarts": [
+        "LF",
+        "CF",
+        "RF"
+      ],
+      "hazardsInAForeignZone": [
+        "crystal-rink freeze_volume",
+        "ember-keep lava_pit",
+        "rooftop-city ac_unit"
+      ]
+    },
+    {
+      "option": "fence",
+      "lipFt": 108.5,
+      "popInCompact": 99,
+      "flyInCompact": 4371,
+      "fractionOfCompactCentre": 0.3875,
+      "fractionOfCompactPole": 0.4677,
+      "outfieldStarts": [
+        "2B",
+        "SS",
+        "LF",
+        "CF",
+        "RF"
+      ],
+      "hazardsInAForeignZone": []
+    }
+  ],
+  "foulWrap": [
+    {
+      "profile": "control",
+      "downTheLine": 1920,
+      "foul": 582,
+      "share": 0.3031
+    },
+    {
+      "profile": "compact",
+      "downTheLine": 1920,
+      "foul": 794,
+      "share": 0.4135
+    }
+  ],
+  "absoluteDistances": [
+    {
+      "park": "canopy-yard",
+      "centreShippedFt": 378,
+      "centreCompactFt": 265,
+      "poleCompactFt": 218,
+      "tagSecondVsCompactPole": 1.1468,
+      "tagThirdVsCompactCentre": 0.7547,
+      "insideCutoffShipped": 0.3144,
+      "insideCutoffCompact": 0.6402
+    },
+    {
+      "park": "crystal-rink",
+      "centreShippedFt": 385,
+      "centreCompactFt": 270,
+      "poleCompactFt": 224,
+      "tagSecondVsCompactPole": 1.1161,
+      "tagThirdVsCompactCentre": 0.7407,
+      "insideCutoffShipped": 0.3035,
+      "insideCutoffCompact": 0.6177
+    },
+    {
+      "park": "ember-keep",
+      "centreShippedFt": 408,
+      "centreCompactFt": 286,
+      "poleCompactFt": 237,
+      "tagSecondVsCompactPole": 1.0549,
+      "tagThirdVsCompactCentre": 0.6993,
+      "insideCutoffShipped": 0.2708,
+      "insideCutoffCompact": 0.5509
+    },
+    {
+      "park": "funfair-park",
+      "centreShippedFt": 390,
+      "centreCompactFt": 273,
+      "poleCompactFt": 220,
+      "tagSecondVsCompactPole": 1.1364,
+      "tagThirdVsCompactCentre": 0.7326,
+      "insideCutoffShipped": 0.2939,
+      "insideCutoffCompact": 0.6001
+    },
+    {
+      "park": "harbor-diamond",
+      "centreShippedFt": 400,
+      "centreCompactFt": 280,
+      "poleCompactFt": 232,
+      "tagSecondVsCompactPole": 1.0776,
+      "tagThirdVsCompactCentre": 0.7143,
+      "insideCutoffShipped": 0.2824,
+      "insideCutoffCompact": 0.5748
+    },
+    {
+      "park": "rooftop-city",
+      "centreShippedFt": 388,
+      "centreCompactFt": 272,
+      "poleCompactFt": 223,
+      "tagSecondVsCompactPole": 1.1211,
+      "tagThirdVsCompactCentre": 0.7353,
+      "insideCutoffShipped": 0.3002,
+      "insideCutoffCompact": 0.6113
+    }
+  ],
+  "hazardRadii": [
+    {
+      "park": "canopy-yard",
+      "type": "barrel",
+      "radiusFt": 5,
+      "shareShipped": 0.00079,
+      "shareCompactUnscaled": 0.0016,
+      "shareCompactFenceScaled": 0.00078,
+      "captureUnscaledFt": 13,
+      "captureFenceScaledFt": 11.5
+    },
+    {
+      "park": "canopy-yard",
+      "type": "barrel",
+      "radiusFt": 5,
+      "shareShipped": 0.00079,
+      "shareCompactUnscaled": 0.0016,
+      "shareCompactFenceScaled": 0.00078,
+      "captureUnscaledFt": 13,
+      "captureFenceScaledFt": 11.5
+    },
+    {
+      "park": "canopy-yard",
+      "type": "barrel",
+      "radiusFt": 5,
+      "shareShipped": 0.00079,
+      "shareCompactUnscaled": 0.0016,
+      "shareCompactFenceScaled": 0.00078,
+      "captureUnscaledFt": 13,
+      "captureFenceScaledFt": 11.5
+    },
+    {
+      "park": "canopy-yard",
+      "type": "climb_wall",
+      "radiusFt": 90,
+      "shareShipped": 0.25463,
+      "shareCompactUnscaled": 0.51853,
+      "shareCompactFenceScaled": 0.25408,
+      "captureUnscaledFt": 90,
+      "captureFenceScaledFt": 63
+    },
+    {
+      "park": "canopy-yard",
+      "type": "tree",
+      "radiusFt": 8,
+      "shareShipped": 0.00201,
+      "shareCompactUnscaled": 0.0041,
+      "shareCompactFenceScaled": 0.00201,
+      "captureUnscaledFt": 8,
+      "captureFenceScaledFt": 5.6
+    },
+    {
+      "park": "canopy-yard",
+      "type": "tree",
+      "radiusFt": 8,
+      "shareShipped": 0.00201,
+      "shareCompactUnscaled": 0.0041,
+      "shareCompactFenceScaled": 0.00201,
+      "captureUnscaledFt": 8,
+      "captureFenceScaledFt": 5.6
+    },
+    {
+      "park": "canopy-yard",
+      "type": "tree",
+      "radiusFt": 10,
+      "shareShipped": 0.00314,
+      "shareCompactUnscaled": 0.0064,
+      "shareCompactFenceScaled": 0.00314,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "canopy-yard",
+      "type": "tree",
+      "radiusFt": 10,
+      "shareShipped": 0.00314,
+      "shareCompactUnscaled": 0.0064,
+      "shareCompactFenceScaled": 0.00314,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "crystal-rink",
+      "type": "freeze_volume",
+      "radiusFt": 8,
+      "shareShipped": 0.00194,
+      "shareCompactUnscaled": 0.00395,
+      "shareCompactFenceScaled": 0.00194,
+      "captureUnscaledFt": 8,
+      "captureFenceScaledFt": 5.6
+    },
+    {
+      "park": "crystal-rink",
+      "type": "freeze_volume",
+      "radiusFt": 8,
+      "shareShipped": 0.00194,
+      "shareCompactUnscaled": 0.00395,
+      "shareCompactFenceScaled": 0.00194,
+      "captureUnscaledFt": 8,
+      "captureFenceScaledFt": 5.6
+    },
+    {
+      "park": "crystal-rink",
+      "type": "freeze_volume",
+      "radiusFt": 10,
+      "shareShipped": 0.00303,
+      "shareCompactUnscaled": 0.00618,
+      "shareCompactFenceScaled": 0.00303,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "ember-keep",
+      "type": "lava_pit",
+      "radiusFt": 10,
+      "shareShipped": 0.00271,
+      "shareCompactUnscaled": 0.00551,
+      "shareCompactFenceScaled": 0.0027,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "ember-keep",
+      "type": "lava_pit",
+      "radiusFt": 10,
+      "shareShipped": 0.00271,
+      "shareCompactUnscaled": 0.00551,
+      "shareCompactFenceScaled": 0.0027,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "ember-keep",
+      "type": "lava_pit",
+      "radiusFt": 12,
+      "shareShipped": 0.0039,
+      "shareCompactUnscaled": 0.00793,
+      "shareCompactFenceScaled": 0.00389,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 8.4
+    },
+    {
+      "park": "ember-keep",
+      "type": "fire_breath",
+      "radiusFt": 16,
+      "shareShipped": 0.00693,
+      "shareCompactUnscaled": 0.0141,
+      "shareCompactFenceScaled": 0.00691,
+      "captureUnscaledFt": 16,
+      "captureFenceScaledFt": 11.2
+    },
+    {
+      "park": "ember-keep",
+      "type": "statue",
+      "radiusFt": 10,
+      "shareShipped": 0.00271,
+      "shareCompactUnscaled": 0.00551,
+      "shareCompactFenceScaled": 0.0027,
+      "captureUnscaledFt": 10,
+      "captureFenceScaledFt": 7
+    },
+    {
+      "park": "funfair-park",
+      "type": "warp_pipe",
+      "radiusFt": 4,
+      "shareShipped": 0.00047,
+      "shareCompactUnscaled": 0.00096,
+      "shareCompactFenceScaled": 0.00047,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 10.8
+    },
+    {
+      "park": "funfair-park",
+      "type": "warp_pipe",
+      "radiusFt": 4,
+      "shareShipped": 0.00047,
+      "shareCompactUnscaled": 0.00096,
+      "shareCompactFenceScaled": 0.00047,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 10.8
+    },
+    {
+      "park": "funfair-park",
+      "type": "warp_pipe",
+      "radiusFt": 4,
+      "shareShipped": 0.00047,
+      "shareCompactUnscaled": 0.00096,
+      "shareCompactFenceScaled": 0.00047,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 10.8
+    },
+    {
+      "park": "rooftop-city",
+      "type": "billboard",
+      "radiusFt": 12,
+      "shareShipped": 0.00432,
+      "shareCompactUnscaled": 0.0088,
+      "shareCompactFenceScaled": 0.00431,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 8.4
+    },
+    {
+      "park": "rooftop-city",
+      "type": "billboard",
+      "radiusFt": 12,
+      "shareShipped": 0.00432,
+      "shareCompactUnscaled": 0.0088,
+      "shareCompactFenceScaled": 0.00431,
+      "captureUnscaledFt": 12,
+      "captureFenceScaledFt": 8.4
+    },
+    {
+      "park": "rooftop-city",
+      "type": "ac_unit",
+      "radiusFt": 6,
+      "shareShipped": 0.00108,
+      "shareCompactUnscaled": 0.0022,
+      "shareCompactFenceScaled": 0.00108,
+      "captureUnscaledFt": 6,
+      "captureFenceScaledFt": 4.2
+    }
+  ],
+  "infieldStarts": [
+    {
+      "position": "1B",
+      "coversBag": 1,
+      "gapShippedFt": 16.62,
+      "gapUnmigratedOnCompactFt": 26.41,
+      "gapIfScaledByBasepathFt": 14.77
+    },
+    {
+      "position": "2B",
+      "coversBag": 2,
+      "gapShippedFt": 43.01,
+      "gapUnmigratedOnCompactFt": 42.28,
+      "gapIfScaledByBasepathFt": 38.23
+    },
+    {
+      "position": "3B",
+      "coversBag": 3,
+      "gapShippedFt": 16.62,
+      "gapUnmigratedOnCompactFt": 26.41,
+      "gapIfScaledByBasepathFt": 14.77
+    },
+    {
+      "position": "SS",
+      "coversBag": 2,
+      "gapShippedFt": 43.01,
+      "gapUnmigratedOnCompactFt": 42.28,
+      "gapIfScaledByBasepathFt": 38.23
+    }
+  ],
+  "outfieldStarts": [
+    {
+      "position": "LF",
+      "startRadiusFt": 273.13,
+      "bearingDeg": -23.75,
+      "fenceAtBearingShippedFt": 379.16,
+      "fenceAtBearingCompactFt": 265.71,
+      "fractionShipped": 0.7203,
+      "radiusIfFractionPreservedFt": 191.4,
+      "feetBeyondCompactWall": 7.42
+    },
+    {
+      "position": "CF",
+      "startRadiusFt": 305,
+      "bearingDeg": 0,
+      "fenceAtBearingShippedFt": 400,
+      "fenceAtBearingCompactFt": 280,
+      "fractionShipped": 0.7625,
+      "radiusIfFractionPreservedFt": 213.5,
+      "feetBeyondCompactWall": 25
+    },
+    {
+      "position": "RF",
+      "startRadiusFt": 273.13,
+      "bearingDeg": 23.75,
+      "fenceAtBearingShippedFt": 379.16,
+      "fenceAtBearingCompactFt": 265.71,
+      "fractionShipped": 0.7203,
+      "radiusIfFractionPreservedFt": 191.4,
+      "feetBeyondCompactWall": 7.42
+    }
+  ],
+  "sourceSha256": {
+    "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
+    "data/rules/fielding.json": "a01c9c958a9672c02ebce9408b9e1cffc24878193924d9e5c8b24a34e42f1f6a",
+    "data/rules/running.json": "72b9458b85933430caa0c6dea35fd6d24a121701335d9f3c9d27b3037fcc2136",
+    "trials/c80/rules/infield.json": "e96658ceebda0d8f8fb1f241b0a20daeba6930495dfadf9d8c48e6717d9e1a4d",
+    "trials/c80/rules/flight.json": "19aef3d7d76c456ef0c4a026769b3a3e8d30c71600f5a58b17908b68f7c069f8",
+    "src/GrandSluggers.Sim/BattedBall.cs": "ccb27d247b96807263a9983fba1ed35b8600a52c1bc39e6f12180fe63a65a589",
+    "src/GrandSluggers.Sim/Fielding.cs": "39be232209b444350cfe2f28cf121d0d5d4829a53e7b2254be03b45a6eb9a813",
+    "src/GrandSluggers.Sim/Diamond.cs": "ed02103cbfd1a0a6c45885fd0fe7349fa325f18cb46d6fe550f3b21c0a222251",
+    "src/GrandSluggers.Sim/HarborWall.cs": "73b89434d3791dfe29a6eb79518c86647adae77b2ccc7b3472e5b9b86ad25404",
+    "src/GrandSluggers.Sim/AtBatResolver.cs": "b909cd9578708568e5f7d7baad58c289579b2819e1b41062ad4e358bfffdce09",
+    "tools/game-feel-scale-probes/Program.cs": "f5d7cd3523062fab219aa0cb3e066de8ae7c8ff883581be21054edafd6af577d"
+  }
+}

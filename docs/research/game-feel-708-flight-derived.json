@@ -6,7 +6,7 @@
   "trialDrag": 0.004,
   "sourceSha256": {
     "docs/research/game-feel-708-flight-inputs.json": "0f6222ebb96c68fb02e758bca3fba6d72ad4f3ee27fe74237d8ee08e62133399",
-    "docs/research/game-feel-708-candidates.json": "f4b89956571b1400fdd7119e3457b790afc5c48e7127f8b55d16a93acbc26de3",
+    "docs/research/game-feel-708-candidates.json": "823f4d7c1df512b02e2e4aebb6608a9c50267bd31eec81be5105b453944ccb4c",
     "data/rules/flight.json": "eac7f7a0989ad07a0203d758b6720e5763951a15e5ec56c4b912b048bd1ba911",
     "data/rules/batting.json": "afde01a38bf13b1546b05021346664f7ae32fb1bd6f1aba3732f47857d61d878",
     "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
