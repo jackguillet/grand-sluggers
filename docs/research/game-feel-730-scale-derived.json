@@ -461,7 +461,7 @@
     "trials/c80/rules/flight.json": "3c50289b434b40c36bea5a3569fb86f28fc9cd9baad7536789df184203891328",
     "src/GrandSluggers.Sim/BattedBall.cs": "ccb27d247b96807263a9983fba1ed35b8600a52c1bc39e6f12180fe63a65a589",
     "src/GrandSluggers.Sim/Fielding.cs": "39be232209b444350cfe2f28cf121d0d5d4829a53e7b2254be03b45a6eb9a813",
-    "src/GrandSluggers.Sim/Diamond.cs": "ed02103cbfd1a0a6c45885fd0fe7349fa325f18cb46d6fe550f3b21c0a222251",
+    "src/GrandSluggers.Sim/Diamond.cs": "63690674351200fd65514341f86938cdf9c8ebad2621c624aded607432d6a484",
     "src/GrandSluggers.Sim/HarborWall.cs": "73b89434d3791dfe29a6eb79518c86647adae77b2ccc7b3472e5b9b86ad25404",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "b909cd9578708568e5f7d7baad58c289579b2819e1b41062ad4e358bfffdce09",
     "tools/game-feel-scale-probes/Program.cs": "f5d7cd3523062fab219aa0cb3e066de8ae7c8ff883581be21054edafd6af577d"

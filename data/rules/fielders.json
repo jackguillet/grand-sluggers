@@ -1,0 +1,38 @@
+{
+  // Where each glove stands with nobody on (§8.1, #725). Home is the origin, +z runs toward second
+  // and centre, +x toward first, so the left side of the field is negative x. P stands on
+  // infield.moundFt and C on HomeSet.CatcherZ; naming either here would be a second source of truth.
+  "first": {
+    "xFt": 78,
+    "zFt": 72
+  },
+  "second": {
+    "xFt": 42,
+    "zFt": 118
+  },
+  "third": {
+    "xFt": -78,
+    "zFt": 72
+  },
+  "short": {
+    "xFt": -42,
+    "zFt": 118
+  },
+  // One outfield set for all six parks (#730, decision 3) — per-park depth is #713's. A trial does
+  // not scale these: it keeps each body's bearing and its fraction of the fence AT THAT BEARING,
+  // measured through the circular fence arc (AtBatResolver.FenceAt). LF and RF keep 0.7203 of a
+  // 379.16 ft fence at ∓23.75°; CF keeps 0.7625 of 400. The two fractions are different, so
+  // 110 x 0.70 = 77.00 is not the compact left fielder and never was.
+  "left": {
+    "xFt": -110,
+    "zFt": 250
+  },
+  "center": {
+    "xFt": 0,
+    "zFt": 305
+  },
+  "right": {
+    "xFt": 110,
+    "zFt": 250
+  }
+}
