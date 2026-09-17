@@ -59,7 +59,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | --- | --- |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732): the pad that decides a barrel's real catch, on the fence scale with the radii. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -290,3 +290,47 @@ and the shipped file no longer does. That makes #730 decision 6, should it proce
 radii 16 / 18 / 16) are C# literals and did not scale, as their positions did not in #717 — recorded,
 not repaired. `pipeReachPadFt` carries no `[Positive]` validator in `Rules.cs`; adding one is a sealed-
 source edit and was left for a slice that already has to regenerate the packets.
+
+---
+
+[#722](https://github.com/jackguillet/grand-sluggers/issues/722) slice 1 — the throw clock becomes the
+accepted curve (F693-03-release-clock, -travel-clock, -long-throws, -long-throw-numbers, -good-chemistry,
+-negative-chemistry). One function, `InPlay.ThrowSec`, flies the live ball and feeds both CPU estimates:
+
+```
+throwSec = releaseSec + [ d / (baseFtPerSec × arm) + longThrowLossSec × (max(0, d − R) / 80)² ] / (chem × ability)
+arm      = armBase + armPerField × Arm            R = comfortableRangeFt + rangePerArmFt × (Arm − 5)
+```
+
+`rules/fielding.json` carries `releaseSec` **0.30**, `baseFtPerSec` **88.89** (0.90 s over 80 ft),
+`comfortableRangeFt` 160, `rangePerArmFt` 5, `longThrowLossSec` **0.60**, `chem.badSpeedMul` **0.90**
+and `chem.slantChance` **0**. The shipped table gained the three new keys at 160 / 5 / **0** and
+`badSpeedMul` **1.0**: with the loss at zero the loss term is exactly 0.0 and the clock is the flat one
+the game always had, to the bit — checked on 20 `cli match` seeds and all 50 S-29 cohort games against
+pristine `main`. The switch is the table, nothing else.
+
+**What the curve gives, neutral chemistry, command to arrival.** konga's third→home is 3.31 s.
+
+| From | Arm 3 | Arm 5 | Arm 8 | Arm 10 |
+| --- | --- | --- | --- | --- |
+| 160 ft | 2.22 | 2.10 | 1.95 | 1.87 |
+| 220 ft | 3.39 | 3.11 | 2.76 | 2.57 |
+| 280 ft | 5.24 | 4.80 | 4.22 | 3.89 |
+
+A relay through SS on the compact centre line (second leg 104.89 ft) arrives first beyond **221 / 237 /
+258 / 272 ft** for an Arm 3 / 5 / 8 / 10 thrower against an Arm 5 cutter; an Arm 8 cutter pulls each in
+by 11–13 ft. On the shipped clock the relay never arrives first anywhere inside 400 ft, which is why that
+table keeps its 200-ft gate. Good chemistry divides the whole flight by 1.30 once, the loss included:
+280 ft is 4.80 → 3.76. A bad pair is 0.90 on every throw and never slanted; its lateral spread is the
+thrower's Field accuracy alone.
+
+**What it does to a run.** The trial now throws on a different clock, so most seeds diverge: 33 of the
+48 (seeds 1–8 × six parks) against the PR #740 state, 15 scorelines. S-29 under the trial moves
+**1.00 / 1.20 → 1.06 / 1.34** runs a side (home / away). That is still under the 1.8 floor — it was
+under it before this slice, and the whole compact profile is what 3d bands, not one clock. Read the
+direction, not the digits.
+
+**What this slice leaves to slice 2.** The CPU still relays by the 200-ft gate on both roots and the
+runner's estimate still reads a null arm; slice 2 makes both read this clock — `direct` against
+`relay = leg + transfer + leg` with real arms and pair chemistry — and re-describes `onTheFlyFt` as the
+forced-relay ceiling the trial sets to never. Laser and Snap Throw keep their multipliers until #723.

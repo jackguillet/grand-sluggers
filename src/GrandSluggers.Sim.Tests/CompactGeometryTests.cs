@@ -325,8 +325,9 @@ public sealed class CompactGeometryTests
     ///
     /// <para>
     /// This is why <c>rules/fielding.json</c> enters the overlay here, whole, ahead of the two 3c
-    /// chains that will write it (#727): every other leaf is the shipped value, checked by name so a
-    /// copy that dropped a key or drifted a number is refused rather than read as authored.
+    /// chains that will write it (#727): every leaf that is not named below is the shipped value,
+    /// checked by name so a copy that dropped a key or drifted a number is refused rather than read
+    /// as authored. #722 slice 1 added the throw clock's five values to the named list.
     /// </para>
     /// </summary>
     [Fact]
@@ -345,9 +346,17 @@ public sealed class CompactGeometryTests
         var trialLeaves = Leaves(Path.Combine(Overlay, "rules", "fielding.json"));
         Assert.Equal(shippedLeaves.Keys, trialLeaves.Keys);
         var moved = shippedLeaves.Where(kv => trialLeaves[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
-        Assert.Equal(["park.pipeReachPadFt"], moved);
-        Assert.Equal("8", shippedLeaves["park.pipeReachPadFt"]);
-        Assert.Equal("5.6", trialLeaves["park.pipeReachPadFt"]);
+        // #732's pad and #722's throw clock (slice 1: release, travel, the long-throw loss, the bad pair's
+        // speed and no slant). Nothing else in the table moves, and a new difference has to be named here.
+        Assert.Equal(
+            ["chem.badSpeedMul", "chem.slantChance", "park.pipeReachPadFt", "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.releaseSec"],
+            moved);
+        Assert.Equal(("8", "5.6"), (shippedLeaves["park.pipeReachPadFt"], trialLeaves["park.pipeReachPadFt"]));
+        Assert.Equal(("0.22", "0.30"), (shippedLeaves["throw.releaseSec"], trialLeaves["throw.releaseSec"]));
+        Assert.Equal(("100", "88.89"), (shippedLeaves["throw.baseFtPerSec"], trialLeaves["throw.baseFtPerSec"]));
+        Assert.Equal(("0", "0.60"), (shippedLeaves["throw.longThrowLossSec"], trialLeaves["throw.longThrowLossSec"]));
+        Assert.Equal(("1.0", "0.90"), (shippedLeaves["chem.badSpeedMul"], trialLeaves["chem.badSpeedMul"]));
+        Assert.Equal(("0.20", "0"), (shippedLeaves["chem.slantChance"], trialLeaves["chem.slantChance"]));
 
         // Every leaf of a rules file, "section.key" to its raw JSON text, comments skipped. Sorted so
         // the key lists compare in one order and a missing or extra key names itself.

@@ -94,9 +94,10 @@ public sealed class ChemistryTable
     /// <summary>
     /// Throw pair chemistry → the throw's input (§8.5, fielding.chem, fielding.throw): good is
     /// faster; bad is slanted with slantChance (slower, a lateral miss of slantLateral ft to one
-    /// side) and ordinary otherwise. Every throw carries the thrower's lateral error, σ =
-    /// (11 − Field) × lateralSigmaPerFieldDeficitFt. The roll is on the input; the receiver's
-    /// radius decides the catch where the ball lands.
+    /// side) and flies at badSpeedMul otherwise — 1.0 on the shipped table, 0.90 with no slant in
+    /// the c80 copy (F693-03-negative-chemistry, #722). Every throw carries the thrower's lateral
+    /// error, σ = (11 − Arm) × lateralSigmaPerFieldDeficitFt. The roll is on the input; the
+    /// receiver's radius decides the catch where the ball lands.
     /// </summary>
     public ThrowResult FieldingThrow(Character from, Character to, Random rng)
     {
@@ -111,7 +112,8 @@ public sealed class ChemistryTable
             var side = rng.NextDouble() < 0.5 ? -1 : 1;
             return new ThrowResult(rel, chem.SlantSpeedMul, true, side * miss);
         }
-        return new ThrowResult(rel, rel == Chemistry.Good ? chem.GoodSpeedMul : 1.0, false, lateral);
+        var speed = rel switch { Chemistry.Good => chem.GoodSpeedMul, Chemistry.Bad => chem.BadSpeedMul, _ => 1.0 };
+        return new ThrowResult(rel, speed, false, lateral);
     }
 
     static double Gauss(Random rng)

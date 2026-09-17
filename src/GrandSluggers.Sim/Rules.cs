@@ -1257,9 +1257,13 @@ public sealed class FieldAbilityRules
 }
 
 /// <summary>
-/// The one throw model (§8.5): <c>throwSec = releaseSec + dist / (baseFtPerSec × arm × chem × ability)</c>
-/// with <c>arm = armBase + Field × armPerField</c>. It flies the ball and judges the bag, for every
-/// arm on the field, the catcher's gun included. Lateral error σ = (11 − Field) × lateralSigmaPerFieldDeficitFt.
+/// The one throw model (§8.5, F693-03-long-throw-numbers):
+/// <c>throwSec = releaseSec + [dist / (baseFtPerSec × arm) + longThrowLossSec × (max(0, dist − range) / 80)²] / (chem × ability)</c>
+/// with <c>arm = armBase + Arm × armPerField</c> and <c>range = comfortableRangeFt + rangePerArmFt × (Arm − 5)</c>.
+/// It flies the ball and judges the bag, for every arm on the field, the catcher's gun included, and it
+/// is the arithmetic both CPU estimates read. With <c>longThrowLossSec</c> 0 it is the flat clock the game
+/// shipped with, byte for byte; the c80 copy carries the accepted curve (#722). Lateral error
+/// σ = (11 − Arm) × lateralSigmaPerFieldDeficitFt.
 /// </summary>
 public sealed class ThrowRules
 {
@@ -1268,6 +1272,12 @@ public sealed class ThrowRules
     [Positive] public double MinFtPerSec { get; init; } = 32;
     [Positive] public double ArmBase { get; init; } = 0.85;
     public double ArmPerField { get; init; } = 0.03;
+    /// <summary>The neutral arm's comfortable range (F693-03-long-throws): inside it a throw is the flat clock; past it the flight loses pace, smoothly.</summary>
+    [Positive] public double ComfortableRangeFt { get; init; } = 160;
+    /// <summary>The range shifts this much per Arm point either side of the neutral arm (<see cref="InPlay.NeutralArm"/>).</summary>
+    public double RangePerArmFt { get; init; } = 5;
+    /// <summary>Seconds added to the flight per (feet past the range / 80)², before chemistry and ability divide it. 0 is the flat clock; the accepted trial value is 0.60.</summary>
+    public double LongThrowLossSec { get; init; } = 0;
     public double LateralSigmaPerFieldDeficitFt { get; init; } = 0.35;
     /// <summary>A throw to an uncovered bag hangs as a lob this long for the cover; then it drops at the bag, live.</summary>
     [Positive] public double LobMaxSec { get; init; } = 1.5;
@@ -1293,12 +1303,16 @@ public sealed class CatcherRules
 
 /// <summary>
 /// Chemistry on a throw (§8.5): good is faster; bad has a chance of a slanted throw — slower and
-/// off the cover by a lateral miss the receiver cannot reach — and is ordinary otherwise. The roll
-/// is on the input; the outcome is still the ball missing the cover.
+/// off the cover by a lateral miss the receiver cannot reach — and flies at <see cref="BadSpeedMul"/>
+/// otherwise. The roll is on the input; the outcome is still the ball missing the cover. The shipped
+/// table keeps the slant and a bad speed of 1.0; the c80 copy is F693-03-negative-chemistry — 0.90 and
+/// no slant, slow rather than random (#722).
 /// </summary>
 public sealed class ThrowChemistryRules
 {
     [Positive] public double GoodSpeedMul { get; init; } = 1.30;
+    /// <summary>A bad pair's unslanted throw flies at this multiple of the arm's speed; 1.0 is today's ordinary throw.</summary>
+    [Positive] public double BadSpeedMul { get; init; } = 1.0;
     [Chance] public double SlantChance { get; init; } = 0.20;
     [Positive] public double SlantSpeedMul { get; init; } = 0.70;
     [Positive] public double SlantLateralMinFt { get; init; } = 10;
