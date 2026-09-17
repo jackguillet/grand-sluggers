@@ -1508,10 +1508,18 @@ public sealed class CpuRunnerRules
     public double DesperateSec { get; init; } = 0.2;
     /// <summary>A runner already this far along a segment keeps going rather than turning back.</summary>
     [Chance] public double CommitFraction { get; init; } = 0.4;
-    /// <summary>Runner on third tags on a caught fly this deep with fewer than two outs.</summary>
+    /// <summary>Runner on third tags on a caught fly this deep with fewer than two outs. The shipped rule; the c80 copy sets it to never and races instead (#732).</summary>
     public double TagThirdMinCarryFt { get; init; } = 200;
-    /// <summary>Runner on second tags for third on a caught fly to right this deep.</summary>
+    /// <summary>Runner on second tags for third on a caught fly to right this deep. The shipped rule; the c80 copy sets it to never and races instead (#732).</summary>
     public double TagSecondMinCarryFt { get; init; } = 250;
+    /// <summary>
+    /// The race from third (#732, decision 5 of #730): at the catch, the runner goes home when <c>margin(home)</c> — the
+    /// defense's estimated arrival minus the runner's — clears this plus the rung's <c>runnerMarginSec</c>. 99 is a margin
+    /// no play reaches, so the shipped table decides by the carry gate alone; the c80 copy authors the number.
+    /// </summary>
+    [Signed] public double TagUpHomeMarginSec { get; init; } = 99;
+    /// <summary>The race from second to third at the catch, on the same terms as <see cref="TagUpHomeMarginSec"/>.</summary>
+    [Signed] public double TagUpThirdMarginSec { get; init; } = 99;
     /// <summary>The CPU steal table (§11.6): base chance by Run, 0 at or below <see cref="StealMinRun"/>, linear between the anchors.</summary>
     public int StealMinRun { get; init; } = 4;
     [Chance] public double StealBaseRun6 { get; init; } = 0.06;

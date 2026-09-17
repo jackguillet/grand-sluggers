@@ -833,7 +833,7 @@ A hand-off is **never** triggered by distance alone, never re-evaluated per fram
 - Runners **cannot leave until the ball is firmly caught** (post-bobble). After the catch, a runner on the bag may advance (**tag up**). A runner off the bag at the catch must return and touch before advancing; if the defense throws to that bag and the ball beats them back, they are out (doubled off, §10.5). ✅ P3 (`Runner.LeftEarly`; `ThrowVerdict.DoubledOff`).
 - All-advance pressed *before* the catch means "tag and go on the catch" — the runner waits on the bag and leaves at the catch. ✅ P3 (`Runner.TagAndGo`, per runner; LB before the pitch arms it for the coming fly).
 - A lone runner cannot cross home on a fly with < 2 outs until the catch/drop resolves (reference restriction; keeps a dropped fly honest). ✅ P3 (the body is held a foot short of the plate).
-- CPU: runner on 3rd tags on a caught fly ≥ 200 ft with < 2 outs; runner on 2nd tags to third on a fly to RF ≥ 250 ft; else holds. Batter-runner on a fly stays near first until the drop/catch. ✅ P3 (`running.cpu.tagThirdMinCarryFt / tagSecondMinCarryFt`).
+- CPU: runner on 3rd tags on a caught fly ≥ 200 ft with < 2 outs; runner on 2nd tags to third on a fly to RF ≥ 250 ft; else holds. Batter-runner on a fly stays near first until the drop/catch. ✅ P3 (`running.cpu.tagThirdMinCarryFt / tagSecondMinCarryFt`). ✅ #732 (decision 5 of #730): **a tag-up is a race, not a distance.** At the catch — once, `RunnerAiContext.AtCatch` — a runner on third or second also goes when `margin(next)` (§9.9, the arm and the relay read since #722) clears `running.cpu.tagUpHomeMarginSec` / `tagUpThirdMarginSec` plus the rung's `runnerMarginSec`. The shipped table sets those to 99, a margin no play reaches, so it decides by the two gates alone as it always did; the `c80` copy sets the gates to 9999 and authors 0.25 / 0.07 from a 108-race sweep, placing the hard rung on the measured crossover (+0.10 home, −0.08 third). A body held at the catch is not sent by a later event.
 
 ### 9.6 Close plays
 
@@ -859,7 +859,7 @@ Evaluated at contact, at every fielder touch, and at every throw release (events
 | Runner on 3rd, grounder, < 2 outs | infield back (fielder ≥ 110 ft from home) or margin(home) > 0.3 | "Contact play" with 2 outs: always go |
 | Hit through / to the outfield | margin(next) > 0.5 − Run × 0.03 | Aggression by Run; two outs: +0.3 (go more) |
 | Batter-runner rounding first | margin(2B) > 0.6 − Run × 0.03 | Reads the pickup: ball behind the outfielder = go |
-| Fly ball | hold; tag-up rules §9.5 | |
+| Fly ball | hold; tag-up rules §9.5 | ✅ #732: under the `c80` copy the tag-up is `margin(next) > tagUp*MarginSec + runnerMarginSec`, read once at the catch |
 | Score situation | trailing by ≥ 3 in the last inning: thresholds −0.2 | Aggressive when desperate |
 | Steal | §11.6 | Not in the swing function. A body on its steal segment never turns back on the catcher's read (only the rundown reverses it, §9.7) ✅ P6 |
 
