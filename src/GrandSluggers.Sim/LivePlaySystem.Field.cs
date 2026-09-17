@@ -1384,33 +1384,116 @@ public sealed partial class LivePlaySystem
     /// <summary>Seconds until this glove can have the ball at <paramref name="bag"/> by the quicker of its legs and a throw (§8.8).</summary>
     double CpuPlayArrivalSec(int bag) => Math.Min(CpuWalkSec(bag), CpuThrowReadySec(bag));
 
-    /// <summary>Seconds from now until a throw from this glove would land at <paramref name="bag"/>, through the cutoff when the arm cannot reach on the fly.</summary>
-    double CpuThrowArrivalSec(int bag)
+    /// <summary>
+    /// The CPU's read of a throw to a bag (§8.7, §8.8, #722): straight, or through the cutoff on the line, each on the
+    /// one clock with the real arms and the rung's read of the pair chemistry — and which leg it takes. Beyond
+    /// <c>fielding.throw.onTheFlyFt</c> the relay is forced, whatever the clock says; inside it the relay is taken when it
+    /// beats the direct throw by more than the rung's <c>cpu.*.relayBiasSec</c>. The shipped table's bias is a value no
+    /// relay can save, so there the ceiling alone decides, which is the rule the game shipped with.
+    /// </summary>
+    readonly record struct ThrowPlan(double DirectSec, double RelaySec, (string Pos, double X, double Z)? Cut, bool Forced, bool UseRelay)
     {
-        var to = Diamond.Bag(bag);
-        var thr = ArmOnly(GloveChar());
-        var dist = Diamond.Dist(GloveX, GloveZ, to.X, to.Z);
-        var cut = CutoffFor(bag);
-        if (cut is null) return InPlay.ThrowSec(dist, thr, R);
-        var (cutPos, cx, cz) = cut.Value;
-        var cutter = Assigned()[cutPos];
-        return InPlay.ThrowSec(Diamond.Dist(GloveX, GloveZ, cx, cz), thr, R)
-               + InPlay.ThrowReactionSec(cutter, R)
-               + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), ArmOnly(cutter), R);
+        /// <summary>Seconds until the ball is at the bag by the leg the CPU takes.</summary>
+        public double Sec => UseRelay ? RelaySec : DirectSec;
     }
+
+    ThrowPlan PlanThrow(double fromX, double fromZ, Character thrower, string throwerPos, int bag)
+    {
+        var level = R.Cpu.Active;
+        var to = Diamond.Bag(bag);
+        var map = Assigned();
+        var coverPos = CoverOf(bag);
+        var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
+        var dist = Diamond.Dist(fromX, fromZ, to.X, to.Z);
+        var direct = InPlay.ThrowSec(dist, Forecast(thrower, cover, level.ReadsChemistry), R);
+        var forced = dist > R.Fielding.Throw.OnTheFlyFt;
+        var cut = InPlay.CutoffFor(fromX, fromZ, to.X, to.Z, _fielders, throwerPos, coverPos);
+        if (cut is null || !map.TryGetValue(cut.Value.Pos, out var cutter))
+            return new ThrowPlan(direct, direct, null, forced, false);
+        var (_, cx, cz) = cut.Value;
+        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cx, cz), Forecast(thrower, cutter, level.ReadsChemistry), R)
+                    + InPlay.ThrowReactionSec(cutter, R)
+                    + InPlay.ThrowSec(Diamond.Dist(cx, cz, to.X, to.Z), Forecast(cutter, cover, level.ReadsChemistry), R);
+        return new ThrowPlan(direct, relay, cut, forced, InPlay.RelayWins(direct, relay, forced, level.RelayBiasSec));
+    }
+
+    /// <summary>Seconds from now until a throw from this glove would land at <paramref name="bag"/>, by the leg the CPU would take (§8.7).</summary>
+    double CpuThrowArrivalSec(int bag) => PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag).Sec;
 
     /// <summary>The arm alone (no chemistry roll): the fielder's own estimate of a throw.</summary>
     ThrowResult ArmOnly(Character who) =>
         new(Chemistry.Neutral, InPlay.ArmMul(who, R) * FieldAbilities.ThrowMul(who, R), false, Arm: who.Stats.Arm);
 
-    /// <summary>The CPU throws to <paramref name="bag"/>: straight when the arm reaches, through the cutoff on the line otherwise (§8.7).</summary>
+    /// <summary>
+    /// The CPU's forecast of a throw from <paramref name="from"/> to <paramref name="to"/>: the arm and ability exactly, and
+    /// the pair chemistry as far as the rung reads it (<c>cpu.*.readsChemistry</c>) — the deterministic pair factor, never a
+    /// sampled roll (F693-03-good-chemistry). At 0 it is the arm alone, which is what the shipped CPU forecasts.
+    /// </summary>
+    ThrowResult Forecast(Character from, Character? to, double chemistryRead)
+    {
+        var thr = ArmOnly(from);
+        if (to is null || chemistryRead <= 0) return thr;
+        var chem = R.Fielding.Chem;
+        var pair = _match.Chemistry.Between(from, to) switch
+        {
+            Chemistry.Good => chem.GoodSpeedMul,
+            Chemistry.Bad => chem.BadSpeedMul,
+            _ => 1.0
+        };
+        return thr with { SpeedMul = thr.SpeedMul * (1 + chemistryRead * (pair - 1)) };
+    }
+
+    /// <summary>
+    /// The CPU runner's read of a throw released at (<paramref name="fromX"/>, <paramref name="fromZ"/>) by
+    /// <paramref name="thrower"/> to <paramref name="bag"/> (§9.9, #722): the fielder's own plan, with the rung's read of
+    /// the arm (<c>cpu.*.runnerReadsArm</c>), of the relay (<c>runnerReadsRelay</c>) and of the chemistry
+    /// (<c>readsChemistry</c>). At the shipped rungs' zeros it is the neutral flat throw the runner always read: a speed
+    /// multiplier of exactly 1 and no relay.
+    /// </summary>
+    double RunnerThrowSec(double fromX, double fromZ, Character? thrower, string throwerPos, int bag)
+    {
+        if (thrower is null) return InPlay.ThrowArrivalSec(fromX, fromZ, bag, null, R);
+        var level = R.Cpu.Active;
+        var to = Diamond.Bag(bag);
+        var map = Assigned();
+        var coverPos = CoverOf(bag);
+        var cover = !string.IsNullOrEmpty(coverPos) && map.TryGetValue(coverPos, out var c) ? c : null;
+        var direct = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, to.X, to.Z), Read(thrower, cover, level), R);
+        if (level.RunnerReadsRelay <= 0) return direct;
+        var plan = PlanThrow(fromX, fromZ, thrower, throwerPos, bag);
+        if (!plan.UseRelay || plan.Cut is not { } cut || !map.TryGetValue(cut.Pos, out var cutter)) return direct;
+        var relay = InPlay.ThrowSec(Diamond.Dist(fromX, fromZ, cut.X, cut.Z), Read(thrower, cutter, level), R)
+                    + InPlay.ThrowReactionSec(cutter, R)
+                    + InPlay.ThrowSec(Diamond.Dist(cut.X, cut.Z, to.X, to.Z), Read(cutter, cover, level), R);
+        return direct + level.RunnerReadsRelay * (relay - direct);
+    }
+
+    /// <summary>A throw as the CPU runner reads it: the neutral arm at <c>runnerReadsArm</c> 0, the real arm and ability at 1, the range rounded to the arm read; the chemistry as <see cref="Forecast"/> reads it.</summary>
+    ThrowResult Read(Character who, Character? to, CpuLevelRules level)
+    {
+        var real = Forecast(who, to, level.ReadsChemistry);
+        var armPart = InPlay.ArmMul(who, R) * FieldAbilities.ThrowMul(who, R);
+        var pairPart = real.SpeedMul / armPart;
+        var speed = (1 + level.RunnerReadsArm * (armPart - 1)) * pairPart;
+        var arm = (int)Math.Round(InPlay.NeutralArm + level.RunnerReadsArm * (who.Stats.Arm - InPlay.NeutralArm));
+        return new ThrowResult(Chemistry.Neutral, speed, false, Arm: arm);
+    }
+
+    /// <summary>The runner's clock (§9.9): <see cref="RunnerThrowSec"/> with the body at <paramref name="pos"/> as the thrower — whoever holds the ball next.</summary>
+    Func<double, double, int, double> RunnerClock(string pos)
+    {
+        var who = Assigned().TryGetValue(pos, out var body) ? body : null;
+        return (x, z, bag) => RunnerThrowSec(x, z, who, pos, bag);
+    }
+
+    /// <summary>The CPU throws to <paramref name="bag"/>: straight, or through the cutoff on the line when the relay is the leg the plan takes (§8.7).</summary>
     void CpuThrowTo(int bag)
     {
-        var cut = CutoffFor(bag);
-        if (cut is not null)
+        var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
+        if (plan.UseRelay && plan.Cut is { } cut)
         {
             _relayBag = bag;
-            BeginThrowToCutoff(cut.Value.Pos, cut.Value.X, cut.Value.Z);
+            BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
         BeginThrowToBag(bag);
@@ -1425,23 +1508,14 @@ public sealed partial class LivePlaySystem
         var lead = Runners.Where(r => r.Live).OrderByDescending(r => r.Progress).FirstOrDefault();
         var bag = lead is null ? 2 : Math.Min(4, lead.Advancing ? lead.DestBag : lead.Bag + 1);
         if (bag == 4 && lead is { Bag: 3, Advancing: false }) bag = 3;
-        var cut = CutoffFor(bag);
-        if (cut is not null)
+        var plan = PlanThrow(GloveX, GloveZ, GloveChar(), GlovePos, bag);
+        if (plan.UseRelay && plan.Cut is { } cut)
         {
             _relayBag = 0; // the cutoff decides again from the infield
-            BeginThrowToCutoff(cut.Value.Pos, cut.Value.X, cut.Value.Z);
+            BeginThrowToCutoff(cut.Pos, cut.X, cut.Z);
             return;
         }
         BeginThrowToBag(bag);
-    }
-
-    /// <summary>The cutoff on the line from the glove to <paramref name="bag"/> when the throw is longer than the arm's fly reach (§8.7).</summary>
-    (string Pos, double X, double Z)? CutoffFor(int bag)
-    {
-        var to = Diamond.Bag(bag);
-        if (Diamond.Dist(GloveX, GloveZ, to.X, to.Z) <= R.Fielding.Throw.OnTheFlyFt) return null;
-        var cover = CoverOf(bag);
-        return InPlay.CutoffFor(GloveX, GloveZ, to.X, to.Z, _fielders, GlovePos, cover);
     }
 
     /// <summary>The runner AI's read of the ball this frame (§9.9): who has it or will, and when.</summary>
@@ -1484,8 +1558,10 @@ public sealed partial class LivePlaySystem
             ball = new BallSituation(false, false, 0, 0, route.X, route.Z, meetAt,
                 FieldingResolver.OutfieldGrass(route.X, route.Z, R), Preview.LandingX, Preview.LandingZ, carry);
         }
-        // A bunt (§7.3): the runner from third holds at contact unless the offense sent them.
-        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt } };
+        // A bunt (§7.3): the runner from third holds at contact unless the offense sent them. The clock the runner reads
+        // (#722) is the defense's own plan from whoever holds the ball next: the receiver of a throw in the air, else the glove.
+        var nextHolder = Throwing ? (ThrowBag is >= 1 and <= 4 ? CoverPos : _cutoffPos) : GlovePos;
+        ball = ball with { Bunt = Ball is { Shape: BattedBallClass.Bunt }, ThrowClock = RunnerClock(nextHolder) };
         var trailing = _match.Inning >= _match.Innings
             ? (_match.Top ? _match.HomeScore - _match.AwayScore : _match.AwayScore - _match.HomeScore)
             : int.MinValue;

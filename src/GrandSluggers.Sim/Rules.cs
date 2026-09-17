@@ -1281,7 +1281,12 @@ public sealed class ThrowRules
     public double LateralSigmaPerFieldDeficitFt { get; init; } = 0.35;
     /// <summary>A throw to an uncovered bag hangs as a lob this long for the cover; then it drops at the bag, live.</summary>
     [Positive] public double LobMaxSec { get; init; } = 1.5;
-    /// <summary>A throw longer than this goes through the cutoff on the line (§8.7); the relay continues with the cutoff's arm.</summary>
+    /// <summary>
+    /// The forced-relay ceiling (§8.7, #722): a throw longer than this always goes through the cutoff on the line, whatever
+    /// the clock says, and the relay continues with the cutoff's arm. Inside it the CPU relays only when the relay arrives
+    /// first by more than the rung's <c>cpu.*.relayBiasSec</c>. Shipped 200 beside a bias no relay can save is the rule the
+    /// game shipped with; the c80 copy sets the ceiling to 9999 so time alone decides.
+    /// </summary>
     [Positive] public double OnTheFlyFt { get; init; } = 200;
     /// <summary>A fielder holding the ball this close to a force bag steps on it instead of throwing (§10.4, S-41).</summary>
     [Positive] public double UnassistedFt { get; init; } = 8;
@@ -1675,4 +1680,16 @@ public sealed class CpuLevelRules
     [Chance] public double PickoffChance { get; init; } = 0.06;
     /// <summary>Added to every CPU baserunner threshold (§9.9): easy hesitates, hard goes.</summary>
     [Signed] public double RunnerMarginSec { get; init; } = 0;
+    /// <summary>
+    /// The CPU fielder throws through the cutoff only when the relay beats the direct throw by more than this (§8.7, #722) —
+    /// the total-time read, graded by rung. 99, a value no relay can save, leaves <see cref="ThrowRules.OnTheFlyFt"/> as the
+    /// only reason to relay, which is the rule the game shipped with.
+    /// </summary>
+    public double RelayBiasSec { get; init; } = 99;
+    /// <summary>How much of the thrower's real arm and ability the CPU runner reads (§9.9): 0 assumes the neutral arm, as the shipped runner does; 1 reads the arm the ball will fly on.</summary>
+    [Chance] public double RunnerReadsArm { get; init; } = 0;
+    /// <summary>How much of the fielder's relay the CPU runner reads: 0 assumes a direct throw; 1 reads the leg the fielder will actually take.</summary>
+    [Chance] public double RunnerReadsRelay { get; init; } = 0;
+    /// <summary>How much of the pair chemistry the CPU forecasts, fielder and runner alike (F693-03-good-chemistry): 0 ignores it, 1 is the deterministic pair factor, never a sampled roll.</summary>
+    [Chance] public double ReadsChemistry { get; init; } = 0;
 }

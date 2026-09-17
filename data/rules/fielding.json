@@ -125,6 +125,8 @@
     "longThrowLossSec": 0,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
+    // #722: the forced-relay ceiling. Beyond it a throw always goes through the cutoff; inside it the CPU relays only when
+    // the relay saves more than cpu.*.relayBiasSec, which the shipped rungs set to a value no relay can save. Today's rule.
     "onTheFlyFt": 200,
     "unassistedFt": 8,
     "handHeightFt": 3.2,

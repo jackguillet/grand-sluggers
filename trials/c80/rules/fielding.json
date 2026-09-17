@@ -126,7 +126,10 @@
     "longThrowLossSec": 0.60,
     "lateralSigmaPerFieldDeficitFt": 0.35,
     "lobMaxSec": 1.5,
-    "onTheFlyFt": 200,
+    // #722 (decision 6 of #730): never forced. The CPU relays when the relay arrives first by the rung's relayBiasSec in
+    // rules/cpu.json, and for no other reason. On this clock a relay through SS on the centre line wins beyond 221 / 237 /
+    // 258 / 272 ft for an Arm 3 / 5 / 8 / 10 thrower.
+    "onTheFlyFt": 9999,
     "unassistedFt": 8,
     "handHeightFt": 3.2,
     "bagHeightFt": 1.2
