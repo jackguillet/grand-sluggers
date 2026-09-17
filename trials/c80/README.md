@@ -50,7 +50,8 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. Eight files, one commit, because **drag is global and park dimensions are not**:
+ball that fits it. #717 landed eight files in one commit — the folder carries nine now — because
+**drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
 
@@ -107,6 +108,17 @@ Funfair's night chompers are `ParkHazards.FunfairChompers` in code, so they did 
 park's data hazards. They sit at z 198–228 in a park whose centre fence is now 273 — still inbounds,
 and since #725 inside the band a centre fielder starting at (0, 213.50) can work in, which he could
 not while he stood pinned to the wall.
+
+**And he now starts inside one.** The centre mouth is at (0, 228) with an 18-ft radius. The migrated
+centre fielder starts 14.50 ft from that centre — **3.50 ft inside the rim**. Shipped, he stood
+77.00 ft away, 59 ft clear of it.
+`ChompFly` is evaluated at the ball's landing point, not at the fielder, so the body is not frozen —
+but on a Funfair night a fly landing at the centre fielder's own start is stamped an out by the
+hazard before his glove resolves. Measured through `ParkHazards.ChompFly`: the centre line chomps a
+night fly from z 210 to z 245, and LF and RF at (∓77.09, 175.19) are clear. No other position and no
+park flips. Some of the trial's fly-out movement at Funfair is therefore the chomper rather than the
+geometry this slice owns. The chompers are code literals and no overlay can move them (#717's gap);
+this is recorded, not repaired.
 
 None of this was fixed in #717 on purpose: absorbing #725 would have merged two slices into one and
 destroyed the attribution 3d depends on. It is recorded so a 3d reader does not mistake these
@@ -201,8 +213,9 @@ already: Harbor keeps its accepted 232 at the poles, and a flat 0.70 gives 231.
 **One global set clears all six parks.** Before: all eighteen outfield starts (three bodies × six
 parks) sat outside the wall and `FieldBounds.Clamp` pinned every one of them to the warning track.
 After: none is clamped, and the tightest of the eighteen is Canopy Yard's centre field at **51.50 ft**
-of fence in front of it. So no per-park exception is needed and per-park depth stays with #713,
-exactly as #730 decision 3 decided.
+of fence in front of it. So no per-park exception is needed **to clear a wall**, and per-park depth
+stays with #713, exactly as #730 decision 3 decided. That is a claim about fences only: Funfair's
+coded night chompers are a per-park consequence the one global set does walk into, recorded above.
 
 **What it does to a run.** Twelve `cli match` seeds under the trial, before and after: 43 runs → 35,
 hits 63 → 52, balls-in-play outs 186 → 194, home runs 21 → 17. Read the direction, not the digits —
