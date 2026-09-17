@@ -1906,6 +1906,22 @@ def plot(data, result):
     plt.close(fig)
 
 
+def emitted(value, places=6):
+    """Round floats to a precision every platform's libm agrees on, as the flight probe does.
+
+    The design arithmetic runs through math.cos/sin/atan2, which are not bit-identical
+    between Apple's libm and glibc. Serialising raw doubles let a 1-ULP difference change
+    the digits, so --check failed on any machine but the one that wrote the file.
+    """
+    if isinstance(value, float):
+        return round(value, places)
+    if isinstance(value, dict):
+        return {k: emitted(v, places) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [emitted(v, places) for v in value]
+    return value
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Verify committed derived arithmetic without rewriting")
@@ -1913,7 +1929,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data = json.loads(INPUT.read_text())
     result = derive(data)
-    payload = json.dumps(result, indent=2, allow_nan=False) + "\n"
+    payload = json.dumps(emitted(result), indent=2, allow_nan=False) + "\n"
     if args.check:
         if OUTPUT.read_text() != payload:
             raise SystemExit("Derived report differs; regenerate and review")
