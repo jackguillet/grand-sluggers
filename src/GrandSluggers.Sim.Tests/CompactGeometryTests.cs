@@ -98,6 +98,73 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
+    /// <b>The ground follows the bags (#729).</b> The drawn grass diamond and the back arc of the
+    /// dirt are measured from second, the mound and the rubber, so they take the basepath scale like
+    /// everything else in this file. The rest of <see cref="ParkDiamond"/> — path width, the bag
+    /// pads, the home pad, the mound table, the warning track — is bodies and equipment and stays in
+    /// feet, which is the same rule that kept the wall heights at 8 ft.
+    ///
+    /// <para>
+    /// What the migration buys, measured: the dirt's far edge comes in from 145.78 ft to 135.56,
+    /// which is the shipped 152.50 through the same factor, and that is what puts the migrated lip
+    /// back outside the dirt instead of 8 ft inside it.
+    /// </para>
+    ///
+    /// <para>
+    /// And what it repairs. Before this, the compact field drew a 90-ft dress on 80-ft bags, which
+    /// left the grass vertex 6.57 ft from the bag it points at — <i>inside</i> the 12-ft bag pad, by
+    /// 5.43 ft. The grass was drawn over the dirt the bag sits on. Migrated, the gap is 12.13 ft and
+    /// the vertex clears the pad again, though only by 0.13 ft against the shipped 1.64: the pad is
+    /// equipment and did not shrink. Pinned because that margin is a hairline, and because the
+    /// validator deliberately does not refuse a table over it.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void TheTrialGroundDressIsTheEightyFootDiamondsDress()
+    {
+        var trial = Trial.Rules.Infield;
+        var shipped = Control.Rules.Infield;
+
+        Assert.Equal(44.44, trial.InnerHalfFt);
+        Assert.Equal(81.78, trial.BackArcFt);
+        Assert.Equal(50, shipped.InnerHalfFt);
+        Assert.Equal(92, shipped.BackArcFt);
+        Assert.Equal(Math.Round(shipped.InnerHalfFt * Infield, 2), trial.InnerHalfFt);
+        Assert.Equal(Math.Round(shipped.BackArcFt * Infield, 2), trial.BackArcFt);
+
+        // The dirt's far edge, on both fields, through the one factor.
+        Assert.Equal(152.50, shipped.MoundFt + shipped.BackArcFt, 2);
+        Assert.Equal(135.56, trial.MoundFt + trial.BackArcFt, 2);
+        Assert.Equal(Math.Round((shipped.MoundFt + shipped.BackArcFt) * Infield, 2),
+            trial.MoundFt + trial.BackArcFt, 2);
+
+        // The vertex-to-bag gap, and the pad clearance it leaves. The pad is 12 ft on both fields.
+        Assert.Equal(13.64, shipped.CornerFt - shipped.InnerHalfFt, 2);
+        Assert.Equal(12.13, trial.CornerFt - trial.InnerHalfFt, 2);
+        Assert.Equal(1.64, shipped.CornerFt - (shipped.InnerHalfFt + ParkDiamond.BagPadR), 2);
+        Assert.Equal(0.13, trial.CornerFt - (trial.InnerHalfFt + ParkDiamond.BagPadR), 2);
+        Assert.True(trial.InnerHalfFt + ParkDiamond.BagPadR < trial.CornerFt,
+            "the compact grass vertex must still clear the bag pad it points at");
+
+        // The defect this closes: the un-migrated dress on compact bags put the grass vertex 6.57 ft
+        // from the bag, which is 5.43 ft inside the pad — grass drawn over the dirt the bag sits on.
+        Assert.Equal(6.57, trial.CornerFt - shipped.InnerHalfFt, 2);
+        Assert.Equal(-5.43, trial.CornerFt - (shipped.InnerHalfFt + ParkDiamond.BagPadR), 2);
+
+        // The validator would NOT have said so, and that is deliberate. Its rule is vertex <= corner,
+        // and 50 <= 56.57 holds; only a pad-clearance rule catches this, and a pad-clearance rule
+        // would refuse a C70 trial that scaled perfectly well (35 + 12 = 47 against a 44.55 corner),
+        // because the pad is equipment and does not scale. The test carries it instead of the table.
+        Assert.True(shipped.InnerHalfFt <= trial.CornerFt,
+            "the ordering rule passes on the un-migrated dress, which is why this test exists");
+        Assert.True(shipped.InnerHalfFt + ParkDiamond.BagPadR > trial.CornerFt,
+            "a pad-clearance rule is the only one that would have caught it");
+
+        // The trial still carries eight files: infield.json grew two keys, it did not gain a file.
+        Assert.Equal(8, Root.Overrides.Count);
+    }
+
+    /// <summary>
     /// The accepted table, spelled out rather than recomputed: a fence list derived by the same
     /// arithmetic the authoring used would move with it and prove nothing.
     /// </summary>
@@ -831,55 +898,49 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
-    /// <b>The migrated lip now sits inside the drawn dirt, and the dress is what has to follow.</b>
-    /// The lip is a rule and the dirt is a picture, and they are authored in different places: the
-    /// lip is <c>flight.classes.infieldLipFt</c> in data, the dirt is <c>ParkDiamond.BackR</c>, a C#
-    /// constant no overlay can reach. Shipped, the two agree — the lip sits 2.50 ft outside the
-    /// farthest dirt. #717 pulled the dirt in with the mound and left the lip where it was, so the
-    /// gap widened to 9.22 ft. #728 moves the lip and the sign flips: it is now 8.00 ft <i>inside</i>
-    /// the dirt, so a fly landing on drawn dirt past the lip is classified a fly.
+    /// <b>The lip and the drawn dirt agree again, on the compact field as on the shipped one.</b>
+    /// The lip is a rule and the dirt is a picture, and until #729 they were authored in different
+    /// places: the lip in <c>flight.classes.infieldLipFt</c>, the dirt in <c>ParkDiamond.BackR</c>,
+    /// a C# constant no overlay could reach. That is why they came apart, and the sequence is worth
+    /// keeping because each step was somebody's slice.
     ///
     /// <para>
-    /// <b>#729</b> is the issue that closes it, and this pins the target: <c>BackR</c> on the basepath
-    /// scale is 81.78, which puts the lip back 2.22 ft outside — the shipped 2.50 × 8/9, exactly. It
-    /// does not follow that #729 must move the <i>shipped</i> dress; 92 × 80/90 is exact either way,
-    /// so deriving from <c>BaselineFt</c> leaves shipped at 92. That is #729's design question, not
-    /// this slice's.
+    /// Shipped, the lip sits 2.50 ft outside the farthest dirt. #717 pulled the dirt in with the
+    /// mound and left the lip at 155, widening the gap to 9.22 ft. #728 moved the lip to 137.78 and
+    /// flipped the sign — 8.00 ft <i>inside</i> the dirt, so a fly landing on drawn dirt past the
+    /// lip was classified a fly. #729 put the dress in <c>infield.json</c> too, and the margin comes
+    /// back to 2.22 ft outside: the shipped 2.50 × 8/9, exactly.
     /// </para>
     ///
     /// <para>
-    /// Recorded because the #730 packet predicted the wrong failure here: it named
+    /// Kept because the #730 packet predicted the wrong failure here. It named
     /// <c>ParkDiamond.TrackIsInsideTheWall</c> and <c>ParkDiamondTests</c> as the tests that would
     /// catch a lip moving without its dress. Both are <c>&gt;</c> comparisons against the lip, so
-    /// lowering it only widens their margin — they cannot fail, and no assertion in the suite sees
-    /// this inversion. This one does.
+    /// lowering it only widens their margin — they cannot fail, and nothing else in the suite sees
+    /// this. This does.
     /// </para>
     /// </summary>
     [Fact]
-    public void TheMigratedLipFallsInsideTheDirtUntilTheDressFollowsIt()
+    public void TheLipAndTheDrawnDirtAgreeOnBothFields()
     {
-        const double backR = ParkDiamond.BackR;
-
-        var shippedDirt = Control.Rules.Infield.MoundFt + backR;
-        var trialDirt = Trial.Rules.Infield.MoundFt + backR;
+        var shippedDirt = Control.Rules.Infield.MoundFt + Control.Rules.Infield.BackArcFt;
+        var trialDirt = Trial.Rules.Infield.MoundFt + Trial.Rules.Infield.BackArcFt;
         Assert.Equal(152.50, shippedDirt, 2);
-        Assert.Equal(145.78, trialDirt, 2);
+        Assert.Equal(135.56, trialDirt, 2);
+
+        // ParkDiamond reads the process-wide shipped table, so it agrees with the control side.
         Assert.Equal(ParkDiamond.DirtMaxZ, shippedDirt, 2);
 
-        // Shipped: the lip is outside the dirt, which is the agreement #728 restores.
+        // Both fields now put the lip just outside the dirt, and by the same factor.
         Assert.Equal(2.50, Control.Rules.Flight.Classes.InfieldLipFt - shippedDirt, 2);
+        Assert.Equal(2.22, MigratedLip - trialDirt, 2);
+        Assert.Equal(2.50 * Infield, MigratedLip - trialDirt, 2);
 
-        // #717's trial: the dirt came in, the lip did not, and the gap grew.
-        Assert.Equal(9.22, 155 - trialDirt, 2);
-
-        // #728: the sign flips. This is the effect the slice reports rather than repairs.
-        Assert.Equal(-8.00, MigratedLip - trialDirt, 2);
-
-        // #729's target, and the proof it lands on the shipped margin exactly.
-        var dressedDirt = Trial.Rules.Infield.MoundFt + Math.Round(backR * Infield, 2);
-        Assert.Equal(135.56, dressedDirt, 2);
-        Assert.Equal(2.22, MigratedLip - dressedDirt, 2);
-        Assert.Equal(2.50 * 8 / 9, MigratedLip - dressedDirt, 2);
+        // The two steps that got here, kept on the record so 3d can attribute them.
+        var undressedDirt = Control.Rules.Infield.MoundFt * Infield + Control.Rules.Infield.BackArcFt;
+        Assert.Equal(145.78, undressedDirt, 2);
+        Assert.Equal(9.22, 155 - undressedDirt, 2);            // #717: the dirt moved, the lip did not
+        Assert.Equal(-8.00, MigratedLip - undressedDirt, 2);   // #728: the lip moved, the dirt did not
     }
 
     /// <summary>

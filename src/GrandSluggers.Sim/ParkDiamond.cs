@@ -9,15 +9,19 @@ public static class ParkDiamond
 {
     /// <summary>
     /// Grass Y: L1 diamond around second/mound. Bags sit outside this, on the dirt.
+    /// <c>data/rules/infield.json</c> carries it (#729), because it is measured from the bags and
+    /// has to travel with them.
     /// </summary>
-    public const float InnerHalf = 50f;
+    public static float InnerHalf => (float)Rules.Default.Infield.InnerHalfFt;
     /// <summary>Home→1B / home→3B path width. Thin legs along the foul lines.</summary>
     public const float PathWidth = 10f;
     /// <summary>
     /// Outer arc of the 1B–2B–3B dirt, from the mound. Farther than the
     /// home legs so the back of the diamond is a curve, not a matching frame.
+    /// <c>data/rules/infield.json</c> carries it (#729), for the same reason as
+    /// <see cref="InnerHalf"/>: it is measured from the mound, which moved.
     /// </summary>
-    public const float BackR = 92f;
+    public static float BackR => (float)Rules.Default.Infield.BackArcFt;
     /// <summary>Round dirt at each bag. Joins the thin paths to the back arc.</summary>
     public const float BagPadR = 12f;
     public const int SkinLoopSegs = 72;
