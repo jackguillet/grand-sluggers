@@ -23,6 +23,14 @@ jobs:
       - run: dotnet test src/GrandSluggers.Sim.Tests/GrandSluggers.Sim.Tests.csproj
       - run: dotnet run --project src/GrandSluggers.Cli -- art
       - run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
+      # Both research evidence files seal the sources they were derived from.
+      # Refresh order matters: the compact-field report asserts the flight seals
+      # inside derive(), so a stale flight file blocks it in either mode. Regenerate
+      # with the probe's --write first, then run the report with no flag.
+      - name: Flight evidence seals are current
+        run: dotnet run --project tools/game-feel-flight-probes -- --check
+      - name: Compact field evidence seals are current
+        run: python3 tools/compact-field-report.py --check
 
   unity-project:
     if: vars.UNITY_VALIDATION_ENABLED == 'true'
