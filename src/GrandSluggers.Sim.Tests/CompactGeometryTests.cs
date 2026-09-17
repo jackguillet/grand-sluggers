@@ -50,21 +50,22 @@ public sealed class CompactGeometryTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// Eleven files, named. The tree is the declaration (#716), so this list is also the answer to
-    /// "what is this trial changing?" — and a slice that quietly carried a twelfth would show up
+    /// Twelve files, named. The tree is the declaration (#716), so this list is also the answer to
+    /// "what is this trial changing?" — and a slice that quietly carried a thirteenth would show up
     /// here rather than in a trace nobody could attribute. It was eight until #725 added the fielder
-    /// starts, nine until #732 carried the fielding table for the hazard reach pad, and ten until
-    /// #722 carried the CPU table for the throw reads; the count is in the name so growing it is a
-    /// rename somebody has to mean.
+    /// starts, nine until #732 carried the fielding table for the hazard reach pad, ten until #722
+    /// carried the CPU table for the throw reads, and eleven until #732 carried the running table for
+    /// the tag-up race; the count is in the name so growing it is a rename somebody has to mean.
     /// </summary>
     [Fact]
-    public void TheTrialCarriesElevenFilesAndNoOthers()
+    public void TheTrialCarriesTwelveFilesAndNoOthers()
     {
         Assert.Equal(
             [
                 "parks/canopy-yard.json", "parks/crystal-rink.json", "parks/ember-keep.json",
                 "parks/funfair-park.json", "parks/harbor-diamond.json", "parks/rooftop-city.json",
-                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"
+                "rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json",
+                "rules/running.json"
             ],
             Root.Overrides);
     }
@@ -165,11 +166,12 @@ public sealed class CompactGeometryTests
 
         // #729's own claim, which #725 and #732 did not change: the dress rides in infield.json rather
         // than a file of its own. Named rather than counted, because the total is
-        // TheTrialCarriesElevenFilesAndNoOthers's to say — it went from eight to nine when #725 added
-        // rules/fielders.json, to ten when #732 added rules/fielding.json and to eleven when #722 added
-        // rules/cpu.json, and this line used to assert that count a second time.
+        // TheTrialCarriesTwelveFilesAndNoOthers's to say — it went from eight to nine when #725 added
+        // rules/fielders.json, to ten when #732 added rules/fielding.json, to eleven when #722 added
+        // rules/cpu.json and to twelve when #732 added rules/running.json, and this line used to assert
+        // that count a second time.
         Assert.Equal(
-            ["rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json"],
+            ["rules/cpu.json", "rules/fielders.json", "rules/fielding.json", "rules/flight.json", "rules/infield.json", "rules/running.json"],
             Root.Overrides.Where(f => f.StartsWith("rules/", StringComparison.Ordinal)));
     }
 
@@ -407,6 +409,30 @@ public sealed class CompactGeometryTests
     }
 
     /// <summary>
+    /// <b>The running table enters the overlay for the tag-up race (#732, decision 5 of #730), and its clock
+    /// does not move.</b> The two carry gates go to never and the two race thresholds are authored; every
+    /// other leaf — <c>bagSec</c> above all, the C80 anchor — is the shipped value, checked by name.
+    /// </summary>
+    [Fact]
+    public void TheTrialRunningTableIsTheShippedClockWithTheTagUpRaceSwitchedOn()
+    {
+        var shipped = Leaves(Path.Combine(Shipped, "rules", "running.json"));
+        var trial = Leaves(Path.Combine(Overlay, "rules", "running.json"));
+        Assert.Equal(shipped.Keys, trial.Keys);
+        var moved = shipped.Where(kv => trial[kv.Key] != kv.Value).Select(kv => kv.Key).ToList();
+        Assert.Equal(
+            ["cpu.tagSecondMinCarryFt", "cpu.tagThirdMinCarryFt", "cpu.tagUpHomeMarginSec", "cpu.tagUpThirdMarginSec"],
+            moved);
+        Assert.Equal(("200", "9999"), (shipped["cpu.tagThirdMinCarryFt"], trial["cpu.tagThirdMinCarryFt"]));
+        Assert.Equal(("250", "9999"), (shipped["cpu.tagSecondMinCarryFt"], trial["cpu.tagSecondMinCarryFt"]));
+        Assert.Equal(("99", "0.25"), (shipped["cpu.tagUpHomeMarginSec"], trial["cpu.tagUpHomeMarginSec"]));
+        Assert.Equal(("99", "0.07"), (shipped["cpu.tagUpThirdMarginSec"], trial["cpu.tagUpThirdMarginSec"]));
+        foreach (var key in shipped.Keys.Where(k => k.StartsWith("bagSec.", StringComparison.Ordinal)))
+            Assert.Equal(shipped[key], trial[key]);
+        Assert.Equal("3.55", trial["bagSec.baseSec"]);
+    }
+
+    /// <summary>
     /// The disc a barrel actually catches with, through <see cref="ParkHazards.WarpIfPipe"/> rather
     /// than arithmetic: a ball 12.9 ft from a shipped Canopy barrel warps and 13.1 does not; 9.0 ft
     /// from the compact one warps and 9.2 does not. Funfair's pipes go 12.00 → 8.40 the same way.
@@ -556,6 +582,9 @@ public sealed class CompactGeometryTests
     /// <summary>
     /// No exit-table change: <c>batting.json</c> is not carried, so every contact leaves the bat at
     /// exactly the speed it leaves at today. This is what lets the slice claim that only drag moved.
+    /// #717 also asserted here that <c>running.json</c> was not carried at all; #732 carries it for the
+    /// tag-up race (decision 5 of #730) with every clock key byte-identical, so the claim that assertion
+    /// protected — the runner clock is the C80 anchor and does not move — is now checked on the values.
     /// </summary>
     [Fact]
     public void TheExitTableIsUntouchedAtEveryPowerAndQuality()
@@ -563,7 +592,13 @@ public sealed class CompactGeometryTests
         var control = Control.Rules.Batting;
         var trial = Trial.Rules.Batting;
         Assert.False(Root.Overridden("rules", "batting.json"));
-        Assert.False(Root.Overridden("rules", "running.json"));
+        Assert.True(Root.Overridden("rules", "running.json"));
+        var bag = Control.Rules.Running.BagSec;
+        var trialBag = Trial.Rules.Running.BagSec;
+        Assert.Equal(
+            (bag.BaseSec, bag.SecPerRun, bag.MinSec, bag.MaxSec, bag.DashMul, bag.BatterStartSec, bag.NoPassFt),
+            (trialBag.BaseSec, trialBag.SecPerRun, trialBag.MinSec, trialBag.MaxSec, trialBag.DashMul, trialBag.BatterStartSec, trialBag.NoPassFt));
+        Assert.Equal(3.55, trialBag.BaseSec);
 
         for (var power = 1; power <= 10; power++)
             foreach (var (c, t) in new[]

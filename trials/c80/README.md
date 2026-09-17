@@ -50,7 +50,7 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries eleven now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries twelve now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
@@ -59,6 +59,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | --- | --- |
 | `rules/cpu.json` | the CPU's read of a throw (#722): `relayBiasSec` 0.3 / 0.1 / 0 by rung, `runnerReadsArm` 0.5 / 1 / 1, `runnerReadsRelay` 0 / 1 / 1, `readsChemistry` 0 / 1 / 1. Nothing else in the table; the rung stays normal. |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
+| `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
 | `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, and the forced-relay ceiling `throw.onTheFlyFt` set to never. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
@@ -87,8 +88,9 @@ code and overturned that; #732 scaled them, in its own section below.) Harbor ha
 reference park is untouched either way.
 
 **The runner clock is not retuned here.** Elapsed pace is the C80 anchor, so a Run-5 bag stays
-2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` is not
-carried.
+2.95 s and linear speed falls from 30.51 to 27.12 ft/s on the shorter path. `running.json` was not
+carried by this slice; #732 carried it later for the tag-up race with every clock key byte-identical,
+which keeps the anchor (its section is below).
 
 **What this slice left to other issues, and what it cost.** `Diamond.Positions` stood the nine
 fielders at their 90-ft spots — they were C# literals, not data, so no overlay could move them.
@@ -378,3 +380,47 @@ geometry.
 
 **What slice 3 does.** The two tag-up carry gates become margins on this estimate, and `running.json`
 enters the overlay with its clock keys byte-identical.
+
+---
+
+[#732](https://github.com/jackguillet/grand-sluggers/issues/732) — the tag-up as a race (decision 5 of
+[#730](https://github.com/jackguillet/grand-sluggers/issues/730)). `rules/running.json` joins the overlay as
+the twelfth file. Its two carry gates go to never and two new thresholds are authored; **every clock key is the
+shipped value, byte for byte**, because the runner clock is the C80 anchor, and a test now checks that on the
+values rather than on the file's absence.
+
+**The rule.** At the catch — once — a CPU runner on third or second goes when `margin(next)` clears the bag's
+threshold plus the rung's `runnerMarginSec`. The margin is the same estimate every other CPU runner read uses:
+the defense's arrival at the bag, thrower's arm and the fielder's relay read since #722, minus the runner's own.
+A body held at the catch is not sent by a later event. The shipped table sets the thresholds to 99, a margin no
+play reaches, so it decides by the two carry gates exactly as it always did — 20 `cli match` seeds and all 50
+S-29 cohort games identical to pristine `main`.
+
+**Where the numbers come from.** A sweep under this overlay with the thresholds at −99, so every runner raced:
+konga, cinder and dart on third and on second, flies to left (vine, Arm 8), centre (moss, Arm 4) and right (hex,
+Arm 4 with Laser), six depths from 185 to 260 ft — 108 races. Read margin against outcome:
+
+| Race | every OUT was read at or below | every safe at or above | crossover |
+| --- | --- | --- | --- |
+| third → home | +0.114 | −0.037 | about +0.10 |
+| second → third | −0.099 | −0.111 | about −0.08 |
+
+The thresholds are **0.25 home / 0.07 third**: the hard rung (−0.15) sits on the crossover, because a race has a
+right answer and the best judge should be on it; normal holds 0.15 s longer and easy 0.30 s longer while reading
+half the arm and no relay. Verified under the overlay on each rung:
+
+| Rung | home: sent / safe / out | third: sent / safe / out |
+| --- | --- | --- |
+| hard | 31 / 30 / 1 | 8 / 8 / 0 |
+| normal | 28 / 28 / 0 (holds 4 who were safe) | 8 / 8 / 0 |
+| easy | 29 / 29 / 0 | 11 / 9 / 2 (its worse read) |
+
+For normal on the crossover instead, author 0.10 and −0.08. S-54's own play at 215 ft to left under normal: konga
+reads −0.25 and holds, cinder +0.11 and holds, dart +0.59 and goes; the shipped rule sent all three.
+
+**What it does to a run.** 2 of 48 trial seeds diverge from slice 2; the S-29 cohort under the trial moves
+**0.82 / 1.30 → 0.90 / 1.24** with 47 of 50 scorelines unchanged; across the 48 seeds the runner tagged out at
+home goes 11 → 9 and the fly-out double play 2 → 0. The control is unchanged.
+
+**What is deliberately not here.** A runner on first has no race (the threshold is infinite); the late break on
+a throw to the cutoff is shut by design; both are new behaviour for their own rows if wanted.
