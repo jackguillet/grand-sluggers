@@ -1079,8 +1079,9 @@ promotion, when the copy becomes the table they name.
 ---
 
 **The diver does not coast (#715, found beside the hand-off coast / idle brake overlap).** One guard in `HandGloveTo`
-(`LivePlaySystem.Field.cs`): a body still paying its dive's recovery (`DiveRecoveryT > 0`, `DivingPos`) keeps no coast when the
-ring leaves it. No data change. The shipped table owes no recovery, so the guard is never true there.
+(`LivePlaySystem.Field.cs`): a body in its dive keeps no coast when the ring leaves it. "In its dive" is the recovery the copy's
+diver still owes (`DiveRecoveryT > 0`, `DivingPos`), and, on every table, the dive's arm window (`DiveT > 0`) for the body that
+lunged (`_lungePos`). No data change. The second half repairs the shipped table too, on Jack's word (2026-09-18).
 
 **The defect.** The coast (§8.9) keeps "the glove's velocity": the last frame's displacement over the frame. Under the copy's
 deliberate dive (#719) that last frame can be the lunge, 9.8 ft in one frame, which reads as about 590 ft/s. When the dive
@@ -1094,19 +1095,33 @@ while his recovery was still running, stood two frames, then "braked" from 590 f
 | 70 mph / 20° / 0° | the copy | 2B → CF | the same | under 1.5 ft |
 | 80 mph / 14° / −18° | the hybrid (plain process) | SS → LF, frame 51 | 151.0 ft | under 1.5 ft |
 
-Those four are the rows of `DiveHandoffCoastTests` (`[Trait("Rows", "compact")]`, root-aware): the dive misses, the ring leaves
-on the next frame, and the diver stays within 1.5 ft of where he lunged (the brake's drift) and never moves faster than the
-fastest legs on his defense. Each row fails without the guard.
+**The shipped table had the same slide with a human seat.** The shipped CPU cannot produce it: its dive is free, automatic and
+always takes the ball on the lunge frame, and the only hand-off after that is the throw's release, which has no coast (0 of
+1 456 CPU plays). A human could: East lunges 10 ft with no recovery, and a hand-off with a coast on the next frame carried the
+lunge as a velocity.
+
+| Human glove, 80 mph / 14° / −18°, shipped table | Before | After |
+| --- | --- | --- |
+| Stick runs SS, East, then the stick released (the assistance hands SS → LF on the next frame) | SS slides 9.54 ft a frame for 12 frames: 124.0 ft with the lunge, then a dead stop | no step over 1 ft |
+| East on LF, then Select on the next frame (LF → CF) | LF slides 10.21 ft a frame: 132.8 ft with the lunge | no step over 1 ft |
+
+What changes for a shipped human: a body that dove, and whose ring leaves inside the 0.5 s arm window, stops where it is; it
+no longer coasts 0.2 s. That is also true if he ran on after the lunge (the shipped dive owes no recovery), at his own speed.
+The window is the diver's own: a body that takes the ring after a dive still coasts when the ring leaves it.
+
+`DiveHandoffCoastTests` (`[Trait("Rows", "compact")]`, root-aware) holds the four CPU rows above, East-then-Select on this
+process's table (LF on the shipped diamond, SS on the copy), and the released stick on the shipped table. Every row fails
+without its half of the guard.
 
 **Evidence.**
 
 | Check | Result |
 | --- | --- |
-| `dotnet test GrandSluggers.sln -c Release` | 1319 of 1319 |
-| `--filter "Rows=compact"` under the trial root | 142 of 142 (139 on main + these 3) |
-| Control, 20 seeds and the three cohorts | byte-identical to main (cohort JSON: `moduleId` only) |
+| `dotnet test GrandSluggers.sln -c Release` | 1321 of 1321 |
+| `--filter "Rows=compact&Copy!=gap"` under the trial root | 304 of 304 (299 on main + these 5) |
+| Control, 20 seeds and the three cohorts | byte-identical to main (cohort JSON: the identity block's `moduleId` and `build` only); CPU games never hand a ring off inside a shipped dive |
 | Trial, 48 seeds | 0 of 48 move |
-| Trial cohorts | identical to main but for `moduleId`: S-29 2.46 / 2.36, harbor-calibration 2.10 / 2.16, harbor-validation 2.02 / 2.42 |
+| Trial cohorts | identical to main but for the identity block: S-29 2.46 / 2.36, harbor-calibration 2.10 / 2.16, harbor-validation 2.02 / 2.42 |
 | Grid, 1 456 CPU plays on the copy | 111 dive commits, 3 rings left a recovering diver; off-ring steps over 1 ft a frame: 3 before, 0 after (worst 0.58 ft) |
 | The same grid on the hybrid | 39 commits, 8 such hand-offs; 0 after |
 | Sealed packets | one sha line moved (`LivePlaySystem.Field.cs` in `game-feel-708-derived.json`); all three `--check` pass |
@@ -1114,16 +1129,3 @@ fastest legs on his defense. Each row fails without the guard.
 The path is live in real games: in the 150 cohort games on the copy the ring left a recovering diver 15 times, 13 of them at
 557 to 598 ft/s. No result moved, because the diver owes his recovery and is in no cover, cutoff or backup while he slides. It
 was a picture defect: a body crossing the infield in a fifth of a second.
-
-**Finding, reported and not repaired: the shipped table has the same slide with a human seat.** The shipped CPU cannot produce
-it: its dive is free, automatic and always takes the ball on the lunge frame, and the only hand-off after that is the throw's
-release, which has no coast (0 of 1 456 CPU plays). A human can: East lunges 10 ft with no recovery, and a hand-off with a coast
-on the next frame carries the lunge as a velocity.
-
-| Shipped table, human glove, 80 mph / 14° / −18° | Result |
-| --- | --- |
-| Stick runs SS, East, then the stick released (the assistance hands SS → LF) | SS slides 9.54 ft a frame for 12 frames: 124.0 ft with the lunge, then a dead stop |
-| East on LF, then Select on the next frame (LF → CF) | LF slides 10.21 ft a frame: 132.8 ft with the lunge |
-
-The repair there is the same guard read off `DiveT > 0` (or a cap at the body's rated speed). It changes shipped behaviour, so
-it waits for Jack's word.

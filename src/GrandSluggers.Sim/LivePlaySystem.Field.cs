@@ -152,6 +152,8 @@ public sealed partial class LivePlaySystem
     string _coastPos = "";
     (double X, double Z) _coastVel;
     double _coastT;
+    /// <summary>The body whose lunge armed <see cref="DiveT"/>: the dive is that body's, wherever the ring goes next.</summary>
+    string _lungePos = "";
     /// <summary>Each body's velocity under the response law (#718), ft/s. Empty on the shipped table, whose steps are instantaneous.</summary>
     readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
@@ -529,6 +531,7 @@ public sealed partial class LivePlaySystem
         DiveT = JumpT = SwapLock = RecoilT = 0;
         DiveRecoveryT = 0;
         DivingPos = "";
+        _lungePos = "";
         ImpactRecoil = false;
         RecoilDur = 0;
         IncomingFtPerSec = 0;
@@ -1875,16 +1878,17 @@ public sealed partial class LivePlaySystem
     /// <summary>
     /// The play glove (and the YOU ring) moves to another body; every body stays where it stands. The body the ring left keeps its
     /// velocity for <c>chase.handoffCoastSec</c> (§8.9) unless <paramref name="coast"/> is off: a throw's release, where the thrower stays put (§8.5).
-    /// A diver still paying its recovery never coasts.
+    /// A body in its dive (<see cref="DiveT"/>), or still paying the dive's recovery, never coasts.
     /// </summary>
     void HandGloveTo(string pos, bool coast = true)
     {
         if (pos == GlovePos) return;
         _receivedClean = false;
         _fielders[GlovePos] = (GloveX, GloveZ);
-        // A body paying its dive's recovery is on the ground (#719): it does not coast. Its last frame was the lunge — a
-        // displacement, not a run — and read as a velocity it slid the diver a hundred feet. No recovery is owed on the shipped table.
-        var down = DiveRecoveryT > 0 && DivingPos == GlovePos;
+        // A body in its dive is on the ground: it does not coast. Its last frame can be the lunge — a displacement, not a
+        // run — and read as a velocity it slid the diver a hundred feet. The dive's arm window on every table (East on the
+        // shipped one, where the dive costs nothing), and the recovery the c80 copy's diver still owes after it (#719).
+        var down = DiveT > 0 && _lungePos == GlovePos || DiveRecoveryT > 0 && DivingPos == GlovePos;
         if (coast && !down && (_gloveVel.X != 0 || _gloveVel.Z != 0))
         {
             _coastPos = GlovePos;
@@ -2450,6 +2454,7 @@ public sealed partial class LivePlaySystem
         var lunged = FieldDash.Lunge(GloveX, GloveZ, toX, toZ, R.Fielding.Dash.DiveLungeFt);
         GloveX = lunged.X;
         GloveZ = lunged.Z;
+        _lungePos = GlovePos;
         _fielders[GlovePos] = (GloveX, GloveZ);
     }
 
