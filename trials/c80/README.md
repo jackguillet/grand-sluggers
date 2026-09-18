@@ -1075,3 +1075,55 @@ four slices, 373 tests in the copy's CI run. 103 tests fail under the overlay to
 the foul rail's taper) and 100 that name the shipped table on purpose (`CompactGeometryTests`, the 3c slice tests with
 `Control = ContentCatalog.Load()`, `InfieldGeometryTests`, `TrialOverlayTests`, and the like). Those are restructured at
 promotion, when the copy becomes the table they name.
+
+---
+
+**The diver does not coast (#715, found beside the hand-off coast / idle brake overlap).** One guard in `HandGloveTo`
+(`LivePlaySystem.Field.cs`): a body still paying its dive's recovery (`DiveRecoveryT > 0`, `DivingPos`) keeps no coast when the
+ring leaves it. No data change. The shipped table owes no recovery, so the guard is never true there.
+
+**The defect.** The coast (§8.9) keeps "the glove's velocity": the last frame's displacement over the frame. Under the copy's
+deliberate dive (#719) that last frame can be the lunge, 9.8 ft in one frame, which reads as about 590 ft/s. When the dive
+misses and `TryHandoffOutfield` moves the ring on the next frame, the diver slid 9.87 ft a frame for the coast's 12 frames
+while his recovery was still running, stood two frames, then "braked" from 590 ft/s under the response law (#718).
+
+| Fixture (CPU seats, Harbor, the `ResponseLawTests` teams) | Root | Ring | Before | After |
+| --- | --- | --- | --- | --- |
+| 70 mph / 20° / −8° | the copy | SS → LF, frame 140 | SS ends behind the plate; the three copy rows are 145.8 to 151.9 ft from the lunge | under 1.5 ft |
+| 70 mph / 20° / −32° | the copy | SS → LF | the same | under 1.5 ft |
+| 70 mph / 20° / 0° | the copy | 2B → CF | the same | under 1.5 ft |
+| 80 mph / 14° / −18° | the hybrid (plain process) | SS → LF, frame 51 | 151.0 ft | under 1.5 ft |
+
+Those four are the rows of `DiveHandoffCoastTests` (`[Trait("Rows", "compact")]`, root-aware): the dive misses, the ring leaves
+on the next frame, and the diver stays within 1.5 ft of where he lunged (the brake's drift) and never moves faster than the
+fastest legs on his defense. Each row fails without the guard.
+
+**Evidence.**
+
+| Check | Result |
+| --- | --- |
+| `dotnet test GrandSluggers.sln -c Release` | 1319 of 1319 |
+| `--filter "Rows=compact"` under the trial root | 142 of 142 (139 on main + these 3) |
+| Control, 20 seeds and the three cohorts | byte-identical to main (cohort JSON: `moduleId` only) |
+| Trial, 48 seeds | 0 of 48 move |
+| Trial cohorts | identical to main but for `moduleId`: S-29 2.46 / 2.36, harbor-calibration 2.10 / 2.16, harbor-validation 2.02 / 2.42 |
+| Grid, 1 456 CPU plays on the copy | 111 dive commits, 3 rings left a recovering diver; off-ring steps over 1 ft a frame: 3 before, 0 after (worst 0.58 ft) |
+| The same grid on the hybrid | 39 commits, 8 such hand-offs; 0 after |
+| Sealed packets | one sha line moved (`LivePlaySystem.Field.cs` in `game-feel-708-derived.json`); all three `--check` pass |
+
+The path is live in real games: in the 150 cohort games on the copy the ring left a recovering diver 15 times, 13 of them at
+557 to 598 ft/s. No result moved, because the diver owes his recovery and is in no cover, cutoff or backup while he slides. It
+was a picture defect: a body crossing the infield in a fifth of a second.
+
+**Finding, reported and not repaired: the shipped table has the same slide with a human seat.** The shipped CPU cannot produce
+it: its dive is free, automatic and always takes the ball on the lunge frame, and the only hand-off after that is the throw's
+release, which has no coast (0 of 1 456 CPU plays). A human can: East lunges 10 ft with no recovery, and a hand-off with a coast
+on the next frame carries the lunge as a velocity.
+
+| Shipped table, human glove, 80 mph / 14° / −18° | Result |
+| --- | --- |
+| Stick runs SS, East, then the stick released (the assistance hands SS → LF) | SS slides 9.54 ft a frame for 12 frames: 124.0 ft with the lunge, then a dead stop |
+| East on LF, then Select on the next frame (LF → CF) | LF slides 10.21 ft a frame: 132.8 ft with the lunge |
+
+The repair there is the same guard read off `DiveT > 0` (or a cap at the body's rated speed). It changes shipped behaviour, so
+it waits for Jack's word.

@@ -1875,13 +1875,17 @@ public sealed partial class LivePlaySystem
     /// <summary>
     /// The play glove (and the YOU ring) moves to another body; every body stays where it stands. The body the ring left keeps its
     /// velocity for <c>chase.handoffCoastSec</c> (§8.9) unless <paramref name="coast"/> is off: a throw's release, where the thrower stays put (§8.5).
+    /// A diver still paying its recovery never coasts.
     /// </summary>
     void HandGloveTo(string pos, bool coast = true)
     {
         if (pos == GlovePos) return;
         _receivedClean = false;
         _fielders[GlovePos] = (GloveX, GloveZ);
-        if (coast && (_gloveVel.X != 0 || _gloveVel.Z != 0))
+        // A body paying its dive's recovery is on the ground (#719): it does not coast. Its last frame was the lunge — a
+        // displacement, not a run — and read as a velocity it slid the diver a hundred feet. No recovery is owed on the shipped table.
+        var down = DiveRecoveryT > 0 && DivingPos == GlovePos;
+        if (coast && !down && (_gloveVel.X != 0 || _gloveVel.Z != 0))
         {
             _coastPos = GlovePos;
             _coastVel = _gloveVel;
