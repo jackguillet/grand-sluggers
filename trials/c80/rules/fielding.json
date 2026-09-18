@@ -239,10 +239,17 @@
   // 464 ground pickups): the onset 55 ft/s is the 90th percentile of every ground pickup's incoming speed — the hottest tenth
   // recoils, the rest is routine and costs nothing — and the full 75 ft/s is just past the hottest ball seen (73.0), so the cap
   // binds only on a true rocket. 11 % of the copy's CPU pickups recoil, none at the cap, 0.034 s among them; the shipped
-  // knockback stops 41 % of grounder pickups for 0.078 s on average.
+  // knockback stops 41 % of grounder pickups for 0.078 s on average. The airborne pair (slice 2, F693-02-grounded-air-catch-recoil)
+  // is measured the same way on the same runs, 531 catches in the air: flies, pops and wall balls arrive at 22–42 ft/s with a
+  // 0.59 vertical share and liners at p50 77 / p90 91 / max 110, so one pair cannot serve both — the ground pair would charge
+  // 99 % of liners and cap a fifth of all catches. airOnsetFtPerSec 80 is the 90th percentile of every catch in the air (the
+  // hottest tenth, 38 % of liners, no fly), airFullFtPerSec 115 just past the hottest catch seen (110.2). A dive, a jump or a
+  // buddy leap is not a grounded catch and pays its own price instead.
   "recoil": {
     "onsetFtPerSec": 55,
     "fullFtPerSec": 75,
+    "airOnsetFtPerSec": 80,
+    "airFullFtPerSec": 115,
     "capSec": 0.20,
     "handsCutPerPoint": 0.05,
     "kickFtPerSec": 10
