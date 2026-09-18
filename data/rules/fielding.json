@@ -87,6 +87,8 @@
     // the catch radius, and the rim is diveReachFt (#669).
     "windowPadFt": 4,
     "diveReachFt": 8,
+    // #719: the jump's horizontal allowance in the dirt window. The c80 copy carries 0 — its jump is the physical arc below,
+    // a rise and a landing, not eight feet of reach.
     "jumpReachFt": 8,
     "diveMaxBallY": 7.5,
     "needsJumpReachFt": 22,
@@ -120,7 +122,15 @@
     // Field point above 1: a dive is a press or the CPU's deliberate commitment on the live ball, and it costs, caught or missed.
     "autoDive": 1,
     "diveRecoverySec": 0,
-    "diveRecoveryFieldCut": 0
+    "diveRecoveryFieldCut": 0,
+    // #719 (F693-02-normal-jump-*): jumpAirSec 0 is the jump the game shipped with — West arms a window and the body never
+    // leaves the ground. trials/c80 carries 0.60: a fresh eligible press is a takeoff, 2.0 ft of root rise over 0.60 s, the
+    // same for every character; a blocked press is remembered 0.10 s; airborne the stick works at a tenth of the ground rates;
+    // a jumping catch throws after it lands. The rise and the air response are the accepted anchors in both roots.
+    "jumpAirSec": 0,
+    "jumpRiseFt": 2.0,
+    "jumpBufferSec": 0,
+    "jumpAirResponseMul": 0.10
   },
   "drops": {
     "heatball": 0.35,

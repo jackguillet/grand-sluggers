@@ -1280,6 +1280,21 @@ public sealed class CatchRules
     public double DiveRecoverySec { get; init; } = 0;
     /// <summary>The cost shortens by this fraction of itself per Field point above 1 (2.5 % in the c80 copy: 0.60 at Field 1 to 0.465 at 10).</summary>
     [Chance] public double DiveRecoveryFieldCut { get; init; } = 0;
+    /// <summary>
+    /// The normal jump's airtime (#719, F693-02-normal-jump-*): 0 is the jump the game shipped with — West arms a window of
+    /// <c>jumpArmSec</c> and the body never leaves the ground; above 0 a fresh eligible West press is a takeoff with no added
+    /// startup, the body is airborne this long with a root rise of <c>jumpRiseFt</c> (<c>h = 4 H u (1 − u)</c>), the same for
+    /// every character, one profile per press, and a jumping catch throws only after it has landed. The c80 copy carries 0.60.
+    /// </summary>
+    public double JumpAirSec { get; init; } = 0;
+    /// <summary>The root rise at the apex of the normal jump, in feet: 2.0 in both roots, read only above <c>jumpAirSec</c> 0.</summary>
+    [Positive] public double JumpRiseFt { get; init; } = 2.0;
+    /// <summary>A fresh grounded West press blocked by the read or a recovery is remembered this long, inclusive, and takes off at the first eligible instant (F693-02-normal-jump-input-buffer). 0 shipped: no buffer; the c80 copy carries 0.10.</summary>
+    public double JumpBufferSec { get; init; } = 0;
+    /// <summary>Airborne, the body answers the stick at this fraction of its ground rates (F693-02-normal-jump-air-response-trial): 0.10 in both roots, read only above <c>jumpAirSec</c> 0.</summary>
+    [Chance] public double JumpAirResponseMul { get; init; } = 0.10;
+    /// <summary>The physical normal jump is on above <c>jumpAirSec</c> 0; at 0 the jump is the arm window the game shipped with.</summary>
+    public bool JumpArc => JumpAirSec > 0;
 }
 
 /// <summary>Field dash, buddy toss, kick, and the dive lunge (§8.1, §8.4, §8.7).</summary>
