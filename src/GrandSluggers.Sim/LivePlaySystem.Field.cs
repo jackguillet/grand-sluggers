@@ -3099,6 +3099,13 @@ public sealed partial class LivePlaySystem
                 _recoilArmed = true;
                 ArmImpact(GloveChar());
             }
+            // A hard ball caught in the air by a body on its feet (F693-02-grounded-air-catch-recoil, #720 slice 2): the same
+            // response off the airborne anchors. A dive, a jump, a buddy leap or a body still in the air is not this take.
+            else if (!landed && R.Fielding.Recoil.AirActive && Hit is not null && Grounded)
+            {
+                _recoilArmed = true;
+                ArmImpact(GloveChar(), airborne: true);
+            }
             return;
         }
         _recoilArmed = true;
@@ -3146,9 +3153,9 @@ public sealed partial class LivePlaySystem
     /// is <c>kickFtPerSec × w</c> along the ball's horizontal travel, slowing linearly to rest over the recovery (<c>w²</c>
     /// feet); a purely vertical arrival supplies no kick. Steering and the throw start wait for it; possession does not.
     /// </summary>
-    void ArmImpact(Character who)
+    void ArmImpact(Character who, bool airborne = false)
     {
-        var w = FieldingResolver.RecoilWeight(who, IncomingFtPerSec, R);
+        var w = FieldingResolver.RecoilWeight(who, IncomingFtPerSec, R, airborne);
         if (w <= 0) return;
         RecoilDur = R.Fielding.Recoil.CapSec * w;
         RecoilT = RecoilDur;
@@ -3165,6 +3172,9 @@ public sealed partial class LivePlaySystem
     /// from t to t + dt — moves the body and the ball in its glove: one path, on top of whatever the idle brake left of the
     /// body's own locomotion (F693-02-ordinary-recoil-motion-profile). At readiness the intent resumes from the actual velocity.
     /// </summary>
+    /// <summary>On its feet at the take: not airborne on a jump, not in a jump or dive window, not a diving or jumping catch.</summary>
+    bool Grounded => !Airborne && JumpT <= 0 && DiveT <= 0 && !CatchDive && !CatchJump;
+
     void TickImpactRecoil(double dt)
     {
         var t0 = Math.Clamp(RecoilDur - RecoilT, 0, RecoilDur);

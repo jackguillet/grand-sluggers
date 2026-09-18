@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read — with the airborne pair `airOnsetFtPerSec` 80, `airFullFtPerSec` 115. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -733,3 +733,33 @@ whole-tick stop they always had. `LiveEvent.ImpactRecoil` is the client's tell; 
 **Left.** Slice 2: the hard airborne catch by a grounded fielder (F693-02-grounded-air-catch-recoil) with its own anchor pair.
 The specials — composition, resistance, pushback possession, repeat eligibility — stay unwritten until
 F693-02-special-attack-contracts. The Unity pass owes the `ImpactRecoil` tell.
+
+---
+
+[#720](https://github.com/jackguillet/grand-sluggers/issues/720) — slice 2, the hard catch in the air by a body on its feet
+(F693-02-grounded-air-catch-recoil). One file, `rules/fielding.json`: two new keys in the `recoil` block of both roots, both moved.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `recoil.airOnsetFtPerSec`, `airFullFtPerSec` | 0, 0 — no catch in the air recoils, as the game shipped | **80, 115** — a batted ball caught in the air by a body on its feet costs the hands the same response as a hot ground pickup, off this pair: `S = clamp((v − 80) / 35, 0, 1)`, then the same `w`, `0.20 w` s, `10 w` ft/s kick and `w²` ft skid |
+
+**Where the anchors come from, and why a second pair.** The same probe as slice 1, the same 48 runs on this copy: 531 catches
+in the air. Flies, pops and wall balls come down at 22–42 ft/s with a 0.59 vertical share; liners arrive at p10 67 / p50 77 /
+p90 91 / max 110. The ground pair cannot serve — at 55 / 75 it would charge 99 % of liners and cap a fifth of all catches in
+the air. So the air reads its own: **80** is the 90th percentile of every catch in the air (the hottest tenth — 38 % of liners,
+no fly, no pop), **115** just past the hottest catch seen (110.2). On the copy's CPU play 13.7 % of catches in the air recoil,
+none at the cap, 0.033 s among them. The decision's question — can one pair work for both? — is answered no, by measurement.
+
+**What the seat gets.** `ArmRecoil` arms the same `ArmImpact` for a take in the air when the body is `Grounded`: not airborne on
+a jump, no jump or dive window open, not a diving or jumping catch, not the buddy leap. A standing shortstop takes an 80-mph
+liner at 98 ft/s and pays 0.079 s (Hands 6); a right fielder takes a 122 ft/s rope at the cap, 0.17 s (Hands 4); the centre
+fielder who dives on the #719 gap liner at 85 ft/s pays nothing here — the dive's own 0.555 s is his price. The catch is the out
+at the take; the throw waits for the recovery, with a South inside the buffer remembered; the skid runs along the ball's
+horizontal travel, and a ball dropping straight down supplies no kick. A routine fly stays a routine fly on both tables.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run.** Nothing the CPU plays: 0 of 48 trial seeds and 0 of 50 cohort games move against #753 (S-29 stays 1.74 / 1.06). The recoil fires — about one catch in the air in seven, by the probe — but after a catch in the air nothing is racing the throw: the runners are getting back, the CPU's own reaction clock starts at readiness, and a delay of 0.03–0.17 s never turned a returning runner into an out in 48 games. A hot ground pickup races the batter to first, which is why slice 1 moved 5 seeds and this slice moves none. It shows on the human seat (`AirRecoilTests`) and in the trace's `RecoilRemainingSec`.
+
+**Left on #720.** The specials — composition, resistance, pushback possession, repeat eligibility — stay unwritten until
+F693-02-special-attack-contracts; nothing in `data/rules/` stands in for them. The Unity pass owes the `ImpactRecoil` tell.
