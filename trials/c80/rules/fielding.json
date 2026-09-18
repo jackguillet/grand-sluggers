@@ -17,7 +17,9 @@
     // the air runs at the one glove speed x this. S-29 seeds 1-5: 1.18 / 1.48 runs a side at 1.0 with the 0.83 s
     // read, 2.20 / 2.62 at 0.6 (P7's 2.4 s read at 1.0: 2.52 / 2.72). The fly stretch (flight.timeScale 1.1-1.65)
     // and the launch mix moved it under 0.2: the 2.4 s read had been giving away liners, not flies.
-    "outfieldAirMul": 0.6,
+    // #719 (Jack, 2026-09-17): one pursuit profile per body, in the air as on the dirt — the hit-class multipliers retire
+    // with the reach. Shipped 0.6 (#609) and 0.45 (#636) were the S-29 levers of a full-size field and 30.5 ft/s legs.
+    "outfieldAirMul": 1.0,
     // #636: the other half of the lever. Once the infield -> outfield hand-off honours the infielder's route in the air
     // (D17, S-97), an infielder under a ball on the stretched clock (a fly or a pop, flight.timeScale 1.65) runs at the
     // one glove speed x this; on a liner (its own clock, 1.0) an infielder runs the one speed, so the rope SS reaches
@@ -26,7 +28,7 @@
     // 0.45 2.64 / 2.32 and 2.16-2.72 a side over four seed sets with infield pops still caught (0.02-0.04 pop hits a
     // game); 0.4 2.72 / 2.12 and pops start to drop. A flat multiplier on every air ball drops liners in front of the
     // infield instead (hits inside the lip 0.04 -> 0.20 a game at 0.6).
-    "infieldAirMul": 0.45,
+    "infieldAirMul": 1.0,
     // #718 (F693-02-carry-movement-response): rest to the rated speed in 0.20 s, the rated speed to rest in 0.10 s; a reversal
     // is the brake and then the ramp. The pursuit planner charges half the ramp to every route.
     "accelSec": 0.20,
@@ -81,6 +83,9 @@
   "catch": {
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
+    // #719: the 6-ft stand-up reach, authored independently of ratings; a character's own reachFt still wins. The stack is
+    // 6 stand-up / 10 on the dirt (the 4-ft pad) / 14 with a dive (+8). Ability bonuses add to it as they always did.
+    "standUpReachFt": 6.0,
     "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
     // the catch radius, and the rim is diveReachFt (#669).

@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -599,3 +599,32 @@ takes the grounder for it meanwhile.
 **Left to the Unity pass.** The pause-menu entry that runs a calibration window and the unready tell on the HUD; and
 Unity's default stick processor (a 0.125 dead zone) still sits in front of the coordinate the sim calibrates — it has to
 come off the defense pad's stick for the 0.20 / 0.15 gates to mean what they say.
+
+---
+
+[#719](https://github.com/jackguillet/grand-sluggers/issues/719) — slice 1, passive coverage (F693-02-catch-reach-envelope,
+and Jack's air-multiplier addition of 2026-09-17). One file, `rules/fielding.json`: one new key in both roots, two
+existing keys moved on the trial.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `catch.standUpReachFt` (new) | 0 — the legacy `radiusBaseFt + Field × radiusPerField` (11.8 ft at Field 3, 16 at Field 10), or the character's authored `reachFt` | **6.0** for every body without its own `reachFt`; the 4-ft dirt pad and the 8-ft dive add to it — **6 / 10 / 14** — and the ability bonuses add as they always did (Lick / Grow / Withdraw +6, Super Jump +3 and +22 on a fly, Dive / Burrow +16 on the dirt: large against 6, reported, not moved) |
+| `chase.outfieldAirMul`, `infieldAirMul` | 0.6 (#609), 0.45 (#636) — the S-29 levers of a full-size field and 30.5 ft/s legs | **1.0, 1.0** — one pursuit profile per body, in the air as on the dirt |
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run — the two levers pull apart.** Against #749 over the same 48 seeds and 50 cohort games:
+
+| trial state | S-29 home / away | hits | extra-base hits | fly outs (share of PA) |
+| --- | --- | --- | --- | --- |
+| #749 (before) | 1.98 / 1.68 | 369 | 150 | 545 (37 %) |
+| reach 6 ft alone | **2.68 / 2.18** | 455 | 233 | 475 (33 %) |
+| air multipliers 1.0 alone | **1.20 / 1.02** | 259 | 82 | 608 (45 %) |
+| both (this slice) | **1.62 / 1.06** | 289 | 73 | 548 (40 %) |
+
+The 6-ft reach opens the field — doubles 55 → 105, triples 24 → 34 — and lands S-29 inside the band on its own. An
+outfielder at the one speed under a fly (18.0 ft/s where he ran 10.8) closes it harder than the reach opens it: together,
+doubles 55 → 26, **triples 24 → 0**, and both means under the 1.8 floor. This is an intermediate state and it is
+reported, not repaired: the CPU still dives for free at the 14-ft rim on every play (`FlyCatch.AutoDive`, slice 2's to
+retire), so the trial's passive air coverage is 14 ft with 18 ft/s legs under it. Slice 2 (the earned dive with its
+recovery cost) is where that coverage comes off; judge the calibration after it, not here.
