@@ -78,6 +78,10 @@
   "catch": {
     "radiusBaseFt": 10,
     "radiusPerField": 0.6,
+    // #719 (F693-02-catch-reach-envelope): the authored stand-up reach for every body without its own reachFt. 0 keeps the
+    // legacy radiusBaseFt + Field x radiusPerField above; trials/c80 carries 6.0 — roughly what the visible glove covers from
+    // a planted stance. The dirt pad (windowPadFt) and the dive (diveReachFt) add to it: 6 / 10 / 14 on the trial.
+    "standUpReachFt": 0,
     "clamberRadiusFt": 6,
     // Dirt scoop slack (the §10.4 double-play rows). Not the fly ring: a fly stand-up is
     // the catch radius, and the rim is diveReachFt (#669).

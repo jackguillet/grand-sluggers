@@ -12,7 +12,7 @@
     "data/abilities/star-skills.json": "aec525b0cadf665e2d5d48a57823834a744f91e9adc6e61b5e2e6642d2598c71",
     "src/GrandSluggers.Sim/BallFlight.cs": "ff0f7cd07a713ed41297335a871188f2c14b38af5045d50340d9554b6c75fe64",
     "src/GrandSluggers.Sim/FieldBounds.cs": "8c50dfbf89fe00985701af04d4c6066460e2beedba157184f1dd168a7175290a",
-    "src/GrandSluggers.Sim/Rules.cs": "54f2b612657335a84e0306fcff6ff3feb3cf180aea53c259a4a48a86c508b474",
+    "src/GrandSluggers.Sim/Rules.cs": "d224f021bdaa9458b0eb49b8ae1c443de8931d4e7696e90eff3623b3e3a3f8bb",
     "src/GrandSluggers.Sim/BattedBall.cs": "ccb27d247b96807263a9983fba1ed35b8600a52c1bc39e6f12180fe63a65a589",
     "src/GrandSluggers.Sim/AtBatResolver.cs": "b909cd9578708568e5f7d7baad58c289579b2819e1b41062ad4e358bfffdce09",
     "src/GrandSluggers.Sim/HarborWall.cs": "73b89434d3791dfe29a6eb79518c86647adae77b2ccc7b3472e5b9b86ad25404",
