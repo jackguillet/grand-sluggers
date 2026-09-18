@@ -1266,6 +1266,20 @@ public sealed class CatchRules
     public double WallJumpArmSec { get; init; } = 0.7;
     /// <summary>East arms the dive reach for this long.</summary>
     public double DiveArmSec { get; init; } = 0.5;
+    /// <summary>
+    /// The dive without a decision (#719, F693-02-dive-jump-scoop-reach, -cpu-dive-intent): 1 is the game as shipped — the
+    /// dead-stick assistance and the CPU dive at the rim on their own, for free; 0 is the c80 rule — a dive is a press, or
+    /// the CPU's deliberate commitment on the live ball, never free.
+    /// </summary>
+    [Chance] public double AutoDive { get; init; } = 1;
+    /// <summary>
+    /// What a dive costs (F693-02-dive-recovery-cost): the diver neither moves nor throws for this long after the
+    /// commitment, at Field 1, caught or missed alike, human and CPU alike — and never revoking a catch already made. The
+    /// later end wins against the bobble's fumble. 0 shipped: today's dive is free; the c80 copy carries 0.60.
+    /// </summary>
+    public double DiveRecoverySec { get; init; } = 0;
+    /// <summary>The cost shortens by this fraction of itself per Field point above 1 (2.5 % in the c80 copy: 0.60 at Field 1 to 0.465 at 10).</summary>
+    [Chance] public double DiveRecoveryFieldCut { get; init; } = 0;
 }
 
 /// <summary>Field dash, buddy toss, kick, and the dive lunge (§8.1, §8.4, §8.7).</summary>

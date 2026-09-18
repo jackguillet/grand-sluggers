@@ -114,7 +114,13 @@
     "hoverMinSec": 0.25,
     "jumpArmSec": 0.55,
     "wallJumpArmSec": 0.7,
-    "diveArmSec": 0.5
+    "diveArmSec": 0.5,
+    // #719 (F693-02-dive-jump-scoop-reach, -dive-recovery-cost, -cpu-dive-intent): autoDive 1 is the game as shipped — the dead-stick
+    // assistance and the CPU dive at the rim on their own, for free. trials/c80 carries 0 with a 0.60 s recovery cut 2.5 % per
+    // Field point above 1: a dive is a press or the CPU's deliberate commitment on the live ball, and it costs, caught or missed.
+    "autoDive": 1,
+    "diveRecoverySec": 0,
+    "diveRecoveryFieldCut": 0
   },
   "drops": {
     "heatball": 0.35,
