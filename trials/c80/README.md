@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -628,3 +628,38 @@ doubles 55 → 26, **triples 24 → 0**, and both means under the 1.8 floor. Thi
 reported, not repaired: the CPU still dives for free at the 14-ft rim on every play (`FlyCatch.AutoDive`, slice 2's to
 retire), so the trial's passive air coverage is 14 ft with 18 ft/s legs under it. Slice 2 (the earned dive with its
 recovery cost) is where that coverage comes off; judge the calibration after it, not here.
+
+---
+
+[#719](https://github.com/jackguillet/grand-sluggers/issues/719) — slice 2, the dive is deliberate and costs
+(F693-02-dive-jump-scoop-reach, -dive-recovery-cost, -cpu-dive-intent, -cpu-dive-intent-policy). One file, `rules/fielding.json`,
+three new keys in both roots.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `catch.autoDive` | 1 — the dead-stick assistance and the CPU dive at the rim on their own, for free | **0** — a dive is East, or the CPU's deliberate commitment; the neutral stick never dives |
+| `catch.diveRecoverySec`, `diveRecoveryFieldCut` | 0, 0 — today's dive is free | **0.60, 0.025** — the diver neither moves nor throws for `0.60 × (1 − 0.025 × (Field − 1))` after the commitment (0.60 at Field 1, 0.555 at 4, 0.465 at 10), caught or missed, human or CPU alike |
+
+**What the dive is now.** East lunges, arms the 0.5-s window and pays at the press (`PayDive`); a catch already made
+stands. The CPU (`CpuDiveCommits`) reads the live ball alone — its position and the velocity between the last two frames,
+flown on under gravity with no drag and no resolved path — to where it comes down to `diveMaxBallY`, and commits at the last
+makeable moment: still in the air, that point past the stand-up ring and inside the rim, arriving inside the arm window,
+and its legs no longer able to bring the ring under it. It lunges to that point, pays, and takes the ball only if the live
+geometry still holds when it comes; a ball moved after the commitment (`NudgeBall`, the sim's hook for a carom or a
+deflection) is missed and stays live, and the recovery is owed all the same. Through the recovery `CanMove` is false for
+the diver, the CPU's held-ball table waits, and a human throw press is dropped except inside the last
+`throw.relayBufferSec`, where it is remembered and fires at readiness. The later end wins against the fumble because
+both timers gate.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run — and the finding.** Against #750 over the same 48 seeds: **6 of 48 diverge, 4 scorelines**; fly
+outs 548 → 534, hits 289 → 298; S-29 under the trial **1.62 / 1.06 → 1.62 / 1.06**, not one cohort scoreline moved. The
+free dive was not what held the trial down. The CPU dove rarely in these games, and where it did the deliberate dive
+mostly commits and takes the same ball a frame later. The coverage that took S-29 under the floor in slice 1 is the legs:
+an outfielder at the one 18 ft/s under a 4–6 s fly reaches the plant standing up, reach and dive beside the point. The
+levers that remain are Jack's — the outfield read (0.40 s), the multipliers themselves, the flight, the outfield's
+starting depth — and this folder reports the number rather than moving one of them.
+
+**Left to slice 3 and the Unity pass.** The normal jump; a recovering-diver pose (`LivePlaySystem.DiveRecoveryT`,
+`DivingPos`) and the `DiveCommit` tell.

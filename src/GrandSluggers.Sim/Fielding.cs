@@ -200,6 +200,14 @@ public sealed class FieldingResolver
     /// <summary>The yellow ring / stand-up fly catch (#669): catch radius, no pad.</summary>
     public static double StandUpCatchFt(double catchRadius) => catchRadius;
 
+    /// <summary>What this body's dive costs (F693-02-dive-recovery-cost, #719): <c>catch.diveRecoverySec</c> cut by <c>diveRecoveryFieldCut</c> of itself per Field point above 1. 0 on the shipped table.</summary>
+    public static double DiveRecoverySec(Character who, RulesTable? rules = null)
+    {
+        var c = Rules.Or(rules).Fielding.Catch;
+        if (c.DiveRecoverySec <= 0) return 0;
+        return c.DiveRecoverySec * Math.Max(0, 1 - c.DiveRecoveryFieldCut * (who.Stats.Field - 1));
+    }
+
     /// <summary>Stand-up plus <c>diveReachFt</c> — the rim. Past this is a drop.</summary>
     public static double DiveCatchFt(double catchRadius, RulesTable? rules = null) =>
         StandUpCatchFt(catchRadius) + Rules.Or(rules).Fielding.Catch.DiveReachFt;

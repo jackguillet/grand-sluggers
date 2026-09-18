@@ -102,7 +102,9 @@ public enum LiveEvent
     /// <summary>A human's onward-throw press was remembered while the ball flies to their receiver (#723): the queue tell.</summary>
     ThrowQueued,
     /// <summary>The remembered press was cancelled or expired (#723): the tell clears.</summary>
-    ThrowQueueCleared
+    ThrowQueueCleared,
+    /// <summary>A dive was committed — East, or the CPU's deliberate choice — and its recovery is owed (#719).</summary>
+    DiveCommit
 }
 
 /// <summary>
@@ -254,6 +256,15 @@ public sealed partial class LivePlaySystem
     public bool Bobbling { get; private set; }
     public bool PlayerBobble { get; private set; }
     public bool CatchDive { get; private set; }
+    /// <summary>The dive's recovery still owed by <see cref="DivingPos"/> (#719, F693-02-dive-recovery-cost): no move, no throw until it is 0. 0 on the shipped table.</summary>
+    public double DiveRecoveryT { get; private set; }
+    /// <summary>The body paying <see cref="DiveRecoveryT"/>.</summary>
+    public string DivingPos { get; private set; } = "";
+    // The live ball as the CPU reads it for a dive (#719): last frame's position and the velocity between frames, no resolved path.
+    (double X, double Y, double Z)? _ballPrev;
+    (double X, double Y, double Z) _ballVel;
+    // A throw press during the dive's recovery, remembered for the last throw.relayBufferSec of it (#719, F693-02-ordinary-recoil-actions).
+    LivePadInput? _recoveryPress;
     public bool CatchJump { get; private set; }
     public bool InClosePlay { get; private set; }
     public int CloseBag { get; private set; }
@@ -357,7 +368,7 @@ public sealed partial class LivePlaySystem
     bool HumanGlove(string pos) => Seats.HumanFields && string.Equals(pos, GlovePos, StringComparison.OrdinalIgnoreCase);
     /// <summary>The body on the ball: the thrower while a throw is in the air (the YOU ring is already on the receiver), else the glove.</summary>
     string OnBallPos => Throwing && !string.IsNullOrEmpty(_throwerPos) ? _throwerPos : GlovePos;
-    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos);
+    bool CanMove(string pos) => ElapsedSeconds + 1e-9 >= ReadyAt(pos) && !(DiveRecoveryT > 0 && pos == DivingPos);
 
     // ---------------------------------------------------------------------------------
     // Begin
@@ -467,6 +478,11 @@ public sealed partial class LivePlaySystem
         BuddyPos = "";
         BuddyWindow = false;
         DiveT = JumpT = SwapLock = RecoilT = 0;
+        DiveRecoveryT = 0;
+        DivingPos = "";
+        _ballPrev = null;
+        _ballVel = (0, 0, 0);
+        _recoveryPress = null;
         Bobbling = false;
         PlayerBobble = false;
         CatchDive = CatchJump = false;
@@ -585,6 +601,18 @@ public sealed partial class LivePlaySystem
         if (DiveT > 0) DiveT -= dt;
         if (JumpT > 0) JumpT -= dt;
         if (SwapLock > 0) SwapLock -= dt;
+        // The live ball between frames (#719): what the CPU's dive reads, position and motion, never the resolved path.
+        _ballVel = _ballPrev is { } prev ? ((BallX - prev.X) / dt, (BallY - prev.Y) / dt, (BallZ - prev.Z) / dt) : (0, 0, 0);
+        _ballPrev = (BallX, BallY, BallZ);
+        if (DiveRecoveryT > 0)
+        {
+            DiveRecoveryT -= dt;
+            if (DiveRecoveryT <= 1e-9)
+            {
+                DiveRecoveryT = 0;
+                DivingPos = "";
+            }
+        }
         TickItems(dt);
         if (_itemLandAt >= 0 && ElapsedSeconds >= _itemLandAt)
         {
@@ -775,6 +803,7 @@ public sealed partial class LivePlaySystem
         {
             LungeToward(pre, plant);
             DiveT = catchRules.DiveArmSec;
+            PayDive(GlovePos);
         }
 
         var radius = CatchRadius(map);
@@ -817,7 +846,8 @@ public sealed partial class LivePlaySystem
                 // Dead stick = CPU runs the glove (§8.2): stand-up under the ring, dive at the rim (#669).
                 if (dead && FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob: false, linerInAir: linerInAir))
                     TakeBattedBall();
-                if (dead && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
+                // The assistance dives only where the table says the dive is free (catch.autoDive 1, the shipped rule, #719).
+                if (dead && catchRules.AutoDive > 0 && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R))
                 {
                     LungeToward(pre, plant);
                     DiveT = catchRules.DiveArmSec;
@@ -876,8 +906,8 @@ public sealed partial class LivePlaySystem
                 return Commit();
             if (TickLiveContact(out var contactDone))
                 return contactDone;
-            if (pad.SouthDown || pad.Cutoff)
-                return BeginPlayerThrowOrCommit(map, pad);
+            if (ThrowPress(pad) is { } press)
+                return BeginPlayerThrowOrCommit(map, press);
             if (IsTime())
                 return Commit();
             return null;
@@ -945,7 +975,16 @@ public sealed partial class LivePlaySystem
                               && Diamond.Dist(buddySpot.X, buddySpot.Z, plant.X, plant.Z) < catchRules.BuddyPlantFt;
                 var canRob = needsJump && FlyCatch.CanRob(pre.Ball?.FenceClearFt ?? double.NaN, who, Park, buddyAt, R);
                 var autoStand = FlyCatch.AutoCatch(underStand, inWin, needsJump, canRob, linerInAir: linerInAir);
-                var autoDive = FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R);
+                // The rim (#719): on the shipped table the CPU dives there for free; on the c80 copy it commits on the live
+                // ball at the last makeable moment, pays the recovery, and takes the ball only if it actually comes.
+                var free = catchRules.AutoDive > 0;
+                if (!free && DiveT <= 0 && !underStand && CpuDiveCommits(pre, hang, cpuStandUp, cpuDiveWin, needsJump, out var at))
+                {
+                    LungeTo(at.X, at.Z);
+                    DiveT = catchRules.DiveArmSec;
+                    PayDive(GlovePos);
+                }
+                var autoDive = (free || DiveT > 0) && FlyCatch.AutoDive(underDive, underStand, inWin, needsJump, BallY, linerInAir, R);
                 if (autoStand || autoDive)
                 {
                     // Drop chances belong to star effects only (§8.6): rolled once, on the one seeded stream.
@@ -964,10 +1003,16 @@ public sealed partial class LivePlaySystem
                         }
                         if (autoDive)
                         {
-                            LungeToward(pre, plant);
-                            DiveT = catchRules.DiveArmSec;
+                            if (free)
+                            {
+                                LungeToward(pre, plant);
+                                DiveT = catchRules.DiveArmSec;
+                            }
                             CatchDive = true;
                         }
+                        // A committed dive whose lunge carried the body under the ring is still the dive it paid for (#719).
+                        else if (!free && DiveT > 0)
+                            CatchDive = true;
                         TakeBattedBall();
                     }
                 }
@@ -989,8 +1034,8 @@ public sealed partial class LivePlaySystem
             if (TickLiveContact(out var contactDone))
                 return contactDone;
             ReadThrowBag(pad, InPlay.StickNamesBag(false, true));
-            if (pad.SouthDown || pad.Cutoff)
-                return BeginPlayerThrowOrCommit(owned, pad);
+            if (ThrowPress(pad) is { } press)
+                return BeginPlayerThrowOrCommit(owned, press);
             if (IsTime())
                 return Commit();
             return null;
@@ -1016,6 +1061,7 @@ public sealed partial class LivePlaySystem
         if (IsTime())
             return Commit();
         if (RecoilT > 0) return null;
+        if (DiveRecoveryT > 0 && DivingPos == GlovePos) return null;   // the dive's recovery (#719): the table waits with the body
         // Walking to the bag to step on it or to wait for the body bound there (§10.3, §10.4, S-41).
         if (_cpuWalkBag > 0)
         {
@@ -1078,8 +1124,8 @@ public sealed partial class LivePlaySystem
         if (TickLiveContact(out var contactDone))
             return contactDone;
         ReadThrowBag(pad, stickOk: false);
-        if (pad.SouthDown || pad.Cutoff)
-            return BeginPlayerThrowOrCommit(map, pad);
+        if (ThrowPress(pad) is { } press)
+            return BeginPlayerThrowOrCommit(map, press);
         if (IsTime()) return Commit();
         return null;
     }
@@ -2251,10 +2297,94 @@ public sealed partial class LivePlaySystem
     {
         var toX = pre.Grounder || pre.Line || _loose ? BallX : plant.X;
         var toZ = pre.Grounder || pre.Line || _loose ? BallZ : plant.Z;
+        LungeTo(toX, toZ);
+    }
+
+    void LungeTo(double toX, double toZ)
+    {
         var lunged = FieldDash.Lunge(GloveX, GloveZ, toX, toZ, R.Fielding.Dash.DiveLungeFt);
         GloveX = lunged.X;
         GloveZ = lunged.Z;
         _fielders[GlovePos] = (GloveX, GloveZ);
+    }
+
+    // ---------------------------------------------------------------------------------
+    // The dive is deliberate and costs (#719: F693-02-dive-jump-scoop-reach, -dive-recovery-cost, -cpu-dive-intent, -cpu-dive-intent-policy)
+    // ---------------------------------------------------------------------------------
+
+    /// <summary>The dive's cost, owed from the commitment whether the ball comes or not (F693-02-dive-recovery-cost): the later end against anything already owed. Nothing on the shipped table.</summary>
+    void PayDive(string pos)
+    {
+        var cost = FieldingResolver.DiveRecoverySec(GloveChar(), R);
+        if (cost <= 0) return;
+        DiveRecoveryT = Math.Max(DiveRecoveryT, cost);
+        DivingPos = pos;
+        _recoveryPress = null;
+        _events.Add(LiveEvent.DiveCommit);
+    }
+
+    /// <summary>
+    /// The CPU's dive commitment (F693-02-cpu-dive-intent-policy), read off the live ball alone — its position and the velocity
+    /// between the last two frames, flown on under gravity with no drag and no resolved path: where it comes down to dive height
+    /// (<c>catch.diveMaxBallY</c>) is <paramref name="at"/>. It commits at the last makeable moment: the ball is still in the air,
+    /// that point lies past the stand-up ring and inside the rim, it arrives inside the arm window, and the body's legs can no
+    /// longer bring the ring under it in time. A ball that then moves — a carom, a deflection — is missed, and the recovery is
+    /// owed all the same.
+    /// </summary>
+    bool CpuDiveCommits(FieldingPreview pre, double hang, double standUp, double diveWin, bool needsJump, out (double X, double Z) at)
+    {
+        at = (BallX, BallZ);
+        if (needsJump || _ballPrev is null || ElapsedSeconds >= hang) return false;
+        var c = R.Fielding.Catch;
+        var g = R.Flight.Gravity;
+        var (vx, vy, vz) = _ballVel;
+        var above = BallY - c.DiveMaxBallY;
+        var t = above <= 0 ? 0 : (vy + Math.Sqrt(Math.Max(0, vy * vy + 2 * g * above))) / g;
+        at = (BallX + vx * t, BallZ + vz * t);
+        var dist = Diamond.Dist(GloveX, GloveZ, at.X, at.Z);
+        if (dist < standUp || dist >= diveWin) return false;
+        if (t > c.DiveArmSec) return false;
+        var speed = FieldingResolver.ChaseSpeedFt(GloveChar(), GlovePos, pre, R);
+        return dist - standUp > speed * t;
+    }
+
+    /// <summary>
+    /// The human's throw press through the dive's recovery (F693-02-ordinary-recoil-actions): nothing releases while the body
+    /// recovers; a South / cutoff press inside the last <c>throw.relayBufferSec</c> of it is remembered and fires at readiness;
+    /// an earlier one is dropped. With no recovery owed the press is the press.
+    /// </summary>
+    LivePadInput? ThrowPress(LivePadInput pad)
+    {
+        var pressed = pad.SouthDown || pad.Cutoff;
+        if (DiveRecoveryT > 0 && DivingPos == GlovePos)
+        {
+            if (pressed && R.Fielding.Throw.RelayBufferSec > 0 && DiveRecoveryT <= R.Fielding.Throw.RelayBufferSec + 1e-9)
+            {
+                _recoveryPress = pad;
+                _events.Add(LiveEvent.ThrowQueued);
+            }
+            return null;
+        }
+        if (_recoveryPress is { } remembered)
+        {
+            _recoveryPress = null;
+            return remembered;
+        }
+        return pressed ? pad : null;
+    }
+
+    /// <summary>
+    /// The world moves the ball (#719): the rest of its path, its landing ring and its cover mark slide by (dx, dz) from now — a
+    /// carom, a gust, a deflection off another glove. The sim's own effects will drive this as they arrive; a test uses it to
+    /// move a ball after a dive was committed on it, which is how a deliberate dive misses.
+    /// </summary>
+    public void NudgeBall(double dx, double dz)
+    {
+        if (Path is null || Preview is null) return;
+        Path = Path.Select(s => s.T >= ElapsedSeconds - 1e-9 ? s with { X = s.X + dx, Z = s.Z + dz } : s).ToList();
+        Preview = Preview with { LandingX = Preview.LandingX + dx, LandingZ = Preview.LandingZ + dz };
+        CoverBallX += dx;
+        _ballPrev = null;
     }
 
     static string PosOf(Dictionary<string, Character> map, Character who)

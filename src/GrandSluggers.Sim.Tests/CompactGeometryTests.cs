@@ -358,7 +358,7 @@ public sealed class CompactGeometryTests
         Assert.Equal(
             [
                 "abilities.laserHomeOnly", "abilities.laserMul", "abilities.snapThrowMul",
-                "catch.standUpReachFt",
+                "catch.autoDive", "catch.diveRecoveryFieldCut", "catch.diveRecoverySec", "catch.standUpReachFt",
                 "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.infieldAirMul", "chase.minFtPerSec", "chase.outfieldAirMul",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
@@ -379,6 +379,11 @@ public sealed class CompactGeometryTests
         // #718 (F693-02-ball-dash-carrier): the universal East-held sprint is retired on the trial; the ability's own multiple does not move.
         Assert.Equal(("1.35", "1.0"), (shippedLeaves["dash.chaseMul"], trialLeaves["dash.chaseMul"]));
         Assert.Equal(("1.20", "1.20"), (shippedLeaves["abilities.ballDashMul"], trialLeaves["abilities.ballDashMul"]));
+        // #719 (slice 2): nobody dives for free — the automatic dive off, the recovery cost on.
+        Assert.Equal(("1", "0"), (shippedLeaves["catch.autoDive"], trialLeaves["catch.autoDive"]));
+        Assert.Equal(("0", "0.60"), (shippedLeaves["catch.diveRecoverySec"], trialLeaves["catch.diveRecoverySec"]));
+        Assert.Equal(("0", "0.025"), (shippedLeaves["catch.diveRecoveryFieldCut"], trialLeaves["catch.diveRecoveryFieldCut"]));
+        Assert.Equal(shippedLeaves["catch.diveArmSec"], trialLeaves["catch.diveArmSec"]);
         // #719 (slice 1): the authored stand-up reach, and the hit-class multipliers retired with it.
         Assert.Equal(("0", "6.0"), (shippedLeaves["catch.standUpReachFt"], trialLeaves["catch.standUpReachFt"]));
         Assert.Equal(("0.6", "1.0"), (shippedLeaves["chase.outfieldAirMul"], trialLeaves["chase.outfieldAirMul"]));
