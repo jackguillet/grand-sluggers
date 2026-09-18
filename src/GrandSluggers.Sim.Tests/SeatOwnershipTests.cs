@@ -9,6 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// glove, so a CPU defense throws without any input from the offense pad (S-93). #209 / #83: the
 /// human on defense still owns the throw, and a dead stick never guns to first for them (S-33).
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class SeatOwnershipTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -146,6 +147,9 @@ public sealed class SeatOwnershipTests
         var hit = HopperToShort(scenario, match);
         var preview = match.PreviewHit(hit);
         match.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, live));
+        // The C80 copy's pursuit stick (#718) takes the glove only after it has been seen at neutral: six dead frames first.
+        for (var i = 0; i < TestRoot.Pick(0, 6); i++)
+            match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human));
         var stick = new LivePadInput(StickX: 1, StickY: 0);
         for (var i = 0; i < 10; i++)
             match.LivePlay.Apply(LivePlayCommand.Tick(Frame, stick, LivePadInput.Dead, false, LivePlayCommandSource.Human));
