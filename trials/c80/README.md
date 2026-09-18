@@ -64,7 +64,7 @@ poles is a game with no home runs in it, and the parks alone are a derby.
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read — with the airborne pair `airOnsetFtPerSec` 80, `airFullFtPerSec` 115. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0; and the human seat's pursuit stick (#718): `stick.enterMag` 0.20 / `leaveMag` 0.15, the calibrated radial stick; and passive coverage (#719): `catch.standUpReachFt` 6.0 with `chase.outfieldAirMul` / `infieldAirMul` 1.0; and the earned dive (#719): `catch.autoDive` 0, `diveRecoverySec` 0.60, `diveRecoveryFieldCut` 0.025; and the normal jump (#719): `catch.jumpAirSec` 0.60, `jumpBufferSec` 0.10, `jumpReachFt` 0; and the impact recoil (#720): `recoil.onsetFtPerSec` 55, `fullFtPerSec` 75 — the knockback block is not read — with the airborne pair `airOnsetFtPerSec` 80, `airFullFtPerSec` 115; and the handling error (#721): `handling.awkwardHop` 1 — the routine pickup never rolls, the bobble block is not read. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -763,3 +763,47 @@ horizontal travel, and a ball dropping straight down supplies no kick. A routine
 
 **Left on #720.** The specials — composition, resistance, pushback possession, repeat eligibility — stay unwritten until
 F693-02-special-attack-contracts; nothing in `data/rules/` stands in for them. The Unity pass owes the `ImpactRecoil` tell.
+
+---
+
+[#721](https://github.com/jackguillet/grand-sluggers/issues/721) — slice 1, the awkward hop and the local bobble
+(F693-02-handling-error-opportunities, -ordinary-handling-error-chance, -ordinary-handling-error-cap, -ordinary-handling-chance-curve,
+-awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-stun, -bobble-stun-duration, -bobble-recovery-reliability,
+-bobble-direction-spread, -uniform-error-direction, and the nine -local-bobble-* rows). One file, `rules/fielding.json`: a new
+`handling` block in both roots, one key moved.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `handling.awkwardHop` | 0 — the bobble is the `bobble` block the game shipped with: a roll off the contact's energy on every grounder take (up to 50 %), a 0.58-s fumble that holds the whole tick, the ball scattered 6.5 ft | **1** — a legal routine pickup never rolls; the one difficulty is the awkward in-between hop at the take; a failed take is a local bobble and the fumbler alone is stunned |
+| `handling.chanceCap`, `handsCut` | 0.10, 0.80 — the accepted curve, read only above the switch | `p = 0.10 × D × (1 − 0.80 × H)`: 10 / 6 / 2 % at full difficulty for weak / middle / strong hands, H the Hands trait plus the glove's help (1 → 0, 10 → 1) |
+| `handling.hopMinApexFt`, `hopFullApexFt`, `hopPhaseHalfWidth` | 0.5, 1.5, 0.35 | D off the ball's height and rise at the take: 0 for a roll, a falling ball or a hop under six inches; on a rising ball φ = height / projected apex, D = (1 − \|φ − 0.5\| / 0.35) × (apex − 0.5) / 1.0, clamped — the middle of a knee-high hop is the hardest ball |
+| `handling.stunSec` | 0.40 | the fumbler neither steers nor takes for 0.40 s; the ball and every other body stay live |
+| `handling.bobble*` | 30°, 0.20, 6 ft/s, 0.35, 0.50 ft, 0.25 ft, 0.90, 6 ft/s² | the failed take spills down from the contact with a fifth of its horizontal speed (six ft/s at most) turned a uniform ±30°, rebounds at 35 % under a six-inch ceiling, settles below three inches, keeps 90 % of its roll per impact and slows at 6 ft/s² to rest |
+
+**Where the bands come from.** The decision left the hop phase, height and speed bands pending measurement, so this slice
+measured first: a probe at the take over 48 `cli match` runs on this copy, 483 ground pickups. A fifth are rolls (the ball on
+the ground), half are falling balls (the clean long hop — the CPU's take fires the moment the ball drops under the 3.2-ft
+scoop ceiling), a quarter rising — and of those most are met near the top of the hop. The hops themselves are low: the median
+apex is 0.7 ft. Six inches (the bobble's own rebound ceiling) is the micro-bounce line, the knee (1.5 ft) full difficulty,
+0.35 the phase half-width so D is above 0 between 15 % and 85 % of the rise. With those bands **8.5 % of the copy's CPU pickups
+carry any chance at all, 1.2 % on average among them — about one error a hundred CPU games**; the hardest ball seen was a
+120-mph liner into left met by vine 1.3 ft up and rising 9.8 ft/s, D 0.98, 3.3 % to Hands 8 with the glove and 9.4 % to
+authored Hands 1. For scale, the shipped rule rolls on 55 % of the copy's grounder takes. The seat's own South-press take can
+meet any hop, so the human infielder who reaches for the ball mid-rise faces what the CPU rarely does.
+
+**What the seat gets.** `HopDifficulty` is sampled at every landed take on both tables; on this copy `ArmRecoil` rolls once
+(`Match.RollHandling`, the seeded stream) only when it is above 0, and a clean take pays the impact recoil (#720) as any other.
+A failed take is `LocalBobble`: the ball goes loose from where it met the glove, `TickLocalBobble` carries it, `StunT` holds the
+fumbler — no steering, no jump, no dive, no take — while the world goes on; a helper may reach it first; the loose pickup never
+reaches the roll, so one mistake is one consequence. `LiveEvent.Bobble` and `PlayerBobble` are the client's as before; the
+`Bobbling` whole-tick flag stays the shipped fumble's. Seed 35 on the test liner is the one in thirty where vine's 3.3 % comes
+up: the ball leaves at 6.0 ft/s inside ±30° of its travel, never above where it met the glove, rests 3.2 ft away; vine is
+stunned 24 frames, drifts 0.70 ft on the brake, picks it up himself 0.64 s after the take, and the batter has his double.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`.
+
+**What it does to a run, and what it does to the stream.** 38 of 48 trial seeds diverge from #754 (27 scorelines), and S-29 on the copy goes **1.74 / 1.06 → 1.28 / 1.04** with 30 of 50 cohort games changed — but read that with care. The shipped roll drew from the one seeded stream on 43 % of the copy's grounder takes (0.19 expected bobbles a game, 8.7 % each when rolled); the routine pickup never draws now, so every later draw in a game — pitches, swings, CPU choices — lands on a different number. Home runs across the 48 games went 50 → 68 on the same 1345 plate appearances, which no bobble rule can do: that is the stream, not the hands. The slice's own physical effect is the loss of those 0.19 energy bobbles a game and the arrival of about 0.01 awkward-hop bobbles; the copy's S-29 is re-based here, and the #719 calibration finding stands.
+
+**Left on #721.** Slice 2: the continuing deflection (F693-02-expanded-ordinary-error-outcomes, -error-outcome-selection,
+-continuing-error-*) — the ball getting past the defender at 50–80 % of its speed inside ±15°, chosen by the ball's speed and the
+contact, on the shared ground physics. The Unity pass owes the stun pose (`StunT`, where `Bobbling` drove the Miss pose).

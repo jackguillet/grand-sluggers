@@ -254,6 +254,37 @@
     "handsCutPerPoint": 0.05,
     "kickFtPerSec": 10
   },
+  // #721 (F693-02-handling-error-opportunities, -ordinary-handling-error-chance, -ordinary-handling-error-cap,
+  // -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome, -bobble-stun, -bobble-stun-duration,
+  // -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction, -local-bobble-*): a legal routine pickup
+  // never rolls. The one difficulty is the awkward in-between hop at the take — the ball rising off a real bounce, mid-way up a
+  // hop tall enough to matter: D = (1 − |φ − 0.5| / 0.35) × (apex − 0.5) / (1.5 − 0.5), φ the ball's height over its
+  // projected apex, both clamped to [0, 1]; the chance is 0.10 × D × (1 − 0.80 × H) with H the Hands (1 → 0, 10 → 1) — 10 / 6 / 2 %
+  // at full difficulty for weak / middle / strong hands. The bands were measured on this copy (#721 slice 1, 48 cli matches, 483 ground pickups): a fifth of takes are rolls, half
+  // are falling balls (the clean long hop), a quarter rising — and of those most are met near the top; 0.5 ft (six inches, the
+  // bobble ceiling) is the micro-bounce line, 1.5 ft (the knee) full difficulty, 0.35 the phase half-width. 8.5 % of the copy's
+  // CPU pickups carry any chance at all, 1.2 % on average among them: about one error a hundred CPU games. The seat's own
+  // South-press take can meet any hop.A failed take is a local bobble: the ball spills down from the
+  // contact with a fifth of its horizontal speed (six ft/s at most) inside ±30° of its travel, rebounds at 35 % under a six-inch
+  // ceiling, settles below three inches, keeps 90 % of its roll per impact and slows at 6 ft/s²; the fumbler is stunned 0.40 s
+  // while the ball and every other body stay live, and picking it up again never rolls. The bobble block above is not read.
+  "handling": {
+    "awkwardHop": 1,
+    "chanceCap": 0.10,
+    "handsCut": 0.80,
+    "hopMinApexFt": 0.5,
+    "hopFullApexFt": 1.5,
+    "hopPhaseHalfWidth": 0.35,
+    "stunSec": 0.40,
+    "bobbleSpreadDeg": 30,
+    "bobbleRetain": 0.20,
+    "bobbleCapFtPerSec": 6,
+    "bobbleRestitution": 0.35,
+    "bobbleReboundCapFt": 0.50,
+    "bobbleSettleFt": 0.25,
+    "bobbleGroundRetain": 0.90,
+    "bobbleDecelFtPerSec2": 6
+  },
   "park": {
     "emberNightFireMul": 1.6,
     // #732, #730 decision 4: the pad is the larger part of a barrel's capture disc (radius + pad), so it
