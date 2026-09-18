@@ -989,3 +989,32 @@ Also seen: ground-rule doubles are rarer on the copy. In the same probe grid Har
 **Left.** 6 rows: the seats, bunts, runners and steals (`SeatOwnershipTests` 2, `BuntScenarioTests` 2, `StealScenarioTests` 1,
 `RunnerScenarioTests` 1). 109 tests fail under the overlay today: those 6, the 3 gap rows, and the hundred that name the
 shipped table on purpose and are restructured at promotion.
+
+---
+
+**The compact scenario rows, slice 4 — the seats, bunts, runners and steals (#715, ahead of 3e).** Tests and docs only: no Sim
+source, no data, no CI change. The last four classes carry `[Trait("Rows", "compact")]`: `SeatOwnershipTests`,
+`BuntScenarioTests`, `StealScenarioTests`, `RunnerScenarioTests`. 74 of 74 on both roots, 6 of them rows the copy had broken, and
+S-71 re-based with them. The second CI run is 373 rows.
+
+| Row | Shipped | Compact | Why |
+| --- | --- | --- | --- |
+| S-36 the runner on second holds on a grounder in front of them | 90 ft / 5° / −35° | 80 / 5° / −35° | the shipped ball runs through the hole between third and short (LF picks it up at 4.0 s, a single); the same grounder at 8/9 of the carry is 3B's |
+| S-93 in versus the defense's stick takes the glove | stick from frame 0 | six neutral frames first | the copy's pursuit stick takes the glove only after it is seen at neutral (#718) |
+| The squared bunt to third, human seat | stick from frame 0 | six neutral frames first | the same; without them the first human frame is the CPU's own pickup |
+| The square brings the middle to the bags | the flat 28 ft/s, settled by 2.5 s | `CoverSpeedFt` of the body, settled by 3.0 s | a cover walks at the body's own speed (#718): 2B's 51 ft takes 2.7 s |
+| S-99 Select on a sailed pickoff | Vale, the bad pair's slant | Vale with an authored Arm of 1 | finding below; and "stands still" is within 1e-9 ft, the brake's last unit in the last place |
+| S-71 a pickoff that sails | the same | the same, and the sail must be the pickoff's own | finding below |
+
+**One finding, reported and not repaired. No pickoff sails on the copy.** With `chem.slantChance` 0 the only miss is the
+thrower's own spread, and Vale's (Field 8, sigma 1.05 ft) never leaves the 6 ft cover: 0 pickoffs of 400 sail on the copy (a throw
+sails in 90 of the same 400 plays on the shipped table). What sailed in S-71's loop on the copy was first base's throw on to second (Ashlord, Field 3: 12 of 400), so the
+row passed for a throw it does not name. Both rows now give the copy's pitcher an authored Arm of 1 (sigma 3.5 ft), and S-71
+asks that the sail be the pickoff's own. Whether a pickoff should ever sail on the copy is a 3e question; today it needs a wild
+arm the roster does not have on the mound.
+
+**Done.** Every scenario row that the copy had broken now holds on both roots or is a named gap: 63 rows across 23 classes in
+four slices, 373 tests in the copy's CI run. 103 tests fail under the overlay today: the 3 `Copy=gap` rows (the mound camera,
+the foul rail's taper) and 100 that name the shipped table on purpose (`CompactGeometryTests`, the 3c slice tests with
+`Control = ContentCatalog.Load()`, `InfieldGeometryTests`, `TrialOverlayTests`, and the like). Those are restructured at
+promotion, when the copy becomes the table they name.

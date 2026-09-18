@@ -986,7 +986,7 @@ Three outs on one live ball by the rules above (liner, double off, double off; o
 | Pickoff at 1st, runner not armed | Back, no play, no stamp | S-68 ✅ |
 | Pickoff at 1st, runner armed in SET | Runner broke on the motion; tag at 1B or 2B / rundown by geometry | S-69 ✅ (#640, PR #644: the one cover read; the Run-8 body is tagged at second on the throw ahead, a Run 2–4 body through the rundown) |
 | Perfect steal (armed 0.2 s into the windup), average catcher | Runner breaks 0.4 s early; safe at 2B against a Field-5 catcher, out against the roster's best arm (Field 8; the row's Field 9 is not on any roster) with a Nice release | S-70 ✅ |
-| Pickoff throw sails (bad chem) | Ball live; runner advances (ERROR) | S-71 ✅ |
+| Pickoff throw sails (bad chem; on the `c80` copy a bad pair never slants, #722, and no pickoff of 400 sails with Vale on the mound, so the compact S-71 and S-99 rows give the pitcher an authored Arm of 1, #715) | Ball live; runner advances (ERROR) | S-71 ✅ |
 | CPU never picks off a runner at random | | S-72 ✅ |
 
 ✅ P6 (`StealScenarioTests`): every row runs headlessly on the seats it names; the CPU catcher and the human catcher drive the same live ball.
@@ -1290,7 +1290,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-33 | Same as S-31, human SS never throws | Dead stick then no South | CPU runs the glove; ball scooped; no throw unless the human presses South; batter safe when Time |
 | S-34 | Grounder to SS, human arms 3B with nobody on, throws | | Ball to 3B; batter safe at 1B; caption names the wasted throw |
 | S-35 | Bad-chem throw to 1B, σ big (on the `c80` copy a bad pair is slow, never slanted, #722: the compact row is the same 100 seeds with 0 errors and every throw at ×0.90, #715) | 100 seeds | Some throws miss the cover by > 6 ft → live, ERROR, batter to 2B |
-| S-36 | Runner on 2nd, grounder to 3B in front of them | CPU runner | Runner holds; 3B throws to 1B |
+| S-36 | Runner on 2nd, grounder to 3B in front of them (the shipped ball is 90 ft / 5° / −35°; on the `c80` copy it runs through the hole for a single, so the compact row is the same grounder at 80 ft, #715) | CPU runner | Runner holds; 3B throws to 1B |
 | S-37 | Runner on 2nd, grounder to 2B behind them | CPU runner | Runner goes to 3B if margin > 0.4 |
 | S-38 | Runner on 3rd, infield in, grounder to SS, < 2 outs | CPU runner | Holds; SS throws to 1B |
 | S-39 | Runner on 3rd, 2 outs, any grounder | CPU runner | Goes on contact |
