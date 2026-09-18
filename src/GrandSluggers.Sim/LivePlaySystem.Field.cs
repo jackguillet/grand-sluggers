@@ -156,6 +156,9 @@ public sealed partial class LivePlaySystem
     readonly Dictionary<string, (double X, double Z)> _vel = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>The bodies a walker stepped this frame; the rest brake to a stop at the start of the next.</summary>
     readonly HashSet<string> _stepped = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>The body braking out of a hand-off coast under the response law (#718), and what the coast's last step left of its frame (-1 on any later frame).</summary>
+    string _coastBrakePos = "";
+    double _coastBrakeLeft = -1;
 
     // A ball on the ground in nobody's glove and off its batted path: a fumble, an overthrow, a drop at an uncovered bag.
     bool _loose;
@@ -572,6 +575,8 @@ public sealed partial class LivePlaySystem
         _coastT = 0;
         _vel.Clear();
         _stepped.Clear();
+        _coastBrakePos = "";
+        _coastBrakeLeft = -1;
         _receivedClean = false;
         _queuePending = false;
         _queueAge = 0;
@@ -702,6 +707,7 @@ public sealed partial class LivePlaySystem
         ChargeOutfield(dt);
         TickHandoffCoast(dt);
         ChargeBunt(dt);
+        TickCoastBrake(dt);
         // While the throw is in the air the YOU ring rides the receiver: the cursor follows that body's walk to the bag.
         if (Throwing && _fielders.TryGetValue(GlovePos, out var receiverAt))
             (GloveX, GloveZ) = receiverAt;
@@ -1915,7 +1921,36 @@ public sealed partial class LivePlaySystem
             // The body's velocity is the coast's, so when the coast ends it brakes rather than stopping dead (#718).
             _vel[_coastPos] = _coastVel;
             _stepped.Add(_coastPos);
+            if (_coastT <= 1e-9)
+            {
+                // The coast's last step: what it left of the frame is the brake's, and so is every frame after that no walk takes.
+                _coastT = 0;
+                _coastBrakePos = _coastPos;
+                _coastBrakeLeft = dt - step;
+            }
         }
+    }
+
+    /// <summary>
+    /// The brake after a hand-off coast (#718): from the coast's last step the body brakes on every frame no walk has taken it, so
+    /// the coast runs straight into the brake — no standing frame between them, and the walks that waited for the coast take the
+    /// body at the velocity it has. Runs after the walks; nothing to do on the shipped table, where the coast ends in a dead stop.
+    /// </summary>
+    void TickCoastBrake(double dt)
+    {
+        if (_coastBrakePos.Length == 0) return;
+        var pos = _coastBrakePos;
+        // On the coast's last frame the step record is the coast's own mark, and the brake has only what the coast left of the frame.
+        var ending = _coastBrakeLeft >= 0;
+        var left = ending ? _coastBrakeLeft : dt;
+        _coastBrakeLeft = -1;
+        if (pos == GlovePos || !ending && _stepped.Contains(pos) || !_vel.TryGetValue(pos, out var v)
+            || Math.Abs(v.X) < 1e-9 && Math.Abs(v.Z) < 1e-9 || !_fielders.TryGetValue(pos, out var at))
+        {
+            _coastBrakePos = "";
+            return;
+        }
+        if (left > 1e-9) BrakeStep(pos, at, v, left);
     }
 
     bool Coasting(string pos) => _coastT > 0 && pos == _coastPos;
@@ -2177,7 +2212,11 @@ public sealed partial class LivePlaySystem
         return FieldBounds.Clamp(Park, at.X + v.X * dt, at.Z + v.Z * dt);
     }
 
-    /// <summary>Bodies nobody stepped last frame brake to a stop (#718), and the frame's step record is cleared. Nothing to do on the shipped table.</summary>
+    /// <summary>
+    /// Bodies nobody stepped last frame brake to a stop (#718), and the frame's step record is cleared. A coasting body is not idle:
+    /// the ring left it on a frame nobody stepped it, and its coast (then <see cref="TickCoastBrake"/>) is this frame's step.
+    /// Nothing to do on the shipped table.
+    /// </summary>
     void TickIdleBrakes(double dt)
     {
         if (!ResponseLaw)
@@ -2185,7 +2224,7 @@ public sealed partial class LivePlaySystem
             _stepped.Clear();
             return;
         }
-        var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos)).ToList();
+        var idle = _vel.Keys.Where(pos => !_stepped.Contains(pos) && !Coasting(pos)).ToList();
         _stepped.Clear();
         foreach (var pos in idle)
         {
@@ -2195,17 +2234,23 @@ public sealed partial class LivePlaySystem
                 _vel.Remove(pos);
                 continue;
             }
-            // Nobody's intent in the air is a coast, not a brake (#719): the airborne glove keeps its velocity.
-            var nv = Airborne && pos == GlovePos ? v : Respond(pos, (0, 0), 0, dt);
-            var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
-            _fielders[pos] = next;
-            if (pos == GlovePos && !Throwing)
-            {
-                GloveX = next.X;
-                GloveZ = next.Z;
-            }
+            BrakeStep(pos, at, v, dt);
         }
         _stepped.Clear();
+    }
+
+    /// <summary>One braking step of a body nobody steers (#718): its velocity dies at the brake rate and it moves on what is left.</summary>
+    void BrakeStep(string pos, (double X, double Z) at, (double X, double Z) v, double dt)
+    {
+        // Nobody's intent in the air is a coast, not a brake (#719): the airborne glove keeps its velocity.
+        var nv = Airborne && pos == GlovePos ? v : Respond(pos, (0, 0), 0, dt);
+        var next = FieldBounds.Clamp(Park, at.X + nv.X * dt, at.Z + nv.Z * dt);
+        _fielders[pos] = next;
+        if (pos == GlovePos && !Throwing)
+        {
+            GloveX = next.X;
+            GloveZ = next.Z;
+        }
     }
 
     // ---------------------------------------------------------------------------------

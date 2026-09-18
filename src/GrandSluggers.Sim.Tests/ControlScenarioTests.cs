@@ -259,20 +259,20 @@ public sealed class ControlScenarioTests
         var ssAfterCoast = frames[h + coastFrames].At["SS"];
         if (TestRoot.Compact)
         {
-            // The C80 copy's response law (#718): the body keeps the coast's velocity, then brakes over chase.brakeSec instead of
-            // stopping dead. Seen here and reported, not repaired: the idle brake also steps the coasting body once on the coast's
-            // first frame (0.23 ft, so 3.61 ft where speed x coast is 3.38), and the body stands for two frames between the coast
-            // and the brake. The bounds hold with and without those two.
+            // The C80 copy's response law (#718): the body keeps the coast's velocity for exactly chase.handoffCoastSec — every coast
+            // frame at the coast's speed, none faster — and brakes over chase.brakeSec from the very next frame: each frame slower by
+            // the brake rate of its rated speed, no standing frame between the coast and the brake, and at rest once the brake is spent.
+            double StepFt(int i) => Diamond.Dist(frames[i - 1].At["SS"].X, frames[i - 1].At["SS"].Z, frames[i].At["SS"].X, frames[i].At["SS"].Z);
             var coasted = Diamond.Dist(ssAtHandoff.X, ssAtHandoff.Z, ssAfterCoast.X, ssAfterCoast.Z);
-            Assert.InRange(coasted, speed * coast - 0.05, speed * coast + speed * Frame + 0.05);
+            Assert.InRange(coasted, speed * coast - 0.05, speed * coast + 0.05);
+            for (var i = h + 1; i <= h + coastFrames; i++)
+                Assert.Equal(speed * Frame, StepFt(i), 3);
             var off = Math.Abs((ssAfterCoast.X - ssAtHandoff.X) * vZ - (ssAfterCoast.Z - ssAtHandoff.Z) * vX) / speed;
             Assert.True(off < 0.05, $"SS coasts along its last heading ({off:0.00} ft off the line)");
-            var atRest = frames[h + coastFrames + 12].At["SS"];
-            var stillThere = frames[Math.Min(frames.Count - 1, h + coastFrames + 24)].At["SS"];
-            Assert.Equal(atRest.X, stillThere.X, 3);
-            Assert.Equal(atRest.Z, stillThere.Z, 3);
-            Assert.True(Diamond.Dist(ssAfterCoast.X, ssAfterCoast.Z, atRest.X, atRest.Z) <= speed * rules.Fielding.Chase.BrakeSec,
-                "the brake after the coast is shorter than a full-speed run of chase.brakeSec");
+            var brakeSec = rules.Fielding.Chase.BrakeSec;
+            var rated = FieldingResolver.ChaseSpeedFt(map["SS"], false, rules);
+            for (var k = 1; k <= 24 - coastFrames; k++)
+                Assert.Equal(Math.Max(0, speed - k * Frame * rated / brakeSec) * Frame, StepFt(h + coastFrames + k), 3);
             return;
         }
         Assert.Equal(speed * coast, Diamond.Dist(ssAtHandoff.X, ssAtHandoff.Z, ssAfterCoast.X, ssAfterCoast.Z), 1);
