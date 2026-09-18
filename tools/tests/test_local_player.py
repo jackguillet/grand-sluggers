@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 spec = importlib.util.spec_from_file_location("local_player", Path(__file__).parents[1] / "local-player.py")
 player = importlib.util.module_from_spec(spec)
@@ -96,24 +96,83 @@ class MainDeliveryTests(unittest.TestCase):
 
 
 class EditorShutdownTests(unittest.TestCase):
-    def test_completed_editor_is_not_signaled(self):
+    def editor(self, pid=4242):
         process = Mock()
-        process.poll.return_value = 0
-        player.wait_for_editor_shutdown(process)
-        process.wait.assert_not_called()
+        process.pid = pid
+        process.poll.return_value = None
+        return process
+
+    def assert_not_signaled(self, process):
         process.terminate.assert_not_called()
         process.kill.assert_not_called()
+        process.send_signal.assert_not_called()
+
+    def test_completed_editor_is_not_signaled(self):
+        process = self.editor()
+        process.poll.return_value = 0
+        with patch.object(player, "request_normal_quit") as quit_request:
+            player.wait_for_editor_shutdown(process, True)
+        process.wait.assert_not_called()
+        quit_request.assert_not_called()
+        self.assert_not_signaled(process)
+
+    def test_editor_that_exits_after_a_good_build_gets_no_quit_request(self):
+        process = self.editor()
+        process.wait.return_value = 0
+        with patch.object(player, "request_normal_quit") as quit_request:
+            player.wait_for_editor_shutdown(process, True)
+        process.wait.assert_called_once_with(timeout=20)
+        quit_request.assert_not_called()
+        self.assert_not_signaled(process)
+
+    def test_idle_editor_after_a_good_build_gets_one_normal_quit(self):
+        process = self.editor()
+        process.wait.side_effect = [subprocess.TimeoutExpired("Unity", 20), 0]
+        with patch.object(player, "request_normal_quit", return_value=True) as quit_request, \
+                patch.object(player, "log") as log:
+            player.wait_for_editor_shutdown(process, True)
+        quit_request.assert_called_once_with(4242)
+        self.assertEqual([call(timeout=20), call(timeout=120)], process.wait.call_args_list)
+        self.assertNotIn("still open for inspection", " ".join(c.args[0] for c in log.call_args_list))
+        self.assert_not_signaled(process)
 
     def test_slow_editor_is_left_for_normal_shutdown(self):
-        process = Mock()
-        process.poll.return_value = None
+        process = self.editor()
         process.wait.side_effect = subprocess.TimeoutExpired("Unity", 20)
-        with patch.object(player, "log") as log:
-            player.wait_for_editor_shutdown(process)
+        with patch.object(player, "request_normal_quit") as quit_request, patch.object(player, "log") as log:
+            player.wait_for_editor_shutdown(process, False)
         process.wait.assert_called_once_with(timeout=20)
-        process.terminate.assert_not_called()
-        process.kill.assert_not_called()
+        quit_request.assert_not_called()
+        self.assert_not_signaled(process)
         self.assertIn("quit it normally", log.call_args.args[0])
+
+    def test_editor_that_stays_open_after_the_quit_request_is_left_open(self):
+        process = self.editor()
+        process.wait.side_effect = subprocess.TimeoutExpired("Unity", 20)
+        with patch.object(player, "request_normal_quit", return_value=True), patch.object(player, "log") as log:
+            player.wait_for_editor_shutdown(process, True)
+        self.assertEqual([call(timeout=20), call(timeout=120)], process.wait.call_args_list)
+        self.assert_not_signaled(process)
+        self.assertIn("still open for inspection", log.call_args.args[0])
+
+    def test_normal_quit_is_the_quit_apple_event_to_the_exact_pid(self):
+        reply = subprocess.CompletedProcess([], 0, stdout="asked\n", stderr="")
+        with patch.object(player.subprocess, "run", return_value=reply) as run, \
+                patch.object(player.os, "kill") as kill:
+            self.assertTrue(player.request_normal_quit(4242))
+        command = run.call_args.args[0]
+        self.assertEqual(["osascript", "-l", "JavaScript", "-e"], command[:4])
+        self.assertIn("runningApplicationWithProcessIdentifier(4242)", command[4])
+        self.assertIn("app.terminate", command[4])
+        kill.assert_not_called()
+
+    def test_normal_quit_reports_an_app_it_could_not_ask(self):
+        for outcome in (subprocess.CompletedProcess([], 0, stdout="missing\n", stderr=""),
+                        subprocess.CompletedProcess([], 1, stdout="", stderr="execution error"),
+                        OSError("no osascript"),
+                        subprocess.TimeoutExpired("osascript", 30)):
+            with patch.object(player.subprocess, "run", side_effect=[outcome]):
+                self.assertFalse(player.request_normal_quit(4242))
 
 
 if __name__ == "__main__":
