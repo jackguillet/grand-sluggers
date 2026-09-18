@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class NightTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -92,11 +93,14 @@ public class NightTests
     public void EmberNightFireBreathReachesFarther()
     {
         var park = _content.Parks["ember-keep"];
-        Assert.True(ParkHazards.InSlow(park, 0, 250));
-        Assert.False(ParkHazards.InSlow(park, 0, 270));
-        Assert.False(ParkHazards.InSlow(park, 0, 270, night: false));
-        Assert.True(ParkHazards.InSlow(park, 0, 270, night: true));
-        Assert.False(ParkHazards.InSlow(_content.Parks["harbor-diamond"], 0, 270, night: true));
+        // The C80 copy carries the statue's breath at the field's scale (#732): (0, 175) with a 11.2 ft disc, so the same two
+        // points are 175 ft and 189 ft out (20 ft past the mouth at 0.70).
+        var (mouthZ, pastZ) = TestRoot.Pick((250.0, 270.0), (175.0, 189.0));
+        Assert.True(ParkHazards.InSlow(park, 0, mouthZ));
+        Assert.False(ParkHazards.InSlow(park, 0, pastZ));
+        Assert.False(ParkHazards.InSlow(park, 0, pastZ, night: false));
+        Assert.True(ParkHazards.InSlow(park, 0, pastZ, night: true));
+        Assert.False(ParkHazards.InSlow(_content.Parks["harbor-diamond"], 0, pastZ, night: true));
 
         var lava = park.Hazards.First(h => h.Type == "lava_pit");
         Assert.False(ParkHazards.InSlow(park, lava.X, lava.Z + lava.Radius + 4));

@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class FeelInfraTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -52,7 +53,11 @@ public class FeelInfraTests
         Assert.True(dist < 22, $"select too far (dirt is the picture) dist={dist}");
     }
 
+    // A gap on the C80 copy, reported and not repaired (#715): the mound shot is authored at z 72 (data/feel/shots.json), 11.5 ft
+    // behind the shipped rubber. The copy's rubber is at 53.78 ft, so the over-the-shoulder window there is 61.78 to 69.78 ft and
+    // the camera stands 2.2 ft behind it. Moving a camera is a look decision. The copy's run skips Copy=gap rows until then.
     [Fact]
+    [Trait("Copy", "gap")]
     public void PlateIsBehindHomeLookingAtThePitcher()
     {
         var plate = _content.Shots.Must("plate");

@@ -1313,7 +1313,7 @@ Each scenario is a headless sim test: set the state, script the inputs (human se
 | S-57 | Same, no ability | West | Home run |
 | S-58 | Fly hits the wall below the top | | Carom; live; batter to 2B by geometry |
 | S-58b | Fly crosses the fence line at `fenceHeightFt` ± 0.5 ft (D15) | | +0.5 home run; −0.5 carom off the padding you see |
-| S-59 | Bounce then over the fence | | Ground-rule double: every runner +2 |
+| S-59 | Bounce then over the fence (the shipped row is 101 mph at 32°; on the `c80` copy only flies from 42° up hop Harbor's 12-ft wall, so the compact row is 101 mph at 44°, #715) | | Ground-rule double: every runner +2 |
 
 ### B.5 Steals and pickoffs — S-60 … S-72 as tabled in §11.5. ✅ P6 (`StealScenarioTests`).
 
