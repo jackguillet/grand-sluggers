@@ -234,10 +234,13 @@
   // incoming speed the frame before the take. onsetFtPerSec 0 keeps the knockback above, the rule the game shipped with; the
   // c80 copy carries the measured anchors. capSec, handsCutPerPoint and kickFtPerSec are the accepted anchors (0.20 s at full
   // severity for Hands 1, five points less per Hands point above 1, a 10 ft/s kick slowing to rest over the recovery = w² ft),
-  // read only above onset 0.
+  // read only above onset 0. airOnsetFtPerSec / airFullFtPerSec are the airborne pair (a hard catch in the air by a body on its
+  // feet, F693-02-grounded-air-catch-recoil); 0 = no airborne recoil.
   "recoil": {
     "onsetFtPerSec": 0,
     "fullFtPerSec": 0,
+    "airOnsetFtPerSec": 0,
+    "airFullFtPerSec": 0,
     "capSec": 0.20,
     "handsCutPerPoint": 0.05,
     "kickFtPerSec": 10

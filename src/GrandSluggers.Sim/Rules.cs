@@ -1070,6 +1070,9 @@ public sealed class FieldingRules
         RulesValidation.Order(source, "fielding.recoil.onsetFtPerSec", Recoil.OnsetFtPerSec, Recoil.FullFtPerSec, errors);
         if (Recoil.Active && Recoil.FullFtPerSec <= Recoil.OnsetFtPerSec)
             errors.Add($"{source}: fielding.recoil.fullFtPerSec must exceed onsetFtPerSec while the recoil is on; got {Recoil.FullFtPerSec} <= {Recoil.OnsetFtPerSec}");
+        RulesValidation.Order(source, "fielding.recoil.airOnsetFtPerSec", Recoil.AirOnsetFtPerSec, Recoil.AirFullFtPerSec, errors);
+        if (Recoil.AirActive && Recoil.AirFullFtPerSec <= Recoil.AirOnsetFtPerSec)
+            errors.Add($"{source}: fielding.recoil.airFullFtPerSec must exceed airOnsetFtPerSec while the airborne recoil is on; got {Recoil.AirFullFtPerSec} <= {Recoil.AirOnsetFtPerSec}");
     }
 }
 
@@ -1468,11 +1471,20 @@ public sealed class RecoilRules
 {
     public double OnsetFtPerSec { get; init; } = 0;
     public double FullFtPerSec { get; init; } = 0;
+    /// <summary>
+    /// The airborne pair (F693-02-grounded-air-catch-recoil, #720 slice 2): a hard batted ball caught in the air by a body on its
+    /// feet — not diving, not jumping, not a buddy leap — costs the same response off these anchors. 0 = no airborne recoil (the
+    /// shipped table); the c80 copy carries the measured 80 / 115, a distinct pair because the ground pair would charge every liner.
+    /// </summary>
+    public double AirOnsetFtPerSec { get; init; } = 0;
+    public double AirFullFtPerSec { get; init; } = 0;
     [Positive] public double CapSec { get; init; } = 0.20;
     [Chance] public double HandsCutPerPoint { get; init; } = 0.05;
     public double KickFtPerSec { get; init; } = 10;
     /// <summary>The speed-read recoil is on; the shipped knockback is not read.</summary>
     public bool Active => OnsetFtPerSec > 0;
+    /// <summary>A hard catch in the air by a grounded body recoils.</summary>
+    public bool AirActive => AirOnsetFtPerSec > 0;
 }
 
 public sealed class ParkHazardRules

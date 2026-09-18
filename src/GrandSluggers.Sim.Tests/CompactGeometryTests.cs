@@ -365,7 +365,7 @@ public sealed class CompactGeometryTests
                 "dash.chaseMul",
                 "park.pipeReachPadFt",
                 "reaction.catcherSec", "reaction.firstSec", "reaction.outfieldSec", "reaction.pitcherSec", "reaction.shortSec", "reaction.thirdSec",
-                "recoil.fullFtPerSec", "recoil.onsetFtPerSec",
+                "recoil.airFullFtPerSec", "recoil.airOnsetFtPerSec", "recoil.fullFtPerSec", "recoil.onsetFtPerSec",
                 "stick.enterMag", "stick.leaveMag",
                 "throw.baseFtPerSec", "throw.longThrowLossSec", "throw.onTheFlyFt", "throw.relayAutoContinue", "throw.relayBufferSec", "throw.releaseSec"
             ],
@@ -374,6 +374,9 @@ public sealed class CompactGeometryTests
         // the Hands cut and the kick are the accepted anchors in both roots, read only above onset 0. The knockback block does not move.
         Assert.Equal(("0", "55"), (shippedLeaves["recoil.onsetFtPerSec"], trialLeaves["recoil.onsetFtPerSec"]));
         Assert.Equal(("0", "75"), (shippedLeaves["recoil.fullFtPerSec"], trialLeaves["recoil.fullFtPerSec"]));
+        // #720 (slice 2): the airborne pair for a hard catch in the air by a grounded body — its own anchors, off shipped.
+        Assert.Equal(("0", "80"), (shippedLeaves["recoil.airOnsetFtPerSec"], trialLeaves["recoil.airOnsetFtPerSec"]));
+        Assert.Equal(("0", "115"), (shippedLeaves["recoil.airFullFtPerSec"], trialLeaves["recoil.airFullFtPerSec"]));
         Assert.Equal(("0.20", "0.20"), (shippedLeaves["recoil.capSec"], trialLeaves["recoil.capSec"]));
         Assert.Equal(("0.05", "0.05"), (shippedLeaves["recoil.handsCutPerPoint"], trialLeaves["recoil.handsCutPerPoint"]));
         Assert.Equal(("10", "10"), (shippedLeaves["recoil.kickFtPerSec"], trialLeaves["recoil.kickFtPerSec"]));
