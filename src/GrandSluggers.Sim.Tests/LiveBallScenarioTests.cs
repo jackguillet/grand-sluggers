@@ -10,6 +10,7 @@ namespace GrandSluggers.Sim.Tests;
 /// from one <c>Tick</c> per frame. These rows drive it with dead pads (the CPU seat) or a scripted
 /// pad, with no scene object (S-91), and replay identically for either seat (S-90).
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class LiveBallScenarioTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -60,6 +61,14 @@ public sealed class LiveBallScenarioTests
     [Fact]
     public void ClosePlayRaceAtThirdResolvesAgainstTheCpuGlove()
     {
+        // The C80 copy: at 30° the second baseman's route meets this grounder first (the 8/9 infield, the slower legs). From 32°
+        // it is the first baseman's; 36° is the same ball four more degrees toward the line.
+        var (exit, launch, spray) = TestRoot.Pick((90.0, 3.0, 30.0), (90.0, 3.0, 36.0));
+        ClosePlayAtThird_Row(exit, launch, spray);
+    }
+
+    void ClosePlayAtThird_Row(double exit, double launch, double spray)
+    {
         // The offense sends the slowest runner from second at contact (LB) on a sharp grounder to the
         // first baseman; the CPU glove reads the tag at third as makeable and throws there before the
         // batter at first (§8.8 rules 3–4). The mash runs only when the ball is there ahead of the body
@@ -70,7 +79,7 @@ public sealed class LiveBallScenarioTests
         var match = scenario.Match;
         var runner = match.Second!;
         // To the right side, away from the runner's path from second to third.
-        var hit = Shape(scenario.Contact(), match, exit: 90, launch: 3, spray: 30);
+        var hit = Shape(scenario.Contact(), match, exit: exit, launch: launch, spray: spray);
         var preview = match.PreviewHit(hit);
         Assert.Equal("1B", preview.Position);
         var field = match.ResolveFielding(hit, preview);
@@ -145,6 +154,11 @@ public sealed class LiveBallScenarioTests
         var preview = match.PreviewHit(hit);
         var seats = new LiveSeats(HumanBats: false, HumanPitches: true, PlayerMustField: false, Versus: false);
         match.LivePlay.Apply(LivePlayCommand.BeginLive(Scenario.Paint, Scenario.Swing, hit, preview, null, seats));
+        // The C80 copy (#718): the pursuit stick takes the glove only after it has been seen at neutral, so a stick held from the
+        // first frame never does. Six neutral frames first, inside the lockout, so the CPU has not moved the body yet.
+        var neutral = TestRoot.Pick(0, 6);
+        for (var i = 0; i < neutral; i++)
+            match.LivePlay.Apply(LivePlayCommand.Tick(Frame, LivePadInput.Dead, LivePadInput.Dead, false, LivePlayCommandSource.Human));
         var before = (match.LivePlay.GloveX, match.LivePlay.GloveZ);
         var pad = new LivePadInput(StickX: 1, StickY: 0);
         for (var i = 0; i < 30; i++)
@@ -155,7 +169,7 @@ public sealed class LiveBallScenarioTests
         var pos = match.LivePlay.GlovePos;
         var who = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher)[pos];
         var lockout = match.Rules.Fielding.Reaction.LockoutSec(pos);
-        var moving = Math.Max(0, Frame * 30 - lockout);
+        var moving = Math.Max(0, Frame * (neutral + 30) - Math.Max(lockout, Frame * neutral));
         var expected = FieldingResolver.ChaseSpeedFt(who, pos, preview, match.Rules) * moving;
         var moved = match.LivePlay.GloveX - before.GloveX;
         Assert.InRange(moved, expected * 0.5, expected * 1.05);

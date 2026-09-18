@@ -3,6 +3,7 @@ using GrandSluggers.Sim;
 
 namespace GrandSluggers.Sim.Tests;
 
+[Trait("Rows", "compact")]
 public class FieldingSceneTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -61,6 +62,7 @@ public class FieldingSceneTests
     {
         // §8.5: bad chemistry is a chance of a slanted throw (slower, off the cover by 10–14 ft);
         // the rest are ordinary. Good chemistry is faster. Every arm carries its own lateral σ.
+        // The C80 copy (#722): bad chemistry never slants (chem.slantChance 0); every bad throw is the slow one (badSpeedMul 0.90).
         var chem = _content.Chemistry;
         var rules = _content.Rules.Fielding;
         var rio = _content.Must("rio");
@@ -85,9 +87,10 @@ public class FieldingSceneTests
                 Assert.True(Math.Abs(bad.LateralFt) > rules.Cover.RadiusFt, "a slanted throw misses the cover's reach");
             }
             else
-                Assert.Equal(1.0, bad.SpeedMul);
+                Assert.Equal(TestRoot.Pick(1.0, 0.90), bad.SpeedMul);
         }
-        Assert.InRange(slanted, 400 * 0.12, 400 * 0.30);
+        if (TestRoot.Compact) Assert.Equal(0, slanted);
+        else Assert.InRange(slanted, 400 * 0.12, 400 * 0.30);
     }
 
     [Fact]
@@ -98,7 +101,8 @@ public class FieldingSceneTests
         Assert.Equal(0.6, c.RadiusPerField);
         Assert.Equal(4, c.WindowPadFt);
         Assert.Equal(8, c.DiveReachFt);
-        Assert.Equal(8, c.JumpReachFt);
+        // The C80 copy (#719): the jump is a leap of the body (catch.jumpAirSec), not feet on the window.
+        Assert.Equal(TestRoot.Pick(8, 0), c.JumpReachFt);
         Assert.Equal(c.RadiusBaseFt, FieldingResolver.StandUpCatchFt(c.RadiusBaseFt));
         Assert.Equal(c.RadiusBaseFt + c.DiveReachFt, FieldingResolver.DiveCatchFt(c.RadiusBaseFt));
         var plain = FieldingResolver.CatchWindowFt(c.RadiusBaseFt, false, false);
@@ -108,7 +112,8 @@ public class FieldingSceneTests
         Assert.Equal(c.RadiusBaseFt + c.WindowPadFt, plain);
         Assert.Equal(plain + c.DiveReachFt, dive);
         Assert.Equal(plain + c.JumpReachFt, jump);
-        Assert.True(both > dive);
+        if (TestRoot.Compact) Assert.Equal(dive, both);
+        else Assert.True(both > dive);
         Assert.True(both > jump);
         var lunged = FieldDash.Lunge(0, 0, 30, 0, 10);
         Assert.InRange(lunged.X, 9, 11);
@@ -205,15 +210,16 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var dirt = FieldingResolver.PlayGlove(assigned, 0, 120);
+        // The C80 copy: the lip is 137.78 ft, not 155, and the infield stands at 8/9 of the depth. The same three balls at 8/9.
+        var dirt = FieldingResolver.PlayGlove(assigned, 0, TestRoot.Pick(120, 107));
         Assert.False(FieldingResolver.IsOutfield(dirt.Pos));
         Assert.Equal("2B", dirt.Pos);
 
-        var overTheInfield = FieldingResolver.PlayGlove(assigned, 0, 140);
+        var overTheInfield = FieldingResolver.PlayGlove(assigned, 0, TestRoot.Pick(140, 124));
         Assert.False(FieldingResolver.IsOutfield(overTheInfield.Pos),
             "ball still on the dirt stays an infielder — they chase the hop over their head");
 
-        var grass = FieldingResolver.PlayGlove(assigned, 0, 200);
+        var grass = FieldingResolver.PlayGlove(assigned, 0, TestRoot.Pick(200, 178));
         Assert.True(FieldingResolver.IsOutfield(grass.Pos));
         Assert.Equal("CF", grass.Pos);
         Assert.True(FieldingResolver.HandoffToOutfield(dirt.Pos, grass.Pos));
@@ -238,15 +244,17 @@ public class FieldingSceneTests
 
         var match = Match.Slice(_content, seed: 1);
         var assigned = FieldingResolver.Assign(match.Defense.Roster, match.Pitcher);
-        var of = FieldingResolver.NearestOutfielder(assigned, -80, 180);
+        // The C80 copy: LF starts at (-77, 175), on top of the shipped ball. The same ball at 0.70 of the depth, in front of LF.
+        var (ballX, ballZ) = TestRoot.Pick((-80.0, 180.0), (-56.0, 126.0));
+        var of = FieldingResolver.NearestOutfielder(assigned, ballX, ballZ);
         Assert.Equal("LF", of.Pos);
         var start = Diamond.Positions["LF"];
         var speed = FieldingResolver.ChaseSpeedFt(of.Fielder, frozen: false);
         var stepped = start;
         for (var i = 0; i < 45; i++)
-            stepped = FieldingResolver.StepToward(stepped.X, stepped.Z, -80, 180, speed, 1.0 / 30);
-        Assert.True(Diamond.Dist(stepped.X, stepped.Z, -80, 180)
-                    < Diamond.Dist(start.X, start.Z, -80, 180) - 20,
+            stepped = FieldingResolver.StepToward(stepped.X, stepped.Z, ballX, ballZ, speed, 1.0 / 30);
+        Assert.True(Diamond.Dist(stepped.X, stepped.Z, ballX, ballZ)
+                    < Diamond.Dist(start.X, start.Z, ballX, ballZ) - 20,
             "outfielder must close on a ball in the grass, not stay on the pad");
     }
 
@@ -290,7 +298,8 @@ public class FieldingSceneTests
     {
         var match = Match.Slice(_content, seed: 1);
         var fielding = new FieldingResolver(_content.Chemistry);
-        var fly = Fly(280, 28, 8);
+        // The C80 copy: Harbor's center fence is 280, so the shipped 280-ft fly meets the wall. The same fly at 0.70 of the carry.
+        var fly = Fly(TestRoot.Pick(280, 196), 28, 8);
         Assert.Equal(BattedBallClass.Fly, fly.Class);
         var pre = fielding.Preview(fly, match.Park, match.Defense.Roster, match.Pitcher, new Random(1));
         Assert.False(pre.Grounder);
@@ -379,9 +388,10 @@ public class FieldingSceneTests
         var harbor = _content.Parks["harbor-diamond"];
         var canopy = _content.Parks["canopy-yard"];
         var ember = _content.Parks["ember-keep"];
-        Assert.Equal(400, harbor.CenterFenceFt);
-        Assert.Equal(378, canopy.CenterFenceFt);
-        Assert.Equal(408, ember.CenterFenceFt);
+        // The C80 copy carries every fence at 0.70 (#717): 280 / 265 / 286.
+        Assert.Equal(TestRoot.Pick(400, 280), harbor.CenterFenceFt);
+        Assert.Equal(TestRoot.Pick(378, 265), canopy.CenterFenceFt);
+        Assert.Equal(TestRoot.Pick(408, 286), ember.CenterFenceFt);
 
         var cf = Diamond.Positions["CF"];
         Assert.True(FieldBounds.Inside(harbor, cf.X, cf.Z));
@@ -392,7 +402,7 @@ public class FieldingSceneTests
         var pastCanopy = FieldBounds.Clamp(canopy, 0, 500);
         Assert.True(FieldBounds.Inside(harbor, pastHarbor.X, pastHarbor.Z));
         Assert.True(FieldBounds.Inside(canopy, pastCanopy.X, pastCanopy.Z));
-        Assert.True(pastHarbor.Z < 400 - FieldBounds.InsideFt + 0.5);
+        Assert.True(pastHarbor.Z < TestRoot.Pick(400, 280) - FieldBounds.InsideFt + 0.5);
         Assert.True(pastCanopy.Z < pastHarbor.Z - 10,
             "Canopy's shorter fence must clip sooner than Harbor");
         Assert.False(FieldBounds.Inside(harbor, 0, 500));

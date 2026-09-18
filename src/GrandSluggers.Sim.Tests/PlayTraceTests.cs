@@ -8,6 +8,7 @@ namespace GrandSluggers.Sim.Tests;
 /// not only the caption. Cousin of S-90; the dump is observation and must not retune
 /// <c>data/rules/</c> or change a <see cref="PlayEvent"/>.
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class PlayTraceTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -34,8 +35,14 @@ public sealed class PlayTraceTests
 
         var met = trace.Ticks.FirstOrDefault(t => t.Ball.Held);
         Assert.NotNull(met);
-        Assert.True(Diamond.Dist(met!.Glove.X, met.Glove.Z, met.Ball.X, met.Ball.Z) < 1,
+        // The C80 copy (#719): a body takes the ball from its stand-up reach (catch.standUpReachFt 6.0), so on the take's own
+        // tick the ball is that far off the glove (3.6 ft here); the shipped glove runs onto the ball. One tick later it is in the glove on both.
+        var takeFt = TestRoot.Pick(1.0, FieldingResolver.CatchRadiusFt(preview.Fielder, match.Park, match.Rules));
+        Assert.True(Diamond.Dist(met!.Glove.X, met.Glove.Z, met.Ball.X, met.Ball.Z) < takeFt,
             $"glove and ball must meet; glove ({met.Glove.X:0.0},{met.Glove.Z:0.0}) ball ({met.Ball.X:0.0},{met.Ball.Z:0.0})");
+        var inGlove = trace.Ticks[trace.Ticks.ToList().IndexOf(met) + 1];
+        Assert.True(inGlove.Ball.Held && Diamond.Dist(inGlove.Glove.X, inGlove.Glove.Z, inGlove.Ball.X, inGlove.Ball.Z) < 1,
+            $"the held ball is at the glove; glove ({inGlove.Glove.X:0.0},{inGlove.Glove.Z:0.0}) ball ({inGlove.Ball.X:0.0},{inGlove.Ball.Z:0.0})");
 
         var decided = outs[0];
         var bag = Diamond.Bag(decided.Bag);
