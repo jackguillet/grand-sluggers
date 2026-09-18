@@ -281,7 +281,7 @@
       "fix": "After a good build the gate calls EditorApplication.Exit(0) in the same update; the shutdown starts on the next log line. The supervisor backs it up (an older revision's gate still idles): 20 s after good evidence it sends one quit Apple Event (NSRunningApplication terminate) to the exact PID it launched and waits up to 120 s. No signals. Failed and unfinished builds stay open for inspection.",
       "promoted": "EditorShutdownTests.test_idle_editor_after_a_good_build_gets_one_normal_quit",
       "issue": "#765",
-      "pr": ""
+      "pr": "#766"
     }
   ]
 }
