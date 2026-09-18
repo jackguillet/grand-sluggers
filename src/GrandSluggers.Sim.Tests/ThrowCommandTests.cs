@@ -122,8 +122,8 @@ public sealed class ThrowCommandTests
     // ---------------------------------------------------------------------------------
 
     /// <summary>
-    /// A human centre fielder (moss) arms home and throws to the cutoff; the cutoff is a Snap Throw holder (pip at
-    /// short, frost at second). What happens next is the case:
+    /// A human centre fielder (moss) arms home and throws to the cutoff; the cutoff is a Snap Throw holder (frost at
+    /// short — pip carried the ability until the c80 roster gave him Ball Dash, #718). What happens next is the case:
     /// control — the armed onward leg fires for the player at the catch, and a press in flight is nothing;
     /// trial, no press — the cutoff holds for a full second, then a press throws home with the 0.22-s release;
     /// trial, early press — a press 0.15 s before the catch is remembered and fires at the catch;
@@ -140,7 +140,7 @@ public sealed class ThrowCommandTests
     public void TheCutoffHoldsUntilCommandedUnderTheTrialAndSnapIsARelease(string root, string press)
     {
         var content = root == "trial" ? Trial : Control;
-        var (match, bodies) = Game(content, centre: "moss", second: "frost", shortstop: "pip");
+        var (match, bodies) = Game(content, centre: "moss", second: "marlow", shortstop: "frost");
         var konga = content.Must("konga");
         Assert.True(match.StationRunner(3, konga));
         Assert.True(match.SetOuts(1));

@@ -31,8 +31,10 @@ trials/c80/parks/harbor-diamond.json   overrides data/parks/harbor-diamond.json
 ```
 
 Anything not carried here is read from `data/`, so the trial and the control cannot drift apart on
-a file the trial never meant to own. A character edited next month changes both runs, because both
-runs read the same character.
+a file the trial never meant to own. A captain edited next month changes both runs, because both
+runs read the same file. The role players are the one character file this trial carries (#718, so
+that three of them can hold Ball Dash): an edit to them in `data/` has to be mirrored here, or the
+two runs field different rosters.
 
 Three rules. Each is checked when the overlay is read, not left to care:
 
@@ -50,18 +52,19 @@ Three rules. Each is checked when the overlay is read, not left to care:
 ## What is here now
 
 [#717](https://github.com/jackguillet/grand-sluggers/issues/717) — 3c-1, the compact field and the
-ball that fits it. #717 landed eight files in one commit — the folder carries twelve now — because
+ball that fits it. #717 landed eight files in one commit — the folder carries thirteen now — because
 **drag is global and park dimensions are not**:
 at drag 0.0040 the best swing in the game carries 304 ft, so drag alone against the shipped 330-ft
 poles is a game with no home runs in it, and the parks alone are a derby.
 
 | File | What it changes |
+| `characters/role-players.json` | the roster with Ball Dash (#718): dart, pip and jester carry `ball-dash` in place of lick-catch, snap-throw and lick-catch. Every other body is the shipped one, field for field. |
 | --- | --- |
 | `rules/cpu.json` | the CPU's read of a throw (#722): `relayBiasSec` 0.3 / 0.1 / 0 by rung, `runnerReadsArm` 0.5 / 1 / 1, `runnerReadsRelay` 0 / 1 / 1, `readsChemistry` 0 / 1 / 1. Nothing else in the table; the rung stays normal. |
 | `rules/infield.json` | 80-ft basepaths (#717), and the ground that dresses them (#729). One file, because #711 made the infield global and every park shares it. |
 | `rules/running.json` | the tag-up as a race (#732): carry gates 9999, `tagUpHomeMarginSec` 0.25, `tagUpThirdMarginSec` 0.07. Every clock key is the shipped value, byte for byte. |
 | `rules/fielders.json` | where the seven gloves stand (#725): the infield four on the basepath scale, the outfield three on bearing and fence-at-bearing fraction. P and C are not in the file. |
-| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25. Nothing else in the table. |
+| `rules/fielding.json` | `park.pipeReachPadFt` 8 → 5.6 (#732), and the throw clock (#722): `throw.releaseSec` 0.30, `baseFtPerSec` 88.89, `longThrowLossSec` 0.60, `chem.badSpeedMul` 0.90, `slantChance` 0, the forced-relay ceiling `throw.onTheFlyFt` set to never; and the pursuit contract (#718): `chase` 12.4 + 1.12 × Run, the four read clocks 0.35 / 0.45 / 0.25 / 0.40, cover at the body's own speed from contact, and the response law `chase.accelSec` 0.20 / `brakeSec` 0.10; and the throw commands (#723): `abilities.laserMul` 1.25 with `laserHomeOnly` 1, `snapThrowMul` 1.0 with the 0.22 s `snapReleaseSec`, `throw.relayAutoContinue` 0, `relayBufferSec` 0.25; and Ball Dash (#718): `abilities.ballDashMul` 1.20 with the universal sprint retired, `dash.chaseMul` 1.0. Nothing else in the table. |
 | `rules/flight.json` | `drag` 0.0019 → 0.0040 (#717) and `classes.infieldLipFt` 155 → 137.78 (#728). Nothing else in the table. |
 | `parks/*.json` (six) | fences at one scale, 0.70 (#717), and every hazard radius on the same scale (#732). Wall heights and wind unchanged. |
 
@@ -524,3 +527,41 @@ are the HUD's tells; Unity maps RB / period on the defense pad to the cancel.
 
 **Left to the book pass.** The how-to page's row for the cancel verb (its pixel budget is P8's), and the queue's
 visible feedback.
+
+---
+
+[#718](https://github.com/jackguillet/grand-sluggers/issues/718) — slice 3, Ball Dash (F693-02-ball-dash-carrier,
+-ordinary-carry-speed; -field-dash-peak superseded as accepted). Two files: `rules/fielding.json` gains one key in both
+roots and moves one on the trial; `characters/role-players.json` is the thirteenth file, and the first character file the
+trial carries.
+
+| | shipped | c80 |
+| --- | --- | --- |
+| `abilities.ballDashMul` (new) | 1.20 — a Ball Dash holder carries the ball at this multiple of its pursuit speed; no shipped body holds the ability, so the table never reads it | **1.20** — dart, pip and jester |
+| `dash.chaseMul` | 1.35 — East held is a universal fielding sprint, no fade | **1.0** — no sprint; the only faster carry is the ability's |
+| `characters/role-players.json` | dart lick-catch, pip snap-throw, jester lick-catch | **`ball-dash`** on the three — the fastest role players (Run 9, 8, 8); every other body is the shipped one, field for field |
+
+**What the ability is.** A holder with the ball securely in the glove — caught or handed, not in flight — moves at 1.20 ×
+the pursuit speed it was asked for: on the stick, on the CPU's walk to a bag or at a runner in a rundown, and in the CPU's
+carry forecast (`CpuWalkSec`) that decides whether its legs or a throw make the play. No press, no timer, no cooldown; no
+catch-reach or throw bonus. Only the cap moves: the response rates stay measured against the body's unboosted speed
+(`RatedSpeed` no longer takes the asked speed), so dart builds 1.87 ft/s a frame exactly as zig does, parts from him at
+22.48 ft/s and settles at 26.98 on the fifteenth frame against zig's twelfth. `FieldingResolver.CarrySpeedFt` is the asked
+speed itself for every other body — not a product — so the shipped walk is the same double it always was.
+
+**Control unchanged.** 20 `cli match` seeds and all 50 S-29 cohort games byte-identical to pristine `main`: the shipped
+roster has no holder, the shipped `chaseMul` is untouched, and `RatedSpeed` is read only under the response law, which is
+off on the shipped table.
+
+**What it does to a run — and what does not.** 20 of 48 trial seeds diverge from #723 (16 scorelines) and S-29 under the
+trial moves **1.80 / 1.64 → 1.98 / 1.68** (11 of 50 scorelines) — home in the band for the first time, away still under
+it. **All of it is the roster and none of it the carry:** the same 48 seeds and 50 games run with the new roster and
+`ballDashMul` 1.0 are byte-identical to the full trial. Fly outs fall 588 → 545 over the 48 seeds — dart and jester no
+longer bring lick-catch's 6-ft catch bonus to the outfield, and pip no longer brings Snap's 0.22-s release to the cutoff —
+and the divergence often surfaces plays after its cause, as a changed reach or release shifts the timings under identical
+text. In CPU-only games the carry speed itself matters only when the CPU runs the ball to a bag or chases a rundown, and
+no carrier was in one across these games. It shows where it is staged: the human seat running the ball, and the CPU first
+baseman walking a grounder to the bag at 27.0 ft/s against zig's 22.5 (`BallDashTests`).
+
+**What did not move.** `outfieldAirMul` / `infieldAirMul` (to #719 with the air-ball calibration), the analog
+thresholds and controller calibration (#718's last slice), the how-to book (the profile flip).
