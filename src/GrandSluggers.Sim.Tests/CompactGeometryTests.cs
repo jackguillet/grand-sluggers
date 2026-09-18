@@ -359,7 +359,7 @@ public sealed class CompactGeometryTests
             [
                 "abilities.laserHomeOnly", "abilities.laserMul", "abilities.snapThrowMul",
                 "catch.autoDive", "catch.diveRecoveryFieldCut", "catch.diveRecoverySec", "catch.jumpAirSec", "catch.jumpBufferSec", "catch.jumpReachFt", "catch.standUpReachFt",
-                "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.infieldAirMul", "chase.minFtPerSec", "chase.outfieldAirMul",
+                "chase.accelSec", "chase.baseFtPerSec", "chase.brakeSec", "chase.ftPerSecPerRun", "chase.infieldAirMul", "chase.minFtPerSec",
                 "chem.badSpeedMul", "chem.slantChance",
                 "cover.chaseSpeedWeight", "cover.lockoutMul", "cover.startSec",
                 "dash.chaseMul",
@@ -413,7 +413,9 @@ public sealed class CompactGeometryTests
         Assert.Equal(shippedLeaves["catch.diveArmSec"], trialLeaves["catch.diveArmSec"]);
         // #719 (slice 1): the authored stand-up reach, and the hit-class multipliers retired with it.
         Assert.Equal(("0", "6.0"), (shippedLeaves["catch.standUpReachFt"], trialLeaves["catch.standUpReachFt"]));
-        Assert.Equal(("0.6", "1.0"), (shippedLeaves["chase.outfieldAirMul"], trialLeaves["chase.outfieldAirMul"]));
+        // The outfield's air multiplier no longer moves: #719 slice 1 carried 1.0 here, 3d (#757) measured the copy under the S-29 floor
+        // with it, and Jack set the copy back to the shipped 0.6 on 2026-09-18.
+        Assert.Equal(("0.6", "0.6"), (shippedLeaves["chase.outfieldAirMul"], trialLeaves["chase.outfieldAirMul"]));
         Assert.Equal(("0.45", "1.0"), (shippedLeaves["chase.infieldAirMul"], trialLeaves["chase.infieldAirMul"]));
         Assert.Equal(shippedLeaves["catch.windowPadFt"], trialLeaves["catch.windowPadFt"]);
         Assert.Equal(shippedLeaves["catch.diveReachFt"], trialLeaves["catch.diveReachFt"]);

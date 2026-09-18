@@ -81,13 +81,17 @@ public sealed class AirRecoilTests
         Assert.Equal(1, run.Events);
     }
 
-    /// <summary>The #719 gap liner: the trial's centre fielder commits, dives and takes it at 85 ft/s — above the airborne onset, and no recoil: a dive is not a grounded catch, and it pays its own 0.555 s instead.</summary>
+    /// <summary>
+    /// A 130-mph liner at 12° into right-centre: the trial's right fielder commits, dives and takes it at 81 ft/s — above the airborne
+    /// onset, and no recoil: a dive is not a grounded catch, and it pays its own 0.555 s instead. (Slice 2 recorded this on the #719 gap
+    /// liner to centre at 85 ft/s, with the outfield's air multiplier at 1.0; at 0.6 nobody reaches that ball.)
+    /// </summary>
     [Fact]
     public void ADivingCatchIsNotAGroundedOneAndPaysTheDiveInstead()
     {
-        var run = Drive(Trial, FlightFixtures.ExitForCarry(280, 12, Trial.Rules), 12, -8);
-        Assert.Equal("CF", run.Pos);
-        Assert.True(run.Dive, "the centre fielder dove");
+        var run = Drive(Trial, 130, 12, 25);
+        Assert.Equal("RF", run.Pos);
+        Assert.True(run.Dive, "the right fielder dove");
         Assert.True(run.Speed > 80, $"the liner arrived at {run.Speed:0.0} ft/s, above the airborne onset");
         Assert.Equal(0, run.Dur);
         Assert.Equal(0, run.Events);
