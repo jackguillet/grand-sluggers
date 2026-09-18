@@ -9,6 +9,7 @@ namespace GrandSluggers.Sim.Tests;
 /// on release, and the ball in the last few feet under a fly coming over its head. The turn is degrees per second
 /// from data/feel/table.json, scaled by the frame, so the heading does not depend on the frame rate.
 /// </summary>
+[Trait("Rows", "compact")]
 public sealed class BodyFacingTests
 {
     readonly ContentCatalog _content = ContentCatalog.Load();
@@ -174,10 +175,19 @@ public sealed class BodyFacingTests
     // #576  The outfielder does not spin under a fly
     // ---------------------------------------------------------------------------------
 
+    /// <summary>
+    /// The three flies, by root. The C80 copy stands CF at 213.5 ft under a 280 ft fence (#717), so the shipped 335 ft fly is a
+    /// home run there and the 270 ft gap fly is caught on the run; each ball is the same ball at 0.70 of the carry.
+    /// </summary>
+    public static IEnumerable<object[]> FlyRows()
+    {
+        yield return TestRoot.Pick(new object[] { 250, 34, 0 }, new object[] { 175, 34, 0 });     // routine fly 55 ft in front of CF (GameplayTests' fixture); 38 ft on the copy
+        yield return TestRoot.Pick(new object[] { 335, 36, 4 }, new object[] { 235, 36, 4 });     // a fly over CF's head: the run back, then the backpedal
+        yield return TestRoot.Pick(new object[] { 270, 32, -30 }, new object[] { 190, 32, -30 }); // a fly into the LF–CF gap
+    }
+
     [Theory]
-    [InlineData(250, 34, 0)]   // routine fly 55 ft in front of CF (GameplayTests' fixture)
-    [InlineData(335, 36, 4)]   // a fly over CF's head: the run back, then the backpedal
-    [InlineData(270, 32, -30)] // a fly into the LF–CF gap
+    [MemberData(nameof(FlyRows))]
     public void S576_TheGloveUnderAFlyPlantsFacesTheBallAndDoesNotSpin(double carryFt, double launchDeg, double sprayDeg)
     {
         var scenario = new Scenario(_content, seed: 1);
