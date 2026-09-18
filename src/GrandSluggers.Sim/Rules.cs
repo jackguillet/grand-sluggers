@@ -1057,6 +1057,7 @@ public sealed class FieldingRules
     public BobbleRules Bobble { get; init; } = new();
     public KnockbackRules Knockback { get; init; } = new();
     public RecoilRules Recoil { get; init; } = new();
+    public HandlingRules Handling { get; init; } = new();
     public ParkHazardRules Park { get; init; } = new();
     public BuntDefenseRules Bunt { get; init; } = new();
 
@@ -1071,6 +1072,8 @@ public sealed class FieldingRules
         if (Recoil.Active && Recoil.FullFtPerSec <= Recoil.OnsetFtPerSec)
             errors.Add($"{source}: fielding.recoil.fullFtPerSec must exceed onsetFtPerSec while the recoil is on; got {Recoil.FullFtPerSec} <= {Recoil.OnsetFtPerSec}");
         RulesValidation.Order(source, "fielding.recoil.airOnsetFtPerSec", Recoil.AirOnsetFtPerSec, Recoil.AirFullFtPerSec, errors);
+        RulesValidation.Order(source, "fielding.handling.hopMinApexFt", Handling.HopMinApexFt, Handling.HopFullApexFt, errors);
+        RulesValidation.Order(source, "fielding.handling.bobbleSettleFt", Handling.BobbleSettleFt, Handling.BobbleReboundCapFt, errors);
         if (Recoil.AirActive && Recoil.AirFullFtPerSec <= Recoil.AirOnsetFtPerSec)
             errors.Add($"{source}: fielding.recoil.airFullFtPerSec must exceed airOnsetFtPerSec while the airborne recoil is on; got {Recoil.AirFullFtPerSec} <= {Recoil.AirOnsetFtPerSec}");
     }
@@ -1485,6 +1488,43 @@ public sealed class RecoilRules
     public bool Active => OnsetFtPerSec > 0;
     /// <summary>A hard catch in the air by a grounded body recoils.</summary>
     public bool AirActive => AirOnsetFtPerSec > 0;
+}
+
+/// <summary>
+/// Where an ordinary play is allowed to go wrong (#721: F693-02-handling-error-opportunities, -ordinary-handling-error-chance,
+/// -ordinary-handling-error-cap, -ordinary-handling-chance-curve, -awkward-hop-difficulty-source, -ordinary-bobble-outcome,
+/// -bobble-stun, -bobble-stun-duration, -bobble-recovery-reliability, -bobble-direction-spread, -uniform-error-direction,
+/// -local-bobble-*). At <c>awkwardHop</c> 0 the bobble is the one the game shipped with (<see cref="BobbleRules"/>: a roll off
+/// the contact's energy on every grounder take, a whole-tick fumble). Above 0 a legal routine pickup never rolls: the one
+/// difficulty is the awkward in-between hop at the take — the ball rising off a real bounce, mid-way up a hop tall enough to
+/// matter — and its chance is <c>chanceCap × D × (1 − handsCut × H)</c> with D the normalized difficulty and H the normalized
+/// Hands. A failed take is a local bobble: the ball spills down from the contact with a fifth of its horizontal speed (six ft/s
+/// at most) inside ±<c>bobbleSpreadDeg</c> of its travel, rebounds at <c>bobbleRestitution</c> under a <c>bobbleReboundCapFt</c>
+/// ceiling, settles below <c>bobbleSettleFt</c>, keeps <c>bobbleGroundRetain</c> of its roll per impact and slows at
+/// <c>bobbleDecelFtPerSec2</c>; the fumbler is stunned <c>stunSec</c> — no steering, no take — while the ball and every other
+/// body stay live, and the recovery never rolls again.
+/// </summary>
+public sealed class HandlingRules
+{
+    [Chance] public double AwkwardHop { get; init; } = 0;
+    [Chance] public double ChanceCap { get; init; } = 0.10;
+    [Chance] public double HandsCut { get; init; } = 0.80;
+    /// <summary>A hop whose apex is below this is a micro-bounce and never awkward; the difficulty grows to full at <see cref="HopFullApexFt"/>.</summary>
+    public double HopMinApexFt { get; init; } = 0.5;
+    public double HopFullApexFt { get; init; } = 1.5;
+    /// <summary>The phase band: D is 1 at the middle of the rise (φ = 0.5) and falls linearly to 0 this far either side — the clean short hop below, the clean long hop above.</summary>
+    [Positive] public double HopPhaseHalfWidth { get; init; } = 0.35;
+    [Positive] public double StunSec { get; init; } = 0.40;
+    public double BobbleSpreadDeg { get; init; } = 30;
+    [Chance] public double BobbleRetain { get; init; } = 0.20;
+    public double BobbleCapFtPerSec { get; init; } = 6;
+    [Chance] public double BobbleRestitution { get; init; } = 0.35;
+    public double BobbleReboundCapFt { get; init; } = 0.50;
+    public double BobbleSettleFt { get; init; } = 0.25;
+    [Chance] public double BobbleGroundRetain { get; init; } = 0.90;
+    public double BobbleDecelFtPerSec2 { get; init; } = 6;
+    /// <summary>The routine pickup never rolls; the awkward hop is the one difficulty.</summary>
+    public bool Active => AwkwardHop > 0;
 }
 
 public sealed class ParkHazardRules
